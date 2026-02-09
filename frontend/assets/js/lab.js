@@ -521,6 +521,7 @@
     const CHAIN_HINTS = {
         'warp': 'Traffic flows through Cloudflare WARP to hide the proxy from your ISP.',
         'warp-in-warp': 'Double encapsulation: outer WARP wraps inner WARP wraps your proxy. Maximum obfuscation.',
+        'warp-psiphon': 'WARP + Psiphon: uses vwarp\'s --cfon to change the WARP exit country. Requires the vwarp binary.',
         'relay-chain': 'Up to 4 intermediate hops of any protocol (SOCKS5, HTTP, VLESS, VMess, Trojan, SS, WARP). Use local proxies, LAN relays, or pipeline proxies.',
         'fragment': 'Splits TLS handshake into small fragments to bypass stateless DPI. No tunnel needed.',
         'worker': 'Routes traffic through your own Cloudflare Worker. Unblockable private relay.',
@@ -532,10 +533,11 @@
         const hint = $('#chainTypeHint');
         if (hint) hint.textContent = CHAIN_HINTS[ct] || '';
 
-        const showWarp = ct === 'warp' || ct === 'warp-in-warp';
+        const showWarp = ct === 'warp' || ct === 'warp-in-warp' || ct === 'warp-psiphon';
         const el = (id) => document.getElementById(id);
         if (el('warpOptions')) el('warpOptions').style.display = showWarp ? '' : 'none';
         if (el('warpInWarpRow')) el('warpInWarpRow').style.display = ct === 'warp-in-warp' ? '' : 'none';
+        if (el('psiphonOptions')) el('psiphonOptions').style.display = ct === 'warp-psiphon' ? '' : 'none';
         if (el('fragmentOptions')) el('fragmentOptions').style.display = ct === 'fragment' ? '' : 'none';
         if (el('workerOptions')) el('workerOptions').style.display = ct === 'worker' ? '' : 'none';
         if (el('relayChainOptions')) el('relayChainOptions').style.display = ct === 'relay-chain' ? '' : 'none';
@@ -545,8 +547,8 @@
         const l1 = $('#chainLayer1Label');
         if (l1) {
             const labels = {
-                'warp': 'WARP', 'warp-in-warp': 'WARP x2', 'fragment': 'Fragment',
-                'worker': 'Worker', 'relay-chain': 'Relay', 'custom': 'Custom'
+                'warp': 'WARP', 'warp-in-warp': 'WARP x2', 'warp-psiphon': 'WARP+Psiphon',
+                'fragment': 'Fragment', 'worker': 'Worker', 'relay-chain': 'Relay', 'custom': 'Custom'
             };
             l1.textContent = labels[ct] || 'WARP';
         }
@@ -579,13 +581,20 @@
         const localAddr = ($('#localProxyAddr') || {}).value || '';
 
         // Build config based on chain type
-        if (chainType === 'warp' || chainType === 'warp-in-warp') {
+        if (chainType === 'warp' || chainType === 'warp-in-warp' || chainType === 'warp-psiphon') {
             if (!selectedCleanIp) {
                 showResult('step3Result', 'error', 'Please select a clean IP.');
                 return;
             }
             const [warpIp, warpPort] = selectedCleanIp.split(':');
-            if (chainType === 'warp-in-warp') {
+            if (chainType === 'warp-psiphon') {
+                const psiphonCountry = ($('#psiphonCountry') || {}).value || 'US';
+                chainConfig = buildSingboxChain(parsedProxy, warpIp, parseInt(warpPort) || 2408, warpKey, evasion);
+                chainConfig._vwarp = {
+                    psiphon: { enabled: true, country: psiphonCountry },
+                    cli_hint: 'vwarp --cfon --country ' + psiphonCountry + ' --bind 127.0.0.1:8086'
+                };
+            } else if (chainType === 'warp-in-warp') {
                 const outer = ($('#warp2CleanIp') || {}).value || selectedCleanIp;
                 const outerKey = ($('#warp2Key') || {}).value || '';
                 chainConfig = buildDoubleWarpChain(parsedProxy, warpIp, parseInt(warpPort) || 2408, warpKey, outer, outerKey, evasion);
@@ -968,15 +977,58 @@
     }
 
     function singboxOutboundToClash(sbOut) {
-        // Convert a single sing-box outbound to Clash/Mihomo YAML proxy block
+        // Convert a single sing-box outbound to Clash Meta/Mihomo YAML proxy block
         const t = sbOut.type;
         const name = sbOut.tag;
+        const tls = sbOut.tls || {};
+        const transport = sbOut.transport || {};
+        const sni = tls.server_name || sbOut.server || '';
+
+        // Helper: append transport lines for Mihomo (ws, grpc, h2, httpupgrade)
+        function transportLines() {
+            const tType = transport.type || '';
+            let lines = '';
+            if (tType === 'ws') {
+                lines += `\n    network: ws\n    ws-opts:\n      path: ${transport.path || '/'}`;
+                if (transport.headers && transport.headers.Host) lines += `\n      headers:\n        Host: ${transport.headers.Host}`;
+            } else if (tType === 'grpc') {
+                lines += `\n    network: grpc\n    grpc-opts:\n      grpc-service-name: ${transport.service_name || ''}`;
+            } else if (tType === 'http') {
+                lines += `\n    network: h2\n    h2-opts:\n      path: ${transport.path || '/'}`;
+                if (transport.host) lines += `\n      host:\n        - ${transport.host}`;
+            } else if (tType === 'httpupgrade') {
+                lines += `\n    network: ws\n    ws-opts:\n      path: ${transport.path || '/'}\n      v2ray-http-upgrade: true`;
+            }
+            // uTLS fingerprint
+            if (tls.utls && tls.utls.fingerprint) lines += `\n    client-fingerprint: ${tls.utls.fingerprint}`;
+            // ALPN
+            if (tls.alpn && tls.alpn.length) lines += `\n    alpn:\n${tls.alpn.map(a => '      - ' + a).join('\n')}`;
+            return lines;
+        }
+
+        // Reality block for Mihomo
+        function realityLines() {
+            if (tls.reality && tls.reality.enabled) {
+                let r = `\n    reality-opts:\n      public-key: ${tls.reality.public_key || ''}`;
+                if (tls.reality.short_id) r += `\n      short-id: ${tls.reality.short_id}`;
+                return r;
+            }
+            return '';
+        }
+
         if (t === 'vless') {
-            return `  - name: "${name}"\n    type: vless\n    server: ${sbOut.server}\n    port: ${sbOut.server_port}\n    uuid: ${sbOut.uuid || ''}\n    tls: true\n    servername: ${(sbOut.tls && sbOut.tls.server_name) || sbOut.server}`;
+            let block = `  - name: "${name}"\n    type: vless\n    server: ${sbOut.server}\n    port: ${sbOut.server_port}\n    uuid: ${sbOut.uuid || ''}\n    tls: true\n    servername: ${sni}`;
+            if (sbOut.flow) block += `\n    flow: ${sbOut.flow}`;
+            block += realityLines() + transportLines();
+            return block;
         } else if (t === 'vmess') {
-            return `  - name: "${name}"\n    type: vmess\n    server: ${sbOut.server}\n    port: ${sbOut.server_port}\n    uuid: ${sbOut.uuid || ''}\n    alterId: 0\n    cipher: auto\n    tls: true\n    servername: ${(sbOut.tls && sbOut.tls.server_name) || sbOut.server}`;
+            let block = `  - name: "${name}"\n    type: vmess\n    server: ${sbOut.server}\n    port: ${sbOut.server_port}\n    uuid: ${sbOut.uuid || ''}\n    alterId: 0\n    cipher: auto\n    tls: true\n    servername: ${sni}`;
+            block += transportLines();
+            return block;
         } else if (t === 'trojan') {
-            return `  - name: "${name}"\n    type: trojan\n    server: ${sbOut.server}\n    port: ${sbOut.server_port}\n    password: ${sbOut.password || ''}\n    sni: ${(sbOut.tls && sbOut.tls.server_name) || sbOut.server}`;
+            let block = `  - name: "${name}"\n    type: trojan\n    server: ${sbOut.server}\n    port: ${sbOut.server_port}\n    password: ${sbOut.password || ''}\n    sni: ${sni}`;
+            block += transportLines();
+            return block;
         } else if (t === 'shadowsocks') {
             return `  - name: "${name}"\n    type: ss\n    server: ${sbOut.server}\n    port: ${sbOut.server_port}\n    cipher: ${sbOut.method || 'aes-128-gcm'}\n    password: ${sbOut.password || ''}`;
         } else if (t === 'socks') {
@@ -984,7 +1036,17 @@
         } else if (t === 'http') {
             return `  - name: "${name}"\n    type: http\n    server: ${sbOut.server}\n    port: ${sbOut.server_port}`;
         } else if (t === 'wireguard') {
-            return `  - name: "${name}"\n    type: wireguard\n    server: ${sbOut.server}\n    port: ${sbOut.server_port}\n    ip: 172.16.0.2\n    private-key: ${sbOut.private_key || 'YNS+CEQE6JIQiVWcOUJd0K8FLFeCQBONJnXCdFnMRlQ='}\n    public-key: ${sbOut.peer_public_key || WARP_PUBLIC_KEY}\n    mtu: ${sbOut.mtu || 1280}`;
+            const ip = (sbOut.local_address && sbOut.local_address[0]) ? sbOut.local_address[0].split('/')[0] : '172.16.0.2';
+            const reserved = sbOut.reserved ? JSON.stringify(sbOut.reserved) : '[0, 0, 0]';
+            return `  - name: "${name}"\n    type: wireguard\n    server: ${sbOut.server}\n    port: ${sbOut.server_port}\n    ip: ${ip}\n    private-key: ${sbOut.private_key || 'YNS+CEQE6JIQiVWcOUJd0K8FLFeCQBONJnXCdFnMRlQ='}\n    public-key: ${sbOut.peer_public_key || WARP_PUBLIC_KEY}\n    reserved: ${reserved}\n    mtu: ${sbOut.mtu || 1280}\n    udp: true`;
+        } else if (t === 'hysteria2') {
+            let block = `  - name: "${name}"\n    type: hysteria2\n    server: ${sbOut.server}\n    port: ${sbOut.server_port}\n    password: ${sbOut.password || ''}`;
+            if (sni) block += `\n    sni: ${sni}`;
+            return block;
+        } else if (t === 'tuic') {
+            let block = `  - name: "${name}"\n    type: tuic\n    server: ${sbOut.server}\n    port: ${sbOut.server_port}\n    uuid: ${sbOut.uuid || ''}\n    password: ${sbOut.password || ''}`;
+            if (sni) block += `\n    sni: ${sni}`;
+            return block;
         }
         return `  - name: "${name}"\n    type: ${t}\n    server: ${sbOut.server}\n    port: ${sbOut.server_port}`;
     }
@@ -1026,18 +1088,64 @@ rules:
         // Convert a single sing-box outbound to Xray/V2Ray format
         const xOut = { tag: sbOut.tag };
         const t = sbOut.type;
+
+        // Helper: build Xray streamSettings from sing-box tls + transport
+        function buildStreamSettings(sbOut) {
+            const tls = sbOut.tls || {};
+            const transport = sbOut.transport || {};
+            const sni = tls.server_name || sbOut.server || '';
+            const security = tls.enabled !== false && (tls.enabled || tls.server_name) ? 'tls' : 'none';
+
+            const stream = { network: 'tcp', security: security };
+            if (security === 'tls') {
+                stream.tlsSettings = { serverName: sni };
+                if (tls.insecure) stream.tlsSettings.allowInsecure = true;
+                if (tls.alpn && tls.alpn.length) stream.tlsSettings.alpn = tls.alpn;
+                if (tls.utls && tls.utls.fingerprint) stream.tlsSettings.fingerprint = tls.utls.fingerprint;
+            }
+            // Reality support (VLESS)
+            if (tls.reality && tls.reality.enabled) {
+                stream.security = 'reality';
+                stream.realitySettings = {
+                    serverName: sni,
+                    publicKey: tls.reality.public_key || '',
+                    shortId: tls.reality.short_id || '',
+                    fingerprint: (tls.utls && tls.utls.fingerprint) || 'chrome'
+                };
+                delete stream.tlsSettings;
+            }
+            // Transport: ws, grpc, httpupgrade, h2
+            const tType = transport.type || '';
+            if (tType === 'ws') {
+                stream.network = 'ws';
+                stream.wsSettings = { path: transport.path || '/', headers: transport.headers || {} };
+            } else if (tType === 'grpc') {
+                stream.network = 'grpc';
+                stream.grpcSettings = { serviceName: transport.service_name || '' };
+            } else if (tType === 'httpupgrade') {
+                stream.network = 'httpupgrade';
+                stream.httpupgradeSettings = { path: transport.path || '/', host: transport.host || sni };
+            } else if (tType === 'http') {
+                stream.network = 'h2';
+                stream.httpSettings = { path: transport.path || '/', host: transport.host ? [transport.host] : [sni] };
+            }
+            return stream;
+        }
+
         if (t === 'vless') {
             xOut.protocol = 'vless';
-            xOut.settings = { vnext: [{ address: sbOut.server, port: sbOut.server_port, users: [{ id: sbOut.uuid || '', encryption: 'none', flow: sbOut.flow || '' }] }] };
-            xOut.streamSettings = { network: 'tcp', security: 'tls', tlsSettings: { serverName: (sbOut.tls && sbOut.tls.server_name) || sbOut.server } };
+            const user = { id: sbOut.uuid || '', encryption: 'none' };
+            if (sbOut.flow) user.flow = sbOut.flow;
+            xOut.settings = { vnext: [{ address: sbOut.server, port: sbOut.server_port, users: [user] }] };
+            xOut.streamSettings = buildStreamSettings(sbOut);
         } else if (t === 'vmess') {
             xOut.protocol = 'vmess';
             xOut.settings = { vnext: [{ address: sbOut.server, port: sbOut.server_port, users: [{ id: sbOut.uuid || '', alterId: 0, security: 'auto' }] }] };
-            xOut.streamSettings = { network: 'tcp', security: 'tls', tlsSettings: { serverName: (sbOut.tls && sbOut.tls.server_name) || sbOut.server } };
+            xOut.streamSettings = buildStreamSettings(sbOut);
         } else if (t === 'trojan') {
             xOut.protocol = 'trojan';
             xOut.settings = { servers: [{ address: sbOut.server, port: sbOut.server_port, password: sbOut.password || '' }] };
-            xOut.streamSettings = { network: 'tcp', security: 'tls', tlsSettings: { serverName: (sbOut.tls && sbOut.tls.server_name) || sbOut.server } };
+            xOut.streamSettings = buildStreamSettings(sbOut);
         } else if (t === 'shadowsocks') {
             xOut.protocol = 'shadowsocks';
             xOut.settings = { servers: [{ address: sbOut.server, port: sbOut.server_port, method: sbOut.method || 'aes-128-gcm', password: sbOut.password || '' }] };
@@ -1048,9 +1156,25 @@ rules:
             xOut.protocol = 'http';
             xOut.settings = { servers: [{ address: sbOut.server, port: sbOut.server_port }] };
         } else if (t === 'wireguard') {
-            // Xray does not natively support WireGuard outbound — fall back to freedom with a note
+            // Xray-core supports WireGuard outbound natively (secretKey + peers format)
+            xOut.protocol = 'wireguard';
+            xOut.settings = {
+                secretKey: sbOut.private_key || '',
+                address: sbOut.local_address || ['172.16.0.2/32'],
+                peers: [{
+                    endpoint: sbOut.server + ':' + sbOut.server_port,
+                    publicKey: sbOut.peer_public_key || ''
+                }],
+                reserved: sbOut.reserved || [0, 0, 0],
+                mtu: sbOut.mtu || 1280
+            };
+        } else if (t === 'hysteria2') {
+            // Xray does not support Hysteria2 natively — note for user
             xOut.protocol = 'freedom';
-            xOut._note = 'WireGuard outbounds require sing-box or a WireGuard tunnel. Xray does not support WireGuard natively.';
+            xOut._note = 'Hysteria2 is not supported by Xray/V2Ray. Use sing-box for this protocol.';
+        } else if (t === 'tuic') {
+            xOut.protocol = 'freedom';
+            xOut._note = 'TUIC is not supported by Xray/V2Ray. Use sing-box for this protocol.';
         } else {
             xOut.protocol = t || 'freedom';
         }

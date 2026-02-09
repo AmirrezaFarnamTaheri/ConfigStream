@@ -68,15 +68,11 @@ class SurgeAdapter(Adapter):
                 logger.debug(f"Failed to export {p.protocol} to Surge: {e}")
                 failed_count += 1
 
-        # 2. Export Washed Proxies
+        # 2. Export Washed/Revived/Shielded Chains
         if washed_outbounds:
             for out in washed_outbounds:
                 try:
-                    if (
-                        out.get("type") == "wireguard"
-                        and str(out.get("tag", "")).startswith("🛡️ Secure")
-                        and out.get("detour")
-                    ):
+                    if out.get("type") == "wireguard" and out.get("detour"):
                         chain_line = format_singbox_chain_for_surge(
                             out, washed_outbounds
                         )
@@ -176,16 +172,12 @@ class LoonAdapter(Adapter):
             except Exception as e:
                 logger.debug(f"Failed to export {p.protocol} to Loon: {e}")
 
-        # 2. Export Washed Proxies
+        # 2. Export Washed/Revived/Shielded Chains
         chain_count = 0
         if washed_outbounds:
             for out in washed_outbounds:
                 try:
-                    if (
-                        out.get("type") == "wireguard"
-                        and str(out.get("tag", "")).startswith("🛡️ Secure")
-                        and out.get("detour")
-                    ):
+                    if out.get("type") == "wireguard" and out.get("detour"):
                         chain_line = format_singbox_chain_for_loon(
                             out, washed_outbounds
                         )
@@ -475,10 +467,6 @@ class ShadowrocketAdapter(Adapter):
             return f"trojan://{p.uuid}@{p.address}:{p.port}{query_part}#{name}"
 
         elif p.protocol == "vmess":
-            # Simplified VMess reconstruction (often better to use original if available)
-            # This is a basic fallback
-            import json
-
             tls_enabled = parse_tls_flag(p.details.get("tls")) or p.details.get(
                 "security"
             ) in ("tls", "reality")

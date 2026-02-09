@@ -1,18 +1,85 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "ConfigStream Metadata",
+  "description": "Single source of truth for pipeline statistics, consumed by frontend analytics and charts.",
   "type": "object",
-  "required": ["generated_at", "source_count", "entry_count_raw", "entry_count_final"],
+  "required": [
+    "schema_version",
+    "generated_at",
+    "total_lines_sourced",
+    "total_unique_candidates",
+    "total_valid_proxies",
+    "protocols",
+    "country_stats",
+    "latency_distribution"
+  ],
   "properties": {
-    "generated_at": {"type": "string"},
-    "source_count": {"type": "integer", "minimum": 0},
-    "entry_count_raw": {"type": "integer", "minimum": 0},
-    "entry_count_final": {"type": "integer", "minimum": 0},
-    "stale_count": {"type": "integer", "minimum": 0},
-    "warnings": {
-      "type": "array",
-      "items": {"type": "string"}
-    }
+    "schema_version": { "type": "string" },
+    "version": { "type": "string" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "last_updated_utc": { "type": "string", "format": "date-time" },
+    "update_interval_hours": { "type": "integer", "minimum": 1 },
+
+    "total_lines_sourced": { "type": "integer", "minimum": 0, "description": "Raw lines fetched from all sources" },
+    "total_unique_candidates": { "type": "integer", "minimum": 0, "description": "Parsed proxies before testing" },
+    "total_valid_proxies": { "type": "integer", "minimum": 0, "description": "Working proxies after testing" },
+    "total_proxies": { "type": "integer", "minimum": 0, "description": "Working + smart chains" },
+    "total_tested": { "type": "integer", "minimum": 0 },
+    "total_working": { "type": "integer", "minimum": 0 },
+    "total_clean": { "type": "integer", "minimum": 0, "description": "Working minus revived" },
+    "total_revived": { "type": "integer", "minimum": 0 },
+    "total_dirty": { "type": "integer", "minimum": 0, "description": "Honeypots + dirty IPs blocked" },
+    "total_smart_chains": { "type": "integer", "minimum": 0 },
+    "success_rate": { "type": "number", "minimum": 0, "maximum": 1 },
+
+    "revived_warp": { "type": "integer", "minimum": 0 },
+    "revived_vwarp": { "type": "integer", "minimum": 0 },
+    "vwarp_attempts": { "type": "integer", "minimum": 0 },
+    "vwarp_success": { "type": "integer", "minimum": 0 },
+    "vwarp_win_rate": { "type": "number" },
+    "washing_enabled": { "type": "boolean" },
+    "washer_success_count": { "type": "integer", "minimum": 0 },
+
+    "shielded_count": { "type": "integer", "minimum": 0 },
+    "evasion_utls_enabled": { "type": "integer", "minimum": 0 },
+    "evasion_alpn_enabled": { "type": "integer", "minimum": 0 },
+    "evasion_fragmentation_enabled": { "type": "integer", "minimum": 0 },
+    "evasion_multiplexing_enabled": { "type": "integer", "minimum": 0 },
+    "evasion_dns_safe_count": { "type": "integer", "minimum": 0 },
+    "evasion_dns_hardened_count": { "type": "integer", "minimum": 0 },
+
+    "protocols": { "type": "object", "additionalProperties": { "type": "integer" } },
+    "country_stats": { "type": "object", "additionalProperties": { "type": "integer" } },
+    "asns": { "type": "object", "additionalProperties": { "type": "integer" } },
+    "rejection_reasons": { "type": "object", "additionalProperties": { "type": "integer" } },
+    "latency_distribution": {
+      "type": "object",
+      "properties": {
+        "fast": { "type": "integer" },
+        "medium": { "type": "integer" },
+        "slow": { "type": "integer" },
+        "very_slow": { "type": "integer" }
+      }
+    },
+    "latency_by_country": { "type": "object", "additionalProperties": { "type": "integer" } },
+    "latency_by_protocol": { "type": "object", "additionalProperties": { "type": "integer" } },
+    "smart_chains_breakdown": { "type": "object", "additionalProperties": { "type": "integer" } },
+
+    "smart_chain_count": { "type": "integer", "minimum": 0 },
+    "chain_outbounds_count": { "type": "integer", "minimum": 0 },
+    "scanner_ips_found": { "type": "integer", "minimum": 0 },
+    "duration_seconds": { "type": "number" },
+    "geo_resolved": { "type": "integer", "minimum": 0 },
+    "cache_misses": { "type": "integer", "minimum": 0 },
+    "final_count": { "type": "integer", "minimum": 0 },
+    "time_limited": { "type": "boolean" },
+    "time_limit_seconds": { "type": "integer", "minimum": 0 },
+    "chosen_subset_size": { "type": "integer", "minimum": 0 },
+
+    "total_configured_sources": { "type": "integer", "minimum": 0 },
+    "fetched_sources": { "type": "integer", "minimum": 0 },
+    "sources_count": { "type": "integer", "minimum": 0, "description": "Legacy alias for total_configured_sources" },
+    "total_sources": { "type": "integer", "minimum": 0, "description": "Legacy alias for total_configured_sources" }
   },
   "additionalProperties": true
 }

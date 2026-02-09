@@ -1029,6 +1029,7 @@ class ProxyWasher:
             "server_port": clean_port,
             "peer_public_key": peer_key,
             "reserved": reserved,
+            "mtu": 1280,
         }
 
     def wash_failed(
@@ -1102,6 +1103,7 @@ class ProxyWasher:
                 "server_port": clean_port,
                 "peer_public_key": peer_key,
                 "reserved": reserved_bytes,
+                "mtu": 1280,
                 "detour": relay_out["tag"],
             }
 
@@ -1236,6 +1238,7 @@ class ProxyWasher:
                 "server_port": clean_port,
                 "peer_public_key": peer_key,
                 "reserved": reserved_bytes,
+                "mtu": 1280,
                 "detour": relay_tag,
             }
 

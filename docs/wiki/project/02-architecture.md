@@ -148,3 +148,48 @@ To scale indefinitely, we use the **Matrix Strategy**:
 
 This architecture allows ConfigStream to scale linearly. To double capacity, we just add more batch files and increase the matrix size in `main.yml`.
 
+## 5. Advanced Delivery & Integrity
+
+### Steganographic Delivery ("The Gallery")
+*   **Objective:** Bypass DPI by disguising configs as images.
+*   **Implementation:** Encrypted JSON configurations are embedded inside the Least Significant Bits (LSB) of JPEG/PNG images (polyglot PNG+Zip files).
+*   **Usage:** Clients download `gallery.png`, which renders as a normal image but contains an encrypted Zip payload. A network administrator sees an image download, not a config file.
+*   **Frontend Integration:** The `STEGO_KEY` (Fernet) is injected into the frontend JS at build time so the browser can decrypt the latest steganography image.
+
+### IPFS Dead Man's Switch
+*   **Objective:** Censorship-resistant fallback distribution.
+*   **Implementation:** Daily snapshots of the output directory are pinned to IPFS/IPNS.
+*   **Failover:** If `github.io` is blocked, the frontend's `failover.js` detects the outage and redirects to IPFS gateways automatically.
+*   **Requirement:** The `publish_ipfs.py` script requires a local `ipfs` daemon or a pinning service with API support.
+
+### Signed Subscription Integrity
+*   **Objective:** Prevent Man-in-the-Middle tampering with subscription files.
+*   **Implementation:** Ed25519 signatures are attached to subscription files during output generation.
+*   **Verification:** Clients can verify the signature against a hardcoded public key before loading configs, ensuring the pipeline output has not been modified in transit.
+
+### "Bring Your Own Worker" (BYOW) — Platinum Tier
+*   **Objective:** Decentralize exit-node infrastructure using a "Hydra Strategy."
+*   **Mechanism:** Users deploy their own Cloudflare Worker (VLESS-over-WebSocket) and link it in the dashboard. The frontend injects the user's Worker URL into Gold/Shielded configs.
+*   **Benefits:** Clean IP reputation, zero cost for the platform, unblockable (censors cannot block thousands of unique `*.workers.dev` domains).
+*   **Files:** `tools/worker.js` (Worker code), `tools/wrangler.toml` (deployment config), `frontend/assets/js/byow.js` (frontend injection).
+
+## 6. Vwarp Integration
+
+ConfigStream supports two WARP tunnel implementations:
+*   **Standard WARP:** Uses Cloudflare WARP keys directly via WireGuard configs. Requires `WARP_KEY_POOL` secret.
+*   **Vwarp:** Uses the `vwarp` binary (`tools/vwarp.py`) for automated tunnel management, key rotation, and structured logging. Falls back to `WarpScraper` if the binary is missing.
+
+The `VwarpTool` class (`src/configstream/tools/vwarp.py`) handles:
+*   Binary discovery and version detection.
+*   Config generation with adaptive bind addresses.
+*   Failure classification (`_classify_failure`) routing errors to `config`, `dns`, `connectivity`, or `other` for targeted retry logic.
+*   Tunnel lifecycle (start, health-check, stop) with PID tracking.
+
+## Related Documentation
+
+*   **[Engineering Internals](04-engineering.md)** — Pareto Sort, Adaptive Timeout, SingBoxTester, vector search.
+*   **[Protocols & Parsing](03-protocols.md)** — How the 26+ protocols are parsed before entering the pipeline.
+*   **[WARP & Clean IPs](../encyclopedia/networking/warp.md)** — Cloudflare WARP mechanics, scanning, shielding topology.
+*   **[Network Topology](../encyclopedia/networking/topology.md)** — ASNs, peering, relay selection strategy.
+*   **[Security Concepts](../encyclopedia/glossary/security_concepts.md)** — Circuit Breaker, Adaptive Timeout, Fail-Open patterns referenced above.
+*   **[Smart Chain Intelligence](04-engineering.md)** — Detailed chain algorithm, scoring formula, 9 chain types (Section 8).

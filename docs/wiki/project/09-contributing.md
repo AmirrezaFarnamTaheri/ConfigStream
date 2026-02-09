@@ -12,8 +12,8 @@ We welcome contributions! This guide will help you get started.
 ### Setup
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/your-repo/configstream.git
-    cd configstream
+    git clone https://github.com/AmirrezaFarnamTaheri/ConfigStream.git
+    cd ConfigStream
     ```
 
 2.  **Create a virtual environment:**
@@ -90,8 +90,45 @@ The frontend is a critical security boundary.
 5.  Address any review comments.
 
 ## Project Structure
-*   `src/configstream`: Main Python package.
-*   `src/go`: Go-based high-performance components.
-*   `frontend`: Web interface assets.
-*   `tests`: Test suite.
-*   `docs/wiki`: Documentation.
+
+| Directory | Purpose |
+| :--- | :--- |
+| `src/configstream/` | Main Python package — pipeline, parsers, testers, intelligence, generators, models |
+| `src/configstream/pipeline_core/` | Pipeline orchestration, output handler (Scan → Wash → Chain → Write) |
+| `src/configstream/intelligence/` | Intelligence layer — washer, chaining, evasion, adaptive timeout, circuit breaker |
+| `src/configstream/generators/` | Output format generators (Sing-box, Clash, Plaintext, Split) |
+| `src/configstream/converters/` | Proxy-to-config converters (Sing-box outbound, Clash dict) |
+| `src/configstream/parsers/` | Protocol-specific URI parsers (VLESS, VMess, Trojan, SS, etc.) |
+| `src/configstream/tools/` | CLI tools — VwarpTool, CensorshipLab, HTMLSmuggler |
+| `src/configstream/history/` | Proxy history tracking, trend export, analytics |
+| `src/go/tester/` | Go sidecar — high-concurrency batch tester (NDJSON stdin/stdout) |
+| `src/go/tester/wasm_main.go` | WASM tester for browser-side verification |
+| `frontend/` | Web interface — Vanilla JS PWA, no build step |
+| `frontend/assets/js/` | Core JS modules (main, analytics, statistics, proxies, dynamic-downloads, lab) |
+| `tests/unit/` | Unit test suite (750+ tests) |
+| `tests/e2e/` | End-to-end tests (Playwright) |
+| `tests/fuzz/` | Fuzz testing for parsers |
+| `scripts/` | CI helper scripts — merge_batches, deduplicate_sources, frontend verification |
+| `tools/` | Standalone tools — Cloudflare Workers, DNS scanner, lab runner |
+| `docs/wiki/` | Documentation wiki (this directory) |
+| `sources/` | Batch source files (`batch_1.txt` … `batch_14.txt`) |
+
+### Build the Go Tester
+
+The Go tester is optional for basic development but required for full pipeline runs:
+```bash
+cd src/go/tester
+go mod tidy
+go build -o configstream-tester .
+mv configstream-tester ../../../
+```
+
+**Note:** Some tests require the Go binary to be present in the project root or `PATH`.
+
+## Related Documentation
+
+*   **[Getting Started](getting_started.md)** — Full installation walkthrough (venv, Docker, Go tester, `.env`).
+*   **[Architecture Deep Dive](02-architecture.md)** — Understand the pipeline before contributing.
+*   **[Protocols & Parsing](03-protocols.md)** — Parser robustness rules, validation logic, credential recovery.
+*   **[Security & Privacy](07-security.md)** — Security checklist, log sanitization rules, fail-open policy.
+*   **[Troubleshooting](10-troubleshooting.md)** — Common dev environment issues and fixes.

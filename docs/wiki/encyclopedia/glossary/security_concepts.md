@@ -54,3 +54,45 @@ A dynamic timeout strategy that learns from historical latency.
 *   **Problem:** A fixed 10-second timeout wastes time on fast sources (which respond in 500ms) and is too aggressive for slow but valid sources (which need 8s).
 *   **Solution:** ConfigStream tracks the average response time for each source. If a source usually responds in 1s, we set its timeout to 3s (3× average). If it takes 5s today, we know something is wrong and cut it.
 *   **Implementation:** `AdaptiveTimeout` class in the intelligence layer, using exponential moving average of latency.
+
+## Fail-Open vs Fail-Safe
+Two opposing strategies for handling errors in security systems.
+*   **Fail-Open:** When a check fails (e.g., VirusTotal API is down), **allow** the item through. Prioritizes availability over security.
+*   **Fail-Safe (Fail-Closed):** When a check fails, **block** the item. Prioritizes security over availability.
+*   **ConfigStream Policy:** The pipeline uses **fail-open** for most checks (VirusTotal, Anomaly Detection, GeoIP). If a security service is unavailable, proxies are still processed rather than dropping the entire batch. The rationale: in a censorship context, delivering potentially risky proxies is better than delivering nothing.
+
+## Replay Protection
+Preventing an attacker from recording and re-sending valid encrypted packets.
+*   **Problem:** If a censor records a valid Shadowsocks handshake and replays it to the server, the server might accept it — confirming it's a proxy.
+*   **Nonce-Based:** Each packet includes a unique counter (nonce). The server rejects any nonce it has seen before. Used by AEAD ciphers and SS2022.
+*   **Timestamp-Based:** VMess requires client/server clocks to be within 90 seconds. Replayed packets from minutes ago are rejected.
+*   **Bloom Filter:** Some Shadowsocks implementations use a Bloom filter to track recently seen handshakes and reject duplicates.
+
+## UUID (Universally Unique Identifier)
+A 128-bit identifier used for authentication in VMess and VLESS.
+*   **Format:** `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` (36 characters with hyphens).
+*   **Role:** The UUID is the "password" for VMess/VLESS. Only clients with the correct UUID can authenticate.
+*   **Security:** ConfigStream's `SecurityValidator` masks UUIDs in logs (e.g., `a1b2c3d4-****-****-****-************`) to prevent credential leaks.
+
+## AEAD (Authenticated Encryption with Associated Data)
+An encryption scheme that provides both confidentiality (data is unreadable) and integrity (data has not been tampered with) in a single operation.
+*   **Examples:** AES-256-GCM, ChaCha20-Poly1305.
+*   **Why It Matters:** Older Shadowsocks stream ciphers (AES-CFB, RC4-MD5) provided encryption but not authentication. An attacker could flip bits in the ciphertext without detection. AEAD ciphers detect any modification.
+*   **ConfigStream:** Only AEAD and SS2022 ciphers are accepted. Stream ciphers are dropped during parsing.
+
+## Entropy Analysis
+Measuring the randomness of data to classify traffic.
+*   **High Entropy:** Encrypted or compressed data has near-maximum entropy (~8 bits per byte). Shadowsocks traffic, for example, looks like pure random noise.
+*   **Low Entropy:** Plain text, HTML, and most unencrypted protocols have lower entropy with recognizable patterns.
+*   **DPI Usage:** ML-based DPI systems measure entropy distributions to detect encrypted tunnels. Perfectly random traffic is itself a fingerprint — normal HTTPS has structured headers mixed with encrypted payloads, creating a distinctive entropy profile that pure encryption lacks.
+*   **Countermeasure:** Protocols like Trojan and Reality embed proxy traffic inside real TLS sessions, matching the entropy profile of legitimate HTTPS.
+
+## Related Documentation
+
+*   **[Networking Terms](networking_terms.md)** — TLS, SNI, DPI, QUIC, ALPN, WebSocket — the networking-side counterparts to these security concepts.
+*   **[VLESS Protocol](../protocols/vless.md)** — Reality defeats active probing; UUID is mandatory.
+*   **[Shadowsocks Protocol](../protocols/shadowsocks.md)** — AEAD ciphers, SS2022 replay protection in practice.
+*   **[Trojan Protocol](../protocols/trojan.md)** — Fallback mechanism defeats active probers.
+*   **[Firewalls & Honeypots](../security/firewall_honeypot.md)** — Active probing, honeypot detection, traffic analysis in real censorship systems.
+*   **[Engineering Internals — Circuit Breaker](../../project/04-engineering.md)** — How ConfigStream implements the Circuit Breaker and Adaptive Timeout patterns.
+*   **[Censorship Evasion](../../../CENSORSHIP_EVASION.md)** — How ConfigStream applies these security concepts to defeat censorship.

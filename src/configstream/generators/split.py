@@ -224,10 +224,13 @@ def generate_split_outputs(
     # These fields cause Sing-box parse errors: "unknown field "_process""
     clean_outbounds = _strip_internal_metadata(outbounds)
 
-    if singbox_dns_profile:
-        # Ensure direct outbound exists for DNS detours.
-        if not any(o.get("tag") == "direct" for o in clean_outbounds):
-            clean_outbounds.append({"type": "direct", "tag": "direct"})
+    # Ensure essential outbounds exist (required by sing-box / v2rayN / NekoRay)
+    if not any(o.get("tag") == "direct" for o in clean_outbounds):
+        clean_outbounds.append({"type": "direct", "tag": "direct"})
+    if not any(o.get("tag") == "block" for o in clean_outbounds):
+        clean_outbounds.append({"type": "block", "tag": "block"})
+    if not any(o.get("tag") == "dns-out" for o in clean_outbounds):
+        clean_outbounds.append({"type": "dns", "tag": "dns-out"})
 
     sniper_config = {
         "log": {"level": "info", "timestamp": True},
@@ -338,21 +341,22 @@ def generate_split_outputs(
     main_options.extend(tank_proxy_tags)
 
     # Filter out any missing tags in main_options (e.g. if Auto is empty)
-    # Check if "🚀 Auto" exists in outbounds tags
     existing_tags = set(o.get("tag") for o in tank_outbounds)
     main_options = [t for t in main_options if t in existing_tags]
 
-    tank_outbounds.append(
-        {
-            "type": "selector",
-            "tag": "🌍 Proxy Select",
-            "outbounds": main_options,
-            "default": "🚀 Auto" if "🚀 Auto" in main_options else None,
-        }
-    )
+    tank_selector: Dict[str, Any] = {
+        "type": "selector",
+        "tag": "🌍 Proxy Select",
+        "outbounds": main_options,
+    }
+    if "🚀 Auto" in main_options:
+        tank_selector["default"] = "🚀 Auto"
+    tank_outbounds.append(tank_selector)
 
     if not any(o.get("tag") == "direct" for o in tank_outbounds):
         tank_outbounds.append({"type": "direct", "tag": "direct"})
+    if not any(o.get("tag") == "block" for o in tank_outbounds):
+        tank_outbounds.append({"type": "block", "tag": "block"})
     if not any(o.get("tag") == "dns-out" for o in tank_outbounds):
         tank_outbounds.append({"type": "dns", "tag": "dns-out"})
 

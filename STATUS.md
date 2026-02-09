@@ -1,7 +1,7 @@
 # ConfigStream Project Status
 
-**Last Updated**: 2026-02-08
-**Version**: v2.5.0
+**Last Updated**: 2026-02-09
+**Version**: v3.0.0
 **Status**: ✅ **PRODUCTION READY**
 
 ---
@@ -24,8 +24,8 @@
 
 ## 🚀 Current Release Status
 
-### v2.5.0 (2026-02-08)
-- **Release Date**: February 8, 2026
+### v3.0.0 (2026-02-09)
+- **Release Date**: February 9, 2026
 - **Status**: ✅ Production Deployed
 - **Deployment**: GitHub Pages + Actions
 - **Uptime**: 99.8%
@@ -81,7 +81,7 @@
 - **Black**: ✅ 100% formatted
 
 ### Test Coverage
-- **Total Tests**: 800+ Unit Tests
+- **Total Tests**: 784 Unit Tests (31 new in v3.0.0)
 - **Success Rate**: 100% passing
 
 ---
@@ -119,6 +119,18 @@
 - [x] Go tester import formatting fix
 - [x] Frontend nav consistency (Lab link on all 6 pages)
 - [x] Pre-existing test fixes (health endpoint, DNS profiles, server coverage)
+
+### Completed ✅ (v3.0.0)
+- [x] Multi-core export audit (Sing-box, Xray, Clash/Mihomo, Nekobox)
+- [x] Lab exports: full transport (ws/grpc/h2/httpupgrade), Reality, uTLS, ALPN
+- [x] Xray WireGuard native support in lab export
+- [x] Per-protocol URI subscription files (`protocols/*.txt`)
+- [x] Revived proxy URIs included in base64/plaintext subscriptions
+- [x] Trojan ws/grpc transport in Clash converter
+- [x] WireGuard mtu:1280 default across all converters
+- [x] Surge/Loon chain export broadened to all chain types
+- [x] Frontend download selector: chains + side products
+- [x] 31 new artifact consistency tests
 
 ### In Progress
 - [ ] Real-time API rate limiting

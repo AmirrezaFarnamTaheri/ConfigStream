@@ -408,12 +408,14 @@ def _build_wireguard_config(proxy: Proxy) -> Optional[str]:
     keepalive = details.get("persistent_keepalive") or details.get("keepalive")
     dns = details.get("dns")
 
+    mtu = details.get("mtu", 1280)
     lines = [
         "[Interface]",
         f"PrivateKey = {private_key}",
     ]
     if addresses:
         lines.append(f"Address = {', '.join(addresses)}")
+    lines.append(f"MTU = {mtu}")
     if dns:
         lines.append(f"DNS = {dns}")
     lines.append("")
@@ -630,15 +632,21 @@ def generate_categorized_outputs(
 
         generated_files[f"country_{cc}"] = cpath
 
-    # Write Protocol files
+    # Write Protocol files (JSON + plaintext URI subscriptions)
     proto_dir = output_dir / "protocols"
     proto_dir.mkdir(exist_ok=True)
 
     for proto, plist in by_protocol.items():
         ppath = proto_dir / f"{proto}.json"
         AtomicFileWriter.write_text(ppath, generate_singbox_config(plist))
-
         generated_files[f"proto_{proto}"] = ppath
+
+        # Per-protocol URI list (for clients that accept subscription links)
+        proto_uris = generate_plaintext_subscription(plist)
+        if proto_uris.strip():
+            uri_path = proto_dir / f"{proto}.txt"
+            AtomicFileWriter.write_text(uri_path, proto_uris)
+            generated_files[f"proto_{proto}_txt"] = uri_path
 
     # 5. Chain-only output (Washed + Revived + Smart Chains + Shielded)
     # This includes ALL chain types: standard washed, revived (warp/vwarp), smart chains, and shielded (gold)
@@ -1363,7 +1371,7 @@ def save_metadata(
     washing_enabled = washing_enabled or vwarp_attempts > 0
 
     meta = {
-        "schema_version": "2.3.0",  # Updated to match generators.py
+        "schema_version": "3.0.0",
         "version": pkg_version,
         "total_proxies": total + smart_chain_count,  # Working proxies + smart chains
         "total_tested": tested_count,  # Number of proxies actually tested

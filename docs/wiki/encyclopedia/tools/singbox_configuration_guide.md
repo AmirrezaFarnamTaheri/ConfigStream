@@ -160,12 +160,14 @@ Two layers of WARP encryption for maximum obfuscation.
       "type": "wireguard", "tag": "warp-inner",
       "server": "162.159.192.1", "server_port": 2408,
       "private_key": "...", "peer_public_key": "bmXOC+...",
+      "mtu": 1280,
       "detour": "warp-outer"
     },
     {
       "type": "wireguard", "tag": "warp-outer",
       "server": "188.114.98.224", "server_port": 854,
-      "private_key": "...", "peer_public_key": "bmXOC+..."
+      "private_key": "...", "peer_public_key": "bmXOC+...",
+      "mtu": 1280
     }
   ]
 }
@@ -214,15 +216,25 @@ Sing-box chains use `detour` to link outbounds. Xray/V2Ray use `proxySettings.ta
 
 The Lab's export function automatically converts between these formats.
 
-**Note:** Xray does not natively support WireGuard outbounds. WARP chains require sing-box or a standalone WireGuard tunnel.
+**Note:** Xray-core supports WireGuard natively using `secretKey` + `peers[].publicKey` format. The Lab export automatically converts between sing-box and Xray field names.
 
 ## 8. Lab Integration
 The ConfigStream Laboratory page generates complete sing-box JSON configs with all the above features. The flow:
 1.  **Step 1:** Parse your proxy URI → creates the proxy outbound.
 2.  **Step 2:** Find clean IPs → configures the WARP outbound endpoint.
-3.  **Step 3:** Build chain → links outbounds with `detour` fields (6 strategies available: WARP, Double WARP, Relay Chain, TLS Fragment, CDN Worker, Custom).
+3.  **Step 3:** Build chain → links outbounds with `detour` fields (7 strategies available: WARP, Double WARP, WARP+Psiphon, Relay Chain, TLS Fragment, CDN Worker, Custom).
 4.  **Step 4:** Test → verifies the chain works end-to-end.
 5.  **Step 5:** Export → Sing-box JSON, Clash YAML, Xray JSON, URI, QR code, Python script, Bash script.
 
 ### Using Pipeline Proxies
 The Lab page can fetch pre-tested proxies from ConfigStream's pipeline output (`output/base64.txt`). Click "Load Pre-Tested Proxies" at Step 1 to browse verified proxies grouped by protocol.
+
+## Related Documentation
+
+*   **[VLESS Protocol](../protocols/vless.md)** — Reality, transport options, intelligence scores.
+*   **[Trojan Protocol](../protocols/trojan.md)** — HTTPS mimicry, fallback mechanism.
+*   **[Hysteria2 Protocol](../protocols/hysteria2.md)** — Brutal congestion control, Salamander obfuscation.
+*   **[WireGuard Protocol](../protocols/wireguard.md)** — Kernel-level tunneling used by WARP chains.
+*   **[Networking Terms](../glossary/networking_terms.md)** — TLS, WebSocket, gRPC, QUIC transports.
+*   **[Censorship Evasion](../../../CENSORSHIP_EVASION.md)** — How evasion features are injected into Sing-box outbounds.
+*   **[Frontend — Lab](../../project/06-frontend.md)** — The browser-based chain builder that exports Sing-box configs.

@@ -274,23 +274,29 @@ jobs:
           ALLOW_ACTIVE_SCANNING: "true"
           VWARP_VERSION: "v2.1.0"
         run: |
-          set -euxo pipefail
+          set -uxo pipefail
           echo "Running pipeline for batch $BATCH_NUMBER"
+
+          # Run pipeline, capture exit code but don't abort immediately
+          # so that data files are always copied for debugging/merge
+          PIPELINE_EXIT=0
           python -m configstream.cli merge \
             --sources "sources/batch_${BATCH_NUMBER}.txt" \
             --output "output_batch_${BATCH_NUMBER}" \
             --max-workers 50 \
             --timeout 24 \
-            --max-latency 6000 | tee "pipeline_batch_${BATCH_NUMBER}.log"
+            --max-latency 6000 | tee "pipeline_batch_${BATCH_NUMBER}.log" || PIPELINE_EXIT=$?
 
-          # Prepare DBs for upload (Move into output_batch to keep them separate per shard)
+          # Prepare DBs for upload (always runs, even if pipeline failed)
           mkdir -p output_batch_${BATCH_NUMBER}/data
-          # Copy only if they exist
           [ -f data/source_quality.db ] && cp data/source_quality.db output_batch_${BATCH_NUMBER}/data/ || true
           [ -f data/anomaly.db ] && cp data/anomaly.db output_batch_${BATCH_NUMBER}/data/ || true
           [ -f data/history.db ] && cp data/history.db output_batch_${BATCH_NUMBER}/data/ || true
           [ -f data/timeout_history.json ] && cp data/timeout_history.json output_batch_${BATCH_NUMBER}/data/ || true
           [ -f data/test_cache.json ] && cp data/test_cache.json output_batch_${BATCH_NUMBER}/data/ || true
+
+          # Propagate pipeline exit code after data is saved
+          exit $PIPELINE_EXIT
 
       - name: Upload shard artifact
         if: always()

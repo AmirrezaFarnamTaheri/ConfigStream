@@ -354,6 +354,8 @@ def merge_batches(batch_glob: str, output_dir: str) -> None:
     batch_dirs = _find_batch_dirs(batch_glob)
     if not batch_dirs:
         print(f"No batch directories found for {batch_glob}")
+        # Still merge logs even if no batch dirs found
+        _merge_logs(output_dir)
         return
 
     all_proxies: List[Proxy] = []
@@ -365,7 +367,8 @@ def merge_batches(batch_glob: str, output_dir: str) -> None:
         all_proxies.extend(_load_proxies_from_file(proxies_path))
 
     if not all_proxies:
-        print("No proxies loaded; aborting merge.")
+        print("No proxies loaded; aborting merge (logs still consolidated).")
+        _merge_logs(output_dir)
         return
 
     settings = AppSettings()

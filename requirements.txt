@@ -67,5 +67,5 @@ urllib3==2.6.2
 uvicorn==0.40.0
 wasmtime==40.0.0
 yarl==1.22.0
-nest-asyncio
-slowapi
+nest-asyncio==1.6.0
+slowapi==0.1.9

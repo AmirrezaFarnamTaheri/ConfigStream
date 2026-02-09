@@ -7,7 +7,7 @@
             try {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 2000);
-                const resp = await fetch('/health_check', { signal: controller.signal });
+                const resp = await fetch('/health', { signal: controller.signal });
                 clearTimeout(timeoutId);
                 return resp.ok;
             } catch (e) {

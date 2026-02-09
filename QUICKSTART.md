@@ -57,6 +57,9 @@ The results will be in the `output/` directory:
 - `output/loon.conf` (Loon format)
 - `output/sip008.json` (SIP008 Shadowsocks format)
 - `output/side_products.zip` (OpenVPN/WireGuard pack + URIs)
+- `output/protocols/*.txt` (Per-protocol URI lists: vless.txt, trojan.txt, etc.)
+- `output/protocols/*.json` (Per-protocol Sing-box configs)
+- `output/countries/*.json` (Per-country Sing-box configs)
 - `output/metadata.json` (Pipeline stats)
 
 ---

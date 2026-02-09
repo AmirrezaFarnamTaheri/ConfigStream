@@ -27,6 +27,34 @@ def convert_singbox_outbound_to_surge_string(outbound: Dict[str, Any]) -> Option
         uuid = outbound.get("uuid")
         return f"{tag} = vmess, {server}, {port}, username={uuid}"
 
+    elif o_type == "vless":
+        uuid = outbound.get("uuid")
+        sni = ""
+        tls = outbound.get("tls") or {}
+        if isinstance(tls, dict):
+            sni = tls.get("server_name", "")
+        sni_part = f", sni={sni}" if sni else ""
+        return f"{tag} = vless, {server}, {port}, username={uuid}{sni_part}"
+
+    elif o_type == "trojan":
+        password = outbound.get("password", "")
+        sni = ""
+        tls = outbound.get("tls") or {}
+        if isinstance(tls, dict):
+            sni = tls.get("server_name", "")
+        sni_part = f", sni={sni}" if sni else ""
+        return f"{tag} = trojan, {server}, {port}, password={password}{sni_part}"
+
+    elif o_type == "hysteria2":
+        password = outbound.get("password", "")
+        return f"{tag} = hysteria2, {server}, {port}, password={password}"
+
+    elif o_type == "http":
+        return f"{tag} = http, {server}, {port}"
+
+    elif o_type == "socks5":
+        return f"{tag} = socks5, {server}, {port}"
+
     return None
 
 
@@ -69,7 +97,8 @@ def format_singbox_chain_for_surge(
     pub = exit_node.get("peer_public_key")
     local_ips = exit_node.get("local_address", ["172.16.0.2/32"])
 
-    wg_line = f"{exit_tag} = wireguard, {ip}, {port}, private-key={priv}, peer-public-key={pub}, underlying-proxy={relay_tag}"
+    mtu = exit_node.get("mtu", 1280)
+    wg_line = f"{exit_tag} = wireguard, {ip}, {port}, private-key={priv}, peer-public-key={pub}, mtu={mtu}, underlying-proxy={relay_tag}"
 
     if local_ips:
         wg_line += f", addresses={local_ips[0]}"
@@ -115,6 +144,16 @@ def format_singbox_chain_for_loon(
         port = relay.get("server_port")
         uuid = relay.get("uuid")
         relay_line = f'{relay_tag} = vmess, {server}, {port}, auto, "{uuid}"'
+    elif o_type == "vless":
+        server = relay.get("server")
+        port = relay.get("server_port")
+        uuid = relay.get("uuid")
+        relay_line = f'{relay_tag} = vless, {server}, {port}, "{uuid}"'
+    elif o_type == "trojan":
+        server = relay.get("server")
+        port = relay.get("server_port")
+        password = relay.get("password", "")
+        relay_line = f'{relay_tag} = trojan, {server}, {port}, "{password}"'
 
     if not relay_line:
         return None
@@ -128,7 +167,8 @@ def format_singbox_chain_for_loon(
     pub = exit_node.get("peer_public_key")
 
     # Loon syntax: ... proxy=RelayName
-    wg_line = f"{exit_tag} = wireguard, {ip}, {port}, private-key={priv}, peer-public-key={pub}, proxy={relay_tag}"
+    mtu = exit_node.get("mtu", 1280)
+    wg_line = f"{exit_tag} = wireguard, {ip}, {port}, private-key={priv}, peer-public-key={pub}, mtu={mtu}, proxy={relay_tag}"
 
     local_ips = exit_node.get("local_address", ["172.16.0.2/32"])
     if local_ips:

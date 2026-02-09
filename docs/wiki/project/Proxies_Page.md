@@ -32,9 +32,21 @@ While the Home page offers "The Tank" (one-click bundles), the Proxies page is f
 *   Each row displays the "Last Verified" timestamp.
 *   **WASM Integration**: Users can click a "Test" button to verify the proxy *from their own browser* using the embedded `sing-box` WASM module, getting a real-time latency check that reflects their actual ISP conditions, not the GitHub Runner's.
 
+#### 5. Sparkline History
+Each proxy row includes a tiny inline chart (sparkline) showing the proxy's latency over the last 7 days. This gives users an instant visual indicator of stability — a flat line means consistent performance, while spikes indicate intermittent issues.
+
+#### 6. Tag Badges
+Proxies display colored badges for their tags:
+*   **Protocol**: `VLESS`, `Trojan`, `VMess`, etc.
+*   **Process**: `NATIVE`, `WASHED`, `REVIVED`, `CHAIN`, `SHIELDED`.
+*   **Evasion**: `UTLS`, `FRAG`, `MUX`, `ALPN`.
+*   **DNS**: `DNS-SAFE`, `DNS-HARDENED`.
+
 ## Technical Implementation
 
-*   **Data Source**: `proxies.json` (The full dataset).
-*   **Pagination**: Implements client-side pagination or "Virtual Scrolling" (via `VirtualScroller` or similar) to handle lists of 5,000+ items without lagging the browser.
-*   **Search Logic**: Pure JavaScript filtering.
-*   **Clipboard API**: Uses `navigator.clipboard.writeText()` for one-click copying.
+*   **Data Source**: `proxies.json` fetched via `fetchProxies()` in `utils/network.js`. Falls back to `/api/proxies`.
+*   **Virtual Scrolling**: Only renders visible rows (typically 20-50 at a time) regardless of total dataset size. Handles 5,000+ items without DOM bloat.
+*   **Search Logic**: Pure JavaScript `String.includes()` filtering across all text fields. Debounced at 200ms to avoid excessive re-renders.
+*   **Clipboard API**: Uses `navigator.clipboard.writeText()` for one-click URI copying. Falls back to `document.execCommand('copy')` on older browsers.
+*   **QR Generation**: Client-side QR code rendering using a vendored library (no external CDN dependency).
+*   **Responsiveness**: Table columns collapse on mobile — ISP and Score columns are hidden, leaving Type, Location, Latency, and Action visible.

@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, patch, MagicMock
 import pytest
 from configstream.pipeline_stages import processing_consumer, PipelineStats
 from configstream.models import Proxy
-from configstream.testers_core import SingBoxTester
+from configstream.testers import SingBoxTester
 
 
 @pytest.fixture

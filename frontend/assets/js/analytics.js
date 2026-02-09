@@ -123,6 +123,13 @@ function updateStats(data) {
     const updateFreq = data.update_interval_hours || 6;
     update('updateFrequency', `${updateFreq} hrs`);
 
+    // Shielded & Evasion stats
+    update('shieldedCount', formatNum(data.shielded_count || 0));
+    update('evasionUtls', formatNum(data.evasion_utls_enabled || 0));
+    update('evasionDnsHardened', formatNum(data.evasion_dns_hardened_count || 0));
+    update('evasionFragmentation', formatNum(data.evasion_fragmentation_enabled || 0));
+    update('evasionMultiplex', formatNum(data.evasion_multiplexing_enabled || 0));
+
     // Update timestamp if available
     if (data.last_updated_utc) {
         const date = new Date(data.last_updated_utc);
@@ -950,6 +957,28 @@ function initCharts(data, evasionTrend = null) {
                         pointHoverRadius: 4,
                         fill: false,
                         borderDash: [5, 5]
+                    },
+                    {
+                        label: 'TLS Fragment',
+                        data: evasionTrend.map(e => e.evasion_fragmentation_enabled || 0),
+                        borderColor: 'rgba(230, 126, 34, 1)',
+                        backgroundColor: 'rgba(230, 126, 34, 0.1)',
+                        tension: 0.4,
+                        pointRadius: 2,
+                        pointHoverRadius: 4,
+                        fill: false,
+                        borderDash: [3, 3]
+                    },
+                    {
+                        label: 'Multiplexed',
+                        data: evasionTrend.map(e => e.evasion_multiplexing_enabled || 0),
+                        borderColor: 'rgba(155, 89, 182, 1)',
+                        backgroundColor: 'rgba(155, 89, 182, 0.1)',
+                        tension: 0.4,
+                        pointRadius: 2,
+                        pointHoverRadius: 4,
+                        fill: false,
+                        borderDash: [8, 4]
                     }
                 ]
             },

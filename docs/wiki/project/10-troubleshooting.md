@@ -92,9 +92,52 @@ Not sure which strategy to use? Follow this flowchart:
 
 Run `python lab-scanner.py --auto-chain` to automatically test all 6 strategies.
 
+## Pipeline & Infrastructure Issues
+
+### "Go Binary Not Found"
+If you see `WarpScannerWorker: Go binary not found`, the pipeline cannot find the compiled Go tester.
+*   **Fix:** Compile it: `cd src/go/tester && go build -o configstream-tester .`
+*   **CI:** Check `.github/workflows/main.yml` to ensure the `build_go` step ran successfully.
+
+### "Washing Skipped: No WARP keys"
+The `WARP_KEY_POOL` environment variable is empty or malformed.
+*   **Fix:** Provide a valid JSON array of WARP credentials.
+*   **Local Dev:** `export WARP_KEY_POOL='[{"id":"...", "private_key":"...", "peer_public_key":"..."}]'`
+
+### "Address already in use" (Go Tester)
+The Go tester binds to random ports (10000-60000) for local SOCKS listeners. In high-concurrency modes, collisions can occur.
+*   **Fix:** Reduce `--max-workers` count or check if other services are occupying ports.
+
+### "NameError: List" or Type Hint Errors
+Indicates Python 3.8/3.9 without `from typing import List`.
+*   **Fix:** Use Python 3.10+ (required by ConfigStream).
+
+### Globe Not Loading
+The 3D Globe requires WebGL.
+*   **Fix:** Enable Hardware Acceleration in your browser. Check console for `three.js` errors.
+
+### "No Data" in Analytics Charts
+If analytics show zeros:
+*   **Cause:** The pipeline may have failed before the `save_metadata` step.
+*   **Check:** Inspect `output/metadata.json` — if it is empty or missing fields, the pipeline did not complete output generation.
+
+### "Connection Refused" on Washed Proxies
+If proxies tagged `GOLD-` or `🛡️ Secure` are not connecting:
+*   **Cause:** The Cloudflare endpoint may be blocked in your region, or the WARP key quota is exhausted.
+*   **Fix:** Try a different Clean IP or rotate WARP keys.
+
 ## Getting Help
 If you encounter persistent issues, please open an issue on GitHub with:
 1.  Your client name and version.
 2.  The specific error message.
 3.  Which subscription link you are using.
 4.  If using the Lab Scanner, include the `lab-scan-results.json` output file.
+
+## Related Documentation
+
+*   **[Getting Started](getting_started.md)** — Installation, first run, Docker setup.
+*   **[Configuration Reference](Configuration.md)** — All environment variables and their defaults.
+*   **[Evasion Mode Guide](../../CENSORSHIP_EVASION.md)** — Choosing the right evasion mode for your censorship environment.
+*   **[Sing-box Configuration Guide](../encyclopedia/tools/singbox_configuration_guide.md)** — Understanding the config files you're importing.
+*   **[Firewalls & Honeypots](../encyclopedia/security/firewall_honeypot.md)** — Why certain protocols fail in certain countries.
+*   **[WARP & Clean IPs](../encyclopedia/networking/warp.md)** — Troubleshooting washed/shielded proxy issues.

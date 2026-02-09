@@ -37,6 +37,9 @@ ConfigStream is configured via Environment Variables.
 | `ENABLE_ANOMALY_DETECTION` | `true` | Enable anomaly detection on source volume. |
 | `ENABLE_SMART_CHAINING` | `true` | Enable smart chain generation. |
 | `ENABLE_CACHE_WARMING` | `true` | Prioritize testing of historically reliable proxies. |
+| `EVASION_MODE` | `aggressive` | Evasion feature level: `standard` (none), `stealth` (uTLS + frag), `aggressive` (all). |
+| `VWARP_VERSION` | *latest* | Pin a specific Vwarp binary version (e.g., `2.1.0`). |
+| `UPDATE_INTERVAL_HOURS` | `6` | Publish interval reported in `metadata.json` for frontend freshness display. |
 
 ## Security Controls
 
@@ -56,9 +59,29 @@ ConfigStream is configured via Environment Variables.
 | `VT_API_KEY` | *None* | VirusTotal API key for IP reputation checks. |
 | `TELEGRAM_BOT_TOKEN` | *None* | Bot token for uploading results to Telegram. |
 | `TELEGRAM_CHAT_ID` | *None* | Chat ID for Telegram upload. |
+| `ADMIN_API_KEY` | *None* | API key for admin endpoints (e.g., `POST /api/admin/notify-update`). |
+
+## GitHub Actions Secrets
+
+These are set in the repository's Settings → Secrets → Actions:
+
+| Secret | Purpose |
+| :--- | :--- |
+| `WARP_KEY_POOL` | JSON array of WARP credentials for washing/shielding. |
+| `VT_API_KEY` | VirusTotal API key for IP reputation checks. |
+| `VWARP_VERSION` | Vwarp binary version to download in CI. |
+| `TELEGRAM_BOT_TOKEN` | Bot token for Telegram result uploads. |
+| `TELEGRAM_CHAT_ID` | Chat ID for Telegram uploads. |
 
 ## File Paths
 
-*   `sources/batch_*.txt`: Input proxy sources (URLs or direct proxy URIs).
-*   `output/`: Generated artifacts (JSON, YAML, HTML).
-*   `data/`: Persistent caches/DBs (GeoIP, source quality, history, test cache).
+| Path | Purpose |
+| :--- | :--- |
+| `sources/batch_*.txt` | Input proxy sources (URLs or direct proxy URIs). Split into 14 shards for parallel CI. |
+| `output/` | Generated artifacts (JSON, YAML, TXT, CONF, PNG). Deployed to GitHub Pages. |
+| `output/data/` | Time-series trend data (`active_proxy_trend.json`, `evasion_trend.json`). |
+| `output/countries/` | Per-country proxy JSON files (e.g., `US.json`, `DE.json`). |
+| `output/protocols/` | Per-protocol proxy JSON files (e.g., `vless.json`, `trojan.json`). |
+| `output/chosen/` | Curated "top picks" subset (`base64.txt`). |
+| `data/` | Persistent caches/DBs — GeoIP (`.mmdb`), source quality (`.db`), history, test cache. |
+| `frontend/` | Static frontend assets. Merged with `output/` during Pages deployment. |

@@ -24,14 +24,14 @@ Welcome to the **ConfigStream** documentation. ConfigStream is an automated, hig
 
 ### For Developers
 1.  Fork the repository and run `pytest` to verify the test suite (800+ tests).
-2.  Read the [Architecture](Architecture_v2.md) doc for a deep dive.
+2.  Read the [Architecture](02-architecture.md) doc for a deep dive.
 3.  See [Contributing](09-contributing.md) for the development workflow.
 
 ## Documentation Index
 
 ### Project Documentation
 *   **[Introduction](01-introduction.md):** Philosophy, design principles, and the Zero Budget manifesto.
-*   **[Architecture](Architecture_v2.md):** Deep dive into the streaming pipeline, producer-consumer model, and intelligence layers.
+*   **[Architecture](02-architecture.md):** Deep dive into the streaming pipeline, producer-consumer model, and intelligence layers.
 *   **[Protocols](03-protocols.md):** Parsing logic, validation rules, and client compatibility for 26+ protocols.
 *   **[Engineering](04-engineering.md):** Concurrency patterns, async I/O, and performance optimization.
 *   **[DevOps](05-devops.md):** CI/CD pipeline, GitHub Actions matrix strategy, and deployment.
@@ -46,14 +46,18 @@ Welcome to the **ConfigStream** documentation. ConfigStream is an automated, hig
 *   **[Security Concepts](../encyclopedia/glossary/security_concepts.md):** Steganography, honeypots, active probing, traffic analysis, and circuit breakers.
 *   **[WARP & Clean IPs](../encyclopedia/networking/warp.md):** How Cloudflare WARP works, clean IP scanning, shielding, and WARP chains.
 *   **[Network Topology](../encyclopedia/networking/topology.md):** ASNs, peering, proxy chaining strategies, and intranet relay patterns.
+*   **[VLESS Protocol](../encyclopedia/protocols/vless.md):** Lightweight proxy, Reality camouflage, transport options.
+*   **[VMess Protocol](../encyclopedia/protocols/vmess.md):** V2Ray's encrypted proxy, Base64 JSON format.
 *   **[Trojan Protocol](../encyclopedia/protocols/trojan.md):** How Trojan mimics HTTPS, fallback mechanisms, and detection resistance.
+*   **[Shadowsocks](../encyclopedia/protocols/shadowsocks.md):** AEAD ciphers, SS2022, SIP002/SIP003 formats.
+*   **[Hysteria2](../encyclopedia/protocols/hysteria2.md):** QUIC-based, Brutal congestion control, port hopping.
+*   **[WireGuard](../encyclopedia/protocols/wireguard.md):** Kernel-level VPN, WARP integration.
 *   **[Firewalls & Honeypots](../encyclopedia/security/firewall_honeypot.md):** GFW techniques, Iran/Russia-specific blocking, and ConfigStream's defenses.
 *   **[Sing-box Configuration](../encyclopedia/tools/singbox_configuration_guide.md):** Inbounds, outbounds, routing rules, DNS, and chain configuration examples.
 
 ### Feature Documentation
-*   **[Censorship Evasion](../../CENSORSHIP_EVASION.md):** DNS hardening, shielding, TLS fingerprinting, fragmentation, multiplexing, BYOW.
-*   **[Evasion User Guide](../../USER_GUIDE_EVASION.md):** How to select evasion modes (Standard, Stealth, Aggressive) and DNS profiles.
-*   **[Smart Chains](../../SMART_CHAINS_ENHANCEMENT.md):** 9 chain types, multi-criteria relay scoring, censorship-aware routing.
+*   **[Censorship Evasion](../../CENSORSHIP_EVASION.md):** DNS hardening, shielding, TLS fingerprinting, evasion modes (Standard/Stealth/Aggressive), DNS profiles, BYOW.
+*   **[Smart Chains](04-engineering.md):** 9 chain types, multi-criteria relay scoring, censorship-aware routing (Section 8).
 *   **[Output Formats](../../OUTPUT_VARIATIONS.md):** All subscription formats (Sing-box, Clash, Surge, Loon, QX, SIP008, Base64).
 
 ## Legal & Security

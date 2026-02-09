@@ -536,10 +536,12 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         psk = proxy.details.get("pre_shared_key") or proxy.details.get("presharedKey")
         if psk and isinstance(psk, str) and psk.strip():
             out["pre_shared_key"] = psk.strip()
-        # [FIX] Support mtu per sing-box schema (default 1408)
+        # [FIX] Support mtu per sing-box schema; default 1280 for WARP compatibility
         mtu = proxy.details.get("mtu")
         if mtu and str(mtu).isdigit() and 1280 <= int(mtu) <= 1500:
             out["mtu"] = int(mtu)
+        else:
+            out["mtu"] = 1280
 
     elif protocol == "hysteria2":
         out = {

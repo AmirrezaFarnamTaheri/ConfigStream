@@ -919,6 +919,90 @@ def scan_local_proxies() -> List[Dict[str, Any]]:
     return found
 
 
+def scan_vwarp_endpoints(rtt_limit: str = "800ms") -> List[Dict[str, Any]]:
+    """Use the vwarp binary's built-in --scan for fast clean IP discovery.
+
+    Requires vwarp to be installed and in PATH. Falls back gracefully
+    if the binary is not found.
+    """
+    import shutil as _shutil
+    import subprocess as _subprocess
+
+    section("Vwarp Binary Scan")
+    binary = _shutil.which("vwarp")
+    if not binary:
+        # Check common locations
+        for p in [
+            os.path.expanduser("~/.local/bin/vwarp"),
+            "/usr/local/bin/vwarp",
+            "./vwarp",
+        ]:
+            if os.path.isfile(p) and os.access(p, os.X_OK):
+                binary = p
+                break
+    if not binary:
+        fail("vwarp binary not found in PATH or common locations.")
+        info("Install vwarp from: https://github.com/voidr3aper-anon/Vwarp/releases")
+        info("Or use --scan-ips for the built-in Python scanner instead.")
+        return []
+
+    ok(f"Found vwarp binary: {binary}")
+    cmd = [binary, "--scan", "--rtt", rtt_limit]
+    info(f"Running: {' '.join(cmd)}")
+
+    try:
+        result = _subprocess.run(
+            cmd, capture_output=True, text=True, timeout=60
+        )
+    except _subprocess.TimeoutExpired:
+        fail("vwarp scan timed out after 60 seconds.")
+        return []
+    except Exception as exc:
+        fail(f"vwarp scan failed: {exc}")
+        return []
+
+    endpoints: List[Dict[str, Any]] = []
+    if result.stdout:
+        for line in result.stdout.strip().splitlines():
+            # Expected: "162.159.192.10:2408 - 150ms" or similar
+            if ":" in line and "ms" in line:
+                parts = line.split()
+                if not parts:
+                    continue
+                ep = parts[0].strip()
+                # Parse latency
+                latency_ms = 0
+                for part in parts:
+                    if part.endswith("ms"):
+                        try:
+                            latency_ms = int(part.replace("ms", ""))
+                        except ValueError:
+                            pass
+
+                host, port_str = ep, "2408"
+                if ":" in ep and not ep.startswith("["):
+                    host, port_str = ep.rsplit(":", 1)
+                try:
+                    port = int(port_str)
+                except ValueError:
+                    port = 2408
+
+                endpoints.append({
+                    "ip": host, "port": port, "latency_ms": latency_ms,
+                    "source": "vwarp",
+                })
+
+    if endpoints:
+        ok(f"vwarp found {len(endpoints)} clean endpoint(s):")
+        for ep in endpoints[:15]:
+            ok(f"  {ep['ip']}:{ep['port']} ({ep['latency_ms']}ms)")
+    else:
+        fail("vwarp scan returned no results.")
+        info("Try --scan-ips for the built-in Python scanner.")
+
+    return endpoints
+
+
 def scan_clean_ips(
     top_n: int = 10,
     max_workers: int = 30,
@@ -2510,6 +2594,11 @@ User-supplied resources:
     parser.add_argument(
         "--json", action="store_true", help="Output results as JSON only"
     )
+    parser.add_argument(
+        "--scan-vwarp",
+        action="store_true",
+        help="Use vwarp binary for fast clean IP scan (requires vwarp in PATH)",
+    )
     args = parser.parse_args()
 
     banner()
@@ -2531,7 +2620,11 @@ User-supplied resources:
         else:
             info("Invalid --custom-proxy format. Use type://host:port")
 
-    if args.scan_ips:
+    if args.scan_vwarp:
+        results = scan_vwarp_endpoints(rtt_limit="800ms")
+        if args.json:
+            print(json.dumps(results, indent=2))
+    elif args.scan_ips:
         results = scan_clean_ips(
             top_n=args.top_n, max_workers=args.workers, extra_ips=user_eps
         )
