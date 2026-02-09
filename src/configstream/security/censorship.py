@@ -1,15 +1,16 @@
 import time
-import requests
 import logging
 from typing import Any, Dict, List, Optional
 
-# Setup local logger since importing from ..logging_config failed or was circular
+import httpx
+
 logger = logging.getLogger(__name__)
 
 
 class CensorshipLab:
     """
     Checks connectivity to sensitive sites to determine censorship status.
+    Uses async httpx to comply with the project's no-blocking-IO rule.
     """
 
     SENSITIVE_SITES = [
@@ -21,30 +22,33 @@ class CensorshipLab:
         "https://www.wikipedia.org",
     ]
 
-    def __init__(self):
-        self.results = {}
+    def __init__(self) -> None:
+        self.results: Dict[str, Any] = {}
 
-    def check_connectivity(self, sites: Optional[List[str]] = None) -> Dict[str, Any]:
+    async def check_connectivity(
+        self, sites: Optional[List[str]] = None
+    ) -> Dict[str, Any]:
         """
-        Checks if sensitive sites are reachable.
+        Checks if sensitive sites are reachable (async).
         """
         target_sites = sites or self.SENSITIVE_SITES
-        results = {}
+        results: Dict[str, Any] = {}
 
-        for site in target_sites:
-            try:
-                start_time = time.time()
-                response = requests.get(site, timeout=5)
-                latency = (time.time() - start_time) * 1000
-                results[site] = {
-                    "status": "reachable",
-                    "code": response.status_code,
-                    "latency_ms": round(latency, 2),
-                }
-                logger.info(f"Successfully connected to {site}")
-            except requests.RequestException as e:
-                results[site] = {"status": "blocked", "error": str(e)}
-                logger.warning(f"Failed to connect to {site}: {e}")
+        async with httpx.AsyncClient(timeout=5.0, follow_redirects=True) as client:
+            for site in target_sites:
+                try:
+                    start_time = time.monotonic()
+                    response = await client.get(site)
+                    latency = (time.monotonic() - start_time) * 1000
+                    results[site] = {
+                        "status": "reachable",
+                        "code": response.status_code,
+                        "latency_ms": round(latency, 2),
+                    }
+                    logger.info(f"Successfully connected to {site}")
+                except httpx.HTTPError as e:
+                    results[site] = {"status": "blocked", "error": str(e)}
+                    logger.warning(f"Failed to connect to {site}: {e}")
 
         self.results = results
         return results

@@ -15,19 +15,25 @@ This is the standard zero-cost deployment method. The repository is pre-configur
 2.  **Enable Actions**: Go to the "Actions" tab in your forked repository and enable workflows if prompted.
 3.  **Configure Pages**:
     -   Go to **Settings** > **Pages**.
-    -   Under "Build and deployment", select **Deploy from a branch**.
-    -   **Branch**: Select `gh-pages` (Note: This branch is created automatically after the first successful pipeline run. You may need to wait for the first run to complete).
-    -   **Folder**: `/ (root)`.
+    -   Under "Build and deployment", select **GitHub Actions**.
+    -   The `deploy-pages.yml` workflow automatically deploys after a successful pipeline run.
 
 ### Configuration (Secrets & Variables)
 You can customize the behavior using GitHub Repository Secrets/Variables:
 
--   `MAXMIND_LICENSE_KEY` (Secret): Optional. If provided, the pipeline downloads fresh GeoIP databases from MaxMind. Otherwise, it falls back to public mirrors.
--   `CF_API_TOKEN` (Secret): Optional. Required if you want to purge Cloudflare cache after deployment.
+-   `WARP_KEY_POOL` (Secret): JSON array of Cloudflare WARP keys for proxy washing/revival. Example: `["key1","key2"]`. Without this, washing and revival features are disabled.
+-   `VT_API_KEY` (Secret): Optional. VirusTotal API key for threat intelligence lookups.
+-   `MAXMIND_LICENSE_KEY` (Secret): Optional. For fresh GeoIP databases from MaxMind.
+-   `CF_API_TOKEN` (Secret): Optional. For Cloudflare cache purging after deployment.
+
+#### Environment Variables (set in workflow or `.env`)
+-   `VWARP_VERSION`: Vwarp binary version (default: `v2.1.0`).
+-   `EVASION_MODE`: Evasion feature level — `aggressive`, `stealth`, or `standard`.
+-   `FAIL_ON_ZERO_WORKING`: Set to `false` to allow pipeline to continue with 0 working proxies.
 
 ### Usage
 The pipeline runs automatically:
--   **Schedule**: Every 5 hours (automated via cron `0 */5 * * *`).
+-   **Schedule**: Automated via cron (see `main.yml` for current schedule).
 -   **Manual**: Go to Actions > "Config's Stream" > "Run workflow".
 
 ---
@@ -56,7 +62,9 @@ Ideal for local development or running on a dedicated server/VPS with isolation.
 
 ### Access
 -   Dashboard: `http://localhost:8000`
--   Subscription: `http://localhost:8000/subscribe/base64`
+-   Subscription: `http://localhost:8000/base64.txt`
+-   Sing-box config: `http://localhost:8000/singbox.json`
+-   Clash config: `http://localhost:8000/clash.yaml`
 
 ---
 
@@ -119,9 +127,9 @@ To serve configurations globally with low latency, putting a CDN in front of you
 -   **Cause**: Concurrent writes to the SQLite database.
 -   **Solution**: The system now uses WAL mode to mitigate this. Ensure you are not running multiple pipeline instances simultaneously on the same `data/` directory.
 
-### "GitHub Action failed to push"
--   **Cause**: `gh-pages` branch conflict or permissions.
--   **Solution**: Ensure "Read and Write permissions" are enabled in Settings > Actions > General > Workflow permissions.
+### "GitHub Action failed to deploy"
+-   **Cause**: Pages deployment artifact upload failed or permissions issue.
+-   **Solution**: Ensure "Read and Write permissions" are enabled in Settings > Actions > General > Workflow permissions. Also verify that Pages is set to deploy from "GitHub Actions" (not a branch) in Settings > Pages.
 
 ### "Sing-box not found"
 -   **Cause**: The `sing-box` binary is missing from the environment.

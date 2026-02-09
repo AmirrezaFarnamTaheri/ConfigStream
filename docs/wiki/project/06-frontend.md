@@ -88,9 +88,7 @@ Browsers cannot open TCP sockets.
     2.  Fetches `vectors.json` (pre-computed) and proxy metadata.
     3.  Computes a simple keyword‑based relevance score on the client (protocol, country code, city, tags).
     4.  Ranks results by this score.
-*   **Planned Enhancements (Not Yet Implemented)**:
-    *   Replace the heuristic score with a proper vector‑space similarity measure (for example, cosine similarity over dense vectors).
-    *   Move heavy ranking into a Web Worker to avoid blocking the UI thread for very large datasets.
+*   **Future**: Cosine similarity over dense vectors in a Web Worker for semantic search on large datasets.
 
 ## Time-Travel Sparklines
 
@@ -128,7 +126,7 @@ Each strategy has its own options panel. Advanced evasion options (uTLS fingerpr
 ### Export Formats & Core Compatibility
 All chain configs are exported in formats compatible with the three major proxy cores:
 *   **Sing-box JSON**: Uses `detour` field for chaining (primary format).
-*   **Xray/V2Ray JSON**: Uses `proxySettings.tag` for chaining. Note: WireGuard outbounds are not natively supported by Xray.
+*   **Xray/V2Ray JSON**: Uses `proxySettings.tag` for chaining. Xray-core supports WireGuard natively (`secretKey` + `peers[]` format).
 *   **Clash/Mihomo YAML**: Uses `dialer-proxy` for chaining.
 
 ### Step 4: Test Chain
@@ -145,9 +143,55 @@ All chain configs are exported in formats compatible with the three major proxy 
 *   **`lab-runner.sh`**: Bash script that auto-downloads sing-box and runs chain configs.
 *   **`lab-offline.html`**: Self-contained HTML chain builder that works without a server.
 
+## Cache Architecture
+
+ConfigStream implements a context-aware caching system that optimizes performance while ensuring data freshness. Think of it as a "smart newspaper delivery" — you get yesterday's paper immediately while today's is being printed, and the system knows exactly when a new edition is available.
+
+### Update Detection (`update-detector.js`)
+
+The `UpdateDetector` polls every 4 minutes using lightweight HTTP `HEAD` requests. When it detects a change in `Last-Modified` headers or `last_updated_utc` timestamps, it triggers selective fetches — only downloading the resources that actually changed, not the entire dataset.
+
+### Multi-Layer Caching Strategy (`cache-config.js`)
+
+| Strategy | Resources | Behavior |
+|---|---|---|
+| **cacheFirst** | CSS, JS, images, fonts, HTML | Serve from cache immediately; update in background |
+| **networkFirst** | `metadata.json`, `proxies.json`, `base64.txt` | Try network; fall back to cache if offline |
+| **Stale-While-Revalidate** | All dynamic data | Show cached data instantly, refresh in background |
+
+### IndexedDB Storage (`cache-manager.js`)
+
+Large datasets (the full proxy list can be 5,000+ items) are stored in **IndexedDB** rather than LocalStorage to avoid quota limits and main-thread blocking. The `IDBHelper` class wraps IndexedDB operations with Promises for clean async usage.
+
+### Data Flow
+
+```
+Page Load → Service Worker (Cache First for assets)
+         → CacheManager checks IndexedDB for data
+         → If fresh → Render immediately
+         → If stale → Render cached, fetch fresh in background
+         → UpdateDetector starts polling (every 4 min)
+         → On change → Selective fetch → Update IndexedDB → Dispatch event → Re-render UI
+```
+
+### Cache Troubleshooting
+*   **Data not updating?** Check if `metadata.json` timestamp is current on the server. Hard refresh (Ctrl+F5) bypasses the Service Worker.
+*   **Cache too aggressive?** Increment `VERSION` in `cache-config.js` to force a full cache reset.
+
+> **See also**: [Security Concepts — Circuit Breaker](../encyclopedia/glossary/security_concepts.md) for the fail-open pattern used when cache checks fail.
+
 ## Internationalization (i18n)
 
 We support RTL (Right-to-Left) languages natively for our Persian and Arabic users.
 *   **Dictionary**: `assets/js/i18n.js` contains mappings.
 *   **Detection**: Auto-detects browser language.
 *   **Switching**: Dynamic, no reload required.
+
+## Related Documentation
+
+*   **[Home Page](Home_Page.md)** — Dashboard components, globe, hero downloads.
+*   **[Proxies Page](Proxies_Page.md)** — Data grid, filtering, WASM testing.
+*   **[Analytics Page](Analytics_Page.md)** — Charts, evasion trends, data sources.
+*   **[Sing-box Configuration Guide](../encyclopedia/tools/singbox_configuration_guide.md)** — How the Lab's exported configs are structured.
+*   **[Networking Terms — WebSocket](../encyclopedia/glossary/networking_terms.md)** — WS transport used by WASM tester.
+*   **[WARP & Clean IPs](../encyclopedia/networking/warp.md)** — How the Lab discovers and uses clean IPs.

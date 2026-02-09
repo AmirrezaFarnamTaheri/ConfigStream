@@ -53,8 +53,25 @@ A condensed version of the Analytics page, showing:
 *   **Protocol Distribution**: A doughnut chart showing the mix of protocols (e.g., 40% VLESS, 30% VMess, 20% Trojan).
 *   **Top Countries**: A bar chart listing the top 5 countries by proxy count.
 
+#### 5. Download Dropdown
+A secondary download section with a dropdown selector for all output formats:
+*   **Sing-box (JSON)** / **Sing-box VPN** — Primary configs.
+*   **Clash (YAML)** — For Clash Meta / Clash Verge users.
+*   **Base64 / Plain Text** — Universal subscription formats.
+*   **Shadowrocket / Surge / Quantumult X / Loon** — iOS/macOS client-specific formats.
+*   **Smart Chains / Revived / Full Dataset** — Advanced outputs.
+
+Each format supports three DNS profiles (Standard, DNS-Safe, DNS-Hardened) and three evasion modes (Standard, Stealth, Aggressive), selectable via dropdown controls.
+
+#### 6. Evasion & DNS Controls
+*   **DNS Profile Selector**: Standard / DNS-Safe (IP-only) / DNS-Hardened (DoH/DoT/DoQ).
+*   **Evasion Mode Selector**: Standard / Stealth / Aggressive.
+*   These controls dynamically update the download URLs to serve the appropriate file variant.
+
 ## Technical Implementation
 
-*   **Data Source**: Fetches `metadata.json` from the `output/` directory.
-*   **Rendering**: Vanilla JavaScript with direct DOM manipulation for speed.
-*   **Performance**: The 3D globe is lazy-loaded or paused when not in the viewport to save GPU cycles on mobile devices.
+*   **Data Source**: Fetches `metadata.json` via `fetchMetadata()` in `utils/network.js`. Falls back to `/api/stats` if primary URL fails.
+*   **Rendering**: Vanilla JavaScript with direct DOM manipulation. No framework overhead.
+*   **Globe**: `globe.gl` (Three.js/WebGL). Lazy-loaded, auto-rotates, pauses on user interaction, resumes after 2s idle. Falls back gracefully if WebGL is unavailable.
+*   **Performance**: Globe is paused when not in viewport. Stat cards use `requestAnimationFrame` for smooth counter animations.
+*   **Responsiveness**: Fully responsive layout. Globe hidden on small screens to save bandwidth and GPU.

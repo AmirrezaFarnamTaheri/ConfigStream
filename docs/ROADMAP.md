@@ -1,80 +1,68 @@
 # ConfigStream Roadmap
 
-_Last updated: 2026-02-08_
+_Last updated: 2026-02-09_
 
-This roadmap tracks the evolution of ConfigStream towards a fully autonomous, resilient anti-censorship platform.
+This roadmap tracks the current state and future direction of ConfigStream.
 
 ---
 
-## 1. Completed Items (v2.3.0) ✅
+## Current State (v2.5)
 
-### Backend Resilience
-- **Smart Chains**: Implemented multi-hop routing (Entry -> Relay -> Exit) for censorship bypass.
-- **Vwarp Revival**: Integrated Vwarp to "wash" dirty IPs and revive dead proxies.
-- **Active Scanning**: Added `dnsscanner_tui.py` for active endpoint discovery.
-- **Rate Limiting**: Protected API endpoints against abuse.
-- **Type Safety**: Achieved 100% MyPy compliance in core modules.
-- **Censorship Check**: Integrated active checks for sensitive site reachability.
-- **Deprecation Cleanup**: Removed legacy tools and consolidated validation logic.
+### Pipeline & Backend
+- **26+ Protocols**: VLESS, VMess, Trojan, Shadowsocks, SS2022, Hysteria2, TUIC, WireGuard, SSH, SOCKS5, HTTP, OpenVPN, SSR, Juicity, and more.
+- **14-Shard Parallel Pipeline**: GitHub Actions matrix strategy with merge job.
+- **Hybrid Python + Go Engine**: Python orchestration, Go sidecar for mass testing.
+- **9 Smart Chain Types**: Intranet, Washed, IPv6, Streaming, Censorship-Resistant, Low-Latency, High-Anonymity, Load-Balanced, Experimental.
+- **4 Evasion Techniques**: uTLS fingerprinting, TLS fragmentation, multiplexing with padding, ALPN rotation.
+- **3 DNS Profiles**: Standard, DNS-Safe (IP-only), DNS-Hardened (DoH/DoT/DoQ).
+- **Proxy Washing & Shielding**: WARP and Vwarp revival, Copper-to-Gold shielding.
+- **Intelligence Layer**: AdaptiveTimeout, CircuitBreaker, Source Quality Tracker, Anomaly Detector.
+- **60+ Output Files**: Sing-box, Clash, Surge, Loon, Quantumult X, Shadowrocket, SIP008, Base64, plaintext — each in Standard, DNS-Safe, and DNS-Hardened variants.
 
 ### Frontend & UX
-- **Asset Minification**: Automated JS/CSS minification in CI pipeline.
-- **Vwarp Statistics**: Added visibility into revival rates and chain performance.
-- **Responsive Design**: Enhanced mobile experience for the dashboard.
+- **Progressive Web App**: Vanilla JS, no build step, Service Worker caching.
+- **Chain Laboratory**: 5-step browser-based chain builder with 6 strategies and 8 export formats.
+- **Offline Tools**: `lab-scanner.py` (Python), `lab-runner.sh` (Bash), `lab-offline.html` (self-contained HTML).
+- **Analytics Dashboard**: Globe visualization, protocol/country/latency charts, evasion trend time-series.
+- **Internationalization**: i18n support with language switcher.
 
 ### Testing & Quality
-- **Test Coverage**: Expanded unit tests to >96% coverage for critical paths.
-- **Go Tester Refactor**: Rewrote WASM integration for better stability.
-- **SlowAPI Fixes**: Resolved conflicts between rate limiting and test clients.
+- **800+ Tests**: Unit, E2E (Playwright), fuzz testing.
+- **>96% Coverage** on critical paths (parsers, testers, generators).
+- **0 flake8 errors**, 100% black-formatted, MyPy-compliant core.
 
 ---
 
-## 1b. Completed Items (v2.5.0) ✅
+## In Progress 🚧
 
-### Laboratory Page
-- **Chain Builder**: 5-step walkthrough with network diagnosis, clean IP discovery, multi-strategy chain building, live testing, and export.
-- **5 Chain Strategies**: WARP, Double WARP, TLS Fragment, CDN Worker, Custom JSON.
-- **8 Export Formats**: Sing-Box JSON, Clash YAML, Xray JSON, Nekobox Link, URI, QR, Python script, Bash script.
-- **Advanced Evasion**: uTLS fingerprint, ALPN, multiplex (h2mux/smux/yamux), padding.
-- **Layer 1 Support**: Users with local proxies (Psiphon, Lantern, V2RayN) can stack them as the base of the chain.
-- **Network Diagnosis**: Browser-based connectivity tests with tailored strategy advice.
+### Passive Honeypot Heuristics
+- **Goal**: Detect honeypot proxies via passive header inspection (no active probing).
+- **Status**: Research phase. Prototype inspects HTTP response headers for known honeypot signatures.
 
-### Offline Tools
-- **`tools/lab-scanner.py`**: Zero-dependency Python tool — network diagnosis, clean IP scan, proxy discovery, DNS probe, interactive chain builder.
-- **`tools/lab-runner.sh`**: Bash chain runner — auto-installs sing-box, tests chains, scans IPs through proxies.
-- **`frontend/lab-offline.html`**: Self-contained offline Lab page — full multi-layer chain builder in a single HTML file.
-
-### Code Quality (v2.5.0)
-- **800 tests passing**, 0 failures, 3 skipped.
-- **flake8**: 0 errors across 135 source files.
-- **black**: 100% formatted.
-- Shared utility consolidation (`utils/net.py`), dead code removal, SHA256 hashing fix.
+### Operational Observability
+- **Goal**: Webhook notifications for pipeline failures (Telegram, Discord).
+- **Status**: Telegram upload exists; expanding to failure alerts.
 
 ---
 
-## 2. In Progress 🚧
+## Future Directions 🔮
 
-### 2.1 Advanced Evasion
-- **Goal**: Implement passive honeypot heuristics.
-- **Status**: Research phase. Passive headers inspection prototypes exist.
+### Decentralized Distribution
+Publish subscriptions to IPFS/IPNS for censorship-resistant fallback. The `failover.js` frontend module already detects GitHub Pages outages — IPFS gateway redirect is the next step.
 
-### 2.2 Operational Observability
-- **Goal**: Add webhook notifications for pipeline failures.
-- **Status**: Planned.
+### AI-Driven Routing
+Use historical latency and success-rate data to predict optimal relay selection dynamically, replacing static protocol scoring with learned weights.
 
----
+### Adaptive Chain Length
+Adjust the number of hops based on real-time threat level detection (e.g., 2-hop during normal conditions, 3-hop during active censorship events).
 
-## 3. Future Directions 🔮
-
-### 3.1 Decentralized Distribution
-- **Concept**: Publish subscriptions to IPFS or other decentralized storage to avoid GitHub Pages censorship.
-
-### 3.2 AI-Driven Routing
-- **Concept**: Use historical latency data to predict best routes dynamically.
+### Bandwidth Estimation
+Prefer high-bandwidth relays for streaming chains by measuring throughput during testing (not just latency).
 
 ---
 
-## 4. Maintenance
-- Regular blocklist updates.
-- Dependency security patches (via Pip Audit).
-- Source list curation.
+## Maintenance
+- Regular blocklist updates (FireHol, VirusTotal).
+- Dependency security patches (Pip Audit, Dependabot).
+- Source list curation and deduplication.
+- GeoIP database refresh (MaxMind, SagerNet).

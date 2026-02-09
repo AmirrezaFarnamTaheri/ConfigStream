@@ -15,6 +15,46 @@ function initDynamicDownloads() {
     }
 
     const clients = {
+        singbox: {
+            descKey: "downloads.client.singbox.desc",
+            desc: "Sing-box JSON config (V2rayN, NekoRay, NekoBox, Hiddify).",
+            file: "singbox.json",
+            dnsFile: "singbox-dns-safe.json",
+            dnsHardenedFile: "singbox-dns-hardened.json",
+            icon: "shield"
+        },
+        singboxvpn: {
+            descKey: "downloads.client.singboxvpn.desc",
+            desc: "Sing-box TUN/VPN mode (full device tunneling).",
+            file: "singbox-vpn.json",
+            dnsFile: "singbox-vpn-dns-safe.json",
+            dnsHardenedFile: "singbox-vpn-dns-hardened.json",
+            icon: "lock"
+        },
+        clash: {
+            descKey: "downloads.client.clash.desc",
+            desc: "Clash YAML config (Clash Meta, Mihomo, Stash).",
+            file: "clash.yaml",
+            dnsFile: "clash-dns-safe.yaml",
+            dnsHardenedFile: "clash-dns-hardened.yaml",
+            icon: "layers"
+        },
+        base64: {
+            descKey: "downloads.client.base64.desc",
+            desc: "Base64-encoded subscription (universal format).",
+            file: "base64.txt",
+            dnsFile: "base64-dns-safe.txt",
+            dnsHardenedFile: "base64-dns-hardened.txt",
+            icon: "file-text"
+        },
+        plaintext: {
+            descKey: "downloads.client.plaintext.desc",
+            desc: "Plain text proxy URI list (one per line).",
+            file: "proxies.txt",
+            dnsFile: "proxies-dns-safe.txt",
+            dnsHardenedFile: "proxies-dns-hardened.txt",
+            icon: "list"
+        },
         shadowrocket: {
             descKey: "downloads.client.shadowrocket.desc",
             desc: "Configuration format optimized for Shadowrocket on iOS.",
@@ -54,6 +94,22 @@ function initDynamicDownloads() {
             dnsFile: "sip008-dns-safe.json",
             dnsHardenedFile: "sip008-dns-hardened.json",
             icon: "code"
+        },
+        chains: {
+            descKey: "downloads.client.chains.desc",
+            desc: "WARP-shielded chain configs (Gold/Revived proxies, sing-box format).",
+            file: "chains.json",
+            dnsFile: "chains-dns-safe.json",
+            dnsHardenedFile: "chains-dns-hardened.json",
+            icon: "link-2"
+        },
+        sideproducts: {
+            descKey: "downloads.client.sideproducts.desc",
+            desc: "ZIP archive with WireGuard .conf, OpenVPN .ovpn, and plain URI list.",
+            file: "side_products.zip",
+            dnsFile: "side_products-dns-safe.zip",
+            dnsHardenedFile: "side_products-dns-hardened.zip",
+            icon: "package"
         }
     };
 
@@ -114,20 +170,20 @@ function initDynamicDownloads() {
 
     dropdown.addEventListener('change', (e) => updateUI(e.target.value));
     if (profileSelector) {
-        profileSelector.addEventListener('change', () => updateUI(dropdown.value || 'shadowrocket'));
+        profileSelector.addEventListener('change', () => updateUI(dropdown.value || 'singbox'));
     }
     if (dnsToggle) {
-        dnsToggle.addEventListener('change', () => updateUI(dropdown.value || 'shadowrocket'));
+        dnsToggle.addEventListener('change', () => updateUI(dropdown.value || 'singbox'));
     }
     if (evasionModeSelector) {
-        evasionModeSelector.addEventListener('change', () => updateUI(dropdown.value || 'shadowrocket'));
+        evasionModeSelector.addEventListener('change', () => updateUI(dropdown.value || 'singbox'));
     }
-    window.addEventListener('languageChanged', () => updateUI(dropdown.value || 'shadowrocket'));
+    window.addEventListener('languageChanged', () => updateUI(dropdown.value || 'singbox'));
 
     // Initial update
-    updateUI(dropdown.value || 'shadowrocket');
+    updateUI(dropdown.value || 'singbox');
 
-    window.updateDynamicDownloads = () => updateUI(dropdown.value || 'shadowrocket');
+    window.updateDynamicDownloads = () => updateUI(dropdown.value || 'singbox');
 }
 
 // Auto-initialize

@@ -107,62 +107,44 @@ class SingBoxGenerator:
             {"type": "dns", "tag": "dns-out"},
         ]
 
-        # DNS Configuration matched to e1.json
+        # DNS Configuration — uses "address" format for broad client compatibility
+        # (sing-box <1.12, v2rayN, NekoRay, NekoBox, Hiddify)
         dns_config = {
             "servers": [
-                {"server": "223.5.5.5", "type": "udp", "tag": "local_local"},
                 {
-                    "server": "cloudflare-dns.com",
-                    "domain_resolver": "hosts_dns",
-                    "path": "/dns-query",
-                    "type": "https",
+                    "address": "1.1.1.1",
+                    "strategy": "prefer_ipv4",
                     "tag": "remote_dns",
-                    "detour": SELECTOR_TAG,  # Use our selector instead of 'proxy'
+                    "detour": SELECTOR_TAG,
                 },
                 {
-                    "server": "dns.alidns.com",
-                    "domain_resolver": "hosts_dns",
-                    "path": "/dns-query",
-                    "type": "https",
+                    "address": "8.8.8.8",
+                    "strategy": "prefer_ipv4",
                     "tag": "direct_dns",
                     "detour": "direct",
                 },
                 {
-                    "predefined": {
-                        "dns.google": [
-                            "8.8.8.8",
-                            "8.8.4.4",
-                            "2001:4860:4860::8888",
-                            "2001:4860:4860::8844",
-                        ],
-                        "dns.alidns.com": [
-                            "223.5.5.5",
-                            "223.6.6.6",
-                            "2400:3200::1",
-                            "2400:3200:baba::1",
-                        ],
-                        "cloudflare-dns.com": [
-                            "104.16.249.249",
-                            "104.16.248.249",
-                            "2606:4700::6810:f8f9",
-                            "2606:4700::6810:f9f9",
-                        ],
-                    },
-                    "type": "hosts",
-                    "tag": "hosts_dns",
+                    "address": "rcode://success",
+                    "tag": "block_dns",
+                },
+                {
+                    "address": "8.8.8.8",
+                    "tag": "local_local",
+                    "detour": "direct",
                 },
             ],
             "rules": [
                 {"server": "local_local", "domain": ["sing_box-ProxyChain"]},
-                {"server": "hosts_dns", "ip_accept_any": True},
                 {"server": "remote_dns", "clash_mode": "Global"},
                 {"server": "direct_dns", "clash_mode": "Direct"},
                 {
+                    "server": "block_dns",
                     "rule_set": ["geosite-category-ads-all"],
-                    "action": "predefined",
-                    "rcode": "NXDOMAIN",
                 },
-                {"server": "direct_dns", "rule_set": ["geosite-private", "geosite-ir"]},
+                {
+                    "server": "direct_dns",
+                    "rule_set": ["geosite-private", "geosite-ir"],
+                },
             ],
             "final": "remote_dns",
             "independent_cache": True,
@@ -178,15 +160,13 @@ class SingBoxGenerator:
             }
         ]
 
-        # Route matched to e1.json
+        # Route — compatible format for v2rayN / NekoRay / Hiddify
         route = {
-            "default_domain_resolver": {"server": "direct_dns", "strategy": ""},
             "rules": [
                 {"action": "sniff"},
                 {"protocol": ["dns"], "action": "hijack-dns"},
                 {"outbound": "direct", "clash_mode": "Direct"},
                 {"outbound": SELECTOR_TAG, "clash_mode": "Global"},
-                {"outbound": "direct", "ip_cidr": ["8.8.8.8"]},
                 {"network": ["udp"], "port": [443], "action": "reject"},
                 {"outbound": "direct", "protocol": ["bittorrent"]},
                 {"rule_set": ["geosite-category-ads-all"], "action": "reject"},
@@ -244,7 +224,6 @@ class SingBoxGenerator:
             "dns": dns_config,
             "inbounds": inbounds,
             "outbounds": final_outbounds,
-            "endpoints": [],
             "route": route,
             "experimental": experimental,
         }

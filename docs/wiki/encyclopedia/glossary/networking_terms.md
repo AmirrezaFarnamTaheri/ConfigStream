@@ -53,6 +53,28 @@ A general-purpose proxy protocol that supports any TCP or UDP traffic.
 *   **Advantage over HTTP proxy:** SOCKS5 can proxy UDP traffic (important for QUIC/DNS), not just TCP.
 *   **Usage:** Tools like Psiphon, Tor, and V2Ray often expose a local SOCKS5 port (e.g., `127.0.0.1:1080`). You can chain other proxies through this port.
 
+### ALPN (Application-Layer Protocol Negotiation)
+A TLS extension that lets the client and server agree on which application protocol to use (e.g., `h2` for HTTP/2, `http/1.1` for HTTP/1.1) during the TLS handshake.
+*   **Censorship Relevance:** Some censors block connections that advertise specific ALPN values (e.g., blocking `h2` to prevent HTTP/2 multiplexing). ConfigStream's ALPN rotation feature alternates between `h2`, `http/1.1`, and `h2,http/1.1` to evade ALPN-based filtering.
+*   **Fingerprinting:** The ALPN list is part of the TLS ClientHello fingerprint. Different browsers advertise different ALPN combinations, so the ALPN value contributes to uTLS fingerprint accuracy.
+
+### gRPC (gRPC Remote Procedure Call)
+A high-performance RPC framework built on HTTP/2.
+*   **Usage in Proxying:** Several proxy protocols (VLESS, VMess, Trojan) support gRPC as a transport. Traffic is multiplexed over a single HTTP/2 connection, making it CDN-compatible and harder to distinguish from legitimate API traffic.
+*   **Advantage:** gRPC connections look like normal API calls to CDNs and firewalls. Cloudflare passes gRPC traffic natively.
+*   **ConfigStream:** Parses `type=grpc` and `serviceName` from proxy URIs and maps them to Sing-box/Clash transport configs.
+
+### WebSocket (WS)
+A protocol providing full-duplex communication over a single TCP connection, initiated via an HTTP Upgrade handshake.
+*   **Usage in Proxying:** The most common CDN-compatible transport for VLESS, VMess, and Trojan. The initial connection looks like a normal HTTP request, then upgrades to a persistent bidirectional tunnel.
+*   **CDN Support:** Cloudflare, AWS CloudFront, and most CDNs support WebSocket proxying, making WS-based proxies highly resilient to IP blocking (the CDN's IP is used, not the server's).
+*   **Fingerprinting:** The HTTP Upgrade request can be fingerprinted. ConfigStream sets realistic `Host` headers and paths to blend in.
+
+### MTU (Maximum Transmission Unit)
+The largest packet size (in bytes) that a network interface can transmit without fragmentation.
+*   **Default:** 1500 bytes for Ethernet, 1280 bytes minimum for IPv6.
+*   **VPN Overhead:** VPN encapsulation adds headers (WireGuard adds ~60 bytes), so the effective MTU inside the tunnel must be reduced. ConfigStream sets MTU to 1280 for WARP configs to avoid fragmentation issues.
+
 ## Security Concepts
 
 ### Handshake
@@ -107,3 +129,12 @@ A protocol developed by XTLS/Xray that makes proxy traffic indistinguishable fro
 *   **Mechanism:** The server presents a real, valid TLS certificate for a legitimate domain (e.g., `www.microsoft.com`). Active probers that connect without the correct credentials are transparently proxied to the real website.
 *   **Advantage:** No need for your own domain or certificate. The censor cannot distinguish Reality traffic from normal HTTPS browsing.
 *   **ConfigStream Support:** VLESS+Reality is a first-class citizen in ConfigStream's parsing and output pipeline.
+
+## Related Documentation
+
+*   **[Security Concepts](security_concepts.md)** — AEAD, Replay Protection, Entropy Analysis, Circuit Breaker, Fail-Open — the security-side counterparts to these networking terms.
+*   **[VLESS Protocol](../protocols/vless.md)** — Uses Reality, TLS, WebSocket, gRPC transports described above.
+*   **[VMess Protocol](../protocols/vmess.md)** — Uses WebSocket, gRPC, H2 transports.
+*   **[Hysteria2 Protocol](../protocols/hysteria2.md)** — Built on QUIC, uses UDP, affected by MTU settings.
+*   **[Firewalls & Honeypots](../security/firewall_honeypot.md)** — How DPI, SNI blocking, and TCP RST injection work in practice.
+*   **[Censorship Evasion](../../../CENSORSHIP_EVASION.md)** — How ConfigStream uses TLS fragmentation, ALPN rotation, and multiplexing to defeat DPI.

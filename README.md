@@ -55,7 +55,7 @@ ConfigStream includes advanced censorship evasion capabilities:
 - **Revival**: Resurrects failed proxies using WARP or Vwarp chains
 - **BYOW (Bring Your Own Worker)**: Users deploy their own Cloudflare Workers for unlimited, private, unblockable connections
 
-See `docs/CENSORSHIP_EVASION.md` for technical details and `docs/USER_GUIDE_EVASION.md` for user instructions.
+See `docs/CENSORSHIP_EVASION.md` for technical details, evasion modes, DNS profiles, and user instructions.
 
 ## Protocols and Formats
 Supported protocols include VLESS, VMess, Trojan, Shadowsocks, SSR, Hysteria, Hysteria2, TUIC, WireGuard, OpenVPN, HTTP, SOCKS, and SSH. Parsing is resilient against malformed inputs and includes credential recovery for common edge cases.
@@ -104,12 +104,13 @@ Derived outputs:
 - revived.json: revived-only dataset (proxies.json schema)
 - proxies.json: full dataset with metadata
 - side_products.zip: native configs pack (OpenVPN .ovpn, WireGuard .conf, raw URIs)
+- protocols/*.txt: per-protocol URI subscription files (e.g. vless.txt, trojan.txt)
 
 Output notes:
-- Base64 subscriptions contain raw proxy URIs for maximum client compatibility.
+- Base64 and plaintext subscriptions include both native and revived proxy URIs for maximum coverage.
 - JSON datasets expose metadata and stats used by the frontend and external tooling.
-- DNS-safe variants are available for all major outputs with the `-dns-safe` suffix (IP-only / pre-resolved endpoints).
-- DNS-hardened variants are available for Sing-box and Clash with the `-dns-hardened` suffix. They embed DoH/DoT/DoQ resolvers and prefer IP when available while keeping hostnames intact.
+- DNS-safe variants are available for all major outputs with the `-dns-safe` suffix (IP-only / pre-resolved endpoints). This is a strict subset — proxies that fail resolution are dropped.
+- DNS-hardened variants are available for all major outputs with the `-dns-hardened` suffix. They embed DoH/DoT/DoQ resolvers and prefer IP when available while keeping unresolved entries intact.
 
 ## Compatibility Matrix
 Use the output that matches your client or use case. This matrix lists every output and its compatible client family.
@@ -118,22 +119,24 @@ Use the output that matches your client or use case. This matrix lists every out
 | --- | --- | --- |
 | `singbox.json` | sing-box (desktop, mobile, server) | Smart routing profile |
 | `singbox-vpn.json` | sing-box (TUN/VPN mode) | System-wide VPN profile |
-| `singbox-chains.json` | sing-box | Washed + smart chains only |
+| `singbox-chains.json` | sing-box, Xray, Nekobox | Washed + smart chains only |
 | `clash.yaml` | Clash family (Clash, Meta, Verge, etc.) | Clash-compatible format |
 | `base64.txt` | Clients that accept base64/URI subscriptions (e.g., common iOS/macOS clients) | Universal base64 subscription |
 | `chosen/base64.txt` | Lightweight clients or quick start setups | Smaller curated list |
 | `side_products.zip` | OpenVPN and WireGuard clients | `.ovpn` and `.conf` files |
+| `protocols/*.txt` | Any client accepting URI subscriptions | Per-protocol plaintext URI lists |
 | `proxies.json` | Developers and tooling | Full dataset with metadata |
 | `revived.json` | Developers and tooling | Revived-only subset |
 
 DNS-safe variants:
-- All primary outputs above have `-dns-safe` equivalents, for example `base64-dns-safe.txt`, `singbox-dns-safe.json`, `clash-dns-safe.yaml`, `shadowrocket-dns-safe.txt`, `proxies-dns-safe.json`, and `side_products-dns-safe.zip`.
+- All primary outputs above have `-dns-safe` equivalents, for example `base64-dns-safe.txt`, `singbox-dns-safe.json`, `clash-dns-safe.yaml`, `shadowrocket-dns-safe.txt`, `proxies-dns-safe.txt`, `chains-dns-safe.json`, and `side_products-dns-safe.zip`.
 - These files use IP-literal or pre-resolved endpoints and preserve SNI/Host where possible. They are useful when DNS is blocked or poisoned.
 - DNS-safe outputs may be smaller if resolution fails or if a protocol cannot be safely rewritten.
 
 DNS-hardened variants:
-- `singbox-dns-hardened.json`, `singbox-vpn-dns-hardened.json`, and `clash-dns-hardened.yaml` embed DoH/DoT/DoQ resolvers.
+- All primary outputs have `-dns-hardened` equivalents: `singbox-dns-hardened.json`, `singbox-vpn-dns-hardened.json`, `clash-dns-hardened.yaml`, `base64-dns-hardened.txt`, `shadowrocket-dns-hardened.txt`, `surge-dns-hardened.conf`, `loon-dns-hardened.conf`, `quantumult-dns-hardened.conf`, `sip008-dns-hardened.json`, `chains-dns-hardened.json`, `side_products-dns-hardened.zip`.
 - They keep hostnames but prefer IPs when available, which improves survivability under DNS poisoning without dropping unresolved entries.
+- Sing-box and Clash variants embed DoH/DoT/DoQ resolver configs. Adapter variants (Surge, Loon, QX, Shadowrocket) include resolver comments.
 
 Production subscription links:
 - https://amirrezafarnamtaheri.github.io/ConfigStream/singbox.json
@@ -151,8 +154,10 @@ Production subscription links:
 - https://amirrezafarnamtaheri.github.io/ConfigStream/singbox-dns-hardened.json
 - https://amirrezafarnamtaheri.github.io/ConfigStream/singbox-vpn-dns-hardened.json
 - https://amirrezafarnamtaheri.github.io/ConfigStream/clash-dns-hardened.yaml
-- https://amirrezafarnamtaheri.github.io/ConfigStream/proxies-dns-safe.json
+- https://amirrezafarnamtaheri.github.io/ConfigStream/proxies-dns-safe.txt
 - https://amirrezafarnamtaheri.github.io/ConfigStream/side_products-dns-safe.zip
+- https://amirrezafarnamtaheri.github.io/ConfigStream/chains-dns-safe.json
+- https://amirrezafarnamtaheri.github.io/ConfigStream/chains-dns-hardened.json
 
 Self-hosting note: replace the base URL with your own GitHub Pages or server domain.
 
@@ -276,9 +281,10 @@ Online: https://amirrezafarnamtaheri.github.io/ConfigStream/lab.html
 Features:
 - Network diagnosis to understand what your connection can reach
 - Layer 1 support for local proxies (Psiphon, Lantern, V2RayN)
-- 5 chain strategies: WARP, Double WARP, TLS Fragment, CDN Worker, Custom JSON
+- 7 chain strategies: WARP, Double WARP, WARP+Psiphon, Relay Chain, TLS Fragment, CDN Worker, Custom JSON
 - Advanced evasion: uTLS fingerprint, ALPN, multiplex, padding
 - 8 export formats: Sing-Box JSON, Clash YAML, Xray JSON, Nekobox, URI, QR, Python script, Bash script
+- Full transport support in all exports: WebSocket, gRPC, HTTP/2, httpupgrade, Reality
 
 Offline tools (no internet required):
 - `tools/lab-scanner.py`: Python network diagnostic — clean IP scan, proxy discovery, DNS probe, interactive chain builder

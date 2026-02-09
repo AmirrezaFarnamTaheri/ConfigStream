@@ -14,7 +14,7 @@ import shlex
 import tempfile
 from io import BytesIO
 from pathlib import Path
-from typing import Any, Dict, List, cast, Tuple, Optional
+from typing import Any, Dict, List, Tuple, Optional
 import httpx
 
 from ..constants import VWARP_SOCKS5_PORT, VWARP_BIND_ADDRESS
@@ -29,6 +29,164 @@ VWARP_SHA256_AMD64 = "4b971ed3696ed607bf91000f379f6308459fd1dafa1beae14404a8b7ce
 VWARP_ASSET_AMD64 = "vwarp_linux-amd64.zip"
 VWARP_ASSET_ARM64 = "vwarp_linux-arm64.zip"
 VWARP_RELEASE_BASE = "https://github.com/voidr3aper-anon/Vwarp/releases/download"
+
+# Default Cloudflare WARP endpoint
+DEFAULT_WARP_ENDPOINT = "162.159.192.1:2408"
+
+# Psiphon country codes supported by vwarp (--cfon --country <CODE>)
+# Source: official vwarp CONFIG_FORGE.md
+PSIPHON_COUNTRY_CODES = frozenset(
+    {
+        # Americas
+        "US",
+        "CA",
+        "BR",
+        # Europe
+        "GB",
+        "DE",
+        "FR",
+        "IT",
+        "ES",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "CH",
+        "AT",
+        "BE",
+        "IE",
+        "PT",
+        "PL",
+        "CZ",
+        "HU",
+        "RO",
+        "BG",
+        "HR",
+        "EE",
+        "LV",
+        "SK",
+        "RS",
+        # Asia-Pacific
+        "JP",
+        "SG",
+        "AU",
+        "IN",
+    }
+)
+
+# MASQUE noize presets aligned with official vwarp presets
+# Keys map to --masque-noize-preset values and config file Jc levels
+MASQUE_NOIZE_PRESETS: Dict[str, Dict[str, Any]] = {
+    "light": {
+        "Jc": 2,
+        "Jmin": 32,
+        "Jmax": 64,
+        "JcBeforeHS": 2,
+        "JcDuringHS": 0,
+        "JcAfterHS": 0,
+        "JunkInterval": 10000000,
+        "HandshakeDelay": 20000000,
+        "MimicProtocol": "quic",
+        "FragmentInitial": False,
+        "RandomPadding": False,
+    },
+    "moderate": {
+        "Jc": 3,
+        "Jmin": 40,
+        "Jmax": 80,
+        "JcBeforeHS": 2,
+        "JcDuringHS": 1,
+        "JcAfterHS": 0,
+        "JunkInterval": 15000000,
+        "HandshakeDelay": 25000000,
+        "MimicProtocol": "https",
+        "PaddingMin": 8,
+        "PaddingMax": 32,
+        "RandomPadding": True,
+    },
+    "heavy": {
+        "Jc": 6,
+        "Jmin": 32,
+        "Jmax": 128,
+        "JcBeforeHS": 3,
+        "JcDuringHS": 2,
+        "JcAfterHS": 1,
+        "JunkInterval": 25000000,
+        "HandshakeDelay": 75000000,
+        "MimicProtocol": "https",
+        "FragmentInitial": True,
+        "FragmentSize": 512,
+        "PaddingMin": 16,
+        "PaddingMax": 64,
+        "RandomPadding": True,
+        "SNIFragmentation": True,
+    },
+    "gfw": {
+        "Jc": 15,
+        "Jmin": 30,
+        "Jmax": 120,
+        "JcBeforeHS": 3,
+        "JcAfterI1": 2,
+        "JcDuringHS": 5,
+        "JcAfterHS": 3,
+        "JunkInterval": 20000000,
+        "HandshakeDelay": 30000000,
+        "MimicProtocol": "https",
+        "FragmentInitial": True,
+        "FragmentSize": 512,
+        "PaddingMin": 16,
+        "PaddingMax": 64,
+        "RandomPadding": True,
+        "SNIFragmentation": True,
+        "CustomHeaders": True,
+        "MimicTLS": True,
+    },
+}
+
+# AtomicNoize presets for WireGuard obfuscation
+ATOMICNOIZE_PRESETS: Dict[str, Dict[str, Any]] = {
+    "light": {
+        "I1": "<b 0c0d0e0f>",
+        "Jc": 10,
+        "Jmin": 40,
+        "Jmax": 90,
+        "JcAfterI1": 1,
+        "JcBeforeHS": 1,
+        "JcAfterHS": 1,
+        "JunkInterval": 100000000,
+        "HandshakeDelay": 10000000,
+        "AllowZeroSize": False,
+    },
+    "moderate": {
+        "I1": "<b 0c0d0e0f>",
+        "I3": "<b 040506>",
+        "Jc": 25,
+        "Jmin": 40,
+        "Jmax": 90,
+        "JcAfterI1": 2,
+        "JcBeforeHS": 3,
+        "JcAfterHS": 2,
+        "JunkInterval": 150000000,
+        "HandshakeDelay": 25000000,
+        "AllowZeroSize": True,
+    },
+    "heavy": {
+        "I1": "<b 0c0d0e0f>",
+        "I3": "<b 040506>",
+        "I4": "<b 0708>",
+        "I5": "<b 09>",
+        "Jc": 85,
+        "Jmin": 40,
+        "Jmax": 90,
+        "JcAfterI1": 3,
+        "JcBeforeHS": 5,
+        "JcAfterHS": 4,
+        "JunkInterval": 150000000,
+        "HandshakeDelay": 25000000,
+        "AllowZeroSize": True,
+    },
+}
 
 
 class VwarpTool:
@@ -380,7 +538,8 @@ class VwarpTool:
 
         if config_override is not None:
             config = dict(config_override)
-            config.setdefault("version", "1.0")
+            # [FIX] Do NOT inject "version" into config — Vwarp v2.1.0 rejects
+            # unknown fields like "version" with: "parse config file: version: unknown flag"
             config["bind"] = f"{bind_addr}:{port}"
             self._log_config("fallback override", config)
             return self._write_temp_config(config)
@@ -592,23 +751,81 @@ class VwarpTool:
             )
             return []
 
+    @staticmethod
+    def build_vwarp_config(
+        bind: str = "127.0.0.1:8086",
+        endpoint: str = DEFAULT_WARP_ENDPOINT,
+        key: Optional[str] = None,
+        dns: str = "1.1.1.1",
+        masque_preset: Optional[str] = None,
+        atomicnoize_preset: Optional[str] = None,
+        psiphon_country: Optional[str] = None,
+        proxy: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Builds a complete vwarp JSON configuration file.
+
+        Aligns with official vwarp CONFIG_FORGE.md format:
+        - ``masque_preset``: light | moderate | heavy | gfw
+        - ``atomicnoize_preset``: light | moderate | heavy
+        - ``psiphon_country``: ISO country code (US, DE, JP, etc.)
+        - ``proxy``: SOCKS5 upstream proxy (e.g. socks5://127.0.0.1:1080)
+        """
+        config: Dict[str, Any] = {
+            "bind": bind,
+            "endpoint": endpoint,
+            "dns": dns,
+        }
+        if key:
+            config["key"] = key
+        if proxy:
+            config["proxy"] = proxy
+
+        # MASQUE configuration
+        if masque_preset:
+            preset_data = MASQUE_NOIZE_PRESETS.get(masque_preset, {})
+            config["masque"] = {
+                "enabled": True,
+                "preferred": True,
+                "config": dict(preset_data),
+            }
+        else:
+            config["masque"] = {"enabled": False}
+
+        # WireGuard + AtomicNoize configuration
+        atomicnoize_data: Dict[str, Any] = {}
+        if atomicnoize_preset:
+            atomicnoize_data = dict(ATOMICNOIZE_PRESETS.get(atomicnoize_preset, {}))
+        config["wireguard"] = {
+            "enabled": True,
+            "reserved": "0,0,0",
+            "atomicnoize": atomicnoize_data if atomicnoize_data else {},
+        }
+
+        # Psiphon integration
+        if psiphon_country:
+            country = psiphon_country.upper()
+            if country not in PSIPHON_COUNTRY_CODES:
+                logger.warning(
+                    "Psiphon country '%s' not in known supported list; "
+                    "proceeding anyway.",
+                    country,
+                )
+            config["psiphon"] = {"enabled": True, "country": country}
+        else:
+            config["psiphon"] = {"enabled": False, "country": "US"}
+
+        return config
+
     async def generate_masque_config(self, preset: str = "gfw") -> Dict[str, Any]:
         """
-        Exports a MASQUE-enabled Sing-box configuration.
-        """
-        if not await self.is_available() or not self.binary:
-            return {}
+        Generates a vwarp MASQUE configuration dict for the given preset.
 
-        cmd: List[str] = [self.binary, "--export-singbox", "--masque-preset", preset]
-        try:
-            proc = await asyncio.create_subprocess_exec(
-                *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
-            )
-            stdout, _ = await proc.communicate()
-            result = json.loads(stdout.decode(errors="ignore"))
-            return cast(Dict[str, Any], result)
-        except Exception:
-            return {}
+        Unlike earlier versions that tried non-existent CLI flags, this
+        builds the config dict directly using the official vwarp JSON
+        format documented in CONFIG_FORGE.md.
+        """
+        return self.build_vwarp_config(masque_preset=preset)
 
     async def _wait_for_port(self, host: str, port: int, timeout: int = 45) -> bool:
         """Polls the given host:port until it accepts connections."""

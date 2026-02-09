@@ -3,7 +3,7 @@ import os
 import stat
 from pathlib import Path
 
-from configstream.testers_core import GoBatchTester
+from configstream.testers import GoBatchTester
 
 
 def _make_fake_binary(path: Path):

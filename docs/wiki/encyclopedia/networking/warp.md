@@ -58,6 +58,27 @@ Censors often block specific ports. WARP supports **50+ ports** across multiple 
 *   **Purpose:** Maximum obfuscation. Two layers of WireGuard encryption. Even if someone compromises one WARP node, they cannot see your traffic.
 *   **Use Case:** High-threat environments where traffic correlation attacks are a concern.
 
+## Vwarp: Enhanced WARP with Obfuscation
+
+[Vwarp](https://github.com/voidr3aper-anon/Vwarp) is an enhanced WARP client that adds advanced obfuscation on top of standard WireGuard. ConfigStream integrates vwarp as an alternative transport for proxy revival and tunnel management.
+
+### MASQUE Mode
+Routes WARP traffic through QUIC tunnels instead of raw UDP. Traffic appears as standard HTTPS/QUIC browsing to DPI. Configurable via **noize presets** (`light`, `moderate`, `heavy`, `gfw`) that control junk packet injection, timing randomization, protocol mimicry, and SNI fragmentation.
+
+### AtomicNoize Protocol
+Obfuscates WireGuard packets by injecting signature packets (I1-I5) and junk traffic that mimics IKEv2/IPsec. Defeats DPI systems that fingerprint WireGuard's 4-packet handshake pattern.
+
+### Psiphon Integration
+Chains Psiphon on top of WARP (`--cfon --country US`) to change the virtual exit location. Useful when the WARP exit country blocks certain destinations.
+
+### SOCKS5 Proxy Chaining
+Routes WireGuard traffic through an upstream SOCKS5 proxy (`--proxy socks5://host:port`), creating a double-VPN topology. Hides WireGuard patterns from the proxy provider and hides the real IP from Cloudflare.
+
+### ConfigStream Integration
+- `VwarpTool.scan_endpoints()` — Uses vwarp's `--scan` for clean IP discovery.
+- `VwarpTool.build_vwarp_config()` — Generates official vwarp JSON configs with MASQUE/AtomicNoize/Psiphon presets.
+- `ProxyWasher.wash_failed(use_vwarp=True)` — Revives failed proxies via vwarp chains (tagged `VWARP-REVIVE-*`).
+
 ## Alternatives to WARP
 
 WARP is powerful but not the only strategy. When WARP is blocked or unavailable:
@@ -92,3 +113,12 @@ ConfigStream's `--auto-chain` tries all 6 strategies automatically and picks the
 
 ### Reserved Field
 The `reserved` field (`[0, 0, 0]` by default) is a 3-byte client identifier used by Cloudflare for WARP+ routing. For free-tier usage, it can be left as zeros.
+
+## Related Documentation
+
+*   **[WireGuard Protocol](../protocols/wireguard.md)** — The underlying protocol WARP is built on; kernel-level, stateless, fast.
+*   **[Network Topology](topology.md)** — ASNs, peering, relay selection — how WARP fits into multi-hop chains.
+*   **[Engineering Internals — Proxy Washing](../../project/04-engineering.md)** — ProxyWasher operations (Wash, Shield, Revive), WARP vs Vwarp comparison, revival process.
+*   **[Censorship Evasion — Shielding](../../../CENSORSHIP_EVASION.md)** — Copper-to-Gold transformation, topology inversion, BYOW.
+*   **[Firewalls & Honeypots](../security/firewall_honeypot.md)** — Why WARP endpoints may be blocked and how Clean IP scanning helps.
+*   **[Sing-box Configuration Guide](../tools/singbox_configuration_guide.md)** — How WARP WireGuard outbounds are structured in Sing-box JSON.

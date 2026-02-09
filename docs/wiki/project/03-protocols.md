@@ -2,6 +2,8 @@
 
 ConfigStream supports a vast array of censorship-circumvention protocols. This document details the parsing logic, validation rules, and client compatibility quirks for each.
 
+> **Deep dives**: Each major protocol has a dedicated encyclopedia page with URI format examples, Sing-box config snippets, intelligence scores, and client compatibility tables. Links are provided in each section below.
+
 ## Protocol Support Matrix
 
 ConfigStream supports **26+ protocols** with comprehensive parsing and validation.
@@ -57,6 +59,8 @@ graph TD
 
 ### 1. Shadowsocks (SS)
 
+> **Encyclopedia**: [Shadowsocks Deep Dive](../encyclopedia/protocols/shadowsocks.md) — AEAD vs SS2022, cipher matrix, client compatibility.
+
 **Schemes**: `ss://`
 **Format Variants**:
 1.  **Legacy**: `ss://BASE64(method:password@host:port)`
@@ -68,6 +72,8 @@ graph TD
 *   **Plugins**: We handle SIP003 plugins (`v2ray-plugin`, `obfs-local`). However, complex arguments are often normalized to ensure cross-client compatibility.
 
 ### 2. VMess (V2Ray)
+
+> **Encyclopedia**: [VMess Deep Dive](../encyclopedia/protocols/vmess.md) — Base64 JSON structure, AlterID history, VMess vs VLESS comparison.
 
 **Schemes**: `vmess://`
 **Structure**: Almost exclusively a Base64-encoded JSON object.
@@ -85,6 +91,8 @@ graph TD
 *   **H2**: Requires `path`.
 
 ### 3. VLESS (V2Ray / Xray)
+
+> **Encyclopedia**: [VLESS Deep Dive](../encyclopedia/protocols/vless.md) — Reality mechanism, transport options, intelligence scores.
 
 **Schemes**: `vless://`
 **Structure**: `vless://UUID@HOST:PORT?params#Remark`
@@ -106,6 +114,8 @@ Reality replaces standard TLS with a "steal" mechanism.
 
 ### 4. Trojan
 
+> **Encyclopedia**: [Trojan Deep Dive](../encyclopedia/protocols/trojan.md) — HTTPS mimicry, fallback mechanism, detection resistance.
+
 **Schemes**: `trojan://`
 **Structure**: `trojan://PASSWORD@HOST:PORT?params#Remark`
 
@@ -114,12 +124,14 @@ Trojan listens on port 443. It performs a real TLS handshake. If the first packe
 
 ### 5. Hysteria 2 & Tuic
 
+> **Encyclopedia**: [Hysteria2 Deep Dive](../encyclopedia/protocols/hysteria2.md) — Brutal congestion control, Salamander obfuscation, port hopping, UDP blocking vulnerability.
+
 **Schemes**: `hysteria2://`, `hy2://`, `tuic://`
 
 **Characteristics**:
-*   **UDP-based**: Uses QUIC.
-*   **Congestion Control**: Designed to bully through packet loss.
-*   **Obfuscation**: Uses a password to encrypt headers.
+*   **UDP-based**: Uses [QUIC](../encyclopedia/glossary/networking_terms.md) — a modern transport protocol built on UDP that encrypts the entire transport layer.
+*   **Congestion Control**: Hysteria2 uses "Brutal" — instead of backing off when packet loss is detected (like TCP does), it maintains a target bandwidth regardless. Think of it as a car that doesn't slow down in rain.
+*   **Obfuscation**: Salamander obfuscation adds a layer over QUIC to disguise the protocol signature.
 
 **Client Support**:
 *   Sing-box: Native support.
@@ -168,3 +180,11 @@ Before a proxy enters the testing phase, it must pass the **Gatekeeper**:
     *   Standard parsing requires valid schemes (`vmess://`, `ss://`).
     *   **Naked IP Support**: We have limited support for `IP:PORT` lines with strict validation. These are heuristically detected (e.g. port 80/443 -> HTTP, 1080 -> SOCKS) and parsed as generic proxies. This is disabled for strict sources to prevent false positives.
     *   **Port Hopping**: Hysteria2 port hopping syntax (`ports=1000-2000`) is parsed, but complex hopping rules may be simplified for client compatibility.
+
+## Related Documentation
+
+*   **[Networking Terms](../encyclopedia/glossary/networking_terms.md)** — TLS, SNI, DPI, QUIC, WebSocket, gRPC, ALPN explained.
+*   **[Security Concepts](../encyclopedia/glossary/security_concepts.md)** — AEAD, replay protection, entropy analysis, active probing.
+*   **[Firewalls & Honeypots](../encyclopedia/security/firewall_honeypot.md)** — How GFW, Iran, and Russia detect and block these protocols.
+*   **[Sing-box Configuration Guide](../encyclopedia/tools/singbox_configuration_guide.md)** — How parsed proxies become Sing-box outbound configs.
+*   **[WireGuard & WARP](../encyclopedia/networking/warp.md)** — WireGuard parsing and WARP integration for washing/shielding.

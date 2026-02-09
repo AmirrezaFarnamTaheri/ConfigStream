@@ -2,6 +2,9 @@
 """
 Cloudflare WARP Account Generator.
 Registers a new device with Cloudflare and generates a WireGuard proxy config.
+
+Key generation is delegated to the canonical KeyGenerator in
+``intelligence.washer.key_generator`` to avoid duplication.
 """
 
 import logging
@@ -9,19 +12,10 @@ import random
 import datetime
 import asyncio
 from typing import Optional, Dict, Any
-import base64
 
 import httpx
 from ..models import Proxy
-
-# Import cryptography for key generation
-try:
-    from cryptography.hazmat.primitives.asymmetric import x25519
-    from cryptography.hazmat.primitives import serialization
-
-    HAS_CRYPTO = True
-except ImportError:
-    HAS_CRYPTO = False
+from ..intelligence.washer.key_generator import KeyGenerator
 
 logger = logging.getLogger(__name__)
 
@@ -30,33 +24,6 @@ HEADERS = {
     "User-Agent": "okhttp/3.12.1",
     "Content-Type": "application/json; charset=UTF-8",
 }
-
-
-def _generate_keys() -> tuple[str, str]:
-    """
-    Generate Curve25519 private and public keys.
-    Returns (private_key_b64, public_key_b64).
-    This function blocks, so it should be run in an executor.
-    """
-    if not HAS_CRYPTO:
-        raise ImportError("cryptography package is required for WARP key generation")
-
-    private_key = x25519.X25519PrivateKey.generate()
-    public_key = private_key.public_key()
-
-    priv_bytes = private_key.private_bytes(
-        encoding=serialization.Encoding.Raw,
-        format=serialization.PrivateFormat.Raw,
-        encryption_algorithm=serialization.NoEncryption(),
-    )
-    pub_bytes = public_key.public_bytes(
-        encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
-    )
-
-    return (
-        base64.b64encode(priv_bytes).decode("utf-8"),
-        base64.b64encode(pub_bytes).decode("utf-8"),
-    )
 
 
 async def register_warp_account() -> Optional[Dict[str, Any]]:
@@ -69,11 +36,12 @@ async def register_warp_account() -> Optional[Dict[str, Any]]:
         # 1. Generate Instance ID
         inst_id = "".join(random.choices("0123456789ABCDEF", k=22))
 
-        # 2. Generate Keys
+        # 2. Generate Keys (delegated to canonical KeyGenerator)
         try:
-            # FIX: Run CPU-bound key generation in a separate thread
             loop = asyncio.get_running_loop()
-            private_key, public_key = await loop.run_in_executor(None, _generate_keys)
+            private_key, public_key = await loop.run_in_executor(
+                None, KeyGenerator._generate_keys
+            )
         except ImportError:
             logger.error("Cannot generate WARP keys: cryptography module missing")
             return None

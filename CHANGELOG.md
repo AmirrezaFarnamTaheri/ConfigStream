@@ -1,4 +1,54 @@
 
+## [3.0.0] - 2026-02-09
+
+### Frontend Redesign & Analytics Completion
+- **Unified Stats Card**: Merged primary (4 hero metrics) and secondary (9 compact metrics) into a single card with two rows
+- **Layout Overhaul**: Downloads 40% / Info 60% two-column grid; BYOW moved to full-width below
+- **Config Selectors**: Redesigned DNS Profile and Evasion Level dropdowns with labels, icons, and consistent styling
+- **Evasion Labels**: Replaced variable names with human-readable labels (Standard/Stealth/Maximum)
+- **Info Cards Finalized**: Clean, proper language — no "new" or "now supporting" phrasing
+- **About Page**: Updated protocols (11) and clients (10) lists, copyright 2024–2026
+- **Analytics Page**: Added Shielded, uTLS, DNS-Hardened, TLS Fragment, Multiplexed stats
+- **Evasion Trend Chart**: All 7 metrics visualized (added TLS Fragment + Multiplexed datasets)
+- **Metadata Schema**: Complete rewrite of `metadata.schema.json` to match actual `save_metadata` output
+- **i18n**: Synchronized all English translations with finalized frontend content
+- **Version**: Bumped to 3.0.0 across pyproject.toml, frontend build config, STATUS.md
+
+## [2.6.0] - 2026-02-09
+
+### Artifact Consistency & Multi-Core Export Audit
+
+**Core Export Fixes**
+- **lab.js Xray/V2Ray export**: Full rewrite — now supports WebSocket, gRPC, HTTP/2, httpupgrade transports, Reality, uTLS fingerprint, ALPN, VLESS flow. WireGuard uses native Xray `secretKey` + `peers[]` format (was incorrectly falling back to `freedom`).
+- **lab.js Clash/Mihomo export**: Full rewrite — now supports transports (ws/grpc/h2/httpupgrade), Reality (`reality-opts`), uTLS (`client-fingerprint`), ALPN, VLESS flow, Hysteria2 and TUIC native types. WireGuard adds `reserved`, `udp: true`, dynamic `local_address`.
+- **Pipeline Clash converter**: Added Trojan WebSocket/gRPC transport support (was missing).
+- **Pipeline Sing-box/Clash converters**: WireGuard outbounds now default to `mtu: 1280` when not explicitly set.
+- **WireGuard .conf export**: Added `MTU = 1280` to `[Interface]` section.
+- **Surge/Loon adapters**: Chain export broadened from `🛡️ Secure` prefix to **all** WireGuard outbounds with `detour` (catches VWARP-REVIVE, WARP-REVIVE, GOLD, Optimal chains).
+- **adapters_base.py**: Added vless, trojan, hysteria2, http, socks5 relay support to Surge/Loon chain formatters. Added `mtu` field.
+
+**New Output Artifacts**
+- **Per-protocol URI subscriptions** (`protocols/*.txt`): Plaintext URI lists per protocol (e.g. `vless.txt`, `trojan.txt`) for clients that only accept subscription links.
+- **Revived proxy URIs in subscriptions**: `base64.txt` and `proxies.txt` now include revived/washed proxy URIs (reconstructed from origin proxy with `[Revived]` or `[Revived-VWARP]` tag).
+- **Frontend download selector**: Added "Chains (Gold/Shielded)" and "Side Products (.conf/.ovpn)" options.
+
+**Documentation Fixes**
+- Fixed outdated claim that Xray doesn't support WireGuard natively (it does: `secretKey` + `peers[]` format).
+- Fixed claim that Clash cannot chain WireGuard (Mihomo supports `dialer-proxy`).
+- Updated client compatibility tables in `wireguard.md`, `singbox_configuration_guide.md`, `06-frontend.md`, `CENSORSHIP_EVASION.md`.
+- Updated Lab strategy count to 7 (added WARP+Psiphon, Relay Chain).
+
+**Tests**
+- Added `test_artifact_consistency.py`: 31 new tests covering mtu defaults, relay protocols, chain broadening, Trojan transport.
+
+**QA Results**
+- **pytest**: 784 passed, 3 skipped
+- **flake8**: 0 errors
+- **black**: Clean
+- **mypy**: 0 errors
+
+---
+
 ## [2.5.2] - 2026-02-09
 
 ### Lab Scanner v2.1.0 & Documentation Enrichment

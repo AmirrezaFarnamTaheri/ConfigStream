@@ -76,8 +76,46 @@ The `AnomalyDetector` (`src/configstream/anomaly.py`) protects against **polluti
 
 *   For established sources, Isolation Forest / Z‑score heuristics are used to detect outliers in batch size.
 *   For new or small sources, simple heuristics guard against “sudden massive yield”.
-*   **Failure Mode**: If the anomaly database is temporarily unavailable (e.g. SQLite error), we now **fail open**:
+*   **Failure Mode**: If the anomaly database is temporarily unavailable (e.g. SQLite error), we **fail open**:
     *   The source is **allowed** for this run.
     *   An error is logged with `DB Error (Fail Open)` so operators can fix the underlying storage problem.
     *   This prevents a transient DB issue from blocking **all** upstreams and silently collapsing the pipeline.
 
+## Blocklist Management
+
+The `BlocklistManager` (`src/configstream/security_validator.py`) maintains a merged blocklist from multiple sources:
+
+*   **FireHol Level 1**: Known botnet C2 servers, spam sources, and malware IPs.
+*   **VirusTotal Flagged IPs**: IPs with >3 malicious vendor flags (cached for 7 days).
+*   **Custom Blocklist**: Operator-defined IPs/CIDRs via `DEFAULT_BLOCKLIST`.
+*   **Thread Safety**: Uses `threading.Lock` in `__new__` for singleton instantiation (safe across async and threaded contexts).
+
+## Log Sanitization
+
+All log output is sanitized via `SecurityValidator.sanitize_log_message()`:
+
+| Data Type | Example Raw | Sanitized Output |
+|---|---|---|
+| UUID | `a1b2c3d4-e5f6-7890-abcd-ef1234567890` | `a1b2****-****-****-****-********7890` |
+| Password | `password=MySecret123` | `password=****` |
+| Token | `token=abc123xyz` | `token=****` |
+| URL with credentials | `https://user:pass@host/path` | `https://****:****@host/path` |
+
+**Rule**: Every new `logger.info()`, `logger.warning()`, or `logger.error()` call that includes URLs, credentials, or user data **must** be wrapped in `sanitize_log_message()`. This is enforced by code review and the `AGENTS.md` checklist.
+
+## Security Checklist (for Contributors)
+
+Before submitting code that touches security-sensitive areas:
+1.  Are all new log statements sanitized?
+2.  Are API keys read from environment variables (never hardcoded)?
+3.  Does the code fail-open or fail-safe? (Document the choice.)
+4.  Are new singletons using `threading.Lock` in `__new__`?
+5.  Has `gitleaks` been run locally?
+
+## Related Documentation
+
+*   **[Security Concepts](../encyclopedia/glossary/security_concepts.md)** — Circuit Breaker, Adaptive Timeout, Fail-Open vs Fail-Safe, AEAD, Replay Protection, Entropy Analysis explained in depth.
+*   **[Firewalls & Honeypots](../encyclopedia/security/firewall_honeypot.md)** — GFW, Iran, Russia censorship systems; honeypot detection techniques; how ConfigStream defends.
+*   **[Networking Terms](../encyclopedia/glossary/networking_terms.md)** — TLS, SNI, DPI, obfuscation techniques referenced in the threat model.
+*   **[Censorship Evasion](../../CENSORSHIP_EVASION.md)** — DNS hardening, shielding, TLS fingerprinting, BYOW, pipeline integration, testing.
+*   **[Contributing](09-contributing.md)** — Coding standards and PR workflow for security-sensitive changes.

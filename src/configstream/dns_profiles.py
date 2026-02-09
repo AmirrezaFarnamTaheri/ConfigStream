@@ -80,85 +80,41 @@ def build_resolver_sets() -> tuple[list[str], list[str]]:
 
 def build_singbox_dns_profile() -> Dict[str, Any]:
     """
-    Returns a robust DNS configuration matching the V2RayN example format.
-    Updated with intelligence data (Iran infrastructure DNS, CF optimized IPs, Zeus DNS).
+    Returns a robust DNS configuration using the backward-compatible "address"
+    format (works with sing-box <1.12, v2rayN, NekoRay, NekoBox, Hiddify).
     """
     SELECTOR_TAG = "🌍 Proxy Select"
-
-    # Merge standard + optimized Cloudflare IPs for hosts resolution
-    cf_ips = [
-        "104.16.249.249",
-        "104.16.248.249",
-        "2606:4700::6810:f8f9",
-        "2606:4700::6810:f9f9",
-    ] + CLOUDFLARE_OPTIMIZED_IPS[:4]
 
     return {
         "servers": [
             {
-                "server": "223.5.5.5",
-                "type": "udp",
-                "tag": "local_local",
-                "detour": "direct",
-            },
-            {
-                "server": "cloudflare-dns.com",
-                "domain_resolver": "hosts_dns",
-                "path": "/dns-query",
-                "type": "https",
+                "address": "https://cloudflare-dns.com/dns-query",
+                "address_resolver": "local_local",
+                "strategy": "prefer_ipv4",
                 "tag": "remote_dns",
                 "detour": SELECTOR_TAG,
             },
             {
-                "server": "dns.alidns.com",
-                "domain_resolver": "hosts_dns",
-                "path": "/dns-query",
-                "type": "https",
+                "address": "https://dns.google/dns-query",
+                "address_resolver": "local_local",
+                "strategy": "prefer_ipv4",
                 "tag": "direct_dns",
                 "detour": "direct",
             },
             {
-                "predefined": {
-                    "dns.google": [
-                        "8.8.8.8",
-                        "8.8.4.4",
-                        "2001:4860:4860::8888",
-                        "2001:4860:4860::8844",
-                    ],
-                    "dns.alidns.com": [
-                        "223.5.5.5",
-                        "223.6.6.6",
-                        "2400:3200::1",
-                        "2400:3200:baba::1",
-                    ],
-                    "one.one.one.one": [
-                        "1.1.1.1",
-                        "1.0.0.1",
-                        "2606:4700:4700::1111",
-                        "2606:4700:4700::1001",
-                    ],
-                    "cloudflare-dns.com": cf_ips,
-                    "zeus-dns": ZEUS_DNS,
-                },
-                "type": "hosts",
-                "tag": "hosts_dns",
+                "address": "rcode://success",
+                "tag": "block_dns",
             },
             {
-                "server": "dns.alidns.com",
-                "domain_resolver": "hosts_dns",
-                "path": "/dns-query",
-                "type": "https",
-                "tag": "ech_dns",
+                "address": "1.1.1.1",
+                "tag": "local_local",
+                "detour": "direct",
             },
         ],
         "rules": [
             {
                 "server": "local_local",
                 "domain": ["sing_box-ProxyChain"],
-            },
-            {
-                "server": "hosts_dns",
-                "ip_accept_any": True,
             },
             {
                 "server": "remote_dns",
@@ -169,14 +125,8 @@ def build_singbox_dns_profile() -> Dict[str, Any]:
                 "clash_mode": "Direct",
             },
             {
-                "action": "predefined",
-                "rcode": "NOTIMP",
-                "query_type": [64, 65],
-            },
-            {
+                "server": "block_dns",
                 "rule_set": ["geosite-category-ads-all"],
-                "action": "predefined",
-                "rcode": "NXDOMAIN",
             },
             {
                 "server": "direct_dns",

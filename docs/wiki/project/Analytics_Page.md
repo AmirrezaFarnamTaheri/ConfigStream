@@ -29,11 +29,44 @@ We believe that open-source tools must be transparent. By exposing the internal 
 *   **Data**: Top 10 ASNs (Autonomous Systems) hosting the proxies.
 *   **Insight**: Reveals infrastructure trends (e.g., "Are most proxies on DigitalOcean or Cloudflare?").
 
-### Historical Trends (Future Roadmap)
-*   We plan to add a time-series graph showing the total proxy count over the last 30 days to visualize network stability and growth.
+#### 5. Evasion Trend (Time-Series) 
+*   **Type**: Multi-line chart with fill.
+*   **Data**: `data/evasion_trend.json` — rolling 7-day window of evasion metrics.
+*   **Datasets**:
+    *   Shielded (Gold) proxy count
+    *   Revived (WARP) proxy count
+    *   Revived (VWARP) proxy count
+    *   uTLS-enabled proxy count
+    *   DNS-Hardened proxy count
+*   **Insight**: Tracks the effectiveness of evasion features over time. Increasing trends indicate successful censorship resistance; decreasing trends may signal censor adaptation.
+
+#### 6. Active Proxy Trend (Time-Series) 
+*   **Type**: Line chart.
+*   **Data**: `data/active_proxy_trend.json` — hourly buckets over 7 days.
+*   **Insight**: Shows network stability and growth. Dips indicate source outages or increased blocking.
+
+#### 7. Rejection Reasons
+*   **Type**: Pie chart.
+*   **Data**: `metadata.json` → `rejection_reasons`.
+*   **Insight**: Shows why proxies were dropped (dirty IP, timeout, handshake fail, parse error).
+
+#### 8. Latency by Protocol
+*   **Type**: Bar chart.
+*   **Data**: `metadata.json` → `latency_by_protocol`.
+*   **Insight**: Compares average latency across protocols (VLESS vs Trojan vs Hysteria2 etc).
+
+### 3D Globe Visualization
+*   **Library**: `globe.gl` (WebGL / Three.js).
+*   **Data**: Country-level proxy counts from `metadata.json` → `country_stats`, with centroid lookup.
+*   **Fallback**: If `proxy_locations` array is present, uses per-proxy lat/lng with latency-based coloring.
+*   **Interaction**: Auto-rotates, pauses on user interaction, resumes after 2s idle.
 
 ## Technical Implementation
 
-*   **Data Source**: `metadata.json` (`latency_distribution`, `latency_by_country`, `latency_by_protocol`, `protocols`, `country_stats`).
+*   **Data Sources**:
+    *   `metadata.json` — `latency_distribution`, `latency_by_country`, `latency_by_protocol`, `protocols`, `country_stats`, `asns`, `rejection_reasons`
+    *   `data/evasion_trend.json` — evasion metrics time-series
+    *   `data/active_proxy_trend.json` — active proxy count time-series
 *   **Responsiveness**: Charts automatically resize for mobile/desktop screens.
 *   **Interaction**: Tooltips provide exact counts and percentages on hover.
+*   **Color Logic**: Centralized `generateColor()` function using consistent label hashing for deterministic colors across charts.

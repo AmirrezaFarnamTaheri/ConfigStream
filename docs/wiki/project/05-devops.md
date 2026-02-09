@@ -62,13 +62,13 @@ We heavily utilize `actions/cache` to persist state between ephemeral runners.
 
 *   **Secret Scanning**: We use `gitleaks` in pre-commit hooks to prevent committing API keys.
 *   **Dependency Pinning**: All dependencies in `pyproject.toml` are pinned or version-ranged to prevent supply chain attacks.
-*   **Minimum Permissions**: The `GITHUB_TOKEN` has read-only access except for the specific `deploy` job which needs write access to `gh-pages`.
+*   **Minimum Permissions**: The `GITHUB_TOKEN` has read-only access except for the `deploy` job which needs write access to upload the Pages artifact.
 
 ## 4. Deployment & CDNs
 
 ### GitHub Pages
-*   **Branch**: `gh-pages` (Orphan branch).
-*   **Content**: The `output/` directory + `frontend/` assets.
+*   **Method**: Artifact-based deployment via `deploy-pages.yml` workflow. The pipeline uploads a `github-pages` artifact containing the merged `output/` + `frontend/` directories, which is then deployed by the `actions/deploy-pages` action.
+*   **Content**: The `output/` directory + `frontend/` assets (merged in the deploy workflow).
 *   **CDN**: Served via Fastly (GitHub's partner).
 
 ### Mirrors (Redundancy)
@@ -79,18 +79,66 @@ If GitHub is blocked, we automatically mirror to:
 
 ## 5. Local Development
 
-We provide a `docker-compose.yml` for replicating the CI environment.
+### Docker (Recommended)
+The `docker-compose.yml` replicates the CI environment with all dependencies pre-installed:
 
 ```bash
-# Start the pipeline locally
+# Full pipeline run
 docker compose up --build
 
-# Run the web server
+# Web server only (serves output/ + frontend/)
 docker compose up web
 ```
 
-### Environment Variables
-*   `MAX_WORKERS`: Control concurrency (Default: Auto).
-*   `WARP_KEY_POOL`: JSON list of keys for the Washer.
-*   `TELEGRAM_BOT_TOKEN`: For the bot interface.
+### Native Setup
+```bash
+# 1. Python environment
+python -m venv venv && source venv/bin/activate
+pip install -e ".[dev]"
 
+# 2. Go tester (optional but recommended)
+cd src/go/tester && go build -o configstream-tester . && mv configstream-tester ../../../
+
+# 3. Run a single batch
+python -m configstream merge --sources sources/batch_1.txt --output output/ --verbose
+
+# 4. Run tests
+pytest tests/unit -x
+```
+
+### Environment Variables
+
+Create a `.env` file in the project root:
+
+```bash
+MAX_WORKERS=50              # Concurrency limit (0 = auto)
+TEST_TIMEOUT=10             # Proxy test timeout (seconds)
+EVASION_MODE=aggressive     # standard | stealth | aggressive
+WARP_KEY_POOL='[]'          # JSON array of WARP credentials
+VT_API_KEY=                 # VirusTotal API key (optional)
+TELEGRAM_BOT_TOKEN=         # Telegram bot token (optional)
+TELEGRAM_CHAT_ID=           # Telegram chat ID (optional)
+```
+
+See [Configuration Reference](Configuration.md) for the full list.
+
+### Simulating the CI Matrix Locally
+
+The CI runs 14 shards in parallel. To simulate locally:
+```bash
+# Process 3 batches
+for i in 1 2 3; do
+  python -m configstream merge --sources sources/batch_$i.txt --output shard_$i/ &
+done
+wait
+
+# Merge results
+python -m scripts.merge_batches
+```
+
+## Related Documentation
+
+*   **[Getting Started](getting_started.md)** — Quick installation and first run guide.
+*   **[Configuration Reference](Configuration.md)** — All environment variables, secrets, and file paths.
+*   **[Architecture Deep Dive](02-architecture.md)** — Pipeline sharding, merge job, intelligence synchronization.
+*   **[Troubleshooting](10-troubleshooting.md)** — Pipeline infrastructure issues (Go binary, WARP keys, address in use).

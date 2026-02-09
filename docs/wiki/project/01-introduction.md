@@ -83,17 +83,28 @@ A central point of failure is a censorship target.
 *   **Multiple Mirrors**: If GitHub is blocked, we have mirrors on GitLab, Hugging Face, and IPFS.
 *   **Distributed Testing**: Our WASM client allows users to verify proxies from *their* network perspective, not just ours.
 
-## Evolution of ConfigStream
+## Current Capabilities (v2.5)
 
-*   **v1.0 (The Script)**: A simple Python script running sequentially. Took 4 hours to process 1000 proxies.
-*   **v1.1 (Async)**: Introduced `asyncio`. Reduced time to 30 minutes.
-*   **v1.2 (The Pipeline)**: Introduced GitHub Actions Matrix Strategy. Distributed processing across 6 machines.
-*   **v1.3 (The Hybrid)**: Added the Go sidecar (`sing-box` integration) for robust protocol testing.
-*   **v2.0 (The Platform - Current)**:
-    *   **WASM Edge Testing**: Client-side verification.
-    *   **Smart Intelligence**: Source quality tracking and anomaly detection.
-    *   **Proxy Washing**: Cleaning dirty IPs.
-    *   **Vector Search**: Natural language filtering.
-    *   **Full Client Support**: Surge, Loon, QX, SIP008.
+ConfigStream today is a fully autonomous platform that runs every 5 hours without human intervention:
 
-ConfigStream is not just a tool; it is a demonstration of how powerful software can be built without a budget, relying on architectural ingenuity rather than capital.
+*   **26+ Protocols**: VLESS, VMess, Trojan, Shadowsocks, SS2022, Hysteria2, TUIC, WireGuard, SSH, SOCKS5, HTTP, OpenVPN, ShadowsocksR, Juicity, and more.
+*   **14-Shard Parallel Pipeline**: 14 GitHub Actions VMs process sources concurrently, then merge results.
+*   **Hybrid Python + Go Engine**: Python orchestrates; Go tests 10,000+ proxies in minutes.
+*   **9 Smart Chain Types**: Intranet, Washed, IPv6, Streaming, Censorship-Resistant, Low-Latency, High-Anonymity, Load-Balanced, Experimental.
+*   **4 Evasion Techniques**: uTLS fingerprinting, TLS fragmentation, multiplexing with padding, ALPN rotation.
+*   **3 DNS Profiles**: Standard, DNS-Safe (IP-only), DNS-Hardened (DoH/DoT/DoQ).
+*   **Proxy Washing & Shielding**: Resurrect dead proxies via WARP/Vwarp tunnels.
+*   **Chain Laboratory**: Browser-based 5-step chain builder with 6 strategies and 8 export formats.
+*   **Offline Tools**: `lab-scanner.py` (Python), `lab-runner.sh` (Bash), `lab-offline.html` (self-contained HTML).
+*   **Full Client Support**: Sing-box, Clash, Surge, Loon, Quantumult X, Shadowrocket, SIP008, Base64, plain text.
+*   **800+ Tests**: Unit, E2E, fuzz testing with >96% coverage on critical paths.
+
+ConfigStream is a demonstration of how powerful software can be built without a budget, relying on architectural ingenuity rather than capital.
+
+## Related Documentation
+
+*   **[Architecture Deep Dive](02-architecture.md)** — How the pipeline, hybrid engine, and intelligence layer work together.
+*   **[Protocols & Parsing](03-protocols.md)** — The 26+ protocols listed above, explained in depth.
+*   **[Getting Started](getting_started.md)** — Clone, install, and run your first pipeline in 5 minutes.
+*   **[Networking Terms](../encyclopedia/glossary/networking_terms.md)** — ISP, TCP/UDP, TLS, SNI, DPI, QUIC — the building blocks referenced throughout this wiki.
+*   **[Firewalls & Honeypots](../encyclopedia/security/firewall_honeypot.md)** — The adversaries ConfigStream is designed to defeat.

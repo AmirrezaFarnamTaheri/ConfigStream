@@ -1,7 +1,9 @@
 # Trojan Protocol
 
 ## Overview
-Trojan is a protocol designed to bypass the GFW by impersonating HTTPS (TLS) traffic. Unlike VMess or Shadowsocks which use custom encryption protocols, Trojan tunnels traffic over standard TLS, making it look exactly like a user visiting a website. It is one of the most effective stealth protocols and a first-class citizen in ConfigStream.
+Trojan is a protocol designed to bypass the [GFW](../security/firewall_honeypot.md) by impersonating HTTPS ([TLS](../glossary/networking_terms.md)) traffic. Unlike [VMess](vmess.md) or [Shadowsocks](shadowsocks.md) which use custom encryption protocols, Trojan tunnels traffic over standard TLS, making it look exactly like a user visiting a website. It is one of the most effective stealth protocols and a first-class citizen in ConfigStream.
+
+> **Analogy**: If [Shadowsocks](shadowsocks.md) is an invisible spy (detectable by the absence of a visible person), Trojan is a spy who walks into the building wearing the same uniform as every other employee. The guard (DPI) checks the uniform (TLS certificate), sees it's legitimate, and waves them through. Even if the guard gets suspicious and follows them (active probing), the spy just sits at a desk and does normal work (fallback website).
 
 ## Mechanism
 1.  **TLS Handshake:** The client connects to the server on port 443 and performs a real, valid TLS handshake. The censor sees a normal HTTPS connection to a legitimate-looking domain.
@@ -11,10 +13,25 @@ Trojan is a protocol designed to bypass the GFW by impersonating HTTPS (TLS) tra
     *   **Failure:** If the password is wrong (or active probing is detected), the server transparently proxies the connection to a **fallback web server** (e.g., Nginx serving a static page, or a real website like `www.example.com`). This fallback behavior is the key to Trojan's stealth — active probers see a real website.
 
 ## The Fallback Mechanism (Deep Dive)
-The fallback is what makes Trojan exceptional against active probing:
+The fallback is what makes Trojan exceptional against [active probing](../glossary/security_concepts.md):
+
 *   **To the censor:** Connecting to the Trojan server without the correct password shows a legitimate website (blog, corporate page, etc.). There is no way to distinguish it from a normal web server.
 *   **Nginx/Caddy Integration:** Trojan servers typically run behind Nginx or Caddy with a valid Let's Encrypt certificate. The web server handles legitimate HTTPS traffic while Trojan handles authenticated proxy traffic on the same port.
-*   **Multi-Fallback:** Advanced setups (Xray, Trojan-Go) support multiple fallback paths based on the ALPN protocol, path, or SNI — allowing different services to coexist on port 443.
+*   **Multi-Fallback:** Advanced setups (Xray, Trojan-Go) support multiple fallback paths based on the [ALPN](../glossary/networking_terms.md) protocol, path, or [SNI](../glossary/networking_terms.md) — allowing different services to coexist on port 443.
+
+> **Example**: A Trojan server at `blog.example.com:443` serves a real WordPress blog to normal visitors. When a client connects with the correct password hash, traffic is proxied. When the GFW's active prober connects without the password, it sees a perfectly normal blog with cat pictures. The prober cannot distinguish the server from the millions of other WordPress sites on the internet.
+
+### Trojan vs Reality: Two Approaches to the Same Problem
+
+Both Trojan and [VLESS+Reality](vless.md) defeat active probing, but they do it differently:
+
+| | Trojan | VLESS + Reality |
+|---|---|---|
+| **Requires domain?** | Yes (with valid TLS cert) | No (borrows someone else's domain) |
+| **Requires certificate?** | Yes (Let's Encrypt) | No (uses target's real cert) |
+| **Fallback target** | Your own web server | Any real website (e.g., microsoft.com) |
+| **Active probe response** | Serves your website | Proxies to the real target website |
+| **Setup complexity** | Medium (domain + cert + Nginx) | Low (just configure target SNI) |
 
 ## Variants
 
@@ -32,16 +49,26 @@ The fallback is what makes Trojan exceptional against active probing:
 *   **XTLS Integration:** Xray's Trojan implementation supports XTLS (a TLS optimization that avoids double encryption) and XTLS-Vision (which makes the TLS flow look more natural).
 *   **Fallback Chains:** Supports complex fallback configurations based on ALPN, path, and SNI.
 
+## Protocol Intelligence Scores
+
+| Metric | Score | Notes |
+| :--- | :--- | :--- |
+| **Stealth** | 9/10 | Indistinguishable from HTTPS with valid cert + fallback. |
+| **Speed** | 7/10 | Minimal overhead over TLS. Slightly slower than VLESS (SHA-224 hash per connection). |
+| **Reliability** | 9/10 | Mature, battle-tested. Fallback prevents server discovery. |
+| **Penalty (km)** | 100 | Low routing penalty in chain scoring. |
+
 ## Pros & Cons
 *   **Pros:**
-    *   Highly effective against DPI and active probing (fallback to real website).
+    *   Highly effective against [DPI](../glossary/networking_terms.md) and [active probing](../glossary/security_concepts.md) (fallback to real website).
     *   Lightweight — minimal overhead over standard TLS.
-    *   Works with CDNs via WebSocket transport (Trojan-Go, Xray).
+    *   Works with CDNs via [WebSocket](../glossary/networking_terms.md) transport (Trojan-Go, Xray).
     *   Stealth score: 9/10 in ConfigStream's protocol intelligence matrix.
 *   **Cons:**
     *   Requires a domain name and valid TLS certificate for maximum stealth.
     *   Self-signed certificates reduce stealth (the censor can detect non-CA certificates).
     *   Password-based authentication means a compromised password exposes the server.
+    *   No Reality support — unlike VLESS, Trojan cannot borrow another site's certificate.
 
 ## ConfigStream Parsing
 
@@ -110,3 +137,13 @@ trojan://PASSWORD@HOST:PORT?security=tls&sni=DOMAIN&type=tcp#REMARK
 | Shadowrocket | Full | All transports |
 | Surge | Partial | TCP only |
 | Loon | Partial | TCP, WS |
+
+## Related Documentation
+
+*   **[VLESS Protocol](vless.md)** — Similar stealth level; Reality adds active-probing resistance that Trojan lacks.
+*   **[VMess Protocol](vmess.md)** — Heavier encryption but wider client support; less stealthy than Trojan.
+*   **[Sing-box Configuration Guide](../tools/singbox_configuration_guide.md)** — How Trojan outbounds are structured in Sing-box JSON.
+*   **[Networking Terms — TLS, SNI](../glossary/networking_terms.md)** — The TLS layer Trojan relies on for camouflage.
+*   **[Security Concepts — Active Probing](../glossary/security_concepts.md)** — How Trojan's fallback mechanism defeats active probers.
+*   **[Firewalls & Honeypots](../security/firewall_honeypot.md)** — How GFW active probing works and why Trojan's fallback is effective.
+*   **[Protocols & Parsing](../../project/03-protocols.md)** — ConfigStream's Trojan parsing logic, password validation.

@@ -99,6 +99,52 @@ In the proxy table, the "Latency" column is not just a number. It is a story.
 *   **Visual**: A tiny SVG sparkline.
 *   **Insight**: A user sees a spike (900ms) and knows the proxy is unstable, even if it says "115ms" right now.
 
+## Chain Laboratory (`lab.html` + `lab.js`)
+
+The Laboratory is a 5-step interactive chain builder that guides users from zero to a working proxy chain:
+
+### Step 1: Parse Proxy
+*   **Manual URI Paste**: User pastes a proxy URI (VLESS, VMess, Trojan, SS, Hysteria2, TUIC, WireGuard).
+*   **Pre-Tested Proxies**: Users can click "Load Pre-Tested Proxies" to fetch working proxies from ConfigStream's pipeline output (`output/base64.txt`). Proxies are decoded from Base64, parsed, and displayed in a dropdown grouped by protocol.
+*   **Subscription Load**: Or load from the existing subscription endpoint.
+*   **Network Diagnosis**: An expandable section runs browser-based connectivity checks against 6 endpoints (Cloudflare, Google, GitHub, Wikipedia, DoH) and renders a censorship severity gauge with multi-strategy advice.
+*   **Local Proxy Detection**: Users can specify an existing local proxy (Psiphon, V2RayN, Clash) as Layer 1.
+
+### Step 2: Discover Clean IPs
+*   **Auto Scan**: Probes ConfigStream's default clean Cloudflare IPs with latency measurement.
+*   **Manual Entry**: Users can paste their own `IP:port` list.
+*   **Local Scan**: Runs a browser-based scan of known Cloudflare endpoints.
+
+### Step 3: Build Chain (6 Strategies)
+1.  **WARP Tunnel**: Standard shielding through Cloudflare WARP.
+2.  **Double WARP**: Two layers of WireGuard encryption.
+3.  **Relay Chain (Multi-Hop)**: Up to 4 intermediate hops of any protocol (SOCKS5, HTTP, VLESS, VMess, Trojan, SS, WARP). Replaces the old "Proxy Cascade" and "Intranet Relay" — a relay is any intermediate proxy, not limited to LAN. Each layer has a pipeline proxy picker.
+4.  **TLS Fragment**: Split TLS handshake to evade stateless DPI.
+5.  **CDN Worker**: Route through a user-deployed Cloudflare Worker.
+6.  **Custom JSON**: Paste raw sing-box outbound JSON for advanced users.
+
+Each strategy has its own options panel. Advanced evasion options (uTLS fingerprint, ALPN, multiplexing, padding) are available as a collapsible section.
+
+### Export Formats & Core Compatibility
+All chain configs are exported in formats compatible with the three major proxy cores:
+*   **Sing-box JSON**: Uses `detour` field for chaining (primary format).
+*   **Xray/V2Ray JSON**: Uses `proxySettings.tag` for chaining. Note: WireGuard outbounds are not natively supported by Xray.
+*   **Clash/Mihomo YAML**: Uses `dialer-proxy` for chaining.
+
+### Step 4: Test Chain
+*   **Live API Test**: Sends the chain config to a test endpoint.
+*   **Manual Fallback**: Provides `sing-box run -c` commands for local testing.
+
+### Step 5: Export
+*   **Formats**: Sing-box JSON, Clash YAML, Xray JSON, Nekobox link, raw URI, QR code, Python script, Bash script.
+*   **File Download**: One-click download of the generated config.
+*   **Import Guide**: Step-by-step instructions for Hiddify, Clash Verge, V2RayN, V2RayNG, Nekobox.
+
+### Offline Tools
+*   **`lab-scanner.py`**: Zero-dependency Python scanner with 7+ scan phases, interactive chain builder, and 6-strategy auto-chain detection.
+*   **`lab-runner.sh`**: Bash script that auto-downloads sing-box and runs chain configs.
+*   **`lab-offline.html`**: Self-contained HTML chain builder that works without a server.
+
 ## Internationalization (i18n)
 
 We support RTL (Right-to-Left) languages natively for our Persian and Arabic users.

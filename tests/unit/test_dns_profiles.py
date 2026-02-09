@@ -23,20 +23,16 @@ def test_singbox_dns_profile_structure():
     assert "servers" in profile
     assert "rules" in profile
 
-    # Check for new keys
+    # Check for required server tags (backward-compatible "address" format)
     servers = {s.get("tag"): s for s in profile["servers"]}
     assert "local_local" in servers
-    assert "hosts_dns" in servers
     assert "remote_dns" in servers
+    assert "direct_dns" in servers
+    assert "block_dns" in servers
 
-    # Check predefined hosts
-    hosts_server = servers["hosts_dns"]
-    assert "predefined" in hosts_server
-    assert "cloudflare-dns.com" in hosts_server["predefined"]
-
-    # Verify optimized IPs are used
-    cf_ips = hosts_server["predefined"]["cloudflare-dns.com"]
-    assert any(ip in CLOUDFLARE_OPTIMIZED_IPS for ip in cf_ips)
+    # Verify servers use "address" field (not "type"/"server" which is 1.12+ only)
+    for s in profile["servers"]:
+        assert "address" in s, f"Server {s.get('tag')} missing 'address' field"
 
 
 def test_clash_dns_profile():

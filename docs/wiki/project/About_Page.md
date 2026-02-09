@@ -33,7 +33,13 @@ The page reflects the core values of the project: transparency, resilience, and 
 *   Credits to open-source libraries used (Sing-box, geoip2, globe.gl, etc.).
 *   Contact/Issues link for reporting bugs.
 
+#### 6. Internationalization
+*   The About page respects the global language selector (i18n).
+*   All text content is loaded from translation files, allowing community-contributed translations.
+
 ## Technical Implementation
 
-*   **Static Content**: Pure HTML/CSS.
-*   **Versioning**: Dynamically displays the current version of the ConfigStream CLI/Pipeline derived from the latest metadata.
+*   **Static Content**: Pure HTML/CSS with i18n string injection.
+*   **Versioning**: Dynamically displays the pipeline version and last-updated timestamp from `metadata.json`.
+*   **No External Dependencies**: All content is self-contained. No CDN calls, no analytics scripts, no tracking pixels.
+*   **Accessibility**: Semantic HTML with proper heading hierarchy, ARIA labels, and keyboard navigation support.

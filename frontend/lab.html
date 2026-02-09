@@ -659,6 +659,7 @@
                     <select class="lab-select" id="chainType">
                         <option value="warp">WARP Tunnel</option>
                         <option value="warp-in-warp">Double WARP (WARP-in-WARP)</option>
+                        <option value="warp-psiphon">WARP + Psiphon (change exit location)</option>
                         <option value="relay-chain">Relay Chain (multi-hop, any protocol)</option>
                         <option value="fragment">TLS Fragment (no tunnel needed)</option>
                         <option value="worker">CDN Worker Relay</option>
@@ -733,6 +734,48 @@
                             <input type="text" class="lab-input" id="fragDelay" value="5-10" placeholder="5-10">
                             <div class="hint">Delay between fragments. Helps evade stateful inspection.</div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Psiphon Options (shown for warp-psiphon type) -->
+                <div id="psiphonOptions" style="display:none;">
+                    <div class="lab-form-group">
+                        <label for="psiphonCountry">Psiphon Exit Country</label>
+                        <select class="lab-select" id="psiphonCountry">
+                            <option value="US">United States (US)</option>
+                            <option value="GB">United Kingdom (GB)</option>
+                            <option value="DE">Germany (DE)</option>
+                            <option value="FR">France (FR)</option>
+                            <option value="NL">Netherlands (NL)</option>
+                            <option value="JP">Japan (JP)</option>
+                            <option value="SG">Singapore (SG)</option>
+                            <option value="AU">Australia (AU)</option>
+                            <option value="CA">Canada (CA)</option>
+                            <option value="BR">Brazil (BR)</option>
+                            <option value="IN">India (IN)</option>
+                            <option value="IT">Italy (IT)</option>
+                            <option value="ES">Spain (ES)</option>
+                            <option value="SE">Sweden (SE)</option>
+                            <option value="NO">Norway (NO)</option>
+                            <option value="DK">Denmark (DK)</option>
+                            <option value="FI">Finland (FI)</option>
+                            <option value="CH">Switzerland (CH)</option>
+                            <option value="AT">Austria (AT)</option>
+                            <option value="BE">Belgium (BE)</option>
+                            <option value="IE">Ireland (IE)</option>
+                            <option value="PT">Portugal (PT)</option>
+                            <option value="PL">Poland (PL)</option>
+                            <option value="CZ">Czech Republic (CZ)</option>
+                            <option value="HU">Hungary (HU)</option>
+                            <option value="RO">Romania (RO)</option>
+                            <option value="BG">Bulgaria (BG)</option>
+                            <option value="HR">Croatia (HR)</option>
+                            <option value="EE">Estonia (EE)</option>
+                            <option value="LV">Latvia (LV)</option>
+                            <option value="SK">Slovakia (SK)</option>
+                            <option value="RS">Serbia (RS)</option>
+                        </select>
+                        <div class="hint">Uses vwarp's Psiphon integration (<code>--cfon --country CODE</code>) to change the WARP exit location. Requires <a href="https://github.com/voidr3aper-anon/Vwarp" style="color:var(--brand-primary);">vwarp</a> binary.</div>
                     </div>
                 </div>
 

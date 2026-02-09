@@ -108,6 +108,24 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
                 common["sni"] = proxy.details["sni"]
             if proxy.details.get("fp"):
                 common["client-fingerprint"] = proxy.details["fp"]
+            # Transport (Trojan over ws/grpc is supported by Mihomo)
+            net = (
+                proxy.details.get("network")
+                or proxy.details.get("net")
+                or proxy.details.get("type")
+                or "tcp"
+            )
+            if net == "ws":
+                common["network"] = "ws"
+                common["ws-opts"] = {
+                    "path": proxy.details.get("path", "/"),
+                    "headers": {"Host": proxy.details.get("host", "")},
+                }
+            elif net == "grpc":
+                common["network"] = "grpc"
+                common["grpc-opts"] = {
+                    "grpc-service-name": proxy.details.get("serviceName", "")
+                }
             return common
 
         # Basic VLESS support (Clash Meta/Premium only usually, but often mapped)
@@ -207,7 +225,9 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
                 try:
                     common["mtu"] = int(proxy.details["mtu"])
                 except (TypeError, ValueError):
-                    pass
+                    common["mtu"] = 1280
+            else:
+                common["mtu"] = 1280
             common["udp"] = True
             return common
 

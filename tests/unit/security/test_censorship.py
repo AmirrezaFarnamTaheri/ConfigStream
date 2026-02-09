@@ -1,7 +1,7 @@
 import pytest
-from unittest.mock import MagicMock, patch
-import requests
-from src.configstream.security.censorship import CensorshipLab
+from unittest.mock import AsyncMock, MagicMock, patch
+import httpx
+from configstream.security.censorship import CensorshipLab
 
 
 @pytest.fixture
@@ -14,25 +14,27 @@ def test_initialization(lab):
     assert len(lab.SENSITIVE_SITES) > 0
 
 
-@patch("requests.get")
-def test_check_connectivity_success(mock_get, lab):
+@pytest.mark.asyncio
+async def test_check_connectivity_success(lab):
     mock_response = MagicMock()
     mock_response.status_code = 200
-    mock_get.return_value = mock_response
 
-    results = lab.check_connectivity(["https://example.com"])
+    with patch("httpx.AsyncClient.get", new_callable=AsyncMock, return_value=mock_response):
+        results = await lab.check_connectivity(["https://example.com"])
 
     assert "https://example.com" in results
     assert results["https://example.com"]["status"] == "reachable"
     assert results["https://example.com"]["code"] == 200
 
 
-@patch("requests.get")
-def test_check_connectivity_failure(mock_get, lab):
-    # Raise a requests exception which the code catches
-    mock_get.side_effect = requests.RequestException("Connection refused")
-
-    results = lab.check_connectivity(["https://example.com"])
+@pytest.mark.asyncio
+async def test_check_connectivity_failure(lab):
+    with patch(
+        "httpx.AsyncClient.get",
+        new_callable=AsyncMock,
+        side_effect=httpx.ConnectError("Connection refused"),
+    ):
+        results = await lab.check_connectivity(["https://example.com"])
 
     assert "https://example.com" in results
     assert results["https://example.com"]["status"] == "blocked"
