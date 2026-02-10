@@ -2,6 +2,7 @@
 # Optimized based on fetch duration for equal execution times
 # Est. Fetch Time: 856.6s
 
+https://github.com/AmirrezaFarnamTaheri/GATHEREX/blob/main/outputs_dev/proxies.json
 https://v2.alicivil.workers.dev/?count=2000&list=gb&shuffle=true
 https://v2.alicivil.workers.dev/?count=2000&list=sa&shuffle=true
 https://v2.alicivil.workers.dev/?count=2000&list=pe&shuffle=true
