@@ -3,6 +3,7 @@
 # Est. Fetch Time: 856.3s
 
 https://api.openproxylist.xyz/socks5.txt
+https://github.com/AmirrezaFarnamTaheri/GATHEREX/blob/main/outputs_dev/proxies.txt
 https://v2.alicivil.workers.dev/?count=2000&list=sc&shuffle=true
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub11.txt
 https://raw.githubusercontent.com/NiREvil/vless/main/sub/exclave-wg.txt
