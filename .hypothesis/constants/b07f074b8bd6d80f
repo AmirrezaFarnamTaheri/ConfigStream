@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_chatfullinfo.py
+# hypothesis_version: 6.150.0
+
+['Bot', 'BusinessIntro', 'BusinessLocation', 'BusinessOpeningHours', 'Chat', 'ChatFullInfo', 'Message', '_slow_mode_delay', 'accent_color_id', 'accepted_gift_types', 'active_usernames', 'available_reactions', 'bio', 'birthdate', 'business_intro', 'business_location', 'can_send_paid_media', 'can_set_sticker_set', 'description', 'has_hidden_members', 'has_private_forwards', 'has_visible_history', 'invite_link', 'join_by_request', 'linked_chat_id', 'location', 'max_reaction_count', 'parent_chat', 'permissions', 'personal_chat', 'photo', 'pinned_message', 'slow_mode_delay', 'sticker_set_name']

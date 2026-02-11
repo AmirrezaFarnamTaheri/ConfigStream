@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import base64
 import logging
 from typing import Any, Optional
 import urllib.parse
@@ -38,6 +39,12 @@ def to_uri(proxy: Proxy) -> Optional[str]:
     if not proxy.is_working:
         return None
 
+    # [FIX] Revived/chain proxies are multi-hop configs that cannot be expressed
+    # as a single URI.  Return None so they are excluded from URI subscriptions.
+    # (The plaintext generator has its own _extract_uri that handles these.)
+    if proxy.protocol == "revived" or (proxy.config or "").startswith("revived://"):
+        return None
+
     # Attempt to use the original config if it looks like a URI
     if proxy.config and "://" in proxy.config:
         # Just return it, maybe append name
@@ -49,8 +56,6 @@ def to_uri(proxy: Proxy) -> Optional[str]:
         if proxy.protocol == "shadowsocks":
             # ss://user:pass@host:port#name
             # user info usually base64 encoded
-            import base64
-
             cipher = (
                 proxy.details.get("method")
                 or proxy.details.get("cipher")
@@ -69,14 +74,47 @@ def to_uri(proxy: Proxy) -> Optional[str]:
             return f"ss://{b64_userinfo}@{proxy.address}:{proxy.port}#{urllib.parse.quote(name)}"
 
         elif proxy.protocol == "trojan":
-            # trojan://password@host:port#name
+            # trojan://password@host:port?params#name
             password = proxy.uuid
             name = (
                 proxy.remarks
                 or get_flag_emoji(proxy.country_code)
                 or proxy.country_code
             )
-            return f"trojan://{password}@{proxy.address}:{proxy.port}#{urllib.parse.quote(name)}"
+            # [FIX] Include transport and TLS query params so clients can connect
+            # when proxy uses ws/grpc/h2 transport (standard Trojan share link format)
+            params: dict[str, str] = {}
+            details = proxy.details or {}
+            net = details.get("net") or details.get("network") or details.get("type")
+            if net and net != "tcp":
+                params["type"] = net
+                if details.get("path"):
+                    params["path"] = str(details["path"])
+                if details.get("host"):
+                    params["host"] = str(details["host"])
+                if details.get("serviceName"):
+                    params["serviceName"] = str(details["serviceName"])
+            security = details.get("security") or ""
+            if details.get("sni"):
+                params["sni"] = str(details["sni"])
+            if security == "reality":
+                params["security"] = "reality"
+                if details.get("pbk"):
+                    params["pbk"] = str(details["pbk"])
+                if details.get("sid"):
+                    params["sid"] = str(details["sid"])
+                if details.get("fp"):
+                    params["fp"] = str(details["fp"])
+            elif details.get("tls") or security == "tls":
+                params["security"] = "tls"
+            if details.get("fp") and "fp" not in params:
+                params["fp"] = str(details["fp"])
+            query = urllib.parse.urlencode(params) if params else ""
+            uri = f"trojan://{password}@{proxy.address}:{proxy.port}"
+            if query:
+                uri += f"?{query}"
+            uri += f"#{urllib.parse.quote(name)}"
+            return uri
 
         elif proxy.protocol in ["vmess", "vless"]:
             # These are complex JSONs usually, or complex URIs

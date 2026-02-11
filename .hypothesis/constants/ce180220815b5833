@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\ext\_defaults.py
+# hypothesis_version: 6.150.0
+
+['21.10', 'LinkPreviewOptions', '_api_defaults', '_block', '_do_quote', '_parse_mode', '_protect_content', '_tzinfo', 'disable_notification', 'do_quote', 'link_preview_options', 'parse_mode', 'protect_content', 'pytz', 'question_parse_mode', 'text_parse_mode']

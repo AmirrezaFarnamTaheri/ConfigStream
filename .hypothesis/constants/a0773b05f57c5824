@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\parsers\openvpn.py
+# hypothesis_version: 6.150.0
+
+[255, 65535, '(^|\\s)client(\\s|$)', 'OpenVPN Config', '^[\\w\\.\\-\\[\\]:]+$', '^proto\\s+(\\w+)', 'openvpn', 'tcp', 'tcp-client', 'transport', 'udp', 'udp-client']

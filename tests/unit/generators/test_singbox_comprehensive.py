@@ -46,8 +46,10 @@ def test_generate_singbox_config_basics():
 
 def test_generate_singbox_config_extra_outbounds():
     proxies = []
+    # Proper chain topology: WARP is the entry point, RELAY-123 is the inner hop
+    # WARP routes traffic through RELAY-123 via the detour field
     extras = [
-        {"type": "wireguard", "tag": "WARP"},
+        {"type": "wireguard", "tag": "WARP", "detour": "RELAY-123"},
         {"type": "vless", "tag": "RELAY-123"},
     ]
 
@@ -60,7 +62,12 @@ def test_generate_singbox_config_extra_outbounds():
     assert "WARP" in tags
     assert "RELAY-123" in tags
 
-    # RELAY should not be in selector
+    # Inner hop (detour target) should NOT be in selector; entry point should
     selector = next(o for o in outbounds if o["type"] == "selector")
     assert "WARP" in selector["outbounds"]
     assert "RELAY-123" not in selector["outbounds"]
+
+    # Entry point should also be in urltest for auto-select
+    urltest = next(o for o in outbounds if o["type"] == "urltest")
+    assert "WARP" in urltest["outbounds"]
+    assert "RELAY-123" not in urltest["outbounds"]

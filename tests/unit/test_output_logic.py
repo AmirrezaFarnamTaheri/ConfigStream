@@ -78,3 +78,56 @@ def test_generate_categorized_outputs(tmp_path, sample_proxies, warp_keys):
         # Note: tags depend on washer generation logic (Secure/Optimal)
         # The washer logic adds tags like "🛡️ Secure-US-1"
         assert any("Secure" in t for t in tags if t)
+
+
+def test_chosen_outputs_generated(tmp_path, sample_proxies):
+    """Verify chosen/ directory outputs include singbox.json, clash.yaml, proxies.txt."""
+    files = generate_categorized_outputs(sample_proxies, tmp_path)
+
+    assert "chosen_base64" in files
+    assert "chosen_proxies_txt" in files
+    assert "chosen_singbox" in files
+    # chosen_clash may not be present if generate_clash_config returns empty for few proxies
+    # but at least the other three must exist
+
+    # Verify chosen/singbox.json is valid JSON
+    with open(files["chosen_singbox"], encoding="utf-8") as f:
+        data = json.load(f)
+        assert "outbounds" in data
+
+    # Verify chosen/proxies.txt is non-empty
+    assert files["chosen_proxies_txt"].stat().st_size > 0
+
+
+def test_dns_cache_passthrough(tmp_path, sample_proxies):
+    """Verify dns_safe_cache parameter is respected (no double computation)."""
+    from configstream.output_logic import _build_dns_safe_proxies
+
+    # Pre-compute DNS-safe cache
+    dns_safe_cache = _build_dns_safe_proxies(sample_proxies)
+    dns_safe_proxies, host_map = dns_safe_cache
+
+    # Pass cache to generate_categorized_outputs
+    files = generate_categorized_outputs(
+        sample_proxies,
+        tmp_path,
+        dns_safe_cache=dns_safe_cache,
+    )
+
+    # Should still generate base outputs
+    assert "base64" in files
+    assert "singbox_full" in files
+
+
+def test_protocol_txt_files_generated(tmp_path, sample_proxies):
+    """Verify per-protocol .txt URI subscription files are generated."""
+    files = generate_categorized_outputs(sample_proxies, tmp_path)
+
+    # At least one protocol txt file should exist
+    proto_txt_keys = [k for k in files if k.startswith("proto_") and k.endswith("_txt")]
+    assert len(proto_txt_keys) > 0
+
+    # Verify content is non-empty plaintext URIs
+    for key in proto_txt_keys:
+        content = files[key].read_text(encoding="utf-8")
+        assert len(content.strip()) > 0

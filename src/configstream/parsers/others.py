@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import base64
 import logging
 import re
 
@@ -10,6 +11,13 @@ from .base import normalize_proxy_details
 from ..constants import MAX_CONFIG_LINE_LENGTH
 
 logger = logging.getLogger(__name__)
+
+# Pre-compiled patterns for per-proxy parsing hot paths
+_PORT_HOPPING_RE = re.compile(r"^[\d,\-]+$")
+_RESERVED_BRACKETED_RE = re.compile(r"^\[[\d\s,]+\]$")
+_RESERVED_CSV_RE = re.compile(r"^[\d\s,]+$")
+_RESERVED_B64_RE = re.compile(r"^[a-zA-Z0-9+/=]+$")
+_SSH_HOSTNAME_RE = re.compile(r"^[a-zA-Z0-9\.\-\_]+$")
 
 
 def _parse_url_scheme(config: str, protocol: str, default_port: int) -> Optional[Proxy]:
@@ -117,7 +125,7 @@ def parse_hysteria2(c: str) -> Optional[Proxy]:
         if "ports" in proxy.details:
             # Validate format
             ports_val = proxy.details["ports"]
-            if not re.match(r"^[\d,\-]+$", ports_val):
+            if not _PORT_HOPPING_RE.match(ports_val):
                 logger.warning(f"Invalid port hopping format: {ports_val}")
                 del proxy.details["ports"]
 
@@ -216,7 +224,6 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
     # The Go Tester fails with "IPC error -22: hex string does not fit the slice" if length is wrong
     # Also "failed to get peer by public key" indicates invalid peer_public_key
     try:
-        import base64
 
         def validate_wg_key(key: str, name: str) -> bool:
             if not key:
@@ -278,9 +285,9 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
         if isinstance(reserved, str):
             # Validate format [x, y, z] or base64
             # Support [1,2,3], 1,2,3 and base64
-            is_bracketed = re.match(r"^\[[\d\s,]+\]$", reserved)
-            is_csv = re.match(r"^[\d\s,]+$", reserved)
-            is_b64 = re.match(r"^[a-zA-Z0-9+/=]+$", reserved)
+            is_bracketed = _RESERVED_BRACKETED_RE.match(reserved)
+            is_csv = _RESERVED_CSV_RE.match(reserved)
+            is_b64 = _RESERVED_B64_RE.match(reserved)
 
             if not (is_bracketed or is_csv or is_b64):
                 logger.warning(
@@ -338,7 +345,7 @@ def parse_ssh(config: str) -> Optional[Proxy]:
     proxy = _parse_url_scheme(config, "ssh", 22)
     if proxy:
         # Validate host matches strict regex (IP or Domain) to avoid injection
-        if not re.match(r"^[a-zA-Z0-9\.\-\_]+$", proxy.address):
+        if not _SSH_HOSTNAME_RE.match(proxy.address):
             logger.warning(f"Invalid SSH hostname: {proxy.address}")
             return None
 

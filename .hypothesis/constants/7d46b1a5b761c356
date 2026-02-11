@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\error.py
+# hypothesis_version: 6.150.0
+
+['Bad Request: ', 'BadRequest', 'ChatMigrated', 'Conflict', 'EndPointNotFound', 'Error: ', 'Forbidden', 'Invalid token', 'InvalidToken', 'NetworkError', 'RetryAfter', 'TelegramError', 'Timed out', 'TimedOut', '[Error]: ', '_msg', '_retry_after', 'message', 'new_chat_id', 'retry_after']

@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\aiohttp\cookiejar.py
+# hypothesis_version: 6.150.0
+
+[100, 1601, 1900, 2000, 3000, '"', '(\\d{1,2})', '(\\d{2,4})', '.', '/', 'BaseCookie[str]', 'CookieJar', 'DummyCookieJar', 'Morsel[str]', 'coded_value', 'domain', 'expires', 'https', 'key', 'max-age', 'path', 'rb', 'secure', 'token', 'value', 'wb', 'wss', '{1}.{0}', '{}/{}']

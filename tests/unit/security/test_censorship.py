@@ -19,7 +19,9 @@ async def test_check_connectivity_success(lab):
     mock_response = MagicMock()
     mock_response.status_code = 200
 
-    with patch("httpx.AsyncClient.get", new_callable=AsyncMock, return_value=mock_response):
+    with patch(
+        "httpx.AsyncClient.get", new_callable=AsyncMock, return_value=mock_response
+    ):
         results = await lab.check_connectivity(["https://example.com"])
 
     assert "https://example.com" in results

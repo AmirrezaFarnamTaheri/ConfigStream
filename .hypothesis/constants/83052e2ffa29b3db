@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\parsers\clash_json.py
+# hypothesis_version: 6.150.0
+
+['cipher', 'method', 'name', 'password', 'port', 'private-key', 'privateKey', 'private_key', 'server', 'shadowsocks', 'ss', 'trojan', 'type', 'uuid', 'vless', 'vmess', 'wg', 'wireguard']

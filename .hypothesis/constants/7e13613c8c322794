@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_reply.py
+# hypothesis_version: 6.150.0
+
+['Bot', 'ExternalReplyInfo', 'ReplyParameters', 'TextQuote', 'animation', 'audio', 'chat', 'chat_id', 'checklist', 'checklist_task_id', 'contact', 'dice', 'document', 'entities', 'game', 'giveaway', 'giveaway_winners', 'has_media_spoiler', 'invoice', 'is_manual', 'link_preview_options', 'location', 'message_id', 'origin', 'paid_media', 'photo', 'poll', 'position', 'quote', 'quote_entities', 'quote_parse_mode', 'quote_position', 'sticker', 'story', 'text', 'venue', 'video', 'video_note', 'voice']

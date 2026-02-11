@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\pipeline.py
+# hypothesis_version: 6.150.0
+
+[1.0, 1.5, 200, 300, 5000, '0', 'FAIL_ON_ZERO_WORKING', 'USE_VWARP_TUNNEL', 'false', 'no', 'timestamp', 'true', 'vwarp_tool']

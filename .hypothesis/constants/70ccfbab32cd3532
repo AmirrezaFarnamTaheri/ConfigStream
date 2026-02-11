@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\generators\clash.py
+# hypothesis_version: 6.150.0
+
+[300, 7890, 7891, '127.0.0.1:9090', 'FASTEST', 'MATCH,PROXY', 'PROXY', 'Rule', 'allow-lan', 'dns', 'external-controller', 'info', 'interval', 'log-level', 'mode', 'name', 'port', 'proxies', 'proxy-groups', 'rules', 'select', 'socks-port', 'type', 'url', 'url-test']

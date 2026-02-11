@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\fastapi\security\api_key.py
+# hypothesis_version: 6.150.0
+
+['APIKey', 'Cookie name.', 'Header name.', 'Not authenticated', 'WWW-Authenticate', 'in']

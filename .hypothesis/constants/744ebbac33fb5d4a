@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\adaptive_workers.py
+# hypothesis_version: 6.150.0
+
+[150, 500, 1024, ' (CI)', 'CI', 'CIRCLECI', 'GITHUB_ACTIONS', 'GITLAB_CI', 'JENKINS_URL']

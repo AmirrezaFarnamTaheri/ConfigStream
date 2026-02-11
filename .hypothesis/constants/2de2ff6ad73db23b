@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\playwright\_impl\_fetch.py
+# hypothesis_version: 6.150.0
+
+[200, 299, 'APIRequestContext', 'APIResponse', 'Content-Type', 'DELETE', 'GET', 'HEAD', 'PATCH', 'POST', 'PUT', 'Playwright', 'application/json', 'binary', 'buffer', 'clientCertificates', 'dispose', 'disposeAPIResponse', 'encodedParams', 'extraHTTPHeaders', 'failOnStatusCode', 'fetch', 'fetchLog', 'fetchResponseBody', 'fetchUid', 'formData', 'headers', 'ignoreHTTPSErrors', 'indexedDB', 'jsonData', 'maxRedirects', 'maxRetries', 'method', 'mimeType', 'multipartData', 'name', 'newRequest', 'params', 'postData', 'reason', 'status', 'statusText', 'storageState', 'timeout', 'tracing', 'url', 'value']

@@ -117,7 +117,7 @@ jobs:
           echo "repo_lowercase=$REPO_LOWERCASE" >> $GITHUB_OUTPUT
 
       - name: Build and Push Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: true
@@ -149,7 +149,7 @@ jobs:
         run: pip install -e .
 
       - name: Cache Data
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             data/source_quality.db
@@ -243,7 +243,7 @@ jobs:
           persist-credentials: false
 
       - name: Restore Cache (Adaptive Logic)
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             data/source_quality.db
@@ -331,7 +331,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-          persist-credentials: false
+          persist-credentials: true
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -353,7 +353,7 @@ jobs:
           echo "$GITHUB_WORKSPACE" >> $GITHUB_PATH
 
       - name: Install dependencies
-        run: pip install -e .[dev] requests huggingface_hub geopy
+        run: pip install -e .[dev] huggingface_hub
 
       - name: Download shard artifacts
         uses: actions/download-artifact@v4
@@ -474,7 +474,6 @@ jobs:
              output/clash.yaml
              output/singbox-vpn.json
              output/base64.txt
-             output/stealth_cover.png
              output/consolidated_pipeline.log
           draft: false
           prerelease: false

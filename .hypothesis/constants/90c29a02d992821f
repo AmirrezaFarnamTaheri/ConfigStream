@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_payment\stars\transactionpartner.py
+# hypothesis_version: 6.150.0
+
+['Bot', 'TransactionPartner', 'User', 'affiliate', 'chat', 'commission_per_mille', 'gift', 'invoice_payload', 'paid_media', 'paid_media_payload', 'request_count', 'sponsor_user', 'subscription_period', 'transaction_type', 'type', 'user', 'withdrawal_state']

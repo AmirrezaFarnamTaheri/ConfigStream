@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_files\video.py
+# hypothesis_version: 6.150.0
+
+['Bot', 'Video', '_duration', '_start_timestamp', 'cover', 'duration', 'file_name', 'height', 'mime_type', 'start_timestamp', 'width']

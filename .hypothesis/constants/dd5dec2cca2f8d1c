@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\ext\_picklepersistence.py
+# hypothesis_version: 6.150.0
+
+['TelegramObj', '_bot', 'api_kwargs', 'bot_data', 'callback_data', 'chat_data', 'context_types', 'conversations', 'filepath', 'on_flush', 'rb', 'single_file', 'user_data', 'wb']

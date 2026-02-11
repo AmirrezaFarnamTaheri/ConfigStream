@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\cryptography\hazmat\primitives\_serialization.py
+# hypothesis_version: 6.150.0
+
+['ANSI X9.62', 'DER', 'OpenSSH', 'PEM', 'PKCS12', 'PKCS3', 'PKCS8', 'Raw', 'Raw PKCS#1', 'S/MIME', 'TraditionalOpenSSL']

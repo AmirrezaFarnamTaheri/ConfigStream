@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_telegramobject.py
+# hypothesis_version: 6.150.0
+
+[', ', 'Animation', 'Audio', 'Bot', 'ChatFullInfo', 'ChatInviteLink', 'InlineQueryResultGif', 'InputMediaAnimation', 'InputMediaAudio', 'InputMediaVideo', 'InputPaidMediaVideo', 'Location', 'PaidMediaPreview', 'Poll', 'Tele', 'Tele_co', 'TelegramObject', 'Video', 'VideoChatEnded', 'VideoNote', 'Voice', '_', '__dict__', '_audio_duration', '_bot', '_duration', '_frozen', '_gif_duration', '_id_attrs', '_live_period', '_mpeg4_duration', '_open_period', '_slow_mode_delay', '_start_timestamp', '_subscription_period', '_video_duration', '_voice_duration', 'api_kwargs', 'dict[str, object]', 'from', 'from_user', 'to_dict']

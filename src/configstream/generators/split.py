@@ -3,7 +3,7 @@ import logging
 import json
 import copy
 from pathlib import Path
-from typing import List, Dict, Any, Set, Optional
+from typing import List, Dict, Any, Set, Optional, Tuple
 
 from ..models import Proxy
 from .clash import generate_clash_config
@@ -70,19 +70,33 @@ def generate_split_outputs(
     suffix = f"-{name_suffix}" if name_suffix else ""
     key_suffix_str = f"_{key_suffix}" if key_suffix else ""
 
-    # 1. Sniper (Standard singbox.json) - Smart Routing + TLS Fragmentation
-    outbounds: List[Dict[str, Any]] = []
-    selector_tags: List[str] = []
-
-    # [FIX] Pre-load evasion config outside the per-proxy loop (was instantiating AppSettings per-proxy)
+    # 1. Pre-compute base outbound conversions (used by both Sniper and Tank)
+    # This avoids calling to_singbox_outbound twice per proxy.
     from configstream.intelligence.evasion import enrich_outbound_with_evasion
     from configstream.config import AppSettings
 
     _split_settings = AppSettings()
     evasion_mode = getattr(_split_settings, "EVASION_MODE", "aggressive").lower()
 
+    # Cache: proxy.id -> (tag, base_outbound_dict)
+    _base_outbound_cache: Dict[str, Tuple[str, Dict[str, Any]]] = {}
     for p in proxies:
-        # Skip washed proxies (they are replaced by washed_outbounds)
+        if _is_washed_proxy(p, washed_ids):
+            continue
+        chain_outbounds = p.details.get("chain_outbounds")
+        if isinstance(chain_outbounds, list) and chain_outbounds:
+            continue  # chains handled separately
+        sb_proxy = to_singbox_outbound(p)
+        if sb_proxy:
+            tag = p.remarks or f"{p.protocol}-{p.id[:8]}"
+            sb_proxy["tag"] = tag
+            _base_outbound_cache[p.id] = (tag, sb_proxy)
+
+    # Sniper (Standard singbox.json) - Smart Routing + TLS Fragmentation
+    outbounds: List[Dict[str, Any]] = []
+    selector_tags: List[str] = []
+
+    for p in proxies:
         if _is_washed_proxy(p, washed_ids):
             continue
 
@@ -93,49 +107,50 @@ def generate_split_outputs(
             _append_unique_tag(selector_tags, _chain_entry_tag(chain_copy))
             continue
 
-        sb_proxy = to_singbox_outbound(p)
-        if sb_proxy:
-            tag = p.remarks or f"{p.protocol}-{p.id[:8]}"
-            sb_proxy["tag"] = tag
+        cached = _base_outbound_cache.get(p.id)
+        if not cached:
+            continue
+        tag, base_ob = cached
+        # Deep copy for Sniper (evasion will mutate)
+        sb_proxy = copy.deepcopy(base_ob)
 
-            # Inject evasion features based on configured mode
-            # [FIX] Moved imports and settings outside the per-proxy loop for performance
-            if evasion_mode == "aggressive":
-                sb_proxy = enrich_outbound_with_evasion(
-                    sb_proxy,
-                    p.id,
-                    enable_utls=True,
-                    enable_alpn=True,
-                    enable_fragmentation=True,
-                    enable_multiplexing=True,
-                )
-            elif evasion_mode == "stealth":
-                sb_proxy = enrich_outbound_with_evasion(
-                    sb_proxy,
-                    p.id,
-                    enable_utls=True,
-                    enable_alpn=False,
-                    enable_fragmentation=True,
-                    enable_multiplexing=False,
-                )
-            else:  # standard - no evasion (compatibility mode)
-                sb_proxy = enrich_outbound_with_evasion(
-                    sb_proxy,
-                    p.id,
-                    enable_utls=False,
-                    enable_alpn=False,
-                    enable_fragmentation=False,
-                    enable_multiplexing=False,
-                )
-            # [FIX] Mark evasion features based on actual mode, not unconditionally True
-            if not p.details:
-                p.details = {}
-            p.details["has_utls"] = evasion_mode in ("aggressive", "stealth")
-            p.details["has_fragmentation"] = evasion_mode in ("aggressive", "stealth")
-            p.details["has_multiplexing"] = evasion_mode == "aggressive"
-            p.details["has_alpn_rotation"] = evasion_mode == "aggressive"
-            outbounds.append(sb_proxy)
-            _append_unique_tag(selector_tags, tag)
+        # Inject evasion features based on configured mode
+        if evasion_mode == "aggressive":
+            sb_proxy = enrich_outbound_with_evasion(
+                sb_proxy,
+                p.id,
+                enable_utls=True,
+                enable_alpn=True,
+                enable_fragmentation=True,
+                enable_multiplexing=True,
+            )
+        elif evasion_mode == "stealth":
+            sb_proxy = enrich_outbound_with_evasion(
+                sb_proxy,
+                p.id,
+                enable_utls=True,
+                enable_alpn=False,
+                enable_fragmentation=True,
+                enable_multiplexing=False,
+            )
+        else:  # standard - no evasion (compatibility mode)
+            sb_proxy = enrich_outbound_with_evasion(
+                sb_proxy,
+                p.id,
+                enable_utls=False,
+                enable_alpn=False,
+                enable_fragmentation=False,
+                enable_multiplexing=False,
+            )
+        # [FIX] Mark evasion features based on actual mode, not unconditionally True
+        if not p.details:
+            p.details = {}
+        p.details["has_utls"] = evasion_mode in ("aggressive", "stealth")
+        p.details["has_fragmentation"] = evasion_mode in ("aggressive", "stealth")
+        p.details["has_multiplexing"] = evasion_mode == "aggressive"
+        p.details["has_alpn_rotation"] = evasion_mode == "aggressive"
+        outbounds.append(sb_proxy)
+        _append_unique_tag(selector_tags, tag)
 
     # Add washed outbounds
     if washed_outbounds:
@@ -257,7 +272,7 @@ def generate_split_outputs(
     tank_outbounds: List[Dict[str, Any]] = []
     tank_proxy_tags: List[str] = []
 
-    # Re-convert for Tank (clean slate, no frag)
+    # Re-use cached base outbounds for Tank (clean slate, no evasion/frag)
     for p in proxies:
         if _is_washed_proxy(p, washed_ids):
             continue
@@ -269,12 +284,14 @@ def generate_split_outputs(
             _append_unique_tag(tank_proxy_tags, _chain_entry_tag(chain_copy))
             continue
 
-        sb_proxy = to_singbox_outbound(p)
-        if sb_proxy:
-            tag = p.remarks or f"{p.protocol}-{p.id[:8]}"
-            sb_proxy["tag"] = tag
-            tank_outbounds.append(sb_proxy)
-            _append_unique_tag(tank_proxy_tags, tag)
+        cached = _base_outbound_cache.get(p.id)
+        if not cached:
+            continue
+        tag, base_ob = cached
+        # Deep copy so Tank has its own clean instance (no evasion mutations)
+        sb_proxy = copy.deepcopy(base_ob)
+        tank_outbounds.append(sb_proxy)
+        _append_unique_tag(tank_proxy_tags, tag)
 
     if washed_outbounds:
         tank_outbounds.extend(copy.deepcopy(washed_outbounds))

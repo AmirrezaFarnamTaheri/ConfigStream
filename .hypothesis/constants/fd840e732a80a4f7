@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\parsers\decoders.py
+# hypothesis_version: 6.150.0
+
+[0.05, '%', '+', '-', '/', ':', '<', '=', '[', '_', 'ignore', 'utf-8', '{']

@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\utils\bool_parser.py
+# hypothesis_version: 6.150.0
+
+['1', 'enabled', 'on', 'tls', 'true', 'yes']

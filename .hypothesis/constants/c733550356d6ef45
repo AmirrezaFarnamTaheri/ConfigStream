@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\tornado\httputil.py
+# hypothesis_version: 6.150.0
+
+[b'\r\n', b'\r\n\r\n', b'"', b'--', b':', 1000, '"', '%[0-9A-Fa-f]{2}', ',', ', ', '-', '127.0.0.1', ':', '://', ';', '; ', '=', '?', 'Content-Disposition', 'Content-Encoding', 'Content-Type', 'Cookie', 'Dummy', 'Future[None]', 'HTTP/1', 'HTTP/1.0', 'HTTP/[0-9]\\.[0-9]', 'HTTPConnection', 'HTTPFile', 'HTTPHeaders', 'HTTPMessageDelegate', 'Host', 'Missing Host header', 'NFC', 'RequestStartLine', 'ResponseStartLine', "[!$&'()*+,;=]", '[0-9]*', '[0-9]{3}', '[A-Za-z0-9\\-._~]', '[\\x21-\\x7E]', '[\\x80-\\xFF]', '\\"', '\\r?\\n$', '^(.+):(\\d+)$', '_cookies', 'application/unknown', 'boundary', 'bytes', 'context', 'filename', 'form-data', 'host', 'http', 'method', 'multipart/form-data', 'name', 'protocol', 'remote_ip', 'uri', 'utf-8', 'value', 'version']

@@ -7,6 +7,13 @@ from ..constants import MAX_OPENVPN_CONFIG_SIZE
 
 logger = logging.getLogger(__name__)
 
+# Pre-compiled patterns for OpenVPN parsing
+_CLIENT_DIRECTIVE_RE = re.compile(r"(^|\s)client(\s|$)", re.MULTILINE)
+_REMOTE_LINE_RE = re.compile(r"^remote\s+(\S+)\s+(\d+)", re.MULTILINE)
+_REMOTE_FALLBACK_RE = re.compile(r"remote\s+(\S+)\s+(\d+)")
+_HOSTNAME_FORMAT_RE = re.compile(r"^[\w\.\-\[\]:]+$")
+_PROTO_RE = re.compile(r"^proto\s+(\w+)", re.MULTILINE)
+
 
 def parse_openvpn(config: str) -> Optional[Proxy]:
     """
@@ -28,14 +35,14 @@ def parse_openvpn(config: str) -> Optional[Proxy]:
 
         # Check for "client" directive more strictly (start of line or after whitespace)
         # This prevents matching "client" in comments or embedded strings
-        if not re.search(r"(^|\s)client(\s|$)", config, re.MULTILINE):
+        if not _CLIENT_DIRECTIVE_RE.search(config):
             return None
 
         # Extract remote
-        remotes = re.findall(r"^remote\s+(\S+)\s+(\d+)", config, re.MULTILINE)
+        remotes = _REMOTE_LINE_RE.findall(config)
         if not remotes:
             # Maybe in <connection> block?
-            remotes = re.findall(r"remote\s+(\S+)\s+(\d+)", config)
+            remotes = _REMOTE_FALLBACK_RE.findall(config)
 
         if not remotes:
             return None
@@ -50,7 +57,7 @@ def parse_openvpn(config: str) -> Optional[Proxy]:
 
         # Basic hostname format validation (alphanumeric, dots, hyphens, underscores)
         # Also allows IPv4 addresses and IPv6 addresses in brackets
-        if not re.match(r"^[\w\.\-\[\]:]+$", host):
+        if not _HOSTNAME_FORMAT_RE.match(host):
             logger.warning(f"OpenVPN hostname rejected: invalid format '{host}'")
             return None
 
@@ -65,7 +72,7 @@ def parse_openvpn(config: str) -> Optional[Proxy]:
             return None
 
         # Extract Proto
-        proto_match = re.search(r"^proto\s+(\w+)", config, re.MULTILINE)
+        proto_match = _PROTO_RE.search(config)
         transport = proto_match.group(1) if proto_match else "udp"
 
         # Validate transport protocol

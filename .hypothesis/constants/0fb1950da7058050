@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\limits\storage\redis_cluster.py
+# hypothesis_version: 6.150.0
+
+[1000, '*', ',', '2.5.0', '3.14.0', '4.2.0', '4.3', '6.0', ':', '@', 'max_connections', 'password', 'redis', 'redis+cluster', 'username', 'utf-8', 'valkey', 'valkey+cluster']

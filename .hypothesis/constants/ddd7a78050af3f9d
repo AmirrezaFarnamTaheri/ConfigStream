@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\aiohttp\client_middleware_digest_auth.py
+# hypothesis_version: 6.150.0
+
+[b':', 401, '"', ',', '-SESS', '/', ':', 'MD5', 'MD5-SESS', 'SHA', 'SHA-256', 'SHA-256-SESS', 'SHA-512', 'SHA-512-SESS', 'SHA-SESS', 'SHA256', 'SHA256-SESS', 'SHA512', 'SHA512-SESS', '\\"', 'algorithm', 'auth', 'auth-int', 'cnonce', 'digest', 'domain', 'hashlib._Hash', 'nc', 'nonce', 'opaque', 'qop', 'realm', 'response', 'stale', 'uri', 'username', 'utf-8', 'www-authenticate']

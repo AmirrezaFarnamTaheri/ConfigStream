@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_passport\encryptedpassportelement.py
+# hypothesis_version: 6.150.0
+
+['Bot', 'Credentials', 'address', 'data', 'driver_license', 'email', 'files', 'front_side', 'hash', 'identity_card', 'internal_passport', 'passport', 'personal_details', 'phone_number', 'reverse_side', 'selfie', 'translation', 'type']

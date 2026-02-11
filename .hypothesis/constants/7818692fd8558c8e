@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_inline\inlinequeryresultvoice.py
+# hypothesis_version: 6.150.0
+
+['InputMessageContent', '_voice_duration', 'caption', 'caption_entities', 'parse_mode', 'reply_markup', 'title', 'voice_duration', 'voice_url']

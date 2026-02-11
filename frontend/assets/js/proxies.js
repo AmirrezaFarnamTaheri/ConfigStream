@@ -135,16 +135,20 @@ const calculateSimilarity = (queryTokens, proxy) => {
 // Data Processor
 function processProxyData(raw) {
     const tags = raw.tags ? (Array.isArray(raw.tags) ? raw.tags.join(' ') : raw.tags) : '';
-    const isWashed = tags.includes('WARP') || tags.includes('Secure') || tags.includes('Optimal');
-    const isSmart = tags.includes('RELAY') || tags.includes('INTRANET') || tags.includes('STREAMING');
+    const proc = (raw.process || 'native').toLowerCase();
+    const isWashed = tags.includes('WARP') || tags.includes('Secure') || tags.includes('Optimal') || tags.includes('warp') || proc === 'washed';
+    const isShielded = proc === 'shielded';
+    const isSmart = tags.includes('RELAY') || tags.includes('INTRANET') || tags.includes('STREAMING') || proc === 'chain';
 
     // Determine Type Tag
     let typeTag = null;
-    if (isWashed) {
+    if (isShielded) {
+        typeTag = 'optimal';
+    } else if (isWashed) {
         if (tags.includes('Optimal')) typeTag = 'optimal';
         else typeTag = 'secure';
     } else if (isSmart) {
-        if (tags.includes('INTRANET')) typeTag = 'intranet';
+        if (tags.includes('INTRANET') || tags.includes('intranet')) typeTag = 'intranet';
         else typeTag = 'smart';
     }
 
@@ -312,6 +316,7 @@ function renderTable() {
         const processType = p.process || 'native';
         let pBadge = 'badge-secondary';
         if (processType === 'washed') pBadge = 'badge-success';
+        if (processType === 'shielded') pBadge = 'badge-warning';
         if (processType === 'revived' || processType.startsWith('revived-')) pBadge = 'badge-warning';
         if (processType === 'chain') pBadge = 'badge-info';
         if (processType === 'smart') pBadge = 'badge-primary';

@@ -83,9 +83,9 @@ A central point of failure is a censorship target.
 *   **Multiple Mirrors**: If GitHub is blocked, we have mirrors on GitLab, Hugging Face, and IPFS.
 *   **Distributed Testing**: Our WASM client allows users to verify proxies from *their* network perspective, not just ours.
 
-## Current Capabilities (v2.5)
+## Current Capabilities (v3.0)
 
-ConfigStream today is a fully autonomous platform that runs every 5 hours without human intervention:
+ConfigStream today is a fully autonomous platform that runs every 4 hours without human intervention:
 
 *   **26+ Protocols**: VLESS, VMess, Trojan, Shadowsocks, SS2022, Hysteria2, TUIC, WireGuard, SSH, SOCKS5, HTTP, OpenVPN, ShadowsocksR, Juicity, and more.
 *   **14-Shard Parallel Pipeline**: 14 GitHub Actions VMs process sources concurrently, then merge results.

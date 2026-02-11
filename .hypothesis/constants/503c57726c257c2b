@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\maxminddb\const.py
+# hypothesis_version: 6.150.0
+
+['MODE_AUTO', 'MODE_FD', 'MODE_FILE', 'MODE_MEMORY', 'MODE_MMAP', 'MODE_MMAP_EXT', 'Mode']

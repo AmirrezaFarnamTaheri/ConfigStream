@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\fetcher_core\__init__.py
+# hypothesis_version: 6.150.0
+
+['FetchResult', 'fetch_from_source', 'fetch_single_source']

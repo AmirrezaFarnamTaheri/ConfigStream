@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\starlette\middleware\base.py
+# hypothesis_version: 6.150.0
+
+[200, 'T', '_body', 'body', 'headers', 'http', 'http.disconnect', 'http.request', 'http.response.body', 'http.response.debug', 'http.response.start', 'info', 'more_body', 'status', 'type']

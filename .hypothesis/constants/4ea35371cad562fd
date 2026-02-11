@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\circuit_breaker.py
+# hypothesis_version: 6.150.0
+
+[0.0, 'CLOSED', 'HALF_OPEN', 'OPEN']

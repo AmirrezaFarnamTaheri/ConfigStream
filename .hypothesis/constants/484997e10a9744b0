@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\tornado\log.py
+# hypothesis_version: 6.150.0
+
+[100, 1000, '\x1b[0m', '\x1b[2;3%dm', '%', '%y%m%d %H:%M:%S', 'PATH', 'ascii', 'colors', 'info', 'isatty', 'log_file_max_size', 'log_file_num_backups', 'log_file_prefix', 'log_rotate_interval', 'log_rotate_mode', 'log_rotate_when', 'log_to_stderr', 'logging', 'midnight', 'none', 'setaf', 'setf', 'sgr0', 'size', 'time', 'tornado.access', 'tornado.application', 'tornado.general', 'utf-8', 'wrapped_stderr']

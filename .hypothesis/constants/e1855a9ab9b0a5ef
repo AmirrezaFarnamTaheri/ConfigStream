@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\testers\python.py
+# hypothesis_version: 6.150.0
+
+[5.0, 10.0, 60.0, 200, 300, 1000, '127.0.0.1', ':', '@', '[', '_extra_outbounds', 'address', 'blocklist', 'error', 'google', 'http', 'https', 'inbounds', 'info', 'insecure', 'level', 'listen', 'listen_port', 'log', 'mixed', 'mixed-in', 'outbounds', 'password', 'proxy-test', 'secure-checked', 'security_override', 'singbox_exception', 'socks', 'socks4', 'socks5', 'tag', 'tls', 'true', 'type', 'unknown', 'user', 'username']

@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\aiohttp\tcp_helpers.py
+# hypothesis_version: 6.150.0
+
+['SO_KEEPALIVE', 'socket', 'tcp_keepalive', 'tcp_nodelay']

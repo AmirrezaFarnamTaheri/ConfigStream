@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_messageentity.py
+# hypothesis_version: 6.150.0
+
+['Bot', 'MessageEntity', 'custom_emoji_id', 'language', 'length', 'offset', 'type', 'url', 'user', 'utf-16-le']

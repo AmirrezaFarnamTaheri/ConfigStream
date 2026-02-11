@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\pipeline_core\consumer.py
+# hypothesis_version: 6.150.0
+
+[0.0, 100, 1000, 9999, '.tmp', 'BATCH_NUMBER', 'EventStream', 'FALLBACK_TEST_FAILED', 'TEST_FAILED', '_source', 'allow_local_ips', 'batch_source', 'country', 'country_code', 'data', 'default', 'drop_stats', 'duplicate', 'duration_ms', 'error', 'failure_category', 'failure_modes_json', 'fetch_clean_ips', 'fetch_duration', 'fetched_count', 'fingerprints', 'geo', 'geoip_json', 'id', 'ignore', 'lat', 'lng', 'native', 'origin_id', 'origin_proxy', 'parse', 'pipeline', 'proxies', 'revived-vwarp', 'revived-warp', 'security_validation', 'sources/', 'supplied-config', 'supplied-proxies', 'tester_error', 'timestamp', 'url', 'utf-8', 'uuid', 'wb', 'working_count']

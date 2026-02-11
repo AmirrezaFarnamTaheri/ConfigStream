@@ -4,7 +4,9 @@ Serialization Helpers.
 Converts Proxy objects to dictionary/JSON-safe formats.
 """
 
+import json
 from typing import Dict, Any, List, Optional, Union
+
 from .models import Proxy
 
 # Proxy object serialization.
@@ -28,6 +30,20 @@ def serialize_proxy(
     """
     # Note: we include "country" for legacy/consistency with some parts,
     # but "country_code" is the ISO code.
+    # [FIX] For revived/chain proxies, generate a mini sing-box JSON config
+    # that v2rayN / xray / nekoray / Hiddify can import directly.
+    config_value = proxy.config
+    details_value = proxy.details
+    if proxy.protocol == "revived" or (proxy.config or "").startswith("revived://"):
+        chain_obs = (proxy.details or {}).get("chain_outbounds")
+        if isinstance(chain_obs, list) and chain_obs:
+            config_value = _build_chain_config(chain_obs)
+        # Strip heavy origin_proxy blob from serialized details
+        if isinstance(details_value, dict) and "origin_proxy" in details_value:
+            details_value = {
+                k: v for k, v in details_value.items() if k != "origin_proxy"
+            }
+
     data = {
         "id": proxy.id,  # Useful for vector mapping
         "protocol": proxy.protocol,
@@ -46,8 +62,8 @@ def serialize_proxy(
         # [FIX] Guard against None details
         "source": (proxy.details or {}).get("_source"),
         "security": proxy.security_issues,
-        "details": proxy.details,
-        "config": proxy.config,
+        "details": details_value,
+        "config": config_value,
         "remarks": proxy.remarks,
         "process": proxy.process,
     }
@@ -61,6 +77,25 @@ def serialize_proxy(
         data["history"] = getattr(proxy, "history_points")
 
     return data
+
+
+def _build_chain_config(chain_outbounds: List[Dict[str, Any]]) -> str:
+    """
+    Build a mini sing-box JSON config from chain outbounds.
+    Importable by v2rayN / xray / nekoray / Hiddify.
+    """
+    clean = []
+    for ob in chain_outbounds:
+        if not isinstance(ob, dict):
+            continue
+        # Strip internal metadata that sing-box rejects
+        cleaned = {k: v for k, v in ob.items() if not k.startswith("_")}
+        cleaned.pop("region", None)
+        cleaned.pop("origin_proxy", None)
+        clean.append(cleaned)
+    if not clean:
+        return ""
+    return json.dumps({"outbounds": clean}, ensure_ascii=False)
 
 
 def _json_default(obj: Any) -> Any:

@@ -443,6 +443,13 @@ async def run_full_pipeline(
             optimized_proxies, output_path, stats, history, washer=washer
         )
 
+        # Log scheduling and anomaly statistics for observability
+        sched_stats = scheduler.get_scheduling_statistics()
+        if sched_stats:
+            logger.info(f"Scheduler stats: {sched_stats}")
+        if anomaly_detector:
+            anomaly_detector.get_statistics()
+
         # Save History & Cache
         history.save()  # Persist history data - method exists at proxy_history.py:75-77
 

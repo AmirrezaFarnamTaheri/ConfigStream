@@ -35,7 +35,7 @@ We are actively looking for help with the following "Next Generation" features:
 
 ## 🏗️ Architecture & Structure
 
-ConfigStream v2.0 is modular. Please respect the folder structure:
+ConfigStream v3.0 is modular. Please respect the folder structure:
 
 *   `src/configstream/pipeline_core/`: Core logic for sorting and output generation.
 *   `src/configstream/parsers/`: Protocol parsers (add new protocols here).

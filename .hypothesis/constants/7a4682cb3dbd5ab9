@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\limits\limits.py
+# hypothesis_version: 6.150.0
+
+['/', 'GRANULARITY', 'LIMITER', '__slots__', 'amount', 'day', 'hour', 'minute', 'month', 'multiples', 'namespace', 'second', 'year']

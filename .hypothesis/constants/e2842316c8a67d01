@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\aiohttp\base_protocol.py
+# hypothesis_version: 6.150.0
+
+['Connection lost', '_connection_lost', '_drain_waiter', '_loop', '_paused', '_reading_paused', 'transport']

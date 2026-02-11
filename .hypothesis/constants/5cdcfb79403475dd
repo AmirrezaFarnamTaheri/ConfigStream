@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\fastapi\temp_pydantic_v1_params.py
+# hypothesis_version: 6.150.0
+
+['application/json', 'deprecated', 'examples', 'multipart/form-data', 'regex']

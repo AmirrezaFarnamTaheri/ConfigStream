@@ -5,7 +5,7 @@ from ..utils.bool_parser import parse_tls_flag
 
 def add_transport_opts(base: Dict[str, Any], details: Dict[str, Any]) -> Dict[str, Any]:
     """Helper to add ws/grpc/http options to Clash config."""
-    net = details.get("net") or details.get("type") or "tcp"
+    net = details.get("network") or details.get("net") or details.get("type") or "tcp"
     base["network"] = net
 
     if net == "ws":
@@ -27,10 +27,10 @@ def add_transport_opts(base: Dict[str, Any], details: Dict[str, Any]) -> Dict[st
         if grpc_opts:
             base["grpc-opts"] = grpc_opts
 
-    elif net == "h2" or net == "http":
+    elif net in ("h2", "http"):
         h2_opts: Dict[str, Any] = {}
         if "path" in details:
-            h2_opts["path"] = [str(details["path"])]
+            h2_opts["path"] = str(details["path"])
         if "host" in details:
             h2_opts["host"] = [str(details["host"])]
         if h2_opts:

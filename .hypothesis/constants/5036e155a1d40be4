@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\parsers\generic.py
+# hypothesis_version: 6.150.0
+
+[253, 443, 1080, 9050, 10800, 10808, 65535, '.', ':', '://', 'Host', '[', ']:', 'address', 'aes', 'aid', 'alpn', 'alterId', 'chacha20', 'cipher', 'default', 'encryption', 'fingerprint', 'flow', 'fp', 'garbage', 'grpc', 'grpcSettings', 'h2', 'headers', 'host', 'http', 'httpSettings', 'https', 'id', 'invalid', 'ip', 'localhost', 'method', 'naive', 'naive+', 'net', 'network', 'none', 'null', 'outbound', 'outbounds', 'pass', 'password', 'path', 'pbk', 'port', 'protocol', 'publicKey', 'reality', 'realitySettings', 'remark', 'security', 'server', 'serverName', 'servers', 'serviceName', 'settings', 'shadowsocks', 'shortId', 'sid', 'sni', 'socks', 'socks4', 'socks5', 'ss', 'ssh', 'streamSettings', 'tag', 'tls', 'tlsSettings', 'trojan', 'type', 'user', 'username', 'users', 'uuid', 'vless', 'vmess', 'vnext', 'ws', 'wsSettings', 'xtls', 'xtlsSettings', '{']

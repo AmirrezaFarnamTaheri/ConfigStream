@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\history\tracker.py
+# hypothesis_version: 6.150.0
+
+[0.0, 100.0, 100, 1000, 500000, '.db', '.json', '0.0.0.0', 'ProxyHistoryTracker', 'address', 'country', 'country_code', 'data/history.db', 'db_path', 'entries', 'error', 'execute_write', 'execute_write_many', 'failure_reason', 'id', 'is_working', 'latency', 'merge_from', 'port', 'protocol', 'reliability', 'success_rate', 'timestamp', 'to_dict', 'total_tests', 'unknown', 'uptime']

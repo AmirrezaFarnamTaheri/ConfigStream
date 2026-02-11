@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\workers\scanner.py
+# hypothesis_version: 6.150.0
+
+[800, 9999, '-limit', '-mode', '-timeout', '-workers', '100', 'CI', 'configstream-tester', 'ip', 'latency', 'scan', 'true']

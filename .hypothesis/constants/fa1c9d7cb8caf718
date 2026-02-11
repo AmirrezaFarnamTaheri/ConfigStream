@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_chatpermissions.py
+# hypothesis_version: 6.150.0
+
+['Bot', 'ChatPermissions', 'can_change_info', 'can_invite_users', 'can_manage_topics', 'can_pin_messages', 'can_send_audios', 'can_send_documents', 'can_send_messages', 'can_send_photos', 'can_send_polls', 'can_send_video_notes', 'can_send_videos', 'can_send_voice_notes']

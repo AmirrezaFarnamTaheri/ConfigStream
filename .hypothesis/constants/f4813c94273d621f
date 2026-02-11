@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\aiohttp\tracing.py
+# hypothesis_version: 6.150.0
+
+['CIMultiDict[str]', 'ClientSession', 'TraceConfig', '_ParamT_contra']

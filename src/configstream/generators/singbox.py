@@ -61,10 +61,28 @@ class SingBoxGenerator:
             return True
 
         # Add Extra Outbounds First (if any)
+        # Build a set of tags referenced as detour targets (inner hops)
+        # so we can identify entry-point outbounds vs inner relay hops.
+        _detour_targets: set[str] = set()
+        if extra_outbounds:
+            for _eo in extra_outbounds:
+                _dt = _eo.get("detour")
+                if isinstance(_dt, str) and _dt:
+                    _detour_targets.add(_dt)
+
         if extra_outbounds:
             for extra in extra_outbounds:
-                otype = extra.get("type", "")
-                _append_outbound(extra, add_to_selector=otype == "wireguard")
+                tag = extra.get("tag", "")
+                # Entry point: has detour (chains through inner hop),
+                # OR is not referenced as anyone else's detour target
+                # (standalone outbound like a wireguard endpoint).
+                # Inner hop: referenced as another outbound's detour target
+                # and does NOT itself chain further — should NOT be selectable.
+                is_inner_hop = bool(tag and tag in _detour_targets)
+                is_entry_point = not is_inner_hop
+                added = _append_outbound(extra, add_to_selector=is_entry_point)
+                if added and is_entry_point and tag:
+                    cast(List[str], urltest_outbound["outbounds"]).append(tag)
 
         # Add Proxy Outbounds
         for p in proxies:

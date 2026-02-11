@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_passport\passportelementerrors.py
+# hypothesis_version: 6.150.0
+
+['data', 'data_hash', 'element_hash', 'field_name', 'file', 'file_hash', 'file_hashes', 'files', 'front_side', 'message', 'reverse_side', 'selfie', 'source', 'translation_file', 'translation_files', 'type', 'unspecified']

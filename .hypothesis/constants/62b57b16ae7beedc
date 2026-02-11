@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\ext\_jobqueue.py
+# hypothesis_version: 6.150.0
+
+[0.01, ',', 'APSJob', 'AsyncIOScheduler', 'JobQueue', 'JobQueue[CCT]', 'Job[CCT]', '_application', '_enabled', '_executor', '_job', '_removed', 'callback', 'chat_id', 'cron', 'data', 'date', 'default', 'executors', 'fri', 'interval', 'last', 'mon', 'name', 'sat', 'scheduler', 'sun', 'thu', 'timezone', 'tue', 'user_id', 'wed']

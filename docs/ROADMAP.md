@@ -6,7 +6,7 @@ This roadmap tracks the current state and future direction of ConfigStream.
 
 ---
 
-## Current State (v2.5)
+## Current State (v3.0)
 
 ### Pipeline & Backend
 - **26+ Protocols**: VLESS, VMess, Trojan, Shadowsocks, SS2022, Hysteria2, TUIC, WireGuard, SSH, SOCKS5, HTTP, OpenVPN, SSR, Juicity, and more.

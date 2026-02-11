@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\respx\patterns.py
+# hypothesis_version: 6.150.0
+
+[443, '*', '*.', '/', ':', 'Pattern', '[', '__', 'all', 'ascii', 'contains', 'content', 'cookie', 'cookies', 'data', 'eq', 'files', 'headers', 'host', 'http', 'https', 'in', 'json', 'key', 'method', 'name', 'params', 'path', 'port', 'regex', 'scheme', 'startswith', 'url', 'utf-8']

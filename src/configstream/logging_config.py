@@ -48,10 +48,12 @@ class SensitiveDataFilter(logging.Filter):
     Now we apply masking to the ENTIRE string first, including URL contents.
     """
 
-    PATTERNS = {
-        "uuid": r"(?:id|uuid|password|token)\s*[=:]\s*[a-f0-9\-]{16,}",
-        "email": r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}",
-    }
+    # Pre-compiled patterns for per-message hot path
+    _CREDENTIAL_PATTERN = re.compile(
+        r"(?:id|uuid|password|token)\s*[=:]\s*[a-f0-9\-]{16,}",
+        re.IGNORECASE,
+    )
+    _EMAIL_PATTERN = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}")
 
     # Pattern for standalone UUIDs (common in proxy URIs)
     UUID_PATTERN = re.compile(
@@ -73,14 +75,9 @@ class SensitiveDataFilter(logging.Filter):
 
         # [FIX] Apply ALL masking patterns to the ENTIRE string (including URLs)
         # 1. Mask credentials in key=value patterns
-        message = re.sub(
-            self.PATTERNS["uuid"],
-            "[MASKED_CREDENTIAL]",
-            message,
-            flags=re.IGNORECASE,
-        )
+        message = self._CREDENTIAL_PATTERN.sub("[MASKED_CREDENTIAL]", message)
         # 2. Mask emails
-        message = re.sub(self.PATTERNS["email"], "[MASKED_EMAIL]", message)
+        message = self._EMAIL_PATTERN.sub("[MASKED_EMAIL]", message)
         # 3. Mask standalone UUIDs (proxy credentials)
         message = self.UUID_PATTERN.sub("[MASKED_UUID]", message)
         # 4. Mask query string secrets

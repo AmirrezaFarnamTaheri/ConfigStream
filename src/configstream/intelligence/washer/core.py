@@ -25,6 +25,9 @@ from configstream.config import AppSettings
 
 logger = logging.getLogger(__name__)
 
+# Cache settings to avoid repeated pydantic_settings instantiation in per-proxy hot paths
+_SETTINGS_CACHE = AppSettings()
+
 # Static fallback if fetch fails
 DEFAULT_CLEAN_IPS = [
     "162.159.192.1",
@@ -392,7 +395,6 @@ FALLBACK_CLEAN_IPS = [
     "191.101.251.45",
     "191.101.251.7",
     "191.101.251.33",
-    "191.101.251.32",
     "191.101.251.21",
     "191.101.251.52",
     "159.246.55.190",
@@ -667,9 +669,7 @@ class ProxyWasher:
 
         # Initialize defaults immediately if not provided
         if not self._warp_keys:
-            from configstream.config import AppSettings
-
-            env_keys = AppSettings().WARP_KEY_POOL
+            env_keys = _SETTINGS_CACHE.WARP_KEY_POOL
 
             if env_keys and env_keys != "[]":
                 try:
@@ -778,37 +778,36 @@ class ProxyWasher:
     async def fetch_clean_ips(self) -> None:
         """
         Fetches the latest clean IPs for WARP endpoints.
-        [FIX] Critical: Now uses async lock to prevent race conditions with concurrent fetches
+        [FIX] Uses async lock for the ENTIRE method to prevent N consumers
+        from triggering N redundant fetches (check-then-act race).
         """
-        # Use async lock for async operations instead of threading.Lock
         async with self._async_state_lock:
-            # Check if we need to fetch (inside lock to prevent double-fetching)
+            # Early exit: already populated by a previous caller
+            if self._warp_keys and self._clean_ips:
+                return
+
             current_keys = self._warp_keys[:]
             current_ips = self._clean_ips[:]
 
-        # --- STRATEGY 0.5: WARP KEYS & IPs FROM SCRAPER (Priority 1) ---
-        # We prioritize scraping because it doesn't require a binary
-        if not current_keys or not current_ips:
-            try:
-                scraper = WarpScraper()
-                scraped_keys = await scraper.scrape_warp_sources()
+            # --- STRATEGY 0.5: WARP KEYS & IPs FROM SCRAPER (Priority 1) ---
+            if not current_keys or not current_ips:
+                try:
+                    scraper = WarpScraper()
+                    scraped_keys = await scraper.scrape_warp_sources()
 
-                fresh_endpoints = scraper.get_scraped_endpoints()
-                new_keys = []
+                    fresh_endpoints = scraper.get_scraped_endpoints()
+                    new_keys = []
 
-                for p in scraped_keys:
-                    key_dict = {
-                        "private_key": p.details.get("private_key"),
-                        "peer_public_key": p.details.get("peer_public_key"),
-                        "id": p.uuid,
-                    }
-                    if key_dict["private_key"] and key_dict["peer_public_key"]:
-                        new_keys.append(key_dict)
+                    for p in scraped_keys:
+                        key_dict = {
+                            "private_key": p.details.get("private_key"),
+                            "peer_public_key": p.details.get("peer_public_key"),
+                            "id": p.uuid,
+                        }
+                        if key_dict["private_key"] and key_dict["peer_public_key"]:
+                            new_keys.append(key_dict)
 
-                # Update state with async lock
-                async with self._async_state_lock:
                     if fresh_endpoints:
-                        # Normalize to tuples
                         self._clean_ips = []
                         for ep in fresh_endpoints:
                             if isinstance(ep, str):
@@ -824,88 +823,94 @@ class ProxyWasher:
                         logger.info(
                             f"Loaded {len(new_keys)} WARP keys from community sources"
                         )
-            except Exception as e:
-                logger.warning(f"WARP scraper failed: {e}")
+                except Exception as e:
+                    logger.warning(f"WARP scraper failed: {e}")
 
-        # --- STRATEGY 0: VWARP SCANNER (Priority 2 if Scraper insufficient) ---
-        if not self.clean_ips:
-            try:
-                vwarp = VwarpTool()
-                if await vwarp.is_available():
-                    scanned_ips_vwarp = await vwarp.scan_endpoints()
-                    if scanned_ips_vwarp:
-                        self.clean_ips = scanned_ips_vwarp  # type: ignore[assignment]
-                        logger.info(
-                            f"Loaded {len(scanned_ips_vwarp)} clean IPs from Vwarp"
-                        )
-                else:
-                    logger.debug("Vwarp binary not found - skipping Vwarp scan.")
-            except Exception as e:
-                logger.warning(f"Vwarp scanner failed: {e}")
-
-        # --- STRATEGY 1: LEGACY ACTIVE SCANNING ---
-        if self.scanner.available and not self.clean_ips:
-            try:
-                logger.info("Attempting legacy active scan...")
-                scanned_ips_legacy = await self.scanner.scan_endpoints(
-                    limit=50, timeout=5, max_latency=800
-                )
-
-                if scanned_ips_legacy and len(scanned_ips_legacy) >= 5:
-                    self.clean_ips = [(ip, 2408) for ip in scanned_ips_legacy]  # type: ignore[misc]
-                    logger.info(
-                        f"Legacy Scan Success: Using {len(scanned_ips_legacy)} fresh IPs."
-                    )
-            except Exception as e:
-                logger.error(f"Legacy scan failed: {e}")
-
-        # --- STRATEGY 2: STATIC LISTS ---
-        if not self.clean_ips:
-            logger.info("Starting static list fetch sequence...")
-            for source_url in CLEAN_IP_SOURCES:
+            # --- STRATEGY 0: VWARP SCANNER (Priority 2 if Scraper insufficient) ---
+            if not self._clean_ips:
                 try:
-                    async with httpx.AsyncClient(timeout=10) as client:
-                        resp = await client.get(source_url)
-                        if resp.status_code == 200:
-                            lines = [
-                                line.strip()
-                                for line in resp.text.splitlines()
-                                if line.strip() and not line.startswith("#")
-                            ]
-                            valid_ips = [
-                                ip.split("/")[0]
-                                for ip in lines
-                                if ip.count(".") == 3 and ip[0].isdigit()
-                            ]
-                            if valid_ips:
-                                self.clean_ips = [(ip, 2408) for ip in valid_ips[:100]]
-                                logger.info(
-                                    f"Fetched {len(valid_ips)} clean IPs from {source_url.split('/')[2]}"
-                                )
-                                break  # Stop after one success
-                except Exception:
-                    pass
+                    vwarp = VwarpTool()
+                    if await vwarp.is_available():
+                        scanned_ips_vwarp = await vwarp.scan_endpoints()
+                        if scanned_ips_vwarp:
+                            self._clean_ips = list(scanned_ips_vwarp)
+                            logger.info(
+                                f"Loaded {len(scanned_ips_vwarp)} clean IPs from Vwarp"
+                            )
+                    else:
+                        logger.debug("Vwarp binary not found - skipping Vwarp scan.")
+                except Exception as e:
+                    logger.warning(f"Vwarp scanner failed: {e}")
 
-        # --- STRATEGY 3: DEFAULTS ---
-        if not self.clean_ips:
-            logger.warning(
-                f"All scanners failed. Using {len(DEFAULT_CLEAN_IPS)} default IPs."
-            )
-            self.clean_ips = [(ip, 2408) for ip in DEFAULT_CLEAN_IPS]
+            # --- STRATEGY 1: LEGACY ACTIVE SCANNING ---
+            if self.scanner.available and not self._clean_ips:
+                try:
+                    logger.info("Attempting legacy active scan...")
+                    scanned_ips_legacy = await self.scanner.scan_endpoints(
+                        limit=50, timeout=5, max_latency=800
+                    )
 
-        # --- KEY GENERATION FALLBACK (Last Resort) ---
-        # If still no keys, try to generate one
-        if not self.warp_keys:
-            logger.info("No WARP keys found. Attempting to generate a new account...")
-            try:
-                new_account = await self.key_gen.generate_account()
-                if new_account:
-                    self.warp_keys = [new_account]
-                    logger.info("Successfully generated a new WARP account/key.")
-                else:
-                    logger.error("Failed to generate WARP account. Washing disabled.")
-            except Exception as e:
-                logger.error(f"Key generation failed: {e}")
+                    if scanned_ips_legacy and len(scanned_ips_legacy) >= 5:
+                        self._clean_ips = [(ip, 2408) for ip in scanned_ips_legacy]
+                        logger.info(
+                            f"Legacy Scan Success: Using {len(scanned_ips_legacy)} fresh IPs."
+                        )
+                except Exception as e:
+                    logger.error(f"Legacy scan failed: {e}")
+
+            # --- STRATEGY 2: STATIC LISTS ---
+            if not self._clean_ips:
+                logger.info("Starting static list fetch sequence...")
+                for source_url in CLEAN_IP_SOURCES:
+                    try:
+                        async with httpx.AsyncClient(timeout=10) as client:
+                            resp = await client.get(source_url)
+                            if resp.status_code == 200:
+                                lines = [
+                                    line.strip()
+                                    for line in resp.text.splitlines()
+                                    if line.strip() and not line.startswith("#")
+                                ]
+                                valid_ips = [
+                                    ip.split("/")[0]
+                                    for ip in lines
+                                    if ip.count(".") == 3 and ip[0].isdigit()
+                                ]
+                                if valid_ips:
+                                    self._clean_ips = [
+                                        (ip, 2408) for ip in valid_ips[:100]
+                                    ]
+                                    logger.info(
+                                        f"Fetched {len(valid_ips)} clean IPs from {source_url.split('/')[2]}"
+                                    )
+                                    break  # Stop after one success
+                    except Exception:
+                        pass
+
+            # --- STRATEGY 3: DEFAULTS ---
+            if not self._clean_ips:
+                logger.warning(
+                    f"All scanners failed. Using {len(DEFAULT_CLEAN_IPS)} default IPs."
+                )
+                self._clean_ips = [(ip, 2408) for ip in DEFAULT_CLEAN_IPS]
+
+            # --- KEY GENERATION FALLBACK (Last Resort) ---
+            # If still no keys, try to generate one
+            if not self._warp_keys:
+                logger.info(
+                    "No WARP keys found. Attempting to generate a new account..."
+                )
+                try:
+                    new_account = await self.key_gen.generate_account()
+                    if new_account:
+                        self._warp_keys = [new_account]
+                        logger.info("Successfully generated a new WARP account/key.")
+                    else:
+                        logger.error(
+                            "Failed to generate WARP account. Washing disabled."
+                        )
+                except Exception as e:
+                    logger.error(f"Key generation failed: {e}")
 
     def _get_clean_endpoint(self, relay_id: str) -> Tuple[str, int]:
         pool = self.clean_ips
@@ -1019,7 +1024,7 @@ class ProxyWasher:
         # Check environment or use default
         peer_key = exit_key.get("peer_public_key")
         if not peer_key:
-            peer_key = AppSettings().WARP_PEER_KEY or DEFAULT_WARP_SERVER_KEY
+            peer_key = _SETTINGS_CACHE.WARP_PEER_KEY or DEFAULT_WARP_SERVER_KEY
 
         return {
             "type": "wireguard",
@@ -1092,7 +1097,7 @@ class ProxyWasher:
             # [FIX] Ensure valid peer public key
             peer_key = exit_key.get("peer_public_key")
             if not peer_key:
-                peer_key = AppSettings().WARP_PEER_KEY or DEFAULT_WARP_SERVER_KEY
+                peer_key = _SETTINGS_CACHE.WARP_PEER_KEY or DEFAULT_WARP_SERVER_KEY
 
             warp_out = {
                 "type": "wireguard",
@@ -1164,7 +1169,7 @@ class ProxyWasher:
         candidates = [p for p in proxies if p.is_working]
 
         target_exit = ProxyStub("US", 37.09, -95.71, "wireguard")
-        origin_country = AppSettings().OPTIMAL_RELAY_ORIGIN
+        origin_country = _SETTINGS_CACHE.OPTIMAL_RELAY_ORIGIN
 
         for i, relay in enumerate(candidates):
             exit_key = self._get_consistent_exit(relay.id, keys)
@@ -1227,7 +1232,7 @@ class ProxyWasher:
             # [FIX] Ensure valid peer public key
             peer_key = exit_key.get("peer_public_key")
             if not peer_key:
-                peer_key = AppSettings().WARP_PEER_KEY or DEFAULT_WARP_SERVER_KEY
+                peer_key = _SETTINGS_CACHE.WARP_PEER_KEY or DEFAULT_WARP_SERVER_KEY
 
             warp_out = {
                 "type": "wireguard",

@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\tornado\locale.py
+# hypothesis_version: 6.150.0
+
+[60.0, 334, '\x04', ' و ', '%(hours)d hours ago', '%(time)s', '%(weekday)s', '%d:%02d', '%d:%02d %s', '%s%d:%02d', '*', ',', ', ', '-', '.', '.csv', '.mo', '1 hour ago', '1 minute ago', '1 second ago', 'April', 'August', 'December', 'February', 'Friday', 'January', 'July', 'June', 'LC_MESSAGES', 'Locale', 'March', 'May', 'Monday', 'November', 'October', 'Saturday', 'September', 'Sunday', 'Thursday', 'Tuesday', 'Unknown', 'Wednesday', '[a-z]+(_[A-Z]+)?$', '_', 'am', 'ar', 'commas', 'day', 'en', 'en_US', 'fa', 'he', 'hours', 'last', 'minutes', 'month_name', 'name', 'plural', 'pm', 'rb', 'seconds', 'singular', 'time', 'unknown', 'utf-16', 'utf-8-sig', 'weekday', 'year', 'yesterday', 'zh_CN', '上午', '下午']

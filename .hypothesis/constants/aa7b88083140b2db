@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_inline\inlinequeryresultlocation.py
+# hypothesis_version: 6.150.0
+
+['InputMessageContent', '_live_period', 'heading', 'horizontal_accuracy', 'latitude', 'live_period', 'longitude', 'reply_markup', 'thumbnail_height', 'thumbnail_url', 'thumbnail_width', 'title']

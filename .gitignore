@@ -1,64 +1,66 @@
-# Build Artifacts (Intermediate)
-output_batch_*/
-data/
-*.zip
-dist/
-build/
-*.egg-info/
-
-# Dependencies & System
-node_modules/
+# Byte-compiled / optimized / DLL files
 __pycache__/
-venv/
-.venv
-.env
-.DS_Store
+*.py[cod]
+*$py.class
 
-# Cache files
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+*.egg
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project-specific
+output/
+data/
+*.db
+*.log
+configstream.log
+
+# Development artifacts
+pipeline last ouput/
+Schemas-Examples-Context/
+
+# Test artifacts
 .pytest_cache/
-.mypy_cache/
-.ruff_cache/
 htmlcov/
 .coverage
-.hypothesis/
-.tmp/
-*.lock
+.coverage.*
+coverage.xml
+*.cover
 
-# Python generated files
-*.py[cod]
-
-# Go build artifacts
-src/go/tester/tester
-*.exe
-*.dll
-*.so
-*.dylib
-
-# Prevent DB locking artifacts and binary blobs
-data/*.db
-data/*.db-shm
-data/*.db-wal
-data/*.mmdb
-data/*.json
-
-# Prevent output bloat in source history
-reports/
-sources/backup_dynamic/
-
-# Logs
-*.log
-
-# Pipeline runtime artifacts
-consolidated_sources.txt
-# TLS keylog artifacts (e.g., SSLKEYLOGFILE=...)
-sslkeylog*
-false
-
-# Docker volumes
-data/
-# Exceptions
-!data/.gitkeep
-!output/.gitkeep
-src/go/tester/configstream-tester
+# Build artifacts
 *.wasm
-verification_build/
+src/go/tester/configstream-tester
+src/go/utls_client/utls_client

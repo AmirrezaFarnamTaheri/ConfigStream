@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\testers\manager.py
+# hypothesis_version: 6.150.0
+
+[10.0, 123.45, 200.0, 'REVIVAL_FAILED', 'chain_outbounds', 'detour', 'error', 'http', 'https', 'id', 'latency_is_estimate', 'outbounds', 'proxy', 'revived', 'socks', 'socks4', 'socks5', 'tag', 'type', 'wireguard']

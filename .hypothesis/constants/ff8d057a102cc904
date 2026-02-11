@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\intelligence\evasion.py
+# hypothesis_version: 6.150.0
+
+['0-10', '100-200', 'Host', 'alpn', 'android', 'chrome', 'edge', 'enabled', 'fingerprint', 'firefox', 'h2', 'h2mux', 'headers', 'host', 'http', 'http/1.0', 'http/1.1', 'hysteria2', 'ios', 'max_connections', 'min_streams', 'multiplex', 'padding', 'protocol', 'randomized', 'safari', 'server_name', 'shadowsocks', 'size', 'sleep', 'tls', 'tls_fragment', 'transport', 'trojan', 'tuic', 'type', 'utls', 'vless', 'vmess', 'ws']

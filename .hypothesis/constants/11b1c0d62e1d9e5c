@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\ext\_contexttypes.py
+# hypothesis_version: 6.150.0
+
+['_bot_data', '_chat_data', '_context', '_user_data']

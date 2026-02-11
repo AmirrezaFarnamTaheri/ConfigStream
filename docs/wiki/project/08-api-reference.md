@@ -60,7 +60,7 @@ Pipeline (Python) → output/ → GitHub Pages Artifact → Static Site
                         Frontend JS fetches via relative URLs
 ```
 
-> **Analogy**: Think of it as a newspaper printing press. The pipeline "prints" all the data files every 5 hours. The website is just a newsstand that displays the latest edition. There's no live reporter answering questions — just pre-printed pages.
+> **Analogy**: Think of it as a newspaper printing press. The pipeline "prints" all the data files every 4 hours. The website is just a newsstand that displays the latest edition. There's no live reporter answering questions — just pre-printed pages.
 
 ## REST API
 
@@ -188,35 +188,55 @@ Summary statistics consumed by the frontend and downstream clients.
 
 ```json
 {
-  "schema_version": "2.5.0",
+  "schema_version": "3.0.0",
+  "version": "2.6.0",
+  "total_proxies": 4495,
+  "total_tested": 12000,
+  "total_working": 4300,
+  "success_rate": 0.358,
+  "generated_at": "2026-02-09T12:00:00Z",
+  "last_updated_utc": "2026-02-09T12:00:00Z",
   "total_lines_sourced": 85000,
   "total_unique_candidates": 12000,
   "total_valid_proxies": 4300,
   "total_revived": 650,
   "revived_warp": 400,
   "revived_vwarp": 250,
+  "total_clean": 3650,
   "total_dirty": 120,
   "total_smart_chains": 195,
   "smart_chain_count": 195,
+  "chain_outbounds_count": 580,
   "shielded_count": 85,
   "vwarp_win_rate": 62.5,
+  "vwarp_attempts": 400,
+  "vwarp_success": 250,
+  "washer_success_count": 320,
   "washing_enabled": true,
-  "sources_count": 800,
   "total_configured_sources": 800,
+  "fetched_sources": 780,
+  "sources_count": 800,
   "protocols": { "vless": 1200, "trojan": 800, "vmess": 600, "shadowsocks": 400 },
   "country_stats": { "US": 1200, "DE": 300, "NL": 250 },
-  "latency_distribution": { "<200ms": 1500, "200-800ms": 2000, "800-2000ms": 700, ">2000ms": 100 },
+  "latency_distribution": { "fast": 1500, "medium": 2000, "slow": 700, "very_slow": 100 },
   "latency_by_country": { "US": 140, "DE": 210 },
   "latency_by_protocol": { "vless": 180, "trojan": 220 },
   "asns": { "AS13335": 500, "AS16509": 300 },
+  "rejection_reasons": { "duplicate": 5000, "TEST_FAILED": 3200 },
   "evasion_utls_enabled": 3800,
   "evasion_alpn_enabled": 3200,
   "evasion_fragmentation_enabled": 3800,
   "evasion_multiplexing_enabled": 3500,
   "evasion_dns_safe_count": 4300,
   "evasion_dns_hardened_count": 4300,
-  "update_interval_hours": 6,
-  "last_updated_utc": "2026-02-09T12:00:00Z"
+  "duration_seconds": 420.5,
+  "time_limited": false,
+  "time_limit_seconds": 0,
+  "geo_resolved": 4100,
+  "cache_misses": 8000,
+  "final_count": 4300,
+  "chosen_subset_size": 50,
+  "update_interval_hours": 6
 }
 ```
 

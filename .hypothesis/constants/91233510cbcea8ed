@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_user.py
+# hypothesis_version: 6.150.0
+
+['Animation', 'Audio', 'Contact', 'Document', 'Gift', 'InlineKeyboardMarkup', 'InputMediaAudio', 'InputMediaDocument', 'InputMediaPhoto', 'InputMediaVideo', 'InputPollOption', 'LabeledPrice', 'LinkPreviewOptions', 'Location', 'Message', 'MessageEntity', 'MessageId', 'PhotoSize', 'ReplyParameters', 'Sticker', 'UserChatBoosts', 'UserProfilePhotos', 'Venue', 'Video', 'VideoNote', 'Voice', 'can_join_groups', 'first_name', 'has_main_web_app', 'id', 'is_bot', 'is_premium', 'language_code', 'last_name', 'username']

@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_passport\credentials.py
+# hypothesis_version: 6.150.0
+
+['Bot', 'Credentials', 'DataCredentials', 'FileCredentials', 'SecureData', 'SecureValue', '_decrypted_data', '_decrypted_secret', 'address', 'bank_statement', 'data', 'data_hash', 'driver_license', 'file_hash', 'files', 'front_side', 'hash', 'identity_card', 'internal_passport', 'nonce', 'passport', 'personal_details', 'rental_agreement', 'reverse_side', 'secret', 'secure_data', 'selfie', 'translation', 'utility_bill']

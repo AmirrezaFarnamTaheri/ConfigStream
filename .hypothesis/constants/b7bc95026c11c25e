@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\converters\singbox_utils.py
+# hypothesis_version: 6.150.0
+
+['Host', 'User-Agent', 'allowInsecure', 'chrome', 'enabled', 'fingerprint', 'fp', 'grpc', 'h2', 'headers', 'host', 'http', 'httpupgrade', 'insecure', 'net', 'none', 'packetEncoding', 'packet_encoding', 'packetaddr', 'path', 'pbk', 'public_key', 'reality', 'security', 'server_name', 'serviceName', 'service_name', 'short_id', 'sid', 'skip_cert_verify', 'sni', 'tcp', 'tls', 'transport', 'trojan', 'type', 'utls', 'vless', 'vmess', 'ws', 'xudp']

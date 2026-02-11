@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\cryptography\hazmat\primitives\ciphers\algorithms.py
+# hypothesis_version: 6.150.0
+
+[128, 192, 256, 512, 'AES', 'ARC4', 'Blowfish', 'CAST5', 'ChaCha20', 'IDEA', 'SEED', 'SM4', 'TripleDES', 'camellia', 'nonce']

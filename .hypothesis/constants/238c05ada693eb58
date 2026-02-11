@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\fetcher_core\orchestrator.py
+# hypothesis_version: 6.150.0
+
+[1.0, 2.0, 30.0, 200, 400, 404, 410, 429, 500, 1024, 'Circuit Breaker Open', 'Content-Length', 'Empty content', 'GET', 'Invalid URL', 'Malformed GitHub URL', 'Rate limited', 'Response too large', 'Retry-After', 'User-Agent', 'github.com', 'http://', 'https://', 'ignore', 'utf-8']

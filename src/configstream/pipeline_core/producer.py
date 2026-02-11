@@ -3,6 +3,7 @@ import asyncio
 import logging
 import json
 import os
+import random
 import time
 from typing import List, Optional, TYPE_CHECKING
 from rich.progress import Progress, TaskID
@@ -202,8 +203,6 @@ async def source_producer(
                     break
                 # Add jitter to prevent overwhelming remote servers or rate limits
                 if i > 0:
-                    import random
-
                     jitter = random.uniform(0.5, 2.0)
                     logger.debug(f"Batch jitter: sleeping {jitter:.2f}s")
                     await asyncio.sleep(jitter)

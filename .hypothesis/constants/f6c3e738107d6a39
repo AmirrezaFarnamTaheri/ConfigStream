@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\parsers\trojan.py
+# hypothesis_version: 6.150.0
+
+[200, 255, 443, 65535, 'id', 'pass', 'password', 'pwd', 'token', 'trojan', 'trojan-go', 'uuid']

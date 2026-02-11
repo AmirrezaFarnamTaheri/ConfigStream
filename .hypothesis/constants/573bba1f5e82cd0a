@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\dotenv\parser.py
+# hypothesis_version: 6.150.0
+
+['"', '"((?:\\\\"|[^"])*)"', '#', "'", "'((?:\\\\'|[^'])*)'", "'([^']+)'", '(=[^\\S\\r\\n]*)', '([^=\\#\\s]+)', '([^\\r\\n]*)', '(\\r\\n|\\n|\\r)', '=', 'Position', '[^\\S\\r\\n]*', '\\\\[\\\\\'\\"abfnrtv]', "\\\\[\\\\']", '\\s*', '\\s+#.*', 'read: End of string', 'unicode-escape']

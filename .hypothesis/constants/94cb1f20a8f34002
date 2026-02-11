@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\models.py
+# hypothesis_version: 6.150.0
+
+[65535, 'PATH', 'alpn', 'native', 'path', 'sni', 'utf-8']

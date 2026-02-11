@@ -16,6 +16,9 @@ from .config import AppSettings
 
 logger = logging.getLogger(__name__)
 
+# Cache settings to avoid repeated pydantic_settings instantiation in hot-path methods
+_SETTINGS_CACHE = AppSettings()
+
 __all__ = ["SourceQualityTracker", "calculate_diversity_score"]
 
 
@@ -61,7 +64,7 @@ class SourceQualityTracker(QualityStorage):
     def __init__(self, db_path: Optional[Path] = None):
         if db_path is None:
             # Default path if none provided (e.g. from pipeline)
-            db_path = Path(AppSettings().QUALITY_DB_PATH)
+            db_path = Path(_SETTINGS_CACHE.QUALITY_DB_PATH)
         super().__init__(db_path)
 
         # Legacy in-memory fallback for compatibility if needed
@@ -107,7 +110,7 @@ class SourceQualityTracker(QualityStorage):
             consecutive_failures = prev_failures + 1
 
         trust_score = 50.0
-        settings = AppSettings()
+        settings = _SETTINGS_CACHE
         prev_status = state[0] if state else "active"
         if working > 0:
             status = "active"
@@ -144,7 +147,7 @@ class SourceQualityTracker(QualityStorage):
         status = state[0]
         last_checked = state[1] if len(state) > 1 else 0
         now = datetime.now(timezone.utc).timestamp()
-        settings = AppSettings()
+        settings = _SETTINGS_CACHE
 
         if status == "dead":
             # [FIX] Resurrection window: allow retry after a long cooling period
@@ -214,7 +217,7 @@ class SourceQualityTracker(QualityStorage):
         Legacy method called by orchestrator.py.
         Records a failed fetch for a source, incrementing failure count.
         """
-        settings = AppSettings()
+        settings = _SETTINGS_CACHE
         state = self.get_source_state(url)
         current_failures = 0
         if state:
