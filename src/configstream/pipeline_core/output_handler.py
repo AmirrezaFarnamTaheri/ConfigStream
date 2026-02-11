@@ -1,7 +1,9 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from typing import Dict, Any, List, Optional, Set
+import json
 import logging
 import asyncio
+import shutil
 from pathlib import Path
 
 from configstream.models import Proxy
@@ -13,6 +15,7 @@ from configstream.output_logic import (
     _build_dns_hardened_proxies,
 )
 from configstream.output_transport import save_json, inject_stego_key_into_frontend
+from configstream.serialize import serialize_proxy, _build_chain_config
 from configstream.transport.stego import generate_stego_assets
 from configstream.intelligence.washer.core import ProxyWasher
 from configstream.intelligence.chaining import generate_smart_chains
@@ -21,12 +24,152 @@ from configstream.pipeline_core.stats import PipelineStats
 from configstream.tagging import ProxyTagger
 from configstream.config import AppSettings
 from configstream.dns_batch_resolver import BatchDNSResolver
+from configstream.geoip import GeoIPResolver
+from configstream.utils import AtomicFileWriter
 from configstream.utils.net import (
     normalize_host as _normalize_host,
     is_ip_literal as _is_ip_literal,
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _group_chain_outbounds(
+    outbounds: List[Dict[str, Any]],
+) -> List[List[Dict[str, Any]]]:
+    """Group flat outbound list into chains by following detour relationships."""
+    if not outbounds:
+        return []
+    by_tag: Dict[str, Dict[str, Any]] = {
+        ob["tag"]: ob for ob in outbounds if isinstance(ob, dict) and ob.get("tag")
+    }
+    detour_targets: set[str] = set()
+    for ob in outbounds:
+        dt = ob.get("detour")
+        if isinstance(dt, str) and dt:
+            detour_targets.add(dt)
+    # Entry points: outbounds whose tag is NOT a detour target of someone else
+    entry_points = [
+        ob
+        for ob in outbounds
+        if isinstance(ob, dict) and ob.get("tag") and ob["tag"] not in detour_targets
+    ]
+    chains: List[List[Dict[str, Any]]] = []
+    for entry in entry_points:
+        chain: List[Dict[str, Any]] = []
+        current: Optional[Dict[str, Any]] = entry
+        visited: set[str] = set()
+        while current:
+            tag = current.get("tag", "")
+            if tag in visited:
+                break
+            visited.add(tag)
+            chain.append(current)
+            dt = current.get("detour")
+            current = by_tag.get(dt) if dt else None
+        chain.reverse()  # inner hops first, entry point last
+        chains.append(chain)
+    return chains
+
+
+def _chain_to_proxy_entry(chain: List[Dict[str, Any]], process: str) -> Dict[str, Any]:
+    """Convert a chain of outbound dicts to a proxy-like dict for proxies.json."""
+    entry = chain[-1]  # entry point is last element
+    mini_config = _build_chain_config(chain)
+    tag = entry.get("tag", "Chain")
+    tags = ["chain"]
+    if any(ob.get("type") == "wireguard" for ob in chain):
+        tags.append("warp")
+    return {
+        "id": tag,
+        "protocol": entry.get("type", "chain"),
+        "address": entry.get("server", ""),
+        "port": entry.get("server_port", 0),
+        "uuid": "",
+        "country": "",
+        "country_code": "",
+        "city": "",
+        "asn": "",
+        "org": "",
+        "latency": None,
+        "is_working": True,
+        "tags": tags,
+        "last_checked": "",
+        "source": None,
+        "security": {},
+        "details": {"is_chain": True},
+        "config": mini_config,
+        "remarks": tag,
+        "process": process,
+    }
+
+
+def _chain_outbounds_to_entries(
+    washed_outbounds: Optional[List[Dict[str, Any]]],
+    smart_chains: Optional[Dict[str, List[List[Dict[str, Any]]]]],
+) -> List[Dict[str, Any]]:
+    """
+    Convert washed outbounds and smart chains into proxy-like dicts
+    so they appear in proxies.json for the frontend.
+    """
+    entries: List[Dict[str, Any]] = []
+    seen_tags: set[str] = set()
+
+    # Washed outbounds (flat list → group into chains)
+    if washed_outbounds:
+        for chain in _group_chain_outbounds(washed_outbounds):
+            if not chain:
+                continue
+            entry_tag = chain[-1].get("tag", "")
+            if entry_tag in seen_tags:
+                continue
+            seen_tags.add(entry_tag)
+            # Classify process type
+            process = "washed"
+            if any(
+                "GOLD" in (ob.get("tag") or "") or "SHIELD" in (ob.get("tag") or "")
+                for ob in chain
+            ):
+                process = "shielded"
+            entries.append(_chain_to_proxy_entry(chain, process))
+
+    # Smart chains (already grouped by category)
+    if smart_chains:
+        for _group, chain_list in smart_chains.items():
+            for chain in chain_list:
+                if not isinstance(chain, list) or not chain:
+                    continue
+                entry_tag = chain[-1].get("tag", "")
+                if entry_tag in seen_tags:
+                    continue
+                seen_tags.add(entry_tag)
+                entries.append(_chain_to_proxy_entry(chain, "chain"))
+
+    return entries
+
+
+def _save_proxies_with_chains(
+    proxies: List[Proxy],
+    path: Path,
+    washed_outbounds: Optional[List[Dict[str, Any]]] = None,
+    smart_chains: Optional[Dict[str, List[List[Dict[str, Any]]]]] = None,
+) -> None:
+    """
+    Save proxies.json with native proxies PLUS chain entries
+    so the frontend shows all output types.
+    """
+    history = ProxyHistoryTracker()
+    try:
+        data = [serialize_proxy(p, history.get_history(p.id)) for p in proxies]
+    finally:
+        history.close()
+
+    chain_entries = _chain_outbounds_to_entries(washed_outbounds, smart_chains)
+    if chain_entries:
+        data.extend(chain_entries)
+
+    json_content = json.dumps(data, indent=2, ensure_ascii=False)
+    AtomicFileWriter.write_text(path, json_content)
 
 
 async def _populate_resolved_ips(proxies: List[Proxy], settings: AppSettings) -> None:
@@ -104,21 +247,28 @@ async def generate_pipeline_outputs(
     tagger.apply(optimized_proxies)
 
     # 0b. DNS-safe resolution (optional)
+    # Cache results to avoid recomputing later during output generation
+    _cached_dns_safe = None
+    _cached_dns_hardened = None
     if getattr(settings, "DNS_SAFE_OUTPUTS", True):
         await _populate_resolved_ips(optimized_proxies, settings)
         # Track DNS-safe count
-        dns_safe_proxies, _ = _build_dns_safe_proxies(optimized_proxies)
-        stats.evasion_dns_safe_count = len(dns_safe_proxies)
+        _cached_dns_safe = _build_dns_safe_proxies(optimized_proxies)
+        stats.evasion_dns_safe_count = len(_cached_dns_safe[0])
 
     # Track DNS-hardened count
     if getattr(settings, "DNS_HARDENED_OUTPUTS", True):
-        dns_hardened_proxies, _ = _build_dns_hardened_proxies(optimized_proxies)
-        stats.evasion_dns_hardened_count = len(dns_hardened_proxies)
+        _cached_dns_hardened = _build_dns_hardened_proxies(optimized_proxies)
+        stats.evasion_dns_hardened_count = len(_cached_dns_hardened[0])
+
+    # 0c. Log GeoIP enrichment statistics
+    geoip_resolver = GeoIPResolver()
+    geoip_resolver.log_enrichment_stats(optimized_proxies)
 
     # 1. Initialize Washer & Scanner (The Intelligence Layer)
     # We load keys from Env. If empty, washer degrades gracefully to no-op.
     if washer is None:
-        washer = ProxyWasher(AppSettings().WARP_KEY_POOL)
+        washer = ProxyWasher(settings.WARP_KEY_POOL)
         # Run the Go Scanner (Phase 2 Component)
         # This populates self.clean_ips in the washer with fresh, low-latency endpoints.
         # We await it because it's an async network operation.
@@ -220,8 +370,6 @@ async def generate_pipeline_outputs(
     if proxies_path.exists():
         try:
             # Perform rotation for differential updates
-            import shutil
-
             shutil.copy2(proxies_path, old_proxies_path)
             logger.info("Rotated proxies.json -> proxies.old.json for diff generation")
         except Exception as e:
@@ -229,17 +377,32 @@ async def generate_pipeline_outputs(
 
     # Run blocking file I/O in executor
     loop = asyncio.get_running_loop()
-    await loop.run_in_executor(None, save_json, optimized_proxies, proxies_path)
+    # [FIX] Include washed outbounds + smart chains in proxies.json
+    # so the frontend displays all output types (not just native proxies).
+    await loop.run_in_executor(
+        None,
+        _save_proxies_with_chains,
+        optimized_proxies,
+        proxies_path,
+        washed_outbounds,
+        smart_chains,
+    )
 
-    # DNS-safe dataset (IP-only)
-    dns_safe_proxies, _ = _build_dns_safe_proxies(optimized_proxies)
+    # DNS-safe dataset (IP-only) - reuse cached results from stats phase
+    if _cached_dns_safe is not None:
+        dns_safe_proxies, _ = _cached_dns_safe
+    else:
+        dns_safe_proxies, _ = _build_dns_safe_proxies(optimized_proxies)
     dns_safe_path: Optional[Path] = None
     if dns_safe_proxies:
         dns_safe_path = output_path / "proxies-dns-safe.json"
         await loop.run_in_executor(None, save_json, dns_safe_proxies, dns_safe_path)
 
-    # DNS-hardened dataset (prefer IP when available)
-    dns_hardened_proxies, _ = _build_dns_hardened_proxies(optimized_proxies)
+    # DNS-hardened dataset (prefer IP when available) - reuse cached results
+    if _cached_dns_hardened is not None:
+        dns_hardened_proxies, _ = _cached_dns_hardened
+    else:
+        dns_hardened_proxies, _ = _build_dns_hardened_proxies(optimized_proxies)
     dns_hardened_path: Optional[Path] = None
     if dns_hardened_proxies:
         dns_hardened_path = output_path / "proxies-dns-hardened.json"
@@ -297,6 +460,8 @@ async def generate_pipeline_outputs(
             washed_ids=washed_ids,
             smart_chains=smart_chains,
             washer=washer,
+            dns_safe_cache=_cached_dns_safe,
+            dns_hardened_cache=_cached_dns_hardened,
         ),
     )
     if revived_path:
@@ -311,36 +476,31 @@ async def generate_pipeline_outputs(
         generated_files["revived_dns_hardened"] = revived_hardened_path
 
     # 5. Metadata & Stats
-    # Track total unique chain outbounds (revived + washed + smart chains)
-    chain_outbounds: List[dict] = []
-    seen_tags: set[str] = set()
-
-    def _append_chain(outbounds: List[dict]) -> None:
-        for outbound in outbounds:
-            if not isinstance(outbound, dict):
-                continue
-            tag = outbound.get("tag")
-            if tag and tag in seen_tags:
-                continue
-            chain_outbounds.append(outbound)
-            if tag:
-                seen_tags.add(tag)
-
+    # Count unique chain outbound tags (revived + washed + smart chains)
+    # Uses lightweight tag counting instead of duplicating the full
+    # _append_chain collection logic from output_logic.py
+    _chain_tags: set[str] = set()
     for proxy in optimized_proxies:
         chain = proxy.details.get("chain_outbounds")
-        if isinstance(chain, list) and chain:
-            _append_chain(chain)
-
+        if isinstance(chain, list):
+            for ob in chain:
+                tag = ob.get("tag") if isinstance(ob, dict) else None
+                if tag:
+                    _chain_tags.add(tag)
     if washed_outbounds:
-        _append_chain(washed_outbounds)
-
+        for ob in washed_outbounds:
+            tag = ob.get("tag") if isinstance(ob, dict) else None
+            if tag:
+                _chain_tags.add(tag)
     if smart_chains:
         for chain_list in smart_chains.values():
             for chain in chain_list:
-                if isinstance(chain, list) and chain:
-                    _append_chain(chain)
-
-    stats.chain_outbounds_count = len(chain_outbounds)
+                if isinstance(chain, list):
+                    for ob in chain:
+                        tag = ob.get("tag") if isinstance(ob, dict) else None
+                        if tag:
+                            _chain_tags.add(tag)
+    stats.chain_outbounds_count = len(_chain_tags)
 
     stats_dict = stats.to_dict()
 

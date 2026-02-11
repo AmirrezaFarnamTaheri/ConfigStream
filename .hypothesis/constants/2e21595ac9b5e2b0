@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_update.py
+# hypothesis_version: 6.150.0
+
+['Bot', 'Chat', 'Update', 'User', '_effective_chat', '_effective_message', '_effective_sender', '_effective_user', 'business_connection', 'business_message', 'callback_query', 'channel_post', 'chat_boost', 'chat_join_request', 'chat_member', 'chosen_inline_result', 'edited_channel_post', 'edited_message', 'inline_query', 'message', 'message_reaction', 'my_chat_member', 'poll', 'poll_answer', 'pre_checkout_query', 'purchased_paid_media', 'removed_chat_boost', 'shipping_query', 'update_id']

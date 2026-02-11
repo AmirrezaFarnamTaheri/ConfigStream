@@ -17,6 +17,7 @@ from .converters.common import safe_int_conversion
 from .generators import (
     generate_singbox_config,
     generate_base64_subscription,
+    generate_clash_config,
     generate_split_outputs,
 )
 from .adapters import get_adapter, ShadowrocketAdapter
@@ -39,11 +40,14 @@ from .utils.net import (
 
 logger = logging.getLogger(__name__)
 
+# Pre-compiled pattern for filename sanitization
+_SAFE_FILENAME_RE = re.compile(r"[^A-Za-z0-9._-]+")
+
 
 def _safe_filename(value: str, fallback: str) -> str:
     if not value:
         return fallback
-    clean = re.sub(r"[^A-Za-z0-9._-]+", "_", value).strip("._-")
+    clean = _SAFE_FILENAME_RE.sub("_", value).strip("._-")
     return clean or fallback
 
 
@@ -199,8 +203,8 @@ def _rewrite_outbound_for_dns_safe(
             tls = dict(tls)
             tls["server_name"] = server
             outbound["tls"] = tls
-        if not outbound.get("sni"):
-            outbound["sni"] = server
+        # [FIX] Do NOT set top-level 'sni' — sing-box uses tls.server_name.
+        # A top-level 'sni' causes: "unknown field" parse error in sing-box.
     return outbound
 
 
@@ -219,8 +223,8 @@ def _rewrite_outbound_for_dns_hardened(
                 tls = dict(tls)
                 tls["server_name"] = server
                 outbound["tls"] = tls
-            if not outbound.get("sni"):
-                outbound["sni"] = server
+            # [FIX] Do NOT set top-level 'sni' — sing-box uses tls.server_name.
+            # A top-level 'sni' causes: "unknown field" parse error in sing-box.
     return outbound
 
 
@@ -469,6 +473,8 @@ def generate_categorized_outputs(
     washed_ids: Optional[set] = None,
     smart_chains: Optional[Dict[str, List[List[Dict[str, Any]]]]] = None,
     washer: Optional[ProxyWasher] = None,  # Pass existing washer instance
+    dns_safe_cache: Optional[Tuple[List[Proxy], Dict[str, str]]] = None,
+    dns_hardened_cache: Optional[Tuple[List[Proxy], Dict[str, str]]] = None,
 ) -> Dict[str, Path]:
     """
     Generates all output files categorized by protocol, country, and type.
@@ -476,6 +482,7 @@ def generate_categorized_outputs(
     """
     output_dir.mkdir(parents=True, exist_ok=True)
     generated_files = {}
+    settings = AppSettings()
 
     # Remove legacy redundant artifacts to keep output clean and canonical.
     legacy_files = ["raw.txt", "all.txt", "sub.txt", "vpn_subscription_base64.txt"]
@@ -497,11 +504,11 @@ def generate_categorized_outputs(
 
     # Initialize washer if not provided (fallback)
     if washer is None:
-        washer = ProxyWasher(AppSettings().WARP_KEY_POOL)
+        washer = ProxyWasher(settings.WARP_KEY_POOL)
 
     # 1. Generate Smart Chains if not provided
     if smart_chains is None:
-        if AppSettings().ENABLE_SMART_CHAINING:
+        if settings.ENABLE_SMART_CHAINING:
             smart_chains = generate_smart_chains(proxies, washer=washer)
         else:
             smart_chains = {}
@@ -548,6 +555,22 @@ def generate_categorized_outputs(
         chosen_base64_path = chosen_dir / "base64.txt"
         AtomicFileWriter.write_text(chosen_base64_path, chosen_base64)
         generated_files["chosen_base64"] = chosen_base64_path
+
+        chosen_plaintext = generate_plaintext_subscription(chosen)
+        chosen_txt_path = chosen_dir / "proxies.txt"
+        AtomicFileWriter.write_text(chosen_txt_path, chosen_plaintext)
+        generated_files["chosen_proxies_txt"] = chosen_txt_path
+
+        chosen_singbox = generate_singbox_config(chosen)
+        chosen_singbox_path = chosen_dir / "singbox.json"
+        AtomicFileWriter.write_text(chosen_singbox_path, chosen_singbox)
+        generated_files["chosen_singbox"] = chosen_singbox_path
+
+        chosen_clash = generate_clash_config(chosen)
+        if chosen_clash:
+            chosen_clash_path = chosen_dir / "clash.yaml"
+            AtomicFileWriter.write_text(chosen_clash_path, chosen_clash)
+            generated_files["chosen_clash"] = chosen_clash_path
 
     # 3d. Adapter-specific outputs (Shadowrocket, QuantumultX, Surge, Loon, SIP008)
     adapter_specs = {
@@ -734,7 +757,11 @@ def generate_categorized_outputs(
     # These are kept for backward compatibility and internal tracking
 
     # 6. DNS-safe outputs (IP-only / pre-resolved)
-    dns_safe_proxies, host_map = _build_dns_safe_proxies(proxies)
+    # Reuse cached DNS results from output_handler when available
+    if dns_safe_cache is not None:
+        dns_safe_proxies, host_map = dns_safe_cache
+    else:
+        dns_safe_proxies, host_map = _build_dns_safe_proxies(proxies)
     if dns_safe_proxies:
         dns_safe_washed = (
             _filter_outbounds_for_dns_safe(washed_outbounds, host_map)
@@ -880,8 +907,11 @@ def generate_categorized_outputs(
                         pass
 
     # 7. DNS-hardened outputs (prefer IP when available + DoH/DoT/DoQ)
-    if AppSettings().DNS_HARDENED_OUTPUTS:
-        dns_hardened_proxies, hardened_map = _build_dns_hardened_proxies(proxies)
+    if settings.DNS_HARDENED_OUTPUTS:
+        if dns_hardened_cache is not None:
+            dns_hardened_proxies, hardened_map = dns_hardened_cache
+        else:
+            dns_hardened_proxies, hardened_map = _build_dns_hardened_proxies(proxies)
         if dns_hardened_proxies:
             primary_resolvers, fallback_resolvers = _dns_resolver_sets()
             hardened_washed = (
@@ -1111,6 +1141,7 @@ def save_metadata(
     Saves metadata.json and other stats files.
     """
     meta_path = output_dir / "metadata.json"
+    _meta_settings = AppSettings()
 
     # Single-pass loop to collect all stats at once (O(N) instead of O(4N))
     total = len(proxies)
@@ -1335,7 +1366,7 @@ def save_metadata(
         pkg_version = "unknown"
 
     # Calculate update interval (default 6 hours for production)
-    update_interval_hours = AppSettings().UPDATE_INTERVAL_HOURS
+    update_interval_hours = _meta_settings.UPDATE_INTERVAL_HOURS
 
     latency_by_country = {
         cc: round(latency_by_country_sum[cc] / latency_by_country_count[cc])
@@ -1360,7 +1391,7 @@ def save_metadata(
 
     # Washing Enabled Logic (Best effort inference for Shards)
     washing_enabled = False
-    warp_pool_raw = AppSettings().WARP_KEY_POOL
+    warp_pool_raw = _meta_settings.WARP_KEY_POOL
     if isinstance(warp_pool_raw, str) and warp_pool_raw.strip():
         try:
             warp_pool = json.loads(warp_pool_raw)

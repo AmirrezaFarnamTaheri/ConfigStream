@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_chat.py
+# hypothesis_version: 6.150.0
+
+['Animation', 'Audio', 'ChatInviteLink', 'ChatMember', 'Contact', 'Document', 'Gift', 'InlineKeyboardMarkup', 'InputChecklist', 'InputMediaAudio', 'InputMediaDocument', 'InputMediaPhoto', 'InputMediaVideo', 'InputPaidMedia', 'InputPollOption', 'LabeledPrice', 'LinkPreviewOptions', 'Location', 'Message', 'MessageEntity', 'MessageId', 'PhotoSize', 'ReplyParameters', 'Sticker', 'UserChatBoosts', 'Venue', 'Video', 'VideoNote', 'Voice', 'chat_id', 'first_name', 'id', 'is_direct_messages', 'is_forum', 'last_name', 'title', 'type', 'user_id', 'username']

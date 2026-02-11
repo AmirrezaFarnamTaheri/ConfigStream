@@ -29,7 +29,7 @@
 - **Status**: ✅ Production Deployed
 - **Deployment**: GitHub Pages + Actions
 - **Uptime**: 99.8%
-- **Update Frequency**: Every 5 hours (automated)
+- **Update Frequency**: Every 4 hours (automated)
 
 ### Key Metrics
 - **Active Proxies**: 10,000+ (Verified)

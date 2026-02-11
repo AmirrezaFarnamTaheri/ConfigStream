@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\cli_errors.py
+# hypothesis_version: 6.150.0
+
+[130, 'Connection failed', 'Data processing', 'ErrorContext', 'F', 'File not found', 'File operation', 'Invalid JSON', 'Invalid value', 'Network operation', 'Operation', 'Operation cancelled', 'Operation timeout', 'Permission denied', 'Unexpected error', 'Validation']

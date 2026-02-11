@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\python_socks\__init__.py
+# hypothesis_version: 6.150.0
+
+['ProxyConnectionError', 'ProxyError', 'ProxyTimeoutError', 'ProxyType', '__title__', '__version__', 'parse_proxy_url']

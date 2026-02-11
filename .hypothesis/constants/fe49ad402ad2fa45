@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\source_quality.py
+# hypothesis_version: 6.150.0
+
+[0.0, 50.0, 100, 168, 3600, 'Malformed GitHub URL', 'Permanent Error: 404', 'Permanent Error: 410', 'SourceQualityTracker', 'active', 'consecutive_failures', 'dead', 'diversity_score', 'last_checked', 'probation', 'reliability_score', 'status', 'total_fetched', 'total_working', 'trust_score']

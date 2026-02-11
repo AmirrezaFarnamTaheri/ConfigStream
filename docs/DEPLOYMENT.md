@@ -96,9 +96,9 @@ configstream merge --sources sources/batch_1.txt --output /var/www/html/configst
 ```
 
 ### Automation (Cron)
-Add a crontab entry to run every 5 hours:
+Add a crontab entry to run every 4 hours:
 ```bash
-0 */5 * * * /usr/local/bin/configstream merge --sources /path/to/sources.txt --output /var/www/html/configstream >> /var/log/configstream.log 2>&1
+0 */4 * * * /usr/local/bin/configstream merge --sources /path/to/sources.txt --output /var/www/html/configstream >> /var/log/configstream.log 2>&1
 ```
 
 ---

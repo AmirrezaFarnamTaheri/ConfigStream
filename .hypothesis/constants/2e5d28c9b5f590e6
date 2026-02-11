@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_keyboardbutton.py
+# hypothesis_version: 6.150.0
+
+['Bot', 'KeyboardButton', 'request_chat', 'request_contact', 'request_location', 'request_poll', 'request_user', 'request_users', 'text', 'web_app']

@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import logging
+from pathlib import Path
 from typing import List, Dict, Optional, Any
 from datetime import datetime, timezone, timedelta
 
@@ -31,8 +32,6 @@ class ProxyHistoryTracker:
 
         if storage_or_path:
             # Check if it looks like a path (str or Path)
-            from pathlib import Path
-
             if isinstance(storage_or_path, (str, Path)):
                 path = storage_or_path
             else:
@@ -46,8 +45,6 @@ class ProxyHistoryTracker:
         if storage:
             self.storage = storage
         else:
-            from pathlib import Path
-
             if path is None:
                 path = Path("data/history.db")
 
@@ -334,8 +331,6 @@ class ProxyHistoryTracker:
         Given current constraints, we stick to memory load but wrapped safely.
         """
         # Ensure path is Path object
-        from pathlib import Path
-
         if not isinstance(output_path, Path):
             output_path = Path(output_path)
 
@@ -348,8 +343,6 @@ class ProxyHistoryTracker:
     def export_active_proxy_trend(self, output_path: Any) -> None:
         """Export active proxy trend."""
         # Ensure path is Path object
-        from pathlib import Path
-
         if not isinstance(output_path, Path):
             output_path = Path(output_path)
 
@@ -359,8 +352,6 @@ class ProxyHistoryTracker:
     def export_evasion_trend(self, stats: Any, output_path: Any) -> None:
         """Export evasion metrics trend."""
         # Ensure path is Path object
-        from pathlib import Path
-
         if not isinstance(output_path, Path):
             output_path = Path(output_path)
 

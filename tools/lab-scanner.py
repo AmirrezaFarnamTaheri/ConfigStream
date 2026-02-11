@@ -951,9 +951,7 @@ def scan_vwarp_endpoints(rtt_limit: str = "800ms") -> List[Dict[str, Any]]:
     info(f"Running: {' '.join(cmd)}")
 
     try:
-        result = _subprocess.run(
-            cmd, capture_output=True, text=True, timeout=60
-        )
+        result = _subprocess.run(cmd, capture_output=True, text=True, timeout=60)
     except _subprocess.TimeoutExpired:
         fail("vwarp scan timed out after 60 seconds.")
         return []
@@ -987,15 +985,19 @@ def scan_vwarp_endpoints(rtt_limit: str = "800ms") -> List[Dict[str, Any]]:
                 except ValueError:
                     port = 2408
 
-                endpoints.append({
-                    "ip": host, "port": port, "latency_ms": latency_ms,
-                    "source": "vwarp",
-                })
+                endpoints.append(
+                    {
+                        "ip": host,
+                        "port": port,
+                        "latency_ms": latency_ms,
+                        "source": "vwarp",
+                    }
+                )
 
     if endpoints:
         ok(f"vwarp found {len(endpoints)} clean endpoint(s):")
-        for ep in endpoints[:15]:
-            ok(f"  {ep['ip']}:{ep['port']} ({ep['latency_ms']}ms)")
+        for entry in endpoints[:15]:
+            ok(f"  {entry['ip']}:{entry['port']} ({entry['latency_ms']}ms)")
     else:
         fail("vwarp scan returned no results.")
         info("Try --scan-ips for the built-in Python scanner.")

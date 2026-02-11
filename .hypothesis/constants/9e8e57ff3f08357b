@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\ext\_application.py
+# hypothesis_version: 6.150.0
+
+[0.0, '20.4', 'Application', 'Application started', 'BaseUpdateProcessor', 'ConversationHandler', 'Job', 'JobQueue started', 'JobQueue stopped', 'JobQueue[CCT]', 'Job[CCT]', 'Message', 'Processing update %s', 'Windows', '_AppType', '__create_task_tasks', '__weakref__', '_chat_data', '_initialized', '_job_queue', '_running', '_update_processor', '_user_data', 'asyncio.Task[RT]', 'bot', 'bot_data', 'chat_data', 'context_types', 'error_handlers', 'group is not int', 'handlers', 'persistence', 'post_init', 'post_shutdown', 'post_stop', 'socket', 'state', 'update_queue', 'updater', 'user_data']

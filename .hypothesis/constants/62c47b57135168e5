@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\ext\_aioratelimiter.py
+# hypothesis_version: 6.150.0
+
+[0.1, 512, 'AIORateLimiter', 'AsyncLimiter', '_apb_limiter', '_base_limiter', '_group_limiters', '_group_max_rate', '_group_time_period', '_max_retries', '_retry_after_event', 'allow_paid_broadcast', 'chat_id']

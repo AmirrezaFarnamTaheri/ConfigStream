@@ -170,7 +170,9 @@ async def processing_consumer(
                     src_hash = hashlib.sha256(
                         src_url.encode("utf-8", errors="ignore")
                     ).hexdigest()
-                    fp_dir = Path("data/fingerprints")
+                    fp_dir = (
+                        Path(__file__).resolve().parents[3] / "data" / "fingerprints"
+                    )
                     fp_dir.mkdir(parents=True, exist_ok=True)
                     fp_file = fp_dir / f"{src_hash}.json"
 
@@ -193,7 +195,7 @@ async def processing_consumer(
         duplicates_count = 0
         async with seen_lock:
             # Use more efficient deduplication (LRU style)
-            max_seen = AppSettings().MAX_SEEN_KEYS
+            max_seen = settings.MAX_SEEN_KEYS
 
             for p in parsed_batch:
                 k = proxy_unique_key(p)
@@ -235,8 +237,6 @@ async def processing_consumer(
             stats.drop_reasons["duplicate"] = (
                 stats.drop_reasons.get("duplicate", 0) + duplicates_count
             )
-
-        async with seen_lock:
             stats.parsed += len(unique_batch)
 
         with tracker.phase("security_validation"):
@@ -269,7 +269,8 @@ async def processing_consumer(
         final_batch_for_this_source = []
         proxies_to_actually_test = []
 
-        # Cache Check
+        # Cache Check (batch lock acquisition instead of per-proxy)
+        _local_cache_misses = 0
         for p in safe_batch:
             cached = None
             if not scheduler.should_retest(p):
@@ -278,9 +279,11 @@ async def processing_consumer(
             if cached:
                 final_batch_for_this_source.append(cached)
             else:
-                async with seen_lock:
-                    stats.cache_misses += 1
+                _local_cache_misses += 1
                 proxies_to_actually_test.append(p)
+        if _local_cache_misses:
+            async with seen_lock:
+                stats.cache_misses += _local_cache_misses
 
         # Testing
         failed_proxies = []  # Candidates for revival
@@ -288,7 +291,6 @@ async def processing_consumer(
         if proxies_to_actually_test:
             if tester.go_tester.available:
                 # Clamp chunk size to avoid overwhelming Go tester
-                settings = AppSettings()
                 if settings.GO_TESTER_BATCH_SIZE <= 0:
                     chunk_size = len(proxies_to_actually_test)
                 else:
@@ -383,7 +385,6 @@ async def processing_consumer(
                         progress.update(task_process, completed=stats.tested)
             else:
                 # Python fallback testing
-                settings = AppSettings()
                 if settings.PY_TESTER_BATCH_SIZE <= 0:
                     chunk_size = len(proxies_to_actually_test)
                 else:

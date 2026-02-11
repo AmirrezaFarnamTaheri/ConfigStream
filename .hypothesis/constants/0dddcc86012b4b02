@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\limits\typing.py
+# hypothesis_version: 6.150.0
+
+['Any', 'AsyncRedisClient', 'Awaitable', 'Callable', 'ClassVar', 'Counter', 'Iterable', 'Literal', 'MemcachedClientP', 'MongoClient', 'MongoCollection', 'MongoDatabase', 'NamedTuple', 'P', 'ParamSpec', 'Protocol', 'R', 'R_co', 'RedisClient', 'Serializable', 'TYPE_CHECKING', 'TypeAlias', 'TypeVar', 'cast']

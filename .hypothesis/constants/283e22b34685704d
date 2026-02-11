@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\intelligent_fallback.py
+# hypothesis_version: 6.150.0
+
+[0.5, 100, 500, '.tmp', 'address', 'city', 'config', 'country', 'country_code', 'latency', 'port', 'protocol', 'proxies', 'proxy_count', 'saved_at']

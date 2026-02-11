@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\playwright\_impl\_transport.py
+# hypothesis_version: 6.150.0
+
+[32768, '\x1b[32mSEND>\x1b[0m', '\x1b[33mRECV>\x1b[0m', '0', 'DEBUGP', '__compiled__', '__stderr__', 'closed', 'frozen', 'little', 'run-driver', 'win32']

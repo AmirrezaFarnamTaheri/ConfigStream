@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\pipeline_core\stats.py
+# hypothesis_version: 6.150.0
+
+[0.0, 100, 'cache_misses', 'drop_reasons', 'duration', 'end_time', 'evasion_alpn_enabled', 'evasion_utls_enabled', 'fetched_lines', 'fetched_sources', 'final_count', 'geo_resolved', 'parsed', 'revived_vwarp', 'revived_warp', 'scanner_ips_found', 'shielded_count', 'smart_chain_count', 'start_time', 'tested', 'time_limit_seconds', 'time_limited', 'total_revived', 'vwarp_attempts', 'vwarp_success', 'vwarp_win_rate', 'warp_attempts', 'washer_success_count', 'washing_enabled', 'working']

@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_chatboost.py
+# hypothesis_version: 6.150.0
+
+['Bot', 'ChatBoost', 'ChatBoostRemoved', 'ChatBoostSource', 'ChatBoostUpdated', 'UserChatBoosts', 'add_date', 'boost', 'boost_count', 'boost_id', 'boosts', 'chat', 'expiration_date', 'giveaway_message_id', 'is_unclaimed', 'prize_star_count', 'remove_date', 'source', 'user']

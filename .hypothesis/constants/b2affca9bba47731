@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\pydantic_settings\main.py
+# hypothesis_version: 6.150.0
+
+['-', 'T', '__name__', '_cli_exit_on_error', '_cli_parse_args', '_cli_settings_source', 'all', 'case_sensitive', 'cli_avoid_json', 'cli_cmd', 'cli_enforce_required', 'cli_exit_on_error', 'cli_flag_prefix_char', 'cli_hide_none_type', 'cli_implicit_flags', 'cli_kebab_case', 'cli_parse_args', 'cli_parse_none_str', 'cli_prefix', 'cli_prog_name', 'cli_settings_source', 'cli_shortcuts', 'env_file', 'env_file_encoding', 'env_ignore_empty', 'env_nested_delimiter', 'env_nested_max_split', 'env_parse_enums', 'env_parse_none_str', 'env_prefix', 'forbid', 'json_file', 'json_file_encoding', 'model_dump', 'model_validate', 'no_enums', 'populate_by_name', 'pyproject_toml_depth', 'secrets_dir', 'toml_file', 'yaml_config_section', 'yaml_file', 'yaml_file_encoding']

@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\backup.py
+# hypothesis_version: 6.150.0
+
+[0.0, 5.0, 1000, 1024, '%Y%m%d%H%M%S', '%Y%m%d_%H%M%S', '%Y-%m-%d', '*.db', '*.db.gz', '..', '.db', '.db.gz', '.gz', '/', '\\', '_', '_(\\d{8})_(\\d{6})$', '_\\d{8}_\\d{6}$', 'age_days', 'backups', 'backups_by_database', 'compressed', 'created', 'data', 'data/backups', 'filename', 'newest_backup', 'oldest_backup', 'path', 'rb', 'size_mb', 'total_backups', 'total_size_mb', 'unknown', 'wb']

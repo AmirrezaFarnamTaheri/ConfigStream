@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\slugify\slugify.py
+# hypothesis_version: 6.150.0
+
+['&#(\\d+);', '&#x([\\da-fA-F]+);', '&(%s);', '(?<=\\d),(?=\\d)', '-', '-{2,}', 'NFKC', 'NFKD', "[\\']+", '[\\W_]+', '[^-a-zA-Z0-9]+', 'ignore', 'slugify', 'smart_truncate', 'utf-8', '{}', '{}{}', '|']

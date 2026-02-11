@@ -38,7 +38,9 @@ def test_build_vwarp_config_masque_preset():
         assert config["masque"]["enabled"] is True
         assert config["masque"]["preferred"] is True
         assert "Jc" in config["masque"]["config"]
-        assert config["masque"]["config"]["Jc"] == MASQUE_NOIZE_PRESETS[preset_name]["Jc"]
+        assert (
+            config["masque"]["config"]["Jc"] == MASQUE_NOIZE_PRESETS[preset_name]["Jc"]
+        )
 
 
 def test_build_vwarp_config_atomicnoize_preset():

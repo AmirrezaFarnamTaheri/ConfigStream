@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\auto_detect.py
+# hypothesis_version: 6.150.0
+
+[443, 1080, 8443, ':', '://', 'client', 'dev tap', 'dev tun', 'exclave', 'http', 'https', 'hy1', 'hy2', 'hysteria', 'hysteria2', 'naive', 'naive+http', 'naive+https', 'shadowsocks', 'socks', 'socks4', 'socks5', 'ss', 'ss2022', 'ssh', 'trojan', 'trojan-go', 'tuic', 'vless', 'vmess', 'wg', 'wireguard', '{']

@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\aiohttp\http_parser.py
+# hypothesis_version: 6.150.0
+
+[b'\n', b'\r', b'\r\n', b' \t', b':', b';', b'[0-9a-fA-F]+', 100, 200, 204, 304, 8190, 32768, '\x00', "!#$%&'*+-.^_`|~", '#', '*', ',', '/', '?', 'CONNECT', 'HTTP/(\\d)\\.(\\d)', 'HeadersParser', 'HttpParser', 'HttpRequestParser', 'HttpResponseParser', 'OPTIONS', 'RawRequestMessage', 'RawResponseMessage', '\\d+', '_MsgT', 'ascii', 'backslashreplace', 'br', 'chunked', 'close', 'code', 'deflate', 'gzip', 'keep-alive', 'latin1', 'method', 'surrogateescape', 'tcp', 'upgrade', 'utf-8', 'utf8', 'websocket', 'zstd']

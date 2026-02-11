@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\playwright\_impl\_locator.py
+# hypothesis_version: 6.150.0
+
+[' >> ', ' >> internal:and=', ' >> internal:has=', ' >> internal:or=', 'Clear', 'ElementHandle', 'Frame', 'FrameLocator', 'JSHandle', 'Locator', 'Page', 'T', 'allow', 'alt', 'ariaSnapshot', 'attached', 'blur', 'checked', 'css', 'data-testid', 'detached', 'device', 'disabled', 'expanded', 'false', 'hidden', 'hide', 'include-hidden', 'initial', 'internal:label=', 'internal:text=', 'jpeg', 'level', 'name', 'placeholder', 'png', 'pressed', 'selected', 'selector', 'strict', 'target', 'timeout', 'title', 'true', 'visible']

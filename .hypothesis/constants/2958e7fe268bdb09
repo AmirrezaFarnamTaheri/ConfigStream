@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\ext\_handlers\conversationhandler.py
+# hypothesis_version: 6.150.0
+
+[', ...}', 'Application', 'ConversationHandler', 'Job', '_allow_reentry', '_block', '_child_conversations', '_conversations', '_entry_points', '_fallbacks', '_map_to_parent', '_name', '_per_chat', '_per_message', '_per_user', '_persistent', '_states', '_timeout_jobs_lock', 'application', 'callback_context', 'conversation_key', 'old_state', 'task', 'timeout_jobs', 'update']

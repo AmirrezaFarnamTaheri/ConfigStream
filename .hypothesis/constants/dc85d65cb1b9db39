@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\fetcher.py
+# hypothesis_version: 6.150.0
+
+[30.0, 100, 500, 'FETCH_TIMEOUT', 'FetchResult', 'Fetcher', 'MAX_RESPONSE_SIZE', 'RateLimitError', 'fetch_from_source', 'replace', 'utf-8']

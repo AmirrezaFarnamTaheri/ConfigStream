@@ -6,7 +6,9 @@ Security validation rules for proxy configurations.
 import re
 import logging
 import ipaddress
+import unicodedata
 from typing import Dict, FrozenSet, Optional
+from urllib.parse import unquote
 
 from configstream.config import AppSettings
 from configstream.constants import (
@@ -34,6 +36,28 @@ SECURITY_CATEGORIES = {
 
 # Cache AppSettings instance
 _APP_SETTINGS_CACHE = AppSettings()
+
+# Pre-compiled special address patterns
+_SPECIAL_ADDRESS_PATTERNS = [
+    re.compile(r"^127\."),
+    re.compile(r"^::1$"),
+    re.compile(r"^localhost$"),
+    re.compile(r"^10\."),
+    re.compile(r"^172\.(1[6-9]|2[0-9]|3[0-1])\."),
+    re.compile(r"^192\.168\."),
+    re.compile(r"^169\.254\."),
+    re.compile(r"^fe80:"),
+    re.compile(r"^fc00:"),
+    re.compile(r"^fd00:"),
+    re.compile(r"^0\.0\.0\.0$"),
+    re.compile(r"^0\."),
+    re.compile(r"^255\.255\.255\.255$"),
+]
+
+# Pre-compiled patterns for validate_address hot path
+_OCTAL_NOTATION_RE = re.compile(r"^0[0-7]{1,11}\.")
+_IP_STRUCTURE_RE = re.compile(r"^[\d\.]+$")
+_IP_PORT_CHARS_RE = re.compile(r"^[\d\.:]+$")
 
 
 def validate_port(port: int) -> Optional[str]:
@@ -72,7 +96,6 @@ def validate_address(
     # Normalize IDN and unicode
     try:
         import idna
-        import unicodedata
 
         normalized = unicodedata.normalize("NFKC", address_lower)
         encoded = idna.encode(normalized).decode("ascii")
@@ -127,10 +150,10 @@ def validate_address(
                 f"Non-standard notation: {address}"
             )
             return issues
-    elif re.match(r"^0[0-7]{1,11}\.", address_lower):
+    elif _OCTAL_NOTATION_RE.match(address_lower):
         # Only flag as octal/ambiguous if it looks like an IP structure (digits and dots),
         # not a hostname starting with digits (e.g. 026.worker.dev).
-        is_ip_structure = re.match(r"^[\d\.]+$", address_lower)
+        is_ip_structure = _IP_STRUCTURE_RE.match(address_lower)
         if is_ip_structure:
             logger.warning(
                 f"Non-standard IP notation (possible DNS rebinding): {address}"
@@ -144,8 +167,6 @@ def validate_address(
     #    e.g. %31%32%37%2E%30%2E%30%2E%31
     if "%" in address_lower:
         try:
-            from urllib.parse import unquote
-
             decoded = unquote(address_lower)
             if decoded.startswith("127.") or decoded in ("localhost", "::1"):
                 logger.warning(
@@ -171,34 +192,12 @@ def validate_address(
     if not _APP_SETTINGS_CACHE.ALLOW_PRIVATE_IPS:
         # Check if address looks like an IP (IPv4 or IPv6) before applying IP rules
         # This prevents blocking domains that start with numbers like 10.example.com
-        is_ip_match = re.match(r"^[\d\.:]+$", address_lower)
+        is_ip_match = _IP_PORT_CHARS_RE.match(address_lower)
         is_localhost = address_lower == "localhost"
 
         if is_ip_match or is_localhost:
-            special_address_patterns = [
-                # Loopback
-                r"^127\.",
-                r"^::1$",
-                r"^localhost$",
-                # Private ranges
-                r"^10\.",
-                r"^172\.(1[6-9]|2[0-9]|3[0-1])\.",
-                r"^192\.168\.",
-                # Link-local
-                r"^169\.254\.",
-                r"^fe80:",
-                # Unique local
-                r"^fc00:",
-                r"^fd00:",
-                # Unspecified
-                r"^0\.0\.0\.0$",
-                r"^0\.",  # "This network"
-                # Broadcast
-                r"^255\.255\.255\.255$",
-            ]
-
-            for pattern in special_address_patterns:
-                if re.match(pattern, address_lower):
+            for pattern in _SPECIAL_ADDRESS_PATTERNS:
+                if pattern.match(address_lower):
                     logger.warning(f"Special or private address detected: {address}")
                     issues[SECURITY_CATEGORIES["ADDRESS_PRIVATE"]] = (
                         f"Special address: {address}"

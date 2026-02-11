@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\security_validator.py
+# hypothesis_version: 6.150.0
+
+[135, 137, 138, 139, 445, 3389, 5900, 6379, 11211, 65536, '.local', ':([^:@]+)@', ':[MASKED]@', 'Bearer [MASKED]', 'Proxy', '[BASE64]', '[IP]', '[UUID]', '\\1: [MASKED]', '\\1=[MASKED]', '^10\\.', '^127\\.', '^169\\.254\\.', '^192\\.168\\.', 'allow_local_ips', 'auto', 'empty_url', 'http', 'https', 'hysteria2', 'invalid_host', 'invalid_port_range', 'invalid_port_type', 'invalid_uuid_format', 'local_ip_allowed', 'local_ip_blocked', 'localhost', 'method', 'min_password_length', 'missing_uuid', 'ok', 'parse_error', 'password', 'policy', 'rc4-md5', 'reality', 'security', 'shadowsocks', 'table', 'tls', 'tls_required', 'trojan', 'tuic', 'unsafe_address', 'uuid', 'vless', 'vmess', 'weak_trojan_password', 'wireguard']

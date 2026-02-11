@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main ]
   pull_request:
 
 jobs:
@@ -34,7 +34,7 @@ jobs:
       - name: Run tests
         run: pytest -q
       - name: Run flake8
-        run: python -m flake8 .
+        run: python -m flake8 src/ tests/
       - name: Run mypy
         run: python -m mypy .
       - name: Run black

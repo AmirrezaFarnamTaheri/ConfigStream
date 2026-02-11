@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\aiohttp\client_reqrep.py
+# hypothesis_version: 6.150.0
+
+[100, 101, 199, 400, '*/*', ', ', ',(?=\\s*<)', '.', '0', '100-continue', ';', 'CIMultiDict[None]', 'CIMultiDict[str]', 'ClientRequest', 'ClientResponse', 'ClientSession', 'Connection', 'Connection closed', 'Fingerprint', 'GET', 'None', 'RequestInfo', 'SSLContext', 'Trace', 'Unclosed response', '\\s*<(.*)>(.*)', 'application', 'application/json', 'ascii', 'asyncio.Future[bool]', 'asyncio.Task[None]', 'backslashreplace', 'br', 'charset', 'chunked', 'client_response', 'close', 'deflate', 'gzip', 'https', 'json', 'keep-alive', 'link', 'message', 'peername', 'rdap', 'rel', 'source', 'source_traceback', 'ssl_object', 'sslcontext', 'strict', 'url', 'utf-8', 'wss', 'zstd']

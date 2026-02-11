@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\serialize.py
+# hypothesis_version: 6.150.0
+
+['_source', 'address', 'asn', 'city', 'config', 'country', 'country_code', 'details', 'dumps', 'history', 'history_points', 'id', 'is_working', 'isoformat', 'last_checked', 'latency', 'org', 'port', 'process', 'protocol', 'remarks', 'replace', 'security', 'source', 'tags', 'utf-8', 'uuid']

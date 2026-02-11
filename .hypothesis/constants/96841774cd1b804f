@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\utils\cert.py
+# hypothesis_version: 6.150.0
+
+[365, 4096, 'cert', 'configstream-local', 'key', 'sha512', 'utf-8']

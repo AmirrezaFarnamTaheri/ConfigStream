@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\security\utls_wrapper.py
+# hypothesis_version: 6.150.0
+
+['-fp', '-o', '-proxy', '-url', 'bin', 'build', 'chrome', 'get', 'go', 'init', 'main.go', 'mod', 'src', 'utls-client', 'utls_client']

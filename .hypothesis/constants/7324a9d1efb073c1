@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\request\_baserequest.py
+# hypothesis_version: 6.150.0
+
+[299, 'BaseRequest', 'GET', 'POST', 'RT', 'description', 'migrate_to_chat_id', 'parameters', 'replace', 'result', 'retry_after']

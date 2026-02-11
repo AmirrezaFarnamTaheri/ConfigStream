@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\generators\split.py
+# hypothesis_version: 6.150.0
+
+[2080, '10m', '127.0.0.1', '172.19.0.1/30', '5m', 'Direct', 'EVASION_MODE', 'EXIT', 'Global', 'INTRANET', 'RELAY', 'Secure', '_', '_origin_id', 'aggressive', 'auto_route', 'block', 'chain_outbounds', 'clash_mode', 'default', 'direct', 'dns', 'dns-out', 'has_alpn_rotation', 'has_fragmentation', 'has_multiplexing', 'has_utls', 'inbounds', 'inet4_address', 'info', 'interface_name', 'interval', 'level', 'listen', 'listen_port', 'log', 'mixed', 'mixed-in', 'outbound', 'outbounds', 'protocol', 'route', 'rules', 'selector', 'stealth', 'strict_route', 'tag', 'timestamp', 'tun', 'tun-in', 'tun0', 'type', 'url', 'urltest', '⚡ Auto-Fast', '🇮🇷 Intranet', '🌍 Proxy Select', '🚀 Auto', '🚀 Mode Selector', '🛡️ Auto-Fallback', '🛡️ Washed']

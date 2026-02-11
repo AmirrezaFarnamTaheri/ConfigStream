@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_reaction.py
+# hypothesis_version: 6.150.0
+
+['Bot', 'ReactionCount', 'ReactionType', 'custom_emoji', 'custom_emoji_id', 'emoji', 'paid', 'total_count', 'type']

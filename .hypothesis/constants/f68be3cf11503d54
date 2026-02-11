@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\orjson\__init__.py
+# hypothesis_version: 6.150.0
+
+['Fragment', 'JSONDecodeError', 'JSONEncodeError', 'OPT_APPEND_NEWLINE', 'OPT_INDENT_2', 'OPT_NAIVE_UTC', 'OPT_NON_STR_KEYS', 'OPT_SERIALIZE_NUMPY', 'OPT_SERIALIZE_UUID', 'OPT_SORT_KEYS', 'OPT_STRICT_INTEGER', 'OPT_UTC_Z', '__version__', 'dumps', 'loads']

@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_files\sticker.py
+# hypothesis_version: 6.150.0
+
+['Bot', 'File', 'MaskPosition', 'Sticker', 'StickerSet', 'contains_masks', 'custom_emoji_id', 'emoji', 'height', 'is_animated', 'is_video', 'mask_position', 'name', 'needs_repainting', 'point', 'premium_animation', 'scale', 'set_name', 'sticker_type', 'stickers', 'thumb', 'thumbnail', 'title', 'type', 'width', 'x_shift', 'y_shift']

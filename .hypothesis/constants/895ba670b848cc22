@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\yarl\_url.py
+# hypothesis_version: 6.150.0
+
+[256, 443, 512, 65535, '#&+;=', '#/:?@[]', '#?', '%', '&', '.', '..', '/', ':', '@', 'Invalid host type', 'Invalid name type', 'Invalid scheme type', 'Invalid suffix type', 'Invalid user type', 'MultiDictProxy[str]', 'Sequence[str]', 'URL', '[', '_T', '_cache', '_fragment', '_netloc', '_path', '_query', '_scheme', '_val', 'ascii', 'encode_host', 'explicit_port', 'ftp', 'hash', 'host_validate', 'http', 'https', 'idna', 'idna_decode', 'idna_encode', 'ip_address', 'raw_fragment', 'raw_host', 'raw_password', 'raw_path', 'raw_query_string', 'raw_user', 'scheme', 'url should be URL', 'ws', 'wss', 'yarl', '{}={}']

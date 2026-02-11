@@ -10,7 +10,7 @@ import logging
 import os
 import re
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 from .models import Proxy
 from .history.tracker import ProxyHistoryTracker
 from .serialize import serialize_proxy
@@ -19,15 +19,25 @@ from .utils import AtomicFileWriter
 logger = logging.getLogger(__name__)
 
 
-def save_json(proxies: List[Proxy], path: Path, compress: bool = False) -> None:
+def save_json(
+    proxies: List[Proxy],
+    path: Path,
+    compress: bool = False,
+    history: Optional["ProxyHistoryTracker"] = None,
+) -> None:
     """
     Save list of proxies to JSON file atomically with fsync for durability.
     """
-    history = ProxyHistoryTracker()  # Access history DB
+    if history is None:
+        history = ProxyHistoryTracker()
+        _owns_history = True
+    else:
+        _owns_history = False
     try:
         data = [serialize_proxy(p, history.get_history(p.id)) for p in proxies]
     finally:
-        history.close()
+        if _owns_history:
+            history.close()
     # Ensure proper JSON formatting (single JSON array, not concatenated objects)
     json_content = json.dumps(data, indent=2, ensure_ascii=False)
 
@@ -80,8 +90,6 @@ def inject_stego_key_into_frontend(secret_key: str, js_file_path: Path) -> None:
 
         # FIX: Escape the key for safe JavaScript string injection
         # This prevents issues if the key contains backslashes or quotes
-        import json
-
         escaped_key = json.dumps(secret_key)[1:-1]  # Remove outer quotes from JSON
 
         # Use a replacement function to avoid regex interpretation of special chars

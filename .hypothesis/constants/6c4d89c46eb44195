@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_inline\inlinequeryresultcontact.py
+# hypothesis_version: 6.150.0
+
+['InputMessageContent', 'first_name', 'last_name', 'phone_number', 'reply_markup', 'thumbnail_height', 'thumbnail_url', 'thumbnail_width', 'vcard']

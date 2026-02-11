@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\intelligence\washer\warp_scraper.py
+# hypothesis_version: 6.150.0
+
+[100, 2408, ',', '/', '172.16.0.2/32', ':', 'PrivateKey', '[', '[Interface]', 'auto', 'config-block', 'endpoint_list', 'http://', 'ignore', 'kind', 'local_address', 'max_entries', 'name', 'outbounds', 'peer', 'private_key', 'reserved', 'scraped-regex', 'scraped-sb', 'singbox', 'text_decode', 'type', 'url', 'utf-8', 'warp-uri', 'warp://', 'wireguard']

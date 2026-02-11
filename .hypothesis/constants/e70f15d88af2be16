@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\rich\traceback.py
+# hypothesis_version: 6.150.0
+
+[100, ' in ', '#!', '.pxd', '.pxi', '.py', '.pyx', ':', '<', '<stdin>', '?', 'Duncan Idaho', 'Paul Atreides', 'Thufir Hawat', 'Trace', 'Traceback', 'Vladimir Harkonnen', '[NOTE] ', '_', '__', '__cause__', '__main__', '__notes__', '__suppress_context__', '_rich_traceback_omit', 'ansi_dark', 'atomic_types', 'bold underline', 'center', 'characters', 'cython', 'in ', 'locals', 'pretty', 'pygments.function', 'pygments.number', 'pygments.string', 'pygments.text', 'pyrex', 'python', 'repr.bool_false', 'repr.bool_true', 'repr.brace', 'repr.indent', 'repr.none', 'repr.number', 'repr.str', 'scope.border', 'scope.equals', 'scope.key', 'scope.key.special', 'tb_offset', 'text', 'traceback.border', 'traceback.error', 'traceback.exc_type', 'traceback.note', 'win32']

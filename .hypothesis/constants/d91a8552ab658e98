@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\filtering.py
+# hypothesis_version: 6.150.0
+
+[100, '#', '.', '/', 'ProxyFilter', 'XX', 'host', 'inf', 'mode', 'net', 'none', 'security', 'serviceName', 'tcp', 'tls', 'type', 'utf-8']

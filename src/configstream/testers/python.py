@@ -18,6 +18,7 @@ from ..converters import to_singbox_outbound
 from ..security_validator import SecurityValidator
 from ..utils.bool_parser import parse_tls_flag
 from ..async_utils import safe_wait_for
+from ..intelligence.evasion import enrich_outbound_with_evasion
 from .utils import SecureConfigContext
 
 logger = logging.getLogger(__name__)
@@ -147,8 +148,6 @@ class PythonTester:
 
         # Apply evasion features to test config to avoid false negatives
         # Proxies that only work with uTLS/multiplexing should be tested with those features enabled
-        from ..intelligence.evasion import enrich_outbound_with_evasion
-
         outbound_config = enrich_outbound_with_evasion(
             outbound_config,
             proxy.id,

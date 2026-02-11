@@ -76,6 +76,7 @@ The system follows a **Streaming Pipeline Architecture** (`Producer-Consumer`):
 *   **Dual Engine**:
     *   **Go Sidecar**: Preferred for performance/compatibility. It supports testing single proxies and **Chains** (lists of outbounds).
         *   **Payload Format**: The Go tester expects a valid JSON array of config objects for batch or custom testing. Do NOT send concatenated JSON strings.
+        *   **Timeout Resilience**: `GoBatchTester` tracks `_consecutive_timeouts`. After 3 consecutive batch timeouts, the daemon is **disabled** (`available = False`) to preserve the pipeline's time budget. The counter resets to 0 on any successful batch. Daemon restarts are **awaited** before the next batch (not fire-and-forget).
     *   **Python Fallback**: Minimal implementation for environments without the binary.
     *   **WASM Tester**: Browser-based verification component (`src/go/tester/wasm_main.go`). Must communicate via JS interop (`syscall/js`) and not use native networking.
 *   **Washer & Revival**:
@@ -87,6 +88,14 @@ The system follows a **Streaming Pipeline Architecture** (`Producer-Consumer`):
 ### Shared Utilities (`src/configstream/utils/`)
 *   **`net.py`**: Shared network helpers (`normalize_host`, `is_ip_literal`, `is_global_ip`). Used by `output_logic.py` and `pipeline_core/output_handler.py`. Do NOT duplicate these — always import from `utils.net`.
 *   **`__init__.py`**: `AtomicFileWriter`, `BoundedConcurrencyManager`, `_FileLock`.
+
+### Output Generation (`src/configstream/output_logic.py`, `pipeline_core/output_handler.py`)
+*   **DNS Cache Passthrough**: `output_handler.py` pre-computes `_build_dns_safe_proxies` and `_build_dns_hardened_proxies` results and passes them via `dns_safe_cache` / `dns_hardened_cache` params to `generate_categorized_outputs`. Do NOT recompute these inside `generate_categorized_outputs` when caches are provided.
+*   **Chosen Outputs**: `generate_categorized_outputs` generates `chosen/{base64.txt, proxies.txt, singbox.json, clash.yaml}` for the top-N proxy subset.
+*   **No Duplicate Helpers**: Chain outbound counting in `output_handler.py` uses a lightweight `set[str]` tag counter. The full `_append_chain` collection logic lives only in `output_logic.py`.
+
+### Split Generator (`src/configstream/generators/split.py`)
+*   **Outbound Cache**: `to_singbox_outbound()` is called **once** per proxy and cached in `_base_outbound_cache`. Both Sniper (with evasion) and Tank (clean) use `copy.deepcopy()` of the cached result. Do NOT call `to_singbox_outbound()` twice per proxy.
 
 ### VwarpTool (`src/configstream/tools/vwarp.py`)
 *   The **canonical** Vwarp tool class is `VwarpTool` in `tools/vwarp.py`.

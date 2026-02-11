@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\anomaly.py
+# hypothesis_version: 6.150.0
+
+[0.5, 0.9, 1.0, 2.0, 2.5, 3.0, 5.0, 200, 86400, '.', '0.0.0.0', 'DB Error (Fail Open)', 'New Source', 'OK', 'Small Batch', 'data/anomaly.db', 'db_size_bytes', 'ip', 'records_last_24h', 'server']

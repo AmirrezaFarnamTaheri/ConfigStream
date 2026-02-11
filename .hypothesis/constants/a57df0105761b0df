@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_inline\inputvenuemessagecontent.py
+# hypothesis_version: 6.150.0
+
+['address', 'foursquare_id', 'foursquare_type', 'google_place_id', 'google_place_type', 'latitude', 'longitude', 'title']

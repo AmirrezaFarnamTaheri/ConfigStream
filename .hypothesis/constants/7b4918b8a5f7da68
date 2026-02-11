@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\dns_cache.py
+# hypothesis_version: 6.150.0
+
+[0.9, 900.0, 100, 10000]

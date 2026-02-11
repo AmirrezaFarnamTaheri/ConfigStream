@@ -15,6 +15,7 @@ import tempfile
 from io import BytesIO
 from pathlib import Path
 from typing import Any, Dict, List, Tuple, Optional
+import re
 import httpx
 
 from ..constants import VWARP_SOCKS5_PORT, VWARP_BIND_ADDRESS
@@ -208,11 +209,9 @@ class VwarpTool:
     @staticmethod
     def validate_warp_key(key: str) -> bool:
         """Validates a WARP key structure."""
-        import re as _re
-
         if not key:
             return False
-        if not _re.match(r"^[a-zA-Z0-9+/=_-]{40,}$", key):
+        if not re.match(r"^[a-zA-Z0-9+/=_-]{40,}$", key):
             logger.warning("Invalid WARP key format")
             return False
         return True

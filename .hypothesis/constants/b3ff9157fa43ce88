@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_giveaway.py
+# hypothesis_version: 6.150.0
+
+['Bot', 'Giveaway', 'GiveawayCompleted', 'GiveawayWinners', 'Message', 'chat', 'chats', 'country_codes', 'giveaway_message', 'giveaway_message_id', 'has_public_winners', 'is_star_giveaway', 'only_new_members', 'prize_description', 'prize_star_count', 'was_refunded', 'winner_count', 'winners']

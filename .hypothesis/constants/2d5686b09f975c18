@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_gifts.py
+# hypothesis_version: 6.150.0
+
+['Bot', 'Gift', 'GiftInfo', 'Gifts', 'can_be_upgraded', 'convert_star_count', 'entities', 'gift', 'gifts', 'id', 'is_private', 'limited_gifts', 'owned_gift_id', 'premium_subscription', 'publisher_chat', 'remaining_count', 'star_count', 'sticker', 'text', 'total_count', 'unique_gifts', 'unlimited_gifts', 'upgrade_star_count']

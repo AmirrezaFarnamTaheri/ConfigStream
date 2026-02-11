@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\converters\clash.py
+# hypothesis_version: 6.150.0
+
+['/', '172.16.0.2', ';', '=', 'Host', 'aid', 'allowInsecure', 'alterId', 'auto', 'bbr', 'cipher', 'client-fingerprint', 'defaultproxyname', 'flow', 'fp', 'grpc', 'grpc-opts', 'grpc-service-name', 'headers', 'host', 'hysteria2', 'ip', 'local_address', 'method', 'mtu', 'name', 'net', 'network', 'none', 'obfs', 'obfs-password', 'password', 'path', 'pbk', 'peer_public_key', 'plugin', 'plugin-opts', 'plugin_opts', 'port', 'private-key', 'private_key', 'public-key', 'reality', 'reality-opts', 'reserved', 'salamander', 'scy', 'security', 'server', 'servername', 'serviceName', 'shadowsocks', 'short-id', 'sid', 'skip-cert-verify', 'sni', 'ss', 'tcp', 'tls', 'trojan', 'tuic', 'type', 'udp', 'uuid', 'vless', 'vmess', 'wireguard', 'ws', 'ws-opts']

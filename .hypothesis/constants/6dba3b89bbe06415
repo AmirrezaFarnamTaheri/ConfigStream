@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\security\censorship.py
+# hypothesis_version: 6.150.0
+
+[100, 1000, 'Heavy Censorship', 'Moderate Censorship', 'No checks run', 'Open', 'blocked', 'blocked_count', 'censorship_score', 'code', 'details', 'error', 'latency_ms', 'reachable', 'status', 'total_sites', 'unknown']

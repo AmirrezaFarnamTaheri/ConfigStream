@@ -12,6 +12,9 @@ from ..config import AppSettings
 
 logger = logging.getLogger(__name__)
 
+# Cache settings to avoid repeated pydantic_settings instantiation in per-proxy hot path
+_SETTINGS_CACHE = AppSettings()
+
 # Regex patterns for IP validation
 _IPV4_PATTERN = re.compile(
     r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
@@ -114,7 +117,7 @@ def parse_generic_url_scheme(config: str) -> Optional[Proxy]:
         # Ensure hostname has at least one dot or is localhost (basic validity)
         if not is_valid_ip and "." not in host and host != "localhost":
             # Allow single-label hostnames only when explicitly permitted.
-            if not AppSettings().ALLOW_PRIVATE_IPS:
+            if not _SETTINGS_CACHE.ALLOW_PRIVATE_IPS:
                 return None
 
         scheme = parsed.scheme.lower()

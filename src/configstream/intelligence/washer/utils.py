@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import hashlib
 from typing import Optional, List
 from configstream.models import Proxy
 
@@ -23,8 +24,6 @@ def make_entry(
 
     # Construct the proxy
     # We use a deterministic UUID based on the private key hash for stability
-    import hashlib
-
     proxy_id = hashlib.sha256(private_key.encode()).hexdigest()[:16]
 
     # Generate unique local IP based on private key to prevent collisions

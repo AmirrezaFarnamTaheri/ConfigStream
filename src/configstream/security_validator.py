@@ -15,6 +15,28 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+# Cache settings to avoid repeated pydantic_settings instantiation in per-proxy hot paths
+_SETTINGS_CACHE = AppSettings()
+
+# Pre-compiled patterns for sanitize_log_message (called per log message - extremely hot)
+_LOG_UUID_RE = re.compile(
+    r"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}",
+    re.IGNORECASE,
+)
+_LOG_USERINFO_RE = re.compile(r":([^:@]+)@")
+_LOG_QUERY_SECRET_RE = re.compile(
+    r"(?i)(token|access_token|api_key|apikey|license_key|key|secret|pass|password|uuid|id|auth|authorization)=([^&\s]+)"
+)
+_LOG_AUTH_HEADER_RE = re.compile(
+    r"(?i)(authorization|auth)\s*[:=]\s*(bearer|basic)?\s*([A-Za-z0-9\-._~+/]+=*)"
+)
+_LOG_BEARER_RE = re.compile(r"(?i)bearer\s+[A-Za-z0-9\-._~+/]+=*")
+_LOG_BASE64_RE = re.compile(r"\b[A-Za-z0-9+/]{20,}={0,2}\b")
+_LOG_IPV4_RE = re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b")
+_LOG_IPV6_RE = re.compile(r"\b(?:[0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}\b")
+# Pre-compiled pattern for sanitize_address (called per proxy)
+_SANITIZE_ADDR_RE = re.compile(r"[^a-zA-Z0-9\.\-\:\[\]]")
+
 # Security Policies
 STRICT_POLICY = {
     "allow_local_ips": False,
@@ -108,43 +130,21 @@ class SecurityValidator:
         if not mask_patterns:
             return msg
         # Mask UUIDs (common in VMess/VLESS configs)
-        msg = re.sub(
-            r"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}",
-            "[UUID]",
-            msg,
-            flags=re.IGNORECASE,
-        )
+        msg = _LOG_UUID_RE.sub("[UUID]", msg)
         # Mask passwords in URLs (user:pass@host)
-        msg = re.sub(r":([^:@]+)@", ":[MASKED]@", msg)
+        msg = _LOG_USERINFO_RE.sub(":[MASKED]@", msg)
         # Mask common query-style secrets (token, key, secret, password, uuid, id)
-        msg = re.sub(
-            r"(?i)(token|access_token|api_key|apikey|license_key|key|secret|pass|password|uuid|id|auth|authorization)=([^&\s]+)",
-            r"\1=[MASKED]",
-            msg,
-        )
+        msg = _LOG_QUERY_SECRET_RE.sub(r"\1=[MASKED]", msg)
         # Mask Authorization headers or inline auth blobs (e.g., "Authorization: Bearer ...")
-        msg = re.sub(
-            r"(?i)(authorization|auth)\s*[:=]\s*(bearer|basic)?\s*([A-Za-z0-9\-._~+/]+=*)",
-            r"\1: [MASKED]",
-            msg,
-        )
+        msg = _LOG_AUTH_HEADER_RE.sub(r"\1: [MASKED]", msg)
         # Mask standalone Bearer tokens
-        msg = re.sub(
-            r"(?i)bearer\s+[A-Za-z0-9\-._~+/]+=*",
-            "Bearer [MASKED]",
-            msg,
-        )
-
+        msg = _LOG_BEARER_RE.sub("Bearer [MASKED]", msg)
         # Mask likely Base64 strings (long sequences of alphanumeric+ending with =)
-        msg = re.sub(r"\b[A-Za-z0-9+/]{20,}={0,2}\b", "[BASE64]", msg)
+        msg = _LOG_BASE64_RE.sub("[BASE64]", msg)
         # Mask IPv4 addresses
-        msg = re.sub(r"\b(?:\d{1,3}\.){3}\d{1,3}\b", "[IP]", msg)
+        msg = _LOG_IPV4_RE.sub("[IP]", msg)
         # Mask IPv6 addresses (best-effort)
-        msg = re.sub(
-            r"\b(?:[0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}\b",
-            "[IP]",
-            msg,
-        )
+        msg = _LOG_IPV6_RE.sub("[IP]", msg)
 
         return msg
 
@@ -157,14 +157,14 @@ class SecurityValidator:
         if not address:
             return ""
         # Basic sanitization: allow alphanumeric, dots, dashes, colons (IPv6), brackets
-        return re.sub(r"[^a-zA-Z0-9\.\-\:\[\]]", "", address)
+        return _SANITIZE_ADDR_RE.sub("", address)
 
     @staticmethod
     def _is_address_safe(address: str) -> bool:
         """
         Internal check for address safety. Used by tests to mock safety checks.
         """
-        if AppSettings().ALLOW_PRIVATE_IPS:
+        if _SETTINGS_CACHE.ALLOW_PRIVATE_IPS:
             return True
         if SecurityValidator.is_local_ip(address):
             return False
@@ -305,9 +305,7 @@ def validate_batch_configs(
         is_safe, reason = SecurityValidator.validate_proxy_config(p, policy)
         if is_safe:
             p.is_secure = True
-            if AppSettings().ALLOW_PRIVATE_IPS and SecurityValidator.is_local_ip(
-                p.address
-            ):
+            if settings.ALLOW_PRIVATE_IPS and SecurityValidator.is_local_ip(p.address):
                 p.is_secure = False
                 p.security_issues.setdefault("policy", []).append("local_ip_allowed")
             safe_proxies.append(p)

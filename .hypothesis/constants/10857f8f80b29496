@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\fastapi\utils.py
+# hypothesis_version: 6.150.0
+
+[200, 204, 205, 304, '1', '1XX', '2XX', '3XX', '4XX', '5XX', 'APIRoute', '\\W', '_', '__pydantic_model__', 'alias', 'auto', 'class_validators', 'default', 'field_info', 'mode', 'model_config', 'name', 'required', 'serialization', 'type_', 'validation', '{(.*?)}']

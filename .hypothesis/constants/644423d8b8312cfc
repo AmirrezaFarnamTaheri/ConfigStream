@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_inputchecklist.py
+# hypothesis_version: 6.150.0
+
+['id', 'others_can_add_tasks', 'parse_mode', 'tasks', 'text', 'text_entities', 'title', 'title_entities']

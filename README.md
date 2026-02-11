@@ -20,7 +20,7 @@ ConfigStream is a sovereignty-grade, zero-budget anti-censorship platform. It co
 - Developers who want structured datasets for analytics or custom tooling
 
 ## Operating Model
-Runs on a strict zero-budget design: GitHub Actions executes the pipeline every 5 hours, and GitHub Pages hosts the outputs. The pipeline is stateless between runs, uses adaptive timeouts, and prioritizes safe failure modes under hostile network conditions.
+Runs on a strict zero-budget design: GitHub Actions executes the pipeline every 4 hours, and GitHub Pages hosts the outputs. The pipeline is stateless between runs, uses adaptive timeouts, and prioritizes safe failure modes under hostile network conditions.
 
 ## Architecture Overview
 ConfigStream uses a streaming producer-consumer pipeline.
@@ -89,7 +89,7 @@ Key points:
 - Revived proxies: previously failing proxies that became usable after washing
 - Smart chains: multi-hop paths built from tested proxies to improve resilience
 
-## Outputs (Updated Every 5 Hours)
+## Outputs (Updated Every 4 Hours)
 All outputs are served from GitHub Pages in production. Each run writes outputs atomically and includes a `generated_at` timestamp in metadata to make freshness explicit.
 
 Primary outputs:
@@ -248,7 +248,7 @@ Optional (production hardening):
 - EVASION_MODE=aggressive (options: standard, stealth, aggressive)
 
 ## Deployment
-The reference deployment uses GitHub Actions to run the pipeline every 5 hours and GitHub Pages to host outputs. This keeps infrastructure free and globally accessible.
+The reference deployment uses GitHub Actions to run the pipeline every 4 hours and GitHub Pages to host outputs. This keeps infrastructure free and globally accessible.
 
 For local deployment, Docker Compose is the simplest path. For CI, see docs/DEPLOYMENT.md.
 

@@ -16,8 +16,12 @@ from ..models import Proxy
 from ..converters import to_singbox_outbound
 from ..constants import VWARP_SOCKS5_PORT, VWARP_BIND_ADDRESS
 from ..async_utils import safe_wait_for
+from ..intelligence.evasion import enrich_outbound_with_evasion
 
 logger = logging.getLogger(__name__)
+
+# Pre-compiled pattern for stripping ANSI colour codes from Go tester output (per-line hot path)
+_ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-9;]*m")
 
 
 class GoBatchTester:
@@ -86,6 +90,10 @@ class GoBatchTester:
         self._recent_errors: Dict[str, int] = {}
         self._last_log_flush = time.time()
         self._log_lock = asyncio.Lock()  # Protect log state
+
+        # Consecutive timeout tracking for systemic failure detection
+        self._consecutive_timeouts: int = 0
+        self._max_consecutive_timeouts: int = 3
 
         if not self.available:
             logger.error(
@@ -261,6 +269,14 @@ class GoBatchTester:
 
     async def _ensure_process(self) -> None:
         """Ensure the Go process is running."""
+        # Wait for any pending restart to complete before proceeding
+        if self._restart_task and not self._restart_task.done():
+            try:
+                await safe_wait_for(self._restart_task, timeout=15.0)
+            except (asyncio.TimeoutError, asyncio.CancelledError, Exception):
+                pass
+            self._restart_task = None
+
         if self._proc and self._proc.returncode is None:
             return
 
@@ -323,21 +339,13 @@ class GoBatchTester:
                         f"Go Tester using Vwarp tunnel at socks5://{VWARP_BIND_ADDRESS}:{VWARP_SOCKS5_PORT}"
                     )
 
-                    self._proc = await asyncio.create_subprocess_exec(  # type: ignore
-                        *cmd,
-                        stdin=asyncio.subprocess.PIPE,
-                        stdout=asyncio.subprocess.PIPE,
-                        stderr=asyncio.subprocess.PIPE,
-                        env=env,
-                    )
-                else:
-                    self._proc = await asyncio.create_subprocess_exec(  # type: ignore
-                        *cmd,
-                        stdin=asyncio.subprocess.PIPE,
-                        stdout=asyncio.subprocess.PIPE,
-                        stderr=asyncio.subprocess.PIPE,
-                        env=env,
-                    )
+                self._proc = await asyncio.create_subprocess_exec(  # type: ignore
+                    *cmd,
+                    stdin=asyncio.subprocess.PIPE,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                    env=env,
+                )
 
                 # Start background readers
                 loop = asyncio.get_running_loop()
@@ -436,7 +444,7 @@ class GoBatchTester:
                 text = line.decode(errors="ignore").strip()
                 if text:
                     # Strip ANSI colour codes from Go tester output
-                    text = re.sub(r"\x1b\[[0-9;]*m", "", text)
+                    text = _ANSI_ESCAPE_RE.sub("", text)
                     lower = text.lower()
                     if "panic" in lower or "fatal" in lower:
                         logger.error(f"Go Tester Daemon: {text}")
@@ -506,8 +514,6 @@ class GoBatchTester:
             if outbound:
                 # Apply evasion features to test config to avoid false negatives
                 # Proxies that only work with uTLS/multiplexing should be tested with those features enabled
-                from ..intelligence.evasion import enrich_outbound_with_evasion
-
                 outbound = enrich_outbound_with_evasion(
                     outbound,
                     p.id,
@@ -612,8 +618,9 @@ class GoBatchTester:
 
         # Wait for results
         # Set a total timeout relative to batch size
-        # FIX: Increase base buffer to 40s to ensure it exceeds Go worker's timeout and gives Python breathing room
-        total_timeout = min(300, len(inputs) * 2 + 40)
+        # FIX: Increase base buffer to 60s to ensure it exceeds Go worker's timeout
+        # and gives Python breathing room, especially for WireGuard-heavy batches
+        total_timeout = min(300, len(inputs) * 2 + 60)
 
         try:
             completed_results = await safe_wait_for(
@@ -623,8 +630,11 @@ class GoBatchTester:
             await self._cleanup_pending(list(req_id_map.keys()), futures)
             raise
         except asyncio.TimeoutError:
+            self._consecutive_timeouts += 1
             logger.error(
-                f"Timed out waiting for {len(inputs)} results from Go Tester Daemon. Restarting daemon..."
+                f"Timed out waiting for {len(inputs)} results from Go Tester Daemon "
+                f"(consecutive: {self._consecutive_timeouts}/{self._max_consecutive_timeouts}). "
+                f"Restarting daemon..."
             )
             # Cleanup and mark incomplete proxies as unknown/failed
             # Collect keys to remove under lock, then mark proxies outside lock
@@ -649,9 +659,23 @@ class GoBatchTester:
                     f.cancel()
             await self._consume_futures(futures)
 
-            # Restart daemon asynchronously to recover for next batch
-            self._restart_task = asyncio.create_task(self._restart_daemon())
-            self._restart_task.add_done_callback(self._silence_task)
+            # If consecutive timeouts exceed threshold, disable daemon to avoid
+            # wasting the entire time budget on a broken tester
+            if self._consecutive_timeouts >= self._max_consecutive_timeouts:
+                logger.error(
+                    f"Go Tester Daemon exceeded {self._max_consecutive_timeouts} "
+                    f"consecutive timeouts. Disabling to preserve pipeline time budget."
+                )
+                self.available = False
+                await self.close()
+                return proxies
+
+            # Restart daemon and AWAIT completion before returning,
+            # so the next batch doesn't arrive before the daemon is ready
+            try:
+                await safe_wait_for(self._restart_daemon(), timeout=10.0)
+            except (asyncio.TimeoutError, Exception) as re_err:
+                logger.warning(f"Daemon restart failed: {re_err}")
             return proxies
 
         # Process Results
@@ -758,6 +782,9 @@ class GoBatchTester:
                 tp.details["error"] = "MISSING_RESULT"
                 tp.details["failure_category"] = "IPC_ERROR"
                 tp.tested_at = batch_tested_at
+
+        # Reset consecutive timeout counter on successful batch completion
+        self._consecutive_timeouts = 0
 
         # Log summary
         failure_summary = ", ".join([f"{k}: {v}" for k, v in failure_reasons.items()])

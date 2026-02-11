@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_chatinvitelink.py
+# hypothesis_version: 6.150.0
+
+['Bot', 'ChatInviteLink', '_subscription_period', 'creates_join_request', 'creator', 'expire_date', 'invite_link', 'is_primary', 'is_revoked', 'member_limit', 'name', 'subscription_period', 'subscription_price']

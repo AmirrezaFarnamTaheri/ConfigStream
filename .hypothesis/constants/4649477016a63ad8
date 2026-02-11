@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\playwright\_impl\_element_handle.py
+# hypothesis_version: 6.150.0
+
+['ElementHandle', 'Frame', 'Locator', 'allow', 'attached', 'boundingBox', 'check', 'click', 'contentFrame', 'css', 'dblclick', 'detached', 'device', 'disabled', 'dispatchEvent', 'editable', 'enabled', 'evalOnSelector', 'evalOnSelectorAll', 'fill', 'focus', 'frame', 'getAttribute', 'hidden', 'hide', 'hover', 'image/jpeg', 'image/png', 'initial', 'innerHTML', 'innerText', 'inputValue', 'isChecked', 'isDisabled', 'isEditable', 'isEnabled', 'isHidden', 'isVisible', 'jpeg', 'mask', 'ownerFrame', 'path', 'png', 'press', 'querySelector', 'querySelectorAll', 'screenshot', 'selectOption', 'selectText', 'selector', 'setInputFiles', 'stable', 'tap', 'textContent', 'timeout', 'type', 'uncheck', 'visible', 'waitForElementState', 'waitForSelector']

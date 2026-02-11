@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\fetcher_core\worker.py
+# hypothesis_version: 6.150.0
+
+[400, 429, 'Content-Length', 'GET', 'Retry-After', 'latin-1', 'replace', 'utf-8']

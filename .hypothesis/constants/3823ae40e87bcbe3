@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\cache_warming.py
+# hypothesis_version: 6.150.0
+
+[0.7, 200, 'batch_size', 'priority_test_count']

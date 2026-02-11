@@ -5,6 +5,7 @@ import logging
 from ..models import Proxy
 from ..tagging import get_flag_emoji
 from ..utils.bool_parser import parse_bool, parse_tls_flag
+from .clash_utils import add_transport_opts
 
 logger = logging.getLogger(__name__)
 
@@ -71,117 +72,43 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
             common["cipher"] = (
                 proxy.details.get("scy") or proxy.details.get("cipher") or "auto"
             )
-
-            # Transport
-            # Map 'net' from details (commonly used by some parsers) to 'network'
-            net = proxy.details.get("network") or proxy.details.get("net") or "tcp"
-            common["network"] = net
-            if net == "ws":
-                common["ws-opts"] = {
-                    "path": proxy.details.get("path", "/"),
-                    "headers": {"Host": proxy.details.get("host", "")},
-                }
-            elif net == "grpc":
-                common["grpc-opts"] = {
-                    "grpc-service-name": proxy.details.get("serviceName", "")
-                }
-
-            # TLS
-            tls_enabled = parse_tls_flag(proxy.details.get("tls")) or proxy.details.get(
-                "security"
-            ) in ("tls", "reality")
-            if tls_enabled:
-                common["tls"] = True
-                if proxy.details.get("sni"):
-                    common["servername"] = proxy.details["sni"]
-                if proxy.details.get("fp"):
-                    common["client-fingerprint"] = proxy.details["fp"]
-
+            # Centralized transport + TLS handling
+            add_transport_opts(common, proxy.details)
             return common
 
         elif proxy.protocol == "trojan":
             common["password"] = proxy.uuid
             # [FIX] Trojan inherently uses TLS; always set tls and udp
-            common["tls"] = True
             common["udp"] = True
-            if proxy.details.get("sni"):
+            # Centralized transport + TLS handling (Trojan over ws/grpc supported)
+            add_transport_opts(common, proxy.details)
+            # Trojan always requires TLS even if details don't flag it
+            common["tls"] = True
+            # [FIX] Mihomo Trojan uses 'sni', not 'servername' (VMess/VLESS convention).
+            # Move servername→sni if add_transport_opts set it.
+            if "servername" in common:
+                common.setdefault("sni", common.pop("servername"))
+            elif proxy.details.get("sni"):
                 common["sni"] = proxy.details["sni"]
-            if proxy.details.get("fp"):
-                common["client-fingerprint"] = proxy.details["fp"]
-            # Transport (Trojan over ws/grpc is supported by Mihomo)
-            net = (
-                proxy.details.get("network")
-                or proxy.details.get("net")
-                or proxy.details.get("type")
-                or "tcp"
-            )
-            if net == "ws":
-                common["network"] = "ws"
-                common["ws-opts"] = {
-                    "path": proxy.details.get("path", "/"),
-                    "headers": {"Host": proxy.details.get("host", "")},
-                }
-            elif net == "grpc":
-                common["network"] = "grpc"
-                common["grpc-opts"] = {
-                    "grpc-service-name": proxy.details.get("serviceName", "")
-                }
             return common
 
         # Basic VLESS support (Clash Meta/Premium only usually, but often mapped)
         elif proxy.protocol == "vless":
             common["uuid"] = proxy.uuid
-            common["flow"] = proxy.details.get("flow", "")
-
-            # Transport & TLS similar to VMess
-            # [FIX] Also check "net" and "type" keys (parsers use different keys)
-            net = (
-                proxy.details.get("network")
-                or proxy.details.get("net")
-                or proxy.details.get("type")
-                or "tcp"
-            )
-            common["network"] = net
-            if net == "ws":
-                common["ws-opts"] = {
-                    "path": proxy.details.get("path", "/"),
-                    "headers": {"Host": proxy.details.get("host", "")},
-                }
-            # Add VLESS gRPC support (was missing - only VMess had it)
-            elif net == "grpc":
-                common["grpc-opts"] = {
-                    "grpc-service-name": proxy.details.get("serviceName", "")
-                }
-
-            # TLS handling
-            security = proxy.details.get("security")
-            if security == "reality":
-                # Clash Meta specific Reality fields
-                common["tls"] = True
-                common["servername"] = proxy.details.get("sni", "")
-                common["reality-opts"] = {
-                    "public-key": proxy.details.get("pbk", ""),
-                    "short-id": proxy.details.get("sid", ""),
-                }
-                if proxy.details.get("fp"):
-                    common["client-fingerprint"] = proxy.details["fp"]
-            else:
-                tls_enabled = (
-                    parse_tls_flag(proxy.details.get("tls")) or security == "tls"
-                )
-                if tls_enabled:
-                    common["tls"] = True
-                    if proxy.details.get("sni"):
-                        common["servername"] = proxy.details["sni"]
-                    if proxy.details.get("fp"):
-                        common["client-fingerprint"] = proxy.details["fp"]
-
+            # [FIX] Only set flow if non-empty to avoid cluttering config
+            flow = proxy.details.get("flow", "")
+            if flow:
+                common["flow"] = flow
+            # Centralized transport + TLS + Reality handling
+            add_transport_opts(common, proxy.details)
             return common
 
         # Clash Meta (Mihomo) Support for modern protocols
         elif proxy.protocol == "hysteria2":
             common["type"] = "hysteria2"
             common["password"] = proxy.uuid or proxy.details.get("password", "")
+            # [FIX] Hysteria2 requires TLS; set explicitly for Mihomo
+            common["tls"] = True
             common["sni"] = proxy.details.get("sni", "")
             common["skip-cert-verify"] = parse_bool(
                 proxy.details.get("allowInsecure", False)
@@ -195,6 +122,8 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
             common["type"] = "tuic"
             common["uuid"] = proxy.uuid
             common["password"] = proxy.details.get("password", "")
+            # [FIX] TUIC requires TLS; set explicitly for Mihomo
+            common["tls"] = True
             common["sni"] = proxy.details.get("sni", "")
             common["congestion-controller"] = proxy.details.get(
                 "congestion_controller", "bbr"

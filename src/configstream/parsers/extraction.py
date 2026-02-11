@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import json
 import logging
 import re
 from urllib.parse import urlparse
@@ -147,8 +148,6 @@ def extract_config_lines(
     # 1. Check for JSON Array (e.g. ["vmess://...", ...])
     if payload_str.strip().startswith("["):
         try:
-            import json
-
             data = json.loads(payload_str)
             if isinstance(data, list):
                 # Extract strings from list
@@ -174,8 +173,6 @@ def extract_config_lines(
     elif payload_str.strip().startswith("{"):
         # Check if it's V2Ray (outbounds) or just a JSON object wrapper
         try:
-            import json
-
             data = json.loads(payload_str)
             # If it has "proxies" key (Clash/Mihomo JSON)
             if "proxies" in data and isinstance(data["proxies"], list):
@@ -202,7 +199,6 @@ def extract_config_lines(
     ):
         try:
             import yaml  # type: ignore
-            import json
 
             data = yaml.safe_load(payload_str)
             # Handle list of proxies
@@ -416,7 +412,13 @@ def extract_config_lines(
                     f"Reasons: {drop_stats}"
                 )
             else:
-                log_method(
+                # Demote to DEBUG when all lines are missing protocol separator
+                # (binary/garbage content) to prevent log spam from fuzz tests
+                all_missing_sep = (
+                    drop_stats.get("missing_protocol_separator", 0) == total_dropped
+                )
+                method = logger.debug if all_missing_sep else log_method
+                method(
                     f"All lines dropped. Reasons: {drop_stats}. Samples: {dropped_samples}"
                 )
 

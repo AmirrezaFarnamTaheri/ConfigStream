@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\parsers\extraction.py
+# hypothesis_version: 6.150.0
+
+[0.5, 0.9, 1.0, 100, 128, 65535, '#', '- name:', '- type:', '-name:', '.yaml', '.yml', '/', ':', '://', '<', '<!doctype', '<!doctype html>', '<body', '<div', '<head', '<html', '<script', '<span', '=', '?', '@', '[', '__len__', 'aes', 'chacha', 'client', 'dev tap', 'dev tun', 'empty_payload', 'host', 'html_content', 'http://', 'https://', 'ignore', 'implausible_format', 'invalid_port', 'invalid_protocol', 'invalid_type', 'latin-1', 'port', 'proxies', 'proxies:', 'rc4', 'size_limit_exceeded', 'socks4', 'socks4://', 'socks5', 'socks5://', 'ss://', 'truncated_lines', 'unknown', 'utf-8', 'yaml_parse_error', '{']

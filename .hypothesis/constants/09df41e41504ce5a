@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\converters\clash_utils.py
+# hypothesis_version: 6.150.0
+
+['Host', 'chrome', 'client-fingerprint', 'fp', 'grpc', 'grpc-opts', 'grpc-service-name', 'h2', 'h2-opts', 'headers', 'host', 'http', 'net', 'network', 'none', 'path', 'pbk', 'public-key', 'reality', 'reality-opts', 'security', 'servername', 'serviceName', 'short-id', 'sid', 'sni', 'tcp', 'tls', 'type', 'ws', 'ws-opts']

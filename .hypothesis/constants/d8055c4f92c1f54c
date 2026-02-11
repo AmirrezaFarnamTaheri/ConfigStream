@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\cli.py
+# hypothesis_version: 6.150.0
+
+[120, 130, 200, 1024, 8192, '#', '%(message)s', '--count', '--country', '--days', '--dir', '--dry-run', '--input', '--leniency/--strict', '--max-latency', '--max-workers', '--output', '--sources', '--timeout', '--token', '--verbose', '-c', '-i', '-o', '-s', '-t', '-v', '-w', '.tar.gz', 'Data directory', 'Enable debug logging', 'GeoLite2-ASN', 'GeoLite2-ASN.mmdb', 'GeoLite2-City', 'GeoLite2-City.mmdb', 'Output directory', 'PYTEST_CURRENT_TEST', 'Retention days', 'TELEGRAM_BOT_TOKEN', 'Telegram Bot Token', '[%X]', '__main__', 'aiohttp', 'data', 'dns_scanner', 'dnsscanner_tui.py', 'geoip.db', 'geosite.db', 'httpx', 'output', 'pytest', 'python', 'r:gz', 'singbox', 'time_limited', 'to_dict', 'tools', 'utf-8', 'wb', 'win32']

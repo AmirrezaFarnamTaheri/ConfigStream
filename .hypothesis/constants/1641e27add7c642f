@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\fastapi\params.py
+# hypothesis_version: 6.150.0
+
+['alias_priority', 'annotation', 'application/json', 'cookie', 'deprecated', 'examples', 'function', 'header', 'json_schema_extra', 'multipart/form-data', 'path', 'pattern', 'query', 'regex', 'request', 'serialization_alias', 'strict', 'validation_alias']

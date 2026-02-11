@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\aiohttp\connector.py
+# hypothesis_version: 6.150.0
+
+[0.25, 2.0, 15.0, 100, 200, '.', '..', ':', 'AddrInfoType', 'BaseConnector', 'ClientRequest', 'ClientTimeout', 'ConnectionKey', 'Connector is closed.', 'Fingerprint', 'NamedPipeConnector', 'SocketFactoryType', 'TCPConnector', 'Trace', 'Unclosed connection', 'Unclosed connector', 'UnixConnector', '_awaitable', '_awaited', '_cleanup', '_cleanup_closed', 'asyncio.Future[None]', 'client_connection', 'closed', 'connections', 'connector', 'family', 'flags', 'host', 'hostname', 'http', 'http/1.1', 'https', 'memoryview[bytes]', 'memoryview[int]', 'message', 'npipe', 'port', 'proto', 'socket', 'source', 'source_traceback', 'ssl', 'ssl_shutdown_timeout', 'sslcontext', 'tcp', 'transport', 'unix', 'uvloop', 'ws', 'wss']

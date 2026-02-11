@@ -1,0 +1,4 @@
+# file: D:\GitHub\ConfigStream\src\configstream\history\analytics.py
+# hypothesis_version: 6.150.0
+
+[0.0, 0.5, 9999.0, 100, 'avg_latency', 'entries', 'is_working', 'latencies', 'latency', 'max_latency', 'min_latency', 'status', 'success_rate', 'timestamp', 'timestamps', 'total_tests', 'uptime_percentage']

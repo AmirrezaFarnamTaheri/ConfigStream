@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_storyarea.py
+# hypothesis_version: 6.150.0
+
+['address', 'background_color', 'city', 'country_code', 'emoji', 'height_percentage', 'is_dark', 'is_flipped', 'latitude', 'longitude', 'name', 'position', 'reaction_type', 'rotation_angle', 'state', 'street', 'temperature', 'type', 'url', 'width_percentage', 'x_percentage', 'y_percentage']

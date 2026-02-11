@@ -1,0 +1,4 @@
+# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\aiohttp\payload.py
+# hypothesis_version: 6.150.0
+
+[b'\r\n', ': ', 'AsyncIterablePayload', 'BytesIOPayload', 'BytesPayload', 'IOBasePayload', 'JsonPayload', 'PAYLOAD_REGISTRY', 'Payload', 'StringIOPayload', 'StringPayload', 'TextIOPayload', '_first', '_last', '_normal', '_normal_lookup', 'application/json', 'attachment', 'charset', 'content_type', 'filename', 'get_payload', 'normal', 'payload_type', 'source', 'strict', 'try_first', 'try_last', 'utf-8']

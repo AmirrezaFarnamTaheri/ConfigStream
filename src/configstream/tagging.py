@@ -13,6 +13,14 @@ from .utils.bool_parser import parse_tls_flag
 
 logger = logging.getLogger(__name__)
 
+# Pre-compiled patterns for per-proxy tagging hot paths
+_NORMALIZE_TOKEN_RE = re.compile(r"[^A-Za-z0-9_.\-+]")
+_EMPTY_BRACKETS_RE = re.compile(r"\[\s*\]")
+_EMPTY_PARENS_RE = re.compile(r"\(\s*\)")
+_EMPTY_BRACES_RE = re.compile(r"\{\s*\}")
+_DUP_SEPARATORS_RE = re.compile(r"([ \t\-_|])\1+")
+_WHITESPACE_RE = re.compile(r"\s+")
+
 
 def get_flag_emoji(country_code: str) -> str:
     """
@@ -40,7 +48,7 @@ class FmtWrapper(dict):
 
 
 def _normalize_token(value: str) -> str:
-    return re.sub(r"[^A-Za-z0-9_.\-+]", "", value).strip()
+    return _NORMALIZE_TOKEN_RE.sub("", value).strip()
 
 
 def _transport_label(details: Dict[str, object], protocol: str) -> str:
@@ -267,19 +275,19 @@ def format_proxy_name(template: str, proxy: Proxy) -> str:
         # 4. Robust cleanup of artifacts from missing data
 
         # Remove empty brackets/parentheses: "[]", "()", "{}"
-        new_name = re.sub(r"\[\s*\]", "", new_name)
-        new_name = re.sub(r"\(\s*\)", "", new_name)
-        new_name = re.sub(r"\{\s*\}", "", new_name)
+        new_name = _EMPTY_BRACKETS_RE.sub("", new_name)
+        new_name = _EMPTY_PARENS_RE.sub("", new_name)
+        new_name = _EMPTY_BRACES_RE.sub("", new_name)
 
         # Remove duplicate separators: " - - " -> " - "
         # This handles space, tab, hyphen, underscore, and pipe.
-        new_name = re.sub(r"([ \t\-_|])\1+", r"\1", new_name)
+        new_name = _DUP_SEPARATORS_RE.sub(r"\1", new_name)
 
         # Remove separators dangling at the start/end
         new_name = new_name.strip(" \t\n\r_-|")
 
         # Consolidate all whitespace to a single space
-        new_name = re.sub(r"\s+", " ", new_name).strip()
+        new_name = _WHITESPACE_RE.sub(" ", new_name).strip()
 
         # If the name is empty after cleanup, return original name
         return new_name if new_name else original_name
