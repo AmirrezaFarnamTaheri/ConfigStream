@@ -15,6 +15,7 @@ def add_transport_sb(out: Dict[str, Any], details: Dict[str, Any]) -> Dict[str, 
     net = details.get("net") or details.get("type") or "tcp"
 
     transport: Dict[str, Any] = {}
+
     def _safe_path(raw: str) -> str:
         """Fix broken percent-encoding that crashes sing-box."""
         return _BAD_PERCENT_RE.sub("%25", raw)

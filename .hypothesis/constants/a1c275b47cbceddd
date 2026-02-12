@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_payment\stars\affiliateinfo.py
-# hypothesis_version: 6.150.0
-
-['AffiliateInfo', 'Bot', 'Chat', 'User', 'affiliate_chat', 'affiliate_user', 'amount', 'commission_per_mille', 'nanostar_amount']

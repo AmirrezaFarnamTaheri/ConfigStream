@@ -1,4 +1,0 @@
-# file: D:\GitHub\ConfigStream\src\configstream\adapters_base.py
-# hypothesis_version: 6.150.0
-
-[2408, '/', '162.159.192.1', '172.16.0.2/32', '=', 'detour', 'local_address', 'method', 'password', 'peer_public_key', 'private_key', 'proxy', 'server', 'server_port', 'shadowsocks', 'tag', 'type', 'uuid', 'vmess']

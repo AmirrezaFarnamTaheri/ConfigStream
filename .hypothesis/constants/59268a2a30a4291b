@@ -1,4 +1,0 @@
-# file: D:\GitHub\ConfigStream\src\configstream\parsers\ssr.py
-# hypothesis_version: 6.150.0
-
-[255, 4096, 65535, '+', '-', '/', '/?', ':', '=', '_', 'cipher', 'obfs', 'params', 'password', 'protocol', 'remarks', 'ssr', 'ssr://']

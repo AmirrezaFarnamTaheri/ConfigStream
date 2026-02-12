@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\aiohttp\http_writer.py
-# hypothesis_version: 6.150.0
-
-[b'\r\n', b'\r\n0\r\n\r\n', b'0\r\n\r\n', 2048, 65536, ': ', 'CIMultiDict[str]', 'HttpVersion', 'HttpVersion10', 'HttpVersion11', 'StreamWriter', 'ascii', 'c', 'deflate', 'memoryview[bytes]', 'memoryview[int]', 'utf-8']

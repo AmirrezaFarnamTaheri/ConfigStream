@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\aiohttp_socks\connector.py
-# hypothesis_version: 6.150.0
-
-['ChainProxyConnector', 'ProxyConnector', 'family', 'flags', 'host', 'hostname', 'port', 'proto', 'resolver', 'ssl']

@@ -1,4 +1,0 @@
-# file: D:\GitHub\ConfigStream\src\configstream\http_client.py
-# hypothesis_version: 6.150.0
-
-[10.0, 15.0, 20.0, 30.0, 100, 500, 'Accept', 'Host', 'User-Agent', 'asyncio', 'http']

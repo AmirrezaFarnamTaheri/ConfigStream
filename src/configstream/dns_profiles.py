@@ -3,6 +3,7 @@
 DNS resolver profiles for Sing-box and Clash output configurations.
 Imports intelligence data from the single source of truth in dns_lists.py.
 """
+
 from __future__ import annotations
 
 from typing import Dict, Any, List

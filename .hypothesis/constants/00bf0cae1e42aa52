@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_paidmedia.py
-# hypothesis_version: 6.150.0
-
-['Bot', 'PaidMedia', 'PaidMediaInfo', 'PaidMediaPhoto', 'PaidMediaPurchased', 'PaidMediaVideo', 'PhotoSize', 'User', '_duration', 'duration', 'from', 'from_user', 'height', 'paid_media', 'paid_media_payload', 'photo', 'star_count', 'type', 'video', 'width']

@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_shared.py
-# hypothesis_version: 6.150.0
-
-['Bot', 'ChatShared', 'SharedUser', 'UsersShared', 'chat_id', 'first_name', 'last_name', 'photo', 'request_id', 'title', 'user_id', 'user_ids', 'username', 'users']

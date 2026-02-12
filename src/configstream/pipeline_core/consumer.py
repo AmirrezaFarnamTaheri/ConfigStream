@@ -177,14 +177,17 @@ async def processing_consumer(
                     fp_file = fp_dir / f"{src_hash}.json"
 
                     fp_data = {
-                        "url": src_url,
+                        # Store a sanitized URL to avoid leaking tokens if this data is ever uploaded.
+                        "url": SecurityValidator.sanitize_log_message(str(src_url)),
                         "proxies": fingerprint_set,
                         "timestamp": int(time.time()),
                     }
 
                     tmp_fp = fp_file.with_suffix(".tmp")
-                    with open(tmp_fp, "wb") as f:
-                        f.write(json.dumps(fp_data))
+                    tmp_fp.write_text(
+                        json.dumps(fp_data, ensure_ascii=False),
+                        encoding="utf-8",
+                    )
                     tmp_fp.replace(fp_file)
             except Exception:
                 pass
@@ -541,12 +544,21 @@ async def processing_consumer(
                             stats.geo_resolved += 1
 
             if not p.is_working:
-                # [FIX] Include non-working revived/chain proxies in output so
-                # users get chain configs they can try in their own network.
-                is_revived = (p.process or "").startswith("revived")
-                if is_revived:
-                    async with seen_lock:
-                        final_proxies.append(p)
+                # [FAIL-OPEN] Keep non-working proxies in the output dataset.
+                #
+                # Rationale:
+                # - CI runners can be in hostile networks (DNS blocking, rate limits, egress filtering).
+                # - A proxy that fails here may still work for end-users elsewhere.
+                # - Frontend and categorized outputs rely on having a complete dataset with `is_working`
+                #   preserved for client-side filtering.
+                #
+                # Note:
+                # - We do NOT increment stats.working here.
+                # - We still respect country filtering when explicitly requested.
+                if country_filter and p.country_code != country_filter.upper():
+                    continue
+                async with seen_lock:
+                    final_proxies.append(p)
                 continue
 
             # [FIX] Use explicit None check; 0.0 latency is valid, not missing

@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\ext\_utils\webhookhandler.py
-# hypothesis_version: 6.150.0
-
-['%s - %s', 'Bot', 'Content-Type', 'POST', 'Updater', 'Webhook triggered', 'WebhookAppClass', '_http_server', '_server_lock', '_shutdown_lock', 'application/json', 'bot', 'is_running', 'listen', 'port', 'secret_token', 'unix', 'update_queue']

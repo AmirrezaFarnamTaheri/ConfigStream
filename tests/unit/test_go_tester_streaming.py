@@ -102,14 +102,15 @@ async def test_go_tester_consecutive_timeout_tracking():
 
     # Verify initial state
     assert tester._consecutive_timeouts == 0
-    assert tester._max_consecutive_timeouts == 3
+    # Per pipeline contract: disable Go daemon after 5 consecutive batch timeouts.
+    assert tester._max_consecutive_timeouts == 5
 
     # Simulate consecutive timeouts by directly incrementing
-    tester._consecutive_timeouts = 2
-    assert tester._consecutive_timeouts == 2
+    tester._consecutive_timeouts = 4
+    assert tester._consecutive_timeouts == 4
 
     # Simulate exceeding threshold
-    tester._consecutive_timeouts = 3
+    tester._consecutive_timeouts = 5
     assert tester._consecutive_timeouts >= tester._max_consecutive_timeouts
 
     # After threshold, available should be set to False by the timeout handler

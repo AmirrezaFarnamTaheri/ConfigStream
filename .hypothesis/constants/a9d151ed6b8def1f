@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\h2\utilities.py
-# hypothesis_version: 6.150.0
-
-[b'1', b':', b':authority', b':method', b':path', b':protocol', b':scheme', b':status', b'; ', b'CONNECT', b'authorization', b'connection', b'cookie', b'host', b'keep-alive', b'proxy-authorization', b'proxy-connection', b'te', b'trailers', b'transfer-encoding', b'upgrade', 127, ':method', 'size_limit', 'utf-8']

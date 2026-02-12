@@ -1,4 +1,0 @@
-# file: D:\GitHub\ConfigStream\src\configstream\pipeline_core\sorter.py
-# hypothesis_version: 6.150.0
-
-[0.2, 0.3, 0.5, 1.0, 50.0, 100.0, 1000.0, 9999, 'No proxies to sort', 'reliability', 'uptime']

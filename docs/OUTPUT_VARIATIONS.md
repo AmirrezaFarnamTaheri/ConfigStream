@@ -204,6 +204,15 @@ All outputs include evasion features by default:
 | `chains-dns-safe.json` | `singbox-chains-dns-safe.json` | Convenience alias |
 | `chains-dns-hardened.json` | `singbox-chains-dns-hardened.json` | Convenience alias |
 
+## Frontend Data Files (`data/`)
+
+These JSON files are generated for the dashboard and laboratory pages. They are **always generated** (empty-but-present if needed) to avoid frontend 404s on static hosting.
+
+- `data/proxy_history_viz.json` - Aggregated history dataset for charts and availability visualization
+- `data/active_proxy_trend.json` - Time-series for “active proxies” trend charts
+- `data/evasion_trend.json` - Time-series for evasion/revival/shielding metrics
+- `data/clean_ips.json` - Clean Cloudflare/WARP endpoints used by `lab.html` (Step 2 auto-discovery)
+
 ## Usage Recommendations
 
 ### For Standard Use

@@ -1,4 +1,0 @@
-# file: D:\GitHub\ConfigStream\src\configstream\country_inferrer.py
-# hypothesis_version: 6.150.0
-
-[127462, '(', '-', 'A', 'AM', 'AN', 'AS', 'AT', 'BE', 'BY', 'DO', 'GO', 'HE', 'IF', 'IN', 'IS', 'IT', 'ME', 'MY', 'NO', 'OF', 'ON', 'OR', 'SO', 'TO', 'UP', 'WE', 'Z', '[', '_', 'cc1', 'cc2', 'cc3', 'cc4', 'cc5', 'cc6', 'country', 'country_code']

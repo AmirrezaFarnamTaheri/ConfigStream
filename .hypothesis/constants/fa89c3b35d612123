@@ -1,4 +1,0 @@
-# file: D:\GitHub\ConfigStream\src\configstream\output_transport.py
-# hypothesis_version: 6.150.0
-
-['.gz', '.tmp', 'utf-8', 'wt']

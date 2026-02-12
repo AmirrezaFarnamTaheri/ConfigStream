@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\respx\mocks.py
-# hypothesis_version: 6.150.0
-
-['HTTPCoreMocker', 'Mocker', 'Router', '_transport_for_url', 'ascii', 'handle_async_request', 'handle_request', 'httpcore', 'httpx', 'httpx._client.Client', 'name', 'request']

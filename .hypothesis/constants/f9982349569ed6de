@@ -1,4 +1,0 @@
-# file: D:\GitHub\ConfigStream\src\configstream\intelligence\washer\__init__.py
-# hypothesis_version: 6.150.0
-
-['CLEAN_IP_SOURCES', 'DEFAULT_CLEAN_IPS', 'ProxyWasher']

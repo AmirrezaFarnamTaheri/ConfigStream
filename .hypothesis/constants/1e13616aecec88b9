@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_chatadministratorrights.py
-# hypothesis_version: 6.150.0
-
-['can_change_info', 'can_delete_messages', 'can_delete_stories', 'can_edit_messages', 'can_edit_stories', 'can_invite_users', 'can_manage_chat', 'can_manage_topics', 'can_pin_messages', 'can_post_messages', 'can_post_stories', 'can_promote_members', 'can_restrict_members', 'is_anonymous']

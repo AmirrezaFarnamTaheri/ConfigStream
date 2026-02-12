@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_payment\successfulpayment.py
-# hypothesis_version: 6.150.0
-
-['Bot', 'SuccessfulPayment', 'currency', 'invoice_payload', 'is_first_recurring', 'is_recurring', 'order_info', 'shipping_option_id', 'total_amount']

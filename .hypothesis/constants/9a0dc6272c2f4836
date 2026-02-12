@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\starlette\middleware\cors.py
-# hypothesis_version: 6.150.0
-
-[200, 400, 600, '*', ',', ', ', 'Accept', 'Accept-Language', 'Content-Language', 'Content-Type', 'DELETE', 'Disallowed CORS ', 'GET', 'HEAD', 'OK', 'OPTIONS', 'Origin', 'PATCH', 'POST', 'PUT', 'Vary', 'cookie', 'headers', 'http', 'http.response.start', 'method', 'origin', 'true', 'type']

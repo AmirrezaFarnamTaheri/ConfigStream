@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\playwright\_impl\_clock.py
-# hypothesis_version: 6.150.0
-
-[1000, 'BrowserContext', 'clockFastForward', 'clockInstall', 'clockPauseAt', 'clockResume', 'clockRunFor', 'clockSetFixedTime', 'clockSetSystemTime', 'ticksNumber', 'ticksString', 'timeNumber', 'timeString']

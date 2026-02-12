@@ -33,6 +33,11 @@ We are actively looking for help with the following "Next Generation" features:
     pytest
     ```
 
+    WSL note: If `pytest` crashes with a `FileNotFoundError` inside `_pytest/capture.py`, your temp directory may be on a Windows mount (e.g. `/mnt/c/...`). Run tests with a Linux temp dir:
+    ```bash
+    TMPDIR=/tmp TEMP=/tmp TMP=/tmp pytest
+    ```
+
 ## 🏗️ Architecture & Structure
 
 ConfigStream v3.0 is modular. Please respect the folder structure:

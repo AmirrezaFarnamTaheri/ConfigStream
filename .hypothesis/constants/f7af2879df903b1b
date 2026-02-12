@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\hyperframe\frame.py
-# hypothesis_version: 6.150.0
-
-[b'\x00', 255, 65535, 2147483647, 2147483648, '!B', '...', '<hex:', '>', '>B', '>H', '>HBBBL', '>HL', '>L', '>LB', '>LL', 'ACK', 'END_HEADERS', 'END_STREAM', 'Invalid GOAWAY body.', 'Invalid Padding data', 'Invalid frame header', 'None', 'PADDED', 'PRIORITY', 'Padding is too long.', 'ascii', 'either', 'flags', 'has-stream', 'no-stream']

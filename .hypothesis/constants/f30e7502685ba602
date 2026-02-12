@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_payment\precheckoutquery.py
-# hypothesis_version: 6.150.0
-
-['Bot', 'PreCheckoutQuery', 'currency', 'from', 'from_user', 'id', 'invoice_payload', 'order_info', 'shipping_option_id', 'total_amount']

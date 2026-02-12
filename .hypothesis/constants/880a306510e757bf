@@ -1,4 +1,0 @@
-# file: D:\GitHub\ConfigStream\src\configstream\parsers\others.py
-# hypothesis_version: 6.150.0
-
-[128, 200, 255, 443, 9999, 51820, 65535, '%', '+', ':', '=', '[', ']', '^[\\d,\\-]+$', '^[\\d\\s,]+$', '^[a-zA-Z0-9+/=]+$', '^[a-zA-Z0-9\\.\\-\\_]+$', '^\\[[\\d\\s,]+\\]$', 'address', 'alpn', 'brook', 'exclave', 'exclave://', 'h3', 'hy2', 'hy2://', 'hysteria', 'hysteria2', 'juicity', 'none', 'obfs', 'obfs-password', 'obfsPassword', 'obfs_password', 'password', 'peer_public_key', 'ports', 'private-key', 'privateKey', 'private_key', 'reserved', 'salamander', 'snell', 'ssh', 'tuic', 'wg', 'wg://', 'wireguard', 'xray']

@@ -1,4 +1,0 @@
-# file: D:\GitHub\ConfigStream\src\configstream\fetcher_core\models.py
-# hypothesis_version: 6.150.0
-
-['Rate limited.', 'content', 'content_length', 'error', 'headers', 'response_time', 'source', 'status_code', 'success']

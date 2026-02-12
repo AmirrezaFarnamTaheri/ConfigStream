@@ -1,4 +1,0 @@
-# file: D:\GitHub\ConfigStream\src\configstream\pipeline.py
-# hypothesis_version: 6.150.0
-
-[1.0, 1.5, 200, 300, 5000, 'USE_VWARP_TUNNEL', 'anomaly_detector', 'false', 'timestamp', 'true', 'vwarp_tool']

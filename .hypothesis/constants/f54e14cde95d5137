@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\aiohttp\multipart.py
-# hypothesis_version: 6.150.0
-
-[b'\r\n', b'"', b'--', b'--\r\n', b'[\\x00-\\x08\\x0A-\\x1F\\x7F]', b'\\', b'\\"', b"\\A[!#$%&'*+\\-.^_`|~\\w]+\\Z", b'\\\\', 8192, '"', '%s*', "'", '*', '--', '7bit', '8bit', ';', '=', 'BodyPartReader', 'ClientResponse', 'MultipartReader', 'MultipartWriter', 'Reading after EOF', 'Self', 'Unable to decode.', '\\/', '\\1', '_charset_', 'ascii', 'attachment', 'base64', 'binary', 'boundary', 'charset', 'deflate', 'filename', 'form-data', 'gzip', 'identity', 'ignore', 'mixed', 'multipart', 'name', 'name=', 'quoted-printable', 'strict', 'utf-8']

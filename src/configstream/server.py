@@ -100,6 +100,7 @@ ROOT_OUTPUT_FILES = {
     "proxies.json": "application/json",
     "proxies.old.json": "application/json",
     "proxies-dns-safe.json": "application/json",
+    "chains.json": "application/json",
     "base64.txt": "text/plain",
     "base64-dns-safe.txt": "text/plain",
     "base64-dns-hardened.txt": "text/plain",
@@ -129,7 +130,9 @@ ROOT_OUTPUT_FILES = {
     "singbox-dns-hardened.json": "application/json",
     "singbox-vpn-dns-hardened.json": "application/json",
     "singbox-chains-dns-safe.json": "application/json",
+    "singbox-chains-dns-hardened.json": "application/json",
     "chains-dns-safe.json": "application/json",
+    "chains-dns-hardened.json": "application/json",
     "revived.json": "application/json",
     "revived-dns-safe.json": "application/json",
     "revived-dns-hardened.json": "application/json",
@@ -139,7 +142,6 @@ ROOT_OUTPUT_FILES = {
     "side_products.zip": "application/zip",
     "side_products-dns-safe.zip": "application/zip",
     "side_products-dns-hardened.zip": "application/zip",
-    "proxies-dns-hardened.json": "application/json",
 }
 
 

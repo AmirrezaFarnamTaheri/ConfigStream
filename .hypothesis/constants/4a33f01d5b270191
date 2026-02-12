@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\tornado\ioloop.py
-# hypothesis_version: 6.150.0
-
-[0.5, 1000.0, 'FutureCell', 'Future[_T]', 'IOLoop', '_S', '_T', '_Timeout', '_executor', 'callback', 'deadline', 'future', 'tdeadline', 'timeout_called']

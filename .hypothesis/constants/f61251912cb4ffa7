@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\helpers.py
-# hypothesis_version: 6.150.0
-
-['Message', 'Update', '\\)', '\\\\\\1', '\\_*[]()~`>#+-=|{}.!', '\\`', '^[A-Za-z0-9_-]+$', '_*`[', 'code', 'custom_emoji', 'escape_markdown', 'mention_html', 'mention_markdown', 'pre', 'start', 'startgroup', 'text_link']

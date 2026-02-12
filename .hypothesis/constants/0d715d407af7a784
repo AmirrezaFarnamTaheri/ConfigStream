@@ -1,4 +1,0 @@
-# file: D:\GitHub\ConfigStream\src\configstream\adapters_base.py
-# hypothesis_version: 6.150.0
-
-[1280, 2408, '/', '162.159.192.1', '172.16.0.2/32', '=', 'detour', 'http', 'hysteria2', 'local_address', 'method', 'mtu', 'password', 'peer_public_key', 'private_key', 'proxy', 'server', 'server_name', 'server_port', 'shadowsocks', 'socks5', 'tag', 'tls', 'trojan', 'type', 'uuid', 'vless', 'vmess']

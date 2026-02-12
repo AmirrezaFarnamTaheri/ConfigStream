@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_keyboardbuttonrequest.py
-# hypothesis_version: 6.150.0
-
-['Bot', 'bot_is_member', 'chat_has_username', 'chat_is_channel', 'chat_is_created', 'chat_is_forum', 'max_quantity', 'request_id', 'request_name', 'request_photo', 'request_title', 'request_username', 'user_is_bot', 'user_is_premium']

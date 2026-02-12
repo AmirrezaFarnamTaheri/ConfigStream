@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_suggestedpost.py
-# hypothesis_version: 6.150.0
-
-['Bot', 'SuggestedPostInfo', 'SuggestedPostPaid', 'amount', 'comment', 'currency', 'price', 'reason', 'send_date', 'star_amount', 'state']

@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\wrapt\proxies.py
-# hypothesis_version: 6.150.0
-
-['__aiter__', '__anext__', '__await__', '__call__', '__delete__', '__get__', '__iter__', '__length_hint__', '__next__', '__set__', '__set_name__']

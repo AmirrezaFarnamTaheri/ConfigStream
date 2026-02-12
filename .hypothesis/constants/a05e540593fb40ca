@@ -1,4 +1,0 @@
-# file: D:\GitHub\ConfigStream\src\configstream\tools\warp.py
-# hypothesis_version: 6.150.0
-
-[15.0, 200, 1280, 2408, '+08:00', '0123456789ABCDEF', '162.159.192.1', 'Android', 'Content-Type', 'US', 'User-Agent', 'WARP-Error', 'address', 'addresses', 'config', 'en_US', 'endpoint', 'fcm_token', 'id', 'install_id', 'interface', 'key', 'local_address', 'locale', 'mtu', 'okhttp/3.12.1', 'peer_public_key', 'peers', 'private_key', 'public_key', 'reserved', 'tos', 'type', 'utf-8', 'v4', 'warp://auto', 'wireguard', '☁️ Cloudflare WARP']

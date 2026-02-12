@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_chatmemberupdated.py
-# hypothesis_version: 6.150.0
-
-['Bot', 'ChatMemberUpdated', 'chat', 'date', 'from', 'from_user', 'invite_link', 'new_chat_member', 'old_chat_member', 'user', 'via_join_request']

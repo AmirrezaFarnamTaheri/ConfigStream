@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\ext\_updater.py
-# hypothesis_version: 6.150.0
-
-[0.0, '/', 'Bootstrap done', 'Bot', 'Deleting webhook', 'Polling Updates', 'Setting webhook', 'Stopping Updater', 'Updater', '_UpdaterType', '__lock', '__polling_cleanup_cb', '__polling_task', '_httpd', '_initialized', '_last_update_id', '_running', 'bot', 'http', 'https', 'listen', 'port', 'socket', 'update_queue']

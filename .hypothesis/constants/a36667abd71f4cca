@@ -1,4 +1,0 @@
-# file: D:\GitHub\ConfigStream\src\configstream\pipeline_core\producer.py
-# hypothesis_version: 6.150.0
-
-[0.0, 0.5, 2.0, 100, 500, 1000, '/', 'BATCH_NUMBER', 'Blocked sources: %s', 'EventStream', 'N/A', 'batch_source', 'drop_stats', 'duration_ms', 'failure_modes_json', 'fetch_blocked', 'fetch_duration', 'fetch_error', 'fetch_success', 'fetched_count', 'geoip_json', 'http://', 'https://', 'hy2://', 'hysteria2://', 'hysteria://', 'naive+http://', 'naive+https://', 'naive://', 'no_valid_lines', 'pipeline', 'socks4://', 'socks5://', 'socks://', 'ss://', 'ssconf://', 'ssh://', 'supplied-config', 'supplied-proxies', 'timestamp', 'trojan://', 'tuic://', 'unknown', 'vless://', 'vmess://', 'wg://', 'wireguard://', 'working_count', '{}']

@@ -1,4 +1,0 @@
-# file: D:\GitHub\ConfigStream\src\configstream\parsers\normalization.py
-# hypothesis_version: 6.150.0
-
-[',', '0', '1', ';', '=', 'Host', 'alpn', 'false', 'fingerprint', 'fp', 'headers', 'host', 'no', 'none', 'obfs-host', 'obfs-uri', 'off', 'on', 'path', 'pbk', 'peer', 'plugin', 'public-key', 'publicKey', 'reality', 'security', 'serviceName', 'shadowsocks', 'short-id', 'shortId', 'short_id', 'sid', 'sni', 'tls', 'true', 'vmess', 'yes']

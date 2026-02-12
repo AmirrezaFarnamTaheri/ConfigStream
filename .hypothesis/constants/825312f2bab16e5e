@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\attr\_cmp.py
-# hypothesis_version: 6.150.0
-
-['<', '<=', '==', '>', '>=', 'Comparable', '__eq__', '__ge__', '__gt__', '__init__', '__le__', '__lt__', '__ne__', '__slots__', '_is_comparable_to', '_requirements', 'eq', 'ge', 'gt', 'le', 'lt', 'value']

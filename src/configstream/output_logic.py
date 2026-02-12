@@ -550,30 +550,30 @@ def generate_categorized_outputs(
     generated_files["proxies_txt"] = proxies_txt_path
 
     # 3c. Chosen subset (top per protocol)
+    # Always generate chosen/ outputs, even when empty, to avoid downstream 404s.
+    chosen_dir = output_dir / "chosen"
+    chosen_dir.mkdir(exist_ok=True)
     chosen = _select_chosen_proxies(proxies)
-    if chosen:
-        chosen_dir = output_dir / "chosen"
-        chosen_dir.mkdir(exist_ok=True)
-        chosen_base64 = generate_base64_subscription(chosen)
-        chosen_base64_path = chosen_dir / "base64.txt"
-        AtomicFileWriter.write_text(chosen_base64_path, chosen_base64)
-        generated_files["chosen_base64"] = chosen_base64_path
 
-        chosen_plaintext = generate_plaintext_subscription(chosen)
-        chosen_txt_path = chosen_dir / "proxies.txt"
-        AtomicFileWriter.write_text(chosen_txt_path, chosen_plaintext)
-        generated_files["chosen_proxies_txt"] = chosen_txt_path
+    chosen_base64 = generate_base64_subscription(chosen)
+    chosen_base64_path = chosen_dir / "base64.txt"
+    AtomicFileWriter.write_text(chosen_base64_path, chosen_base64)
+    generated_files["chosen_base64"] = chosen_base64_path
 
-        chosen_singbox = generate_singbox_config(chosen)
-        chosen_singbox_path = chosen_dir / "singbox.json"
-        AtomicFileWriter.write_text(chosen_singbox_path, chosen_singbox)
-        generated_files["chosen_singbox"] = chosen_singbox_path
+    chosen_plaintext = generate_plaintext_subscription(chosen)
+    chosen_txt_path = chosen_dir / "proxies.txt"
+    AtomicFileWriter.write_text(chosen_txt_path, chosen_plaintext)
+    generated_files["chosen_proxies_txt"] = chosen_txt_path
 
-        chosen_clash = generate_clash_config(chosen)
-        if chosen_clash:
-            chosen_clash_path = chosen_dir / "clash.yaml"
-            AtomicFileWriter.write_text(chosen_clash_path, chosen_clash)
-            generated_files["chosen_clash"] = chosen_clash_path
+    chosen_singbox = generate_singbox_config(chosen)
+    chosen_singbox_path = chosen_dir / "singbox.json"
+    AtomicFileWriter.write_text(chosen_singbox_path, chosen_singbox)
+    generated_files["chosen_singbox"] = chosen_singbox_path
+
+    chosen_clash = generate_clash_config(chosen)
+    chosen_clash_path = chosen_dir / "clash.yaml"
+    AtomicFileWriter.write_text(chosen_clash_path, chosen_clash)
+    generated_files["chosen_clash"] = chosen_clash_path
 
     # 3d. Adapter-specific outputs (Shadowrocket, QuantumultX, Surge, Loon, SIP008)
     adapter_specs = {
@@ -604,37 +604,37 @@ def generate_categorized_outputs(
     wireguard_candidates = [
         p for p in proxies if (p.protocol or "").lower() in ("wireguard", "wg")
     ]
-    if raw_content or openvpn_candidates or wireguard_candidates:
-        tmp_path = None
-        try:
-            with tempfile.NamedTemporaryFile(
-                dir=output_dir, prefix=".side_products.", suffix=".tmp", delete=False
-            ) as tmp:
-                tmp_path = tmp.name
-            with zipfile.ZipFile(tmp_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
-                zf.writestr("proxies.txt", raw_content)
-                for proxy in openvpn_candidates:
-                    name = _safe_filename(
-                        proxy.remarks or proxy.id, f"openvpn-{proxy.id[:8]}"
-                    )
-                    zf.writestr(f"openvpn/{name}.ovpn", proxy.config)
-                for proxy in wireguard_candidates:
-                    wg_config = _build_wireguard_config(proxy)
-                    if not wg_config:
-                        continue
-                    name = _safe_filename(
-                        proxy.remarks or proxy.id, f"wireguard-{proxy.id[:8]}"
-                    )
-                    zf.writestr(f"wireguard/{name}.conf", wg_config)
-            os.replace(tmp_path, side_products_path)
-            generated_files["side_products"] = side_products_path
-        except Exception as exc:
-            logger.warning("Failed to generate side_products.zip: %s", str(exc))
-            if tmp_path and os.path.exists(tmp_path):
-                try:
-                    os.unlink(tmp_path)
-                except OSError:
-                    pass
+    tmp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            dir=output_dir, prefix=".side_products.", suffix=".tmp", delete=False
+        ) as tmp:
+            tmp_path = tmp.name
+        with zipfile.ZipFile(tmp_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+            # Always include proxies.txt even when empty to avoid downstream 404s.
+            zf.writestr("proxies.txt", raw_content)
+            for proxy in openvpn_candidates:
+                name = _safe_filename(
+                    proxy.remarks or proxy.id, f"openvpn-{proxy.id[:8]}"
+                )
+                zf.writestr(f"openvpn/{name}.ovpn", proxy.config)
+            for proxy in wireguard_candidates:
+                wg_config = _build_wireguard_config(proxy)
+                if not wg_config:
+                    continue
+                name = _safe_filename(
+                    proxy.remarks or proxy.id, f"wireguard-{proxy.id[:8]}"
+                )
+                zf.writestr(f"wireguard/{name}.conf", wg_config)
+        os.replace(tmp_path, side_products_path)
+        generated_files["side_products"] = side_products_path
+    except Exception as exc:
+        logger.warning("Failed to generate side_products.zip: %s", str(exc))
+        if tmp_path and os.path.exists(tmp_path):
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
 
     # 4. Categorized Sub-files (By Country & Protocol)
     # Grouping — include ALL proxies so users in different networks can still
@@ -710,19 +710,17 @@ def generate_categorized_outputs(
                 if isinstance(chain, list) and chain:
                     _append_chain(copy.deepcopy(chain))
 
-    if chain_outbounds:
-        chains_config_content = generate_singbox_config(
-            [], extra_outbounds=chain_outbounds
-        )
+    # Always emit chain outputs to prevent frontend/client 404s even when no chains exist.
+    chains_config_content = generate_singbox_config([], extra_outbounds=chain_outbounds)
 
-        chains_path = output_dir / "singbox-chains.json"
-        AtomicFileWriter.write_text(chains_path, chains_config_content)
-        generated_files["singbox_chains"] = chains_path
+    chains_path = output_dir / "singbox-chains.json"
+    AtomicFileWriter.write_text(chains_path, chains_config_content)
+    generated_files["singbox_chains"] = chains_path
 
-        # [FIX] Alias: also save as chains.json if requested
-        chains_alias_path = output_dir / "chains.json"
-        AtomicFileWriter.write_text(chains_alias_path, chains_config_content)
-        generated_files["chains"] = chains_alias_path
+    # Convenience alias used by the frontend download selector.
+    chains_alias_path = output_dir / "chains.json"
+    AtomicFileWriter.write_text(chains_alias_path, chains_config_content)
+    generated_files["chains"] = chains_alias_path
 
     # 5b. Separate outputs for different revival types (if needed for analytics)
     # Extract shielded (gold) chains separately for visibility
@@ -766,149 +764,138 @@ def generate_categorized_outputs(
         dns_safe_proxies, host_map = dns_safe_cache
     else:
         dns_safe_proxies, host_map = _build_dns_safe_proxies(proxies)
-    if dns_safe_proxies:
-        dns_safe_washed = (
-            _filter_outbounds_for_dns_safe(washed_outbounds, host_map)
-            if washed_outbounds
-            else None
-        )
-        dns_safe_smart_chains: Dict[str, List[List[Dict[str, Any]]]] = {}
-        if smart_chains:
-            for group, chains in smart_chains.items():
-                filtered_chains: List[List[Dict[str, Any]]] = []
-                for chain in chains:
-                    if not isinstance(chain, list):
-                        continue
-                    filtered = _filter_outbounds_for_dns_safe(chain, host_map)
-                    if filtered:
-                        filtered_chains.append(filtered)
-                if filtered_chains:
-                    dns_safe_smart_chains[group] = filtered_chains
 
-        dns_split_files = generate_split_outputs(
-            dns_safe_proxies,
-            output_dir,
-            washed_outbounds=dns_safe_washed,
-            washed_ids=washed_ids,
-            smart_chains=dns_safe_smart_chains,
-            name_suffix="dns-safe",
-            key_suffix="dns_safe",
-        )
-        generated_files.update(dns_split_files)
+    # Always emit DNS-safe outputs, even when empty, to avoid frontend/client 404s.
+    dns_safe_washed = (
+        _filter_outbounds_for_dns_safe(washed_outbounds, host_map)
+        if washed_outbounds
+        else None
+    )
+    dns_safe_smart_chains: Dict[str, List[List[Dict[str, Any]]]] = {}
+    if smart_chains:
+        for group, chains in smart_chains.items():
+            filtered_chains: List[List[Dict[str, Any]]] = []
+            for chain in chains:
+                if not isinstance(chain, list):
+                    continue
+                filtered = _filter_outbounds_for_dns_safe(chain, host_map)
+                if filtered:
+                    filtered_chains.append(filtered)
+            if filtered_chains:
+                dns_safe_smart_chains[group] = filtered_chains
 
-        dns_chain_outbounds: List[Dict[str, Any]] = []
-        if chain_outbounds:
-            dns_chain_outbounds = _filter_outbounds_for_dns_safe(
-                chain_outbounds, host_map
-            )
-        if dns_chain_outbounds:
-            dns_chains_content = generate_singbox_config(
-                [], extra_outbounds=dns_chain_outbounds
-            )
-            dns_chains_path = output_dir / "singbox-chains-dns-safe.json"
-            AtomicFileWriter.write_text(dns_chains_path, dns_chains_content)
-            generated_files["singbox_chains_dns_safe"] = dns_chains_path
+    dns_split_files = generate_split_outputs(
+        dns_safe_proxies,
+        output_dir,
+        washed_outbounds=dns_safe_washed,
+        washed_ids=washed_ids,
+        smart_chains=dns_safe_smart_chains,
+        name_suffix="dns-safe",
+        key_suffix="dns_safe",
+    )
+    generated_files.update(dns_split_files)
 
-            dns_chains_alias = output_dir / "chains-dns-safe.json"
-            AtomicFileWriter.write_text(dns_chains_alias, dns_chains_content)
-            generated_files["chains_dns_safe"] = dns_chains_alias
+    dns_chain_outbounds = (
+        _filter_outbounds_for_dns_safe(chain_outbounds, host_map)
+        if chain_outbounds
+        else []
+    )
+    dns_chains_content = generate_singbox_config(
+        [], extra_outbounds=dns_chain_outbounds
+    )
+    dns_chains_path = output_dir / "singbox-chains-dns-safe.json"
+    AtomicFileWriter.write_text(dns_chains_path, dns_chains_content)
+    generated_files["singbox_chains_dns_safe"] = dns_chains_path
 
-        dns_safe_base64 = generate_base64_subscription(dns_safe_proxies)
-        dns_base64_path = output_dir / "base64-dns-safe.txt"
-        AtomicFileWriter.write_text(dns_base64_path, dns_safe_base64)
-        generated_files["base64_dns_safe"] = dns_base64_path
+    dns_chains_alias = output_dir / "chains-dns-safe.json"
+    AtomicFileWriter.write_text(dns_chains_alias, dns_chains_content)
+    generated_files["chains_dns_safe"] = dns_chains_alias
 
-        dns_raw_content = generate_plaintext_subscription(dns_safe_proxies)
-        dns_proxies_txt_path = output_dir / "proxies-dns-safe.txt"
-        AtomicFileWriter.write_text(dns_proxies_txt_path, dns_raw_content)
-        generated_files["proxies_txt_dns_safe"] = dns_proxies_txt_path
+    dns_safe_base64 = generate_base64_subscription(dns_safe_proxies)
+    dns_base64_path = output_dir / "base64-dns-safe.txt"
+    AtomicFileWriter.write_text(dns_base64_path, dns_safe_base64)
+    generated_files["base64_dns_safe"] = dns_base64_path
 
-        dns_chosen = _select_chosen_proxies(dns_safe_proxies)
-        if dns_chosen:
-            chosen_dir = output_dir / "chosen"
-            chosen_dir.mkdir(exist_ok=True)
-            chosen_dns_base64 = generate_base64_subscription(dns_chosen)
-            chosen_dns_path = chosen_dir / "base64-dns-safe.txt"
-            AtomicFileWriter.write_text(chosen_dns_path, chosen_dns_base64)
-            generated_files["chosen_base64_dns_safe"] = chosen_dns_path
+    dns_raw_content = generate_plaintext_subscription(dns_safe_proxies)
+    dns_proxies_txt_path = output_dir / "proxies-dns-safe.txt"
+    AtomicFileWriter.write_text(dns_proxies_txt_path, dns_raw_content)
+    generated_files["proxies_txt_dns_safe"] = dns_proxies_txt_path
 
-        # Adapter-specific outputs (DNS-safe)
-        for key, (adapter_name, filename) in adapter_specs.items():
-            try:
-                adapter = get_adapter(adapter_name)
-                if adapter_name in ("surge", "loon"):
-                    content = adapter.export(
-                        dns_safe_proxies, washed_outbounds=dns_safe_washed
-                    )
-                else:
-                    content = adapter.export(dns_safe_proxies)
-                dns_filename = _add_suffix(filename, "-dns-safe")
-                out_path = output_dir / dns_filename
-                AtomicFileWriter.write_text(out_path, content)
-                generated_files[f"{key}_dns_safe"] = out_path
-            except Exception as exc:
-                logger.warning(
-                    "Failed to generate dns-safe %s output: %s",
-                    adapter_name,
-                    str(exc),
+    dns_chosen = _select_chosen_proxies(dns_safe_proxies)
+    chosen_dns_base64 = generate_base64_subscription(dns_chosen)
+    chosen_dns_path = chosen_dir / "base64-dns-safe.txt"
+    AtomicFileWriter.write_text(chosen_dns_path, chosen_dns_base64)
+    generated_files["chosen_base64_dns_safe"] = chosen_dns_path
+
+    # Adapter-specific outputs (DNS-safe)
+    for key, (adapter_name, filename) in adapter_specs.items():
+        try:
+            adapter = get_adapter(adapter_name)
+            if adapter_name in ("surge", "loon"):
+                content = adapter.export(
+                    dns_safe_proxies, washed_outbounds=dns_safe_washed
                 )
+            else:
+                content = adapter.export(dns_safe_proxies)
+            dns_filename = _add_suffix(filename, "-dns-safe")
+            out_path = output_dir / dns_filename
+            AtomicFileWriter.write_text(out_path, content)
+            generated_files[f"{key}_dns_safe"] = out_path
+        except Exception as exc:
+            logger.warning(
+                "Failed to generate dns-safe %s output: %s",
+                adapter_name,
+                str(exc),
+            )
 
-        # Side products pack (DNS-safe)
-        side_dns_path = output_dir / "side_products-dns-safe.zip"
-        openvpn_candidates_dns = [
-            p
-            for p in dns_safe_proxies
-            if (p.protocol or "").lower() == "openvpn" and p.config
-        ]
-        wireguard_candidates_dns = [
-            p
-            for p in dns_safe_proxies
-            if (p.protocol or "").lower() in ("wireguard", "wg")
-        ]
-        if dns_raw_content or openvpn_candidates_dns or wireguard_candidates_dns:
-            tmp_path = None
-            try:
-                with tempfile.NamedTemporaryFile(
-                    dir=output_dir,
-                    prefix=".side_products_dns.",
-                    suffix=".tmp",
-                    delete=False,
-                ) as tmp:
-                    tmp_path = tmp.name
-                with zipfile.ZipFile(
-                    tmp_path, "w", compression=zipfile.ZIP_DEFLATED
-                ) as zf:
-                    zf.writestr("proxies.txt", dns_raw_content)
-                    for proxy in openvpn_candidates_dns:
-                        original_host = (
-                            proxy.details.get("original_host") or proxy.address
-                        )
-                        rewritten = _rewrite_openvpn_remote(
-                            proxy.config, original_host, proxy.address
-                        )
-                        name = _safe_filename(
-                            proxy.remarks or proxy.id, f"openvpn-{proxy.id[:8]}"
-                        )
-                        zf.writestr(f"openvpn/{name}.ovpn", rewritten)
-                    for proxy in wireguard_candidates_dns:
-                        wg_config = _build_wireguard_config(proxy)
-                        if not wg_config:
-                            continue
-                        name = _safe_filename(
-                            proxy.remarks or proxy.id, f"wireguard-{proxy.id[:8]}"
-                        )
-                        zf.writestr(f"wireguard/{name}.conf", wg_config)
-                os.replace(tmp_path, side_dns_path)
-                generated_files["side_products_dns_safe"] = side_dns_path
-            except Exception as exc:
-                logger.warning(
-                    "Failed to generate side_products-dns-safe.zip: %s", str(exc)
+    # Side products pack (DNS-safe)
+    side_dns_path = output_dir / "side_products-dns-safe.zip"
+    openvpn_candidates_dns = [
+        p
+        for p in dns_safe_proxies
+        if (p.protocol or "").lower() == "openvpn" and p.config
+    ]
+    wireguard_candidates_dns = [
+        p for p in dns_safe_proxies if (p.protocol or "").lower() in ("wireguard", "wg")
+    ]
+    tmp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            dir=output_dir,
+            prefix=".side_products_dns.",
+            suffix=".tmp",
+            delete=False,
+        ) as tmp:
+            tmp_path = tmp.name
+        with zipfile.ZipFile(tmp_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+            zf.writestr("proxies.txt", dns_raw_content)
+            for proxy in openvpn_candidates_dns:
+                details = proxy.details or {}
+                original_host = details.get("original_host") or proxy.address
+                rewritten = _rewrite_openvpn_remote(
+                    proxy.config, original_host, proxy.address
                 )
-                if tmp_path and os.path.exists(tmp_path):
-                    try:
-                        os.unlink(tmp_path)
-                    except OSError:
-                        pass
+                name = _safe_filename(
+                    proxy.remarks or proxy.id, f"openvpn-{proxy.id[:8]}"
+                )
+                zf.writestr(f"openvpn/{name}.ovpn", rewritten)
+            for proxy in wireguard_candidates_dns:
+                wg_config = _build_wireguard_config(proxy)
+                if not wg_config:
+                    continue
+                name = _safe_filename(
+                    proxy.remarks or proxy.id, f"wireguard-{proxy.id[:8]}"
+                )
+                zf.writestr(f"wireguard/{name}.conf", wg_config)
+        os.replace(tmp_path, side_dns_path)
+        generated_files["side_products_dns_safe"] = side_dns_path
+    except Exception as exc:
+        logger.warning("Failed to generate side_products-dns-safe.zip: %s", str(exc))
+        if tmp_path and os.path.exists(tmp_path):
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
 
     # 7. DNS-hardened outputs (prefer IP when available + DoH/DoT/DoQ)
     if settings.DNS_HARDENED_OUTPUTS:
@@ -916,201 +903,181 @@ def generate_categorized_outputs(
             dns_hardened_proxies, hardened_map = dns_hardened_cache
         else:
             dns_hardened_proxies, hardened_map = _build_dns_hardened_proxies(proxies)
-        if dns_hardened_proxies:
-            primary_resolvers, fallback_resolvers = _dns_resolver_sets()
-            hardened_washed = (
-                _filter_outbounds_for_dns_hardened(washed_outbounds, hardened_map)
-                if washed_outbounds
-                else None
-            )
-            hardened_smart_chains: Dict[str, List[List[Dict[str, Any]]]] = {}
-            if smart_chains:
-                for group, chains in smart_chains.items():
-                    filtered_smart_chains: List[List[Dict[str, Any]]] = []
-                    for chain in chains:
-                        if not isinstance(chain, list):
-                            continue
-                        filtered = _filter_outbounds_for_dns_hardened(
-                            chain, hardened_map
-                        )
-                        if filtered:
-                            filtered_smart_chains.append(filtered)
-                    if filtered_smart_chains:
-                        hardened_smart_chains[group] = filtered_smart_chains
+        # Always emit DNS-hardened outputs, even when empty, to avoid frontend/client 404s.
+        primary_resolvers, fallback_resolvers = _dns_resolver_sets()
+        hardened_washed = (
+            _filter_outbounds_for_dns_hardened(washed_outbounds, hardened_map)
+            if washed_outbounds
+            else None
+        )
+        hardened_smart_chains: Dict[str, List[List[Dict[str, Any]]]] = {}
+        if smart_chains:
+            for group, chains in smart_chains.items():
+                filtered_smart_chains: List[List[Dict[str, Any]]] = []
+                for chain in chains:
+                    if not isinstance(chain, list):
+                        continue
+                    filtered = _filter_outbounds_for_dns_hardened(chain, hardened_map)
+                    if filtered:
+                        filtered_smart_chains.append(filtered)
+                if filtered_smart_chains:
+                    hardened_smart_chains[group] = filtered_smart_chains
 
-            hardened_split_files = generate_split_outputs(
+        hardened_split_files = generate_split_outputs(
+            dns_hardened_proxies,
+            output_dir,
+            washed_outbounds=hardened_washed,
+            washed_ids=washed_ids,
+            smart_chains=hardened_smart_chains,
+            name_suffix="dns-hardened",
+            key_suffix="dns_hardened",
+            singbox_dns_profile=build_singbox_dns_profile(),
+            clash_dns_profile=build_clash_dns_profile(),
+        )
+        generated_files.update(hardened_split_files)
+
+        # Base64 + plaintext outputs (DNS-hardened prefer-IP)
+        dns_hardened_base64 = generate_base64_subscription(dns_hardened_proxies)
+        dns_hardened_base64_path = output_dir / "base64-dns-hardened.txt"
+        AtomicFileWriter.write_text(dns_hardened_base64_path, dns_hardened_base64)
+        generated_files["base64_dns_hardened"] = dns_hardened_base64_path
+
+        dns_hardened_raw = generate_plaintext_subscription(dns_hardened_proxies)
+        dns_hardened_txt_path = output_dir / "proxies-dns-hardened.txt"
+        AtomicFileWriter.write_text(dns_hardened_txt_path, dns_hardened_raw)
+        generated_files["proxies_txt_dns_hardened"] = dns_hardened_txt_path
+
+        dns_hardened_chosen = _select_chosen_proxies(dns_hardened_proxies)
+        chosen_hardened_base64 = generate_base64_subscription(dns_hardened_chosen)
+        chosen_hardened_path = chosen_dir / "base64-dns-hardened.txt"
+        AtomicFileWriter.write_text(chosen_hardened_path, chosen_hardened_base64)
+        generated_files["chosen_base64_dns_hardened"] = chosen_hardened_path
+
+        # Adapter-specific outputs (DNS-hardened)
+        try:
+            shadowrocket_hardened = _wrap_shadowrocket_profile(
+                dns_hardened_proxies, primary_resolvers, fallback_resolvers
+            )
+            out_path = output_dir / "shadowrocket-dns-hardened.txt"
+            AtomicFileWriter.write_text(out_path, shadowrocket_hardened)
+            generated_files["shadowrocket_dns_hardened"] = out_path
+        except Exception as exc:
+            logger.warning("Failed to generate dns-hardened Shadowrocket: %s", exc)
+
+        try:
+            surge_hardened = _wrap_surge_or_loon_profile(
+                "surge",
                 dns_hardened_proxies,
-                output_dir,
-                washed_outbounds=hardened_washed,
-                washed_ids=washed_ids,
-                smart_chains=hardened_smart_chains,
-                name_suffix="dns-hardened",
-                key_suffix="dns_hardened",
-                singbox_dns_profile=build_singbox_dns_profile(),
-                clash_dns_profile=build_clash_dns_profile(),
+                hardened_washed,
+                primary_resolvers,
+                fallback_resolvers,
             )
-            generated_files.update(hardened_split_files)
+            out_path = output_dir / "surge-dns-hardened.conf"
+            AtomicFileWriter.write_text(out_path, surge_hardened)
+            generated_files["surge_dns_hardened"] = out_path
+        except Exception as exc:
+            logger.warning("Failed to generate dns-hardened Surge: %s", exc)
 
-            # Base64 + plaintext outputs (DNS-hardened prefer-IP)
-            dns_hardened_base64 = generate_base64_subscription(dns_hardened_proxies)
-            dns_hardened_base64_path = output_dir / "base64-dns-hardened.txt"
-            AtomicFileWriter.write_text(dns_hardened_base64_path, dns_hardened_base64)
-            generated_files["base64_dns_hardened"] = dns_hardened_base64_path
+        try:
+            loon_hardened = _wrap_surge_or_loon_profile(
+                "loon",
+                dns_hardened_proxies,
+                hardened_washed,
+                primary_resolvers,
+                fallback_resolvers,
+            )
+            out_path = output_dir / "loon-dns-hardened.conf"
+            AtomicFileWriter.write_text(out_path, loon_hardened)
+            generated_files["loon_dns_hardened"] = out_path
+        except Exception as exc:
+            logger.warning("Failed to generate dns-hardened Loon: %s", exc)
 
-            dns_hardened_raw = generate_plaintext_subscription(dns_hardened_proxies)
-            dns_hardened_txt_path = output_dir / "proxies-dns-hardened.txt"
-            AtomicFileWriter.write_text(dns_hardened_txt_path, dns_hardened_raw)
-            generated_files["proxies_txt_dns_hardened"] = dns_hardened_txt_path
+        try:
+            quantumult_hardened = _wrap_quantumultx_profile(
+                dns_hardened_proxies, primary_resolvers, fallback_resolvers
+            )
+            out_path = output_dir / "quantumult-dns-hardened.conf"
+            AtomicFileWriter.write_text(out_path, quantumult_hardened)
+            generated_files["quantumult_dns_hardened"] = out_path
+        except Exception as exc:
+            logger.warning("Failed to generate dns-hardened Quantumult X: %s", exc)
 
-            dns_hardened_chosen = _select_chosen_proxies(dns_hardened_proxies)
-            if dns_hardened_chosen:
-                chosen_dir = output_dir / "chosen"
-                chosen_dir.mkdir(exist_ok=True)
-                chosen_hardened_base64 = generate_base64_subscription(
-                    dns_hardened_chosen
-                )
-                chosen_hardened_path = chosen_dir / "base64-dns-hardened.txt"
-                AtomicFileWriter.write_text(
-                    chosen_hardened_path, chosen_hardened_base64
-                )
-                generated_files["chosen_base64_dns_hardened"] = chosen_hardened_path
+        try:
+            sip_adapter = get_adapter("sip008")
+            sip_content = sip_adapter.export(dns_hardened_proxies)
+            sip_path = output_dir / "sip008-dns-hardened.json"
+            AtomicFileWriter.write_text(sip_path, sip_content)
+            generated_files["sip008_dns_hardened"] = sip_path
+        except Exception as exc:
+            logger.warning("Failed to generate dns-hardened SIP008: %s", exc)
 
-            # Adapter-specific outputs (DNS-hardened)
-            try:
-                shadowrocket_hardened = _wrap_shadowrocket_profile(
-                    dns_hardened_proxies, primary_resolvers, fallback_resolvers
-                )
-                out_path = output_dir / "shadowrocket-dns-hardened.txt"
-                AtomicFileWriter.write_text(out_path, shadowrocket_hardened)
-                generated_files["shadowrocket_dns_hardened"] = out_path
-            except Exception as exc:
-                logger.warning("Failed to generate dns-hardened Shadowrocket: %s", exc)
-
-            try:
-                surge_hardened = _wrap_surge_or_loon_profile(
-                    "surge",
-                    dns_hardened_proxies,
-                    hardened_washed,
-                    primary_resolvers,
-                    fallback_resolvers,
-                )
-                out_path = output_dir / "surge-dns-hardened.conf"
-                AtomicFileWriter.write_text(out_path, surge_hardened)
-                generated_files["surge_dns_hardened"] = out_path
-            except Exception as exc:
-                logger.warning("Failed to generate dns-hardened Surge: %s", exc)
-
-            try:
-                loon_hardened = _wrap_surge_or_loon_profile(
-                    "loon",
-                    dns_hardened_proxies,
-                    hardened_washed,
-                    primary_resolvers,
-                    fallback_resolvers,
-                )
-                out_path = output_dir / "loon-dns-hardened.conf"
-                AtomicFileWriter.write_text(out_path, loon_hardened)
-                generated_files["loon_dns_hardened"] = out_path
-            except Exception as exc:
-                logger.warning("Failed to generate dns-hardened Loon: %s", exc)
-
-            try:
-                quantumult_hardened = _wrap_quantumultx_profile(
-                    dns_hardened_proxies, primary_resolvers, fallback_resolvers
-                )
-                out_path = output_dir / "quantumult-dns-hardened.conf"
-                AtomicFileWriter.write_text(out_path, quantumult_hardened)
-                generated_files["quantumult_dns_hardened"] = out_path
-            except Exception as exc:
-                logger.warning("Failed to generate dns-hardened Quantumult X: %s", exc)
-
-            try:
-                sip_adapter = get_adapter("sip008")
-                sip_content = sip_adapter.export(dns_hardened_proxies)
-                sip_path = output_dir / "sip008-dns-hardened.json"
-                AtomicFileWriter.write_text(sip_path, sip_content)
-                generated_files["sip008_dns_hardened"] = sip_path
-            except Exception as exc:
-                logger.warning("Failed to generate dns-hardened SIP008: %s", exc)
-
-            # Side products pack (DNS-hardened)
-            side_hardened_path = output_dir / "side_products-dns-hardened.zip"
-            openvpn_hardened = [
-                p
-                for p in dns_hardened_proxies
-                if (p.protocol or "").lower() == "openvpn" and p.config
-            ]
-            wireguard_hardened = [
-                p
-                for p in dns_hardened_proxies
-                if (p.protocol or "").lower() in ("wireguard", "wg")
-            ]
-            if dns_hardened_raw or openvpn_hardened or wireguard_hardened:
-                tmp_path = None
-                try:
-                    with tempfile.NamedTemporaryFile(
-                        dir=output_dir,
-                        prefix=".side_products_dns_hardened.",
-                        suffix=".tmp",
-                        delete=False,
-                    ) as tmp:
-                        tmp_path = tmp.name
-                    with zipfile.ZipFile(
-                        tmp_path, "w", compression=zipfile.ZIP_DEFLATED
-                    ) as zf:
-                        zf.writestr("proxies.txt", dns_hardened_raw)
-                        for proxy in openvpn_hardened:
-                            original_host = (
-                                proxy.details.get("original_host") or proxy.address
-                            )
-                            rewritten = _rewrite_openvpn_remote(
-                                proxy.config, original_host, proxy.address
-                            )
-                            name = _safe_filename(
-                                proxy.remarks or proxy.id, f"openvpn-{proxy.id[:8]}"
-                            )
-                            zf.writestr(f"openvpn/{name}.ovpn", rewritten)
-                        for proxy in wireguard_hardened:
-                            wg_config = _build_wireguard_config(proxy)
-                            if not wg_config:
-                                continue
-                            name = _safe_filename(
-                                proxy.remarks or proxy.id, f"wireguard-{proxy.id[:8]}"
-                            )
-                            zf.writestr(f"wireguard/{name}.conf", wg_config)
-                    os.replace(tmp_path, side_hardened_path)
-                    generated_files["side_products_dns_hardened"] = side_hardened_path
-                except Exception as exc:
-                    logger.warning(
-                        "Failed to generate side_products-dns-hardened.zip: %s", exc
+        # Side products pack (DNS-hardened)
+        side_hardened_path = output_dir / "side_products-dns-hardened.zip"
+        openvpn_hardened = [
+            p
+            for p in dns_hardened_proxies
+            if (p.protocol or "").lower() == "openvpn" and p.config
+        ]
+        wireguard_hardened = [
+            p
+            for p in dns_hardened_proxies
+            if (p.protocol or "").lower() in ("wireguard", "wg")
+        ]
+        tmp_path = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                dir=output_dir,
+                prefix=".side_products_dns_hardened.",
+                suffix=".tmp",
+                delete=False,
+            ) as tmp:
+                tmp_path = tmp.name
+            with zipfile.ZipFile(tmp_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+                zf.writestr("proxies.txt", dns_hardened_raw)
+                for proxy in openvpn_hardened:
+                    details = proxy.details or {}
+                    original_host = details.get("original_host") or proxy.address
+                    rewritten = _rewrite_openvpn_remote(
+                        proxy.config, original_host, proxy.address
                     )
-                    if tmp_path and os.path.exists(tmp_path):
-                        try:
-                            os.unlink(tmp_path)
-                        except OSError:
-                            pass
+                    name = _safe_filename(
+                        proxy.remarks or proxy.id, f"openvpn-{proxy.id[:8]}"
+                    )
+                    zf.writestr(f"openvpn/{name}.ovpn", rewritten)
+                for proxy in wireguard_hardened:
+                    wg_config = _build_wireguard_config(proxy)
+                    if not wg_config:
+                        continue
+                    name = _safe_filename(
+                        proxy.remarks or proxy.id, f"wireguard-{proxy.id[:8]}"
+                    )
+                    zf.writestr(f"wireguard/{name}.conf", wg_config)
+            os.replace(tmp_path, side_hardened_path)
+            generated_files["side_products_dns_hardened"] = side_hardened_path
+        except Exception as exc:
+            logger.warning("Failed to generate side_products-dns-hardened.zip: %s", exc)
+            if tmp_path and os.path.exists(tmp_path):
+                try:
+                    os.unlink(tmp_path)
+                except OSError:
+                    pass
 
-            # DNS-hardened chains (includes all chain types: washed, revived, smart, shielded)
-            hardened_chain_outbounds: List[Dict[str, Any]] = []
-            if chain_outbounds:
-                hardened_chain_outbounds = _filter_outbounds_for_dns_hardened(
-                    chain_outbounds, hardened_map
-                )
-            if hardened_chain_outbounds:
-                hardened_chains_content = generate_singbox_config(
-                    [], extra_outbounds=hardened_chain_outbounds
-                )
-                hardened_chains_path = output_dir / "singbox-chains-dns-hardened.json"
-                AtomicFileWriter.write_text(
-                    hardened_chains_path, hardened_chains_content
-                )
-                generated_files["singbox_chains_dns_hardened"] = hardened_chains_path
+        # DNS-hardened chains (includes all chain types: washed, revived, smart, shielded)
+        hardened_chain_outbounds = (
+            _filter_outbounds_for_dns_hardened(chain_outbounds, hardened_map)
+            if chain_outbounds
+            else []
+        )
+        hardened_chains_content = generate_singbox_config(
+            [], extra_outbounds=hardened_chain_outbounds
+        )
+        hardened_chains_path = output_dir / "singbox-chains-dns-hardened.json"
+        AtomicFileWriter.write_text(hardened_chains_path, hardened_chains_content)
+        generated_files["singbox_chains_dns_hardened"] = hardened_chains_path
 
-                hardened_chains_alias = output_dir / "chains-dns-hardened.json"
-                AtomicFileWriter.write_text(
-                    hardened_chains_alias, hardened_chains_content
-                )
-                generated_files["chains_dns_hardened"] = hardened_chains_alias
+        hardened_chains_alias = output_dir / "chains-dns-hardened.json"
+        AtomicFileWriter.write_text(hardened_chains_alias, hardened_chains_content)
+        generated_files["chains_dns_hardened"] = hardened_chains_alias
 
     # 8. Legacy compatibility: Ensure all legacy outputs are preserved
     # These are already generated above, but we verify they exist for backward compatibility
@@ -1483,7 +1450,11 @@ def save_metadata(
         # chosen_subset_size: matches _select_chosen_proxies logic (prefer working, fall back to all)
         "chosen_subset_size": min(
             working if working > 0 else len(proxies),
-            CHOSEN_TOTAL_TARGET if CHOSEN_TOTAL_TARGET > 0 else (working if working > 0 else len(proxies)),
+            (
+                CHOSEN_TOTAL_TARGET
+                if CHOSEN_TOTAL_TARGET > 0
+                else (working if working > 0 else len(proxies))
+            ),
         ),
     }
 

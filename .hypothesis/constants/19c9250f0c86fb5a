@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_payment\shippingquery.py
-# hypothesis_version: 6.150.0
-
-['Bot', 'ShippingOption', 'ShippingQuery', 'from', 'from_user', 'id', 'invoice_payload', 'shipping_address']

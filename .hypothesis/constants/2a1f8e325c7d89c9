@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\cryptography\hazmat\decrepit\ciphers\algorithms.py
-# hypothesis_version: 6.150.0
-
-[128, 129, 160, 192, 256, 449, '3DES', 'Blowfish', 'CAST5', 'IDEA', 'RC2', 'RC4', 'SEED']

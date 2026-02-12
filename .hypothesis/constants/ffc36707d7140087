@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\tornado\http1connection.py
-# hypothesis_version: 6.150.0
-
-[b'\r\n', b'\r\n\r\n', b'\r?\n\r?\n', b'\r|\n', b'0\r\n\r\n', b'HTTP/1.1 100 (Continue)\r\n\r\n', b'HTTP/1.1 400 Bad Request\r\n\r\n', 100, 200, 204, 304, 65536, '%x', ',', ',\\s*', '100-continue', ': ', 'Connection', 'Content-Encoding', 'Content-Length', 'Expect', 'Future[None]', 'GET', 'HEAD', 'HTTP/1.0', 'HTTP/1.1', 'HTTP/1.1 %d %s', 'Keep-Alive', 'PATCH', 'POST', 'PUT', 'Transfer-Encoding', 'Uncaught exception', '[0-9]+', '[0-9a-fA-F]+', 'chunked', 'close', 'gzip', 'invalid chunk size', 'keep-alive', 'latin1', 'method', 'not an integer: %r']

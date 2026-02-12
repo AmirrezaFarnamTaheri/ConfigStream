@@ -1,4 +1,0 @@
-# file: D:\GitHub\ConfigStream\src\configstream\logging_config.py
-# hypothesis_version: 6.150.0
-
-[1024, '\x1b[0m', '\x1b[31m', '\x1b[32m', '\x1b[33m', '\x1b[35m', '\x1b[36m', '-', '-_', '://([^@/\\s]+)@', '://[MASKED]@', 'INFO', '[MASKED_CREDENTIAL]', '[MASKED_EMAIL]', '[MASKED_UUID]', '\\1[MASKED]', '\\n', '\\r', 'aiohttp', 'asyncio', 'configstream.log', 'detailed', 'email', 'exception', 'level', 'location', 'message', 'name', 'timestamp', 'trace_id', 'urllib3', 'utf-8', 'uuid']

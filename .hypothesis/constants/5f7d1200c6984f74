@@ -1,4 +1,0 @@
-# file: D:\GitHub\ConfigStream\src\configstream\quality\storage.py
-# hypothesis_version: 6.150.0
-
-[0.0, 50.0, 100.0, ',', '?', 'High Failures', 'Low Reliability', 'active', 'batch_source', 'conn', 'consecutive_failures', 'diversity_score', 'duration_ms', 'failure_modes_json', 'failures', 'fetched_count', 'geoip_json', 'id', 'last_checked', 'last_failure_reason', 'reliability_score', 'score', 'status', 'timestamp', 'total_fetched', 'total_working', 'trust_score', 'url', 'working_count', '{}']

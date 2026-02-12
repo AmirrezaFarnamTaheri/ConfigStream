@@ -1,4 +1,0 @@
-# file: D:\GitHub\ConfigStream\src\configstream\history\export.py
-# hypothesis_version: 6.150.0
-
-[168, '+00:00', 'Z', 'active_count', 'address', 'entries', 'evasion_alpn_enabled', 'evasion_utls_enabled', 'is_working', 'last_test', 'port', 'protocol', 'r', 'revived_vwarp', 'revived_warp', 'shielded_count', 'stats', 'timestamp', 'total_revived', 'total_valid_proxies', 'trend', 'utf-8']

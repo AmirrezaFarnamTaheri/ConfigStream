@@ -4,6 +4,7 @@ Tests for parser fixes applied during the 2026-02-08 audit.
 Covers: Shadowsocks password drop, Trojan password fallback,
 PipelineStats sync to_dict, and signer input validation.
 """
+
 import pytest
 from configstream.parsers.shadowsocks import parse_ss
 from configstream.parsers.trojan import parse_trojan
@@ -11,7 +12,6 @@ from configstream.pipeline_core.stats import PipelineStats
 from configstream.crypto.signer import Signer
 import inspect
 import threading
-
 
 # ---------------------------------------------------------------------------
 # Shadowsocks: Password drop after failed fallback

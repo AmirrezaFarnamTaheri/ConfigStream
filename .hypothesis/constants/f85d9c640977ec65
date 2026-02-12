@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\starlette\staticfiles.py
-# hypothesis_version: 6.150.0
-
-[200, 304, 401, 404, 405, ' W/', ',', '..', '/', '404.html', 'GET', 'HEAD', 'cache-control', 'content-location', 'date', 'etag', 'expires', 'http', 'if-modified-since', 'if-none-match', 'index.html', 'last-modified', 'method', 'os.PathLike[str]', 'path', 'statics', 'type', 'vary']

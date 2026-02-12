@@ -1,4 +1,0 @@
-# file: D:\GitHub\ConfigStream\src\configstream\security\rules.py
-# hypothesis_version: 6.150.0
-
-['\x00', '%', '.', '.test', '0:0:0:0:0:0:0:1', '0x', '127.', '::1', '::ffff:127.', 'ADDRESS_BLOCKED', 'ADDRESS_PRIVATE', 'ADDRESS_SUSPICIOUS', 'CONFIG_NULL_BYTE', 'CONFIG_TOO_LONG', 'Empty address', 'HONEYPOT_SUSPECTED', 'NFKC', 'PORT_UNSAFE', 'PROTOCOL_UNKNOWN', 'UUID_INVALID', '^0[0-7]{1,11}\\.', '^0\\.', '^0\\.0\\.0\\.0$', '^10\\.', '^127\\.', '^169\\.254\\.', '^192\\.168\\.', '^255\\.255\\.255\\.255$', '^::1$', '^[\\d\\.:]+$', '^[\\d\\.]+$', '^fc00:', '^fd00:', '^fe80:', '^localhost$', 'address_blocked', 'address_private_ip', 'address_suspicious', 'ascii', 'config_uuid_invalid', 'honeypot_suspected', 'localhost', 'port_security', 'protocol_invalid']

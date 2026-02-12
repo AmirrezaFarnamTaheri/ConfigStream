@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\limits\aio\storage\redis\__init__.py
-# hypothesis_version: 6.150.0
-
-['2.1', '3.4.0', '4.2', '4.3', '5.2.0', '6.0', 'BASIC', 'CLUSTER', 'LIMITS', 'SENTINEL', 'async+', 'async+redis', 'async+redis+cluster', 'async+redis+sentinel', 'async+redis+unix', 'async+rediss', 'async+valkey', 'async+valkey+cluster', 'async+valkey+unix', 'async+valkeys', 'coredis', 'coredis.sentinel', 'redis', 'redispy', 'unix', 'valkey']

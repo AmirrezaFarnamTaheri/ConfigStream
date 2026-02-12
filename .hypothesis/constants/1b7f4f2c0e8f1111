@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_files\inputmedia.py
-# hypothesis_version: 6.150.0
-
-['_duration', 'caption', 'caption_entities', 'cover', 'duration', 'has_spoiler', 'height', 'media', 'parse_mode', 'performer', 'start_timestamp', 'supports_streaming', 'thumbnail', 'title', 'type', 'width']

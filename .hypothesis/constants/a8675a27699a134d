@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\fastapi\routing.py
-# hypothesis_version: 6.150.0
-
-[400, '+json', '/', 'APIRoute', 'APIRouter', 'DELETE', 'GET', 'HEAD', 'JSON decode error', 'OPTIONS', 'PATCH', 'POST', 'PUT', 'Response_', 'Successful Response', 'TRACE', 'application', 'background', 'body', 'content-type', 'ctx', 'error', 'fastapi_inner_astack', 'function', 'input', 'json', 'json_invalid', 'loc', 'model', 'msg', 'name', 'path', 'read_with_orm_mode', 'response', 'route', 'serialization', 'serialize', 'shutdown', 'startup', 'status_code', 'type', 'unknown']

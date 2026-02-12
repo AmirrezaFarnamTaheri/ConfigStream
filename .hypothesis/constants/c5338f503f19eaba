@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\ext\_handlers\commandhandler.py
-# hypothesis_version: 6.150.0
-
-['@', 'RT', '^[\\da-z_]{1,32}$', 'commands', 'filters', 'has_args']

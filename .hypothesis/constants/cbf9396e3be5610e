@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_business.py
-# hypothesis_version: 6.150.0
-
-[1440, 'Bot', 'BusinessConnection', 'BusinessIntro', 'BusinessLocation', 'BusinessOpeningHours', 'User', '_cached_zone_info', '_closing_time', '_opening_time', 'address', 'can_edit_bio', 'can_edit_name', 'can_edit_username', 'can_manage_stories', 'can_read_messages', 'can_reply', 'can_transfer_stars', 'chat', 'closing_minute', 'date', 'id', 'is_enabled', 'location', 'message', 'message_ids', 'opening_hours', 'opening_minute', 'rights', 'sticker', 'time_zone_name', 'title', 'user', 'user_chat_id']

@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_passport\data.py
-# hypothesis_version: 6.150.0
-
-['birth_date', 'city', 'country_code', 'document_no', 'expiry_date', 'first_name', 'first_name_native', 'gender', 'last_name', 'last_name_native', 'middle_name', 'middle_name_native', 'post_code', 'state', 'street_line1', 'street_line2']

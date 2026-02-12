@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_inline\inlinekeyboardbutton.py
-# hypothesis_version: 6.150.0
-
-['Bot', 'InlineKeyboardButton', 'callback_data', 'callback_game', 'copy_text', 'login_url', 'pay', 'switch_inline_query', 'text', 'url', 'web_app']

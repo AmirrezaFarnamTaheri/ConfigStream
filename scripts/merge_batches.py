@@ -5,6 +5,7 @@ import glob
 import json
 import logging
 import os
+import tempfile
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 from datetime import datetime, timezone
@@ -353,8 +354,35 @@ def _merge_logs(output_dir: str) -> None:
 def merge_batches(batch_glob: str, output_dir: str) -> None:
     batch_dirs = _find_batch_dirs(batch_glob)
     if not batch_dirs:
-        print(f"No batch directories found for {batch_glob}")
-        # Still merge logs even if no batch dirs found
+        # Fail-open: still generate a complete (empty) output set so clients and
+        # GitHub Pages don't hit 404s when shard artifacts are missing.
+        print(
+            f"No batch directories found for {batch_glob} - generating empty outputs."
+        )
+        output_path = Path(output_dir)
+        output_path.mkdir(parents=True, exist_ok=True)
+
+        stats = PipelineStats()
+        stats.end_time = datetime.now(timezone.utc)
+
+        # Use a temp DB for history to avoid leaking SQLite artifacts into the public output.
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            history = ProxyHistoryTracker(Path(tmp_dir) / "history.db")
+            try:
+                from configstream.intelligence.washer.core import ProxyWasher
+
+                washer = ProxyWasher("[]")
+                asyncio.run(
+                    output_handler.generate_pipeline_outputs(
+                        [], output_path, stats, history, washer=washer
+                    )
+                )
+            finally:
+                try:
+                    history.close()
+                except Exception:
+                    pass
+
         _merge_logs(output_dir)
         return
 
@@ -366,23 +394,25 @@ def merge_batches(batch_glob: str, output_dir: str) -> None:
             continue
         all_proxies.extend(_load_proxies_from_file(proxies_path))
 
-    if not all_proxies:
-        print("No proxies loaded; aborting merge (logs still consolidated).")
-        _merge_logs(output_dir)
-        return
-
     settings = AppSettings()
-    all_proxies = dedupe_and_shuffle(all_proxies)
-    if settings.ENABLE_ENDPOINT_FILTERING:
-        all_proxies = filter_unique_endpoints(all_proxies)
-
     # Merge databases before sorting to leverage history.
     _merge_quality_db(batch_dirs)
     _merge_anomaly_db(batch_dirs)
     history = _merge_history_db(batch_dirs)
     _merge_timeout_history(batch_dirs)
 
-    sort_proxies_pareto(all_proxies, history)
+    if all_proxies:
+        all_proxies = dedupe_and_shuffle(all_proxies)
+        if settings.ENABLE_ENDPOINT_FILTERING:
+            all_proxies = filter_unique_endpoints(all_proxies)
+
+        sort_proxies_pareto(all_proxies, history)
+    else:
+        # Fail-open behaviour: still generate a complete (empty) output set so
+        # GitHub Pages/clients don't hit 404s when a shard run produced no proxy payloads.
+        print(
+            "No proxies loaded from shard outputs; generating empty outputs for consistency."
+        )
 
     stats_payload = _merge_metadata(batch_dirs)
     stats = PipelineStats()
@@ -393,7 +423,8 @@ def merge_batches(batch_glob: str, output_dir: str) -> None:
     stats.fetched_lines = int(stats_payload.get("fetched_lines", 0))
     stats.parsed = int(stats_payload.get("parsed", 0))
     stats.tested = int(stats_payload.get("tested", 0))
-    stats.working = len(all_proxies)
+    # Working proxies are those that tested successfully on any shard.
+    stats.working = sum(1 for p in all_proxies if p.is_working)
     stats.geo_resolved = int(stats_payload.get("geo_resolved", 0))
     stats.cache_misses = int(stats_payload.get("cache_misses", 0))
     stats.duration = float(stats_payload.get("duration", 0.0))
@@ -410,11 +441,24 @@ def merge_batches(batch_glob: str, output_dir: str) -> None:
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
 
-    asyncio.run(
-        output_handler.generate_pipeline_outputs(
-            all_proxies, output_path, stats, history, washer=None
+    try:
+        washer = None
+        if not all_proxies:
+            # Avoid unnecessary network work in the merge stage when there are no proxies.
+            from configstream.intelligence.washer.core import ProxyWasher
+
+            washer = ProxyWasher("[]")
+
+        asyncio.run(
+            output_handler.generate_pipeline_outputs(
+                all_proxies, output_path, stats, history, washer=washer
+            )
         )
-    )
+    finally:
+        try:
+            history.close()
+        except Exception:
+            pass
 
     _merge_logs(output_dir)
     print(f"Merged {len(all_proxies)} proxies into {output_dir}.")

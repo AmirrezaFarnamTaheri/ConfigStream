@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_uniquegift.py
-# hypothesis_version: 6.150.0
-
-['Bot', 'UniqueGift', 'UniqueGiftBackdrop', 'UniqueGiftInfo', 'UniqueGiftModel', 'UniqueGiftSymbol', 'backdrop', 'base_name', 'center_color', 'colors', 'edge_color', 'gift', 'model', 'name', 'next_transfer_date', 'number', 'origin', 'owned_gift_id', 'publisher_chat', 'rarity_per_mille', 'sticker', 'symbol', 'symbol_color', 'text_color', 'transfer_star_count']

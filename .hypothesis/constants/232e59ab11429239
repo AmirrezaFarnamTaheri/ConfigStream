@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\limits\aio\storage\base.py
-# hypothesis_version: 6.150.0
-
-['2.1', 'acquire_entry', 'check', 'clear', 'clear_sliding_window', 'get', 'get_expiry', 'get_moving_window', 'get_sliding_window', 'incr', 'reset']

@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\pytest_playwright\pytest_playwright.py
-# hypothesis_version: 6.150.0
-
-[256, 5000, '--browser', '--browser-channel', '--device', '--headed', '--output', '--screenshot', '--slowmo', '--tracing', '--video', 'ArtifactsRecorder', 'Playwright', 'active', 'allow', 'append', 'attach', 'base_url', 'block', 'browser', 'browser_context_args', 'browser_name', 'callspec', 'channel', 'chromium', 'dark', 'embed', 'failed', 'finished', 'firefox', 'full', 'get_global_debugger', 'headers', 'headless', 'is_attached', 'light', 'markers', 'minimal', 'ms-python.python', 'no-preference', 'none', 'null', 'off', 'omit', 'on', 'only-on-failure', 'page', 'playwright', 'playwright-asyncio', 'playwright-pytest-', 'png', 'pydevd', 'record_video_dir', 'reduce', 'rep_', 'rep_call', 'retain-on-failure', 'session', 'slow_mo', 'store', 'store_true', 'test-results', 'trace.zip', 'video.webm', 'webkit']
