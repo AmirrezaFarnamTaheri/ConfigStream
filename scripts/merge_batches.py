@@ -371,10 +371,10 @@ def merge_batches(batch_glob: str, output_dir: str) -> None:
             try:
                 from configstream.intelligence.washer.core import ProxyWasher
 
-                washer = ProxyWasher("[]")
+                washer_empty = ProxyWasher("[]")
                 asyncio.run(
                     output_handler.generate_pipeline_outputs(
-                        [], output_path, stats, history, washer=washer
+                        [], output_path, stats, history, washer=washer_empty
                     )
                 )
             finally:
@@ -442,7 +442,7 @@ def merge_batches(batch_glob: str, output_dir: str) -> None:
     output_path.mkdir(parents=True, exist_ok=True)
 
     try:
-        washer = None
+        washer: Optional[Any] = None
         if not all_proxies:
             # Avoid unnecessary network work in the merge stage when there are no proxies.
             from configstream.intelligence.washer.core import ProxyWasher

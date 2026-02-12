@@ -188,7 +188,9 @@ def retest(input, output, max_workers, timeout, max_latency, leniency, verbose):
     help="Allow potentially insecure proxies (default: Strict)",
 )
 @click.option(
-    "--dry-run", is_flag=True, help="Run without actual network calls (Simulation)"
+    "--dry-run",
+    is_flag=True,
+    help="Skip network proxy tests (still fetches/parses sources and generates outputs)",
 )
 @click.option("--verbose", "-v", is_flag=True, help="Enable debug logging")
 def merge(

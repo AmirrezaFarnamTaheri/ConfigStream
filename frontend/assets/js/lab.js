@@ -234,7 +234,26 @@
     }
 
     // --- Pipeline Proxy Integration ---
-    const PIPELINE_BASE = 'output/';
+    const ROOT_PATH = window.ROOT_PATH || './';
+    const API_BASE = `${ROOT_PATH}api/`;
+    const STATIC_HOST_SUFFIXES = ['github.io', 'pages.dev', 'netlify.app'];
+    const PIPELINE_BASE_CANDIDATES = Array.from(new Set([
+        ROOT_PATH,
+        `${ROOT_PATH}output/`,
+        './',
+        'output/',
+    ]));
+
+    function isStaticHosting() {
+        const host = (window.location && window.location.hostname) || '';
+        return STATIC_HOST_SUFFIXES.some((suffix) => host.includes(suffix));
+    }
+
+    function joinBase(base, file) {
+        const cleanBase = String(base || '').replace(/\/+$/, '');
+        const cleanFile = String(file || '').replace(/^\/+/, '');
+        return `${cleanBase}/${cleanFile}`;
+    }
     const PIPELINE_URLS = [
         'base64.txt',           // Base64-encoded URI list
         'base64-dns-safe.txt',  // DNS-safe variant (IP-only)
@@ -244,29 +263,32 @@
         if (pipelineLoaded) return pipelineProxies;
         const results = [];
         for (const file of PIPELINE_URLS) {
-            try {
-                const resp = await fetch(PIPELINE_BASE + file, { cache: 'no-store', signal: AbortSignal.timeout(8000) });
-                if (!resp.ok) continue;
-                const text = await resp.text();
-                // Decode base64
-                let decoded;
-                try { decoded = atob(text.trim()); } catch { decoded = text; }
-                const lines = decoded.split('\n').map(l => l.trim()).filter(Boolean);
-                for (const line of lines) {
-                    const parsed = parseProxyUri(line);
-                    if (parsed) {
-                        results.push({
-                            uri: line,
-                            protocol: parsed.protocol,
-                            address: parsed.address,
-                            port: parsed.port,
-                            remark: parsed.remark || `${parsed.protocol}@${parsed.address}`,
-                        });
+            for (const base of PIPELINE_BASE_CANDIDATES) {
+                try {
+                    const resp = await fetch(joinBase(base, file), { cache: 'no-store', signal: AbortSignal.timeout(8000) });
+                    if (!resp.ok) continue;
+                    const text = await resp.text();
+                    // Decode base64
+                    let decoded;
+                    try { decoded = atob(text.trim()); } catch { decoded = text; }
+                    const lines = decoded.split('\n').map(l => l.trim()).filter(Boolean);
+                    for (const line of lines) {
+                        const parsed = parseProxyUri(line);
+                        if (parsed) {
+                            results.push({
+                                uri: line,
+                                protocol: parsed.protocol,
+                                address: parsed.address,
+                                port: parsed.port,
+                                remark: parsed.remark || `${parsed.protocol}@${parsed.address}`,
+                            });
+                        }
+                        if (results.length >= 200) break; // Cap to avoid memory bloat
                     }
-                    if (results.length >= 200) break; // Cap to avoid memory bloat
-                }
-                if (results.length > 0) break; // Got proxies from first successful file
-            } catch { /* network error, try next */ }
+                    if (results.length > 0) break; // Got proxies from first successful location
+                } catch { /* network error, try next */ }
+            }
+            if (results.length > 0) break; // Got proxies from first successful file
         }
         pipelineProxies = results;
         pipelineLoaded = true;
@@ -859,13 +881,18 @@
             return;
         }
 
+        if (isStaticHosting()) {
+            showManualTestInstructions();
+            return;
+        }
+
         showResult('step4Result', 'pending', 'Testing chain connectivity... This may take up to 15 seconds.');
         const testBtn = $('#step4Test');
         if (testBtn) testBtn.disabled = true;
 
         try {
             // Try the backend test API if available
-            const resp = await fetch('/api/lab/test-chain', {
+            const resp = await fetch(joinBase(API_BASE, 'lab/test-chain'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ config: chainConfig })
