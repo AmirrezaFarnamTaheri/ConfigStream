@@ -2,9 +2,10 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "ConfigStream Proxy",
   "type": "object",
-  "required": ["config", "protocol", "address", "port"],
+  "required": ["protocol", "address", "port"],
   "properties": {
-    "config": {"type": "string", "minLength": 1},
+    "id": {"type": "string", "description": "Stable proxy identifier (UUID or hash)"},
+    "config": {"type": "string"},
     "protocol": {"type": "string", "minLength": 1},
     "address": {"type": "string", "minLength": 1},
     "port": {"type": "integer", "minimum": 1, "maximum": 65535},
@@ -14,9 +15,21 @@
     "country_code": {"type": "string"},
     "city": {"type": "string"},
     "asn": {"type": "string"},
+    "isp": {"type": "string"},
+    "org": {"type": "string"},
     "latency": {"type": ["number", "null"]},
     "is_working": {"type": "boolean"},
     "is_secure": {"type": "boolean"},
+    "tags": {"type": "array", "items": {"type": "string"}},
+    "last_checked": {"type": "string"},
+    "source": {"type": ["string", "null"]},
+    "security": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {"type": "string"}
+      }
+    },
     "security_issues": {
       "type": "object",
       "additionalProperties": {
@@ -36,7 +49,9 @@
     "scores": {
       "type": "object",
       "additionalProperties": {"type": "number"}
-    }
+    },
+    "process": {"type": "string", "description": "Processing type: native, washed, revived-warp, revived-vwarp, chain, shielded"},
+    "history": {"type": ["array", "null"], "items": {"type": "number"}, "description": "Historical latency values for sparklines"}
   },
-  "additionalProperties": false
+  "additionalProperties": true
 }

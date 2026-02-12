@@ -93,7 +93,7 @@ class GoBatchTester:
 
         # Consecutive timeout tracking for systemic failure detection
         self._consecutive_timeouts: int = 0
-        self._max_consecutive_timeouts: int = 3
+        self._max_consecutive_timeouts: int = 5
 
         if not self.available:
             logger.error(
@@ -673,7 +673,7 @@ class GoBatchTester:
             # Restart daemon and AWAIT completion before returning,
             # so the next batch doesn't arrive before the daemon is ready
             try:
-                await safe_wait_for(self._restart_daemon(), timeout=10.0)
+                await safe_wait_for(self._restart_daemon(), timeout=30.0)
             except (asyncio.TimeoutError, Exception) as re_err:
                 logger.warning(f"Daemon restart failed: {re_err}")
             return proxies

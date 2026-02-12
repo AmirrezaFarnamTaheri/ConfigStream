@@ -83,7 +83,6 @@ def _build_dns_safe_proxies(
 ) -> Tuple[List[Proxy], Dict[str, str]]:
     safe: List[Proxy] = []
     host_map: Dict[str, str] = {}
-    adapter = ShadowrocketAdapter()
 
     for proxy in proxies:
         addr = (proxy.address or "").strip()
@@ -123,7 +122,8 @@ def _build_dns_safe_proxies(
         clone.details = details
 
         if isinstance(clone.config, str) and "://" in clone.config:
-            rebuilt = adapter._reconstruct_uri(clone)
+            _adapter = ShadowrocketAdapter()
+            rebuilt = _adapter._reconstruct_uri(clone)
             clone.config = rebuilt or ""
 
         safe.append(clone)
@@ -441,10 +441,13 @@ def _select_chosen_proxies(proxies: List[Proxy]) -> List[Proxy]:
     if CHOSEN_TOP_PER_PROTOCOL <= 0 and CHOSEN_TOTAL_TARGET <= 0:
         return []
 
+    # Prefer working proxies; fall back to ALL proxies when none are working
+    # so that chosen/ outputs are always populated for downstream consumers.
+    working = [p for p in proxies if p.is_working]
+    pool = working if working else proxies
+
     by_protocol: Dict[str, List[Proxy]] = {}
-    for proxy in proxies:
-        if not proxy.is_working:
-            continue
+    for proxy in pool:
         proto = (proxy.protocol or "unknown").lower()
         by_protocol.setdefault(proto, []).append(proxy)
 
@@ -634,15 +637,16 @@ def generate_categorized_outputs(
                     pass
 
     # 4. Categorized Sub-files (By Country & Protocol)
-    # Grouping
+    # Grouping — include ALL proxies so users in different networks can still
+    # use country/protocol subscriptions.  The is_working flag is preserved in
+    # the data for client-side filtering.
     by_country: Dict[str, List[Proxy]] = {}
     by_protocol: Dict[str, List[Proxy]] = {}
 
     for p in proxies:
-        if p.is_working:
-            cc = (p.country_code or "XX").upper()
-            by_country.setdefault(cc, []).append(p)
-            by_protocol.setdefault((p.protocol or "").lower(), []).append(p)
+        cc = (p.country_code or "XX").upper()
+        by_country.setdefault(cc, []).append(p)
+        by_protocol.setdefault((p.protocol or "").lower(), []).append(p)
 
     # Write Country files
     country_dir = output_dir / "countries"
@@ -1476,8 +1480,11 @@ def save_metadata(
         "parsed": parsed_count,
         "tested": tested_count,
         "working": working,
-        # [FIX] Added chosen_subset_size for transparency
-        "chosen_subset_size": len(_select_chosen_proxies(proxies)),
+        # chosen_subset_size: matches _select_chosen_proxies logic (prefer working, fall back to all)
+        "chosen_subset_size": min(
+            working if working > 0 else len(proxies),
+            CHOSEN_TOTAL_TARGET if CHOSEN_TOTAL_TARGET > 0 else (working if working > 0 else len(proxies)),
+        ),
     }
 
     AtomicFileWriter.write_text(

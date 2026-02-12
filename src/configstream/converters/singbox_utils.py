@@ -1,9 +1,13 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import logging
+import re
 from typing import Dict, Any
 from ..utils.bool_parser import parse_bool, parse_tls_flag
 
 logger = logging.getLogger(__name__)
+
+# Matches a lone '%' NOT followed by two hex digits (broken percent-encoding)
+_BAD_PERCENT_RE = re.compile(r"%(?![0-9A-Fa-f]{2})")
 
 
 def add_transport_sb(out: Dict[str, Any], details: Dict[str, Any]) -> Dict[str, Any]:
@@ -11,10 +15,14 @@ def add_transport_sb(out: Dict[str, Any], details: Dict[str, Any]) -> Dict[str, 
     net = details.get("net") or details.get("type") or "tcp"
 
     transport: Dict[str, Any] = {}
+    def _safe_path(raw: str) -> str:
+        """Fix broken percent-encoding that crashes sing-box."""
+        return _BAD_PERCENT_RE.sub("%25", raw)
+
     if net == "ws":
         transport["type"] = "ws"
         if "path" in details:
-            transport["path"] = str(details["path"])
+            transport["path"] = _safe_path(str(details["path"]))
         if "host" in details or "sni" in details:
             host_val = details.get("host") or details.get("sni")
             # Prevent str(None) → "None" string corruption
@@ -30,7 +38,7 @@ def add_transport_sb(out: Dict[str, Any], details: Dict[str, Any]) -> Dict[str, 
     elif net in ("http", "h2"):
         transport["type"] = "http"
         if "path" in details:
-            transport["path"] = str(details["path"])
+            transport["path"] = _safe_path(str(details["path"]))
         if "host" in details:
             transport["host"] = [str(details["host"])]
     # [FIX] Add httpupgrade transport support per sing-box schema.
@@ -38,7 +46,7 @@ def add_transport_sb(out: Dict[str, Any], details: Dict[str, Any]) -> Dict[str, 
     elif net == "httpupgrade":
         transport["type"] = "httpupgrade"
         if "path" in details:
-            transport["path"] = str(details["path"])
+            transport["path"] = _safe_path(str(details["path"]))
         if "host" in details or "sni" in details:
             host_val = details.get("host") or details.get("sni")
             if host_val and str(host_val).lower() != "none":
