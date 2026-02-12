@@ -458,23 +458,24 @@ async def processing_consumer(
                             stats.drop_reasons["tester_error"] = stats.drop_reasons.get(
                                 "tester_error", 0
                             ) + len(vwarp_candidates)
-                        vwarp_candidates = []
+                        # [FIX] Do NOT clear candidates — keep them as untested
+                        # revival chains so they appear in output for users to try.
                     for p in vwarp_candidates:
+                        p.process = "revived-vwarp"
+                        if "revived-vwarp" not in p.tags:
+                            p.tags.append("revived-vwarp")
+                        # Recover origin info
+                        origin = p.details.get("origin_proxy")
+                        if origin:
+                            p.country_code = origin.get("country_code", "")
+                            p.country = origin.get("country", "")
+                        origin_id = p.details.get("origin_id")
+                        if not origin_id and isinstance(origin, dict):
+                            origin_id = origin.get("uuid") or origin.get("id")
+                        if origin_id and p.is_working:
+                            vwarp_success_ids.add(str(origin_id))
+                        final_batch_for_this_source.append(p)
                         if p.is_working:
-                            p.process = "revived-vwarp"
-                            if "revived-vwarp" not in p.tags:
-                                p.tags.append("revived-vwarp")
-                            # Recover origin info
-                            origin = p.details.get("origin_proxy")
-                            if origin:
-                                p.country_code = origin.get("country_code", "")
-                                p.country = origin.get("country", "")
-                            origin_id = p.details.get("origin_id")
-                            if not origin_id and isinstance(origin, dict):
-                                origin_id = origin.get("uuid") or origin.get("id")
-                            if origin_id:
-                                vwarp_success_ids.add(str(origin_id))
-                            final_batch_for_this_source.append(p)
                             async with seen_lock:
                                 stats.revived_vwarp += 1
                                 stats.vwarp_success += 1
@@ -505,30 +506,23 @@ async def processing_consumer(
                                     stats.drop_reasons.get("tester_error", 0)
                                     + len(warp_candidates)
                                 )
-                            warp_candidates = []
+                            # [FIX] Do NOT clear candidates — keep as untested chains.
                         for p in warp_candidates:
+                            p.process = "revived-warp"
+                            if "revived-warp" not in p.tags:
+                                p.tags.append("revived-warp")
+                            origin = p.details.get("origin_proxy")
+                            if origin:
+                                p.country_code = origin.get("country_code", "")
+                                p.country = origin.get("country", "")
+                            final_batch_for_this_source.append(p)
                             if p.is_working:
-                                p.process = "revived-warp"
-                                if "revived-warp" not in p.tags:
-                                    p.tags.append("revived-warp")
-                                origin = p.details.get("origin_proxy")
-                                if origin:
-                                    p.country_code = origin.get("country_code", "")
-                                    p.country = origin.get("country", "")
-                                final_batch_for_this_source.append(p)
                                 async with seen_lock:
                                     stats.revived_warp += 1
 
         # Post-process final batch (GeoIP, Filter)
         for p in final_batch_for_this_source:
-            if not p.is_working:
-                continue
-            # [FIX] Use explicit None check; 0.0 latency is valid, not missing
-            if (
-                max_latency
-                and (p.latency if p.latency is not None else 9999) > max_latency
-            ):
-                continue
+            # GeoIP enrichment for all proxies (working and revived-not-working)
             if not p.country_code:
                 with tracker.phase("geo"):
                     geo_data = await geoip.lookup(p.resolved_ip or p.address)
@@ -545,6 +539,22 @@ async def processing_consumer(
                             p.details["lng"] = geo_data.lng
                         async with seen_lock:
                             stats.geo_resolved += 1
+
+            if not p.is_working:
+                # [FIX] Include non-working revived/chain proxies in output so
+                # users get chain configs they can try in their own network.
+                is_revived = (p.process or "").startswith("revived")
+                if is_revived:
+                    async with seen_lock:
+                        final_proxies.append(p)
+                continue
+
+            # [FIX] Use explicit None check; 0.0 latency is valid, not missing
+            if (
+                max_latency
+                and (p.latency if p.latency is not None else 9999) > max_latency
+            ):
+                continue
             if country_filter:
                 if p.country_code != country_filter.upper():
                     continue

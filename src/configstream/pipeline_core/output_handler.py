@@ -317,28 +317,25 @@ async def generate_pipeline_outputs(
         except Exception as e:
             logger.warning(f"Shielding failed: {e}", exc_info=True)
 
-    # Track evasion metrics (count proxies with evasion features enabled)
-    # Note: These are applied in generate_split_outputs, so we estimate based on working proxies
-    working_with_tls = [
+    # Track evasion metrics (count ALL TLS-capable proxies, not just working ones,
+    # since evasion features are applied during output generation to all proxies)
+    tls_proxies = [
         p
         for p in optimized_proxies
-        if p.is_working
-        and p.protocol in ["vmess", "vless", "trojan", "hysteria2", "tuic"]
+        if p.protocol in ["vmess", "vless", "trojan", "hysteria2", "tuic"]
     ]
-    stats.evasion_utls_enabled = len(working_with_tls)  # All TLS proxies get uTLS
+    stats.evasion_utls_enabled = len(tls_proxies)
     stats.evasion_alpn_enabled = len(
-        [p for p in working_with_tls if p.protocol in ["vmess", "vless", "trojan"]]
-    )  # ALPN for specific protocols
-    stats.evasion_fragmentation_enabled = len(
-        working_with_tls
-    )  # All TLS proxies get fragmentation
+        [p for p in tls_proxies if p.protocol in ["vmess", "vless", "trojan"]]
+    )
+    stats.evasion_fragmentation_enabled = len(tls_proxies)
     stats.evasion_multiplexing_enabled = len(
         [
             p
-            for p in working_with_tls
+            for p in tls_proxies
             if p.protocol in ["vmess", "vless", "trojan", "shadowsocks"]
         ]
-    )  # Multiplexing for specific protocols
+    )
 
     # [FIX] Explicit logging if no chains were created despite having working proxies
     if not washed_outbounds and optimized_proxies:

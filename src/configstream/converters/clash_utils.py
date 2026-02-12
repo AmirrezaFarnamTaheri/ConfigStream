@@ -36,6 +36,18 @@ def add_transport_opts(base: Dict[str, Any], details: Dict[str, Any]) -> Dict[st
         if h2_opts:
             base["h2-opts"] = h2_opts
 
+    elif net == "httpupgrade":
+        base["network"] = "ws"
+        ws_up_opts: Dict[str, Any] = {"v2ray-http-upgrade": True}
+        if "path" in details:
+            ws_up_opts["path"] = str(details["path"])
+        if "host" in details or "sni" in details:
+            host_val = details.get("host") or details.get("sni")
+            if host_val and str(host_val).lower() != "none":
+                ws_up_opts["headers"] = {"Host": str(host_val)}
+        if ws_up_opts:
+            base["ws-opts"] = ws_up_opts
+
     # Common TLS fields
     tls_enabled = parse_tls_flag(details.get("tls")) or details.get("security") in [
         "tls",

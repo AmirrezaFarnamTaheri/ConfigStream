@@ -26,7 +26,7 @@ DB_PATH = Path("data/source_quality.db")
 FINGERPRINT_DIR = Path("data/fingerprints")
 DEFAULT_WEIGHT = 130  # Fallback weight for sources not found in logs (deciseconds)
 MIN_BATCHES = 14
-MAX_BATCHES = 16
+MAX_BATCHES = 17
 TARGET_BATCH_SECONDS = 14400  # Aim for <= 4 hours per batch
 RUNS_PER_SOURCE = 5
 

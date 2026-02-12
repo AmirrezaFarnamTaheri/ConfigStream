@@ -163,6 +163,11 @@ def parse_vless(url: str) -> Proxy | None:
             if "host" in params:
                 proxy.details["host"] = params["host"]
 
+        elif params.get("type") == "httpupgrade":
+            proxy.details["path"] = params.get("path", "/")
+            if "host" in params:
+                proxy.details["host"] = params["host"]
+
         normalize_proxy_details(proxy)
         return proxy
 

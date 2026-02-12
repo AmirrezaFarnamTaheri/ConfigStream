@@ -405,7 +405,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         )
         out["tls"] = {
             "enabled": True,
-            "server_name": str(proxy.details.get("sni", "")),
+            "server_name": str(proxy.details.get("sni") or proxy.address),
             "insecure": is_insecure,
         }
 
@@ -555,7 +555,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
 
         out["tls"] = {
             "enabled": True,
-            "server_name": str(proxy.details.get("sni", "")),
+            "server_name": str(proxy.details.get("sni") or proxy.address),
             "insecure": is_insecure,
             "alpn": proxy.details.get("alpn", []),
         }
@@ -599,7 +599,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
 
         out["tls"] = {
             "enabled": True,
-            "server_name": str(proxy.details.get("sni", "")),
+            "server_name": str(proxy.details.get("sni") or proxy.address),
             "insecure": is_insecure,
             "alpn": proxy.details.get("alpn", []),
         }

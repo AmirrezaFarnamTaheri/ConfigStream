@@ -673,12 +673,12 @@ class VwarpTool:
             proc = await asyncio.create_subprocess_exec(
                 *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
             )
-            # Give it 30 seconds max to find IPs
+            # Give it 60 seconds max to find IPs (CI environments need more time)
             try:
                 if asyncio.current_task() is None:
                     stdout, _ = await proc.communicate()
                 else:
-                    stdout, _ = await safe_wait_for(proc.communicate(), timeout=30)
+                    stdout, _ = await safe_wait_for(proc.communicate(), timeout=60)
             except asyncio.TimeoutError:
                 elapsed = time.time() - scan_start
                 logger.warning(

@@ -30,10 +30,12 @@ class AppSettings(BaseSettings):
     SECURITY_CHECK_TIMEOUT: int = 8
     RETEST_TIMEOUT: int = 6
     GEOIP_TIMEOUT: int = 5
-    # Soft time limit for a batch run (0 disables). Default ~6.5 hours.
-    BATCH_TIME_LIMIT_SECONDS: int = 20000
-    # Grace period after soft stop before hard cancellation.
-    BATCH_TIME_LIMIT_GRACE_SECONDS: int = 900
+    # Soft time limit for a batch run (0 disables). Default 3h45m.
+    # After this, stop_event fires → producer stops fetching new sources.
+    BATCH_TIME_LIMIT_SECONDS: int = 13500
+    # Grace period after soft stop for consumers to finish revival, then
+    # output generation (DNS, chaining, washing) runs after gather completes.
+    BATCH_TIME_LIMIT_GRACE_SECONDS: int = 2700
     GEOIP_CITY_DB_PATH: str = "data/GeoLite2-City.mmdb"
     GEOIP_ASN_DB_PATH: str = "data/GeoLite2-ASN.mmdb"
 
