@@ -1,2 +1,11 @@
 # ConfigStream Batch 17
-# Empty batch — reshard will distribute sources here automatically
+# Optimized based on fetch duration for equal execution times
+# Est. Fetch Time: 5778.8s
+
+https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-17.txt
+https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-11.txt
+https://raw.githubusercontent.com/mermeroo/Loon/refs/heads/main/all.nodes.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub27.txt
+https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/refs/heads/main/mci/sub_4.txt
+https://v2.alicivil.workers.dev/?count=2000&list=sk&shuffle=true
+https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/sub/ServerLess_1-1_Fragment_xray_config.json
