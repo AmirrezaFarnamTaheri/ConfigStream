@@ -132,7 +132,10 @@ jobs:
 
           # Required artifacts: fail fast with clear message if missing
           # Keep this list aligned with frontend references to avoid silent 404s on GitHub Pages.
-          required_files=(
+          # Some subscription files can be legitimately empty (e.g. during hostile CI networking
+          # when all tests fail, or when sources are temporarily down). For those, we require
+          # existence but do not require non-empty.
+          required_exists=(
             output/proxies.json
             output/metadata.json
             output/base64.txt
@@ -167,9 +170,43 @@ jobs:
             output/data/active_proxy_trend.json
             output/data/evasion_trend.json
             output/docs/wiki/index.md
+            output/index.html
           )
-          for f in "${required_files[@]}"; do
-            [ -s "$f" ] || { echo "ERROR: missing required file: $f"; exit 1; }
+
+          required_nonempty=(
+            output/proxies.json
+            output/metadata.json
+            output/singbox.json
+            output/singbox-dns-safe.json
+            output/singbox-dns-hardened.json
+            output/singbox-vpn.json
+            output/singbox-vpn-dns-safe.json
+            output/singbox-vpn-dns-hardened.json
+            output/clash.yaml
+            output/clash-dns-safe.yaml
+            output/clash-dns-hardened.yaml
+            output/singbox-chains.json
+            output/singbox-chains-dns-safe.json
+            output/singbox-chains-dns-hardened.json
+            output/chains.json
+            output/chains-dns-safe.json
+            output/chains-dns-hardened.json
+            output/side_products.zip
+            output/side_products-dns-safe.zip
+            output/side_products-dns-hardened.zip
+            output/data/clean_ips.json
+            output/data/proxy_history_viz.json
+            output/data/active_proxy_trend.json
+            output/data/evasion_trend.json
+            output/docs/wiki/index.md
+            output/index.html
+          )
+
+          for f in "${required_exists[@]}"; do
+            [ -f "$f" ] || { echo "ERROR: missing required file: $f"; exit 1; }
+          done
+          for f in "${required_nonempty[@]}"; do
+            [ -s "$f" ] || { echo "ERROR: required file is empty: $f"; exit 1; }
           done
 
           cp output/proxies.json output/api/proxies

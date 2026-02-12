@@ -2,6 +2,10 @@
 import logger from './utils/logger.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+    const root = window.ROOT_PATH || './';
+    const API_PROXIES_URL = `${root}api/proxies`;
+    const API_DIFF_PROXIES_URL = `${root}api/diff/proxies`;
+
     // Note: Common UI (Theme, Header Scroll, Mobile Nav, Copy Buttons) is now handled by common-ui.js
 
     // Initialize Dynamic Downloads (Client Selector)
@@ -71,17 +75,18 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const cached = await window.cacheManager.getCachedData('/api/proxies');
+        const cached = await window.cacheManager.getCachedData(API_PROXIES_URL);
         if (!cached || !cached.version) {
             // No cache, fetch full
             logger.log('[Diff] No cache version, fetching full');
-            return window.cacheManager.fetchFresh('/api/proxies');
+            return window.cacheManager.fetchFresh(API_PROXIES_URL);
         }
 
         try {
             // Try fetching diff
             logger.log(`[Diff] Requesting diff from ${cached.version} to ${newVersion}`);
-            const response = await fetch(`/api/diff/proxies?base_version=${cached.version}`);
+            const base = encodeURIComponent(cached.version);
+            const response = await fetch(`${API_DIFF_PROXIES_URL}?base_version=${base}`);
 
             if (!response.ok) {
                  throw new Error("Diff endpoint returned " + response.status);
@@ -104,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 // Save new state
-                await window.cacheManager.cacheData('/api/proxies', proxies, newVersion);
+                await window.cacheManager.cacheData(API_PROXIES_URL, proxies, newVersion);
 
                 // Dispatch event for UI updates
                 window.dispatchEvent(new CustomEvent('data-updated', { detail: { count: proxies.length } }));
@@ -116,12 +121,12 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 // Full reload required
                 logger.log('[Diff] Server requested full reload');
-                await window.cacheManager.fetchFresh('/api/proxies');
+                await window.cacheManager.fetchFresh(API_PROXIES_URL);
                 window.dispatchEvent(new CustomEvent('data-updated'));
             }
         } catch (e) {
             logger.warn('[Diff] Failed, falling back to full fetch', e);
-            await window.cacheManager.fetchFresh('/api/proxies');
+            await window.cacheManager.fetchFresh(API_PROXIES_URL);
             window.dispatchEvent(new CustomEvent('data-updated'));
         }
     };

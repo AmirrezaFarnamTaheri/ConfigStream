@@ -112,7 +112,7 @@ async function fetchMetadata() {
       return data;
     } catch (staticError) {
       // Try API if static fails (e.g. running locally with backend server)
-      url = `/api/stats${getCacheBust()}`;
+      url = `${root}api/stats${getCacheBust()}`;
       const response = await fetchWithRetry(url, 3, 1000);
       const data = await response.json();
       await saveToStorage('metadata', data, 120000); // Default expiry if fallback
@@ -177,7 +177,8 @@ async function fetchProxies() {
   } catch (primaryError) {
     // Try API fallback
     try {
-        const url = `/api/proxies${getCacheBust()}`;
+        const root = window.ROOT_PATH || '';
+        const url = `${root}api/proxies${getCacheBust()}`;
         const response = await fetchWithRetry(url, 2, 500);
         const data = await response.json();
         if (!Array.isArray(data)) throw new Error('Invalid proxy data format');
