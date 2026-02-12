@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\aiofiles\tempfile\temptypes.py
-# hypothesis_version: 6.150.0
-
-['cleanup', 'close', 'closed', 'encoding', 'fileno', 'flush', 'isatty', 'mode', 'name', 'newlines', 'read', 'readline', 'readlines', 'rollover', 'seek', 'tell', 'truncate']

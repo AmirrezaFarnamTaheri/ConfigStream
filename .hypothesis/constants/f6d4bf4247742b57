@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_inline\inlinequeryresultdocument.py
-# hypothesis_version: 6.150.0
-
-['InputMessageContent', 'caption', 'caption_entities', 'description', 'document_url', 'mime_type', 'parse_mode', 'reply_markup', 'thumbnail_height', 'thumbnail_url', 'thumbnail_width', 'title']

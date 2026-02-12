@@ -34,6 +34,37 @@ from configstream.utils.net import (
 logger = logging.getLogger(__name__)
 
 
+def _save_clean_ips(clean_ips: List[tuple[str, int]], path: Path) -> None:
+    """
+    Save washer clean IPs for the frontend lab.
+    Output shape matches frontend expectations: list of {ip, port}.
+    """
+    items: List[Dict[str, Any]] = []
+    seen: set[str] = set()
+    for entry in clean_ips:
+        try:
+            ip, port = entry
+        except Exception:
+            continue
+        ip_s = str(ip).strip()
+        if not ip_s:
+            continue
+        try:
+            port_i = int(port)
+        except Exception:
+            port_i = 2408
+        key = f"{ip_s}:{port_i}"
+        if key in seen:
+            continue
+        seen.add(key)
+        items.append({"ip": ip_s, "port": port_i})
+        if len(items) >= 200:
+            break
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    AtomicFileWriter.write_text(path, json.dumps(items, indent=2, ensure_ascii=False))
+
+
 def _group_chain_outbounds(
     outbounds: List[Dict[str, Any]],
 ) -> List[List[Dict[str, Any]]]:
@@ -77,14 +108,19 @@ def _chain_to_proxy_entry(chain: List[Dict[str, Any]], process: str) -> Dict[str
     entry = chain[-1]  # entry point is last element
     mini_config = _build_chain_config(chain)
     tag = entry.get("tag", "Chain")
+    server = entry.get("server", "")
+    try:
+        port = int(entry.get("server_port", 0) or 0)
+    except Exception:
+        port = 0
     tags = ["chain"]
     if any(ob.get("type") == "wireguard" for ob in chain):
         tags.append("warp")
     return {
         "id": tag,
         "protocol": entry.get("type", "chain"),
-        "address": entry.get("server", ""),
-        "port": entry.get("server_port", 0),
+        "address": str(server or ""),
+        "port": port,
         "uuid": "",
         "country": "",
         "country_code": "",
@@ -115,10 +151,22 @@ def _chain_outbounds_to_entries(
     entries: List[Dict[str, Any]] = []
     seen_tags: set[str] = set()
 
+    def _is_proxy_like_entry(ob: Dict[str, Any]) -> bool:
+        server = ob.get("server")
+        if not isinstance(server, str) or not server.strip():
+            return False
+        try:
+            port = int(ob.get("server_port", 0) or 0)
+        except Exception:
+            return False
+        return 1 <= port <= 65535
+
     # Washed outbounds (flat list → group into chains)
     if washed_outbounds:
         for chain in _group_chain_outbounds(washed_outbounds):
             if not chain:
+                continue
+            if not _is_proxy_like_entry(chain[-1]):
                 continue
             entry_tag = chain[-1].get("tag", "")
             if entry_tag in seen_tags:
@@ -138,6 +186,10 @@ def _chain_outbounds_to_entries(
         for _group, chain_list in smart_chains.items():
             for chain in chain_list:
                 if not isinstance(chain, list) or not chain:
+                    continue
+                if not isinstance(chain[-1], dict) or not _is_proxy_like_entry(
+                    chain[-1]
+                ):
                     continue
                 entry_tag = chain[-1].get("tag", "")
                 if entry_tag in seen_tags:
@@ -269,10 +321,27 @@ async def generate_pipeline_outputs(
     # We load keys from Env. If empty, washer degrades gracefully to no-op.
     if washer is None:
         washer = ProxyWasher(settings.WARP_KEY_POOL)
-        # Run the Go Scanner (Phase 2 Component)
-        # This populates self.clean_ips in the washer with fresh, low-latency endpoints.
-        # We await it because it's an async network operation.
-        await washer.fetch_clean_ips()
+        # Populate clean_ips in the washer (best-effort). This may involve network access
+        # (scraper/scanner/static lists). Output generation must never fail if this step
+        # is blocked by hostile network conditions.
+        try:
+            await washer.fetch_clean_ips()
+        except Exception:
+            logger.debug("Failed to fetch clean IPs (fail-open).", exc_info=True)
+
+    # Export clean IPs for the frontend lab (best-effort, non-fatal).
+    try:
+        loop = asyncio.get_running_loop()
+        clean_ips = washer.clean_ips
+        if not clean_ips:
+            # Provide a deterministic fallback for static hosting / merge-stage runs.
+            from configstream.intelligence.washer.core import DEFAULT_CLEAN_IPS
+
+            clean_ips = [(ip, 2408) for ip in DEFAULT_CLEAN_IPS]
+        clean_ips_path = output_path / "data" / "clean_ips.json"
+        await loop.run_in_executor(None, _save_clean_ips, clean_ips, clean_ips_path)
+    except Exception:
+        logger.debug("Failed to export clean_ips.json", exc_info=True)
 
     # Update stats with scanner results
     stats.scanner_ips_found = len(washer.clean_ips)
@@ -390,63 +459,43 @@ async def generate_pipeline_outputs(
         dns_safe_proxies, _ = _cached_dns_safe
     else:
         dns_safe_proxies, _ = _build_dns_safe_proxies(optimized_proxies)
-    dns_safe_path: Optional[Path] = None
-    if dns_safe_proxies:
-        dns_safe_path = output_path / "proxies-dns-safe.json"
-        await loop.run_in_executor(None, save_json, dns_safe_proxies, dns_safe_path)
+    dns_safe_path: Path = output_path / "proxies-dns-safe.json"
+    await loop.run_in_executor(None, save_json, dns_safe_proxies, dns_safe_path)
 
     # DNS-hardened dataset (prefer IP when available) - reuse cached results
     if _cached_dns_hardened is not None:
         dns_hardened_proxies, _ = _cached_dns_hardened
     else:
         dns_hardened_proxies, _ = _build_dns_hardened_proxies(optimized_proxies)
-    dns_hardened_path: Optional[Path] = None
-    if dns_hardened_proxies:
-        dns_hardened_path = output_path / "proxies-dns-hardened.json"
-        await loop.run_in_executor(
-            None, save_json, dns_hardened_proxies, dns_hardened_path
-        )
+    dns_hardened_path: Path = output_path / "proxies-dns-hardened.json"
+    await loop.run_in_executor(None, save_json, dns_hardened_proxies, dns_hardened_path)
 
     revived_proxies = [
         p
         for p in optimized_proxies
         if (p.process or "").startswith("revived") or p.details.get("is_revived")
     ]
-    revived_path = None
-    revived_dns_path: Optional[Path] = None
-    revived_hardened_path: Optional[Path] = None
-    if revived_proxies:
-        revived_path = output_path / "revived.json"
-        await loop.run_in_executor(None, save_json, revived_proxies, revived_path)
-        if dns_safe_proxies:
-            revived_dns_safe = [
-                p
-                for p in dns_safe_proxies
-                if (p.process or "").startswith("revived")
-                or p.details.get("is_revived")
-            ]
-            if revived_dns_safe:
-                revived_dns_path = output_path / "revived-dns-safe.json"
-                await loop.run_in_executor(
-                    None, save_json, revived_dns_safe, revived_dns_path
-                )
-        if dns_hardened_proxies:
-            revived_dns_hardened = [
-                p
-                for p in dns_hardened_proxies
-                if (p.process or "").startswith("revived")
-                or p.details.get("is_revived")
-            ]
-            if revived_dns_hardened:
-                revived_hardened_path = output_path / "revived-dns-hardened.json"
-                await loop.run_in_executor(
-                    None, save_json, revived_dns_hardened, revived_hardened_path
-                )
-    else:
-        # [FIX] Log if no revived proxies found, for debugging
-        logger.info(
-            "No revived proxies found to export (revived.json will not be created)."
-        )
+    # Always write revived datasets to avoid 404s and keep output contracts stable.
+    revived_path: Path = output_path / "revived.json"
+    await loop.run_in_executor(None, save_json, revived_proxies, revived_path)
+
+    revived_dns_safe = [
+        p
+        for p in dns_safe_proxies
+        if (p.process or "").startswith("revived") or p.details.get("is_revived")
+    ]
+    revived_dns_path: Path = output_path / "revived-dns-safe.json"
+    await loop.run_in_executor(None, save_json, revived_dns_safe, revived_dns_path)
+
+    revived_dns_hardened = [
+        p
+        for p in dns_hardened_proxies
+        if (p.process or "").startswith("revived") or p.details.get("is_revived")
+    ]
+    revived_hardened_path: Path = output_path / "revived-dns-hardened.json"
+    await loop.run_in_executor(
+        None, save_json, revived_dns_hardened, revived_hardened_path
+    )
 
     generated_files = await loop.run_in_executor(
         None,
@@ -461,16 +510,11 @@ async def generate_pipeline_outputs(
             dns_hardened_cache=_cached_dns_hardened,
         ),
     )
-    if revived_path:
-        generated_files["revived"] = revived_path
-    if dns_safe_path:
-        generated_files["proxies_dns_safe"] = dns_safe_path
-    if dns_hardened_path:
-        generated_files["proxies_dns_hardened"] = dns_hardened_path
-    if revived_dns_path:
-        generated_files["revived_dns_safe"] = revived_dns_path
-    if revived_hardened_path:
-        generated_files["revived_dns_hardened"] = revived_hardened_path
+    generated_files["revived"] = revived_path
+    generated_files["proxies_dns_safe"] = dns_safe_path
+    generated_files["proxies_dns_hardened"] = dns_hardened_path
+    generated_files["revived_dns_safe"] = revived_dns_path
+    generated_files["revived_dns_hardened"] = revived_hardened_path
 
     # 5. Metadata & Stats
     # Count unique chain outbound tags (revived + washed + smart chains)

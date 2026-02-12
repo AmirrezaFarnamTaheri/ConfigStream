@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\slowapi\extension.py
-# hypothesis_version: 6.150.0
-
-[429, '%s.%s', '.env', ':%s', 'RATELIMIT_DEFAULT', 'RATELIMIT_ENABLED', 'RATELIMIT_GLOBAL', 'RATELIMIT_KEY_PREFIX', 'RATELIMIT_STRATEGY', 'Retry-After', 'T', 'X-RateLimit-Limit', 'X-RateLimit-Reset', 'endpoint', 'error', 'fixed-window', 'global', 'http-date', 'memory://', 'path', 'request', 'response', 'slowapi', 'url', 'websocket']

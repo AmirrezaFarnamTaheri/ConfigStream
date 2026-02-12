@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\starlette\routing.py
-# hypothesis_version: 6.150.0
-
-[404, 405, '$', ', ', '/', '/{path:path}', ':', 'Allow', 'GET', 'HEAD', 'Method Not Allowed', 'Not Found', '^', '_T', '__name__', 'app', 'app_root_path', 'endpoint', 'host', 'http', 'lifespan', 'message', 'method', 'path', 'path_params', 'root_path', 'router', 'routes', 's', 'shutdown', 'startup', 'state', 'str', 'type', 'websocket', '{', '{%s}', '}']

@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\python_socks\_protocols\socks5.py
-# hypothesis_version: 6.150.0
-
-[255, 'AuthMethodReply', 'AuthReply', 'ConnectReply', 'Empty connect reply', 'Host unreachable', 'Invalid IP version', 'Malformed auth reply', 'Network unreachable', 'Request granted', 'TTL expired', 'Unknown error', 'ascii', 'big', 'idna']

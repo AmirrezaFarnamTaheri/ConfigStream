@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\respx\__init__.py
-# hypothesis_version: 6.150.0
-
-['ASGIHandler', 'MockResponse', 'MockRouter', 'Route', 'Router', 'SetCookie', 'WSGIHandler', '__version__', 'add', 'calls', 'clear', 'delete', 'get', 'head', 'mock', 'options', 'patch', 'pop', 'post', 'put', 'request', 'reset', 'route', 'routes', 'start', 'stop']

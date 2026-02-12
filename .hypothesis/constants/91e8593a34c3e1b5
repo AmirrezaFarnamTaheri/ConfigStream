@@ -1,4 +1,0 @@
-# file: D:\GitHub\ConfigStream\src\configstream\event_stream.py
-# hypothesis_version: 6.150.0
-
-['critical', 'error', 'fetch_success', 'stream_close', 'test_success', 'warning']

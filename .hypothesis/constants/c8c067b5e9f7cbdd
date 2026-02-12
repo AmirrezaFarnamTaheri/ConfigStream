@@ -1,4 +1,0 @@
-# file: D:\GitHub\ConfigStream\src\configstream\config.py
-# hypothesis_version: 6.150.0
-
-[0.2, 0.6, 4.0, 10.0, 20.0, 30.0, 40.0, 100, 120, 400, 500, 800, 900, 1024, 1500, 1800, 3500, 5000, 5999, 6000, 8000, 8999, 10000, 20000, ',', '.env', 'INFO', 'IR', '[]', 'aggressive', 'amazon', 'apple', 'blocked_countries', 'cloudflare', 'current_status', 'firefox', 'google', 'gstatic', 'historical_success', 'httpbin', 'ignore', 'latency', 'malicious_asn_list', 'microsoft', 'production', 'security', 'utf-8']

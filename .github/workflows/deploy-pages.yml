@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   workflow_run:
-    workflows: ["Config's Stream"]
+    workflows: ["Config's Stream", "Retest"]
     types: [completed]
     branches: [main]
   workflow_dispatch:
@@ -32,21 +32,38 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
+      - name: Init deploy flags
+        run: |
+          echo "HAS_OUTPUT=false" >> "$GITHUB_ENV"
+
       - name: Download Pipeline Output (from workflow_run)
         if: github.event_name == 'workflow_run'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           # Download artifact from the triggering workflow run using GitHub CLI
-          gh run download ${{ github.event.workflow_run.id }} \
-            --name pipeline-output \
-            --dir output
-
-          # Verify download succeeded
-          if [ ! -d "output" ] || [ -z "$(ls -A output)" ]; then
+          if ! gh run download ${{ github.event.workflow_run.id }} \
+              --name pipeline-output \
+              --dir output; then
+            if [ "${{ github.event.workflow_run.name }}" = "Retest" ]; then
+              echo "⚠️ No pipeline-output artifact found for Retest run; skipping Pages deploy."
+              exit 0
+            fi
             echo "Error: Failed to download pipeline-output artifact"
             exit 1
           fi
+
+          # Verify download succeeded
+          if [ ! -d "output" ] || [ -z "$(ls -A output)" ]; then
+            if [ "${{ github.event.workflow_run.name }}" = "Retest" ]; then
+              echo "⚠️ output directory is missing/empty for Retest run; skipping Pages deploy."
+              exit 0
+            fi
+            echo "Error: output directory is missing or empty after download"
+            exit 1
+          fi
+
+          echo "HAS_OUTPUT=true" >> "$GITHUB_ENV"
 
       - name: Download Pipeline Output (from workflow_dispatch)
         if: github.event_name == 'workflow_dispatch'
@@ -72,7 +89,10 @@ jobs:
             exit 1
           fi
 
+          echo "HAS_OUTPUT=true" >> "$GITHUB_ENV"
+
       - name: Verify output directory exists
+        if: env.HAS_OUTPUT == 'true'
         run: |
           if [ ! -d "output" ] || [ -z "$(ls -A output)" ]; then
             echo "Error: output directory is missing or empty"
@@ -83,16 +103,19 @@ jobs:
           test -f output/proxies.json
 
       - name: Setup Python
+        if: env.HAS_OUTPUT == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
       - name: Minify Frontend Assets
+        if: env.HAS_OUTPUT == 'true'
         run: |
           pip install rjsmin rcssmin
           python scripts/minify_frontend.py
 
       - name: Build Pages artifact
+        if: env.HAS_OUTPUT == 'true'
         run: |
           set -euxo pipefail
 
@@ -108,8 +131,46 @@ jobs:
           mkdir -p output/api
 
           # Required artifacts: fail fast with clear message if missing
-          [ -s output/proxies.json ] || { echo "ERROR: output/proxies.json missing"; exit 1; }
-          [ -s output/metadata.json ] || { echo "ERROR: output/metadata.json missing"; exit 1; }
+          # Keep this list aligned with frontend references to avoid silent 404s on GitHub Pages.
+          required_files=(
+            output/proxies.json
+            output/metadata.json
+            output/base64.txt
+            output/base64-dns-safe.txt
+            output/base64-dns-hardened.txt
+            output/proxies.txt
+            output/proxies-dns-safe.txt
+            output/proxies-dns-hardened.txt
+            output/singbox.json
+            output/singbox-dns-safe.json
+            output/singbox-dns-hardened.json
+            output/singbox-vpn.json
+            output/singbox-vpn-dns-safe.json
+            output/singbox-vpn-dns-hardened.json
+            output/clash.yaml
+            output/clash-dns-safe.yaml
+            output/clash-dns-hardened.yaml
+            output/singbox-chains.json
+            output/singbox-chains-dns-safe.json
+            output/singbox-chains-dns-hardened.json
+            output/chains.json
+            output/chains-dns-safe.json
+            output/chains-dns-hardened.json
+            output/side_products.zip
+            output/side_products-dns-safe.zip
+            output/side_products-dns-hardened.zip
+            output/chosen/base64.txt
+            output/chosen/base64-dns-safe.txt
+            output/chosen/base64-dns-hardened.txt
+            output/data/clean_ips.json
+            output/data/proxy_history_viz.json
+            output/data/active_proxy_trend.json
+            output/data/evasion_trend.json
+            output/docs/wiki/index.md
+          )
+          for f in "${required_files[@]}"; do
+            [ -s "$f" ] || { echo "ERROR: missing required file: $f"; exit 1; }
+          done
 
           cp output/proxies.json output/api/proxies
           cp output/metadata.json output/api/stats
@@ -126,6 +187,7 @@ jobs:
           fi
 
       - name: List deployment files
+        if: env.HAS_OUTPUT == 'true'
         run: |
           echo "=== Files to be deployed ==="
           find output -type f | head -20
@@ -137,17 +199,20 @@ jobs:
           du -sh output
 
       - name: Upload pages artifact
+        if: env.HAS_OUTPUT == 'true'
         uses: actions/upload-pages-artifact@v3
         with:
           path: output
           retention-days: 7
 
       - name: Deploy to GitHub Pages
+        if: env.HAS_OUTPUT == 'true'
         id: deployment
         uses: actions/deploy-pages@v4
         timeout-minutes: 10
 
       - name: Verify deployment
+        if: env.HAS_OUTPUT == 'true'
         run: |
           echo "✅ Pages deployed successfully!"
           echo "URL: ${{ steps.deployment.outputs.page_url }}"
@@ -161,7 +226,7 @@ jobs:
           echo "Commit: ${{ github.sha }}"
 
       - name: Trigger CDN cache purge
-        if: always()
+        if: always() && env.HAS_OUTPUT == 'true'
         run: |
           # Add cache-busting hint for browsers
           echo "NOTE: If you don't see updates immediately, clear your browser cache or use Ctrl+F5"

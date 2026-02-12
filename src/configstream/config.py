@@ -111,6 +111,10 @@ class AppSettings(BaseSettings):
     DNS_CACHE_ENABLED: bool = True
     DNS_SAFE_OUTPUTS: bool = True
     DNS_HARDENED_OUTPUTS: bool = True
+    # Fail the pipeline (exit non-zero) when 0 working proxies were found.
+    # Default is False because outputs are still useful for users in different
+    # networks/regions and to avoid GitHub Pages 404s due to missing artifacts.
+    FAIL_ON_ZERO_WORKING: bool = False
     DNS_SAFE_RESOLVE_TIMEOUT: float = 4.0
     DNS_SAFE_RESOLVE_BATCH: int = 500
     DNS_SAFE_RESOLVE_LIMIT: int = 0

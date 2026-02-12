@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_ownedgift.py
-# hypothesis_version: 6.150.0
-
-['Bot', 'OwnedGift', 'OwnedGiftRegular', 'OwnedGiftUnique', 'OwnedGifts', 'can_be_transferred', 'can_be_upgraded', 'convert_star_count', 'entities', 'gift', 'gifts', 'is_private', 'is_saved', 'next_offset', 'next_transfer_date', 'owned_gift_id', 'send_date', 'sender_user', 'text', 'total_count', 'transfer_star_count', 'type', 'was_refunded']

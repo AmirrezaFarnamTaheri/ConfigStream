@@ -1,4 +1,0 @@
-# file: D:\GitHub\ConfigStream\src\configstream\geoip.py
-# hypothesis_version: 6.150.0
-
-[0.0, 100, 'GeoIPResolver', 'Unknown', 'Unknown (DB Missing)', 'Unknown Org', 'XX', '_initialized', 'total', 'with_asn', 'with_city', 'with_country']

@@ -1,4 +1,0 @@
-# file: D:\GitHub\ConfigStream\src\configstream\parsers\vless.py
-# hypothesis_version: 6.150.0
-
-[443, '#', '&', '/', ':', '=', '?', '@', '[', ']', 'alpn', 'encryption', 'flow', 'fp', 'grpc', 'h2', 'host', 'http', 'id', 'name', 'none', 'path', 'pbk', 'public-key', 'publicKey', 'remarks', 'security', 'serviceName', 'short-id', 'shortId', 'sid', 'sni', 'tcp', 'tls', 'type', 'uid', 'user', 'userid', 'uuid', 'vless', 'vless://', 'ws']

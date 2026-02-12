@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\http2.py
-# hypothesis_version: 6.150.0
-
-[b':', b':authority', b':method', b':path', b':scheme', b':status', b'HTTP/2', b'content-length', b'host', b'transfer-encoding', 100, 200, 1024, 65536, 'Server disconnected', 'ascii', 'http_version', 'httpcore.http2', 'ignore', 'network_stream', 'read', 'request', 'response_closed', 'send_connection_init', 'send_request_body', 'send_request_headers', 'stream_id', 'timeout', 'write']

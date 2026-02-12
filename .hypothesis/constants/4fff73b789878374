@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_inline\inlinequeryresultmpeg4gif.py
-# hypothesis_version: 6.150.0
-
-['InputMessageContent', '_mpeg4_duration', 'caption', 'caption_entities', 'mpeg4_duration', 'mpeg4_height', 'mpeg4_url', 'mpeg4_width', 'parse_mode', 'reply_markup', 'thumbnail_mime_type', 'thumbnail_url', 'title']

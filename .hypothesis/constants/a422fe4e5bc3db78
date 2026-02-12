@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_checklists.py
-# hypothesis_version: 6.150.0
-
-['Bot', 'Checklist', 'ChecklistTask', 'ChecklistTasksAdded', 'ChecklistTasksDone', 'Message', 'checklist_message', 'completed_by_user', 'completion_date', 'id', 'others_can_add_tasks', 'tasks', 'text', 'text_entities', 'title', 'title_entities']

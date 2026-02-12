@@ -26,8 +26,26 @@ def generate_clash_config(
     Future work: Convert Sing-box chains to Clash relay groups.
     """
     if not yaml:
-        logger.warning("PyYAML not installed, skipping Clash generation")
-        return ""
+        # PyYAML is a normal dependency, but keep a resilient fallback.
+        logger.warning("PyYAML not installed; generating a minimal Clash config")
+        # Minimal, valid YAML (no proxies).
+        lines = [
+            "port: 7890",
+            "socks-port: 7891",
+            "allow-lan: true",
+            "mode: Rule",
+            "log-level: info",
+            "external-controller: 127.0.0.1:9090",
+            "proxies: []",
+            "proxy-groups:",
+            "  - name: PROXY",
+            "    type: select",
+            "    proxies:",
+            "      - DIRECT",
+            "rules:",
+            "  - MATCH,PROXY",
+        ]
+        return "\n".join(lines) + "\n"
 
     proxies_list = []
     proxy_names = []
@@ -48,11 +66,6 @@ def generate_clash_config(
             proxies_list.append(clash_proxy)
             proxy_names.append(clash_proxy["name"])
 
-    # Guard against empty proxy groups which creates invalid Clash config
-    if not proxy_names:
-        logger.warning("No valid proxies for Clash config generation")
-        return ""
-
     config: dict[str, Any] = {
         "port": 7890,
         "socks-port": 7891,
@@ -61,7 +74,12 @@ def generate_clash_config(
         "log-level": "info",
         "external-controller": "127.0.0.1:9090",
         "proxies": proxies_list,
-        "proxy-groups": [
+        "proxy-groups": [],
+        "rules": ["MATCH,PROXY"],
+    }
+
+    if proxy_names:
+        config["proxy-groups"] = [
             {
                 "name": "FASTEST",
                 "type": "url-test",
@@ -70,9 +88,16 @@ def generate_clash_config(
                 "interval": 300,
             },
             {"name": "PROXY", "type": "select", "proxies": ["FASTEST"] + proxy_names},
-        ],
-        "rules": ["MATCH,PROXY"],
-    }
+        ]
+    else:
+        # Keep the config valid and importable even when no proxies are available.
+        # This avoids 404s and "empty file" issues on static hosting.
+        logger.info(
+            "No valid proxies for Clash config generation; emitting minimal config"
+        )
+        config["proxy-groups"] = [
+            {"name": "PROXY", "type": "select", "proxies": ["DIRECT"]},
+        ]
 
     if dns_profile:
         config["dns"] = dns_profile

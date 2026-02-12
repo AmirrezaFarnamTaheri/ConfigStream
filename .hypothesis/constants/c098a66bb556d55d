@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\tornado\iostream.py
-# hypothesis_version: 6.150.0
-
-[128, 1024, 2048, 65536, 104857600, '(not connected)', 'Already reading', 'Already waiting', 'B', 'Future[IOStream]', 'Future[None]', 'Future[SSLIOStream]', 'IOStream', 'SSLIOStream', 'Stream is closed', 'WSAECONNRESET', '_IOStreamType', 'darwin', 'error on read: %s', 'r+', 'ssl_options', 'win', 'win32']

@@ -1,4 +1,0 @@
-# file: D:\GitHub\ConfigStream\src\configstream\generators\plaintext.py
-# hypothesis_version: 6.150.0
-
-['\x00', '#', '://', 'Revived', 'Revived-VWARP', 'http', 'hy2', 'hysteria', 'hysteria2', 'naive', 'origin_proxy', 'revived', 'revived://', 'shadowsocks', 'socks', 'socks4', 'socks5', 'ss', 'ss2022', 'ssh', 'trojan', 'tuic', 'unknown', 'use_vwarp', 'utf-8', 'vless', 'vmess', 'wg', 'wireguard']

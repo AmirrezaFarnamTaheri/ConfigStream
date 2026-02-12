@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\pytest_base_url\plugin.py
-# hypothesis_version: 6.150.0
-
-[0.1, 500, 502, 503, 504, '--base-url', '--verify-base-url', 'Base URL', 'PYTEST_BASE_URL', 'VERIFY_BASE_URL', 'base_url', 'baseurl: {0}', 'false', 'metadata', 'session', 'store_true', 'url', 'verify the base url.', 'workerinput']

@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\aiohttp\streams.py
-# hypothesis_version: 6.150.0
-
-[b'\n', '%d bytes', '<%s>', 'Chunk too big', 'Connection closed.', 'DataQueue', 'EMPTY_PAYLOAD', 'EofStream', 'StreamReader', '_T', '_buffer', '_buffer_offset', '_cursor', '_eof', '_eof_callbacks', '_eof_counter', '_eof_waiter', '_exception', '_high_water', '_http_chunk_splits', '_loop', '_low_water', '_protocol', '_read_eof_chunk', '_size', '_stream', '_timer', '_waiter', 'e=%r', 'eof', 'low=%d high=%d', 'read', 'read_func', 'readany', 'readchunk', 'readuntil', 'total_bytes', 'w=%r']

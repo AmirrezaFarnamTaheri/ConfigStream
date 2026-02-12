@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\ext\_callbackcontext.py
-# hypothesis_version: 6.150.0
-
-['CCT', 'Future[object]', 'JobQueue[ST]', 'Job[Any]', 'Job[CCT]', 'Queue[object]', 'ST', '__dict__', '_application', '_chat_id', '_user_id', 'args', 'coroutine', 'error', 'job', 'matches']

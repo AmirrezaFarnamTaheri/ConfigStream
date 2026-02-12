@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\ext\_extbot.py
-# hypothesis_version: 6.150.0
-
-[1024, 'Animation', 'Audio', 'ChatInviteLink', 'Defaults', 'Document', 'ExtBot', 'ExtBot[None]', 'ExtBot[RLARGS]', 'HandledTypes', 'InlineKeyboardMarkup', 'InlineQueryResult', 'InputMedia', 'InputMediaAudio', 'InputMediaDocument', 'InputMediaPhoto', 'InputMediaVideo', 'InputPaidMedia', 'InputPollOption', 'InputProfilePhoto', 'InputSticker', 'InputStoryContent', 'KT', 'LabeledPrice', 'LinkPreviewOptions', 'MessageEntity', 'MessageId', 'PassportElementError', 'PhotoSize', 'ReplyParameters', 'ShippingOption', 'Sticker', 'StoryArea', 'Video', 'VideoNote', 'Voice', '_callback_data_cache', '_defaults', '_rate_limiter', 'connect_timeout', 'getUpdates', 'int', 'link_preview_options', 'media', 'parse_mode', 'pool_timeout', 'read_timeout', 'reply_markup', 'write_timeout']

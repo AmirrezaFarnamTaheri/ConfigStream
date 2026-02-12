@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\tornado\routing.py
-# hypothesis_version: 6.150.0
-
-[404, '$', '%s', '(', ')', 'HTTP/1.1', 'Matcher', 'Not Found', 'Rule', 'X-Real-Ip', '^', 'target_kwargs']

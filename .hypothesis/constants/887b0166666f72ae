@@ -1,4 +1,0 @@
-# file: D:\GitHub\ConfigStream\src\configstream\performance.py
-# hypothesis_version: 6.150.0
-
-[0.0, 'fetch', 'filter', 'geo', 'output', 'parse', 'proxies_per_second', 'test']

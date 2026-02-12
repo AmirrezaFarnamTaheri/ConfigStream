@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\h2\stream.py
-# hypothesis_version: 6.150.0
-
-[b'HEAD', b'content-length', 'DataReceived', 'END_HEADERS', 'END_STREAM', 'End stream %r', 'PADDED', 'Push stream %r', 'PushedStreamReceived', 'StreamEnded', 'StreamReset', 'Upgrading %r', 'WindowUpdated']

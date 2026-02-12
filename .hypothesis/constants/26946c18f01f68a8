@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\aiodns\__init__.py
-# hypothesis_version: 6.150.0
-
-[0.1, '3.5.0', 'A', 'AAAA', 'ANY', 'CAA', 'CHAOS', 'CNAME', 'DNSResolver', 'HS', 'IN', 'MX', 'NAPTR', 'NONE', 'NS', 'PTR', 'SOA', 'SRV', 'TXT', '_T', '_channel', 'ares_threadsafety', 'asyncio.Future[_T]', 'error', 'linux', 'sock_state_cb', 'timeout', 'win32']

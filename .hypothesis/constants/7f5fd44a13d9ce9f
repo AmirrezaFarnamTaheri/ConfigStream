@@ -1,4 +1,0 @@
-# file: D:\GitHub\ConfigStream\src\configstream\parsers\vmess.py
-# hypothesis_version: 6.150.0
-
-[100, 200, 255, 65535, 'add', 'aid', 'id', 'port', 'ps', 'vmess', 'vmess://', '{']

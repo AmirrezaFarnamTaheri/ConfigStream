@@ -163,6 +163,7 @@ jobs:
           exit 0
 
       - name: Download latest pipeline output
+        if: steps.check_pipeline.outputs.should_cancel != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -182,6 +183,7 @@ jobs:
 
       - name: Check previous output existence
         id: check_output
+        if: steps.check_pipeline.outputs.should_cancel != 'true'
         run: |
           if [ ! -s output/proxies.json ]; then
             echo "skip=true" >> $GITHUB_OUTPUT
@@ -190,23 +192,29 @@ jobs:
             echo "skip=false" >> $GITHUB_OUTPUT
           fi
       - name: Retest last export
-        if: steps.check_output.outputs.skip != 'true'
+        if: steps.check_pipeline.outputs.should_cancel != 'true' && steps.check_output.outputs.skip != 'true'
         run: python -m configstream.cli retest --input output/proxies.json --output output --timeout 310 --max-workers 50 --leniency
       - name: Validate JSON (non-blocking)
+        if: steps.check_pipeline.outputs.should_cancel != 'true'
         run: |
           pip install jsonschema || true
           jsonschema -i output/proxies.json schema/proxy.schema.json || echo "::warning ::schema validation failed"
-      - name: Pull latest changes
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify output directory for upload
+        id: verify_output
+        if: steps.check_pipeline.outputs.should_cancel != 'true'
         run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git remote set-url origin https://x-access-token:$GITHUB_TOKEN@github.com/$GITHUB_REPOSITORY
-          git checkout main
-          git pull --rebase --autostash origin main
-      - name: Commit updated outputs
-        uses: stefanzweifel/git-auto-commit-action@v5
+          if [ -d "output" ] && [ -s "output/proxies.json" ] && [ -s "output/metadata.json" ]; then
+            echo "upload=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "upload=false" >> "$GITHUB_OUTPUT"
+            echo "No output directory or missing critical files; skipping artifact upload."
+          fi
+
+      - name: Upload pipeline output artifact
+        if: steps.verify_output.outputs.upload == 'true'
+        uses: actions/upload-artifact@v4
         with:
-          commit_message: "chore: hourly retest refresh [skip ci]"
-          file_pattern: output/**
+          name: pipeline-output
+          path: output/
+          retention-days: 3

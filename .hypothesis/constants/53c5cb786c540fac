@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\cryptography\hazmat\primitives\asymmetric\dsa.py
-# hypothesis_version: 6.150.0
-
-[1024, 2048, 3072, 4096]

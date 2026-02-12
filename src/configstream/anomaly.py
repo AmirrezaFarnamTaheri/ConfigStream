@@ -41,15 +41,13 @@ class AnomalyDetector:
                 # Enable WAL mode for better concurrency and crash recovery
                 conn.execute("PRAGMA journal_mode=WAL")
                 conn.execute("PRAGMA synchronous=NORMAL")
-                conn.execute(
-                    """
+                conn.execute("""
 CREATE TABLE IF NOT EXISTS history (
     url TEXT,
     count INTEGER,
     timestamp INTEGER
 )
-"""
-                )
+""")
                 conn.execute("CREATE INDEX IF NOT EXISTS idx_url ON history(url)")
                 conn.commit()
         except Exception as e:  # pylint: disable=broad-exception-caught

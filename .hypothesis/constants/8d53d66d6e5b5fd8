@@ -1,4 +1,0 @@
-# file: D:\GitHub\ConfigStream\src\configstream\parsers\shadowsocks.py
-# hypothesis_version: 6.150.0
-
-[65535, '#', '/?', ':', ';', '?', '@', '[]', 'aes', 'chacha20', 'cipher', 'default', 'method', 'none', 'null', 'pass', 'password', 'plugin', 'plugin_opts', 'port', 'psk', 'pwd', 'server', 'shadowsocks', 'ss', 'ss2022', 'ss2022://', 'ss://']

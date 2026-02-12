@@ -33,6 +33,7 @@ User-supplied resources:
 Designed to run on Python 3.7+ with zero external dependencies.
 Works on Linux, macOS, and Windows.
 """
+
 import argparse
 import concurrent.futures
 import json
@@ -46,7 +47,6 @@ import time
 import urllib.request
 import urllib.error
 from typing import List, Tuple, Optional, Dict, Any
-
 
 # ============================================================
 # Constants

@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\playwright\sync_api\__init__.py
-# hypothesis_version: 6.150.0
-
-['APIRequest', 'APIRequestContext', 'APIResponse', 'Browser', 'BrowserContext', 'BrowserType', 'CDPSession', 'ConsoleMessage', 'Cookie', 'Dialog', 'Download', 'ElementHandle', 'Error', 'FileChooser', 'FilePayload', 'FloatRect', 'Frame', 'FrameLocator', 'Geolocation', 'HttpCredentials', 'JSHandle', 'Keyboard', 'Locator', 'Mouse', 'Page', 'PdfMargins', 'Playwright', 'Position', 'ProxySettings', 'Request', 'ResourceTiming', 'Response', 'Route', 'Selectors', 'SourceLocation', 'StorageState', 'StorageStateCookie', 'TimeoutError', 'Touchscreen', 'Video', 'ViewportSize', 'WebError', 'WebSocket', 'WebSocketRoute', 'Worker', 'expect', 'sync_playwright']

@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_chatbackground.py
-# hypothesis_version: 6.150.0
-
-['BackgroundFill', 'BackgroundType', 'Bot', 'ChatBackground', 'bottom_color', 'color', 'colors', 'dark_theme_dimming', 'document', 'fill', 'intensity', 'is_blurred', 'is_inverted', 'is_moving', 'rotation_angle', 'theme_name', 'top_color', 'type']

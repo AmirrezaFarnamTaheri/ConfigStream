@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_poll.py
-# hypothesis_version: 6.150.0
-
-['Bot', 'InputPollOption', 'Poll', 'PollAnswer', 'PollOption', '_open_period', 'close_date', 'correct_option_id', 'explanation', 'explanation_entities', 'id', 'is_anonymous', 'is_closed', 'open_period', 'option_ids', 'options', 'poll_id', 'question', 'question_entities', 'text', 'text_entities', 'text_parse_mode', 'total_voter_count', 'type', 'user', 'voter_chat', 'voter_count']

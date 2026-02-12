@@ -1,4 +1,0 @@
-# file: D:\GitHub\ConfigStream\src\configstream\transport\stego.py
-# hypothesis_version: 6.150.0
-
-[b'CSTREAM_PAYLOAD_START>>', '*.png', 'rb', 'singbox.json', 'utf-8', 'wb']

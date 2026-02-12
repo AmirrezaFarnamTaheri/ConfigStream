@@ -1,4 +1,0 @@
-# file: D:\GitHub\ConfigStream\src\configstream\testers_core.py
-# hypothesis_version: 6.150.0
-
-['GoBatchTester', 'SecureConfigContext', 'SingBoxTester', '_cleanup_temp_files']

@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\tornado\netutil.py
-# hypothesis_version: 6.150.0
-
-[128, 384, '\x00', '::1', 'AF_UNIX', 'IPPROTO_IPV6', 'OP_NO_COMPRESSION', 'Resolver', 'SO_REUSEPORT', 'ca_certs', 'cert_reqs', 'certfile', 'ciphers', 'darwin', 'foo', 'idna', 'keyfile', 'latin1', 'localhost', 'nt', 'ssl_version']

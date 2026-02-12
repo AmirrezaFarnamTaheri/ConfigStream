@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\yaml\tokens.py
-# hypothesis_version: 6.150.0
-
-['%s(%s)', '%s=%r', ',', ', ', '-', ':', '<alias>', '<anchor>', '<block end>', '<directive>', '<document end>', '<document start>', '<scalar>', '<stream end>', '<stream start>', '<tag>', '?', '[', ']', '_mark', '{', '}']

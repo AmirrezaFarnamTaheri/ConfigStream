@@ -1,4 +1,0 @@
-# file: D:\GitHub\ConfigStream\src\configstream\pipeline_core\output_handler.py
-# hypothesis_version: 6.150.0
-
-[4.0, 500, 'DNS_HARDENED_OUTPUTS', 'DNS_SAFE_OUTPUTS', 'assets', 'chain_outbounds', 'data', 'evasion_trend.json', 'frontend', 'hysteria2', 'images', 'is_revived', 'js', 'proxies.json', 'proxies.old.json', 'proxies_dns_hardened', 'proxies_dns_safe', 'revived', 'revived.json', 'revived_dns_hardened', 'revived_dns_safe', 'shadowsocks', 'stego.js', 'tag', 'trojan', 'tuic', 'vless', 'vmess']

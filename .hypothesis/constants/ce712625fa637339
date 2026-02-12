@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_callbackquery.py
-# hypothesis_version: 6.150.0
-
-['Bot', 'CallbackQuery', 'GameHighScore', 'InlineKeyboardMarkup', 'InputMedia', 'LinkPreviewOptions', 'MessageEntity', 'MessageId', 'ReplyParameters', 'chat_instance', 'copy', 'data', 'delete', 'edit', 'from', 'from_user', 'game_short_name', 'id', 'inline_message_id', 'message', 'pin', 'unpin']

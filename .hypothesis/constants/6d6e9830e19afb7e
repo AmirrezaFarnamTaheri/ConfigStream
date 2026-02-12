@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\playwright\_impl\_object_factory.py
-# hypothesis_version: 6.150.0
-
-['APIRequestContext', 'Artifact', 'BindingCall', 'Browser', 'BrowserContext', 'BrowserType', 'CDPSession', 'Dialog', 'ElementHandle', 'Frame', 'JSHandle', 'LocalUtils', 'Page', 'Playwright', 'Request', 'Response', 'Route', 'Stream', 'Tracing', 'WebSocket', 'WebSocketRoute', 'Worker', 'WritableStream']

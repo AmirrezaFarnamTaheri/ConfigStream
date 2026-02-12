@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\limits\storage\mongodb.py
-# hypothesis_version: 6.150.0
-
-[0.0, 1000, '$$NOW', '$$entry', '$add', '$cond', '$count', '$curWeightedCount', '$currentCount', '$divide', '$each', '$entries', '$expireAt', '$filter', '$filteredEntries', '$floor', '$gt', '$gte', '$ifNull', '$lt', '$lte', '$match', '$max', '$min', '$multiply', '$not', '$position', '$previousCount', '$project', '$push', '$set', '$size', '$slice', '$subtract', '$unset', '2.1', '3.14.0', '_acquired', '_id', 'as', 'cond', 'count', 'counters', 'curWeightedCount', 'currentCount', 'else', 'entries', 'entry', 'expireAt', 'filteredEntries', 'if', 'input', 'limits', 'min', 'mongodb', 'mongodb+srv', 'previousCount', 'pymongo', 'pymongo.errors', 'then', 'windows']

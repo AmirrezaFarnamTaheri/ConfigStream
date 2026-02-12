@@ -3,6 +3,7 @@
 Certificate generation utilities.
 Derived from nobetci-main.
 """
+
 from typing import Dict
 
 try:

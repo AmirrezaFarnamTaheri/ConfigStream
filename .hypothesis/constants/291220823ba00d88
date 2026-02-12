@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\telegram\_inline\inlinequery.py
-# hypothesis_version: 6.150.0
-
-['Bot', 'InlineQuery', 'InlineQueryResult', 'chat_type', 'from', 'from_user', 'id', 'location', 'offset', 'query']

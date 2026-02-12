@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\aiohttp\http_websocket.py
-# hypothesis_version: 6.150.0
-
-['WSCloseCode', 'WSHandshakeError', 'WSMessage', 'WSMsgType', 'WS_CLOSED_MESSAGE', 'WS_CLOSING_MESSAGE', 'WS_KEY', 'WebSocketError', 'WebSocketReader', 'WebSocketWriter', 'ws_ext_gen', 'ws_ext_parse']

@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\yaml\resolver.py
-# hypothesis_version: 6.150.0
-
-['!&*', '-+0123456789', '-+0123456789.', '0123456789', '<', '=', 'BaseResolver', 'N', 'Resolver', '^(?:!|&|\\*)$', '^(?:<<)$', '^(?:=)$', 'n', 'yYnNtTfFoO', 'yaml_path_resolvers', '~']

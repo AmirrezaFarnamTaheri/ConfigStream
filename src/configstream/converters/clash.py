@@ -4,7 +4,7 @@ import logging
 
 from ..models import Proxy
 from ..tagging import get_flag_emoji
-from ..utils.bool_parser import parse_bool, parse_tls_flag
+from ..utils.bool_parser import parse_bool
 from .clash_utils import add_transport_opts
 
 logger = logging.getLogger(__name__)

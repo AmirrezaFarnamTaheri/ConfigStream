@@ -103,20 +103,25 @@ async function renderPage(filename) {
 
     try {
         // Strategy:
-        // 1. Try 'wiki/' relative path (For sub-path deployment e.g., /wiki/)
-        // 2. Try './' relative path (For flat deployment)
-        // 3. Try Raw GitHub (Fallback for missing files or local dev)
-        // 4. Try '../docs/wiki/' (Local dev fallback)
+        // 1. Prefer same-origin wiki files (works on GitHub Pages deployment artifacts)
+        // 2. Fallback to repo-relative paths (opening frontend/wiki.html directly)
+        // 3. Last resort: Raw GitHub (may be blocked under censorship or in restricted networks)
 
         let content = '';
         let success = false;
         let lastError = null;
 
         const strategies = [
+            // GitHub Pages artifact layout (deploy-pages copies frontend/ into output/):
+            //   wiki.html lives at site root and wiki markdown is under docs/wiki/project/
+            `docs/wiki/project/${filename}`,
+            // Local dev: opening frontend/wiki.html directly
             `../docs/wiki/project/${filename}`,
-            WIKI_BASE_URL + filename,
+            // Legacy layouts (if a wiki/ folder exists next to wiki.html)
             `wiki/${filename}`,
-            `${filename}`
+            `${filename}`,
+            // Remote fallback (hard-coded upstream). Keep last to avoid noisy 404s.
+            WIKI_BASE_URL + filename,
         ];
 
         for (const url of strategies) {

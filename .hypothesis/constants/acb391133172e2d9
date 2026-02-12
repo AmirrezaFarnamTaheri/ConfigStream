@@ -1,4 +1,0 @@
-# file: D:\GitHub\ConfigStream\src\configstream\security\ss_ffi.py
-# hypothesis_version: 6.150.0
-
-[4096, 'bin', 'darwin', 'libss_checker.dylib', 'libss_checker.so', 'rb', 'ss_checker.dll', 'utf-8', 'win32']

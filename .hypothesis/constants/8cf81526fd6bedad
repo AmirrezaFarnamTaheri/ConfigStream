@@ -1,4 +1,0 @@
-# file: C:\Users\Acer\AppData\Roaming\Python\Python314\site-packages\h2\connection.py
-# hypothesis_version: 6.150.0
-
-[b'PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n', 100, 255, 256, 65535, 'ACK', 'Close connection', 'Current streams: %s', 'END_STREAM', 'End stream ID %d', 'PRIORITY', 'Process input %s', 'Received frame: %s', 'Reset stream ID %d', 'Send Ping frame', 'Stream ID %d created']

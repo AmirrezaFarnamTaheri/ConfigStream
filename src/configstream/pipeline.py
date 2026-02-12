@@ -489,8 +489,17 @@ async def run_full_pipeline(
             # Unexpected notification error
             logger.debug(f"Unexpected error during server notification: {e}")
 
+        should_fail = bool(getattr(settings, "FAIL_ON_ZERO_WORKING", False)) and bool(
+            _zero_working
+        )
+        if should_fail:
+            logger.error(
+                "0 working proxies detected and FAIL_ON_ZERO_WORKING is enabled; "
+                "marking pipeline result as failed."
+            )
+
         return PipelineResult(
-            success=not _zero_working,
+            success=not should_fail,
             stats=stats,
             output_files=generated_files,
         )

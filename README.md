@@ -40,7 +40,7 @@ ConfigStream uses a streaming producer-consumer pipeline.
 7. Publish and cache
    Write outputs atomically and publish via GitHub Pages.
 
-See docs/ARCHITECTURE.md for the full pipeline design and data flow.
+See `docs/wiki/project/02-architecture.md` for the full pipeline design and data flow.
 
 ## Evasion Features
 
