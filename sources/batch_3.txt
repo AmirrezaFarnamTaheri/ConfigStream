@@ -1,50 +1,9 @@
 # ConfigStream Batch 3
 # Optimized based on fetch duration for equal execution times
-# Est. Fetch Time: 10137.8s
+# Est. Fetch Time: 6009.0s
 
-https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-16.txt
-https://raw.githubusercontent.com/wiki/gfpcom/free-proxy-list/lists/hy.txt
-https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub19.txt
-https://v2.alicivil.workers.dev
-https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_raw_shadowsocks.txt
-https://github.com/Epodonios/v2ray-configs/raw/main/Splitted-By-Protocol/trojan.txt
-https://raw.githubusercontent.com/barry-far/V2ray-config/main/Splitted-By-Protocol/ss.txt
-https://raw.githubusercontent.com/xyfqzy/free-nodes/main/nodes/v2ray.txt
-https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/main/mtn/sub_3.txt
-https://raw.githubusercontent.com/youfoundamin/V2rayCollector/main/vless_iran.txt
-https://raw.githubusercontent.com/peasoft/NoMoreWalls/master/list_raw.txt
-https://raw.githubusercontent.com/taheri79/V2rayCollector/main/sub/normal/vmess
-https://gh-proxy.com/raw.githubusercontent.com/Barabama/FreeNodes/main/nodes/yudou66.txt
-https://raw.githubusercontent.com/Mosifree/-FREE2CONFIG/main/Reality
-https://raw.githubusercontent.com/Barabama/FreeNodes/main/nodes/yudou66.yaml
-https://raw.githubusercontent.com/itsyebekhe/PSG/main/config.txt
-https://raw.githubusercontent.com/Huibq/TrojanLinks/master/links/temporary
-https://raw.githubusercontent.com/AzadNetCH/Clash/main/AzadNet.json
-https://raw.githubusercontent.com/du5/free/master/file/0407/clash.yaml
-https://raw.githubusercontent.com/w1770946466/Auto_proxy/main/config.yaml
-https://raw.githubusercontent.com/Firmfox/Proxify/refs/heads/main/v2ray_configs/seperated_by_protocol/shadowsocks.txt
-https://bitbucket.org/huwo1/proxy_nodes/raw/f31ca9ec67b84071515729ff45b011b6b09c10f2/proxy.md
-https://raw.githubusercontent.com/NiREvil/vless/main/sub/fragment
-https://raw.githubusercontent.com/F0rc3Run/F0rc3Run/refs/heads/main/Best-Results/proxies.txt
-https://raw.githubusercontent.com/mshojaei77/v2rayAuto/refs/heads/main/telegram/popular_channels_1
-https://raw.githubusercontent.com/MrMohebi/xray-proxy-grabber-telegram/refs/heads/master/collected-proxies/xray-json-full/actives_all.json
-https://raw.githubusercontent.com/Jsnzkpg/Jsnzkpg/Jsnzkpg/Jsnzkpg2
-https://raw.githubusercontent.com/roosterkid/openproxylist/main/V2RAY_BASE64.txt
-https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks5.txt
-https://shz.al/4FEZ:/~@sorenab1,/333
-https://raw.githubusercontent.com/mlabalabala/v2ray-node/main/nodefree4clash.txt
-https://raw.githubusercontent.com/Lewis-1217/FreeNodes/main/bpjzx1
-https://raw.githubusercontent.com/voken100g/AutoSSR/master/stable
-https://raw.githubusercontent.com/zhangkaiitugithub/passcro/main/speednodes.yaml
-https://raw.githubusercontent.com/Mohammadgb0078/IRV2ray/main/vless.txt
-https://raw.githubusercontent.com/arshiacomplus/WoW-fix/main/sing-box.json
-https://raw.githubusercontent.com/liketolivefree/kobabi/main/singbox.json
-https://raw.githubusercontent.com/ermaozi01/free_clash_vpn/main/subscribe/v2ray.txt
-https://raw.githubusercontent.com/Ai123999/3Wend/refs/heads/main/3Wend_Notorgamers
-https://raw.githubusercontent.com/bywarm/whitelists-vpns-etc/refs/heads/main/whitelists1-4pda.txt
-https://raw.githubusercontent.com/Misaka-blog/chromego_merge/main/sub/merged_proxies_new.yaml
-https://www.sslproxies.org/
-https://www.us-proxy.org/
-https://raw.githubusercontent.com/WearestandTelegram/Wearestand/refs/heads/main/wearestand.json
-https://raw.githubusercontent.com/wrfree/free/refs/heads/main/v2
-https://raw.githubusercontent.com/VPN-Subcription-Links/ClashX-V2Ray-TopFreeProxy/main/combine/clash.config.yaml
+https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-18.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub29.txt
+https://v2.alicivil.workers.dev/?count=2000&list=mo&shuffle=true
+https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/hiddify/WarpOnWarp.json
+https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/refs/heads/main/app/sub.txt
