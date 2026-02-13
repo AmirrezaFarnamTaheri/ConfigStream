@@ -1,10 +1,9 @@
 # ConfigStream Batch 1
 # Optimized based on fetch duration for equal execution times
-# Est. Fetch Time: 8744.3s
+# Est. Fetch Time: 14114.9s
 
-https://raw.githubusercontent.com/ndsphonemy/proxy-sub/main/my.txt
-https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-5.txt
-https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub15.txt
-https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/refs/heads/main/mtn/sub_4.txt
-https://v2.alicivil.workers.dev/?count=2000&list=na&shuffle=true
-https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/sub/v2rayng-wg.txt
+https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/protocols/vl.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub23.txt
+https://v2.alicivil.workers.dev/?count=2000&list=mx&shuffle=true
+https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/main/mci/sub_3.txt
+https://raw.githubusercontent.com/NiREvil/vless/main/sing-box.json
