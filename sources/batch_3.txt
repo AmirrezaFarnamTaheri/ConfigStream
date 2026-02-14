@@ -1,9 +1,9 @@
 # ConfigStream Batch 3
 # Optimized based on fetch duration for equal execution times
-# Est. Fetch Time: 6009.0s
+# Est. Fetch Time: 8701.7s
 
-https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-18.txt
-https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub29.txt
-https://v2.alicivil.workers.dev/?count=2000&list=mo&shuffle=true
-https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/hiddify/WarpOnWarp.json
-https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/refs/heads/main/app/sub.txt
+https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-4.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/super-sub.txt
+https://v2.alicivil.workers.dev/?list=3
+https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/sing-box.json
+https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/main/app/sub.txt
