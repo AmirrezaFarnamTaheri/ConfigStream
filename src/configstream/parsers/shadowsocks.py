@@ -62,19 +62,19 @@ def parse_ss(config: str) -> Optional[Proxy]:
             # Decode the whole thing
             decoded_main = safe_b64_decode(main_part)
             if decoded_main is None:
-                # Fallback: maybe it's legacy format without @?
+                # Fallback: maybe it's classic format without @?
                 return None
 
             if "@" in decoded_main:
                 user_info, host_info = decoded_main.split("@", 1)
             else:
-                # Legacy: method:password:ip:port
-                parts_legacy = decoded_main.split(":")
-                if len(parts_legacy) >= 4:
-                    port_str = parts_legacy[-1]
-                    host = parts_legacy[-2]
-                    password = parts_legacy[-3]
-                    method = ":".join(parts_legacy[:-3])
+                # Classic format: method:password:ip:port
+                parts_classic = decoded_main.split(":")
+                if len(parts_classic) >= 4:
+                    port_str = parts_classic[-1]
+                    host = parts_classic[-2]
+                    password = parts_classic[-3]
+                    method = ":".join(parts_classic[:-3])
                     user_info = f"{method}:{password}"
                     host_info = f"{host}:{port_str}"
                 else:
@@ -90,7 +90,7 @@ def parse_ss(config: str) -> Optional[Proxy]:
                 if isinstance(val, str) and val.strip():
                     password = val.strip()
                     break
-            # [FIX] Drop proxy if password still missing after all fallback attempts
+            # Drop proxy if password still missing after all fallback attempts
             if not password:
                 logger.debug(
                     "Shadowsocks proxy dropped: no password after fallback check"
@@ -101,14 +101,12 @@ def parse_ss(config: str) -> Optional[Proxy]:
         # Check for plugin params (SIP003 simple-obfs etc often appended as /?plugin=...)
         # But usually in SS links, plugins are encoded.
 
-        if "/?" in host_info:
-            host_info, query = host_info.split("/?", 1)
-            q_params = parse_qs(query)
-            details.update({k: v[0] for k, v in q_params.items() if v})
-        elif "?" in host_info:
-            host_info, query = host_info.split("?", 1)
-            q_params = parse_qs(query)
-            details.update({k: v[0] for k, v in q_params.items() if v})
+        # Strip query params from host_info (SIP003 plugin params)
+        for sep in ("/?", "?"):
+            if sep in host_info:
+                host_info, query = host_info.split(sep, 1)
+                details.update({k: v[0] for k, v in parse_qs(query).items() if v})
+                break
 
         if ":" not in host_info:
             return None
@@ -134,7 +132,7 @@ def parse_ss(config: str) -> Optional[Proxy]:
             "aes",
             "chacha20",  # incomplete names
         }
-        # [FIX] Relaxed length check to allow legacy short methods (e.g. rc4)
+        # Relaxed length check to allow older short methods (e.g. rc4)
         if method.lower() in invalid_methods or len(method) < 2:
             logger.debug(
                 f"Invalid Shadowsocks method detected: {method} in {config[:50]}..."
@@ -157,17 +155,6 @@ def parse_ss(config: str) -> Optional[Proxy]:
                 if len(plugin_parts) > 1:
                     # The rest are options
                     details["plugin_opts"] = ";".join(plugin_parts[1:])
-
-            # Additional normalization for simple-obfs/v2ray-plugin
-            # Sometimes param is just 'obfs-local' and opts are separate
-            pass
-
-        # Ensure server/port are in details for logic checks
-
-        # Final validation before creating proxy object
-        if not host:
-            logger.debug(f"Invalid host in shadowsocks config: {config[:50]}...")
-            return None
 
         server = host.strip("[]")
         details.update(

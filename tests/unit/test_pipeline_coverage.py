@@ -2,7 +2,8 @@
 import asyncio
 from unittest.mock import AsyncMock, patch, MagicMock
 import pytest
-from configstream.pipeline_stages import processing_consumer, PipelineStats
+from configstream.consumer import processing_consumer
+from configstream.pipeline_stats import PipelineStats
 from configstream.models import Proxy
 from configstream.testers import SingBoxTester
 
@@ -85,7 +86,7 @@ async def test_processing_consumer_basic(
 
     # Mock parse_config to return a proxy
     with patch(
-        "configstream.pipeline_core.consumer.parse_config",
+        "configstream.consumer.parse_config",
         return_value=Proxy(
             protocol="vmess",
             address="1.1.1.1",
@@ -95,7 +96,7 @@ async def test_processing_consumer_basic(
         ),
     ):
         with patch(
-            "configstream.pipeline_core.consumer.validate_batch_configs",
+            "configstream.consumer.validate_batch_configs",
             return_value=[
                 Proxy(
                     protocol="vmess",

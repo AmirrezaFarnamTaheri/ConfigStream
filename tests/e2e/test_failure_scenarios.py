@@ -54,7 +54,7 @@ async def test_anomaly_db_failure(tmp_path, monkeypatch, caplog):
         return {"https://example.com/subs": FakeResponse()}
 
     monkeypatch.setattr(
-        "configstream.pipeline_core.producer.fetch_multiple_sources", fake_fetch
+        "configstream.producer.fetch_multiple_sources", fake_fetch
     )
 
     # Mock GeoIP
@@ -68,13 +68,8 @@ async def test_anomaly_db_failure(tmp_path, monkeypatch, caplog):
     sources = ["https://example.com/subs"]
     output_dir = tmp_path / "out_anomaly"
 
-    # Capture logs to verify we see the error but pipeline continues?
-    # Actually, pipeline_stages.py catches Exception in producer: "Producer failed: %s"
-    # If is_safe raises, producer loop catches it?
-    # No, `is_safe` is called inside `source_producer` loop.
-    # `try...except Exception as e: logger.error("Producer failed: %s", e)`
-    # So if `is_safe` raises, the producer aborts for that batch/source?
-    # If it aborts the whole producer, then we get partial results or empty.
+    # The producer catches Exception per-source, so if is_safe raises,
+    # that source is skipped and the pipeline continues with partial results.
 
     result = await run_full_pipeline(
         sources=sources, output_dir=str(output_dir), dry_run=True

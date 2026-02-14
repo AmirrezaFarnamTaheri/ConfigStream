@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from configstream.parsers.generic import (
-    parse_generic_url_scheme as _parse_generic_url_scheme,
+    parse_generic_url_scheme,
 )
 from configstream.parsers.ssr import parse_ssr
 from configstream.parsers.trojan import parse_trojan
@@ -13,7 +13,7 @@ import json
 def test_parse_generic_fallback():
     # Invalid line
     try:
-        p = _parse_generic_url_scheme("invalid line")
+        p = parse_generic_url_scheme("invalid line")
         assert p is None
     except ValueError:
         pass

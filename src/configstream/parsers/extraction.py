@@ -54,7 +54,7 @@ def is_plausible_proxy_config(config: str) -> bool:
     if not protocol or len(protocol) > 20 or len(rest) < 4:
         return False
 
-    # [FIX] Tightened noise check from 0.98 to 0.50 to reject binary garbage.
+    # Tightened noise check from 0.98 to 0.50 to reject binary garbage.
     # The previous 98% threshold allowed high-entropy garbage (e.g., 'un;k')
     # to pass through and crash the Go tester with "unknown method" FATAL errors.
     # Valid Base64-heavy VLESS URIs still pass at 50% because Base64 chars
@@ -127,7 +127,7 @@ def extract_config_lines(
     if not payload_str.strip():
         return [], {"empty_payload": 1}
 
-    # [FIX] HTML Pollution Detection
+    # HTML Pollution Detection
     # Detect common HTML tags at start of content
     stripped_start = payload_str.strip()[:100].lower()
     if (
@@ -136,14 +136,12 @@ def extract_config_lines(
         or "<head" in stripped_start
         or "<body" in stripped_start
     ):
-        # Unless it looks like a Mixed Content file (rare)
-        # Check if it has vmess:// or similar in first 1000 chars?
-        # If it's a massive HTML page, scanning it all is expensive.
-        # But some sources might wrap configs in <pre>.
-        # Heuristic: If it has HTML tags AND is > 100KB, it's likely a webpage not a config.
-        # Or if lines look mostly like HTML.
-        # For safety, let's just warn and proceed BUT if it's purely HTML, we drop all.
-        pass
+        # HTML content detected. Large pure-HTML pages are likely error pages, not configs.
+        # Small pages or those containing proxy URIs in <pre> tags are still scanned.
+        if len(payload_str) > 100_000 and "://" not in payload_str[:1000]:
+            logger.debug("Dropping large HTML payload (%d bytes) with no proxy URIs", len(payload_str))
+            return [], {"html_page": 1}
+        logger.debug("HTML detected but proceeding — may contain embedded configs")
 
     # 1. Check for JSON Array (e.g. ["vmess://...", ...])
     if payload_str.strip().startswith("["):
@@ -273,7 +271,7 @@ def extract_config_lines(
         if candidate.startswith("#"):
             continue
 
-        # [FIX] Individual HTML Line Detection (Robust)
+        # Individual HTML Line Detection (Robust)
         if candidate.startswith("<") and (
             candidate.lower().startswith("<!doctype")
             or candidate.lower().startswith("<html")
@@ -328,7 +326,7 @@ def extract_config_lines(
                             prefix = match.group(0)  # e.g. 1.2.3.4:80
                             raw_trim = raw_candidate.strip()
 
-                            # Case 1: IP:PORT:USER:PASS (Legacy/SOCKS)
+                            # Case 1: IP:PORT:USER:PASS (SOCKS/HTTP auth)
                             if raw_trim.startswith(prefix + ":"):
                                 tail = raw_trim[len(prefix) + 1 :]
                                 cred_parts = tail.split(":")

@@ -11,14 +11,14 @@ import (
 )
 
 func main() {
-	// [FIX] Idiomatic unbuffered channel (removed redundant ", 0")
+	// Idiomatic unbuffered channel (removed redundant ", 0")
 	c := make(chan struct{})
 
 	// Register test function and keep reference
 	testFunc := js.FuncOf(testProxyWasm)
 	js.Global().Set("testProxyWasm", testFunc)
 
-	// [FIX] Register cleanup function that also releases itself to prevent memory leak
+	// Register cleanup function that also releases itself to prevent memory leak
 	var cleanupFunc js.Func
 	cleanupFunc = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		testFunc.Release()
@@ -32,7 +32,7 @@ func main() {
 }
 
 // testProxyWasm expects arguments: [proxyUrl, uuid (optional)]
-// [FIX] Returns a JavaScript Promise instead of blocking the JS event loop.
+// Returns a JavaScript Promise instead of blocking the JS event loop.
 // Previously, the select{} blocked the Go goroutine for up to 5 seconds,
 // which froze the entire WASM runtime and the calling JS thread.
 func testProxyWasm(this js.Value, args []js.Value) interface{} {
@@ -69,7 +69,7 @@ func doTestProxy(rawURL string) map[string]interface{} {
 
 	start := time.Now()
 
-	// [FIX] Handle all known proxy protocol schemes, not just vmess/vless/ss.
+	// Handle all known proxy protocol schemes, not just vmess/vless/ss.
 	// Previously, trojan://, hysteria://, etc. were passed directly to WebSocket.New()
 	// which throws a JS exception.
 	wsURL := rawURL

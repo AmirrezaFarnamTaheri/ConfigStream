@@ -44,7 +44,7 @@ pyperclip>=1.8.0      # Clipboard support
 ### Optional
 - **Slipstream Client** - For proxy testing functionality
   - **Automatic Download**: The application automatically detects your platform and downloads the correct client
-  - **Smart Detection**: Detects existing installations (including legacy filenames)
+  - **Smart Detection**: Detects existing installations (including alternate filenames)
   - **Resume Support**: Partial downloads are saved and can be resumed on retry
   - Supported platforms:
     - Linux (x86_64): `slipstream-client-linux-amd64`
@@ -137,7 +137,7 @@ uv pip install -r requirements.txt
 - ✅ macOS Apple Silicon (ARM64)
 - ✅ macOS Intel (x86_64)
 
-**Legacy Support:**
+**Existing Installations:**
 - Automatically detects existing `slipstream-client.exe` installations
 - No need to re-download if you already have it
 
@@ -287,7 +287,7 @@ self.slipstream_base_port = 10800   # Base port (uses 10800, 10801, 10802)
 - Progress bar with download speed
 - Resume on interruption (keeps `.partial` files)
 - Retry with exponential backoff (up to 5 attempts)
-- Legacy filename detection (`slipstream-client.exe`)
+- Alternate filename detection (`slipstream-client.exe`)
 
 ### DNS Timeout
 
@@ -367,7 +367,7 @@ python/
 └── slipstream-client/          # Slipstream binaries (auto-downloaded)
     ├── windows/
     │   ├── slipstream-client-windows-amd64.exe  # Windows AMD64
-    │   └── slipstream-client.exe                # Legacy (auto-detected)
+    │   └── slipstream-client.exe                # Alternate name (auto-detected)
     ├── linux/
     │   └── slipstream-client-linux-amd64        # Linux x86_64
     └── macos/
@@ -405,8 +405,8 @@ pip install textual
 
 ### Slipstream not detected
 - Check platform-specific directory exists (`slipstream-client/windows/`, etc.)
-- Verify filename matches (supports both new and legacy names)
-- For legacy installs: Use `slipstream-client.exe` (auto-detected)
+- Verify filename matches (supports both primary and alternate names)
+- For existing installs: Use `slipstream-client.exe` (auto-detected)
 - Enable logging to see detection process
 
 ### Slipstream tests fail

@@ -20,7 +20,7 @@ class QualityStorage:
         self.db_path = db_path
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._thread_local = threading.local()  # per-thread storage
-        self._lock = threading.Lock()  # [FIX] Initialize the lock
+        self._lock = threading.Lock()
         with self._lock:
             self._init_db()
 
@@ -107,23 +107,8 @@ class QualityStorage:
             )
 
             conn.commit()
-        except sqlite3.OperationalError as e:
-            # Database schema errors (locked, corrupted, etc.)
-            logger.error(f"SQLite operational error initializing DB: {e}")
-            try:
-                conn.rollback()
-            except Exception:
-                pass
-        except sqlite3.DatabaseError as e:
-            # Database integrity errors
-            logger.error(f"SQLite database error during initialization: {e}")
-            try:
-                conn.rollback()
-            except Exception:
-                pass
         except Exception as e:
-            # Unexpected errors
-            logger.exception(f"Unexpected error initializing source quality DB: {e}")
+            logger.error(f"Error initializing source quality DB: {e}")
             try:
                 conn.rollback()
             except Exception:
@@ -166,27 +151,10 @@ class QualityStorage:
                     (url,),
                 ).fetchone()
                 return row  # type: ignore
-            except sqlite3.OperationalError as e:
-                # Database locked or table doesn't exist
-                safe_url = SecurityValidator.sanitize_log_message(str(url))
-                safe_err = SecurityValidator.sanitize_log_message(str(e))
-                logger.error(
-                    f"SQLite operational error getting state for {safe_url}: {safe_err}"
-                )
-                return None
-            except sqlite3.DatabaseError as e:
-                # Database integrity errors
-                safe_url = SecurityValidator.sanitize_log_message(str(url))
-                safe_err = SecurityValidator.sanitize_log_message(str(e))
-                logger.error(f"SQLite database error for {safe_url}: {safe_err}")
-                return None
             except Exception as e:
-                # Unexpected errors
                 safe_url = SecurityValidator.sanitize_log_message(str(url))
                 safe_err = SecurityValidator.sanitize_log_message(str(e))
-                logger.exception(
-                    f"Unexpected error getting source state for {safe_url}: {safe_err}"
-                )
+                logger.error(f"Error getting source state for {safe_url}: {safe_err}")
                 return None
 
     def get_trust_score(self, url: str) -> float:
@@ -198,27 +166,10 @@ class QualityStorage:
                     "SELECT trust_score FROM source_stats WHERE url = ?", (url,)
                 ).fetchone()
                 return row[0] if row else 50.0
-            except sqlite3.OperationalError as e:
-                # Database locked or table doesn't exist - return default
-                safe_url = SecurityValidator.sanitize_log_message(str(url))
-                safe_err = SecurityValidator.sanitize_log_message(str(e))
-                logger.debug(
-                    f"SQLite operational error getting trust score for {safe_url}: {safe_err}"
-                )
-                return 50.0
-            except sqlite3.DatabaseError as e:
-                # Database integrity errors - return default
-                safe_url = SecurityValidator.sanitize_log_message(str(url))
-                safe_err = SecurityValidator.sanitize_log_message(str(e))
-                logger.warning(f"SQLite database error for {safe_url}: {safe_err}")
-                return 50.0
             except Exception as e:
-                # Unexpected errors - return default
                 safe_url = SecurityValidator.sanitize_log_message(str(url))
                 safe_err = SecurityValidator.sanitize_log_message(str(e))
-                logger.debug(
-                    f"Unexpected error getting trust score for {safe_url}: {safe_err}"
-                )
+                logger.debug(f"Error getting trust score for {safe_url}: {safe_err}")
                 return 50.0
 
     def upsert_stats(self, url: str, stats: Dict[str, Any]):
@@ -451,7 +402,7 @@ class QualityStorage:
                                     data,
                                 )
                     except sqlite3.OperationalError:
-                        # 'source_runs' table missing in legacy schema versions.
+                        # 'source_runs' table missing in older schema versions.
                         # Ignore during merging; schema migration is handled in init.
                         pass
 

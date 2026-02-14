@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from configstream.parsers.extraction import extract_config_lines
-from configstream.parsers import _parse_v2ray_json
+from configstream.parsers import parse_v2ray_json
 import json
 
 
@@ -12,7 +12,7 @@ class TestParsersExtended:
         assert lines[0] == payload
 
         # Verify it can be parsed by auto_detect logic (simulated)
-        assert _parse_v2ray_json(lines[0]) is not None
+        assert parse_v2ray_json(lines[0]) is not None
 
     def test_extract_yaml_blob(self):
         payload = """

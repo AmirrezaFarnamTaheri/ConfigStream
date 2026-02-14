@@ -142,7 +142,7 @@ def generate_split_outputs(
                 enable_fragmentation=False,
                 enable_multiplexing=False,
             )
-        # [FIX] Mark evasion features based on actual mode, not unconditionally True
+        # Mark evasion features based on actual mode, not unconditionally True
         if not p.details:
             p.details = {}
         p.details["has_utls"] = evasion_mode in ("aggressive", "stealth")
@@ -205,15 +205,6 @@ def generate_split_outputs(
                 "default": "🚀 Auto",
             }
         )
-        # Add "⚡ Auto-Fast" alias for compatibility if needed
-        outbounds.append(
-            {
-                "type": "selector",
-                "tag": "⚡ Auto-Fast",
-                "outbounds": ["🚀 Auto"],
-                "default": "🚀 Auto",
-            }
-        )
         # Add "🛡️ Auto-Fallback" alias
         outbounds.append(
             {
@@ -229,7 +220,7 @@ def generate_split_outputs(
             {
                 "type": "selector",
                 "tag": "🚀 Mode Selector",
-                "outbounds": ["🚀 Auto", "⚡ Auto-Fast", "🛡️ Auto-Fallback"]
+                "outbounds": ["🚀 Auto", "🛡️ Auto-Fallback"]
                 + selector_tags,
                 "default": "🚀 Auto",
             }

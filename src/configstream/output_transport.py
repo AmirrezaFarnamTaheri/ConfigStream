@@ -50,21 +50,8 @@ def save_json(
             with gzip.open(temp_gz_path, "wt", encoding="utf-8") as f:
                 f.write(json_content)
             os.replace(temp_gz_path, gz_path)
-        except gzip.BadGzipFile as e:
-            # Gzip format errors
-            logger.error(f"Gzip compression error for {path}: {e}")
-            if temp_gz_path.exists():
-                temp_gz_path.unlink()
-            raise
-        except (OSError, IOError) as e:
-            # File system errors (permissions, disk space, etc.)
-            logger.error(f"I/O error during gzip compression of {path}: {e}")
-            if temp_gz_path.exists():
-                temp_gz_path.unlink()
-            raise
         except Exception as e:
-            # Unexpected errors - cleanup and re-raise with context
-            logger.exception(f"Unexpected error compressing {path}: {e}")
+            logger.error(f"Gzip compression failed for {path}: {e}")
             if temp_gz_path.exists():
                 temp_gz_path.unlink()
             raise
@@ -88,7 +75,7 @@ def inject_stego_key_into_frontend(secret_key: str, js_file_path: Path) -> None:
         # Regex to find: const SECRET_KEY = "ANYTHING_HERE";
         pattern = r'(const\s+SECRET_KEY\s*=\s*")([^"]*)(")'
 
-        # FIX: Escape the key for safe JavaScript string injection
+        # Escape the key for safe JavaScript string injection.
         # This prevents issues if the key contains backslashes or quotes
         escaped_key = json.dumps(secret_key)[1:-1]  # Remove outer quotes from JSON
 

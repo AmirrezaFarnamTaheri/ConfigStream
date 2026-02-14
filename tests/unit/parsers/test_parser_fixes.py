@@ -8,8 +8,8 @@ PipelineStats sync to_dict, and signer input validation.
 import pytest
 from configstream.parsers.shadowsocks import parse_ss
 from configstream.parsers.trojan import parse_trojan
-from configstream.pipeline_core.stats import PipelineStats
-from configstream.crypto.signer import Signer
+from configstream.pipeline_stats import PipelineStats
+from configstream.signer import Signer
 import inspect
 import threading
 

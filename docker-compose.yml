@@ -33,7 +33,7 @@ services:
     command: >
       sh -c "
       echo '🔄 Updating GeoIP databases via CLI...';
-      # [FIX] Use application logic instead of curl redundancy
+      # Use application logic instead of curl redundancy
       python -m configstream.cli update-databases;
 
       while true; do

@@ -59,10 +59,6 @@ class ProxyHistoryTracker:
         self.max_entries = max_entries
         self.session_id = datetime.now(timezone.utc).isoformat()
 
-    def record_test_result(self, proxy: Proxy) -> None:
-        """Record a single test result (compatibility alias)."""
-        self.update_history([proxy])
-
     def update_history(self, proxies: List[Proxy]):
         """
         Updates the history database with the latest test results.
@@ -98,7 +94,7 @@ class ProxyHistoryTracker:
             if hasattr(self.storage, "execute_write_many"):
                 self.storage.execute_write_many(sql, data_to_insert)
             else:
-                # Fallback for legacy/mock storage
+                # Fallback for mock storage
                 conn = self.storage.get_connection()
                 conn.executemany(sql, data_to_insert)
                 conn.commit()
@@ -138,7 +134,7 @@ class ProxyHistoryTracker:
             return []
 
     def get_proxy_history(self, proxy_id: str) -> Optional[Dict[str, Any]]:
-        """Get history in legacy dict format {entries: [...]}."""
+        """Get history in dict format {entries: [...]}."""
         entries = self._fetch_history_entries(proxy_id, limit=self.max_entries)
         if not entries:
             return None

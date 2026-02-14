@@ -476,6 +476,7 @@ class UIStateManager {
     // Store handlers to remove them later
     this._handlers = {
         visibility: () => this.setState({ isPageVisible: !document.hidden }),
+
         online: () => {
             this.setState({ isOnline: true });
             this.setSuccess('Connection restored');
@@ -485,6 +486,16 @@ class UIStateManager {
             this.setError('You are offline. Some features may not work.');
         },
         dataUpdated: (event) => {
+            this.setState({
+                lastUpdate: event.detail?.generated_at || Date.now()
+            });
+        },
+        dataUpdatedLegacy: (event) => {
+            this.setState({
+                lastUpdate: event.detail?.generated_at || Date.now()
+            });
+        },
+        dataUpdatedNamespaced: (event) => {
             this.setState({
                 lastUpdate: event.detail?.generated_at || Date.now()
             });
@@ -501,6 +512,8 @@ class UIStateManager {
     
     // Listen for data updates from cache manager
     window.addEventListener('dataUpdated', this._handlers.dataUpdated);
+    window.addEventListener('data-updated', this._handlers.dataUpdatedLegacy);
+    window.addEventListener('configstream:dataUpdated', this._handlers.dataUpdatedNamespaced);
   }
 
   /**
@@ -512,8 +525,11 @@ class UIStateManager {
           window.removeEventListener('online', this._handlers.online);
           window.removeEventListener('offline', this._handlers.offline);
           window.removeEventListener('dataUpdated', this._handlers.dataUpdated);
+          window.removeEventListener('data-updated', this._handlers.dataUpdatedLegacy);
+          window.removeEventListener('configstream:dataUpdated', this._handlers.dataUpdatedNamespaced);
           this.log.info("Destroyed and cleaned up listeners");
       }
+
       this.listeners.clear();
       this.updateQueue = [];
   }

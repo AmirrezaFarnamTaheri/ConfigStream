@@ -36,9 +36,9 @@ def test_to_singbox_outbound_vmess(sample_proxy):
 
 
 def test_safe_int_conversion():
-    from configstream.converters import _safe_int_conversion
+    from configstream.converters import safe_int_conversion
 
-    assert _safe_int_conversion("123") == 123
-    assert _safe_int_conversion(b"123") == 123
-    assert _safe_int_conversion(None) == 0
-    assert _safe_int_conversion("abc") == 0
+    assert safe_int_conversion("123") == 123
+    assert safe_int_conversion(b"123") == 123
+    assert safe_int_conversion(None) == 0
+    assert safe_int_conversion("abc") == 0

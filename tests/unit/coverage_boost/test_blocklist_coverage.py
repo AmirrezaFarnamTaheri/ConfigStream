@@ -56,7 +56,7 @@ def test_blocklist_manager_suspicious_port(blocklist_manager):
     assert blocklist_manager.is_suspicious_port(443) is False
 
 
-def test_blocklist_manager_is_honeypot_deprecated(blocklist_manager):
+def test_blocklist_manager_is_honeypot_removed(blocklist_manager):
     # Wraps is_suspicious_port - method removed, checking substitute behavior
     # or just remove this test if the method is gone.
     # We will remove the test case as the method `is_honeypot` is deleted.

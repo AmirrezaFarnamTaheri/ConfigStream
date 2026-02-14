@@ -1,5 +1,4 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# src/configstream/tagging.py
 """
 This module handles the in-place renaming (tagging) of proxy objects
 based on a user-defined template.

@@ -35,7 +35,7 @@ class GeoIPResolver:
     _lock: threading.Lock = threading.Lock()
 
     def __new__(cls):
-        # FIX: Always acquire lock before checking to prevent race condition
+        # Always acquire lock before checking to prevent race condition
         with cls._lock:
             if cls._instance is None:
                 cls._instance = super(GeoIPResolver, cls).__new__(cls)
@@ -50,7 +50,7 @@ class GeoIPResolver:
         self.reader_city: Optional[geoip2.database.Reader] = None
         self.reader_asn: Optional[geoip2.database.Reader] = None
 
-        # FIX: Use threading.Lock for sync context - asyncio.Lock created lazily
+        # Use threading.Lock for sync context - asyncio.Lock created lazily
         self._lookup_lock: Optional[asyncio.Lock] = None
         self._last_mtime: float = 0.0
 
@@ -84,7 +84,7 @@ class GeoIPResolver:
             except (ImportError, AttributeError):
                 self._uses_c_extension = False
                 logger.warning(
-                    "⚠️  Running GeoIP in slow Pure-Python mode! Install 'maxminddb' C extension for performance."
+                    "Running GeoIP in slow Pure-Python mode! Install 'maxminddb' C extension for performance."
                 )
 
             if city_path.exists():
@@ -218,10 +218,7 @@ class GeoIPResolver:
         return result
 
     def close(self) -> None:
-        """Close GeoIP database readers and release resources.
-
-        [FIX P2] Added return type annotation for type safety.
-        """
+        """Close GeoIP database readers and release resources."""
         if self.reader_city:
             self.reader_city.close()
         if self.reader_asn:
@@ -229,8 +226,6 @@ class GeoIPResolver:
 
     def log_enrichment_stats(self, proxies: List[Any]) -> Dict[str, int]:
         """Log and return GeoIP enrichment statistics.
-
-        [FIX P2] Added specific type annotations (List[Any] -> Dict[str, int]).
 
         Args:
             proxies: List of proxy objects with optional geo attributes

@@ -2,7 +2,7 @@
 import json
 from pathlib import Path
 from configstream.models import Proxy
-from configstream.output import save_metadata
+from configstream.output_logic import save_metadata
 
 
 def test_save_metadata_analytics_structure(tmp_path: Path):
@@ -69,7 +69,7 @@ def test_save_metadata_analytics_structure(tmp_path: Path):
     proxies.append(p5)
 
     # Mock pipeline stats object
-    from configstream.pipeline_core.stats import PipelineStats
+    from configstream.pipeline_stats import PipelineStats
 
     p_stats = PipelineStats()
     p_stats.fetched_lines = 100

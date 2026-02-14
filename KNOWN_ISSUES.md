@@ -1,6 +1,6 @@
 # Known Issues and Limitations
 
-## Recently Resolved (v2.6.0)
+## Recently Resolved (v3.0.2)
 - **Xray WireGuard export**: Lab was incorrectly claiming Xray doesn't support WireGuard. Fixed — now generates native `secretKey` + `peers[]` format.
 - **Clash/Xray transport**: Lab exports were missing WebSocket, gRPC, HTTP/2, httpupgrade, and Reality settings. Fixed with full transport support.
 - **Trojan transport in Clash**: Pipeline Clash converter was missing ws/grpc transport for Trojan. Fixed.

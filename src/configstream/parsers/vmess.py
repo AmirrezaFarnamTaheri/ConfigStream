@@ -51,7 +51,7 @@ def parse_vmess(config: str) -> Optional[Proxy]:
         if not uuid or len(str(uuid)) > 100:
             return None
 
-        # Respect AlterID if provided (legacy support), otherwise default to 0 (modern AEAD)
+        # Respect AlterID if provided, otherwise default to 0 (AEAD mode)
         if "aid" in vmess_data:
             try:
                 vmess_data["aid"] = int(vmess_data["aid"])

@@ -11,11 +11,6 @@ from .decoders import (
 from .extraction import is_plausible_proxy_config, extract_config_lines
 from .normalization import normalize_proxy_details
 
-# Constants are now in ..constants but re-exported implicitly if used (but they are not exported in original code explicitly, just imported)
-# If existing code imports constants from here, it will break.
-# Let's check imports in original code.
-# Original code imported constants from ..constants.
-
 __all__ = [
     "validate_b64_input",
     "safe_b64_decode",

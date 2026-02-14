@@ -58,7 +58,7 @@ def parse_ssr(config: str) -> Optional[Proxy]:
 
         # Password may be base64 (urlsafe, no pad); some generators also put it plain.
         password = safe_b64_decode(_b64_normalize(pwd_part))
-        # [FIX] If base64 decode fails, fall back to raw value to avoid None/"None" corruption
+        # If base64 decode fails, fall back to raw value to avoid None/"None" corruption
         if password is None:
             password = pwd_part
 

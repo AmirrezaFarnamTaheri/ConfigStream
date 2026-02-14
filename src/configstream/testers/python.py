@@ -51,8 +51,6 @@ class PythonTester:
         timeout: float = 10.0,
         strict_security: bool = False,
     ):
-        # Fix for Sing-box 1.11+ deprecation warning/fatal error
-        os.environ["ENABLE_DEPRECATED_WIREGUARD_OUTBOUND"] = "true"
         self.settings = settings
         self.timeout = timeout
         self.strict_security = strict_security

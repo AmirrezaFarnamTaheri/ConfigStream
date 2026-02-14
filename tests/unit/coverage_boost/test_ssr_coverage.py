@@ -34,7 +34,7 @@ def test_parse_ssr_missing_fields():
     assert proxy is None
 
 
-def test_parse_ssr_legacy_params():
+def test_parse_ssr_extra_params():
     # Test with parameters /?obfsparam=...
     # 1.1.1.1:443:origin:aes-256-cfb:plain:cGFzc3dvcmQ/?obfsparam=b2JmczEyMw==&protoparam=cHJvdG8xMjM=
     # b2JmczEyMw== -> obfs123

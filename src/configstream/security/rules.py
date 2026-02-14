@@ -18,6 +18,7 @@ from configstream.constants import (
     VALID_PROTOCOLS,
     MAX_CONFIG_LINE_LENGTH,
 )
+from configstream.security_validator import LOCAL_IP_RANGES as _SPECIAL_ADDRESS_PATTERNS_BASE
 
 logger = logging.getLogger(__name__)
 
@@ -37,15 +38,9 @@ SECURITY_CATEGORIES = {
 # Cache AppSettings instance
 _APP_SETTINGS_CACHE = AppSettings()
 
-# Pre-compiled special address patterns
-_SPECIAL_ADDRESS_PATTERNS = [
-    re.compile(r"^127\."),
+_SPECIAL_ADDRESS_PATTERNS = list(_SPECIAL_ADDRESS_PATTERNS_BASE) + [
     re.compile(r"^::1$"),
     re.compile(r"^localhost$"),
-    re.compile(r"^10\."),
-    re.compile(r"^172\.(1[6-9]|2[0-9]|3[0-1])\."),
-    re.compile(r"^192\.168\."),
-    re.compile(r"^169\.254\."),
     re.compile(r"^fe80:"),
     re.compile(r"^fc00:"),
     re.compile(r"^fd00:"),
@@ -65,14 +60,7 @@ def validate_port(port: int) -> Optional[str]:
     if port < 1 or port > MAX_PORT:
         return f"Port out of valid range (1-{MAX_PORT}): {port}"
     if port in DANGEROUS_PORTS:
-        # Sample log to avoid spam
-        if logger.isEnabledFor(logging.DEBUG):
-            logger.warning(f"Dangerous port detected: {port}")
-        else:
-            # We don't log individual dangerous ports at INFO/WARNING to avoid spam,
-            # assuming the validator summary handles it.
-            # Or use a sampling mechanism if necessary.
-            pass
+        logger.debug(f"Dangerous port detected: {port}")
         return f"Dangerous port: {port}"
     return None
 

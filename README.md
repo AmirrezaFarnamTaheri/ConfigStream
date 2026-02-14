@@ -169,7 +169,7 @@ proxies.json (simplified example):
 {
   "metadata": {
     "generated_at": "2026-02-05T00:00:00Z",
-    "update_interval_hours": 6,
+    "update_interval_hours": 4,
     "total_proxies": 12345,
     "total_configured_sources": 220,
     "revived_warp": 120,

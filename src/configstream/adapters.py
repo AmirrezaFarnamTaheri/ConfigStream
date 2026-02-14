@@ -648,17 +648,18 @@ class SIP008Adapter(Adapter):
         )
 
 
+_ADAPTER_MAP = {
+    "surge": SurgeAdapter,
+    "loon": LoonAdapter,
+    "qx": QuantumultXAdapter,
+    "quantumultx": QuantumultXAdapter,
+    "sip008": SIP008Adapter,
+    "shadowrocket": ShadowrocketAdapter,
+}
+
+
 def get_adapter(format_name: str) -> Adapter:
-    f = format_name.lower()
-    if f == "surge":
-        return SurgeAdapter()
-    elif f == "loon":
-        return LoonAdapter()
-    elif f in ["qx", "quantumultx"]:
-        return QuantumultXAdapter()
-    elif f == "sip008":
-        return SIP008Adapter()
-    elif f == "shadowrocket":
-        return ShadowrocketAdapter()
-    else:
+    cls = _ADAPTER_MAP.get(format_name.lower())
+    if cls is None:
         raise ValueError(f"Unknown format: {format_name}")
+    return cls()

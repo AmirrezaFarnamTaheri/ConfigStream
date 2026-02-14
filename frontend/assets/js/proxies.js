@@ -135,20 +135,21 @@ const calculateSimilarity = (queryTokens, proxy) => {
 // Data Processor
 function processProxyData(raw) {
     const tags = raw.tags ? (Array.isArray(raw.tags) ? raw.tags.join(' ') : raw.tags) : '';
+    const tagsLower = tags.toLowerCase();
     const proc = (raw.process || 'native').toLowerCase();
-    const isWashed = tags.includes('WARP') || tags.includes('Secure') || tags.includes('Optimal') || tags.includes('warp') || proc === 'washed';
+    const isWashed = tagsLower.includes('warp') || tagsLower.includes('secure') || tagsLower.includes('optimal') || proc === 'washed';
     const isShielded = proc === 'shielded';
-    const isSmart = tags.includes('RELAY') || tags.includes('INTRANET') || tags.includes('STREAMING') || proc === 'chain';
+    const isSmart = tagsLower.includes('relay') || tagsLower.includes('intranet') || tagsLower.includes('streaming') || proc === 'chain';
 
     // Determine Type Tag
     let typeTag = null;
     if (isShielded) {
         typeTag = 'optimal';
     } else if (isWashed) {
-        if (tags.includes('Optimal')) typeTag = 'optimal';
+        if (tagsLower.includes('optimal')) typeTag = 'optimal';
         else typeTag = 'secure';
     } else if (isSmart) {
-        if (tags.includes('INTRANET') || tags.includes('intranet')) typeTag = 'intranet';
+        if (tagsLower.includes('intranet')) typeTag = 'intranet';
         else typeTag = 'smart';
     }
 
@@ -190,7 +191,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         // Fetch Proxies
-        // FIX: Used fetchProxies() instead of fetchAllProxies()
+        // Use fetchProxies() (canonical API entrypoint) instead of fetchAllProxies().
         const proxies = await window.api.fetchProxies();
 
         // Hide loading

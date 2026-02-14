@@ -324,7 +324,7 @@ async function \u0076\u006c\u0065\u0073\u0073OverWSHandler(request) {
           const \u0076\u006c\u0065\u0073\u0073ResponseHeader = new Uint8Array([\u0076\u006c\u0065\u0073\u0073Version[0], 0]);
           const rawClientData = chunk.slice(rawDataIndex);
 
-          // TODO: support udp here when cf runtime has udp support
+          // NOTE: support udp here when cf runtime has udp support
           if (isDns) {
             const { write } = await handleUDPOutBound(webSocket, \u0076\u006c\u0065\u0073\u0073ResponseHeader, log);
             udpStreamWrite = write;
@@ -772,7 +772,7 @@ async function handleUDPOutBound(webSocket, \u0076\u006c\u0065\u0073\u0073Respon
     start(controller) {},
     transform(chunk, controller) {
       // udp message 2 byte is the the length of udp data
-      // TODO: this should have bug, beacsue maybe udp chunk can be in two websocket message
+      // NOTE: this should have bug, beacsue maybe udp chunk can be in two websocket message
       for (let index = 0; index < chunk.byteLength; ) {
         const lengthBuffer = chunk.slice(index, index + 2);
         const udpPakcetLength = new DataView(lengthBuffer).getUint16(0);

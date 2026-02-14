@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import MagicMock, AsyncMock, patch
-from configstream.workers.scanner import WarpScannerWorker
+from configstream.warp_scanner import WarpScannerWorker
 
 
 @pytest.mark.asyncio

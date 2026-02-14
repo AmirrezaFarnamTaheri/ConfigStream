@@ -94,7 +94,6 @@ The frontend is a critical security boundary.
 | Directory | Purpose |
 | :--- | :--- |
 | `src/configstream/` | Main Python package — pipeline, parsers, testers, intelligence, generators, models |
-| `src/configstream/pipeline_core/` | Pipeline orchestration, output handler (Scan → Wash → Chain → Write) |
 | `src/configstream/intelligence/` | Intelligence layer — washer, chaining, evasion, adaptive timeout, circuit breaker |
 | `src/configstream/generators/` | Output format generators (Sing-box, Clash, Plaintext, Split) |
 | `src/configstream/converters/` | Proxy-to-config converters (Sing-box outbound, Clash dict) |

@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 def _is_bogon_ip(address: str) -> bool:
     """Check if an IP is a bogon (loopback, private, link-local, multicast).
 
-    [FIX] Prevents SSRF attacks where a malicious DNS response resolves
+    Prevents SSRF attacks where a malicious DNS response resolves
     a domain to a local/private IP, causing the tester to attack internal
     infrastructure.
     """
@@ -88,7 +88,7 @@ class DNSCache:
 
         address = info[0][4][0]
 
-        # [FIX] Reject bogon IPs to prevent SSRF attacks
+        # Reject bogon IPs to prevent SSRF attacks
         if _is_bogon_ip(address):
             logger.warning(
                 "DNS resolved %s to bogon IP %s - rejecting to prevent SSRF",
@@ -156,3 +156,30 @@ class DNSCache:
 
 
 DEFAULT_CACHE = DNSCache()
+
+
+async def prewarm_dns_cache(sources: list[str], top_n: int = 10) -> None:
+    """
+    Resolves the most common hostnames from a list of sources
+    and populates the DNS cache.
+    """
+    from collections import Counter
+    from urllib.parse import urlparse
+
+    try:
+        host_counts = Counter(
+            urlparse(source).hostname
+            for source in sources
+            if urlparse(source).hostname is not None
+        )
+
+        top_hosts = [
+            host for host, _ in host_counts.most_common(top_n) if host is not None
+        ]
+
+        await asyncio.gather(
+            *(DEFAULT_CACHE.resolve(host) for host in top_hosts),
+            return_exceptions=True,
+        )
+    except Exception as e:
+        logger.warning(f"DNS pre-warm failed: {e}")

@@ -30,17 +30,9 @@ def parse_vless(url: str) -> Proxy | None:
         if "?" in main_part:
             main_part, params_str = main_part.split("?", 1)
 
-        # Split uuid@host:port
-        # Handle '@' in uuid or params incorrectly handled?
-        # Standard VLESS format: uuid@host:port
-        # Some encoded UUIDs might contain stuff? Unlikely.
+        # Split uuid@host:port (rsplit handles @ in uuid edge case)
         if "@" not in main_part:
             return None
-
-        # Split from right to handle weird UUIDs? No, host:port is at end.
-        # But if uuid contains '@', we should split on LAST @?
-        # Standard is last @ before host.
-        # Let's split on the LAST @
         uuid_val, host_port = main_part.rsplit("@", 1)
 
         # Handle host:port (IPv6 might have brackets)
@@ -121,52 +113,29 @@ def parse_vless(url: str) -> Proxy | None:
         elif params.get("security") == "tls":
             proxy.details["sni"] = host  # Default SNI to host for TLS
 
-        # Handle aliases for Reality Public Key
-        pbk = params.get("pbk")
-        if not pbk:
-            pbk = params.get("publicKey")
-        if not pbk:
-            pbk = params.get("public-key")
-
+        # Reality params (check common aliases)
+        pbk = next((params.get(k) for k in ("pbk", "publicKey", "public-key") if params.get(k)), None)
         if pbk:
-            # Check if it's a list (unlikely from simple loop, but defensive)
             proxy.details["pbk"] = pbk
 
-        # Handle aliases for Short ID
-        sid = params.get("sid")
-        if not sid:
-            sid = params.get("shortId")
-        if not sid:
-            sid = params.get("short-id")
-
+        sid = next((params.get(k) for k in ("sid", "shortId", "short-id") if params.get(k)), None)
         if sid:
             proxy.details["sid"] = sid
 
         if "fp" in params:
-            # [FIX] Store as "fp" directly so converters find it for all TLS modes
+            # Store as "fp" directly so converters find it for all TLS modes
             proxy.details["fp"] = params["fp"]
         if "alpn" in params:
             proxy.details["alpn"] = params["alpn"]
 
-        # WS / GRPC / HTTP transport params
-        # [FIX] Store under standard keys that converters expect (path, host, serviceName)
-        if params.get("type") == "ws":
+        # Transport params
+        transport = params.get("type")
+        if transport in ("ws", "http", "h2", "httpupgrade"):
             proxy.details["path"] = params.get("path", "/")
             if "host" in params:
                 proxy.details["host"] = params["host"]
-
-        elif params.get("type") == "grpc":
+        elif transport == "grpc":
             proxy.details["serviceName"] = params.get("serviceName", "")
-
-        elif params.get("type") in ["http", "h2"]:
-            proxy.details["path"] = params.get("path", "/")
-            if "host" in params:
-                proxy.details["host"] = params["host"]
-
-        elif params.get("type") == "httpupgrade":
-            proxy.details["path"] = params.get("path", "/")
-            if "host" in params:
-                proxy.details["host"] = params["host"]
 
         normalize_proxy_details(proxy)
         return proxy

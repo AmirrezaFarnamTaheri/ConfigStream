@@ -20,7 +20,7 @@ The system follows a **Streaming Pipeline Architecture** (`Producer-Consumer`):
     *   `AdaptiveTimeout`: Adjusts timeouts based on historical latency.
     *   `CircuitBreaker`: Fails fast for unstable hosts.
     *   `SecurityValidator`: Enforces protocol compliance and sanitization.
-    *   `ProxyWasher`: Handles WARP key management and chain generation.
+    *   `ProxyWasher` (`intelligence/washer/core.py`): Handles WARP key management and chain generation.
 
 ## 3. Coding Standards
 
@@ -72,7 +72,7 @@ The system follows a **Streaming Pipeline Architecture** (`Producer-Consumer`):
 *   **Blocklists**: Ensure `DEFAULT_BLOCKLIST` is updated before processing begins.
 *   **Singletons**: Both `BlocklistManager` and `GeoIPResolver` use `threading.Lock` in `__new__` for thread-safe instantiation. Any new singleton **MUST** follow this pattern.
 
-### Testing (`src/configstream/testers.py`)
+### Testing (`src/configstream/testers/`)
 *   **Dual Engine**:
     *   **Go Sidecar**: Preferred for performance/compatibility. It supports testing single proxies and **Chains** (lists of outbounds).
         *   **Payload Format**: The Go tester expects a valid JSON array of config objects for batch or custom testing. Do NOT send concatenated JSON strings.
@@ -86,15 +86,15 @@ The system follows a **Streaming Pipeline Architecture** (`Producer-Consumer`):
 *   **Cache**: Use `TestResultCache` to skip re-testing recently verified proxies. Ensure path persistence.
 
 ### Shared Utilities (`src/configstream/utils/`)
-*   **`net.py`**: Shared network helpers (`normalize_host`, `is_ip_literal`, `is_global_ip`). Used by `output_logic.py` and `pipeline_core/output_handler.py`. Do NOT duplicate these — always import from `utils.net`.
+*   **`net.py`**: Shared network helpers (`normalize_host`, `is_ip_literal`, `is_global_ip`). Used by `output_logic.py` and `output_handler.py`. Do NOT duplicate these — always import from `utils.net`.
 *   **`__init__.py`**: `AtomicFileWriter`, `BoundedConcurrencyManager`, `_FileLock`.
 
-### Output Generation (`src/configstream/output_logic.py`, `pipeline_core/output_handler.py`)
+### Output Generation (`src/configstream/output_logic.py`, `src/configstream/output_handler.py`)
 *   **DNS Cache Passthrough**: `output_handler.py` pre-computes `_build_dns_safe_proxies` and `_build_dns_hardened_proxies` results and passes them via `dns_safe_cache` / `dns_hardened_cache` params to `generate_categorized_outputs`. Do NOT recompute these inside `generate_categorized_outputs` when caches are provided.
 *   **Chosen Outputs**: `generate_categorized_outputs` generates `chosen/{base64.txt, proxies.txt, singbox.json, clash.yaml}` for the top-N proxy subset. When no proxies are working, `_select_chosen_proxies` falls back to selecting from ALL proxies.
 *   **Categorized Outputs**: Country and protocol sub-files include **ALL** proxies (not just working ones). The `is_working` flag is preserved for client-side filtering.
 *   **Always Generate**: The pipeline **never** exits early on zero working proxies. Outputs are always produced so users in different networks can use the subscription files.
-*   **No Duplicate Helpers**: Chain outbound counting in `output_handler.py` uses a lightweight `set[str]` tag counter. The full `_append_chain` collection logic lives only in `output_logic.py`.
+*   **No Duplicate Helpers**: Chain outbound counting in `output_handler.py` uses `_collect_tags()` helper with `set[str]`. The full `_append_chain` collection logic lives only in `output_logic.py`. Revived-proxy filtering uses `_is_revived()` helper — do NOT inline the condition.
 
 ### Split Generator (`src/configstream/generators/split.py`)
 *   **Outbound Cache**: `to_singbox_outbound()` is called **once** per proxy and cached in `_base_outbound_cache`. Both Sniper (with evasion) and Tank (clean) use `copy.deepcopy()` of the cached result. Do NOT call `to_singbox_outbound()` twice per proxy.
@@ -102,7 +102,6 @@ The system follows a **Streaming Pipeline Architecture** (`Producer-Consumer`):
 ### VwarpTool (`src/configstream/tools/vwarp.py`)
 *   The **canonical** Vwarp tool class is `VwarpTool` in `tools/vwarp.py`.
 *   `validate_warp_key()` is a static method on this class.
-*   The legacy stub `tools/vwarp_tool.py` has been **removed** — do not recreate it.
 *   **Structured Logging**: Scan and tunnel operations log timing (`%.1fs`), PID, and command used. Failure classification (`_classify_failure`) routes to `config`, `dns`, `connectivity`, or `other` for targeted retry logic.
 *   **Config Generation**: `build_vwarp_config()` produces configs aligned with the official vwarp CONFIG_FORGE.md format. Supports MASQUE noize presets (`light`, `moderate`, `heavy`, `gfw`), AtomicNoize presets (`light`, `moderate`, `heavy`), Psiphon country codes (`PSIPHON_COUNTRY_CODES`), and SOCKS5 proxy chaining.
 *   **Scan Timeout**: Vwarp IP scan timeout is **60s** (increased from 30s for CI environments).
@@ -150,7 +149,36 @@ Before submitting ANY code:
 *   **Invalid URL Escapes**: Malformed percent-encoding in proxy paths (e.g., `%2` instead of `%20`) crashes sing-box. -> `singbox_utils.add_transport_sb` now sanitizes paths via `_BAD_PERCENT_RE`.
 *   **Pipeline Early Exit**: Never return early from the pipeline on zero working proxies. Always generate outputs.
 
-## 9. CI / Batch Configuration
+## 9. Module Layout & Canonical Locations
+*   **Pipeline Stats**: `PipelineStats` and `PipelineResult` live in `pipeline_stats.py`.
+*   **Producer / Consumer**: `source_producer` in `producer.py`, `processing_consumer` in `consumer.py`.
+*   **ProxyWasher**: Canonical class in `intelligence/washer/core.py`. Import directly.
+*   **Parsers**: All public parser functions (`parse_vmess`, `parse_vless`, `parse_ss`, etc.) are exported from `parsers/__init__.py` with explicit `__all__`.
+*   **DNS Cache**: `prewarm_dns_cache` lives in `dns_cache.py`.
+*   **Haversine / Country Centroids**: Canonical location is `intelligence/chaining.py`.
+*   **Fetcher**: `fetch_from_source`, `fetch_multiple_sources` in `fetcher.py`, models in `fetcher_worker.py`.
+*   **Signer**: `Signer` class lives in `signer.py`.
+*   **Steganography**: `StegoPacker` and `generate_stego_assets` live in `stego.py`.
+*   **WARP Scanner**: `WarpScannerWorker` lives in `warp_scanner.py`.
+*   **Source Quality**: `SourceQualityTracker` in `source_quality.py` extends `quality/storage.py`.
+*   **Security Validation**: `SecurityValidator` in `security_validator.py` is the canonical validator. `security/rules.py` imports `LOCAL_IP_RANGES` from it — do NOT duplicate IP patterns.
+*   **Generators**: Public API in `generators/__init__.py` with `__all__`.
+*   **Converters**: Public API in `converters/__init__.py` with `__all__`.
+
+### Removed Files (do NOT recreate)
+*   `pipeline_stages.py` — consolidated into `producer.py` and `consumer.py`.
+*   `dns_prewarm.py` — consolidated into `dns_cache.py`.
+*   `quality/geo.py` — duplicate of `intelligence/chaining.py`; deleted.
+*   `intelligence/washer.py` — consolidated into `intelligence/washer/core.py`.
+*   `tools/vwarp_tool.py` — consolidated into `tools/vwarp.py`.
+*   `fetcher_core/` — flattened into `fetcher.py` and `fetcher_worker.py`.
+*   `pipeline_core/` — flattened into `producer.py`, `consumer.py`, `pipeline_stats.py`, `output_handler.py`.
+*   `output.py` — consolidated into `output_logic.py` and `output_transport.py`.
+*   `crypto/` — flattened to `signer.py`.
+*   `transport/` — flattened to `stego.py`.
+*   `workers/` — flattened to `warp_scanner.py`.
+
+## 10. CI / Batch Configuration
 *   **Batch Count**: 17 shards (batch_1.txt through batch_17.txt). `dynamic_reshard.py` manages distribution.
 *   **MAX_BATCHES**: Set to 17 in `dynamic_reshard.py`. Empty batch files are allowed — reshard fills them.
 *   **Time Limits**: `BATCH_TIME_LIMIT_SECONDS = 13500` (3h45m fetch/parse/test) + `BATCH_TIME_LIMIT_GRACE_SECONDS = 2700` (45m for consumers to finish revival, then output generation runs after gather).

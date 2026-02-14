@@ -21,7 +21,7 @@ def generate_clash_config(
     """
     Generates a Clash YAML configuration.
 
-    [FIX] Added `extra_outbounds` argument to prevent crash when pipeline passes it.
+    Added `extra_outbounds` argument to prevent crash when pipeline passes it.
     However, Clash generator currently only supports standard proxies.
     Future work: Convert Sing-box chains to Clash relay groups.
     """

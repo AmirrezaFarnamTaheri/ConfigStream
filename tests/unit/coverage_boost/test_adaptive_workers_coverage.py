@@ -11,7 +11,7 @@ def test_calculate_optimal_workers_auto():
     with patch("multiprocessing.cpu_count", return_value=4):
         # Mock psutil not present (fallback to CPU logic)
         with patch("configstream.adaptive_workers.psutil_module", None):
-            # [FIX] Updated: non-CI = 4 * 15 = 60, CI = 4 * 10 = 40
+            # Updated: non-CI = 4 * 15 = 60, CI = 4 * 10 = 40
             # Mock CI detection to False for deterministic test
             with patch(
                 "configstream.adaptive_workers._is_ci_environment", return_value=False
@@ -58,7 +58,7 @@ def test_calculate_optimal_workers_hard_limits():
                 "configstream.adaptive_workers._is_ci_environment", return_value=False
             ):
                 workers = calculate_optimal_workers(0)
-                # [FIX] Updated: max is now 150 (non-CI) instead of 200
+                # Updated: max is now 150 (non-CI) instead of 200
                 assert workers <= 150
 
             with patch(

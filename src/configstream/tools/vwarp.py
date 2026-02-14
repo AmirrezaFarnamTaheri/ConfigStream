@@ -317,7 +317,7 @@ class VwarpTool:
                         f"Cannot write to ~/.local/bin, installing to {target_path}"
                     )
 
-                logger.info(f"Downloading Vwarp from {url}")
+                logger.info(f"Downloading Vwarp from {SecurityValidator.sanitize_log_message(url)}")
 
                 async with httpx.AsyncClient(
                     follow_redirects=True, timeout=60.0
@@ -537,7 +537,7 @@ class VwarpTool:
 
         if config_override is not None:
             config = dict(config_override)
-            # [FIX] Do NOT inject "version" into config — Vwarp v2.1.0 rejects
+            # Do NOT inject "version" into config — Vwarp v2.1.0 rejects
             # unknown fields like "version" with: "parse config file: version: unknown flag"
             config["bind"] = f"{bind_addr}:{port}"
             self._log_config("fallback override", config)
@@ -564,7 +564,7 @@ class VwarpTool:
         if not env_dns and is_ci:
             env_dns = "1.1.1.1"
 
-        # [FIX] Don't force config generation just because CI is true.
+        # Don't force config generation just because CI is true.
         # The test_url field is NOT supported by Vwarp v2.1.0 in the config file,
         # causing "parse config file: test_url: unknown flag" errors.
         needs_config = bool(env_force_config or env_json or env_dns or env_endpoint)
@@ -587,7 +587,7 @@ class VwarpTool:
             vwarp_config["endpoint"] = env_endpoint
         if env_dns:
             vwarp_config["dns"] = env_dns
-        # [FIX] Do NOT inject test_url into config file - Vwarp v2.1.0 rejects it.
+        # Do NOT inject test_url into config file - Vwarp v2.1.0 rejects it.
         # Instead, pass it as a CLI flag if the binary supports --test-url.
         extra_flags: List[str] = []
         if env_test_url:
@@ -834,7 +834,7 @@ class VwarpTool:
 
         start = time.time()
         while time.time() - start < timeout:
-            # [FIX] Check if process died while waiting
+            # Check if process died while waiting
             if self._tunnel_proc and self._tunnel_proc.returncode is not None:
                 logger.error(
                     f"Vwarp process died with code {self._tunnel_proc.returncode} while waiting for port."
@@ -902,7 +902,7 @@ class VwarpTool:
         reason = self._last_failure_reason or "unknown"
         if fallback_enabled and reason in ("connectivity", "dns", "config"):
             logger.info(f"Vwarp fallback retry triggered (reason={reason}).")
-            # [FIX] Minimal config without test_url to avoid config parse errors
+            # Minimal config without test_url to avoid config parse errors
             fallback_cfg = {
                 "bind": f"{bind_addr}:{port}",
                 "dns": "1.1.1.1",
@@ -1093,7 +1093,7 @@ class VwarpTool:
         if not text:
             return "unknown"
         lower = text.lower()
-        # [FIX] Detect config parse errors specifically
+        # Detect config parse errors specifically
         config_patterns = (
             "parse config file",
             "unknown flag",

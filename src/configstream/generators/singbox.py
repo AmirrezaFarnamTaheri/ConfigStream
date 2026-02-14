@@ -22,7 +22,7 @@ class SingBoxGenerator:
         """
         outbounds: List[Dict[str, Any]] = []
 
-        # Legacy Tag Names
+        # Selector/Auto tag names (used by sing-box UI clients)
         SELECTOR_TAG = "🌍 Proxy Select"
         AUTO_TAG = "⚡ Best Latency"
 
@@ -124,6 +124,33 @@ class SingBoxGenerator:
             {"type": "block", "tag": "block"},
             {"type": "dns", "tag": "dns-out"},
         ]
+
+        selector_tags = [tag for tag in added_tags if tag not in [SELECTOR_TAG, AUTO_TAG]]
+        outbounds.append(
+            {
+                "type": "selector",
+                "tag": "🌍 Proxy Select",
+                "outbounds": ["🚀 Auto"] + selector_tags,
+                "default": "🚀 Auto",
+            }
+        )
+        outbounds.append(
+            {
+                "type": "urltest",
+                "tag": "🛡️ Auto-Fallback",
+                "outbounds": selector_tags,
+                "url": "http://cp.cloudflare.com/generate_204",
+                "interval": "10m",
+            }
+        )
+        outbounds.append(
+            {
+                "type": "selector",
+                "tag": "🚀 Mode Selector",
+                "outbounds": ["🚀 Auto", "🛡️ Auto-Fallback"] + selector_tags,
+                "default": "🚀 Auto",
+            }
+        )
 
         # DNS Configuration — uses "address" format for broad client compatibility
         # (sing-box <1.12, v2rayN, NekoRay, NekoBox, Hiddify)
@@ -265,25 +292,19 @@ class SingBoxGenerator:
                 outbound.pop(k, None)
 
 
-# [BACKWARD COMPATIBILITY]
 def generate_singbox_config(
     proxies: List[Proxy],
     region: str = "all",
     extra_outbounds: Optional[List[Dict[str, Any]]] = None,
 ) -> str:
-    """
-    Wrapper for SingBoxGenerator.generate to maintain backward compatibility.
-    """
+    """Generate a complete Sing-box JSON config string from proxies."""
     generator = SingBoxGenerator()
     config_dict = generator.generate(proxies, region, extra_outbounds)
     return json.dumps(config_dict, indent=2, ensure_ascii=False)
 
 
-# [BACKWARD COMPATIBILITY TEST HELPER]
 def _strip_internal_metadata(outbounds: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """
-    Helper to match old test API.
-    """
+    """Remove internal metadata fields from outbound dicts."""
     gen = SingBoxGenerator()
     for o in outbounds:
         gen._clean_outbound(o)

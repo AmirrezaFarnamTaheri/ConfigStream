@@ -33,7 +33,7 @@ def _parse_url_scheme(config: str, protocol: str, default_port: int) -> Optional
 
         # Handle scheme mismatch or missing scheme
         if parsed.scheme:
-            # [FIX] Allow exclave scheme for wireguard parser
+            # Allow exclave scheme for wireguard parser
             allowed_schemes = [protocol, protocol.lower()]
             if protocol == "wireguard":
                 allowed_schemes.extend(["exclave"])
@@ -163,7 +163,7 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
         if proxy:
             proxy.protocol = "wireguard"  # Normalize
 
-    # [FIX] Handle exclave:// scheme
+    # Handle exclave:// scheme
     if not proxy and c.lower().startswith("exclave://"):
         proxy = _parse_url_scheme(
             c, "wireguard", 51820
@@ -174,7 +174,7 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
     if not proxy:
         return None
 
-    # [FIX] Recover real address if hostname is 'wg' (common in Exclave links)
+    # Recover real address if hostname is 'wg' (common in Exclave links)
     if proxy.address == "wg" and "address" in proxy.details:
         addr_val = proxy.details["address"]
         # Handle host:port split
@@ -229,7 +229,7 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
             if not key:
                 return True  # Let later checks handle missing optional keys if any
 
-            # [FIX] Handle URL-encoded keys (e.g. %2B for +)
+            # Handle URL-encoded keys (e.g. %2B for +)
             if "%" in key:
                 try:
                     from urllib.parse import unquote

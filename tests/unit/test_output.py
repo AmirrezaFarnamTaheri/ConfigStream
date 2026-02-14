@@ -2,9 +2,10 @@
 import pytest
 import json
 from unittest.mock import MagicMock
-from configstream.output import save_json, save_metadata, generate_categorized_outputs
+from configstream.output_transport import save_json
+from configstream.output_logic import save_metadata, generate_categorized_outputs
 from configstream.models import Proxy
-from configstream.pipeline_core.stats import PipelineStats
+from configstream.pipeline_stats import PipelineStats
 from configstream.quality.storage import QualityStorage
 
 

@@ -23,7 +23,7 @@ def test_singbox_dns_profile_structure():
     assert "servers" in profile
     assert "rules" in profile
 
-    # Check for required server tags (backward-compatible "address" format)
+    # Check for required server tags (standard "address" format)
     servers = {s.get("tag"): s for s in profile["servers"]}
     assert "local_local" in servers
     assert "remote_dns" in servers

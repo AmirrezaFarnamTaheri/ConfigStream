@@ -8,6 +8,7 @@ import math
 from configstream.converters import to_singbox_outbound
 from configstream.models import Proxy
 from configstream.config import AppSettings
+from configstream.tagging import get_flag_emoji
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +45,7 @@ except ImportError:
             * math.cos(math.radians(lat2))
             * math.sin(dlon / 2) ** 2
         )
-        # [FIX] Clamp to prevent domain error on near-antipodal coordinates
+        # Clamp to prevent domain error on near-antipodal coordinates
         a = min(1.0, max(0.0, a))
         c = 2 * math.asin(math.sqrt(a))
         return DistanceStub(R * c)
@@ -214,25 +215,40 @@ def create_chain(
     if not relay_out or not exit_out:
         return []
 
-    relay_tag = f"{tag_prefix}-RELAY-{relay.id[:6]}"
+    flag_relay = get_flag_emoji(relay.country_code or "XX")
+    flag_exit = get_flag_emoji(exit_node.country_code or "XX")
+
+    # Standardized Tag: 🇮🇷➔🇺🇸 | STRATEGY | RELAY-PROTO | EXIT-PROTO
+    strategy = tag_prefix.upper()
+    relay_proto = (relay.protocol or "").upper()
+    exit_proto = (exit_node.protocol or "").upper()
+
+    chain_tag = f"{flag_relay}➔{flag_exit} | {strategy} | {relay_proto}✚{exit_proto}"
+
+    relay_tag = f"RELAY-{relay.id[:6]}-{strategy}"
+
     # If washing, mark the Exit as 'Middle' to avoid confusion, or keep standard naming
-    exit_tag_suffix = "EXIT" if not warp_config else "MID"
-    exit_tag = f"{tag_prefix}-{exit_tag_suffix}-{exit_node.country}-{exit_node.id[:6]}"
+    # The exit_out tag is the visible one in the client selector
+    exit_out["tag"] = chain_tag
 
     relay_out["tag"] = relay_tag
-    exit_out["tag"] = exit_tag
     exit_out["detour"] = relay_tag
 
     chain = [relay_out, exit_out]
 
     # 2. Add WARP Hop (The New Logic)
     if warp_config:
-        warp_tag = f"{tag_prefix}-WARP-FINAL-{exit_node.id[:4]}"
+        # If WARP is added, IT becomes the final hop and visible tag
+        warp_tag = f"{chain_tag} ✚ WARP"
+
+        # Rename exit to intermediate
+        exit_mid_tag = f"MID-{exit_node.id[:6]}-{strategy}"
+        exit_out["tag"] = exit_mid_tag
 
         # Create the WireGuard object using the config from Washer
         warp_out = warp_config.copy()
         warp_out["tag"] = warp_tag
-        warp_out["detour"] = exit_tag  # The magic: WARP goes through Exit
+        warp_out["detour"] = exit_mid_tag  # The magic: WARP goes through Exit
         # Inject metadata for process tracking
         warp_out["_process"] = "chain"
 
@@ -267,7 +283,7 @@ PROTOCOL_SCORES = {
     "shadowsocks": {"stealth": 7, "speed": 8, "reliability": 9, "penalty_km": 200},
     "wireguard": {"stealth": 4, "speed": 10, "reliability": 10, "penalty_km": 300},
     "ssh": {"stealth": 9, "speed": 5, "reliability": 10, "penalty_km": 400},
-    # Legacy
+    # Basic protocols
     "http": {"stealth": 3, "speed": 4, "reliability": 6, "penalty_km": 600},
     "socks": {"stealth": 2, "speed": 5, "reliability": 7, "penalty_km": 600},
 }
@@ -771,14 +787,20 @@ def generate_smart_chains(
                 exit_out = to_singbox_outbound(exit_node)
 
                 if r1_out and r2_out and exit_out:
+                    f1 = get_flag_emoji(relay1.country_code or "XX")
+                    f2 = get_flag_emoji(relay2.country_code or "XX")
+                    fx = get_flag_emoji(exit_node.country_code or "XX")
+
+                    chain_tag = f"{f1}➔{f2}➔{fx} | HIGH-ANON | {relay1.protocol.upper()}✚{relay2.protocol.upper()}✚{exit_node.protocol.upper()}"
+
                     r1_tag = f"ANON-HOP1-{relay1.id[:6]}"
                     r2_tag = f"ANON-HOP2-{relay2.id[:6]}"
-                    exit_tag = f"ANON-EXIT-{exit_node.id[:6]}"
 
                     r1_out["tag"] = r1_tag
                     r2_out["tag"] = r2_tag
                     r2_out["detour"] = r1_tag
-                    exit_out["tag"] = exit_tag
+
+                    exit_out["tag"] = chain_tag
                     exit_out["detour"] = r2_tag
                     exit_out["_process"] = "chain"
 

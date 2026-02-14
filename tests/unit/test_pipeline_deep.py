@@ -2,7 +2,8 @@
 import pytest
 import asyncio
 from unittest.mock import MagicMock, patch
-from configstream.pipeline_stages import processing_consumer, PipelineStats
+from configstream.consumer import processing_consumer
+from configstream.pipeline_stats import PipelineStats
 from configstream.models import Proxy
 from configstream.test_cache import TestResultCache
 from configstream.scheduler import SmartRetestScheduler
@@ -70,14 +71,14 @@ async def test_processing_consumer_flow():
     mock_quality = MagicMock(spec=SourceQualityTracker)
 
     # Need to mock parse_config or ensure "vmess://test" parses
-    with patch("configstream.pipeline_core.consumer.parse_config") as mock_parse:
+    with patch("configstream.consumer.parse_config") as mock_parse:
         # Return a valid proxy
         p = Proxy(config="vmess://test", protocol="vmess", address="1.1.1.1", port=443)
         mock_parse.return_value = p
 
         # We also need to mock validate_batch_configs to just return the list
         with patch(
-            "configstream.pipeline_core.consumer.validate_batch_configs"
+            "configstream.consumer.validate_batch_configs"
         ) as mock_validate:
             mock_validate.side_effect = lambda batch, policy: batch
 

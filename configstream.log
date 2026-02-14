@@ -1283,3 +1283,608 @@ Exception: DB Error
 2026-02-12 20:17:00,304 - configstream.converters.singbox - WARNING - [-] - [singbox.py:182] - Conversion failed: invalid port 99999 for example.com
 2026-02-12 20:17:00,312 - configstream.converters.singbox - DEBUG - [-] - [singbox.py:478] - Generated unique local IP [IP]/32 for WireGuard proxy (redacted)
 2026-02-12 20:17:00,315 - configstream.converters.singbox - DEBUG - [-] - [singbox.py:621] - Successfully converted wireguard proxy (Tag: 🌐-wireguard-e13a10e3) (Source: unknown)
+2026-02-14 22:37:56,164 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 38
+2026-02-14 22:37:56,179 - configstream.test_cache - INFO - [-] - [test_cache.py:64] - Loaded 0 entries from cache file: data\test_cache.json
+2026-02-14 22:37:56,195 - configstream.pipeline - INFO - [-] - [pipeline.py:166] - Initializing security blocklists...
+2026-02-14 22:37:57,724 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: GET https://raw.githubusercontent.[BASE64]-ipsets/master/firehol_level1.netset "HTTP/1.1 200 OK"
+2026-02-14 22:37:57,730 - configstream.security.blocklist - INFO - [-] - [blocklist.py:67] - Updated FireHol blocklist successfully.
+2026-02-14 22:37:58,589 - configstream.security.blocklist - INFO - [-] - [blocklist.py:137] - Loaded 4502 blocked networks from FireHol Level 1.
+2026-02-14 22:37:58,601 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-14 22:37:58,608 - configstream.tools.vwarp - INFO - [-] - [vwarp.py:934] - 🚀 Starting Vwarp SOCKS5 Tunnel on [IP]:10808 (cmd: C:\Users\Acer\.local\bin\vwarp --bind [IP]:10808)...
+2026-02-14 22:37:58,609 - configstream.tools.vwarp - WARNING - [-] - [vwarp.py:1042] - Failed to start Vwarp tunnel: 
+2026-02-14 22:37:58,609 - configstream.tools.vwarp - INFO - [-] - [vwarp.py:913] - Vwarp fallback skipped (reason=unknown).
+2026-02-14 22:37:58,609 - configstream.pipeline - WARNING - [-] - [pipeline.py:207] - Vwarp tunnel failed to start or did not pass health check. Disabling Vwarp integration.
+2026-02-14 22:37:58,609 - configstream.pipeline - INFO - [-] - [pipeline.py:228] - 🚀 Auto-scaling to 24 consumers based on 16 cores.
+2026-02-14 22:37:58,609 - configstream.pipeline - INFO - [-] - [pipeline.py:251] - Starting pipeline with 38 initial workers
+2026-02-14 22:37:58,624 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-14 22:37:58,624 - configstream.pipeline - WARNING - [-] - [pipeline.py:265] - Go tester unavailable - Falling back to Python tester. Starting global concurrency tuner.
+2026-02-14 22:37:58,624 - configstream.pipeline - INFO - [-] - [pipeline.py:271] - Starting pipeline with 24 parallel consumers
+2026-02-14 22:37:58,625 - configstream.pipeline - INFO - [-] - [pipeline.py:276] - Batch time limit enabled: 13500s (soft stop with partial output).
+2026-02-14 22:37:58,681 - configstream.producer - ERROR - [-] - [producer.py:191] - ALL 1 remote sources are on cooldown/disabled - no proxies will be fetched!
+2026-02-14 22:37:58,681 - configstream.producer - INFO - [-] - [producer.py:197] - 1 source(s) were skipped due to cooldown/disabled status.
+2026-02-14 22:37:58,686 - configstream.sorter - WARNING - [-] - [sorter.py:73] - No proxies to sort
+2026-02-14 22:37:58,687 - configstream.pipeline - INFO - [-] - [pipeline.py:408] - ⚠️ Top 5 Failing Sources:\n  - http://test: score=100.0, reason=High Failures\n  - https://example.com/sub: score=100.0, reason=High Failures\n  - /tmp/pytest-of-cer/pytest-11/test_mixed_protocols_dry_run0/mixed_sources.txt: score=0.0, reason=Low Reliability\n  - /tmp/pytest-of-cer/pytest-11/test_full_pipeline_with_local_0/source.txt: score=0.0, reason=Low Reliability\n  - /tmp/pytest-of-cer/pytest-11/test_failure_mode_anomaly_db_c0/sources.txt: score=0.0, reason=Low Reliability
+2026-02-14 22:37:58,687 - configstream.output_handler - INFO - [-] - [output_handler.py:295] - Starting final output generation phase...
+2026-02-14 22:37:58,690 - configstream.output_handler - INFO - [-] - [output_handler.py:303] - Applying proxy tagging with template: {country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}
+2026-02-14 22:37:58,690 - configstream.tagging - INFO - [-] - [tagging.py:333] - Applying name template '{country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}' to 0 proxies...
+2026-02-14 22:37:58,690 - configstream.tagging - INFO - [-] - [tagging.py:365] - Tagged 0 proxies with template metadata
+2026-02-14 22:37:58,690 - configstream.geoip - INFO - [-] - [geoip.py:251] - GeoIP enrichment: 0/0 (0.0%) countries resolved, 0 cities, 0 ASNs
+2026-02-14 22:37:58,697 - configstream.intelligence.chaining - INFO - [-] - [chaining.py:828] - Enhanced smart chains generated: 0 chains across 9 categories. intranet=0, intranet_washed=0, ipv6=0, streamer=0, censorship_resistant=0, low_latency=0, high_anonymity=0, load_balanced=0
+2026-02-14 22:37:58,750 - configstream.generators.clash - INFO - [-] - [clash.py:95] - No valid proxies for Clash config generation; emitting minimal config
+2026-02-14 22:37:58,767 - configstream.generators.clash - INFO - [-] - [clash.py:95] - No valid proxies for Clash config generation; emitting minimal config
+2026-02-14 22:37:58,771 - configstream.adapters - INFO - [-] - [adapters.py:405] - Shadowrocket export summary: 0 links (Reconstructed: 0)
+2026-02-14 22:37:58,773 - configstream.adapters - INFO - [-] - [adapters.py:270] - Quantumult X export summary: 0 proxies (Failures: 0)
+2026-02-14 22:37:58,776 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 0 proxies, 0 chains (Total Lines: 1, Failures: 0)
+2026-02-14 22:37:58,779 - configstream.adapters - INFO - [-] - [adapters.py:190] - Loon export summary: 0 proxies, 0 chains
+2026-02-14 22:37:58,784 - configstream.adapters - INFO - [-] - [adapters.py:644] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-14 22:37:58,803 - configstream.generators.clash - INFO - [-] - [clash.py:95] - No valid proxies for Clash config generation; emitting minimal config
+2026-02-14 22:37:58,822 - configstream.adapters - INFO - [-] - [adapters.py:405] - Shadowrocket export summary: 0 links (Reconstructed: 0)
+2026-02-14 22:37:58,823 - configstream.adapters - INFO - [-] - [adapters.py:270] - Quantumult X export summary: 0 proxies (Failures: 0)
+2026-02-14 22:37:58,826 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 0 proxies, 0 chains (Total Lines: 1, Failures: 0)
+2026-02-14 22:37:58,830 - configstream.adapters - INFO - [-] - [adapters.py:190] - Loon export summary: 0 proxies, 0 chains
+2026-02-14 22:37:58,833 - configstream.adapters - INFO - [-] - [adapters.py:644] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-14 22:37:58,846 - configstream.generators.clash - INFO - [-] - [clash.py:95] - No valid proxies for Clash config generation; emitting minimal config
+2026-02-14 22:37:58,857 - configstream.adapters - INFO - [-] - [adapters.py:405] - Shadowrocket export summary: 0 links (Reconstructed: 0)
+2026-02-14 22:37:58,860 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 0 proxies, 0 chains (Total Lines: 1, Failures: 0)
+2026-02-14 22:37:58,863 - configstream.adapters - INFO - [-] - [adapters.py:190] - Loon export summary: 0 proxies, 0 chains
+2026-02-14 22:37:58,866 - configstream.adapters - INFO - [-] - [adapters.py:270] - Quantumult X export summary: 0 proxies (Failures: 0)
+2026-02-14 22:37:58,869 - configstream.adapters - INFO - [-] - [adapters.py:644] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-14 22:37:58,879 - configstream.output_logic - INFO - [-] - [output_logic.py:1078] - Generated 48 output files (including all variations).
+2026-02-14 22:37:58,890 - configstream.intelligence.vectors - INFO - [-] - [vectors.py:109] - Generated static vectors for 0 proxies
+2026-02-14 22:37:58,896 - configstream.history.export - INFO - [-] - [export.py:58] - Exported history visualization data to C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_all_sources_cooldown0\out_cooldown\data\proxy_history_viz.json
+2026-02-14 22:37:58,898 - configstream.history.export - INFO - [-] - [export.py:73] - Generating active proxy trend data...
+2026-02-14 22:37:58,903 - configstream.history.export - INFO - [-] - [export.py:130] - Exported active proxy trend data to C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_all_sources_cooldown0\out_cooldown\data\active_proxy_trend.json
+2026-02-14 22:37:58,904 - configstream.history.export - INFO - [-] - [export.py:144] - Generating evasion trend data...
+2026-02-14 22:37:58,908 - configstream.history.export - INFO - [-] - [export.py:224] - Exported evasion trend data to C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_all_sources_cooldown0\out_cooldown\data\evasion_trend.json (1 entries)
+2026-02-14 22:37:58,908 - configstream.output_handler - INFO - [-] - [output_handler.py:585] - Output generation complete. Files created in C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_all_sources_cooldown0\out_cooldown
+2026-02-14 22:37:58,909 - configstream.pipeline - INFO - [-] - [pipeline.py:418] - Scheduler stats: {'total_entries': 0, 'valid_entries': 0, 'expired_entries': 0, 'average_health_score': 0.0, 'ttl_seconds': 1800}
+2026-02-14 22:37:58,918 - configstream.anomaly - INFO - [-] - [anomaly.py:279] - Anomaly stats: 0 sources tracked, 0 total records, 0 in last 24h
+2026-02-14 22:37:58,922 - configstream.test_cache - INFO - [-] - [test_cache.py:112] - Saved 0 entries to cache file: data\test_cache.json
+2026-02-14 22:38:00,739 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: POST http://[IP]:[BASE64]-update "HTTP/1.1 503 Service Unavailable"
+2026-02-14 22:38:00,741 - configstream.testers.go - INFO - [-] - [go.py:247] - Go Batch Tester shutdown complete.
+2026-02-14 22:38:00,741 - configstream.event_stream - INFO - [-] - [event_stream.py:32] - [stream_close] Event stream closing.
+2026-02-14 22:38:00,811 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 38
+2026-02-14 22:38:00,815 - configstream.test_cache - INFO - [-] - [test_cache.py:64] - Loaded 0 entries from cache file: data\test_cache.json
+2026-02-14 22:38:00,826 - configstream.pipeline - INFO - [-] - [pipeline.py:166] - Initializing security blocklists...
+2026-02-14 22:38:02,056 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: GET https://raw.githubusercontent.[BASE64]-ipsets/master/firehol_level1.netset "HTTP/1.1 200 OK"
+2026-02-14 22:38:02,059 - configstream.security.blocklist - INFO - [-] - [blocklist.py:67] - Updated FireHol blocklist successfully.
+2026-02-14 22:38:03,322 - configstream.security.blocklist - INFO - [-] - [blocklist.py:137] - Loaded 4502 blocked networks from FireHol Level 1.
+2026-02-14 22:38:03,335 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-14 22:38:03,341 - configstream.pipeline - INFO - [-] - [pipeline.py:217] - Vwarp tunnel disabled by configuration.
+2026-02-14 22:38:03,342 - configstream.pipeline - INFO - [-] - [pipeline.py:228] - 🚀 Auto-scaling to 24 consumers based on 16 cores.
+2026-02-14 22:38:03,342 - configstream.pipeline - INFO - [-] - [pipeline.py:251] - Starting pipeline with 38 initial workers
+2026-02-14 22:38:03,360 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-14 22:38:03,360 - configstream.pipeline - WARNING - [-] - [pipeline.py:265] - Go tester unavailable - Falling back to Python tester. Starting global concurrency tuner.
+2026-02-14 22:38:03,361 - configstream.pipeline - INFO - [-] - [pipeline.py:271] - Starting pipeline with 24 parallel consumers
+2026-02-14 22:38:03,361 - configstream.pipeline - INFO - [-] - [pipeline.py:276] - Batch time limit enabled: 13500s (soft stop with partial output).
+2026-02-14 22:38:03,428 - configstream.producer - INFO - [-] - [producer.py:206] - Starting fetch for 1 active sources (Batch Size: 100, Concurrent Limit: 32)
+2026-02-14 22:38:03,428 - configstream.producer - INFO - [-] - [producer.py:221] - Fetching batch 1: 1 sources
+2026-02-14 22:38:03,429 - configstream.producer - ERROR - [-] - [producer.py:339] - Producer failed: DB Connection Failed
+2026-02-14 22:38:03,435 - configstream.sorter - WARNING - [-] - [sorter.py:73] - No proxies to sort
+2026-02-14 22:38:03,435 - configstream.pipeline - INFO - [-] - [pipeline.py:408] - ⚠️ Top 5 Failing Sources:\n  - http://test: score=100.0, reason=High Failures\n  - https://example.com/sub: score=100.0, reason=High Failures\n  - /tmp/pytest-of-cer/pytest-11/test_mixed_protocols_dry_run0/mixed_sources.txt: score=0.0, reason=Low Reliability\n  - /tmp/pytest-of-cer/pytest-11/test_full_pipeline_with_local_0/source.txt: score=0.0, reason=Low Reliability\n  - /tmp/pytest-of-cer/pytest-11/test_failure_mode_anomaly_db_c0/sources.txt: score=0.0, reason=Low Reliability
+2026-02-14 22:38:03,436 - configstream.output_handler - INFO - [-] - [output_handler.py:295] - Starting final output generation phase...
+2026-02-14 22:38:03,438 - configstream.output_handler - INFO - [-] - [output_handler.py:303] - Applying proxy tagging with template: {country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}
+2026-02-14 22:38:03,438 - configstream.tagging - INFO - [-] - [tagging.py:333] - Applying name template '{country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}' to 0 proxies...
+2026-02-14 22:38:03,439 - configstream.tagging - INFO - [-] - [tagging.py:365] - Tagged 0 proxies with template metadata
+2026-02-14 22:38:03,439 - configstream.geoip - INFO - [-] - [geoip.py:251] - GeoIP enrichment: 0/0 (0.0%) countries resolved, 0 cities, 0 ASNs
+2026-02-14 22:38:03,446 - configstream.intelligence.chaining - INFO - [-] - [chaining.py:828] - Enhanced smart chains generated: 0 chains across 9 categories. intranet=0, intranet_washed=0, ipv6=0, streamer=0, censorship_resistant=0, low_latency=0, high_anonymity=0, load_balanced=0
+2026-02-14 22:38:03,493 - configstream.generators.clash - INFO - [-] - [clash.py:95] - No valid proxies for Clash config generation; emitting minimal config
+2026-02-14 22:38:03,510 - configstream.generators.clash - INFO - [-] - [clash.py:95] - No valid proxies for Clash config generation; emitting minimal config
+2026-02-14 22:38:03,515 - configstream.adapters - INFO - [-] - [adapters.py:405] - Shadowrocket export summary: 0 links (Reconstructed: 0)
+2026-02-14 22:38:03,517 - configstream.adapters - INFO - [-] - [adapters.py:270] - Quantumult X export summary: 0 proxies (Failures: 0)
+2026-02-14 22:38:03,520 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 0 proxies, 0 chains (Total Lines: 1, Failures: 0)
+2026-02-14 22:38:03,524 - configstream.adapters - INFO - [-] - [adapters.py:190] - Loon export summary: 0 proxies, 0 chains
+2026-02-14 22:38:03,527 - configstream.adapters - INFO - [-] - [adapters.py:644] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-14 22:38:03,547 - configstream.generators.clash - INFO - [-] - [clash.py:95] - No valid proxies for Clash config generation; emitting minimal config
+2026-02-14 22:38:03,563 - configstream.adapters - INFO - [-] - [adapters.py:405] - Shadowrocket export summary: 0 links (Reconstructed: 0)
+2026-02-14 22:38:03,566 - configstream.adapters - INFO - [-] - [adapters.py:270] - Quantumult X export summary: 0 proxies (Failures: 0)
+2026-02-14 22:38:03,568 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 0 proxies, 0 chains (Total Lines: 1, Failures: 0)
+2026-02-14 22:38:03,572 - configstream.adapters - INFO - [-] - [adapters.py:190] - Loon export summary: 0 proxies, 0 chains
+2026-02-14 22:38:03,576 - configstream.adapters - INFO - [-] - [adapters.py:644] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-14 22:38:03,591 - configstream.generators.clash - INFO - [-] - [clash.py:95] - No valid proxies for Clash config generation; emitting minimal config
+2026-02-14 22:38:03,601 - configstream.adapters - INFO - [-] - [adapters.py:405] - Shadowrocket export summary: 0 links (Reconstructed: 0)
+2026-02-14 22:38:03,604 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 0 proxies, 0 chains (Total Lines: 1, Failures: 0)
+2026-02-14 22:38:03,608 - configstream.adapters - INFO - [-] - [adapters.py:190] - Loon export summary: 0 proxies, 0 chains
+2026-02-14 22:38:03,611 - configstream.adapters - INFO - [-] - [adapters.py:270] - Quantumult X export summary: 0 proxies (Failures: 0)
+2026-02-14 22:38:03,614 - configstream.adapters - INFO - [-] - [adapters.py:644] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-14 22:38:03,627 - configstream.output_logic - INFO - [-] - [output_logic.py:1078] - Generated 48 output files (including all variations).
+2026-02-14 22:38:03,640 - configstream.intelligence.vectors - INFO - [-] - [vectors.py:109] - Generated static vectors for 0 proxies
+2026-02-14 22:38:03,646 - configstream.history.export - INFO - [-] - [export.py:58] - Exported history visualization data to C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_anomaly_db_failure0\out_anomaly\data\proxy_history_viz.json
+2026-02-14 22:38:03,649 - configstream.history.export - INFO - [-] - [export.py:73] - Generating active proxy trend data...
+2026-02-14 22:38:03,655 - configstream.history.export - INFO - [-] - [export.py:130] - Exported active proxy trend data to C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_anomaly_db_failure0\out_anomaly\data\active_proxy_trend.json
+2026-02-14 22:38:03,656 - configstream.history.export - INFO - [-] - [export.py:144] - Generating evasion trend data...
+2026-02-14 22:38:03,659 - configstream.history.export - INFO - [-] - [export.py:224] - Exported evasion trend data to C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_anomaly_db_failure0\out_anomaly\data\evasion_trend.json (1 entries)
+2026-02-14 22:38:03,660 - configstream.output_handler - INFO - [-] - [output_handler.py:585] - Output generation complete. Files created in C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_anomaly_db_failure0\out_anomaly
+2026-02-14 22:38:03,660 - configstream.pipeline - INFO - [-] - [pipeline.py:418] - Scheduler stats: {'total_entries': 0, 'valid_entries': 0, 'expired_entries': 0, 'average_health_score': 0.0, 'ttl_seconds': 1800}
+2026-02-14 22:38:03,661 - configstream.anomaly - INFO - [-] - [anomaly.py:279] - Anomaly stats: 0 sources tracked, 0 total records, 0 in last 24h
+2026-02-14 22:38:03,665 - configstream.test_cache - INFO - [-] - [test_cache.py:112] - Saved 0 entries to cache file: data\test_cache.json
+2026-02-14 22:38:05,712 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: POST http://[IP]:[BASE64]-update "HTTP/1.1 503 Service Unavailable"
+2026-02-14 22:38:05,713 - configstream.testers.go - INFO - [-] - [go.py:247] - Go Batch Tester shutdown complete.
+2026-02-14 22:38:05,713 - configstream.event_stream - INFO - [-] - [event_stream.py:32] - [stream_close] Event stream closing.
+2026-02-14 22:38:05,727 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 35
+2026-02-14 22:38:05,731 - configstream.test_cache - INFO - [-] - [test_cache.py:64] - Loaded 0 entries from cache file: data\test_cache.json
+2026-02-14 22:38:05,734 - configstream.pipeline - INFO - [-] - [pipeline.py:166] - Initializing security blocklists...
+2026-02-14 22:38:05,746 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-14 22:38:05,752 - configstream.pipeline - INFO - [-] - [pipeline.py:217] - Vwarp tunnel disabled by configuration.
+2026-02-14 22:38:05,752 - configstream.pipeline - INFO - [-] - [pipeline.py:228] - 🚀 Auto-scaling to 24 consumers based on 16 cores.
+2026-02-14 22:38:05,753 - configstream.pipeline - INFO - [-] - [pipeline.py:251] - Starting pipeline with 35 initial workers
+2026-02-14 22:38:05,763 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-14 22:38:05,763 - configstream.pipeline - WARNING - [-] - [pipeline.py:265] - Go tester unavailable - Falling back to Python tester. Starting global concurrency tuner.
+2026-02-14 22:38:05,763 - configstream.pipeline - INFO - [-] - [pipeline.py:271] - Starting pipeline with 24 parallel consumers
+2026-02-14 22:38:05,764 - configstream.pipeline - INFO - [-] - [pipeline.py:276] - Batch time limit enabled: 13500s (soft stop with partial output).
+2026-02-14 22:38:05,841 - configstream.consumer - INFO - [-] - [consumer.py:594] - Source Summary [C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_mixed_protocols_dry_run0\mixed_sources.txt]: Raw=4 Parsed=4 Tested=4 Working=4 Dur=11ms
+2026-02-14 22:38:05,860 - configstream.sorter - INFO - [-] - [sorter.py:68] - Sorted 4 proxies using Pareto scoring (latency: avg=123.5ms, min=123.5ms, max=123.5ms)
+2026-02-14 22:38:05,861 - configstream.pipeline - INFO - [-] - [pipeline.py:408] - ⚠️ Top 5 Failing Sources:\n  - http://test: score=100.0, reason=High Failures\n  - https://example.com/sub: score=100.0, reason=High Failures\n  - /tmp/pytest-of-cer/pytest-11/test_mixed_protocols_dry_run0/mixed_sources.txt: score=0.0, reason=Low Reliability\n  - /tmp/pytest-of-cer/pytest-11/test_full_pipeline_with_local_0/source.txt: score=0.0, reason=Low Reliability\n  - /tmp/pytest-of-cer/pytest-11/test_failure_mode_anomaly_db_c0/sources.txt: score=0.0, reason=Low Reliability
+2026-02-14 22:38:05,862 - configstream.output_handler - INFO - [-] - [output_handler.py:295] - Starting final output generation phase...
+2026-02-14 22:38:05,863 - configstream.output_handler - INFO - [-] - [output_handler.py:303] - Applying proxy tagging with template: {country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}
+2026-02-14 22:38:05,864 - configstream.tagging - INFO - [-] - [tagging.py:333] - Applying name template '{country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}' to 4 proxies...
+2026-02-14 22:38:05,864 - configstream.tagging - INFO - [-] - [tagging.py:365] - Tagged 4 proxies with template metadata
+2026-02-14 22:38:05,864 - configstream.geoip - INFO - [-] - [geoip.py:251] - GeoIP enrichment: 2/4 (50.0%) countries resolved, 2 cities, 0 ASNs
+2026-02-14 22:38:05,869 - configstream.output_handler - INFO - [-] - [output_handler.py:416] - WARP wrap skipped for all proxies (no valid WARP endpoints or keys found).
+2026-02-14 22:38:05,872 - configstream.intelligence.chaining - INFO - [-] - [chaining.py:828] - Enhanced smart chains generated: 4 chains across 9 categories. intranet=0, intranet_washed=0, ipv6=0, streamer=0, censorship_resistant=0, low_latency=0, high_anonymity=0, load_balanced=4
+2026-02-14 22:38:05,950 - configstream.adapters - INFO - [-] - [adapters.py:405] - Shadowrocket export summary: 4 links (Reconstructed: 0)
+2026-02-14 22:38:05,953 - configstream.adapters - INFO - [-] - [adapters.py:270] - Quantumult X export summary: 4 proxies (Failures: 0)
+2026-02-14 22:38:05,957 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 4 proxies, 0 chains (Total Lines: 5, Failures: 0)
+2026-02-14 22:38:05,960 - configstream.adapters - INFO - [-] - [adapters.py:190] - Loon export summary: 4 proxies, 0 chains
+2026-02-14 22:38:05,963 - configstream.adapters - INFO - [-] - [adapters.py:644] - SIP008 export summary: 1 Shadowsocks servers
+2026-02-14 22:38:06,065 - configstream.adapters - INFO - [-] - [adapters.py:405] - Shadowrocket export summary: 3 links (Reconstructed: 0)
+2026-02-14 22:38:06,069 - configstream.adapters - INFO - [-] - [adapters.py:270] - Quantumult X export summary: 3 proxies (Failures: 0)
+2026-02-14 22:38:06,075 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 3 proxies, 0 chains (Total Lines: 4, Failures: 0)
+2026-02-14 22:38:06,081 - configstream.adapters - INFO - [-] - [adapters.py:190] - Loon export summary: 3 proxies, 0 chains
+2026-02-14 22:38:06,086 - configstream.adapters - INFO - [-] - [adapters.py:644] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-14 22:38:06,117 - configstream.adapters - INFO - [-] - [adapters.py:405] - Shadowrocket export summary: 4 links (Reconstructed: 0)
+2026-02-14 22:38:06,121 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 4 proxies, 0 chains (Total Lines: 5, Failures: 0)
+2026-02-14 22:38:06,127 - configstream.adapters - INFO - [-] - [adapters.py:190] - Loon export summary: 4 proxies, 0 chains
+2026-02-14 22:38:06,130 - configstream.adapters - INFO - [-] - [adapters.py:270] - Quantumult X export summary: 4 proxies (Failures: 0)
+2026-02-14 22:38:06,134 - configstream.adapters - INFO - [-] - [adapters.py:644] - SIP008 export summary: 1 Shadowsocks servers
+2026-02-14 22:38:06,146 - configstream.output_logic - INFO - [-] - [output_logic.py:1078] - Generated 59 output files (including all variations).
+2026-02-14 22:38:06,157 - configstream.intelligence.vectors - INFO - [-] - [vectors.py:109] - Generated static vectors for 4 proxies
+2026-02-14 22:38:06,162 - configstream.history.export - INFO - [-] - [export.py:58] - Exported history visualization data to C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_mixed_protocols_dry_run0\out\data\proxy_history_viz.json
+2026-02-14 22:38:06,164 - configstream.history.export - INFO - [-] - [export.py:73] - Generating active proxy trend data...
+2026-02-14 22:38:06,169 - configstream.history.export - INFO - [-] - [export.py:130] - Exported active proxy trend data to C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_mixed_protocols_dry_run0\out\data\active_proxy_trend.json
+2026-02-14 22:38:06,171 - configstream.history.export - INFO - [-] - [export.py:144] - Generating evasion trend data...
+2026-02-14 22:38:06,176 - configstream.history.export - INFO - [-] - [export.py:224] - Exported evasion trend data to C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_mixed_protocols_dry_run0\out\data\evasion_trend.json (1 entries)
+2026-02-14 22:38:06,177 - configstream.output_handler - INFO - [-] - [output_handler.py:585] - Output generation complete. Files created in C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_mixed_protocols_dry_run0\out
+2026-02-14 22:38:06,178 - configstream.pipeline - INFO - [-] - [pipeline.py:418] - Scheduler stats: {'total_entries': 0, 'valid_entries': 0, 'expired_entries': 0, 'average_health_score': 0.0, 'ttl_seconds': 1800}
+2026-02-14 22:38:06,178 - configstream.anomaly - INFO - [-] - [anomaly.py:279] - Anomaly stats: 0 sources tracked, 0 total records, 0 in last 24h
+2026-02-14 22:38:06,183 - configstream.test_cache - INFO - [-] - [test_cache.py:112] - Saved 0 entries to cache file: data\test_cache.json
+2026-02-14 22:38:08,100 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: POST http://[IP]:[BASE64]-update "HTTP/1.1 503 Service Unavailable"
+2026-02-14 22:38:08,100 - configstream.testers.go - INFO - [-] - [go.py:247] - Go Batch Tester shutdown complete.
+2026-02-14 22:38:08,101 - configstream.event_stream - INFO - [-] - [event_stream.py:32] - [stream_close] Event stream closing.
+2026-02-14 22:38:08,122 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 34
+2026-02-14 22:38:08,125 - configstream.test_cache - INFO - [-] - [test_cache.py:64] - Loaded 0 entries from cache file: data\test_cache.json
+2026-02-14 22:38:08,135 - configstream.pipeline - INFO - [-] - [pipeline.py:166] - Initializing security blocklists...
+2026-02-14 22:38:08,143 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-14 22:38:08,148 - configstream.pipeline - INFO - [-] - [pipeline.py:217] - Vwarp tunnel disabled by configuration.
+2026-02-14 22:38:08,148 - configstream.pipeline - INFO - [-] - [pipeline.py:228] - 🚀 Auto-scaling to 24 consumers based on 16 cores.
+2026-02-14 22:38:08,148 - configstream.pipeline - INFO - [-] - [pipeline.py:251] - Starting pipeline with 34 initial workers
+2026-02-14 22:38:08,157 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-14 22:38:08,157 - configstream.pipeline - WARNING - [-] - [pipeline.py:265] - Go tester unavailable - Falling back to Python tester. Starting global concurrency tuner.
+2026-02-14 22:38:08,157 - configstream.pipeline - INFO - [-] - [pipeline.py:271] - Starting pipeline with 24 parallel consumers
+2026-02-14 22:38:08,158 - configstream.pipeline - INFO - [-] - [pipeline.py:276] - Batch time limit enabled: 13500s (soft stop with partial output).
+2026-02-14 22:38:08,218 - configstream.consumer - INFO - [-] - [consumer.py:594] - Source Summary [C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_full_pipeline_with_local_0\source.txt]: Raw=1 Parsed=1 Tested=1 Working=1 Dur=6ms
+2026-02-14 22:38:08,237 - configstream.sorter - INFO - [-] - [sorter.py:68] - Sorted 1 proxies using Pareto scoring (latency: avg=123.5ms, min=123.5ms, max=123.5ms)
+2026-02-14 22:38:08,237 - configstream.pipeline - INFO - [-] - [pipeline.py:408] - ⚠️ Top 5 Failing Sources:\n  - http://test: score=100.0, reason=High Failures\n  - https://example.com/sub: score=100.0, reason=High Failures\n  - /tmp/pytest-of-cer/pytest-11/test_mixed_protocols_dry_run0/mixed_sources.txt: score=0.0, reason=Low Reliability\n  - /tmp/pytest-of-cer/pytest-11/test_full_pipeline_with_local_0/source.txt: score=0.0, reason=Low Reliability\n  - /tmp/pytest-of-cer/pytest-11/test_failure_mode_anomaly_db_c0/sources.txt: score=0.0, reason=Low Reliability
+2026-02-14 22:38:08,238 - configstream.pipeline - INFO - [-] - [pipeline.py:418] - Scheduler stats: {'total_entries': 0, 'valid_entries': 0, 'expired_entries': 0, 'average_health_score': 0.0, 'ttl_seconds': 1800}
+2026-02-14 22:38:08,239 - configstream.anomaly - INFO - [-] - [anomaly.py:279] - Anomaly stats: 0 sources tracked, 0 total records, 0 in last 24h
+2026-02-14 22:38:08,257 - configstream.test_cache - INFO - [-] - [test_cache.py:112] - Saved 0 entries to cache file: data\test_cache.json
+2026-02-14 22:38:10,150 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: POST http://[IP]:[BASE64]-update "HTTP/1.1 503 Service Unavailable"
+2026-02-14 22:38:10,151 - configstream.testers.go - INFO - [-] - [go.py:247] - Go Batch Tester shutdown complete.
+2026-02-14 22:38:10,152 - configstream.event_stream - INFO - [-] - [event_stream.py:32] - [stream_close] Event stream closing.
+2026-02-14 22:38:46,059 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 39
+2026-02-14 22:38:46,075 - configstream.test_cache - INFO - [-] - [test_cache.py:64] - Loaded 0 entries from cache file: data\test_cache.json
+2026-02-14 22:38:46,082 - configstream.pipeline - INFO - [-] - [pipeline.py:166] - Initializing security blocklists...
+2026-02-14 22:38:46,093 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-14 22:38:46,099 - configstream.pipeline - INFO - [-] - [pipeline.py:217] - Vwarp tunnel disabled by configuration.
+2026-02-14 22:38:46,099 - configstream.pipeline - INFO - [-] - [pipeline.py:228] - 🚀 Auto-scaling to 24 consumers based on 16 cores.
+2026-02-14 22:38:46,100 - configstream.pipeline - INFO - [-] - [pipeline.py:251] - Starting pipeline with 39 initial workers
+2026-02-14 22:38:46,111 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-14 22:38:46,111 - configstream.pipeline - WARNING - [-] - [pipeline.py:265] - Go tester unavailable - Falling back to Python tester. Starting global concurrency tuner.
+2026-02-14 22:38:46,111 - configstream.pipeline - INFO - [-] - [pipeline.py:271] - Starting pipeline with 24 parallel consumers
+2026-02-14 22:38:46,111 - configstream.pipeline - INFO - [-] - [pipeline.py:276] - Batch time limit enabled: 13500s (soft stop with partial output).
+2026-02-14 22:38:46,157 - configstream.source_quality - INFO - [-] - [source_quality.py:154] - Resurrecting dead source for retry: https://example.com/sub...
+2026-02-14 22:38:46,158 - configstream.producer - INFO - [-] - [producer.py:206] - Starting fetch for 1 active sources (Batch Size: 100, Concurrent Limit: 32)
+2026-02-14 22:38:46,158 - configstream.producer - INFO - [-] - [producer.py:221] - Fetching batch 1: 1 sources
+2026-02-14 22:38:46,160 - configstream.fetcher - INFO - [-] - [fetcher.py:351] - Pre-warming DNS for 1 sources...
+2026-02-14 22:38:46,456 - configstream.fetcher - INFO - [-] - [fetcher.py:356] - DNS pre-warming completed in 0.30s.
+2026-02-14 22:38:46,457 - configstream.fetcher - INFO - [-] - [fetcher.py:377] - Starting parallel fetch for 1 sources (max_concurrent=32)
+2026-02-14 22:38:47,009 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: GET https://example.com/sub "HTTP/2 404 Not Found"
+2026-02-14 22:38:47,011 - configstream.fetcher - INFO - [-] - [fetcher.py:399] - Batch fetch completed in 0.55s
+2026-02-14 22:38:47,013 - configstream.fetcher - INFO - [-] - [fetcher.py:409] - Fetch Summary: 0/1 sources successful. Total data fetched: 0.00 KB
+2026-02-14 22:38:47,013 - configstream.producer - WARNING - [-] - [producer.py:328] - Failed to fetch https://example.com/sub: Permanent Error: 404 (Status: 404)
+2026-02-14 22:38:47,038 - configstream.sorter - WARNING - [-] - [sorter.py:73] - No proxies to sort
+2026-02-14 22:38:47,039 - configstream.pipeline - INFO - [-] - [pipeline.py:408] - ⚠️ Top 5 Failing Sources:\n  - http://test: score=100.0, reason=High Failures\n  - https://example.com/sub: score=100.0, reason=High Failures\n  - /tmp/pytest-of-cer/pytest-11/test_mixed_protocols_dry_run0/mixed_sources.txt: score=0.0, reason=Low Reliability\n  - /tmp/pytest-of-cer/pytest-11/test_full_pipeline_with_local_0/source.txt: score=0.0, reason=Low Reliability\n  - /tmp/pytest-of-cer/pytest-11/test_failure_mode_anomaly_db_c0/sources.txt: score=0.0, reason=Low Reliability
+2026-02-14 22:38:47,039 - configstream.output_handler - INFO - [-] - [output_handler.py:295] - Starting final output generation phase...
+2026-02-14 22:38:47,042 - configstream.output_handler - INFO - [-] - [output_handler.py:303] - Applying proxy tagging with template: {country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}
+2026-02-14 22:38:47,043 - configstream.tagging - INFO - [-] - [tagging.py:333] - Applying name template '{country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}' to 0 proxies...
+2026-02-14 22:38:47,043 - configstream.tagging - INFO - [-] - [tagging.py:365] - Tagged 0 proxies with template metadata
+2026-02-14 22:38:47,044 - configstream.geoip - INFO - [-] - [geoip.py:251] - GeoIP enrichment: 0/0 (0.0%) countries resolved, 0 cities, 0 ASNs
+2026-02-14 22:38:47,055 - configstream.intelligence.chaining - INFO - [-] - [chaining.py:828] - Enhanced smart chains generated: 0 chains across 9 categories. intranet=0, intranet_washed=0, ipv6=0, streamer=0, censorship_resistant=0, low_latency=0, high_anonymity=0, load_balanced=0
+2026-02-14 22:38:47,133 - configstream.generators.clash - INFO - [-] - [clash.py:95] - No valid proxies for Clash config generation; emitting minimal config
+2026-02-14 22:38:47,153 - configstream.generators.clash - INFO - [-] - [clash.py:95] - No valid proxies for Clash config generation; emitting minimal config
+2026-02-14 22:38:47,157 - configstream.adapters - INFO - [-] - [adapters.py:405] - Shadowrocket export summary: 0 links (Reconstructed: 0)
+2026-02-14 22:38:47,159 - configstream.adapters - INFO - [-] - [adapters.py:270] - Quantumult X export summary: 0 proxies (Failures: 0)
+2026-02-14 22:38:47,162 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 0 proxies, 0 chains (Total Lines: 1, Failures: 0)
+2026-02-14 22:38:47,166 - configstream.adapters - INFO - [-] - [adapters.py:190] - Loon export summary: 0 proxies, 0 chains
+2026-02-14 22:38:47,170 - configstream.adapters - INFO - [-] - [adapters.py:644] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-14 22:38:47,192 - configstream.generators.clash - INFO - [-] - [clash.py:95] - No valid proxies for Clash config generation; emitting minimal config
+2026-02-14 22:38:47,221 - configstream.adapters - INFO - [-] - [adapters.py:405] - Shadowrocket export summary: 0 links (Reconstructed: 0)
+2026-02-14 22:38:47,225 - configstream.adapters - INFO - [-] - [adapters.py:270] - Quantumult X export summary: 0 proxies (Failures: 0)
+2026-02-14 22:38:47,230 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 0 proxies, 0 chains (Total Lines: 1, Failures: 0)
+2026-02-14 22:38:47,235 - configstream.adapters - INFO - [-] - [adapters.py:190] - Loon export summary: 0 proxies, 0 chains
+2026-02-14 22:38:47,240 - configstream.adapters - INFO - [-] - [adapters.py:644] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-14 22:38:47,257 - configstream.generators.clash - INFO - [-] - [clash.py:95] - No valid proxies for Clash config generation; emitting minimal config
+2026-02-14 22:38:47,270 - configstream.adapters - INFO - [-] - [adapters.py:405] - Shadowrocket export summary: 0 links (Reconstructed: 0)
+2026-02-14 22:38:47,272 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 0 proxies, 0 chains (Total Lines: 1, Failures: 0)
+2026-02-14 22:38:47,275 - configstream.adapters - INFO - [-] - [adapters.py:190] - Loon export summary: 0 proxies, 0 chains
+2026-02-14 22:38:47,279 - configstream.adapters - INFO - [-] - [adapters.py:270] - Quantumult X export summary: 0 proxies (Failures: 0)
+2026-02-14 22:38:47,282 - configstream.adapters - INFO - [-] - [adapters.py:644] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-14 22:38:47,291 - configstream.output_logic - INFO - [-] - [output_logic.py:1078] - Generated 48 output files (including all variations).
+2026-02-14 22:38:47,304 - configstream.intelligence.vectors - INFO - [-] - [vectors.py:109] - Generated static vectors for 0 proxies
+2026-02-14 22:38:47,309 - configstream.history.export - INFO - [-] - [export.py:58] - Exported history visualization data to C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_failure_mode_cooldown0\out\data\proxy_history_viz.json
+2026-02-14 22:38:47,312 - configstream.history.export - INFO - [-] - [export.py:73] - Generating active proxy trend data...
+2026-02-14 22:38:47,316 - configstream.history.export - INFO - [-] - [export.py:130] - Exported active proxy trend data to C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_failure_mode_cooldown0\out\data\active_proxy_trend.json
+2026-02-14 22:38:47,317 - configstream.history.export - INFO - [-] - [export.py:144] - Generating evasion trend data...
+2026-02-14 22:38:47,320 - configstream.history.export - INFO - [-] - [export.py:224] - Exported evasion trend data to C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_failure_mode_cooldown0\out\data\evasion_trend.json (1 entries)
+2026-02-14 22:38:47,321 - configstream.output_handler - INFO - [-] - [output_handler.py:585] - Output generation complete. Files created in C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_failure_mode_cooldown0\out
+2026-02-14 22:38:47,322 - configstream.pipeline - INFO - [-] - [pipeline.py:418] - Scheduler stats: {'total_entries': 0, 'valid_entries': 0, 'expired_entries': 0, 'average_health_score': 0.0, 'ttl_seconds': 1800}
+2026-02-14 22:38:47,331 - configstream.anomaly - INFO - [-] - [anomaly.py:279] - Anomaly stats: 0 sources tracked, 0 total records, 0 in last 24h
+2026-02-14 22:38:47,335 - configstream.test_cache - INFO - [-] - [test_cache.py:112] - Saved 0 entries to cache file: data\test_cache.json
+2026-02-14 22:38:49,140 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: POST http://[IP]:[BASE64]-update "HTTP/1.1 503 Service Unavailable"
+2026-02-14 22:38:49,141 - configstream.testers.go - INFO - [-] - [go.py:247] - Go Batch Tester shutdown complete.
+2026-02-14 22:38:49,141 - configstream.event_stream - INFO - [-] - [event_stream.py:32] - [stream_close] Event stream closing.
+2026-02-14 22:38:49,151 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 41
+2026-02-14 22:38:49,154 - configstream.test_cache - INFO - [-] - [test_cache.py:64] - Loaded 0 entries from cache file: data\test_cache.json
+2026-02-14 22:38:49,165 - configstream.pipeline - INFO - [-] - [pipeline.py:166] - Initializing security blocklists...
+2026-02-14 22:38:49,174 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-14 22:38:49,179 - configstream.pipeline - INFO - [-] - [pipeline.py:217] - Vwarp tunnel disabled by configuration.
+2026-02-14 22:38:49,179 - configstream.pipeline - INFO - [-] - [pipeline.py:228] - 🚀 Auto-scaling to 24 consumers based on 16 cores.
+2026-02-14 22:38:49,179 - configstream.pipeline - INFO - [-] - [pipeline.py:251] - Starting pipeline with 41 initial workers
+2026-02-14 22:38:49,189 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-14 22:38:49,189 - configstream.pipeline - WARNING - [-] - [pipeline.py:265] - Go tester unavailable - Falling back to Python tester. Starting global concurrency tuner.
+2026-02-14 22:38:49,189 - configstream.pipeline - INFO - [-] - [pipeline.py:271] - Starting pipeline with 24 parallel consumers
+2026-02-14 22:38:49,189 - configstream.pipeline - INFO - [-] - [pipeline.py:276] - Batch time limit enabled: 13500s (soft stop with partial output).
+2026-02-14 22:38:49,250 - configstream.consumer - INFO - [-] - [consumer.py:594] - Source Summary [C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_failure_mode_anomaly_db_c0\sources.txt]: Raw=1 Parsed=1 Tested=1 Working=1 Dur=8ms
+2026-02-14 22:38:49,256 - configstream.sorter - INFO - [-] - [sorter.py:68] - Sorted 1 proxies using Pareto scoring (latency: avg=123.5ms, min=123.5ms, max=123.5ms)
+2026-02-14 22:38:49,256 - configstream.pipeline - INFO - [-] - [pipeline.py:408] - ⚠️ Top 5 Failing Sources:\n  - http://test: score=100.0, reason=High Failures\n  - https://example.com/sub: score=100.0, reason=High Failures\n  - /tmp/pytest-of-cer/pytest-11/test_mixed_protocols_dry_run0/mixed_sources.txt: score=0.0, reason=Low Reliability\n  - /tmp/pytest-of-cer/pytest-11/test_full_pipeline_with_local_0/source.txt: score=0.0, reason=Low Reliability\n  - /tmp/pytest-of-cer/pytest-11/test_failure_mode_anomaly_db_c0/sources.txt: score=0.0, reason=Low Reliability
+2026-02-14 22:38:49,257 - configstream.output_handler - INFO - [-] - [output_handler.py:295] - Starting final output generation phase...
+2026-02-14 22:38:49,258 - configstream.output_handler - INFO - [-] - [output_handler.py:303] - Applying proxy tagging with template: {country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}
+2026-02-14 22:38:49,259 - configstream.tagging - INFO - [-] - [tagging.py:333] - Applying name template '{country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}' to 1 proxies...
+2026-02-14 22:38:49,259 - configstream.tagging - INFO - [-] - [tagging.py:365] - Tagged 1 proxies with template metadata
+2026-02-14 22:38:49,259 - configstream.geoip - INFO - [-] - [geoip.py:251] - GeoIP enrichment: 1/1 (100.0%) countries resolved, 1 cities, 0 ASNs
+2026-02-14 22:38:49,263 - configstream.output_handler - INFO - [-] - [output_handler.py:416] - WARP wrap skipped for all proxies (no valid WARP endpoints or keys found).
+2026-02-14 22:38:49,265 - configstream.intelligence.chaining - INFO - [-] - [chaining.py:828] - Enhanced smart chains generated: 0 chains across 9 categories. intranet=0, intranet_washed=0, ipv6=0, streamer=0, censorship_resistant=0, low_latency=0, high_anonymity=0, load_balanced=0
+2026-02-14 22:38:49,340 - configstream.adapters - INFO - [-] - [adapters.py:405] - Shadowrocket export summary: 1 links (Reconstructed: 0)
+2026-02-14 22:38:49,344 - configstream.adapters - INFO - [-] - [adapters.py:270] - Quantumult X export summary: 1 proxies (Failures: 0)
+2026-02-14 22:38:49,347 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-14 22:38:49,349 - configstream.adapters - INFO - [-] - [adapters.py:190] - Loon export summary: 1 proxies, 0 chains
+2026-02-14 22:38:49,353 - configstream.adapters - INFO - [-] - [adapters.py:644] - SIP008 export summary: 1 Shadowsocks servers
+2026-02-14 22:38:49,377 - configstream.generators.clash - INFO - [-] - [clash.py:95] - No valid proxies for Clash config generation; emitting minimal config
+2026-02-14 22:38:49,394 - configstream.adapters - INFO - [-] - [adapters.py:405] - Shadowrocket export summary: 0 links (Reconstructed: 0)
+2026-02-14 22:38:49,396 - configstream.adapters - INFO - [-] - [adapters.py:270] - Quantumult X export summary: 0 proxies (Failures: 0)
+2026-02-14 22:38:49,398 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 0 proxies, 0 chains (Total Lines: 1, Failures: 0)
+2026-02-14 22:38:49,401 - configstream.adapters - INFO - [-] - [adapters.py:190] - Loon export summary: 0 proxies, 0 chains
+2026-02-14 22:38:49,404 - configstream.adapters - INFO - [-] - [adapters.py:644] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-14 22:38:49,428 - configstream.adapters - INFO - [-] - [adapters.py:405] - Shadowrocket export summary: 1 links (Reconstructed: 0)
+2026-02-14 22:38:49,430 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-14 22:38:49,433 - configstream.adapters - INFO - [-] - [adapters.py:190] - Loon export summary: 1 proxies, 0 chains
+2026-02-14 22:38:49,435 - configstream.adapters - INFO - [-] - [adapters.py:270] - Quantumult X export summary: 1 proxies (Failures: 0)
+2026-02-14 22:38:49,438 - configstream.adapters - INFO - [-] - [adapters.py:644] - SIP008 export summary: 1 Shadowsocks servers
+2026-02-14 22:38:49,446 - configstream.output_logic - INFO - [-] - [output_logic.py:1078] - Generated 51 output files (including all variations).
+2026-02-14 22:38:49,455 - configstream.intelligence.vectors - INFO - [-] - [vectors.py:109] - Generated static vectors for 1 proxies
+2026-02-14 22:38:49,459 - configstream.history.export - INFO - [-] - [export.py:58] - Exported history visualization data to C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_failure_mode_anomaly_db_c0\out\data\proxy_history_viz.json
+2026-02-14 22:38:49,462 - configstream.history.export - INFO - [-] - [export.py:73] - Generating active proxy trend data...
+2026-02-14 22:38:49,465 - configstream.history.export - INFO - [-] - [export.py:130] - Exported active proxy trend data to C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_failure_mode_anomaly_db_c0\out\data\active_proxy_trend.json
+2026-02-14 22:38:49,466 - configstream.history.export - INFO - [-] - [export.py:144] - Generating evasion trend data...
+2026-02-14 22:38:49,470 - configstream.history.export - INFO - [-] - [export.py:224] - Exported evasion trend data to C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_failure_mode_anomaly_db_c0\out\data\evasion_trend.json (1 entries)
+2026-02-14 22:38:49,470 - configstream.output_handler - INFO - [-] - [output_handler.py:585] - Output generation complete. Files created in C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_failure_mode_anomaly_db_c0\out
+2026-02-14 22:38:49,471 - configstream.pipeline - INFO - [-] - [pipeline.py:418] - Scheduler stats: {'total_entries': 0, 'valid_entries': 0, 'expired_entries': 0, 'average_health_score': 0.0, 'ttl_seconds': 1800}
+2026-02-14 22:38:49,471 - configstream.anomaly - INFO - [-] - [anomaly.py:279] - Anomaly stats: 0 sources tracked, 0 total records, 0 in last 24h
+2026-02-14 22:38:49,474 - configstream.test_cache - INFO - [-] - [test_cache.py:112] - Saved 0 entries to cache file: data\test_cache.json
+2026-02-14 22:38:51,263 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: POST http://[IP]:[BASE64]-update "HTTP/1.1 503 Service Unavailable"
+2026-02-14 22:38:51,264 - configstream.testers.go - INFO - [-] - [go.py:247] - Go Batch Tester shutdown complete.
+2026-02-14 22:38:51,265 - configstream.event_stream - INFO - [-] - [event_stream.py:32] - [stream_close] Event stream closing.
+2026-02-14 22:38:51,275 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 42
+2026-02-14 22:38:51,279 - configstream.test_cache - INFO - [-] - [test_cache.py:64] - Loaded 0 entries from cache file: data\test_cache.json
+2026-02-14 22:38:51,291 - configstream.pipeline - INFO - [-] - [pipeline.py:166] - Initializing security blocklists...
+2026-02-14 22:38:51,300 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-14 22:38:51,305 - configstream.pipeline - INFO - [-] - [pipeline.py:217] - Vwarp tunnel disabled by configuration.
+2026-02-14 22:38:51,305 - configstream.pipeline - INFO - [-] - [pipeline.py:228] - 🚀 Auto-scaling to 24 consumers based on 16 cores.
+2026-02-14 22:38:51,306 - configstream.pipeline - INFO - [-] - [pipeline.py:251] - Starting pipeline with 42 initial workers
+2026-02-14 22:38:51,317 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-14 22:38:51,317 - configstream.pipeline - WARNING - [-] - [pipeline.py:265] - Go tester unavailable - Falling back to Python tester. Starting global concurrency tuner.
+2026-02-14 22:38:51,317 - configstream.pipeline - INFO - [-] - [pipeline.py:271] - Starting pipeline with 24 parallel consumers
+2026-02-14 22:38:51,317 - configstream.pipeline - INFO - [-] - [pipeline.py:276] - Batch time limit enabled: 13500s (soft stop with partial output).
+2026-02-14 22:38:51,375 - configstream.consumer - INFO - [-] - [consumer.py:594] - Source Summary [C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_failure_mode_vt_missing0\sources.txt]: Raw=1 Parsed=1 Tested=1 Working=1 Dur=5ms
+2026-02-14 22:38:51,393 - configstream.sorter - INFO - [-] - [sorter.py:68] - Sorted 1 proxies using Pareto scoring (latency: avg=123.5ms, min=123.5ms, max=123.5ms)
+2026-02-14 22:38:51,394 - configstream.pipeline - INFO - [-] - [pipeline.py:408] - ⚠️ Top 5 Failing Sources:\n  - http://test: score=100.0, reason=High Failures\n  - https://example.com/sub: score=100.0, reason=High Failures\n  - /tmp/pytest-of-cer/pytest-11/test_mixed_protocols_dry_run0/mixed_sources.txt: score=0.0, reason=Low Reliability\n  - /tmp/pytest-of-cer/pytest-11/test_full_pipeline_with_local_0/source.txt: score=0.0, reason=Low Reliability\n  - /tmp/pytest-of-cer/pytest-11/test_failure_mode_anomaly_db_c0/sources.txt: score=0.0, reason=Low Reliability
+2026-02-14 22:38:51,395 - configstream.output_handler - INFO - [-] - [output_handler.py:295] - Starting final output generation phase...
+2026-02-14 22:38:51,396 - configstream.output_handler - INFO - [-] - [output_handler.py:303] - Applying proxy tagging with template: {country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}
+2026-02-14 22:38:51,397 - configstream.tagging - INFO - [-] - [tagging.py:333] - Applying name template '{country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}' to 1 proxies...
+2026-02-14 22:38:51,397 - configstream.tagging - INFO - [-] - [tagging.py:365] - Tagged 1 proxies with template metadata
+2026-02-14 22:38:51,397 - configstream.geoip - INFO - [-] - [geoip.py:251] - GeoIP enrichment: 1/1 (100.0%) countries resolved, 1 cities, 0 ASNs
+2026-02-14 22:38:51,401 - configstream.output_handler - INFO - [-] - [output_handler.py:416] - WARP wrap skipped for all proxies (no valid WARP endpoints or keys found).
+2026-02-14 22:38:51,403 - configstream.intelligence.chaining - INFO - [-] - [chaining.py:828] - Enhanced smart chains generated: 0 chains across 9 categories. intranet=0, intranet_washed=0, ipv6=0, streamer=0, censorship_resistant=0, low_latency=0, high_anonymity=0, load_balanced=0
+2026-02-14 22:38:51,483 - configstream.adapters - INFO - [-] - [adapters.py:405] - Shadowrocket export summary: 1 links (Reconstructed: 0)
+2026-02-14 22:38:51,486 - configstream.adapters - INFO - [-] - [adapters.py:270] - Quantumult X export summary: 1 proxies (Failures: 0)
+2026-02-14 22:38:51,489 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-14 22:38:51,492 - configstream.adapters - INFO - [-] - [adapters.py:190] - Loon export summary: 1 proxies, 0 chains
+2026-02-14 22:38:51,496 - configstream.adapters - INFO - [-] - [adapters.py:644] - SIP008 export summary: 1 Shadowsocks servers
+2026-02-14 22:38:51,524 - configstream.generators.clash - INFO - [-] - [clash.py:95] - No valid proxies for Clash config generation; emitting minimal config
+2026-02-14 22:38:51,540 - configstream.adapters - INFO - [-] - [adapters.py:405] - Shadowrocket export summary: 0 links (Reconstructed: 0)
+2026-02-14 22:38:51,543 - configstream.adapters - INFO - [-] - [adapters.py:270] - Quantumult X export summary: 0 proxies (Failures: 0)
+2026-02-14 22:38:51,546 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 0 proxies, 0 chains (Total Lines: 1, Failures: 0)
+2026-02-14 22:38:51,549 - configstream.adapters - INFO - [-] - [adapters.py:190] - Loon export summary: 0 proxies, 0 chains
+2026-02-14 22:38:51,552 - configstream.adapters - INFO - [-] - [adapters.py:644] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-14 22:38:51,581 - configstream.adapters - INFO - [-] - [adapters.py:405] - Shadowrocket export summary: 1 links (Reconstructed: 0)
+2026-02-14 22:38:51,585 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-14 22:38:51,590 - configstream.adapters - INFO - [-] - [adapters.py:190] - Loon export summary: 1 proxies, 0 chains
+2026-02-14 22:38:51,595 - configstream.adapters - INFO - [-] - [adapters.py:270] - Quantumult X export summary: 1 proxies (Failures: 0)
+2026-02-14 22:38:51,600 - configstream.adapters - INFO - [-] - [adapters.py:644] - SIP008 export summary: 1 Shadowsocks servers
+2026-02-14 22:38:51,616 - configstream.output_logic - INFO - [-] - [output_logic.py:1078] - Generated 51 output files (including all variations).
+2026-02-14 22:38:51,634 - configstream.intelligence.vectors - INFO - [-] - [vectors.py:109] - Generated static vectors for 1 proxies
+2026-02-14 22:38:51,640 - configstream.history.export - INFO - [-] - [export.py:58] - Exported history visualization data to C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_failure_mode_vt_missing0\out\data\proxy_history_viz.json
+2026-02-14 22:38:51,643 - configstream.history.export - INFO - [-] - [export.py:73] - Generating active proxy trend data...
+2026-02-14 22:38:51,648 - configstream.history.export - INFO - [-] - [export.py:130] - Exported active proxy trend data to C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_failure_mode_vt_missing0\out\data\active_proxy_trend.json
+2026-02-14 22:38:51,650 - configstream.history.export - INFO - [-] - [export.py:144] - Generating evasion trend data...
+2026-02-14 22:38:51,655 - configstream.history.export - INFO - [-] - [export.py:224] - Exported evasion trend data to C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_failure_mode_vt_missing0\out\data\evasion_trend.json (1 entries)
+2026-02-14 22:38:51,656 - configstream.output_handler - INFO - [-] - [output_handler.py:585] - Output generation complete. Files created in C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_failure_mode_vt_missing0\out
+2026-02-14 22:38:51,657 - configstream.pipeline - INFO - [-] - [pipeline.py:418] - Scheduler stats: {'total_entries': 0, 'valid_entries': 0, 'expired_entries': 0, 'average_health_score': 0.0, 'ttl_seconds': 1800}
+2026-02-14 22:38:51,658 - configstream.anomaly - INFO - [-] - [anomaly.py:279] - Anomaly stats: 0 sources tracked, 0 total records, 0 in last 24h
+2026-02-14 22:38:51,663 - configstream.test_cache - INFO - [-] - [test_cache.py:112] - Saved 0 entries to cache file: data\test_cache.json
+2026-02-14 22:38:53,538 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: POST http://[IP]:[BASE64]-update "HTTP/1.1 503 Service Unavailable"
+2026-02-14 22:38:53,539 - configstream.testers.go - INFO - [-] - [go.py:247] - Go Batch Tester shutdown complete.
+2026-02-14 22:38:53,539 - configstream.event_stream - INFO - [-] - [event_stream.py:32] - [stream_close] Event stream closing.
+2026-02-14 22:38:53,610 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-14 22:38:53,621 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-14 22:38:53,632 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-14 22:38:53,643 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-14 22:38:53,670 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-14 22:38:53,671 - configstream.testers.manager - INFO - [-] - [manager.py:150] - Fallback: Testing batch of 1 proxies using Python tester
+2026-02-14 22:38:53,683 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-14 22:38:53,735 - configstream.output_transport - INFO - [-] - [output_transport.py:92] - ✅ Successfully injected new Stego Key into app.js
+2026-02-14 22:38:53,768 - configstream.testers.python - WARNING - [-] - [python.py:222] - Skipping test: 'singbox2proxy' library not found. Install it or use the Go tester.
+2026-02-14 22:38:53,775 - configstream.warp_scanner - INFO - [-] - [warp_scanner.py:73] - Scanner disabled: Running in CI environment. Set FORCE_SCANNER=true to override (not recommended). Falling back to static IP lists.
+2026-02-14 22:38:53,775 - configstream.warp_scanner - INFO - [-] - [warp_scanner.py:48] - WarpScannerWorker: Scanner disabled by CI policy.
+2026-02-14 22:38:53,781 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:80] - Scanner FORCE ENABLED in CI. This may cause pipeline failures due to UDP firewall blocks or rate limiting.
+2026-02-14 22:38:53,796 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-14 22:38:53,796 - configstream.warp_scanner - INFO - [-] - [warp_scanner.py:130] - Warp scan skipped: active scanning is disabled (ALLOW_ACTIVE_SCANNING=false).
+2026-02-14 22:38:53,808 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-14 22:38:53,809 - configstream.warp_scanner - INFO - [-] - [warp_scanner.py:153] - Starting active WARP scan (Target: 2 IPs, Timeout: 5s)...
+2026-02-14 22:38:53,810 - configstream.warp_scanner - INFO - [-] - [warp_scanner.py:215] - Active scan completed. Found 1 valid IPs (Request: 2, Max Latency: 800ms).
+2026-02-14 22:38:53,822 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-14 22:38:53,823 - configstream.warp_scanner - INFO - [-] - [warp_scanner.py:153] - Starting active WARP scan (Target: 50 IPs, Timeout: 5s)...
+2026-02-14 22:38:53,823 - configstream.warp_scanner - ERROR - [-] - [warp_scanner.py:171] - Scanner binary exited with error code 1
+2026-02-14 22:38:53,824 - configstream.warp_scanner - ERROR - [-] - [warp_scanner.py:173] - Scanner stderr: Error
+2026-02-14 22:38:55,043 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 200 OK"
+2026-02-14 22:38:55,998 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 200 OK"
+2026-02-14 22:38:57,239 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 200 OK"
+2026-02-14 22:38:59,284 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 200 OK"
+2026-02-14 22:39:01,009 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 200 OK"
+2026-02-14 22:39:02,339 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 200 OK"
+2026-02-14 22:39:03,494 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 200 OK"
+2026-02-14 22:39:04,865 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 200 OK"
+2026-02-14 22:39:06,083 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 200 OK"
+2026-02-14 22:39:07,220 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 200 OK"
+2026-02-14 22:39:07,222 - slowapi - WARNING - [-] - [extension.py:510] - ratelimit 10 per 1 minute (testclient) exceeded at endpoint: /api/proxies
+2026-02-14 22:39:07,222 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 429 Too Many Requests"
+2026-02-14 22:39:07,223 - slowapi - WARNING - [-] - [extension.py:510] - ratelimit 10 per 1 minute (testclient) exceeded at endpoint: /api/proxies
+2026-02-14 22:39:07,224 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 429 Too Many Requests"
+2026-02-14 22:39:07,252 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 200 OK"
+2026-02-14 22:39:07,254 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 200 OK"
+2026-02-14 22:39:07,257 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 200 OK"
+2026-02-14 22:39:07,260 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 200 OK"
+2026-02-14 22:39:07,263 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 200 OK"
+2026-02-14 22:39:07,265 - slowapi - WARNING - [-] - [extension.py:510] - ratelimit 5 per 1 minute (testclient) exceeded at endpoint: /subscribe/base64
+2026-02-14 22:39:07,265 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 429 Too Many Requests"
+2026-02-14 22:39:07,266 - slowapi - WARNING - [-] - [extension.py:510] - ratelimit 5 per 1 minute (testclient) exceeded at endpoint: /subscribe/base64
+2026-02-14 22:39:07,267 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 429 Too Many Requests"
+2026-02-14 22:39:07,273 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-14 22:39:07,276 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-14 22:39:07,277 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-14 22:39:07,279 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-14 22:39:07,280 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-14 22:39:07,282 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-14 22:39:07,283 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-14 22:39:07,284 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-14 22:39:07,285 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-14 22:39:07,286 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-14 22:39:07,287 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-14 22:39:07,288 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-14 22:39:07,289 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-14 22:39:07,290 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-14 22:39:07,292 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-14 22:39:07,294 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-14 22:39:07,296 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-14 22:39:07,298 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-14 22:39:07,300 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-14 22:39:07,301 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-14 22:39:07,306 - configstream.intelligence.washer.warp_scraper - INFO - [-] - [warp_scraper.py:221] - Scraped 2 clean endpoints from test
+2026-02-14 22:39:07,444 - configstream.intelligence.washer.warp_scraper - INFO - [-] - [warp_scraper.py:243] - Scraped 1 WARP configs from test
+2026-02-14 22:39:07,449 - configstream.intelligence.washer.warp_scraper - INFO - [-] - [warp_scraper.py:243] - Scraped 1 WARP configs from test
+2026-02-14 22:39:07,462 - configstream.converters.singbox - WARNING - [-] - [singbox.py:251] - Dropping VLESS proxy missing UUID: example.com:443. Source: unknown
+2026-02-14 22:39:07,467 - configstream.converters.singbox - WARNING - [-] - [singbox.py:67] - Dropping proxy with garbage Shadowsocks method: 'un;k'
+2026-02-14 22:39:07,467 - configstream.converters.singbox - WARNING - [-] - [singbox.py:67] - Dropping proxy with garbage Shadowsocks method: '}k'
+2026-02-14 22:39:07,480 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 60
+2026-02-14 22:39:07,482 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 40 (CI)
+2026-02-14 22:39:07,484 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 26
+2026-02-14 22:39:07,486 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 150
+2026-02-14 22:39:07,486 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 50 (CI)
+2026-02-14 22:39:07,487 - configstream.adaptive_workers - WARNING - [-] - [adaptive_workers.py:73] - Failed to calculate optimal workers: Error
+2026-02-14 22:39:07,527 - configstream.security.blocklist - INFO - [-] - [blocklist.py:137] - Loaded 2 blocked networks from FireHol Level 1.
+2026-02-14 22:39:07,604 - configstream.converters.singbox - WARNING - [-] - [singbox.py:658] - Dropped unknown proxy [IP] during conversion. Reason: Logic fell through (Missing implementation or valid fields). Details: {}
+2026-02-14 22:39:07,649 - configstream.intelligence.washer.core - WARNING - [-] - [core.py:744] - Dropped 1 invalid WARP private keys during normalization.
+2026-02-14 22:39:07,650 - configstream.intelligence.washer.core - INFO - [-] - [core.py:656] - Loaded 1 WARP keys for washing
+2026-02-14 22:39:07,659 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-14 22:39:07,664 - configstream.intelligence.washer.core - WARNING - [-] - [core.py:744] - Dropped 1 invalid WARP private keys during normalization.
+2026-02-14 22:39:07,665 - configstream.intelligence.washer.core - INFO - [-] - [core.py:656] - Loaded 1 WARP keys for washing
+2026-02-14 22:39:07,674 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-14 22:39:07,679 - configstream.intelligence.washer.core - WARNING - [-] - [core.py:744] - Dropped 1 invalid WARP private keys during normalization.
+2026-02-14 22:39:07,680 - configstream.intelligence.washer.core - INFO - [-] - [core.py:656] - Loaded 1 WARP keys for washing
+2026-02-14 22:39:07,688 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-14 22:39:07,693 - configstream.intelligence.washer.core - WARNING - [-] - [core.py:744] - Dropped 1 invalid WARP private keys during normalization.
+2026-02-14 22:39:07,694 - configstream.intelligence.washer.core - INFO - [-] - [core.py:656] - Loaded 1 WARP keys for washing
+2026-02-14 22:39:07,704 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-14 22:39:07,775 - configstream.history.storage - ERROR - [-] - [storage.py:32] - History file too large: 105906176 bytes (max: 104857600)
+2026-02-14 22:39:07,790 - configstream.history.storage - WARNING - [-] - [storage.py:41] - Failed to load proxy history: unexpected character: line 1 column 1 (char 0)
+2026-02-14 22:39:07,795 - configstream.history.storage - ERROR - [-] - [storage.py:51] - Failed to save proxy history: Fail
+2026-02-14 22:39:07,805 - configstream.history.export - INFO - [-] - [export.py:58] - Exported history visualization data to C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_export_visualization0\viz.json
+2026-02-14 22:39:07,824 - configstream.history.export - INFO - [-] - [export.py:73] - Generating active proxy trend data...
+2026-02-14 22:39:07,829 - configstream.history.export - INFO - [-] - [export.py:130] - Exported active proxy trend data to C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_export_active_trend0\trend.json
+2026-02-14 22:39:07,842 - configstream.history.export - INFO - [-] - [export.py:73] - Generating active proxy trend data...
+2026-02-14 22:39:07,842 - configstream.history.export - WARNING - [-] - [export.py:107] - No working proxy data found for trend analysis.
+2026-02-14 22:39:07,856 - configstream.intelligence.chaining - INFO - [-] - [chaining.py:828] - Enhanced smart chains generated: 7 chains across 9 categories. intranet=1, intranet_washed=0, ipv6=0, streamer=1, censorship_resistant=1, low_latency=0, high_anonymity=0, load_balanced=3
+2026-02-14 22:39:07,867 - configstream.intelligence.vectors - INFO - [-] - [vectors.py:109] - Generated static vectors for 1 proxies
+2026-02-14 22:39:07,881 - configstream.intelligence.vectors - ERROR - [-] - [vectors.py:111] - Failed to generate vectors: Fail
+2026-02-14 22:39:08,123 - configstream.quality.storage - INFO - [-] - [storage.py:427] - Merged source stats from C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_storage_merge0\q2.db
+2026-02-14 22:39:08,129 - configstream.quality.storage - ERROR - [-] - [storage.py:111] - Error initializing source quality DB: DB Error
+2026-02-14 22:39:08,130 - configstream.quality.storage - ERROR - [-] - [storage.py:256] - Failed to update stats for url: DB Error
+2026-02-14 22:39:08,130 - configstream.quality.storage - ERROR - [-] - [storage.py:157] - Error getting source state for url: DB Error
+2026-02-14 22:39:08,947 - configstream.security.censorship - INFO - [-] - [censorship.py:48] - Successfully connected to https://example.com
+2026-02-14 22:39:09,726 - configstream.security.censorship - WARNING - [-] - [censorship.py:51] - Failed to connect to https://example.com: Connection refused
+2026-02-14 22:39:09,733 - configstream.security.rules - WARNING - [-] - [rules.py:108] - Suspicious address pattern found: suspicious.com
+2026-02-14 22:39:09,733 - configstream.security.rules - WARNING - [-] - [rules.py:108] - Suspicious address pattern found: sub.suspicious.com
+2026-02-14 22:39:09,734 - configstream.security.rules - WARNING - [-] - [rules.py:134] - Non-standard IP notation (possible DNS rebinding): 0x7f000001
+2026-02-14 22:39:09,734 - configstream.security.rules - WARNING - [-] - [rules.py:146] - Non-standard IP notation (possible DNS rebinding): 0127.0.0.1
+2026-02-14 22:39:09,735 - configstream.security.rules - WARNING - [-] - [rules.py:98] - Private IP detected: [IP]
+2026-02-14 22:39:09,736 - configstream.security.rules - WARNING - [-] - [rules.py:98] - Private IP detected: [IP]
+2026-02-14 22:39:09,736 - configstream.security.rules - WARNING - [-] - [rules.py:98] - Private IP detected: [IP]
+2026-02-14 22:39:09,736 - configstream.security.rules - WARNING - [-] - [rules.py:189] - Special or private address detected: localhost
+2026-02-14 22:39:09,737 - configstream.security.rules - WARNING - [-] - [rules.py:98] - Private IP detected: [IP]
+2026-02-14 22:39:09,739 - configstream.security.rules - WARNING - [-] - [rules.py:201] - Unknown protocol detected: unknown
+2026-02-14 22:39:09,741 - configstream.security.rules - ERROR - [-] - [rules.py:216] - Null byte detected in config
+2026-02-14 22:39:09,741 - configstream.security.rules - WARNING - [-] - [rules.py:224] - Config too long: 10001 chars
+2026-02-14 22:39:09,761 - configstream.security.utls_wrapper - INFO - [-] - [utls_wrapper.py:66] - Building uTLS client...
+2026-02-14 22:39:09,765 - configstream.security.utls_wrapper - WARNING - [-] - [utls_wrapper.py:54] - Go not found. Cannot build uTLS client.
+2026-02-14 22:39:09,775 - configstream.security.virus_total - WARNING - [-] - [virus_total.py:34] - VirusTotal scan skipped: api key not found
+2026-02-14 22:39:11,828 - configstream.security.virus_total - ERROR - [-] - [virus_total.py:146] - VirusTotal API error: 429
+2026-02-14 22:39:11,834 - configstream.security.virus_total - ERROR - [-] - [virus_total.py:149] - VirusTotal check failed: Network timeout
+2026-02-14 22:39:13,753 - configstream.adapters - INFO - [-] - [adapters.py:190] - Loon export summary: 1 proxies, 0 chains
+2026-02-14 22:39:13,755 - configstream.adapters - INFO - [-] - [adapters.py:270] - Quantumult X export summary: 1 proxies (Failures: 0)
+2026-02-14 22:39:13,757 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-14 22:39:13,762 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-14 22:39:13,763 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-14 22:39:13,765 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-14 22:39:13,767 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-14 22:39:13,769 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-14 22:39:13,771 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-14 22:39:13,772 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-14 22:39:13,775 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 0 proxies, 0 chains (Total Lines: 1, Failures: 0)
+2026-02-14 22:39:13,778 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-14 22:39:13,780 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 1 proxies, 1 chains (Total Lines: 3, Failures: 0)
+2026-02-14 22:39:13,783 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 0 proxies, 0 chains (Total Lines: 1, Failures: 1)
+2026-02-14 22:39:13,785 - configstream.adapters - INFO - [-] - [adapters.py:190] - Loon export summary: 1 proxies, 0 chains
+2026-02-14 22:39:13,787 - configstream.adapters - INFO - [-] - [adapters.py:190] - Loon export summary: 1 proxies, 0 chains
+2026-02-14 22:39:13,788 - configstream.adapters - INFO - [-] - [adapters.py:190] - Loon export summary: 1 proxies, 0 chains
+2026-02-14 22:39:13,790 - configstream.adapters - INFO - [-] - [adapters.py:190] - Loon export summary: 1 proxies, 0 chains
+2026-02-14 22:39:13,792 - configstream.adapters - INFO - [-] - [adapters.py:190] - Loon export summary: 0 proxies, 0 chains
+2026-02-14 22:39:13,794 - configstream.adapters - INFO - [-] - [adapters.py:270] - Quantumult X export summary: 1 proxies (Failures: 0)
+2026-02-14 22:39:13,796 - configstream.adapters - INFO - [-] - [adapters.py:270] - Quantumult X export summary: 1 proxies (Failures: 0)
+2026-02-14 22:39:13,798 - configstream.adapters - INFO - [-] - [adapters.py:270] - Quantumult X export summary: 1 proxies (Failures: 0)
+2026-02-14 22:39:13,799 - configstream.adapters - INFO - [-] - [adapters.py:644] - SIP008 export summary: 1 Shadowsocks servers
+2026-02-14 22:39:13,801 - configstream.adapters - INFO - [-] - [adapters.py:644] - SIP008 export summary: 1 Shadowsocks servers
+2026-02-14 22:39:13,802 - configstream.adapters - INFO - [-] - [adapters.py:644] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-14 22:39:13,804 - configstream.adapters - INFO - [-] - [adapters.py:644] - SIP008 export summary: 5 Shadowsocks servers
+2026-02-14 22:39:13,806 - configstream.adapters - INFO - [-] - [adapters.py:405] - Shadowrocket export summary: 1 links (Reconstructed: 1)
+2026-02-14 22:39:13,809 - configstream.adapters - INFO - [-] - [adapters.py:405] - Shadowrocket export summary: 1 links (Reconstructed: 1)
+2026-02-14 22:39:13,811 - configstream.adapters - INFO - [-] - [adapters.py:405] - Shadowrocket export summary: 1 links (Reconstructed: 0)
+2026-02-14 22:39:13,813 - configstream.adapters - INFO - [-] - [adapters.py:405] - Shadowrocket export summary: 1 links (Reconstructed: 0)
+2026-02-14 22:39:13,815 - configstream.adapters - INFO - [-] - [adapters.py:405] - Shadowrocket export summary: 0 links (Reconstructed: 0)
+2026-02-14 22:39:13,817 - configstream.adapters - INFO - [-] - [adapters.py:405] - Shadowrocket export summary: 0 links (Reconstructed: 0)
+2026-02-14 22:39:13,818 - configstream.adapters - INFO - [-] - [adapters.py:405] - Shadowrocket export summary: 1 links (Reconstructed: 0)
+2026-02-14 22:39:13,831 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 0 proxies, 0 chains (Total Lines: 1, Failures: 0)
+2026-02-14 22:39:13,831 - configstream.adapters - INFO - [-] - [adapters.py:190] - Loon export summary: 0 proxies, 0 chains
+2026-02-14 22:39:13,832 - configstream.adapters - INFO - [-] - [adapters.py:270] - Quantumult X export summary: 0 proxies (Failures: 0)
+2026-02-14 22:39:13,832 - configstream.adapters - INFO - [-] - [adapters.py:644] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-14 22:39:13,833 - configstream.adapters - INFO - [-] - [adapters.py:405] - Shadowrocket export summary: 0 links (Reconstructed: 0)
+2026-02-14 22:39:13,835 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-14 22:39:13,835 - configstream.adapters - INFO - [-] - [adapters.py:190] - Loon export summary: 1 proxies, 0 chains
+2026-02-14 22:39:13,836 - configstream.adapters - INFO - [-] - [adapters.py:270] - Quantumult X export summary: 1 proxies (Failures: 0)
+2026-02-14 22:39:13,836 - configstream.adapters - INFO - [-] - [adapters.py:644] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-14 22:39:13,837 - configstream.adapters - INFO - [-] - [adapters.py:405] - Shadowrocket export summary: 1 links (Reconstructed: 0)
+2026-02-14 22:39:13,839 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-14 22:39:13,843 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 3 proxies, 0 chains (Total Lines: 4, Failures: 0)
+2026-02-14 22:39:13,845 - configstream.adapters - INFO - [-] - [adapters.py:270] - Quantumult X export summary: 3 proxies (Failures: 0)
+2026-02-14 22:39:13,847 - configstream.adapters - INFO - [-] - [adapters.py:190] - Loon export summary: 3 proxies, 0 chains
+2026-02-14 22:39:13,849 - configstream.adapters - INFO - [-] - [adapters.py:405] - Shadowrocket export summary: 3 links (Reconstructed: 0)
+2026-02-14 22:39:13,851 - configstream.adapters - INFO - [-] - [adapters.py:644] - SIP008 export summary: 1 Shadowsocks servers
+2026-02-14 22:39:13,853 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 3 proxies, 0 chains (Total Lines: 4, Failures: 0)
+2026-02-14 22:39:13,855 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 2 proxies, 0 chains (Total Lines: 3, Failures: 0)
+2026-02-14 22:39:13,858 - configstream.adapters - INFO - [-] - [adapters.py:190] - Loon export summary: 2 proxies, 0 chains
+2026-02-14 22:39:13,860 - configstream.adapters - INFO - [-] - [adapters.py:270] - Quantumult X export summary: 2 proxies (Failures: 0)
+2026-02-14 22:39:13,862 - configstream.adapters - INFO - [-] - [adapters.py:405] - Shadowrocket export summary: 2 links (Reconstructed: 0)
+2026-02-14 22:39:13,864 - configstream.adapters - INFO - [-] - [adapters.py:644] - SIP008 export summary: 1 Shadowsocks servers
+2026-02-14 22:39:13,868 - configstream.adapters - INFO - [-] - [adapters.py:405] - Shadowrocket export summary: 2 links (Reconstructed: 0)
+2026-02-14 22:39:14,012 - configstream.adaptive_timeout - WARNING - [-] - [adaptive_timeout.py:161] - Failed to save timeout history: Fail
+2026-02-14 22:39:14,019 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 60
+2026-02-14 22:39:14,171 - configstream.anomaly - WARNING - [-] - [anomaly.py:227] - Subnet Flood detected: [IP]/24 accounts for 95/100 proxies.
+2026-02-14 22:39:14,238 - configstream.anomaly - INFO - [-] - [anomaly.py:327] - Merged anomaly stats from C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_merge_from0\other.db
+2026-02-14 22:39:14,308 - configstream.anomaly - WARNING - [-] - [anomaly.py:90] - Anomaly DB connection lost (DB Execution Error), reconnecting...
+2026-02-14 22:39:14,309 - configstream.anomaly - ERROR - [-] - [anomaly.py:186] - Anomaly DB error for http://test: Reconnection Failed - allowing source (fail-open behaviour)
+2026-02-14 22:39:14,381 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 0 proxies, 1 chains (Total Lines: 2, Failures: 0)
+2026-02-14 22:39:14,384 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 0 proxies, 1 chains (Total Lines: 2, Failures: 0)
+2026-02-14 22:39:14,386 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 0 proxies, 1 chains (Total Lines: 2, Failures: 0)
+2026-02-14 22:39:14,388 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 0 proxies, 1 chains (Total Lines: 2, Failures: 0)
+2026-02-14 22:39:14,390 - configstream.adapters - INFO - [-] - [adapters.py:190] - Loon export summary: 0 proxies, 1 chains
+2026-02-14 22:39:14,392 - configstream.adapters - INFO - [-] - [adapters.py:190] - Loon export summary: 0 proxies, 1 chains
+2026-02-14 22:39:14,394 - configstream.adapters - INFO - [-] - [adapters.py:190] - Loon export summary: 0 proxies, 1 chains
+2026-02-14 22:39:14,396 - configstream.adapters - INFO - [-] - [adapters.py:190] - Loon export summary: 0 proxies, 1 chains
+2026-02-14 22:39:14,452 - configstream.async_file_ops - WARNING - [-] - [async_file_ops.py:57] - Failed to read C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_read_multiple_files_async0\missing.txt: File not found: C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_read_multiple_files_async0\missing.txt
+2026-02-14 22:39:14,493 - configstream.backup - INFO - [-] - [backup.py:120] - Backed up test.db -> test_20260214_223914.db.gz (0.00 MB)
+2026-02-14 22:39:14,495 - configstream.backup - INFO - [-] - [backup.py:141] - Backup complete: 1 databases backed up
+2026-02-14 22:39:14,521 - configstream.backup - INFO - [-] - [backup.py:120] - Backed up test.db -> test_20260214_223914.db.gz (0.00 MB)
+2026-02-14 22:39:14,523 - configstream.backup - INFO - [-] - [backup.py:141] - Backup complete: 1 databases backed up
+2026-02-14 22:39:14,527 - configstream.backup - WARNING - [-] - [backup.py:53] - No database files found in C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_backup_databases_no_files0\data
+2026-02-14 22:39:14,534 - configstream.backup - INFO - [-] - [backup.py:222] - Cleaned up 2 old backup files (smart retention)
+2026-02-14 22:39:14,559 - configstream.backup - INFO - [-] - [backup.py:249] - Created pre-restore backup: target.pre_restore_20260214_223914.db
+2026-02-14 22:39:14,561 - configstream.backup - INFO - [-] - [backup.py:263] - Restored target.db from backup.db
+2026-02-14 22:39:14,567 - configstream.backup - ERROR - [-] - [backup.py:239] - Backup file does not exist: C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_restore_missing_backup0\backups\missing.db
+2026-02-14 22:39:14,603 - configstream.backup - ERROR - [-] - [backup.py:133] - Failed to backup C:\Users\Acer\AppData\Local\Temp\pytest-of-Acer\pytest-215\test_sqlite_backup_fail0\data\fail.db: Connect Fail
+2026-02-14 22:39:14,605 - configstream.backup - INFO - [-] - [backup.py:141] - Backup complete: 0 databases backed up
+2026-02-14 22:39:14,626 - configstream.bot_cli - ERROR - [-] - [bot_cli.py:81] - Error generating WARP: Fail
+2026-02-14 22:39:16,230 - configstream.consumer - INFO - [-] - [consumer.py:594] - Source Summary [test-source]: Raw=1 Parsed=1 Tested=1 Working=1 Dur=3ms
+2026-02-14 22:39:16,241 - configstream.dns_batch_resolver - INFO - [-] - [dns_batch_resolver.py:72] - Batch DNS: Resolved 2 of 2 hostnames.
+2026-02-14 22:39:16,259 - configstream.dns_batch_resolver - INFO - [-] - [dns_batch_resolver.py:72] - Batch DNS: Resolved 0 of 0 hostnames.
+2026-02-14 22:39:16,263 - configstream.dns_batch_resolver - INFO - [-] - [dns_batch_resolver.py:72] - Batch DNS: Resolved 0 of 1 hostnames.
+2026-02-14 22:39:19,441 - configstream.fetcher - INFO - [-] - [fetcher.py:351] - Pre-warming DNS for 1 sources...
+2026-02-14 22:39:19,443 - configstream.fetcher - INFO - [-] - [fetcher.py:356] - DNS pre-warming completed in 0.00s.
+2026-02-14 22:39:19,443 - configstream.fetcher - INFO - [-] - [fetcher.py:377] - Starting parallel fetch for 1 sources (max_concurrent=1)
+2026-02-14 22:39:19,755 - configstream.fetcher - INFO - [-] - [fetcher.py:399] - Batch fetch completed in 0.31s
+2026-02-14 22:39:19,757 - configstream.fetcher - INFO - [-] - [fetcher.py:409] - Fetch Summary: 1/1 sources successful. Total data fetched: 0.00 KB
+2026-02-14 22:39:19,771 - configstream.fetcher - INFO - [-] - [fetcher.py:351] - Pre-warming DNS for 1 sources...
+2026-02-14 22:39:19,772 - configstream.fetcher - INFO - [-] - [fetcher.py:356] - DNS pre-warming completed in 0.00s.
+2026-02-14 22:39:19,773 - configstream.fetcher - INFO - [-] - [fetcher.py:377] - Starting parallel fetch for 1 sources (max_concurrent=10)
+2026-02-14 22:39:19,774 - configstream.fetcher - INFO - [-] - [fetcher.py:399] - Batch fetch completed in 0.00s
+2026-02-14 22:39:19,776 - configstream.fetcher - INFO - [-] - [fetcher.py:409] - Fetch Summary: 1/1 sources successful. Total data fetched: 0.00 KB
+2026-02-14 22:39:30,198 - configstream.filtering - INFO - [-] - [filtering.py:172] - Endpoint filtering: 3 -> 2 (1 duplicate endpoints removed)
+2026-02-14 22:39:30,212 - configstream.filtering - INFO - [-] - [filtering.py:109] - Deduplication: 3 -> 2 (1 duplicates removed)
+2026-02-14 22:39:30,216 - configstream.filtering - INFO - [-] - [filtering.py:109] - Deduplication: 2 -> 1 (1 duplicates removed)
+2026-02-14 22:39:30,221 - configstream.filtering - INFO - [-] - [filtering.py:172] - Endpoint filtering: 2 -> 1 (1 duplicate endpoints removed)
+2026-02-14 22:39:30,233 - configstream.geoip - INFO - [-] - [geoip.py:81] - GeoIP C extension (MMAP_EXT) available - lock-free lookups enabled
+2026-02-14 22:39:30,235 - configstream.geoip - INFO - [-] - [geoip.py:101] - Loaded GeoLite2 City database.
+2026-02-14 22:39:30,235 - configstream.geoip - ERROR - [-] - [geoip.py:124] - I/O error loading GeoIP databases: [WinError 2] The system cannot find the file specified: 'data\\GeoLite2-City.mmdb'
+2026-02-14 22:39:30,244 - configstream.geoip - INFO - [-] - [geoip.py:81] - GeoIP C extension (MMAP_EXT) available - lock-free lookups enabled
+2026-02-14 22:39:30,246 - configstream.geoip - INFO - [-] - [geoip.py:101] - Loaded GeoLite2 City database.
+2026-02-14 22:39:30,246 - configstream.geoip - ERROR - [-] - [geoip.py:124] - I/O error loading GeoIP databases: [WinError 2] The system cannot find the file specified: 'data\\GeoLite2-City.mmdb'
+2026-02-14 22:39:30,253 - configstream.geoip - INFO - [-] - [geoip.py:81] - GeoIP C extension (MMAP_EXT) available - lock-free lookups enabled
+2026-02-14 22:39:30,254 - configstream.geoip - INFO - [-] - [geoip.py:101] - Loaded GeoLite2 City database.
+2026-02-14 22:39:30,255 - configstream.geoip - ERROR - [-] - [geoip.py:124] - I/O error loading GeoIP databases: [WinError 2] The system cannot find the file specified: 'data\\GeoLite2-City.mmdb'
+2026-02-14 22:39:30,285 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: /bin/true, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-14 22:39:30,289 - configstream.testers.go - INFO - [-] - [go.py:288] - Starting Go Tester Daemon: /bin/true -workers 20 -timeout 10s -urls https://www.google.com/generate_204,https://www.cloudflare.com/cdn-cgi/trace,https://www.gstatic.com/generate_204,http://detectportal.firefox.com/success.txt,https://httpbin.org/status/200,https://www.amazon.com/robots.txt,https://www.microsoft.com/robots.txt,https://www.apple.com/robots.txt
+2026-02-14 22:39:30,297 - configstream.testers.go - INFO - [-] - [go.py:757] - Go Tester results (Batch): 2/2 working. Failures: None
+2026-02-14 22:39:30,413 - configstream.testers.go - INFO - [-] - [go.py:247] - Go Batch Tester shutdown complete.
+2026-02-14 22:39:30,419 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: /nonexistent, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-14 22:39:30,426 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: /nonexistent, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-14 22:39:30,433 - configstream.security.honeypot - WARNING - [-] - [honeypot.py:30] - Passive Intel: Host malicious.ip flagged as malicious by VirusTotal.
+2026-02-14 22:39:30,438 - configstream.security.honeypot - WARNING - [-] - [honeypot.py:30] - Passive Intel: Host bad.actor.ip flagged as malicious by VirusTotal.
+2026-02-14 22:39:30,460 - configstream.security.honeypot - WARNING - [-] - [honeypot.py:30] - Passive Intel: Host suspicious.ip flagged as malicious by VirusTotal.
+2026-02-14 22:39:30,478 - configstream.security.honeypot - ERROR - [-] - [honeypot.py:37] - Honeypot check failed for error.ip: API Error
+2026-02-14 22:39:30,481 - configstream.security.honeypot - ERROR - [-] - [honeypot.py:37] - Honeypot check failed for timeout.ip: Request timed out
+2026-02-14 22:39:30,484 - configstream.security.honeypot - ERROR - [-] - [honeypot.py:37] - Honeypot check failed for network.error.ip: Network unreachable
+2026-02-14 22:39:30,497 - configstream.security.honeypot - ERROR - [-] - [honeypot.py:37] - Honeypot check failed for null.ip: 'NoneType' object has no attribute 'get'
+2026-02-14 22:39:30,501 - configstream.security.honeypot - ERROR - [-] - [honeypot.py:37] - Honeypot check failed for string.response.ip: 'str' object has no attribute 'get'
+2026-02-14 22:39:30,557 - configstream.adapters - INFO - [-] - [adapters.py:86] - Surge export summary: 1 proxies, 1 chains (Total Lines: 3, Failures: 0)
+2026-02-14 22:39:30,559 - configstream.adapters - INFO - [-] - [adapters.py:190] - Loon export summary: 1 proxies, 1 chains
+2026-02-14 22:39:30,565 - configstream.converters.singbox - WARNING - [-] - [singbox.py:177] - Conversion failed: invalid port 99999 for example.com
+2026-02-14 22:39:30,568 - configstream.converters.singbox - DEBUG - [-] - [singbox.py:464] - Generated unique local IP [IP]/32 for WireGuard proxy (redacted)
+2026-02-14 22:39:30,569 - configstream.converters.singbox - DEBUG - [-] - [singbox.py:623] - Successfully converted wireguard proxy (Tag: 🌐-wireguard-e13a10e3) (Source: unknown)

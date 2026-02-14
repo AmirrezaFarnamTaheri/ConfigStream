@@ -14,7 +14,7 @@ from configstream.models import Proxy
 from configstream.config import AppSettings
 from configstream.fetcher import fetch_multiple_sources
 from configstream.async_file_ops import read_multiple_files_async
-from configstream.parsers import _extract_config_lines
+from configstream.parsers import extract_config_lines
 from configstream.source_quality import SourceQualityTracker
 from configstream.anomaly import AnomalyDetector
 from configstream.security_validator import SecurityValidator
@@ -23,6 +23,39 @@ if TYPE_CHECKING:
     from configstream.event_stream import EventStream
 
 logger = logging.getLogger(__name__)
+
+
+async def _report_source_failure(
+    loop: asyncio.AbstractEventLoop,
+    quality_tracker: SourceQualityTracker,
+    source: str,
+    reason: str,
+    duration_ms: float = 0.0,
+    failure_modes: Optional[dict] = None,
+) -> None:
+    """Report a source failure to the quality tracker (best-effort)."""
+    try:
+        await loop.run_in_executor(
+            None, quality_tracker.report_failure, source, reason
+        )
+        batch_number = os.getenv("BATCH_NUMBER", "").strip()
+        batch_source = f"batch_{batch_number}" if batch_number else "pipeline"
+        await loop.run_in_executor(
+            None,
+            quality_tracker.record_run,
+            source,
+            {
+                "timestamp": int(time.time()),
+                "duration_ms": duration_ms,
+                "fetched_count": 0,
+                "working_count": 0,
+                "geoip_json": "{}",
+                "failure_modes_json": json.dumps(failure_modes or {}),
+                "batch_source": batch_source,
+            },
+        )
+    except Exception:
+        pass
 
 
 async def source_producer(
@@ -109,7 +142,7 @@ async def source_producer(
             for fpath, content in file_results:
                 if stop_event.is_set():
                     break
-                extract_func = partial(_extract_config_lines, content, source_url=fpath)
+                extract_func = partial(extract_config_lines, content, source_url=fpath)
                 file_lines, drop_stats = (
                     await asyncio.get_running_loop().run_in_executor(None, extract_func)
                 )
@@ -117,33 +150,10 @@ async def source_producer(
                     metadata: dict[str, object] = {"drop_stats": drop_stats}
                     await work_queue.put((fpath, file_lines, metadata))
                 else:
-                    try:
-                        await loop.run_in_executor(
-                            None,
-                            quality_tracker.report_failure,
-                            fpath,
-                            "no_valid_lines",
-                        )
-                        batch_number = os.getenv("BATCH_NUMBER", "").strip()
-                        batch_source = (
-                            f"batch_{batch_number}" if batch_number else "pipeline"
-                        )
-                        await loop.run_in_executor(
-                            None,
-                            quality_tracker.record_run,
-                            fpath,
-                            {
-                                "timestamp": int(time.time()),
-                                "duration_ms": 0.0,
-                                "fetched_count": 0,
-                                "working_count": 0,
-                                "geoip_json": "{}",
-                                "failure_modes_json": json.dumps(drop_stats or {}),
-                                "batch_source": batch_source,
-                            },
-                        )
-                    except Exception:
-                        pass
+                    await _report_source_failure(
+                        loop, quality_tracker, fpath, "no_valid_lines",
+                        failure_modes=drop_stats,
+                    )
                 if progress and task_fetch:
                     progress.advance(task_fetch)
 
@@ -224,9 +234,9 @@ async def source_producer(
                         break
                     if res.success:
                         # Offload parsing to executor and handle stats
-                        # [FIX] Use partial to pass keyword argument to run_in_executor
+                        # Use partial to pass keyword argument to run_in_executor
                         extract_func = partial(
-                            _extract_config_lines, res.content, source_url=source
+                            extract_config_lines, res.content, source_url=source
                         )
                         lines, drop_stats = await loop.run_in_executor(
                             None, extract_func
@@ -237,7 +247,6 @@ async def source_producer(
 
                         if count == 0:
                             # Log that we got content but no proxies (useful for debugging invalid formats)
-                            # Fix logging format error (don't mix % formatting with f-strings/args)
                             # Reduced noise for expected empty sources
                             log_method = (
                                 logger.debug
@@ -245,45 +254,14 @@ async def source_producer(
                                 else logger.warning
                             )
                             log_method(
-                                "Source %s returned content (size=%d) but no valid config lines found. "
-                                "Drop Stats: %s",
-                                safe_source,
-                                len(res.content) if res.content else 0,
-                                drop_stats,
+                                f"Source {safe_source} returned content (size={len(res.content) if res.content else 0}) but no valid config lines found. "
+                                f"Drop Stats: {drop_stats}"
                             )
-                            try:
-                                await loop.run_in_executor(
-                                    None,
-                                    quality_tracker.report_failure,
-                                    source,
-                                    "no_valid_lines",
-                                )
-                                batch_number = os.getenv("BATCH_NUMBER", "").strip()
-                                batch_source = (
-                                    f"batch_{batch_number}"
-                                    if batch_number
-                                    else "pipeline"
-                                )
-                                await loop.run_in_executor(
-                                    None,
-                                    quality_tracker.record_run,
-                                    source,
-                                    {
-                                        "timestamp": int(time.time()),
-                                        "duration_ms": (
-                                            (res.response_time or 0.0) * 1000
-                                        ),
-                                        "fetched_count": 0,
-                                        "working_count": 0,
-                                        "geoip_json": "{}",
-                                        "failure_modes_json": json.dumps(
-                                            drop_stats or {}
-                                        ),
-                                        "batch_source": batch_source,
-                                    },
-                                )
-                            except Exception:
-                                pass
+                            await _report_source_failure(
+                                loop, quality_tracker, source, "no_valid_lines",
+                                duration_ms=(res.response_time or 0.0) * 1000,
+                                failure_modes=drop_stats,
+                            )
                             continue
 
                         # Offload anomaly check to executor to avoid blocking on DB/ML
@@ -351,32 +329,11 @@ async def source_producer(
                             f"Failed to fetch {safe_source}: {safe_error} "
                             f"(Status: {res.status_code})"
                         )
-                        try:
-                            await loop.run_in_executor(
-                                None, quality_tracker.report_failure, source, safe_error
-                            )
-                            batch_number = os.getenv("BATCH_NUMBER", "").strip()
-                            batch_source = (
-                                f"batch_{batch_number}" if batch_number else "pipeline"
-                            )
-                            await loop.run_in_executor(
-                                None,
-                                quality_tracker.record_run,
-                                source,
-                                {
-                                    "timestamp": int(time.time()),
-                                    "duration_ms": ((res.response_time or 0.0) * 1000),
-                                    "fetched_count": 0,
-                                    "working_count": 0,
-                                    "geoip_json": "{}",
-                                    "failure_modes_json": json.dumps(
-                                        {"fetch_error": safe_error}
-                                    ),
-                                    "batch_source": batch_source,
-                                },
-                            )
-                        except Exception:
-                            pass
+                        await _report_source_failure(
+                            loop, quality_tracker, source, safe_error,
+                            duration_ms=(res.response_time or 0.0) * 1000,
+                            failure_modes={"fetch_error": safe_error},
+                        )
     except Exception as e:
         safe_error = SecurityValidator.sanitize_log_message(str(e))
         logger.error(f"Producer failed: {safe_error}")

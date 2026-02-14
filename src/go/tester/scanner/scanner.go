@@ -21,14 +21,14 @@ var DefaultCidrs = []string{
 
 // WireGuard Handshake Initiation Packet Constants
 const (
-	HandshakeType    = 1 // initiation
-	HandshakeLen     = 148
-	ReservedLen      = 3
-	SenderIndexLen   = 4
-	UnencryptedEphLen= 32
-	EncryptedStatic  = 48 // 32 key + 16 auth tag
-	EncryptedTime    = 28 // 12 time + 16 auth tag
-	MacLen           = 16
+	HandshakeType     = 1 // initiation
+	HandshakeLen      = 148
+	ReservedLen       = 3
+	SenderIndexLen    = 4
+	UnencryptedEphLen = 32
+	EncryptedStatic   = 48 // 32 key + 16 auth tag
+	EncryptedTime     = 28 // 12 time + 16 auth tag
+	MacLen            = 16
 )
 
 type ScanResult struct {
@@ -50,7 +50,7 @@ func ConstructHandshakePacket() []byte {
 	// 2. Reserved (3 bytes) - Zeroed by make()
 
 	// 3. Sender Index (4 bytes) - Random arbitrary ID
-	// [FIX] Check crypto/rand.Read errors to prevent sending zeroed packets
+	// Check crypto/rand.Read errors to prevent sending zeroed packets
 	if _, err := rand.Read(packet[4:8]); err != nil {
 		return nil
 	}
@@ -96,7 +96,7 @@ func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resu
 	// Listen on an ephemeral port
 	conn, err := net.ListenPacket("udp4", ":0")
 	if err != nil {
-		// [FIX] Use log.Printf instead of fmt.Printf to write to stderr.
+		// Use log.Printf instead of fmt.Printf to write to stderr.
 		// fmt.Printf writes to stdout which corrupts the NDJSON result stream
 		// that the Python consumer is parsing, causing decode errors.
 		log.Printf("Error creating scanner socket: %v", err)
@@ -165,14 +165,14 @@ func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resu
 					}
 					continue
 				}
-				// [FIX] Removed deprecated ne.Temporary() check (always returns false
-			// in Go 1.18+, causing premature exit on any non-timeout error).
-			// During the sending phase, non-timeout errors are recoverable.
-			// After sending completes, any error means we're done.
-			if !sending {
-				return
-			}
-			continue
+				// Removed ne.Temporary() check (always returns false
+				// in Go 1.18+, causing premature exit on any non-timeout error).
+				// During the sending phase, non-timeout errors are recoverable.
+				// After sending completes, any error means we're done.
+				if !sending {
+					return
+				}
+				continue
 			}
 
 			recvTime := time.Now()
@@ -189,19 +189,19 @@ func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resu
 			}
 
 			// Extract IP and Port from address
-			// [Audit Fix] Use composite key (IP:Port) to support multi-port scanning
+			// Use composite key (IP:Port) to support multi-port scanning
 			// Previously used just IP, which caused collisions if scanning multiple ports on same IP.
 			// addr.String() returns "IP:Port" already.
 			endpointStr := addr.String()
 			ipStr, portStr, _ := net.SplitHostPort(endpointStr)
 
-            // Try to find by full endpoint key
+			// Try to find by full endpoint key
 			if val, ok := pending.LoadAndDelete(endpointStr); ok {
 				startTime := val.(time.Time)
 				latency := recvTime.Sub(startTime).Milliseconds()
 
-                port := 2408
-                fmt.Sscanf(portStr, "%d", &port)
+				port := 2408
+				fmt.Sscanf(portStr, "%d", &port)
 
 				// Avoid deadlock if results consumer is slow/unbuffered, but don't silently lose all results.
 				select {
@@ -214,21 +214,21 @@ func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resu
 					// Timed out delivering result under backpressure
 				}
 			} else {
-                // Backward compatibility / Fallback if key was just IP (unlikely given sender logic below, but safe)
-                 if val, ok := pending.LoadAndDelete(ipStr); ok {
-                    startTime := val.(time.Time)
-				    latency := recvTime.Sub(startTime).Milliseconds()
+				// Fallback if key was just IP (unlikely given sender logic below, but safe)
+				if val, ok := pending.LoadAndDelete(ipStr); ok {
+					startTime := val.(time.Time)
+					latency := recvTime.Sub(startTime).Milliseconds()
 
-                    select {
-                    case resultsChan <- ScanResult{
-                        IP:      ipStr,
-                        Port:    2408,
-                        Latency: latency,
-                    }:
-                    case <-time.After(50 * time.Millisecond):
-                    }
-                 }
-            }
+					select {
+					case resultsChan <- ScanResult{
+						IP:      ipStr,
+						Port:    2408,
+						Latency: latency,
+					}:
+					case <-time.After(50 * time.Millisecond):
+					}
+				}
+			}
 		}
 	}()
 
@@ -239,21 +239,21 @@ func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resu
 	}
 	close(ipChan)
 
-    // Rate Limit Throttling
-    // Calculate delay per packet to avoid bursting network stack (e.g. 1000 pps limit)
-    // If workers=50, each worker sends 1 packet then waits a bit.
-    // Simple sleep strategy: 1ms sleep every N packets or just 1ms per packet if paranoid.
-    // Given 'workers' concurrency, raw speed is high.
-    // Let's add a small ticker to the shared consumption if possible, or just sleep in worker.
+	// Rate Limit Throttling
+	// Calculate delay per packet to avoid bursting network stack (e.g. 1000 pps limit)
+	// If workers=50, each worker sends 1 packet then waits a bit.
+	// Simple sleep strategy: 1ms sleep every N packets or just 1ms per packet if paranoid.
+	// Given 'workers' concurrency, raw speed is high.
+	// Let's add a small ticker to the shared consumption if possible, or just sleep in worker.
 
 	for i := 0; i < workers; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			for ip := range ipChan {
-                // Support dynamic port if needed, defaulting to 2408 for now as per CIDR logic
-                targetPort := 2408
-                endpoint := fmt.Sprintf("%s:%d", ip, targetPort)
+				// Support dynamic port if needed, defaulting to 2408 for now as per CIDR logic
+				targetPort := 2408
+				endpoint := fmt.Sprintf("%s:%d", ip, targetPort)
 
 				addr, err := net.ResolveUDPAddr("udp4", endpoint)
 				if err != nil {
@@ -269,8 +269,8 @@ func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resu
 					pending.Delete(endpoint)
 				}
 
-                // Throttle sends slightly to prevent packet loss at OS buffer
-                time.Sleep(1 * time.Millisecond)
+				// Throttle sends slightly to prevent packet loss at OS buffer
+				time.Sleep(1 * time.Millisecond)
 			}
 		}()
 	}
@@ -293,7 +293,7 @@ func generateIPList(cidrs []string) []string {
 			continue
 		}
 		for ip := ip.Mask(ipnet.Mask); ipnet.Contains(ip); inc(ip) {
-			// [FIX] Actually skip network (.0) and broadcast (.255) addresses.
+			// Actually skip network (.0) and broadcast (.255) addresses.
 			// Previously the comment said "skip" but the code didn't filter them,
 			// wasting time scanning unreachable addresses and triggering alerts.
 			last := ip[len(ip)-1]
@@ -304,7 +304,7 @@ func generateIPList(cidrs []string) []string {
 		}
 	}
 	// Shuffle IPs for better distribution
-	// [FIX] Removed deprecated mrand.Seed() call (auto-seeded since Go 1.20)
+	// Removed mrand.Seed() call (auto-seeded since Go 1.20)
 	mrand.Shuffle(len(ips), func(i, j int) {
 		ips[i], ips[j] = ips[j], ips[i]
 	})

@@ -217,5 +217,5 @@ For security-related questions or concerns:
 
 ---
 
-**Last Updated**: 2026-02-08
+**Last Updated**: 2026-02-14
 **Next Security Audit**: Q3 2026

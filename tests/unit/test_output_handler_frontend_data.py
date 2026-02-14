@@ -6,8 +6,8 @@ import pytest
 
 from configstream.history.tracker import ProxyHistoryTracker
 from configstream.intelligence.washer.core import ProxyWasher
-from configstream.pipeline_core.output_handler import generate_pipeline_outputs
-from configstream.pipeline_core.stats import PipelineStats
+from configstream.output_handler import generate_pipeline_outputs
+from configstream.pipeline_stats import PipelineStats
 
 
 @pytest.mark.asyncio

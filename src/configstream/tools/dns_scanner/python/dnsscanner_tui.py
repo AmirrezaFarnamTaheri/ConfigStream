@@ -69,7 +69,7 @@ class SlipstreamManager:
         "Linux": "slipstream-client-linux-amd64",
     }
 
-    # Alternative filenames to check (for backwards compatibility)
+    # Alternative filenames to check (for existing installations)
     ALT_FILENAMES = {
         "Windows": ["slipstream-client.exe", "slipstream-client-windows-amd64.exe"],
         "Darwin-arm64": ["slipstream-client", "slipstream-client-darwin-arm64"],
@@ -116,7 +116,7 @@ class SlipstreamManager:
     def get_executable_path(self) -> Path:
         """Get the path to the slipstream executable.
 
-        First checks for any existing executable (including legacy names),
+        First checks for any existing executable (including alternate names),
         then falls back to the primary filename for new downloads.
         """
         # Return cached path if already found

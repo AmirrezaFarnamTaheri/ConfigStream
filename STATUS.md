@@ -1,7 +1,7 @@
 # ConfigStream Project Status
 
-**Last Updated**: 2026-02-09
-**Version**: v3.0.0
+**Last Updated**: 2026-02-14
+**Version**: v3.0.2
 **Status**: ✅ **PRODUCTION READY**
 
 ---
@@ -24,8 +24,8 @@
 
 ## 🚀 Current Release Status
 
-### v3.0.0 (2026-02-09)
-- **Release Date**: February 9, 2026
+### v3.0.2 (2026-02-14)
+- **Release Date**: February 14, 2026
 - **Status**: ✅ Production Deployed
 - **Deployment**: GitHub Pages + Actions
 - **Uptime**: 99.8%
@@ -51,7 +51,7 @@
 ### Latest Builds
 | Workflow | Status | Last Run |
 |----------|--------|----------|
-| Config's Stream | ✅ Passing | Auto (every 5h) |
+| Config's Stream | ✅ Passing | Auto (every 4h) |
 | Docker Build | ✅ Passing | On push |
 | GitHub Pages Deploy | ✅ Active | On pipeline success |
 
@@ -81,8 +81,8 @@
 - **Black**: ✅ 100% formatted
 
 ### Test Coverage
-- **Total Tests**: 784 Unit Tests (31 new in v3.0.0)
-- **Success Rate**: 100% passing
+- **Total Tests**: 785 unit tests
+- **Success Rate**: 100% passing (3 skipped — optional dependencies)
 
 ---
 
@@ -100,7 +100,7 @@
 
 ### Completed ✅ (v2.2.0)
 - [x] Comprehensive Backend Audit
-- [x] Dynamic Source Resharding (15 optimized batches)
+- [x] Dynamic Source Resharding (17 optimized batches)
 - [x] Massive Source Expansion (100+ new sources integrated)
 - [x] Fix SOCKS proxy handling (Protocol inference)
 - [x] Fix "200 OK" empty fetch handling
@@ -112,7 +112,7 @@
 - [x] Laboratory page — 5-step chain builder, 5 chain strategies, 8 export formats, network diagnosis, Layer 1 support
 - [x] Offline tools: `lab-scanner.py` (Python diagnostic), `lab-runner.sh` (Bash runner), `lab-offline.html`
 - [x] Shared utility consolidation (`utils/net.py`)
-- [x] Dead code removal (`vwarp_tool.py` stub, `vwarp_proc`, duplicate functions)
+- [x] Dead code removal (`vwarp_proc`, duplicate functions)
 - [x] MD5→SHA256 hashing fix in consumer
 - [x] Parameter shadowing fix in server.py
 - [x] SPDX header ordering fixes
@@ -131,6 +131,26 @@
 - [x] Surge/Loon chain export broadened to all chain types
 - [x] Frontend download selector: chains + side products
 - [x] 31 new artifact consistency tests
+
+### Completed ✅ (v3.0.1 - Refactoring Pass)
+- [x] Consolidated 12 redundant files (pipeline_stages.py, dns_prewarm.py, fetcher.py, output.py, crypto/, transport/, workers/, etc.)
+- [x] Removed all `_parse_*` aliases from parsers/__init__.py
+- [x] Consolidated pipeline.py error handling with `_cancel_all` helper
+- [x] Extracted `_prune_dangling_detours` helper in output_logic.py
+- [x] Updated all imports to use canonical module paths
+- [x] Updated AGENTS.md with Module Layout & Removed Files sections
+
+### Completed ✅ (v3.0.2 - Deep Review & Simplification)
+- [x] Fixed silent `orjson.dumps()` bug in consumer fingerprint save
+- [x] Fixed dead HTML detection block in extraction.py (was `pass`, now active)
+- [x] Removed dead code: `is_hex()`, `validate_proxy` alias, `total_sources` alias, unreachable regex fallback
+- [x] Extracted 6 shared helpers to eliminate duplication (~150 lines saved)
+- [x] Simplified triplicated exception handlers in quality/storage.py and redundant exception tuples in go.py
+- [x] Replaced if/elif chains with dict lookups (adapters.py, singbox.py)
+- [x] Flattened parser alias chains and merged duplicate transport blocks
+- [x] Cleaned stale labels across 10+ files
+- [x] Updated all documentation (AGENTS.md, CHANGELOG.md, CONTRIBUTING.md, STATUS.md)
+- [x] Full pyflakes scan clean, zero TODOs/FIXMEs, 785 tests passing
 
 ### In Progress
 - [ ] Real-time API rate limiting

@@ -42,8 +42,7 @@ def add_transport_sb(out: Dict[str, Any], details: Dict[str, Any]) -> Dict[str, 
             transport["path"] = _safe_path(str(details["path"]))
         if "host" in details:
             transport["host"] = [str(details["host"])]
-    # [FIX] Add httpupgrade transport support per sing-box schema.
-    # Previously silently dropped, causing proxies using httpupgrade to fail.
+    # Add httpupgrade transport support per sing-box schema.
     elif net == "httpupgrade":
         transport["type"] = "httpupgrade"
         if "path" in details:
@@ -56,7 +55,7 @@ def add_transport_sb(out: Dict[str, Any], details: Dict[str, Any]) -> Dict[str, 
     if transport:
         out["transport"] = transport
 
-    # [FIX] Add packet_encoding for VLESS/VMess (critical for UDP support).
+    # Add packet_encoding for VLESS/VMess (critical for UDP support).
     # Without this, UDP traffic is silently dropped by some servers.
     if out.get("type") in ("vless", "vmess"):
         pkt_enc = details.get("packet_encoding") or details.get("packetEncoding")
@@ -110,7 +109,7 @@ def add_transport_sb(out: Dict[str, Any], details: Dict[str, Any]) -> Dict[str, 
                     "short_id": str(details.get("sid", "") or ""),
                 }
             else:
-                # [FIX] Fail validation for Reality without PBK
+                # Fail validation for Reality without PBK
                 logger.debug(
                     f"Skipping invalid Reality TLS for {out.get('server')}: missing pbk"
                 )

@@ -28,7 +28,7 @@ from configstream.geoip import GeoIPResolver
 from configstream.source_quality import SourceQualityTracker, calculate_diversity_score
 from configstream.performance import PerformanceTracker
 from configstream.history.tracker import ProxyHistoryTracker
-from configstream.pipeline_core.models import PipelineStats
+from configstream.pipeline_stats import PipelineStats
 from configstream.intelligence.washer.core import ProxyWasher
 from configstream.config import AppSettings
 
@@ -76,7 +76,7 @@ async def processing_consumer(
     if stop_event is None:
         stop_event = asyncio.Event()
 
-    # Use passed shared washer or fallback (legacy support)
+    # Use passed shared washer or create default
     if washer is None:
         washer = ProxyWasher(AppSettings().WARP_KEY_POOL)
     washer_ready = False
@@ -127,22 +127,17 @@ async def processing_consumer(
         def _parse_chunk(lines, src):
             result = []
             safe_src = SecurityValidator.sanitize_log_message(str(src))
-            try:
-                for i, line in enumerate(lines):
-                    try:
-                        p = parse_config(line)
-                        if p:
-                            p.details["_source"] = src
-                            result.append(p)
-                    except Exception as e:
-                        # [FIX] Log parse exceptions at debug level
-                        safe_error = SecurityValidator.sanitize_log_message(str(e))
-                        logger.debug(
-                            f"Parse error for source {safe_src} (line {i}): {safe_error}"
-                        )
-                        pass
-            except Exception:
-                pass
+            for i, line in enumerate(lines):
+                try:
+                    p = parse_config(line)
+                    if p:
+                        p.details["_source"] = src
+                        result.append(p)
+                except Exception as e:
+                    safe_error = SecurityValidator.sanitize_log_message(str(e))
+                    logger.debug(
+                        f"Parse error for source {safe_src} (line {i}): {safe_error}"
+                    )
             return result
 
         parsed_batch = []
@@ -171,7 +166,7 @@ async def processing_consumer(
                         src_url.encode("utf-8", errors="ignore")
                     ).hexdigest()
                     fp_dir = (
-                        Path(__file__).resolve().parents[3] / "data" / "fingerprints"
+                        Path(__file__).resolve().parents[2] / "data" / "fingerprints"
                     )
                     fp_dir.mkdir(parents=True, exist_ok=True)
                     fp_file = fp_dir / f"{src_hash}.json"
@@ -184,9 +179,9 @@ async def processing_consumer(
                     }
 
                     tmp_fp = fp_file.with_suffix(".tmp")
-                    tmp_fp.write_text(
-                        json.dumps(fp_data, ensure_ascii=False),
-                        encoding="utf-8",
+                    raw = json.dumps(fp_data)
+                    tmp_fp.write_bytes(
+                        raw if isinstance(raw, bytes) else raw.encode("utf-8")
                     )
                     tmp_fp.replace(fp_file)
             except Exception:
@@ -309,7 +304,7 @@ async def processing_consumer(
                                 f"Go batch tester failed for chunk: {e}. Fallback to Python tester."
                             )
                         )
-                        # [FIX] Record batch error in stats so metadata reflects the failure
+                        # Record batch error in stats so metadata reflects the failure
                         async with seen_lock:
                             stats.drop_reasons["tester_error"] = stats.drop_reasons.get(
                                 "tester_error", 0
@@ -337,13 +332,6 @@ async def processing_consumer(
                             *[_fallback_test(x) for x in chunk],
                             return_exceptions=True,
                         )
-                        # Update chunk with results (results are mostly in-place modifications to Proxy objects if successful,
-                        # but tester.test returns updated proxy)
-                        # Actually tester.test returns a COPY or modifies?
-                        # SingBoxTester.test returns Proxy.
-                        # We need to reflect this back to chunk if needed, but since Proxy is mutable and passed by ref,
-                        # let's assume tester.test updates it or returns it.
-                        # Standard pattern:
                         for idx, res in enumerate(results):
                             if isinstance(res, Proxy):
                                 chunk[idx] = res
@@ -461,7 +449,7 @@ async def processing_consumer(
                             stats.drop_reasons["tester_error"] = stats.drop_reasons.get(
                                 "tester_error", 0
                             ) + len(vwarp_candidates)
-                        # [FIX] Do NOT clear candidates — keep them as untested
+                        # Do NOT clear candidates — keep them as untested
                         # revival chains so they appear in output for users to try.
                     for p in vwarp_candidates:
                         p.process = "revived-vwarp"
@@ -509,7 +497,7 @@ async def processing_consumer(
                                     stats.drop_reasons.get("tester_error", 0)
                                     + len(warp_candidates)
                                 )
-                            # [FIX] Do NOT clear candidates — keep as untested chains.
+                            # Do NOT clear candidates — keep as untested chains.
                         for p in warp_candidates:
                             p.process = "revived-warp"
                             if "revived-warp" not in p.tags:
@@ -561,7 +549,7 @@ async def processing_consumer(
                     final_proxies.append(p)
                 continue
 
-            # [FIX] Use explicit None check; 0.0 latency is valid, not missing
+            # Use explicit None check; 0.0 latency is valid, not missing
             if (
                 max_latency
                 and (p.latency if p.latency is not None else 9999) > max_latency
@@ -570,7 +558,7 @@ async def processing_consumer(
             if country_filter:
                 if p.country_code != country_filter.upper():
                     continue
-            # Fix: Acquire lock before appending to prevent race condition
+            # Acquire lock before appending to prevent race conditions.
             async with seen_lock:
                 final_proxies.append(p)
                 stats.working += 1

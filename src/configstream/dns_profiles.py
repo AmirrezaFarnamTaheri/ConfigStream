@@ -11,7 +11,6 @@ from typing import Dict, Any, List
 from .intelligence.dns_lists import (  # noqa: F401
     CLOUDFLARE_OPTIMIZED_IPS,
     IRAN_INFRASTRUCTURE_DNS,
-    ZEUS_DNS,
 )
 
 
@@ -81,8 +80,7 @@ def build_resolver_sets() -> tuple[list[str], list[str]]:
 
 def build_singbox_dns_profile() -> Dict[str, Any]:
     """
-    Returns a robust DNS configuration using the backward-compatible "address"
-    format (works with sing-box <1.12, v2rayN, NekoRay, NekoBox, Hiddify).
+    Returns a robust DNS configuration.
     """
     SELECTOR_TAG = "🌍 Proxy Select"
 

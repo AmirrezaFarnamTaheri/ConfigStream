@@ -56,9 +56,7 @@ async def read_multiple_files_async(paths: List[str]) -> List[Tuple[str, str]]:
         if isinstance(res, Exception):
             logger.warning(f"Failed to read {path}: {res}")
         else:
-            # Check if res is str (it should be, if not Exception)
-            if isinstance(res, str):
-                output.append((path, res))
+            output.append((path, res))
 
     return output
 

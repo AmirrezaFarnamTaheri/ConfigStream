@@ -1,11 +1,11 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """
-Comprehensive tests for pipeline_core/sorter.py module.
+Comprehensive tests for sorter.py module.
 Tests the Pareto-based proxy sorting algorithm.
 """
 
 from unittest.mock import MagicMock
-from configstream.pipeline_core.sorter import sort_proxies_pareto
+from configstream.sorter import sort_proxies_pareto
 from configstream.models import Proxy
 
 

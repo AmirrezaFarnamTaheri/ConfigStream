@@ -1,11 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import pytest
 from unittest.mock import patch, AsyncMock
-from configstream.security.honeypot import (
-    is_honeypot,
-    check_common_honeypot_ports,
-    check_traffic_interception,
-)
+from configstream.security.honeypot import is_honeypot
 
 
 @pytest.mark.asyncio
@@ -33,48 +29,6 @@ async def test_honeypot_passive_detection():
 
         is_hp = await is_honeypot("malicious.ip")
         assert is_hp is True
-
-
-@pytest.mark.asyncio
-async def test_check_common_honeypot_ports_always_false():
-    """Test that check_common_honeypot_ports always returns False (disabled)."""
-    result = await check_common_honeypot_ports("1.1.1.1")
-    assert result is False
-
-
-@pytest.mark.asyncio
-async def test_check_common_honeypot_ports_with_ports_list():
-    """Test that check_common_honeypot_ports ignores ports parameter."""
-    result = await check_common_honeypot_ports("1.1.1.1", ports=[80, 443, 8080])
-    assert result is False
-
-
-@pytest.mark.asyncio
-async def test_check_common_honeypot_ports_with_empty_ports():
-    """Test with empty ports list."""
-    result = await check_common_honeypot_ports("1.1.1.1", ports=[])
-    assert result is False
-
-
-@pytest.mark.asyncio
-async def test_check_traffic_interception_always_false():
-    """Test that check_traffic_interception always returns False (stub)."""
-    result = await check_traffic_interception({"host": "1.1.1.1", "port": 443})
-    assert result is False
-
-
-@pytest.mark.asyncio
-async def test_check_traffic_interception_with_various_configs():
-    """Test traffic interception with different proxy configs."""
-    configs = [
-        {},
-        {"host": "example.com"},
-        {"host": "1.1.1.1", "port": 443, "protocol": "vmess"},
-        None,
-    ]
-    for config in configs:
-        result = await check_traffic_interception(config)
-        assert result is False
 
 
 @pytest.mark.asyncio

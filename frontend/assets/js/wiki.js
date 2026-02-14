@@ -117,7 +117,7 @@ async function renderPage(filename) {
             `docs/wiki/project/${filename}`,
             // Local dev: opening frontend/wiki.html directly
             `../docs/wiki/project/${filename}`,
-            // Legacy layouts (if a wiki/ folder exists next to wiki.html)
+            // Alternative layouts (if a wiki/ folder exists next to wiki.html)
             `wiki/${filename}`,
             `${filename}`,
             // Remote fallback (hard-coded upstream). Keep last to avoid noisy 404s.

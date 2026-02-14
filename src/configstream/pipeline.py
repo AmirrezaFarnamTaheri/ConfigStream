@@ -34,19 +34,27 @@ from .filtering import dedupe_and_shuffle, filter_unique_endpoints, dedupe_by_co
 from .constants import VWARP_SOCKS5_PORT, VWARP_BIND_ADDRESS
 from .async_utils import safe_wait_for
 
-from configstream.pipeline_core.stats import PipelineStats
-from configstream.pipeline_core.models import PipelineResult
-from configstream.pipeline_stages import (
-    source_producer,
-    processing_consumer,
-)
-from configstream.pipeline_core.sorter import sort_proxies_pareto
-from configstream.pipeline_core import output_handler
+from configstream.pipeline_stats import PipelineStats, PipelineResult
+from configstream.producer import source_producer
+from configstream.consumer import processing_consumer
+from configstream.sorter import sort_proxies_pareto
+import configstream.output_handler as output_handler
 from .event_stream import EventStream
 from configstream.intelligence.washer.core import ProxyWasher  # Import here
 from .config import AppSettings
+from configstream.security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
+
+
+async def _cancel_all(producer_task: asyncio.Task, consumer_tasks: List[asyncio.Task]) -> None:
+    """Cancel producer and all consumer tasks, waiting for them to finish."""
+    for t in consumer_tasks:
+        t.cancel()
+    producer_task.cancel()
+    await asyncio.gather(*consumer_tasks, return_exceptions=True)
+    with suppress(asyncio.CancelledError):
+        await producer_task
 
 
 async def run_full_pipeline(
@@ -182,7 +190,7 @@ async def run_full_pipeline(
     settings.validate_settings()
 
     # --- Start Vwarp Tunnel if available ---
-    # [FIX] Use VwarpTool implementation to respect CI rules and improved logging
+    # Use VwarpTool implementation to respect CI rules and improved logging
     from configstream.tools.vwarp import VwarpTool
 
     vwarp_tool = VwarpTool()
@@ -343,54 +351,19 @@ async def run_full_pipeline(
             logger.warning(
                 "Hard batch time limit reached. Cancelling pipeline tasks to finalize output."
             )
-            for t in consumer_tasks:
-                t.cancel()
-            producer_task.cancel()
-            await asyncio.gather(*consumer_tasks, return_exceptions=True)
-            with suppress(asyncio.CancelledError):
-                await producer_task
+            await _cancel_all(producer_task, consumer_tasks)
         except (asyncio.CancelledError, KeyboardInterrupt, SystemExit) as e:
-            # Specific exception handling for graceful shutdown
             logger.info(f"Pipeline interrupted: {type(e).__name__}")
-            # Cancel all tasks on interruption to avoid leaks/hangs
-            for t in consumer_tasks:
-                t.cancel()
-            producer_task.cancel()
-            # Wait for cancellations to complete
-            await asyncio.gather(*consumer_tasks, return_exceptions=True)
-            try:
-                await producer_task
-            except asyncio.CancelledError:
-                pass
-            raise
-        except (RuntimeError, ValueError, TypeError) as e:
-            # Catch common pipeline errors with proper logging
-            logger.error(f"Pipeline execution error: {e}")
-            for t in consumer_tasks:
-                t.cancel()
-            producer_task.cancel()
-            await asyncio.gather(*consumer_tasks, return_exceptions=True)
-            try:
-                await producer_task
-            except asyncio.CancelledError:
-                pass
+            await _cancel_all(producer_task, consumer_tasks)
             raise
         except Exception as e:
-            # Unexpected errors - log with full context
-            logger.exception(f"Unexpected pipeline error: {e}")
-            for t in consumer_tasks:
-                t.cancel()
-            producer_task.cancel()
-            await asyncio.gather(*consumer_tasks, return_exceptions=True)
-            try:
-                await producer_task
-            except asyncio.CancelledError:
-                pass
+            logger.exception(f"Pipeline error: {e}")
+            await _cancel_all(producer_task, consumer_tasks)
             raise
 
         # 5. Final Cleanup & Output
 
-        # [FIX] Log warning on 0 working proxies but ALWAYS proceed to output generation.
+        # Log warning on 0 working proxies but ALWAYS proceed to output generation.
         # Proxies that failed testing in THIS environment may work for end-users in
         # different networks/regions.  Skipping output generation deprives them of
         # subscription files, DNS-safe variants, categorized outputs, and chain configs.
@@ -428,8 +401,9 @@ async def run_full_pipeline(
             if failing_sources:
                 log_lines = []
                 for s_data in failing_sources:
+                    safe_url = SecurityValidator.sanitize_log_message(s_data["url"])
                     log_lines.append(
-                        f"  - {s_data['url']}: score={s_data['score']:.1f}, reason={s_data.get('last_failure_reason', 'unknown')}"
+                        f"  - {safe_url}: score={s_data['score']:.1f}, reason={s_data.get('last_failure_reason', 'unknown')}"
                     )
                 logger.info("⚠️ Top 5 Failing Sources:\n" + "\n".join(log_lines))
 
@@ -463,31 +437,15 @@ async def run_full_pipeline(
         # Trigger Server Update Notification
         # If API server is running on localhost, we notify it
         try:
-            # from .server import manager as ws_manager
-            # Only if running in same process, which is rare for pipeline vs server split.
-            # But we can try hitting the endpoint.
             import httpx
 
             async with httpx.AsyncClient(timeout=1.0) as client:
                 await client.post(
                     "http://127.0.0.1:8000/api/admin/notify-update",
-                    json={
-                        "timestamp": (
-                            stats.end_time.isoformat() if stats.end_time else duration
-                        )
-                    },
+                    json={"timestamp": stats.end_time.isoformat() if stats.end_time else duration},
                 )
-        except (httpx.TimeoutException, httpx.ConnectError) as e:
-            # Server not running or unreachable - expected in standalone mode
-            logger.debug(f"Server notification skipped (server not available): {e}")
-        except httpx.HTTPStatusError as e:
-            # Server returned error status
-            logger.warning(
-                f"Server notification failed with HTTP {e.response.status_code}"
-            )
         except Exception as e:
-            # Unexpected notification error
-            logger.debug(f"Unexpected error during server notification: {e}")
+            logger.debug(f"Server notification skipped: {e}")
 
         should_fail = bool(getattr(settings, "FAIL_ON_ZERO_WORKING", False)) and bool(
             _zero_working
@@ -515,23 +473,14 @@ async def run_full_pipeline(
         if tester:
             await tester.close()
 
-        # Shutdown Vwarp tunnel (Robust cleanup)
-        if "vwarp_tool" in locals() and vwarp_tool:
-            await vwarp_tool.stop_tunnel()
+        # Shutdown Vwarp tunnel
+        await vwarp_tool.stop_tunnel()
 
         # Close anomaly detector DB connection
-        if "anomaly_detector" in locals() and anomaly_detector:
-            anomaly_detector.close()
+        anomaly_detector.close()
 
         # Ensure event stream is always closed to flush handles/buffers
         try:
             await event_stream.aclose()
-        except (OSError, IOError) as e:
-            # File handle errors during stream closure
-            logger.error(f"I/O error closing EventStream: {e}")
-        except RuntimeError as e:
-            # Runtime errors (e.g., event loop closed)
-            logger.warning(f"Runtime error closing EventStream: {e}")
         except Exception as e:
-            # Unexpected errors - log with full traceback
-            logger.exception(f"Unexpected error closing EventStream: {e}")
+            logger.warning(f"Error closing EventStream: {e}")

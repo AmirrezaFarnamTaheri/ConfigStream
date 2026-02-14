@@ -23,7 +23,7 @@ jobs:
           pip install -e ".[dev]"
           pip install build
       - name: Verify Version Consistency
-        run: python scripts/validate_versions.py # [FIX] Fail release if frontend/backend mismatch
+        run: python scripts/validate_versions.py # Fail release if frontend/backend mismatch
       - name: Run tests
         run: pytest -q
       - name: Build package

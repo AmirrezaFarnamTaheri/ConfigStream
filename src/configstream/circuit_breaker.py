@@ -20,12 +20,12 @@ class CircuitBreaker:
         self.last_failure_time: float = 0.0
         self._lock = asyncio.Lock()
         self._logged_open = False  # Track if we've logged the open state
-        self._probe_in_flight = False  # [FIX] Prevent thundering herd during recovery
+        self._probe_in_flight = False  # Prevent thundering herd during recovery
 
     async def record_failure(self) -> None:
         """Record a failure (async-safe with lock)"""
         async with self._lock:
-            self._probe_in_flight = False  # [FIX] Reset probe flag
+            self._probe_in_flight = False  # Reset probe flag
             self.failure_count += 1
             if self.failure_count >= self.failure_threshold:
                 self.state = CircuitBreakerState.OPEN
@@ -39,18 +39,18 @@ class CircuitBreaker:
             self.failure_count = 0
             self.state = CircuitBreakerState.CLOSED
             self._logged_open = False  # Reset logged state on recovery
-            self._probe_in_flight = False  # [FIX] Reset probe flag
+            self._probe_in_flight = False  # Reset probe flag
 
     async def is_open(self) -> bool:
         """Check if circuit breaker is open (async-safe with lock).
 
-        [FIX] Added _probe_in_flight flag to prevent thundering herd.
+        Added _probe_in_flight flag to prevent thundering herd.
         Only one request can probe during HALF_OPEN transition.
         """
         async with self._lock:
             if self.state == CircuitBreakerState.OPEN:
                 if time.monotonic() - self.last_failure_time > self.recovery_timeout:
-                    # [FIX] Only allow a single probe request to avoid thundering herd
+                    # Only allow a single probe request to avoid thundering herd
                     if not self._probe_in_flight:
                         self.state = CircuitBreakerState.HALF_OPEN
                         self._probe_in_flight = True
@@ -59,7 +59,7 @@ class CircuitBreaker:
                     return True
                 return True
             if self.state == CircuitBreakerState.HALF_OPEN:
-                # [FIX] Block additional requests while probe is in flight
+                # Block additional requests while probe is in flight
                 if self._probe_in_flight:
                     return True
                 return False

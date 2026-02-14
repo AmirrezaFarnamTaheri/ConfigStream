@@ -3,12 +3,10 @@ import pytest
 import httpx
 from datetime import datetime, timezone, timedelta
 from unittest.mock import patch, MagicMock, AsyncMock
-from configstream.fetcher import (
-    fetch_from_source,
-    fetch_multiple_sources,
-)
-from configstream.fetcher_core.models import FetchResult
-from configstream.fetcher_core.utils import parse_retry_after as _parse_retry_after
+from configstream.fetcher import fetch_from_source
+from configstream.fetcher import fetch_multiple_sources
+from configstream.fetcher_worker import FetchResult
+from configstream.fetcher_worker import parse_retry_after as _parse_retry_after
 
 from configstream.config import AppSettings
 
@@ -85,7 +83,7 @@ async def test_fetch_from_source_rate_limit():
 
 @pytest.mark.asyncio
 async def test_fetch_from_source_rate_limiter_precheck():
-    # Deprecated functionality test - ensure it doesn't crash if passed
+    # Backward compatibility test - ensure it doesn't crash if passed
     # but actual logic is now skipped or simplified if RateLimiter is removed.
     # If RateLimiter class is gone, we can mock a generic object with the same interface.
     client = AsyncMock(spec=httpx.AsyncClient)
@@ -210,7 +208,7 @@ async def test_fetch_from_source_jitter_warning(caplog):
     tracker.get_jitter = AsyncMock(return_value=3.0)  # High jitter
 
     # Patch correct logger location after refactor
-    with patch("configstream.fetcher_core.orchestrator.logger") as mock_logger:
+    with patch("configstream.fetcher.logger") as mock_logger:
         await fetch_from_source(client, "http://valid.com", timeout_tracker=tracker)
         # Check if any call to info contains "High Jitter"
         assert any("High Jitter" in str(call) for call in mock_logger.info.mock_calls)
@@ -235,7 +233,7 @@ async def test_fetch_from_source_unexpected_exception():
 async def test_fetch_multiple_sources_integration():
     # Integration test mocking minimal internals
     # Patch correct location
-    with patch("configstream.fetcher_core.batch.fetch_from_source") as mock_single:
+    with patch("configstream.fetcher.fetch_from_source") as mock_single:
         mock_single.return_value = FetchResult(True, "src1")
 
         # Implicit client=None
@@ -249,7 +247,7 @@ async def test_fetch_multiple_sources_integration():
 async def test_fetch_multiple_sources_with_explicit_client():
     client = AsyncMock(spec=httpx.AsyncClient)
     # Patch correct location
-    with patch("configstream.fetcher_core.batch.fetch_from_source") as mock_single:
+    with patch("configstream.fetcher.fetch_from_source") as mock_single:
         mock_single.return_value = FetchResult(True, "src1")
 
         results = await fetch_multiple_sources(["http://src1.com"], client=client)

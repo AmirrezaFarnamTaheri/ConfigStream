@@ -45,7 +45,7 @@ STRICT_POLICY = {
     "block_suspicious_ports": True,
 }
 
-# Revert TEST_POLICY to reject local IPs to satisfy legacy tests
+# Permissive policy used by test suite (rejects local IPs but relaxes other checks)
 TEST_POLICY = {
     "allow_local_ips": False,
     "require_tls_validation": False,
@@ -87,7 +87,7 @@ class SecurityValidator:
         if not ip:
             return False
         ip_lower = str(ip).strip().lower()
-        if ip_lower in ("localhost",):
+        if ip_lower == "localhost":
             return True
         if ip_lower.endswith(".local"):
             return True
@@ -100,10 +100,6 @@ class SecurityValidator:
                 or ip_obj.is_reserved
             )
         except ValueError:
-            # Fallback for non-IP strings (hostnames)
-            for pattern in LOCAL_IP_RANGES:
-                if pattern.match(ip):
-                    return True
             return False
 
     @staticmethod
@@ -112,14 +108,6 @@ class SecurityValidator:
             return False
         try:
             uuid.UUID(str(val))
-            return True
-        except (ValueError, TypeError, AttributeError):
-            return False
-
-    @staticmethod
-    def is_hex(val: str) -> bool:
-        try:
-            int(val, 16)
             return True
         except ValueError:
             return False
@@ -196,82 +184,69 @@ class SecurityValidator:
             # Catch generic Exception as tests might raise arbitrary exceptions to test robustness
             return False, "parse_error"
 
-    # [BACKWARD COMPATIBILITY]
     @staticmethod
     def validate_proxy_config(
         proxy: "Proxy", policy: dict = STRICT_POLICY
     ) -> Tuple[bool, str]:
-        """Alias for validate_proxy to maintain backward compatibility."""
-        return validate_proxy(proxy, policy)
+        """
+        Validates a proxy configuration against a security policy.
+        Returns (is_safe, rejection_reason).
+        """
+        if not proxy.address or not proxy.port:
+            return False, "missing_address_or_port"
 
+        try:
+            port = int(proxy.port)
+            if not (0 < port < 65536):
+                return False, "invalid_port_range"
+        except ValueError:
+            return False, "invalid_port_type"
 
-def validate_proxy(proxy: "Proxy", policy: dict = STRICT_POLICY) -> Tuple[bool, str]:
-    """
-    Validates a proxy configuration against a security policy.
-    Returns (is_safe, rejection_reason).
-    """
-    if not proxy.address or not proxy.port:
-        return False, "missing_address_or_port"
+        if policy["block_suspicious_ports"] and port in SUSPICIOUS_PORTS:
+            return False, f"suspicious_port_{port}"
 
-    try:
-        port = int(proxy.port)
-        if not (0 < port < 65536):
-            return False, "invalid_port_range"
-    except ValueError:
-        return False, "invalid_port_type"
+        if not policy["allow_local_ips"] and SecurityValidator.is_local_ip(proxy.address):
+            return False, "local_ip_blocked"
 
-    if policy["block_suspicious_ports"] and port in SUSPICIOUS_PORTS:
-        return False, f"suspicious_port_{port}"
+        # Enforce TLS if required by policy
+        if policy.get("require_tls_validation"):
+            is_secure = False
+            proto = proxy.protocol
+            details = proxy.details or {}
+            tls_flag = parse_tls_flag(details.get("tls"))
 
-    if not policy["allow_local_ips"] and SecurityValidator.is_local_ip(proxy.address):
-        return False, "local_ip_blocked"
-
-    # Enforce TLS if required by policy
-    if policy.get("require_tls_validation"):
-        is_secure = False
-        proto = proxy.protocol
-        details = proxy.details or {}
-        tls_flag = parse_tls_flag(details.get("tls"))
-
-        if proto in ["vmess", "vless"]:
-            if details.get("security") in ["tls", "reality", "auto"]:
+            if proto in ["vmess", "vless"]:
+                if details.get("security") in ["tls", "reality", "auto"] or tls_flag:
+                    is_secure = True
+            elif proto in ("trojan", "hysteria2", "tuic", "https"):
                 is_secure = True
-            elif tls_flag:
-                is_secure = True
-        elif proto == "trojan":
-            is_secure = True
-        elif proto == "hysteria2" or proto == "tuic":
-            is_secure = True
-        elif proto == "https":
-            is_secure = True
 
-        if not is_secure and proto not in ["wireguard"]:
-            if "tls" in details and not tls_flag:
-                return False, "tls_required"
+            if not is_secure and proto not in ["wireguard"]:
+                if "tls" in details and not tls_flag:
+                    return False, "tls_required"
 
-    if proxy.protocol in ["vmess", "vless"]:
-        uuid_val = proxy.details.get("uuid") or getattr(proxy, "uuid", None)
+        if proxy.protocol in ["vmess", "vless"]:
+            uuid_val = proxy.details.get("uuid") or getattr(proxy, "uuid", None)
 
-        if not uuid_val or not SecurityValidator.is_valid_uuid(str(uuid_val)):
             if not uuid_val:
                 return False, "missing_uuid"
             if not SecurityValidator.is_valid_uuid(str(uuid_val)):
                 return False, "invalid_uuid_format"
 
-    if proxy.protocol == "trojan":
-        # Check both uuid (often used for password in simple parsers) and details['password']
-        password = proxy.details.get("password") or getattr(proxy, "uuid", None)
-        if not password:
-            return False, "missing_trojan_password"
-        if len(str(password)) < policy["min_password_length"]:
-            return False, "weak_trojan_password"
+        if proxy.protocol == "trojan":
+            password = proxy.details.get("password") or getattr(proxy, "uuid", None)
+            if not password:
+                return False, "missing_trojan_password"
+            if len(str(password)) < policy["min_password_length"]:
+                return False, "weak_trojan_password"
 
-    if proxy.protocol == "shadowsocks":
-        method = proxy.details.get("method", "")
-        if method.lower() in ["rc4-md5", "table"]:
-            return False, "insecure_encryption_method"
+        if proxy.protocol == "shadowsocks":
+            method = proxy.details.get("method", "")
+            if method.lower() in ["rc4-md5", "table"]:
+                return False, "insecure_encryption_method"
 
-    return True, "ok"
+        return True, "ok"
+
 
 
 def _should_include_insecure(reason: str) -> bool:

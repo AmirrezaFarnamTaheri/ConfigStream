@@ -1,6 +1,6 @@
 // frontend/assets/js/wasm_loader.js
 
-// [FIX] Guard against missing Go runtime (in case wasm_exec.js failed to load)
+// Guard against missing Go runtime (in case wasm_exec.js failed to load)
 let go = null;
 let wasmReady = false;
 let wasmError = null;
