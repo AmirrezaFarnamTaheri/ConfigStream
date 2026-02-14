@@ -1,9 +1,9 @@
 # ConfigStream Batch 2
 # Optimized based on fetch duration for equal execution times
-# Est. Fetch Time: 7193.7s
+# Est. Fetch Time: 8837.7s
 
-https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-14.txt
-https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub27.txt
-https://v2.alicivil.workers.dev/?count=2000&list=md&shuffle=true
-https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/sub/ServerLess_TLS_Fragment_xray_config.json
-https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/refs/heads/main/mci/sub_1.txt
+https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-5.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub9.txt
+https://v2.alicivil.workers.dev/?count=2000&list=uy&shuffle=true
+https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/sub/exclave-wg.txt
+https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/main/mtn/sub_4.txt
