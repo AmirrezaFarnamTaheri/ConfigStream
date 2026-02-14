@@ -44,7 +44,7 @@ def parse_clash_json(config: str) -> Optional[Proxy]:
             uuid = ""  # SS uses password in details
             password = data.get("password", "")
             if not password:
-                # [FIX] Reject Shadowsocks without password immediately
+                # Reject Shadowsocks without password immediately
                 return None
             data["password"] = password
             data["method"] = data.get("cipher", "")

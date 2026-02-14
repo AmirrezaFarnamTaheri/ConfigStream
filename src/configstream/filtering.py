@@ -13,6 +13,21 @@ from .utils.bool_parser import parse_tls_flag
 logger = logging.getLogger(__name__)
 
 
+def _is_better_proxy(candidate: Proxy, current: Proxy) -> bool:
+    """Return True if candidate should replace current in dedup maps.
+
+    Priority: working beats non-working, then lower latency wins.
+    """
+    if candidate.is_working and not current.is_working:
+        return True
+    if current.is_working and not candidate.is_working:
+        return False
+    # Same working status — prefer lower latency
+    cur_lat = current.latency if current.latency is not None else float("inf")
+    new_lat = candidate.latency if candidate.latency is not None else float("inf")
+    return new_lat < cur_lat
+
+
 def proxy_unique_key(
     p: Proxy,
 ) -> Tuple[str, str, int, str, str, str, str, str, str, str, str]:
@@ -72,23 +87,8 @@ def dedupe_and_shuffle(proxies: List[Proxy]) -> List[Proxy]:
         key = proxy_unique_key(proxy)
         current = best.get(key)
 
-        if current is None:
+        if current is None or _is_better_proxy(proxy, current):
             best[key] = proxy
-            continue
-
-        if not current.is_working and proxy.is_working:
-            best[key] = proxy
-            continue
-
-        if current.is_working == proxy.is_working:
-            # Prefer lower latency
-            if current.latency is None and proxy.latency is not None:
-                best[key] = proxy
-                continue
-            if current.latency is not None and proxy.latency is not None:
-                if proxy.latency < current.latency:
-                    best[key] = proxy
-                    continue
 
     unique = list(best.values())
 
@@ -151,50 +151,20 @@ def filter_unique_endpoints(proxies: List[Proxy]) -> List[Proxy]:
         existing = fingerprint_map.get(fingerprint)
         if not existing:
             fingerprint_map[fingerprint] = p
+        elif _is_better_proxy(p, existing):
+            fingerprint_map[fingerprint] = p
         else:
-            # Collision: keep the "better" one
-
-            # Preference 1: Working vs Not Working
-            if p.is_working and not existing.is_working:
-                fingerprint_map[fingerprint] = p
-                continue
-            if existing.is_working and not p.is_working:
-                continue
-
-            # Preference 2: Lower Latency
-            existing_latency = (
-                existing.latency if existing.latency is not None else float("inf")
-            )
-            new_latency = p.latency if p.latency is not None else float("inf")
-
-            if new_latency < existing_latency:
-                fingerprint_map[fingerprint] = p
-                continue
-
-            # Preference 3: Metadata Merging & Enrichment
-            # If we keep existing (better/equal latency), try to enrich it with new metadata
+            # Enrich existing with better metadata if candidate has it
             if (
                 p.country_code
                 and p.country_code != "XX"
                 and existing.country_code == "XX"
             ):
-                # If new proxy has better metadata but worse/equal latency:
-                # 1. If latency is comparable (diff < 100ms) or existing has no latency, take new (simple replace)
-                # 2. If existing is much faster, keep existing but update its metadata
-
-                latency_diff = new_latency - existing_latency
-                if existing_latency == float("inf") or latency_diff < 100:
-                    fingerprint_map[fingerprint] = p
-                    continue
-
-                # Keep existing (faster) but copy metadata
                 existing.country_code = p.country_code
                 existing.country = p.country
                 existing.city = p.city or existing.city
                 existing.asn = p.asn or existing.asn
                 existing.org = p.org or existing.org
-                # Don't replace in map, just modified object
-                continue
 
     # Log endpoint filtering statistics
     removed_count = len(proxies) - len(fingerprint_map)
@@ -237,22 +207,9 @@ def dedupe_by_config(proxies: List[Proxy]) -> List[Proxy]:
             continue
 
         current = best.get(key)
-        if current is None:
+        if current is None or _is_better_proxy(proxy, current):
             best[key] = proxy
             continue
-
-        if not current.is_working and proxy.is_working:
-            best[key] = proxy
-            continue
-
-        if current.is_working == proxy.is_working:
-            current_latency = (
-                current.latency if current.latency is not None else float("inf")
-            )
-            new_latency = proxy.latency if proxy.latency is not None else float("inf")
-            if new_latency < current_latency:
-                best[key] = proxy
-                continue
 
     unique = list(best.values()) + passthrough
     removed_count = len(proxies) - len(unique)

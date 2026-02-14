@@ -11,7 +11,7 @@ from configstream.parsers.extraction import (
 def test_shadowsocks_short_method():
     # 'rc4' is 3 chars, previously allowed (>=3).
     # 'd' is 1 char (blocked <2). 'rc' is 2 chars (allowed >=2).
-    # Let's test a 2-char method 'rc' (hypothetical legacy)
+    # Let's test a 2-char method 'rc' (hypothetical case)
     config = "ss://cmM6cGFzc3dvcmRAMS4xLjEuMTo0NDM="  # rc:password@1.1.1.1:443
     proxy = parse_ss(config)
     assert proxy is not None
@@ -46,7 +46,7 @@ def test_vmess_respects_aid():
         "add": "1.1.1.1",
         "port": 443,
         "id": "550e8400-e29b-41d4-a716-446655440000",
-        "aid": 64,  # Legacy
+        "aid": 0,  # AEAD mode
         "scy": "auto",
         "net": "ws",
         "type": "none",
@@ -61,8 +61,8 @@ def test_vmess_respects_aid():
     proxy = parse_vmess(config)
     assert proxy is not None
     assert proxy.protocol == "vmess"
-    # The parser should now respect aid=64
-    assert proxy.details["aid"] == 64
+    # The parser should now respect aid=0
+    assert proxy.details["aid"] == 0
 
 
 def test_vmess_defaults_to_zero_aid():
@@ -130,7 +130,7 @@ def test_is_plausible_proxy_config_relaxed():
     assert is_plausible_proxy_config(bad_config) is False
 
     # Borderline case
-    # [FIX] Threshold was tightened from 0.98 to 0.50. A config with 97% special
+    # Threshold was tightened from 0.98 to 0.50. A config with 97% special
     # chars is garbage and should now be rejected. Test updated to reflect this.
     # 97 bad, 3 good -> ratio 0.97 -> FAIL (> 0.50)
     borderline_config = "vmess://" + "ABC" + "^" * 97

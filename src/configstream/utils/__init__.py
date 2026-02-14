@@ -196,7 +196,7 @@ class BoundedConcurrencyManager:
 
     @property
     def active_count(self) -> int:
-        """[FIX] Expose active permit count for monitoring/diagnostics."""
+        """Expose active permit count for monitoring/diagnostics."""
         return self._active
 
     @asynccontextmanager
@@ -214,7 +214,7 @@ class BoundedConcurrencyManager:
             yield
         finally:
             async with self._cond:
-                # [FIX] Guard against negative active count from double-release
+                # Guard against negative active count from double-release
                 self._active = max(0, self._active - 1)
                 self._cond.notify()
 
@@ -228,7 +228,7 @@ class BoundedConcurrencyManager:
 
     async def __aexit__(self, exc_type, exc, tb):
         async with self._cond:
-            # [FIX] Guard against negative active count
+            # Guard against negative active count
             self._active = max(0, self._active - 1)
             self._cond.notify()
 
@@ -241,7 +241,7 @@ class BoundedConcurrencyManager:
                 self._cond.notify_all()
 
     async def drain(self, timeout: float = 30.0) -> bool:
-        """[FIX] Wait for all active permits to be released.
+        """Wait for all active permits to be released.
 
         Useful during graceful shutdown to ensure no tasks are orphaned.
         Returns True if drained within timeout, False otherwise.

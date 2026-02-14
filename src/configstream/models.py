@@ -125,6 +125,5 @@ class Proxy(BaseModel):
         """Get path from details."""
         if not self.details:
             return ""
-        # Bug fix: "path".upper() was incorrectly evaluating to literal "PATH"
-        value = self.details.get("path") or self.details.get("PATH")
+        value = self.details.get("path")
         return str(value) if value is not None else ""

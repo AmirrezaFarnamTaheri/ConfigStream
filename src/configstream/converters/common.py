@@ -39,7 +39,7 @@ def to_uri(proxy: Proxy) -> Optional[str]:
     if not proxy.is_working:
         return None
 
-    # [FIX] Revived/chain proxies are multi-hop configs that cannot be expressed
+    # Revived/chain proxies are multi-hop configs that cannot be expressed
     # as a single URI.  Return None so they are excluded from URI subscriptions.
     # (The plaintext generator has its own _extract_uri that handles these.)
     if proxy.protocol == "revived" or (proxy.config or "").startswith("revived://"):
@@ -81,7 +81,7 @@ def to_uri(proxy: Proxy) -> Optional[str]:
                 or get_flag_emoji(proxy.country_code)
                 or proxy.country_code
             )
-            # [FIX] Include transport and TLS query params so clients can connect
+            # Include transport and TLS query params so clients can connect
             # when proxy uses ws/grpc/h2 transport (standard Trojan share link format)
             params: dict[str, str] = {}
             details = proxy.details or {}

@@ -24,7 +24,7 @@ def test_record_test_result(history_tracker):
     p.country_code = "US"
     p.details = {}
 
-    history_tracker.record_test_result(p)
+    history_tracker.update_history([p])
 
     stats = history_tracker.get_history("vless://1")
     assert len(stats) == 1
@@ -44,15 +44,15 @@ def test_get_reliability_score(history_tracker):
 
     p.is_working = True
     p.latency = 100.0
-    history_tracker.record_test_result(p)
+    history_tracker.update_history([p])
 
     p.is_working = True
     p.latency = 100.0
-    history_tracker.record_test_result(p)
+    history_tracker.update_history([p])
 
     p.is_working = False
     p.latency = None
-    history_tracker.record_test_result(p)
+    history_tracker.update_history([p])
 
     score = history_tracker.get_reliability_score("vless://1")
     # Score 0.66
@@ -72,7 +72,7 @@ def test_get_summary_stats(history_tracker):
 
     p.is_working = True
     p.latency = 100.0
-    history_tracker.record_test_result(p)
+    history_tracker.update_history([p])
 
     summary = history_tracker.get_summary_stats("vless://1")
     assert summary["success_rate"] == 1.0
@@ -93,7 +93,7 @@ def test_pruning(history_tracker):
 
     # Add 110 entries
     for _ in range(110):
-        history_tracker.record_test_result(p)
+        history_tracker.update_history([p])
 
     # Check via public API
     history = history_tracker.get_proxy_history(p.id)
@@ -115,7 +115,7 @@ def test_persistence(tmp_path):
     p.is_working = True
     p.latency = 100.0
 
-    t1.record_test_result(p)
+    t1.update_history([p])
     t1.save()
 
     t2 = ProxyHistoryTracker(db_path)

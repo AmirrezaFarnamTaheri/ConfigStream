@@ -24,8 +24,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Early return if required elements don't exist
     if (!chartsContainer || !chartsEmptyState) return;
 
-    // Audit: Initialize data and wait for it.
-    // F9 Race Condition Fix: We await this here, ensuring data is available before rendering charts.
+    // Initialize country data before rendering charts.
     // If it fails, countryNameToCode will be empty, which is handled gracefully by flag logic.
     await loadCountryData();
 
@@ -90,7 +89,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         return metrics;
     }
 
-    // F6 Fix: Centralized Color Logic
+    // Centralized Color Logic
     // Using a seeded or hash-based color generator for consistency across charts
     function generateColor(label, index) {
         // Simple hash of the label to pick a hue
@@ -148,7 +147,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const metrics = calculateMetrics(stats, proxies);
 
-        // F9 Fix: Use sanitize logic inside updateElement or manual sanitization.
+        // Use sanitize logic inside updateElement or manual sanitization.
         // Since updateElement uses DOMPurify by default unless trustedHTML is true,
         // we should avoid trustedHTML=true unless strictly necessary.
         // Here we are injecting simple HTML (<span>), so we construct it carefully.
@@ -548,7 +547,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             }
 
-            // F5 Fix: Misnamed charts. Use the correct ID from HTML or standardize.
+            // Misnamed charts. Use the correct ID from HTML or standardize.
             // HTML typically uses 'latencyByProtocolChart' or 'protocolPerformanceChart'.
             // We'll target 'latencyByProtocolChart' and remove duplicate logic for 'protocolPerformanceChart' if it was doing the same thing.
 
@@ -841,7 +840,7 @@ document.addEventListener('DOMContentLoaded', async () => {
               return btn;
             };
 
-            // F9 Fix: Use safe filenames for export
+            // Use safe filenames for export
             // We strip unsafe chars from chartTitle in export function,
             // but we can ensure correctness here too.
 
@@ -862,7 +861,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function exportChartAsImage(canvas, title, format) {
         try {
-            // F9 Fix: Strict Sanitization for filenames
+            // Strict sanitization for filenames
             const safeTitle = title.replace(/[^a-z0-9]/gi, '-').toLowerCase();
             const filename = `${safeTitle}-${Date.now()}.png`;
             if (format === 'png') {
@@ -894,7 +893,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function exportChartData(canvas, title) {
         try {
-            // [FIX] Use Chart.js 4.x API instead of deprecated internal properties
+            // Use Chart.js 4.x API instead of older internal properties
             const chartInstance = (typeof Chart !== 'undefined' && Chart.getChart) ? Chart.getChart(canvas) : null;
             if (!chartInstance || !chartInstance.data) {
                 alert('Unable to export chart data. Chart instance not found.');
@@ -909,7 +908,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }))
                 : [];
 
-            // F9 Fix: Sanitize content before export (although JSON is mostly safe from XSS unless rendered as HTML later)
+            // Sanitize content before export (defense in depth)
             const exportData = {
                 title,
                 exported_at: new Date().toISOString(),

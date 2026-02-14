@@ -50,7 +50,13 @@ graph TD
 
 Implemented in `src/configstream/`, this layer is the "brain."
 
-*   **Pipeline Orchestration**: `pipeline.py` and `pipeline_stages.py` manage the flow of data. We use an **Async Generator** pattern (`source_producer` -> `Queue` -> `processing_consumer`) to stream data through the system, keeping memory usage constant regardless of input size.
+*   **Pipeline Stats**: `PipelineStats` and `PipelineResult` live in `pipeline_stats.py`.
+*   **Producer / Consumer**: `source_producer` in `producer.py`, `processing_consumer` in `consumer.py`.
+*   **ProxyWasher**: Canonical class in `intelligence/washer/core.py`. Import directly.
+*   **Parsers**: All public parser functions (`parse_vmess`, `parse_vless`, `parse_ss`, etc.) are exported from `parsers/__init__.py` with explicit `__all__`.
+*   **DNS Cache**: `prewarm_dns_cache` lives in `dns_cache.py`.
+*   **Haversine / Country Centroids**: Canonical location is `intelligence/chaining.py`.
+*   **Fetcher**: `fetch_from_source` in `fetcher.py`, models in `fetcher_worker.py`.
 *   **State Management via Cache**:
     *   Since the runner is wiped after every job, we persist state (reliability scores, history) in SQLite databases (`data/*.db`).
     *   These files are hashed and stored in GitHub Actions Cache (`actions/cache`).

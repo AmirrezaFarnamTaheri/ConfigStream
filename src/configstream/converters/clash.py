@@ -49,7 +49,7 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
             # Add plugin support if needed
             if proxy.details.get("plugin"):
                 common["plugin"] = proxy.details["plugin"]
-                # [FIX] Clash expects plugin-opts as dict, parser may store as string
+                # Clash expects plugin-opts as dict, parser may store as string
                 raw_opts = proxy.details.get("plugin_opts", {})
                 if isinstance(raw_opts, str) and raw_opts:
                     common["plugin-opts"] = dict(
@@ -65,7 +65,7 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
 
         elif proxy.protocol == "vmess":
             common["uuid"] = proxy.uuid
-            # [FIX] Parser stores as "aid", not "alterId"
+            # Parser stores as "aid", not "alterId"
             common["alterId"] = proxy.details.get(
                 "aid", proxy.details.get("alterId", 0)
             )
@@ -78,13 +78,13 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
 
         elif proxy.protocol == "trojan":
             common["password"] = proxy.uuid
-            # [FIX] Trojan inherently uses TLS; always set tls and udp
+            # Trojan inherently uses TLS; always set tls and udp
             common["udp"] = True
             # Centralized transport + TLS handling (Trojan over ws/grpc supported)
             add_transport_opts(common, proxy.details)
             # Trojan always requires TLS even if details don't flag it
             common["tls"] = True
-            # [FIX] Mihomo Trojan uses 'sni', not 'servername' (VMess/VLESS convention).
+            # Mihomo Trojan uses 'sni', not 'servername' (VMess/VLESS convention).
             # Move servername→sni if add_transport_opts set it.
             if "servername" in common:
                 common.setdefault("sni", common.pop("servername"))
@@ -95,7 +95,7 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
         # Basic VLESS support (Clash Meta/Premium only usually, but often mapped)
         elif proxy.protocol == "vless":
             common["uuid"] = proxy.uuid
-            # [FIX] Only set flow if non-empty to avoid cluttering config
+            # Only set flow if non-empty to avoid cluttering config
             flow = proxy.details.get("flow", "")
             if flow:
                 common["flow"] = flow
@@ -107,7 +107,7 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
         elif proxy.protocol == "hysteria2":
             common["type"] = "hysteria2"
             common["password"] = proxy.uuid or proxy.details.get("password", "")
-            # [FIX] Hysteria2 requires TLS; set explicitly for Mihomo
+            # Hysteria2 requires TLS; set explicitly for Mihomo
             common["tls"] = True
             common["sni"] = proxy.details.get("sni", "")
             common["skip-cert-verify"] = parse_bool(
@@ -122,7 +122,7 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
             common["type"] = "tuic"
             common["uuid"] = proxy.uuid
             common["password"] = proxy.details.get("password", "")
-            # [FIX] TUIC requires TLS; set explicitly for Mihomo
+            # TUIC requires TLS; set explicitly for Mihomo
             common["tls"] = True
             common["sni"] = proxy.details.get("sni", "")
             common["congestion-controller"] = proxy.details.get(

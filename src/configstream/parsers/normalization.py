@@ -34,7 +34,7 @@ def normalize_proxy_details(proxy: Proxy) -> None:
     if proxy.protocol == "shadowsocks" and "plugin" in proxy.details:
         plugin_str = proxy.details.get("plugin", "")
         if isinstance(plugin_str, str):
-            # [FIX] Use split("=", 1) to handle values containing "=" characters
+            # Use split("=", 1) to handle values containing "=" characters
             plugin_opts = dict(
                 item.split("=", 1) for item in plugin_str.split(";") if "=" in item
             )
@@ -80,7 +80,7 @@ def normalize_proxy_details(proxy: Proxy) -> None:
         if not isinstance(current_tls, dict) and current_tls is not False:
             proxy.details["tls"] = True
 
-    # 5. [FIX] Normalize Reality Fields (pbk, sid)
+    # 5. Normalize Reality Fields (pbk, sid)
     # Map aliases like publicKey -> pbk, shortId -> sid
     if (
         security == "reality"

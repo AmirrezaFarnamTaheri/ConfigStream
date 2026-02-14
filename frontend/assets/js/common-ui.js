@@ -110,7 +110,7 @@ function initCopyButtons() {
         }
     });
 
-    // F8 Fix: Add ARIA labels to copy buttons if missing
+    // Add ARIA labels to copy buttons if missing
     document.querySelectorAll('.copy-btn').forEach(btn => {
         if (!btn.hasAttribute('aria-label')) {
             const label = btn.dataset.file ? `Copy link for ${btn.dataset.file}` : 'Copy to clipboard';
@@ -135,17 +135,17 @@ function getDnsProfile() {
     if (selector && selector.value) {
         return selector.value;
     }
-    const legacyToggle = document.getElementById('dns-safe-toggle');
-    if (legacyToggle) {
-        return legacyToggle.checked ? 'dns-safe' : 'standard';
+    const dnsSafeToggle = document.getElementById('dns-safe-toggle');
+    if (dnsSafeToggle) {
+        return dnsSafeToggle.checked ? 'dns-safe' : 'standard';
     }
     return 'standard';
 }
 
 function initDnsProfileSelector() {
     const selector = document.getElementById('dns-profile-selector');
-    const legacyToggle = document.getElementById('dns-safe-toggle');
-    if (!selector && !legacyToggle) return;
+    const dnsSafeToggle = document.getElementById('dns-safe-toggle');
+    if (!selector && !dnsSafeToggle) return;
 
     const updateTargets = () => {
         const profile = getDnsProfile();
@@ -181,8 +181,8 @@ function initDnsProfileSelector() {
     if (selector) {
         selector.addEventListener('change', updateTargets);
     }
-    if (legacyToggle) {
-        legacyToggle.addEventListener('change', updateTargets);
+    if (dnsSafeToggle) {
+        dnsSafeToggle.addEventListener('change', updateTargets);
     }
     updateTargets();
 }
@@ -203,7 +203,7 @@ function initAccordion() {
             const header = item.querySelector('.accordion-header');
             const content = item.querySelector('.accordion-content');
 
-            // F8 Fix: ID and ARIA attributes
+            // Assign stable IDs and ARIA attributes
             const contentId = `accordion-content-${index}`;
             content.id = contentId;
             header.setAttribute('aria-controls', contentId);

@@ -38,7 +38,7 @@ This is why Shadowsocks scores 7/10 for stealth — it defeats basic DPI but fai
 | `2022-blake3-aes-256-gcm` | Base64 (32 bytes) | SS2022 with AES-256. |
 | `2022-blake3-chacha20-poly1305` | Base64 (32 bytes) | SS2022 with ChaCha20. |
 
-### Legacy Stream Ciphers (Insecure — Dropped by ConfigStream)
+### Insecure Stream Ciphers (Dropped by ConfigStream)
 `aes-256-cfb`, `rc4-md5`, `chacha20` — These lack authentication and are vulnerable to replay and injection attacks. An attacker can flip bits in the ciphertext and the receiver won't detect the tampering. ConfigStream drops proxies using these ciphers during parsing.
 
 > **Example**: A proxy source provides `ss://YWVzLTI1Ni1jZmI6cGFzc3dvcmQ=@1.2.3.4:8388`. ConfigStream decodes this to `aes-256-cfb:password`, sees the insecure cipher, and drops it with a `DEBUG` log: `Dropped SS proxy: insecure method aes-256-cfb`.
@@ -50,7 +50,7 @@ This is why Shadowsocks scores 7/10 for stealth — it defeats basic DPI but fai
 ss://BASE64(method:password)@host:port#remark
 ```
 
-### Legacy Format
+### Classic Format
 ```
 ss://BASE64(method:password@host:port)#remark
 ```
@@ -67,7 +67,7 @@ ss://BASE64(method:password)@host:port?plugin=v2ray-plugin%3Bserver%3Btls%3Bhost
 
 ## ConfigStream Parsing
 
-1.  Detect format variant (SIP002, Legacy, or Plain).
+1.  Detect format variant (SIP002, Classic, or Plain).
 2.  Decode Base64 with automatic padding correction.
 3.  Extract `method` and `password`. For SS2022, the password is a Base64-encoded key.
 4.  **Method Validation**: Reject invalid method names (`ss`, `shadowsocks`, empty). Only accept known AEAD or SS2022 ciphers.

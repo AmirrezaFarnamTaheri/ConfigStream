@@ -9,7 +9,7 @@ VMess (V2Ray Mess) is the original proxy protocol from the V2Ray project. It pro
 
 1.  **Authentication**: Each connection begins with a header encrypted using the user's UUID. The header contains a timestamp (must be within 90 seconds of server time), a random encryption key, and the target address.
 2.  **Encryption**: The payload is encrypted using [AES-128-GCM or ChaCha20-Poly1305](../glossary/security_concepts.md) (selected by the `security` field, usually `auto`). This is the "double encryption" — VMess encrypts the data, then [TLS](../glossary/networking_terms.md) encrypts it again.
-3.  **AlterID**: Originally, VMess used AlterID > 0 to generate multiple valid authentication headers for replay protection. This is **deprecated and insecure** — it was vulnerable to replay attacks. ConfigStream forces AlterID to 0 ([AEAD mode](../glossary/security_concepts.md)) for all VMess proxies.
+3.  **AlterID**: Originally, VMess used AlterID > 0 to generate multiple valid authentication headers for replay protection. Non-zero AlterID is **insecure** — it is vulnerable to replay attacks. ConfigStream forces AlterID to 0 ([AEAD mode](../glossary/security_concepts.md)) for all VMess proxies.
 
 ### Time Sensitivity
 VMess requires the client and server clocks to be synchronized within **90 seconds**. If your device time is wrong, all VMess connections will fail silently. This is the #1 cause of "connected but no internet" issues with VMess.
@@ -57,7 +57,7 @@ vmess://BASE64_JSON
 | Field | Purpose | Notes |
 | :--- | :--- | :--- |
 | `id` | UUID for authentication | **Mandatory**. Must be a valid UUID. |
-| `aid` | AlterID | **Must be 0**. Non-zero is deprecated/insecure. ConfigStream forces this. |
+| `aid` | AlterID | **Must be 0**. Non-zero is insecure. ConfigStream forces this. |
 | `net` | Transport type | `tcp`, `ws`, `grpc`, `h2` |
 | `scy` | Encryption method | Usually `auto`. Options: `aes-128-gcm`, `chacha20-poly1305`, `none`. |
 | `tls` | TLS enabled | `tls` or empty string |

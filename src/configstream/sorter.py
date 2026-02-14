@@ -12,13 +12,13 @@ def _compute_and_sort(
 ) -> None:
     """CPU-intensive sort extracted for use with run_in_executor.
 
-    [FIX] Extracted sort logic to enable offloading to a thread,
+    Extracted sort logic to enable offloading to a thread,
     preventing event loop blocking for large proxy lists (90k+).
     """
 
     def pareto_score(p: Proxy) -> float:
         # Lower score is better
-        # [FIX] Use explicit None check; 0.0 latency is valid, not missing
+        # Use explicit None check; 0.0 latency is valid, not missing
         latency = p.latency if p.latency is not None else 9999
 
         # Normalize latency: 0-1000ms -> 0-1. Clamp at 1 (1s+)
@@ -47,7 +47,7 @@ def sort_proxies_pareto(proxies: List[Proxy], history: ProxyHistoryTracker) -> N
     Sorts proxies in-place using a Pareto-like scoring system.
     Latency (50%), Reliability/Uptime (30%), Success (20%)
 
-    [FIX] Bulk fetch stats to avoid N+1 lookups. Sort logic is extracted
+    Bulk fetch stats to avoid N+1 lookups. Sort logic is extracted
     for potential offloading to a thread via run_in_executor.
     """
 

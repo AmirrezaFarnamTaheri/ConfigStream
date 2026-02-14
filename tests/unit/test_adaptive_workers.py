@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 
 def test_adaptive_workers_calc():
-    # [FIX] Patch multiprocessing.cpu_count (used by the module) not os.cpu_count
+    # Patch multiprocessing.cpu_count (used by the module) not os.cpu_count
     with patch("multiprocessing.cpu_count", return_value=4):
         with patch("psutil.virtual_memory") as mock_mem:
             mock_mem.return_value.available = 2 * 1024 * 1024 * 1024  # 2GB

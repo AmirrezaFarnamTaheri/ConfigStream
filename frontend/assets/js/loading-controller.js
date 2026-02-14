@@ -132,10 +132,7 @@ class LoadingController {
     if (this.loadingScreen && !this.loadingScreen.classList.contains('hidden')) {
       this.loadingScreen.classList.add('hidden');
 
-      // Remove from DOM after transition
-      // FIX: Do NOT remove from DOM, just keep it hidden.
-      // Removing it breaks Playwright's ability to see it if it reappears or if strict checks are in place for elements existing.
-      // Also simplifies re-showing if needed.
+      // Keep it in the DOM (hidden) so automated checks and optional re-show flows remain stable.
       // setTimeout(() => {
       //   if (this.loadingScreen && this.loadingScreen.parentNode) {
       //     this.loadingScreen.parentNode.removeChild(this.loadingScreen);

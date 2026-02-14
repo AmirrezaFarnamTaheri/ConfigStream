@@ -203,7 +203,7 @@ def _rewrite_outbound_for_dns_safe(
             tls = dict(tls)
             tls["server_name"] = server
             outbound["tls"] = tls
-        # [FIX] Do NOT set top-level 'sni' — sing-box uses tls.server_name.
+        # Do NOT set top-level 'sni' — sing-box uses tls.server_name.
         # A top-level 'sni' causes: "unknown field" parse error in sing-box.
     return outbound
 
@@ -223,9 +223,34 @@ def _rewrite_outbound_for_dns_hardened(
                 tls = dict(tls)
                 tls["server_name"] = server
                 outbound["tls"] = tls
-            # [FIX] Do NOT set top-level 'sni' — sing-box uses tls.server_name.
+            # Do NOT set top-level 'sni' — sing-box uses tls.server_name.
             # A top-level 'sni' causes: "unknown field" parse error in sing-box.
     return outbound
+
+
+def _prune_dangling_detours(cleaned: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Remove outbounds whose detour/outbound references no longer exist."""
+    changed = True
+    while changed:
+        changed = False
+        tags = {o.get("tag") for o in cleaned if o.get("tag")}
+        new_cleaned: List[Dict[str, Any]] = []
+        for outbound in cleaned:
+            detour = outbound.get("detour")
+            if detour and detour not in tags:
+                changed = True
+                continue
+            if isinstance(outbound.get("outbounds"), list):
+                filtered = [t for t in outbound["outbounds"] if t in tags]
+                if not filtered:
+                    changed = True
+                    continue
+                if filtered != outbound["outbounds"]:
+                    outbound = dict(outbound)
+                    outbound["outbounds"] = filtered
+            new_cleaned.append(outbound)
+        cleaned = new_cleaned
+    return cleaned
 
 
 def _filter_outbounds_for_dns_safe(
@@ -242,29 +267,7 @@ def _filter_outbounds_for_dns_safe(
                 continue
             candidate = rewritten
         cleaned.append(candidate)
-
-    changed = True
-    while changed:
-        changed = False
-        tags = {o.get("tag") for o in cleaned if o.get("tag")}
-        new_cleaned: List[Dict[str, Any]] = []
-        for outbound in cleaned:
-            detour = outbound.get("detour")
-            if detour and detour not in tags:
-                changed = True
-                continue
-            if isinstance(outbound.get("outbounds"), list):
-                filtered = [t for t in outbound["outbounds"] if t in tags]
-                if not filtered:
-                    changed = True
-                    continue
-                if filtered != outbound["outbounds"]:
-                    outbound = dict(outbound)
-                    outbound["outbounds"] = filtered
-            new_cleaned.append(outbound)
-        cleaned = new_cleaned
-
-    return cleaned
+    return _prune_dangling_detours(cleaned)
 
 
 def _filter_outbounds_for_dns_hardened(
@@ -278,29 +281,7 @@ def _filter_outbounds_for_dns_hardened(
         if "server" in candidate:
             candidate = _rewrite_outbound_for_dns_hardened(candidate, host_map)
         cleaned.append(candidate)
-
-    changed = True
-    while changed:
-        changed = False
-        tags = {o.get("tag") for o in cleaned if o.get("tag")}
-        new_cleaned: List[Dict[str, Any]] = []
-        for outbound in cleaned:
-            detour = outbound.get("detour")
-            if detour and detour not in tags:
-                changed = True
-                continue
-            if isinstance(outbound.get("outbounds"), list):
-                filtered = [t for t in outbound["outbounds"] if t in tags]
-                if not filtered:
-                    changed = True
-                    continue
-                if filtered != outbound["outbounds"]:
-                    outbound = dict(outbound)
-                    outbound["outbounds"] = filtered
-            new_cleaned.append(outbound)
-        cleaned = new_cleaned
-
-    return cleaned
+    return _prune_dangling_detours(cleaned)
 
 
 def _dns_resolver_sets() -> Tuple[List[str], List[str]]:
@@ -487,21 +468,21 @@ def generate_categorized_outputs(
     generated_files = {}
     settings = AppSettings()
 
-    # Remove legacy redundant artifacts to keep output clean and canonical.
-    legacy_files = ["raw.txt", "all.txt", "sub.txt", "vpn_subscription_base64.txt"]
-    for name in legacy_files:
-        legacy_path = output_dir / name
-        if legacy_path.exists():
+    # Remove stale output artifacts from previous runs.
+    stale_files = ["raw.txt", "all.txt", "sub.txt", "vpn_subscription_base64.txt"]
+    for name in stale_files:
+        stale_path = output_dir / name
+        if stale_path.exists():
             try:
-                legacy_path.unlink()
+                stale_path.unlink()
             except OSError:
                 pass
 
-    for legacy_dir in ("by_country", "by_protocol"):
-        legacy_path = output_dir / legacy_dir
-        if legacy_path.exists() and legacy_path.is_dir():
+    for stale_dir in ("by_country", "by_protocol"):
+        stale_path = output_dir / stale_dir
+        if stale_path.exists() and stale_path.is_dir():
             try:
-                shutil.rmtree(legacy_path)
+                shutil.rmtree(stale_path)
             except OSError:
                 pass
 
@@ -527,10 +508,9 @@ def generate_categorized_outputs(
     )
     generated_files.update(split_files)
 
-    # Map for legacy tests/expectations
+    # Aliases consumed by tests and downstream code
     if "singbox" in split_files:
         generated_files["singbox_full"] = split_files["singbox"]
-        # Legacy test might expect "master" key?
         generated_files["master"] = split_files["singbox"]
     if "singbox_vpn" in split_files:
         generated_files["singbox_vpn"] = split_files["singbox_vpn"]
@@ -694,7 +674,7 @@ def generate_categorized_outputs(
     # Include all chain types:
     # 1. Proxy-level chains (from revived proxies)
     for p in proxies:
-        # [FIX] Guard against None details to prevent AttributeError
+        # Guard against None details to prevent AttributeError
         chain = (p.details or {}).get("chain_outbounds")
         if isinstance(chain, list) and chain:
             _append_chain(copy.deepcopy(chain))
@@ -748,7 +728,7 @@ def generate_categorized_outputs(
 
     # Revived chains from proxy details
     for p in proxies:
-        # [FIX] Guard against None details to prevent AttributeError
+        # Guard against None details to prevent AttributeError
         _det = p.details or {}
         if _det.get("is_revived") or (p.process or "").startswith("revived"):
             chain = _det.get("chain_outbounds")
@@ -756,7 +736,6 @@ def generate_categorized_outputs(
                 revived_only_chains.extend(copy.deepcopy(chain))
 
     # Generate separate outputs for analytics/debugging (optional, not user-facing)
-    # These are kept for backward compatibility and internal tracking
 
     # 6. DNS-safe outputs (IP-only / pre-resolved)
     # Reuse cached DNS results from output_handler when available
@@ -1079,9 +1058,8 @@ def generate_categorized_outputs(
         AtomicFileWriter.write_text(hardened_chains_alias, hardened_chains_content)
         generated_files["chains_dns_hardened"] = hardened_chains_alias
 
-    # 8. Legacy compatibility: Ensure all legacy outputs are preserved
-    # These are already generated above, but we verify they exist for backward compatibility
-    legacy_required = [
+    # 8. Verify all expected output keys were generated
+    required_outputs = [
         "base64",
         "singbox",
         "clash",
@@ -1091,10 +1069,10 @@ def generate_categorized_outputs(
         "quantumult",
         "sip008",
     ]
-    for legacy_key in legacy_required:
-        if legacy_key not in generated_files:
+    for key in required_outputs:
+        if key not in generated_files:
             logger.warning(
-                f"Legacy output '{legacy_key}' not generated - may break compatibility"
+                f"Required output '{key}' not generated - may break downstream consumers"
             )
 
     logger.info(
@@ -1368,7 +1346,7 @@ def save_metadata(
             warp_pool = json.loads(warp_pool_raw)
             washing_enabled = isinstance(warp_pool, list) and len(warp_pool) > 0
         except json.JSONDecodeError:
-            # Non-JSON value treated as enabled if non-empty (backward compat)
+            # Non-JSON value treated as enabled if non-empty
             washing_enabled = True
     washing_enabled = washing_enabled or vwarp_attempts > 0
 
@@ -1384,10 +1362,10 @@ def save_metadata(
         "latency_distribution": lat_dist,
         "protocols": protocols,
         "country_stats": countries,
-        "countries": countries,  # Backward compatibility for statistics.js
+        "countries": countries,  # Alias consumed by statistics.js
         "rejection_reasons": reasons,
         "asns": asns,
-        "isp_stats": asns,  # Alias for legacy tests
+        "isp_stats": asns,  # Alias consumed by tests
         "total_revived": total_revived_count,
         "total_clean": max(0, working - total_revived_count),
         "total_smart_chains": smart_chain_count,
@@ -1436,13 +1414,11 @@ def save_metadata(
         # Secondary field: fetched_sources (actual sources processed)
         "total_configured_sources": total_configured_sources or fetched_sources,
         "fetched_sources": fetched_sources,  # Actual sources processed
-        # Legacy aliases for backward compatibility (deprecated, use total_configured_sources)
-        "sources_count": total_configured_sources or fetched_sources,
-        "total_sources": total_configured_sources or fetched_sources,
+        "sources_count": total_configured_sources or fetched_sources,  # Consumed by main.js
         "update_interval_hours": update_interval_hours,
         "latency_by_country": latency_by_country,
         "latency_by_protocol": latency_by_protocol,
-        # Legacy mappings for backward compatibility (tests only)
+        # Pipeline stat fields consumed by CLI, tests, and merge scripts
         "fetched_lines": total_sourced,
         "parsed": parsed_count,
         "tested": tested_count,

@@ -132,7 +132,7 @@
   // Initialize global logger
   const logger = createLogger('Logger');
 
-  // [AUDIT FIX] Expose global logger instance for compatibility with other modules
+  // Expose global logger instance for compatibility with other modules.
   if (typeof window !== 'undefined') {
       window.ConfigStreamLogger = logger;
   }

@@ -25,7 +25,7 @@ async def test_failure_mode_cooldown(tmp_path, monkeypatch):
     monkeypatch.setattr(QualityStorage, "get_source_state", fake_get_state)
 
     # Mock Blocklist update to avoid network
-    # FIX: Make it async
+    # Must be async because pipeline awaits this hook.
     async def fake_update():
         return None
 
@@ -55,7 +55,7 @@ async def test_failure_mode_anomaly_db_crash(tmp_path, monkeypatch):
     # Remove re-import of AnomalyDetector to fix F811
     # from configstream.anomaly import AnomalyDetector
 
-    # FIX: Patch 'is_safe', not 'is_anomalous'
+    # Patch current API method used by the pipeline.
     def raising_is_safe(self, url, count):
         raise RuntimeError("DB Connection Failed")
 
@@ -68,19 +68,20 @@ async def test_failure_mode_anomaly_db_crash(tmp_path, monkeypatch):
     )
 
     # Mock network fetch
-    from configstream.fetcher_core.models import FetchResult
+    from configstream.fetcher_worker import FetchResult
 
     async def fake_fetch(*args, **kwargs):
         return {
             "https://example.com/sub": FetchResult(
-                url="https://example.com/sub",
+                success=True,
+                source="https://example.com/sub",
                 content="ss://YWVzLTI1Ni1nY206cGFzc3dvcmRAMC4wLjAuMDo4Mzgy#Test",
-                status=200,
+                status_code=200,
             )
         }
 
     monkeypatch.setattr(
-        "configstream.fetcher_core.batch.fetch_multiple_sources", fake_fetch
+        "configstream.fetcher.fetch_multiple_sources", fake_fetch
     )
 
     # Mock Blocklist
@@ -125,25 +126,26 @@ async def test_failure_mode_vt_missing(tmp_path, monkeypatch):
     monkeypatch.delenv("VT_API_KEY", raising=False)
 
     # Mock fetch/geoip/blocklist as usual
-    # FIX: Make blocklist update async
+    # Must be async because pipeline awaits this hook.
     async def fake_update():
         return None
 
     monkeypatch.setattr("configstream.pipeline.DEFAULT_BLOCKLIST.update", fake_update)
 
-    from configstream.fetcher_core.models import FetchResult
+    from configstream.fetcher_worker import FetchResult
 
     async def fake_fetch(*args, **kwargs):
         return {
             "https://example.com/sub": FetchResult(
-                url="https://example.com/sub",
+                success=True,
+                source="https://example.com/sub",
                 content="ss://YWVzLTI1Ni1nY206cGFzc3dvcmRAMC4wLjAuMDo4Mzgy#Test",
-                status=200,
+                status_code=200,
             )
         }
 
     monkeypatch.setattr(
-        "configstream.fetcher_core.batch.fetch_multiple_sources", fake_fetch
+        "configstream.fetcher.fetch_multiple_sources", fake_fetch
     )
     from configstream.geoip import GeoData
 

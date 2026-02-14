@@ -92,7 +92,7 @@ async def scan_url(url: str) -> dict[str, int]:
     except Exception as e:
         logger.error(f"VirusTotal scan failed: {e}")
         # Retaining "scan failed" keyword for test matching
-        logger.warning(f"Scan failed details: {str(e)}")
+        logger.warning(f"Scan failed details: {e}")
         return {"malicious": 0}
 
 

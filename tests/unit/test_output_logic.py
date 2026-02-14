@@ -2,7 +2,7 @@
 import json
 from configstream.models import Proxy
 from configstream.output_logic import generate_categorized_outputs
-from configstream.intelligence.washer import ProxyWasher
+from configstream.intelligence.washer.core import ProxyWasher
 from configstream.intelligence.chaining import generate_smart_chains
 import pytest
 
@@ -76,8 +76,8 @@ def test_generate_categorized_outputs(tmp_path, sample_proxies, warp_keys):
 
         # Check if washed proxies are included (via extra_outbounds logic)
         # Note: tags depend on washer generation logic (Secure/Optimal)
-        # The washer logic adds tags like "🛡️ Secure-US-1"
-        assert any("Secure" in t for t in tags if t)
+        # The washer logic adds normalized tags with SECURE/OPTIMAL tiers.
+        assert any("secure" in t.lower() for t in tags if t)
 
 
 def test_chosen_outputs_generated(tmp_path, sample_proxies):

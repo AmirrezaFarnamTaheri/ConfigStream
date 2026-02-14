@@ -5,7 +5,7 @@
  * 1. Polling a lightweight update status endpoint every 4 minutes
  * 2. Comparing timestamps to detect actual data changes
  * 3. Triggering selective data fetches only when updates are detected
- * 4. F4 Fix: Resetting cached timestamps when version changes
+ * 4. Resetting cached timestamps when version changes
  *
  * This avoids relying on GitHub Action schedules and ensures
  * data is always fresh without unnecessary network requests.
@@ -19,7 +19,7 @@ class UpdateDetector {
         this.updateCallbacks = new Map();
         this.isPolling = false;
 
-        // F4 Fix: Reset timestamps if version mismatch
+        // Reset timestamps if version mismatch
         this.checkVersionAndReset();
 
         // Initialize from localStorage if available
@@ -149,6 +149,8 @@ class UpdateDetector {
 
                 return this.processTimestamps(timestamps);
             }
+
+            return { hasUpdates: false, updated: [] };
         } catch (error) {
             console.warn('[UpdateDetector] Failed to check for updates:', error);
             return { hasUpdates: false, updated: [] };
@@ -218,9 +220,14 @@ class UpdateDetector {
                 if (response.ok) {
                     const data = await response.json();
 
-                    // Clear cache for this resource to ensure fresh data
+                    // Persist fresh data into cache when possible
                     if (window.cacheManager) {
-                        await window.cacheManager.invalidate(url);
+                        try {
+                            await window.cacheManager.cacheData(url, data);
+                        } catch (cacheError) {
+                            console.warn(`[UpdateDetector] Failed to write cache for ${resource}:`, cacheError);
+                            await window.cacheManager.invalidate(url);
+                        }
                     }
 
                     // Trigger update callbacks
@@ -284,13 +291,24 @@ class UpdateDetector {
             // Fetch updated resources
             const updatedData = await this.fetchUpdatedResources(result.updated);
 
+            const metadataUpdate = Array.isArray(updatedData)
+                ? updatedData.find(item => item && item.resource === 'metadata')
+                : null;
+            const generatedAt = metadataUpdate?.data?.last_updated_utc || Date.now();
+            const eventDetail = {
+                resources: result.updated,
+                data: updatedData,
+                generated_at: generatedAt
+            };
+
             // Dispatch global event for other components
             window.dispatchEvent(new CustomEvent('configstream:dataUpdated', {
-                detail: {
-                    resources: result.updated,
-                    data: updatedData
-                }
+                detail: eventDetail
             }));
+
+            // Backward-compatibility event names used by existing modules
+            window.dispatchEvent(new CustomEvent('dataUpdated', { detail: eventDetail }));
+            window.dispatchEvent(new CustomEvent('data-updated', { detail: eventDetail }));
         } else {
             if (window.ConfigStreamLogger) window.ConfigStreamLogger.debug('[UpdateDetector] No updates detected');
         }

@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from typing import Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from .constants import PROTOCOL_COLORS
 
 
 class AppSettings(BaseSettings):
@@ -51,7 +50,7 @@ class AppSettings(BaseSettings):
     RATE_LIMIT_REQUESTS: int = 100
     RATE_LIMIT_WINDOW: int = 60
 
-    # [PHASE 2] Producer Concurrency
+    # Producer Concurrency
     PRODUCER_MAX_CONCURRENCY: int = 100
 
     # Tester Concurrency Limits
@@ -83,9 +82,6 @@ class AppSettings(BaseSettings):
         "security": 20.0,
         "current_status": 10.0,
     }
-
-    # Protocol colors (Not loaded from env, but kept for compat)
-    PROTOCOL_COLORS: dict[str, str] = PROTOCOL_COLORS
 
     # Security
     BLOCKED_COUNTRIES: str = ""

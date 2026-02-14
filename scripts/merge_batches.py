@@ -15,9 +15,9 @@ from configstream.config import AppSettings
 from configstream.filtering import dedupe_and_shuffle, filter_unique_endpoints
 from configstream.history.tracker import ProxyHistoryTracker
 from configstream.models import Proxy
-from configstream.pipeline_core import output_handler
-from configstream.pipeline_core.sorter import sort_proxies_pareto
-from configstream.pipeline_core.stats import PipelineStats
+from configstream import output_handler
+from configstream.sorter import sort_proxies_pareto
+from configstream.pipeline_stats import PipelineStats
 from configstream.quality.storage import QualityStorage
 
 logger = logging.getLogger(__name__)
@@ -55,7 +55,7 @@ def _load_json(path: Path) -> Optional[Any]:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
     except Exception as e:
-        print(f"Failed to read JSON {path}: {e}")
+        logger.error(f"Failed to read JSON {path}: {e}")
         return None
 
 
@@ -116,7 +116,7 @@ def _proxy_from_dict(raw: Dict[str, Any]) -> Optional[Proxy]:
 def _load_proxies_from_file(path: Path) -> List[Proxy]:
     data = _load_json(path)
     if not isinstance(data, list):
-        print(f"Skipped {path}: expected JSON list")
+        logger.warning(f"Skipped {path}: expected JSON list")
         return []
 
     proxies: List[Proxy] = []
@@ -140,7 +140,7 @@ def _find_batch_dirs(batch_glob: str) -> List[Path]:
 
 
 def merge_cache_history(batch_glob: str, output_dir: str) -> None:
-    print("--- Merging Cache History ---")
+    logger.info("--- Merging Cache History ---")
     merged_cache = {}
 
     # Look for cache files in batch directories
@@ -155,7 +155,7 @@ def merge_cache_history(batch_glob: str, output_dir: str) -> None:
 
     files = sorted(list(set(files)))
 
-    print(f"Found {len(files)} cache files.")
+    logger.info(f"Found {len(files)} cache files.")
 
     for fpath in files:
         try:
@@ -201,16 +201,16 @@ def merge_cache_history(batch_glob: str, output_dir: str) -> None:
                                 ),
                             )[-20:]
 
-                # print(f"Merged {len(data)} entries from {fpath}")
+                # logger.debug(f"Merged {len(data)} entries from {fpath}")
         except Exception as e:
-            print(f"Failed to merge {fpath}: {e}")
+            logger.error(f"Failed to merge {fpath}: {e}")
 
     # Write merged file
     os.makedirs(os.path.join(output_dir, "data"), exist_ok=True)
     out_path = os.path.join(output_dir, "data", "test_cache.json")
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(merged_cache, f)
-    print(f"Total merged entries: {len(merged_cache)}")
+    logger.info(f"Total merged entries: {len(merged_cache)}")
 
 
 def _merge_quality_db(batch_dirs: Iterable[Path]) -> None:
@@ -223,7 +223,7 @@ def _merge_quality_db(batch_dirs: Iterable[Path]) -> None:
         if candidate.exists():
             storage.merge_from(candidate)
             merged += 1
-    print(f"Merged source_quality.db from {merged} batch(es).")
+    logger.info(f"Merged source_quality.db from {merged} batch(es).")
 
 
 def _merge_anomaly_db(batch_dirs: Iterable[Path]) -> None:
@@ -236,7 +236,7 @@ def _merge_anomaly_db(batch_dirs: Iterable[Path]) -> None:
         if candidate.exists():
             detector.merge_from(candidate)
             merged += 1
-    print(f"Merged anomaly.db from {merged} batch(es).")
+    logger.info(f"Merged anomaly.db from {merged} batch(es).")
 
 
 def _merge_history_db(batch_dirs: Iterable[Path]) -> ProxyHistoryTracker:
@@ -249,7 +249,7 @@ def _merge_history_db(batch_dirs: Iterable[Path]) -> ProxyHistoryTracker:
         if candidate.exists():
             tracker.storage.merge_from(candidate)
             merged += 1
-    print(f"Merged history.db from {merged} batch(es).")
+    logger.info(f"Merged history.db from {merged} batch(es).")
     return tracker
 
 
@@ -266,7 +266,7 @@ def _merge_timeout_history(batch_dirs: Iterable[Path]) -> None:
     target = Path("data") / "timeout_history.json"
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(latest.read_text(encoding="utf-8"), encoding="utf-8")
-    print(f"Updated timeout_history.json from {latest}.")
+    logger.info(f"Updated timeout_history.json from {latest}.")
 
 
 def _merge_metadata(batch_dirs: Iterable[Path]) -> Dict[str, Any]:
@@ -308,7 +308,7 @@ def _merge_metadata(batch_dirs: Iterable[Path]) -> Dict[str, Any]:
         totals["duration"] += float(data.get("duration_seconds", 0.0) or 0.0)
         totals["fetched_sources"] += int(data.get("fetched_sources", 0) or 0)
         totals["total_configured_sources"] += int(
-            data.get("sources_count", data.get("total_sources", 0)) or 0
+            data.get("total_configured_sources", data.get("sources_count", 0)) or 0
         )
         totals["vwarp_attempts"] += int(data.get("vwarp_attempts", 0) or 0)
         totals["vwarp_success"] += int(data.get("vwarp_success", 0) or 0)
@@ -348,7 +348,7 @@ def _merge_logs(output_dir: str) -> None:
             out_f.write(f"===== {log_path.name} =====\n")
             out_f.write(log_path.read_text(encoding="utf-8", errors="ignore"))
             out_f.write("\n\n")
-    print(f"Wrote consolidated log to {consolidated}.")
+    logger.info(f"Wrote consolidated log to {consolidated}.")
 
 
 def merge_batches(batch_glob: str, output_dir: str) -> None:
@@ -356,7 +356,7 @@ def merge_batches(batch_glob: str, output_dir: str) -> None:
     if not batch_dirs:
         # Fail-open: still generate a complete (empty) output set so clients and
         # GitHub Pages don't hit 404s when shard artifacts are missing.
-        print(
+        logger.warning(
             f"No batch directories found for {batch_glob} - generating empty outputs."
         )
         output_path = Path(output_dir)
@@ -390,7 +390,7 @@ def merge_batches(batch_glob: str, output_dir: str) -> None:
     for batch_dir in batch_dirs:
         proxies_path = batch_dir / "proxies.json"
         if not proxies_path.exists():
-            print(f"Missing {proxies_path}, skipping.")
+            logger.warning(f"Missing {proxies_path}, skipping.")
             continue
         all_proxies.extend(_load_proxies_from_file(proxies_path))
 
@@ -410,7 +410,7 @@ def merge_batches(batch_glob: str, output_dir: str) -> None:
     else:
         # Fail-open behaviour: still generate a complete (empty) output set so
         # GitHub Pages/clients don't hit 404s when a shard run produced no proxy payloads.
-        print(
+        logger.warning(
             "No proxies loaded from shard outputs; generating empty outputs for consistency."
         )
 
@@ -461,10 +461,16 @@ def merge_batches(batch_glob: str, output_dir: str) -> None:
             pass
 
     _merge_logs(output_dir)
-    print(f"Merged {len(all_proxies)} proxies into {output_dir}.")
+    logger.info(f"Merged {len(all_proxies)} proxies into {output_dir}.")
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(message)s",
+        datefmt="[%X]",
+    )
+
     parser = argparse.ArgumentParser(description="Merge batch outputs.")
     parser.add_argument(
         "--batch-glob",

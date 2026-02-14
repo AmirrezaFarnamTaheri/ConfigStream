@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# src/configstream/transport/stego.py
+# Steganography transport module.
 
 import zlib
 import logging
@@ -93,7 +93,7 @@ def generate_stego_assets(
 
     # Priority:
     # 1. Passed arg
-    # 2. Env var STEGO_KEY (preferred) or CONFIG_STREAM_KEY (legacy)
+    # 2. Env var STEGO_KEY (preferred) or CONFIG_STREAM_KEY (fallback)
     # 3. Generate new
     if not secret_key:
         from configstream.config import AppSettings
@@ -104,7 +104,7 @@ def generate_stego_assets(
     if secret_key:
         try:
             key = secret_key.encode()
-            # [FIX] Validate the key is a valid Fernet key before using it
+            # Validate the key is a valid Fernet key before using it
             Fernet(key)
         except Exception:
             logger.warning("Invalid STEGO_KEY provided, generating ephemeral key.")

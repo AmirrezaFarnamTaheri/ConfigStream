@@ -42,10 +42,12 @@ We are actively looking for help with the following "Next Generation" features:
 
 ConfigStream v3.0 is modular. Please respect the folder structure:
 
-*   `src/configstream/pipeline_core/`: Core logic for sorting and output generation.
+*   `src/configstream/`: Main package. Contains pipeline logic (`producer.py`, `consumer.py`), output handler, and stats.
 *   `src/configstream/parsers/`: Protocol parsers (add new protocols here).
-*   `src/configstream/transport/`: Transport layers (Steganography, etc.).
-*   `src/go/tester/`: High-performance Go components.
+*   `src/configstream/converters/`: Sing-box, Clash, and common conversion logic.
+*   `src/configstream/intelligence/`: Chaining, evasion, washer, and DNS lists.
+*   `src/configstream/stego.py`: Steganography logic.
+*   `src/go/tester/`: High-performance Go proxy tester.
 
 ## 📝 Style Guide
 

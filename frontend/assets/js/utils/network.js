@@ -15,8 +15,17 @@ async function getFromStorage(key) {
   if (window.cacheManager && window.cacheManager.cacheAvailable) {
       const url = getUrlForKey(key);
       const cached = await window.cacheManager.getCachedData(url);
-      return cached ? cached.data : null;
+      if (!cached) return null;
+
+      // Respect CacheManager expiry semantics when IndexedDB is used
+      const expiryMs = cached.expiry ?? window.cacheManager.getExpiryForUrl(url);
+      if (window.cacheManager.isExpired(cached, expiryMs)) {
+        return null;
+      }
+
+      return cached.data;
   }
+
   // Fallback to LocalStorage
   try {
     const item = localStorage.getItem(CACHE_PREFIX + key);
@@ -95,6 +104,24 @@ async function fetchWithRetry(url, retries = 3, delay = 1000) {
   }
 }
 
+async function getStaleFromStorage(key) {
+  if (window.cacheManager && window.cacheManager.cacheAvailable) {
+    const url = getUrlForKey(key);
+    const cached = await window.cacheManager.getCachedData(url);
+    if (cached) return cached.data;
+  }
+
+  try {
+    const item = localStorage.getItem(CACHE_PREFIX + key);
+    if (!item) return null;
+    const parsed = JSON.parse(item);
+    return parsed.data;
+  } catch (e) {
+    console.warn('Stale cache read error', e);
+    return null;
+  }
+}
+
 async function fetchMetadata() {
   const cached = await getFromStorage('metadata');
   if (cached) return cached;
@@ -120,9 +147,9 @@ async function fetchMetadata() {
     }
   } catch (error) {
     console.error('❌ Failed to fetch metadata:', error);
-    // Return stale cache if available as last resort (LocalStorage fallback check)
-    const stale = localStorage.getItem(CACHE_PREFIX + 'metadata');
-    if (stale) return JSON.parse(stale).data;
+    // Return stale cache if available as last resort
+    const stale = await getStaleFromStorage('metadata');
+    if (stale) return stale;
     throw error;
   }
 }
@@ -190,8 +217,8 @@ async function fetchProxies() {
         } catch (fallbackError) {
           console.error('❌ Fallback snapshot also failed:', fallbackError);
           // Return stale cache if available
-          const stale = localStorage.getItem(CACHE_PREFIX + 'proxies');
-          if (stale) return JSON.parse(stale).data;
+          const stale = await getStaleFromStorage('proxies');
+          if (stale) return stale;
           throw primaryError;
         }
     }
@@ -216,8 +243,8 @@ async function fetchStatistics() {
     return data;
   } catch (error) {
     console.error('❌ Failed to fetch statistics:', error);
-    const stale = localStorage.getItem(CACHE_PREFIX + 'statistics');
-    if (stale) return JSON.parse(stale).data;
+    const stale = await getStaleFromStorage('statistics');
+    if (stale) return stale;
     throw error;
   }
 }

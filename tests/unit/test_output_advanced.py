@@ -4,7 +4,7 @@ import pytest
 from unittest.mock import patch
 
 from configstream.models import Proxy
-from configstream.intelligence.washer import ProxyWasher
+from configstream.intelligence.washer.core import ProxyWasher
 from configstream.intelligence.chaining import generate_smart_chains
 from configstream.generators import generate_split_outputs
 

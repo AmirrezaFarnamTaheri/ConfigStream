@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """
-Tester Facade.
-Exposes testers from submodules.
+Tester package.
+Exposes testers via lazy imports to avoid heavy startup costs.
 """
 
 from typing import TYPE_CHECKING
@@ -9,13 +9,12 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .manager import SingBoxTester
     from .go import GoBatchTester
-    from .utils import SecureConfigContext, _cleanup_temp_files
+    from .utils import SecureConfigContext
 
 __all__ = [
     "SingBoxTester",
     "GoBatchTester",
     "SecureConfigContext",
-    "_cleanup_temp_files",
 ]
 
 
@@ -32,8 +31,4 @@ def __getattr__(name: str):
         from .utils import SecureConfigContext as _SecureConfigContext
 
         return _SecureConfigContext
-    if name == "_cleanup_temp_files":
-        from .utils import _cleanup_temp_files as _cleanup_temp_files_impl
-
-        return _cleanup_temp_files_impl
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

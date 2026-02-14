@@ -1,7 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import pytest
 from unittest.mock import patch
-from configstream.output import save_json, save_metadata, generate_categorized_outputs
+from configstream.output_transport import save_json
+from configstream.output_logic import save_metadata, generate_categorized_outputs
 from configstream.generators import generate_split_outputs
 from configstream.models import Proxy
 

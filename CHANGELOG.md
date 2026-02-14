@@ -1,4 +1,124 @@
 
+## [3.0.2] - 2026-02-14
+
+### Comprehensive Code Review & Simplification
+
+**Logic Consolidation**
+- `security/rules.py`: Replaced 14 duplicate regex patterns with import from `security_validator.LOCAL_IP_RANGES` — single source of truth
+- `security_validator.py`: Inlined `validate_proxy` into `SecurityValidator.validate_proxy_config` — eliminated alias indirection
+- `security_validator.py`: Collapsed 4 TLS protocol branches into single `in ("trojan", "hysteria2", "tuic", "https")` check
+- `security_validator.py`: Simplified redundant UUID double-check into flat early-return pattern
+- `filtering.py`: Extracted triplicated "prefer working > lower latency" comparison into shared `_is_better_proxy()` helper — replaced 3 call sites
+- `pipeline_core/producer.py`: Extracted triplicated "report failure + record run" pattern into `_report_source_failure()` helper — eliminated ~70 lines of duplication
+- `pipeline.py`: Replaced duplicated cancel logic in TimeoutError handler with existing `_cancel_all()` helper
+- `adapters.py`: Replaced `get_adapter` if/elif chain with `_ADAPTER_MAP` dict lookup
+- `testers/go.py`: Extracted 4x duplicated cancel/await/catch pattern into `_cancel_task()` static method
+- `testers/go.py`: Extracted `_json_str()` helper for orjson bytes-vs-str decode — replaced 2 call sites
+- `output_handler.py`: Extracted `_is_revived()` helper — replaced 3 identical filter expressions
+- `output_handler.py`: Extracted `_collect_tags()` helper — simplified chain tag counting from 3 nested loops
+
+**Dead Code & Redundancy Removal**
+- `security_validator.py`: Removed dead `is_hex()` method — zero callers in entire codebase
+- `security_validator.py`: Removed unreachable regex fallback in `is_local_ip()` — `ipaddress` handles all valid IPs; regex fallback would false-positive on hostnames like `10.example.com`
+- `security_validator.py`: Removed dead `validate_proxy` module-level alias — zero importers in codebase
+- `pipeline_core/consumer.py`: Removed redundant outer `try/except` in `_parse_chunk` and unnecessary `pass` after logging
+- `pipeline_core/consumer.py`: Removed 7-line stale developer notes about proxy mutability
+- `security/rules.py`: Simplified `validate_port` — collapsed 8-line if/else/pass block into 2-line debug log
+- `virus_total.py`: Removed redundant `str()` wrapping in f-string
+- `testers/go.py`: Removed dead `pass` + stale reentrancy comment in `_read_stderr_loop`
+- `output_logic.py`: Removed dead `total_sources` metadata alias — unused by frontend or tests
+- `parsers/shadowsocks.py`: Removed dead `pass` statement and redundant host validation
+
+**Bug Fixes**
+- `pipeline_core/consumer.py`: Fixed silent fingerprint save failure — `orjson.dumps()` doesn't accept `ensure_ascii` kwarg; switched to `write_bytes()` with orjson bytes output
+
+**Over-Engineering Reduction**
+- `security_validator.py`: Simplified `is_valid_uuid()` exception from `(ValueError, TypeError, AttributeError)` to just `ValueError`
+- `security_validator.py`: Simplified `is_local_ip()` single-element tuple `in ("localhost",)` to direct `== "localhost"`
+- `dns_batch_resolver.py`: Simplified over-broad `(DNSError, TimeoutError, Exception)` to just `Exception`
+- `async_file_ops.py`: Removed redundant `isinstance(res, str)` check after exception filtering
+- `serialize.py`: Simplified redundant `getattr`/`hasattr` chain for history injection
+- `pipeline.py`: Collapsed 3 server-notification exception handlers into single `except Exception`
+- `pipeline.py`: Removed unnecessary `"vwarp_tool" in locals()` defensive checks in finally block
+
+**Stale Comment Cleanup**
+- `parsers/base.py`: Removed 4-line stale developer notes about constants migration
+- `tagging.py`: Removed redundant `# src/configstream/tagging.py` path comment
+- `parsers/vless.py`: Removed 7-line stale rambling comments about UUID edge cases
+- `merge_batches.py`: Updated to use canonical `total_configured_sources` key
+
+**Code Flattening**
+- `parsers/vless.py`: Merged 4 duplicate transport blocks (ws/http/h2/httpupgrade) into single conditional; flattened pbk/sid alias chains using `next()` generator
+- `parsers/shadowsocks.py`: Merged duplicate query-param parsing blocks into loop
+- `converters/singbox.py`: Replaced protocol alias if/elif chain with `_PROTOCOL_ALIASES` dict lookup
+- `quality/storage.py`: Collapsed 3x triplicated exception handlers in `_init_db`, `get_source_state`, and `get_trust_score` into single `except Exception` each
+- `testers/go.py`: Simplified 2 redundant exception tuples `(TimeoutError, CancelledError, Exception)` → `Exception`
+
+**Bug Fixes (continued)**
+- `parsers/extraction.py`: Dead HTML detection block (`if html_tags: pass`) now actually drops large pure-HTML payloads (>100KB without proxy URIs) and logs for smaller ones
+
+**Additional Stale Comment Cleanup**
+- `converters/singbox.py`: Removed stale F841 comment about removed variable
+- `tests/e2e/test_failure_scenarios.py`: Cleaned 7-line stale developer notes
+
+**QA Results**
+- **pytest**: 785 passed, 3 skipped, 0 failed
+- **pyflakes**: 5 findings, all with valid `# noqa` markers (feature detection, re-exports, conditional imports)
+- Full codebase scan: zero TODOs/FIXMEs, zero unused private functions, zero dead aliases, zero redundant exception tuples, zero `orjson` + `ensure_ascii` conflicts
+
+---
+
+## [3.0.1] - 2026-02-14
+
+### Codebase Refactoring & Consolidation
+
+**Module Consolidation (12 files removed, 3 directories flattened)**
+- Consolidated `pipeline_stages.py` into `pipeline_core/` submodules
+- Consolidated `dns_prewarm.py` into `dns_cache.py`
+- Consolidated `fetcher_core/constants.py` into `fetcher_core/models.py`
+- Consolidated `pipeline_core/models.py` into `pipeline_core/stats.py`
+- Removed duplicate `quality/geo.py` (already in `intelligence/chaining.py`)
+- Consolidated `intelligence/washer.py` into `intelligence/washer/core.py`
+- Consolidated `fetcher.py` into `fetcher_core/orchestrator.py` and `fetcher_core/batch.py`
+- Consolidated `output.py` into `output_logic.py` and `output_transport.py`
+- Flattened `crypto/signer.py` → `signer.py`
+- Flattened `transport/stego.py` → `stego.py`
+- Flattened `workers/scanner.py` → `warp_scanner.py`
+
+**Parser Cleanup**
+- Removed all 20 `_parse_*` / `_extract_config_lines` aliases from `parsers/__init__.py`
+- Added explicit `__all__` to `parsers/__init__.py`
+- Updated 13 consumer files to use canonical function names
+
+**Dead Code Removal**
+- `constants.py`: Removed unused `MAX_SOURCE_URL_LENGTH`, `WARP_PREFIXES`, `MIN_SAFE_PORT`, `SECURITY_CATEGORIES` list
+- `output_logic.py`: Extracted `_prune_dangling_detours` helper to eliminate ~40 lines of duplication
+- `pipeline.py`: Consolidated 3 identical except blocks into `_cancel_all` helper
+- `output_transport.py`: Merged 3 gzip except blocks into 1
+- `serialize.py`: Removed dead `hasattr(json_lib, 'dumps')` branch
+- `security/honeypot.py`: Removed dead functions
+- `logging_config.py`: Removed dead no-op `TraceIdFilter` class
+- `dns_profiles.py`: Removed unused `ZEUS_DNS` re-export
+- `testers/__init__.py`: Removed unused `_cleanup_temp_files` from public API
+- `warp_scraper.py`: Replaced indirect usage with direct `httpx.AsyncClient`
+
+**Structural Cleanup**
+- Deleted duplicate `frontend/assets/js/lib/purify.min.js` (canonical copy in `assets/libs/`)
+- Updated stale path references in `docs/wiki/project/02-architecture.md` and `07-security.md`
+- All production code now imports from canonical module paths
+- 20+ test files updated to canonical imports
+
+**Documentation**
+- `AGENTS.md`: Section 9 expanded with all module locations
+- `STATUS.md`: Updated test count, added v3.0.1 roadmap section
+- `CHANGELOG.md`: Comprehensive v3.0.1 release notes
+
+**QA Results**
+- **pytest**: 785 passed, 0 failed (full suite including fuzz, tools, warp_scraper)
+- Zero dangling imports to any deleted file or directory
+
+---
+
 ## [3.0.0] - 2026-02-09
 
 ### Frontend Redesign & Analytics Completion
@@ -118,7 +238,7 @@
 
 **Code Quality Fixes**
 - **Security**: Replaced MD5 with SHA256 for source URL fingerprinting in `consumer.py`
-- **Dead Code Removal**: Deleted `tools/vwarp_tool.py` stub, consolidated `validate_warp_key` into canonical `VwarpTool`
+- **Dead Code Removal**: Consolidated `validate_warp_key` into `VwarpTool`
 - **Dead Code Removal**: Removed unused `vwarp_proc` variable and cleanup path in `pipeline.py`
 - **Dead Code Removal**: Removed duplicate standalone `validate_proxy_config` in `security_validator.py`
 - **Dead Code Removal**: Removed unused `subprocess` import from `pipeline.py`
@@ -144,7 +264,6 @@
 **Test Fixes**
 - Fixed 3 test files asserting removed `output_dir` field in `/health` endpoint (now checks `output_available`)
 - Fixed `test_cloudflare_optimized_ips` to not hardcode a specific IP that rotated out of curated list
-- Updated `test_vwarp_tool.py` to import from canonical `VwarpTool` in `tools/vwarp.py`
 - **800 tests passing**, 0 failures, 3 skipped
 
 **Offline Tools & Scripts**
@@ -188,7 +307,6 @@
 - `tests/unit/test_server.py` - health endpoint fix
 - `tests/unit/test_server_new.py` - health endpoint fix
 - `tests/unit/test_dns_profiles.py` - IP list fix
-- `tests/unit/tools/test_vwarp_tool.py` - import fix
 
 ## [2.4.0] - 2026-02-05
 

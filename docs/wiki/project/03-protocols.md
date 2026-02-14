@@ -19,8 +19,8 @@ ConfigStream supports **26+ protocols** with comprehensive parsing and validatio
 | **Tuic** | `parsers.tuic` | UDP | QUIC based. |
 | **WireGuard** | `parsers.wireguard` | UDP | Native support + Cloudflare WARP integration. |
 | **OpenVPN** | `parsers.openvpn` | TCP, UDP | Industry standard VPN protocol. |
-| **ShadowsocksR** | `parsers.ssr` | TCP | Legacy SS fork with obfuscation. |
-| **SSH** | `parsers.others` | TCP | Legacy tunneling. |
+| **ShadowsocksR** | `parsers.ssr` | TCP | SS fork with obfuscation. |
+| **SSH** | `parsers.others` | TCP | Standard tunneling. |
 | **SOCKS5/HTTP** | `parsers.generic` | TCP | Standard proxy protocols. |
 | **Juicity** | `parsers.others` | UDP | QUIC-based protocol. |
 
@@ -63,7 +63,7 @@ graph TD
 
 **Schemes**: `ss://`
 **Format Variants**:
-1.  **Legacy**: `ss://BASE64(method:password@host:port)`
+1.  **Classic**: `ss://BASE64(method:password@host:port)`
 2.  **SIP002 (Preferred)**: `ss://BASE64(method:password)@host:port`
 3.  **Plain**: `ss://method:password@host:port`
 
@@ -80,7 +80,7 @@ graph TD
 
 **Critical Fields**:
 *   `id` (UUID): The user ID. Must be a valid UUID.
-*   `aid` (AlterID): **Must be 0**. Non-zero AlterID is deprecated and insecure. We force-set this to 0.
+*   `aid` (AlterID): **Must be 0**. Non-zero AlterID is insecure (vulnerable to replay attacks). We force-set this to 0.
 *   `net` (Network): Can be `tcp`, `ws`, `grpc`, `h2`.
 *   `type` (Header): For TCP, can be `http` (obfuscation).
 *   `scy` (Security): Usually `auto`.

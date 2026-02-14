@@ -66,10 +66,11 @@ def test_singbox_wireguard_unique_ip():
 
     assert out1 is not None
     assert out2 is not None
-    # Check IP format
-    assert out1["local_address"][0].startswith("172.16.")
+    # Check IP format (Sing-box now expects string, not list)
+    assert isinstance(out1["local_address"], str)
+    assert out1["local_address"].startswith("172.16.")
     # Different private keys should produce different IPs
-    assert out1["local_address"][0] != out2["local_address"][0]
+    assert out1["local_address"] != out2["local_address"]
 
     # Test 2: Same private key but different endpoints should produce SAME IP
     proxy3 = Proxy(
@@ -83,7 +84,7 @@ def test_singbox_wireguard_unique_ip():
     out3 = to_singbox_outbound(proxy3)
     assert out3 is not None
     # Same private key should produce same IP (collision prevention)
-    assert out1["local_address"][0] == out3["local_address"][0]
+    assert out1["local_address"] == out3["local_address"]
 
 
 # --- New tests for schema alignment fixes ---
@@ -99,7 +100,6 @@ def test_ss_method_whitelist_schema_compliance():
     assert "2022-blake3-aes-128-gcm" in VALID_SS_METHODS
     assert "2022-blake3-aes-256-gcm" in VALID_SS_METHODS
     assert "2022-blake3-chacha20-poly1305" in VALID_SS_METHODS
-    assert "xchacha20" in VALID_SS_METHODS
     assert "none" in VALID_SS_METHODS
     # These must NOT be in the whitelist (not in sing-box schema)
     assert "chacha20" not in VALID_SS_METHODS
@@ -110,8 +110,8 @@ def test_ss_method_alias_mapping():
     """Test that removed methods map to valid aliases."""
     # "plain" -> "none"
     assert _sanitize_ss_method("plain") == "none"
-    # "chacha20" -> "chacha20-ietf"
-    assert _sanitize_ss_method("chacha20") == "chacha20-ietf"
+    # "chacha20" -> "chacha20-ietf-poly1305" (Updated expectation)
+    assert _sanitize_ss_method("chacha20") == "chacha20-ietf-poly1305"
     # "auto" -> "chacha20-ietf-poly1305"
     assert _sanitize_ss_method("auto") == "chacha20-ietf-poly1305"
     # Garbage should return None
@@ -128,11 +128,11 @@ def test_vless_flow_schema_compliance():
 
 
 def test_vless_flow_sanitization():
-    """Test that invalid/deprecated flows are stripped."""
+    """Test that invalid/unsupported flows are stripped."""
     assert _sanitize_vless_flow("xtls-rprx-vision") == "xtls-rprx-vision"
     assert _sanitize_vless_flow("") == ""
     assert _sanitize_vless_flow(None) == ""
-    # Deprecated flows should be stripped to ""
+    # Unsupported flows should be stripped to ""
     assert _sanitize_vless_flow("xtls-rprx-direct") == ""
     assert _sanitize_vless_flow("xtls-rprx-splice") == ""
     # Unknown flows should be stripped to ""

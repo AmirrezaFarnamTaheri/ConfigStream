@@ -13,15 +13,16 @@ from cachetools import LRUCache  # type: ignore
 
 from configstream.models import Proxy
 from configstream.converters import to_singbox_outbound
-from configstream.workers.scanner import WarpScannerWorker
+from configstream.warp_scanner import WarpScannerWorker
 from configstream.intelligence.washer.warp_scraper import WarpScraper
 from configstream.intelligence.washer.key_generator import (
     KeyGenerator,
 )  # Import the new key generator
 from configstream.tools.vwarp import VwarpTool
 from configstream.intelligence.chaining import find_optimal_relay, ProxyStub, COUNTRIES
-from configstream.pipeline_core.stats import PipelineStats
+from configstream.pipeline_stats import PipelineStats
 from configstream.config import AppSettings
+from configstream.tagging import get_flag_emoji
 
 logger = logging.getLogger(__name__)
 
@@ -778,7 +779,7 @@ class ProxyWasher:
     async def fetch_clean_ips(self) -> None:
         """
         Fetches the latest clean IPs for WARP endpoints.
-        [FIX] Uses async lock for the ENTIRE method to prevent N consumers
+        Uses async lock for the ENTIRE method to prevent N consumers
         from triggering N redundant fetches (check-then-act race).
         """
         async with self._async_state_lock:
@@ -842,21 +843,21 @@ class ProxyWasher:
                 except Exception as e:
                     logger.warning(f"Vwarp scanner failed: {e}")
 
-            # --- STRATEGY 1: LEGACY ACTIVE SCANNING ---
+            # --- STRATEGY 1: ACTIVE SCANNING ---
             if self.scanner.available and not self._clean_ips:
                 try:
-                    logger.info("Attempting legacy active scan...")
-                    scanned_ips_legacy = await self.scanner.scan_endpoints(
+                    logger.info("Attempting active IP scan...")
+                    scanned_ips = await self.scanner.scan_endpoints(
                         limit=50, timeout=5, max_latency=800
                     )
 
-                    if scanned_ips_legacy and len(scanned_ips_legacy) >= 5:
-                        self._clean_ips = [(ip, 2408) for ip in scanned_ips_legacy]
+                    if scanned_ips and len(scanned_ips) >= 5:
+                        self._clean_ips = [(ip, 2408) for ip in scanned_ips]
                         logger.info(
-                            f"Legacy Scan Success: Using {len(scanned_ips_legacy)} fresh IPs."
+                            f"Active Scan Success: Using {len(scanned_ips)} fresh IPs."
                         )
                 except Exception as e:
-                    logger.error(f"Legacy scan failed: {e}")
+                    logger.error(f"Active scan failed: {e}")
 
             # --- STRATEGY 2: STATIC LISTS ---
             if not self._clean_ips:
@@ -975,7 +976,7 @@ class ProxyWasher:
         for i in range(pool_len):
             idx = (start_index + i) % pool_len
             key = exit_pool[idx]
-            # [FIX] Allow key if it has private key, inject peer key if missing
+            # Allow key if it has private key, inject peer key if missing
             if key.get("private_key"):
                 return key
 
@@ -1002,7 +1003,7 @@ class ProxyWasher:
 
     def get_warp_config(self, seed: str) -> Optional[Dict[str, Any]]:
         """
-        [FIX] Generate a WARP WireGuard config for a given seed (used by chaining.py).
+        Generate a WARP WireGuard config for a given seed (used by chaining.py).
         Returns None if no WARP keys are available.
         """
         exit_key = self._get_consistent_exit(seed, self.warp_keys)
@@ -1020,7 +1021,7 @@ class ProxyWasher:
 
         reserved = self._get_optimized_reserved(seed)
 
-        # [FIX] Ensure valid peer public key
+        # Ensure valid peer public key
         # Check environment or use default
         peer_key = exit_key.get("peer_public_key")
         if not peer_key:
@@ -1094,7 +1095,7 @@ class ProxyWasher:
 
             reserved_bytes = self._get_optimized_reserved(chain_id)
 
-            # [FIX] Ensure valid peer public key
+            # Ensure valid peer public key
             peer_key = exit_key.get("peer_public_key")
             if not peer_key:
                 peer_key = _SETTINGS_CACHE.WARP_PEER_KEY or DEFAULT_WARP_SERVER_KEY
@@ -1113,7 +1114,7 @@ class ProxyWasher:
             }
 
             # We bundle BOTH outbounds into the proxy details for special handling
-            # FIX: Serialize relay object to prevent JSON errors
+            # Serialize relay object to prevent JSON errors.
             # Use the canonical Pydantic method for serialization.
             origin_dict = relay.model_dump(mode="json")
 
@@ -1156,7 +1157,7 @@ class ProxyWasher:
         self, proxies: List[Proxy], stats: Optional[PipelineStats] = None
     ) -> Tuple[List[Dict[str, Any]], Set[str], Dict[str, int]]:
         """
-        Legacy/Standard Washing: Process WORKING proxies to create chains.
+        Standard Washing: Process WORKING proxies to create WARP chains.
         """
         washed_outbounds: List[Dict[str, Any]] = []
         washed_ids: Set[str] = set()
@@ -1208,7 +1209,7 @@ class ProxyWasher:
             is_optimal = False
             try:
                 if relay.country_code and relay.country_code in COUNTRIES:
-                    # [FIX] Pass measured latency for better optimization
+                    # Pass measured latency for better optimization
                     relay_stub = ProxyStub(
                         relay.country_code,
                         0.0,
@@ -1224,12 +1225,16 @@ class ProxyWasher:
             except Exception:
                 pass
 
-            exit_tag_prefix = "🛡️⚡ Optimal" if is_optimal else "🛡️ Secure"
-            exit_tag = f"{exit_tag_prefix}-{relay.country_code}-{i+1}"
+            flag = get_flag_emoji(relay.country_code or "XX")
+            lat_str = f"{int(relay.latency)}ms" if relay.latency else "N/A"
+            security_tier = "🛡️ OPTIMAL" if is_optimal else "🛡️ SECURE"
+
+            # Unified Tag Format: FLAG | TIER | WARP | LATENCY
+            exit_tag = f"{flag} | {security_tier} | WARP | {lat_str}"
 
             reserved_bytes = self._get_optimized_reserved(chain_id)
 
-            # [FIX] Ensure valid peer public key
+            # Ensure valid peer public key
             peer_key = exit_key.get("peer_public_key")
             if not peer_key:
                 peer_key = _SETTINGS_CACHE.WARP_PEER_KEY or DEFAULT_WARP_SERVER_KEY
@@ -1317,7 +1322,16 @@ class ProxyWasher:
             # 4. Branding & Optimization
             # Rename the proxy so the user knows it's a special chain
             original_tag = relay_out.get("tag", f"proxy-{i}")
-            relay_out["tag"] = f"GOLD-{original_tag}"
+
+            # If original tag already has pipes (formatted), prepend Gold/Shield info
+            # e.g., "🇺🇸 | VMESS..." -> "🥇 | SHIELDED | 🇺🇸 | VMESS..."
+            if "|" in original_tag:
+                new_tag = f"🥇 | SHIELDED | {original_tag}"
+            else:
+                flag = get_flag_emoji(relay.country_code or "XX")
+                new_tag = f"🥇 | SHIELDED | {flag} | {original_tag}"
+
+            relay_out["tag"] = new_tag
             relay_out["_process"] = "shield_payload"
             # Mark as shielded in relay details for tagging
             if not relay.details:

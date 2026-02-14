@@ -4,6 +4,8 @@ from typing import Dict, Optional, Any
 from datetime import datetime, timezone
 import threading
 
+__all__ = ["PipelineStats", "PipelineResult"]
+
 
 @dataclass
 class PipelineStats:
@@ -118,3 +120,19 @@ class PipelineStats:
                 # Create a shallow copy of the dict to prevent iteration errors
                 "drop_reasons": dict(self.drop_reasons),
             }
+
+
+class PipelineResult:
+    """Container for the outcome of a full pipeline run."""
+
+    def __init__(
+        self,
+        success: bool,
+        stats: PipelineStats,
+        output_files: dict,
+        error: Optional[str] = None,
+    ):
+        self.success = success
+        self.stats = stats
+        self.output_files = output_files
+        self.error = error

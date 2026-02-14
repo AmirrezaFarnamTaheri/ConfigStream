@@ -1,7 +1,7 @@
-# SPDX-License-Identifier: AGPL-3.0-or-later
+ # SPDX-License-Identifier: AGPL-3.0-or-later
 """
-Facade for Source Quality module.
-Provides backward compatibility for the pipeline.
+Source Quality Tracking.
+Extends QualityStorage with pipeline-facing methods for source health management.
 """
 
 from typing import Any, Optional, Dict
@@ -12,6 +12,7 @@ from dataclasses import dataclass
 
 from .quality.storage import QualityStorage
 from .quality.scoring import calculate_diversity_score
+from .security_validator import SecurityValidator
 from .config import AppSettings
 
 logger = logging.getLogger(__name__)
@@ -33,7 +34,7 @@ class SourceHealth:
 
 class SourceQualityTracker(QualityStorage):
     """
-    Adapter class to make QualityStorage compatible with legacy SourceQualityTracker calls.
+    Pipeline-facing source quality tracker backed by QualityStorage.
     """
 
     @staticmethod
@@ -67,7 +68,7 @@ class SourceQualityTracker(QualityStorage):
             db_path = Path(_SETTINGS_CACHE.QUALITY_DB_PATH)
         super().__init__(db_path)
 
-        # Legacy in-memory fallback for compatibility if needed
+        # In-memory source health cache
         self.sources: Dict[str, SourceHealth] = {}
 
     def update(
@@ -77,25 +78,14 @@ class SourceQualityTracker(QualityStorage):
         working: Optional[int] = None,
         diversity: Optional[float] = None,
         reliability: Optional[float] = None,
-        # Legacy keyword args mapping
-        fetched_count: Optional[int] = None,
-        working_count: Optional[int] = None,
-        diversity_score: Optional[float] = None,
-        reliability_score: Optional[float] = None,
     ):
         """
-        Legacy update method called by consumers and tests.
-        Maps arguments to the new dictionary-based upsert_stats.
+        Update source quality stats after a pipeline run.
+        Maps arguments to the dictionary-based upsert_stats.
         """
-        # Map legacy kwargs to new args
-        if fetched is None:
-            fetched = fetched_count or 0
-        if working is None:
-            working = working_count or 0
-        if diversity is None:
-            diversity = diversity_score or 0.0
-        if reliability is None:
-            reliability = reliability_score
+        fetched = fetched or 0
+        working = working or 0
+        diversity = diversity or 0.0
 
         # Calculate reliability if not provided
         if reliability is None:
@@ -135,7 +125,7 @@ class SourceQualityTracker(QualityStorage):
         """
         Determines if a source should be fetched based on its state.
 
-        [FIX] Dead sources now have a "resurrection" window (7 days by default)
+        Dead sources have a "resurrection" window (7 days by default)
         to prevent permanent death spirals where a temporarily unavailable source
         is never retried.  Permanent failures (404/410) remain permanently dead.
         """
@@ -150,7 +140,7 @@ class SourceQualityTracker(QualityStorage):
         settings = _SETTINGS_CACHE
 
         if status == "dead":
-            # [FIX] Resurrection window: allow retry after a long cooling period
+            # Resurrection window: allow retry after a long cooling period
             # unless the source had a permanent error (consecutive_failures >= 100
             # is used as a sentinel for permanent 404/410 errors)
             consecutive_failures = state[2] if len(state) > 2 else 0
@@ -161,7 +151,7 @@ class SourceQualityTracker(QualityStorage):
                 settings, "SOURCE_RESURRECTION_HOURS", 168
             )  # 7 days
             if (now - last_checked) >= (resurrection_hours * 3600):
-                logger.info(f"Resurrecting dead source for retry: {url[:60]}...")
+                logger.info(f"Resurrecting dead source for retry: {SecurityValidator.sanitize_log_message(url[:60])}...")
                 return True
             return False
 
@@ -173,10 +163,7 @@ class SourceQualityTracker(QualityStorage):
         return True
 
     def get_source_score(self, url: str) -> float:
-        """
-        Legacy method to retrieve a score for a source.
-        Returns reliability score or a computed metric.
-        """
+        """Retrieve reliability score for a source."""
         state = self.get_source_state(url)
         if not state:
             return 50.0  # Default
@@ -185,10 +172,7 @@ class SourceQualityTracker(QualityStorage):
         return float(state[3])
 
     def report_success(self, url: str):
-        """
-        Legacy method called by orchestrator.py.
-        Records a successful fetch for a source, resetting failure count.
-        """
+        """Record a successful fetch, resetting failure count."""
         state = self.get_source_state(url)
         if state:
             # Reset consecutive failures on success
@@ -213,10 +197,7 @@ class SourceQualityTracker(QualityStorage):
             self.upsert_stats(url, init_stats)
 
     def report_failure(self, url: str, reason: Optional[str] = None):
-        """
-        Legacy method called by orchestrator.py.
-        Records a failed fetch for a source, incrementing failure count.
-        """
+        """Record a failed fetch, incrementing failure count."""
         settings = _SETTINGS_CACHE
         state = self.get_source_state(url)
         current_failures = 0

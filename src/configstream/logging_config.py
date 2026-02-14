@@ -32,17 +32,10 @@ def _record_factory(*args, **kwargs):
 logging.setLogRecordFactory(_record_factory)
 
 
-class TraceIdFilter(logging.Filter):
-    """Deprecated: Logic moved to LogRecordFactory for robustness."""
-
-    def filter(self, record: logging.LogRecord) -> bool:
-        return True
-
-
 class SensitiveDataFilter(logging.Filter):
     """Filter to mask sensitive information in log messages.
 
-    [FIX] The previous implementation extracted URLs *before* masking secrets,
+    The previous implementation extracted URLs *before* masking secrets,
     which meant credentials embedded in URLs (e.g., vless://uuid@host,
     https://api.service.com?token=secret) were whitelisted from redaction.
     Now we apply masking to the ENTIRE string first, including URL contents.
@@ -73,7 +66,7 @@ class SensitiveDataFilter(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
         message = record.getMessage()
 
-        # [FIX] Apply ALL masking patterns to the ENTIRE string (including URLs)
+        # Apply ALL masking patterns to the ENTIRE string (including URLs)
         # 1. Mask credentials in key=value patterns
         message = self._CREDENTIAL_PATTERN.sub("[MASKED_CREDENTIAL]", message)
         # 2. Mask emails
@@ -162,7 +155,7 @@ def setup_logging(
         level: Logging level name (DEBUG, INFO, WARNING, ERROR, CRITICAL).
         mask_sensitive: Apply masking filter for secrets.
         log_file: Optional log file path; pass None to disable file logging.
-        log_level: Legacy name for ``level`` (takes precedence when provided).
+        log_level: Alias for ``level`` (takes precedence when provided).
         format_style: "detailed" includes module/line, "simple" prints message.
         use_color: Force colour output. Defaults to auto-detect (TTY only).
         enable_trace_ids: Add trace IDs to log messages for request tracing.
@@ -240,12 +233,6 @@ def setup_logging(
         if mask_sensitive:
             json_file_handler.addFilter(data_filter)
         root_logger.addHandler(json_file_handler)
-
-    # Add trace ID filter (should be first for all handlers)
-    if enable_trace_ids and not any(
-        isinstance(existing, TraceIdFilter) for existing in root_logger.filters
-    ):
-        root_logger.addFilter(TraceIdFilter())
 
     logging.getLogger("aiohttp").setLevel(logging.WARNING)
     logging.getLogger("urllib3").setLevel(logging.WARNING)

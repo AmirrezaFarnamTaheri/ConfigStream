@@ -21,7 +21,7 @@ except ImportError:
 
 
 def _is_ci_environment() -> bool:
-    """[FIX] Detect CI/CD environments to apply conservative limits."""
+    """Detect CI/CD environments to apply conservative limits."""
     ci_vars = ("CI", "GITHUB_ACTIONS", "GITLAB_CI", "JENKINS_URL", "CIRCLECI")
     return any(os.environ.get(v) for v in ci_vars)
 
@@ -31,7 +31,7 @@ def calculate_optimal_workers(requested: int = 0) -> int:
     Calculate safe worker count.
     0 = Auto-detect.
 
-    [FIX] Added CI detection with conservative upper bound (50) to prevent
+    Added CI detection with conservative upper bound (50) to prevent
     OOM on GitHub Actions runners (2 cores, ~7GB RAM). Also lowered the
     general upper bound from 200 to 150 as 200 was too aggressive for most
     environments.
@@ -61,7 +61,7 @@ def calculate_optimal_workers(requested: int = 0) -> int:
 
             optimal = min(optimal, max_by_mem)
 
-        # [FIX] Lower upper bound; CI gets much tighter cap
+        # Lower upper bound; CI gets much tighter cap
         hard_max = 50 if is_ci else 150
         optimal = max(10, min(hard_max, optimal))
 

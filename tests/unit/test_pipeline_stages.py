@@ -2,14 +2,11 @@
 import pytest
 import asyncio
 from unittest.mock import MagicMock, patch, AsyncMock
-from configstream.pipeline_stages import (
-    source_producer,
-    processing_consumer,
-    PipelineStats,
-    PipelineResult,
-)
+from configstream.producer import source_producer
+from configstream.consumer import processing_consumer
+from configstream.pipeline_stats import PipelineStats, PipelineResult
 from configstream.models import Proxy
-from configstream.fetcher import FetchResult
+from configstream.fetcher_worker import FetchResult
 
 
 @pytest.fixture
@@ -109,7 +106,7 @@ async def test_source_producer_local_files(mock_dependencies):
     sources = ["sources/batch_1.txt"]
 
     with patch(
-        "configstream.pipeline_core.producer.read_multiple_files_async"
+        "configstream.producer.read_multiple_files_async"
     ) as mock_read:
         mock_read.return_value = [("sources/batch_1.txt", "vmess://file")]
 
@@ -141,7 +138,7 @@ async def test_source_producer_remote_urls(mock_dependencies):
 
     # Mock fetcher
     with patch(
-        "configstream.pipeline_core.producer.fetch_multiple_sources"
+        "configstream.producer.fetch_multiple_sources"
     ) as mock_fetch:
         mock_fetch.return_value = {
             "http://web.com/sub": FetchResult(True, "s1", content="vmess://line1"),
@@ -150,7 +147,7 @@ async def test_source_producer_remote_urls(mock_dependencies):
 
         # Mock read_multiple_files_async to prevent it from trying to read ss:// as file and logging warnings
         with patch(
-            "configstream.pipeline_core.producer.read_multiple_files_async",
+            "configstream.producer.read_multiple_files_async",
             return_value=[],
         ):
             await source_producer(
@@ -192,7 +189,7 @@ async def test_source_producer_anomaly_block(mock_dependencies):
     mock_dependencies["anomaly"].is_safe.return_value = (False, "Malicious")
 
     with patch(
-        "configstream.pipeline_core.producer.fetch_multiple_sources"
+        "configstream.producer.fetch_multiple_sources"
     ) as mock_fetch:
         mock_fetch.return_value = {
             "http://bad.com": FetchResult(True, "s1", content="bad-line")
@@ -207,6 +204,7 @@ async def test_source_producer_anomaly_block(mock_dependencies):
             event_stream=None,
             progress=None,
             task_fetch=None,
+            stop_event=asyncio.Event(),
         )
 
     # Queue should only contain None (sentinel)
@@ -227,7 +225,7 @@ async def test_processing_consumer_basic_flow(mock_dependencies):
 
     # Mock parse_config to return a valid proxy
     p = Proxy(protocol="vmess", address="1.2.3.4", port=443, config="vmess://test")
-    with patch("configstream.pipeline_core.consumer.parse_config", return_value=p):
+    with patch("configstream.consumer.parse_config", return_value=p):
         # Mock tester to succeed
         res = Proxy(
             protocol="vmess", address="1.2.3.4", port=443, config="vmess://test"
@@ -238,7 +236,7 @@ async def test_processing_consumer_basic_flow(mock_dependencies):
 
         # Mock validate_batch_configs
         with patch(
-            "configstream.pipeline_core.consumer.validate_batch_configs",
+            "configstream.consumer.validate_batch_configs",
             return_value=[p],
         ):
             await processing_consumer(
@@ -286,9 +284,9 @@ async def test_processing_consumer_cached_hit(mock_dependencies):
     mock_dependencies["scheduler"].should_retest.return_value = False
     mock_dependencies["test_cache"].get.return_value = cached_p
 
-    with patch("configstream.pipeline_core.consumer.parse_config", return_value=p):
+    with patch("configstream.consumer.parse_config", return_value=p):
         with patch(
-            "configstream.pipeline_core.consumer.validate_batch_configs",
+            "configstream.consumer.validate_batch_configs",
             return_value=[p],
         ):
             await processing_consumer(
@@ -338,9 +336,9 @@ async def test_processing_consumer_cache_miss(mock_dependencies):
     res.latency = 100
     mock_dependencies["tester"].test.return_value = res
 
-    with patch("configstream.pipeline_core.consumer.parse_config", return_value=p):
+    with patch("configstream.consumer.parse_config", return_value=p):
         with patch(
-            "configstream.pipeline_core.consumer.validate_batch_configs",
+            "configstream.consumer.validate_batch_configs",
             return_value=[p],
         ):
             await processing_consumer(
@@ -392,9 +390,9 @@ async def test_processing_consumer_go_tester(mock_dependencies):
 
     mock_dependencies["tester"].test_batch.side_effect = side_effect
 
-    with patch("configstream.pipeline_core.consumer.parse_config", return_value=p):
+    with patch("configstream.consumer.parse_config", return_value=p):
         with patch(
-            "configstream.pipeline_core.consumer.validate_batch_configs",
+            "configstream.consumer.validate_batch_configs",
             return_value=[p],
         ):
             await processing_consumer(
@@ -440,9 +438,9 @@ async def test_processing_consumer_filters(mock_dependencies):
     res.latency = 5000
     mock_dependencies["tester"].test.return_value = res
 
-    with patch("configstream.pipeline_core.consumer.parse_config", return_value=p):
+    with patch("configstream.consumer.parse_config", return_value=p):
         with patch(
-            "configstream.pipeline_core.consumer.validate_batch_configs",
+            "configstream.consumer.validate_batch_configs",
             return_value=[p],
         ):
             await processing_consumer(
@@ -492,9 +490,9 @@ async def test_processing_consumer_country_filter(mock_dependencies):
         return_value=MagicMock(country_code="US", city="", asn="", org="")
     )
 
-    with patch("configstream.pipeline_core.consumer.parse_config", return_value=p):
+    with patch("configstream.consumer.parse_config", return_value=p):
         with patch(
-            "configstream.pipeline_core.consumer.validate_batch_configs",
+            "configstream.consumer.validate_batch_configs",
             return_value=[p],
         ):
             await processing_consumer(

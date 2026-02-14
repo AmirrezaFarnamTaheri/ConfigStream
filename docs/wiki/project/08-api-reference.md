@@ -188,8 +188,8 @@ Summary statistics consumed by the frontend and downstream clients.
 
 ```json
 {
-  "schema_version": "3.0.0",
-  "version": "2.6.0",
+  "schema_version": "3.0.2",
+  "version": "3.0.2",
   "total_proxies": 4495,
   "total_tested": 12000,
   "total_working": 4300,

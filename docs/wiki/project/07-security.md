@@ -25,12 +25,12 @@ Current implementation focusses on **passive** intelligence only:
     *   If VirusTotal reports `malicious > 0`, the proxy is flagged and removed from the pool.
     *   If the `VT_API_KEY` is missing, we **log a warning** and fail open (no blocking), so operators are aware that honeypot reputation checks are effectively disabled.
 *   **No Active Scanning**: Behavioral checks like open resolvers, echo servers, and header fingerprinting are **documented but not enabled** in production to respect a strict “Zero Abuse” policy and avoid port‑scan behaviour.
-    *   The `check_common_honeypot_ports()` and `check_traffic_interception()` helpers are intentionally stubs.
+    *   The `check_common_honeypot_ports()` and `check_traffic_interception()` helpers are intentionally no-ops.
     *   Future work may add passive heuristics here (e.g. offline logs analysis) without probing the remote hosts.
 
 ### 3. Proxy Washing (IP Reputation)
 Many "free" proxies are on IPs that are flagged by Cloudflare, Google, or other major providers. They connect, but they get CAPTCHAs or 403s.
-*   **Concept**: We use the `ProxyWasher` (`src/configstream/intelligence/washer.py`).
+*   **Concept**: We use the `ProxyWasher` (`src/configstream/intelligence/washer/core.py`).
 *   **Mechanism**:
     *   `User -> [Dirty Proxy] -> [WARP Interface] -> Target`
 *   **Implementation**:

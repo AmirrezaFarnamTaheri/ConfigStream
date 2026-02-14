@@ -21,7 +21,7 @@ func main() {
 	targetURL := flag.String("url", "https://www.google.com", "Target URL to fetch")
 	_ = flag.String("proxy", "", "Proxy address (host:port) - reserved for future use")
 	fingerprint := flag.String("fp", "chrome", "Fingerprint ID (chrome, firefox, ios, random)")
-	// [FIX] InsecureSkipVerify is now a CLI flag defaulting to false.
+	// InsecureSkipVerinow fy is now a CLI flag defaulting to false.
 	// Previously hardcoded to true, which disabled TLS cert validation entirely,
 	// allowing MITM attacks -- especially dangerous for anti-censorship use.
 	skipVerify := flag.Bool("skip-verify", false, "Skip TLS certificate verification (UNSAFE)")
@@ -36,7 +36,7 @@ func main() {
 		Timeout: 10 * time.Second,
 	}
 
-	// [FIX] Use net/url.Parse for robust URL parsing instead of fragile manual
+	// Use net/url.Parse for robust URL parsing instead of fragile manual
 	// byte-offset stripping. The old approach failed for URLs with auth, query
 	// params, or non-standard ports.
 	parsed, err := url.Parse(*targetURL)
@@ -63,7 +63,7 @@ func main() {
 		fmt.Printf("Failed to dial: %v\n", err)
 		os.Exit(1)
 	}
-	// [FIX] Add defer conn.Close() to prevent connection leaks.
+	// Add defer conn.Close() to prevent connection leaks.
 	// Previously missing, causing TCP connections to linger in TIME_WAIT.
 	defer conn.Close()
 
@@ -94,7 +94,7 @@ func main() {
 	}
 	defer uConn.Close()
 
-	// [FIX] Include User-Agent header to avoid trivial automated-traffic detection.
+	// Include User-Agent header to avoid trivial automated-traffic detection.
 	// For a fingerprint-evasion tool, sending no UA undermines the purpose.
 	req := fmt.Sprintf("GET %s HTTP/1.1\r\nHost: %s\r\nUser-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36\r\nConnection: close\r\n\r\n",
 		parsed.RequestURI(), host)

@@ -179,7 +179,7 @@ func runTester() {
 }
 
 func testProxy(req ProxyTestRequest) (result ProxyTestResult) {
-	// [FIX] Use named return so panic recovery can populate the ID field.
+	// Use named return so panic recovery can populate the ID field.
 	// Previously, panic recovery returned zero-value ProxyTestResult{} with empty ID,
 	// causing the Python side to never match the result and hang until timeout.
 	result = ProxyTestResult{ID: req.ID, IsWorking: false}
@@ -197,7 +197,7 @@ func testProxy(req ProxyTestRequest) (result ProxyTestResult) {
 		return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "Config too large"}
 	}
 
-	// [FIX] parseConfig now returns ALL outbounds (supporting chains/detour).
+	// parseConfig now returns ALL outbounds (supporting chains/detour).
 	// Previously it returned only one outbound, discarding chain dependencies
 	// and causing ALL chain/shield/revival testing to fail with "outbound not found".
 	outbounds, proxyTag, err := parseConfig(req.ConfigStr)
@@ -313,7 +313,7 @@ func testProxy(req ProxyTestRequest) (result ProxyTestResult) {
 			if err == nil && u.Host != "" {
 				targetURL = u
 				hostPort := u.Host
-				// [FIX] Use net.SplitHostPort instead of string search for ":".
+				// Use net.SplitHostPort instead of string search for ":".
 				// The old check `strings.Contains(hostPort, ":")` broke for IPv6
 				// addresses like [::1] which contain ":" but have no port.
 				if _, _, splitErr := net.SplitHostPort(hostPort); splitErr != nil {
@@ -451,7 +451,7 @@ func testProxy(req ProxyTestRequest) (result ProxyTestResult) {
 // parseConfig parses a config string and returns ALL outbounds plus the tag of
 // the "entry point" outbound (the one the router should use as "proxy").
 //
-// [FIX] Previously this returned a SINGLE outbound, discarding chain dependencies.
+// Previously this returned a SINGLE outbound, discarding chain dependencies.
 // For chain configs like [WARP -> VLESS], the VLESS outbound references WARP via
 // its "detour" field. Returning only the VLESS outbound caused sing-box to fail
 // with "outbound not found" because the WARP outbound it depends on was discarded.
@@ -560,7 +560,7 @@ func isHoneypot(ctx context.Context, dialer OutboundDialer) bool {
 	}
 
 	buf := make([]byte, 1024)
-	// [FIX] Check SetReadDeadline error to prevent indefinite blocking
+	// Check SetReadDeadline error to prevent indefinite blocking
 	if err := conn.SetReadDeadline(time.Now().Add(2 * time.Second)); err != nil {
 		return false
 	}

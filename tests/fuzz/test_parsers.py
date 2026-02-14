@@ -6,7 +6,7 @@ Uses Hypothesis to generate random, malformed inputs to ensure robustness.
 
 from hypothesis import given, strategies as st, settings, HealthCheck
 from configstream.auto_detect import auto_detect_and_parse as parse_config
-from configstream.parsers import _extract_config_lines
+from configstream.parsers import extract_config_lines
 
 # Strategy: Generate text that contains potential URI characters but is random
 # We mix printable characters, control characters, and unicode to stress the parser
@@ -39,10 +39,10 @@ def test_parser_does_not_crash(config_str):
 @given(st.text())
 def test_extractor_resilience(raw_content):
     """
-    Property: _extract_config_lines should handle arbitrary text blobs without crashing.
+    Property: extract_config_lines should handle arbitrary text blobs without crashing.
     """
     try:
-        lines, stats = _extract_config_lines(raw_content)
+        lines, stats = extract_config_lines(raw_content)
         assert isinstance(lines, list)
         assert isinstance(stats, dict)
     except Exception as e:

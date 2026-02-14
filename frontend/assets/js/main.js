@@ -1,4 +1,4 @@
-// [FIX P1] Import production-safe logger (disables console.log in production)
+// Import production-safe logger (disables console.log in production)
 import logger from './utils/logger.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -167,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
                  let text = window.i18n.t('hero.subtitle.main');
                  text = text.replace('{sources}', formatNum(sourceCount));
                  text = text.replace('{hours}', formatNum(updateFreq));
-                 // [FIX] Sanitize before innerHTML to prevent XSS if metadata is poisoned.
+                 // Sanitize before innerHTML to prevent XSS if metadata is poisoned.
                 // The text template comes from i18n (trusted) and values are numbers,
                 // but defense-in-depth requires sanitization.
                 if (window.DOMPurify) {

@@ -36,7 +36,7 @@ async def test_full_pipeline_with_local_source(tmp_path, monkeypatch):
 
     monkeypatch.setattr("configstream.pipeline.DEFAULT_BLOCKLIST.update", fake_update)
     monkeypatch.setattr(
-        "configstream.pipeline_core.output_handler.generate_pipeline_outputs",
+        "configstream.output_handler.generate_pipeline_outputs",
         fake_generate_outputs,
     )
 

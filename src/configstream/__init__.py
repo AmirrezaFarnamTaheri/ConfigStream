@@ -4,6 +4,7 @@ ConfigStream: High-Performance VPN Aggregator & Tester
 """
 
 import sys
+from typing import Any, Optional
 import importlib.metadata
 
 try:
@@ -25,7 +26,7 @@ __all__ = [
 ]
 
 
-def __getattr__(name: str):
+def __getattr__(name: str) -> Any:
     if name == "Proxy":
         from .models import Proxy
 
@@ -73,7 +74,7 @@ def _patch_sniffio_for_asyncio() -> None:
 
     _orig = sniffio.current_async_library
 
-    def _patched_async_library():
+    def _patched_async_library() -> str:
         try:
             return _orig()
         except sniffio.AsyncLibraryNotFoundError:
@@ -107,7 +108,7 @@ def _patch_anyio_current_task() -> None:
     async def _keepalive() -> None:
         await asyncio.Event().wait()
 
-    def _safe_current_task(loop=None):
+    def _safe_current_task(loop: Optional[asyncio.AbstractEventLoop] = None) -> Optional[asyncio.Task]:
         task = _orig_current_task(loop)
         if task is not None:
             return task

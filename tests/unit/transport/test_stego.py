@@ -7,7 +7,7 @@ import zlib
 import hmac
 import hashlib
 
-from configstream.transport.stego import (
+from configstream.stego import (
     StegoPacker,
     generate_stego_assets,
     MAGIC_MARKER,

@@ -1,6 +1,6 @@
 {
   "name": "configstream-frontend",
-  "version": "3.0.0",
+  "version": "3.0.2",
   "description": "Production build configuration for ConfigStream frontend",
   "build": {
     "development": {

@@ -3,7 +3,7 @@
 ## Overview
 WireGuard is a modern, high-performance VPN protocol that uses state-of-the-art cryptography. It is extremely lightweight — the entire codebase is ~4,000 lines of code (compared to OpenVPN's ~100,000). WireGuard operates at the kernel level on Linux and uses UDP for transport.
 
-> **Analogy**: If OpenVPN is a Swiss Army knife with 50 blades (features, options, legacy compatibility), WireGuard is a scalpel — one blade, perfectly sharp, does exactly one thing extremely well. The simplicity makes it faster, more auditable, and harder to misconfigure.
+> **Analogy**: If OpenVPN is a Swiss Army knife with 50 blades (features, options, configurations), WireGuard is a scalpel — one blade, perfectly sharp, does exactly one thing extremely well. The simplicity makes it faster, more auditable, and harder to misconfigure.
 
 In ConfigStream, WireGuard is primarily used for **[Cloudflare WARP](../networking/warp.md)** tunnels (washing, shielding, and revival), but standalone WireGuard proxies from sources are also parsed and tested.
 
@@ -105,7 +105,7 @@ See [WARP & Clean IPs](../networking/warp.md) for detailed WARP-specific documen
 
 | Client | Support | Notes |
 | :--- | :--- | :--- |
-| Sing-box | Full | Native outbound support (deprecated in 1.11, `endpoints` in 1.13+) |
+| Sing-box | Full | Native outbound support (`endpoints` format in 1.13+) |
 | Clash Meta / Mihomo | Full | Native support with `dialer-proxy` for chaining, AmneziaWG support |
 | WireGuard App | Full | Native (official app for all platforms) |
 | V2RayN | Full | Uses sing-box or Xray core, both support WireGuard |

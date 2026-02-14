@@ -4,7 +4,7 @@ use std::os::raw::c_char;
 // FFI function for Shadowsocks config validation.
 // Called from Python via ctypes to verify config structure and cipher validity.
 //
-// [FIX] Replaced naive substring matching with proper field extraction.
+// Replaced naive substring matching with proper field extraction.
 // Previously, `str_slice.contains("aes-256-gcm")` would match the cipher name
 // ANYWHERE in the JSON (e.g., in a "description" field), producing false positives.
 // Now we extract the actual "method" field value and validate it against a whitelist.

@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import pytest
 from unittest.mock import MagicMock
-from configstream.intelligence.washer import ProxyWasher
+from configstream.intelligence.washer.core import ProxyWasher
 from configstream.intelligence.chaining import generate_smart_chains
 from configstream.models import Proxy
-from configstream.pipeline_core.stats import PipelineStats
+from configstream.pipeline_stats import PipelineStats
 
 
 @pytest.mark.asyncio

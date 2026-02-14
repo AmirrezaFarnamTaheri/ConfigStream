@@ -8,15 +8,15 @@ COPY src/go/tester/go.mod src/go/tester/go.sum ./
 RUN go mod download
 
 COPY src/go/tester/ .
-# [FIX] Added tags for uTLS, QUIC, WireGuard, etc.
-# [OPTIMIZATION] Strip debug symbols (-s -w) and disable CGO for static binary
+# Added tags for uTLS, QUIC, WireGuard, etc.
+# Strip debug symbols (-s -w) and disable CGO for static binary
 RUN CGO_ENABLED=0 go build -ldflags="-s -w" -tags "with_quic,with_dhcp,with_wireguard,with_ech,with_utls,with_reality_server,with_clash_api,with_gvisor" -o tester main.go
 
 # Stage 2: Python Runtime
 FROM python:3.12-slim
 
 # Install system dependencies
-# [FIX] Added tini for proper PID 1 signal handling and zombie reaping.
+# Added tini for proper PID 1 signal handling and zombie reaping.
 # Without tini, the Python process runs as PID 1 and cannot properly
 # handle SIGTERM/SIGINT signals, causing unclean container shutdowns.
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -30,7 +30,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# [OPTIMIZATION] Install 'uv'
+# Install 'uv'
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
 # Set up user
@@ -72,14 +72,14 @@ RUN curl -fSsL --retry 3 --max-time 30 --proto =https -o /tmp/vwarp.zip https://
 COPY pyproject.toml requirements-prod.txt ./
 # Use system python environment, no venv needed in container
 ENV UV_SYSTEM_PYTHON=1
-# [FIX] Install only strict production dependencies (no dev tools)
+# Install only strict production dependencies (no dev tools)
 RUN uv pip install --no-cache-dir -r requirements-prod.txt
 
 # Copy Source Code
 COPY . .
 RUN chown -R runner:runner /app
 
-# [FIX] Install application code (no editable mode, no dev extras)
+# Install application code (no editable mode, no dev extras)
 RUN uv pip install --no-cache-dir .
 
 # Set Environment
@@ -88,10 +88,10 @@ ENV PYTHONPATH="/app/src"
 
 USER runner
 
-# [PERFORMANCE] Lightweight healthcheck
+# Lightweight healthcheck
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
     CMD [ -x "/usr/local/bin/configstream-tester" ] || exit 1
 
-# [FIX] Use tini as entrypoint for proper PID 1 signal forwarding
+# Use tini as entrypoint for proper PID 1 signal forwarding
 ENTRYPOINT ["tini", "--"]
 CMD ["python", "-m", "configstream.cli"]

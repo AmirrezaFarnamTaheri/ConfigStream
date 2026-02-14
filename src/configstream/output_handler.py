@@ -16,11 +16,11 @@ from configstream.output_logic import (
 )
 from configstream.output_transport import save_json, inject_stego_key_into_frontend
 from configstream.serialize import serialize_proxy, _build_chain_config
-from configstream.transport.stego import generate_stego_assets
+from configstream.stego import generate_stego_assets
 from configstream.intelligence.washer.core import ProxyWasher
 from configstream.intelligence.chaining import generate_smart_chains
 from configstream.intelligence.vectors import generate_vectors
-from configstream.pipeline_core.stats import PipelineStats
+from configstream.pipeline_stats import PipelineStats
 from configstream.tagging import ProxyTagger
 from configstream.config import AppSettings
 from configstream.dns_batch_resolver import BatchDNSResolver
@@ -32,6 +32,11 @@ from configstream.utils.net import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _is_revived(p: Proxy) -> bool:
+    """Check if a proxy was revived via WARP/Vwarp."""
+    return (p.process or "").startswith("revived") or bool(p.details.get("is_revived"))
 
 
 def _save_clean_ips(clean_ips: List[tuple[str, int]], path: Path) -> None:
@@ -347,7 +352,7 @@ async def generate_pipeline_outputs(
     stats.scanner_ips_found = len(washer.clean_ips)
 
     # 2. Wash Batch (The "Blanket" Wash)
-    # Generates standard WARP wraps for all working proxies (fallback/legacy behavior)
+    # Generates standard WARP wraps for all working proxies
     # Returns the list of outbound configs and the set of IDs that were washed.
     # Pass stats object for metrics instrumentation
     washed_outbounds, washed_ids, skip_reasons = washer.wash_batch(
@@ -406,7 +411,7 @@ async def generate_pipeline_outputs(
         ]
     )
 
-    # [FIX] Explicit logging if no chains were created despite having working proxies
+    # Explicit logging if no chains were created despite having working proxies
     if not washed_outbounds and optimized_proxies:
         logger.info(
             "WARP wrap skipped for all proxies (no valid WARP endpoints or keys found)."
@@ -443,7 +448,7 @@ async def generate_pipeline_outputs(
 
     # Run blocking file I/O in executor
     loop = asyncio.get_running_loop()
-    # [FIX] Include washed outbounds + smart chains in proxies.json
+    # Include washed outbounds + smart chains in proxies.json
     # so the frontend displays all output types (not just native proxies).
     await loop.run_in_executor(
         None,
@@ -470,28 +475,16 @@ async def generate_pipeline_outputs(
     dns_hardened_path: Path = output_path / "proxies-dns-hardened.json"
     await loop.run_in_executor(None, save_json, dns_hardened_proxies, dns_hardened_path)
 
-    revived_proxies = [
-        p
-        for p in optimized_proxies
-        if (p.process or "").startswith("revived") or p.details.get("is_revived")
-    ]
+    revived_proxies = [p for p in optimized_proxies if _is_revived(p)]
     # Always write revived datasets to avoid 404s and keep output contracts stable.
     revived_path: Path = output_path / "revived.json"
     await loop.run_in_executor(None, save_json, revived_proxies, revived_path)
 
-    revived_dns_safe = [
-        p
-        for p in dns_safe_proxies
-        if (p.process or "").startswith("revived") or p.details.get("is_revived")
-    ]
+    revived_dns_safe = [p for p in dns_safe_proxies if _is_revived(p)]
     revived_dns_path: Path = output_path / "revived-dns-safe.json"
     await loop.run_in_executor(None, save_json, revived_dns_safe, revived_dns_path)
 
-    revived_dns_hardened = [
-        p
-        for p in dns_hardened_proxies
-        if (p.process or "").startswith("revived") or p.details.get("is_revived")
-    ]
+    revived_dns_hardened = [p for p in dns_hardened_proxies if _is_revived(p)]
     revived_hardened_path: Path = output_path / "revived-dns-hardened.json"
     await loop.run_in_executor(
         None, save_json, revived_dns_hardened, revived_hardened_path
@@ -520,27 +513,21 @@ async def generate_pipeline_outputs(
     # Count unique chain outbound tags (revived + washed + smart chains)
     # Uses lightweight tag counting instead of duplicating the full
     # _append_chain collection logic from output_logic.py
+    def _collect_tags(outbounds: list) -> set[str]:
+        return {ob.get("tag") for ob in outbounds if isinstance(ob, dict) and ob.get("tag")}
+
     _chain_tags: set[str] = set()
     for proxy in optimized_proxies:
         chain = proxy.details.get("chain_outbounds")
         if isinstance(chain, list):
-            for ob in chain:
-                tag = ob.get("tag") if isinstance(ob, dict) else None
-                if tag:
-                    _chain_tags.add(tag)
+            _chain_tags |= _collect_tags(chain)
     if washed_outbounds:
-        for ob in washed_outbounds:
-            tag = ob.get("tag") if isinstance(ob, dict) else None
-            if tag:
-                _chain_tags.add(tag)
+        _chain_tags |= _collect_tags(washed_outbounds)
     if smart_chains:
         for chain_list in smart_chains.values():
             for chain in chain_list:
                 if isinstance(chain, list):
-                    for ob in chain:
-                        tag = ob.get("tag") if isinstance(ob, dict) else None
-                        if tag:
-                            _chain_tags.add(tag)
+                    _chain_tags |= _collect_tags(chain)
     stats.chain_outbounds_count = len(_chain_tags)
 
     stats_dict = stats.to_dict()
@@ -558,7 +545,7 @@ async def generate_pipeline_outputs(
         frontend_root = (
             Path(settings.FRONTEND_DIR)
             if settings.FRONTEND_DIR
-            else Path(__file__).resolve().parents[3] / "frontend"
+            else Path(__file__).resolve().parents[2] / "frontend"
         )
         if frontend_root.exists():
             assets_dir = frontend_root / "assets" / "images"

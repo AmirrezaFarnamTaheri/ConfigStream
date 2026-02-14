@@ -20,6 +20,13 @@ from ..intelligence.evasion import enrich_outbound_with_evasion
 
 logger = logging.getLogger(__name__)
 
+
+def _json_str(obj: Any) -> str:
+    """Serialize to JSON string, handling orjson bytes return."""
+    raw = json.dumps(obj)
+    return raw.decode() if isinstance(raw, bytes) else raw
+
+
 # Pre-compiled pattern for stripping ANSI colour codes from Go tester output (per-line hot path)
 _ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-9;]*m")
 
@@ -224,38 +231,10 @@ class GoBatchTester:
                 finally:
                     self._proc = None
 
-            # Cancel tasks
-            if self._read_task:
-                self._read_task.cancel()
-                try:
-                    await self._read_task
-                except asyncio.CancelledError:
-                    pass
-                self._read_task = None
-
-            if self._stderr_task:
-                self._stderr_task.cancel()
-                try:
-                    await self._stderr_task
-                except asyncio.CancelledError:
-                    pass
-                self._stderr_task = None
-
-            if self._heartbeat_task:
-                self._heartbeat_task.cancel()
-                try:
-                    await self._heartbeat_task
-                except asyncio.CancelledError:
-                    pass
-                self._heartbeat_task = None
-
-            if self._restart_task:
-                self._restart_task.cancel()
-                try:
-                    await self._restart_task
-                except asyncio.CancelledError:
-                    pass
-                self._restart_task = None
+            # Cancel background tasks
+            for attr in ("_read_task", "_stderr_task", "_heartbeat_task", "_restart_task"):
+                await self._cancel_task(getattr(self, attr, None))
+                setattr(self, attr, None)
 
             # Cancel pending futures
             pending = list(self._pending_futures.values())
@@ -273,7 +252,7 @@ class GoBatchTester:
         if self._restart_task and not self._restart_task.done():
             try:
                 await safe_wait_for(self._restart_task, timeout=15.0)
-            except (asyncio.TimeoutError, asyncio.CancelledError, Exception):
+            except Exception:
                 pass
             self._restart_task = None
 
@@ -312,8 +291,6 @@ class GoBatchTester:
                 # Prepare environment
                 env = os.environ.copy()
                 env["GOLOG_LOG_LEVEL"] = "error"
-                # Fix for Sing-box 1.11+ deprecation warning/fatal error
-                env["ENABLE_DEPRECATED_WIREGUARD_OUTBOUND"] = "true"
                 # Ensure temp dir is accessible
                 env["TMPDIR"] = os.environ.get("TMPDIR", "/tmp")
                 env["PATH"] = os.environ.get("PATH", "/usr/bin:/bin")
@@ -321,7 +298,7 @@ class GoBatchTester:
                 # 🚀 FORCE TRAFFIC THROUGH VWARP TUNNEL IF AVAILABLE
                 # Check environment directly as it might be set dynamically by pipeline.py
                 # or fallback to AppSettings if set globally
-                # [FIX] Respect explicit disable via environment variable
+                # Respect explicit disable via environment variable
                 env_vwarp = os.environ.get("USE_VWARP_TUNNEL")
                 if env_vwarp == "false":
                     use_vwarp = False
@@ -356,6 +333,16 @@ class GoBatchTester:
             except Exception as e:
                 logger.error(f"Failed to start Go Tester Daemon: {e}")
                 self._proc = None
+
+    @staticmethod
+    async def _cancel_task(task: Optional[asyncio.Task]) -> None:
+        """Cancel a task and suppress CancelledError."""
+        if task:
+            task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
 
     @staticmethod
     async def _consume_futures(futures: List[asyncio.Future[Any]]) -> None:
@@ -452,7 +439,7 @@ class GoBatchTester:
                         if logger.isEnabledFor(logging.DEBUG):
                             logger.debug(f"Go Tester: {text}")
                     elif "error" in lower:
-                        # [FIX] Deduplicate repeating errors (specifically peer key errors)
+                        # Deduplicate repeating errors (specifically peer key errors)
                         if (
                             "failed to get peer by public key" in text
                             or "wireguard" in text
@@ -472,13 +459,6 @@ class GoBatchTester:
                                     self._recent_errors.get(key, 0) + 1
                                 )
 
-                                # Flush periodically
-                                if time.time() - self._last_log_flush > 5:
-                                    # Release lock briefly to flush (actually _flush acquires lock, so careful reentrancy)
-                                    # We are inside lock, cannot call _flush directly if it acquires lock
-                                    pass
-
-                            # Check flush outside lock to avoid deadlock if we refactor logging
                             if time.time() - self._last_log_flush > 5:
                                 await self._flush_error_logs()
                         else:
@@ -525,14 +505,9 @@ class GoBatchTester:
                 # Use unique request ID (Full UUID) to handle duplicate proxies collision-free
                 req_id = f"{p.id}-{uuid.uuid4().hex}"
 
-                # Handle json.dumps returning bytes or str
-                raw_json = json.dumps([outbound])
-                if isinstance(raw_json, bytes):
-                    config_str = raw_json.decode()
-                else:
-                    config_str = raw_json
+                config_str = _json_str([outbound])
 
-                # FIX: Go Tester expects "config" to be a JSON array of outbounds
+                # Go Tester expects "config" to be a JSON array of outbounds.
                 payload = {
                     "config": config_str,
                     "id": req_id,
@@ -545,7 +520,7 @@ class GoBatchTester:
                 req_id_order.append(req_id)
 
                 fut = loop.create_future()
-                # [AUDIT FIX] Use lock for thread-safety consistency
+                # Use lock for thread-safety consistency.
                 async with self._lock:
                     self._pending_futures[req_id] = fut
                 futures.append(fut)
@@ -565,16 +540,7 @@ class GoBatchTester:
         # Send batch to daemon
         try:
             # Use NDJSON
-            # Ensure json.dumps(i) is decoded if it is bytes
-            lines = []
-            for i in inputs:
-                dumped = json.dumps(i)
-                if isinstance(dumped, bytes):
-                    lines.append(dumped.decode())
-                else:
-                    lines.append(dumped)
-
-            payload_str = "\n".join(lines) + "\n"
+            payload_str = "\n".join(_json_str(i) for i in inputs) + "\n"
             self._proc.stdin.write(payload_str.encode())
             await self._proc.stdin.drain()
         except asyncio.CancelledError:
@@ -618,7 +584,7 @@ class GoBatchTester:
 
         # Wait for results
         # Set a total timeout relative to batch size
-        # FIX: Increase base buffer to 60s to ensure it exceeds Go worker's timeout
+        # Keep a 60s base buffer so Python timeout exceeds Go worker timeout
         # and gives Python breathing room, especially for WireGuard-heavy batches
         total_timeout = min(300, len(inputs) * 2 + 60)
 
@@ -674,7 +640,7 @@ class GoBatchTester:
             # so the next batch doesn't arrive before the daemon is ready
             try:
                 await safe_wait_for(self._restart_daemon(), timeout=30.0)
-            except (asyncio.TimeoutError, Exception) as re_err:
+            except Exception as re_err:
                 logger.warning(f"Daemon restart failed: {re_err}")
             return proxies
 
@@ -823,7 +789,7 @@ class GoBatchTester:
             if not chain_id or not outbounds:
                 continue
 
-            # [FIX] Check for empty list before serialization to avoid waste
+            # Check for empty list before serialization to avoid waste
             if isinstance(outbounds, list) and not outbounds:
                 continue
 
@@ -853,7 +819,7 @@ class GoBatchTester:
         if not inputs:
             return {}
 
-        # [FIX] Send with lock-protected process access to prevent NoneType.stdin race
+        # Send with lock-protected process access to prevent NoneType.stdin race
         try:
             lines = []
             for i in inputs:
@@ -864,7 +830,7 @@ class GoBatchTester:
                     lines.append(dumped)
 
             payload_str = "\n".join(lines) + "\n"
-            # [FIX] Capture proc reference under lock to prevent race with close()
+            # Capture proc reference under lock to prevent race with close()
             async with self._lock:
                 proc = self._proc
                 if proc is None or proc.stdin is None:

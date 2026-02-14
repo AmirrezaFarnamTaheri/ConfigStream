@@ -1,20 +1,32 @@
 import pytest
+import httpx
 from unittest.mock import AsyncMock, MagicMock, patch
 from configstream.intelligence.washer.warp_scraper import WarpScraper
+
+
+def _mock_httpx_response(text: str):
+    """Create a patched httpx.AsyncClient that returns the given text."""
+    mock_resp = MagicMock(spec=httpx.Response)
+    mock_resp.text = text
+    mock_resp.status_code = 200
+    mock_resp.raise_for_status = MagicMock()
+
+    mock_client = AsyncMock(spec=httpx.AsyncClient)
+    mock_client.get = AsyncMock(return_value=mock_resp)
+    mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+    mock_client.__aexit__ = AsyncMock(return_value=False)
+    return mock_client
 
 
 @pytest.mark.asyncio
 async def test_scrape_endpoint_list():
     scraper = WarpScraper()
-    scraper.fetcher.fetch_text = AsyncMock(
-        return_value="162.159.192.1:2408\ninvalid\n1.1.1.1"
-    )
+    mock_client = _mock_httpx_response("162.159.192.1:2408\ninvalid\n1.1.1.1")
 
-    # Mock WARP_SOURCES to only use endpoint_list
     with patch(
         "configstream.intelligence.washer.warp_scraper.WARP_SOURCES",
         [{"name": "test", "url": "http://test", "kind": "endpoint_list"}],
-    ):
+    ), patch("configstream.intelligence.washer.warp_scraper.httpx.AsyncClient", return_value=mock_client):
         proxies = await scraper.scrape_warp_sources()
         assert len(proxies) == 0  # endpoint_list produces no proxies directly
         endpoints = scraper.get_scraped_endpoints()
@@ -27,12 +39,12 @@ async def test_scrape_endpoint_list():
 async def test_scrape_text_decode_warp_uri():
     scraper = WarpScraper()
     warp_uri = "warp://someprivatekey1234567890123456789012345678901234567890@1.2.3.4:5678?peer=pubkey&reserved=1,2,3"
-    scraper.fetcher.fetch_text = AsyncMock(return_value=warp_uri)
+    mock_client = _mock_httpx_response(warp_uri)
 
     with patch(
         "configstream.intelligence.washer.warp_scraper.WARP_SOURCES",
         [{"name": "test", "url": "http://test", "kind": "text_decode"}],
-    ):
+    ), patch("configstream.intelligence.washer.warp_scraper.httpx.AsyncClient", return_value=mock_client):
         proxies = await scraper.scrape_warp_sources()
         assert len(proxies) == 1
         p = proxies[0]
@@ -60,12 +72,12 @@ async def test_scrape_singbox_json():
     }
     """
     scraper = WarpScraper()
-    scraper.fetcher.fetch_text = AsyncMock(return_value=json_content)
+    mock_client = _mock_httpx_response(json_content)
 
     with patch(
         "configstream.intelligence.washer.warp_scraper.WARP_SOURCES",
         [{"name": "test", "url": "http://test", "kind": "singbox"}],
-    ):
+    ), patch("configstream.intelligence.washer.warp_scraper.httpx.AsyncClient", return_value=mock_client):
         proxies = await scraper.scrape_warp_sources()
         assert len(proxies) == 1
         assert (

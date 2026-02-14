@@ -7,7 +7,7 @@ def test_source_quality_scoring(tmp_path):
     tracker = SourceQualityTracker(db_path=db_path)  # Pass Path object
 
     source = "http://example.com/list"
-    tracker.update(source, fetched_count=100, working_count=80, diversity_score=0.5)
+    tracker.update(source, fetched=100, working=80, diversity=0.5)
 
     # Should fetch
     should = tracker.should_fetch(source)
@@ -21,7 +21,7 @@ def test_source_quality_decay(tmp_path):
 
     # Consistent failure
     for _ in range(5):
-        tracker.update(source, fetched_count=100, working_count=0, diversity_score=0.0)
+        tracker.update(source, fetched=100, working=0, diversity=0.0)
 
     # It should ideally set cooldown, but logic depends on timestamps.
     # Exponential backoff sets cooldown in hours.

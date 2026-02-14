@@ -78,8 +78,8 @@
 
     "total_configured_sources": { "type": "integer", "minimum": 0 },
     "fetched_sources": { "type": "integer", "minimum": 0 },
-    "sources_count": { "type": "integer", "minimum": 0, "description": "Legacy alias for total_configured_sources" },
-    "total_sources": { "type": "integer", "minimum": 0, "description": "Legacy alias for total_configured_sources" }
+    "sources_count": { "type": "integer", "minimum": 0, "description": "Total configured sources" },
+    "total_sources": { "type": "integer", "minimum": 0, "description": "Total configured sources" }
   },
   "additionalProperties": true
 }

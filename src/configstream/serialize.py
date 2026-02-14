@@ -28,9 +28,7 @@ def serialize_proxy(
         proxy: The proxy object.
         history_points: Optional list of recent latency points for sparklines.
     """
-    # Note: we include "country" for legacy/consistency with some parts,
-    # but "country_code" is the ISO code.
-    # [FIX] For revived/chain proxies, generate a mini sing-box JSON config
+    # For revived/chain proxies, generate a mini sing-box JSON config
     # that v2rayN / xray / nekoray / Hiddify can import directly.
     config_value = proxy.config
     details_value = proxy.details
@@ -50,8 +48,6 @@ def serialize_proxy(
         "address": proxy.address,
         "port": proxy.port,
         "uuid": proxy.uuid,  # Critical for VLESS/Trojan/VMess reconstruction
-        "country": proxy.country_code,
-        "country_code": proxy.country_code,
         "city": proxy.city,
         "asn": proxy.asn,
         "org": proxy.org,
@@ -59,7 +55,7 @@ def serialize_proxy(
         "is_working": proxy.is_working,
         "tags": proxy.tags,
         "last_checked": proxy.tested_at,
-        # [FIX] Guard against None details
+        # Guard against None details
         "source": (proxy.details or {}).get("_source"),
         "security": proxy.security_issues,
         "details": details_value,
@@ -71,10 +67,10 @@ def serialize_proxy(
     # Inject history if provided or attached
     if history_points:
         data["history"] = history_points
-    elif getattr(proxy, "history", None):
-        data["history"] = proxy.history
-    elif hasattr(proxy, "history_points"):
-        data["history"] = getattr(proxy, "history_points")
+    else:
+        hist = getattr(proxy, "history", None) or getattr(proxy, "history_points", None)
+        if hist:
+            data["history"] = hist
 
     return data
 
@@ -101,7 +97,7 @@ def _build_chain_config(chain_outbounds: List[Dict[str, Any]]) -> str:
 def _json_default(obj: Any) -> Any:
     """Custom JSON serializer for types not handled by default.
 
-    [FIX] Handles set, tuple, datetime, and other common Python types
+    Handles set, tuple, datetime, and other common Python types
     to prevent TypeError crashes during output generation (Zone 6).
     """
     if isinstance(obj, set):
@@ -118,22 +114,15 @@ def _json_default(obj: Any) -> Any:
 
 def to_json(data: Any) -> str:
     """
-    Dump to JSON string.
+    Dump to JSON string.  Uses orjson if available, falling back to stdlib json.
     """
-    if hasattr(json_lib, "dumps"):
-        # Standard json or compatible
-        try:
-            result: Union[str, bytes] = json_lib.dumps(data)
-        except TypeError:
-            # [FIX] Fallback with custom default handler for non-serializable types
-            import json
-
-            result = json.dumps(data, indent=2, default=_json_default)
-        if isinstance(result, bytes):
-            return result.decode("utf-8")
-        return str(result)  # Ensure string return
-    else:
-        # Fallback
+    try:
+        result: Union[str, bytes] = json_lib.dumps(data)
+    except TypeError:
+        # Fallback with custom default handler for non-serializable types
         import json
 
-        return json.dumps(data, indent=2, default=_json_default)
+        result = json.dumps(data, indent=2, default=_json_default)
+    if isinstance(result, bytes):
+        return result.decode("utf-8")
+    return str(result)

@@ -11,7 +11,7 @@
  *   logger.error('Error message');    // Always logged
  *   logger.info('Info message');      // Only in development
  *
- * [FIX P1] Addresses security concern: console logging in production
+ * Addresses security concern: console logging in production.
  */
 
 class Logger {

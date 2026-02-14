@@ -1,5 +1,5 @@
 /**
- * Utils Facade
+ * Utils Wrapper
  * Connects the split utility modules to the global window.api
  */
 
@@ -18,7 +18,7 @@ window.api = {
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     // getCountryFlag, etc. would be undefined here if not loaded,
-    // but this file is just a facade in this context.
+    // but this file is just a wrapper in this context.
   };
 }
 

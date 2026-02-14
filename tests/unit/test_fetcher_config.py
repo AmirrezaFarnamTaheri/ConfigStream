@@ -47,13 +47,11 @@ async def test_max_response_size_behavior():
 @pytest.mark.asyncio
 async def test_env_var_override():
     """
-    Test that the module *would* load a different value if env var is set.
-    We can't easily unload/reload in a unit test without side effects,
-    but we can verify the code in fetcher.py uses os.getenv.
+    Test that MAX_RESPONSE_SIZE is available and has the expected default.
     """
-    import configstream.fetcher
+    from configstream.fetcher_worker import MAX_RESPONSE_SIZE
 
     # Check if MAX_RESPONSE_SIZE is an int
-    assert isinstance(configstream.fetcher.MAX_RESPONSE_SIZE, int)
+    assert isinstance(MAX_RESPONSE_SIZE, int)
     # Default is unlimited (0)
-    assert configstream.fetcher.MAX_RESPONSE_SIZE == 0
+    assert MAX_RESPONSE_SIZE == 0

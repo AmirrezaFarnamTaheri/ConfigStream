@@ -1,8 +1,9 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 import pytest
 import asyncio
 from unittest.mock import MagicMock, patch, AsyncMock
-from configstream.pipeline_core.consumer import processing_consumer
-from configstream.pipeline_core.stats import PipelineStats
+from configstream.consumer import processing_consumer
+from configstream.pipeline_stats import PipelineStats
 from configstream.models import Proxy
 
 
@@ -79,11 +80,11 @@ async def test_processing_consumer_revival_crash(mock_dependencies_fix):
 
     # Mock parse_config
     with patch(
-        "configstream.pipeline_core.consumer.parse_config", return_value=original_proxy
+        "configstream.consumer.parse_config", return_value=original_proxy
     ):
         # Mock validate_batch_configs
         with patch(
-            "configstream.pipeline_core.consumer.validate_batch_configs",
+            "configstream.consumer.validate_batch_configs",
             return_value=[original_proxy],
         ):
 

@@ -49,17 +49,17 @@ async def test_pipeline_dry_run(tmp_path, mock_proxies):
             side_effect=filter_unique_mock,
         ),
         patch(
-            "configstream.pipeline_core.output_handler.generate_categorized_outputs",
+            "configstream.output_handler.generate_categorized_outputs",
             return_value={},
         ),
-        patch("configstream.pipeline_core.output_handler.save_metadata"),
+        patch("configstream.output_handler.save_metadata"),
         patch("configstream.pipeline.ProxyHistoryTracker") as MockHistory,
         patch(
-            "configstream.pipeline_core.output_handler.ProxyWasher",
+            "configstream.output_handler.ProxyWasher",
             new=MagicMock(spec=ProxyWasher),
         ) as MockWasher,
         patch(
-            "configstream.pipeline_core.output_handler.generate_smart_chains",
+            "configstream.output_handler.generate_smart_chains",
             return_value={},
         ),
     ):
@@ -136,7 +136,7 @@ async def test_pipeline_pareto_sort(tmp_path, mock_proxies):
         patch("configstream.pipeline.source_producer") as mock_producer,
         patch("configstream.pipeline.processing_consumer") as mock_consumer,
         patch(
-            "configstream.pipeline_core.output_handler.generate_pipeline_outputs",
+            "configstream.output_handler.generate_pipeline_outputs",
             new=AsyncMock(return_value={}),
         ),
         patch("configstream.pipeline.ProxyHistoryTracker") as MockHistory,
@@ -194,7 +194,7 @@ async def test_pipeline_adapter_export_fail(tmp_path, mock_proxies):
         patch("configstream.pipeline.source_producer") as mock_producer,
         patch("configstream.pipeline.processing_consumer") as mock_consumer,
         patch(
-            "configstream.pipeline_core.output_handler.generate_pipeline_outputs",
+            "configstream.output_handler.generate_pipeline_outputs",
             new=AsyncMock(side_effect=Exception("Export Fail")),
         ),
         patch("configstream.pipeline.ProxyHistoryTracker"),

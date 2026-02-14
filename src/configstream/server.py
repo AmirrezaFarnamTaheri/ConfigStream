@@ -24,7 +24,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
-from .output import OUTPUT_DIR
+OUTPUT_DIR = Path(os.environ.get("OUTPUT_DIR", "output"))
 from .config import AppSettings
 from .logging_config import setup_logging
 
@@ -270,7 +270,7 @@ async def notify_update(payload: dict):
                     "Include 'api_key' in payload or set ENVIRONMENT=development",
                 )
         elif not secrets.compare_digest(str(provided_key), str(api_key)):
-            # [FIX] Use constant-time comparison to prevent timing attacks
+            # Use constant-time comparison to prevent timing attacks
             raise HTTPException(403, "Forbidden: Invalid API key")
 
     await manager.broadcast(
@@ -584,7 +584,7 @@ async def health_check():
 
     return {
         "status": "ok",
-        # [FIX] Don't expose absolute filesystem paths to clients
+        # Don't expose absolute filesystem paths to clients
         "output_available": OUTPUT_DIR.exists(),
         "files_present": files_count,
         "version": VERSION,

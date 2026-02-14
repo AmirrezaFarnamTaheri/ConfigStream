@@ -52,7 +52,7 @@ function showEmptyState() {
     }
 }
 
-// F6 Fix: Centralized Color Logic
+// Centralized color logic
 function generateColor(label, index) {
     // Consistent hashing color generation
     let hash = 0;
@@ -82,7 +82,7 @@ function updateStats(data) {
         return num.toLocaleString();
     };
 
-    // Use canonical fields with comprehensive legacy fallbacks (consistent with main.js)
+    // Use canonical fields with comprehensive fallbacks (consistent with main.js)
     // Use canonical backend field names only
     const totalSourced = data.total_lines_sourced;
     update('totalSourced', formatNum(totalSourced));
@@ -470,7 +470,7 @@ function _initGlobeInternal(data, container) {
                 lat: info.lat,
                 lng: info.lng,
                 size: Math.sqrt(count) / 5,
-                // F6 Fix: Use centralized or standard color logic if needed, but here getScoreColor is specific to heatmap
+                // getScoreColor is specific to heatmap intensity here.
                 color: getScoreColor(count / maxCount),
                 name: `${info.name || cc}: ${count} proxies`
             });
@@ -611,7 +611,7 @@ function initCharts(data, evasionTrend = null) {
     Chart.defaults.color = '#94a3b8';
     Chart.defaults.borderColor = '#1e293b';
 
-    // FIX: Defensive computation of latency_by_country and latency_by_protocol
+    // Defensive computation of latency_by_country and latency_by_protocol
     // If these fields are missing but proxy_locations exists, compute them
     if (!data.latency_by_country && data.proxy_locations && data.proxy_locations.length > 0) {
         const latByCountry = {};
@@ -658,7 +658,7 @@ function initCharts(data, evasionTrend = null) {
     if (protoEl) {
     const protoCtx = protoEl.getContext('2d');
     const protoLabels = Object.keys(data.protocols || {});
-    // F6 Fix: Use centralized color logic
+    // Use centralized color logic
     const protoColors = protoLabels.map((p, i) => generateColor(p, i));
 
     new Chart(protoCtx, {

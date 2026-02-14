@@ -18,7 +18,7 @@ __pycache__/
 # Ignore tests
 tests/
 
-# [FIX] Exclude meta-files to preserve build cache
+# Exclude meta-files to preserve build cache
 .github/
 docs/
 scripts/

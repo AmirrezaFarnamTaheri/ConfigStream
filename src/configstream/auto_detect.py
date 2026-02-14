@@ -82,7 +82,7 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
                 "tuic": parse_tuic,
                 "wg": parse_wireguard,
                 "wireguard": parse_wireguard,
-                # [FIX] Map exclave to wireguard parser
+                # Map exclave to wireguard parser
                 "exclave": parse_wireguard,
                 "http": parse_generic_url_scheme,
                 "https": parse_generic_url_scheme,
@@ -198,7 +198,7 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
                             "wireguard",
                             "wg",
                             "exclave",
-                        ],  # [FIX] Add exclave
+                        ],  # Add exclave
                         "vmess": ["vmess"],
                         "vless": ["vless"],
                         "ss": ["ss", "ss2022"],

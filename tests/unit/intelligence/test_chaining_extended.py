@@ -60,6 +60,7 @@ def test_create_chain():
         port=443,
         uuid="u1",
         country="TR",
+        country_code="TR",
     )
     exit_node = Proxy(
         config="vmess://2",
@@ -68,6 +69,7 @@ def test_create_chain():
         port=443,
         uuid="u2",
         country="US",
+        country_code="US",
     )
 
     # Mock converters
@@ -77,8 +79,10 @@ def test_create_chain():
     ):
         chain = create_chain(relay, exit_node, "TEST")
         assert len(chain) == 2
-        assert chain[0]["tag"].startswith("TEST-RELAY")
-        assert chain[1]["tag"].startswith("TEST-EXIT")
+        # Relay tag format: RELAY-{id[:6]}-{strategy}
+        assert chain[0]["tag"] == "RELAY-u1-TEST"
+        # Chain tag format contains strategy and flags
+        assert "| TEST |" in chain[1]["tag"]
         assert chain[1]["detour"] == chain[0]["tag"]
 
 

@@ -675,7 +675,7 @@ body.dark .github-btn:hover {
         width: 100%;
         height: 100%;
         background: rgba(0,0,0,0.5);
-    /* [FIX] Lower z-index below header (1000) so nav panel (in header) stays on top */
+    /* Lower z-index below header (1000) so nav panel (in header) stays on top */
     z-index: 990;
         opacity: 0;
         visibility: hidden;
@@ -2153,7 +2153,7 @@ body.dark .filter-summary {
     table-layout: fixed; /* Fix column widths */
 }
 
-/* [FIX] Enforce column widths on desktop to prevent layout issues */
+/* Enforce column widths on desktop to prevent layout issues */
 @media (min-width: 769px) {
     .proxies-table th:nth-child(1),
     .proxies-table td:nth-child(1) { width: 15%; } /* Protocol */
@@ -4301,7 +4301,7 @@ body.dark .client-select {
 
 /* Prevent zoom from affecting page scroll by default */
 #globe-viz.zoom-inactive {
-    /* [FIX] Removed pointer-events: none to allow interaction activation */
+    /* Removed pointer-events: none to allow interaction activation */
     cursor: grab;
 }
 

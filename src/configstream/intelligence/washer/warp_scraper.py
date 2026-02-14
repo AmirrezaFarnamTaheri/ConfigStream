@@ -10,9 +10,11 @@ import base64
 from typing import List, Dict, Any
 from urllib.parse import urlparse, parse_qs
 
+import httpx
+
 from configstream.models import Proxy
-from configstream.fetcher import Fetcher
 from configstream.intelligence.washer.utils import make_entry
+from configstream.security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +52,7 @@ WARP_SOURCES: List[Dict[str, Any]] = [
 
 class WarpScraper:
     def __init__(self) -> None:
-        self.fetcher = Fetcher()
+        self._timeout = 30.0
         # Collected clean endpoint IPs (can be used by ProxyWasher)
         self.scraped_endpoints: List[str] = []
 
@@ -91,7 +93,8 @@ class WarpScraper:
             return make_entry("warp-uri", private_key, host, peer_pub, reserved, port)
 
         except Exception as e:
-            logger.debug(f"Failed to parse warp:// URI: {e}")
+            safe_e = SecurityValidator.sanitize_log_message(str(e))
+            logger.debug(f"Failed to parse warp:// URI: {safe_e}")
             return None
 
     def _extract_from_config_block(self, text: str) -> List[Proxy]:
@@ -127,7 +130,12 @@ class WarpScraper:
             )
 
             try:
-                content = await self.fetcher.fetch_text(url)
+                async with httpx.AsyncClient(
+                    timeout=self._timeout, follow_redirects=True
+                ) as client:
+                    resp = await client.get(url)
+                    resp.raise_for_status()
+                content = resp.text
                 if not content:
                     continue
 
@@ -189,7 +197,8 @@ class WarpScraper:
                             entries.extend(block_entries)
 
                     except Exception as e:
-                        logger.debug(f"Error processing text_decode for {name}: {e}")
+                        safe_e = SecurityValidator.sanitize_log_message(str(e))
+                        logger.debug(f"Error processing text_decode for {name}: {safe_e}")
 
                 elif kind == "endpoint_list":
                     # Scrape IPs for the clean IP pool
