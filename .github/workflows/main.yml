@@ -464,6 +464,16 @@ jobs:
           pip install google-api-python-client google-auth
           python scripts/upload_gdrive.py --path output/ --folder-id $GDRIVE_FOLDER_ID
 
+      - name: Ensure release assets are non-empty
+        run: |
+          for f in output/singbox.json output/clash.yaml output/singbox-vpn.json output/base64.txt output/consolidated_pipeline.log; do
+            if [ ! -s "$f" ]; then
+              echo "⚠️  $f is empty or missing — writing placeholder"
+              mkdir -p "$(dirname "$f")"
+              echo "# No data produced in this run" > "$f"
+            fi
+          done
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
