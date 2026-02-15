@@ -347,6 +347,69 @@ class ShadowrocketAdapter(Adapter):
                 continue
         return None
 
+    def _extract_revived_uri(self, p: Proxy) -> Optional[str]:
+        """Try to reconstruct a URI from a revived/chain proxy."""
+        details = p.details or {}
+        tag = "Revived" if not details.get("use_vwarp") else "Revived-VWARP"
+
+        # Strategy 1: full origin_proxy dict
+        origin = details.get("origin_proxy")
+        if origin and isinstance(origin, dict):
+            try:
+                origin_p = Proxy(**origin)
+                origin_p.remarks = f"[{tag}] {origin_p.remarks or origin_p.protocol}"
+                uri = self._reconstruct_uri(origin_p)
+                if uri:
+                    return uri
+            except Exception:
+                pass
+
+        # Strategy 2: compact origin_config
+        origin_cfg = details.get("origin_config")
+        if origin_cfg and isinstance(origin_cfg, dict):
+            try:
+                origin_p = Proxy(
+                    config=str(origin_cfg.get("config", "")),
+                    protocol=str(origin_cfg.get("protocol", "")),
+                    address=str(origin_cfg.get("address", "")),
+                    port=int(origin_cfg.get("port", 0) or 0),
+                    uuid=str(origin_cfg.get("uuid", "")),
+                    remarks=f"[{tag}] {origin_cfg.get('remarks', '')}",
+                    details=origin_cfg.get("details") or {},
+                )
+                uri = self._reconstruct_uri(origin_p)
+                if uri:
+                    return uri
+                # Try the raw config as URI
+                raw = (origin_p.config or "").strip()
+                if raw and "://" in raw:
+                    return raw
+            except Exception:
+                pass
+
+        # Strategy 3: extract relay from chain_outbounds
+        chain_obs = details.get("chain_outbounds")
+        if isinstance(chain_obs, list):
+            from .generators.plaintext import _proxy_from_outbound
+
+            for ob in chain_obs:
+                if not isinstance(ob, dict) or ob.get("type") == "wireguard":
+                    continue
+                relay_proxy = _proxy_from_outbound(ob, remark_prefix=f"[{tag}] ")
+                if relay_proxy:
+                    uri = self._reconstruct_uri(relay_proxy)
+                    if uri:
+                        return uri
+            for ob in chain_obs:
+                if not isinstance(ob, dict):
+                    continue
+                wg_proxy = _proxy_from_outbound(ob, remark_prefix=f"[{tag}] ")
+                if wg_proxy:
+                    uri = self._reconstruct_uri(wg_proxy)
+                    if uri:
+                        return uri
+        return None
+
     def export(
         self,
         proxies: List[Proxy],
@@ -355,10 +418,39 @@ class ShadowrocketAdapter(Adapter):
         lines = []
         reconstructed_count = 0
         for p in proxies:
-            # Skip revived placeholders; they are chains, not raw URIs.
+            # Revived proxies: try to extract origin URI from details
             if p.protocol == "revived" or str(p.config).lower().startswith(
                 "revived://"
             ):
+                uri = self._extract_revived_uri(p)
+                if uri:
+                    lines.append(uri)
+                    reconstructed_count += 1
+                continue
+
+            # Chain proxy with JSON config: try to extract outbound URIs
+            raw_cfg = (p.config or "").strip()
+            if raw_cfg.startswith("{") and (p.details or {}).get("is_chain"):
+                try:
+                    cfg = json.loads(raw_cfg)
+                    outbounds = cfg.get("outbounds", [])
+                    if isinstance(outbounds, list):
+                        from .generators.plaintext import _proxy_from_outbound
+
+                        for ob in outbounds:
+                            if not isinstance(ob, dict):
+                                continue
+                            ob_proxy = _proxy_from_outbound(
+                                ob, remark_prefix="[Chain] "
+                            )
+                            if ob_proxy:
+                                uri = self._reconstruct_uri(ob_proxy)
+                                if uri:
+                                    lines.append(uri)
+                                    reconstructed_count += 1
+                                    break
+                except (json.JSONDecodeError, TypeError):
+                    pass
                 continue
 
             # Normalize existing URIs to enforce consistent tags and protocols.
@@ -617,6 +709,28 @@ class ShadowrocketAdapter(Adapter):
                 else:
                     auth = f"{auth_user}@"
             return f"ssh://{auth}{p.address}:{p.port}#{name}"
+
+        elif p.protocol == "wireguard":
+            priv = p.details.get("private_key", "")
+            pub = p.details.get("peer_public_key", "")
+            if not priv or not pub:
+                return ""
+            params: Dict[str, str] = {"publickey": pub}
+            local_addr = p.details.get("local_address")
+            if isinstance(local_addr, list) and local_addr:
+                params["address"] = ",".join(str(a) for a in local_addr)
+            elif isinstance(local_addr, str) and local_addr:
+                params["address"] = local_addr
+            reserved = p.details.get("reserved")
+            if isinstance(reserved, list) and reserved:
+                params["reserved"] = ",".join(str(r) for r in reserved)
+            mtu = p.details.get("mtu")
+            if mtu:
+                params["mtu"] = str(mtu)
+            query = urllib.parse.urlencode(params) if params else ""
+            query_part = f"?{query}" if query else ""
+            encoded_key = urllib.parse.quote(priv, safe="")
+            return f"wireguard://{encoded_key}@{p.address}:{p.port}{query_part}#{name}"
 
         return ""
 

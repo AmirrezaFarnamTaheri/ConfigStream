@@ -39,6 +39,22 @@ def _is_revived(p: Proxy) -> bool:
     return (p.process or "").startswith("revived") or bool(p.details.get("is_revived"))
 
 
+def _is_clean_ip(host: str) -> bool:
+    """Quick validation that a string looks like a real IPv4/IPv6 address."""
+    host = host.strip()
+    if not host:
+        return False
+    # IPv4: exactly 3 dots, all octets 0-255
+    if host[0].isdigit() and host.count(".") == 3:
+        return all(
+            p.isdigit() and 0 <= int(p) <= 255 for p in host.split(".")
+        )
+    # IPv6: at least 2 colons, only hex/colon/dot chars
+    if host.count(":") >= 2 and all(c in "0123456789abcdefABCDEF:." for c in host):
+        return True
+    return False
+
+
 def _save_clean_ips(clean_ips: List[tuple[str, int]], path: Path) -> None:
     """
     Save washer clean IPs for the frontend lab.
@@ -52,7 +68,7 @@ def _save_clean_ips(clean_ips: List[tuple[str, int]], path: Path) -> None:
         except Exception:
             continue
         ip_s = str(ip).strip()
-        if not ip_s:
+        if not ip_s or not _is_clean_ip(ip_s):
             continue
         try:
             port_i = int(port)

@@ -85,6 +85,9 @@ RUN uv pip install --no-cache-dir .
 # Set Environment
 ENV PATH="/home/runner/.local/bin:$PATH"
 ENV PYTHONPATH="/app/src"
+# sing-box ≥1.11 deprecated legacy wireguard outbound; ≥1.12 fatally
+# rejects WG configs without this.  Required for chain proxy testing.
+ENV ENABLE_DEPRECATED_WIREGUARD_OUTBOUND=true
 
 USER runner
 

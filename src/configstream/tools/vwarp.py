@@ -24,6 +24,25 @@ from ..security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
 
+# Simple IPv4/IPv6 validation pattern for scan output parsing
+_IPV4_RE = re.compile(
+    r"^(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)$"
+)
+
+
+def _is_valid_ip(host: str) -> bool:
+    """Check if a string looks like a valid IPv4 or IPv6 address."""
+    host = host.strip()
+    if not host:
+        return False
+    # IPv4
+    if _IPV4_RE.match(host):
+        return True
+    # IPv6: hex/colon/dot chars only AND at least 2 colons (real IPv6 has 2-7)
+    if host.count(":") >= 2 and all(c in "0123456789abcdefABCDEF:." for c in host):
+        return True
+    return False
+
 # Constants for Vwarp binary management
 VWARP_VERSION = "v2.1.0"
 VWARP_SHA256_AMD64 = "4b971ed3696ed607bf91000f379f6308459fd1dafa1beae14404a8b7ce068cf7"
@@ -734,7 +753,12 @@ class VwarpTool:
                                 else:
                                     host = clean_ep
 
-                        endpoints.append((host, port))
+                        if _is_valid_ip(host):
+                            endpoints.append((host, port))
+                        else:
+                            logger.debug(
+                                "Vwarp scan: skipping non-IP host %r", host
+                            )
 
             elapsed = time.time() - scan_start
             logger.info(
@@ -907,7 +931,18 @@ class VwarpTool:
                 "bind": f"{bind_addr}:{port}",
                 "dns": "1.1.1.1",
             }
-            return await attempt("minimal-dns-only", fallback_cfg)
+            if await attempt("minimal-dns-only", fallback_cfg):
+                return True
+
+            # Second fallback: try alternate WARP endpoint + explicit endpoint
+            # to bypass potential UDP/DNS blocks in CI environments
+            logger.info("Vwarp second fallback: trying alternate endpoint 162.159.193.10:1701")
+            fallback_cfg2 = {
+                "bind": f"{bind_addr}:{port}",
+                "dns": "1.0.0.1",
+                "endpoint": "162.159.193.10:1701",
+            }
+            return await attempt("alternate-endpoint", fallback_cfg2)
 
         if fallback_enabled:
             logger.info(f"Vwarp fallback skipped (reason={reason}).")

@@ -87,6 +87,8 @@ def build_proxy_stack(proxy: Proxy) -> str:
     proto = (proxy.protocol or "").upper().strip()
     if proto == "REVIVED":
         origin = details.get("origin_proxy")
+        if not isinstance(origin, dict):
+            origin = details.get("origin_config")
         if isinstance(origin, dict):
             origin_proto = origin.get("protocol")
             if isinstance(origin_proto, str) and origin_proto.strip():

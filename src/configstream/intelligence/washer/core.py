@@ -812,12 +812,15 @@ class ProxyWasher:
                         self._clean_ips = []
                         for ep in fresh_endpoints:
                             if isinstance(ep, str):
-                                self._clean_ips.append((ep, 2408))
-                            else:
-                                self._clean_ips.append(ep)
-                        logger.info(
-                            f"Loaded {len(fresh_endpoints)} clean IPs from Scraper"
-                        )
+                                if self._looks_like_ip(ep):
+                                    self._clean_ips.append((ep, 2408))
+                            elif isinstance(ep, tuple) and len(ep) == 2:
+                                if self._looks_like_ip(str(ep[0])):
+                                    self._clean_ips.append(ep)
+                        if self._clean_ips:
+                            logger.info(
+                                f"Loaded {len(self._clean_ips)} clean IPs from Scraper"
+                            )
 
                     if new_keys:
                         self._warp_keys = new_keys
@@ -852,9 +855,12 @@ class ProxyWasher:
                     )
 
                     if scanned_ips and len(scanned_ips) >= 5:
-                        self._clean_ips = [(ip, 2408) for ip in scanned_ips]
+                        self._clean_ips = [
+                            (ip, 2408) for ip in scanned_ips
+                            if self._looks_like_ip(str(ip))
+                        ]
                         logger.info(
-                            f"Active Scan Success: Using {len(scanned_ips)} fresh IPs."
+                            f"Active Scan Success: Using {len(self._clean_ips)} fresh IPs."
                         )
                 except Exception as e:
                     logger.error(f"Active scan failed: {e}")
@@ -872,11 +878,26 @@ class ProxyWasher:
                                     for line in resp.text.splitlines()
                                     if line.strip() and not line.startswith("#")
                                 ]
-                                valid_ips = [
-                                    ip.split("/")[0]
-                                    for ip in lines
-                                    if ip.count(".") == 3 and ip[0].isdigit()
-                                ]
+                                valid_ips: list[str] = []
+                                for raw_ip in lines:
+                                    host = raw_ip.split("/")[0]
+                                    if host.count(".") != 3 or not host[0].isdigit():
+                                        continue
+                                    # CIDR base addresses (x.x.x.0) are not usable
+                                    # endpoints; offset to a real host IP.
+                                    octets = host.split(".")
+                                    try:
+                                        last = int(octets[3])
+                                    except (IndexError, ValueError):
+                                        continue
+                                    if last == 0:
+                                        octets[3] = "1"
+                                        host = ".".join(octets)
+                                    elif last == 255:
+                                        octets[3] = "254"
+                                        host = ".".join(octets)
+                                    if self._looks_like_ip(host):
+                                        valid_ips.append(host)
                                 if valid_ips:
                                     self._clean_ips = [
                                         (ip, 2408) for ip in valid_ips[:100]
@@ -913,6 +934,23 @@ class ProxyWasher:
                 except Exception as e:
                     logger.error(f"Key generation failed: {e}")
 
+    @staticmethod
+    def _looks_like_ip(host: str) -> bool:
+        """Quick check that a host string resembles an IP (not a timestamp/garbage)."""
+        host = host.strip()
+        if not host:
+            return False
+        # IPv4: starts with digit and has exactly 3 dots
+        if host[0].isdigit() and host.count(".") == 3:
+            return all(
+                part.isdigit() and 0 <= int(part) <= 255
+                for part in host.split(".")
+            )
+        # IPv6: hex/colon/dot chars only AND at least 2 colons (real IPv6 has 2-7)
+        if host.count(":") >= 2 and all(c in "0123456789abcdefABCDEF:." for c in host):
+            return True
+        return False
+
     def _get_clean_endpoint(self, relay_id: str) -> Tuple[str, int]:
         pool = self.clean_ips
         if not pool:
@@ -927,9 +965,9 @@ class ProxyWasher:
                 port = 2408
 
                 if host.startswith("[") and "]" in host:
-                    # Bracketed IPv6: [addr]:port
+                    # Bracketed IPv6: [addr]:port — strip brackets
                     end = host.find("]")
-                    ip = host[: end + 1]
+                    ip = host[1:end]
                     rest = host[end + 1 :].lstrip()
                     if rest.startswith(":"):
                         try:
@@ -951,14 +989,20 @@ class ProxyWasher:
             # Append defaults
             pool.extend([(ip, 2408) for ip in DEFAULT_CLEAN_IPS])
 
-        if not pool:
+        # Filter out any non-IP entries that slipped through scan parsing
+        valid_pool = []
+        for ep in pool:
+            if isinstance(ep, tuple) and len(ep) == 2:
+                if self._looks_like_ip(str(ep[0])):
+                    valid_pool.append(ep)
+            elif isinstance(ep, str) and self._looks_like_ip(ep):
+                valid_pool.append((ep, 2408))
+
+        if not valid_pool:
             return ("162.159.192.1", 2408)
 
         hash_val = int(hashlib.sha256(relay_id.encode()).hexdigest(), 16)
-        endpoint = pool[hash_val % len(pool)]
-        if isinstance(endpoint, str):
-            return (endpoint, 2408)
-        return endpoint
+        return valid_pool[hash_val % len(valid_pool)]
 
     def _get_consistent_exit(
         self, relay_id: str, exit_pool: List[Dict[str, Any]]

@@ -36,11 +36,24 @@ def serialize_proxy(
         chain_obs = (proxy.details or {}).get("chain_outbounds")
         if isinstance(chain_obs, list) and chain_obs:
             config_value = _build_chain_config(chain_obs)
-        # Strip heavy origin_proxy blob from serialized details
+        # Strip heavy origin_proxy blob from serialized details but
+        # preserve a compact origin_config for URI reconstruction in
+        # plaintext/base64 generators after merge deserialization.
         if isinstance(details_value, dict) and "origin_proxy" in details_value:
+            origin_blob = details_value["origin_proxy"]
             details_value = {
                 k: v for k, v in details_value.items() if k != "origin_proxy"
             }
+            if isinstance(origin_blob, dict) and "origin_config" not in details_value:
+                details_value["origin_config"] = {
+                    "config": origin_blob.get("config", ""),
+                    "protocol": origin_blob.get("protocol", ""),
+                    "address": origin_blob.get("address", ""),
+                    "port": origin_blob.get("port", 0),
+                    "uuid": origin_blob.get("uuid", ""),
+                    "remarks": origin_blob.get("remarks", ""),
+                    "details": origin_blob.get("details") or {},
+                }
 
     data = {
         "id": proxy.id,  # Useful for vector mapping
