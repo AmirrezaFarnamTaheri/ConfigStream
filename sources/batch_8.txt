@@ -1,10 +1,52 @@
 # ConfigStream Batch 8
 # Optimized based on fetch duration for equal execution times
-# Est. Fetch Time: 5529.9s
+# Est. Fetch Time: 9217.1s
 
-https://raw.githubusercontent.com/Argh94/V2RayAutoConfig/main/configs/Shadowsocks.txt
-https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/protocols/ss.txt
-https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub37.txt
-https://v2.alicivil.workers.dev/?count=2000&list=nl&shuffle=true
+https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-5.txt
+https://raw.githubusercontent.com/vpei/free-node-1/refs/heads/main/res/nod-3.txt
+https://raw.githubusercontent.com/Kolandone/v2raycollector/refs/heads/main/vless.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub27.txt
+https://v2.alicivil.workers.dev/?count=2000&list=si&shuffle=true
 https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/sub/ServerLess_1-1_Fragment_xray_config.json
-https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/main/mtn/sub_4.txt
+https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/main/mfc.txt
+https://raw.githubusercontent.com/itsyebekhe/PSG/main/subscriptions/xray/base64/mix
+https://msk.vless-balancer.ru/sub/dXNlcl82Nzg4MzMxMjQ5LDE3Njk1MzUzMTkBqGm3A1STd#Subscription
+https://raw.githubusercontent.com/du5/free/master/file/0312/clash.yaml
+https://cdn.jsdelivr.net/gh/firefoxmmx2/v2rayshare_subcription/subscription/vray_sub.txt
+https://free-proxy-list.net/
+https://raw.githubusercontent.com/MhdiTaheri/V2rayCollector_Py/refs/heads/main/sub/Mix/mix.txt
+https://raw.githubusercontent.com/mlabalabala/v2ray-node/main/nodefree4clash.txt
+https://raw.githubusercontent.com/igeekshare/GeekshareFreeNode/main/clash/Geekshare.yaml
+https://raw.githubusercontent.com/ermaozi/get_subscribe/main/subscribe/v2ray.txt
+https://raw.githubusercontent.com/resasanian/Mirza/master/sub
+https://raw.githubusercontent.com/xiaoji235/airport-free/master/v2ray.txt
+https://raw.githubusercontent.com/ermaozi01/free_clash_vpn/main/subscribe/v2ray.txt
+https://raw.githubusercontent.com/hsb4657/v2ray/main/lastest.txt
+https://raw.githubusercontent.com/VPN-Subcription-Links/ClashX-V2Ray-TopFreeProxy/main/combine/clash.config.yaml
+https://rahi-eq3.pages.dev/api/configs?limit=all
+https://raw.githubusercontent.com/Strongmiao168/v2ray/main/1203
+https://raw.githubusercontent.com/tony0392/clash/main/clash.yaml
+https://raw.githubusercontent.com/abbasdvd3/clash/main/vless/x
+https://raw.githubusercontent.com/Jason05211211/Freerocket/main/freessr
+https://gist.github.com/go4sharing/9cd241e781444d0924227c4171ccc02b/raw/d077791e5da3aa2ba3769009c65fbd499ff97c32/gistfile1.txt
+https://t.me/ProxyDailyChannel
+http://cybersyndrome.net/pla2.html
+http://proxydb.net/
+https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/normal/reality
+https://sub.idsvip.com/link/abcd1234?clash=1
+https://proxyrack.com/free-proxy-list
+http://gatherproxy.com/
+https://api.openproxy.space/lists/shttp
+https://shadowmere.xyz/api/b64sub/
+https://openproxy.space/list/http
+https://raw.githubusercontent.com/HyperBeats/proxy-list/main/socks5.txt
+https://raw.githubusercontent.com/UptimerBot/proxy-list/main/proxies/socks4.txt
+https://premproxy.com/list/ip-port/1.htm
+https://raw.githubusercontent.com/darknessm427/V2ray-Sub-Collector/refs/heads/main/All_Darkness_Sub.txt
+https://raw.githubusercontent.com/wangyingbo/v2rayse_sub/refs/heads/main/wzdnzd_aggregator_sub/merged.txt
+https://www.haidaobot.xyz/link/QwdUmWolPN0LkThW?mu=2
+https://netproxylist.com/api/get?list=all
+https://branch.blanku.me
+https://raw.githubusercontent.com/IranianCypherpunks/Xray/main/Sub
+https://raw.githubusercontent.com/ircfspace/warpsub/main/export/warp
+https://freesub.zjde5.de5.net/sub
