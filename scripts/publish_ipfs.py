@@ -2,19 +2,49 @@
 import argparse
 import os
 import requests  # type: ignore
+from pathlib import Path
 
 
 def pin_to_ipfs(filepath: str, jwt: str) -> str:
     """
-    Pins a file to IPFS via Pinata.
+    Pins a file or directory to IPFS via Pinata.
     Returns the IPFS Hash (CID).
     """
     url = "https://api.pinata.cloud/pinning/pinFileToIPFS"
+    path_obj = Path(filepath)
 
-    with open(filepath, "rb") as f:
-        files = {"file": f}
-        headers = {"Authorization": f"Bearer {jwt}"}
-        response = requests.post(url, files=files, headers=headers, timeout=30)
+    if path_obj.is_dir():
+        files_payload = []
+        open_files = []
+        try:
+            for item in path_obj.rglob("*"):
+                if item.is_file():
+                    # Relative path inside the directory
+                    # Pinata expects (file, (filename, content))
+                    f = open(item, "rb")
+                    open_files.append(f)
+
+                    # Construct relative path string for Pinata folder structure
+                    rel_path = str(item.relative_to(path_obj.parent))
+
+                    # ('file', (filename, file_object))
+                    files_payload.append(("file", (rel_path, f)))
+
+            headers = {"Authorization": f"Bearer {jwt}"}
+            # Note: 'files' is a list of tuples for multiple files
+            response = requests.post(url, files=files_payload, headers=headers, timeout=300)
+
+        finally:
+            # Close file handles
+            for f in open_files:
+                f.close()
+
+    else:
+        # Single file
+        with open(filepath, "rb") as f:
+            files_payload = {"file": f}
+            headers = {"Authorization": f"Bearer {jwt}"}
+            response = requests.post(url, files=files_payload, headers=headers, timeout=30)
 
     if response.status_code == 200:
         return str(response.json()["IpfsHash"])
@@ -96,7 +126,7 @@ def _clean_secret(v: str) -> str:
 
 def main():
     parser = argparse.ArgumentParser(description="Publish config to IPFS/IPNS")
-    parser.add_argument("--file", required=True, help="Path to file to publish")
+    parser.add_argument("--file", required=True, help="Path to file or directory to publish")
     parser.add_argument(
         "--pinata-jwt",
         default=os.environ.get("PINATA_JWT"),
@@ -133,9 +163,9 @@ def main():
 
     args = parser.parse_args()
 
-    # Validate file existence
-    if not os.path.isfile(args.file) or not os.access(args.file, os.R_OK):
-        print(f"Error: File not found or not readable: {args.file}")
+    # Validate file/directory existence
+    if not os.path.exists(args.file) or not os.access(args.file, os.R_OK):
+        print(f"Error: Path not found or not readable: {args.file}")
         return
 
     # Sanitize secrets

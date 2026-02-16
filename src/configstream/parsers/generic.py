@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import html
 import logging
 import json
 import re
@@ -167,6 +168,7 @@ def parse_generic_url_scheme(config: str) -> Optional[Proxy]:
 
 
 def parse_naive(config: str) -> Optional[Proxy]:
+    config = html.unescape(config)
     try:
         config = config.strip()
         if MAX_CONFIG_LINE_LENGTH > 0 and len(config) > MAX_CONFIG_LINE_LENGTH:
@@ -199,6 +201,7 @@ def parse_naive(config: str) -> Optional[Proxy]:
 
 
 def parse_v2ray_json(config: str) -> Optional[Proxy]:
+    config = html.unescape(config)
     stripped = config.strip()
     if MAX_CONFIG_LINE_LENGTH > 0 and len(stripped) > MAX_CONFIG_LINE_LENGTH:
         return None

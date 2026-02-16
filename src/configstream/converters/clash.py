@@ -10,12 +10,12 @@ from .clash_utils import add_transport_opts
 logger = logging.getLogger(__name__)
 
 
-def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
+def to_clash_proxy(proxy: Proxy, ignore_status: bool = False) -> Optional[Dict[str, Any]]:
     """
     Converts a Proxy object into a Clash proxy dictionary.
     Returns None if the protocol is not supported or conversion fails.
     """
-    if not proxy.is_working:
+    if not proxy.is_working and not ignore_status:
         return None
 
     try:
