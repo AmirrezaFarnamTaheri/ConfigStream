@@ -278,7 +278,7 @@ jobs:
           WARP_KEY_POOL: ${{ secrets.WARP_KEY_POOL }}
           UPDATE_INTERVAL_HOURS: 4
           CANARY_URL: "https://httpbin.org"
-          BATCH_TIME_LIMIT_SECONDS: 21600
+          BATCH_TIME_LIMIT_SECONDS: 14400
           BATCH_TIME_LIMIT_GRACE_SECONDS: 2700
           FORCE_SCANNER: "false"
           ALLOW_ACTIVE_SCANNING: "false"
