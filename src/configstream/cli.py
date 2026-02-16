@@ -140,6 +140,7 @@ def merge(
         if result.success:
             stats_obj = result.stats
             # Handle both object and dict (depending on pipeline run type)
+
             def _get(key):
                 if hasattr(stats_obj, key):
                     return getattr(stats_obj, key)
