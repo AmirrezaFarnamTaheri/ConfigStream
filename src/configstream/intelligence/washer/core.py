@@ -856,7 +856,8 @@ class ProxyWasher:
 
                     if scanned_ips and len(scanned_ips) >= 5:
                         self._clean_ips = [
-                            (ip, 2408) for ip in scanned_ips
+                            (ip, 2408)
+                            for ip in scanned_ips
                             if self._looks_like_ip(str(ip))
                         ]
                         logger.info(
@@ -943,8 +944,7 @@ class ProxyWasher:
         # IPv4: starts with digit and has exactly 3 dots
         if host[0].isdigit() and host.count(".") == 3:
             return all(
-                part.isdigit() and 0 <= int(part) <= 255
-                for part in host.split(".")
+                part.isdigit() and 0 <= int(part) <= 255 for part in host.split(".")
             )
         # IPv6: hex/colon/dot chars only AND at least 2 colons (real IPv6 has 2-7)
         if host.count(":") >= 2 and all(c in "0123456789abcdefABCDEF:." for c in host):
@@ -1377,11 +1377,10 @@ class ProxyWasher:
 
             relay_out["tag"] = new_tag
             relay_out["_process"] = "shield_payload"
-            # Mark as shielded in relay details for tagging
-            if not relay.details:
-                relay.details = {}
-            relay.details["is_shielded"] = True
-            relay.process = "shielded"
+            # Keep shield metadata on outbound only.
+            # Do not mutate the source proxy object (process/details), otherwise
+            # native/revived labels are lost in final outputs and merge stage.
+            relay_out["_is_shielded"] = True
 
             # 5. Append to output
             # Order: Shield first, then Proxy (though Sing-box resolves by tag)

@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional
 from ..adapters import ShadowrocketAdapter
 from ..filtering import proxy_unique_key
 from ..models import Proxy
+from ..utils.net import is_ip_literal as _is_ip_literal
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +26,9 @@ def _dedupe_key(proxy: Proxy, uri: str) -> object:
     return _normalize_uri_key(uri)
 
 
-def _proxy_from_outbound(ob: Dict[str, Any], remark_prefix: str = "") -> Optional[Proxy]:
+def _proxy_from_outbound(
+    ob: Dict[str, Any], remark_prefix: str = ""
+) -> Optional[Proxy]:
     """Attempt to build a minimal Proxy from a sing-box outbound dict."""
     ob_type = ob.get("type", "")
     server = ob.get("server", "")
@@ -135,15 +138,63 @@ def _extract_uri(proxy: Proxy, adapter: ShadowrocketAdapter) -> Optional[str]:
     ):
         details = proxy.details or {}
         tag = "Revived" if not details.get("use_vwarp") else "Revived-VWARP"
+        prefer_chain_first = bool(
+            details.get("dns_safe") or details.get("dns_hardened")
+        )
+
+        def _extract_from_chain() -> Optional[str]:
+            chain_obs = details.get("chain_outbounds")
+            if not isinstance(chain_obs, list):
+                return None
+            for ob in chain_obs:
+                if not isinstance(ob, dict):
+                    continue
+                # Skip wireguard hops (WARP endpoints) — prefer the relay
+                if ob.get("type") == "wireguard":
+                    continue
+                relay_proxy = _proxy_from_outbound(ob, remark_prefix=f"[{tag}] ")
+                if relay_proxy:
+                    uri_value = _extract_uri(relay_proxy, adapter)
+                    if uri_value:
+                        return uri_value
+            # If only wireguard hops remain, try the first one
+            for ob in chain_obs:
+                if not isinstance(ob, dict):
+                    continue
+                wg_proxy = _proxy_from_outbound(ob, remark_prefix=f"[{tag}] ")
+                if wg_proxy:
+                    uri_value = _extract_uri(wg_proxy, adapter)
+                    if uri_value:
+                        return uri_value
+            return None
+
+        if prefer_chain_first:
+            chain_uri = _extract_from_chain()
+            if chain_uri:
+                return chain_uri
 
         # Strategy 1: full origin_proxy dict (available in-memory before serialization)
         origin = details.get("origin_proxy")
         if origin and isinstance(origin, dict):
             try:
                 origin_proxy = Proxy(**origin)
+                applied_ip_override = False
+                if prefer_chain_first:
+                    resolved_ip = str(
+                        origin.get("resolved_ip")
+                        or (origin.get("details") or {}).get("resolved_ip")
+                        or ""
+                    ).strip()
+                    if resolved_ip and _is_ip_literal(resolved_ip):
+                        origin_proxy.address = resolved_ip
+                        origin_proxy.resolved_ip = resolved_ip
+                        applied_ip_override = True
                 origin_proxy.remarks = (
                     f"[{tag}] {origin_proxy.remarks or origin_proxy.protocol}"
                 )
+                if applied_ip_override:
+                    # Force field-based URI reconstruction with overridden address.
+                    origin_proxy.config = ""
                 return _extract_uri(origin_proxy, adapter)
             except Exception:
                 pass
@@ -161,33 +212,28 @@ def _extract_uri(proxy: Proxy, adapter: ShadowrocketAdapter) -> Optional[str]:
                     remarks=f"[{tag}] {origin_cfg.get('remarks', '')}",
                     details=origin_cfg.get("details") or {},
                 )
+                applied_ip_override = False
+                if prefer_chain_first:
+                    resolved_ip = str(
+                        origin_cfg.get("resolved_ip")
+                        or (origin_cfg.get("details") or {}).get("resolved_ip")
+                        or ""
+                    ).strip()
+                    if resolved_ip and _is_ip_literal(resolved_ip):
+                        origin_proxy.address = resolved_ip
+                        origin_proxy.resolved_ip = resolved_ip
+                        applied_ip_override = True
+                if applied_ip_override:
+                    # Force field-based URI reconstruction with overridden address.
+                    origin_proxy.config = ""
                 return _extract_uri(origin_proxy, adapter)
             except Exception:
                 pass
 
         # Strategy 3: extract relay outbound from chain_outbounds
-        chain_obs = details.get("chain_outbounds")
-        if isinstance(chain_obs, list):
-            for ob in chain_obs:
-                if not isinstance(ob, dict):
-                    continue
-                # Skip wireguard hops (WARP endpoints) — prefer the relay
-                if ob.get("type") == "wireguard":
-                    continue
-                relay_proxy = _proxy_from_outbound(ob, remark_prefix=f"[{tag}] ")
-                if relay_proxy:
-                    uri = _extract_uri(relay_proxy, adapter)
-                    if uri:
-                        return uri
-            # If only wireguard hops remain, try the first one
-            for ob in chain_obs:
-                if not isinstance(ob, dict):
-                    continue
-                wg_proxy = _proxy_from_outbound(ob, remark_prefix=f"[{tag}] ")
-                if wg_proxy:
-                    uri = _extract_uri(wg_proxy, adapter)
-                    if uri:
-                        return uri
+        chain_uri = _extract_from_chain()
+        if chain_uri:
+            return chain_uri
 
         return None
 

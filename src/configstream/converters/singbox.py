@@ -49,6 +49,38 @@ _LOCAL_HOSTNAMES: Set[str] = {
     "ip6-loopback",
 }
 
+_SS_DROP_LOG_LIMIT = 5
+_SS_DROP_SUPPRESS_STEP = 1000
+_ss_drop_counts: Dict[str, int] = {"garbage": 0, "unknown": 0}
+
+
+def _log_ss_method_drop(kind: str, method: str) -> None:
+    if kind not in _ss_drop_counts:
+        _ss_drop_counts[kind] = 0
+    _ss_drop_counts[kind] += 1
+    count = _ss_drop_counts[kind]
+    safe_method = SecurityValidator.sanitize_log_message(repr(method[:30]))
+    if count <= _SS_DROP_LOG_LIMIT:
+        logger.warning(
+            "Dropping proxy with %s Shadowsocks method: %s",
+            kind,
+            safe_method,
+        )
+        return
+    if count == _SS_DROP_LOG_LIMIT + 1:
+        logger.warning(
+            "Suppressing repetitive Shadowsocks %s-method warnings after %d samples.",
+            kind,
+            _SS_DROP_LOG_LIMIT,
+        )
+        return
+    if count % _SS_DROP_SUPPRESS_STEP == 0:
+        logger.info(
+            "Suppressed %d Shadowsocks %s-method drop warnings so far.",
+            count - _SS_DROP_LOG_LIMIT,
+            kind,
+        )
+
 
 def _sanitize_ss_method(
     method: str, default: str = "chacha20-ietf-poly1305"
@@ -64,10 +96,7 @@ def _sanitize_ss_method(
 
     # Reject garbage characters immediately (e.g., 'un;k', '}k')
     if _GARBAGE_PATTERN.search(cleaned):
-        logger.warning(
-            "Dropping proxy with garbage Shadowsocks method: %s",
-            SecurityValidator.sanitize_log_message(repr(cleaned[:30])),
-        )
+        _log_ss_method_drop("garbage", cleaned)
         return None
 
     if cleaned in VALID_SS_METHODS:
@@ -80,7 +109,7 @@ def _sanitize_ss_method(
         "xchacha20-ietf": "xchacha20-ietf-poly1305",
         "auto": default,
         # Common typos or legacy variants
-        "aes-128-cfb": "aes-128-gcm", # Upgrade insecure ciphers if possible or drop?
+        "aes-128-cfb": "aes-128-gcm",  # Upgrade insecure ciphers if possible or drop?
         # Actually, CFB is stream cipher, GCM is AEAD. They are incompatible.
         # But sing-box doesn't support CFB. If we want to support it, we can't.
         # But aliases below are for what the test expects or safe mappings.
@@ -92,10 +121,7 @@ def _sanitize_ss_method(
         if mapped in VALID_SS_METHODS:
             return mapped
 
-    logger.warning(
-        "Dropping proxy with unknown Shadowsocks method: %s",
-        SecurityValidator.sanitize_log_message(repr(cleaned[:30])),
-    )
+    _log_ss_method_drop("unknown", cleaned)
     return None
 
 
@@ -217,7 +243,12 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         return None
 
     protocol = raw_protocol.lower().strip()
-    _PROTOCOL_ALIASES = {"ss": "shadowsocks", "wg": "wireguard", "hy2": "hysteria2", "socks": "socks5"}
+    _PROTOCOL_ALIASES = {
+        "ss": "shadowsocks",
+        "wg": "wireguard",
+        "hy2": "hysteria2",
+        "socks": "socks5",
+    }
     protocol = _PROTOCOL_ALIASES.get(protocol, protocol)
 
     if protocol == "anytls":
@@ -524,7 +555,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
                 ipv4_addr.append(addr_str)
 
         if ipv4_addr:
-            out["local_address"] = ipv4_addr[0] # Sing-box expects single CIDR string
+            out["local_address"] = ipv4_addr[0]  # Sing-box expects single CIDR string
         if ipv6_addr:
             out["local_address_v6"] = ipv6_addr[0]
 
