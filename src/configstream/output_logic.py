@@ -597,7 +597,7 @@ def generate_categorized_outputs(
     AtomicFileWriter.write_text(chosen_singbox_path, chosen_singbox)
     generated_files["chosen_singbox"] = chosen_singbox_path
 
-    chosen_clash = generate_clash_config(chosen)
+    chosen_clash = generate_clash_config(chosen, ignore_status=True)
     chosen_clash_path = chosen_dir / "clash.yaml"
     AtomicFileWriter.write_text(chosen_clash_path, chosen_clash)
     generated_files["chosen_clash"] = chosen_clash_path
@@ -1398,11 +1398,11 @@ def save_metadata(
     washing_enabled = washing_enabled or vwarp_attempts > 0
 
     meta = {
-        "schema_version": "3.0.0",
+        "schema_version": "3.0.2",
         "version": pkg_version,
-        "total_proxies": total + smart_chain_count,  # Working proxies + smart chains
+        "total_proxies": total + smart_chain_count + shielded_count,  # Working proxies + smart chains
         "total_tested": tested_count,  # Number of proxies actually tested
-        "total_working": working,
+        "total_working": working + shielded_count,
         "success_rate": (working / tested_count) if tested_count > 0 else 0,
         "generated_at": end_time_iso,
         "last_updated_utc": end_time_iso,

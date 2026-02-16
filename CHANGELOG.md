@@ -119,7 +119,7 @@
 
 ---
 
-## [3.0.0] - 2026-02-09
+## [3.0.2] - 2026-02-09
 
 ### Frontend Redesign & Analytics Completion
 - **Unified Stats Card**: Merged primary (4 hero metrics) and secondary (9 compact metrics) into a single card with two rows

@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import html
 import logging
 import urllib.parse
 from configstream.models import Proxy
@@ -8,6 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 def parse_vless(url: str) -> Proxy | None:
+    url = html.unescape(url)
     """
     Parses a VLESS URL into a Proxy object.
     Format: vless://uuid@host:port?params#name
