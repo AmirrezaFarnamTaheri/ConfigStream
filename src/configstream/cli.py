@@ -2,9 +2,7 @@
 import sys
 import asyncio
 import logging
-import time
 import shutil
-import json
 import tarfile
 from pathlib import Path
 
@@ -19,7 +17,6 @@ from rich.progress import (
     BarColumn,
     TaskProgressColumn,
 )
-from importlib.metadata import version
 
 from .pipeline import run_full_pipeline
 from .geoip import DEFAULT_RESOLVER
@@ -56,7 +53,7 @@ def main():
 @click.option("--timeout", type=float, help="Test timeout in seconds")
 @click.option("--country", help="Filter by country code (e.g., US)")
 @click.option("--max-latency", type=int, help="Max latency in ms")
-@click.option("--leniency", type=float, default=0.5, help="Test leniency (0.0-1.0)")
+@click.option("--leniency", is_flag=True, help="Enable lenient testing mode")
 @click.option(
     "--dry-run",
     is_flag=True,
@@ -172,8 +169,8 @@ def merge(
             # This ensures GitHub Actions workflow fails instead of silently passing with empty results.
             working = _get('working')
             if working == 0:
-                 console.print("\n[bold red]CRITICAL: Pipeline finished with 0 working proxies![/bold red]")
-                 sys.exit(1)
+                console.print("\n[bold red]CRITICAL: Pipeline finished with 0 working proxies![/bold red]")
+                sys.exit(1)
 
         else:
             console.print(f"\n[bold red]Pipeline Failed: {result.error}[/bold red]")
