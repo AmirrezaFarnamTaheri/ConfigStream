@@ -108,11 +108,6 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Minify Frontend Assets
-        if: env.HAS_OUTPUT == 'true'
-        run: |
-          pip install rjsmin rcssmin
-          python scripts/minify_frontend.py
 
       - name: Build Pages artifact
         if: env.HAS_OUTPUT == 'true'

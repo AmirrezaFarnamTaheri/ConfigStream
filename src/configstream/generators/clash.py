@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 def generate_clash_config(
     proxies: List[Proxy],
     extra_outbounds: Any = None,
-    dns_profile: Optional[Dict[str, Any]] = None,
+    dns_profile: Optional[Dict[str, Any]] = None, ignore_status: bool = False,
 ) -> str:
     """
     Generates a Clash YAML configuration.
@@ -52,7 +52,7 @@ def generate_clash_config(
     seen_names: set[str] = set()  # Track used names to prevent duplicates
 
     for p in proxies:
-        clash_proxy = to_clash_proxy(p)
+        clash_proxy = to_clash_proxy(p, ignore_status=ignore_status)
         if clash_proxy:
             # Generate unique name - avoid tag collisions
             base_name = p.remarks or f"Proxy-{p.id[:8]}"

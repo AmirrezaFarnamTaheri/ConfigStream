@@ -1,18 +1,15 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""
-Command Line Interface for ConfigStream.
-"""
-
+import sys
 import asyncio
 import logging
-import sys
-import os
+import time
 import shutil
+import json
 import tarfile
 from pathlib import Path
 
 import click
-import requests  # type: ignore
+import requests
 from rich.console import Console
 from rich.logging import RichHandler
 from rich.progress import (
@@ -22,171 +19,42 @@ from rich.progress import (
     BarColumn,
     TaskProgressColumn,
 )
+from importlib.metadata import version
 
-from .geoip import DEFAULT_RESOLVER
-from .tools.warp import generate_warp_proxy
 from .pipeline import run_full_pipeline
-from .logging_config import SensitiveDataFilter
-from .config import AppSettings
 
 # Initialize Rich Console
 console = Console()
 
 
-def setup_logging(verbose: bool):
+def setup_logging(verbose: bool = False):
     level = logging.DEBUG if verbose else logging.INFO
-    settings = AppSettings()
     logging.basicConfig(
         level=level,
         format="%(message)s",
         datefmt="[%X]",
-        handlers=[RichHandler(console=console, rich_tracebacks=True, show_path=False)],
+        handlers=[RichHandler(console=console, rich_tracebacks=True)],
     )
-    if settings.MASK_SENSITIVE_DATA:
-        for handler in logging.getLogger().handlers:
-            handler.addFilter(SensitiveDataFilter())
-    # Silence noisy libraries
+    # Suppress noisy loggers
     logging.getLogger("httpx").setLevel(logging.WARNING)
-    logging.getLogger("aiohttp").setLevel(logging.WARNING)
+    logging.getLogger("httpcore").setLevel(logging.WARNING)
 
 
 @click.group()
 @click.version_option()
 def main():
-    """ConfigStream: Automated Proxy Aggregator & Tester"""
-    try:
-        import uvloop  # type: ignore
-
-        # Prevent uvloop installation during tests to avoid conflicts with pytest-asyncio
-        if "pytest" not in sys.modules and "PYTEST_CURRENT_TEST" not in os.environ:
-            uvloop.install()
-    except ImportError:
-        pass
+    """ConfigStream CLI - High-performance proxy aggregator and tester."""
+    pass
 
 
 @main.command()
-@click.option("--input", "-i", required=True, help="Path to proxies.json file")
-@click.option("--output", "-o", default="output", help="Output directory")
-@click.option("--max-workers", "-w", default=0, help="Concurrency limit (0=Auto-scale)")
-@click.option(
-    "--timeout",
-    "-t",
-    default=None,
-    type=int,
-    help="Test timeout in seconds (defaults to RETEST_TIMEOUT).",
-)
-@click.option(
-    "--max-latency", default=None, type=int, help="Maximum acceptable latency in ms"
-)
-@click.option(
-    "--leniency/--strict",
-    default=False,
-    help="Allow potentially insecure proxies (default: Strict)",
-)
-@click.option("--verbose", "-v", is_flag=True, help="Enable debug logging")
-def retest(input, output, max_workers, timeout, max_latency, leniency, verbose):
-    """Retest proxies from a JSON file."""
-    setup_logging(verbose)
-    from .config import AppSettings
-    from .models import Proxy
-    from .async_file_ops import read_file_async
-
-    settings = AppSettings()
-    if timeout is None:
-        timeout = settings.RETEST_TIMEOUT
-
-    async def _run_retest():
-        input_path = Path(input)
-        if not input_path.exists():
-            console.print(f"[red]Error: Input file not found: {input}[/red]")
-            sys.exit(1)
-
-        console.print(f"[bold green]🚀 Retesting proxies from {input}...[/bold green]")
-        content = await read_file_async(input_path)
-        import json
-
-        try:
-            data = json.loads(content)
-            proxies = [Proxy.model_validate(p) for p in data]
-        except json.JSONDecodeError:
-            console.print(f"[red]Error: Invalid JSON in {input}[/red]")
-            sys.exit(1)
-        console.print(f"Loaded {len(proxies)} proxies for retesting.")
-
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            BarColumn(),
-            TaskProgressColumn(),
-            console=console,
-        ) as progress:
-            result = await run_full_pipeline(
-                sources=[],
-                proxies=proxies,
-                output_dir=output,
-                max_workers=max_workers,
-                timeout=timeout,
-                max_latency=max_latency,
-                leniency=leniency,
-                progress=progress,
-            )
-        return result
-
-    try:
-        coro = _run_retest()
-        try:
-            result = asyncio.run(coro)
-        except RuntimeError as e:
-            coro.close()
-            if "no current event loop" in str(e).lower():
-                loop = asyncio.new_event_loop()
-                try:
-                    asyncio.set_event_loop(loop)
-                    result = loop.run_until_complete(_run_retest())
-                finally:
-                    loop.close()
-                    asyncio.set_event_loop(None)
-            else:
-                raise
-        if result.success:
-            stats = result.stats.to_dict()
-            console.print("\n[bold green]Retest Completed Successfully![/bold green]")
-            console.print(f"Duration: {stats['duration']:.1f}s")
-            console.print(f"Tested: {stats['tested']}")
-            console.print(f"Working: {stats['working']}")
-        else:
-            console.print(f"\n[bold red]Retest Failed: {result.error}[/bold red]")
-            sys.exit(1)
-
-    except Exception as e:
-        console.print(f"\n[bold red]Fatal Error: {e}[/bold red]")
-        if verbose:
-            console.print_exception()
-        sys.exit(1)
-
-
-@main.command()
-@click.option(
-    "--sources", "-s", required=True, help="Path to sources file (local or URL list)"
-)
-@click.option("--output", "-o", default="output", help="Output directory")
-@click.option("--max-workers", "-w", default=0, help="Concurrency limit (0=Auto-scale)")
-@click.option(
-    "--timeout",
-    "-t",
-    default=None,
-    type=int,
-    help="Test timeout in seconds (defaults to TEST_TIMEOUT).",
-)
-@click.option("--country", "-c", help="Filter by country code (e.g., US, DE)")
-@click.option(
-    "--max-latency", default=None, type=int, help="Maximum acceptable latency in ms"
-)
-@click.option(
-    "--leniency/--strict",
-    default=False,
-    help="Allow potentially insecure proxies (default: Strict)",
-)
+@click.option("--sources", required=True, help="Path to sources.txt")
+@click.option("--output", default="output", help="Output directory")
+@click.option("--max-workers", default=50, help="Max concurrent workers")
+@click.option("--timeout", type=float, help="Test timeout in seconds")
+@click.option("--country", help="Filter by country code (e.g., US)")
+@click.option("--max-latency", type=int, help="Max latency in ms")
+@click.option("--leniency", type=float, default=0.5, help="Test leniency (0.0-1.0)")
 @click.option(
     "--dry-run",
     is_flag=True,
@@ -272,12 +140,13 @@ def merge(
 
         if result.success:
             stats_obj = result.stats
-            stats = stats_obj.to_dict() if hasattr(stats_obj, "to_dict") else stats_obj
-
+            # Handle both object and dict (depending on pipeline run type)
             def _get(key):
                 if hasattr(stats_obj, key):
                     return getattr(stats_obj, key)
-                return stats.get(key, 0)
+                if isinstance(stats_obj, dict):
+                    return stats_obj.get(key, 0)
+                return 0
 
             console.print("\n[bold green]Pipeline Completed Successfully![/bold green]")
             console.print(f"Duration: {_get('duration'):.1f}s")
@@ -285,15 +154,25 @@ def merge(
             console.print(f"Tested: {_get('tested')}")
             console.print(f"Working: {_get('working')}")
             console.print(f"GeoIP: {_get('geo_resolved')}")
+
             time_limited = False
             if hasattr(stats_obj, "time_limited"):
                 time_limited = bool(stats_obj.time_limited)
-            elif isinstance(stats, dict):
-                time_limited = bool(stats.get("time_limited", False))
+            elif isinstance(stats_obj, dict):
+                time_limited = bool(stats_obj.get("time_limited", False))
+
             if time_limited:
                 console.print(
                     "[yellow]Time limit reached; output contains partial results.[/yellow]"
                 )
+
+            # CRITICAL: Fail pipeline if zero working proxies found
+            # This ensures GitHub Actions workflow fails instead of silently passing with empty results.
+            working = _get('working')
+            if working == 0:
+                 console.print("\n[bold red]CRITICAL: Pipeline finished with 0 working proxies![/bold red]")
+                 sys.exit(1)
+
         else:
             console.print(f"\n[bold red]Pipeline Failed: {result.error}[/bold red]")
             sys.exit(1)
@@ -308,6 +187,7 @@ def merge(
         sys.exit(1)
     finally:
         # Cleanup singleton resources
+        from .dns_batch_resolver import DEFAULT_RESOLVER
         DEFAULT_RESOLVER.close()
 
 
@@ -480,6 +360,7 @@ def generate_warp(count):
     console.print(f"[yellow]Generating {count} WARP config template(s)...[/yellow]")
 
     import asyncio
+    from .intelligence.washer.warp_gen import generate_warp_proxy
 
     async def _gen():
         for i in range(count):
