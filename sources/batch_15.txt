@@ -1,51 +1,12 @@
 # ConfigStream Batch 15
 # Optimized based on fetch duration for equal execution times
-# Est. Fetch Time: 1014.2s
+# Est. Fetch Time: 4104.5s
 
-https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/all_sub.txt
-https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub5.txt
-https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub8.txt
-https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/protocols/vl.txt
+https://raw.githubusercontent.com/ndsphonemy/proxy-sub/main/mobile.txt
 https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-12.txt
-https://v2.alicivil.workers.dev/?count=2000&list=sk&shuffle=true
-https://v2.alicivil.workers.dev/?count=2000&list=tr&shuffle=true
-https://v2.alicivil.workers.dev/?count=2000&list=ua&shuffle=true
-https://v2.alicivil.workers.dev/?count=2000&list=ae&shuffle=true
-https://raw.githubusercontent.com/barry-far/V2ray-config/main/Sub1.txt
-https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_raw_vmess.txt
-https://raw.githubusercontent.com/wiki/gfpcom/free-proxy-list/lists/tuic.txt
-https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/sub/husi-wg.txt
-https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/main/app/sub.txt
-https://raw.githubusercontent.com/learnhard-cn/free_proxy_ss/main/config.yaml
-https://api.proxyscrape.com
-https://raw.githubusercontent.com/shabane/kamaji/master/hub/b64/merged.txt
-https://raw.githubusercontent.com/Barabama/FreeNodes/main/nodes/nodev2ray.yaml
-https://raw.githubusercontent.com/vpei/free-node-1/main/o/proxies.txt
-https://raw.githubusercontent.com/Surfboardv2ray/TGParse/main/python/hy2
-https://raw.githubusercontent.com/Mosifree/-FREE2CONFIG/refs/heads/main/Clash_Reality
-https://raw.githubusercontent.com/Huibq/TrojanLinks/master/links/ssr
-https://raw.githubusercontent.com/nscl5/5/refs/heads/main/configs/all.txt
-https://cdn.jsdelivr.net/gh/firefoxmmx2/v2rayshare_subcription/subscription/vray_sub.txt
-https://raw.githubusercontent.com/mfuu/v2ray/master/v2ray
-https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/socks5.txt
-https://raw.githubusercontent.com/xiaoji235/airport-free/refs/heads/main/v2ray.txt
-https://raw.githubusercontent.com/webdao/v2ray/refs/heads/master/nodes.txt
-https://raw.githubusercontent.com/dalazhi/v2ray/main/clash.yaml
-https://raw.githubusercontent.com/ALIILAPRO/v2rayNG-Config/main/server.txt
-https://api.openproxylist.xyz/socks5.txt
-https://raw.githubusercontent.com/F0rc3Run/F0rc3Run/refs/heads/main/Best-Results/proxies.txt
-https://raw.githubusercontent.com/ircfspace/tvc/main/sub/mix
-https://raw.githubusercontent.com/AliDev-ir/FreeVPN/main/pcvpn
-https://raw.githubusercontent.com/B4RC0DE-TM/proxy-list/main/SOCKS4.txt
-https://raw.githubusercontent.com/Zaeem20/FREE_PROXIES_LIST/master/socks5.txt
-https://raw.githubusercontent.com/ermaozi01/free_clash_vpn/main/subscribe/clash.yml
-https://proxyhub.me/free-proxy-list
-https://raw.githubusercontent.com/nscl5/4/main/Splitted-By-Protocol/ss.txt
-https://raw.githubusercontent.com/Ai123999/7Sand/refs/heads/main/7Sand_Notorgamers
-https://raw.githubusercontent.com/MrTelepathic/v2ray-sub/refs/heads/main/configs.txt
-https://raw.githubusercontent.com/MOnday9907/v2ray/main/v2ray.txt
-https://raw.githubusercontent.com/jiquanxiang/abc/main/v7
-https://raw.githubusercontent.com/WearestandTelegram/Wearestand/refs/heads/main/wearestand.json
-https://raw.githubusercontent.com/miladtahanian/V2RayCFGDumper/main/config.txt
-https://raw.githubusercontent.com/MrPooyaX/SansorchiFucker/main/data.txt
-https://stackoverflow.com/questions/tagged/proxy
+https://raw.githubusercontent.com/barry-far/V2ray-config/main/Splitted-By-Protocol/vmess.txt
+https://raw.githubusercontent.com/AvenCores/goida-vpn-configs/main/githubmirror/1.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub28.txt
+https://v2.alicivil.workers.dev/?count=2000&list=ch&shuffle=true
+https://raw.githubusercontent.com/NiREvil/vless/main/sub/ServerLess_TLS_Fragment_xray_config.json
+https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/refs/heads/main/mci/sub_1.txt
