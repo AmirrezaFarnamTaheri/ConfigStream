@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import pytest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 from configstream.intelligence.washer.core import ProxyWasher
 from configstream.intelligence.chaining import generate_smart_chains
 from configstream.models import Proxy
@@ -145,3 +145,43 @@ def test_wash_batch_stats_increment(washer_stats_fixture, stats):
     assert stats.warp_attempts == 1
     assert stats.washer_success_count == 1
     assert stats.revived_warp == 0  # Should NOT increment
+
+
+def test_shield_batch_does_not_mutate_source_proxy_state(washer_stats_fixture):
+    """Shielding metadata must stay on outbounds and not overwrite source proxy labels."""
+    dead_proxy = Proxy(
+        source="test",
+        address="1.1.1.1",
+        port=443,
+        protocol="vless",
+        uuid="123e4567-e89b-12d3-a456-426614174000",
+        config="vless://123e4567-e89b-12d3-a456-426614174000@1.1.1.1:443?security=tls&sni=example.com#dead",
+        is_working=False,
+        process="revived-warp",
+        details={"is_revived": True},
+    )
+
+    washer_stats_fixture.get_warp_config = MagicMock(
+        return_value={
+            "type": "wireguard",
+            "tag": "wg-shield",
+            "server": "162.159.192.1",
+            "server_port": 2408,
+            "private_key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "peer_public_key": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
+            "local_address": ["10.0.0.2/32"],
+            "mtu": 1280,
+        }
+    )
+
+    with patch(
+        "configstream.intelligence.washer.core.to_singbox_outbound",
+        return_value={"type": "vless", "tag": "relay", "server": "1.1.1.1", "server_port": 443},
+    ):
+        outbounds, ids = washer_stats_fixture.shield_batch([dead_proxy])
+
+    assert dead_proxy.process == "revived-warp"
+    assert "is_shielded" not in dead_proxy.details
+    assert dead_proxy.details.get("is_revived") is True
+    assert dead_proxy.id in ids
+    assert any(ob.get("_is_shielded") is True for ob in outbounds)

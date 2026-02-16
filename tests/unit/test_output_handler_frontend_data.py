@@ -6,6 +6,7 @@ import pytest
 
 from configstream.history.tracker import ProxyHistoryTracker
 from configstream.intelligence.washer.core import ProxyWasher
+from configstream.models import Proxy
 from configstream.output_handler import generate_pipeline_outputs
 from configstream.pipeline_stats import PipelineStats
 
@@ -41,3 +42,68 @@ async def test_generate_pipeline_outputs_creates_frontend_data_files(
 
     # Canonical stats source for the frontend
     assert (out_dir / "metadata.json").exists()
+
+
+@pytest.mark.asyncio
+async def test_generate_pipeline_outputs_preserves_revived_process_and_dns_flags(
+    tmp_path: Path,
+) -> None:
+    out_dir = tmp_path / "output"
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    native = Proxy(
+        config="vless://123e4567-e89b-12d3-a456-426614174000@alpha.example:443?security=tls&sni=alpha.example#native",
+        protocol="vless",
+        address="alpha.example",
+        port=443,
+        uuid="123e4567-e89b-12d3-a456-426614174000",
+        process="native",
+        is_working=True,
+        resolved_ip="1.1.1.1",
+        details={"sni": "alpha.example"},
+    )
+    revived = Proxy(
+        config="revived://beta.example",
+        protocol="revived",
+        address="beta.example",
+        port=8443,
+        uuid="revived-test",
+        process="revived-vwarp",
+        is_working=False,
+        resolved_ip="1.0.0.1",
+        details={
+            "is_revived": True,
+            "origin_config": {
+                "protocol": "vless",
+                "address": "beta.example",
+                "port": 8443,
+                "uuid": "revived-test",
+                "resolved_ip": "1.0.0.1",
+                "details": {"security": "tls", "sni": "beta.example"},
+            },
+        },
+    )
+
+    stats = PipelineStats()
+    history = ProxyHistoryTracker(tmp_path / "history.db")
+    washer = ProxyWasher("[]")
+    washer.clean_ips = [("162.159.192.1", 2408)]
+
+    try:
+        await generate_pipeline_outputs([native, revived], out_dir, stats, history, washer=washer)
+    finally:
+        history.close()
+
+    proxies = json.loads((out_dir / "proxies.json").read_text(encoding="utf-8"))
+    revived_rows = json.loads((out_dir / "revived.json").read_text(encoding="utf-8"))
+    dns_safe_rows = json.loads((out_dir / "proxies-dns-safe.json").read_text(encoding="utf-8"))
+    revived_dns_safe_rows = json.loads((out_dir / "revived-dns-safe.json").read_text(encoding="utf-8"))
+
+    revived_in_proxies = [row for row in proxies if row.get("id") == "revived-test"]
+    assert revived_in_proxies
+    assert revived_in_proxies[0].get("process") == "revived-vwarp"
+
+    assert revived_rows
+    assert all(str(row.get("process", "")).startswith("revived") for row in revived_rows)
+    assert all((row.get("details") or {}).get("dns_safe") is True for row in dns_safe_rows)
+    assert all((row.get("details") or {}).get("dns_safe") is True for row in revived_dns_safe_rows)

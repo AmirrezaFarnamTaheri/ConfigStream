@@ -12,7 +12,11 @@ from datetime import datetime, timezone
 
 from configstream.anomaly import AnomalyDetector
 from configstream.config import AppSettings
-from configstream.filtering import dedupe_and_shuffle, filter_unique_endpoints
+from configstream.filtering import (
+    dedupe_and_shuffle,
+    filter_unique_endpoints,
+    dedupe_by_config,
+)
 from configstream.history.tracker import ProxyHistoryTracker
 from configstream.models import Proxy
 from configstream import output_handler
@@ -75,6 +79,10 @@ def _proxy_from_dict(raw: Dict[str, Any]) -> Optional[Proxy]:
     details = raw.get("details")
     if not isinstance(details, dict):
         details = {}
+    # Ignore synthetic chain rows from proxies.json.
+    # Those rows are output-only artifacts, not canonical proxy inputs.
+    if _coerce_bool(details.get("is_chain")):
+        return None
 
     tags = raw.get("tags")
     if isinstance(tags, str):
@@ -403,6 +411,7 @@ def merge_batches(batch_glob: str, output_dir: str) -> None:
 
     if all_proxies:
         all_proxies = dedupe_and_shuffle(all_proxies)
+        all_proxies = dedupe_by_config(all_proxies)
         if settings.ENABLE_ENDPOINT_FILTERING:
             all_proxies = filter_unique_endpoints(all_proxies)
 

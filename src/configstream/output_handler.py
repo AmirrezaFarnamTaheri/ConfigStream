@@ -21,7 +21,7 @@ from configstream.intelligence.washer.core import ProxyWasher
 from configstream.intelligence.chaining import generate_smart_chains
 from configstream.intelligence.vectors import generate_vectors
 from configstream.pipeline_stats import PipelineStats
-from configstream.tagging import ProxyTagger
+from configstream.tagging import ProxyTagger, format_proxy_name
 from configstream.config import AppSettings
 from configstream.dns_batch_resolver import BatchDNSResolver
 from configstream.geoip import GeoIPResolver
@@ -36,7 +36,21 @@ logger = logging.getLogger(__name__)
 
 def _is_revived(p: Proxy) -> bool:
     """Check if a proxy was revived via WARP/Vwarp."""
-    return (p.process or "").startswith("revived") or bool(p.details.get("is_revived"))
+    details = p.details or {}
+    flag = details.get("is_revived")
+    is_revived_flag = False
+    if isinstance(flag, bool):
+        is_revived_flag = flag
+    elif isinstance(flag, int):
+        is_revived_flag = flag != 0
+    elif isinstance(flag, str):
+        is_revived_flag = flag.strip().lower() in ("1", "true", "yes", "y", "on")
+    return (
+        (p.process or "").startswith("revived")
+        or (p.protocol or "") == "revived"
+        or (p.config or "").startswith("revived://")
+        or is_revived_flag
+    )
 
 
 def _is_clean_ip(host: str) -> bool:
@@ -46,9 +60,7 @@ def _is_clean_ip(host: str) -> bool:
         return False
     # IPv4: exactly 3 dots, all octets 0-255
     if host[0].isdigit() and host.count(".") == 3:
-        return all(
-            p.isdigit() and 0 <= int(p) <= 255 for p in host.split(".")
-        )
+        return all(p.isdigit() and 0 <= int(p) <= 255 for p in host.split("."))
     # IPv6: at least 2 colons, only hex/colon/dot chars
     if host.count(":") >= 2 and all(c in "0123456789abcdefABCDEF:." for c in host):
         return True
@@ -124,7 +136,12 @@ def _group_chain_outbounds(
     return chains
 
 
-def _chain_to_proxy_entry(chain: List[Dict[str, Any]], process: str) -> Dict[str, Any]:
+def _chain_to_proxy_entry(
+    chain: List[Dict[str, Any]],
+    process: str,
+    name_template: Optional[str] = None,
+    used_names: Optional[Set[str]] = None,
+) -> Dict[str, Any]:
     """Convert a chain of outbound dicts to a proxy-like dict for proxies.json."""
     entry = chain[-1]  # entry point is last element
     mini_config = _build_chain_config(chain)
@@ -137,6 +154,33 @@ def _chain_to_proxy_entry(chain: List[Dict[str, Any]], process: str) -> Dict[str
     tags = ["chain"]
     if any(ob.get("type") == "wireguard" for ob in chain):
         tags.append("warp")
+    remarks = tag
+    if name_template:
+        try:
+            chain_proxy = Proxy(
+                config=mini_config,
+                protocol=entry.get("type", "chain"),
+                address=str(server or ""),
+                port=port,
+                remarks=tag,
+                is_working=True,
+                process=process,
+                tags=tags.copy(),
+                details={"is_chain": True},
+            )
+            remarks = format_proxy_name(name_template, chain_proxy)
+        except Exception:
+            remarks = tag
+    if used_names is not None:
+        base_name = remarks or tag
+        final_name = base_name
+        suffix = (tag or "chain")[:16]
+        idx = 1
+        while final_name in used_names:
+            idx += 1
+            final_name = f"{base_name}-{suffix}-{idx}"
+        used_names.add(final_name)
+        remarks = final_name
     return {
         "id": tag,
         "protocol": entry.get("type", "chain"),
@@ -154,9 +198,13 @@ def _chain_to_proxy_entry(chain: List[Dict[str, Any]], process: str) -> Dict[str
         "last_checked": "",
         "source": None,
         "security": {},
-        "details": {"is_chain": True},
+        "details": {
+            "is_chain": True,
+            "chain_process": process,
+            "chain_depth": len(chain),
+        },
         "config": mini_config,
-        "remarks": tag,
+        "remarks": remarks,
         "process": process,
     }
 
@@ -164,6 +212,8 @@ def _chain_to_proxy_entry(chain: List[Dict[str, Any]], process: str) -> Dict[str
 def _chain_outbounds_to_entries(
     washed_outbounds: Optional[List[Dict[str, Any]]],
     smart_chains: Optional[Dict[str, List[List[Dict[str, Any]]]]],
+    name_template: Optional[str] = None,
+    used_names: Optional[Set[str]] = None,
 ) -> List[Dict[str, Any]]:
     """
     Convert washed outbounds and smart chains into proxy-like dicts
@@ -200,7 +250,14 @@ def _chain_outbounds_to_entries(
                 for ob in chain
             ):
                 process = "shielded"
-            entries.append(_chain_to_proxy_entry(chain, process))
+            entries.append(
+                _chain_to_proxy_entry(
+                    chain,
+                    process,
+                    name_template=name_template,
+                    used_names=used_names,
+                )
+            )
 
     # Smart chains (already grouped by category)
     if smart_chains:
@@ -216,7 +273,14 @@ def _chain_outbounds_to_entries(
                 if entry_tag in seen_tags:
                     continue
                 seen_tags.add(entry_tag)
-                entries.append(_chain_to_proxy_entry(chain, "chain"))
+                entries.append(
+                    _chain_to_proxy_entry(
+                        chain,
+                        "chain",
+                        name_template=name_template,
+                        used_names=used_names,
+                    )
+                )
 
     return entries
 
@@ -226,6 +290,7 @@ def _save_proxies_with_chains(
     path: Path,
     washed_outbounds: Optional[List[Dict[str, Any]]] = None,
     smart_chains: Optional[Dict[str, List[List[Dict[str, Any]]]]] = None,
+    name_template: Optional[str] = None,
 ) -> None:
     """
     Save proxies.json with native proxies PLUS chain entries
@@ -237,7 +302,17 @@ def _save_proxies_with_chains(
     finally:
         history.close()
 
-    chain_entries = _chain_outbounds_to_entries(washed_outbounds, smart_chains)
+    used_names: Set[str] = {
+        str(item.get("remarks"))
+        for item in data
+        if isinstance(item, dict) and item.get("remarks")
+    }
+    chain_entries = _chain_outbounds_to_entries(
+        washed_outbounds,
+        smart_chains,
+        name_template=name_template,
+        used_names=used_names,
+    )
     if chain_entries:
         data.extend(chain_entries)
 
@@ -473,6 +548,7 @@ async def generate_pipeline_outputs(
         proxies_path,
         washed_outbounds,
         smart_chains,
+        tagger.template,
     )
 
     # DNS-safe dataset (IP-only) - reuse cached results from stats phase
@@ -530,11 +606,13 @@ async def generate_pipeline_outputs(
     # Uses lightweight tag counting instead of duplicating the full
     # _append_chain collection logic from output_logic.py
     def _collect_tags(outbounds: list) -> set[str]:
-        return {ob.get("tag") for ob in outbounds if isinstance(ob, dict) and ob.get("tag")}
+        return {
+            ob.get("tag") for ob in outbounds if isinstance(ob, dict) and ob.get("tag")
+        }
 
     _chain_tags: set[str] = set()
     for proxy in optimized_proxies:
-        chain = proxy.details.get("chain_outbounds")
+        chain = (proxy.details or {}).get("chain_outbounds")
         if isinstance(chain, list):
             _chain_tags |= _collect_tags(chain)
     if washed_outbounds:

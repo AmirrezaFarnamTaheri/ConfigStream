@@ -51,6 +51,7 @@ def serialize_proxy(
                     "address": origin_blob.get("address", ""),
                     "port": origin_blob.get("port", 0),
                     "uuid": origin_blob.get("uuid", ""),
+                    "resolved_ip": origin_blob.get("resolved_ip", ""),
                     "remarks": origin_blob.get("remarks", ""),
                     "details": origin_blob.get("details") or {},
                 }

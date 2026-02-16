@@ -131,3 +131,27 @@ def test_protocol_txt_files_generated(tmp_path, sample_proxies):
     for key in proto_txt_keys:
         content = files[key].read_text(encoding="utf-8")
         assert len(content.strip()) > 0
+
+
+def test_dns_safe_uses_detached_proxy_clones():
+    """DNS-safe cache must not share object references with source proxies."""
+    from configstream.output_logic import _build_dns_safe_proxies
+
+    src = Proxy(
+        config="trojan://pass@1.1.1.1:443#node",
+        protocol="trojan",
+        address="1.1.1.1",
+        port=443,
+        uuid="pass",
+        process="native",
+        details={},
+    )
+
+    dns_safe, _ = _build_dns_safe_proxies([src])
+
+    assert len(dns_safe) == 1
+    assert dns_safe[0] is not src
+    assert dns_safe[0].details.get("dns_safe") is True
+
+    src.process = "shielded"
+    assert dns_safe[0].process == "native"

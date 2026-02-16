@@ -78,6 +78,34 @@ def _rewrite_openvpn_remote(config: str, original_host: str, ip_value: str) -> s
     return "\n".join(out_lines) + ("\n" if config.endswith("\n") else "")
 
 
+def _rewrite_chain_outbounds_for_dns(
+    details: Dict[str, Any], host_map: Dict[str, str]
+) -> None:
+    chain = details.get("chain_outbounds")
+    if not isinstance(chain, list) or not chain:
+        return
+    rewritten_chain: List[Dict[str, Any]] = []
+    changed = False
+    for outbound in chain:
+        if not isinstance(outbound, dict):
+            continue
+        item = copy.deepcopy(outbound)
+        server = item.get("server")
+        if isinstance(server, str) and server and not _is_ip_literal(server):
+            mapped = host_map.get(_normalize_host(server))
+            if mapped:
+                item["server"] = mapped
+                tls = item.get("tls")
+                if isinstance(tls, dict) and not tls.get("server_name"):
+                    tls = dict(tls)
+                    tls["server_name"] = server
+                    item["tls"] = tls
+                changed = True
+        rewritten_chain.append(item)
+    if changed and rewritten_chain:
+        details["chain_outbounds"] = rewritten_chain
+
+
 def _build_dns_safe_proxies(
     proxies: List[Proxy],
 ) -> Tuple[List[Proxy], Dict[str, str]]:
@@ -92,8 +120,13 @@ def _build_dns_safe_proxies(
         # If already IP, keep as-is (only global/public addresses).
         if _is_ip_literal(addr):
             if _is_global_ip(addr):
-                safe.append(proxy)
                 host_map[_normalize_host(addr)] = addr
+                clone = proxy.model_copy(deep=True)
+                details: Dict[str, Any] = dict(clone.details or {})
+                details["dns_safe"] = True
+                _rewrite_chain_outbounds_for_dns(details, host_map)
+                clone.details = details
+                safe.append(clone)
             continue
 
         resolved = (proxy.resolved_ip or "").strip()
@@ -109,6 +142,7 @@ def _build_dns_safe_proxies(
         details: Dict[str, Any] = dict(clone.details or {})
         details.setdefault("_origin_id", proxy.id)
         details.setdefault("original_host", addr)
+        details["dns_safe"] = True
         if not details.get("sni"):
             details["sni"] = addr
         if (
@@ -119,6 +153,7 @@ def _build_dns_safe_proxies(
             details["host"] = addr
         if details.get("server_name") is None:
             details["server_name"] = addr
+        _rewrite_chain_outbounds_for_dns(details, host_map)
         clone.details = details
 
         if isinstance(clone.config, str) and "://" in clone.config:
@@ -148,7 +183,12 @@ def _build_dns_hardened_proxies(
             continue
 
         if _is_ip_literal(addr):
-            hardened.append(proxy)
+            clone = proxy.model_copy(deep=True)
+            details: Dict[str, Any] = dict(clone.details or {})
+            details["dns_hardened"] = True
+            _rewrite_chain_outbounds_for_dns(details, host_map)
+            clone.details = details
+            hardened.append(clone)
             continue
 
         resolved = (proxy.resolved_ip or "").strip()
@@ -162,6 +202,7 @@ def _build_dns_hardened_proxies(
             details: Dict[str, Any] = dict(clone.details or {})
             details.setdefault("_origin_id", proxy.id)
             details.setdefault("original_host", addr)
+            details["dns_hardened"] = True
             if not details.get("sni"):
                 details["sni"] = addr
             if (
@@ -172,6 +213,7 @@ def _build_dns_hardened_proxies(
                 details["host"] = addr
             if details.get("server_name") is None:
                 details["server_name"] = addr
+            _rewrite_chain_outbounds_for_dns(details, host_map)
             clone.details = details
 
             if isinstance(clone.config, str) and "://" in clone.config:
@@ -180,7 +222,12 @@ def _build_dns_hardened_proxies(
 
             hardened.append(clone)
         else:
-            hardened.append(proxy)
+            clone = proxy.model_copy(deep=True)
+            details = dict(clone.details or {})
+            details["dns_hardened"] = True
+            _rewrite_chain_outbounds_for_dns(details, host_map)
+            clone.details = details
+            hardened.append(clone)
 
     return hardened, host_map
 
@@ -1414,7 +1461,8 @@ def save_metadata(
         # Secondary field: fetched_sources (actual sources processed)
         "total_configured_sources": total_configured_sources or fetched_sources,
         "fetched_sources": fetched_sources,  # Actual sources processed
-        "sources_count": total_configured_sources or fetched_sources,  # Consumed by main.js
+        "sources_count": total_configured_sources
+        or fetched_sources,  # Consumed by main.js
         "update_interval_hours": update_interval_hours,
         "latency_by_country": latency_by_country,
         "latency_by_protocol": latency_by_protocol,

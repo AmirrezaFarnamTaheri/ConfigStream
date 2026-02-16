@@ -13,6 +13,7 @@ from typing import List, Optional, Dict, Any
 from .models import Proxy
 from .adapters_base import format_singbox_chain_for_surge, format_singbox_chain_for_loon
 from .utils.bool_parser import parse_tls_flag
+from .utils.net import is_ip_literal as _is_ip_literal
 
 logger = logging.getLogger(__name__)
 
@@ -351,12 +352,52 @@ class ShadowrocketAdapter(Adapter):
         """Try to reconstruct a URI from a revived/chain proxy."""
         details = p.details or {}
         tag = "Revived" if not details.get("use_vwarp") else "Revived-VWARP"
+        prefer_chain_first = bool(
+            details.get("dns_safe") or details.get("dns_hardened")
+        )
+
+        def _extract_from_chain() -> Optional[str]:
+            chain_obs = details.get("chain_outbounds")
+            if isinstance(chain_obs, list):
+                from .generators.plaintext import _proxy_from_outbound
+
+                for ob in chain_obs:
+                    if not isinstance(ob, dict) or ob.get("type") == "wireguard":
+                        continue
+                    relay_proxy = _proxy_from_outbound(ob, remark_prefix=f"[{tag}] ")
+                    if relay_proxy:
+                        uri_value = self._reconstruct_uri(relay_proxy)
+                        if uri_value:
+                            return uri_value
+                for ob in chain_obs:
+                    if not isinstance(ob, dict):
+                        continue
+                    wg_proxy = _proxy_from_outbound(ob, remark_prefix=f"[{tag}] ")
+                    if wg_proxy:
+                        uri_value = self._reconstruct_uri(wg_proxy)
+                        if uri_value:
+                            return uri_value
+            return None
+
+        if prefer_chain_first:
+            chain_uri = _extract_from_chain()
+            if chain_uri:
+                return chain_uri
 
         # Strategy 1: full origin_proxy dict
         origin = details.get("origin_proxy")
         if origin and isinstance(origin, dict):
             try:
                 origin_p = Proxy(**origin)
+                if prefer_chain_first:
+                    resolved_ip = str(
+                        origin.get("resolved_ip")
+                        or (origin.get("details") or {}).get("resolved_ip")
+                        or ""
+                    ).strip()
+                    if resolved_ip and _is_ip_literal(resolved_ip):
+                        origin_p.address = resolved_ip
+                        origin_p.resolved_ip = resolved_ip
                 origin_p.remarks = f"[{tag}] {origin_p.remarks or origin_p.protocol}"
                 uri = self._reconstruct_uri(origin_p)
                 if uri:
@@ -377,6 +418,15 @@ class ShadowrocketAdapter(Adapter):
                     remarks=f"[{tag}] {origin_cfg.get('remarks', '')}",
                     details=origin_cfg.get("details") or {},
                 )
+                if prefer_chain_first:
+                    resolved_ip = str(
+                        origin_cfg.get("resolved_ip")
+                        or (origin_cfg.get("details") or {}).get("resolved_ip")
+                        or ""
+                    ).strip()
+                    if resolved_ip and _is_ip_literal(resolved_ip):
+                        origin_p.address = resolved_ip
+                        origin_p.resolved_ip = resolved_ip
                 uri = self._reconstruct_uri(origin_p)
                 if uri:
                     return uri
@@ -388,27 +438,7 @@ class ShadowrocketAdapter(Adapter):
                 pass
 
         # Strategy 3: extract relay from chain_outbounds
-        chain_obs = details.get("chain_outbounds")
-        if isinstance(chain_obs, list):
-            from .generators.plaintext import _proxy_from_outbound
-
-            for ob in chain_obs:
-                if not isinstance(ob, dict) or ob.get("type") == "wireguard":
-                    continue
-                relay_proxy = _proxy_from_outbound(ob, remark_prefix=f"[{tag}] ")
-                if relay_proxy:
-                    uri = self._reconstruct_uri(relay_proxy)
-                    if uri:
-                        return uri
-            for ob in chain_obs:
-                if not isinstance(ob, dict):
-                    continue
-                wg_proxy = _proxy_from_outbound(ob, remark_prefix=f"[{tag}] ")
-                if wg_proxy:
-                    uri = self._reconstruct_uri(wg_proxy)
-                    if uri:
-                        return uri
-        return None
+        return _extract_from_chain()
 
     def export(
         self,
