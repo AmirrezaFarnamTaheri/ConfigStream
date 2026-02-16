@@ -37,8 +37,8 @@ jobs:
       - name: Check schedule eligibility
         id: gate
         env:
-        CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
-        CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
+          CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
+          CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
           GH_TOKEN: ${{ github.token }}
         run: |
           # Non-schedule triggers always proceed
@@ -164,8 +164,8 @@ jobs:
 
       - name: Download GeoIP databases
         env:
-        CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
-        CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
+          CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
+          CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
           MAXMIND_LICENSE_KEY: ${{ secrets.MAXMIND_LICENSE_KEY }}
         run: python -m configstream.cli update-databases
 
@@ -264,15 +264,15 @@ jobs:
 
       - name: Download GeoIP databases
         env:
-        CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
-        CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
+          CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
+          CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
           MAXMIND_LICENSE_KEY: ${{ secrets.MAXMIND_LICENSE_KEY }}
         run: python -m configstream.cli update-databases
 
       - name: Run pipeline for Batch ${{ matrix.batch_number }}
         env:
-        CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
-        CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
+          CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
+          CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
           BATCH_NUMBER: ${{ matrix.batch_number }}
           VT_API_KEY: ${{ secrets.VT_API_KEY }}
           WARP_KEY_POOL: ${{ secrets.WARP_KEY_POOL }}
@@ -328,8 +328,8 @@ jobs:
         id-token: write
 
     env:
-        CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
-        CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
+      CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
+      CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       HF_TOKEN: ${{ secrets.HF_TOKEN }}
@@ -403,10 +403,10 @@ jobs:
 
       - name: Run merge script
         env:
-        CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
-        CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
-            WARP_KEY_POOL: ${{ secrets.WARP_KEY_POOL }}
-            STEGO_KEY: ${{ secrets.STEGO_KEY }}
+          CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
+          CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
+          WARP_KEY_POOL: ${{ secrets.WARP_KEY_POOL }}
+          STEGO_KEY: ${{ secrets.STEGO_KEY }}
         run: python -m scripts.merge_batches
 
       - name: Optimize Sources
@@ -436,8 +436,8 @@ jobs:
       - name: Publish to IPFS (Unstoppable)
         if: env.PINATA_JWT != ''
         env:
-        CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
-        CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
+          CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
+          CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
           PINATA_JWT: ${{ secrets.PINATA_JWT }}
           CF_TOKEN: ${{ secrets.CF_TOKEN }}
           CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
@@ -469,8 +469,8 @@ jobs:
       - name: Upload to Hugging Face
         if: env.HF_TOKEN != ''
         env:
-        CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
-        CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
+          CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
+          CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           HF_REPO_ID: ${{ secrets.HF_REPO_ID }}
         run: python scripts/upload_hf.py --path output/ --repo-id $HF_REPO_ID
@@ -506,7 +506,7 @@ jobs:
           draft: false
           prerelease: false
         env:
-        CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
-        CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
+          CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
+          CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
