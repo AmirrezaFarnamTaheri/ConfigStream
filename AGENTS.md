@@ -181,5 +181,5 @@ Before submitting ANY code:
 ## 10. CI / Batch Configuration
 *   **Batch Count**: 17 shards (batch_1.txt through batch_17.txt). `dynamic_reshard.py` manages distribution.
 *   **MAX_BATCHES**: Set to 17 in `dynamic_reshard.py`. Empty batch files are allowed — reshard fills them.
-*   **Time Limits**: `BATCH_TIME_LIMIT_SECONDS = 13500` (3h45m fetch/parse/test) + `BATCH_TIME_LIMIT_GRACE_SECONDS = 2700` (45m for consumers to finish revival, then output generation runs after gather).
+*   **Time Limits**: `BATCH_TIME_LIMIT_SECONDS = 14400` (4h00m fetch/parse/test) + `BATCH_TIME_LIMIT_GRACE_SECONDS = 2700` (45m for consumers to finish revival, then output generation runs after gather).
 *   **TARGET_BATCH_SECONDS**: 14400s (4h) target per batch in reshard.
