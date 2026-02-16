@@ -22,6 +22,8 @@ from rich.progress import (
 from importlib.metadata import version
 
 from .pipeline import run_full_pipeline
+from .geoip import DEFAULT_RESOLVER
+from .tools.warp import generate_warp_proxy
 
 # Initialize Rich Console
 console = Console()
@@ -187,8 +189,8 @@ def merge(
         sys.exit(1)
     finally:
         # Cleanup singleton resources
-        from .dns_batch_resolver import DEFAULT_RESOLVER
-        DEFAULT_RESOLVER.close()
+        if DEFAULT_RESOLVER:
+            DEFAULT_RESOLVER.close()
 
 
 @main.command()
@@ -360,7 +362,6 @@ def generate_warp(count):
     console.print(f"[yellow]Generating {count} WARP config template(s)...[/yellow]")
 
     import asyncio
-    from .intelligence.washer.warp_gen import generate_warp_proxy
 
     async def _gen():
         for i in range(count):
