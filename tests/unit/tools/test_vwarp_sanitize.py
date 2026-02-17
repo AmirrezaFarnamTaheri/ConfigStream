@@ -1,7 +1,9 @@
 import json
 import os
 from pathlib import Path
+
 from configstream.tools.vwarp import VwarpTool
+
 
 def test_vwarp_write_sanitized_config():
     """Test that _write_temp_config removes unsupported fields."""
@@ -12,17 +14,8 @@ def test_vwarp_write_sanitized_config():
         "version": "1.0",
         "metadata": {"name": "test"},
         "endpoint": "1.2.3.4:2408",
-        "masque": {
-            "enabled": True,
-            "preferred": True,
-            "config": {
-                "i1": "val"
-            }
-        },
-        "psiphon": {
-            "enabled": True,
-            "country": "US"
-        }
+        "masque": {"enabled": True, "preferred": True, "config": {"i1": "val"}},
+        "psiphon": {"enabled": True, "country": "US"},
     }
 
     path, flags = tool._write_temp_config(config)
@@ -51,17 +44,12 @@ def test_vwarp_write_sanitized_config():
     # Cleanup
     path.unlink()
 
+
 def test_vwarp_write_sanitized_config_no_masque_config():
     """Test that _write_temp_config handles masque without config subkey."""
     tool = VwarpTool()
 
-    config = {
-        "masque": {
-            "enabled": False,
-            "preferred": False,
-            "some_param": "val"
-        }
-    }
+    config = {"masque": {"enabled": False, "preferred": False, "some_param": "val"}}
 
     path, flags = tool._write_temp_config(config)
     content = json.loads(path.read_text())
