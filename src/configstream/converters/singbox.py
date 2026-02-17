@@ -27,6 +27,16 @@ VALID_SS_METHODS: Set[str] = {
     "2022-blake3-aes-256-gcm",
     "2022-blake3-chacha20-poly1305",
     "none",
+    # Legacy Stream Ciphers (Common in wild, supported by Sing-box)
+    "aes-128-ctr",
+    "aes-192-ctr",
+    "aes-256-ctr",
+    "aes-128-cfb",
+    "aes-192-cfb",
+    "aes-256-cfb",
+    "rc4-md5",
+    "chacha20-ietf",
+    "xchacha20",
 }
 
 # Valid VLESS flow values supported by Sing-box
@@ -329,7 +339,16 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "password": str(proxy.details.get("password", "")),
         }
         if "plugin" in proxy.details:
-            out["plugin"] = str(proxy.details["plugin"])
+            plugin_name = str(proxy.details["plugin"])
+            # Sing-box does not support 'obfs' plugin natively unless external binary is present.
+            # Since we don't have it, drop these proxies to prevent tester crash.
+            if plugin_name.lower() in ("obfs", "obfs-local", "simple-obfs"):
+                logger.debug(
+                    f"Dropping Shadowsocks proxy with unsupported plugin '{plugin_name}': {proxy.address}"
+                )
+                return None
+
+            out["plugin"] = plugin_name
             if "plugin_opts" in proxy.details:
                 out["plugin_opts"] = str(proxy.details["plugin_opts"])
             logger.debug(
