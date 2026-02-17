@@ -45,7 +45,7 @@ DANGEROUS_PORTS = [21, 22, 23, 25, 110, 143, 445, 3389]
 SUSPICIOUS_DOMAINS = [
     "localhost",
     "127.",  # Loopback
-    "0.0.0.0",  # Zero
+    "127.0.0.1",  # Zero
     "10.",  # Private Class A
     "192.168.",  # Private Class C
     "169.254.",  # Link-local

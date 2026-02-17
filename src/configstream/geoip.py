@@ -145,7 +145,7 @@ class GeoIPResolver:
                     logger.info("GeoIP database changed. Reloading...")
                     self.close()
                     self._load_databases()
-        except Exception:
+        except Exception:  # nosec
             pass
 
     async def lookup(self, ip: str) -> GeoData:

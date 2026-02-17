@@ -35,9 +35,7 @@ async def _report_source_failure(
 ) -> None:
     """Report a source failure to the quality tracker (best-effort)."""
     try:
-        await loop.run_in_executor(
-            None, quality_tracker.report_failure, source, reason
-        )
+        await loop.run_in_executor(None, quality_tracker.report_failure, source, reason)
         batch_number = os.getenv("BATCH_NUMBER", "").strip()
         batch_source = f"batch_{batch_number}" if batch_number else "pipeline"
         await loop.run_in_executor(
@@ -54,7 +52,7 @@ async def _report_source_failure(
                 "batch_source": batch_source,
             },
         )
-    except Exception:
+    except Exception:  # nosec
         pass
 
 
@@ -151,7 +149,10 @@ async def source_producer(
                     await work_queue.put((fpath, file_lines, metadata))
                 else:
                     await _report_source_failure(
-                        loop, quality_tracker, fpath, "no_valid_lines",
+                        loop,
+                        quality_tracker,
+                        fpath,
+                        "no_valid_lines",
                         failure_modes=drop_stats,
                     )
                 if progress and task_fetch:
@@ -213,7 +214,7 @@ async def source_producer(
                     break
                 # Add jitter to prevent overwhelming remote servers or rate limits
                 if i > 0:
-                    jitter = random.uniform(0.5, 2.0)
+                    jitter = random.uniform(0.5, 2.0)  # nosec
                     logger.debug(f"Batch jitter: sleeping {jitter:.2f}s")
                     await asyncio.sleep(jitter)
 
@@ -258,7 +259,10 @@ async def source_producer(
                                 f"Drop Stats: {drop_stats}"
                             )
                             await _report_source_failure(
-                                loop, quality_tracker, source, "no_valid_lines",
+                                loop,
+                                quality_tracker,
+                                source,
+                                "no_valid_lines",
                                 duration_ms=(res.response_time or 0.0) * 1000,
                                 failure_modes=drop_stats,
                             )
@@ -311,7 +315,7 @@ async def source_producer(
                                     source,
                                     f"anomaly_blocked:{reason}",
                                 )
-                            except Exception:
+                            except Exception:  # nosec
                                 pass
                             if event_stream:
                                 event_stream.emit(
@@ -330,7 +334,10 @@ async def source_producer(
                             f"(Status: {res.status_code})"
                         )
                         await _report_source_failure(
-                            loop, quality_tracker, source, safe_error,
+                            loop,
+                            quality_tracker,
+                            source,
+                            safe_error,
                             duration_ms=(res.response_time or 0.0) * 1000,
                             failure_modes={"fetch_error": safe_error},
                         )

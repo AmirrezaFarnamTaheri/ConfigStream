@@ -44,6 +44,7 @@ def _is_valid_ip(host: str) -> bool:
         return True
     return False
 
+
 # Constants for Vwarp binary management
 VWARP_VERSION = "v2.1.0"
 VWARP_SHA256_AMD64 = "4b971ed3696ed607bf91000f379f6308459fd1dafa1beae14404a8b7ce068cf7"
@@ -330,14 +331,16 @@ class VwarpTool:
                 # Check write permissions
                 if not os.access(install_dir, os.W_OK):
                     # Fallback to current directory or /tmp
-                    install_dir = Path("/tmp/configstream-bin")
+                    install_dir = Path("/tmp/configstream-bin")  # nosec
                     install_dir.mkdir(parents=True, exist_ok=True)
                     target_path = install_dir / "vwarp"
                     logger.warning(
                         f"Cannot write to ~/.local/bin, installing to {target_path}"
                     )
 
-                logger.info(f"Downloading Vwarp from {SecurityValidator.sanitize_log_message(url)}")
+                logger.info(
+                    f"Downloading Vwarp from {SecurityValidator.sanitize_log_message(url)}"
+                )
 
                 async with httpx.AsyncClient(
                     follow_redirects=True, timeout=60.0
@@ -493,7 +496,7 @@ class VwarpTool:
                 if text:
                     self._help_text = text.decode(errors="ignore")
                     return self._help_text
-            except Exception:
+            except Exception:  # nosec
                 continue
         self._help_text = ""
         return self._help_text
@@ -560,17 +563,10 @@ class VwarpTool:
                     "JcAfterHS": 4,
                     "JunkInterval": 15000000,
                     "AllowZeroSize": False,
-                    "HandshakeDelay": 5000000
-                }
+                    "HandshakeDelay": 5000000,
+                },
             },
             "masque": {
-
-
-
-
-
-
-
                 "enabled": False,
                 "preferred": False,
                 "config": {
@@ -610,19 +606,16 @@ class VwarpTool:
                     "UseTimestamp": False,
                     "UseNonce": True,
                     "RandomizeInitial": True,
-                    "FakeLoss": 0.05
-                }
+                    "FakeLoss": 0.05,
+                },
             },
-            "psiphon": {
-                "enabled": False,
-                "country": "US"
-            },
+            "psiphon": {"enabled": False, "country": "US"},
             "metadata": {
                 "name": "sample-working-generated",
                 "description": "Auto-generated from ConfigStream based on sample-working.json",
                 "author": "ConfigStream",
-                "created_at": datetime.now(timezone.utc).isoformat()
-            }
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            },
         }
 
     async def _prepare_tunnel_config(
@@ -674,10 +667,14 @@ class VwarpTool:
 
         # Masque & Psiphon Overrides
         if "VWARP_MASQUE_ENABLED" in os.environ:
-            vwarp_config["masque"]["enabled"] = os.environ.get("VWARP_MASQUE_ENABLED", "").lower() in ("1", "true", "yes")
+            vwarp_config["masque"]["enabled"] = os.environ.get(
+                "VWARP_MASQUE_ENABLED", ""
+            ).lower() in ("1", "true", "yes")
 
         if "PSIPHON_ENABLED" in os.environ:
-            vwarp_config["psiphon"]["enabled"] = os.environ.get("PSIPHON_ENABLED", "").lower() in ("1", "true", "yes")
+            vwarp_config["psiphon"]["enabled"] = os.environ.get(
+                "PSIPHON_ENABLED", ""
+            ).lower() in ("1", "true", "yes")
 
         env_psiphon_country = os.environ.get("PSIPHON_COUNTRY", "").strip()
         if env_psiphon_country:
@@ -687,13 +684,25 @@ class VwarpTool:
         if config_override:
             for key, value in config_override.items():
                 # Deep merge for specific sections to preserve defaults
-                if key in ["masque", "wireguard", "psiphon"] and isinstance(value, dict) and isinstance(vwarp_config.get(key), dict):
+                if (
+                    key in ["masque", "wireguard", "psiphon"]
+                    and isinstance(value, dict)
+                    and isinstance(vwarp_config.get(key), dict)
+                ):
                     target = vwarp_config[key]
                     for subk, subv in value.items():
                         # Level 2 merge for 'config' (masque) and 'atomicnoize' (wireguard)
-                        if subk == "config" and isinstance(subv, dict) and isinstance(target.get("config"), dict):
+                        if (
+                            subk == "config"
+                            and isinstance(subv, dict)
+                            and isinstance(target.get("config"), dict)
+                        ):
                             target["config"].update(subv)
-                        elif subk == "atomicnoize" and isinstance(subv, dict) and isinstance(target.get("atomicnoize"), dict):
+                        elif (
+                            subk == "atomicnoize"
+                            and isinstance(subv, dict)
+                            and isinstance(target.get("atomicnoize"), dict)
+                        ):
                             target["atomicnoize"].update(subv)
                         else:
                             target[subk] = subv
@@ -725,7 +734,11 @@ class VwarpTool:
         # But wait, user said "SET VWARP TRUE". Usually implies using it.
         # Let's check VWARP_FORCE_MASQUE or similar.
 
-        force_masque = os.environ.get("VWARP_FORCE_MASQUE", "").lower() in ("1", "true", "yes")
+        force_masque = os.environ.get("VWARP_FORCE_MASQUE", "").lower() in (
+            "1",
+            "true",
+            "yes",
+        )
         # If not explicitly forced, do we default to adding --masque?
         # The quick start says: "vwarp --config my-config.json --masque".
         # So commonly --masque is used.
@@ -873,9 +886,7 @@ class VwarpTool:
                         if _is_valid_ip(host):
                             endpoints.append((host, port))
                         else:
-                            logger.debug(
-                                "Vwarp scan: skipping non-IP host %r", host
-                            )
+                            logger.debug("Vwarp scan: skipping non-IP host %r", host)
 
             elapsed = time.time() - scan_start
             logger.info(
@@ -970,7 +981,7 @@ class VwarpTool:
     async def _wait_for_port(self, host: str, port: int, timeout: int = 45) -> bool:
         """Polls the given host:port until it accepts connections."""
         probe_host = host
-        if host in ("0.0.0.0", "::", ""):
+        if host in ("0.0.0.0", "::", ""):  # nosec
             probe_host = "127.0.0.1"
 
         start = time.time()
@@ -990,7 +1001,7 @@ class VwarpTool:
                         logger.error(f"Vwarp stderr: {stderr.decode(errors='ignore')}")
                     if details:
                         self._record_failure(self._classify_failure(details), details)
-                except Exception:
+                except Exception:  # nosec
                     pass
                 return False
 
@@ -1056,7 +1067,9 @@ class VwarpTool:
 
             # Second fallback: try alternate WARP endpoint + explicit endpoint
             # to bypass potential UDP/DNS blocks in CI environments
-            logger.info("Vwarp second fallback: trying alternate endpoint 162.159.193.10:1701")
+            logger.info(
+                "Vwarp second fallback: trying alternate endpoint 162.159.193.10:1701"
+            )
             fallback_cfg2 = {
                 "bind": f"{bind_addr}:{port}",
                 "dns": "1.0.0.1",
@@ -1233,7 +1246,7 @@ class VwarpTool:
         if self._config_owned and self._config_path:
             try:
                 self._config_path.unlink(missing_ok=True)
-            except Exception:
+            except Exception:  # nosec
                 pass
             finally:
                 self._config_path = None

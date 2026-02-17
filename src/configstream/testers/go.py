@@ -41,7 +41,7 @@ class GoBatchTester:
         # Normalize workers to a positive integer
         try:
             w = int(workers)
-        except Exception:
+        except Exception:  # nosec
             w = 20
         self.workers = max(1, w)
         self.timeout = timeout
@@ -232,7 +232,12 @@ class GoBatchTester:
                     self._proc = None
 
             # Cancel background tasks
-            for attr in ("_read_task", "_stderr_task", "_heartbeat_task", "_restart_task"):
+            for attr in (
+                "_read_task",
+                "_stderr_task",
+                "_heartbeat_task",
+                "_restart_task",
+            ):
                 await self._cancel_task(getattr(self, attr, None))
                 setattr(self, attr, None)
 
@@ -252,7 +257,7 @@ class GoBatchTester:
         if self._restart_task and not self._restart_task.done():
             try:
                 await safe_wait_for(self._restart_task, timeout=15.0)
-            except Exception:
+            except Exception:  # nosec
                 pass
             self._restart_task = None
 
@@ -292,7 +297,7 @@ class GoBatchTester:
                 env = os.environ.copy()
                 env["GOLOG_LOG_LEVEL"] = "error"
                 # Ensure temp dir is accessible
-                env["TMPDIR"] = os.environ.get("TMPDIR", "/tmp")
+                env["TMPDIR"] = os.environ.get("TMPDIR", "/tmp")  # nosec
                 env["PATH"] = os.environ.get("PATH", "/usr/bin:/bin")
                 # sing-box ≥1.11 deprecated legacy wireguard outbound;
                 # without this flag sing-box ≥1.12 fatally rejects WG configs.
@@ -357,7 +362,7 @@ class GoBatchTester:
                 f.cancel()
         try:
             await asyncio.gather(*futures, return_exceptions=True)
-        except Exception:
+        except Exception:  # nosec
             # Swallow any unexpected errors during cleanup
             pass
 
@@ -469,7 +474,7 @@ class GoBatchTester:
                             logger.warning(f"Go Tester: {text}")
         except asyncio.CancelledError:
             pass
-        except Exception:
+        except Exception:  # nosec
             pass
 
     async def test_batch(

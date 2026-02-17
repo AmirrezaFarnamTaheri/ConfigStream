@@ -220,8 +220,7 @@ def generate_split_outputs(
             {
                 "type": "selector",
                 "tag": "🚀 Mode Selector",
-                "outbounds": ["🚀 Auto", "🛡️ Auto-Fallback"]
-                + selector_tags,
+                "outbounds": ["🚀 Auto", "🛡️ Auto-Fallback"] + selector_tags,
                 "default": "🚀 Auto",
             }
         )

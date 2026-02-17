@@ -80,9 +80,7 @@ async def test_failure_mode_anomaly_db_crash(tmp_path, monkeypatch):
             )
         }
 
-    monkeypatch.setattr(
-        "configstream.fetcher.fetch_multiple_sources", fake_fetch
-    )
+    monkeypatch.setattr("configstream.fetcher.fetch_multiple_sources", fake_fetch)
 
     # Mock Blocklist
     async def fake_update():
@@ -144,9 +142,7 @@ async def test_failure_mode_vt_missing(tmp_path, monkeypatch):
             )
         }
 
-    monkeypatch.setattr(
-        "configstream.fetcher.fetch_multiple_sources", fake_fetch
-    )
+    monkeypatch.setattr("configstream.fetcher.fetch_multiple_sources", fake_fetch)
     from configstream.geoip import GeoData
 
     # Use async mock for GeoIP lookup and keyword arguments for GeoData

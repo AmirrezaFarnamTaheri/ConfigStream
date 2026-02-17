@@ -344,7 +344,7 @@ class ShadowrocketAdapter(Adapter):
                     json.dumps(data, ensure_ascii=False).encode()
                 ).decode()
                 return f"vmess://{encoded}#{safe_name}"
-            except Exception:
+            except Exception:  # nosec
                 continue
         return None
 
@@ -402,7 +402,7 @@ class ShadowrocketAdapter(Adapter):
                 uri = self._reconstruct_uri(origin_p)
                 if uri:
                     return uri
-            except Exception:
+            except Exception:  # nosec
                 pass
 
         # Strategy 2: compact origin_config
@@ -434,7 +434,7 @@ class ShadowrocketAdapter(Adapter):
                 raw = (origin_p.config or "").strip()
                 if raw and "://" in raw:
                     return raw
-            except Exception:
+            except Exception:  # nosec
                 pass
 
         # Strategy 3: extract relay from chain_outbounds

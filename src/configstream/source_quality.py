@@ -151,7 +151,9 @@ class SourceQualityTracker(QualityStorage):
                 settings, "SOURCE_RESURRECTION_HOURS", 168
             )  # 7 days
             if (now - last_checked) >= (resurrection_hours * 3600):
-                logger.info(f"Resurrecting dead source for retry: {SecurityValidator.sanitize_log_message(url[:60])}...")
+                logger.info(
+                    f"Resurrecting dead source for retry: {SecurityValidator.sanitize_log_message(url[:60])}..."
+                )
                 return True
             return False
 

@@ -32,7 +32,9 @@ def pin_to_ipfs(filepath: str, jwt: str) -> str:
 
             headers = {"Authorization": f"Bearer {jwt}"}
             # Note: 'files' is a list of tuples for multiple files
-            response = requests.post(url, files=files_payload, headers=headers, timeout=300)
+            response = requests.post(
+                url, files=files_payload, headers=headers, timeout=300
+            )
 
         finally:
             # Close file handles
@@ -44,7 +46,9 @@ def pin_to_ipfs(filepath: str, jwt: str) -> str:
         with open(filepath, "rb") as f:
             single_file_payload = {"file": f}
             headers = {"Authorization": f"Bearer {jwt}"}
-            response = requests.post(url, files=single_file_payload, headers=headers, timeout=30)
+            response = requests.post(
+                url, files=single_file_payload, headers=headers, timeout=30
+            )
 
     if response.status_code == 200:
         return str(response.json()["IpfsHash"])
@@ -126,7 +130,9 @@ def _clean_secret(v: str) -> str:
 
 def main():
     parser = argparse.ArgumentParser(description="Publish config to IPFS/IPNS")
-    parser.add_argument("--file", required=True, help="Path to file or directory to publish")
+    parser.add_argument(
+        "--file", required=True, help="Path to file or directory to publish"
+    )
     parser.add_argument(
         "--pinata-jwt",
         default=os.environ.get("PINATA_JWT"),

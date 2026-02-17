@@ -16,7 +16,8 @@ logger = logging.getLogger(__name__)
 def generate_clash_config(
     proxies: List[Proxy],
     extra_outbounds: Any = None,
-    dns_profile: Optional[Dict[str, Any]] = None, ignore_status: bool = False,
+    dns_profile: Optional[Dict[str, Any]] = None,
+    ignore_status: bool = False,
 ) -> str:
     """
     Generates a Clash YAML configuration.

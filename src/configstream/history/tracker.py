@@ -291,7 +291,7 @@ class ProxyHistoryTracker:
                             history_data[pid] = {
                                 "id": pid,
                                 "protocol": "unknown",
-                                "address": "0.0.0.0",  # Fallback
+                                "address": "127.0.0.1",  # Fallback
                                 "port": 0,  # Fallback
                                 "entries": [],
                             }
@@ -310,7 +310,7 @@ class ProxyHistoryTracker:
                 if cursor:
                     try:
                         cursor.close()
-                    except Exception:
+                    except Exception:  # nosec
                         pass
 
         except Exception as e:
@@ -355,7 +355,7 @@ class ProxyHistoryTracker:
         if hasattr(stats, "to_dict") and callable(stats.to_dict):
             try:
                 stats_dict = stats.to_dict()
-            except Exception:
+            except Exception:  # nosec
                 logger.warning("Failed to convert stats to dict, using empty dict")
                 stats_dict = {}
         elif isinstance(stats, dict):

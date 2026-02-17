@@ -1400,7 +1400,9 @@ def save_metadata(
     meta = {
         "schema_version": "3.0.2",
         "version": pkg_version,
-        "total_proxies": total + smart_chain_count + shielded_count,  # Working proxies + smart chains
+        "total_proxies": total
+        + smart_chain_count
+        + shielded_count,  # Working proxies + smart chains
         "total_tested": tested_count,  # Number of proxies actually tested
         "total_working": working + shielded_count,
         "success_rate": (working / tested_count) if tested_count > 0 else 0,

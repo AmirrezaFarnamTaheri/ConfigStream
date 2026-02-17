@@ -2,6 +2,7 @@
 """
 Fetcher worker components: Models, Utils, and Single Fetch Logic.
 """
+
 from __future__ import annotations
 
 import asyncio

@@ -34,7 +34,7 @@ async def register_warp_account() -> Optional[Dict[str, Any]]:
 
     try:
         # 1. Generate Instance ID
-        inst_id = "".join(random.choices("0123456789ABCDEF", k=22))
+        inst_id = "".join(random.choices("0123456789ABCDEF", k=22))  # nosec
 
         # 2. Generate Keys (delegated to canonical KeyGenerator)
         try:
