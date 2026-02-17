@@ -79,9 +79,7 @@ async def test_processing_consumer_revival_crash(mock_dependencies_fix):
     )
 
     # Mock parse_config
-    with patch(
-        "configstream.consumer.parse_config", return_value=original_proxy
-    ):
+    with patch("configstream.consumer.parse_config", return_value=original_proxy):
         # Mock validate_batch_configs
         with patch(
             "configstream.consumer.validate_batch_configs",

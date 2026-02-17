@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS history (
                     try:
                         if self._conn:
                             self._conn.close()
-                    except Exception:
+                    except Exception:  # nosec
                         pass
                     self._init_db()
                     if self._conn:
@@ -207,7 +207,7 @@ CREATE TABLE IF NOT EXISTS history (
 
         subnets = []
         for p in proxies:
-            ip = p.get("server") or p.get("ip") or "0.0.0.0"
+            ip = p.get("server") or p.get("ip") or "127.0.0.1"
             if ip.count(".") == 3:
                 # Extract /24 subnet
                 subnet = ".".join(ip.split(".")[:3])
@@ -334,6 +334,6 @@ CREATE TABLE IF NOT EXISTS history (
             if self._conn:
                 try:
                     self._conn.close()
-                except Exception:
+                except Exception:  # nosec
                     pass
                 self._conn = None

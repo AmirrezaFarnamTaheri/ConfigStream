@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Callable
 import logging
 
 from ..models import Proxy
@@ -10,7 +10,137 @@ from .clash_utils import add_transport_opts
 logger = logging.getLogger(__name__)
 
 
-def to_clash_proxy(proxy: Proxy, ignore_status: bool = False) -> Optional[Dict[str, Any]]:
+def _convert_ss(proxy: Proxy, common: Dict[str, Any]) -> Dict[str, Any]:
+    common["type"] = "ss"
+    common["cipher"] = (
+        proxy.details.get("method")
+        or proxy.details.get("cipher")
+        or "chacha20-ietf-poly1305"
+    )
+    common["password"] = proxy.details.get("password") or proxy.uuid
+
+    if proxy.details.get("plugin"):
+        common["plugin"] = proxy.details["plugin"]
+        raw_opts = proxy.details.get("plugin_opts", {})
+        if isinstance(raw_opts, str) and raw_opts:
+            common["plugin-opts"] = dict(
+                item.split("=", 1) for item in raw_opts.split(";") if "=" in item
+            )
+        elif isinstance(raw_opts, dict):
+            common["plugin-opts"] = raw_opts
+        else:
+            common["plugin-opts"] = {}
+    return common
+
+
+def _convert_vmess(proxy: Proxy, common: Dict[str, Any]) -> Dict[str, Any]:
+    common["uuid"] = proxy.uuid
+    common["alterId"] = proxy.details.get("aid", proxy.details.get("alterId", 0))
+    common["cipher"] = proxy.details.get("scy") or proxy.details.get("cipher") or "auto"
+    add_transport_opts(common, proxy.details)
+    return common
+
+
+def _convert_trojan(proxy: Proxy, common: Dict[str, Any]) -> Dict[str, Any]:
+    common["password"] = proxy.uuid
+    common["udp"] = True
+    add_transport_opts(common, proxy.details)
+    common["tls"] = True
+
+    if "servername" in common:
+        common.setdefault("sni", common.pop("servername"))
+    elif proxy.details.get("sni"):
+        common["sni"] = proxy.details["sni"]
+    return common
+
+
+def _convert_vless(proxy: Proxy, common: Dict[str, Any]) -> Dict[str, Any]:
+    common["uuid"] = proxy.uuid
+    flow = proxy.details.get("flow", "")
+    if flow:
+        common["flow"] = flow
+    add_transport_opts(common, proxy.details)
+    return common
+
+
+def _convert_hysteria2(proxy: Proxy, common: Dict[str, Any]) -> Dict[str, Any]:
+    common["type"] = "hysteria2"
+    common["password"] = proxy.uuid or proxy.details.get("password", "")
+    common["tls"] = True
+    common["sni"] = proxy.details.get("sni", "")
+    common["skip-cert-verify"] = parse_bool(proxy.details.get("allowInsecure", False))
+    if proxy.details.get("obfs") == "salamander":
+        common["obfs"] = "salamander"
+        common["obfs-password"] = proxy.details.get("obfs-password", "")
+    return common
+
+
+def _convert_tuic(proxy: Proxy, common: Dict[str, Any]) -> Dict[str, Any]:
+    common["type"] = "tuic"
+    common["uuid"] = proxy.uuid
+    common["password"] = proxy.details.get("password", "")
+    common["tls"] = True
+    common["sni"] = proxy.details.get("sni", "")
+    common["congestion-controller"] = proxy.details.get("congestion_controller", "bbr")
+    common["skip-cert-verify"] = parse_bool(proxy.details.get("allowInsecure", False))
+    return common
+
+
+def _convert_socks5(proxy: Proxy, common: Dict[str, Any]) -> Dict[str, Any]:
+    common["type"] = "socks5"
+    if proxy.details.get("username") and proxy.details.get("password"):
+        common["username"] = proxy.details["username"]
+        common["password"] = proxy.details["password"]
+    common["udp"] = True
+    common["tls"] = parse_bool(proxy.details.get("tls", False))
+    common["skip-cert-verify"] = parse_bool(
+        proxy.details.get("skip_cert_verify", False)
+    )
+    return common
+
+
+def _convert_wireguard(proxy: Proxy, common: Dict[str, Any]) -> Dict[str, Any]:
+    common["type"] = "wireguard"
+    local_addresses = proxy.details.get("local_address")
+    if local_addresses and isinstance(local_addresses, list) and local_addresses:
+        common["ip"] = local_addresses[0]
+    else:
+        common["ip"] = "172.16.0.2"
+
+    common["private-key"] = proxy.details.get("private_key", "")
+    common["public-key"] = proxy.details.get("peer_public_key", "")
+    if "reserved" in proxy.details:
+        common["reserved"] = proxy.details["reserved"]
+
+    # Handle MTU safely
+    raw_mtu = proxy.details.get("mtu", 1280)
+    try:
+        common["mtu"] = int(raw_mtu)
+    except (TypeError, ValueError):
+        common["mtu"] = 1280
+
+    common["udp"] = True
+    return common
+
+
+# Dispatch table for protocol handlers
+_PROTOCOL_HANDLERS: Dict[str, Callable[[Proxy, Dict[str, Any]], Dict[str, Any]]] = {
+    "ss": _convert_ss,
+    "shadowsocks": _convert_ss,
+    "vmess": _convert_vmess,
+    "trojan": _convert_trojan,
+    "vless": _convert_vless,
+    "hysteria2": _convert_hysteria2,
+    "tuic": _convert_tuic,
+    "socks5": _convert_socks5,
+    "socks": _convert_socks5,
+    "wireguard": _convert_wireguard,
+}
+
+
+def to_clash_proxy(
+    proxy: Proxy, ignore_status: bool = False
+) -> Optional[Dict[str, Any]]:
     """
     Converts a Proxy object into a Clash proxy dictionary.
     Returns None if the protocol is not supported or conversion fails.
@@ -38,139 +168,10 @@ def to_clash_proxy(proxy: Proxy, ignore_status: bool = False) -> Optional[Dict[s
             "type": proxy.protocol,
         }
 
-        if proxy.protocol == "ss" or proxy.protocol == "shadowsocks":
-            common["type"] = "ss"
-            common["cipher"] = (
-                proxy.details.get("method")
-                or proxy.details.get("cipher")
-                or "chacha20-ietf-poly1305"
-            )
-            common["password"] = proxy.details.get("password") or proxy.uuid
-            # Add plugin support if needed
-            if proxy.details.get("plugin"):
-                common["plugin"] = proxy.details["plugin"]
-                # Clash expects plugin-opts as dict, parser may store as string
-                raw_opts = proxy.details.get("plugin_opts", {})
-                if isinstance(raw_opts, str) and raw_opts:
-                    common["plugin-opts"] = dict(
-                        item.split("=", 1)
-                        for item in raw_opts.split(";")
-                        if "=" in item
-                    )
-                elif isinstance(raw_opts, dict):
-                    common["plugin-opts"] = raw_opts
-                else:
-                    common["plugin-opts"] = {}
-            return common
+        handler = _PROTOCOL_HANDLERS.get(proxy.protocol)
+        if handler:
+            return handler(proxy, common)
 
-        elif proxy.protocol == "vmess":
-            common["uuid"] = proxy.uuid
-            # Parser stores as "aid", not "alterId"
-            common["alterId"] = proxy.details.get(
-                "aid", proxy.details.get("alterId", 0)
-            )
-            common["cipher"] = (
-                proxy.details.get("scy") or proxy.details.get("cipher") or "auto"
-            )
-            # Centralized transport + TLS handling
-            add_transport_opts(common, proxy.details)
-            return common
-
-        elif proxy.protocol == "trojan":
-            common["password"] = proxy.uuid
-            # Trojan inherently uses TLS; always set tls and udp
-            common["udp"] = True
-            # Centralized transport + TLS handling (Trojan over ws/grpc supported)
-            add_transport_opts(common, proxy.details)
-            # Trojan always requires TLS even if details don't flag it
-            common["tls"] = True
-            # Mihomo Trojan uses 'sni', not 'servername' (VMess/VLESS convention).
-            # Move servername→sni if add_transport_opts set it.
-            if "servername" in common:
-                common.setdefault("sni", common.pop("servername"))
-            elif proxy.details.get("sni"):
-                common["sni"] = proxy.details["sni"]
-            return common
-
-        # Basic VLESS support (Clash Meta/Premium only usually, but often mapped)
-        elif proxy.protocol == "vless":
-            common["uuid"] = proxy.uuid
-            # Only set flow if non-empty to avoid cluttering config
-            flow = proxy.details.get("flow", "")
-            if flow:
-                common["flow"] = flow
-            # Centralized transport + TLS + Reality handling
-            add_transport_opts(common, proxy.details)
-            return common
-
-        # Clash Meta (Mihomo) Support for modern protocols
-        elif proxy.protocol == "hysteria2":
-            common["type"] = "hysteria2"
-            common["password"] = proxy.uuid or proxy.details.get("password", "")
-            # Hysteria2 requires TLS; set explicitly for Mihomo
-            common["tls"] = True
-            common["sni"] = proxy.details.get("sni", "")
-            common["skip-cert-verify"] = parse_bool(
-                proxy.details.get("allowInsecure", False)
-            )
-            if proxy.details.get("obfs") == "salamander":
-                common["obfs"] = "salamander"
-                common["obfs-password"] = proxy.details.get("obfs-password", "")
-            return common
-
-        elif proxy.protocol == "tuic":
-            common["type"] = "tuic"
-            common["uuid"] = proxy.uuid
-            common["password"] = proxy.details.get("password", "")
-            # TUIC requires TLS; set explicitly for Mihomo
-            common["tls"] = True
-            common["sni"] = proxy.details.get("sni", "")
-            common["congestion-controller"] = proxy.details.get(
-                "congestion_controller", "bbr"
-            )
-            common["skip-cert-verify"] = parse_bool(
-                proxy.details.get("allowInsecure", False)
-            )
-            return common
-
-        elif proxy.protocol in ("socks5", "socks"):
-            common["type"] = "socks5"
-            if proxy.details.get("username") and proxy.details.get("password"):
-                common["username"] = proxy.details["username"]
-                common["password"] = proxy.details["password"]
-            common["udp"] = True
-            common["tls"] = parse_bool(proxy.details.get("tls", False))
-            common["skip-cert-verify"] = parse_bool(proxy.details.get("skip_cert_verify", False))
-            return common
-
-        elif proxy.protocol == "wireguard":
-            common["type"] = "wireguard"
-            # Safely get the first IP or fall back to a default
-            local_addresses = proxy.details.get("local_address")
-            if (
-                local_addresses
-                and isinstance(local_addresses, list)
-                and local_addresses
-            ):
-                common["ip"] = local_addresses[0]
-            else:
-                common["ip"] = "172.16.0.2"
-
-            common["private-key"] = proxy.details.get("private_key", "")
-            common["public-key"] = proxy.details.get("peer_public_key", "")
-            if "reserved" in proxy.details:
-                common["reserved"] = proxy.details["reserved"]
-            if "mtu" in proxy.details:
-                try:
-                    common["mtu"] = int(proxy.details["mtu"])
-                except (TypeError, ValueError):
-                    common["mtu"] = 1280
-            else:
-                common["mtu"] = 1280
-            common["udp"] = True
-            return common
-
-        # Fallback or unknown
         return None
 
     except Exception as e:

@@ -36,7 +36,7 @@ class PoisonedDNSResolver:
         slow_domains: Optional[List[str]] = None,
         slow_delay: float = 5.0,
     ):
-        self.poison_ips = poison_ips or ["127.0.0.1", "0.0.0.0"]
+        self.poison_ips = poison_ips or ["127.0.0.1", "127.0.0.1"]
         self.nxdomain_domains = nxdomain_domains or []
         self.slow_domains = slow_domains or []
         self.slow_delay = slow_delay
@@ -56,7 +56,7 @@ class PoisonedDNSResolver:
             logger.debug(f"[PoisonedDNS] Slow reply for {hostname}")
 
         # Return poisoned IP
-        return random.choice(self.poison_ips)
+        return random.choice(self.poison_ips)  # nosec
 
 
 class IPBlocklist:

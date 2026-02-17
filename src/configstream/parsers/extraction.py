@@ -139,7 +139,10 @@ def extract_config_lines(
         # HTML content detected. Large pure-HTML pages are likely error pages, not configs.
         # Small pages or those containing proxy URIs in <pre> tags are still scanned.
         if len(payload_str) > 100_000 and "://" not in payload_str[:1000]:
-            logger.debug("Dropping large HTML payload (%d bytes) with no proxy URIs", len(payload_str))
+            logger.debug(
+                "Dropping large HTML payload (%d bytes) with no proxy URIs",
+                len(payload_str),
+            )
             return [], {"html_page": 1}
         logger.debug("HTML detected but proceeding — may contain embedded configs")
 

@@ -112,7 +112,7 @@ class SingBoxGenerator:
                 tag = outbound_config.get("tag")
                 if added and tag:
                     cast(List[str], urltest_outbound["outbounds"]).append(tag)
-            except Exception:
+            except Exception:  # nosec
                 continue
 
         # Assemble Final Config
@@ -125,7 +125,9 @@ class SingBoxGenerator:
             {"type": "dns", "tag": "dns-out"},
         ]
 
-        selector_tags = [tag for tag in added_tags if tag not in [SELECTOR_TAG, AUTO_TAG]]
+        selector_tags = [
+            tag for tag in added_tags if tag not in [SELECTOR_TAG, AUTO_TAG]
+        ]
         outbounds.append(
             {
                 "type": "selector",

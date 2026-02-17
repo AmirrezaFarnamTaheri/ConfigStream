@@ -198,7 +198,9 @@ class WarpScraper:
 
                     except Exception as e:
                         safe_e = SecurityValidator.sanitize_log_message(str(e))
-                        logger.debug(f"Error processing text_decode for {name}: {safe_e}")
+                        logger.debug(
+                            f"Error processing text_decode for {name}: {safe_e}"
+                        )
 
                 elif kind == "endpoint_list":
                     # Scrape IPs for the clean IP pool

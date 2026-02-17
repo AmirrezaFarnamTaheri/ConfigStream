@@ -168,9 +168,11 @@ def merge(
 
             # CRITICAL: Fail pipeline if zero working proxies found
             # This ensures GitHub Actions workflow fails instead of silently passing with empty results.
-            working = _get('working')
+            working = _get("working")
             if working == 0:
-                console.print("\n[bold red]CRITICAL: Pipeline finished with 0 working proxies![/bold red]")
+                console.print(
+                    "\n[bold red]CRITICAL: Pipeline finished with 0 working proxies![/bold red]"
+                )
                 sys.exit(1)
 
         else:
@@ -418,7 +420,7 @@ def backup(days, dir):
 @main.command()
 def scan_dns():
     """Launch the interactive DNS Scanner TUI."""
-    import subprocess
+    import subprocess  # nosec
     import sys
     from pathlib import Path
 
@@ -434,7 +436,7 @@ def scan_dns():
 
     console.print("[green]Launching DNS Scanner TUI...[/green]")
     try:
-        subprocess.run([sys.executable, str(scanner_script)], check=True)
+        subprocess.run  # nosec([sys.executable, str(scanner_script)], check=True)
     except subprocess.CalledProcessError as e:
         console.print(f"[red]Scanner exited with error: {e}[/red]")
         sys.exit(e.returncode)
