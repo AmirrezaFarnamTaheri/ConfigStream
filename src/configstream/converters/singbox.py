@@ -360,7 +360,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             return None
 
         chain_head = next(
-            (o for o in chain_items if o.get("type") == "wireguard"), chain_items[-1]
+            (o for o in chain_items if o.get("type") == "wireguard"), chain_items[0]
         )
         extra_outbounds = [o for o in chain_items if o is not chain_head]
         out = chain_head.copy()
