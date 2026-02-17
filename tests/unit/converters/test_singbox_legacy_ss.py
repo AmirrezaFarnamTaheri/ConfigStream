@@ -1,5 +1,4 @@
-from configstream.converters.singbox import (VALID_SS_METHODS,
-                                             _sanitize_ss_method)
+from configstream.converters.singbox import VALID_SS_METHODS, _sanitize_ss_method
 
 
 def test_legacy_ss_methods_accepted():
