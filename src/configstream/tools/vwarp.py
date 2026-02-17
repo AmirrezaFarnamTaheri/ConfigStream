@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import asyncio
 import shutil
+import copy
 import logging
 import json
 import time
@@ -780,8 +781,29 @@ class VwarpTool:
         fd, tmp_name = tempfile.mkstemp(prefix="vwarp-config-", suffix=".json")
         os.close(fd)
         tmp_path = Path(tmp_name)
+
+        # Sanitize config for Vwarp
+        write_config = copy.deepcopy(config)
+        write_config.pop("version", None)
+        write_config.pop("metadata", None)
+
+        # Flatten Masque if needed
+        if "masque" in write_config:
+            if isinstance(write_config["masque"], dict):
+                # If config sub-dict exists, use it (parameters).
+                if "config" in write_config["masque"]:
+                    write_config["masque"] = write_config["masque"]["config"]
+                else:
+                    # Just remove enabled/preferred
+                    write_config["masque"].pop("enabled", None)
+                    write_config["masque"].pop("preferred", None)
+
+        # Fix Psiphon
+        if "psiphon" in write_config and isinstance(write_config["psiphon"], dict):
+            write_config["psiphon"].pop("enabled", None)
+
         try:
-            tmp_path.write_text(json.dumps(config), encoding="utf-8")
+            tmp_path.write_text(json.dumps(write_config), encoding="utf-8")
         except OSError as exc:
             logger.error(f"Failed to write Vwarp config: {exc}")
             return None, []
