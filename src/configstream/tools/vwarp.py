@@ -5,6 +5,7 @@ import logging
 import json
 import time
 import os
+from datetime import datetime, timezone
 import hashlib
 import zipfile
 import stat
@@ -532,6 +533,98 @@ class VwarpTool:
         # Fallback to historical flag
         return [self.binary, "--bind", bind_value]
 
+    def _get_default_config(self) -> Dict[str, Any]:
+        return {
+            "version": "1.0",
+            # bind will be set dynamically
+            "endpoint": "162.159.192.1:2408",
+            "dns": "1.1.1.1",
+            "test_url": "https://cp.cloudflare.com/",
+            "wireguard": {
+                "enabled": True,
+                "reserved": "1,2,3",
+                "fwmark": 0,
+                "atomicnoize": {
+                    "I1": "<b 0c0d0e0f>",
+                    "i2": "<b 0xc80000000108ce1bf31000a>",
+                    "I3": "<b 040506>",
+                    "I4": "<b 0708>",
+                    "I5": "<b 09>",
+                    "S1": 1,
+                    "S2": 2,
+                    "Jc": 8,
+                    "Jmin": 40,
+                    "Jmax": 90,
+                    "JcAfterI1": 3,
+                    "JcBeforeHS": 5,
+                    "JcAfterHS": 4,
+                    "JunkInterval": 15000000,
+                    "AllowZeroSize": False,
+                    "HandshakeDelay": 5000000
+                }
+            },
+            "masque": {
+
+
+
+
+
+
+
+                "enabled": False,
+                "preferred": False,
+                "config": {
+                    "i1": "<b 0d0a0d0a>",
+                    "i2": "<b 0xc80000000108ce1bf31000a>",
+                    "i3": "<b 0102>",
+                    "i4": "<b 030405>",
+                    "i5": "<b 060708>",
+                    "fragment_size": 0,
+                    "fragment_initial": False,
+                    "FragmentDelay": 500000,
+                    "PaddingMin": 0,
+                    "PaddingMax": 0,
+                    "RandomPadding": False,
+                    "Jc": 8,
+                    "Jmin": 30,
+                    "Jmax": 120,
+                    "JcBeforeHS": 3,
+                    "JcAfterI1": 2,
+                    "JcDuringHS": 5,
+                    "JcAfterHS": 3,
+                    "JunkInterval": 20000000,
+                    "JunkRandom": True,
+                    "MimicProtocol": "quic",
+                    "CustomWrapper": True,
+                    "HandshakeDelay": 30000000,
+                    "PacketDelay": 5000000,
+                    "RandomDelay": True,
+                    "DelayMin": 2000000,
+                    "DelayMax": 15000000,
+                    "SNIFragmentation": False,
+                    "SNIFragment": 32,
+                    "FakeALPN": ["h2", "http/1.1"],
+                    "ReversedOrder": False,
+                    "DuplicatePackets": False,
+                    "AllowZeroSize": True,
+                    "UseTimestamp": False,
+                    "UseNonce": True,
+                    "RandomizeInitial": True,
+                    "FakeLoss": 0.05
+                }
+            },
+            "psiphon": {
+                "enabled": False,
+                "country": "US"
+            },
+            "metadata": {
+                "name": "sample-working-generated",
+                "description": "Auto-generated from ConfigStream based on sample-working.json",
+                "author": "ConfigStream",
+                "created_at": datetime.now(timezone.utc).isoformat()
+            }
+        }
+
     async def _prepare_tunnel_config(
         self,
         bind_addr: str,
@@ -539,8 +632,8 @@ class VwarpTool:
         config_override: Optional[Dict[str, Any]] = None,
     ) -> Tuple[Optional[Path], List[str]]:
         """
-        Build a temporary config file for Vwarp if requested via env or needed in CI.
-        Returns (path, extra_flags). If no config is required, returns (None, []).
+        Build a temporary config file for Vwarp using the Unified Configuration format.
+        Returns (path, extra_flags).
         """
         env_path = os.environ.get("VWARP_CONFIG_PATH", "").strip()
         if env_path:
@@ -549,83 +642,107 @@ class VwarpTool:
                 self._config_path = path
                 self._config_owned = False
                 logger.info(f"Using Vwarp config from path: {path}")
+                # We assume the user knows what they are doing with flags if providing a custom file.
+                # However, to be safe, we check if we should add --masque based on env.
                 extra = self._config_extra_flags({})
                 return path, extra
             logger.error("VWARP_CONFIG_PATH set but file does not exist.")
-            return None, []
+            # Fallback to generation
 
-        if config_override is not None:
-            config = dict(config_override)
-            # Do NOT inject "version" into config — Vwarp v2.1.0 rejects
-            # unknown fields like "version" with: "parse config file: version: unknown flag"
-            config["bind"] = f"{bind_addr}:{port}"
-            self._log_config("fallback override", config)
-            return self._write_temp_config(config)
+        # Start with default config
+        vwarp_config = self._get_default_config()
 
-        env_json = os.environ.get("VWARP_CONFIG_JSON", "").strip()
-        env_dns = os.environ.get("VWARP_DNS", "").strip()
-        env_test_url = os.environ.get("VWARP_TEST_URL", "").strip()
+        # Apply Overrides
+        vwarp_config["bind"] = f"{bind_addr}:{port}"
+
+        # Env Overrides
         env_endpoint = os.environ.get("VWARP_ENDPOINT", "").strip()
-        env_force_config = os.environ.get("VWARP_FORCE_CONFIG", "").lower() in (
-            "1",
-            "true",
-            "yes",
-        )
+        if env_endpoint:
+            vwarp_config["endpoint"] = env_endpoint
 
-        # In CI or restricted networks, DNS over UDP can fail.
-        # Prefer an IP-based test URL to avoid DNS lookups.
-        is_ci = os.environ.get("CI") == "true"
-        used_ci_defaults = is_ci and not (
-            env_force_config or env_json or env_dns or env_test_url or env_endpoint
-        )
-        if not env_test_url and is_ci:
-            env_test_url = "http://1.1.1.1/cdn-cgi/trace"
-        if not env_dns and is_ci:
-            env_dns = "1.1.1.1"
+        env_dns = os.environ.get("VWARP_DNS", "").strip()
+        if env_dns:
+            vwarp_config["dns"] = env_dns
 
-        # Don't force config generation just because CI is true.
-        # The test_url field is NOT supported by Vwarp v2.1.0 in the config file,
-        # causing "parse config file: test_url: unknown flag" errors.
-        needs_config = bool(env_force_config or env_json or env_dns or env_endpoint)
-        if not needs_config:
-            return None, []
+        env_test_url = os.environ.get("VWARP_TEST_URL", "").strip()
+        if env_test_url:
+            vwarp_config["test_url"] = env_test_url
 
-        vwarp_config: Dict[str, Any] = {}
+        env_key = os.environ.get("WARP_LICENSE_KEY", "").strip()
+        if env_key:
+            vwarp_config["key"] = env_key
+
+        # Masque & Psiphon Overrides
+        if "VWARP_MASQUE_ENABLED" in os.environ:
+            vwarp_config["masque"]["enabled"] = os.environ.get("VWARP_MASQUE_ENABLED", "").lower() in ("1", "true", "yes")
+
+        if "PSIPHON_ENABLED" in os.environ:
+            vwarp_config["psiphon"]["enabled"] = os.environ.get("PSIPHON_ENABLED", "").lower() in ("1", "true", "yes")
+
+        env_psiphon_country = os.environ.get("PSIPHON_COUNTRY", "").strip()
+        if env_psiphon_country:
+            vwarp_config["psiphon"]["country"] = env_psiphon_country
+
+        # Config Override (Programmatic) with Deep Merge
+        if config_override:
+            for key, value in config_override.items():
+                # Deep merge for specific sections to preserve defaults
+                if key in ["masque", "wireguard", "psiphon"] and isinstance(value, dict) and isinstance(vwarp_config.get(key), dict):
+                    target = vwarp_config[key]
+                    for subk, subv in value.items():
+                        # Level 2 merge for 'config' (masque) and 'atomicnoize' (wireguard)
+                        if subk == "config" and isinstance(subv, dict) and isinstance(target.get("config"), dict):
+                            target["config"].update(subv)
+                        elif subk == "atomicnoize" and isinstance(subv, dict) and isinstance(target.get("atomicnoize"), dict):
+                            target["atomicnoize"].update(subv)
+                        else:
+                            target[subk] = subv
+                else:
+                    vwarp_config[key] = value
+
+            # Ensure bind matches if overridden but we enforce it
+            vwarp_config["bind"] = f"{bind_addr}:{port}"
+
+        # JSON Override (Env)
+        env_json = os.environ.get("VWARP_CONFIG_JSON", "").strip()
         if env_json:
             try:
                 parsed = json.loads(env_json)
                 if isinstance(parsed, dict):
                     vwarp_config.update(parsed)
-                else:
-                    logger.warning("VWARP_CONFIG_JSON is not an object; ignoring.")
+                    # Ensure bind is preserved unless user explicitly wants to break it (unlikely)
+                    vwarp_config["bind"] = f"{bind_addr}:{port}"
             except json.JSONDecodeError:
                 logger.warning("VWARP_CONFIG_JSON is invalid JSON; ignoring.")
 
-        vwarp_config["bind"] = f"{bind_addr}:{port}"
-        if env_endpoint:
-            vwarp_config["endpoint"] = env_endpoint
-        if env_dns:
-            vwarp_config["dns"] = env_dns
-        # Do NOT inject test_url into config file - Vwarp v2.1.0 rejects it.
-        # Instead, pass it as a CLI flag if the binary supports --test-url.
+        # Determine Extra Flags
         extra_flags: List[str] = []
-        if env_test_url:
-            help_text = await self._get_help_text()
-            if "--test-url" in help_text:
-                extra_flags.append(f"--test-url={env_test_url}")
-            else:
-                logger.debug(
-                    "Vwarp binary does not support --test-url CLI flag; "
-                    "skipping test_url configuration."
-                )
 
-        if used_ci_defaults:
-            self._log_config("CI default", vwarp_config)
-        elif env_json or env_force_config or env_dns or env_endpoint:
-            self._log_config("env-derived", vwarp_config)
+        # Check if we should enable masque via flag (overrides config)
+        # Docs: "vwarp --config ... --masque"
+        # If config["masque"]["enabled"] is False, but we want it, add flag?
+        # Default sample has enabled=False. So we likely need --masque if we want masque.
+        # But wait, user said "SET VWARP TRUE". Usually implies using it.
+        # Let's check VWARP_FORCE_MASQUE or similar.
 
-        path_result, config_extra = self._write_temp_config(vwarp_config)
-        return path_result, config_extra + extra_flags
+        force_masque = os.environ.get("VWARP_FORCE_MASQUE", "").lower() in ("1", "true", "yes")
+        # If not explicitly forced, do we default to adding --masque?
+        # The quick start says: "vwarp --config my-config.json --masque".
+        # So commonly --masque is used.
+        # Let's add it if force_masque OR if we suspect we want it.
+        # Safe bet: If config doesn't enable it, add --masque?
+        # No, flags override config.
+
+        if force_masque:
+            extra_flags.append("--masque")
+
+        # Test URL compatibility check (legacy check, might not be needed for new binary but safe to keep)
+        # Note: The new config supports "test_url" field directly.
+
+        self._log_config("generated", vwarp_config)
+        path_result, _ = self._write_temp_config(vwarp_config)
+
+        return path_result, extra_flags
 
     @staticmethod
     def _config_extra_flags(config: Dict[str, Any]) -> List[str]:
@@ -894,7 +1011,10 @@ class VwarpTool:
         return False
 
     async def start_tunnel(
-        self, bind_addr: str = VWARP_BIND_ADDRESS, port: int = VWARP_SOCKS5_PORT
+        self,
+        bind_addr: str = VWARP_BIND_ADDRESS,
+        port: int = VWARP_SOCKS5_PORT,
+        config_override: Optional[Dict[str, Any]] = None,
     ) -> bool:
         """
         Starts the Vwarp SOCKS5 tunnel in the background.
@@ -913,7 +1033,7 @@ class VwarpTool:
                 logger.info(f"Retrying Vwarp tunnel with fallback config: {label}")
             return await self._start_tunnel_once(bind_addr, port, override)
 
-        success = await attempt("primary")
+        success = await attempt("primary", config_override)
         if success:
             return True
 

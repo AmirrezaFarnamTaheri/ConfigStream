@@ -133,6 +133,16 @@ def to_clash_proxy(proxy: Proxy, ignore_status: bool = False) -> Optional[Dict[s
             )
             return common
 
+        elif proxy.protocol in ("socks5", "socks"):
+            common["type"] = "socks5"
+            if proxy.details.get("username") and proxy.details.get("password"):
+                common["username"] = proxy.details["username"]
+                common["password"] = proxy.details["password"]
+            common["udp"] = True
+            common["tls"] = parse_bool(proxy.details.get("tls", False))
+            common["skip-cert-verify"] = parse_bool(proxy.details.get("skip_cert_verify", False))
+            return common
+
         elif proxy.protocol == "wireguard":
             common["type"] = "wireguard"
             # Safely get the first IP or fall back to a default

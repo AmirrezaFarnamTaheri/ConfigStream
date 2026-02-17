@@ -607,7 +607,7 @@ async def generate_pipeline_outputs(
     # _append_chain collection logic from output_logic.py
     def _collect_tags(outbounds: list) -> set[str]:
         return {
-            ob.get("tag") for ob in outbounds if isinstance(ob, dict) and ob.get("tag")
+            str(ob.get("tag")) for ob in outbounds if isinstance(ob, dict) and ob.get("tag")
         }
 
     _chain_tags: set[str] = set()

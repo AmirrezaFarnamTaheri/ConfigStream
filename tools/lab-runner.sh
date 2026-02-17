@@ -287,6 +287,10 @@ case "${1:-}" in
     scan-ips)   shift; cmd_scan_ips "$@" ;;
     test-layer) shift; cmd_test_layer "$@" ;;
     install)    install_singbox ;;
+    install-vwarp)
+        info "Downloading Vwarp..."
+        curl -fsSL https://raw.githubusercontent.com/voidr3aper-anon/Vwarp/master/termux.sh | bash
+        ;;
     *)
         echo "Usage: lab-runner.sh <command> [args]"
         echo
@@ -296,6 +300,7 @@ case "${1:-}" in
         echo "  scan-ips [--through proxy]     Scan for clean Cloudflare IPs"
         echo "  test-layer <type> <host:port>  Test a single layer (tcp/socks5/http/tls)"
         echo "  install                        Download sing-box binary"
+        echo "  install-vwarp                  Download Vwarp binary"
         echo
         echo "Examples:"
         echo "  bash lab-runner.sh run chain.json"

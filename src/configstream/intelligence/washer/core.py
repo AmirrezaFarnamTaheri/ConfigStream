@@ -22,6 +22,7 @@ from configstream.tools.vwarp import VwarpTool
 from configstream.intelligence.chaining import find_optimal_relay, ProxyStub, COUNTRIES
 from configstream.pipeline_stats import PipelineStats
 from configstream.config import AppSettings
+from configstream.constants import VWARP_SOCKS5_PORT, VWARP_BIND_ADDRESS
 from configstream.tagging import get_flag_emoji
 
 logger = logging.getLogger(__name__)
@@ -1144,35 +1145,59 @@ class ProxyWasher:
             if not peer_key:
                 peer_key = _SETTINGS_CACHE.WARP_PEER_KEY or DEFAULT_WARP_SERVER_KEY
 
-            warp_out = {
-                "type": "wireguard",
-                "tag": chain_id,
-                "local_address": [unique_ip],
-                "private_key": exit_key["private_key"],
-                "server": clean_endpoint,
-                "server_port": clean_port,
-                "peer_public_key": peer_key,
-                "reserved": reserved_bytes,
-                "mtu": 1280,
-                "detour": relay_out["tag"],
-            }
+            if use_vwarp:
+                # Vwarp Revival: Client -> Vwarp (SOCKS5) -> Relay
+                # Use local Vwarp tunnel to unblock access to the Relay
+                warp_out = {
+                    "type": "socks",
+                    "tag": chain_id,
+                    "server": VWARP_BIND_ADDRESS,
+                    "server_port": VWARP_SOCKS5_PORT,
+                    "version": "5"
+                }
+                # Detour Relay through Vwarp
+                relay_out["detour"] = chain_id
+            else:
+                # Standard Revival: Client -> Relay -> Warp
+                # Use Relay to tunnel Warp (Warp over Proxy)
+                warp_out = {
+                    "type": "wireguard",
+                    "tag": chain_id,
+                    "local_address": [unique_ip],
+                    "private_key": exit_key["private_key"],
+                    "server": clean_endpoint,
+                    "server_port": clean_port,
+                    "peer_public_key": peer_key,
+                    "reserved": reserved_bytes,
+                    "mtu": 1280,
+                    "detour": relay_out["tag"],
+                }
 
             # We bundle BOTH outbounds into the proxy details for special handling
             # Serialize relay object to prevent JSON errors.
             # Use the canonical Pydantic method for serialization.
             origin_dict = relay.model_dump(mode="json")
 
+
+            vwarp_mode = "STANDARD"
+            if use_vwarp:
+                settings = AppSettings()
+                if settings.VWARP_MASQUE_ENABLED:
+                    vwarp_mode = "MASQUE"
+
+            remark_prefix = f"⚡ VWARP {vwarp_mode}" if use_vwarp else "⚡ WARP"
             revived_proxy = Proxy(
                 config=f"revived://{relay.address}",  # Dummy config
                 protocol="revived",  # Special protocol
                 address=clean_endpoint,
                 port=clean_port,
                 uuid=chain_id,
-                remarks=f"Revived {relay.protocol.upper()}",
+                remarks=f"{remark_prefix} | {relay.protocol.upper()}",
                 details={
                     "chain_outbounds": [relay_out, warp_out],  # The full chain
                     "is_revived": True,
                     "use_vwarp": use_vwarp,
+                    "vwarp_mode": vwarp_mode if use_vwarp else None,
                     "origin_proxy": origin_dict,
                     "origin_id": relay.id,
                 },

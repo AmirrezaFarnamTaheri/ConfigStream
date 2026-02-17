@@ -203,6 +203,14 @@ proxies.json (simplified example):
 revived.json uses the same schema and contains only revived proxies.
 singbox-chains.json contains chain-only outbounds for sing-box.
 
+## Prerequisites
+
+Before running the pipeline, ensure you have the following installed if you plan to use specific features:
+
+*   **Python 3.10+**: Required for the core pipeline.
+*   **Cloudflare WARP**: Required if `USE_VWARP_TUNNEL=true`. The `vwarp` binary must be available in your PATH or configured via environment variables.
+*   **ConfigStream Tester (Go)**: Required for high-performance testing. The binary `configstream-tester` must be available in your PATH or configured via `CONFIGSTREAM_TESTER_BIN`.
+
 ## Quickstart
 
 Docker (recommended for production):
@@ -223,7 +231,7 @@ Core:
 
 Optional (enhanced features):
 - WARP_KEY_POOL=[{"private_key":"...","reserved":[0,0,0],"peer_public_key":"..."}]
-- USE_VWARP_TUNNEL=true
+- USE_VWARP_TUNNEL=true (default: false)
 - MAXMIND_LICENSE_KEY=your-key
 - VT_API_KEY=your-virustotal-key
 - CANARY_URL=https://example.com/health
