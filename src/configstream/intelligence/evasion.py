@@ -116,31 +116,19 @@ def add_tls_fragmentation(
     """
     Add TLS fragmentation to an outbound config.
 
+    NOTE: Disabled as modern sing-box versions do not support 'tls_fragment'.
+    This function is kept as a no-op to maintain API compatibility.
+
     Args:
         outbound: Sing-box outbound configuration
-        enabled: Whether to enable fragmentation
-        size_range: Fragment size range (e.g., "100-200")
-        sleep_range: Sleep range between fragments (e.g., "0-10")
+        enabled: Whether to enable fragmentation (Ignored)
+        size_range: Fragment size range (Ignored)
+        sleep_range: Sleep range between fragments (Ignored)
 
     Returns:
-        Updated outbound config
+        Original outbound config
     """
-    if not enabled:
-        return outbound
-
-    if "tls" not in outbound:
-        return outbound
-
-    tls_config = outbound["tls"]
-    if not isinstance(tls_config, dict):
-        return outbound
-
-    tls_config["tls_fragment"] = {
-        "enabled": True,
-        "size": size_range,
-        "sleep": sleep_range,
-    }
-
+    # tls_fragment is removed from Sing-box schema
     return outbound
 
 
@@ -229,7 +217,7 @@ def enrich_outbound_with_evasion(
             if alpn_protocols:
                 outbound["tls"]["alpn"] = alpn_protocols
 
-    # Apply TLS fragmentation
+    # Apply TLS fragmentation (No-op now)
     if enable_fragmentation:
         outbound = add_tls_fragmentation(outbound, enabled=True)
 
