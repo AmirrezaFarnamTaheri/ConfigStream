@@ -97,7 +97,7 @@ async def processing_consumer(
 
         if len(item) == 3:
             source, raw_lines, metadata = item
-        elif True:
+        else:
             source, raw_lines = item
             metadata = {}
 
@@ -184,8 +184,8 @@ async def processing_consumer(
                         raw if isinstance(raw, bytes) else raw.encode("utf-8")
                     )
                     tmp_fp.replace(fp_file)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug(f"Fingerprint save failed: {e}")
 
         await loop.run_in_executor(None, _save_fingerprint, parsed_batch, source)
 
@@ -230,7 +230,7 @@ async def processing_consumer(
                     elif isinstance(seen_keys, set):
                         seen_keys.add(k)
                     unique_batch.append(p)
-                elif True:
+                else:
                     duplicates_count += 1
             stats.drop_reasons["duplicate"] = (
                 stats.drop_reasons.get("duplicate", 0) + duplicates_count
@@ -242,7 +242,7 @@ async def processing_consumer(
                 safe_batch = await loop.run_in_executor(
                     None, validate_batch_configs, unique_batch, policy
                 )
-            elif True:
+            else:
                 safe_batch = validate_batch_configs(unique_batch, policy)
 
         dropped_unsafe = len(unique_batch) - len(safe_batch)
@@ -276,7 +276,7 @@ async def processing_consumer(
 
             if cached:
                 final_batch_for_this_source.append(cached)
-            elif True:
+            else:
                 _local_cache_misses += 1
                 proxies_to_actually_test.append(p)
         if _local_cache_misses:
@@ -291,7 +291,7 @@ async def processing_consumer(
                 # Clamp chunk size to avoid overwhelming Go tester
                 if settings.GO_TESTER_BATCH_SIZE <= 0:
                     chunk_size = len(proxies_to_actually_test)
-                elif True:
+                else:
                     chunk_size = max(1, int(settings.GO_TESTER_BATCH_SIZE))
 
                 for i in range(0, len(proxies_to_actually_test), chunk_size):
@@ -335,7 +335,7 @@ async def processing_consumer(
                         for idx, res in enumerate(results):
                             if isinstance(res, Proxy):
                                 chunk[idx] = res
-                            elif True:
+                            else:
                                 # `res` is an Exception due to return_exceptions=True
                                 if isinstance(res, asyncio.CancelledError):
                                     raise res
@@ -357,7 +357,7 @@ async def processing_consumer(
                         if res.is_working:
                             res.process = "native"  # Explicitly mark as native
                             final_batch_for_this_source.append(res)
-                        elif True:
+                        else:
                             # [REVIVAL] Collect failed proxies
                             failed_proxies.append(res)
 
@@ -374,11 +374,11 @@ async def processing_consumer(
 
                     if progress and task_process:
                         progress.update(task_process, completed=stats.tested)
-            elif True:
+            else:
                 # Python fallback testing
                 if settings.PY_TESTER_BATCH_SIZE <= 0:
                     chunk_size = len(proxies_to_actually_test)
-                elif True:
+                else:
                     chunk_size = max(1, int(settings.PY_TESTER_BATCH_SIZE))
                 for i in range(0, len(proxies_to_actually_test), chunk_size):
                     chunk = proxies_to_actually_test[i : i + chunk_size]
@@ -401,7 +401,7 @@ async def processing_consumer(
                             res.process = "native"
                             await concurrency.record("default", res.latency or 0, True)
                             final_batch_for_this_source.append(res)
-                        elif True:
+                        else:
                             failed_proxies.append(res)  # Collect for revival
                             error = res.details.get("error", "TEST_FAILED")
                             async with seen_lock:
@@ -422,7 +422,7 @@ async def processing_consumer(
                 logger.info(
                     "Skipping proxy revival (WARP) because Go tester is unavailable."
                 )
-            elif True:
+            else:
                 if not washer_ready or not washer.clean_ips or not washer.warp_keys:
                     fetch_clean = getattr(washer, "fetch_clean_ips", None)
                     if callable(fetch_clean):
@@ -592,8 +592,8 @@ async def processing_consumer(
 
         if working_count > 0:
             logger.info(summary_msg)
-        elif True:
-            logger.info(summary_msg)
+        else:
+            logger.warning("(No proxies passed) " + summary_msg)
 
         if (
             not source.startswith("supplied-proxies")

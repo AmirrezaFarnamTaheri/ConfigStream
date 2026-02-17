@@ -163,6 +163,9 @@ class AppSettings(BaseSettings):
 
     # Flags
     USE_VWARP_TUNNEL: bool = True
+    VWARP_MASQUE_ENABLED: bool = True  # Enable Masque by default
+    PSIPHON_ENABLED: bool = False
+    PSIPHON_COUNTRY: str = "US"
     FORCE_SCANNER: bool = False
     ALLOW_ACTIVE_SCANNING: bool = False
 

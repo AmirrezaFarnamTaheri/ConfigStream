@@ -198,8 +198,12 @@ async def run_full_pipeline(
 
     if settings.USE_VWARP_TUNNEL:
         if await vwarp_tool.is_available():
+            vwarp_config_override = {
+                "masque": {"enabled": settings.VWARP_MASQUE_ENABLED},
+                "psiphon": {"enabled": settings.PSIPHON_ENABLED, "country": settings.PSIPHON_COUNTRY}
+            }
             if await vwarp_tool.start_tunnel(
-                bind_addr=VWARP_BIND_ADDRESS, port=VWARP_SOCKS5_PORT
+                bind_addr=VWARP_BIND_ADDRESS, port=VWARP_SOCKS5_PORT, config_override=vwarp_config_override
             ):
                 logger.info("✅ Vwarp Tunnel established.")
                 os.environ["USE_VWARP_TUNNEL"] = "true"
