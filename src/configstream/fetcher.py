@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 # Use AppSettings if available, otherwise default
 try:
     MAX_RESPONSE_SIZE = AppSettings().MAX_RESPONSE_SIZE
-except Exception as e:  # nosec
+except Exception:  # nosec
     MAX_RESPONSE_SIZE = 10 * 1024 * 1024
 
 USER_AGENTS = [
@@ -76,7 +76,7 @@ async def fetch_from_source(
             parsed = urlparse(source)
             host = parsed.netloc
             key = host
-        except Exception as e:  # nosec
+        except Exception:  # nosec
             key = source
 
         breaker = await breaker_manager.get_breaker(key)
@@ -298,12 +298,12 @@ async def fetch_from_source(
                     await timeout_tracker.record_attempt(
                         source, loop.time() - start_ts, success=False
                     )
-                except Exception as e:  # nosec
+                except Exception:  # nosec
                     pass
             if breaker:
                 try:
                     await breaker.record_failure()
-                except Exception as e:  # nosec
+                except Exception:  # nosec
                     pass
             attempt += 1
             await asyncio.sleep(retry_delay)
