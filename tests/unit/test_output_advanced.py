@@ -95,7 +95,7 @@ def test_generate_split_outputs(tmp_path, sample_proxies):
         # Ensure at least one proxy type is present in the output
         # If Clash generator filters them out, we might need to adjust the Proxy details
         if "vmess" not in content and "ss" not in content:
-             pytest.skip("Clash generator filtered all sample proxies")
+            pytest.skip("Clash generator filtered all sample proxies")
 
         # We expect at least one of them to be present
         assert ("vmess" in content) or ("ss" in content) or ("shadowsocks" in content)
