@@ -1162,17 +1162,26 @@ class ProxyWasher:
             # Use the canonical Pydantic method for serialization.
             origin_dict = relay.model_dump(mode="json")
 
+
+            vwarp_mode = "STANDARD"
+            if use_vwarp:
+                settings = AppSettings()
+                if settings.VWARP_MASQUE_ENABLED:
+                    vwarp_mode = "MASQUE"
+
+            remark_prefix = f"⚡ VWARP {vwarp_mode}" if use_vwarp else "⚡ WARP"
             revived_proxy = Proxy(
                 config=f"revived://{relay.address}",  # Dummy config
                 protocol="revived",  # Special protocol
                 address=clean_endpoint,
                 port=clean_port,
                 uuid=chain_id,
-                remarks=f"Revived {relay.protocol.upper()}",
+                remarks=f"{remark_prefix} | {relay.protocol.upper()}",
                 details={
                     "chain_outbounds": [relay_out, warp_out],  # The full chain
                     "is_revived": True,
                     "use_vwarp": use_vwarp,
+                    "vwarp_mode": vwarp_mode if use_vwarp else None,
                     "origin_proxy": origin_dict,
                     "origin_id": relay.id,
                 },

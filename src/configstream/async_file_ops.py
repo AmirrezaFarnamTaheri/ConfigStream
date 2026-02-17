@@ -51,12 +51,12 @@ async def read_multiple_files_async(paths: List[str]) -> List[Tuple[str, str]]:
 
     results = await asyncio.gather(*tasks, return_exceptions=True)
 
-    output = []
+    output: List[Tuple[str, str]] = []
     for path, res in zip(paths, results):
         if isinstance(res, Exception):
             logger.warning(f"Failed to read {path}: {res}")
         else:
-            output.append((path, res))
+            output.append((path, str(res)))
 
     return output
 
