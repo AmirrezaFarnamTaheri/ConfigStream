@@ -176,7 +176,12 @@ def test_shield_batch_does_not_mutate_source_proxy_state(washer_stats_fixture):
 
     with patch(
         "configstream.intelligence.washer.core.to_singbox_outbound",
-        return_value={"type": "vless", "tag": "relay", "server": "1.1.1.1", "server_port": 443},
+        return_value={
+            "type": "vless",
+            "tag": "relay",
+            "server": "1.1.1.1",
+            "server_port": 443,
+        },
     ):
         outbounds, ids = washer_stats_fixture.shield_batch([dead_proxy])
 

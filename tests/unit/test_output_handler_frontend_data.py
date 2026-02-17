@@ -90,20 +90,33 @@ async def test_generate_pipeline_outputs_preserves_revived_process_and_dns_flags
     washer.clean_ips = [("162.159.192.1", 2408)]
 
     try:
-        await generate_pipeline_outputs([native, revived], out_dir, stats, history, washer=washer)
+        await generate_pipeline_outputs(
+            [native, revived], out_dir, stats, history, washer=washer
+        )
     finally:
         history.close()
 
     proxies = json.loads((out_dir / "proxies.json").read_text(encoding="utf-8"))
     revived_rows = json.loads((out_dir / "revived.json").read_text(encoding="utf-8"))
-    dns_safe_rows = json.loads((out_dir / "proxies-dns-safe.json").read_text(encoding="utf-8"))
-    revived_dns_safe_rows = json.loads((out_dir / "revived-dns-safe.json").read_text(encoding="utf-8"))
+    dns_safe_rows = json.loads(
+        (out_dir / "proxies-dns-safe.json").read_text(encoding="utf-8")
+    )
+    revived_dns_safe_rows = json.loads(
+        (out_dir / "revived-dns-safe.json").read_text(encoding="utf-8")
+    )
 
     revived_in_proxies = [row for row in proxies if row.get("id") == "revived-test"]
     assert revived_in_proxies
     assert revived_in_proxies[0].get("process") == "revived-vwarp"
 
     assert revived_rows
-    assert all(str(row.get("process", "")).startswith("revived") for row in revived_rows)
-    assert all((row.get("details") or {}).get("dns_safe") is True for row in dns_safe_rows)
-    assert all((row.get("details") or {}).get("dns_safe") is True for row in revived_dns_safe_rows)
+    assert all(
+        str(row.get("process", "")).startswith("revived") for row in revived_rows
+    )
+    assert all(
+        (row.get("details") or {}).get("dns_safe") is True for row in dns_safe_rows
+    )
+    assert all(
+        (row.get("details") or {}).get("dns_safe") is True
+        for row in revived_dns_safe_rows
+    )

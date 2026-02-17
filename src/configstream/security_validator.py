@@ -205,7 +205,9 @@ class SecurityValidator:
         if policy["block_suspicious_ports"] and port in SUSPICIOUS_PORTS:
             return False, f"suspicious_port_{port}"
 
-        if not policy["allow_local_ips"] and SecurityValidator.is_local_ip(proxy.address):
+        if not policy["allow_local_ips"] and SecurityValidator.is_local_ip(
+            proxy.address
+        ):
             return False, "local_ip_blocked"
 
         # Enforce TLS if required by policy
@@ -246,7 +248,6 @@ class SecurityValidator:
                 return False, "insecure_encryption_method"
 
         return True, "ok"
-
 
 
 def _should_include_insecure(reason: str) -> bool:

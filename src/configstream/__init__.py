@@ -108,7 +108,9 @@ def _patch_anyio_current_task() -> None:
     async def _keepalive() -> None:
         await asyncio.Event().wait()
 
-    def _safe_current_task(loop: Optional[asyncio.AbstractEventLoop] = None) -> Optional[asyncio.Task]:
+    def _safe_current_task(
+        loop: Optional[asyncio.AbstractEventLoop] = None,
+    ) -> Optional[asyncio.Task]:
         task = _orig_current_task(loop)
         if task is not None:
             return task

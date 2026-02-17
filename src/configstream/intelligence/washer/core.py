@@ -1153,7 +1153,7 @@ class ProxyWasher:
                     "tag": chain_id,
                     "server": VWARP_BIND_ADDRESS,
                     "server_port": VWARP_SOCKS5_PORT,
-                    "version": "5"
+                    "version": "5",
                 }
                 # Detour Relay through Vwarp
                 relay_out["detour"] = chain_id
@@ -1177,7 +1177,6 @@ class ProxyWasher:
             # Serialize relay object to prevent JSON errors.
             # Use the canonical Pydantic method for serialization.
             origin_dict = relay.model_dump(mode="json")
-
 
             vwarp_mode = "STANDARD"
             if use_vwarp:

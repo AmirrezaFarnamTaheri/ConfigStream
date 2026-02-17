@@ -105,9 +105,7 @@ async def test_source_producer_local_files(mock_dependencies):
     queue = mock_dependencies["queue"]
     sources = ["sources/batch_1.txt"]
 
-    with patch(
-        "configstream.producer.read_multiple_files_async"
-    ) as mock_read:
+    with patch("configstream.producer.read_multiple_files_async") as mock_read:
         mock_read.return_value = [("sources/batch_1.txt", "vmess://file")]
 
         await source_producer(
@@ -137,9 +135,7 @@ async def test_source_producer_remote_urls(mock_dependencies):
     ]
 
     # Mock fetcher
-    with patch(
-        "configstream.producer.fetch_multiple_sources"
-    ) as mock_fetch:
+    with patch("configstream.producer.fetch_multiple_sources") as mock_fetch:
         mock_fetch.return_value = {
             "http://web.com/sub": FetchResult(True, "s1", content="vmess://line1"),
             "https://web.com/sub2": FetchResult(True, "s2", content="vmess://line2"),
@@ -188,9 +184,7 @@ async def test_source_producer_anomaly_block(mock_dependencies):
 
     mock_dependencies["anomaly"].is_safe.return_value = (False, "Malicious")
 
-    with patch(
-        "configstream.producer.fetch_multiple_sources"
-    ) as mock_fetch:
+    with patch("configstream.producer.fetch_multiple_sources") as mock_fetch:
         mock_fetch.return_value = {
             "http://bad.com": FetchResult(True, "s1", content="bad-line")
         }

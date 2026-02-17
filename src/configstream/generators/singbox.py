@@ -125,7 +125,9 @@ class SingBoxGenerator:
             {"type": "dns", "tag": "dns-out"},
         ]
 
-        selector_tags = [tag for tag in added_tags if tag not in [SELECTOR_TAG, AUTO_TAG]]
+        selector_tags = [
+            tag for tag in added_tags if tag not in [SELECTOR_TAG, AUTO_TAG]
+        ]
         outbounds.append(
             {
                 "type": "selector",

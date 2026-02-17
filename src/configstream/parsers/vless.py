@@ -116,11 +116,21 @@ def parse_vless(url: str) -> Proxy | None:
             proxy.details["sni"] = host  # Default SNI to host for TLS
 
         # Reality params (check common aliases)
-        pbk = next((params.get(k) for k in ("pbk", "publicKey", "public-key") if params.get(k)), None)
+        pbk = next(
+            (
+                params.get(k)
+                for k in ("pbk", "publicKey", "public-key")
+                if params.get(k)
+            ),
+            None,
+        )
         if pbk:
             proxy.details["pbk"] = pbk
 
-        sid = next((params.get(k) for k in ("sid", "shortId", "short-id") if params.get(k)), None)
+        sid = next(
+            (params.get(k) for k in ("sid", "shortId", "short-id") if params.get(k)),
+            None,
+        )
         if sid:
             proxy.details["sid"] = sid
 
