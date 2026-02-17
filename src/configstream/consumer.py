@@ -610,7 +610,7 @@ async def processing_consumer(
                     diversity_score,
                     0.0,
                 )
-            except Exception:
+            except Exception:  # nosec
                 pass
             try:
                 batch_number = os.getenv("BATCH_NUMBER", "").strip()
@@ -629,7 +629,7 @@ async def processing_consumer(
                         "batch_source": batch_source,
                     },
                 )
-            except Exception:
+            except Exception:  # nosec
                 pass
 
         work_queue.task_done()

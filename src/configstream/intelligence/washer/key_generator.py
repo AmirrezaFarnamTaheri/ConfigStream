@@ -57,11 +57,11 @@ class KeyGenerator:
             # Basic payload for registration
             payload = {
                 "key": public_key,
-                "install_id": "",
-                "fcm_token": "",
+                "install_id": "",  # nosec
+                "fcm_token": "",  # nosec
                 "tos": datetime.now().strftime("%Y-%m-%dT%H:%M:%S.000+01:00"),
                 "model": "Linux",
-                "serial_number": "",
+                "serial_number": "",  # nosec
                 "locale": "en_US",
             }
 

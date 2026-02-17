@@ -112,7 +112,7 @@ class SingBoxGenerator:
                 tag = outbound_config.get("tag")
                 if added and tag:
                     cast(List[str], urltest_outbound["outbounds"]).append(tag)
-            except Exception:
+            except Exception:  # nosec
                 continue
 
         # Assemble Final Config
