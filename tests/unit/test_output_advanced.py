@@ -20,7 +20,13 @@ def sample_proxies():
             address="1.1.1.1",
             port=443,
             uuid="uuid1",
-            details={"network": "ws", "tls": True, "sni": "1.1.1.1", "security": "auto", "type": "none"},
+            details={
+                "network": "ws",
+                "tls": True,
+                "sni": "1.1.1.1",
+                "security": "auto",
+                "type": "none",
+            },
             is_working=True,
         ),
         Proxy(
@@ -29,7 +35,13 @@ def sample_proxies():
             address="2.2.2.2",
             port=443,
             uuid="uuid2",
-            details={"network": "tcp", "tls": True, "sni": "2.2.2.2", "security": "tls", "type": "none"},
+            details={
+                "network": "tcp",
+                "tls": True,
+                "sni": "2.2.2.2",
+                "security": "tls",
+                "type": "none",
+            },
             is_working=True,
         ),
         Proxy(

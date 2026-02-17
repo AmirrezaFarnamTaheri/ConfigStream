@@ -27,7 +27,9 @@ class TestTLSFingerprintRotation:
 
     def test_rotate_tls_fingerprint_specific(self):
         """Test TLS fingerprint rotation with specific fingerprint."""
-        result = rotate_tls_fingerprint("test_proxy", enabled=True, fingerprint="chrome")
+        result = rotate_tls_fingerprint(
+            "test_proxy", enabled=True, fingerprint="chrome"
+        )
         assert result is not None
         assert result["fingerprint"] == "chrome"
 

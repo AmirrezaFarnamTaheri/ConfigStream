@@ -343,7 +343,9 @@ class QualityStorage:
                     columns = [d[0] for d in cursor.description]
                     dst_columns = {
                         info[1]
-                        for info in dst.execute("PRAGMA table_info(source_stats)")  # nosec
+                        for info in dst.execute(
+                            "PRAGMA table_info(source_stats)"
+                        )  # nosec
                     }
                     columns_to_use = [c for c in columns if c in dst_columns]
                     if not columns_to_use:
