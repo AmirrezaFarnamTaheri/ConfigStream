@@ -745,19 +745,19 @@ class ShadowrocketAdapter(Adapter):
             pub = p.details.get("peer_public_key", "")
             if not priv or not pub:
                 return ""
-            params: Dict[str, str] = {"publickey": pub}
+            wg_params: Dict[str, str] = {"publickey": pub}
             local_addr = p.details.get("local_address")
             if isinstance(local_addr, list) and local_addr:
-                params["address"] = ",".join(str(a) for a in local_addr)
+                wg_params["address"] = ",".join(str(a) for a in local_addr)
             elif isinstance(local_addr, str) and local_addr:
-                params["address"] = local_addr
+                wg_params["address"] = local_addr
             reserved = p.details.get("reserved")
             if isinstance(reserved, list) and reserved:
-                params["reserved"] = ",".join(str(r) for r in reserved)
+                wg_params["reserved"] = ",".join(str(r) for r in reserved)
             mtu = p.details.get("mtu")
             if mtu:
-                params["mtu"] = str(mtu)
-            query = urllib.parse.urlencode(params) if params else ""
+                wg_params["mtu"] = str(mtu)
+            query = urllib.parse.urlencode(wg_params) if wg_params else ""
             query_part = f"?{query}" if query else ""
             encoded_key = urllib.parse.quote(priv, safe="")
             return f"wireguard://{encoded_key}@{p.address}:{p.port}{query_part}#{name}"
@@ -806,4 +806,4 @@ def get_adapter(format_name: str) -> Adapter:
     cls = _ADAPTER_MAP.get(format_name.lower())
     if cls is None:
         raise ValueError(f"Unknown format: {format_name}")
-    return cls()
+    return cls()  # type: ignore[abstract]

@@ -42,9 +42,9 @@ def pin_to_ipfs(filepath: str, jwt: str) -> str:
     else:
         # Single file
         with open(filepath, "rb") as f:
-            files_payload = {"file": f}
+            single_file_payload = {"file": f}
             headers = {"Authorization": f"Bearer {jwt}"}
-            response = requests.post(url, files=files_payload, headers=headers, timeout=30)
+            response = requests.post(url, files=single_file_payload, headers=headers, timeout=30)
 
     if response.status_code == 200:
         return str(response.json()["IpfsHash"])

@@ -122,7 +122,7 @@ def _build_dns_safe_proxies(
             if _is_global_ip(addr):
                 host_map[_normalize_host(addr)] = addr
                 clone = proxy.model_copy(deep=True)
-                details: Dict[str, Any] = dict(clone.details or {})
+                details = dict(clone.details or {})
                 details["dns_safe"] = True
                 _rewrite_chain_outbounds_for_dns(details, host_map)
                 clone.details = details
@@ -139,7 +139,7 @@ def _build_dns_safe_proxies(
         clone.address = resolved
         clone.resolved_ip = resolved
 
-        details: Dict[str, Any] = dict(clone.details or {})
+        details = dict(clone.details or {})
         details.setdefault("_origin_id", proxy.id)
         details.setdefault("original_host", addr)
         details["dns_safe"] = True
@@ -184,7 +184,7 @@ def _build_dns_hardened_proxies(
 
         if _is_ip_literal(addr):
             clone = proxy.model_copy(deep=True)
-            details: Dict[str, Any] = dict(clone.details or {})
+            details = dict(clone.details or {})
             details["dns_hardened"] = True
             _rewrite_chain_outbounds_for_dns(details, host_map)
             clone.details = details
@@ -199,7 +199,7 @@ def _build_dns_hardened_proxies(
             clone.address = resolved
             clone.resolved_ip = resolved
 
-            details: Dict[str, Any] = dict(clone.details or {})
+            details = dict(clone.details or {})
             details.setdefault("_origin_id", proxy.id)
             details.setdefault("original_host", addr)
             details["dns_hardened"] = True

@@ -13,6 +13,7 @@ Usage:
     python lab-scanner.py --scan-ports     # TCP port reachability matrix
     python lab-scanner.py --interactive    # Interactive chain builder
     python lab-scanner.py --auto-chain     # Auto-detect best chain path
+    python lab-scanner.py --check-vwarp    # Check Vwarp binary availability
     python lab-scanner.py --quick          # Quick connectivity check
     python lab-scanner.py --test-proxy socks5://127.0.0.1:1080
     python lab-scanner.py --scan-ips --custom-ips "1.2.3.4:2408,5.6.7.8"
