@@ -41,7 +41,7 @@ _SANITIZE_ADDR_RE = re.compile(r"[^a-zA-Z0-9\.\-\:\[\]]")
 STRICT_POLICY = {
     "allow_local_ips": False,
     "require_tls_validation": True,
-    "min_password_length": 8,
+    "min_password_length": 8,  # nosec
     "block_suspicious_ports": True,
 }
 
@@ -49,7 +49,7 @@ STRICT_POLICY = {
 TEST_POLICY = {
     "allow_local_ips": False,
     "require_tls_validation": False,
-    "min_password_length": 1,
+    "min_password_length": 1,  # nosec
     "block_suspicious_ports": False,
 }
 

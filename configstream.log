@@ -7072,3 +7072,191 @@ Exception: DB Error
 2026-02-17 13:19:25,211 - configstream.converters.singbox - WARNING - [-] - [singbox.py:203] - Conversion failed: invalid port 99999 for example.com
 2026-02-17 13:19:25,213 - configstream.converters.singbox - DEBUG - [-] - [singbox.py:495] - Generated unique local IP [IP]/32 for WireGuard proxy (redacted)
 2026-02-17 13:19:25,214 - configstream.converters.singbox - DEBUG - [-] - [singbox.py:654] - Successfully converted wireguard proxy (Tag: 🌐-wireguard-e13a10e3) (Source: unknown)
+2026-02-17 13:49:03,671 - configstream.converters.singbox - WARNING - [-] - [singbox.py:282] - Dropping VLESS proxy missing UUID: example.com:443. Source: unknown
+2026-02-17 13:49:03,676 - configstream.converters.singbox - WARNING - [-] - [singbox.py:64] - Dropping proxy with garbage Shadowsocks method: 'un;k'
+2026-02-17 13:49:03,677 - configstream.converters.singbox - WARNING - [-] - [singbox.py:64] - Dropping proxy with garbage Shadowsocks method: '}k'
+2026-02-17 13:49:03,690 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 60
+2026-02-17 13:49:03,692 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 40 (CI)
+2026-02-17 13:49:03,695 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 26
+2026-02-17 13:49:03,698 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 150
+2026-02-17 13:49:03,699 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 50 (CI)
+2026-02-17 13:49:03,701 - configstream.adaptive_workers - WARNING - [-] - [adaptive_workers.py:73] - Failed to calculate optimal workers: Error
+2026-02-17 13:49:03,715 - configstream.security.blocklist - INFO - [-] - [blocklist.py:137] - Loaded 2 blocked networks from FireHol Level 1.
+2026-02-17 13:49:03,772 - configstream.converters.singbox - WARNING - [-] - [singbox.py:689] - Dropped unknown proxy [IP] during conversion. Reason: Logic fell through (Missing implementation or valid fields). Details: {}
+2026-02-17 13:49:03,810 - configstream.intelligence.washer.core - WARNING - [-] - [core.py:745] - Dropped 1 invalid WARP private keys during normalization.
+2026-02-17 13:49:03,811 - configstream.intelligence.washer.core - INFO - [-] - [core.py:657] - Loaded 1 WARP keys for washing
+2026-02-17 13:49:03,820 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-17 13:49:03,824 - configstream.intelligence.washer.core - WARNING - [-] - [core.py:745] - Dropped 1 invalid WARP private keys during normalization.
+2026-02-17 13:49:03,825 - configstream.intelligence.washer.core - INFO - [-] - [core.py:657] - Loaded 1 WARP keys for washing
+2026-02-17 13:49:03,833 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-17 13:49:03,841 - configstream.intelligence.washer.core - WARNING - [-] - [core.py:745] - Dropped 1 invalid WARP private keys during normalization.
+2026-02-17 13:49:03,841 - configstream.intelligence.washer.core - INFO - [-] - [core.py:657] - Loaded 1 WARP keys for washing
+2026-02-17 13:49:03,849 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-17 13:49:03,852 - configstream.intelligence.washer.core - WARNING - [-] - [core.py:745] - Dropped 1 invalid WARP private keys during normalization.
+2026-02-17 13:49:03,852 - configstream.intelligence.washer.core - INFO - [-] - [core.py:657] - Loaded 1 WARP keys for washing
+2026-02-17 13:49:03,861 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-17 13:49:03,905 - configstream.history.storage - ERROR - [-] - [storage.py:32] - History file too large: 105906176 bytes (max: 104857600)
+2026-02-17 13:49:03,909 - configstream.history.storage - WARNING - [-] - [storage.py:41] - Failed to load proxy history: unexpected character: line 1 column 1 (char 0)
+2026-02-17 13:49:03,912 - configstream.history.storage - ERROR - [-] - [storage.py:51] - Failed to save proxy history: Fail
+2026-02-17 13:49:03,921 - configstream.history.export - INFO - [-] - [export.py:58] - Exported history visualization data to /tmp/pytest-of-jules/pytest-2/test_export_visualization0/viz.json
+2026-02-17 13:49:03,925 - configstream.history.export - INFO - [-] - [export.py:73] - Generating active proxy trend data...
+2026-02-17 13:49:03,928 - configstream.history.export - INFO - [-] - [export.py:130] - Exported active proxy trend data to /tmp/pytest-of-jules/pytest-2/test_export_active_trend0/trend.json
+2026-02-17 13:49:03,931 - configstream.history.export - INFO - [-] - [export.py:73] - Generating active proxy trend data...
+2026-02-17 13:49:03,932 - configstream.history.export - WARNING - [-] - [export.py:107] - No working proxy data found for trend analysis.
+2026-02-17 13:49:03,947 - configstream.intelligence.chaining - INFO - [-] - [chaining.py:828] - Enhanced smart chains generated: 7 chains across 9 categories. intranet=1, intranet_washed=0, ipv6=0, streamer=1, censorship_resistant=1, low_latency=0, high_anonymity=0, load_balanced=3
+2026-02-17 13:49:03,954 - configstream.intelligence.vectors - INFO - [-] - [vectors.py:109] - Generated static vectors for 1 proxies
+2026-02-17 13:49:03,957 - configstream.intelligence.vectors - ERROR - [-] - [vectors.py:111] - Failed to generate vectors: Fail
+2026-02-17 13:49:04,057 - configstream.quality.storage - INFO - [-] - [storage.py:427] - Merged source stats from /tmp/pytest-of-jules/pytest-2/test_storage_merge0/q2.db
+2026-02-17 13:49:04,064 - configstream.quality.storage - ERROR - [-] - [storage.py:111] - Error initializing source quality DB: DB Error
+2026-02-17 13:49:04,065 - configstream.quality.storage - ERROR - [-] - [storage.py:256] - Failed to update stats for url: DB Error
+2026-02-17 13:49:04,065 - configstream.quality.storage - ERROR - [-] - [storage.py:157] - Error getting source state for url: DB Error
+2026-02-17 13:49:04,121 - configstream.security.censorship - INFO - [-] - [censorship.py:48] - Successfully connected to https://example.com
+2026-02-17 13:49:04,166 - configstream.security.censorship - WARNING - [-] - [censorship.py:51] - Failed to connect to https://example.com: Connection refused
+2026-02-17 13:49:04,171 - configstream.security.rules - WARNING - [-] - [rules.py:110] - Suspicious address pattern found: suspicious.com
+2026-02-17 13:49:04,171 - configstream.security.rules - WARNING - [-] - [rules.py:110] - Suspicious address pattern found: sub.suspicious.com
+2026-02-17 13:49:04,172 - configstream.security.rules - WARNING - [-] - [rules.py:136] - Non-standard IP notation (possible DNS rebinding): 0x7f000001
+2026-02-17 13:49:04,172 - configstream.security.rules - WARNING - [-] - [rules.py:148] - Non-standard IP notation (possible DNS rebinding): 0127.0.0.1
+2026-02-17 13:49:04,173 - configstream.security.rules - WARNING - [-] - [rules.py:100] - Private IP detected: [IP]
+2026-02-17 13:49:04,173 - configstream.security.rules - WARNING - [-] - [rules.py:100] - Private IP detected: [IP]
+2026-02-17 13:49:04,174 - configstream.security.rules - WARNING - [-] - [rules.py:100] - Private IP detected: [IP]
+2026-02-17 13:49:04,174 - configstream.security.rules - WARNING - [-] - [rules.py:191] - Special or private address detected: localhost
+2026-02-17 13:49:04,174 - configstream.security.rules - WARNING - [-] - [rules.py:100] - Private IP detected: [IP]
+2026-02-17 13:49:04,176 - configstream.security.rules - WARNING - [-] - [rules.py:203] - Unknown protocol detected: unknown
+2026-02-17 13:49:04,177 - configstream.security.rules - ERROR - [-] - [rules.py:218] - Null byte detected in config
+2026-02-17 13:49:04,177 - configstream.security.rules - WARNING - [-] - [rules.py:226] - Config too long: 10001 chars
+2026-02-17 13:49:04,182 - configstream.security.utls_wrapper - INFO - [-] - [utls_wrapper.py:66] - Building uTLS client...
+2026-02-17 13:49:04,185 - configstream.security.utls_wrapper - WARNING - [-] - [utls_wrapper.py:54] - Go not found. Cannot build uTLS client.
+2026-02-17 13:49:04,194 - configstream.security.virus_total - WARNING - [-] - [virus_total.py:34] - VirusTotal scan skipped: api key not found
+2026-02-17 13:49:08,513 - configstream.security.virus_total - ERROR - [-] - [virus_total.py:146] - VirusTotal API error: 429
+2026-02-17 13:49:08,522 - configstream.security.virus_total - ERROR - [-] - [virus_total.py:149] - VirusTotal check failed: Network timeout
+2026-02-17 13:49:12,630 - configstream.adapters - INFO - [-] - [adapters.py:191] - Loon export summary: 1 proxies, 0 chains
+2026-02-17 13:49:12,632 - configstream.adapters - INFO - [-] - [adapters.py:271] - Quantumult X export summary: 1 proxies (Failures: 0)
+2026-02-17 13:49:12,633 - configstream.adapters - INFO - [-] - [adapters.py:87] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-17 13:49:12,636 - configstream.adapters - INFO - [-] - [adapters.py:87] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-17 13:49:12,637 - configstream.adapters - INFO - [-] - [adapters.py:87] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-17 13:49:12,639 - configstream.adapters - INFO - [-] - [adapters.py:87] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-17 13:49:12,640 - configstream.adapters - INFO - [-] - [adapters.py:87] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-17 13:49:12,642 - configstream.adapters - INFO - [-] - [adapters.py:87] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-17 13:49:12,643 - configstream.adapters - INFO - [-] - [adapters.py:87] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-17 13:49:12,645 - configstream.adapters - INFO - [-] - [adapters.py:87] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-17 13:49:12,646 - configstream.adapters - INFO - [-] - [adapters.py:87] - Surge export summary: 0 proxies, 0 chains (Total Lines: 1, Failures: 0)
+2026-02-17 13:49:12,648 - configstream.adapters - INFO - [-] - [adapters.py:87] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-17 13:49:12,649 - configstream.adapters - INFO - [-] - [adapters.py:87] - Surge export summary: 1 proxies, 1 chains (Total Lines: 3, Failures: 0)
+2026-02-17 13:49:12,652 - configstream.adapters - INFO - [-] - [adapters.py:87] - Surge export summary: 0 proxies, 0 chains (Total Lines: 1, Failures: 1)
+2026-02-17 13:49:12,654 - configstream.adapters - INFO - [-] - [adapters.py:191] - Loon export summary: 1 proxies, 0 chains
+2026-02-17 13:49:12,655 - configstream.adapters - INFO - [-] - [adapters.py:191] - Loon export summary: 1 proxies, 0 chains
+2026-02-17 13:49:12,657 - configstream.adapters - INFO - [-] - [adapters.py:191] - Loon export summary: 1 proxies, 0 chains
+2026-02-17 13:49:12,658 - configstream.adapters - INFO - [-] - [adapters.py:191] - Loon export summary: 1 proxies, 0 chains
+2026-02-17 13:49:12,660 - configstream.adapters - INFO - [-] - [adapters.py:191] - Loon export summary: 0 proxies, 0 chains
+2026-02-17 13:49:12,661 - configstream.adapters - INFO - [-] - [adapters.py:271] - Quantumult X export summary: 1 proxies (Failures: 0)
+2026-02-17 13:49:12,662 - configstream.adapters - INFO - [-] - [adapters.py:271] - Quantumult X export summary: 1 proxies (Failures: 0)
+2026-02-17 13:49:12,664 - configstream.adapters - INFO - [-] - [adapters.py:271] - Quantumult X export summary: 1 proxies (Failures: 0)
+2026-02-17 13:49:12,665 - configstream.adapters - INFO - [-] - [adapters.py:788] - SIP008 export summary: 1 Shadowsocks servers
+2026-02-17 13:49:12,667 - configstream.adapters - INFO - [-] - [adapters.py:788] - SIP008 export summary: 1 Shadowsocks servers
+2026-02-17 13:49:12,668 - configstream.adapters - INFO - [-] - [adapters.py:788] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-17 13:49:12,669 - configstream.adapters - INFO - [-] - [adapters.py:788] - SIP008 export summary: 5 Shadowsocks servers
+2026-02-17 13:49:12,671 - configstream.adapters - INFO - [-] - [adapters.py:527] - Shadowrocket export summary: 1 links (Reconstructed: 1)
+2026-02-17 13:49:12,672 - configstream.adapters - INFO - [-] - [adapters.py:527] - Shadowrocket export summary: 1 links (Reconstructed: 1)
+2026-02-17 13:49:12,674 - configstream.adapters - INFO - [-] - [adapters.py:527] - Shadowrocket export summary: 1 links (Reconstructed: 0)
+2026-02-17 13:49:12,675 - configstream.adapters - INFO - [-] - [adapters.py:527] - Shadowrocket export summary: 1 links (Reconstructed: 0)
+2026-02-17 13:49:12,676 - configstream.adapters - INFO - [-] - [adapters.py:527] - Shadowrocket export summary: 0 links (Reconstructed: 0)
+2026-02-17 13:49:12,678 - configstream.adapters - INFO - [-] - [adapters.py:527] - Shadowrocket export summary: 0 links (Reconstructed: 0)
+2026-02-17 13:49:12,679 - configstream.adapters - INFO - [-] - [adapters.py:527] - Shadowrocket export summary: 1 links (Reconstructed: 0)
+2026-02-17 13:49:12,690 - configstream.adapters - INFO - [-] - [adapters.py:87] - Surge export summary: 0 proxies, 0 chains (Total Lines: 1, Failures: 0)
+2026-02-17 13:49:12,690 - configstream.adapters - INFO - [-] - [adapters.py:191] - Loon export summary: 0 proxies, 0 chains
+2026-02-17 13:49:12,690 - configstream.adapters - INFO - [-] - [adapters.py:271] - Quantumult X export summary: 0 proxies (Failures: 0)
+2026-02-17 13:49:12,690 - configstream.adapters - INFO - [-] - [adapters.py:788] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-17 13:49:12,691 - configstream.adapters - INFO - [-] - [adapters.py:527] - Shadowrocket export summary: 0 links (Reconstructed: 0)
+2026-02-17 13:49:12,692 - configstream.adapters - INFO - [-] - [adapters.py:87] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-17 13:49:12,692 - configstream.adapters - INFO - [-] - [adapters.py:191] - Loon export summary: 1 proxies, 0 chains
+2026-02-17 13:49:12,692 - configstream.adapters - INFO - [-] - [adapters.py:271] - Quantumult X export summary: 1 proxies (Failures: 0)
+2026-02-17 13:49:12,693 - configstream.adapters - INFO - [-] - [adapters.py:788] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-17 13:49:12,693 - configstream.adapters - INFO - [-] - [adapters.py:527] - Shadowrocket export summary: 1 links (Reconstructed: 0)
+2026-02-17 13:49:12,695 - configstream.adapters - INFO - [-] - [adapters.py:87] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-17 13:49:12,697 - configstream.adapters - INFO - [-] - [adapters.py:87] - Surge export summary: 3 proxies, 0 chains (Total Lines: 4, Failures: 0)
+2026-02-17 13:49:12,699 - configstream.adapters - INFO - [-] - [adapters.py:271] - Quantumult X export summary: 3 proxies (Failures: 0)
+2026-02-17 13:49:12,700 - configstream.adapters - INFO - [-] - [adapters.py:191] - Loon export summary: 3 proxies, 0 chains
+2026-02-17 13:49:12,702 - configstream.adapters - INFO - [-] - [adapters.py:527] - Shadowrocket export summary: 3 links (Reconstructed: 0)
+2026-02-17 13:49:12,704 - configstream.adapters - INFO - [-] - [adapters.py:788] - SIP008 export summary: 1 Shadowsocks servers
+2026-02-17 13:49:12,705 - configstream.adapters - INFO - [-] - [adapters.py:87] - Surge export summary: 3 proxies, 0 chains (Total Lines: 4, Failures: 0)
+2026-02-17 13:49:12,707 - configstream.adapters - INFO - [-] - [adapters.py:87] - Surge export summary: 2 proxies, 0 chains (Total Lines: 3, Failures: 0)
+2026-02-17 13:49:12,708 - configstream.adapters - INFO - [-] - [adapters.py:191] - Loon export summary: 2 proxies, 0 chains
+2026-02-17 13:49:12,710 - configstream.adapters - INFO - [-] - [adapters.py:271] - Quantumult X export summary: 2 proxies (Failures: 0)
+2026-02-17 13:49:12,712 - configstream.adapters - INFO - [-] - [adapters.py:527] - Shadowrocket export summary: 2 links (Reconstructed: 0)
+2026-02-17 13:49:12,713 - configstream.adapters - INFO - [-] - [adapters.py:788] - SIP008 export summary: 1 Shadowsocks servers
+2026-02-17 13:49:12,717 - configstream.adapters - INFO - [-] - [adapters.py:527] - Shadowrocket export summary: 2 links (Reconstructed: 0)
+2026-02-17 13:49:12,799 - configstream.adaptive_timeout - WARNING - [-] - [adaptive_timeout.py:161] - Failed to save timeout history: Fail
+2026-02-17 13:49:12,806 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 60
+2026-02-17 13:49:12,889 - configstream.anomaly - WARNING - [-] - [anomaly.py:227] - Subnet Flood detected: [IP]/24 accounts for 95/100 proxies.
+2026-02-17 13:49:12,909 - configstream.anomaly - INFO - [-] - [anomaly.py:327] - Merged anomaly stats from /tmp/pytest-of-jules/pytest-2/test_merge_from0/other.db
+2026-02-17 13:49:12,973 - configstream.anomaly - WARNING - [-] - [anomaly.py:90] - Anomaly DB connection lost (DB Execution Error), reconnecting...
+2026-02-17 13:49:12,975 - configstream.anomaly - ERROR - [-] - [anomaly.py:186] - Anomaly DB error for http://test: Reconnection Failed - allowing source (fail-open behaviour)
+2026-02-17 13:49:13,008 - configstream.adapters - INFO - [-] - [adapters.py:87] - Surge export summary: 0 proxies, 1 chains (Total Lines: 2, Failures: 0)
+2026-02-17 13:49:13,010 - configstream.adapters - INFO - [-] - [adapters.py:87] - Surge export summary: 0 proxies, 1 chains (Total Lines: 2, Failures: 0)
+2026-02-17 13:49:13,011 - configstream.adapters - INFO - [-] - [adapters.py:87] - Surge export summary: 0 proxies, 1 chains (Total Lines: 2, Failures: 0)
+2026-02-17 13:49:13,013 - configstream.adapters - INFO - [-] - [adapters.py:87] - Surge export summary: 0 proxies, 1 chains (Total Lines: 2, Failures: 0)
+2026-02-17 13:49:13,015 - configstream.adapters - INFO - [-] - [adapters.py:191] - Loon export summary: 0 proxies, 1 chains
+2026-02-17 13:49:13,016 - configstream.adapters - INFO - [-] - [adapters.py:191] - Loon export summary: 0 proxies, 1 chains
+2026-02-17 13:49:13,018 - configstream.adapters - INFO - [-] - [adapters.py:191] - Loon export summary: 0 proxies, 1 chains
+2026-02-17 13:49:13,020 - configstream.adapters - INFO - [-] - [adapters.py:191] - Loon export summary: 0 proxies, 1 chains
+2026-02-17 13:49:13,038 - configstream.async_file_ops - WARNING - [-] - [async_file_ops.py:57] - Failed to read /tmp/pytest-of-jules/pytest-2/test_read_multiple_files_async0/missing.txt: File not found: /tmp/pytest-of-jules/pytest-2/test_read_multiple_files_async0/missing.txt
+2026-02-17 13:49:13,063 - configstream.backup - INFO - [-] - [backup.py:120] - Backed up test.db -> test_20260217_134913.db.gz (0.00 MB)
+2026-02-17 13:49:13,064 - configstream.backup - INFO - [-] - [backup.py:141] - Backup complete: 1 databases backed up
+2026-02-17 13:49:13,076 - configstream.backup - INFO - [-] - [backup.py:120] - Backed up test.db -> test_20260217_134913.db.gz (0.00 MB)
+2026-02-17 13:49:13,077 - configstream.backup - INFO - [-] - [backup.py:141] - Backup complete: 1 databases backed up
+2026-02-17 13:49:13,080 - configstream.backup - WARNING - [-] - [backup.py:53] - No database files found in /tmp/pytest-of-jules/pytest-2/test_backup_databases_no_files0/data
+2026-02-17 13:49:13,084 - configstream.backup - INFO - [-] - [backup.py:222] - Cleaned up 2 old backup files (smart retention)
+2026-02-17 13:49:13,096 - configstream.backup - INFO - [-] - [backup.py:249] - Created pre-restore backup: target.pre_restore_20260217_134913.db
+2026-02-17 13:49:13,096 - configstream.backup - INFO - [-] - [backup.py:263] - Restored target.db from backup.db
+2026-02-17 13:49:13,099 - configstream.backup - ERROR - [-] - [backup.py:239] - Backup file does not exist: /tmp/pytest-of-jules/pytest-2/test_restore_missing_backup0/backups/missing.db
+2026-02-17 13:49:13,129 - configstream.backup - ERROR - [-] - [backup.py:133] - Failed to backup /tmp/pytest-of-jules/pytest-2/test_sqlite_backup_fail0/data/fail.db: Connect Fail
+2026-02-17 13:49:13,129 - configstream.backup - INFO - [-] - [backup.py:141] - Backup complete: 0 databases backed up
+2026-02-17 13:49:13,156 - configstream.bot_cli - ERROR - [-] - [bot_cli.py:81] - Error generating WARP: Fail
+2026-02-17 13:49:14,793 - configstream.consumer - INFO - [-] - [consumer.py:594] - Source Summary [test-source]: Raw=1 Parsed=1 Tested=1 Working=1 Dur=5ms
+2026-02-17 13:49:14,803 - configstream.dns_batch_resolver - INFO - [-] - [dns_batch_resolver.py:72] - Batch DNS: Resolved 2 of 2 hostnames.
+2026-02-17 13:49:14,807 - configstream.dns_batch_resolver - INFO - [-] - [dns_batch_resolver.py:72] - Batch DNS: Resolved 0 of 0 hostnames.
+2026-02-17 13:49:14,811 - configstream.dns_batch_resolver - INFO - [-] - [dns_batch_resolver.py:72] - Batch DNS: Resolved 0 of 1 hostnames.
+2026-02-17 13:49:14,818 - configstream.adapters - INFO - [-] - [adapters.py:527] - Shadowrocket export summary: 1 links (Reconstructed: 1)
+2026-02-17 13:49:14,819 - configstream.adapters - INFO - [-] - [adapters.py:527] - Shadowrocket export summary: 1 links (Reconstructed: 1)
+2026-02-17 13:49:17,985 - configstream.fetcher - INFO - [-] - [fetcher.py:351] - Pre-warming DNS for 1 sources...
+2026-02-17 13:49:18,042 - configstream.fetcher - INFO - [-] - [fetcher.py:356] - DNS pre-warming completed in 0.06s.
+2026-02-17 13:49:18,042 - configstream.fetcher - INFO - [-] - [fetcher.py:377] - Starting parallel fetch for 1 sources (max_concurrent=1)
+2026-02-17 13:49:18,088 - configstream.fetcher - INFO - [-] - [fetcher.py:399] - Batch fetch completed in 0.05s
+2026-02-17 13:49:18,088 - configstream.fetcher - INFO - [-] - [fetcher.py:409] - Fetch Summary: 1/1 sources successful. Total data fetched: 0.00 KB
+2026-02-17 13:49:18,097 - configstream.fetcher - INFO - [-] - [fetcher.py:351] - Pre-warming DNS for 1 sources...
+2026-02-17 13:49:18,099 - configstream.fetcher - INFO - [-] - [fetcher.py:356] - DNS pre-warming completed in 0.00s.
+2026-02-17 13:49:18,100 - configstream.fetcher - INFO - [-] - [fetcher.py:377] - Starting parallel fetch for 1 sources (max_concurrent=10)
+2026-02-17 13:49:18,100 - configstream.fetcher - INFO - [-] - [fetcher.py:399] - Batch fetch completed in 0.00s
+2026-02-17 13:49:18,100 - configstream.fetcher - INFO - [-] - [fetcher.py:409] - Fetch Summary: 1/1 sources successful. Total data fetched: 0.00 KB
+2026-02-17 13:49:18,934 - configstream.filtering - INFO - [-] - [filtering.py:172] - Endpoint filtering: 3 -> 2 (1 duplicate endpoints removed)
+2026-02-17 13:49:18,954 - configstream.filtering - INFO - [-] - [filtering.py:109] - Deduplication: 3 -> 2 (1 duplicates removed)
+2026-02-17 13:49:18,961 - configstream.filtering - INFO - [-] - [filtering.py:109] - Deduplication: 2 -> 1 (1 duplicates removed)
+2026-02-17 13:49:18,968 - configstream.filtering - INFO - [-] - [filtering.py:172] - Endpoint filtering: 2 -> 1 (1 duplicate endpoints removed)
+2026-02-17 13:49:18,983 - configstream.geoip - INFO - [-] - [geoip.py:81] - GeoIP C extension (MMAP_EXT) available - lock-free lookups enabled
+2026-02-17 13:49:18,983 - configstream.geoip - INFO - [-] - [geoip.py:101] - Loaded GeoLite2 City database.
+2026-02-17 13:49:18,983 - configstream.geoip - ERROR - [-] - [geoip.py:124] - I/O error loading GeoIP databases: [Errno 2] No such file or directory: 'data/GeoLite2-City.mmdb'
+2026-02-17 13:49:18,996 - configstream.geoip - INFO - [-] - [geoip.py:81] - GeoIP C extension (MMAP_EXT) available - lock-free lookups enabled
+2026-02-17 13:49:18,997 - configstream.geoip - INFO - [-] - [geoip.py:101] - Loaded GeoLite2 City database.
+2026-02-17 13:49:18,997 - configstream.geoip - ERROR - [-] - [geoip.py:124] - I/O error loading GeoIP databases: [Errno 2] No such file or directory: 'data/GeoLite2-City.mmdb'
+2026-02-17 13:49:19,004 - configstream.geoip - INFO - [-] - [geoip.py:81] - GeoIP C extension (MMAP_EXT) available - lock-free lookups enabled
+2026-02-17 13:49:19,004 - configstream.geoip - INFO - [-] - [geoip.py:101] - Loaded GeoLite2 City database.
+2026-02-17 13:49:19,005 - configstream.geoip - ERROR - [-] - [geoip.py:124] - I/O error loading GeoIP databases: [Errno 2] No such file or directory: 'data/GeoLite2-City.mmdb'
+2026-02-17 13:49:19,036 - configstream.testers.go - INFO - [-] - [go.py:293] - Starting Go Tester Daemon: /bin/true -workers 20 -timeout 10s -urls https://www.google.com/generate_204,https://www.cloudflare.com/cdn-cgi/trace,https://www.gstatic.com/generate_204,http://detectportal.firefox.com/success.txt,https://httpbin.org/status/200,https://www.amazon.com/robots.txt,https://www.microsoft.com/robots.txt,https://www.apple.com/robots.txt
+2026-02-17 13:49:19,037 - configstream.testers.go - INFO - [-] - [go.py:323] - Go Tester using Vwarp tunnel at socks5://[IP]:10808
+2026-02-17 13:49:19,044 - configstream.testers.go - INFO - [-] - [go.py:765] - Go Tester results (Batch): 2/2 working. Failures: None
+2026-02-17 13:49:19,146 - configstream.testers.go - INFO - [-] - [go.py:252] - Go Batch Tester shutdown complete.
+2026-02-17 13:49:19,154 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: /nonexistent, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-17 13:49:19,161 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: /nonexistent, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-17 13:49:19,166 - configstream.security.honeypot - WARNING - [-] - [honeypot.py:30] - Passive Intel: Host malicious.ip flagged as malicious by VirusTotal.
+2026-02-17 13:49:19,170 - configstream.security.honeypot - WARNING - [-] - [honeypot.py:30] - Passive Intel: Host bad.actor.ip flagged as malicious by VirusTotal.
+2026-02-17 13:49:19,173 - configstream.security.honeypot - WARNING - [-] - [honeypot.py:30] - Passive Intel: Host suspicious.ip flagged as malicious by VirusTotal.
+2026-02-17 13:49:19,177 - configstream.security.honeypot - ERROR - [-] - [honeypot.py:37] - Honeypot check failed for error.ip: API Error
+2026-02-17 13:49:19,180 - configstream.security.honeypot - ERROR - [-] - [honeypot.py:37] - Honeypot check failed for timeout.ip: Request timed out
+2026-02-17 13:49:19,182 - configstream.security.honeypot - ERROR - [-] - [honeypot.py:37] - Honeypot check failed for network.error.ip: Network unreachable
+2026-02-17 13:49:19,195 - configstream.security.honeypot - ERROR - [-] - [honeypot.py:37] - Honeypot check failed for null.ip: 'NoneType' object has no attribute 'get'
+2026-02-17 13:49:19,198 - configstream.security.honeypot - ERROR - [-] - [honeypot.py:37] - Honeypot check failed for string.response.ip: 'str' object has no attribute 'get'
+2026-02-17 13:49:19,254 - configstream.adapters - INFO - [-] - [adapters.py:87] - Surge export summary: 1 proxies, 1 chains (Total Lines: 3, Failures: 0)
+2026-02-17 13:49:19,255 - configstream.adapters - INFO - [-] - [adapters.py:191] - Loon export summary: 1 proxies, 1 chains
+2026-02-17 13:49:19,260 - configstream.converters.singbox - WARNING - [-] - [singbox.py:203] - Conversion failed: invalid port 99999 for example.com
+2026-02-17 13:49:19,262 - configstream.converters.singbox - DEBUG - [-] - [singbox.py:495] - Generated unique local IP [IP]/32 for WireGuard proxy (redacted)
+2026-02-17 13:49:19,262 - configstream.converters.singbox - DEBUG - [-] - [singbox.py:654] - Successfully converted wireguard proxy (Tag: 🌐-wireguard-e13a10e3) (Source: unknown)

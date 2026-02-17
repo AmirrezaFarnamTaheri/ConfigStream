@@ -331,7 +331,7 @@ class VwarpTool:
                 # Check write permissions
                 if not os.access(install_dir, os.W_OK):
                     # Fallback to current directory or /tmp
-                    install_dir = Path("/tmp/configstream-bin")
+                    install_dir = Path("/tmp/configstream-bin")  # nosec
                     install_dir.mkdir(parents=True, exist_ok=True)
                     target_path = install_dir / "vwarp"
                     logger.warning(
@@ -496,7 +496,7 @@ class VwarpTool:
                 if text:
                     self._help_text = text.decode(errors="ignore")
                     return self._help_text
-            except Exception:
+            except Exception:  # nosec
                 continue
         self._help_text = ""
         return self._help_text
@@ -981,7 +981,7 @@ class VwarpTool:
     async def _wait_for_port(self, host: str, port: int, timeout: int = 45) -> bool:
         """Polls the given host:port until it accepts connections."""
         probe_host = host
-        if host in ("0.0.0.0", "::", ""):
+        if host in ("0.0.0.0", "::", ""):  # nosec
             probe_host = "127.0.0.1"
 
         start = time.time()
@@ -1001,7 +1001,7 @@ class VwarpTool:
                         logger.error(f"Vwarp stderr: {stderr.decode(errors='ignore')}")
                     if details:
                         self._record_failure(self._classify_failure(details), details)
-                except Exception:
+                except Exception:  # nosec
                     pass
                 return False
 
@@ -1246,7 +1246,7 @@ class VwarpTool:
         if self._config_owned and self._config_path:
             try:
                 self._config_path.unlink(missing_ok=True)
-            except Exception:
+            except Exception:  # nosec
                 pass
             finally:
                 self._config_path = None

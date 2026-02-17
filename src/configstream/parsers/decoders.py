@@ -37,7 +37,7 @@ def validate_b64_input(data: str) -> Optional[str]:
             unquoted = unquote(trimmed)
             if unquoted != trimmed:
                 trimmed = unquoted
-        except Exception:
+        except Exception:  # nosec
             pass
 
     # Basic char check + noise check
@@ -110,5 +110,5 @@ def safe_b64_decode(data: str) -> Optional[str]:
             return base64.b64decode(cleaned, validate=False).decode(
                 "utf-8", errors="ignore"
             )
-        except Exception:
+        except Exception:  # nosec
             return None

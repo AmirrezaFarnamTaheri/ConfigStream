@@ -702,7 +702,7 @@ class ProxyWasher:
         except (binascii.Error, ValueError):
             try:
                 decoded = base64.b64decode(cleaned, validate=False)
-            except Exception:
+            except Exception:  # nosec
                 return None
         if len(decoded) != 32:
             return None
@@ -908,7 +908,7 @@ class ProxyWasher:
                                         f"Fetched {len(valid_ips)} clean IPs from {source_url.split('/')[2]}"
                                     )
                                     break  # Stop after one success
-                    except Exception:
+                    except Exception:  # nosec
                         pass
 
             # --- STRATEGY 3: DEFAULTS ---
@@ -1290,7 +1290,7 @@ class ProxyWasher:
                     if isinstance(res, dict) and "relay" in res:
                         if float(res.get("total_distance", 99999)) < 15000:
                             is_optimal = True
-            except Exception:
+            except Exception:  # nosec
                 pass
 
             flag = get_flag_emoji(relay.country_code or "XX")

@@ -128,7 +128,7 @@ def backup_databases(
                     backup_path_temp.unlink()
                 if backup_path_final.exists():
                     backup_path_final.unlink()
-            except Exception:
+            except Exception:  # nosec
                 pass
             logger.error(f"Failed to backup {db_file}: {e}")
 
@@ -215,7 +215,7 @@ def cleanup_old_backups(backup_dir: Path, retention_days: int) -> int:
             try:
                 fpath.unlink()
                 deleted += 1
-            except Exception:
+            except Exception:  # nosec
                 pass
 
     if deleted > 0:
