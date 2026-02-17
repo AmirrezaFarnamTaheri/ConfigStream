@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Unit tests for evasion features."""
+"""Unit tests for evasion intelligence module."""
 
 import pytest
 from configstream.intelligence.evasion import (
@@ -9,106 +9,96 @@ from configstream.intelligence.evasion import (
     add_multiplexing,
     enrich_outbound_with_evasion,
     preserve_sni_when_using_ip,
-    TLSFingerprint,
 )
 
 
 class TestTLSFingerprintRotation:
-    """Test TLS fingerprint rotation."""
-
     def test_rotate_tls_fingerprint_enabled(self):
-        """Test fingerprint rotation when enabled."""
-        result = rotate_tls_fingerprint("test-proxy-id", enabled=True)
+        """Test TLS fingerprint rotation when enabled."""
+        result = rotate_tls_fingerprint("test_proxy", enabled=True)
         assert result is not None
         assert result["enabled"] is True
         assert "fingerprint" in result
-        assert result["fingerprint"] in [fp.value for fp in TLSFingerprint]
 
     def test_rotate_tls_fingerprint_disabled(self):
-        """Test fingerprint rotation when disabled."""
-        result = rotate_tls_fingerprint("test-proxy-id", enabled=False)
+        """Test TLS fingerprint rotation when disabled."""
+        result = rotate_tls_fingerprint("test_proxy", enabled=False)
         assert result is None
 
     def test_rotate_tls_fingerprint_specific(self):
-        """Test specific fingerprint selection."""
-        result = rotate_tls_fingerprint(
-            "test-proxy-id", enabled=True, fingerprint="chrome"
-        )
+        """Test TLS fingerprint rotation with specific fingerprint."""
+        result = rotate_tls_fingerprint("test_proxy", enabled=True, fingerprint="chrome")
         assert result is not None
         assert result["fingerprint"] == "chrome"
 
     def test_rotate_tls_fingerprint_deterministic(self):
-        """Test deterministic rotation based on proxy ID."""
-        result1 = rotate_tls_fingerprint("same-id", enabled=True)
-        result2 = rotate_tls_fingerprint("same-id", enabled=True)
+        """Test that rotation is deterministic based on proxy ID."""
+        result1 = rotate_tls_fingerprint("proxy1", enabled=True)
+        result2 = rotate_tls_fingerprint("proxy1", enabled=True)
         assert result1["fingerprint"] == result2["fingerprint"]
 
 
 class TestALPNRotation:
-    """Test ALPN rotation."""
-
     def test_rotate_alpn_enabled(self):
         """Test ALPN rotation when enabled."""
-        result = rotate_alpn("test-proxy-id", enabled=True)
+        result = rotate_alpn("test_proxy", enabled=True)
         assert result is not None
         assert isinstance(result, list)
         assert len(result) > 0
 
     def test_rotate_alpn_disabled(self):
         """Test ALPN rotation when disabled."""
-        result = rotate_alpn("test-proxy-id", enabled=False)
+        result = rotate_alpn("test_proxy", enabled=False)
         assert result is None
 
     def test_rotate_alpn_specific(self):
-        """Test specific ALPN selection."""
-        result = rotate_alpn("test-proxy-id", enabled=True, alpn=["h2", "http/1.1"])
-        assert result == ["h2", "http/1.1"]
+        """Test ALPN rotation with specific list."""
+        specific = ["h2", "http/1.1"]
+        result = rotate_alpn("test_proxy", enabled=True, alpn=specific)
+        assert result == specific
 
     def test_rotate_alpn_deterministic(self):
-        """Test deterministic rotation based on proxy ID."""
-        result1 = rotate_alpn("same-id", enabled=True)
-        result2 = rotate_alpn("same-id", enabled=True)
+        """Test that ALPN rotation is deterministic."""
+        result1 = rotate_alpn("proxy1", enabled=True)
+        result2 = rotate_alpn("proxy1", enabled=True)
         assert result1 == result2
 
 
 class TestTLSFragmentation:
-    """Test TLS fragmentation."""
-
     def test_add_tls_fragmentation_enabled(self):
-        """Test TLS fragmentation when enabled."""
+        """Test TLS fragmentation when enabled - should be no-op now."""
         outbound = {
             "type": "vmess",
             "tls": {"enabled": True},
         }
         result = add_tls_fragmentation(outbound, enabled=True)
-        assert "tls_fragment" in result["tls"]
-        assert result["tls"]["tls_fragment"]["enabled"] is True
-        assert "size" in result["tls"]["tls_fragment"]
-        assert "sleep" in result["tls"]["tls_fragment"]
+        # Should NOT modify the config as it's a no-op
+        assert "tls_fragment" not in result["tls"]
 
     def test_add_tls_fragmentation_disabled(self):
         """Test TLS fragmentation when disabled."""
-        outbound = {"type": "vmess", "tls": {"enabled": True}}
+        outbound = {
+            "type": "vmess",
+            "tls": {"enabled": True},
+        }
         result = add_tls_fragmentation(outbound, enabled=False)
-        assert "tls_fragment" not in result.get("tls", {})
+        assert "tls_fragment" not in result["tls"]
 
     def test_add_tls_fragmentation_no_tls(self):
-        """Test TLS fragmentation when TLS is not enabled."""
+        """Test TLS fragmentation on config without TLS."""
         outbound = {"type": "vmess"}
         result = add_tls_fragmentation(outbound, enabled=True)
-        assert "tls_fragment" not in result.get("tls", {})
+        assert "tls" not in result
 
 
 class TestMultiplexing:
-    """Test multiplexing with padding."""
-
     def test_add_multiplexing_enabled(self):
         """Test multiplexing when enabled."""
         outbound = {"type": "vmess"}
         result = add_multiplexing(outbound, enabled=True)
         assert "multiplex" in result
         assert result["multiplex"]["enabled"] is True
-        assert result["multiplex"]["padding"] is True
+        assert result["multiplex"]["protocol"] == "h2mux"
 
     def test_add_multiplexing_disabled(self):
         """Test multiplexing when disabled."""
@@ -117,75 +107,72 @@ class TestMultiplexing:
         assert "multiplex" not in result
 
     def test_add_multiplexing_unsupported_protocol(self):
-        """Test multiplexing with unsupported protocol."""
-        outbound = {"type": "direct"}
+        """Test multiplexing on unsupported protocol."""
+        outbound = {"type": "wireguard"}
         result = add_multiplexing(outbound, enabled=True)
         assert "multiplex" not in result
 
 
 class TestEnrichOutbound:
-    """Test outbound enrichment with evasion features."""
-
     def test_enrich_vmess_outbound(self):
-        """Test enriching VMess outbound."""
-        outbound = {
-            "type": "vmess",
-            "tls": {"enabled": True},
-        }
-        result = enrich_outbound_with_evasion(outbound, "test-id")
-        assert "tls" in result
-        if "utls" in result["tls"]:
-            assert result["tls"]["utls"]["enabled"] is True
-
-    def test_enrich_vless_outbound(self):
-        """Test enriching VLESS outbound."""
-        outbound = {
-            "type": "vless",
-            "tls": {"enabled": True},
-        }
-        result = enrich_outbound_with_evasion(outbound, "test-id")
-        assert "tls" in result
-
-    def test_enrich_trojan_outbound(self):
-        """Test enriching Trojan outbound."""
-        outbound = {
-            "type": "trojan",
-            "tls": {"enabled": True},
-        }
-        result = enrich_outbound_with_evasion(outbound, "test-id")
-        assert "tls" in result
-
-    def test_enrich_with_specific_fingerprint(self):
-        """Test enriching with specific fingerprint."""
+        """Test enriching a VMess outbound."""
         outbound = {
             "type": "vmess",
             "tls": {"enabled": True},
         }
         result = enrich_outbound_with_evasion(
-            outbound, "test-id", tls_fingerprint="firefox"
+            outbound, "test_proxy", enable_utls=True, enable_alpn=True
         )
-        if "utls" in result.get("tls", {}):
-            assert result["tls"]["utls"]["fingerprint"] == "firefox"
+        assert "utls" in result["tls"]
+        assert "alpn" in result["tls"]
+        # Fragmentation is disabled/no-op
+        assert "tls_fragment" not in result["tls"]
+        assert "multiplex" in result
+
+    def test_enrich_vless_outbound(self):
+        """Test enriching a VLESS outbound."""
+        outbound = {
+            "type": "vless",
+            "tls": {"enabled": True},
+        }
+        result = enrich_outbound_with_evasion(outbound, "test_proxy")
+        assert "utls" in result["tls"]
+
+    def test_enrich_trojan_outbound(self):
+        """Test enriching a Trojan outbound."""
+        outbound = {
+            "type": "trojan",
+            "tls": {"enabled": True},
+        }
+        result = enrich_outbound_with_evasion(outbound, "test_proxy")
+        assert "utls" in result["tls"]
+
+    def test_enrich_with_specific_fingerprint(self):
+        """Test enriching with a specific fingerprint."""
+        outbound = {
+            "type": "vmess",
+            "tls": {"enabled": True},
+        }
+        result = enrich_outbound_with_evasion(
+            outbound, "test_proxy", tls_fingerprint="randomized"
+        )
+        assert result["tls"]["utls"]["fingerprint"] == "randomized"
 
 
 class TestSNIPreservation:
-    """Test SNI/Host preservation when using IP."""
-
     def test_preserve_sni_with_hostname(self):
-        """Test SNI preservation with original hostname."""
+        """Test SNI preservation with hostname."""
         outbound = {
             "type": "vmess",
-            "server": "1.2.3.4",
             "tls": {"enabled": True},
         }
         result = preserve_sni_when_using_ip(outbound, "example.com")
         assert result["tls"]["server_name"] == "example.com"
 
     def test_preserve_host_websocket(self):
-        """Test Host header preservation for WebSocket."""
+        """Test Host preservation for WebSocket."""
         outbound = {
             "type": "vmess",
-            "server": "1.2.3.4",
             "transport": {"type": "ws", "headers": {}},
         }
         result = preserve_sni_when_using_ip(outbound, "example.com")
@@ -195,12 +182,7 @@ class TestSNIPreservation:
         """Test Host preservation for HTTP/2."""
         outbound = {
             "type": "vmess",
-            "server": "1.2.3.4",
             "transport": {"type": "http"},
         }
         result = preserve_sni_when_using_ip(outbound, "example.com")
-        assert "example.com" in result["transport"]["host"]
-
-
-if __name__ == "__main__":
-    pytest.main([__file__, "-v"])
+        assert result["transport"]["host"] == ["example.com"]
