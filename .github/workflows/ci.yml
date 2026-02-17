@@ -26,6 +26,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -e .[dev]
+          pip install bandit pip-audit
       - name: Update routing databases
         run: |
           python -m configstream.cli update-databases || echo "Database update failed (non-fatal)"
@@ -39,3 +40,9 @@ jobs:
         run: python -m mypy .
       - name: Run black
         run: python -m black --check .
+      - name: Security Scan (Bandit)
+        run: bandit -r src/configstream -q
+      - name: Dependency Vulnerability Scan
+        run: pip-audit -r requirements-prod.txt --format json || true
+      - name: Validate Versions
+        run: python scripts/validate_versions.py
