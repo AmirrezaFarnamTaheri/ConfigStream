@@ -1,50 +1,13 @@
 # ConfigStream Batch 11
 # Optimized based on fetch duration for equal execution times
-# Est. Fetch Time: 742.5s
+# Est. Fetch Time: 1998.6s
 
-https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub32.txt
-https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub17.txt
-https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub15.txt
-https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-4.txt
-https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-3.txt
-https://v2.alicivil.workers.dev/?count=2000&list=my&shuffle=true
-https://v2.alicivil.workers.dev/?count=2000&list=sa&shuffle=true
-https://v2.alicivil.workers.dev/?count=2000&list=us&shuffle=true
-https://v2.alicivil.workers.dev/?count=2000&list=md&shuffle=true
-https://v2.alicivil.workers.dev/?count=2000&list=na&shuffle=true
-https://raw.githubusercontent.com/peasoft/NoMoreWalls/master/list.yml
-https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/sub/v2rayng-wg.txt
-https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/refs/heads/main/mci/sub_2.txt
-https://raw.githubusercontent.com/Kwinshadow/TelegramV2rayCollector/master/sub/normal
-https://raw.githubusercontent.com/dalazhi/v2ray/main/clash.yaml
-https://raw.githubusercontent.com/arshiacomplus/v2rayExtractor/main/mix/sub.html
-https://raw.githubusercontent.com/AliDev-ir/FreeVPN/main/vpn
-https://raw.githubusercontent.com/resasanian/Mirza/master/sub
-https://raw.githubusercontent.com/Rayan-Config/C-Sub/refs/heads/main/configs/proxy.txt
-https://raw.githubusercontent.com/ShiftyTR/Proxy-List/master/socks4.txt
-https://sub.amiralter.com/config-lite
-https://shz.al/~@FREE2CONFIG_T,H
-https://Rayan-Config.github.io/NG
-https://raw.githubusercontent.com/JieErJingFu/FreeNodesV2RayorTrojan_20210113-/main/EncryptedFreeNodes.txt
-https://free-proxy-list.net/
-https://manager.farsonline24.ir
-https://raw.githubusercontent.com/WearestandTelegram/Wearestand/refs/heads/main/wearestand.json
-https://raw.githubusercontent.com/VPN-Subcription-Links/ClashX-V2Ray-TopFreeProxy/main/combine/clash.config.yaml
-https://raw.githubusercontent.com/parvinxs/Fssociety/refs/heads/main/Fssociety.sub
-https://www.sslproxies.org/
-https://raw.githubusercontent.com/Ptechgithub/configs/main/clash12.yaml
-https://raw.githubusercontent.com/PangTouY00/Auto_proxy/main/Long_term_subscription_num
-https://raw.githubusercontent.com/Sage-77/V2ray-configs/main/vless.txt
-https://nv2ron.ir/ALKSHHH1243800OOAKKSDVVVXXCSA654DAFVJHVZSNCBrealityV2RAY
-https://rss.getfree.win/link/w9ted9eZq1zbC3gx?sub=1
-https://api.openproxy.space/lists/shttp
-http://gatherproxy.com/
-https://raw.githubusercontent.com/imalrzai/ExclaveVirtual/main/ExclaveVirtual
-http://spys.one/en/free-proxy-list/
-https://raw.githubusercontent.com/Flik6/getNode/main/clash.yaml
-https://github.com/scraperapi/blog
-https://v2y.xyz/api/v1/client/subscribe?token=2533ce3df935ebaf4143fcc3df068ebd
-https://v2rayshare.githubrowcontent.com/2026/02/20260201.txt
-https://raw.githubusercontent.com/tbbatbb/Proxy/master/dist/v2ray.config.txt
-https://raw.githubusercontent.com/Ai123999/HiddifySubs-Notorgamers/refs/heads/main/4vless_@Notorgamers.txt
-http://free-proxy.cz/en/proxylist/main
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub18.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub31.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub37.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub3.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub39.txt
+https://v2.alicivil.workers.dev/?count=2000&list=pa&shuffle=true
+https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/main/mtn/sub_4.txt
+https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-10.txt
+https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/sub/clash-meta-wg.yml
