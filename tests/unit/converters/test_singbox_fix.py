@@ -1,5 +1,6 @@
-from configstream.models import Proxy
 from configstream.converters.singbox import to_singbox_outbound
+from configstream.models import Proxy
+
 
 def test_shadowsocks_obfs_drop():
     """Test that Shadowsocks proxies with 'obfs' plugin are dropped."""
@@ -14,11 +15,12 @@ def test_shadowsocks_obfs_drop():
             "method": "chacha20-ietf-poly1305",
             "password": "password",
             "plugin": "obfs",
-            "plugin_opts": "obfs=http"
+            "plugin_opts": "obfs=http",
         },
     )
     # Expect None because we don't have the plugin
     assert to_singbox_outbound(proxy) is None
+
 
 def test_shadowsocks_obfs_local_drop():
     """Test that Shadowsocks proxies with 'obfs-local' plugin are dropped."""
@@ -33,10 +35,11 @@ def test_shadowsocks_obfs_local_drop():
             "method": "chacha20-ietf-poly1305",
             "password": "password",
             "plugin": "obfs-local",
-            "plugin_opts": "obfs=http"
+            "plugin_opts": "obfs=http",
         },
     )
     assert to_singbox_outbound(proxy) is None
+
 
 def test_shadowsocks_simple_obfs_drop():
     """Test that Shadowsocks proxies with 'simple-obfs' plugin are dropped."""
@@ -51,10 +54,11 @@ def test_shadowsocks_simple_obfs_drop():
             "method": "chacha20-ietf-poly1305",
             "password": "password",
             "plugin": "simple-obfs",
-            "plugin_opts": "obfs=http"
+            "plugin_opts": "obfs=http",
         },
     )
     assert to_singbox_outbound(proxy) is None
+
 
 def test_shadowsocks_valid_plugin():
     """Test that Shadowsocks proxies with potentially valid plugin (e.g. v2ray-plugin) are NOT dropped by this check."""
@@ -70,7 +74,7 @@ def test_shadowsocks_valid_plugin():
             "method": "chacha20-ietf-poly1305",
             "password": "password",
             "plugin": "v2ray-plugin",
-            "plugin_opts": "host=example.com"
+            "plugin_opts": "host=example.com",
         },
     )
     out = to_singbox_outbound(proxy)
