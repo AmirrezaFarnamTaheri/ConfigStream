@@ -232,7 +232,12 @@ class GoBatchTester:
                     self._proc = None
 
             # Cancel background tasks
-            for attr in ("_read_task", "_stderr_task", "_heartbeat_task", "_restart_task"):
+            for attr in (
+                "_read_task",
+                "_stderr_task",
+                "_heartbeat_task",
+                "_restart_task",
+            ):
                 await self._cancel_task(getattr(self, attr, None))
                 setattr(self, attr, None)
 

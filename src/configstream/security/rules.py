@@ -18,7 +18,9 @@ from configstream.constants import (
     VALID_PROTOCOLS,
     MAX_CONFIG_LINE_LENGTH,
 )
-from configstream.security_validator import LOCAL_IP_RANGES as _SPECIAL_ADDRESS_PATTERNS_BASE
+from configstream.security_validator import (
+    LOCAL_IP_RANGES as _SPECIAL_ADDRESS_PATTERNS_BASE,
+)
 
 logger = logging.getLogger(__name__)
 

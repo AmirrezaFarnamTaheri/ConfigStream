@@ -47,7 +47,9 @@ from configstream.security_validator import SecurityValidator
 logger = logging.getLogger(__name__)
 
 
-async def _cancel_all(producer_task: asyncio.Task, consumer_tasks: List[asyncio.Task]) -> None:
+async def _cancel_all(
+    producer_task: asyncio.Task, consumer_tasks: List[asyncio.Task]
+) -> None:
     """Cancel producer and all consumer tasks, waiting for them to finish."""
     for t in consumer_tasks:
         t.cancel()
@@ -200,10 +202,15 @@ async def run_full_pipeline(
         if await vwarp_tool.is_available():
             vwarp_config_override = {
                 "masque": {"enabled": settings.VWARP_MASQUE_ENABLED},
-                "psiphon": {"enabled": settings.PSIPHON_ENABLED, "country": settings.PSIPHON_COUNTRY}
+                "psiphon": {
+                    "enabled": settings.PSIPHON_ENABLED,
+                    "country": settings.PSIPHON_COUNTRY,
+                },
             }
             if await vwarp_tool.start_tunnel(
-                bind_addr=VWARP_BIND_ADDRESS, port=VWARP_SOCKS5_PORT, config_override=vwarp_config_override
+                bind_addr=VWARP_BIND_ADDRESS,
+                port=VWARP_SOCKS5_PORT,
+                config_override=vwarp_config_override,
             ):
                 logger.info("✅ Vwarp Tunnel established.")
                 os.environ["USE_VWARP_TUNNEL"] = "true"
@@ -446,7 +453,11 @@ async def run_full_pipeline(
             async with httpx.AsyncClient(timeout=1.0) as client:
                 await client.post(
                     "http://127.0.0.1:8000/api/admin/notify-update",
-                    json={"timestamp": stats.end_time.isoformat() if stats.end_time else duration},
+                    json={
+                        "timestamp": (
+                            stats.end_time.isoformat() if stats.end_time else duration
+                        )
+                    },
                 )
         except Exception as e:
             logger.debug(f"Server notification skipped: {e}")

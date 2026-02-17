@@ -24,9 +24,7 @@ def _convert_ss(proxy: Proxy, common: Dict[str, Any]) -> Dict[str, Any]:
         raw_opts = proxy.details.get("plugin_opts", {})
         if isinstance(raw_opts, str) and raw_opts:
             common["plugin-opts"] = dict(
-                item.split("=", 1)
-                for item in raw_opts.split(";")
-                if "=" in item
+                item.split("=", 1) for item in raw_opts.split(";") if "=" in item
             )
         elif isinstance(raw_opts, dict):
             common["plugin-opts"] = raw_opts
@@ -37,12 +35,8 @@ def _convert_ss(proxy: Proxy, common: Dict[str, Any]) -> Dict[str, Any]:
 
 def _convert_vmess(proxy: Proxy, common: Dict[str, Any]) -> Dict[str, Any]:
     common["uuid"] = proxy.uuid
-    common["alterId"] = proxy.details.get(
-        "aid", proxy.details.get("alterId", 0)
-    )
-    common["cipher"] = (
-        proxy.details.get("scy") or proxy.details.get("cipher") or "auto"
-    )
+    common["alterId"] = proxy.details.get("aid", proxy.details.get("alterId", 0))
+    common["cipher"] = proxy.details.get("scy") or proxy.details.get("cipher") or "auto"
     add_transport_opts(common, proxy.details)
     return common
 
@@ -74,9 +68,7 @@ def _convert_hysteria2(proxy: Proxy, common: Dict[str, Any]) -> Dict[str, Any]:
     common["password"] = proxy.uuid or proxy.details.get("password", "")
     common["tls"] = True
     common["sni"] = proxy.details.get("sni", "")
-    common["skip-cert-verify"] = parse_bool(
-        proxy.details.get("allowInsecure", False)
-    )
+    common["skip-cert-verify"] = parse_bool(proxy.details.get("allowInsecure", False))
     if proxy.details.get("obfs") == "salamander":
         common["obfs"] = "salamander"
         common["obfs-password"] = proxy.details.get("obfs-password", "")
@@ -89,12 +81,8 @@ def _convert_tuic(proxy: Proxy, common: Dict[str, Any]) -> Dict[str, Any]:
     common["password"] = proxy.details.get("password", "")
     common["tls"] = True
     common["sni"] = proxy.details.get("sni", "")
-    common["congestion-controller"] = proxy.details.get(
-        "congestion_controller", "bbr"
-    )
-    common["skip-cert-verify"] = parse_bool(
-        proxy.details.get("allowInsecure", False)
-    )
+    common["congestion-controller"] = proxy.details.get("congestion_controller", "bbr")
+    common["skip-cert-verify"] = parse_bool(proxy.details.get("allowInsecure", False))
     return common
 
 
@@ -105,18 +93,16 @@ def _convert_socks5(proxy: Proxy, common: Dict[str, Any]) -> Dict[str, Any]:
         common["password"] = proxy.details["password"]
     common["udp"] = True
     common["tls"] = parse_bool(proxy.details.get("tls", False))
-    common["skip-cert-verify"] = parse_bool(proxy.details.get("skip_cert_verify", False))
+    common["skip-cert-verify"] = parse_bool(
+        proxy.details.get("skip_cert_verify", False)
+    )
     return common
 
 
 def _convert_wireguard(proxy: Proxy, common: Dict[str, Any]) -> Dict[str, Any]:
     common["type"] = "wireguard"
     local_addresses = proxy.details.get("local_address")
-    if (
-        local_addresses
-        and isinstance(local_addresses, list)
-        and local_addresses
-    ):
+    if local_addresses and isinstance(local_addresses, list) and local_addresses:
         common["ip"] = local_addresses[0]
     else:
         common["ip"] = "172.16.0.2"
@@ -152,7 +138,9 @@ _PROTOCOL_HANDLERS: Dict[str, Callable[[Proxy, Dict[str, Any]], Dict[str, Any]]]
 }
 
 
-def to_clash_proxy(proxy: Proxy, ignore_status: bool = False) -> Optional[Dict[str, Any]]:
+def to_clash_proxy(
+    proxy: Proxy, ignore_status: bool = False
+) -> Optional[Dict[str, Any]]:
     """
     Converts a Proxy object into a Clash proxy dictionary.
     Returns None if the protocol is not supported or conversion fails.

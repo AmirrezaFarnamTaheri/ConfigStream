@@ -168,9 +168,11 @@ def merge(
 
             # CRITICAL: Fail pipeline if zero working proxies found
             # This ensures GitHub Actions workflow fails instead of silently passing with empty results.
-            working = _get('working')
+            working = _get("working")
             if working == 0:
-                console.print("\n[bold red]CRITICAL: Pipeline finished with 0 working proxies![/bold red]")
+                console.print(
+                    "\n[bold red]CRITICAL: Pipeline finished with 0 working proxies![/bold red]"
+                )
                 sys.exit(1)
 
         else:

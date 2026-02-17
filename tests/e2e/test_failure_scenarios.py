@@ -53,9 +53,7 @@ async def test_anomaly_db_failure(tmp_path, monkeypatch, caplog):
     async def fake_fetch(*args, **kwargs):
         return {"https://example.com/subs": FakeResponse()}
 
-    monkeypatch.setattr(
-        "configstream.producer.fetch_multiple_sources", fake_fetch
-    )
+    monkeypatch.setattr("configstream.producer.fetch_multiple_sources", fake_fetch)
 
     # Mock GeoIP
     from configstream.geoip import GeoData

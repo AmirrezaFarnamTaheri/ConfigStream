@@ -26,6 +26,7 @@ from slowapi.errors import RateLimitExceeded
 
 from .config import AppSettings
 from .logging_config import setup_logging
+
 OUTPUT_DIR = Path(os.environ.get("OUTPUT_DIR", "output"))
 
 # Ensure WASM files are served with correct MIME type
