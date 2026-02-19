@@ -8401,3 +8401,15 @@ Exception: DB Error
 2026-02-19 18:48:59,388 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: GET http://test/ "HTTP/1.1 200 OK"
 2026-02-19 18:48:59,390 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: GET http://test/about "HTTP/1.1 200 OK"
 2026-02-19 18:48:59,397 - configstream.tools.vwarp - WARNING - [-] - [vwarp.py:237] - Invalid WARP key format
+2026-02-19 18:55:44,755 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: GET http://test/health "HTTP/1.1 200 OK"
+2026-02-19 18:55:44,763 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: GET http://test/api/stats "HTTP/1.1 200 OK"
+2026-02-19 18:55:44,772 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: GET http://test/api/proxies "HTTP/1.1 200 OK"
+2026-02-19 18:55:44,779 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: GET http://test/api/proxies?country=US "HTTP/1.1 200 OK"
+2026-02-19 18:55:44,781 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: GET http://test/api/proxies?country=XX "HTTP/1.1 404 Not Found"
+2026-02-19 18:55:44,789 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: GET http://test/api/proxies?protocol=vmess "HTTP/1.1 200 OK"
+2026-02-19 18:55:44,791 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: GET http://test/api/proxies?protocol=invalid "HTTP/1.1 404 Not Found"
+2026-02-19 18:55:44,798 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: GET http://[BASE64] "HTTP/1.1 200 OK"
+2026-02-19 18:55:44,799 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: GET http://[BASE64] "HTTP/1.1 400 Bad Request"
+2026-02-19 18:55:44,807 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: GET http://test/ "HTTP/1.1 200 OK"
+2026-02-19 18:55:44,809 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: GET http://test/about "HTTP/1.1 200 OK"
+2026-02-19 18:55:44,822 - configstream.tools.vwarp - WARNING - [-] - [vwarp.py:237] - Invalid WARP key format
