@@ -20,6 +20,7 @@ from configstream.intelligence.washer.key_generator import (
     KeyGenerator,
 )  # Import the new key generator
 from configstream.tools.vwarp import VwarpTool
+from pathlib import Path
 from configstream.intelligence.chaining import find_optimal_relay, ProxyStub, COUNTRIES
 from configstream.pipeline_stats import PipelineStats
 from configstream.config import AppSettings
