@@ -74,12 +74,31 @@ class SingBoxTester:
 
             # Test regular proxies
             if to_test:
-                await self.go_tester.test_batch(
-                    to_test, check_honeypot=self.strict_security
-                )
-                if self.cache:
-                    for p in to_test:
-                        self._finalize_result(p)
+                try:
+                    await self.go_tester.test_batch(
+                        to_test, check_honeypot=self.strict_security
+                    )
+                    if self.cache:
+                        for p in to_test:
+                            self._finalize_result(p)
+                except (RuntimeError, Exception) as e:
+                    logger.warning(
+                        f"Go Tester failed for batch ({len(to_test)} proxies): {e}. Falling back to Python."
+                    )
+                    # Fallback to Python for this batch
+                    max_concurrent = max(
+                        1, int(self.max_workers) if self.max_workers else 1
+                    )
+                    sem = asyncio.Semaphore(max_concurrent)
+
+                    async def _guarded_test(p: Proxy) -> Proxy:
+                        async with sem:
+                            return await self.test(p)
+
+                    results = await asyncio.gather(*[_guarded_test(p) for p in to_test])
+                    # Update proxies in place (list reference)
+                    # No need to return, just update properties
+                    pass
 
             # Test revived chains using custom config testing
             if revived_candidates:
@@ -107,11 +126,17 @@ class SingBoxTester:
                             chain_outbounds.insert(0, head)
                     configs.append({"id": p.id, "outbounds": chain_outbounds})
 
-                custom_results: Dict[str, bool] = (
-                    await self.go_tester.test_custom_configs(
-                        configs, check_honeypot=False
+                try:
+                    custom_results: Dict[str, bool] = (
+                        await self.go_tester.test_custom_configs(
+                            configs, check_honeypot=False
+                        )
                     )
-                )
+                except Exception as e:
+                    logger.warning(
+                        f"Go Tester failed for revived chains: {e}. Falling back."
+                    )
+                    custom_results = {}
                 missing = [p for p in revived_candidates if p.id not in custom_results]
                 if missing:
                     logger.warning(
