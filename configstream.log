@@ -8449,3 +8449,1050 @@ Exception: DB Error
 2026-02-19 20:01:06,173 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: GET http://test/ "HTTP/1.1 200 OK"
 2026-02-19 20:01:06,175 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: GET http://test/about "HTTP/1.1 200 OK"
 2026-02-19 20:01:06,184 - configstream.tools.vwarp - WARNING - [-] - [vwarp.py:237] - Invalid WARP key format
+2026-02-19 21:38:55,882 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 60
+2026-02-19 21:38:55,886 - configstream.test_cache - INFO - [-] - [test_cache.py:57] - Cache file not found at data/test_cache.json. Starting with an empty cache.
+2026-02-19 21:38:55,908 - configstream.pipeline - INFO - [-] - [pipeline.py:168] - Initializing security blocklists...
+2026-02-19 21:38:56,033 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: GET https://raw.githubusercontent.[BASE64]-ipsets/master/firehol_level1.netset "HTTP/1.1 200 OK"
+2026-02-19 21:38:56,037 - configstream.security.blocklist - INFO - [-] - [blocklist.py:67] - Updated FireHol blocklist successfully.
+2026-02-19 21:38:57,166 - configstream.security.blocklist - INFO - [-] - [blocklist.py:137] - Loaded 4500 blocked networks from FireHol Level 1.
+2026-02-19 21:38:57,190 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-19 21:38:57,207 - configstream.tools.vwarp - INFO - [-] - [vwarp.py:322] - Vwarp binary not found. Attempting to download v2.1.0...
+2026-02-19 21:38:57,207 - configstream.tools.vwarp - INFO - [-] - [vwarp.py:342] - Downloading Vwarp from https://github.com/voidr3aper-[BASE64].1.0/vwarp_linux-amd64.zip
+2026-02-19 21:38:57,393 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: GET https://github.com/voidr3aper-[BASE64].1.0/vwarp_linux-amd64.zip "HTTP/1.1 302 Found"
+2026-02-19 21:38:57,447 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: GET https://release-assets.githubusercontent.com/github-production-release-asset/1054117331/[MASKED_UUID]?sp=r&sv=2018-11-09&sr=b&spr=https&se=2026-02-19T22%3A29%3A24Z&rscd=attachment%3B+filename%3Dvwarp_linux-amd64.zip&rsct=application%2Foctet-stream&sko[MASKED_CREDENTIAL]&skt[MASKED_CREDENTIAL]&skt=2026-02-19T21%3A28%3A27Z&ske=2026-02-19T22%3A29%3A24Z&sks=b&skv=2018-11-09&sig=[BASE64]%[BASE64]%3D&jwt=[BASE64].[BASE64].kXKuRyFH-B5NV5jod_Xe5ixFggfseuz2SFEA_d3wZeM&response-content-disposition=attachment%3B%20filename%3Dvwarp_linux-amd64.zip&response-content-type=application%2Foctet-stream "HTTP/1.1 200 OK"
+2026-02-19 21:38:57,804 - configstream.tools.vwarp - INFO - [-] - [vwarp.py:417] - ✅ Vwarp successfully installed to /home/jules/.local/bin/vwarp
+2026-02-19 21:38:57,818 - configstream.tools.vwarp - INFO - [-] - [vwarp.py:1058] - Retrying Vwarp tunnel with fallback config: primary
+2026-02-19 21:38:57,819 - configstream.tools.vwarp - INFO - [-] - [vwarp.py:1315] - Vwarp config (generated): {"version": "1.0", "endpoint": "[IP]:2408", "dns": "[IP]", "wireguard": {"enabled": true, "reserved": "1,2,3", "fwmark": 0, "atomicnoize": {"I1": "<b 0c0d0e0f>", "I3": "<b 040506>", "I4": "<b 0708>", "I5": "<b 09>", "S1": 1, "S2": 2, "Jc": 8, "Jmin": 40, "Jmax": 90, "JcAfterI1": 3, "JcBeforeHS": 5, "JcAfterHS": 4, "JunkInterval": 15000000, "AllowZeroSize": false, "HandshakeDelay": 5000000}}, "masque": {"enabled": true, "preferred": false, "config": {"i1": "<b 0d0a0d0a>", "i3": "<b 0102>", "i4": "<b 030405>", "i5": "<b 060708>", "fragment_size": 0, "fragment_initial": false, "FragmentDelay": 500000, "PaddingMin": 0, "PaddingMax": 0, "RandomPadding": false, "Jc": 8, "Jmin": 30, "Jmax": 120, "JcBeforeHS": 3, "JcAfterI1": 2, "JcDuringHS": 5, "JcAfterHS": 3, "JunkInterval": 20000000, "JunkRandom": true, "MimicProtocol": "quic", "CustomWrapper": true, "HandshakeDelay": 30000000, "PacketDelay": 5000000, "RandomDelay": true, "DelayMin": 2000000, "DelayMax": 15000000, "SNIFragmentation": false, "SNIFragment": 32, "FakeALPN": ["h2", "http/1.1"], "ReversedOrder": false, "DuplicatePackets": false, "AllowZeroSize": true, "UseTimestamp": false, "UseNonce": true, "RandomizeInitial": true, "FakeLoss": 0.05}}, "psiphon": {"enabled": false, "country": "US"}, "metadata": {"name": "sample-working-generated", "description": "Auto-generated from ConfigStream based on sample-working.json", "author": "ConfigStream", "created_at": "2026-02-19T21[IP].818544+00:00"}, "bind": "[IP]:10808"}
+2026-02-19 21:38:57,822 - configstream.tools.vwarp - INFO - [-] - [vwarp.py:1116] - 🚀 Starting Vwarp SOCKS5 Tunnel on [IP]:10808 (cmd: /home/jules/.local/bin/vwarp --config /tmp/vwarp-config-455f8mph.json)...
+2026-02-19 21:38:58,325 - configstream.tools.vwarp - ERROR - [-] - [vwarp.py:1138] - Vwarp stderr: error: vwarp: parse config file: wireguard.enabled: unknown flag\n
+2026-02-19 21:38:58,325 - configstream.tools.vwarp - INFO - [-] - [vwarp.py:1073] - Vwarp fallback retry triggered (reason=config).
+2026-02-19 21:38:58,326 - configstream.tools.vwarp - INFO - [-] - [vwarp.py:1058] - Retrying Vwarp tunnel with fallback config: minimal-dns-only
+2026-02-19 21:38:58,327 - configstream.tools.vwarp - INFO - [-] - [vwarp.py:1315] - Vwarp config (generated): {"version": "1.0", "endpoint": "[IP]:2408", "dns": "[IP]", "wireguard": {"enabled": true, "reserved": "1,2,3", "fwmark": 0, "atomicnoize": {"I1": "<b 0c0d0e0f>", "I3": "<b 040506>", "I4": "<b 0708>", "I5": "<b 09>", "S1": 1, "S2": 2, "Jc": 8, "Jmin": 40, "Jmax": 90, "JcAfterI1": 3, "JcBeforeHS": 5, "JcAfterHS": 4, "JunkInterval": 15000000, "AllowZeroSize": false, "HandshakeDelay": 5000000}}, "masque": {"enabled": false, "preferred": false, "config": {"i1": "<b 0d0a0d0a>", "i3": "<b 0102>", "i4": "<b 030405>", "i5": "<b 060708>", "fragment_size": 0, "fragment_initial": false, "FragmentDelay": 500000, "PaddingMin": 0, "PaddingMax": 0, "RandomPadding": false, "Jc": 8, "Jmin": 30, "Jmax": 120, "JcBeforeHS": 3, "JcAfterI1": 2, "JcDuringHS": 5, "JcAfterHS": 3, "JunkInterval": 20000000, "JunkRandom": true, "MimicProtocol": "quic", "CustomWrapper": true, "HandshakeDelay": 30000000, "PacketDelay": 5000000, "RandomDelay": true, "DelayMin": 2000000, "DelayMax": 15000000, "SNIFragmentation": false, "SNIFragment": 32, "FakeALPN": ["h2", "http/1.1"], "ReversedOrder": false, "DuplicatePackets": false, "AllowZeroSize": true, "UseTimestamp": false, "UseNonce": true, "RandomizeInitial": true, "FakeLoss": 0.05}}, "psiphon": {"enabled": false, "country": "US"}, "metadata": {"name": "sample-working-generated", "description": "Auto-generated from ConfigStream based on sample-working.json", "author": "ConfigStream", "created_at": "2026-02-19T21[IP].326524+00:00"}, "bind": "[IP]:10808"}
+2026-02-19 21:38:58,330 - configstream.tools.vwarp - INFO - [-] - [vwarp.py:1116] - 🚀 Starting Vwarp SOCKS5 Tunnel on [IP]:10808 (cmd: /home/jules/.local/bin/vwarp --config /tmp/vwarp-config-pv7foyrg.json)...
+2026-02-19 21:38:58,833 - configstream.tools.vwarp - ERROR - [-] - [vwarp.py:1138] - Vwarp stderr: error: vwarp: parse config file: psiphon.enabled: unknown flag\n
+2026-02-19 21:38:58,834 - configstream.tools.vwarp - INFO - [-] - [vwarp.py:1084] - Vwarp second fallback: trying alternate endpoint [IP]:1701
+2026-02-19 21:38:58,834 - configstream.tools.vwarp - INFO - [-] - [vwarp.py:1058] - Retrying Vwarp tunnel with fallback config: alternate-endpoint
+2026-02-19 21:38:58,836 - configstream.tools.vwarp - INFO - [-] - [vwarp.py:1315] - Vwarp config (generated): {"version": "1.0", "endpoint": "[IP]:1701", "dns": "[IP]", "wireguard": {"enabled": true, "reserved": "1,2,3", "fwmark": 0, "atomicnoize": {"I1": "<b 0c0d0e0f>", "I3": "<b 040506>", "I4": "<b 0708>", "I5": "<b 09>", "S1": 1, "S2": 2, "Jc": 8, "Jmin": 40, "Jmax": 90, "JcAfterI1": 3, "JcBeforeHS": 5, "JcAfterHS": 4, "JunkInterval": 15000000, "AllowZeroSize": false, "HandshakeDelay": 5000000}}, "masque": {"enabled": false, "preferred": false, "config": {"i1": "<b 0d0a0d0a>", "i3": "<b 0102>", "i4": "<b 030405>", "i5": "<b 060708>", "fragment_size": 0, "fragment_initial": false, "FragmentDelay": 500000, "PaddingMin": 0, "PaddingMax": 0, "RandomPadding": false, "Jc": 8, "Jmin": 30, "Jmax": 120, "JcBeforeHS": 3, "JcAfterI1": 2, "JcDuringHS": 5, "JcAfterHS": 3, "JunkInterval": 20000000, "JunkRandom": true, "MimicProtocol": "quic", "CustomWrapper": true, "HandshakeDelay": 30000000, "PacketDelay": 5000000, "RandomDelay": true, "DelayMin": 2000000, "DelayMax": 15000000, "SNIFragmentation": false, "SNIFragment": 32, "FakeALPN": ["h2", "http/1.1"], "ReversedOrder": false, "DuplicatePackets": false, "AllowZeroSize": true, "UseTimestamp": false, "UseNonce": true, "RandomizeInitial": true, "FakeLoss": 0.05}}, "psiphon": {"enabled": false, "country": "US"}, "metadata": {"name": "sample-working-generated", "description": "Auto-generated from ConfigStream based on sample-working.json", "author": "ConfigStream", "created_at": "2026-02-19T21[IP].835138+00:00"}, "bind": "[IP]:10808"}
+2026-02-19 21:38:58,839 - configstream.tools.vwarp - INFO - [-] - [vwarp.py:1116] - 🚀 Starting Vwarp SOCKS5 Tunnel on [IP]:10808 (cmd: /home/jules/.local/bin/vwarp --config /tmp/vwarp-config-wulksip5.json)...
+2026-02-19 21:38:59,341 - configstream.tools.vwarp - ERROR - [-] - [vwarp.py:1138] - Vwarp stderr: error: vwarp: parse config file: wireguard.enabled: unknown flag\n
+2026-02-19 21:38:59,342 - configstream.pipeline - WARNING - [-] - [pipeline.py:218] - Vwarp tunnel failed to start or did not pass health check. Disabling Vwarp integration.
+2026-02-19 21:38:59,342 - configstream.pipeline - INFO - [-] - [pipeline.py:239] - 🚀 Auto-scaling to 6 consumers based on 4 cores.
+2026-02-19 21:38:59,343 - configstream.pipeline - INFO - [-] - [pipeline.py:262] - Starting pipeline with 60 initial workers
+2026-02-19 21:38:59,352 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-19 21:38:59,352 - configstream.pipeline - WARNING - [-] - [pipeline.py:276] - Go tester unavailable - Falling back to Python tester. Starting global concurrency tuner.
+2026-02-19 21:38:59,353 - configstream.pipeline - INFO - [-] - [pipeline.py:290] - Starting pipeline with 6 parallel consumers
+2026-02-19 21:38:59,353 - configstream.pipeline - INFO - [-] - [pipeline.py:295] - Batch time limit enabled: 14400s (soft stop with partial output).
+2026-02-19 21:38:59,381 - configstream.producer - ERROR - [-] - [producer.py:192] - ALL 1 remote sources are on cooldown/disabled - no proxies will be fetched!
+2026-02-19 21:38:59,381 - configstream.producer - INFO - [-] - [producer.py:198] - 1 source(s) were skipped due to cooldown/disabled status.
+2026-02-19 21:38:59,389 - configstream.sorter - WARNING - [-] - [sorter.py:73] - No proxies to sort
+2026-02-19 21:38:59,390 - configstream.output_handler - INFO - [-] - [output_handler.py:386] - Starting final output generation phase...
+2026-02-19 21:38:59,394 - configstream.output_handler - INFO - [-] - [output_handler.py:394] - Applying proxy tagging with template: {country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}
+2026-02-19 21:38:59,394 - configstream.tagging - INFO - [-] - [tagging.py:335] - Applying name template '{country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}' to 0 proxies...
+2026-02-19 21:38:59,395 - configstream.tagging - INFO - [-] - [tagging.py:367] - Tagged 0 proxies with template metadata
+2026-02-19 21:38:59,395 - configstream.geoip - INFO - [-] - [geoip.py:251] - GeoIP enrichment: 0/0 (0.0%) countries resolved, 0 cities, 0 ASNs
+2026-02-19 21:38:59,403 - configstream.intelligence.chaining - INFO - [-] - [chaining.py:828] - Enhanced smart chains generated: 0 chains across 9 categories. intranet=0, intranet_washed=0, ipv6=0, streamer=0, censorship_resistant=0, low_latency=0, high_anonymity=0, load_balanced=0
+2026-02-19 21:38:59,425 - configstream.testers.go - INFO - [-] - [go.py:252] - Go Batch Tester shutdown complete.
+2026-02-19 21:38:59,426 - configstream.tools.vwarp - INFO - [-] - [vwarp.py:1240] - Stopping Vwarp tunnel (pid=[MASKED]
+2026-02-19 21:38:59,428 - configstream.event_stream - INFO - [-] - [event_stream.py:32] - [stream_close] Event stream closing.
+2026-02-19 21:38:59,674 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 60
+2026-02-19 21:38:59,678 - configstream.test_cache - INFO - [-] - [test_cache.py:57] - Cache file not found at data/test_cache.json. Starting with an empty cache.
+2026-02-19 21:38:59,680 - configstream.pipeline - INFO - [-] - [pipeline.py:168] - Initializing security blocklists...
+2026-02-19 21:38:59,770 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: GET https://raw.githubusercontent.[BASE64]-ipsets/master/firehol_level1.netset "HTTP/1.1 200 OK"
+2026-02-19 21:38:59,774 - configstream.security.blocklist - INFO - [-] - [blocklist.py:67] - Updated FireHol blocklist successfully.
+2026-02-19 21:39:00,907 - configstream.security.blocklist - INFO - [-] - [blocklist.py:137] - Loaded 4500 blocked networks from FireHol Level 1.
+2026-02-19 21:39:00,916 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-19 21:39:00,916 - configstream.pipeline - INFO - [-] - [pipeline.py:228] - Vwarp tunnel disabled by configuration.
+2026-02-19 21:39:00,917 - configstream.pipeline - INFO - [-] - [pipeline.py:239] - 🚀 Auto-scaling to 6 consumers based on 4 cores.
+2026-02-19 21:39:00,917 - configstream.pipeline - INFO - [-] - [pipeline.py:262] - Starting pipeline with 60 initial workers
+2026-02-19 21:39:00,926 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-19 21:39:00,926 - configstream.pipeline - WARNING - [-] - [pipeline.py:276] - Go tester unavailable - Falling back to Python tester. Starting global concurrency tuner.
+2026-02-19 21:39:00,927 - configstream.pipeline - INFO - [-] - [pipeline.py:290] - Starting pipeline with 6 parallel consumers
+2026-02-19 21:39:00,927 - configstream.pipeline - INFO - [-] - [pipeline.py:295] - Batch time limit enabled: 14400s (soft stop with partial output).
+2026-02-19 21:39:00,955 - configstream.producer - INFO - [-] - [producer.py:207] - Starting fetch for 1 active sources (Batch Size: 100, Concurrent Limit: 32)
+2026-02-19 21:39:00,956 - configstream.producer - INFO - [-] - [producer.py:222] - Fetching batch 1: 1 sources
+2026-02-19 21:39:00,957 - configstream.producer - ERROR - [-] - [producer.py:346] - Producer failed: DB Connection Failed
+2026-02-19 21:39:00,965 - configstream.sorter - WARNING - [-] - [sorter.py:73] - No proxies to sort
+2026-02-19 21:39:00,965 - configstream.output_handler - INFO - [-] - [output_handler.py:386] - Starting final output generation phase...
+2026-02-19 21:39:00,969 - configstream.output_handler - INFO - [-] - [output_handler.py:394] - Applying proxy tagging with template: {country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}
+2026-02-19 21:39:00,970 - configstream.tagging - INFO - [-] - [tagging.py:335] - Applying name template '{country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}' to 0 proxies...
+2026-02-19 21:39:00,970 - configstream.tagging - INFO - [-] - [tagging.py:367] - Tagged 0 proxies with template metadata
+2026-02-19 21:39:00,970 - configstream.geoip - INFO - [-] - [geoip.py:251] - GeoIP enrichment: 0/0 (0.0%) countries resolved, 0 cities, 0 ASNs
+2026-02-19 21:39:00,978 - configstream.intelligence.chaining - INFO - [-] - [chaining.py:828] - Enhanced smart chains generated: 0 chains across 9 categories. intranet=0, intranet_washed=0, ipv6=0, streamer=0, censorship_resistant=0, low_latency=0, high_anonymity=0, load_balanced=0
+2026-02-19 21:39:00,998 - configstream.testers.go - INFO - [-] - [go.py:252] - Go Batch Tester shutdown complete.
+2026-02-19 21:39:00,999 - configstream.event_stream - INFO - [-] - [event_stream.py:32] - [stream_close] Event stream closing.
+2026-02-19 21:39:01,125 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 60
+2026-02-19 21:39:01,130 - configstream.test_cache - INFO - [-] - [test_cache.py:57] - Cache file not found at data/test_cache.json. Starting with an empty cache.
+2026-02-19 21:39:01,131 - configstream.pipeline - INFO - [-] - [pipeline.py:168] - Initializing security blocklists...
+2026-02-19 21:39:01,140 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-19 21:39:01,140 - configstream.pipeline - INFO - [-] - [pipeline.py:228] - Vwarp tunnel disabled by configuration.
+2026-02-19 21:39:01,140 - configstream.pipeline - INFO - [-] - [pipeline.py:239] - 🚀 Auto-scaling to 6 consumers based on 4 cores.
+2026-02-19 21:39:01,141 - configstream.pipeline - INFO - [-] - [pipeline.py:262] - Starting pipeline with 60 initial workers
+2026-02-19 21:39:01,149 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-19 21:39:01,150 - configstream.pipeline - WARNING - [-] - [pipeline.py:276] - Go tester unavailable - Falling back to Python tester. Starting global concurrency tuner.
+2026-02-19 21:39:01,150 - configstream.pipeline - INFO - [-] - [pipeline.py:290] - Starting pipeline with 6 parallel consumers
+2026-02-19 21:39:01,150 - configstream.pipeline - INFO - [-] - [pipeline.py:295] - Batch time limit enabled: 14400s (soft stop with partial output).
+2026-02-19 21:39:01,188 - configstream.consumer - INFO - [-] - [consumer.py:599] - Source Summary [/tmp/pytest-of-jules/pytest-0/test_mixed_protocols_dry_run0/mixed_sources.txt]: Raw=4 Parsed=4 Tested=4 Working=4 Dur=8ms
+2026-02-19 21:39:01,197 - configstream.sorter - INFO - [-] - [sorter.py:68] - Sorted 4 proxies using Pareto scoring (latency: avg=123.5ms, min=123.5ms, max=123.5ms)
+2026-02-19 21:39:01,198 - configstream.pipeline - INFO - [-] - [pipeline.py:427] - ⚠️ Top 5 Failing Sources:\n  - /tmp/pytest-of-jules/pytest-0/test_mixed_protocols_dry_run0/mixed_sources.txt: score=0.0, reason=Low Reliability
+2026-02-19 21:39:01,198 - configstream.output_handler - INFO - [-] - [output_handler.py:386] - Starting final output generation phase...
+2026-02-19 21:39:01,202 - configstream.output_handler - INFO - [-] - [output_handler.py:394] - Applying proxy tagging with template: {country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}
+2026-02-19 21:39:01,203 - configstream.tagging - INFO - [-] - [tagging.py:335] - Applying name template '{country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}' to 4 proxies...
+2026-02-19 21:39:01,204 - configstream.tagging - INFO - [-] - [tagging.py:367] - Tagged 4 proxies with template metadata
+2026-02-19 21:39:01,204 - configstream.geoip - INFO - [-] - [geoip.py:251] - GeoIP enrichment: 2/4 (50.0%) countries resolved, 2 cities, 0 ASNs
+2026-02-19 21:39:01,208 - configstream.output_handler - INFO - [-] - [output_handler.py:507] - WARP wrap skipped for all proxies (no valid WARP endpoints or keys found).
+2026-02-19 21:39:01,213 - configstream.intelligence.chaining - INFO - [-] - [chaining.py:828] - Enhanced smart chains generated: 3 chains across 9 categories. intranet=0, intranet_washed=0, ipv6=0, streamer=0, censorship_resistant=0, low_latency=0, high_anonymity=0, load_balanced=3
+2026-02-19 21:39:01,235 - configstream.testers.go - INFO - [-] - [go.py:252] - Go Batch Tester shutdown complete.
+2026-02-19 21:39:01,235 - configstream.event_stream - INFO - [-] - [event_stream.py:32] - [stream_close] Event stream closing.
+2026-02-19 21:39:01,351 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 60
+2026-02-19 21:39:01,356 - configstream.test_cache - INFO - [-] - [test_cache.py:57] - Cache file not found at data/test_cache.json. Starting with an empty cache.
+2026-02-19 21:39:01,357 - configstream.pipeline - INFO - [-] - [pipeline.py:168] - Initializing security blocklists...
+2026-02-19 21:39:01,366 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-19 21:39:01,366 - configstream.pipeline - INFO - [-] - [pipeline.py:228] - Vwarp tunnel disabled by configuration.
+2026-02-19 21:39:01,366 - configstream.pipeline - INFO - [-] - [pipeline.py:239] - 🚀 Auto-scaling to 6 consumers based on 4 cores.
+2026-02-19 21:39:01,367 - configstream.pipeline - INFO - [-] - [pipeline.py:262] - Starting pipeline with 60 initial workers
+2026-02-19 21:39:01,376 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-19 21:39:01,376 - configstream.pipeline - WARNING - [-] - [pipeline.py:276] - Go tester unavailable - Falling back to Python tester. Starting global concurrency tuner.
+2026-02-19 21:39:01,376 - configstream.pipeline - INFO - [-] - [pipeline.py:290] - Starting pipeline with 6 parallel consumers
+2026-02-19 21:39:01,376 - configstream.pipeline - INFO - [-] - [pipeline.py:295] - Batch time limit enabled: 14400s (soft stop with partial output).
+2026-02-19 21:39:01,412 - configstream.consumer - INFO - [-] - [consumer.py:599] - Source Summary [/tmp/pytest-of-jules/pytest-0/test_full_pipeline_with_local_0/source.txt]: Raw=1 Parsed=1 Tested=1 Working=1 Dur=7ms
+2026-02-19 21:39:01,422 - configstream.sorter - INFO - [-] - [sorter.py:68] - Sorted 1 proxies using Pareto scoring (latency: avg=123.5ms, min=123.5ms, max=123.5ms)
+2026-02-19 21:39:01,422 - configstream.pipeline - INFO - [-] - [pipeline.py:427] - ⚠️ Top 5 Failing Sources:\n  - /tmp/pytest-of-jules/pytest-0/test_mixed_protocols_dry_run0/mixed_sources.txt: score=0.0, reason=Low Reliability\n  - /tmp/pytest-of-jules/pytest-0/test_full_pipeline_with_local_0/source.txt: score=0.0, reason=Low Reliability
+2026-02-19 21:39:01,423 - configstream.pipeline - INFO - [-] - [pipeline.py:437] - Scheduler stats: {'total_entries': 0, 'valid_entries': 0, 'expired_entries': 0, 'average_health_score': 0.0, 'ttl_seconds': 1800}
+2026-02-19 21:39:01,424 - configstream.anomaly - INFO - [-] - [anomaly.py:279] - Anomaly stats: 0 sources tracked, 0 total records, 0 in last 24h
+2026-02-19 21:39:01,426 - configstream.test_cache - INFO - [-] - [test_cache.py:112] - Saved 0 entries to cache file: data/test_cache.json
+2026-02-19 21:39:01,469 - configstream.testers.go - INFO - [-] - [go.py:252] - Go Batch Tester shutdown complete.
+2026-02-19 21:39:01,469 - configstream.event_stream - INFO - [-] - [event_stream.py:32] - [stream_close] Event stream closing.
+2026-02-19 21:39:05,678 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 60
+2026-02-19 21:39:05,683 - configstream.test_cache - INFO - [-] - [test_cache.py:64] - Loaded 0 entries from cache file: data/test_cache.json
+2026-02-19 21:39:05,685 - configstream.pipeline - INFO - [-] - [pipeline.py:168] - Initializing security blocklists...
+2026-02-19 21:39:05,694 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-19 21:39:05,695 - configstream.pipeline - INFO - [-] - [pipeline.py:228] - Vwarp tunnel disabled by configuration.
+2026-02-19 21:39:05,695 - configstream.pipeline - INFO - [-] - [pipeline.py:239] - 🚀 Auto-scaling to 6 consumers based on 4 cores.
+2026-02-19 21:39:05,695 - configstream.pipeline - INFO - [-] - [pipeline.py:262] - Starting pipeline with 60 initial workers
+2026-02-19 21:39:05,704 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-19 21:39:05,705 - configstream.pipeline - WARNING - [-] - [pipeline.py:276] - Go tester unavailable - Falling back to Python tester. Starting global concurrency tuner.
+2026-02-19 21:39:05,705 - configstream.pipeline - INFO - [-] - [pipeline.py:290] - Starting pipeline with 6 parallel consumers
+2026-02-19 21:39:05,705 - configstream.pipeline - INFO - [-] - [pipeline.py:295] - Batch time limit enabled: 14400s (soft stop with partial output).
+2026-02-19 21:39:05,733 - configstream.source_quality - INFO - [-] - [source_quality.py:154] - Resurrecting dead source for retry: https://example.com/sub...
+2026-02-19 21:39:05,734 - configstream.producer - INFO - [-] - [producer.py:207] - Starting fetch for 1 active sources (Batch Size: 100, Concurrent Limit: 32)
+2026-02-19 21:39:05,734 - configstream.producer - INFO - [-] - [producer.py:222] - Fetching batch 1: 1 sources
+2026-02-19 21:39:05,739 - configstream.fetcher - INFO - [-] - [fetcher.py:351] - Pre-warming DNS for 1 sources...
+2026-02-19 21:39:05,762 - configstream.fetcher - INFO - [-] - [fetcher.py:356] - DNS pre-warming completed in 0.02s.
+2026-02-19 21:39:05,763 - configstream.fetcher - INFO - [-] - [fetcher.py:377] - Starting parallel fetch for 1 sources (max_concurrent=32)
+2026-02-19 21:39:08,918 - configstream.fetcher - INFO - [-] - [fetcher.py:399] - Batch fetch completed in 3.16s
+2026-02-19 21:39:08,919 - configstream.fetcher - INFO - [-] - [fetcher.py:409] - Fetch Summary: 0/1 sources successful. Total data fetched: 0.00 KB
+2026-02-19 21:39:08,920 - configstream.producer - WARNING - [-] - [producer.py:332] - Failed to fetch https://example.com/sub: Max retries exceeded: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1010) (Status: 0)
+2026-02-19 21:39:08,931 - configstream.sorter - WARNING - [-] - [sorter.py:73] - No proxies to sort
+2026-02-19 21:39:08,932 - configstream.pipeline - INFO - [-] - [pipeline.py:427] - ⚠️ Top 5 Failing Sources:\n  - https://example.com/sub: score=100.0, reason=High Failures\n  - /tmp/pytest-of-jules/pytest-0/test_mixed_protocols_dry_run0/mixed_sources.txt: score=0.0, reason=Low Reliability\n  - /tmp/pytest-of-jules/pytest-0/test_full_pipeline_with_local_0/source.txt: score=0.0, reason=Low Reliability
+2026-02-19 21:39:08,933 - configstream.output_handler - INFO - [-] - [output_handler.py:386] - Starting final output generation phase...
+2026-02-19 21:39:08,937 - configstream.output_handler - INFO - [-] - [output_handler.py:394] - Applying proxy tagging with template: {country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}
+2026-02-19 21:39:08,937 - configstream.tagging - INFO - [-] - [tagging.py:335] - Applying name template '{country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}' to 0 proxies...
+2026-02-19 21:39:08,938 - configstream.tagging - INFO - [-] - [tagging.py:367] - Tagged 0 proxies with template metadata
+2026-02-19 21:39:08,938 - configstream.geoip - INFO - [-] - [geoip.py:251] - GeoIP enrichment: 0/0 (0.0%) countries resolved, 0 cities, 0 ASNs
+2026-02-19 21:39:08,946 - configstream.intelligence.chaining - INFO - [-] - [chaining.py:828] - Enhanced smart chains generated: 0 chains across 9 categories. intranet=0, intranet_washed=0, ipv6=0, streamer=0, censorship_resistant=0, low_latency=0, high_anonymity=0, load_balanced=0
+2026-02-19 21:39:08,964 - configstream.testers.go - INFO - [-] - [go.py:252] - Go Batch Tester shutdown complete.
+2026-02-19 21:39:08,965 - configstream.event_stream - INFO - [-] - [event_stream.py:32] - [stream_close] Event stream closing.
+2026-02-19 21:39:09,189 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 60
+2026-02-19 21:39:09,194 - configstream.test_cache - INFO - [-] - [test_cache.py:64] - Loaded 0 entries from cache file: data/test_cache.json
+2026-02-19 21:39:09,196 - configstream.pipeline - INFO - [-] - [pipeline.py:168] - Initializing security blocklists...
+2026-02-19 21:39:09,204 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-19 21:39:09,205 - configstream.pipeline - INFO - [-] - [pipeline.py:228] - Vwarp tunnel disabled by configuration.
+2026-02-19 21:39:09,205 - configstream.pipeline - INFO - [-] - [pipeline.py:239] - 🚀 Auto-scaling to 6 consumers based on 4 cores.
+2026-02-19 21:39:09,205 - configstream.pipeline - INFO - [-] - [pipeline.py:262] - Starting pipeline with 60 initial workers
+2026-02-19 21:39:09,214 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-19 21:39:09,215 - configstream.pipeline - WARNING - [-] - [pipeline.py:276] - Go tester unavailable - Falling back to Python tester. Starting global concurrency tuner.
+2026-02-19 21:39:09,215 - configstream.pipeline - INFO - [-] - [pipeline.py:290] - Starting pipeline with 6 parallel consumers
+2026-02-19 21:39:09,215 - configstream.pipeline - INFO - [-] - [pipeline.py:295] - Batch time limit enabled: 14400s (soft stop with partial output).
+2026-02-19 21:39:09,252 - configstream.consumer - INFO - [-] - [consumer.py:599] - Source Summary [/tmp/pytest-of-jules/pytest-0/test_failure_mode_anomaly_db_c0/sources.txt]: Raw=1 Parsed=1 Tested=1 Working=1 Dur=8ms
+2026-02-19 21:39:09,262 - configstream.sorter - INFO - [-] - [sorter.py:68] - Sorted 1 proxies using Pareto scoring (latency: avg=123.5ms, min=123.5ms, max=123.5ms)
+2026-02-19 21:39:09,263 - configstream.pipeline - INFO - [-] - [pipeline.py:427] - ⚠️ Top 5 Failing Sources:\n  - https://example.com/sub: score=100.0, reason=High Failures\n  - /tmp/pytest-of-jules/pytest-0/test_mixed_protocols_dry_run0/mixed_sources.txt: score=0.0, reason=Low Reliability\n  - /tmp/pytest-of-jules/pytest-0/test_full_pipeline_with_local_0/source.txt: score=0.0, reason=Low Reliability\n  - /tmp/pytest-of-jules/pytest-0/test_failure_mode_anomaly_db_c0/sources.txt: score=0.0, reason=Low Reliability
+2026-02-19 21:39:09,264 - configstream.output_handler - INFO - [-] - [output_handler.py:386] - Starting final output generation phase...
+2026-02-19 21:39:09,268 - configstream.output_handler - INFO - [-] - [output_handler.py:394] - Applying proxy tagging with template: {country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}
+2026-02-19 21:39:09,268 - configstream.tagging - INFO - [-] - [tagging.py:335] - Applying name template '{country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}' to 1 proxies...
+2026-02-19 21:39:09,269 - configstream.tagging - INFO - [-] - [tagging.py:367] - Tagged 1 proxies with template metadata
+2026-02-19 21:39:09,269 - configstream.geoip - INFO - [-] - [geoip.py:251] - GeoIP enrichment: 1/1 (100.0%) countries resolved, 1 cities, 0 ASNs
+2026-02-19 21:39:09,273 - configstream.output_handler - INFO - [-] - [output_handler.py:507] - WARP wrap skipped for all proxies (no valid WARP endpoints or keys found).
+2026-02-19 21:39:09,277 - configstream.intelligence.chaining - INFO - [-] - [chaining.py:828] - Enhanced smart chains generated: 0 chains across 9 categories. intranet=0, intranet_washed=0, ipv6=0, streamer=0, censorship_resistant=0, low_latency=0, high_anonymity=0, load_balanced=0
+2026-02-19 21:39:09,297 - configstream.testers.go - INFO - [-] - [go.py:252] - Go Batch Tester shutdown complete.
+2026-02-19 21:39:09,297 - configstream.event_stream - INFO - [-] - [event_stream.py:32] - [stream_close] Event stream closing.
+2026-02-19 21:39:09,421 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 60
+2026-02-19 21:39:09,425 - configstream.test_cache - INFO - [-] - [test_cache.py:64] - Loaded 0 entries from cache file: data/test_cache.json
+2026-02-19 21:39:09,427 - configstream.pipeline - INFO - [-] - [pipeline.py:168] - Initializing security blocklists...
+2026-02-19 21:39:09,435 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-19 21:39:09,436 - configstream.pipeline - INFO - [-] - [pipeline.py:228] - Vwarp tunnel disabled by configuration.
+2026-02-19 21:39:09,436 - configstream.pipeline - INFO - [-] - [pipeline.py:239] - 🚀 Auto-scaling to 6 consumers based on 4 cores.
+2026-02-19 21:39:09,436 - configstream.pipeline - INFO - [-] - [pipeline.py:262] - Starting pipeline with 60 initial workers
+2026-02-19 21:39:09,445 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-19 21:39:09,446 - configstream.pipeline - WARNING - [-] - [pipeline.py:276] - Go tester unavailable - Falling back to Python tester. Starting global concurrency tuner.
+2026-02-19 21:39:09,446 - configstream.pipeline - INFO - [-] - [pipeline.py:290] - Starting pipeline with 6 parallel consumers
+2026-02-19 21:39:09,446 - configstream.pipeline - INFO - [-] - [pipeline.py:295] - Batch time limit enabled: 14400s (soft stop with partial output).
+2026-02-19 21:39:09,482 - configstream.consumer - INFO - [-] - [consumer.py:599] - Source Summary [/tmp/pytest-of-jules/pytest-0/test_failure_mode_vt_missing0/sources.txt]: Raw=1 Parsed=1 Tested=1 Working=1 Dur=7ms
+2026-02-19 21:39:09,492 - configstream.sorter - INFO - [-] - [sorter.py:68] - Sorted 1 proxies using Pareto scoring (latency: avg=123.5ms, min=123.5ms, max=123.5ms)
+2026-02-19 21:39:09,492 - configstream.pipeline - INFO - [-] - [pipeline.py:427] - ⚠️ Top 5 Failing Sources:\n  - https://example.com/sub: score=100.0, reason=High Failures\n  - /tmp/pytest-of-jules/pytest-0/test_mixed_protocols_dry_run0/mixed_sources.txt: score=0.0, reason=Low Reliability\n  - /tmp/pytest-of-jules/pytest-0/test_full_pipeline_with_local_0/source.txt: score=0.0, reason=Low Reliability\n  - /tmp/pytest-of-jules/pytest-0/test_failure_mode_anomaly_db_c0/sources.txt: score=0.0, reason=Low Reliability\n  - /tmp/pytest-of-jules/pytest-0/test_failure_mode_vt_missing0/sources.txt: score=0.0, reason=Low Reliability
+2026-02-19 21:39:09,493 - configstream.output_handler - INFO - [-] - [output_handler.py:386] - Starting final output generation phase...
+2026-02-19 21:39:09,497 - configstream.output_handler - INFO - [-] - [output_handler.py:394] - Applying proxy tagging with template: {country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}
+2026-02-19 21:39:09,498 - configstream.tagging - INFO - [-] - [tagging.py:335] - Applying name template '{country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}' to 1 proxies...
+2026-02-19 21:39:09,498 - configstream.tagging - INFO - [-] - [tagging.py:367] - Tagged 1 proxies with template metadata
+2026-02-19 21:39:09,499 - configstream.geoip - INFO - [-] - [geoip.py:251] - GeoIP enrichment: 1/1 (100.0%) countries resolved, 1 cities, 0 ASNs
+2026-02-19 21:39:09,503 - configstream.output_handler - INFO - [-] - [output_handler.py:507] - WARP wrap skipped for all proxies (no valid WARP endpoints or keys found).
+2026-02-19 21:39:09,507 - configstream.intelligence.chaining - INFO - [-] - [chaining.py:828] - Enhanced smart chains generated: 0 chains across 9 categories. intranet=0, intranet_washed=0, ipv6=0, streamer=0, censorship_resistant=0, low_latency=0, high_anonymity=0, load_balanced=0
+2026-02-19 21:39:09,527 - configstream.testers.go - INFO - [-] - [go.py:252] - Go Batch Tester shutdown complete.
+2026-02-19 21:39:09,527 - configstream.event_stream - INFO - [-] - [event_stream.py:32] - [stream_close] Event stream closing.
+2026-02-19 21:39:09,692 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-19 21:39:09,700 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-19 21:39:09,709 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-19 21:39:09,718 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-19 21:39:09,727 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-19 21:39:09,728 - configstream.testers.manager - INFO - [-] - [manager.py:175] - Fallback: Testing batch of 1 proxies using Python tester
+2026-02-19 21:39:09,735 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-19 21:39:09,753 - configstream.output_transport - INFO - [-] - [output_transport.py:92] - ✅ Successfully injected new Stego Key into app.js
+2026-02-19 21:39:09,765 - configstream.testers.python - WARNING - [-] - [python.py:227] - Skipping test: 'singbox2proxy' library not found. Install it or use the Go tester.
+2026-02-19 21:39:09,770 - configstream.warp_scanner - INFO - [-] - [warp_scanner.py:73] - Scanner disabled: Running in CI environment. Set FORCE_SCANNER=true to override (not recommended). Falling back to static IP lists.
+2026-02-19 21:39:09,770 - configstream.warp_scanner - INFO - [-] - [warp_scanner.py:48] - WarpScannerWorker: Scanner disabled by CI policy.
+2026-02-19 21:39:09,773 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:80] - Scanner FORCE ENABLED in CI. This may cause pipeline failures due to UDP firewall blocks or rate limiting.
+2026-02-19 21:39:09,780 - configstream.warp_scanner - INFO - [-] - [warp_scanner.py:130] - Warp scan skipped: active scanning is disabled (ALLOW_ACTIVE_SCANNING=false).
+2026-02-19 21:39:09,792 - configstream.warp_scanner - INFO - [-] - [warp_scanner.py:153] - Starting active WARP scan (Target: 2 IPs, Timeout: 5s)...
+2026-02-19 21:39:09,793 - configstream.warp_scanner - INFO - [-] - [warp_scanner.py:215] - Active scan completed. Found 1 valid IPs (Request: 2, Max Latency: 800ms).
+2026-02-19 21:39:09,801 - configstream.warp_scanner - INFO - [-] - [warp_scanner.py:153] - Starting active WARP scan (Target: 50 IPs, Timeout: 5s)...
+2026-02-19 21:39:09,802 - configstream.warp_scanner - ERROR - [-] - [warp_scanner.py:171] - Scanner binary exited with error code 1
+2026-02-19 21:39:09,802 - configstream.warp_scanner - ERROR - [-] - [warp_scanner.py:173] - Scanner stderr: Error
+2026-02-19 21:39:09,811 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 503 Service Unavailable"
+2026-02-19 21:39:09,814 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 503 Service Unavailable"
+2026-02-19 21:39:09,816 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 503 Service Unavailable"
+2026-02-19 21:39:09,817 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 503 Service Unavailable"
+2026-02-19 21:39:09,819 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 503 Service Unavailable"
+2026-02-19 21:39:09,822 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 503 Service Unavailable"
+2026-02-19 21:39:09,824 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 503 Service Unavailable"
+2026-02-19 21:39:09,826 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 503 Service Unavailable"
+2026-02-19 21:39:09,828 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 503 Service Unavailable"
+2026-02-19 21:39:09,829 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 503 Service Unavailable"
+2026-02-19 21:39:09,831 - slowapi - WARNING - [-] - [extension.py:510] - ratelimit 10 per 1 minute (testclient) exceeded at endpoint: /api/proxies
+2026-02-19 21:39:09,832 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 429 Too Many Requests"
+2026-02-19 21:39:09,834 - slowapi - WARNING - [-] - [extension.py:510] - ratelimit 10 per 1 minute (testclient) exceeded at endpoint: /api/proxies
+2026-02-19 21:39:09,834 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 429 Too Many Requests"
+2026-02-19 21:39:09,844 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 404 Not Found"
+2026-02-19 21:39:09,846 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 404 Not Found"
+2026-02-19 21:39:09,848 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 404 Not Found"
+2026-02-19 21:39:09,849 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 404 Not Found"
+2026-02-19 21:39:09,851 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 404 Not Found"
+2026-02-19 21:39:09,853 - slowapi - WARNING - [-] - [extension.py:510] - ratelimit 5 per 1 minute (testclient) exceeded at endpoint: /subscribe/base64
+2026-02-19 21:39:09,854 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 429 Too Many Requests"
+2026-02-19 21:39:09,856 - slowapi - WARNING - [-] - [extension.py:510] - ratelimit 5 per 1 minute (testclient) exceeded at endpoint: /subscribe/base64
+2026-02-19 21:39:09,856 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 429 Too Many Requests"
+2026-02-19 21:39:09,864 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:39:09,866 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:39:09,868 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:39:09,870 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:39:09,872 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:39:09,874 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:39:09,876 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:39:09,877 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:39:09,879 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:39:09,881 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:39:09,883 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:39:09,885 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:39:09,886 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:39:09,888 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:39:09,890 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:39:09,892 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:39:09,893 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:39:09,895 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:39:09,897 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:39:09,899 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:39:09,906 - configstream.intelligence.washer.warp_scraper - INFO - [-] - [warp_scraper.py:223] - Scraped 2 clean endpoints from test
+2026-02-19 21:39:09,912 - configstream.intelligence.washer.warp_scraper - INFO - [-] - [warp_scraper.py:245] - Scraped 1 WARP configs from test
+2026-02-19 21:39:09,919 - configstream.intelligence.washer.warp_scraper - INFO - [-] - [warp_scraper.py:245] - Scraped 1 WARP configs from test
+2026-02-19 21:39:09,930 - configstream.converters.singbox - WARNING - [-] - [singbox.py:292] - Dropping VLESS proxy missing UUID: example.com:443. Source: unknown
+2026-02-19 21:39:09,935 - configstream.converters.singbox - WARNING - [-] - [singbox.py:74] - Dropping proxy with garbage Shadowsocks method: 'un;k'
+2026-02-19 21:39:09,935 - configstream.converters.singbox - WARNING - [-] - [singbox.py:74] - Dropping proxy with garbage Shadowsocks method: '}k'
+2026-02-19 21:39:09,951 - configstream.converters.singbox - WARNING - [-] - [singbox.py:74] - Dropping proxy with unknown Shadowsocks method: 'garbage'
+2026-02-19 21:39:09,954 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 60
+2026-02-19 21:39:09,956 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 40 (CI)
+2026-02-19 21:39:09,959 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 26
+2026-02-19 21:39:09,961 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 150
+2026-02-19 21:39:09,962 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 50 (CI)
+2026-02-19 21:39:09,964 - configstream.adaptive_workers - WARNING - [-] - [adaptive_workers.py:73] - Failed to calculate optimal workers: Error
+2026-02-19 21:39:09,974 - configstream.security.blocklist - INFO - [-] - [blocklist.py:137] - Loaded 2 blocked networks from FireHol Level 1.
+2026-02-19 21:39:10,045 - configstream.intelligence.washer.core - WARNING - [-] - [core.py:746] - Dropped 1 invalid WARP private keys during normalization.
+2026-02-19 21:39:10,045 - configstream.intelligence.washer.core - INFO - [-] - [core.py:658] - Loaded 1 WARP keys for washing
+2026-02-19 21:39:10,053 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-19 21:39:10,058 - configstream.intelligence.washer.core - WARNING - [-] - [core.py:746] - Dropped 1 invalid WARP private keys during normalization.
+2026-02-19 21:39:10,059 - configstream.intelligence.washer.core - INFO - [-] - [core.py:658] - Loaded 1 WARP keys for washing
+2026-02-19 21:39:10,067 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-19 21:39:10,074 - configstream.intelligence.washer.core - WARNING - [-] - [core.py:746] - Dropped 1 invalid WARP private keys during normalization.
+2026-02-19 21:39:10,075 - configstream.intelligence.washer.core - INFO - [-] - [core.py:658] - Loaded 1 WARP keys for washing
+2026-02-19 21:39:10,083 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-19 21:39:10,086 - configstream.intelligence.washer.core - WARNING - [-] - [core.py:746] - Dropped 1 invalid WARP private keys during normalization.
+2026-02-19 21:39:10,086 - configstream.intelligence.washer.core - INFO - [-] - [core.py:658] - Loaded 1 WARP keys for washing
+2026-02-19 21:39:10,094 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-19 21:39:10,130 - configstream.history.storage - ERROR - [-] - [storage.py:32] - History file too large: 105906176 bytes (max: 104857600)
+2026-02-19 21:39:10,132 - configstream.history.storage - WARNING - [-] - [storage.py:41] - Failed to load proxy history: unexpected character: line 1 column 1 (char 0)
+2026-02-19 21:39:10,135 - configstream.history.storage - ERROR - [-] - [storage.py:51] - Failed to save proxy history: Fail
+2026-02-19 21:39:10,143 - configstream.history.export - INFO - [-] - [export.py:58] - Exported history visualization data to /tmp/pytest-of-jules/pytest-0/test_export_visualization0/viz.json
+2026-02-19 21:39:10,147 - configstream.history.export - INFO - [-] - [export.py:73] - Generating active proxy trend data...
+2026-02-19 21:39:10,149 - configstream.history.export - INFO - [-] - [export.py:130] - Exported active proxy trend data to /tmp/pytest-of-jules/pytest-0/test_export_active_trend0/trend.json
+2026-02-19 21:39:10,152 - configstream.history.export - INFO - [-] - [export.py:73] - Generating active proxy trend data...
+2026-02-19 21:39:10,152 - configstream.history.export - WARNING - [-] - [export.py:107] - No working proxy data found for trend analysis.
+2026-02-19 21:39:10,166 - configstream.intelligence.chaining - INFO - [-] - [chaining.py:828] - Enhanced smart chains generated: 7 chains across 9 categories. intranet=1, intranet_washed=0, ipv6=0, streamer=1, censorship_resistant=1, low_latency=0, high_anonymity=0, load_balanced=3
+2026-02-19 21:39:10,171 - configstream.intelligence.vectors - INFO - [-] - [vectors.py:109] - Generated static vectors for 1 proxies
+2026-02-19 21:39:10,174 - configstream.intelligence.vectors - ERROR - [-] - [vectors.py:111] - Failed to generate vectors: Fail
+2026-02-19 21:39:10,245 - configstream.quality.storage - INFO - [-] - [storage.py:429] - Merged source stats from /tmp/pytest-of-jules/pytest-0/test_storage_merge0/q2.db
+2026-02-19 21:39:10,248 - configstream.quality.storage - ERROR - [-] - [storage.py:111] - Error initializing source quality DB: DB Error
+2026-02-19 21:39:10,248 - configstream.quality.storage - ERROR - [-] - [storage.py:256] - Failed to update stats for url: DB Error
+2026-02-19 21:39:10,249 - configstream.quality.storage - ERROR - [-] - [storage.py:157] - Error getting source state for url: DB Error
+2026-02-19 21:39:10,302 - configstream.security.censorship - INFO - [-] - [censorship.py:48] - Successfully connected to https://example.com
+2026-02-19 21:39:10,345 - configstream.security.censorship - WARNING - [-] - [censorship.py:51] - Failed to connect to https://example.com: Connection refused
+2026-02-19 21:39:10,350 - configstream.security.rules - WARNING - [-] - [rules.py:110] - Suspicious address pattern found: suspicious.com
+2026-02-19 21:39:10,351 - configstream.security.rules - WARNING - [-] - [rules.py:110] - Suspicious address pattern found: sub.suspicious.com
+2026-02-19 21:39:10,351 - configstream.security.rules - WARNING - [-] - [rules.py:136] - Non-standard IP notation (possible DNS rebinding): 0x7f000001
+2026-02-19 21:39:10,351 - configstream.security.rules - WARNING - [-] - [rules.py:148] - Non-standard IP notation (possible DNS rebinding): 0127.0.0.1
+2026-02-19 21:39:10,352 - configstream.security.rules - WARNING - [-] - [rules.py:100] - Private IP detected: [IP]
+2026-02-19 21:39:10,352 - configstream.security.rules - WARNING - [-] - [rules.py:100] - Private IP detected: [IP]
+2026-02-19 21:39:10,353 - configstream.security.rules - WARNING - [-] - [rules.py:100] - Private IP detected: [IP]
+2026-02-19 21:39:10,353 - configstream.security.rules - WARNING - [-] - [rules.py:191] - Special or private address detected: localhost
+2026-02-19 21:39:10,353 - configstream.security.rules - WARNING - [-] - [rules.py:100] - Private IP detected: [IP]
+2026-02-19 21:39:10,355 - configstream.security.rules - WARNING - [-] - [rules.py:203] - Unknown protocol detected: unknown
+2026-02-19 21:39:10,356 - configstream.security.rules - ERROR - [-] - [rules.py:218] - Null byte detected in config
+2026-02-19 21:39:10,356 - configstream.security.rules - WARNING - [-] - [rules.py:226] - Config too long: 10001 chars
+2026-02-19 21:39:10,361 - configstream.security.utls_wrapper - INFO - [-] - [utls_wrapper.py:66] - Building uTLS client...
+2026-02-19 21:39:10,364 - configstream.security.utls_wrapper - WARNING - [-] - [utls_wrapper.py:54] - Go not found. Cannot build uTLS client.
+2026-02-19 21:39:10,373 - configstream.security.virus_total - WARNING - [-] - [virus_total.py:34] - VirusTotal scan skipped: api key not found
+2026-02-19 21:39:14,599 - configstream.security.virus_total - ERROR - [-] - [virus_total.py:146] - VirusTotal API error: 429
+2026-02-19 21:39:14,607 - configstream.security.virus_total - ERROR - [-] - [virus_total.py:149] - VirusTotal check failed: Network timeout
+2026-02-19 21:39:18,681 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 1 proxies, 0 chains
+2026-02-19 21:39:18,683 - configstream.adapters - INFO - [-] - [adapters.py:303] - Quantumult X export summary: 1 proxies (Failures: 0)
+2026-02-19 21:39:18,684 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-19 21:39:18,687 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-19 21:39:18,688 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-19 21:39:18,690 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-19 21:39:18,691 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-19 21:39:18,692 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-19 21:39:18,694 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-19 21:39:18,696 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-19 21:39:18,697 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 0 proxies, 0 chains (Total Lines: 1, Failures: 0)
+2026-02-19 21:39:18,699 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-19 21:39:18,700 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 1 proxies, 1 chains (Total Lines: 3, Failures: 0)
+2026-02-19 21:39:18,703 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 0 proxies, 0 chains (Total Lines: 1, Failures: 1)
+2026-02-19 21:39:18,705 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 1 proxies, 0 chains
+2026-02-19 21:39:18,706 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 1 proxies, 0 chains
+2026-02-19 21:39:18,708 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 1 proxies, 0 chains
+2026-02-19 21:39:18,709 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 1 proxies, 0 chains
+2026-02-19 21:39:18,710 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 0 proxies, 0 chains
+2026-02-19 21:39:18,712 - configstream.adapters - INFO - [-] - [adapters.py:303] - Quantumult X export summary: 1 proxies (Failures: 0)
+2026-02-19 21:39:18,713 - configstream.adapters - INFO - [-] - [adapters.py:303] - Quantumult X export summary: 1 proxies (Failures: 0)
+2026-02-19 21:39:18,715 - configstream.adapters - INFO - [-] - [adapters.py:303] - Quantumult X export summary: 1 proxies (Failures: 0)
+2026-02-19 21:39:18,716 - configstream.adapters - INFO - [-] - [adapters.py:820] - SIP008 export summary: 1 Shadowsocks servers
+2026-02-19 21:39:18,718 - configstream.adapters - INFO - [-] - [adapters.py:820] - SIP008 export summary: 1 Shadowsocks servers
+2026-02-19 21:39:18,719 - configstream.adapters - INFO - [-] - [adapters.py:820] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-19 21:39:18,721 - configstream.adapters - INFO - [-] - [adapters.py:820] - SIP008 export summary: 5 Shadowsocks servers
+2026-02-19 21:39:18,722 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 1 links (Reconstructed: 1)
+2026-02-19 21:39:18,724 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 1 links (Reconstructed: 1)
+2026-02-19 21:39:18,725 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 1 links (Reconstructed: 0)
+2026-02-19 21:39:18,726 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 1 links (Reconstructed: 0)
+2026-02-19 21:39:18,728 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 0 links (Reconstructed: 0)
+2026-02-19 21:39:18,729 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 0 links (Reconstructed: 0)
+2026-02-19 21:39:18,731 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 1 links (Reconstructed: 0)
+2026-02-19 21:39:18,741 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 0 proxies, 0 chains (Total Lines: 1, Failures: 0)
+2026-02-19 21:39:18,742 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 0 proxies, 0 chains
+2026-02-19 21:39:18,742 - configstream.adapters - INFO - [-] - [adapters.py:303] - Quantumult X export summary: 0 proxies (Failures: 0)
+2026-02-19 21:39:18,742 - configstream.adapters - INFO - [-] - [adapters.py:820] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-19 21:39:18,742 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 0 links (Reconstructed: 0)
+2026-02-19 21:39:18,744 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-19 21:39:18,744 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 1 proxies, 0 chains
+2026-02-19 21:39:18,744 - configstream.adapters - INFO - [-] - [adapters.py:303] - Quantumult X export summary: 1 proxies (Failures: 0)
+2026-02-19 21:39:18,745 - configstream.adapters - INFO - [-] - [adapters.py:820] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-19 21:39:18,745 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 1 links (Reconstructed: 0)
+2026-02-19 21:39:18,746 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-19 21:39:18,749 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 3 proxies, 0 chains (Total Lines: 4, Failures: 0)
+2026-02-19 21:39:18,751 - configstream.adapters - INFO - [-] - [adapters.py:303] - Quantumult X export summary: 3 proxies (Failures: 0)
+2026-02-19 21:39:18,752 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 3 proxies, 0 chains
+2026-02-19 21:39:18,754 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 3 links (Reconstructed: 0)
+2026-02-19 21:39:18,755 - configstream.adapters - INFO - [-] - [adapters.py:820] - SIP008 export summary: 1 Shadowsocks servers
+2026-02-19 21:39:18,757 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 3 proxies, 0 chains (Total Lines: 4, Failures: 0)
+2026-02-19 21:39:18,758 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 2 proxies, 0 chains (Total Lines: 3, Failures: 0)
+2026-02-19 21:39:18,760 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 2 proxies, 0 chains
+2026-02-19 21:39:18,761 - configstream.adapters - INFO - [-] - [adapters.py:303] - Quantumult X export summary: 2 proxies (Failures: 0)
+2026-02-19 21:39:18,763 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 2 links (Reconstructed: 0)
+2026-02-19 21:39:18,765 - configstream.adapters - INFO - [-] - [adapters.py:820] - SIP008 export summary: 1 Shadowsocks servers
+2026-02-19 21:39:18,768 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 2 links (Reconstructed: 0)
+2026-02-19 21:39:18,846 - configstream.adaptive_timeout - WARNING - [-] - [adaptive_timeout.py:161] - Failed to save timeout history: Fail
+2026-02-19 21:39:18,853 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 60
+2026-02-19 21:39:18,908 - configstream.anomaly - WARNING - [-] - [anomaly.py:227] - Subnet Flood detected: [IP]/24 accounts for 95/100 proxies.
+2026-02-19 21:39:18,922 - configstream.anomaly - INFO - [-] - [anomaly.py:327] - Merged anomaly stats from /tmp/pytest-of-jules/pytest-0/test_merge_from0/other.db
+2026-02-19 21:39:18,971 - configstream.anomaly - WARNING - [-] - [anomaly.py:90] - Anomaly DB connection lost (DB Execution Error), reconnecting...
+2026-02-19 21:39:18,972 - configstream.anomaly - ERROR - [-] - [anomaly.py:186] - Anomaly DB error for http://test: Reconnection Failed - allowing source (fail-open behaviour)
+2026-02-19 21:39:19,001 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 0 proxies, 1 chains (Total Lines: 2, Failures: 0)
+2026-02-19 21:39:19,003 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 0 proxies, 1 chains (Total Lines: 2, Failures: 0)
+2026-02-19 21:39:19,004 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 0 proxies, 1 chains (Total Lines: 2, Failures: 0)
+2026-02-19 21:39:19,006 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 0 proxies, 1 chains (Total Lines: 2, Failures: 0)
+2026-02-19 21:39:19,008 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 0 proxies, 1 chains
+2026-02-19 21:39:19,009 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 0 proxies, 1 chains
+2026-02-19 21:39:19,011 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 0 proxies, 1 chains
+2026-02-19 21:39:19,012 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 0 proxies, 1 chains
+2026-02-19 21:39:19,030 - configstream.async_file_ops - WARNING - [-] - [async_file_ops.py:57] - Failed to read /tmp/pytest-of-jules/pytest-0/test_read_multiple_files_async0/missing.txt: File not found: /tmp/pytest-of-jules/pytest-0/test_read_multiple_files_async0/missing.txt
+2026-02-19 21:39:19,053 - configstream.backup - INFO - [-] - [backup.py:120] - Backed up test.db -> test_20260219_213919.db.gz (0.00 MB)
+2026-02-19 21:39:19,053 - configstream.backup - INFO - [-] - [backup.py:141] - Backup complete: 1 databases backed up
+2026-02-19 21:39:19,063 - configstream.backup - INFO - [-] - [backup.py:120] - Backed up test.db -> test_20260219_213919.db.gz (0.00 MB)
+2026-02-19 21:39:19,063 - configstream.backup - INFO - [-] - [backup.py:141] - Backup complete: 1 databases backed up
+2026-02-19 21:39:19,066 - configstream.backup - WARNING - [-] - [backup.py:53] - No database files found in /tmp/pytest-of-jules/pytest-0/test_backup_databases_no_files0/data
+2026-02-19 21:39:19,069 - configstream.backup - INFO - [-] - [backup.py:222] - Cleaned up 2 old backup files (smart retention)
+2026-02-19 21:39:19,078 - configstream.backup - INFO - [-] - [backup.py:249] - Created pre-restore backup: target.pre_restore_20260219_213919.db
+2026-02-19 21:39:19,078 - configstream.backup - INFO - [-] - [backup.py:263] - Restored target.db from backup.db
+2026-02-19 21:39:19,082 - configstream.backup - ERROR - [-] - [backup.py:239] - Backup file does not exist: /tmp/pytest-of-jules/pytest-0/test_restore_missing_backup0/backups/missing.db
+2026-02-19 21:39:19,110 - configstream.backup - ERROR - [-] - [backup.py:133] - Failed to backup /tmp/pytest-of-jules/pytest-0/test_sqlite_backup_fail0/data/fail.db: Connect Fail
+2026-02-19 21:39:19,110 - configstream.backup - INFO - [-] - [backup.py:141] - Backup complete: 0 databases backed up
+2026-02-19 21:39:19,128 - configstream.bot_cli - ERROR - [-] - [bot_cli.py:81] - Error generating WARP: Fail
+2026-02-19 21:39:20,680 - configstream.consumer - INFO - [-] - [consumer.py:599] - Source Summary [test-source]: Raw=1 Parsed=1 Tested=1 Working=1 Dur=3ms
+2026-02-19 21:39:20,692 - configstream.dns_batch_resolver - INFO - [-] - [dns_batch_resolver.py:72] - Batch DNS: Resolved 2 of 2 hostnames.
+2026-02-19 21:39:20,695 - configstream.dns_batch_resolver - INFO - [-] - [dns_batch_resolver.py:72] - Batch DNS: Resolved 0 of 0 hostnames.
+2026-02-19 21:39:20,699 - configstream.dns_batch_resolver - INFO - [-] - [dns_batch_resolver.py:72] - Batch DNS: Resolved 0 of 1 hostnames.
+2026-02-19 21:39:20,706 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 1 links (Reconstructed: 1)
+2026-02-19 21:39:20,706 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 1 links (Reconstructed: 1)
+2026-02-19 21:39:23,878 - configstream.fetcher - INFO - [-] - [fetcher.py:351] - Pre-warming DNS for 1 sources...
+2026-02-19 21:39:23,935 - configstream.fetcher - INFO - [-] - [fetcher.py:356] - DNS pre-warming completed in 0.06s.
+2026-02-19 21:39:23,936 - configstream.fetcher - INFO - [-] - [fetcher.py:377] - Starting parallel fetch for 1 sources (max_concurrent=1)
+2026-02-19 21:39:23,983 - configstream.fetcher - INFO - [-] - [fetcher.py:399] - Batch fetch completed in 0.05s
+2026-02-19 21:39:23,984 - configstream.fetcher - INFO - [-] - [fetcher.py:409] - Fetch Summary: 1/1 sources successful. Total data fetched: 0.00 KB
+2026-02-19 21:39:23,995 - configstream.fetcher - INFO - [-] - [fetcher.py:351] - Pre-warming DNS for 1 sources...
+2026-02-19 21:39:23,995 - configstream.fetcher - INFO - [-] - [fetcher.py:356] - DNS pre-warming completed in 0.00s.
+2026-02-19 21:39:23,996 - configstream.fetcher - INFO - [-] - [fetcher.py:377] - Starting parallel fetch for 1 sources (max_concurrent=10)
+2026-02-19 21:39:23,996 - configstream.fetcher - INFO - [-] - [fetcher.py:399] - Batch fetch completed in 0.00s
+2026-02-19 21:39:23,997 - configstream.fetcher - INFO - [-] - [fetcher.py:409] - Fetch Summary: 1/1 sources successful. Total data fetched: 0.00 KB
+2026-02-19 21:39:24,840 - configstream.filtering - INFO - [-] - [filtering.py:172] - Endpoint filtering: 3 -> 2 (1 duplicate endpoints removed)
+2026-02-19 21:39:24,861 - configstream.filtering - INFO - [-] - [filtering.py:109] - Deduplication: 3 -> 2 (1 duplicates removed)
+2026-02-19 21:39:24,868 - configstream.filtering - INFO - [-] - [filtering.py:109] - Deduplication: 2 -> 1 (1 duplicates removed)
+2026-02-19 21:39:24,875 - configstream.filtering - INFO - [-] - [filtering.py:172] - Endpoint filtering: 2 -> 1 (1 duplicate endpoints removed)
+2026-02-19 21:39:24,891 - configstream.geoip - INFO - [-] - [geoip.py:81] - GeoIP C extension (MMAP_EXT) available - lock-free lookups enabled
+2026-02-19 21:39:24,891 - configstream.geoip - INFO - [-] - [geoip.py:101] - Loaded GeoLite2 City database.
+2026-02-19 21:39:24,891 - configstream.geoip - ERROR - [-] - [geoip.py:124] - I/O error loading GeoIP databases: [Errno 2] No such file or directory: 'data/GeoLite2-City.mmdb'
+2026-02-19 21:39:24,901 - configstream.geoip - INFO - [-] - [geoip.py:81] - GeoIP C extension (MMAP_EXT) available - lock-free lookups enabled
+2026-02-19 21:39:24,902 - configstream.geoip - INFO - [-] - [geoip.py:101] - Loaded GeoLite2 City database.
+2026-02-19 21:39:24,902 - configstream.geoip - ERROR - [-] - [geoip.py:124] - I/O error loading GeoIP databases: [Errno 2] No such file or directory: 'data/GeoLite2-City.mmdb'
+2026-02-19 21:39:24,909 - configstream.geoip - INFO - [-] - [geoip.py:81] - GeoIP C extension (MMAP_EXT) available - lock-free lookups enabled
+2026-02-19 21:39:24,909 - configstream.geoip - INFO - [-] - [geoip.py:101] - Loaded GeoLite2 City database.
+2026-02-19 21:39:24,910 - configstream.geoip - ERROR - [-] - [geoip.py:124] - I/O error loading GeoIP databases: [Errno 2] No such file or directory: 'data/GeoLite2-City.mmdb'
+2026-02-19 21:39:24,944 - configstream.testers.go - INFO - [-] - [go.py:293] - Starting Go Tester Daemon: /bin/true -workers 20 -timeout 10s -urls https://www.google.com/generate_204,https://www.cloudflare.com/cdn-cgi/trace,https://www.gstatic.com/generate_204,http://detectportal.firefox.com/success.txt,https://httpbin.org/status/200,https://www.amazon.com/robots.txt,https://www.microsoft.com/robots.txt,https://www.apple.com/robots.txt
+2026-02-19 21:39:24,951 - configstream.testers.go - INFO - [-] - [go.py:765] - Go Tester results (Batch): 2/2 working. Failures: None
+2026-02-19 21:39:25,053 - configstream.testers.go - INFO - [-] - [go.py:252] - Go Batch Tester shutdown complete.
+2026-02-19 21:39:25,062 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: /nonexistent, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-19 21:39:25,069 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: /nonexistent, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-19 21:39:25,075 - configstream.security.honeypot - WARNING - [-] - [honeypot.py:30] - Passive Intel: Host malicious.ip flagged as malicious by VirusTotal.
+2026-02-19 21:39:25,079 - configstream.security.honeypot - WARNING - [-] - [honeypot.py:30] - Passive Intel: Host bad.actor.ip flagged as malicious by VirusTotal.
+2026-02-19 21:39:25,082 - configstream.security.honeypot - WARNING - [-] - [honeypot.py:30] - Passive Intel: Host suspicious.ip flagged as malicious by VirusTotal.
+2026-02-19 21:39:25,086 - configstream.security.honeypot - ERROR - [-] - [honeypot.py:37] - Honeypot check failed for error.ip: API Error
+2026-02-19 21:39:25,089 - configstream.security.honeypot - ERROR - [-] - [honeypot.py:37] - Honeypot check failed for timeout.ip: Request timed out
+2026-02-19 21:39:25,091 - configstream.security.honeypot - ERROR - [-] - [honeypot.py:37] - Honeypot check failed for network.error.ip: Network unreachable
+2026-02-19 21:39:25,104 - configstream.security.honeypot - ERROR - [-] - [honeypot.py:37] - Honeypot check failed for null.ip: 'NoneType' object has no attribute 'get'
+2026-02-19 21:39:25,107 - configstream.security.honeypot - ERROR - [-] - [honeypot.py:37] - Honeypot check failed for string.response.ip: 'str' object has no attribute 'get'
+2026-02-19 21:39:25,166 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 1 proxies, 1 chains (Total Lines: 3, Failures: 0)
+2026-02-19 21:39:25,168 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 1 proxies, 1 chains
+2026-02-19 21:39:25,172 - configstream.converters.singbox - WARNING - [-] - [singbox.py:213] - Conversion failed: invalid port 99999 for example.com
+2026-02-19 21:39:25,174 - configstream.converters.singbox - DEBUG - [-] - [singbox.py:514] - Generated unique local IP [IP]/32 for WireGuard proxy (redacted)
+2026-02-19 21:39:25,175 - configstream.converters.singbox - DEBUG - [-] - [singbox.py:673] - Successfully converted wireguard proxy (Tag: 🌐-wireguard-e13a10e3) (Source: unknown)
+2026-02-19 21:44:09,393 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 60
+2026-02-19 21:44:09,400 - configstream.test_cache - INFO - [-] - [test_cache.py:64] - Loaded 0 entries from cache file: data/test_cache.json
+2026-02-19 21:44:09,404 - configstream.pipeline - INFO - [-] - [pipeline.py:168] - Initializing security blocklists...
+2026-02-19 21:44:09,524 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: GET https://raw.githubusercontent.[BASE64]-ipsets/master/firehol_level1.netset "HTTP/1.1 200 OK"
+2026-02-19 21:44:09,530 - configstream.security.blocklist - INFO - [-] - [blocklist.py:67] - Updated FireHol blocklist successfully.
+2026-02-19 21:44:10,702 - configstream.security.blocklist - INFO - [-] - [blocklist.py:137] - Loaded 4500 blocked networks from FireHol Level 1.
+2026-02-19 21:44:10,711 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-19 21:44:10,739 - configstream.tools.vwarp - INFO - [-] - [vwarp.py:1058] - Retrying Vwarp tunnel with fallback config: primary
+2026-02-19 21:44:10,741 - configstream.tools.vwarp - INFO - [-] - [vwarp.py:1315] - Vwarp config (generated): {"version": "1.0", "endpoint": "[IP]:2408", "dns": "[IP]", "wireguard": {"enabled": true, "reserved": "1,2,3", "fwmark": 0, "atomicnoize": {"I1": "<b 0c0d0e0f>", "I3": "<b 040506>", "I4": "<b 0708>", "I5": "<b 09>", "S1": 1, "S2": 2, "Jc": 8, "Jmin": 40, "Jmax": 90, "JcAfterI1": 3, "JcBeforeHS": 5, "JcAfterHS": 4, "JunkInterval": 15000000, "AllowZeroSize": false, "HandshakeDelay": 5000000}}, "masque": {"enabled": true, "preferred": false, "config": {"i1": "<b 0d0a0d0a>", "i3": "<b 0102>", "i4": "<b 030405>", "i5": "<b 060708>", "fragment_size": 0, "fragment_initial": false, "FragmentDelay": 500000, "PaddingMin": 0, "PaddingMax": 0, "RandomPadding": false, "Jc": 8, "Jmin": 30, "Jmax": 120, "JcBeforeHS": 3, "JcAfterI1": 2, "JcDuringHS": 5, "JcAfterHS": 3, "JunkInterval": 20000000, "JunkRandom": true, "MimicProtocol": "quic", "CustomWrapper": true, "HandshakeDelay": 30000000, "PacketDelay": 5000000, "RandomDelay": true, "DelayMin": 2000000, "DelayMax": 15000000, "SNIFragmentation": false, "SNIFragment": 32, "FakeALPN": ["h2", "http/1.1"], "ReversedOrder": false, "DuplicatePackets": false, "AllowZeroSize": true, "UseTimestamp": false, "UseNonce": true, "RandomizeInitial": true, "FakeLoss": 0.05}}, "psiphon": {"enabled": false, "country": "US"}, "metadata": {"name": "sample-working-generated", "description": "Auto-generated from ConfigStream based on sample-working.json", "author": "ConfigStream", "created_at": "2026-02-19T21[IP].740019+00:00"}, "bind": "[IP]:10808"}
+2026-02-19 21:44:10,744 - configstream.tools.vwarp - INFO - [-] - [vwarp.py:1116] - 🚀 Starting Vwarp SOCKS5 Tunnel on [IP]:10808 (cmd: /home/jules/.local/bin/vwarp --config /tmp/vwarp-config-f5jzksqm.json)...
+2026-02-19 21:44:11,247 - configstream.tools.vwarp - ERROR - [-] - [vwarp.py:1138] - Vwarp stderr: error: vwarp: parse config file: psiphon.enabled: unknown flag\n
+2026-02-19 21:44:11,247 - configstream.tools.vwarp - INFO - [-] - [vwarp.py:1073] - Vwarp fallback retry triggered (reason=config).
+2026-02-19 21:44:11,247 - configstream.tools.vwarp - INFO - [-] - [vwarp.py:1058] - Retrying Vwarp tunnel with fallback config: minimal-dns-only
+2026-02-19 21:44:11,249 - configstream.tools.vwarp - INFO - [-] - [vwarp.py:1315] - Vwarp config (generated): {"version": "1.0", "endpoint": "[IP]:2408", "dns": "[IP]", "wireguard": {"enabled": true, "reserved": "1,2,3", "fwmark": 0, "atomicnoize": {"I1": "<b 0c0d0e0f>", "I3": "<b 040506>", "I4": "<b 0708>", "I5": "<b 09>", "S1": 1, "S2": 2, "Jc": 8, "Jmin": 40, "Jmax": 90, "JcAfterI1": 3, "JcBeforeHS": 5, "JcAfterHS": 4, "JunkInterval": 15000000, "AllowZeroSize": false, "HandshakeDelay": 5000000}}, "masque": {"enabled": false, "preferred": false, "config": {"i1": "<b 0d0a0d0a>", "i3": "<b 0102>", "i4": "<b 030405>", "i5": "<b 060708>", "fragment_size": 0, "fragment_initial": false, "FragmentDelay": 500000, "PaddingMin": 0, "PaddingMax": 0, "RandomPadding": false, "Jc": 8, "Jmin": 30, "Jmax": 120, "JcBeforeHS": 3, "JcAfterI1": 2, "JcDuringHS": 5, "JcAfterHS": 3, "JunkInterval": 20000000, "JunkRandom": true, "MimicProtocol": "quic", "CustomWrapper": true, "HandshakeDelay": 30000000, "PacketDelay": 5000000, "RandomDelay": true, "DelayMin": 2000000, "DelayMax": 15000000, "SNIFragmentation": false, "SNIFragment": 32, "FakeALPN": ["h2", "http/1.1"], "ReversedOrder": false, "DuplicatePackets": false, "AllowZeroSize": true, "UseTimestamp": false, "UseNonce": true, "RandomizeInitial": true, "FakeLoss": 0.05}}, "psiphon": {"enabled": false, "country": "US"}, "metadata": {"name": "sample-working-generated", "description": "Auto-generated from ConfigStream based on sample-working.json", "author": "ConfigStream", "created_at": "2026-02-19T21[IP].248195+00:00"}, "bind": "[IP]:10808"}
+2026-02-19 21:44:11,252 - configstream.tools.vwarp - INFO - [-] - [vwarp.py:1116] - 🚀 Starting Vwarp SOCKS5 Tunnel on [IP]:10808 (cmd: /home/jules/.local/bin/vwarp --config /tmp/vwarp-config-jd4rzf3l.json)...
+2026-02-19 21:44:11,755 - configstream.tools.vwarp - ERROR - [-] - [vwarp.py:1138] - Vwarp stderr: error: vwarp: parse config file: masque.enabled: unknown flag\n
+2026-02-19 21:44:11,756 - configstream.tools.vwarp - INFO - [-] - [vwarp.py:1084] - Vwarp second fallback: trying alternate endpoint [IP]:1701
+2026-02-19 21:44:11,756 - configstream.tools.vwarp - INFO - [-] - [vwarp.py:1058] - Retrying Vwarp tunnel with fallback config: alternate-endpoint
+2026-02-19 21:44:11,757 - configstream.tools.vwarp - INFO - [-] - [vwarp.py:1315] - Vwarp config (generated): {"version": "1.0", "endpoint": "[IP]:1701", "dns": "[IP]", "wireguard": {"enabled": true, "reserved": "1,2,3", "fwmark": 0, "atomicnoize": {"I1": "<b 0c0d0e0f>", "I3": "<b 040506>", "I4": "<b 0708>", "I5": "<b 09>", "S1": 1, "S2": 2, "Jc": 8, "Jmin": 40, "Jmax": 90, "JcAfterI1": 3, "JcBeforeHS": 5, "JcAfterHS": 4, "JunkInterval": 15000000, "AllowZeroSize": false, "HandshakeDelay": 5000000}}, "masque": {"enabled": false, "preferred": false, "config": {"i1": "<b 0d0a0d0a>", "i3": "<b 0102>", "i4": "<b 030405>", "i5": "<b 060708>", "fragment_size": 0, "fragment_initial": false, "FragmentDelay": 500000, "PaddingMin": 0, "PaddingMax": 0, "RandomPadding": false, "Jc": 8, "Jmin": 30, "Jmax": 120, "JcBeforeHS": 3, "JcAfterI1": 2, "JcDuringHS": 5, "JcAfterHS": 3, "JunkInterval": 20000000, "JunkRandom": true, "MimicProtocol": "quic", "CustomWrapper": true, "HandshakeDelay": 30000000, "PacketDelay": 5000000, "RandomDelay": true, "DelayMin": 2000000, "DelayMax": 15000000, "SNIFragmentation": false, "SNIFragment": 32, "FakeALPN": ["h2", "http/1.1"], "ReversedOrder": false, "DuplicatePackets": false, "AllowZeroSize": true, "UseTimestamp": false, "UseNonce": true, "RandomizeInitial": true, "FakeLoss": 0.05}}, "psiphon": {"enabled": false, "country": "US"}, "metadata": {"name": "sample-working-generated", "description": "Auto-generated from ConfigStream based on sample-working.json", "author": "ConfigStream", "created_at": "2026-02-19T21[IP].756490+00:00"}, "bind": "[IP]:10808"}
+2026-02-19 21:44:11,760 - configstream.tools.vwarp - INFO - [-] - [vwarp.py:1116] - 🚀 Starting Vwarp SOCKS5 Tunnel on [IP]:10808 (cmd: /home/jules/.local/bin/vwarp --config /tmp/vwarp-config-sicqag50.json)...
+2026-02-19 21:44:12,263 - configstream.tools.vwarp - ERROR - [-] - [vwarp.py:1138] - Vwarp stderr: error: vwarp: parse config file: wireguard.enabled: unknown flag\n
+2026-02-19 21:44:12,264 - configstream.pipeline - WARNING - [-] - [pipeline.py:218] - Vwarp tunnel failed to start or did not pass health check. Disabling Vwarp integration.
+2026-02-19 21:44:12,264 - configstream.pipeline - INFO - [-] - [pipeline.py:239] - 🚀 Auto-scaling to 6 consumers based on 4 cores.
+2026-02-19 21:44:12,264 - configstream.pipeline - INFO - [-] - [pipeline.py:262] - Starting pipeline with 60 initial workers
+2026-02-19 21:44:12,273 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-19 21:44:12,274 - configstream.pipeline - WARNING - [-] - [pipeline.py:276] - Go tester unavailable - Falling back to Python tester. Starting global concurrency tuner.
+2026-02-19 21:44:12,274 - configstream.pipeline - INFO - [-] - [pipeline.py:290] - Starting pipeline with 6 parallel consumers
+2026-02-19 21:44:12,275 - configstream.pipeline - INFO - [-] - [pipeline.py:295] - Batch time limit enabled: 14400s (soft stop with partial output).
+2026-02-19 21:44:12,303 - configstream.producer - ERROR - [-] - [producer.py:192] - ALL 1 remote sources are on cooldown/disabled - no proxies will be fetched!
+2026-02-19 21:44:12,303 - configstream.producer - INFO - [-] - [producer.py:198] - 1 source(s) were skipped due to cooldown/disabled status.
+2026-02-19 21:44:12,311 - configstream.sorter - WARNING - [-] - [sorter.py:73] - No proxies to sort
+2026-02-19 21:44:12,312 - configstream.pipeline - INFO - [-] - [pipeline.py:427] - ⚠️ Top 5 Failing Sources:\n  - http://test: score=100.0, reason=High Failures\n  - https://example.com/sub: score=100.0, reason=High Failures\n  - /tmp/pytest-of-jules/pytest-0/test_mixed_protocols_dry_run0/mixed_sources.txt: score=0.0, reason=Low Reliability\n  - /tmp/pytest-of-jules/pytest-0/test_full_pipeline_with_local_0/source.txt: score=0.0, reason=Low Reliability\n  - /tmp/pytest-of-jules/pytest-0/test_failure_mode_anomaly_db_c0/sources.txt: score=0.0, reason=Low Reliability
+2026-02-19 21:44:12,313 - configstream.output_handler - INFO - [-] - [output_handler.py:386] - Starting final output generation phase...
+2026-02-19 21:44:12,317 - configstream.output_handler - INFO - [-] - [output_handler.py:394] - Applying proxy tagging with template: {country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}
+2026-02-19 21:44:12,317 - configstream.tagging - INFO - [-] - [tagging.py:335] - Applying name template '{country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}' to 0 proxies...
+2026-02-19 21:44:12,318 - configstream.tagging - INFO - [-] - [tagging.py:367] - Tagged 0 proxies with template metadata
+2026-02-19 21:44:12,318 - configstream.geoip - INFO - [-] - [geoip.py:251] - GeoIP enrichment: 0/0 (0.0%) countries resolved, 0 cities, 0 ASNs
+2026-02-19 21:44:12,326 - configstream.intelligence.chaining - INFO - [-] - [chaining.py:828] - Enhanced smart chains generated: 0 chains across 9 categories. intranet=0, intranet_washed=0, ipv6=0, streamer=0, censorship_resistant=0, low_latency=0, high_anonymity=0, load_balanced=0
+2026-02-19 21:44:12,356 - configstream.generators.clash - INFO - [-] - [clash.py:96] - No valid proxies for Clash config generation; emitting minimal config
+2026-02-19 21:44:12,372 - configstream.generators.clash - INFO - [-] - [clash.py:96] - No valid proxies for Clash config generation; emitting minimal config
+2026-02-19 21:44:12,374 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 0 links (Reconstructed: 0)
+2026-02-19 21:44:12,376 - configstream.adapters - INFO - [-] - [adapters.py:303] - Quantumult X export summary: 0 proxies (Failures: 0)
+2026-02-19 21:44:12,377 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 0 proxies, 0 chains (Total Lines: 1, Failures: 0)
+2026-02-19 21:44:12,379 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 0 proxies, 0 chains
+2026-02-19 21:44:12,381 - configstream.adapters - INFO - [-] - [adapters.py:820] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-19 21:44:12,395 - configstream.generators.clash - INFO - [-] - [clash.py:96] - No valid proxies for Clash config generation; emitting minimal config
+2026-02-19 21:44:12,409 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 0 links (Reconstructed: 0)
+2026-02-19 21:44:12,410 - configstream.adapters - INFO - [-] - [adapters.py:303] - Quantumult X export summary: 0 proxies (Failures: 0)
+2026-02-19 21:44:12,412 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 0 proxies, 0 chains (Total Lines: 1, Failures: 0)
+2026-02-19 21:44:12,414 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 0 proxies, 0 chains
+2026-02-19 21:44:12,416 - configstream.adapters - INFO - [-] - [adapters.py:820] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-19 21:44:12,427 - configstream.generators.clash - INFO - [-] - [clash.py:96] - No valid proxies for Clash config generation; emitting minimal config
+2026-02-19 21:44:12,435 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 0 links (Reconstructed: 0)
+2026-02-19 21:44:12,437 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 0 proxies, 0 chains (Total Lines: 1, Failures: 0)
+2026-02-19 21:44:12,439 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 0 proxies, 0 chains
+2026-02-19 21:44:12,441 - configstream.adapters - INFO - [-] - [adapters.py:303] - Quantumult X export summary: 0 proxies (Failures: 0)
+2026-02-19 21:44:12,443 - configstream.adapters - INFO - [-] - [adapters.py:820] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-19 21:44:12,449 - configstream.output_logic - INFO - [-] - [output_logic.py:1176] - Generated 48 output files (including all variations).
+2026-02-19 21:44:12,460 - configstream.intelligence.vectors - INFO - [-] - [vectors.py:109] - Generated static vectors for 0 proxies
+2026-02-19 21:44:12,463 - configstream.history.export - INFO - [-] - [export.py:58] - Exported history visualization data to /tmp/pytest-of-jules/pytest-1/test_all_sources_cooldown0/out_cooldown/data/proxy_history_viz.json
+2026-02-19 21:44:12,464 - configstream.history.export - INFO - [-] - [export.py:73] - Generating active proxy trend data...
+2026-02-19 21:44:12,467 - configstream.history.export - INFO - [-] - [export.py:130] - Exported active proxy trend data to /tmp/pytest-of-jules/pytest-1/test_all_sources_cooldown0/out_cooldown/data/active_proxy_trend.json
+2026-02-19 21:44:12,468 - configstream.history.export - INFO - [-] - [export.py:144] - Generating evasion trend data...
+2026-02-19 21:44:12,473 - configstream.history.export - INFO - [-] - [export.py:224] - Exported evasion trend data to /tmp/pytest-of-jules/pytest-1/test_all_sources_cooldown0/out_cooldown/data/evasion_trend.json (1 entries)
+2026-02-19 21:44:12,473 - configstream.output_handler - INFO - [-] - [output_handler.py:681] - Output generation complete. Files created in /tmp/pytest-of-jules/pytest-1/test_all_sources_cooldown0/out_cooldown
+2026-02-19 21:44:12,474 - configstream.pipeline - INFO - [-] - [pipeline.py:437] - Scheduler stats: {'total_entries': 0, 'valid_entries': 0, 'expired_entries': 0, 'average_health_score': 0.0, 'ttl_seconds': 1800}
+2026-02-19 21:44:12,475 - configstream.anomaly - INFO - [-] - [anomaly.py:279] - Anomaly stats: 0 sources tracked, 0 total records, 0 in last 24h
+2026-02-19 21:44:12,478 - configstream.test_cache - INFO - [-] - [test_cache.py:112] - Saved 0 entries to cache file: data/test_cache.json
+2026-02-19 21:44:12,527 - configstream.testers.go - INFO - [-] - [go.py:252] - Go Batch Tester shutdown complete.
+2026-02-19 21:44:12,528 - configstream.tools.vwarp - INFO - [-] - [vwarp.py:1240] - Stopping Vwarp tunnel (pid=[MASKED]
+2026-02-19 21:44:12,528 - configstream.event_stream - INFO - [-] - [event_stream.py:32] - [stream_close] Event stream closing.
+2026-02-19 21:44:12,541 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 60
+2026-02-19 21:44:12,546 - configstream.test_cache - INFO - [-] - [test_cache.py:64] - Loaded 0 entries from cache file: data/test_cache.json
+2026-02-19 21:44:12,548 - configstream.pipeline - INFO - [-] - [pipeline.py:168] - Initializing security blocklists...
+2026-02-19 21:44:12,638 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: GET https://raw.githubusercontent.[BASE64]-ipsets/master/firehol_level1.netset "HTTP/1.1 200 OK"
+2026-02-19 21:44:12,642 - configstream.security.blocklist - INFO - [-] - [blocklist.py:67] - Updated FireHol blocklist successfully.
+2026-02-19 21:44:13,809 - configstream.security.blocklist - INFO - [-] - [blocklist.py:137] - Loaded 4500 blocked networks from FireHol Level 1.
+2026-02-19 21:44:13,818 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-19 21:44:13,819 - configstream.pipeline - INFO - [-] - [pipeline.py:228] - Vwarp tunnel disabled by configuration.
+2026-02-19 21:44:13,819 - configstream.pipeline - INFO - [-] - [pipeline.py:239] - 🚀 Auto-scaling to 6 consumers based on 4 cores.
+2026-02-19 21:44:13,819 - configstream.pipeline - INFO - [-] - [pipeline.py:262] - Starting pipeline with 60 initial workers
+2026-02-19 21:44:13,828 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-19 21:44:13,828 - configstream.pipeline - WARNING - [-] - [pipeline.py:276] - Go tester unavailable - Falling back to Python tester. Starting global concurrency tuner.
+2026-02-19 21:44:13,829 - configstream.pipeline - INFO - [-] - [pipeline.py:290] - Starting pipeline with 6 parallel consumers
+2026-02-19 21:44:13,829 - configstream.pipeline - INFO - [-] - [pipeline.py:295] - Batch time limit enabled: 14400s (soft stop with partial output).
+2026-02-19 21:44:13,857 - configstream.producer - INFO - [-] - [producer.py:207] - Starting fetch for 1 active sources (Batch Size: 100, Concurrent Limit: 32)
+2026-02-19 21:44:13,858 - configstream.producer - INFO - [-] - [producer.py:222] - Fetching batch 1: 1 sources
+2026-02-19 21:44:13,859 - configstream.producer - ERROR - [-] - [producer.py:346] - Producer failed: DB Connection Failed
+2026-02-19 21:44:13,867 - configstream.sorter - WARNING - [-] - [sorter.py:73] - No proxies to sort
+2026-02-19 21:44:13,868 - configstream.pipeline - INFO - [-] - [pipeline.py:427] - ⚠️ Top 5 Failing Sources:\n  - http://test: score=100.0, reason=High Failures\n  - https://example.com/sub: score=100.0, reason=High Failures\n  - /tmp/pytest-of-jules/pytest-0/test_mixed_protocols_dry_run0/mixed_sources.txt: score=0.0, reason=Low Reliability\n  - /tmp/pytest-of-jules/pytest-0/test_full_pipeline_with_local_0/source.txt: score=0.0, reason=Low Reliability\n  - /tmp/pytest-of-jules/pytest-0/test_failure_mode_anomaly_db_c0/sources.txt: score=0.0, reason=Low Reliability
+2026-02-19 21:44:13,869 - configstream.output_handler - INFO - [-] - [output_handler.py:386] - Starting final output generation phase...
+2026-02-19 21:44:13,873 - configstream.output_handler - INFO - [-] - [output_handler.py:394] - Applying proxy tagging with template: {country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}
+2026-02-19 21:44:13,873 - configstream.tagging - INFO - [-] - [tagging.py:335] - Applying name template '{country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}' to 0 proxies...
+2026-02-19 21:44:13,874 - configstream.tagging - INFO - [-] - [tagging.py:367] - Tagged 0 proxies with template metadata
+2026-02-19 21:44:13,874 - configstream.geoip - INFO - [-] - [geoip.py:251] - GeoIP enrichment: 0/0 (0.0%) countries resolved, 0 cities, 0 ASNs
+2026-02-19 21:44:13,882 - configstream.intelligence.chaining - INFO - [-] - [chaining.py:828] - Enhanced smart chains generated: 0 chains across 9 categories. intranet=0, intranet_washed=0, ipv6=0, streamer=0, censorship_resistant=0, low_latency=0, high_anonymity=0, load_balanced=0
+2026-02-19 21:44:13,913 - configstream.generators.clash - INFO - [-] - [clash.py:96] - No valid proxies for Clash config generation; emitting minimal config
+2026-02-19 21:44:13,923 - configstream.generators.clash - INFO - [-] - [clash.py:96] - No valid proxies for Clash config generation; emitting minimal config
+2026-02-19 21:44:13,926 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 0 links (Reconstructed: 0)
+2026-02-19 21:44:13,928 - configstream.adapters - INFO - [-] - [adapters.py:303] - Quantumult X export summary: 0 proxies (Failures: 0)
+2026-02-19 21:44:13,929 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 0 proxies, 0 chains (Total Lines: 1, Failures: 0)
+2026-02-19 21:44:13,931 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 0 proxies, 0 chains
+2026-02-19 21:44:13,933 - configstream.adapters - INFO - [-] - [adapters.py:820] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-19 21:44:13,948 - configstream.generators.clash - INFO - [-] - [clash.py:96] - No valid proxies for Clash config generation; emitting minimal config
+2026-02-19 21:44:13,960 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 0 links (Reconstructed: 0)
+2026-02-19 21:44:13,962 - configstream.adapters - INFO - [-] - [adapters.py:303] - Quantumult X export summary: 0 proxies (Failures: 0)
+2026-02-19 21:44:13,963 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 0 proxies, 0 chains (Total Lines: 1, Failures: 0)
+2026-02-19 21:44:13,965 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 0 proxies, 0 chains
+2026-02-19 21:44:13,967 - configstream.adapters - INFO - [-] - [adapters.py:820] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-19 21:44:13,977 - configstream.generators.clash - INFO - [-] - [clash.py:96] - No valid proxies for Clash config generation; emitting minimal config
+2026-02-19 21:44:13,985 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 0 links (Reconstructed: 0)
+2026-02-19 21:44:13,987 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 0 proxies, 0 chains (Total Lines: 1, Failures: 0)
+2026-02-19 21:44:13,989 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 0 proxies, 0 chains
+2026-02-19 21:44:13,991 - configstream.adapters - INFO - [-] - [adapters.py:303] - Quantumult X export summary: 0 proxies (Failures: 0)
+2026-02-19 21:44:13,992 - configstream.adapters - INFO - [-] - [adapters.py:820] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-19 21:44:14,001 - configstream.output_logic - INFO - [-] - [output_logic.py:1176] - Generated 48 output files (including all variations).
+2026-02-19 21:44:14,010 - configstream.intelligence.vectors - INFO - [-] - [vectors.py:109] - Generated static vectors for 0 proxies
+2026-02-19 21:44:14,014 - configstream.history.export - INFO - [-] - [export.py:58] - Exported history visualization data to /tmp/pytest-of-jules/pytest-1/test_anomaly_db_failure0/out_anomaly/data/proxy_history_viz.json
+2026-02-19 21:44:14,015 - configstream.history.export - INFO - [-] - [export.py:73] - Generating active proxy trend data...
+2026-02-19 21:44:14,017 - configstream.history.export - INFO - [-] - [export.py:130] - Exported active proxy trend data to /tmp/pytest-of-jules/pytest-1/test_anomaly_db_failure0/out_anomaly/data/active_proxy_trend.json
+2026-02-19 21:44:14,018 - configstream.history.export - INFO - [-] - [export.py:144] - Generating evasion trend data...
+2026-02-19 21:44:14,020 - configstream.history.export - INFO - [-] - [export.py:224] - Exported evasion trend data to /tmp/pytest-of-jules/pytest-1/test_anomaly_db_failure0/out_anomaly/data/evasion_trend.json (1 entries)
+2026-02-19 21:44:14,021 - configstream.output_handler - INFO - [-] - [output_handler.py:681] - Output generation complete. Files created in /tmp/pytest-of-jules/pytest-1/test_anomaly_db_failure0/out_anomaly
+2026-02-19 21:44:14,021 - configstream.pipeline - INFO - [-] - [pipeline.py:437] - Scheduler stats: {'total_entries': 0, 'valid_entries': 0, 'expired_entries': 0, 'average_health_score': 0.0, 'ttl_seconds': 1800}
+2026-02-19 21:44:14,022 - configstream.anomaly - INFO - [-] - [anomaly.py:279] - Anomaly stats: 0 sources tracked, 0 total records, 0 in last 24h
+2026-02-19 21:44:14,025 - configstream.test_cache - INFO - [-] - [test_cache.py:112] - Saved 0 entries to cache file: data/test_cache.json
+2026-02-19 21:44:14,068 - configstream.testers.go - INFO - [-] - [go.py:252] - Go Batch Tester shutdown complete.
+2026-02-19 21:44:14,069 - configstream.event_stream - INFO - [-] - [event_stream.py:32] - [stream_close] Event stream closing.
+2026-02-19 21:44:14,083 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 60
+2026-02-19 21:44:14,087 - configstream.test_cache - INFO - [-] - [test_cache.py:64] - Loaded 0 entries from cache file: data/test_cache.json
+2026-02-19 21:44:14,089 - configstream.pipeline - INFO - [-] - [pipeline.py:168] - Initializing security blocklists...
+2026-02-19 21:44:14,098 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-19 21:44:14,098 - configstream.pipeline - INFO - [-] - [pipeline.py:228] - Vwarp tunnel disabled by configuration.
+2026-02-19 21:44:14,098 - configstream.pipeline - INFO - [-] - [pipeline.py:239] - 🚀 Auto-scaling to 6 consumers based on 4 cores.
+2026-02-19 21:44:14,099 - configstream.pipeline - INFO - [-] - [pipeline.py:262] - Starting pipeline with 60 initial workers
+2026-02-19 21:44:14,108 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-19 21:44:14,108 - configstream.pipeline - WARNING - [-] - [pipeline.py:276] - Go tester unavailable - Falling back to Python tester. Starting global concurrency tuner.
+2026-02-19 21:44:14,108 - configstream.pipeline - INFO - [-] - [pipeline.py:290] - Starting pipeline with 6 parallel consumers
+2026-02-19 21:44:14,108 - configstream.pipeline - INFO - [-] - [pipeline.py:295] - Batch time limit enabled: 14400s (soft stop with partial output).
+2026-02-19 21:44:14,148 - configstream.consumer - INFO - [-] - [consumer.py:599] - Source Summary [/tmp/pytest-of-jules/pytest-1/test_mixed_protocols_dry_run0/mixed_sources.txt]: Raw=4 Parsed=4 Tested=4 Working=4 Dur=10ms
+2026-02-19 21:44:14,160 - configstream.sorter - INFO - [-] - [sorter.py:68] - Sorted 4 proxies using Pareto scoring (latency: avg=123.5ms, min=123.5ms, max=123.5ms)
+2026-02-19 21:44:14,160 - configstream.pipeline - INFO - [-] - [pipeline.py:427] - ⚠️ Top 5 Failing Sources:\n  - http://test: score=100.0, reason=High Failures\n  - https://example.com/sub: score=100.0, reason=High Failures\n  - /tmp/pytest-of-jules/pytest-0/test_mixed_protocols_dry_run0/mixed_sources.txt: score=0.0, reason=Low Reliability\n  - /tmp/pytest-of-jules/pytest-0/test_full_pipeline_with_local_0/source.txt: score=0.0, reason=Low Reliability\n  - /tmp/pytest-of-jules/pytest-0/test_failure_mode_anomaly_db_c0/sources.txt: score=0.0, reason=Low Reliability
+2026-02-19 21:44:14,161 - configstream.output_handler - INFO - [-] - [output_handler.py:386] - Starting final output generation phase...
+2026-02-19 21:44:14,165 - configstream.output_handler - INFO - [-] - [output_handler.py:394] - Applying proxy tagging with template: {country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}
+2026-02-19 21:44:14,166 - configstream.tagging - INFO - [-] - [tagging.py:335] - Applying name template '{country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}' to 4 proxies...
+2026-02-19 21:44:14,167 - configstream.tagging - INFO - [-] - [tagging.py:367] - Tagged 4 proxies with template metadata
+2026-02-19 21:44:14,167 - configstream.geoip - INFO - [-] - [geoip.py:251] - GeoIP enrichment: 2/4 (50.0%) countries resolved, 2 cities, 0 ASNs
+2026-02-19 21:44:14,171 - configstream.output_handler - INFO - [-] - [output_handler.py:507] - WARP wrap skipped for all proxies (no valid WARP endpoints or keys found).
+2026-02-19 21:44:14,176 - configstream.intelligence.chaining - INFO - [-] - [chaining.py:828] - Enhanced smart chains generated: 4 chains across 9 categories. intranet=0, intranet_washed=0, ipv6=0, streamer=0, censorship_resistant=0, low_latency=0, high_anonymity=0, load_balanced=4
+2026-02-19 21:44:14,233 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 4 links (Reconstructed: 0)
+2026-02-19 21:44:14,236 - configstream.adapters - INFO - [-] - [adapters.py:303] - Quantumult X export summary: 4 proxies (Failures: 0)
+2026-02-19 21:44:14,238 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 4 proxies, 0 chains (Total Lines: 5, Failures: 0)
+2026-02-19 21:44:14,240 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 4 proxies, 0 chains
+2026-02-19 21:44:14,242 - configstream.adapters - INFO - [-] - [adapters.py:820] - SIP008 export summary: 1 Shadowsocks servers
+2026-02-19 21:44:14,309 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 3 links (Reconstructed: 0)
+2026-02-19 21:44:14,311 - configstream.adapters - INFO - [-] - [adapters.py:303] - Quantumult X export summary: 3 proxies (Failures: 0)
+2026-02-19 21:44:14,313 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 3 proxies, 0 chains (Total Lines: 4, Failures: 0)
+2026-02-19 21:44:14,315 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 3 proxies, 0 chains
+2026-02-19 21:44:14,317 - configstream.adapters - INFO - [-] - [adapters.py:820] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-19 21:44:14,343 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 4 links (Reconstructed: 0)
+2026-02-19 21:44:14,345 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 4 proxies, 0 chains (Total Lines: 5, Failures: 0)
+2026-02-19 21:44:14,347 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 4 proxies, 0 chains
+2026-02-19 21:44:14,349 - configstream.adapters - INFO - [-] - [adapters.py:303] - Quantumult X export summary: 4 proxies (Failures: 0)
+2026-02-19 21:44:14,352 - configstream.adapters - INFO - [-] - [adapters.py:820] - SIP008 export summary: 1 Shadowsocks servers
+2026-02-19 21:44:14,362 - configstream.output_logic - INFO - [-] - [output_logic.py:1176] - Generated 59 output files (including all variations).
+2026-02-19 21:44:14,373 - configstream.intelligence.vectors - INFO - [-] - [vectors.py:109] - Generated static vectors for 4 proxies
+2026-02-19 21:44:14,377 - configstream.history.export - INFO - [-] - [export.py:58] - Exported history visualization data to /tmp/pytest-of-jules/pytest-1/test_mixed_protocols_dry_run0/out/data/proxy_history_viz.json
+2026-02-19 21:44:14,378 - configstream.history.export - INFO - [-] - [export.py:73] - Generating active proxy trend data...
+2026-02-19 21:44:14,380 - configstream.history.export - INFO - [-] - [export.py:130] - Exported active proxy trend data to /tmp/pytest-of-jules/pytest-1/test_mixed_protocols_dry_run0/out/data/active_proxy_trend.json
+2026-02-19 21:44:14,381 - configstream.history.export - INFO - [-] - [export.py:144] - Generating evasion trend data...
+2026-02-19 21:44:14,383 - configstream.history.export - INFO - [-] - [export.py:224] - Exported evasion trend data to /tmp/pytest-of-jules/pytest-1/test_mixed_protocols_dry_run0/out/data/evasion_trend.json (1 entries)
+2026-02-19 21:44:14,383 - configstream.output_handler - INFO - [-] - [output_handler.py:681] - Output generation complete. Files created in /tmp/pytest-of-jules/pytest-1/test_mixed_protocols_dry_run0/out
+2026-02-19 21:44:14,384 - configstream.pipeline - INFO - [-] - [pipeline.py:437] - Scheduler stats: {'total_entries': 0, 'valid_entries': 0, 'expired_entries': 0, 'average_health_score': 0.0, 'ttl_seconds': 1800}
+2026-02-19 21:44:14,385 - configstream.anomaly - INFO - [-] - [anomaly.py:279] - Anomaly stats: 0 sources tracked, 0 total records, 0 in last 24h
+2026-02-19 21:44:14,387 - configstream.test_cache - INFO - [-] - [test_cache.py:112] - Saved 0 entries to cache file: data/test_cache.json
+2026-02-19 21:44:14,431 - configstream.testers.go - INFO - [-] - [go.py:252] - Go Batch Tester shutdown complete.
+2026-02-19 21:44:14,431 - configstream.event_stream - INFO - [-] - [event_stream.py:32] - [stream_close] Event stream closing.
+2026-02-19 21:44:14,441 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 60
+2026-02-19 21:44:14,446 - configstream.test_cache - INFO - [-] - [test_cache.py:64] - Loaded 0 entries from cache file: data/test_cache.json
+2026-02-19 21:44:14,448 - configstream.pipeline - INFO - [-] - [pipeline.py:168] - Initializing security blocklists...
+2026-02-19 21:44:14,456 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-19 21:44:14,457 - configstream.pipeline - INFO - [-] - [pipeline.py:228] - Vwarp tunnel disabled by configuration.
+2026-02-19 21:44:14,457 - configstream.pipeline - INFO - [-] - [pipeline.py:239] - 🚀 Auto-scaling to 6 consumers based on 4 cores.
+2026-02-19 21:44:14,457 - configstream.pipeline - INFO - [-] - [pipeline.py:262] - Starting pipeline with 60 initial workers
+2026-02-19 21:44:14,466 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-19 21:44:14,467 - configstream.pipeline - WARNING - [-] - [pipeline.py:276] - Go tester unavailable - Falling back to Python tester. Starting global concurrency tuner.
+2026-02-19 21:44:14,467 - configstream.pipeline - INFO - [-] - [pipeline.py:290] - Starting pipeline with 6 parallel consumers
+2026-02-19 21:44:14,467 - configstream.pipeline - INFO - [-] - [pipeline.py:295] - Batch time limit enabled: 14400s (soft stop with partial output).
+2026-02-19 21:44:14,505 - configstream.consumer - INFO - [-] - [consumer.py:599] - Source Summary [/tmp/pytest-of-jules/pytest-1/test_full_pipeline_with_local_0/source.txt]: Raw=1 Parsed=1 Tested=1 Working=1 Dur=7ms
+2026-02-19 21:44:14,515 - configstream.sorter - INFO - [-] - [sorter.py:68] - Sorted 1 proxies using Pareto scoring (latency: avg=123.5ms, min=123.5ms, max=123.5ms)
+2026-02-19 21:44:14,515 - configstream.pipeline - INFO - [-] - [pipeline.py:427] - ⚠️ Top 5 Failing Sources:\n  - http://test: score=100.0, reason=High Failures\n  - https://example.com/sub: score=100.0, reason=High Failures\n  - /tmp/pytest-of-jules/pytest-0/test_mixed_protocols_dry_run0/mixed_sources.txt: score=0.0, reason=Low Reliability\n  - /tmp/pytest-of-jules/pytest-0/test_full_pipeline_with_local_0/source.txt: score=0.0, reason=Low Reliability\n  - /tmp/pytest-of-jules/pytest-0/test_failure_mode_anomaly_db_c0/sources.txt: score=0.0, reason=Low Reliability
+2026-02-19 21:44:14,517 - configstream.pipeline - INFO - [-] - [pipeline.py:437] - Scheduler stats: {'total_entries': 0, 'valid_entries': 0, 'expired_entries': 0, 'average_health_score': 0.0, 'ttl_seconds': 1800}
+2026-02-19 21:44:14,517 - configstream.anomaly - INFO - [-] - [anomaly.py:279] - Anomaly stats: 0 sources tracked, 0 total records, 0 in last 24h
+2026-02-19 21:44:14,520 - configstream.test_cache - INFO - [-] - [test_cache.py:112] - Saved 0 entries to cache file: data/test_cache.json
+2026-02-19 21:44:14,562 - configstream.testers.go - INFO - [-] - [go.py:252] - Go Batch Tester shutdown complete.
+2026-02-19 21:44:14,563 - configstream.event_stream - INFO - [-] - [event_stream.py:32] - [stream_close] Event stream closing.
+2026-02-19 21:44:16,255 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 60
+2026-02-19 21:44:16,259 - configstream.test_cache - INFO - [-] - [test_cache.py:64] - Loaded 0 entries from cache file: data/test_cache.json
+2026-02-19 21:44:16,262 - configstream.pipeline - INFO - [-] - [pipeline.py:168] - Initializing security blocklists...
+2026-02-19 21:44:16,270 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-19 21:44:16,271 - configstream.pipeline - INFO - [-] - [pipeline.py:228] - Vwarp tunnel disabled by configuration.
+2026-02-19 21:44:16,271 - configstream.pipeline - INFO - [-] - [pipeline.py:239] - 🚀 Auto-scaling to 6 consumers based on 4 cores.
+2026-02-19 21:44:16,271 - configstream.pipeline - INFO - [-] - [pipeline.py:262] - Starting pipeline with 60 initial workers
+2026-02-19 21:44:16,280 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-19 21:44:16,280 - configstream.pipeline - WARNING - [-] - [pipeline.py:276] - Go tester unavailable - Falling back to Python tester. Starting global concurrency tuner.
+2026-02-19 21:44:16,281 - configstream.pipeline - INFO - [-] - [pipeline.py:290] - Starting pipeline with 6 parallel consumers
+2026-02-19 21:44:16,281 - configstream.pipeline - INFO - [-] - [pipeline.py:295] - Batch time limit enabled: 14400s (soft stop with partial output).
+2026-02-19 21:44:16,309 - configstream.source_quality - INFO - [-] - [source_quality.py:154] - Resurrecting dead source for retry: https://example.com/sub...
+2026-02-19 21:44:16,310 - configstream.producer - INFO - [-] - [producer.py:207] - Starting fetch for 1 active sources (Batch Size: 100, Concurrent Limit: 32)
+2026-02-19 21:44:16,310 - configstream.producer - INFO - [-] - [producer.py:222] - Fetching batch 1: 1 sources
+2026-02-19 21:44:16,314 - configstream.fetcher - INFO - [-] - [fetcher.py:351] - Pre-warming DNS for 1 sources...
+2026-02-19 21:44:16,332 - configstream.fetcher - INFO - [-] - [fetcher.py:356] - DNS pre-warming completed in 0.02s.
+2026-02-19 21:44:16,333 - configstream.fetcher - INFO - [-] - [fetcher.py:377] - Starting parallel fetch for 1 sources (max_concurrent=32)
+2026-02-19 21:44:19,485 - configstream.fetcher - INFO - [-] - [fetcher.py:399] - Batch fetch completed in 3.15s
+2026-02-19 21:44:19,486 - configstream.fetcher - INFO - [-] - [fetcher.py:409] - Fetch Summary: 0/1 sources successful. Total data fetched: 0.00 KB
+2026-02-19 21:44:19,486 - configstream.producer - WARNING - [-] - [producer.py:332] - Failed to fetch https://example.com/sub: Max retries exceeded: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1010) (Status: 0)
+2026-02-19 21:44:19,498 - configstream.sorter - WARNING - [-] - [sorter.py:73] - No proxies to sort
+2026-02-19 21:44:19,499 - configstream.pipeline - INFO - [-] - [pipeline.py:427] - ⚠️ Top 5 Failing Sources:\n  - http://test: score=100.0, reason=High Failures\n  - https://example.com/sub: score=100.0, reason=High Failures\n  - /tmp/pytest-of-jules/pytest-0/test_mixed_protocols_dry_run0/mixed_sources.txt: score=0.0, reason=Low Reliability\n  - /tmp/pytest-of-jules/pytest-0/test_full_pipeline_with_local_0/source.txt: score=0.0, reason=Low Reliability\n  - /tmp/pytest-of-jules/pytest-0/test_failure_mode_anomaly_db_c0/sources.txt: score=0.0, reason=Low Reliability
+2026-02-19 21:44:19,500 - configstream.output_handler - INFO - [-] - [output_handler.py:386] - Starting final output generation phase...
+2026-02-19 21:44:19,504 - configstream.output_handler - INFO - [-] - [output_handler.py:394] - Applying proxy tagging with template: {country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}
+2026-02-19 21:44:19,504 - configstream.tagging - INFO - [-] - [tagging.py:335] - Applying name template '{country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}' to 0 proxies...
+2026-02-19 21:44:19,505 - configstream.tagging - INFO - [-] - [tagging.py:367] - Tagged 0 proxies with template metadata
+2026-02-19 21:44:19,505 - configstream.geoip - INFO - [-] - [geoip.py:251] - GeoIP enrichment: 0/0 (0.0%) countries resolved, 0 cities, 0 ASNs
+2026-02-19 21:44:19,513 - configstream.intelligence.chaining - INFO - [-] - [chaining.py:828] - Enhanced smart chains generated: 0 chains across 9 categories. intranet=0, intranet_washed=0, ipv6=0, streamer=0, censorship_resistant=0, low_latency=0, high_anonymity=0, load_balanced=0
+2026-02-19 21:44:19,542 - configstream.generators.clash - INFO - [-] - [clash.py:96] - No valid proxies for Clash config generation; emitting minimal config
+2026-02-19 21:44:19,552 - configstream.generators.clash - INFO - [-] - [clash.py:96] - No valid proxies for Clash config generation; emitting minimal config
+2026-02-19 21:44:19,554 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 0 links (Reconstructed: 0)
+2026-02-19 21:44:19,556 - configstream.adapters - INFO - [-] - [adapters.py:303] - Quantumult X export summary: 0 proxies (Failures: 0)
+2026-02-19 21:44:19,557 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 0 proxies, 0 chains (Total Lines: 1, Failures: 0)
+2026-02-19 21:44:19,559 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 0 proxies, 0 chains
+2026-02-19 21:44:19,561 - configstream.adapters - INFO - [-] - [adapters.py:820] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-19 21:44:19,576 - configstream.generators.clash - INFO - [-] - [clash.py:96] - No valid proxies for Clash config generation; emitting minimal config
+2026-02-19 21:44:19,586 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 0 links (Reconstructed: 0)
+2026-02-19 21:44:19,588 - configstream.adapters - INFO - [-] - [adapters.py:303] - Quantumult X export summary: 0 proxies (Failures: 0)
+2026-02-19 21:44:19,589 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 0 proxies, 0 chains (Total Lines: 1, Failures: 0)
+2026-02-19 21:44:19,591 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 0 proxies, 0 chains
+2026-02-19 21:44:19,592 - configstream.adapters - INFO - [-] - [adapters.py:820] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-19 21:44:19,602 - configstream.generators.clash - INFO - [-] - [clash.py:96] - No valid proxies for Clash config generation; emitting minimal config
+2026-02-19 21:44:19,610 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 0 links (Reconstructed: 0)
+2026-02-19 21:44:19,612 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 0 proxies, 0 chains (Total Lines: 1, Failures: 0)
+2026-02-19 21:44:19,613 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 0 proxies, 0 chains
+2026-02-19 21:44:19,615 - configstream.adapters - INFO - [-] - [adapters.py:303] - Quantumult X export summary: 0 proxies (Failures: 0)
+2026-02-19 21:44:19,617 - configstream.adapters - INFO - [-] - [adapters.py:820] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-19 21:44:19,623 - configstream.output_logic - INFO - [-] - [output_logic.py:1176] - Generated 48 output files (including all variations).
+2026-02-19 21:44:19,632 - configstream.intelligence.vectors - INFO - [-] - [vectors.py:109] - Generated static vectors for 0 proxies
+2026-02-19 21:44:19,635 - configstream.history.export - INFO - [-] - [export.py:58] - Exported history visualization data to /tmp/pytest-of-jules/pytest-1/test_failure_mode_cooldown0/out/data/proxy_history_viz.json
+2026-02-19 21:44:19,636 - configstream.history.export - INFO - [-] - [export.py:73] - Generating active proxy trend data...
+2026-02-19 21:44:19,638 - configstream.history.export - INFO - [-] - [export.py:130] - Exported active proxy trend data to /tmp/pytest-of-jules/pytest-1/test_failure_mode_cooldown0/out/data/active_proxy_trend.json
+2026-02-19 21:44:19,639 - configstream.history.export - INFO - [-] - [export.py:144] - Generating evasion trend data...
+2026-02-19 21:44:19,640 - configstream.history.export - INFO - [-] - [export.py:224] - Exported evasion trend data to /tmp/pytest-of-jules/pytest-1/test_failure_mode_cooldown0/out/data/evasion_trend.json (1 entries)
+2026-02-19 21:44:19,641 - configstream.output_handler - INFO - [-] - [output_handler.py:681] - Output generation complete. Files created in /tmp/pytest-of-jules/pytest-1/test_failure_mode_cooldown0/out
+2026-02-19 21:44:19,641 - configstream.pipeline - INFO - [-] - [pipeline.py:437] - Scheduler stats: {'total_entries': 0, 'valid_entries': 0, 'expired_entries': 0, 'average_health_score': 0.0, 'ttl_seconds': 1800}
+2026-02-19 21:44:19,642 - configstream.anomaly - INFO - [-] - [anomaly.py:279] - Anomaly stats: 0 sources tracked, 0 total records, 0 in last 24h
+2026-02-19 21:44:19,645 - configstream.test_cache - INFO - [-] - [test_cache.py:112] - Saved 0 entries to cache file: data/test_cache.json
+2026-02-19 21:44:19,688 - configstream.testers.go - INFO - [-] - [go.py:252] - Go Batch Tester shutdown complete.
+2026-02-19 21:44:19,689 - configstream.event_stream - INFO - [-] - [event_stream.py:32] - [stream_close] Event stream closing.
+2026-02-19 21:44:19,698 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 60
+2026-02-19 21:44:19,703 - configstream.test_cache - INFO - [-] - [test_cache.py:64] - Loaded 0 entries from cache file: data/test_cache.json
+2026-02-19 21:44:19,704 - configstream.pipeline - INFO - [-] - [pipeline.py:168] - Initializing security blocklists...
+2026-02-19 21:44:19,713 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-19 21:44:19,714 - configstream.pipeline - INFO - [-] - [pipeline.py:228] - Vwarp tunnel disabled by configuration.
+2026-02-19 21:44:19,714 - configstream.pipeline - INFO - [-] - [pipeline.py:239] - 🚀 Auto-scaling to 6 consumers based on 4 cores.
+2026-02-19 21:44:19,714 - configstream.pipeline - INFO - [-] - [pipeline.py:262] - Starting pipeline with 60 initial workers
+2026-02-19 21:44:19,723 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-19 21:44:19,724 - configstream.pipeline - WARNING - [-] - [pipeline.py:276] - Go tester unavailable - Falling back to Python tester. Starting global concurrency tuner.
+2026-02-19 21:44:19,724 - configstream.pipeline - INFO - [-] - [pipeline.py:290] - Starting pipeline with 6 parallel consumers
+2026-02-19 21:44:19,724 - configstream.pipeline - INFO - [-] - [pipeline.py:295] - Batch time limit enabled: 14400s (soft stop with partial output).
+2026-02-19 21:44:19,764 - configstream.consumer - INFO - [-] - [consumer.py:599] - Source Summary [/tmp/pytest-of-jules/pytest-1/test_failure_mode_anomaly_db_c0/sources.txt]: Raw=1 Parsed=1 Tested=1 Working=1 Dur=8ms
+2026-02-19 21:44:19,774 - configstream.sorter - INFO - [-] - [sorter.py:68] - Sorted 1 proxies using Pareto scoring (latency: avg=123.5ms, min=123.5ms, max=123.5ms)
+2026-02-19 21:44:19,775 - configstream.pipeline - INFO - [-] - [pipeline.py:427] - ⚠️ Top 5 Failing Sources:\n  - http://test: score=100.0, reason=High Failures\n  - https://example.com/sub: score=100.0, reason=High Failures\n  - /tmp/pytest-of-jules/pytest-0/test_mixed_protocols_dry_run0/mixed_sources.txt: score=0.0, reason=Low Reliability\n  - /tmp/pytest-of-jules/pytest-0/test_full_pipeline_with_local_0/source.txt: score=0.0, reason=Low Reliability\n  - /tmp/pytest-of-jules/pytest-0/test_failure_mode_anomaly_db_c0/sources.txt: score=0.0, reason=Low Reliability
+2026-02-19 21:44:19,776 - configstream.output_handler - INFO - [-] - [output_handler.py:386] - Starting final output generation phase...
+2026-02-19 21:44:19,780 - configstream.output_handler - INFO - [-] - [output_handler.py:394] - Applying proxy tagging with template: {country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}
+2026-02-19 21:44:19,780 - configstream.tagging - INFO - [-] - [tagging.py:335] - Applying name template '{country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}' to 1 proxies...
+2026-02-19 21:44:19,781 - configstream.tagging - INFO - [-] - [tagging.py:367] - Tagged 1 proxies with template metadata
+2026-02-19 21:44:19,781 - configstream.geoip - INFO - [-] - [geoip.py:251] - GeoIP enrichment: 1/1 (100.0%) countries resolved, 1 cities, 0 ASNs
+2026-02-19 21:44:19,785 - configstream.output_handler - INFO - [-] - [output_handler.py:507] - WARP wrap skipped for all proxies (no valid WARP endpoints or keys found).
+2026-02-19 21:44:19,789 - configstream.intelligence.chaining - INFO - [-] - [chaining.py:828] - Enhanced smart chains generated: 0 chains across 9 categories. intranet=0, intranet_washed=0, ipv6=0, streamer=0, censorship_resistant=0, low_latency=0, high_anonymity=0, load_balanced=0
+2026-02-19 21:44:19,830 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 1 links (Reconstructed: 0)
+2026-02-19 21:44:19,831 - configstream.adapters - INFO - [-] - [adapters.py:303] - Quantumult X export summary: 1 proxies (Failures: 0)
+2026-02-19 21:44:19,833 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-19 21:44:19,836 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 1 proxies, 0 chains
+2026-02-19 21:44:19,837 - configstream.adapters - INFO - [-] - [adapters.py:820] - SIP008 export summary: 1 Shadowsocks servers
+2026-02-19 21:44:19,860 - configstream.generators.clash - INFO - [-] - [clash.py:96] - No valid proxies for Clash config generation; emitting minimal config
+2026-02-19 21:44:19,872 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 0 links (Reconstructed: 0)
+2026-02-19 21:44:19,874 - configstream.adapters - INFO - [-] - [adapters.py:303] - Quantumult X export summary: 0 proxies (Failures: 0)
+2026-02-19 21:44:19,876 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 0 proxies, 0 chains (Total Lines: 1, Failures: 0)
+2026-02-19 21:44:19,877 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 0 proxies, 0 chains
+2026-02-19 21:44:19,879 - configstream.adapters - INFO - [-] - [adapters.py:820] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-19 21:44:19,899 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 1 links (Reconstructed: 0)
+2026-02-19 21:44:19,901 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-19 21:44:19,903 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 1 proxies, 0 chains
+2026-02-19 21:44:19,905 - configstream.adapters - INFO - [-] - [adapters.py:303] - Quantumult X export summary: 1 proxies (Failures: 0)
+2026-02-19 21:44:19,907 - configstream.adapters - INFO - [-] - [adapters.py:820] - SIP008 export summary: 1 Shadowsocks servers
+2026-02-19 21:44:19,913 - configstream.output_logic - INFO - [-] - [output_logic.py:1176] - Generated 51 output files (including all variations).
+2026-02-19 21:44:19,923 - configstream.intelligence.vectors - INFO - [-] - [vectors.py:109] - Generated static vectors for 1 proxies
+2026-02-19 21:44:19,926 - configstream.history.export - INFO - [-] - [export.py:58] - Exported history visualization data to /tmp/pytest-of-jules/pytest-1/test_failure_mode_anomaly_db_c0/out/data/proxy_history_viz.json
+2026-02-19 21:44:19,927 - configstream.history.export - INFO - [-] - [export.py:73] - Generating active proxy trend data...
+2026-02-19 21:44:19,929 - configstream.history.export - INFO - [-] - [export.py:130] - Exported active proxy trend data to /tmp/pytest-of-jules/pytest-1/test_failure_mode_anomaly_db_c0/out/data/active_proxy_trend.json
+2026-02-19 21:44:19,929 - configstream.history.export - INFO - [-] - [export.py:144] - Generating evasion trend data...
+2026-02-19 21:44:19,931 - configstream.history.export - INFO - [-] - [export.py:224] - Exported evasion trend data to /tmp/pytest-of-jules/pytest-1/test_failure_mode_anomaly_db_c0/out/data/evasion_trend.json (1 entries)
+2026-02-19 21:44:19,932 - configstream.output_handler - INFO - [-] - [output_handler.py:681] - Output generation complete. Files created in /tmp/pytest-of-jules/pytest-1/test_failure_mode_anomaly_db_c0/out
+2026-02-19 21:44:19,932 - configstream.pipeline - INFO - [-] - [pipeline.py:437] - Scheduler stats: {'total_entries': 0, 'valid_entries': 0, 'expired_entries': 0, 'average_health_score': 0.0, 'ttl_seconds': 1800}
+2026-02-19 21:44:19,933 - configstream.anomaly - INFO - [-] - [anomaly.py:279] - Anomaly stats: 0 sources tracked, 0 total records, 0 in last 24h
+2026-02-19 21:44:19,936 - configstream.test_cache - INFO - [-] - [test_cache.py:112] - Saved 0 entries to cache file: data/test_cache.json
+2026-02-19 21:44:19,979 - configstream.testers.go - INFO - [-] - [go.py:252] - Go Batch Tester shutdown complete.
+2026-02-19 21:44:19,979 - configstream.event_stream - INFO - [-] - [event_stream.py:32] - [stream_close] Event stream closing.
+2026-02-19 21:44:19,988 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 60
+2026-02-19 21:44:19,992 - configstream.test_cache - INFO - [-] - [test_cache.py:64] - Loaded 0 entries from cache file: data/test_cache.json
+2026-02-19 21:44:19,996 - configstream.pipeline - INFO - [-] - [pipeline.py:168] - Initializing security blocklists...
+2026-02-19 21:44:20,004 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-19 21:44:20,005 - configstream.pipeline - INFO - [-] - [pipeline.py:228] - Vwarp tunnel disabled by configuration.
+2026-02-19 21:44:20,005 - configstream.pipeline - INFO - [-] - [pipeline.py:239] - 🚀 Auto-scaling to 6 consumers based on 4 cores.
+2026-02-19 21:44:20,005 - configstream.pipeline - INFO - [-] - [pipeline.py:262] - Starting pipeline with 60 initial workers
+2026-02-19 21:44:20,014 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-19 21:44:20,015 - configstream.pipeline - WARNING - [-] - [pipeline.py:276] - Go tester unavailable - Falling back to Python tester. Starting global concurrency tuner.
+2026-02-19 21:44:20,015 - configstream.pipeline - INFO - [-] - [pipeline.py:290] - Starting pipeline with 6 parallel consumers
+2026-02-19 21:44:20,015 - configstream.pipeline - INFO - [-] - [pipeline.py:295] - Batch time limit enabled: 14400s (soft stop with partial output).
+2026-02-19 21:44:20,051 - configstream.consumer - INFO - [-] - [consumer.py:599] - Source Summary [/tmp/pytest-of-jules/pytest-1/test_failure_mode_vt_missing0/sources.txt]: Raw=1 Parsed=1 Tested=1 Working=1 Dur=7ms
+2026-02-19 21:44:20,061 - configstream.sorter - INFO - [-] - [sorter.py:68] - Sorted 1 proxies using Pareto scoring (latency: avg=123.5ms, min=123.5ms, max=123.5ms)
+2026-02-19 21:44:20,061 - configstream.pipeline - INFO - [-] - [pipeline.py:427] - ⚠️ Top 5 Failing Sources:\n  - http://test: score=100.0, reason=High Failures\n  - https://example.com/sub: score=100.0, reason=High Failures\n  - /tmp/pytest-of-jules/pytest-0/test_mixed_protocols_dry_run0/mixed_sources.txt: score=0.0, reason=Low Reliability\n  - /tmp/pytest-of-jules/pytest-0/test_full_pipeline_with_local_0/source.txt: score=0.0, reason=Low Reliability\n  - /tmp/pytest-of-jules/pytest-0/test_failure_mode_anomaly_db_c0/sources.txt: score=0.0, reason=Low Reliability
+2026-02-19 21:44:20,062 - configstream.output_handler - INFO - [-] - [output_handler.py:386] - Starting final output generation phase...
+2026-02-19 21:44:20,067 - configstream.output_handler - INFO - [-] - [output_handler.py:394] - Applying proxy tagging with template: {country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}
+2026-02-19 21:44:20,067 - configstream.tagging - INFO - [-] - [tagging.py:335] - Applying name template '{country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}' to 1 proxies...
+2026-02-19 21:44:20,067 - configstream.tagging - INFO - [-] - [tagging.py:367] - Tagged 1 proxies with template metadata
+2026-02-19 21:44:20,068 - configstream.geoip - INFO - [-] - [geoip.py:251] - GeoIP enrichment: 1/1 (100.0%) countries resolved, 1 cities, 0 ASNs
+2026-02-19 21:44:20,072 - configstream.output_handler - INFO - [-] - [output_handler.py:507] - WARP wrap skipped for all proxies (no valid WARP endpoints or keys found).
+2026-02-19 21:44:20,076 - configstream.intelligence.chaining - INFO - [-] - [chaining.py:828] - Enhanced smart chains generated: 0 chains across 9 categories. intranet=0, intranet_washed=0, ipv6=0, streamer=0, censorship_resistant=0, low_latency=0, high_anonymity=0, load_balanced=0
+2026-02-19 21:44:20,117 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 1 links (Reconstructed: 0)
+2026-02-19 21:44:20,119 - configstream.adapters - INFO - [-] - [adapters.py:303] - Quantumult X export summary: 1 proxies (Failures: 0)
+2026-02-19 21:44:20,121 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-19 21:44:20,124 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 1 proxies, 0 chains
+2026-02-19 21:44:20,126 - configstream.adapters - INFO - [-] - [adapters.py:820] - SIP008 export summary: 1 Shadowsocks servers
+2026-02-19 21:44:20,149 - configstream.generators.clash - INFO - [-] - [clash.py:96] - No valid proxies for Clash config generation; emitting minimal config
+2026-02-19 21:44:20,161 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 0 links (Reconstructed: 0)
+2026-02-19 21:44:20,162 - configstream.adapters - INFO - [-] - [adapters.py:303] - Quantumult X export summary: 0 proxies (Failures: 0)
+2026-02-19 21:44:20,164 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 0 proxies, 0 chains (Total Lines: 1, Failures: 0)
+2026-02-19 21:44:20,165 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 0 proxies, 0 chains
+2026-02-19 21:44:20,167 - configstream.adapters - INFO - [-] - [adapters.py:820] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-19 21:44:20,187 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 1 links (Reconstructed: 0)
+2026-02-19 21:44:20,189 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-19 21:44:20,191 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 1 proxies, 0 chains
+2026-02-19 21:44:20,193 - configstream.adapters - INFO - [-] - [adapters.py:303] - Quantumult X export summary: 1 proxies (Failures: 0)
+2026-02-19 21:44:20,195 - configstream.adapters - INFO - [-] - [adapters.py:820] - SIP008 export summary: 1 Shadowsocks servers
+2026-02-19 21:44:20,201 - configstream.output_logic - INFO - [-] - [output_logic.py:1176] - Generated 51 output files (including all variations).
+2026-02-19 21:44:20,211 - configstream.intelligence.vectors - INFO - [-] - [vectors.py:109] - Generated static vectors for 1 proxies
+2026-02-19 21:44:20,213 - configstream.history.export - INFO - [-] - [export.py:58] - Exported history visualization data to /tmp/pytest-of-jules/pytest-1/test_failure_mode_vt_missing0/out/data/proxy_history_viz.json
+2026-02-19 21:44:20,214 - configstream.history.export - INFO - [-] - [export.py:73] - Generating active proxy trend data...
+2026-02-19 21:44:20,216 - configstream.history.export - INFO - [-] - [export.py:130] - Exported active proxy trend data to /tmp/pytest-of-jules/pytest-1/test_failure_mode_vt_missing0/out/data/active_proxy_trend.json
+2026-02-19 21:44:20,217 - configstream.history.export - INFO - [-] - [export.py:144] - Generating evasion trend data...
+2026-02-19 21:44:20,219 - configstream.history.export - INFO - [-] - [export.py:224] - Exported evasion trend data to /tmp/pytest-of-jules/pytest-1/test_failure_mode_vt_missing0/out/data/evasion_trend.json (1 entries)
+2026-02-19 21:44:20,219 - configstream.output_handler - INFO - [-] - [output_handler.py:681] - Output generation complete. Files created in /tmp/pytest-of-jules/pytest-1/test_failure_mode_vt_missing0/out
+2026-02-19 21:44:20,220 - configstream.pipeline - INFO - [-] - [pipeline.py:437] - Scheduler stats: {'total_entries': 0, 'valid_entries': 0, 'expired_entries': 0, 'average_health_score': 0.0, 'ttl_seconds': 1800}
+2026-02-19 21:44:20,221 - configstream.anomaly - INFO - [-] - [anomaly.py:279] - Anomaly stats: 0 sources tracked, 0 total records, 0 in last 24h
+2026-02-19 21:44:20,223 - configstream.test_cache - INFO - [-] - [test_cache.py:112] - Saved 0 entries to cache file: data/test_cache.json
+2026-02-19 21:44:20,267 - configstream.testers.go - INFO - [-] - [go.py:252] - Go Batch Tester shutdown complete.
+2026-02-19 21:44:20,267 - configstream.event_stream - INFO - [-] - [event_stream.py:32] - [stream_close] Event stream closing.
+2026-02-19 21:44:20,314 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-19 21:44:20,334 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-19 21:44:20,343 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-19 21:44:20,351 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-19 21:44:20,359 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-19 21:44:20,360 - configstream.testers.manager - INFO - [-] - [manager.py:175] - Fallback: Testing batch of 1 proxies using Python tester
+2026-02-19 21:44:20,368 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: configstream-tester, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-19 21:44:20,385 - configstream.output_transport - INFO - [-] - [output_transport.py:92] - ✅ Successfully injected new Stego Key into app.js
+2026-02-19 21:44:20,398 - configstream.testers.python - WARNING - [-] - [python.py:227] - Skipping test: 'singbox2proxy' library not found. Install it or use the Go tester.
+2026-02-19 21:44:20,403 - configstream.warp_scanner - INFO - [-] - [warp_scanner.py:73] - Scanner disabled: Running in CI environment. Set FORCE_SCANNER=true to override (not recommended). Falling back to static IP lists.
+2026-02-19 21:44:20,404 - configstream.warp_scanner - INFO - [-] - [warp_scanner.py:48] - WarpScannerWorker: Scanner disabled by CI policy.
+2026-02-19 21:44:20,407 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:80] - Scanner FORCE ENABLED in CI. This may cause pipeline failures due to UDP firewall blocks or rate limiting.
+2026-02-19 21:44:20,414 - configstream.warp_scanner - INFO - [-] - [warp_scanner.py:130] - Warp scan skipped: active scanning is disabled (ALLOW_ACTIVE_SCANNING=false).
+2026-02-19 21:44:20,421 - configstream.warp_scanner - INFO - [-] - [warp_scanner.py:153] - Starting active WARP scan (Target: 2 IPs, Timeout: 5s)...
+2026-02-19 21:44:20,422 - configstream.warp_scanner - INFO - [-] - [warp_scanner.py:215] - Active scan completed. Found 1 valid IPs (Request: 2, Max Latency: 800ms).
+2026-02-19 21:44:20,429 - configstream.warp_scanner - INFO - [-] - [warp_scanner.py:153] - Starting active WARP scan (Target: 50 IPs, Timeout: 5s)...
+2026-02-19 21:44:20,430 - configstream.warp_scanner - ERROR - [-] - [warp_scanner.py:171] - Scanner binary exited with error code 1
+2026-02-19 21:44:20,430 - configstream.warp_scanner - ERROR - [-] - [warp_scanner.py:173] - Scanner stderr: Error
+2026-02-19 21:44:20,440 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 503 Service Unavailable"
+2026-02-19 21:44:20,443 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 503 Service Unavailable"
+2026-02-19 21:44:20,445 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 503 Service Unavailable"
+2026-02-19 21:44:20,447 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 503 Service Unavailable"
+2026-02-19 21:44:20,449 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 503 Service Unavailable"
+2026-02-19 21:44:20,451 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 503 Service Unavailable"
+2026-02-19 21:44:20,454 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 503 Service Unavailable"
+2026-02-19 21:44:20,456 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 503 Service Unavailable"
+2026-02-19 21:44:20,458 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 503 Service Unavailable"
+2026-02-19 21:44:20,460 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 503 Service Unavailable"
+2026-02-19 21:44:20,462 - slowapi - WARNING - [-] - [extension.py:510] - ratelimit 10 per 1 minute (testclient) exceeded at endpoint: /api/proxies
+2026-02-19 21:44:20,463 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 429 Too Many Requests"
+2026-02-19 21:44:20,464 - slowapi - WARNING - [-] - [extension.py:510] - ratelimit 10 per 1 minute (testclient) exceeded at endpoint: /api/proxies
+2026-02-19 21:44:20,465 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 429 Too Many Requests"
+2026-02-19 21:44:20,474 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 404 Not Found"
+2026-02-19 21:44:20,476 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 404 Not Found"
+2026-02-19 21:44:20,478 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 404 Not Found"
+2026-02-19 21:44:20,480 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 404 Not Found"
+2026-02-19 21:44:20,482 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 404 Not Found"
+2026-02-19 21:44:20,483 - slowapi - WARNING - [-] - [extension.py:510] - ratelimit 5 per 1 minute (testclient) exceeded at endpoint: /subscribe/base64
+2026-02-19 21:44:20,484 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 429 Too Many Requests"
+2026-02-19 21:44:20,485 - slowapi - WARNING - [-] - [extension.py:510] - ratelimit 5 per 1 minute (testclient) exceeded at endpoint: /subscribe/base64
+2026-02-19 21:44:20,486 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[BASE64] "HTTP/1.1 429 Too Many Requests"
+2026-02-19 21:44:20,494 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:44:20,496 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:44:20,499 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:44:20,501 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:44:20,503 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:44:20,505 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:44:20,506 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:44:20,508 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:44:20,510 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:44:20,512 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:44:20,514 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:44:20,516 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:44:20,517 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:44:20,519 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:44:20,521 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:44:20,523 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:44:20,525 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:44:20,526 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:44:20,528 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:44:20,530 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-02-19 21:44:20,538 - configstream.intelligence.washer.warp_scraper - INFO - [-] - [warp_scraper.py:223] - Scraped 2 clean endpoints from test
+2026-02-19 21:44:20,544 - configstream.intelligence.washer.warp_scraper - INFO - [-] - [warp_scraper.py:245] - Scraped 1 WARP configs from test
+2026-02-19 21:44:20,550 - configstream.intelligence.washer.warp_scraper - INFO - [-] - [warp_scraper.py:245] - Scraped 1 WARP configs from test
+2026-02-19 21:44:20,561 - configstream.converters.singbox - WARNING - [-] - [singbox.py:292] - Dropping VLESS proxy missing UUID: example.com:443. Source: unknown
+2026-02-19 21:44:20,567 - configstream.converters.singbox - WARNING - [-] - [singbox.py:74] - Dropping proxy with garbage Shadowsocks method: 'un;k'
+2026-02-19 21:44:20,567 - configstream.converters.singbox - WARNING - [-] - [singbox.py:74] - Dropping proxy with garbage Shadowsocks method: '}k'
+2026-02-19 21:44:20,584 - configstream.converters.singbox - WARNING - [-] - [singbox.py:74] - Dropping proxy with unknown Shadowsocks method: 'garbage'
+2026-02-19 21:44:20,588 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 60
+2026-02-19 21:44:20,590 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 40 (CI)
+2026-02-19 21:44:20,592 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 26
+2026-02-19 21:44:20,595 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 150
+2026-02-19 21:44:20,596 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 50 (CI)
+2026-02-19 21:44:20,598 - configstream.adaptive_workers - WARNING - [-] - [adaptive_workers.py:73] - Failed to calculate optimal workers: Error
+2026-02-19 21:44:20,609 - configstream.security.blocklist - INFO - [-] - [blocklist.py:137] - Loaded 2 blocked networks from FireHol Level 1.
+2026-02-19 21:44:20,683 - configstream.intelligence.washer.core - WARNING - [-] - [core.py:746] - Dropped 1 invalid WARP private keys during normalization.
+2026-02-19 21:44:20,684 - configstream.intelligence.washer.core - INFO - [-] - [core.py:658] - Loaded 1 WARP keys for washing
+2026-02-19 21:44:20,692 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-19 21:44:20,697 - configstream.intelligence.washer.core - WARNING - [-] - [core.py:746] - Dropped 1 invalid WARP private keys during normalization.
+2026-02-19 21:44:20,698 - configstream.intelligence.washer.core - INFO - [-] - [core.py:658] - Loaded 1 WARP keys for washing
+2026-02-19 21:44:20,706 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-19 21:44:20,713 - configstream.intelligence.washer.core - WARNING - [-] - [core.py:746] - Dropped 1 invalid WARP private keys during normalization.
+2026-02-19 21:44:20,714 - configstream.intelligence.washer.core - INFO - [-] - [core.py:658] - Loaded 1 WARP keys for washing
+2026-02-19 21:44:20,722 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-19 21:44:20,725 - configstream.intelligence.washer.core - WARNING - [-] - [core.py:746] - Dropped 1 invalid WARP private keys during normalization.
+2026-02-19 21:44:20,725 - configstream.intelligence.washer.core - INFO - [-] - [core.py:658] - Loaded 1 WARP keys for washing
+2026-02-19 21:44:20,733 - configstream.warp_scanner - WARNING - [-] - [warp_scanner.py:50] - WarpScannerWorker: Go binary not found. Active scanning will be disabled.
+2026-02-19 21:44:20,770 - configstream.history.storage - ERROR - [-] - [storage.py:32] - History file too large: 105906176 bytes (max: 104857600)
+2026-02-19 21:44:20,772 - configstream.history.storage - WARNING - [-] - [storage.py:41] - Failed to load proxy history: unexpected character: line 1 column 1 (char 0)
+2026-02-19 21:44:20,775 - configstream.history.storage - ERROR - [-] - [storage.py:51] - Failed to save proxy history: Fail
+2026-02-19 21:44:20,784 - configstream.history.export - INFO - [-] - [export.py:58] - Exported history visualization data to /tmp/pytest-of-jules/pytest-1/test_export_visualization0/viz.json
+2026-02-19 21:44:20,788 - configstream.history.export - INFO - [-] - [export.py:73] - Generating active proxy trend data...
+2026-02-19 21:44:20,790 - configstream.history.export - INFO - [-] - [export.py:130] - Exported active proxy trend data to /tmp/pytest-of-jules/pytest-1/test_export_active_trend0/trend.json
+2026-02-19 21:44:20,792 - configstream.history.export - INFO - [-] - [export.py:73] - Generating active proxy trend data...
+2026-02-19 21:44:20,792 - configstream.history.export - WARNING - [-] - [export.py:107] - No working proxy data found for trend analysis.
+2026-02-19 21:44:20,807 - configstream.intelligence.chaining - INFO - [-] - [chaining.py:828] - Enhanced smart chains generated: 7 chains across 9 categories. intranet=1, intranet_washed=0, ipv6=0, streamer=1, censorship_resistant=1, low_latency=0, high_anonymity=0, load_balanced=3
+2026-02-19 21:44:20,812 - configstream.intelligence.vectors - INFO - [-] - [vectors.py:109] - Generated static vectors for 1 proxies
+2026-02-19 21:44:20,815 - configstream.intelligence.vectors - ERROR - [-] - [vectors.py:111] - Failed to generate vectors: Fail
+2026-02-19 21:44:20,890 - configstream.quality.storage - INFO - [-] - [storage.py:429] - Merged source stats from /tmp/pytest-of-jules/pytest-1/test_storage_merge0/q2.db
+2026-02-19 21:44:20,893 - configstream.quality.storage - ERROR - [-] - [storage.py:111] - Error initializing source quality DB: DB Error
+2026-02-19 21:44:20,893 - configstream.quality.storage - ERROR - [-] - [storage.py:256] - Failed to update stats for url: DB Error
+2026-02-19 21:44:20,894 - configstream.quality.storage - ERROR - [-] - [storage.py:157] - Error getting source state for url: DB Error
+2026-02-19 21:44:20,947 - configstream.security.censorship - INFO - [-] - [censorship.py:48] - Successfully connected to https://example.com
+2026-02-19 21:44:20,990 - configstream.security.censorship - WARNING - [-] - [censorship.py:51] - Failed to connect to https://example.com: Connection refused
+2026-02-19 21:44:20,995 - configstream.security.rules - WARNING - [-] - [rules.py:110] - Suspicious address pattern found: suspicious.com
+2026-02-19 21:44:20,995 - configstream.security.rules - WARNING - [-] - [rules.py:110] - Suspicious address pattern found: sub.suspicious.com
+2026-02-19 21:44:20,995 - configstream.security.rules - WARNING - [-] - [rules.py:136] - Non-standard IP notation (possible DNS rebinding): 0x7f000001
+2026-02-19 21:44:20,996 - configstream.security.rules - WARNING - [-] - [rules.py:148] - Non-standard IP notation (possible DNS rebinding): 0127.0.0.1
+2026-02-19 21:44:20,996 - configstream.security.rules - WARNING - [-] - [rules.py:100] - Private IP detected: [IP]
+2026-02-19 21:44:20,997 - configstream.security.rules - WARNING - [-] - [rules.py:100] - Private IP detected: [IP]
+2026-02-19 21:44:20,997 - configstream.security.rules - WARNING - [-] - [rules.py:100] - Private IP detected: [IP]
+2026-02-19 21:44:20,997 - configstream.security.rules - WARNING - [-] - [rules.py:191] - Special or private address detected: localhost
+2026-02-19 21:44:20,998 - configstream.security.rules - WARNING - [-] - [rules.py:100] - Private IP detected: [IP]
+2026-02-19 21:44:20,999 - configstream.security.rules - WARNING - [-] - [rules.py:203] - Unknown protocol detected: unknown
+2026-02-19 21:44:21,001 - configstream.security.rules - ERROR - [-] - [rules.py:218] - Null byte detected in config
+2026-02-19 21:44:21,001 - configstream.security.rules - WARNING - [-] - [rules.py:226] - Config too long: 10001 chars
+2026-02-19 21:44:21,006 - configstream.security.utls_wrapper - INFO - [-] - [utls_wrapper.py:66] - Building uTLS client...
+2026-02-19 21:44:21,008 - configstream.security.utls_wrapper - WARNING - [-] - [utls_wrapper.py:54] - Go not found. Cannot build uTLS client.
+2026-02-19 21:44:21,018 - configstream.security.virus_total - WARNING - [-] - [virus_total.py:34] - VirusTotal scan skipped: api key not found
+2026-02-19 21:44:25,142 - configstream.security.virus_total - ERROR - [-] - [virus_total.py:146] - VirusTotal API error: 429
+2026-02-19 21:44:25,150 - configstream.security.virus_total - ERROR - [-] - [virus_total.py:149] - VirusTotal check failed: Network timeout
+2026-02-19 21:44:29,334 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 1 proxies, 0 chains
+2026-02-19 21:44:29,336 - configstream.adapters - INFO - [-] - [adapters.py:303] - Quantumult X export summary: 1 proxies (Failures: 0)
+2026-02-19 21:44:29,337 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-19 21:44:29,340 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-19 21:44:29,341 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-19 21:44:29,343 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-19 21:44:29,344 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-19 21:44:29,345 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-19 21:44:29,347 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-19 21:44:29,348 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-19 21:44:29,350 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 0 proxies, 0 chains (Total Lines: 1, Failures: 0)
+2026-02-19 21:44:29,351 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-19 21:44:29,353 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 1 proxies, 1 chains (Total Lines: 3, Failures: 0)
+2026-02-19 21:44:29,356 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 0 proxies, 0 chains (Total Lines: 1, Failures: 1)
+2026-02-19 21:44:29,358 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 1 proxies, 0 chains
+2026-02-19 21:44:29,359 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 1 proxies, 0 chains
+2026-02-19 21:44:29,360 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 1 proxies, 0 chains
+2026-02-19 21:44:29,362 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 1 proxies, 0 chains
+2026-02-19 21:44:29,363 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 0 proxies, 0 chains
+2026-02-19 21:44:29,364 - configstream.adapters - INFO - [-] - [adapters.py:303] - Quantumult X export summary: 1 proxies (Failures: 0)
+2026-02-19 21:44:29,366 - configstream.adapters - INFO - [-] - [adapters.py:303] - Quantumult X export summary: 1 proxies (Failures: 0)
+2026-02-19 21:44:29,367 - configstream.adapters - INFO - [-] - [adapters.py:303] - Quantumult X export summary: 1 proxies (Failures: 0)
+2026-02-19 21:44:29,369 - configstream.adapters - INFO - [-] - [adapters.py:820] - SIP008 export summary: 1 Shadowsocks servers
+2026-02-19 21:44:29,370 - configstream.adapters - INFO - [-] - [adapters.py:820] - SIP008 export summary: 1 Shadowsocks servers
+2026-02-19 21:44:29,372 - configstream.adapters - INFO - [-] - [adapters.py:820] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-19 21:44:29,373 - configstream.adapters - INFO - [-] - [adapters.py:820] - SIP008 export summary: 5 Shadowsocks servers
+2026-02-19 21:44:29,375 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 1 links (Reconstructed: 1)
+2026-02-19 21:44:29,376 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 1 links (Reconstructed: 1)
+2026-02-19 21:44:29,378 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 1 links (Reconstructed: 0)
+2026-02-19 21:44:29,379 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 1 links (Reconstructed: 0)
+2026-02-19 21:44:29,381 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 0 links (Reconstructed: 0)
+2026-02-19 21:44:29,382 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 0 links (Reconstructed: 0)
+2026-02-19 21:44:29,383 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 1 links (Reconstructed: 0)
+2026-02-19 21:44:29,394 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 0 proxies, 0 chains (Total Lines: 1, Failures: 0)
+2026-02-19 21:44:29,394 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 0 proxies, 0 chains
+2026-02-19 21:44:29,395 - configstream.adapters - INFO - [-] - [adapters.py:303] - Quantumult X export summary: 0 proxies (Failures: 0)
+2026-02-19 21:44:29,395 - configstream.adapters - INFO - [-] - [adapters.py:820] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-19 21:44:29,395 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 0 links (Reconstructed: 0)
+2026-02-19 21:44:29,396 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-19 21:44:29,397 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 1 proxies, 0 chains
+2026-02-19 21:44:29,397 - configstream.adapters - INFO - [-] - [adapters.py:303] - Quantumult X export summary: 1 proxies (Failures: 0)
+2026-02-19 21:44:29,397 - configstream.adapters - INFO - [-] - [adapters.py:820] - SIP008 export summary: 0 Shadowsocks servers
+2026-02-19 21:44:29,397 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 1 links (Reconstructed: 0)
+2026-02-19 21:44:29,399 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 1 proxies, 0 chains (Total Lines: 2, Failures: 0)
+2026-02-19 21:44:29,402 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 3 proxies, 0 chains (Total Lines: 4, Failures: 0)
+2026-02-19 21:44:29,403 - configstream.adapters - INFO - [-] - [adapters.py:303] - Quantumult X export summary: 3 proxies (Failures: 0)
+2026-02-19 21:44:29,405 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 3 proxies, 0 chains
+2026-02-19 21:44:29,406 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 3 links (Reconstructed: 0)
+2026-02-19 21:44:29,408 - configstream.adapters - INFO - [-] - [adapters.py:820] - SIP008 export summary: 1 Shadowsocks servers
+2026-02-19 21:44:29,409 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 3 proxies, 0 chains (Total Lines: 4, Failures: 0)
+2026-02-19 21:44:29,411 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 2 proxies, 0 chains (Total Lines: 3, Failures: 0)
+2026-02-19 21:44:29,413 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 2 proxies, 0 chains
+2026-02-19 21:44:29,414 - configstream.adapters - INFO - [-] - [adapters.py:303] - Quantumult X export summary: 2 proxies (Failures: 0)
+2026-02-19 21:44:29,416 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 2 links (Reconstructed: 0)
+2026-02-19 21:44:29,417 - configstream.adapters - INFO - [-] - [adapters.py:820] - SIP008 export summary: 1 Shadowsocks servers
+2026-02-19 21:44:29,421 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 2 links (Reconstructed: 0)
+2026-02-19 21:44:29,499 - configstream.adaptive_timeout - WARNING - [-] - [adaptive_timeout.py:161] - Failed to save timeout history: Fail
+2026-02-19 21:44:29,506 - configstream.adaptive_workers - INFO - [-] - [adaptive_workers.py:69] - Auto-calculated optimal workers: 60
+2026-02-19 21:44:29,579 - configstream.anomaly - WARNING - [-] - [anomaly.py:227] - Subnet Flood detected: [IP]/24 accounts for 95/100 proxies.
+2026-02-19 21:44:29,593 - configstream.anomaly - INFO - [-] - [anomaly.py:327] - Merged anomaly stats from /tmp/pytest-of-jules/pytest-1/test_merge_from0/other.db
+2026-02-19 21:44:29,632 - configstream.anomaly - WARNING - [-] - [anomaly.py:90] - Anomaly DB connection lost (DB Execution Error), reconnecting...
+2026-02-19 21:44:29,635 - configstream.anomaly - ERROR - [-] - [anomaly.py:186] - Anomaly DB error for http://test: Reconnection Failed - allowing source (fail-open behaviour)
+2026-02-19 21:44:29,664 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 0 proxies, 1 chains (Total Lines: 2, Failures: 0)
+2026-02-19 21:44:29,666 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 0 proxies, 1 chains (Total Lines: 2, Failures: 0)
+2026-02-19 21:44:29,668 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 0 proxies, 1 chains (Total Lines: 2, Failures: 0)
+2026-02-19 21:44:29,669 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 0 proxies, 1 chains (Total Lines: 2, Failures: 0)
+2026-02-19 21:44:29,671 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 0 proxies, 1 chains
+2026-02-19 21:44:29,672 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 0 proxies, 1 chains
+2026-02-19 21:44:29,674 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 0 proxies, 1 chains
+2026-02-19 21:44:29,676 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 0 proxies, 1 chains
+2026-02-19 21:44:29,702 - configstream.async_file_ops - WARNING - [-] - [async_file_ops.py:57] - Failed to read /tmp/pytest-of-jules/pytest-1/test_read_multiple_files_async0/missing.txt: File not found: /tmp/pytest-of-jules/pytest-1/test_read_multiple_files_async0/missing.txt
+2026-02-19 21:44:29,726 - configstream.backup - INFO - [-] - [backup.py:120] - Backed up test.db -> test_20260219_214429.db.gz (0.00 MB)
+2026-02-19 21:44:29,727 - configstream.backup - INFO - [-] - [backup.py:141] - Backup complete: 1 databases backed up
+2026-02-19 21:44:29,738 - configstream.backup - INFO - [-] - [backup.py:120] - Backed up test.db -> test_20260219_214429.db.gz (0.00 MB)
+2026-02-19 21:44:29,739 - configstream.backup - INFO - [-] - [backup.py:141] - Backup complete: 1 databases backed up
+2026-02-19 21:44:29,741 - configstream.backup - WARNING - [-] - [backup.py:53] - No database files found in /tmp/pytest-of-jules/pytest-1/test_backup_databases_no_files0/data
+2026-02-19 21:44:29,744 - configstream.backup - INFO - [-] - [backup.py:222] - Cleaned up 2 old backup files (smart retention)
+2026-02-19 21:44:29,757 - configstream.backup - INFO - [-] - [backup.py:249] - Created pre-restore backup: target.pre_restore_20260219_214429.db
+2026-02-19 21:44:29,758 - configstream.backup - INFO - [-] - [backup.py:263] - Restored target.db from backup.db
+2026-02-19 21:44:29,761 - configstream.backup - ERROR - [-] - [backup.py:239] - Backup file does not exist: /tmp/pytest-of-jules/pytest-1/test_restore_missing_backup0/backups/missing.db
+2026-02-19 21:44:29,782 - configstream.backup - ERROR - [-] - [backup.py:133] - Failed to backup /tmp/pytest-of-jules/pytest-1/test_sqlite_backup_fail0/data/fail.db: Connect Fail
+2026-02-19 21:44:29,782 - configstream.backup - INFO - [-] - [backup.py:141] - Backup complete: 0 databases backed up
+2026-02-19 21:44:29,800 - configstream.bot_cli - ERROR - [-] - [bot_cli.py:81] - Error generating WARP: Fail
+2026-02-19 21:44:31,342 - configstream.consumer - INFO - [-] - [consumer.py:599] - Source Summary [test-source]: Raw=1 Parsed=1 Tested=1 Working=1 Dur=4ms
+2026-02-19 21:44:31,352 - configstream.dns_batch_resolver - INFO - [-] - [dns_batch_resolver.py:72] - Batch DNS: Resolved 2 of 2 hostnames.
+2026-02-19 21:44:31,355 - configstream.dns_batch_resolver - INFO - [-] - [dns_batch_resolver.py:72] - Batch DNS: Resolved 0 of 0 hostnames.
+2026-02-19 21:44:31,359 - configstream.dns_batch_resolver - INFO - [-] - [dns_batch_resolver.py:72] - Batch DNS: Resolved 0 of 1 hostnames.
+2026-02-19 21:44:31,367 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 1 links (Reconstructed: 1)
+2026-02-19 21:44:31,367 - configstream.adapters - INFO - [-] - [adapters.py:559] - Shadowrocket export summary: 1 links (Reconstructed: 1)
+2026-02-19 21:44:34,535 - configstream.fetcher - INFO - [-] - [fetcher.py:351] - Pre-warming DNS for 1 sources...
+2026-02-19 21:44:34,538 - configstream.fetcher - INFO - [-] - [fetcher.py:356] - DNS pre-warming completed in 0.00s.
+2026-02-19 21:44:34,538 - configstream.fetcher - INFO - [-] - [fetcher.py:377] - Starting parallel fetch for 1 sources (max_concurrent=1)
+2026-02-19 21:44:34,585 - configstream.fetcher - INFO - [-] - [fetcher.py:399] - Batch fetch completed in 0.05s
+2026-02-19 21:44:34,586 - configstream.fetcher - INFO - [-] - [fetcher.py:409] - Fetch Summary: 1/1 sources successful. Total data fetched: 0.00 KB
+2026-02-19 21:44:34,596 - configstream.fetcher - INFO - [-] - [fetcher.py:351] - Pre-warming DNS for 1 sources...
+2026-02-19 21:44:34,597 - configstream.fetcher - INFO - [-] - [fetcher.py:356] - DNS pre-warming completed in 0.00s.
+2026-02-19 21:44:34,597 - configstream.fetcher - INFO - [-] - [fetcher.py:377] - Starting parallel fetch for 1 sources (max_concurrent=10)
+2026-02-19 21:44:34,597 - configstream.fetcher - INFO - [-] - [fetcher.py:399] - Batch fetch completed in 0.00s
+2026-02-19 21:44:34,598 - configstream.fetcher - INFO - [-] - [fetcher.py:409] - Fetch Summary: 1/1 sources successful. Total data fetched: 0.00 KB
+2026-02-19 21:44:35,429 - configstream.filtering - INFO - [-] - [filtering.py:172] - Endpoint filtering: 3 -> 2 (1 duplicate endpoints removed)
+2026-02-19 21:44:35,450 - configstream.filtering - INFO - [-] - [filtering.py:109] - Deduplication: 3 -> 2 (1 duplicates removed)
+2026-02-19 21:44:35,457 - configstream.filtering - INFO - [-] - [filtering.py:109] - Deduplication: 2 -> 1 (1 duplicates removed)
+2026-02-19 21:44:35,464 - configstream.filtering - INFO - [-] - [filtering.py:172] - Endpoint filtering: 2 -> 1 (1 duplicate endpoints removed)
+2026-02-19 21:44:35,479 - configstream.geoip - INFO - [-] - [geoip.py:81] - GeoIP C extension (MMAP_EXT) available - lock-free lookups enabled
+2026-02-19 21:44:35,480 - configstream.geoip - INFO - [-] - [geoip.py:101] - Loaded GeoLite2 City database.
+2026-02-19 21:44:35,480 - configstream.geoip - ERROR - [-] - [geoip.py:124] - I/O error loading GeoIP databases: [Errno 2] No such file or directory: 'data/GeoLite2-City.mmdb'
+2026-02-19 21:44:35,490 - configstream.geoip - INFO - [-] - [geoip.py:81] - GeoIP C extension (MMAP_EXT) available - lock-free lookups enabled
+2026-02-19 21:44:35,490 - configstream.geoip - INFO - [-] - [geoip.py:101] - Loaded GeoLite2 City database.
+2026-02-19 21:44:35,491 - configstream.geoip - ERROR - [-] - [geoip.py:124] - I/O error loading GeoIP databases: [Errno 2] No such file or directory: 'data/GeoLite2-City.mmdb'
+2026-02-19 21:44:35,497 - configstream.geoip - INFO - [-] - [geoip.py:81] - GeoIP C extension (MMAP_EXT) available - lock-free lookups enabled
+2026-02-19 21:44:35,498 - configstream.geoip - INFO - [-] - [geoip.py:101] - Loaded GeoLite2 City database.
+2026-02-19 21:44:35,498 - configstream.geoip - ERROR - [-] - [geoip.py:124] - I/O error loading GeoIP databases: [Errno 2] No such file or directory: 'data/GeoLite2-City.mmdb'
+2026-02-19 21:44:35,531 - configstream.testers.go - INFO - [-] - [go.py:293] - Starting Go Tester Daemon: /bin/true -workers 20 -timeout 10s -urls https://www.google.com/generate_204,https://www.cloudflare.com/cdn-cgi/trace,https://www.gstatic.com/generate_204,http://detectportal.firefox.com/success.txt,https://httpbin.org/status/200,https://www.amazon.com/robots.txt,https://www.microsoft.com/robots.txt,https://www.apple.com/robots.txt
+2026-02-19 21:44:35,540 - configstream.testers.go - INFO - [-] - [go.py:765] - Go Tester results (Batch): 2/2 working. Failures: None
+2026-02-19 21:44:35,642 - configstream.testers.go - INFO - [-] - [go.py:252] - Go Batch Tester shutdown complete.
+2026-02-19 21:44:35,650 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: /nonexistent, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-19 21:44:35,657 - configstream.testers.go - ERROR - [-] - [go.py:106] - CRITICAL: Go batch tester binary not found (searched: /nonexistent, env: None, PATH). No proxies will be tested via the high-performance path!
+2026-02-19 21:44:35,662 - configstream.security.honeypot - WARNING - [-] - [honeypot.py:30] - Passive Intel: Host malicious.ip flagged as malicious by VirusTotal.
+2026-02-19 21:44:35,667 - configstream.security.honeypot - WARNING - [-] - [honeypot.py:30] - Passive Intel: Host bad.actor.ip flagged as malicious by VirusTotal.
+2026-02-19 21:44:35,669 - configstream.security.honeypot - WARNING - [-] - [honeypot.py:30] - Passive Intel: Host suspicious.ip flagged as malicious by VirusTotal.
+2026-02-19 21:44:35,674 - configstream.security.honeypot - ERROR - [-] - [honeypot.py:37] - Honeypot check failed for error.ip: API Error
+2026-02-19 21:44:35,677 - configstream.security.honeypot - ERROR - [-] - [honeypot.py:37] - Honeypot check failed for timeout.ip: Request timed out
+2026-02-19 21:44:35,679 - configstream.security.honeypot - ERROR - [-] - [honeypot.py:37] - Honeypot check failed for network.error.ip: Network unreachable
+2026-02-19 21:44:35,692 - configstream.security.honeypot - ERROR - [-] - [honeypot.py:37] - Honeypot check failed for null.ip: 'NoneType' object has no attribute 'get'
+2026-02-19 21:44:35,695 - configstream.security.honeypot - ERROR - [-] - [honeypot.py:37] - Honeypot check failed for string.response.ip: 'str' object has no attribute 'get'
+2026-02-19 21:44:35,752 - configstream.adapters - INFO - [-] - [adapters.py:106] - Surge export summary: 1 proxies, 1 chains (Total Lines: 3, Failures: 0)
+2026-02-19 21:44:35,754 - configstream.adapters - INFO - [-] - [adapters.py:223] - Loon export summary: 1 proxies, 1 chains
+2026-02-19 21:44:35,758 - configstream.converters.singbox - WARNING - [-] - [singbox.py:213] - Conversion failed: invalid port 99999 for example.com
+2026-02-19 21:44:35,760 - configstream.converters.singbox - DEBUG - [-] - [singbox.py:514] - Generated unique local IP [IP]/32 for WireGuard proxy (redacted)
+2026-02-19 21:44:35,761 - configstream.converters.singbox - DEBUG - [-] - [singbox.py:673] - Successfully converted wireguard proxy (Tag: 🌐-wireguard-e13a10e3) (Source: unknown)
