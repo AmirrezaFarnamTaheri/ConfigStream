@@ -12,78 +12,12 @@ For full resolved history, see `CHANGELOG.md`.
 
 ---
 
-## 1. Go WASM Networking Limitation (Critical Architectural Issue)
+## 1. Go WASM Networking Limitation (Resolved)
 
-### Status: Known Limitation - Requires Architectural Redesign
+**Status:** Fixed in v3.0.2
 
-**Issue:** The current Go WASM implementation (`src/go/tester/wasm_main.go`) attempts to use Go's standard networking libraries (e.g., `github.com/gorilla/websocket`, `net.Dial`) which rely on TCP sockets.
-
-**Root Cause:** Browser security sandboxes **block** direct TCP/UDP socket access from WebAssembly. WASM code can only access network resources through JavaScript APIs provided by the browser (e.g., `fetch`, `WebSocket`, `XMLHttpRequest`).
-
-**Impact:**
-- WASM-based proxy testing in the browser will fail
-- All proxies tested through WASM will show as "Network Error" or `latency: 9999`
-- The "Turbo-Verify (Local)" feature is non-functional in its current state
-
-**Workaround:**
-The backend Go tester (`configstream-tester` binary) still functions correctly for server-side testing. Frontend proxy verification should rely on backend API calls rather than client-side WASM testing.
-
-**Proper Fix (Requires Significant Refactoring):**
-Rewrite `src/go/tester/wasm_main.go` to use `syscall/js` bindings to invoke browser's native JavaScript APIs:
-
-```go
-package main
-
-import (
-    "syscall/js"
-    "time"
-)
-
-func testProxy(this js.Value, args []js.Value) interface{} {
-    url := args[0].String()
-    done := make(chan interface{})
-
-    // Use JavaScript's WebSocket API via syscall/js
-    jsWS := js.Global().Get("WebSocket").New(url)
-
-    start := time.Now()
-
-    onOpen := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-        latency := time.Since(start).Milliseconds()
-        jsWS.Call("close")
-        done <- map[string]interface{}{"alive": true, "latency": latency}
-        return nil
-    })
-
-    onError := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-        done <- map[string]interface{}{"alive": false, "error": "Connection Failed"}
-        return nil
-    })
-
-    jsWS.Set("onopen", onOpen)
-    jsWS.Set("onerror", onError)
-
-    select {
-    case res := <-done:
-        return res
-    case <-time.After(5 * time.Second):
-        jsWS.Call("close")
-        return map[string]interface{}{"alive": false, "error": "Timeout"}
-    }
-}
-
-func main() {
-    js.Global().Set("testProxyWasm", js.FuncOf(testProxy))
-    <-make(chan bool) // Keep WASM alive
-}
-```
-
-**Recommended Approach:**
-1. **Short-term:** Disable or remove WASM-based testing from the frontend
-2. **Long-term:** Implement proper `syscall/js` bindings or use a pure JavaScript implementation for client-side testing
-3. **Alternative:** Use WebRTC Data Channels which provide broader network access (but still limited to specific protocols)
-
----
+**Issue:** Previous versions used Go standard networking which failed in WASM.
+**Resolution:** The WASM module (`src/go/tester/wasm_main.go`) has been updated to use `syscall/js` to access the browser's native `WebSocket` API, enabling direct connectivity from the frontend.
 
 ## 2. Mobile Layout Considerations
 

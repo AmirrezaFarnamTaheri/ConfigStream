@@ -135,7 +135,10 @@ Returns the latest pipeline metadata.
 curl -s http://localhost:8000/api/stats | jq '.total_valid_proxies'
 ```
 
-#### `GET /api/proxies`
+#### `GET /api/proxies
+> **Note:** The  endpoint returns a JSON Array of proxy objects (sourced from ).
+> For full Sing-box configuration objects, access the static file paths directly (e.g., ).
+`
 Returns the full proxy list. Supports query filters:
 ```bash
 # Filter by country

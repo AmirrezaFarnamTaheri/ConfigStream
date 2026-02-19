@@ -279,6 +279,14 @@ async def run_full_pipeline(
         )
         await concurrency.start_tuner()
 
+    # Explicitly start Go tester to enable heartbeat/self-test
+    if tester.go_tester.available:
+        try:
+            await tester.go_tester.start()
+        except Exception as e:
+            logger.warning(f"Failed to start Go tester daemon: {e}. Fallback enabled.")
+            tester.go_tester.available = False
+
     logger.info(f"Starting pipeline with {optimal_consumers} parallel consumers")
 
     # Run Producer and Consumers concurrently
