@@ -65,12 +65,12 @@ def mock_output_dir(tmp_path):
     # Create country specific file
     country_dir = output_dir / "countries"
     country_dir.mkdir()
-    (country_dir / "US.json").write_text(json.dumps(proxies))
+    (country_dir / "US.list.json").write_text(json.dumps(proxies))
 
     # Create protocol specific file
     proto_dir = output_dir / "protocols"
     proto_dir.mkdir()
-    (proto_dir / "vmess.json").write_text(json.dumps(proxies))
+    (proto_dir / "vmess.list.json").write_text(json.dumps(proxies))
 
     # Create subscription files
     (output_dir / "clash.yaml").write_text("proxies: []")

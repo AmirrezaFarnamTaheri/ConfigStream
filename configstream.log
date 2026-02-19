@@ -8388,3 +8388,16 @@ Exception: DB Error
 2026-02-17 18:41:04,853 - configstream.converters.singbox - WARNING - [-] - [singbox.py:203] - Conversion failed: invalid port 99999 for example.com
 2026-02-17 18:41:04,856 - configstream.converters.singbox - DEBUG - [-] - [singbox.py:495] - Generated unique local IP [IP]/32 for WireGuard proxy (redacted)
 2026-02-17 18:41:04,856 - configstream.converters.singbox - DEBUG - [-] - [singbox.py:654] - Successfully converted wireguard proxy (Tag: 🌐-wireguard-e13a10e3) (Source: unknown)
+2026-02-19 18:48:15,781 - configstream.tools.vwarp - WARNING - [-] - [vwarp.py:237] - Invalid WARP key format
+2026-02-19 18:48:59,324 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: GET http://test/health "HTTP/1.1 200 OK"
+2026-02-19 18:48:59,333 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: GET http://test/api/stats "HTTP/1.1 200 OK"
+2026-02-19 18:48:59,347 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: GET http://test/api/proxies "HTTP/1.1 200 OK"
+2026-02-19 18:48:59,354 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: GET http://test/api/proxies?country=US "HTTP/1.1 200 OK"
+2026-02-19 18:48:59,356 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: GET http://test/api/proxies?country=XX "HTTP/1.1 404 Not Found"
+2026-02-19 18:48:59,366 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: GET http://test/api/proxies?protocol=vmess "HTTP/1.1 200 OK"
+2026-02-19 18:48:59,368 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: GET http://test/api/proxies?protocol=invalid "HTTP/1.1 404 Not Found"
+2026-02-19 18:48:59,377 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: GET http://[BASE64] "HTTP/1.1 200 OK"
+2026-02-19 18:48:59,379 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: GET http://[BASE64] "HTTP/1.1 400 Bad Request"
+2026-02-19 18:48:59,388 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: GET http://test/ "HTTP/1.1 200 OK"
+2026-02-19 18:48:59,390 - httpx - INFO - [-] - [_client.py:1740] - HTTP Request: GET http://test/about "HTTP/1.1 200 OK"
+2026-02-19 18:48:59,397 - configstream.tools.vwarp - WARNING - [-] - [vwarp.py:237] - Invalid WARP key format
