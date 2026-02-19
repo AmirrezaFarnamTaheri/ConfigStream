@@ -75,6 +75,12 @@ class _FileLock:
                     self._fh.close()
                 except OSError:
                     pass
+                # Cleanup lock file
+                try:
+                    if self.lock_path.exists():
+                        self.lock_path.unlink()
+                except OSError:
+                    pass
 
 
 def save_json_file(data: Any, path: str) -> None:

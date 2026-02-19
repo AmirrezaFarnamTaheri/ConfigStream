@@ -77,7 +77,7 @@ These are set in the repository's Settings → Secrets → Actions:
 
 | Path | Purpose |
 | :--- | :--- |
-| `sources/batch_*.txt` | Input proxy sources (URLs or direct proxy URIs). Split into 14 shards for parallel CI. |
+| `sources/batch_*.txt` | Input proxy sources (URLs or direct proxy URIs). Split into 17 shards for parallel CI. |
 | `output/` | Generated artifacts (JSON, YAML, TXT, CONF, PNG). Deployed to GitHub Pages. |
 | `output/data/` | Time-series trend data (`active_proxy_trend.json`, `evasion_trend.json`). |
 | `output/countries/` | Per-country proxy JSON files (e.g., `US.json`, `DE.json`). |
