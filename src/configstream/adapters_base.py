@@ -4,7 +4,6 @@ Shared logic for Proxy Adapters.
 """
 
 from typing import Dict, Optional, Any
-from .utils.net import is_ip_literal
 
 
 def convert_singbox_outbound_to_surge_string(outbound: Dict[str, Any]) -> Optional[str]:
@@ -194,7 +193,6 @@ def format_shielded_chain_for_surge(
         return None
     lines.append(shield_line)
 
-    relay_tag = relay_node.get("tag")
     shield_tag = shield_node.get("tag")
 
     base_relay = convert_singbox_outbound_to_surge_string(relay_node)

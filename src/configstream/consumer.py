@@ -431,7 +431,7 @@ async def processing_consumer(
                             await result
                     washer_ready = True
                 # 1. Attempt Vwarp Revival (Priority)
-                vwarp_candidates = []
+                vwarp_candidates: List[Proxy] = []
                 # Only attempt Vwarp if enabled and keys exist
                 if settings.USE_VWARP_TUNNEL and washer.warp_keys and washer.is_vwarp_available():
                     vwarp_candidates, _ = washer.wash_failed(

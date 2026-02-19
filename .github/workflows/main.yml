@@ -379,7 +379,7 @@ jobs:
             git push origin HEAD:${{ github.ref_name }} || echo "⚠️ Push failed, optimization will apply next run"
           fi
       - name: Publish to IPFS (Unstoppable)
-        if: env.PINATA_JWT != '\
+        if: env.PINATA_JWT != ''
         env:
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
           CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
@@ -403,10 +403,10 @@ jobs:
           echo "VERSION_TAG=$TAG" >> $GITHUB_ENV
           echo "tag=$TAG" >> $GITHUB_OUTPUT
       - name: Upload to Telegram
-        if: env.TELEGRAM_BOT_TOKEN != '\
+        if: env.TELEGRAM_BOT_TOKEN != ''
         run: python scripts/upload_telegram.py
       - name: Upload to Hugging Face
-        if: env.HF_TOKEN != '\
+        if: env.HF_TOKEN != ''
         env:
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
           CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
@@ -414,7 +414,7 @@ jobs:
           HF_REPO_ID: ${{ secrets.HF_REPO_ID }}
         run: python scripts/upload_hf.py --path output/ --repo-id $HF_REPO_ID
       - name: Upload to Google Drive Mirror
-        if: env.GDRIVE_FOLDER_ID != '\
+        if: env.GDRIVE_FOLDER_ID != ''
         run: |
           pip install google-api-python-client google-auth
           python scripts/upload_gdrive.py --path output/ --folder-id $GDRIVE_FOLDER_ID
