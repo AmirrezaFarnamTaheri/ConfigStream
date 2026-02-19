@@ -4,6 +4,7 @@ Shared logic for Proxy Adapters.
 """
 
 from typing import Dict, Optional, Any
+from .utils.net import is_ip_literal
 
 
 def convert_singbox_outbound_to_surge_string(outbound: Dict[str, Any]) -> Optional[str]:
