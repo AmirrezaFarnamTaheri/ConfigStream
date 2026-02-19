@@ -114,7 +114,7 @@ MASQUE_NOIZE_PRESETS: Dict[str, Dict[str, Any]] = {
         "FragmentInitial": False,
         "RandomPadding": False,
     },
-    "moderate": {
+    "medium": {
         "Jc": 3,
         "Jmin": 40,
         "Jmax": 80,
@@ -181,7 +181,7 @@ ATOMICNOIZE_PRESETS: Dict[str, Dict[str, Any]] = {
         "HandshakeDelay": 10000000,
         "AllowZeroSize": False,
     },
-    "moderate": {
+    "medium": {
         "I1": "<b 0c0d0e0f>",
         "I3": "<b 040506>",
         "Jc": 25,
@@ -543,14 +543,12 @@ class VwarpTool:
             # bind will be set dynamically
             "endpoint": "162.159.192.1:2408",
             "dns": "1.1.1.1",
-            "test_url": "https://cp.cloudflare.com/",
             "wireguard": {
                 "enabled": True,
                 "reserved": "1,2,3",
                 "fwmark": 0,
                 "atomicnoize": {
                     "I1": "<b 0c0d0e0f>",
-                    "i2": "<b 0xc80000000108ce1bf31000a>",
                     "I3": "<b 040506>",
                     "I4": "<b 0708>",
                     "I5": "<b 09>",
@@ -572,7 +570,6 @@ class VwarpTool:
                 "preferred": False,
                 "config": {
                     "i1": "<b 0d0a0d0a>",
-                    "i2": "<b 0xc80000000108ce1bf31000a>",
                     "i3": "<b 0102>",
                     "i4": "<b 030405>",
                     "i5": "<b 060708>",
@@ -786,21 +783,16 @@ class VwarpTool:
         write_config = copy.deepcopy(config)
         write_config.pop("version", None)
         write_config.pop("metadata", None)
+        write_config.pop(
+            "test_url", None
+        )  # Explicitly remove test_url to avoid parse errors
 
         # Flatten Masque if needed
         if "masque" in write_config:
             if isinstance(write_config["masque"], dict):
-                # If config sub-dict exists, use it (parameters).
-                if "config" in write_config["masque"]:
-                    write_config["masque"] = write_config["masque"]["config"]
-                else:
-                    # Just remove enabled/preferred
-                    write_config["masque"].pop("enabled", None)
-                    write_config["masque"].pop("preferred", None)
+                pass  # Keep unified structure
 
-        # Fix Psiphon
-        if "psiphon" in write_config and isinstance(write_config["psiphon"], dict):
-            write_config["psiphon"].pop("enabled", None)
+        # Keep Psiphon enabled flag
 
         try:
             tmp_path.write_text(json.dumps(write_config), encoding="utf-8")

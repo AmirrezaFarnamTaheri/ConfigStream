@@ -10,12 +10,8 @@ from configstream.tools.vwarp import (
 
 def test_key_validation():
     tool = VwarpTool()
-
-    # Valid-looking key (alphanumeric + length check)
     valid_key = "a" * 45
     assert tool.validate_warp_key(valid_key) is True
-
-    # Invalid key
     invalid_key = "short"
     assert tool.validate_warp_key(invalid_key) is False
 
@@ -74,7 +70,7 @@ def test_build_vwarp_config_full():
         key="test-warp-key",
         dns="8.8.8.8",
         masque_preset="heavy",
-        atomicnoize_preset="moderate",
+        atomicnoize_preset="medium",
         psiphon_country="JP",
         proxy="socks5://10.0.0.1:1080",
     )
@@ -84,7 +80,12 @@ def test_build_vwarp_config_full():
     assert config["dns"] == "8.8.8.8"
     assert config["masque"]["enabled"] is True
     assert config["masque"]["config"]["SNIFragmentation"] is True
-    assert config["wireguard"]["atomicnoize"]["I1"] == "<b 0c0d0e0f>"
+
+    # Robust check for I1
+    an = config["wireguard"]["atomicnoize"]
+    assert "I1" in an, f"I1 missing from atomicnoize preset 'medium'. Available keys: {list(an.keys())}"
+    assert an["I1"] == "<b 0c0d0e0f>"
+
     assert config["psiphon"]["country"] == "JP"
     assert config["proxy"] == "socks5://10.0.0.1:1080"
 

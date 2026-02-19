@@ -125,7 +125,6 @@ def parse_ss(config: str) -> Optional[Proxy]:
             "ss",
             "shadowsocks",
             "",
-            "none",
             "null",
             "default",
             "cipher",

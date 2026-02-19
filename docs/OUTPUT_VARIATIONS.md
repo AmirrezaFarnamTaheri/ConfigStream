@@ -160,7 +160,7 @@ All outputs include evasion features by default:
 |------------|----------|----------|--------------|-------|
 | **Sing-box** | ✅ | ✅ | ✅ | All chain types included |
 | **Sing-box VPN** | ✅ | ✅ | ✅ | TUN/VPN mode |
-| **Clash** | ✅ | ✅ | ✅ | All chain types included |
+| **Clash** | ✅ | ✅ | ✅ | Standard proxies only (chains experimental) |
 | **Base64** | ✅ | ✅ | ✅ | Universal subscription |
 | **Plaintext** | ✅ | ✅ | ✅ | Raw URIs |
 | **Shadowrocket** | ✅ | ✅ | ✅ | iOS client |
