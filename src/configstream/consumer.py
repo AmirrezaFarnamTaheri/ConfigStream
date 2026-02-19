@@ -431,9 +431,12 @@ async def processing_consumer(
                             await result
                     washer_ready = True
                 # 1. Attempt Vwarp Revival (Priority)
-                vwarp_candidates, _ = washer.wash_failed(
-                    failed_proxies, stats=stats, use_vwarp=True
-                )
+                vwarp_candidates = []
+                # Only attempt Vwarp if enabled and keys exist
+                if settings.USE_VWARP_TUNNEL and washer.warp_keys:
+                    vwarp_candidates, _ = washer.wash_failed(
+                        failed_proxies, stats=stats, use_vwarp=True
+                    )
                 vwarp_success_ids: set[str] = set()
                 if vwarp_candidates:
                     # Test Vwarp Candidates
@@ -512,6 +515,7 @@ async def processing_consumer(
                                     stats.revived_warp += 1
 
         # Post-process final batch (GeoIP, Filter)
+        local_working_count = 0
         for p in final_batch_for_this_source:
             # GeoIP enrichment for all proxies (working and revived-not-working)
             if not p.country_code:
@@ -562,8 +566,9 @@ async def processing_consumer(
             async with seen_lock:
                 final_proxies.append(p)
                 stats.working += 1
+                local_working_count += 1
 
-        working_count = sum(1 for p in final_batch_for_this_source if p.is_working)
+        working_count = local_working_count
         fetched_count = len(parsed_batch)
         diversity_score = calculate_diversity_score(final_batch_for_this_source)
 

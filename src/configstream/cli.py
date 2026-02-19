@@ -173,7 +173,12 @@ def merge(
                 console.print(
                     "\n[bold red]CRITICAL: Pipeline finished with 0 working proxies![/bold red]"
                 )
-                sys.exit(1)
+                if getattr(settings, "FAIL_ON_ZERO_WORKING", False):
+                    sys.exit(1)
+                else:
+                    console.print(
+                        "[yellow]Continuing despite 0 working proxies (FAIL_ON_ZERO_WORKING=False)[/yellow]"
+                    )
 
         else:
             console.print(f"\n[bold red]Pipeline Failed: {result.error}[/bold red]")

@@ -472,7 +472,16 @@ def _select_chosen_proxies(proxies: List[Proxy]) -> List[Proxy]:
     # Prefer working proxies; fall back to ALL proxies when none are working
     # so that chosen/ outputs are always populated for downstream consumers.
     working = [p for p in proxies if p.is_working]
-    pool = working if working else proxies
+    # Fallback to all proxies, BUT exclude failed revived ones (junk)
+    pool = (
+        working
+        if working
+        else [
+            p
+            for p in proxies
+            if not (p.protocol == "revived" or (p.details or {}).get("is_revived"))
+        ]
+    )
 
     by_protocol: Dict[str, List[Proxy]] = {}
     for proxy in pool:
@@ -533,7 +542,14 @@ def generate_categorized_outputs(
             except OSError:
                 pass
 
-    # Initialize washer if not provided (fallback)
+    # Clean new directories to remove stale files from previous runs
+    for new_dir in ("countries", "protocols"):
+        dpath = output_dir / new_dir
+        if dpath.exists() and dpath.is_dir():
+            try:
+                shutil.rmtree(dpath)
+            except OSError:
+                pass
     if washer is None:
         washer = ProxyWasher(settings.WARP_KEY_POOL)
 
@@ -684,6 +700,13 @@ def generate_categorized_outputs(
         cpath = country_dir / f"{cc}.json"
         AtomicFileWriter.write_text(cpath, generate_singbox_config(plist))
 
+        # Generate list format for API
+        lpath = country_dir / f"{cc}.list.json"
+        lcontent = json.dumps(
+            [p.model_dump(mode="json") for p in plist], indent=2, ensure_ascii=False
+        )
+        AtomicFileWriter.write_text(lpath, lcontent)
+
         generated_files[f"country_{cc}"] = cpath
 
     # Write Protocol files (JSON + plaintext URI subscriptions)
@@ -693,6 +716,14 @@ def generate_categorized_outputs(
     for proto, plist in by_protocol.items():
         ppath = proto_dir / f"{proto}.json"
         AtomicFileWriter.write_text(ppath, generate_singbox_config(plist))
+
+        # Generate list format for API
+        lpath = proto_dir / f"{proto}.list.json"
+        lcontent = json.dumps(
+            [p.model_dump(mode="json") for p in plist], indent=2, ensure_ascii=False
+        )
+        AtomicFileWriter.write_text(lpath, lcontent)
+
         generated_files[f"proto_{proto}"] = ppath
 
         # Per-protocol URI list (for clients that accept subscription links)
@@ -1200,6 +1231,7 @@ def save_metadata(
     tested_count = total
     reasons: Dict[str, int] = {}
     end_time_iso = datetime.now(timezone.utc).isoformat()
+    start_time_iso = None
     washed_count = 0
     smart_chain_count = 0
     vwarp_win_rate = 0.0
@@ -1272,6 +1304,8 @@ def save_metadata(
         evasion_multiplexing_enabled = stats.get("evasion_multiplexing_enabled", 0)
         evasion_dns_safe_count = stats.get("evasion_dns_safe_count", 0)
         evasion_dns_hardened_count = stats.get("evasion_dns_hardened_count", 0)
+        start_time_iso = stats.get("start_time")
+        if stats.get("end_time"): end_time_iso = stats.get("end_time")
     else:
         # Stats is an object (PipelineStats)
         if hasattr(stats, "fetched_lines"):
@@ -1447,6 +1481,10 @@ def save_metadata(
         "evasion_multiplexing_enabled": evasion_multiplexing_enabled,
         "evasion_dns_safe_count": evasion_dns_safe_count,
         "evasion_dns_hardened_count": evasion_dns_hardened_count,
+        # Pipeline Timing
+        "start_time": start_time_iso,
+        "end_time": end_time_iso,
+        "duration": duration_seconds,
         # Export pipeline performance metrics
         "duration_seconds": duration_seconds,
         "geo_resolved": geo_resolved,

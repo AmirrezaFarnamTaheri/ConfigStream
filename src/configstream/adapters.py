@@ -11,7 +11,12 @@ import base64
 import urllib.parse
 from typing import List, Optional, Dict, Any
 from .models import Proxy
-from .adapters_base import format_singbox_chain_for_surge, format_singbox_chain_for_loon
+from .adapters_base import (
+    format_singbox_chain_for_surge,
+    format_singbox_chain_for_loon,
+    format_shielded_chain_for_surge,
+    format_shielded_chain_for_loon,
+)
 from .utils.bool_parser import parse_tls_flag
 from .utils.net import is_ip_literal as _is_ip_literal
 
@@ -80,6 +85,20 @@ class SurgeAdapter(Adapter):
                         if chain_line:
                             lines.append(chain_line)
                             chain_count += 1
+
+                    # Handle Shielded Chains (Proxy over WG)
+                    if out.get("_is_shielded") and out.get("detour"):
+                        # This is the Relay. Detour is the Shield.
+                        shield_tag = out.get("detour")
+                        shield = next(
+                            (o for o in washed_outbounds if o.get("tag") == shield_tag),
+                            None,
+                        )
+                        if shield:
+                            chain_line = format_shielded_chain_for_surge(out, shield)
+                            if chain_line:
+                                lines.append(chain_line)
+                                chain_count += 1
                 except Exception as e:
                     logger.debug(f"Failed to export chain to Surge: {e}")
                     failed_count += 1
@@ -185,6 +204,19 @@ class LoonAdapter(Adapter):
                         if chain_line:
                             lines.append(chain_line)
                             chain_count += 1
+
+                    # Handle Shielded Chains (Proxy over WG)
+                    if out.get("_is_shielded") and out.get("detour"):
+                        shield_tag = out.get("detour")
+                        shield = next(
+                            (o for o in washed_outbounds if o.get("tag") == shield_tag),
+                            None,
+                        )
+                        if shield:
+                            chain_line = format_shielded_chain_for_loon(out, shield)
+                            if chain_line:
+                                lines.append(chain_line)
+                                chain_count += 1
                 except Exception as e:
                     logger.debug(f"Failed to export chain to Loon: {e}")
 
