@@ -28,12 +28,12 @@ def test_vwarp_write_sanitized_config():
     assert "version" not in content
     assert "metadata" not in content
 
-    # Verify masque is flattened and stripped
+    # Verify masque structure is preserved (Unified format)
     assert "masque" in content
     assert content["masque"]["config"] == {"i1": "val"}
     assert content["masque"]["enabled"] is True
 
-    # Verify psiphon enabled is removed
+    # Verify psiphon enabled is preserved
     assert "psiphon" in content
     assert content["psiphon"]["enabled"] is True
     assert content["psiphon"]["country"] == "US"

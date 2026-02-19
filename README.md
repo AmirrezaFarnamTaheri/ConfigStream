@@ -100,7 +100,7 @@ Primary outputs:
 - chosen/base64.txt: curated low-latency subset
 
 Derived outputs:
-- singbox-chains.json: washed + smart chains only
+- singbox-chains.json: washed + revived + smart + shielded chains
 - revived.json: revived-only dataset (proxies.json schema)
 - proxies.json: full dataset with metadata
 - side_products.zip: native configs pack (OpenVPN .ovpn, WireGuard .conf, raw URIs)

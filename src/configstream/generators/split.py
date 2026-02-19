@@ -401,7 +401,7 @@ def generate_split_outputs(
     files[f"singbox_vpn{key_suffix_str}"] = tank_path
 
     # Clash
-    clash_content = generate_clash_config(proxies, dns_profile=clash_dns_profile)
+    clash_content = generate_clash_config(proxies, dns_profile=clash_dns_profile, ignore_status=True)
     if clash_content:
         clash_path = output_dir / f"clash{suffix}.yaml"
         AtomicFileWriter.write_text(clash_path, clash_content)
