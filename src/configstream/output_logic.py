@@ -563,7 +563,7 @@ def generate_categorized_outputs(
     # 2. Generate Split Outputs (The Tank & The Sniper & Clash)
     # This restores singbox-vpn.json (Tank) and singbox.json (Sniper)
     split_files = generate_split_outputs(
-        proxies,
+        _get_export_pool(proxies),
         output_dir,
         washed_outbounds=washed_outbounds,
         washed_ids=washed_ids,
@@ -581,13 +581,13 @@ def generate_categorized_outputs(
         generated_files["clash_full"] = split_files["clash"]
 
     # 3. Standard Subscription (Base64)
-    sub_content = generate_base64_subscription(proxies)
+    sub_content = generate_base64_subscription(_get_export_pool(proxies))
     base64_path = output_dir / "base64.txt"
     AtomicFileWriter.write_text(base64_path, sub_content)
     generated_files["base64"] = base64_path
 
     # 3b. Raw URI list (Plaintext) - single canonical file to avoid redundancy
-    raw_content = generate_plaintext_subscription(proxies)
+    raw_content = generate_plaintext_subscription(_get_export_pool(proxies))
     proxies_txt_path = output_dir / "proxies.txt"
     AtomicFileWriter.write_text(proxies_txt_path, raw_content)
     generated_files["proxies_txt"] = proxies_txt_path
@@ -630,9 +630,9 @@ def generate_categorized_outputs(
         try:
             adapter = get_adapter(adapter_name)
             if adapter_name in ("surge", "loon"):
-                content = adapter.export(proxies, washed_outbounds=washed_outbounds)
+                content = adapter.export(_get_export_pool(proxies), washed_outbounds=washed_outbounds)
             else:
-                content = adapter.export(proxies)
+                content = adapter.export(_get_export_pool(proxies))
             out_path = output_dir / filename
             AtomicFileWriter.write_text(out_path, content)
             generated_files[key] = out_path
@@ -642,10 +642,10 @@ def generate_categorized_outputs(
     # 3e. Side products pack (OpenVPN + WireGuard + plain URIs)
     side_products_path = output_dir / "side_products.zip"
     openvpn_candidates = [
-        p for p in proxies if (p.protocol or "").lower() == "openvpn" and p.config
+        p for p in _get_export_pool(proxies) if (p.protocol or "").lower() == "openvpn" and p.config
     ]
     wireguard_candidates = [
-        p for p in proxies if (p.protocol or "").lower() in ("wireguard", "wg")
+        p for p in _get_export_pool(proxies) if (p.protocol or "").lower() in ("wireguard", "wg")
     ]
     tmp_path = None
     try:
@@ -842,7 +842,7 @@ def generate_categorized_outputs(
                 dns_safe_smart_chains[group] = filtered_chains
 
     dns_split_files = generate_split_outputs(
-        dns_safe_proxies,
+        _get_export_pool(dns_safe_proxies),
         output_dir,
         washed_outbounds=dns_safe_washed,
         washed_ids=washed_ids,
@@ -868,12 +868,12 @@ def generate_categorized_outputs(
     AtomicFileWriter.write_text(dns_chains_alias, dns_chains_content)
     generated_files["chains_dns_safe"] = dns_chains_alias
 
-    dns_safe_base64 = generate_base64_subscription(dns_safe_proxies)
+    dns_safe_base64 = generate_base64_subscription(_get_export_pool(dns_safe_proxies))
     dns_base64_path = output_dir / "base64-dns-safe.txt"
     AtomicFileWriter.write_text(dns_base64_path, dns_safe_base64)
     generated_files["base64_dns_safe"] = dns_base64_path
 
-    dns_raw_content = generate_plaintext_subscription(dns_safe_proxies)
+    dns_raw_content = generate_plaintext_subscription(_get_export_pool(dns_safe_proxies))
     dns_proxies_txt_path = output_dir / "proxies-dns-safe.txt"
     AtomicFileWriter.write_text(dns_proxies_txt_path, dns_raw_content)
     generated_files["proxies_txt_dns_safe"] = dns_proxies_txt_path
@@ -890,10 +890,10 @@ def generate_categorized_outputs(
             adapter = get_adapter(adapter_name)
             if adapter_name in ("surge", "loon"):
                 content = adapter.export(
-                    dns_safe_proxies, washed_outbounds=dns_safe_washed
+                    _get_export_pool(dns_safe_proxies), washed_outbounds=dns_safe_washed
                 )
             else:
-                content = adapter.export(dns_safe_proxies)
+                content = adapter.export(_get_export_pool(dns_safe_proxies))
             dns_filename = _add_suffix(filename, "-dns-safe")
             out_path = output_dir / dns_filename
             AtomicFileWriter.write_text(out_path, content)
@@ -909,11 +909,11 @@ def generate_categorized_outputs(
     side_dns_path = output_dir / "side_products-dns-safe.zip"
     openvpn_candidates_dns = [
         p
-        for p in dns_safe_proxies
+        for p in _get_export_pool(dns_safe_proxies)
         if (p.protocol or "").lower() == "openvpn" and p.config
     ]
     wireguard_candidates_dns = [
-        p for p in dns_safe_proxies if (p.protocol or "").lower() in ("wireguard", "wg")
+        p for p in _get_export_pool(dns_safe_proxies) if (p.protocol or "").lower() in ("wireguard", "wg")
     ]
     tmp_path = None
     try:
@@ -981,7 +981,7 @@ def generate_categorized_outputs(
                     hardened_smart_chains[group] = filtered_smart_chains
 
         hardened_split_files = generate_split_outputs(
-            dns_hardened_proxies,
+            _get_export_pool(dns_hardened_proxies),
             output_dir,
             washed_outbounds=hardened_washed,
             washed_ids=washed_ids,
@@ -994,12 +994,12 @@ def generate_categorized_outputs(
         generated_files.update(hardened_split_files)
 
         # Base64 + plaintext outputs (DNS-hardened prefer-IP)
-        dns_hardened_base64 = generate_base64_subscription(dns_hardened_proxies)
+        dns_hardened_base64 = generate_base64_subscription(_get_export_pool(dns_hardened_proxies))
         dns_hardened_base64_path = output_dir / "base64-dns-hardened.txt"
         AtomicFileWriter.write_text(dns_hardened_base64_path, dns_hardened_base64)
         generated_files["base64_dns_hardened"] = dns_hardened_base64_path
 
-        dns_hardened_raw = generate_plaintext_subscription(dns_hardened_proxies)
+        dns_hardened_raw = generate_plaintext_subscription(_get_export_pool(dns_hardened_proxies))
         dns_hardened_txt_path = output_dir / "proxies-dns-hardened.txt"
         AtomicFileWriter.write_text(dns_hardened_txt_path, dns_hardened_raw)
         generated_files["proxies_txt_dns_hardened"] = dns_hardened_txt_path
@@ -1013,7 +1013,7 @@ def generate_categorized_outputs(
         # Adapter-specific outputs (DNS-hardened)
         try:
             shadowrocket_hardened = _wrap_shadowrocket_profile(
-                dns_hardened_proxies, primary_resolvers, fallback_resolvers
+                _get_export_pool(dns_hardened_proxies), primary_resolvers, fallback_resolvers
             )
             out_path = output_dir / "shadowrocket-dns-hardened.txt"
             AtomicFileWriter.write_text(out_path, shadowrocket_hardened)
@@ -1024,7 +1024,7 @@ def generate_categorized_outputs(
         try:
             surge_hardened = _wrap_surge_or_loon_profile(
                 "surge",
-                dns_hardened_proxies,
+                _get_export_pool(dns_hardened_proxies),
                 hardened_washed,
                 primary_resolvers,
                 fallback_resolvers,
@@ -1038,7 +1038,7 @@ def generate_categorized_outputs(
         try:
             loon_hardened = _wrap_surge_or_loon_profile(
                 "loon",
-                dns_hardened_proxies,
+                _get_export_pool(dns_hardened_proxies),
                 hardened_washed,
                 primary_resolvers,
                 fallback_resolvers,
@@ -1051,7 +1051,7 @@ def generate_categorized_outputs(
 
         try:
             quantumult_hardened = _wrap_quantumultx_profile(
-                dns_hardened_proxies, primary_resolvers, fallback_resolvers
+                _get_export_pool(dns_hardened_proxies), primary_resolvers, fallback_resolvers
             )
             out_path = output_dir / "quantumult-dns-hardened.conf"
             AtomicFileWriter.write_text(out_path, quantumult_hardened)
@@ -1061,7 +1061,7 @@ def generate_categorized_outputs(
 
         try:
             sip_adapter = get_adapter("sip008")
-            sip_content = sip_adapter.export(dns_hardened_proxies)
+            sip_content = sip_adapter.export(_get_export_pool(dns_hardened_proxies))
             sip_path = output_dir / "sip008-dns-hardened.json"
             AtomicFileWriter.write_text(sip_path, sip_content)
             generated_files["sip008_dns_hardened"] = sip_path
@@ -1072,12 +1072,12 @@ def generate_categorized_outputs(
         side_hardened_path = output_dir / "side_products-dns-hardened.zip"
         openvpn_hardened = [
             p
-            for p in dns_hardened_proxies
+            for p in _get_export_pool(dns_hardened_proxies)
             if (p.protocol or "").lower() == "openvpn" and p.config
         ]
         wireguard_hardened = [
             p
-            for p in dns_hardened_proxies
+            for p in _get_export_pool(dns_hardened_proxies)
             if (p.protocol or "").lower() in ("wireguard", "wg")
         ]
         tmp_path = None
