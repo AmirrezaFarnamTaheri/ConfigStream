@@ -182,15 +182,14 @@ class SingBoxTester:
                 async with sem:
                     return await self.test(p)
 
-            results: List[Proxy] = []
+            py_tester_results: List[Proxy] = []
             chunk_size = max(1, max_concurrent * 10)
             for i in range(0, len(proxies), chunk_size):
                 chunk = proxies[i : i + chunk_size]
                 chunk_tasks = [_guarded_test(p) for p in chunk]
                 chunk_results = await asyncio.gather(*chunk_tasks)
-                results.extend(chunk_results)
-            return results
-
+                py_tester_results.extend(chunk_results)
+            return py_tester_results
     def _finalize_result(self, proxy: Proxy):
         # proxy.tested_at is set in python_tester methods, or go tester response
         if self.cache:
