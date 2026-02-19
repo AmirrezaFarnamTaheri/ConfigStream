@@ -1325,7 +1325,8 @@ def save_metadata(
         evasion_dns_safe_count = stats.get("evasion_dns_safe_count", 0)
         evasion_dns_hardened_count = stats.get("evasion_dns_hardened_count", 0)
         start_time_iso = stats.get("start_time")
-        if stats.get("end_time"): end_time_iso = stats.get("end_time")
+        if stats.get("end_time"):
+            end_time_iso = stats.get("end_time")
     else:
         # Stats is an object (PipelineStats)
         if hasattr(stats, "fetched_lines"):
