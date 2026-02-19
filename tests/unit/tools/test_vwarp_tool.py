@@ -74,7 +74,7 @@ def test_build_vwarp_config_full():
         key="test-warp-key",
         dns="8.8.8.8",
         masque_preset="heavy",
-        atomicnoize_preset="moderate",
+        atomicnoize_preset="medium",
         psiphon_country="JP",
         proxy="socks5://10.0.0.1:1080",
     )

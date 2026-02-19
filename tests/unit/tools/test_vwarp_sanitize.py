@@ -30,11 +30,12 @@ def test_vwarp_write_sanitized_config():
 
     # Verify masque is flattened and stripped
     assert "masque" in content
-    assert content["masque"] == {"i1": "val"}  # Should be the config sub-dict
+    assert content["masque"]["config"] == {"i1": "val"}
+    assert content["masque"]["enabled"] is True
 
     # Verify psiphon enabled is removed
     assert "psiphon" in content
-    assert "enabled" not in content["psiphon"]
+    assert content["psiphon"]["enabled"] is True
     assert content["psiphon"]["country"] == "US"
 
     # Verify extra_flags logic still worked (using original config)
@@ -54,9 +55,9 @@ def test_vwarp_write_sanitized_config_no_masque_config():
     path, flags = tool._write_temp_config(config)
     content = json.loads(path.read_text())
 
-    # Should strip enabled/preferred but keep other params
-    assert "enabled" not in content["masque"]
-    assert "preferred" not in content["masque"]
+    # Should keep enabled/preferred
+    assert content["masque"]["enabled"] is False
+    assert content["masque"]["preferred"] is False
     assert content["masque"]["some_param"] == "val"
 
     path.unlink()
