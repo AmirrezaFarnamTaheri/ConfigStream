@@ -1,13 +1,12 @@
 # ConfigStream Batch 14
 # Optimized based on fetch duration for equal execution times
-# Est. Fetch Time: 7190.7s
+# Est. Fetch Time: 10291.9s
 
-https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub32.txt
-https://raw.githubusercontent.com/vpei/free-node-1/refs/heads/main/res/nod-1.txt
-https://raw.githubusercontent.com/taheri79/V2rayCollector/main/sub/normal/reality
-https://raw.githubusercontent.com/wiki/gfpcom/free-proxy-list/lists/wireguard.txt
-https://raw.githubusercontent.com/Barabama/FreeNodes/main/nodes/wenode.yaml
-https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-18.txt
-https://v2.alicivil.workers.dev/?count=2000&list=rs&shuffle=true
-https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/refs/heads/main/mtn/sub_3.txt
-https://raw.githubusercontent.com/NiREvil/vless/main/sub/SSTime
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub6.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub2.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub13.txt
+https://raw.githubusercontent.com/barry-far/V2ray-config/main/Splitted-By-Protocol/ss.txt
+https://v2.alicivil.workers.dev/?count=2000&list=lu&shuffle=true
+https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-1.txt
+https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/sub/ServerLess_1-1_Fragment_xray_config.json
+https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/refs/heads/main/mci/sub_4.txt
