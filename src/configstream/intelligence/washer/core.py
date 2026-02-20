@@ -1,3 +1,4 @@
+import shutil
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import asyncio
 import base64
@@ -19,6 +20,7 @@ from configstream.intelligence.washer.key_generator import (
     KeyGenerator,
 )  # Import the new key generator
 from configstream.tools.vwarp import VwarpTool
+from pathlib import Path
 from configstream.intelligence.chaining import find_optimal_relay, ProxyStub, COUNTRIES
 from configstream.pipeline_stats import PipelineStats
 from configstream.config import AppSettings
@@ -1082,6 +1084,40 @@ class ProxyWasher:
             "reserved": reserved,
             "mtu": 1280,
         }
+
+
+    def is_vwarp_available(self) -> bool:
+        """Check if Vwarp tunnel is likely operational."""
+        # Check if binary exists (fast)
+        if not shutil.which("vwarp"):
+            # Check common paths from VwarpTool logic if needed, but shutil.which covers PATH
+            # Fallback to local check
+            if not Path("vwarp").exists() and not Path("/usr/local/bin/vwarp").exists():
+                return False
+
+        # If binary exists, we assume it MIGHT work, but really we should check the port.
+        # But checking port 8086 requires async or socket.
+        # Given consumer.py calls this in async context, but wash_failed is not async?
+        # Wait, wash_failed is synchronous in core.py?
+        # "def wash_failed(self, ...):" -> Yes, it is sync.
+        # So we cannot use "await vwarp.is_available()".
+        # We can use a simple socket check.
+
+        import socket
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.settimeout(0.1)
+                # Check Vwarp SOCKS port (8086 default)
+                if s.connect_ex((VWARP_BIND_ADDRESS, VWARP_SOCKS5_PORT)) == 0:
+                    return True
+        except Exception:
+            pass
+
+        # If port check fails, maybe it"s just not started yet, or dead.
+        # But if it"s not started, using it will fail anyway.
+        # So returning False is safe to prevent wasting resources.
+        return False
+
 
     def wash_failed(
         self,

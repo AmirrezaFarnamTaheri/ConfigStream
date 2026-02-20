@@ -75,6 +75,12 @@ class _FileLock:
                     self._fh.close()
                 except OSError:
                     pass
+                # Cleanup lock file
+                try:
+                    if self.lock_path.exists():
+                        self.lock_path.unlink()
+                except OSError:
+                    pass
 
 
 def save_json_file(data: Any, path: str) -> None:
@@ -97,7 +103,7 @@ class AtomicFileWriter:
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
 
-        lock_path = path.with_suffix(path.suffix + ".lock")
+        lock_path = path.parent / f".{path.name}.lock"
         with _FileLock(lock_path):
             # Create temp file in the same directory to ensure atomic rename works across filesystems
             temp_path = None
@@ -142,7 +148,7 @@ class AtomicFileWriter:
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
 
-        lock_path = path.with_suffix(path.suffix + ".lock")
+        lock_path = path.parent / f".{path.name}.lock"
         with _FileLock(lock_path):
             temp_path = None
             try:
