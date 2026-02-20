@@ -385,7 +385,7 @@ async def get_proxies(
             or "\\" in country
         ):
             raise HTTPException(400, "Invalid country parameter")
-        fpath = OUTPUT_DIR / "countries" / f"{country.upper()}.json"
+        fpath = OUTPUT_DIR / "countries" / f"{country.upper()}.list.json"
         if not is_safe_path(fpath):
             raise HTTPException(400, "Invalid country parameter")
 
@@ -401,7 +401,7 @@ async def get_proxies(
             or "\\" in protocol
         ):
             raise HTTPException(400, "Invalid protocol parameter")
-        fpath = OUTPUT_DIR / "protocols" / f"{protocol.lower()}.json"
+        fpath = OUTPUT_DIR / "protocols" / f"{protocol.lower()}.list.json"
         if not is_safe_path(fpath):
             raise HTTPException(400, "Invalid protocol parameter")
 

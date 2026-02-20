@@ -117,7 +117,7 @@ class GoBatchTester:
                 logger.error(
                     "Go Tester failed startup self-test. Switching to Python fallback."
                 )
-                await self.close()
+                await self._restart_daemon()
                 self.available = False
                 return
 
@@ -485,8 +485,8 @@ class GoBatchTester:
 
         await self._ensure_process()
         if not self._proc or not self._proc.stdin:
-            logger.error("Go Tester process unavailable, skipping batch")
-            return proxies
+            logger.error("Go Tester process unavailable")
+            raise RuntimeError("Go Tester process unavailable")
 
         inputs = []
         req_id_map: Dict[str, Proxy] = {}  # Map req_id -> Proxy
@@ -570,7 +570,7 @@ class GoBatchTester:
                     proxy_obj.tested_at = batch_tested_at
 
             # Process might be dead, ensure restart next time
-            await self.close()
+            await self._restart_daemon()
             return proxies
         except Exception as e:
             logger.error(f"Failed to write to Go Tester Daemon: {e}")
@@ -587,7 +587,7 @@ class GoBatchTester:
                     p.tested_at = batch_tested_at
 
             # Process might be dead, ensure restart next time
-            await self.close()
+            await self._restart_daemon()
             return proxies
 
         # Wait for results
@@ -641,7 +641,7 @@ class GoBatchTester:
                     f"consecutive timeouts. Disabling to preserve pipeline time budget."
                 )
                 self.available = False
-                await self.close()
+                await self._restart_daemon()
                 return proxies
 
             # Restart daemon and AWAIT completion before returning,
@@ -781,7 +781,7 @@ class GoBatchTester:
 
         await self._ensure_process()
         if not self._proc or not self._proc.stdin:
-            return {}
+            raise RuntimeError("Go Tester process unavailable")
 
         inputs = []
         req_id_map: Dict[str, str] = {}  # original_id -> req_id
@@ -857,7 +857,7 @@ class GoBatchTester:
                 f"Go Tester Daemon connection lost during custom config test: {e}"
             )
             await self._cleanup_pending(list(reverse_map.keys()), futures)
-            await self.close()
+            await self._restart_daemon()
             return {}
         except Exception as e:
             logger.error(f"Failed to write to Go Tester Daemon (custom): {e}")

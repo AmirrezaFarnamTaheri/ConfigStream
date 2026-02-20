@@ -3,6 +3,8 @@
 // Deploy this to Cloudflare Workers (Free Tier)
 // Enhanced with masquerading (fake website) and dynamic routing
 
+import { connect } from 'cloudflare:sockets';
+
 // 1. CONFIGURATION
 const PROXY_PATH = "/my-secret-tunnel"; // Only tunnel traffic here
 const FAKE_SITE_URL = "https://www.kernel.org"; // The "Mask" - harmless technical site
@@ -13,7 +15,6 @@ const userID = ''; // Set in Worker environment variables if needed
 // Default backend (can be overridden via path: /IP/PORT)
 const DEFAULT_PROXY_IP = '127.0.0.1'; // User must configure this
 const DEFAULT_PROXY_PORT = 443;
-const DEFAULT_PROXY_TYPE = 'vless'; // vless, vmess, or trojan
 
 export default {
   async fetch(request, env, ctx) {
@@ -63,9 +64,16 @@ async function handleProxy(request, url) {
     
     const pathParts = url.pathname.split('/').filter(p => p);
     // Skip PROXY_PATH part, check for IP:PORT pattern
-    if (pathParts.length >= 3 && isValidIP(pathParts[1])) {
-        targetHost = pathParts[1];
-        targetPort = parseInt(pathParts[2]) || DEFAULT_PROXY_PORT;
+    // pathParts[0] might be 'my-secret-tunnel' (without slash)
+    // Adjust index based on whether PROXY_PATH has leading slash
+
+    // Simple heuristic: look for IP pattern in parts
+    for (let i = 0; i < pathParts.length - 1; i++) {
+        if (isValidIP(pathParts[i])) {
+            targetHost = pathParts[i];
+            targetPort = parseInt(pathParts[i+1]) || DEFAULT_PROXY_PORT;
+            break;
+        }
     }
 
     // Create WebSocket pair
@@ -75,21 +83,41 @@ async function handleProxy(request, url) {
     // Accept the client connection
     server.accept();
 
-    // Note: Full TCP tunneling requires Cloudflare's connect() API
-    // which may have restrictions on free tier. For now, this is a template.
-    // In production, you would:
-    // 1. Use connect() to establish TCP connection to targetHost:targetPort
-    // 2. Pipe WebSocket messages to TCP and vice versa
-    // 3. Handle errors and cleanup
+    try {
+        const socket = connect({ hostname: targetHost, port: targetPort });
+        const writer = socket.writable.getWriter();
 
-    // Simplified echo for testing (replace with actual tunneling)
-    server.addEventListener('message', event => {
-        // In production: forward to TCP socket
-        // For now: echo back (testing only)
-        if (server.readyState === WebSocket.READY_STATE_OPEN) {
-            server.send(event.data);
-        }
-    });
+        // Pipe WebSocket -> TCP
+        server.addEventListener('message', async event => {
+            try {
+                if (typeof event.data === 'string') {
+                    await writer.write(new TextEncoder().encode(event.data));
+                } else {
+                    await writer.write(event.data);
+                }
+            } catch (e) {
+                // Ignore write errors
+            }
+        });
+
+        // Pipe TCP -> WebSocket
+        socket.readable.pipeTo(new WritableStream({
+            write(chunk) {
+                if (server.readyState === WebSocket.READY_STATE_OPEN) {
+                    server.send(chunk);
+                }
+            }
+        })).catch(() => {}); // Ignore pipe errors
+
+        // Handle close
+        server.addEventListener('close', () => {
+            try { socket.close(); } catch (e) {}
+        });
+
+    } catch (e) {
+        server.close(1011, "Upstream connection failed");
+        return new Response("Upstream failed", { status: 502 });
+    }
 
     return new Response(null, {
         status: 101,
