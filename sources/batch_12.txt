@@ -1,10 +1,14 @@
 # ConfigStream Batch 12
 # Optimized based on fetch duration for equal execution times
-# Est. Fetch Time: 5467.8s
+# Est. Fetch Time: 1575.0s
 
-https://proxyspace.pro/socks5.txt
-https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub14.txt
-https://v2.alicivil.workers.dev/?count=2000&list=lu&shuffle=true
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub32.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub19.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub26.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/filtered/subs/vmess.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub11.txt
+https://github.com/Epodonios/v2ray-configs/raw/main/Splitted-By-Protocol/trojan.txt
 https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-10.txt
-https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/sub/v2rayng-wg.txt
-https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/main/mci/sub_3.txt
+https://v2.alicivil.workers.dev/?count=2000&list=no&shuffle=true
+https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/sub/exclave-wg.txt
+https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/main/mtn/sub_1.txt
