@@ -1,38 +1,16 @@
 # ConfigStream Batch 3
 # Optimized based on fetch duration for equal execution times
-# Est. Fetch Time: 1186.9s
+# Est. Fetch Time: 6479.6s
 
-https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub6.txt
-https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/protocols/tr.txt
-https://v2.alicivil.workers.dev/?count=2000&list=lv&shuffle=true
-https://raw.githubusercontent.com/NiREvil/vless/main/sub/ServerLess_TLS_Fragment_xray_config.json
-https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/refs/heads/main/mtn/sub_3.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub25.txt
 https://raw.githubusercontent.com/wiki/gfpcom/free-proxy-list/lists/hy.txt
-https://raw.githubusercontent.com/SANYIMOE/VPN-free/master/sub
-https://raw.githubusercontent.com/WearestandTelegram/Wearestand/refs/heads/main/wearestand.json
-https://raw.githubusercontent.com/Everyday-VPN/Everyday-VPN/main/subscription/main.txt
-https://raw.githubusercontent.com/gitbigg/permalink/main/subscribe
-https://raw.githubusercontent.com/dongchengjie/airport/main/subs/merged/tested_within.yaml
-https://raw.githubusercontent.com/abbasdvd3/clash/main/vless/x
-https://raw.githubusercontent.com/AlienVPN402/SFA-Config-Servers/main/index.html
-https://raw.githubusercontent.com/69z1zfw2fly/fly/main/2.yaml
-https://raw.githubusercontent.com/eycorsican/rule-sets/master/kitsunebi_sub
-https://sub.idsvip.com/link/abcd1234?clash=1
-https://luminati.io/
-https://proxypool.link/clash/proxies
-https://yebekhe.link/api/singbox/?url=https%3A%2F%2Feliv2ray.cloud%2Fsub%2Feliv2%2F-EliV2ray-EliV2ray.txt&limit=0&tun=true
-https://freevpnspy.raw.githubusercontent.com/2024/08/20240802_novless.yaml
-http://spys.one/en/free-proxy-list/
-https://www.proxy-list.download/api/v1/get?type=all
-https://harmony.victoriacross.workers.dev
-https://aliveproxy.com/proxy-list/
-https://publicproxyservers.com/api/proxy
-https://raw.githubusercontent.com/tkamirparsa/Javid-shah/refs/heads/main/Sub.text
-https://raw.githubusercontent.com/learnhard-kk/free_proxy_ss/main/free
-https://raw.githubusercontent.com/IranianCypherpunks/Xray/main/Sub
-https://netproxylist.com/api/get?list=all
-https://openproxylist.com/v2ray/
-https://raw.githubusercontent.com/qjlxg/collectSub/refs/heads/main/config_all_merged_nodes.txt
-https://zaya.io/HP-71
-https://raw.githubusercontent.com/Vauth/node/main/v2ray.txt
-https://www.kaggle.com/datasets/search?search=free+proxies
+https://raw.githubusercontent.com/Barabama/FreeNodes/master/nodes.txt
+https://raw.githubusercontent.com/barry-far/V2ray-config/main/Splitted-By-Protocol/vless.txt
+https://raw.githubusercontent.com/ermaozi/get_subscribe/main/subscribe/v2ray.txt
+https://raw.githubusercontent.com/mahdibland/SSAggregator/mast
+https://freenode.openrunner.net/uploads/20240617-clash.yaml
+https://raw.githubusercontent.com/Ai123999/WhiteKeys/refs/heads/main/WhiteKeys
+https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-1.txt
+https://v2.alicivil.workers.dev/?count=2000&list=ro&shuffle=true
+https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/main/mci/sub_1.txt
+https://raw.githubusercontent.com/NiREvil/vless/main/sub/exclave-wg.txt
