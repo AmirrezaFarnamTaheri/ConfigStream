@@ -1,10 +1,36 @@
 # ConfigStream Batch 2
 # Optimized based on fetch duration for equal execution times
-# Est. Fetch Time: 5955.0s
+# Est. Fetch Time: 1125.2s
 
-https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub20.txt
-https://v2.alicivil.workers.dev/?protocol=warp
+https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_raw_shadowsocks.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub11.txt
 https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/refs/heads/main/mci/sub_4.txt
-https://raw.githubusercontent.com/wiki/gfpcom/free-proxy-list/lists/vmess.txt
-https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-8.txt
-https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/hiddify/proton-wire.json
+https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-4.txt
+https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/sub/ServerLess_TLS_Fragment_xray_config.json
+https://v2.alicivil.workers.dev/?count=2000&list=ae&shuffle=true
+https://raw.githubusercontent.com/wuqb2i4f/xray-config-toolkit/refs/heads/main/output/base64/mix-uri
+https://raw.githubusercontent.com/DiDiten/multi-proxy-config-fetcher/refs/heads/main/configs/proxy_configs.txt
+https://free-proxy-list.net/
+https://raw.githubusercontent.com/valid7996/Gozargah/main/Gozargah_sing-box_sub
+https://t.me/ProxyScanBot
+https://vpny.net/Mobile
+https://ch.owokkvsxks.store/api/v1/client/subscribe?token=ad180e3b9514176a8cb26bf2962d5f1e
+https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/normal/vmess
+https://free.proxy-sale.com/api/front/main/proxy/export
+https://raw.githubusercontent.com/Sage-77/V2ray-configs/main/config.txt
+https://bitbucket.org/huwo1/proxy_nodes/raw/f31ca9ec67b84071515729ff45b011b6b09c10f2/trojan.md
+https://best-proxy.com
+http://www.qihoo.com/
+https://www.facebook.com/search/top?q=free%20proxy
+http://cnproxy.com
+https://raw.githubusercontent.com/manuGMG/proxy-365/main/SOCKS4.txt
+https://raw.githubusercontent.com/awesome-vpn/awesome-vpn/master/ss
+https://www.reddit.com/r/proxylist/
+https://subapi.fxxk.dedyn.io/sub?target=singbox&url=https%3A%2F%2Fraw.githubusercontent.com%2Fpeasoft%2FNoMoreWalls%2Fmaster%2Fsnippets%2Fnodes.meta.yml&insert=false&config=https%3A%2F%2Fraw.githubusercontent.com%2FACL4SSR%2FACL4SSR%2Fmaster%2FClash%2Fconfig%2FACL4SSR_Online_Full_NoAuto.ini&tls13=true&emoji=true&list=false&xudp=true&udp=true&tfo=false&expand=true&scv=false&fdn=false&singbox.ipv6=1
+https://freesub.zjde5.de5.net/sub
+https://harmony.victoriacross.workers.dev
+https://www.proxy-list.download/api/v1/get?type=all
+https://raw.githubusercontent.com/proxyscrape/proxyscrape/master/proxies.json
+https://www.kaggle.com/datasets/search?search=free+proxies
+https://raw.githubusercontent.com/eQnz/configs-collector-v2ray/refs/heads/main/sub/splitted/mixed_1.txt
+https://www.cool-proxy.net/proxies.json

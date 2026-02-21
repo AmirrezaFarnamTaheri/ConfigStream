@@ -1,23 +1,33 @@
 # ConfigStream Batch 11
 # Optimized based on fetch duration for equal execution times
-# Est. Fetch Time: 6316.3s
+# Est. Fetch Time: 1125.1s
 
-https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub32.txt
-https://v2.alicivil.workers.dev/?count=2000&list=za&shuffle=true
-https://v2.alicivil.workers.dev/?count=2000&list=pa&shuffle=true
-https://v2.alicivil.workers.dev/?count=2000&list=se&shuffle=true
-https://v2.alicivil.workers.dev/?count=2000&list=no&shuffle=true
-https://v2.alicivil.workers.dev/?count=2000&list=ru&shuffle=true
-https://v2.alicivil.workers.dev/?count=2000&list=ch&shuffle=true
-https://v2.alicivil.workers.dev/?count=2000&list=tw&shuffle=true
-https://v2.alicivil.workers.dev/?count=2000&list=rs&shuffle=true
-https://v2.alicivil.workers.dev/?count=2000&list=sc&shuffle=true
-https://v2.alicivil.workers.dev/?count=2000&list=pe&shuffle=true
-https://v2.alicivil.workers.dev/?count=2000&list=sk&shuffle=true
-https://v2.alicivil.workers.dev/?count=2000&list=mk&shuffle=true
-https://v2.alicivil.workers.dev/?count=2000&list=es&shuffle=true
-https://v2.alicivil.workers.dev/?count=2000&list=tr&shuffle=true
-https://raw.githubusercontent.com/barry-far/V2ray-config/main/Sub4.txt
-https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/main/app/sub.txt
-https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-13.txt
-https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/sub/ServerLess_1-1_Fragment_xray_config.json
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub14.txt
+https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/main/mtn/sub_4.txt
+https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-3.txt
+https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/sub/exclave-wg.txt
+https://v2.alicivil.workers.dev/?count=2000&list=pl&shuffle=true
+https://raw.githubusercontent.com/WearestandTelegram/Wearestand/refs/heads/main/wearestand.json
+https://raw.githubusercontent.com/baip01/clash/main/clash
+https://raw.githubusercontent.com/xiyaowong/freeFQ/main/v2ray
+https://raw.githubusercontent.com/Ai123999/WhiteeListSub/refs/heads/main/whitelistkeys
+https://iwxf.netlify.app/
+https://github.com/AmirrezaFarnamTaheri/GATHEREX/blob/main/outputs_dev/proxies.txt
+https://melomelo.xyz/V2rayapp/Mrvpn.php
+https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/normal/reality
+https://raw.githubusercontent.com/Sage-77/V2ray-configs/main/vmess.txt
+https://v2y.xyz/api/v1/client/subscribe?token=2533ce3df935ebaf4143fcc3df068ebd
+https://rss.getfree.win/link/w9ted9eZq1zbC3gx?sub=1
+https://scys.org/proxy
+http://www.freeproxy.win/api/proxy
+https://raw.githubusercontent.com/imalrzai/ExclaveVirtual/main/ExclaveVirtual
+https://raw.githubusercontent.com/HyperBeats/proxy-list/main/socks5.txt
+https://www.blackhatworld.com/seo/free-proxies.107026/
+https://proxyhub.me/free-proxy-list
+https://proxychecked.org/
+https://raw.githubusercontent.com/rasool083/v2ray-sub/refs/heads/main/sub.txt
+https://raw.githubusercontent.com/amin4139/share_file/master/list
+https://raw.githubusercontent.com/learnhard-kk/free_proxy_ss/main/free
+https://raw.githubusercontent.com/erisll/v2ray/main/subscribe.txt
+https://dev.kuaidaili.com/api/freeproxy
+https://raw.githubusercontent.com/tkamirparsa/Javid-shah/refs/heads/main/Sub.text

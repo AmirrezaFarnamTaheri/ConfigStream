@@ -1,9 +1,10 @@
 # ConfigStream Batch 1
 # Optimized based on fetch duration for equal execution times
-# Est. Fetch Time: 6002.9s
+# Est. Fetch Time: 3627.1s
 
-https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub36.txt
-https://v2.alicivil.workers.dev
-https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/main/mci/sub_4.txt
-https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-4.txt
-https://raw.githubusercontent.com/NiREvil/vless/main/sub/v2rayng-wg.txt
+https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_trojan.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub15.txt
+https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/main/mfc.txt
+https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-17.txt
+https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/sub/SSTime
+https://v2.alicivil.workers.dev/?count=2000&list=tw&shuffle=true
