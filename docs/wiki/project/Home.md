@@ -6,7 +6,7 @@ Welcome to the **ConfigStream** documentation. ConfigStream is an automated, hig
 
 *   **Zero Budget Architecture:** The system runs entirely on free, resilient cloud infrastructure (GitHub Actions, Pages, Cloudflare), ensuring long-term sustainability and censorship resistance. No paid APIs, no server bills, no identity trail.
 *   **Hybrid Engine:** We combine the flexibility of **Python** for data processing and intelligence with the raw performance of **Go** for massive-scale network testing. The pipeline processes thousands of proxies in minutes.
-*   **Multi-Strategy Circumvention:** WARP tunnels are just one tool. ConfigStream supports **proxy cascading** (chaining multiple proxies), **intranet relay discovery** (finding LAN hosts with internet access), **TLS fragmentation**, **CDN Worker relays**, and **domain fronting** — adapting to whatever works on your network.
+*   **Multi-Strategy Circumvention:** WARP tunnels are just one tool. ConfigStream supports **proxy cascading** (chaining multiple proxies), **intranet relay discovery** (finding LAN hosts with internet access), **CDN Worker relays**, and **domain fronting** — adapting to whatever works on your network. (TLS fragmentation disabled; use vwarp AtomicNoize for fragmentation-based evasion.)
 *   **Smart Routing ("The Sniper"):** Configurations are optimized with geographic intelligence, protocol scoring, and censorship-awareness to route traffic through the fastest, stealthiest path available.
 *   **Proxy Washing & Shielding:** Blocked IPs are automatically "washed" through Cloudflare WARP to restore connectivity. "Shielding" inverts the topology — wrapping your proxy *inside* a WARP tunnel so your ISP never sees the proxy IP.
 
@@ -19,7 +19,7 @@ Welcome to the **ConfigStream** documentation. ConfigStream is an automated, hig
 
 ### For Users Behind Heavy Censorship
 1.  **Use the Lab:** Visit the [Chain Laboratory](../lab.html) to build a custom multi-layer chain.
-2.  **Run the Scanner:** Download `lab-scanner.py` and run `python lab-scanner.py --auto-chain` to automatically discover the best path (tries 6 strategies).
+2.  **Run the Scanner:** Download `tools/lab-scanner.py` and run `python tools/lab-scanner.py --auto-chain` to automatically discover the best path (tries 6 strategies).
 3.  **Try Pre-Tested Proxies:** The Lab page offers working proxies from ConfigStream's pipeline output — use them directly or as building blocks in your chain.
 
 ### For Developers

@@ -31,8 +31,11 @@ Core output files generated on every pipeline run.
 - `side_products.zip` - OpenVPN + WireGuard configs
 
 #### Categorized Outputs
-- `countries/{CC}.json` - Proxies by country code
-- `protocols/{protocol}.json` - Proxies by protocol
+- `countries/{CC}.json` - Country-specific Sing-box config
+- `countries/{CC}.list.json` - Country-specific JSON array (API/filtering)
+- `protocols/{protocol}.json` - Protocol-specific Sing-box config
+- `protocols/{protocol}.list.json` - Protocol-specific JSON array (API/filtering)
+- `protocols/{protocol}.txt` - Protocol-specific plaintext URI list
 
 ### 2. DNS-Safe Outputs (IP-Only)
 
@@ -139,10 +142,9 @@ All outputs include evasion features by default:
 - **Applied to**: VMess, VLESS, Trojan, Hysteria2, TUIC
 - **Fingerprints**: Chrome, Firefox, Safari, iOS (rotated deterministically)
 
-### TLS Fragmentation
-- **Tag**: `EVASION:FRAG`
-- **Applied to**: All TLS-enabled protocols
-- **Settings**: 100-200 byte fragments, 0-10ms sleep
+### TLS Fragmentation (Disabled)
+- **Tag**: `EVASION:FRAG` — no longer applied (sing-box removed tls_fragment)
+- **Alternative**: Use vwarp AtomicNoize presets for fragmentation-based evasion
 
 ### Multiplexing with Padding
 - **Tag**: `EVASION:MUX`
@@ -254,7 +256,7 @@ All variations are generated in parallel to ensure comprehensive coverage.
 
 All evasion, hardening, reviving, shielding, and other methods are included in outputs with proper tagging:
 
-✅ **Evasion Features**: uTLS, fragmentation, multiplexing, ALPN (all applied by default)  
+✅ **Evasion Features**: uTLS, multiplexing, ALPN (fragmentation disabled; use vwarp AtomicNoize)  
 ✅ **DNS Hardening**: DNS-safe (IP-only) and DNS-hardened (prefer-IP + DoH/DoT/DoQ) variants  
 ✅ **Revival Methods**: WARP and VWARP revived chains (distinct tags: `WARP-REVIVE-*`, `VWARP-REVIVE-*`)  
 ✅ **Shielding**: Gold/Shielded chains (Copper to Gold transformation)  
@@ -265,4 +267,3 @@ All chain types are included in:
 - Standard: `singbox-chains.json`
 - DNS-Safe: `singbox-chains-dns-safe.json`
 - DNS-Hardened: `singbox-chains-dns-hardened.json`
-

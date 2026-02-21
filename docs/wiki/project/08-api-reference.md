@@ -76,7 +76,7 @@ These are the primary endpoints used by the frontend. They are flat files, not d
 |---|---|---|---|
 | `fetchMetadata()` | `metadata.json` | `/api/stats` | `utils/network.js` |
 | `fetchProxies()` | `proxies.json` | `/api/proxies` | `utils/network.js` |
-| `fetchStatistics()` | `metadata.json` | — | `statistics.js` |
+| `fetchStatistics()` | `metadata.json` | `/api/stats` | `utils/network.js` |
 | `fetchProxyHistory()` | `data/active_proxy_trend.json` | — | `statistics.js` |
 | `fetchEvasionTrend()` | `data/evasion_trend.json` | — | `statistics.js` |
 | `loadCountryData()` | `assets/data/countries.json` | — | `statistics.js` |
@@ -127,7 +127,7 @@ curl -sO https://your-site.github.io/clash-dns-hardened.yaml
 
 ### Live Server Endpoints (FastAPI)
 
-When running as a live server (`uvicorn configstream.api:app`), these dynamic endpoints are available:
+When running as a live server (`uvicorn configstream.server:app`), these dynamic endpoints are available:
 
 #### `GET /api/stats`
 Returns the latest pipeline metadata.
@@ -135,11 +135,8 @@ Returns the latest pipeline metadata.
 curl -s http://localhost:8000/api/stats | jq '.total_valid_proxies'
 ```
 
-#### `GET /api/proxies
-> **Note:** The  endpoint returns a JSON Array of proxy objects (sourced from ).
-> For full Sing-box configuration objects, access the static file paths directly (e.g., ).
-`
-Returns the full proxy list. Supports query filters:
+#### `GET /api/proxies`
+Returns the full proxy list (JSON array of proxy objects). For full Sing-box configuration objects, use static file paths (e.g. `singbox.json`). Supports query filters:
 ```bash
 # Filter by country
 curl -s "http://localhost:8000/api/proxies?country=US" | jq length
@@ -152,11 +149,23 @@ curl -s "http://localhost:8000/api/proxies?protocol=vless" | jq '.[0]'
 Returns a delta against a previous snapshot. Used for incremental updates.
 
 #### `GET /subscribe/{format}`
-Dynamic subscription endpoint. Supported formats:
+Dynamic subscription endpoint. Supported formats include:
 ```
-base64, clash, singbox, singbox-vpn, singbox-chains, chains,
-shadowrocket, quantumult, surge, loon, sip008, revived,
-proxies, proxies-json, side-products
+base64, base64-dns-safe, base64-dns-hardened,
+clash, clash-dns-safe, clash-dns-hardened,
+singbox, singbox-dns-safe, singbox-dns-hardened,
+singbox-vpn, singbox-vpn-dns-safe, singbox-vpn-dns-hardened,
+singbox-chains, singbox-chains-dns-safe,
+chains, chains-dns-safe,
+shadowrocket, shadowrocket-dns-safe, shadowrocket-dns-hardened,
+quantumult, quantumultx, quantumult-dns-safe, quantumultx-dns-safe,
+quantumult-dns-hardened, quantumultx-dns-hardened,
+surge, surge-dns-safe, surge-dns-hardened,
+loon, loon-dns-safe, loon-dns-hardened,
+sip008, sip008-dns-safe, sip008-dns-hardened,
+revived, revived-dns-safe, revived-dns-hardened,
+proxies, proxies-json, proxies-dns-safe, proxies-dns-hardened,
+side-products, side-products-dns-safe, side-products-dns-hardened
 ```
 ```bash
 curl -s http://localhost:8000/subscribe/clash > clash.yaml
@@ -171,6 +180,28 @@ Health check endpoint. Returns `{"status": "ok"}`.
 
 #### `WS /ws/updates`
 WebSocket stream for real-time pipeline update notifications. Disabled on static hosting.
+
+### Lab Endpoint
+
+#### `POST /api/lab/test-chain`
+Chain connectivity test. When singbox2proxy and sing-box are available, runs the config and returns latency/exit IP. Otherwise returns 503 (frontend falls back to manual instructions).
+
+**Request:**
+```json
+{ "config": <sing-box JSON object> }
+```
+
+**Success (200):**
+```json
+{ "success": true, "latency": 120.5, "exit_ip": "1.2.3.4" }
+```
+
+**Failure (200):**
+```json
+{ "success": false, "error": "Connection test timed out" }
+```
+
+**Unavailable (503):** When singbox2proxy not installed or sing-box binary missing — frontend shows manual test instructions.
 
 ### Admin Endpoint
 
@@ -228,7 +259,7 @@ Summary statistics consumed by the frontend and downstream clients.
   "rejection_reasons": { "duplicate": 5000, "TEST_FAILED": 3200 },
   "evasion_utls_enabled": 3800,
   "evasion_alpn_enabled": 3200,
-  "evasion_fragmentation_enabled": 3800,
+  "evasion_fragmentation_enabled": 0,
   "evasion_multiplexing_enabled": 3500,
   "evasion_dns_safe_count": 4300,
   "evasion_dns_hardened_count": 4300,
@@ -296,7 +327,7 @@ The `stack` field is a composite label built as `PROTO+TRANSPORT+SECURITY`, for 
 | Tag | Meaning |
 |---|---|
 | `EVASION:UTLS` | [uTLS fingerprint rotation](../encyclopedia/glossary/networking_terms.md) applied |
-| `EVASION:FRAG` | [TLS fragmentation](../encyclopedia/glossary/networking_terms.md) applied |
+| `EVASION:FRAG` | Removed — sing-box dropped tls_fragment; tag no longer applied |
 | `EVASION:MUX` | Multiplexing with padding applied |
 | `EVASION:ALPN` | [ALPN rotation](../encyclopedia/glossary/networking_terms.md) applied |
 | `DNS:SAFE` | Included in DNS-safe (IP-only) output |

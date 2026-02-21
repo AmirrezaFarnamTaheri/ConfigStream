@@ -1,5 +1,12 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""ISO 3166-1 alpha-2 country codes mapped to display names."""
+"""
+ISO 3166-1 alpha-2 country codes mapped to display names.
+
+Optional module for backend display (e.g., when GeoIP returns code but not name).
+Frontend uses assets/data/countries.json (name→code) for globe/statistics.
+"""
+
+__all__ = ["COUNTRY_NAMES"]
 
 COUNTRY_NAMES = {
     "XX": "Unknown",

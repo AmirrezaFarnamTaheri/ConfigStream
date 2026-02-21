@@ -138,7 +138,7 @@ Running on a 7GB RAM shared runner requires strict discipline.
 
 To scale indefinitely, we use the **Matrix Strategy**:
 
-1.  **Sharding**: Source files are split into `sources/batch_1.txt` through `batch_14.txt`.
+1.  **Sharding**: Source files are split into `sources/batch_1.txt` through `batch_17.txt`.
 2.  **Parallel Execution**: GitHub starts 14 independent VMs.
     *   VM 1 processes Batch 1.
     *   VM 2 processes Batch 2.

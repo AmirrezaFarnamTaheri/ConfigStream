@@ -21,6 +21,10 @@ from .parsers import (
     parse_vless,
     parse_wireguard,
     parse_openvpn,
+    parse_xray,
+    parse_snell,
+    parse_brook,
+    parse_juicity,
 )
 
 
@@ -95,6 +99,10 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
                 "naive": parse_naive,
                 "naive+https": parse_naive,
                 "naive+http": parse_naive,
+                "xray": parse_xray,
+                "snell": parse_snell,
+                "brook": parse_brook,
+                "juicity": parse_juicity,
             },
         )
 

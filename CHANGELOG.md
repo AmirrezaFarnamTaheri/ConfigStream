@@ -1,4 +1,61 @@
 
+## [Unreleased]
+
+### Proxy JSON Format (2026-02)
+- **output_transport.save_json**: Always outputs JSON array (list of proxies), never single object; coerce non-list input
+- **output_handler._save_proxies_with_chains**: Validation that proxies.json root is array
+- **output_logic**: country/protocol .list.json — ensure plist is list before building array
+
+### Docs: TLS Fragmentation Status (2026-02)
+- **ROADMAP, 01-introduction**: 3 evasion techniques (fragmentation disabled)
+- **Lab_Page, 04-engineering, 06-frontend, Home, 10-troubleshooting**: TLS Fragment disabled; point to vwarp AtomicNoize
+- **08-api-reference**: EVASION:FRAG tag removed
+- **COMPLETE_AUDIT, OUTPUT_*, CENSORSHIP_EVASION, glossary, singbox_configuration_guide, warp**: Consistent fragmentation-disabled messaging
+
+### Deprecated/Legacy Cleanup (2026-02)
+- **dynamic_reshard.py**: Removed legacy `pipeline-output/consolidated_pipeline.log` from LOG_PATTERNS
+- **evasion.py**: Removed `add_tls_fragmentation` no-op (sing-box removed tls_fragment); fragmentation no longer applied
+- **output_handler.py**: `evasion_fragmentation_enabled` now 0 (accurate)
+- **split.py**: Removed `has_fragmentation` from proxy details (fragmentation disabled)
+- **tagging.py**: Removed EVASION:FRAG tag branch (dead code)
+- **pipeline_stats.py**: Updated evasion_fragmentation_enabled comment
+- **Frontend**: Consolidated to single `configstream:dataUpdated` event; removed `data-updated`, `dataUpdated` legacy handlers
+- **Docs**: evasion_fragmentation_enabled examples 3800→0; audit field descriptions aligned
+- **chaining.py**: Removed stray `# import os - removed` comment
+- **vwarp.py**: Removed legacy test_url compatibility comment
+- **test_washer.py**: Fixed stale output.py reference
+- **server.py**: Clarified ValueError comment
+
+### Backend-Frontend-Docs Consistency (2026-02)
+- **Frontend fetchers**: All data fetches now use `ROOT_PATH` for subpath deployment (analytics.js, statistics.js, proxy-history-chart.js, lab.js, byow.js, loadCountryData)
+- **network.js**: `fetchStatistics()` now has `/api/stats` fallback (aligned with fetchMetadata/fetchProxies)
+- **common-ui.js**: Replaced legacy `files/chosen/base64.txt` with explicit chosen paths
+- **08-api-reference.md**: Fixed malformed GET /api/proxies section; documented fetchStatistics fallback; corrected module references
+
+### Polish & Consistency (2026-02)
+- **CHANGELOG**: Corrected flattened paths (producer.py, consumer.py); deduplicated lab test-chain entries
+- **README**: Added Xray, Snell, Brook, Juicity to protocols list
+- **testers/manager.py**: Removed redundant pass; simplified gather comment
+
+### Implementations Completed (2026-02)
+- **Lab test-chain API**: Full implementation when singbox2proxy/sing-box available — tests chain config, returns latency and exit IP; 503 when unavailable
+- **Vectors stability/reliability**: Integrated `ProxyHistoryTracker.get_bulk_stats()` into `generate_vectors()` — dimensions 6–7 now use real success-rate data instead of default 5
+- **auto_detect parsers**: Xray, Snell, Brook, Juicity added to `auto_detect_and_parse()` for pipeline format support
+
+### Documentation & Test Fixes (2026-02)
+- **CENSORSHIP_EVASION.md**: Fixed test references — use `test_evasion.py`, `test_censorship.py` (removed non-existent `test_censorship_lab.py`, `test_html_smuggler.py`)
+- **HTML smuggling**: Updated docs to reference `stego.py` (no `html_smuggler.py` module)
+- **countries.py**: Documented as optional; added `__all__`
+- **test_output_transport.py**: Merged into `test_converters.py` (tests converter transport options)
+- **09-contributing.md**: Updated batch count to 17; tools list (VwarpTool, CensorshipLab, DNS scanner)
+- **08-api-reference.md**: Documented `POST /api/lab/test-chain`
+- **security_concepts.md**: HTML smuggling now references stego delivery
+- **test_output_full.py**: Updated split output assertion (proxy + washed = 2 selector tags)
+- **security/honeypot.py**: Docstring clarified (pipeline uses Go tester; is_honeypot for tests/standalone)
+- **Note**: test_html_smuggler.py (referenced in 2.7.0) no longer exists; stego tests cover delivery
+
+---
+
 ## [3.0.2] - 2026-02-14
 
 ### Comprehensive Code Review & Simplification
@@ -9,7 +66,7 @@
 - `security_validator.py`: Collapsed 4 TLS protocol branches into single `in ("trojan", "hysteria2", "tuic", "https")` check
 - `security_validator.py`: Simplified redundant UUID double-check into flat early-return pattern
 - `filtering.py`: Extracted triplicated "prefer working > lower latency" comparison into shared `_is_better_proxy()` helper — replaced 3 call sites
-- `pipeline_core/producer.py`: Extracted triplicated "report failure + record run" pattern into `_report_source_failure()` helper — eliminated ~70 lines of duplication
+- `producer.py`: Extracted triplicated "report failure + record run" pattern into `_report_source_failure()` helper — eliminated ~70 lines of duplication
 - `pipeline.py`: Replaced duplicated cancel logic in TimeoutError handler with existing `_cancel_all()` helper
 - `adapters.py`: Replaced `get_adapter` if/elif chain with `_ADAPTER_MAP` dict lookup
 - `testers/go.py`: Extracted 4x duplicated cancel/await/catch pattern into `_cancel_task()` static method
@@ -21,8 +78,8 @@
 - `security_validator.py`: Removed dead `is_hex()` method — zero callers in entire codebase
 - `security_validator.py`: Removed unreachable regex fallback in `is_local_ip()` — `ipaddress` handles all valid IPs; regex fallback would false-positive on hostnames like `10.example.com`
 - `security_validator.py`: Removed dead `validate_proxy` module-level alias — zero importers in codebase
-- `pipeline_core/consumer.py`: Removed redundant outer `try/except` in `_parse_chunk` and unnecessary `pass` after logging
-- `pipeline_core/consumer.py`: Removed 7-line stale developer notes about proxy mutability
+- `consumer.py`: Removed redundant outer `try/except` in `_parse_chunk` and unnecessary `pass` after logging
+- `consumer.py`: Removed 7-line stale developer notes about proxy mutability
 - `security/rules.py`: Simplified `validate_port` — collapsed 8-line if/else/pass block into 2-line debug log
 - `virus_total.py`: Removed redundant `str()` wrapping in f-string
 - `testers/go.py`: Removed dead `pass` + stale reentrancy comment in `_read_stderr_loop`
@@ -30,7 +87,7 @@
 - `parsers/shadowsocks.py`: Removed dead `pass` statement and redundant host validation
 
 **Bug Fixes**
-- `pipeline_core/consumer.py`: Fixed silent fingerprint save failure — `orjson.dumps()` doesn't accept `ensure_ascii` kwarg; switched to `write_bytes()` with orjson bytes output
+- `consumer.py`: Fixed silent fingerprint save failure — `orjson.dumps()` doesn't accept `ensure_ascii` kwarg; switched to `write_bytes()` with orjson bytes output
 
 **Over-Engineering Reduction**
 - `security_validator.py`: Simplified `is_valid_uuid()` exception from `(ValueError, TypeError, AttributeError)` to just `ValueError`

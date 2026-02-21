@@ -61,7 +61,7 @@ def test_smart_chain_generation():
         ),
     ]
 
-    # Use the standalone function as imported in output.py (or from intelligence.chaining)
+    # generate_smart_chains from intelligence.chaining
     chains = generate_smart_chains(proxies)
     # 1.1.1.1 is IR, 2.2.2.2 is US (foreign)
     # Logic: for relay in relays_ir (1.1.1.1) ... for exit in proxies (2.2.2.2) ...

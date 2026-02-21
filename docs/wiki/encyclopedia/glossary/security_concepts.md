@@ -5,7 +5,7 @@ From Greek *steganos* (covered) and *graphein* (writing). Unlike cryptography, w
 *   **In ConfigStream:** We embed encrypted JSON configurations inside the Least Significant Bits (LSB) of JPEG/PNG images.
 *   **Why?** A network administrator seeing you download `config.json` might block it. Seeing you download `cute_cat.jpg` is usually ignored.
 *   **Transport:** The image acts as a "carrier" for the data.
-*   **HTML Smuggling:** A related technique where configs are hidden inside innocent-looking HTML pages (e.g., in a `<meta>` tag), decoded by JavaScript on the client side. ConfigStream implements this in `tools/html_smuggler.py`.
+*   **HTML Smuggling:** A related technique where configs are hidden inside innocent-looking HTML pages (e.g., in a `<meta>` tag), decoded by JavaScript on the client side. ConfigStream implements steganographic delivery via `stego.py` and frontend assets.
 
 ## VirusTotal Integration
 VirusTotal is a service that analyzes files and URLs using over 70 antivirus scanners.

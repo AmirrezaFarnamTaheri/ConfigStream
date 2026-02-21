@@ -1,4 +1,11 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+"""
+Protocol parsers: Xray, Snell, Brook, Juicity, SSH, Naive, OpenVPN, etc.
+
+parse_xray, parse_snell, parse_brook, parse_juicity are exported and wired in auto_detect.py
+for pipeline format support.
+"""
+
 import base64
 import logging
 import re

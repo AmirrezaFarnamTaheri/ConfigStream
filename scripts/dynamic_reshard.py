@@ -15,7 +15,7 @@ from itertools import combinations
 
 # --- Configuration ---
 LOG_PATTERNS = [
-    "pipeline-output/consolidated_pipeline.log",
+    "output/consolidated_pipeline.log",  # Merge stage writes here
     "pipeline_batch_*.log",
     "*.log",
 ]  # Patterns to match pipeline logs

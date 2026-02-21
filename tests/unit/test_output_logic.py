@@ -1,5 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import json
+import base64
+from configstream.generators.plaintext import generate_plaintext_subscription
 from configstream.models import Proxy
 from configstream.output_logic import generate_categorized_outputs
 from configstream.intelligence.washer.core import ProxyWasher
@@ -133,6 +135,143 @@ def test_protocol_txt_files_generated(tmp_path, sample_proxies):
         assert len(content.strip()) > 0
 
 
+def test_plaintext_protocol_priority_order() -> None:
+    proxies = [
+        Proxy(
+            config="http://h.example:80#http",
+            protocol="http",
+            address="h.example",
+            port=80,
+        ),
+        Proxy(
+            config="socks5://s.example:1080#socks",
+            protocol="socks5",
+            address="s.example",
+            port=1080,
+        ),
+        Proxy(
+            config="ss://YWVzLTEyOC1nY206cGFzcw==@ss.example:443#ss",
+            protocol="shadowsocks",
+            address="ss.example",
+            port=443,
+        ),
+        Proxy(
+            config="vless://u@vless.example:443#vless",
+            protocol="vless",
+            address="vless.example",
+            port=443,
+            uuid="u",
+        ),
+        Proxy(
+            config="vmess://dGVzdA==#vmess",
+            protocol="vmess",
+            address="vm.example",
+            port=443,
+            uuid="123e4567-e89b-12d3-a456-426614174000",
+        ),
+        Proxy(
+            config="wireguard://wg.example:2408#wg",
+            protocol="wireguard",
+            address="wg.example",
+            port=2408,
+        ),
+        Proxy(
+            config="hysteria2://pass@hy2.example:443#hy2",
+            protocol="hysteria2",
+            address="hy2.example",
+            port=443,
+        ),
+    ]
+
+    plaintext = generate_plaintext_subscription(proxies)
+    schemes = [
+        line.split("://", 1)[0] for line in plaintext.splitlines() if "://" in line
+    ]
+    assert schemes[:7] == [
+        "hysteria2",
+        "wireguard",
+        "vmess",
+        "vless",
+        "ss",
+        "socks5",
+        "http",
+    ]
+
+
+def test_chosen_proxies_txt_respects_protocol_priority_order(tmp_path) -> None:
+    proxies = [
+        Proxy(
+            config="http://h.example:80#http",
+            protocol="http",
+            address="h.example",
+            port=80,
+            is_working=True,
+        ),
+        Proxy(
+            config="vless://u@vless.example:443#vless",
+            protocol="vless",
+            address="vless.example",
+            port=443,
+            uuid="u",
+            is_working=True,
+        ),
+        Proxy(
+            config="hysteria2://pass@hy2.example:443#hy2",
+            protocol="hysteria2",
+            address="hy2.example",
+            port=443,
+            is_working=True,
+        ),
+    ]
+    files = generate_categorized_outputs(proxies, tmp_path)
+    chosen_lines = files["chosen_proxies_txt"].read_text(encoding="utf-8").splitlines()
+    assert chosen_lines[0].startswith("hysteria2://")
+    assert chosen_lines[1].startswith("vless://")
+    assert chosen_lines[2].startswith("http://")
+
+
+def test_uri_artifacts_fallback_to_all_when_working_pool_has_no_uris(tmp_path) -> None:
+    """proxies.txt/base64.txt should not be empty when only non-URI working protocols exist."""
+    proxies = [
+        Proxy(
+            config="not-a-uri",
+            protocol="wireguard",
+            address="wg.example",
+            port=2408,
+            is_working=True,
+        ),
+        Proxy(
+            config="revived://placeholder",
+            protocol="revived",
+            address="revived.example",
+            port=443,
+            uuid="u",
+            is_working=False,
+            details={
+                "is_revived": True,
+                "origin_config": {
+                    "config": "vless://u@revived.example:443#revived-node",
+                    "protocol": "vless",
+                    "address": "revived.example",
+                    "port": 443,
+                    "uuid": "u",
+                    "remarks": "revived-node",
+                },
+            },
+        ),
+    ]
+
+    files = generate_categorized_outputs(proxies, tmp_path)
+    raw = files["proxies_txt"].read_text(encoding="utf-8")
+    assert "vless://" in raw
+    assert "revived.example:443" in raw
+
+    b64 = files["base64"].read_text(encoding="utf-8").strip()
+    decoded = base64.b64decode(b64).decode("utf-8")
+    assert "vless://" in decoded
+    assert "revived.example:443" in decoded
+
+
 def test_dns_safe_uses_detached_proxy_clones():
     """DNS-safe cache must not share object references with source proxies."""
     from configstream.output_logic import _build_dns_safe_proxies
@@ -155,3 +294,51 @@ def test_dns_safe_uses_detached_proxy_clones():
 
     src.process = "shielded"
     assert dns_safe[0].process == "native"
+
+
+def test_chain_uniquification_prevents_collapse():
+    """Chains with duplicate tags must be uniquified, not skipped (fixes single-proxy collapse)."""
+    from configstream.generators.singbox import SingBoxGenerator
+
+    # 3 chains with identical entry-point tag (simulating format_proxy_name collision)
+    dup_tag = "DE-VLESS-100ms-shielded"
+    chains = []
+    for i in range(3):
+        wg = {
+            "type": "wireguard",
+            "tag": f"WG-{i}",
+            "server": "162.159.192.1",
+            "server_port": 2408,
+            "private_key": "x",
+            "peer_public_key": "y",
+            "local_address": ["10.0.0.1/32"],
+        }
+        relay = {
+            "type": "vless",
+            "tag": dup_tag,
+            "server": "1.1.1.1",
+            "server_port": 443,
+            "uuid": f"uuid{i}",
+            "detour": f"WG-{i}",
+        }
+        chains.extend([wg, relay])
+
+    gen = SingBoxGenerator()
+    config = gen.generate([], extra_outbounds=chains)
+    selector = next(
+        (
+            o
+            for o in config["outbounds"]
+            if o.get("type") == "selector" and o.get("tag") == "🌍 Proxy Select"
+        ),
+        None,
+    )
+    assert selector is not None
+    entry_tags = [
+        t
+        for t in selector.get("outbounds", [])
+        if t and t not in ("⚡ Best Latency", "direct")
+    ]
+    assert (
+        len(entry_tags) >= 3
+    ), f"All 3 chains must appear (uniquified), got {len(entry_tags)}: {entry_tags}"

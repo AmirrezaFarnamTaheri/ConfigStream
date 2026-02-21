@@ -5,7 +5,6 @@ import pytest
 from configstream.intelligence.evasion import (
     rotate_tls_fingerprint,
     rotate_alpn,
-    add_tls_fragmentation,
     add_multiplexing,
     enrich_outbound_with_evasion,
     preserve_sni_when_using_ip,
@@ -64,33 +63,6 @@ class TestALPNRotation:
         result1 = rotate_alpn("proxy1", enabled=True)
         result2 = rotate_alpn("proxy1", enabled=True)
         assert result1 == result2
-
-
-class TestTLSFragmentation:
-    def test_add_tls_fragmentation_enabled(self):
-        """Test TLS fragmentation when enabled - should be no-op now."""
-        outbound = {
-            "type": "vmess",
-            "tls": {"enabled": True},
-        }
-        result = add_tls_fragmentation(outbound, enabled=True)
-        # Should NOT modify the config as it's a no-op
-        assert "tls_fragment" not in result["tls"]
-
-    def test_add_tls_fragmentation_disabled(self):
-        """Test TLS fragmentation when disabled."""
-        outbound = {
-            "type": "vmess",
-            "tls": {"enabled": True},
-        }
-        result = add_tls_fragmentation(outbound, enabled=False)
-        assert "tls_fragment" not in result["tls"]
-
-    def test_add_tls_fragmentation_no_tls(self):
-        """Test TLS fragmentation on config without TLS."""
-        outbound = {"type": "vmess"}
-        result = add_tls_fragmentation(outbound, enabled=True)
-        assert "tls" not in result
 
 
 class TestMultiplexing:

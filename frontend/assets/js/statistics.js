@@ -3,7 +3,8 @@ let countryNameToCode = {};
 // Audit: Load country data asynchronously
 async function loadCountryData() {
     try {
-        const resp = await fetch('assets/data/countries.json');
+        const root = window.ROOT_PATH || '';
+        const resp = await fetch(root + 'assets/data/countries.json');
         if (resp.ok) {
             countryNameToCode = await resp.json();
         } else {
@@ -31,10 +32,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     let currentStats = null;
     let currentProxies = null;
 
+    const root = window.ROOT_PATH || '';
     async function fetchProxyHistory() {
         try {
-            // Fetch aggregated trend data
-            const url = `data/active_proxy_trend.json?cb=${Date.now()}`;
+            const url = `${root}data/active_proxy_trend.json?cb=${Date.now()}`;
             const response = await fetch(url);
             if (!response.ok) {
                 // Not throwing error to allow partial rendering
@@ -50,7 +51,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function fetchEvasionTrend() {
         try {
-            const url = `data/evasion_trend.json?cb=${Date.now()}`;
+            const url = `${root}data/evasion_trend.json?cb=${Date.now()}`;
             const response = await fetch(url);
             if (!response.ok) {
                 console.warn(`Evasion trend fetch failed: ${response.status}`);
@@ -110,7 +111,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const uniqueCount = (metadata && metadata.total_unique_candidates) || 0;
         updateElement('#totalConfigs', uniqueCount.toLocaleString());
 
-        const workingCount = (metadata && metadata.total_valid_proxies) || 0;
+        // total_working = native + shielded (total usable); total_valid_proxies = native only
+        const workingCount = (metadata && (metadata.total_working ?? metadata.total_valid_proxies ?? metadata.working)) || 0;
         updateElement('#workingConfigs', workingCount.toLocaleString());
 
         const revived = (metadata && metadata.total_revived) || 0;

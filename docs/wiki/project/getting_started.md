@@ -82,7 +82,7 @@ cat output/singbox.json | python -m json.tool | head -50
 ```
 
 ### Merge Multiple Batches
-In CI, 14 batches run in parallel on separate VMs. To simulate the merge locally:
+In CI, 17 batches run in parallel on separate VMs. To simulate the merge locally:
 ```bash
 # Run batches 1-3 separately
 python -m configstream merge --sources sources/batch_1.txt --output shard_1/

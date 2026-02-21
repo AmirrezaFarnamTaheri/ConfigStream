@@ -207,7 +207,7 @@ class ConnectionManager:
             try:
                 self.disconnect(failed)
             except ValueError:
-                pass  # Already removed
+                pass  # Connection already removed from active set
         self._failed_connections.clear()
 
 
@@ -333,6 +333,38 @@ async def get_proxy_diff(request: Request, base_version: str):
 
     # Fallback: Tell client to fetch full
     return {"type": "full_reload_required"}
+
+
+@app.post("/api/lab/test-chain")
+async def lab_test_chain(payload: dict):
+    """
+    Lab chain test endpoint. Tests a sing-box config when singbox2proxy is available.
+    Request: { "config": <sing-box JSON> }
+    Response: { "success": true, "latency": float, "exit_ip"?: str } or { "success": false, "error": str }
+    Returns 503 when sing-box/singbox2proxy unavailable.
+    """
+    config = payload.get("config") if isinstance(payload, dict) else None
+    if config is None:
+        raise HTTPException(status_code=400, detail="Missing 'config' in request body")
+
+    try:
+        from configstream.testers.lab_chain_tester import test_chain_config
+    except ImportError:
+        raise HTTPException(
+            status_code=503,
+            detail="Live chain testing is not available. Use manual testing: save config to file and run 'sing-box run -c chain.json'.",
+        ) from None
+
+    result = await test_chain_config(config, timeout=15.0)
+    if result["success"]:
+        return JSONResponse(content=result)
+    # If singbox2proxy unavailable, return 503 so frontend shows manual instructions
+    if "singbox2proxy not installed" in result.get("error", ""):
+        raise HTTPException(
+            status_code=503,
+            detail="Live chain testing requires singbox2proxy. Use manual testing: save config and run 'sing-box run -c chain.json'.",
+        )
+    return JSONResponse(content=result, status_code=200)
 
 
 @app.get("/api/stats")

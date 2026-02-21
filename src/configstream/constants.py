@@ -109,6 +109,69 @@ VALID_PROTOCOLS = [
     "anytls",
 ]
 
+# Canonical protocol ordering for user-facing output artifacts.
+# Keeps high-demand censorship-evasion transports first while preserving
+# deterministic ordering across base64/proxies/adapters/chosen files.
+OUTPUT_PROTOCOL_ORDER = [
+    "hysteria2",
+    "hysteria",
+    "tuic",
+    "wireguard",
+    "vmess",
+    "vless",
+    "trojan",
+    "shadowsocks",
+    "ss2022",
+    "ssr",
+    "socks5",
+    "socks4",
+    "http",
+    "https",
+    "ssh",
+    "naive",
+    "anytls",
+    "snell",
+    "brook",
+    "juicity",
+    "xray",
+    "xtls",
+    "v2ray",
+    "exclave",
+    "openvpn",
+    "revived",
+    "unknown",
+]
+
+_OUTPUT_PROTOCOL_ALIASES = {
+    "ss": "shadowsocks",
+    "wg": "wireguard",
+    "hy2": "hysteria2",
+    "husi": "hysteria2",
+    "socks": "socks5",
+}
+
+_OUTPUT_PROTOCOL_ORDER_INDEX = {
+    proto: idx for idx, proto in enumerate(OUTPUT_PROTOCOL_ORDER)
+}
+
+
+def canonical_protocol_name(protocol: str) -> str:
+    """Normalize protocol aliases for consistent output grouping/sorting."""
+    normalized = (protocol or "").strip().lower()
+    if not normalized:
+        return "unknown"
+    return _OUTPUT_PROTOCOL_ALIASES.get(normalized, normalized)
+
+
+def protocol_sort_key(protocol: str) -> tuple[int, str]:
+    """Stable protocol sort key: preferred order, then lexical fallback."""
+    canonical = canonical_protocol_name(protocol)
+    return (
+        _OUTPUT_PROTOCOL_ORDER_INDEX.get(canonical, len(OUTPUT_PROTOCOL_ORDER)),
+        canonical,
+    )
+
+
 # Selection criteria for "chosen" proxies
 CHOSEN_TOP_PER_PROTOCOL = 40  # Top N proxies per protocol
 CHOSEN_TOTAL_TARGET = 1000  # Total target for chosen list

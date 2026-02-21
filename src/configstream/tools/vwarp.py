@@ -47,8 +47,10 @@ def _is_valid_ip(host: str) -> bool:
 
 
 # Constants for Vwarp binary management
-VWARP_VERSION = "v2.1.0"
-VWARP_SHA256_AMD64 = "4b971ed3696ed607bf91000f379f6308459fd1dafa1beae14404a8b7ce068cf7"
+# Latest: v2.2.2 (2025-12-16) - https://github.com/voidr3aper-anon/Vwarp/releases
+# v2.2.1+ supports full JSON config (JunkInterval, masque.enabled, masque.preferred)
+VWARP_VERSION = "v2.2.2"
+VWARP_SHA256_AMD64 = "90619d5e8ceec07fe09b967904f490d5a45f812951f7fae4cb375b60207b6312"
 VWARP_ASSET_AMD64 = "vwarp_linux-amd64.zip"
 VWARP_ASSET_ARM64 = "vwarp_linux-arm64.zip"
 VWARP_RELEASE_BASE = "https://github.com/voidr3aper-anon/Vwarp/releases/download"
@@ -307,7 +309,16 @@ class VwarpTool:
         Returns True if installed/available, False otherwise.
         """
         if not self._is_supported_platform():
-            logger.info("Vwarp install skipped: unsupported platform.")
+            platform_hint = (
+                "Use USE_VWARP_TUNNEL=false for non-Linux environments."
+                if sys.platform == "win32"
+                else "Vwarp binary is Linux-only."
+            )
+            logger.info(
+                "Vwarp install skipped: unsupported platform (%s). %s",
+                sys.platform,
+                platform_hint,
+            )
             return False
         if self.binary and Path(self.binary).exists():
             return True
@@ -365,13 +376,19 @@ class VwarpTool:
                             )
                         else:
                             logger.error(
-                                f"Vwarp checksum mismatch! Expected {checksum}, got {digest}"
+                                "Vwarp checksum mismatch! Expected %s, got %s. "
+                                "Set VWARP_SKIP_CHECKSUM=true to bypass, or "
+                                "VWARP_SHA256=%s to update.",
+                                checksum,
+                                digest,
+                                digest,
                             )
                             return False
                 else:
                     logger.warning(
-                        "Vwarp checksum not provided for this platform; "
-                        "set VWARP_SHA256 to enforce verification."
+                        "Vwarp checksum not provided for this platform (%s); "
+                        "set VWARP_SHA256 to enforce verification.",
+                        platform.machine() or "unknown",
                     )
 
                 # Extract
@@ -387,7 +404,12 @@ class VwarpTool:
                             break
 
                     if not vwarp_member_info:
-                        logger.error("Vwarp binary not found in zip archive")
+                        members = [m.filename for m in zf.infolist()[:10]]
+                        logger.error(
+                            "Vwarp binary not found in zip archive. "
+                            "Archive contents (first 10): %s",
+                            members,
+                        )
                         return False
 
                     # Extract to target path
@@ -444,7 +466,11 @@ class VwarpTool:
                 self._help_text = None
 
         if not self._is_supported_platform():
-            logger.debug("Vwarp unavailable: unsupported platform.")
+            logger.info(
+                "Vwarp unavailable: unsupported platform (%s). "
+                "Set USE_VWARP_TUNNEL=false to disable.",
+                sys.platform,
+            )
             return False
 
         # Attempt installation if missing
@@ -747,9 +773,6 @@ class VwarpTool:
         if force_masque:
             extra_flags.append("--masque")
 
-        # Test URL compatibility check (legacy check, might not be needed for new binary but safe to keep)
-        # Note: The new config supports "test_url" field directly.
-
         self._log_config("generated", vwarp_config)
         path_result, _ = self._write_temp_config(vwarp_config)
 
@@ -770,6 +793,31 @@ class VwarpTool:
             return ["--masque"]
         return []
 
+    @staticmethod
+    def _sanitize_config_for_binary(config: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Remove config fields rejected by vwarp v2.1.x (schema divergence).
+        v2.2.1+ supports full config; use VWARP_VERSION=v2.1.0 to force sanitization.
+        """
+        out = copy.deepcopy(config)
+        # wireguard.atomicnoize: remove JunkInterval (binary uses different schema)
+        wg = out.get("wireguard")
+        if isinstance(wg, dict):
+            ano = wg.get("atomicnoize")
+            if isinstance(ano, dict):
+                ano = dict(ano)
+                ano.pop("JunkInterval", None)
+                out["wireguard"] = dict(wg)
+                out["wireguard"]["atomicnoize"] = ano
+        # masque: remove enabled/preferred (binary uses --masque CLI flag instead)
+        masque = out.get("masque")
+        if isinstance(masque, dict):
+            masque = dict(masque)
+            masque.pop("enabled", None)
+            masque.pop("preferred", None)
+            out["masque"] = masque
+        return out
+
     def _write_temp_config(
         self, config: Dict[str, Any]
     ) -> Tuple[Optional[Path], List[str]]:
@@ -779,13 +827,18 @@ class VwarpTool:
         os.close(fd)
         tmp_path = Path(tmp_name)
 
-        # Sanitize config for Vwarp
+        # Sanitize config for Vwarp binary compatibility
         write_config = copy.deepcopy(config)
         write_config.pop("version", None)
         write_config.pop("metadata", None)
         write_config.pop(
             "test_url", None
         )  # Explicitly remove test_url to avoid parse errors
+
+        # v2.2.1+ supports full config; v2.1.x rejects JunkInterval, masque.enabled/preferred
+        version = os.environ.get("VWARP_VERSION", VWARP_VERSION)
+        if version < "v2.2.1":
+            write_config = self._sanitize_config_for_binary(write_config)
 
         # Flatten Masque if needed
         if "masque" in write_config:
@@ -1221,7 +1274,12 @@ class VwarpTool:
             )
             return True
         except Exception as e:
-            logger.warning(f"Failed to start Vwarp tunnel: {e}")
+            logger.warning(
+                "Failed to start Vwarp tunnel: %s. "
+                "Check config, WARP keys, and network. "
+                "Use USE_VWARP_TUNNEL=false to disable.",
+                e,
+            )
             if self._tunnel_proc:
                 try:
                     self._tunnel_proc.kill()

@@ -47,7 +47,7 @@ class PipelineStats:
     # Evasion Metrics
     evasion_utls_enabled: int = 0  # Proxies with uTLS fingerprint rotation
     evasion_alpn_enabled: int = 0  # Proxies with ALPN rotation
-    evasion_fragmentation_enabled: int = 0  # Proxies with TLS fragmentation
+    evasion_fragmentation_enabled: int = 0  # Always 0; sing-box removed tls_fragment
     evasion_multiplexing_enabled: int = 0  # Proxies with multiplexing
     evasion_dns_safe_count: int = 0  # Proxies in DNS-safe outputs
     evasion_dns_hardened_count: int = 0  # Proxies in DNS-hardened outputs

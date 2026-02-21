@@ -9,6 +9,7 @@ from starlette.responses import Response
 import pytest
 from configstream.server import app
 
+
 @pytest.fixture
 async def async_client(monkeypatch):
     monkeypatch.setattr(sniffio, "current_async_library", lambda: "asyncio")
@@ -165,3 +166,71 @@ async def test_frontend_serving(mock_frontend_dir, async_client):
         response = await async_client.get("/about")
         assert response.status_code == 200
         assert "About" in response.text
+
+
+@pytest.mark.asyncio
+async def test_lab_test_chain_missing_config(async_client):
+    """Lab test-chain returns 400 when config is missing."""
+    response = await async_client.post("/api/lab/test-chain", json={})
+    assert response.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_lab_test_chain_success(async_client):
+    """Lab test-chain returns success when test_chain_config succeeds."""
+
+    async def mock_test(config, timeout=15.0):
+        return {"success": True, "latency": 120.5, "exit_ip": "1.2.3.4"}
+
+    with patch(
+        "configstream.testers.lab_chain_tester.test_chain_config",
+        side_effect=mock_test,
+    ):
+        response = await async_client.post(
+            "/api/lab/test-chain",
+            json={"config": {"outbounds": [{"type": "direct", "tag": "direct"}]}},
+        )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["success"] is True
+    assert data["latency"] == 120.5
+    assert data["exit_ip"] == "1.2.3.4"
+
+
+@pytest.mark.asyncio
+async def test_lab_test_chain_failure(async_client):
+    """Lab test-chain returns 200 with success=false when chain test fails."""
+
+    async def mock_test(config, timeout=15.0):
+        return {"success": False, "error": "Connection test timed out"}
+
+    with patch(
+        "configstream.testers.lab_chain_tester.test_chain_config",
+        side_effect=mock_test,
+    ):
+        response = await async_client.post(
+            "/api/lab/test-chain",
+            json={"config": {"outbounds": [{"type": "direct", "tag": "direct"}]}},
+        )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["success"] is False
+    assert "timed out" in data["error"]
+
+
+@pytest.mark.asyncio
+async def test_lab_test_chain_singbox_unavailable(async_client):
+    """Lab test-chain returns 503 when singbox2proxy not installed."""
+
+    async def mock_test(config, timeout=15.0):
+        return {"success": False, "error": "singbox2proxy not installed"}
+
+    with patch(
+        "configstream.testers.lab_chain_tester.test_chain_config",
+        side_effect=mock_test,
+    ):
+        response = await async_client.post(
+            "/api/lab/test-chain",
+            json={"config": {"outbounds": [{"type": "direct", "tag": "direct"}]}},
+        )
+    assert response.status_code == 503

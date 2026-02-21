@@ -229,18 +229,24 @@ async function fetchProxies() {
 
 async function fetchStatistics() {
   // [UNIFIED] Statistics now fetches from metadata.json - single source of truth
-  // All analytics data including globe points are now in metadata.json
   const cached = await getFromStorage('statistics');
   if (cached) return cached;
 
+  const root = window.ROOT_PATH || '';
   try {
-    const root = window.ROOT_PATH || '';
-    const url = `${root}metadata.json${getCacheBust()}`;
-
-    const response = await fetchWithRetry(url, 3, 1000);
-    const data = await response.json();
-    await saveToStorage('statistics', data, 300000);
-    return data;
+    let url = `${root}metadata.json${getCacheBust()}`;
+    try {
+      const response = await fetchWithRetry(url, 3, 1000);
+      const data = await response.json();
+      await saveToStorage('statistics', data, 300000);
+      return data;
+    } catch (staticError) {
+      url = `${root}api/stats${getCacheBust()}`;
+      const response = await fetchWithRetry(url, 3, 1000);
+      const data = await response.json();
+      await saveToStorage('statistics', data, 300000);
+      return data;
+    }
   } catch (error) {
     console.error('❌ Failed to fetch statistics:', error);
     const stale = await getStaleFromStorage('statistics');

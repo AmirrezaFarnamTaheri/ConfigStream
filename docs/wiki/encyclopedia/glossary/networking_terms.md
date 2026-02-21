@@ -137,4 +137,4 @@ A protocol developed by XTLS/Xray that makes proxy traffic indistinguishable fro
 *   **[VMess Protocol](../protocols/vmess.md)** — Uses WebSocket, gRPC, H2 transports.
 *   **[Hysteria2 Protocol](../protocols/hysteria2.md)** — Built on QUIC, uses UDP, affected by MTU settings.
 *   **[Firewalls & Honeypots](../security/firewall_honeypot.md)** — How DPI, SNI blocking, and TCP RST injection work in practice.
-*   **[Censorship Evasion](../../../CENSORSHIP_EVASION.md)** — How ConfigStream uses TLS fragmentation, ALPN rotation, and multiplexing to defeat DPI.
+*   **[Censorship Evasion](../../../CENSORSHIP_EVASION.md)** — How ConfigStream uses uTLS, ALPN rotation, and multiplexing to defeat DPI. (TLS fragmentation disabled; use vwarp AtomicNoize.)

@@ -24,7 +24,7 @@ ConfigStream exploits the Anycast nature of WARP. We scan for "Clean IPs" — Cl
 2.  **Accept WireGuard handshakes** on one of the many supported ports.
 3.  **Are not currently blacklisted** by the censor.
 
-### How the Scanner Works (`lab-scanner.py`)
+### How the Scanner Works (`tools/lab-scanner.py`)
 1.  **IP Pool:** Tests 34+ Cloudflare IPs across 34+ ports (1,156+ combinations).
 2.  **Dual Probe:** Sends both UDP probes (WireGuard handshake initiation) and TCP connect tests.
 3.  **Latency Ranking:** Sorts results by response time — lower latency means better peering with your ISP.
@@ -84,8 +84,8 @@ Routes WireGuard traffic through an upstream SOCKS5 proxy (`--proxy socks5://hos
 WARP is powerful but not the only strategy. When WARP is blocked or unavailable:
 
 1.  **Proxy Cascade:** Chain local proxies together (e.g., Psiphon → V2Ray → Internet). No Cloudflare needed.
-2.  **Intranet Relay:** Find a machine on your LAN with less-filtered internet access and route through it. Run `python lab-scanner.py --scan-lan` to discover relays.
-3.  **TLS Fragment:** Split the TLS handshake into fragments to evade DPI. Works without any tunnel.
+2.  **Intranet Relay:** Find a machine on your LAN with less-filtered internet access and route through it. Run `python tools/lab-scanner.py --scan-lan` to discover relays.
+3.  **TLS Fragment:** Disabled in ConfigStream (sing-box removed tls_fragment). Use vwarp AtomicNoize presets for fragmentation-based evasion.
 4.  **CDN Worker:** Route through your own Cloudflare Worker. The Worker URL is unique to you and very hard to block.
 5.  **Direct Proxy:** If your proxy is directly reachable (not blocked), no tunnel is needed at all.
 

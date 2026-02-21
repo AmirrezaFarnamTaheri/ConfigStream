@@ -26,10 +26,76 @@
     ];
 
     const WARP_PUBLIC_KEY = 'bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=';
+    const PROTOCOL_PRIORITY = [
+        'hysteria2',
+        'hysteria',
+        'tuic',
+        'wireguard',
+        'vmess',
+        'vless',
+        'trojan',
+        'shadowsocks',
+        'ss2022',
+        'ssr',
+        'socks5',
+        'socks4',
+        'http',
+        'https',
+        'ssh',
+        'naive',
+        'anytls',
+        'snell',
+        'brook',
+        'juicity',
+        'xray',
+        'xtls',
+        'v2ray',
+        'exclave',
+        'openvpn',
+        'revived',
+        'unknown',
+    ];
+    const PROTOCOL_PRIORITY_INDEX = PROTOCOL_PRIORITY.reduce((acc, proto, idx) => {
+        acc[proto] = idx;
+        return acc;
+    }, {});
 
     // --- DOM Helpers ---
     const $ = (sel) => document.querySelector(sel);
     const $$ = (sel) => document.querySelectorAll(sel);
+
+    function normalizeProtocolName(protocol) {
+        const raw = String(protocol || '').trim().toLowerCase();
+        if (!raw) return 'unknown';
+        if (raw === 'hy2' || raw === 'husi') return 'hysteria2';
+        if (raw === 'wg') return 'wireguard';
+        if (raw === 'ss') return 'shadowsocks';
+        if (raw === 'socks') return 'socks5';
+        return raw;
+    }
+
+    function compareProtocols(a, b) {
+        const pa = normalizeProtocolName(a);
+        const pb = normalizeProtocolName(b);
+        const ia = Object.prototype.hasOwnProperty.call(PROTOCOL_PRIORITY_INDEX, pa)
+            ? PROTOCOL_PRIORITY_INDEX[pa]
+            : PROTOCOL_PRIORITY.length;
+        const ib = Object.prototype.hasOwnProperty.call(PROTOCOL_PRIORITY_INDEX, pb)
+            ? PROTOCOL_PRIORITY_INDEX[pb]
+            : PROTOCOL_PRIORITY.length;
+        if (ia !== ib) return ia - ib;
+        return pa.localeCompare(pb);
+    }
+
+    function comparePipelineProxy(a, b) {
+        const protoCmp = compareProtocols(a.protocol, b.protocol);
+        if (protoCmp !== 0) return protoCmp;
+        const remarkCmp = String(a.remark || '').localeCompare(String(b.remark || ''));
+        if (remarkCmp !== 0) return remarkCmp;
+        const addressCmp = String(a.address || '').localeCompare(String(b.address || ''));
+        if (addressCmp !== 0) return addressCmp;
+        return Number(a.port || 0) - Number(b.port || 0);
+    }
 
     function showResult(elId, type, message) {
         const el = document.getElementById(elId);
@@ -290,6 +356,7 @@
             }
             if (results.length > 0) break; // Got proxies from first successful file
         }
+        results.sort(comparePipelineProxy);
         pipelineProxies = results;
         pipelineLoaded = true;
         return results;
@@ -315,7 +382,7 @@
         // Group by protocol for easier browsing
         const grouped = {};
         for (const p of proxies) {
-            const key = p.protocol.toUpperCase();
+            const key = normalizeProtocolName(p.protocol);
             if (!grouped[key]) grouped[key] = [];
             grouped[key].push(p);
         }
@@ -323,9 +390,11 @@
         // Build select dropdown
         if (select) {
             select.innerHTML = '<option value="">-- Select a pre-tested proxy (' + proxies.length + ' available) --</option>';
-            for (const [proto, list] of Object.entries(grouped)) {
+            const orderedProtocols = Object.keys(grouped).sort(compareProtocols);
+            for (const proto of orderedProtocols) {
+                const list = grouped[proto].slice().sort(comparePipelineProxy);
                 const optgroup = document.createElement('optgroup');
-                optgroup.label = proto + ' (' + list.length + ')';
+                optgroup.label = proto.toUpperCase() + ' (' + list.length + ')';
                 for (const p of list.slice(0, 30)) { // Show up to 30 per protocol
                     const opt = document.createElement('option');
                     opt.value = p.uri;
@@ -463,7 +532,7 @@
             // Try fetching from ConfigStream API first, fallback to defaults
             showResult('step2Result', 'pending', 'Fetching clean IPs from ConfigStream...');
             try {
-                const resp = await fetch('data/clean_ips.json?cb=' + Date.now());
+                const resp = await fetch((window.ROOT_PATH || '') + 'data/clean_ips.json?cb=' + Date.now());
                 if (resp.ok) {
                     const data = await resp.json();
                     if (Array.isArray(data) && data.length > 0) {
@@ -1376,7 +1445,7 @@ sing-box run -c "$CFG"
     // --- Load from Subscription ---
     async function handleLoadFromSub() {
         try {
-            const resp = await fetch('proxies.txt?cb=' + Date.now());
+            const resp = await fetch((window.ROOT_PATH || '') + 'proxies.txt?cb=' + Date.now());
             if (!resp.ok) throw new Error('Not found');
             const text = await resp.text();
             const lines = text.split('\n').filter(l => l.trim());

@@ -6,6 +6,7 @@ import urllib.parse
 from typing import Any, Dict, List, Optional
 
 from ..adapters import ShadowrocketAdapter
+from ..constants import canonical_protocol_name, protocol_sort_key
 from ..filtering import proxy_unique_key
 from ..models import Proxy
 from ..utils.net import is_ip_literal as _is_ip_literal
@@ -288,41 +289,13 @@ def generate_plaintext_subscription(proxies: List[Proxy]) -> str:
     adapter = ShadowrocketAdapter()
     seen: set[object] = set()
     lines: List[str] = []
-    protocol_order = [
-        "shadowsocks",
-        "ss2022",
-        "vless",
-        "vmess",
-        "trojan",
-        "hysteria2",
-        "hysteria",
-        "tuic",
-        "wireguard",
-        "naive",
-        "ssh",
-        "http",
-        "socks5",
-        "socks4",
-        "socks",
-        "revived",
-    ]
 
     grouped: dict[str, List[Proxy]] = {}
     for proxy in proxies:
-        proto_key = proxy.protocol or "unknown"
-        if proto_key == "socks":
-            proto_key = "socks5"
-        elif proto_key == "ss":
-            proto_key = "shadowsocks"
-        elif proto_key == "hy2":
-            proto_key = "hysteria2"
-        elif proto_key == "wg":
-            proto_key = "wireguard"
+        proto_key = canonical_protocol_name(proxy.protocol or "unknown")
         grouped.setdefault(proto_key, []).append(proxy)
 
-    ordered_protocols = protocol_order + sorted(
-        [p for p in grouped.keys() if p not in protocol_order]
-    )
+    ordered_protocols = sorted(grouped.keys(), key=protocol_sort_key)
 
     for proto in ordered_protocols:
         for proxy in grouped.get(proto, []):

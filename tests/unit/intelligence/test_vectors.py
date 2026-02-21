@@ -58,3 +58,31 @@ def test_generate_vectors_error(tmp_path):
         side_effect=Exception("Fail"),
     ):
         generate_vectors([p1], tmp_path)  # Should log error but not crash
+
+
+def test_compute_vector_with_history():
+    """Stability/reliability use history when provided."""
+    from configstream.intelligence.vectors import _compute_vector
+
+    p = Proxy(
+        protocol="vless",
+        address="1.1.1.1",
+        port=443,
+        is_working=True,
+        config="c1",
+    )
+    vec_default = _compute_vector(p)
+    assert vec_default[6] == 5  # h_stability default
+    assert vec_default[7] == 5  # h_reliability default
+
+    # With history: 90% success -> 9
+    history_stats = {p.id: {"reliability": 0.9, "uptime": 90.0}}
+    vec_with_history = _compute_vector(p, history_stats)
+    assert vec_with_history[6] == 9
+    assert vec_with_history[7] == 9
+
+    # With history: 30% success -> 3
+    history_stats_low = {p.id: {"reliability": 0.3, "uptime": 30.0}}
+    vec_low = _compute_vector(p, history_stats_low)
+    assert vec_low[6] == 3
+    assert vec_low[7] == 3

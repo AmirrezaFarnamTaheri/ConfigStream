@@ -29,7 +29,7 @@ When making changes to the frontend, you **must** adhere to these security pract
     *   Use `updateElement(selector, content, { method: 'innerHTML' })`, which handles sanitization automatically (unless `trustedHTML: true` is set).
 
 ### 2. DOMPurify
-*   We load `DOMPurify` (vendored in `assets/js/lib/purify.min.js`).
+*   We load `DOMPurify` (vendored in `assets/libs/purify.min.js`).
 *   Ensure it is included in your HTML file before your scripts run.
 *   Any large block of HTML constructed from data (e.g., Markdown rendering, Proxy Tables) must be passed through `DOMPurify.sanitize()`.
 
@@ -40,7 +40,7 @@ When making changes to the frontend, you **must** adhere to these security pract
 
 ### 4. Dependencies
 *   **Vendor everything**. Do not rely on external CDNs (they can be blocked or compromised).
-*   Keep `assets/js/lib/` clean. Only minimal, audited libraries.
+*   Keep `assets/libs/` clean. Only minimal, audited libraries.
 
 ### 5. Content Security Policy (CSP)
 *   The `index.html` should enforce a strict CSP (via meta tag or headers).
@@ -117,7 +117,7 @@ The Laboratory is a 5-step interactive chain builder that guides users from zero
 1.  **WARP Tunnel**: Standard shielding through Cloudflare WARP.
 2.  **Double WARP**: Two layers of WireGuard encryption.
 3.  **Relay Chain (Multi-Hop)**: Up to 4 intermediate hops of any protocol (SOCKS5, HTTP, VLESS, VMess, Trojan, SS, WARP). Replaces the old "Proxy Cascade" and "Intranet Relay" — a relay is any intermediate proxy, not limited to LAN. Each layer has a pipeline proxy picker.
-4.  **TLS Fragment**: Split TLS handshake to evade stateless DPI.
+4.  **TLS Fragment**: Disabled (sing-box removed tls_fragment); use vwarp AtomicNoize for fragmentation-based evasion.
 5.  **CDN Worker**: Route through a user-deployed Cloudflare Worker.
 6.  **Custom JSON**: Paste raw sing-box outbound JSON for advanced users.
 
@@ -139,9 +139,9 @@ All chain configs are exported in formats compatible with the three major proxy 
 *   **Import Guide**: Step-by-step instructions for Hiddify, Clash Verge, V2RayN, V2RayNG, Nekobox.
 
 ### Offline Tools
-*   **`lab-scanner.py`**: Zero-dependency Python scanner with 7+ scan phases, interactive chain builder, and 6-strategy auto-chain detection.
-*   **`lab-runner.sh`**: Bash script that auto-downloads sing-box and runs chain configs.
-*   **`lab-offline.html`**: Self-contained HTML chain builder that works without a server.
+*   **`tools/lab-scanner.py`**: Zero-dependency Python scanner with 7+ scan phases, interactive chain builder, and 6-strategy auto-chain detection.
+*   **`tools/lab-runner.sh`**: Bash script that auto-downloads sing-box and runs chain configs.
+*   **`frontend/lab-offline.html`**: Self-contained HTML chain builder that works without a server.
 
 ## Cache Architecture
 

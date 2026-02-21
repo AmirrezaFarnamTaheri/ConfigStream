@@ -10,10 +10,10 @@ This roadmap tracks the current state and future direction of ConfigStream.
 
 ### Pipeline & Backend
 - **26+ Protocols**: VLESS, VMess, Trojan, Shadowsocks, SS2022, Hysteria2, TUIC, WireGuard, SSH, SOCKS5, HTTP, OpenVPN, SSR, Juicity, and more.
-- **14-Shard Parallel Pipeline**: GitHub Actions matrix strategy with merge job.
+- **17-Shard Parallel Pipeline**: GitHub Actions matrix strategy with merge job.
 - **Hybrid Python + Go Engine**: Python orchestration, Go sidecar for mass testing.
 - **9 Smart Chain Types**: Intranet, Washed, IPv6, Streaming, Censorship-Resistant, Low-Latency, High-Anonymity, Load-Balanced, Experimental.
-- **4 Evasion Techniques**: uTLS fingerprinting, TLS fragmentation, multiplexing with padding, ALPN rotation.
+- **3 Evasion Techniques**: uTLS fingerprinting, multiplexing with padding, ALPN rotation. (TLS fragmentation disabled — sing-box removed tls_fragment; use vwarp AtomicNoize for fragmentation-based evasion.)
 - **3 DNS Profiles**: Standard, DNS-Safe (IP-only), DNS-Hardened (DoH/DoT/DoQ).
 - **Proxy Washing & Shielding**: WARP and Vwarp revival, Copper-to-Gold shielding.
 - **Intelligence Layer**: AdaptiveTimeout, CircuitBreaker, Source Quality Tracker, Anomaly Detector.
@@ -22,7 +22,7 @@ This roadmap tracks the current state and future direction of ConfigStream.
 ### Frontend & UX
 - **Progressive Web App**: Vanilla JS, no build step, Service Worker caching.
 - **Chain Laboratory**: 5-step browser-based chain builder with 6 strategies and 8 export formats.
-- **Offline Tools**: `lab-scanner.py` (Python), `lab-runner.sh` (Bash), `lab-offline.html` (self-contained HTML).
+- **Offline Tools**: `tools/lab-scanner.py` (Python), `tools/lab-runner.sh` (Bash), `frontend/lab-offline.html` (self-contained HTML).
 - **Analytics Dashboard**: Globe visualization, protocol/country/latency charts, evasion trend time-series.
 - **Internationalization**: i18n support with language switcher.
 

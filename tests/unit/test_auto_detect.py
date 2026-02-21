@@ -39,6 +39,28 @@ class TestAutoDetect(unittest.TestCase):
         self.assertEqual(proxy.protocol, "hysteria2")
         self.assertEqual(proxy.details["sni"], "test.com")
 
+    def test_detect_xray_snell_brook_juicity(self):
+        """Xray, Snell, Brook, Juicity parsers wired in auto_detect."""
+        xray = auto_detect_and_parse(
+            "xray://a1b2c3d4-e5f6-7890-abcd-ef1234567890@example.com:443?security=tls"
+        )
+        self.assertIsNotNone(xray)
+        self.assertEqual(xray.protocol, "xray")
+
+        snell = auto_detect_and_parse("snell://user:pass@host:443?version=3")
+        self.assertIsNotNone(snell)
+        self.assertEqual(snell.protocol, "snell")
+
+        brook = auto_detect_and_parse("brook://user:pass@host:9999")
+        self.assertIsNotNone(brook)
+        self.assertEqual(brook.protocol, "brook")
+
+        juicity = auto_detect_and_parse(
+            "juicity://a1b2c3d4-e5f6-7890-abcd-ef1234567890@host:443"
+        )
+        self.assertIsNotNone(juicity)
+        self.assertEqual(juicity.protocol, "juicity")
+
     def test_fallback_detection(self):
         # Just a string that looks like a URL but might fail specific parsers first
         # Actually, the fallback logic iterates.

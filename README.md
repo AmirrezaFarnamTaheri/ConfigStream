@@ -58,7 +58,7 @@ ConfigStream includes advanced censorship evasion capabilities:
 See `docs/CENSORSHIP_EVASION.md` for technical details, evasion modes, DNS profiles, and user instructions.
 
 ## Protocols and Formats
-Supported protocols include VLESS, VMess, Trojan, Shadowsocks, SSR, Hysteria, Hysteria2, TUIC, WireGuard, OpenVPN, HTTP, SOCKS, and SSH. Parsing is resilient against malformed inputs and includes credential recovery for common edge cases.
+Supported protocols include VLESS, VMess, Trojan, Shadowsocks, SSR, Hysteria, Hysteria2, TUIC, WireGuard, OpenVPN, HTTP, SOCKS, SSH, Xray, Snell, Brook, and Juicity. Parsing is resilient against malformed inputs and includes credential recovery for common edge cases.
 
 Export formats include:
 - Sing-box configs
@@ -278,7 +278,7 @@ See SECURITY.md for policies, threat model, and disclosure process.
 1. Outputs look empty or very small: check source availability, blocklists, and tester binary presence in logs.
 2. Revived counts are zero: ensure `WARP_KEY_POOL` is configured and WARP or Vwarp tooling is available.
 3. Vwarp not being used: set `USE_VWARP_TUNNEL=true`, install the binary, and check probe logs.
-4. Frontend shows stale data: verify metadata timestamps in `proxies.json` and GitHub Pages cache refresh.
+4. Frontend shows stale data: verify metadata timestamps in `metadata.json` and GitHub Pages cache refresh.
 5. Local runs differ from CI: align environment variables, Python version, and dependencies.
 
 ## Chain Laboratory

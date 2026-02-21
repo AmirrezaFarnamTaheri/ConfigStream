@@ -148,7 +148,7 @@ Enriches [Sing-box outbounds](../encyclopedia/tools/singbox_configuration_guide.
 | Technique | What It Does | Defeats |
 |---|---|---|
 | **uTLS Fingerprinting** | Replaces Go/Python TLS fingerprint with Chrome/Firefox/Safari | Protocol fingerprinting |
-| **TLS Fragmentation** | Splits ClientHello into 100-200 byte fragments with random delays | Stateless [DPI](../encyclopedia/glossary/networking_terms.md) |
+| **TLS Fragmentation** | Disabled — sing-box removed tls_fragment; use vwarp AtomicNoize | — |
 | **Multiplexing + Padding** | Bundles streams via h2mux with random padding bytes | Traffic analysis (packet size patterns) |
 | **[ALPN](../encyclopedia/glossary/networking_terms.md) Rotation** | Alternates `h2`, `http/1.1`, `h2,http/1.1` per proxy | ALPN-based blocking |
 
