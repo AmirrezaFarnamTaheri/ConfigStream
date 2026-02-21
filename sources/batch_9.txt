@@ -1,15 +1,18 @@
 # ConfigStream Batch 9
 # Optimized based on fetch duration for equal execution times
-# Est. Fetch Time: 1836.1s
+# Est. Fetch Time: 5457.6s
 
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub1.txt
-https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub34.txt
-https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub12.txt
-https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub15.txt
-https://raw.githubusercontent.com/barry-far/V2ray-config/main/All_Configs_Sub.txt
-https://raw.githubusercontent.com/Barabama/FreeNodes/main/nodes/v2rayshare.yaml
-https://sub.shadowproxy66.workers.dev/sub/214abfe9-791e-44ba-bd8e-0afe298119f6
-https://v2.alicivil.workers.dev/?count=2000&list=nl&shuffle=true
-https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-13.txt
-https://raw.githubusercontent.com/NiREvil/vless/main/sub/exclave-wg.txt
-https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/main/mtn/sub_3.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub18.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub6.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub37.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub7.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub4.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub2.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub29.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/all.txt
+https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-5.txt
+https://v2.alicivil.workers.dev?
+https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/main/mfc.txt
+https://raw.githubusercontent.com/wiki/gfpcom/free-proxy-list/lists/vmess.txt
+https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/sub/husi-wg.txt
