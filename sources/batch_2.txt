@@ -1,5 +1,6 @@
 # ConfigStream Batch 2
 # Optimized based on fetch duration for equal execution times
+<<<<<<< Updated upstream
 # Est. Fetch Time: 1125.2s
 
 https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_raw_shadowsocks.txt
@@ -34,3 +35,41 @@ https://raw.githubusercontent.com/proxyscrape/proxyscrape/master/proxies.json
 https://www.kaggle.com/datasets/search?search=free+proxies
 https://raw.githubusercontent.com/eQnz/configs-collector-v2ray/refs/heads/main/sub/splitted/mixed_1.txt
 https://www.cool-proxy.net/proxies.json
+=======
+# Est. Fetch Time: 1186.9s
+
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub30.txt
+https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-17.txt
+https://v2.alicivil.workers.dev/?count=2000&list=mt&shuffle=true
+https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/sub/clash-meta-wg.yml
+https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/refs/heads/main/mci/sub_1.txt
+https://raw.githubusercontent.com/Barabama/FreeNodes/master/nodes/merged.txt
+https://www.xrayvip.com/free.txt
+https://raw.githubusercontent.com/mehran1404/Sub_Link/refs/heads/main/V2RAY-Sub.txt
+https://raw.githubusercontent.com/miladtahanian/V2RayCFGDumper/main/config.txt
+https://raw.githubusercontent.com/misersun/config003/main/config_all.yaml
+https://raw.githubusercontent.com/xiyaowong/freeFQ/main/v2ray
+https://manager.farsonline24.ir
+https://raw.githubusercontent.com/chengaopan/AutoMergePublicNodes/master/list.yml
+https://raw.githubusercontent.com/RaymondHarris971/ssrsub/master/9a075bdee5.txt
+https://raw.githubusercontent.com/mermeroo/QuantumultX/refs/heads/main/Trojan.nodes
+https://rss.getfree.win/link/w9ted9eZq1zbC3gx?sub=1
+https://channel-freevpnhomes-subscription.shampoosirsehat.homes
+https://twitter.com/ProxyDaily
+https://raw.githubusercontent.com/UptimerBot/proxy-list/main/proxies/socks4.txt
+https://freevpnspy.raw.githubusercontent.com/2024/08/20240802_vless.yaml
+https://raw.githubusercontent.com/barry-far/V2ray-Configs/main/All_Configs_Sub.txt
+http://www.proxylists.net/
+https://www.facebook.com/search/top?q=free%20proxy
+https://www.blackhatworld.com/seo/free-proxies.107026/
+https://ghp.ci/https://gist.githubusercontent.com/dalazhi-hotmail/4c0033fda050c7290d0d1f04e90ad129/raw/clash.yaml
+https://www.freeproxy.list/
+https://www.reddit.com/r/proxylist/
+https://freeproxy.world/?type=&anonymity=&country=&speed=&port=&uptime=90
+https://raw.githubusercontent.com/Jia-Pingwa/free-v2ray-merge/main/output.txt
+https://raw.githubusercontent.com/wangyingbo/v2rayse_sub/refs/heads/main/wzdnzd_aggregator_sub/merged.txt
+https://a.nodeshare.xyz/uploads/2026/2/20260201.txt
+http://0day.kiev.ua/proxy
+https://geonode.com/free-proxy-list
+https://v2y.xyz/api/v1/client/subscribe?token=2533ce3df935ebaf4143fcc3df068ebd
+>>>>>>> Stashed changes

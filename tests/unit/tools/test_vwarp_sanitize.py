@@ -28,6 +28,7 @@ def test_vwarp_write_sanitized_config():
         assert "version" not in content
         assert "metadata" not in content
 
+<<<<<<< Updated upstream
         assert "masque" in content
         assert content["masque"]["config"] == {"i1": "val"}
         assert "enabled" not in content["masque"]
@@ -36,6 +37,17 @@ def test_vwarp_write_sanitized_config():
         assert "psiphon" in content
         assert content["psiphon"]["enabled"] is True
         assert content["psiphon"]["country"] == "US"
+=======
+    # Verify masque structure is preserved (Unified format)
+    assert "masque" in content
+    assert content["masque"]["config"] == {"i1": "val"}
+    assert content["masque"]["enabled"] is True
+
+    # Verify psiphon enabled is preserved
+    assert "psiphon" in content
+    assert content["psiphon"]["enabled"] is True
+    assert content["psiphon"]["country"] == "US"
+>>>>>>> Stashed changes
 
         assert "--masque" in flags
 
@@ -83,10 +95,17 @@ def test_vwarp_write_sanitized_config_no_masque_config():
         path, flags = tool._write_temp_config(config)
         content = json.loads(path.read_text())
 
+<<<<<<< Updated upstream
         # enabled/preferred removed for binary; other params preserved
         assert "enabled" not in content["masque"]
         assert "preferred" not in content["masque"]
         assert content["masque"]["some_param"] == "val"
+=======
+    # Should keep enabled/preferred
+    assert content["masque"]["enabled"] is False
+    assert content["masque"]["preferred"] is False
+    assert content["masque"]["some_param"] == "val"
+>>>>>>> Stashed changes
 
         path.unlink()
     finally:

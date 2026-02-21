@@ -374,6 +374,10 @@ def parse_v2ray_json(config: str) -> Optional[Proxy]:
                 "ss",
                 "shadowsocks",
                 "",
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
                 "null",
                 "default",
                 "cipher",

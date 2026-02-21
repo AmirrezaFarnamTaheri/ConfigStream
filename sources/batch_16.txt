@@ -1,5 +1,6 @@
 # ConfigStream Batch 16
 # Optimized based on fetch duration for equal execution times
+<<<<<<< Updated upstream
 # Est. Fetch Time: 1125.1s
 
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub35.txt
@@ -70,3 +71,76 @@ https://proxyspeedy.com/api/all
 https://apex.gaming-shop54.top/QXYR8Itk5Ll9oPHMixCwK/095f2d65-00b7-4760-9591-7599adc803d4/all.txt?name=apex.gaming-shop54.top-unknown&asn=unknown&mode=new
 https://raw.githubusercontent.com/Anaer/Sub/main/clash.yaml
 https://ghp.ci/https://gist.githubusercontent.com/dalazhi-hotmail/4c0033fda050c7290d0d1f04e90ad129/raw/clash.yaml
+=======
+# Est. Fetch Time: 1187.9s
+
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub7.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub23.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/filtered/subs/trojan.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub4.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub16.txt
+https://github.com/Epodonios/v2ray-configs/raw/main/Splitted-By-Protocol/vmess.txt
+https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-4.txt
+https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-15.txt
+https://v2.alicivil.workers.dev/?count=2000&list=mo&shuffle=true
+https://v2.alicivil.workers.dev
+https://v2.alicivil.workers.dev/?count=2000&list=sg&shuffle=true
+https://v2.alicivil.workers.dev/?count=2000&list=vg&shuffle=true
+https://v2.alicivil.workers.dev/?count=2000&list=md&shuffle=true
+https://v2.alicivil.workers.dev/?count=2000&list=om&shuffle=true
+https://v2.alicivil.workers.dev/?protocol=warp
+https://raw.githubusercontent.com/peasoft/NoMoreWalls/master/list.yml
+https://raw.githubusercontent.com/NiREvil/vless/main/sub/ServerLess_patterniha.json
+https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/refs/heads/main/mci/sub_3.txt
+https://raw.githubusercontent.com/barry-far/V2ray-config/main/Sub2.txt
+https://raw.githubusercontent.com/wiki/gfpcom/free-proxy-list/lists/http.txt
+https://raw.githubusercontent.com/Barabama/FreeNodes/main/nodes/nodefree.txt
+https://raw.githubusercontent.com/vpei/free-node-1/refs/heads/main/res/nod-6.txt
+https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_raw_.txt
+https://raw.githubusercontent.com/ndsphonemy/proxy-sub/refs/heads/main/speed.txt
+https://raw.githubusercontent.com/itsyebekhe/PSG/main/subscriptions/clash/mix
+https://raw.githubusercontent.com/Surfboardv2ray/TGParse/refs/heads/main/python/ss
+https://raw.githubusercontent.com/Mosifree/-FREE2CONFIG
+https://raw.githubusercontent.com/Argh94/V2RayAutoConfig/main/configs/Trojan.txt
+https://raw.githubusercontent.com/MhdiTaheri/V2rayCollector/main/sub/mix
+https://raw.githubusercontent.com/du5/free/master/file/0905/quan.conf
+https://raw.githubusercontent.com/taheri79/V2rayCollector/main/sub/normal/reality
+https://raw.githubusercontent.com/FNET00bot/FNET00/Config/Main
+https://raw.githubusercontent.com/youfoundamin/V2rayCollector/main/vless_iran.txt
+https://raw.githubusercontent.com/mahdibland/ShadowsocksAggregator/master/Eternity.txt
+https://raw.githubusercontent.com/SoliSpirit/v2ray-configs/refs/heads/main/all_configs.txt
+https://raw.githubusercontent.com/w1770946466/Auto_proxy/main/Long_term_subscription3
+https://raw.githubusercontent.com/ImMyron/V2ray/main/Irancell
+https://raw.githubusercontent.com/igeekshare/GeekshareFreeNode/main/v2ray/Geekshare.txt
+https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/socks5.txt
+https://igdux.top/dnZR#vsoren.pnz4
+https://raw.githubusercontent.com/coldwater-10/V2Hub1/main/Split/Base64/vmess
+https://raw.githubusercontent.com/Mohammadgb0078/IRV2ray/main/v2ray.txt
+https://raw.githubusercontent.com/dalazhi/v2ray/refs/heads/main/data/mihomo-1.yaml
+https://raw.githubusercontent.com/Danialsamadi/v2go/main/All_Configs_Sub.txt
+https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks5.txt
+https://raw.githubusercontent.com/ALIILAPRO/v2rayNG-Config/main/server.txt
+https://raw.githubusercontent.com/sakha1370/OpenRay/main/output/all_valid_proxies.txt
+https://msk.vless-balancer.ru/sub/dXNlcl82Nzg4MzMxMjQ5LDE3Njk1MzUzMTkBqGm3A1STd/#KIA_NET
+https://raw.githubusercontent.com/MhdiTaheri/V2rayCollector_Py/main/sub/Mix/mix.txt
+https://raw.githubusercontent.com/iboxz/free-v2ray-collector/main/main/mix
+https://proxyspace.pro/socks4.txt
+https://sub.shadowproxy66.workers.dev/sub/214abfe9-791e-44ba-bd8e-0afe298119f6
+https://raw.githubusercontent.com/MahsaNetConfigTopic/config/main/xray_final.txt
+https://raw.githubusercontent.com/xiaoji235/airport-free/master/v2ray.txt
+https://raw.githubusercontent.com/pojiezhiyuanjun/2023/master/0804clash.yml
+https://raw.githubusercontent.com/mshojaei77/v2rayAuto/main/mix
+https://raw.githubusercontent.com/lflflf999/0516/main/list
+https://raw.githubusercontent.com/10ium/free-config/refs/heads/main/HighSpeed.txt
+https://raw.githubusercontent.com/zjr13808836946/zjr_clash/main/V2_SSR_M
+https://raw.githubusercontent.com/parkerpa/zypjj/main/clash
+https://www.sslproxies.org/
+https://raw.githubusercontent.com/code3-dev/code3-dev/refs/heads/main/warp-in-vless#Warp-in-VLESS
+https://raw.githubusercontent.com/bamdad23/JavidnamanIran/main/WS%2BHysteria2
+https://raw.githubusercontent.com/zjfb/SubCrawler/main/sub/share/all
+https://raw.githubusercontent.com/MOnday9907/v2ray/main/v2ray.txt
+https://raw.githubusercontent.com/kaoxindalao/v2raycheshi/main/v2raycheshi
+https://raw.githubusercontent.com/hello-world-1989/cn-news/main/end-gfw-together
+https://raw.githubusercontent.com/Proxydaemitelegram/Proxydaemi44/main/Proxydaemi44
+https://raw.githubusercontent.com/DarknessShade/Sub/main/V2mix
+>>>>>>> Stashed changes
