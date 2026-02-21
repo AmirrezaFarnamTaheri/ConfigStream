@@ -121,7 +121,8 @@ def test_generate_split_outputs(proxies, output_dir):
         vpn_config = json.loads(files["singbox_vpn"].read_text(encoding="utf-8"))
         outbounds = vpn_config["outbounds"]
         auto_selector = next(o for o in outbounds if o["tag"] == "🚀 Auto")
-        assert len(auto_selector["outbounds"]) == 1
+        # Proxy (p1) + washed outbound; both appear in selector after uniquification fix
+        assert len(auto_selector["outbounds"]) == 2
 
 
 @pytest.mark.asyncio

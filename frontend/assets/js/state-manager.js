@@ -489,16 +489,6 @@ class UIStateManager {
             this.setState({
                 lastUpdate: event.detail?.generated_at || Date.now()
             });
-        },
-        dataUpdatedLegacy: (event) => {
-            this.setState({
-                lastUpdate: event.detail?.generated_at || Date.now()
-            });
-        },
-        dataUpdatedNamespaced: (event) => {
-            this.setState({
-                lastUpdate: event.detail?.generated_at || Date.now()
-            });
         }
     };
 
@@ -510,10 +500,7 @@ class UIStateManager {
     
     window.addEventListener('offline', this._handlers.offline);
     
-    // Listen for data updates from cache manager
-    window.addEventListener('dataUpdated', this._handlers.dataUpdated);
-    window.addEventListener('data-updated', this._handlers.dataUpdatedLegacy);
-    window.addEventListener('configstream:dataUpdated', this._handlers.dataUpdatedNamespaced);
+    window.addEventListener('configstream:dataUpdated', this._handlers.dataUpdated);
   }
 
   /**
@@ -524,9 +511,7 @@ class UIStateManager {
           document.removeEventListener('visibilitychange', this._handlers.visibility);
           window.removeEventListener('online', this._handlers.online);
           window.removeEventListener('offline', this._handlers.offline);
-          window.removeEventListener('dataUpdated', this._handlers.dataUpdated);
-          window.removeEventListener('data-updated', this._handlers.dataUpdatedLegacy);
-          window.removeEventListener('configstream:dataUpdated', this._handlers.dataUpdatedNamespaced);
+          window.removeEventListener('configstream:dataUpdated', this._handlers.dataUpdated);
           this.log.info("Destroyed and cleaned up listeners");
       }
 

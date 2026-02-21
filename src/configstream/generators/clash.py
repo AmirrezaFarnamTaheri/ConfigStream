@@ -23,8 +23,10 @@ def generate_clash_config(
     Generates a Clash YAML configuration.
 
     Added `extra_outbounds` argument to prevent crash when pipeline passes it.
-    However, Clash generator currently only supports standard proxies.
-    Future work: Convert Sing-box chains to Clash relay groups.
+    However, Clash/Mihomo generator currently only supports standard proxies.
+    Chains (WARP-wrapped, revived, shielded) are sing-box only — use
+    singbox.json or singbox-chains.json. Mihomo relay does not support
+    WireGuard as a hop; use sing-box for chain profiles.
     """
     if not yaml:
         # PyYAML is a normal dependency, but keep a resilient fallback.

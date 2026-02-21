@@ -42,3 +42,62 @@ def test_safe_int_conversion():
     assert safe_int_conversion(b"123") == 123
     assert safe_int_conversion(None) == 0
     assert safe_int_conversion("abc") == 0
+
+
+def test_to_clash_proxy_ws_grpc():
+    """Clash converter: WS and gRPC transport options."""
+    p_ws = Proxy(
+        config="vless://...",
+        protocol="vless",
+        address="1.2.3.4",
+        port=443,
+        uuid="uuid",
+        is_working=True,
+        details={"network": "ws", "path": "/ws", "host": "host.com", "security": "tls"},
+    )
+    clash = to_clash_proxy(p_ws)
+    assert clash["network"] == "ws"
+    assert clash["ws-opts"]["path"] == "/ws"
+    assert clash["ws-opts"]["headers"]["Host"] == "host.com"
+    assert clash["tls"] is True
+
+    p_grpc = Proxy(
+        config="vmess://...",
+        protocol="vmess",
+        address="1.2.3.4",
+        port=443,
+        uuid="uuid",
+        is_working=True,
+        details={"network": "grpc", "serviceName": "grpc-service", "security": "tls"},
+    )
+    clash = to_clash_proxy(p_grpc)
+    assert clash["network"] == "grpc"
+    assert clash["grpc-opts"]["grpc-service-name"] == "grpc-service"
+    assert clash["tls"] is True
+
+
+def test_to_singbox_outbound_ws_reality():
+    """Sing-box converter: WS transport and Reality TLS."""
+    p = Proxy(
+        config="vless://...",
+        protocol="vless",
+        address="1.2.3.4",
+        port=443,
+        uuid="uuid",
+        details={
+            "net": "ws",
+            "path": "/ws",
+            "host": "host.com",
+            "security": "reality",
+            "pbk": "pbk",
+            "sid": "sid",
+            "fp": "chrome",
+        },
+    )
+    sb = to_singbox_outbound(p)
+    assert sb["transport"]["type"] == "ws"
+    assert sb["transport"]["path"] == "/ws"
+    assert sb["transport"]["headers"]["Host"] == "host.com"
+    assert sb["tls"]["enabled"] is True
+    assert sb["tls"]["utls"]["fingerprint"] == "chrome"
+    assert sb["tls"]["reality"]["public_key"] == "pbk"

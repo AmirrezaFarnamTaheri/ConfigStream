@@ -3,8 +3,10 @@
 Honey Pot Detection Module.
 Passive verification (VirusTotal) to identify malicious nodes.
 
-Note: This module is not used in the main pipeline. Port-based honeypot
-detection lives in security/blocklist.py (HONEYPOT_PORTS / is_suspicious_port).
+Note: This module is not used in the main pipeline. The pipeline uses the Go
+tester for honeypot checks. Port-based detection lives in security/blocklist.py
+(HONEYPOT_PORTS / is_suspicious_port). is_honeypot is available for tests and
+standalone/alternative use.
 """
 
 import logging

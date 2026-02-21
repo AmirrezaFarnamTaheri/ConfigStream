@@ -24,6 +24,27 @@ def test_save_json(tmp_path, mock_history):
 
     assert out_file.exists()
     assert "1.1.1.1" in out_file.read_text()
+    # CRITICAL: Output must be JSON array (set of proxies), never single object
+    import json
+
+    data = json.loads(out_file.read_text())
+    assert isinstance(data, list), "proxies.json must be array, not single object"
+    assert len(data) == 1
+
+
+def test_save_json_outputs_array_not_single_object(tmp_path, mock_history):
+    """Ensure single proxy is still output as JSON array [{...}], never {...}."""
+    proxy = Proxy(
+        config="test", protocol="vmess", address="2.2.2.2", port=443, uuid="u2"
+    )
+    out_file = tmp_path / "single.json"
+    save_json([proxy], out_file)
+    import json
+
+    data = json.loads(out_file.read_text())
+    assert isinstance(data, list), "Must be array of proxies"
+    assert len(data) == 1
+    assert data[0]["address"] == "2.2.2.2"
 
 
 def test_save_json_compress(tmp_path, mock_history):

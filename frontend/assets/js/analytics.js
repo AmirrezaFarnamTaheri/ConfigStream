@@ -9,12 +9,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     let evasionTrend = null;
 
     // Try multiple data sources - metadata.json is single source of truth
+    const root = window.ROOT_PATH || '';
     try {
         if (window.api && window.api.fetchStatistics) {
             stats = await window.api.fetchStatistics();
         } else {
             // Fallback: Try direct fetch from metadata.json (unified stats file)
-            const response = await fetch('metadata.json?cb=' + Date.now());
+            const response = await fetch(root + 'metadata.json?cb=' + Date.now());
             if (response.ok) {
                 stats = await response.json();
             }
@@ -22,7 +23,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Fetch evasion trend data
         try {
-            const evasionResponse = await fetch('data/evasion_trend.json?cb=' + Date.now());
+            const evasionResponse = await fetch(root + 'data/evasion_trend.json?cb=' + Date.now());
             if (evasionResponse.ok) {
                 evasionTrend = await evasionResponse.json();
             }
@@ -90,7 +91,8 @@ function updateStats(data) {
     const totalConfigs = data.total_unique_candidates;
     update('totalConfigs', formatNum(totalConfigs));
 
-    const workingCount = data.total_valid_proxies;
+    // total_working = native + shielded (total usable); total_valid_proxies = native only
+    const workingCount = data.total_working ?? data.total_valid_proxies ?? data.working ?? 0;
     update('workingConfigs', formatNum(workingCount));
 
     const revivedWarp = data.revived_warp || 0;
@@ -98,8 +100,10 @@ function updateStats(data) {
     const totalRevived = data.total_revived ?? (revivedWarp + revivedVwarp);
 
     let cleanVal = data.total_clean;
-    if (cleanVal === undefined && workingCount !== undefined && totalRevived !== undefined) {
-        cleanVal = Math.max(0, workingCount - totalRevived);
+    if (cleanVal === undefined && totalRevived !== undefined) {
+        // total_clean = native working minus revived (use working/total_valid_proxies, not total_working)
+        const nativeWorking = data.total_valid_proxies ?? data.working ?? 0;
+        cleanVal = Math.max(0, nativeWorking - totalRevived);
     }
 
     update('totalClean', formatNum(cleanVal));

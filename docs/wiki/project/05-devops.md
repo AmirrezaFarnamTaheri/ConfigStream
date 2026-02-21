@@ -36,7 +36,7 @@ graph TD
 *   Pre-warms DNS cache.
 
 #### 2. Sharding (`aggregator`)
-*   We split `sources/` into 14 batch files (`sources/batch_1.txt` to `batch_14.txt`).
+*   We split `sources/` into 17 batch files (`sources/batch_1.txt` to `batch_17.txt`).
 *   Each job in the matrix picks one batch file and processes it independently.
 *   **Result**: Each job outputs a `partial_output_{id}.zip`.
 
@@ -124,7 +124,7 @@ See [Configuration Reference](Configuration.md) for the full list.
 
 ### Simulating the CI Matrix Locally
 
-The CI runs 14 shards in parallel. To simulate locally:
+The CI runs 17 shards in parallel. To simulate locally:
 ```bash
 # Process 3 batches
 for i in 1 2 3; do

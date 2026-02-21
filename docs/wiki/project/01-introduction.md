@@ -88,14 +88,14 @@ A central point of failure is a censorship target.
 ConfigStream today is a fully autonomous platform that runs every 4 hours without human intervention:
 
 *   **26+ Protocols**: VLESS, VMess, Trojan, Shadowsocks, SS2022, Hysteria2, TUIC, WireGuard, SSH, SOCKS5, HTTP, OpenVPN, ShadowsocksR, Juicity, and more.
-*   **14-Shard Parallel Pipeline**: 14 GitHub Actions VMs process sources concurrently, then merge results.
+*   **17-Shard Parallel Pipeline**: 17 GitHub Actions VMs process sources concurrently, then merge results.
 *   **Hybrid Python + Go Engine**: Python orchestrates; Go tests 10,000+ proxies in minutes.
 *   **9 Smart Chain Types**: Intranet, Washed, IPv6, Streaming, Censorship-Resistant, Low-Latency, High-Anonymity, Load-Balanced, Experimental.
-*   **4 Evasion Techniques**: uTLS fingerprinting, TLS fragmentation, multiplexing with padding, ALPN rotation.
+*   **3 Evasion Techniques**: uTLS fingerprinting, multiplexing with padding, ALPN rotation. (TLS fragmentation disabled — sing-box removed tls_fragment; use vwarp AtomicNoize for fragmentation-based evasion.)
 *   **3 DNS Profiles**: Standard, DNS-Safe (IP-only), DNS-Hardened (DoH/DoT/DoQ).
 *   **Proxy Washing & Shielding**: Resurrect dead proxies via WARP/Vwarp tunnels.
 *   **Chain Laboratory**: Browser-based 5-step chain builder with 6 strategies and 8 export formats.
-*   **Offline Tools**: `lab-scanner.py` (Python), `lab-runner.sh` (Bash), `lab-offline.html` (self-contained HTML).
+*   **Offline Tools**: `tools/lab-scanner.py` (Python), `tools/lab-runner.sh` (Bash), `frontend/lab-offline.html` (self-contained HTML).
 *   **Full Client Support**: Sing-box, Clash, Surge, Loon, Quantumult X, Shadowrocket, SIP008, Base64, plain text.
 *   **800+ Tests**: Unit, E2E, fuzz testing with >96% coverage on critical paths.
 

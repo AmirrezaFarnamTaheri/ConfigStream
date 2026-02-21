@@ -107,31 +107,6 @@ def rotate_alpn(
     return selected.copy()
 
 
-def add_tls_fragmentation(
-    outbound: Dict[str, Any],
-    enabled: bool = True,
-    size_range: str = "100-200",
-    sleep_range: str = "0-10",
-) -> Dict[str, Any]:
-    """
-    Add TLS fragmentation to an outbound config.
-
-    NOTE: Disabled as modern sing-box versions do not support 'tls_fragment'.
-    This function is kept as a no-op to maintain API compatibility.
-
-    Args:
-        outbound: Sing-box outbound configuration
-        enabled: Whether to enable fragmentation (Ignored)
-        size_range: Fragment size range (Ignored)
-        sleep_range: Sleep range between fragments (Ignored)
-
-    Returns:
-        Original outbound config
-    """
-    # tls_fragment is removed from Sing-box schema
-    return outbound
-
-
 def add_multiplexing(
     outbound: Dict[str, Any],
     enabled: bool = True,
@@ -216,10 +191,6 @@ def enrich_outbound_with_evasion(
             alpn_protocols = rotate_alpn(proxy_id, enabled=True, alpn=alpn_list)
             if alpn_protocols:
                 outbound["tls"]["alpn"] = alpn_protocols
-
-    # Apply TLS fragmentation (No-op now)
-    if enable_fragmentation:
-        outbound = add_tls_fragmentation(outbound, enabled=True)
 
     # Apply multiplexing with padding
     if enable_multiplexing:

@@ -36,7 +36,7 @@ Select a chain-building strategy and configure evasion options:
 |----------|-------------|
 | **WARP** | Single Cloudflare WARP hop before the proxy |
 | **Double WARP** | Two WARP hops for extra obfuscation |
-| **TLS Fragment** | TLS fragmentation to evade DPI |
+| **TLS Fragment** | Disabled — sing-box removed tls_fragment; use vwarp AtomicNoize for fragmentation |
 | **CDN Worker** | Route through a Cloudflare Worker endpoint |
 | **Custom JSON** | Paste a raw sing-box outbound JSON object |
 
@@ -44,7 +44,7 @@ Select a chain-building strategy and configure evasion options:
 - **uTLS Fingerprint** — Mimic browser TLS fingerprints (Chrome, Firefox, Safari, Edge, etc.)
 - **ALPN** — Application-Layer Protocol Negotiation settings
 - **Multiplex** — Connection multiplexing (h2mux, smux, yamux) with optional padding
-- **TLS Fragmentation** — Split TLS ClientHello to evade deep packet inspection
+- **TLS Fragmentation** — Disabled (sing-box removed tls_fragment); use vwarp AtomicNoize for fragmentation-based evasion
 
 ### Step 4 — Test Chain
 

@@ -76,7 +76,7 @@ ConfigStream and the Lab Scanner support multiple chaining strategies beyond jus
 ```
 *   **When:** A machine on your local network (corporate proxy, university gateway, colleague's computer) has less-filtered internet access.
 *   **Example:** Corporate HTTP proxy at `10.0.0.50:3128` → VLESS server.
-*   **Discovery:** Run `python lab-scanner.py --scan-relays` to probe LAN subnets and user-supplied hosts for reachable SOCKS/HTTP services with internet access.
+*   **Discovery:** Run `python tools/lab-scanner.py --scan-relays` to probe LAN subnets and user-supplied hosts for reachable SOCKS/HTTP services with internet access.
 *   **Advantage:** Uses infrastructure already present on your network. Zero external dependencies.
 
 #### 4. WARP Tunnel

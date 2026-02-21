@@ -38,7 +38,7 @@ ConfigStream is configured via Environment Variables.
 | `ENABLE_SMART_CHAINING` | `true` | Enable smart chain generation. |
 | `ENABLE_CACHE_WARMING` | `true` | Prioritize testing of historically reliable proxies. |
 | `EVASION_MODE` | `aggressive` | Evasion feature level: `standard` (none), `stealth` (uTLS + frag), `aggressive` (all). |
-| `VWARP_VERSION` | *latest* | Pin a specific Vwarp binary version (e.g., `2.1.0`). |
+| `VWARP_VERSION` | `v2.2.2` | Pin a specific Vwarp binary version (e.g., `v2.2.2`; use `v2.1.0` for older binaries). |
 | `UPDATE_INTERVAL_HOURS` | `6` | Publish interval reported in `metadata.json` for frontend freshness display. |
 
 ## Security Controls
@@ -80,8 +80,8 @@ These are set in the repository's Settings → Secrets → Actions:
 | `sources/batch_*.txt` | Input proxy sources (URLs or direct proxy URIs). Split into 17 shards for parallel CI. |
 | `output/` | Generated artifacts (JSON, YAML, TXT, CONF, PNG). Deployed to GitHub Pages. |
 | `output/data/` | Time-series trend data (`active_proxy_trend.json`, `evasion_trend.json`). |
-| `output/countries/` | Per-country proxy JSON files (e.g., `US.json`, `DE.json`). |
-| `output/protocols/` | Per-protocol proxy JSON files (e.g., `vless.json`, `trojan.json`). |
+| `output/countries/` | Per-country files: Sing-box configs (`US.json`) plus API/filtering arrays (`US.list.json`). |
+| `output/protocols/` | Per-protocol files: Sing-box configs (`vless.json`), API/filtering arrays (`vless.list.json`), and URI lists (`vless.txt`). |
 | `output/chosen/` | Curated "top picks" subset (`base64.txt`). |
 | `data/` | Persistent caches/DBs — GeoIP (`.mmdb`), source quality (`.db`), history, test cache. |
 | `frontend/` | Static frontend assets. Merged with `output/` during Pages deployment. |

@@ -75,4 +75,4 @@ This ensures the FastAPI static file server serves WASM files with the correct M
 
 ## Contributing
 
-If you can help address any of these issues, particularly the Go WASM networking limitation, please submit a pull request or open an issue for discussion.
+If you can help address any of these issues, please submit a pull request or open an issue for discussion.

@@ -5,10 +5,24 @@ import requests  # type: ignore
 from pathlib import Path
 
 
-def pin_to_ipfs(filepath: str, jwt: str) -> str:
+def _extract_pinata_cid(payload: object) -> str:
+    """Extract CID from Pinata legacy or v3 responses."""
+    if isinstance(payload, dict):
+        legacy_cid = payload.get("IpfsHash")
+        if isinstance(legacy_cid, str) and legacy_cid.strip():
+            return legacy_cid.strip()
+        data = payload.get("data")
+        if isinstance(data, dict):
+            v3_cid = data.get("cid")
+            if isinstance(v3_cid, str) and v3_cid.strip():
+                return v3_cid.strip()
+    raise RuntimeError("Pinata response missing CID")
+
+
+def _pin_to_ipfs_legacy(filepath: str, jwt: str) -> str:
     """
-    Pins a file or directory to IPFS via Pinata.
-    Returns the IPFS Hash (CID).
+    Pin to IPFS using legacy endpoint.
+    Used for folder uploads and fallback compatibility.
     """
     url = "https://api.pinata.cloud/pinning/pinFileToIPFS"
     path_obj = Path(filepath)
@@ -51,9 +65,49 @@ def pin_to_ipfs(filepath: str, jwt: str) -> str:
             )
 
     if response.status_code == 200:
-        return str(response.json()["IpfsHash"])
+        try:
+            return _extract_pinata_cid(response.json())
+        except ValueError as exc:
+            raise RuntimeError(f"Legacy Pinata JSON parse failed: {exc}") from exc
     else:
         raise RuntimeError(f"Failed to pin to IPFS: {response.text}")
+
+
+def _pin_single_file_v3(filepath: str, jwt: str) -> str:
+    """Pin a single file via Pinata v3 upload API."""
+    url = "https://uploads.pinata.cloud/v3/files"
+    headers = {"Authorization": f"Bearer {jwt}"}
+
+    with open(filepath, "rb") as f:
+        files = {"file": (Path(filepath).name, f)}
+        # Use public network so generated CID is directly consumable in gateway URLs.
+        data = {"network": "public"}
+        response = requests.post(
+            url, files=files, data=data, headers=headers, timeout=60
+        )
+
+    if response.status_code == 200:
+        try:
+            return _extract_pinata_cid(response.json())
+        except ValueError as exc:
+            raise RuntimeError(f"Pinata v3 JSON parse failed: {exc}") from exc
+    raise RuntimeError(f"Pinata v3 upload failed: {response.text}")
+
+
+def pin_to_ipfs(filepath: str, jwt: str) -> str:
+    """
+    Pins a file or directory to IPFS via Pinata.
+    Returns the CID.
+    """
+    path_obj = Path(filepath)
+    if path_obj.is_dir():
+        # Pinata v3 upload endpoint currently does not support folder uploads.
+        return _pin_to_ipfs_legacy(filepath, jwt)
+    try:
+        return _pin_single_file_v3(filepath, jwt)
+    except Exception:
+        # Fallback for backwards compatibility and transient v3 issues.
+        return _pin_to_ipfs_legacy(filepath, jwt)
 
 
 def publish_ipns(cid: str, ipns_key: str) -> None:

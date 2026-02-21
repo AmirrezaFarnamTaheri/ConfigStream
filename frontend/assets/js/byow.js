@@ -36,7 +36,8 @@ async function applyUserWorker() {
         }
 
         // Fetch the Gold chains config
-        const chainsUrl = 'singbox-chains.json';
+        const root = window.ROOT_PATH || '';
+        const chainsUrl = root + 'singbox-chains.json';
         const response = await fetch(chainsUrl);
         if (!response.ok) {
             throw new Error(`Failed to fetch ${chainsUrl}: ${response.status}`);

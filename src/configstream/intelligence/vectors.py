@@ -8,17 +8,23 @@ Zero-Cost implementation: Uses feature hashing instead of ML embeddings.
 import hashlib
 import json
 import logging
-from typing import List, Dict
+from typing import List, Dict, Optional, TYPE_CHECKING
 from pathlib import Path
 from configstream.models import Proxy
 from configstream.utils import AtomicFileWriter
 from configstream.utils.bool_parser import parse_tls_flag
 from configstream.security_validator import SecurityValidator
 
+if TYPE_CHECKING:
+    from configstream.history.tracker import ProxyHistoryTracker
+
 logger = logging.getLogger(__name__)
 
 
-def _compute_vector(proxy: Proxy) -> List[int]:
+def _compute_vector(
+    proxy: Proxy,
+    history_stats: Optional[Dict[str, Dict[str, float]]] = None,
+) -> List[int]:
     """
     Compute a simple 8-dimension feature vector based on proxy attributes.
     This allows 'similar proxy' finding without an ML model.
@@ -73,10 +79,17 @@ def _compute_vector(proxy: Proxy) -> List[int]:
             security += 2
     h_security = min(security, 9)
 
-    # 7-8. Stability and Reliability (default 5 - middle value)
-    # Future: integrate with proxy_history for real values
+    # 7-8. Stability and Reliability (0-9)
+    # Use proxy_history when available; default 5 (middle) otherwise
     h_stability = 5
     h_reliability = 5
+    if history_stats and proxy.id:
+        stats = history_stats.get(proxy.id)
+        if stats:
+            rel = stats.get("reliability")
+            if rel is not None:
+                h_reliability = min(9, max(0, int(round(rel * 10))))
+                h_stability = h_reliability  # Same source: success rate
 
     return [
         h_proto,
@@ -90,16 +103,26 @@ def _compute_vector(proxy: Proxy) -> List[int]:
     ]
 
 
-def generate_vectors(proxies: List[Proxy], output_dir: Path) -> None:
+def generate_vectors(
+    proxies: List[Proxy],
+    output_dir: Path,
+    history: Optional["ProxyHistoryTracker"] = None,
+) -> None:
     """
     Generate vectors.json for frontend consumption.
     Format: { "proxy_id": [vector] }
+    When history is provided, stability/reliability dimensions use real success-rate data.
     """
     vector_map: Dict[str, List[int]] = {}
+    history_stats: Optional[Dict[str, Dict[str, float]]] = None
+    if history:
+        working_ids = [p.id for p in proxies if p.is_working and p.id]
+        if working_ids:
+            history_stats = history.get_bulk_stats(working_ids)
 
     for p in proxies:
         if p.is_working:
-            vector_map[p.id] = _compute_vector(p)
+            vector_map[p.id] = _compute_vector(p, history_stats)
 
     output_file = output_dir / "vectors.json"
     try:

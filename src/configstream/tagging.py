@@ -144,8 +144,7 @@ def build_proxy_tags(proxy: Proxy) -> List[str]:
     # Evasion tags
     if details.get("has_utls") or details.get("evasion_utls"):
         tags.append("EVASION:UTLS")
-    if details.get("has_fragmentation") or details.get("evasion_fragmentation"):
-        tags.append("EVASION:FRAG")
+    # EVASION:FRAG removed: sing-box dropped tls_fragment; fragmentation no longer applied
     if details.get("has_multiplexing") or details.get("evasion_multiplexing"):
         tags.append("EVASION:MUX")
     if details.get("has_alpn_rotation") or details.get("evasion_alpn"):
@@ -240,6 +239,27 @@ def format_proxy_name(template: str, proxy: Proxy) -> str:
         if issue_tokens:
             issue_tag = f"SEC:{','.join(sorted(set(issue_tokens)))}"
 
+    # Enrich from origin_proxy for revived/shielded proxies (missing geo/latency)
+    origin = (proxy.details or {}).get("origin_proxy")
+    if isinstance(origin, dict):
+        if not cc:
+            cc = (origin.get("country_code") or origin.get("country") or "").upper()
+        if not city:
+            city_raw = origin.get("city") or ""
+            city = city_raw.replace(" ", "_") if city_raw else ""
+        if proxy.latency is None and origin.get("latency") is not None:
+            try:
+                latency_tag = f"{int(origin['latency'])}ms"
+            except (TypeError, ValueError):
+                pass
+        if not proxy.protocol or proxy.protocol == "revived":
+            orig_proto = origin.get("protocol")
+            if isinstance(orig_proto, str) and orig_proto:
+                stack = build_proxy_stack(proxy)  # Rebuild with enriched context
+    # Rebuild geo/flag after potential origin enrichment
+    flag = get_flag_emoji(cc)
+    geo = f"{flag}-{city}" if city else flag
+
     proxy_data = {
         "remarks": original_name,
         "protocol": proxy.protocol.upper() if proxy.protocol else "",
@@ -255,7 +275,7 @@ def format_proxy_name(template: str, proxy: Proxy) -> str:
         "latency_tag": latency_tag,
         "issue_tag": issue_tag,
         "geo": geo,
-        "country": proxy.country_code or proxy.country,
+        "country": proxy.country_code or proxy.country or cc,
         "country_code": cc,
         "country_flag": get_flag_emoji(cc),
         "city": proxy.city,

@@ -293,6 +293,19 @@ def _merge_metadata(batch_dirs: Iterable[Path]) -> Dict[str, Any]:
         "revived_vwarp": 0,
         "time_limited": False,
         "time_limit_seconds": 0,
+        # Intelligence layer (aggregate from batches)
+        "shielded_count": 0,
+        "smart_chain_count": 0,
+        "chain_outbounds_count": 0,
+        "washer_success_count": 0,
+        "scanner_ips_found": 0,
+        # Evasion metrics (aggregate from batches)
+        "evasion_utls_enabled": 0,
+        "evasion_alpn_enabled": 0,
+        "evasion_fragmentation_enabled": 0,
+        "evasion_multiplexing_enabled": 0,
+        "evasion_dns_safe_count": 0,
+        "evasion_dns_hardened_count": 0,
     }
     drop_reasons: Dict[str, int] = {}
 
@@ -322,6 +335,28 @@ def _merge_metadata(batch_dirs: Iterable[Path]) -> Dict[str, Any]:
         totals["vwarp_success"] += int(data.get("vwarp_success", 0) or 0)
         totals["revived_warp"] += int(data.get("revived_warp", 0) or 0)
         totals["revived_vwarp"] += int(data.get("revived_vwarp", 0) or 0)
+
+        totals["shielded_count"] += int(data.get("shielded_count", 0) or 0)
+        totals["smart_chain_count"] += int(data.get("smart_chain_count", 0) or 0)
+        totals["chain_outbounds_count"] += int(
+            data.get("chain_outbounds_count", 0) or 0
+        )
+        totals["washer_success_count"] += int(data.get("washer_success_count", 0) or 0)
+        totals["scanner_ips_found"] += int(data.get("scanner_ips_found", 0) or 0)
+        totals["evasion_utls_enabled"] += int(data.get("evasion_utls_enabled", 0) or 0)
+        totals["evasion_alpn_enabled"] += int(data.get("evasion_alpn_enabled", 0) or 0)
+        totals["evasion_fragmentation_enabled"] += int(
+            data.get("evasion_fragmentation_enabled", 0) or 0
+        )
+        totals["evasion_multiplexing_enabled"] += int(
+            data.get("evasion_multiplexing_enabled", 0) or 0
+        )
+        totals["evasion_dns_safe_count"] += int(
+            data.get("evasion_dns_safe_count", 0) or 0
+        )
+        totals["evasion_dns_hardened_count"] += int(
+            data.get("evasion_dns_hardened_count", 0) or 0
+        )
 
         if data.get("time_limited"):
             totals["time_limited"] = True
@@ -445,6 +480,27 @@ def merge_batches(batch_glob: str, output_dir: str) -> None:
     stats.final_count = len(all_proxies)
     stats.time_limited = bool(stats_payload.get("time_limited", False))
     stats.time_limit_seconds = int(stats_payload.get("time_limit_seconds", 0) or 0)
+    stats.shielded_count = int(stats_payload.get("shielded_count", 0) or 0)
+    stats.smart_chain_count = int(stats_payload.get("smart_chain_count", 0) or 0)
+    stats.chain_outbounds_count = int(
+        stats_payload.get("chain_outbounds_count", 0) or 0
+    )
+    stats.washer_success_count = int(stats_payload.get("washer_success_count", 0) or 0)
+    stats.scanner_ips_found = int(stats_payload.get("scanner_ips_found", 0) or 0)
+    stats.evasion_utls_enabled = int(stats_payload.get("evasion_utls_enabled", 0) or 0)
+    stats.evasion_alpn_enabled = int(stats_payload.get("evasion_alpn_enabled", 0) or 0)
+    stats.evasion_fragmentation_enabled = int(
+        stats_payload.get("evasion_fragmentation_enabled", 0) or 0
+    )
+    stats.evasion_multiplexing_enabled = int(
+        stats_payload.get("evasion_multiplexing_enabled", 0) or 0
+    )
+    stats.evasion_dns_safe_count = int(
+        stats_payload.get("evasion_dns_safe_count", 0) or 0
+    )
+    stats.evasion_dns_hardened_count = int(
+        stats_payload.get("evasion_dns_hardened_count", 0) or 0
+    )
     stats.end_time = datetime.now(timezone.utc)
 
     output_path = Path(output_dir)

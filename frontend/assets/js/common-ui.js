@@ -86,7 +86,9 @@ function initCopyButtons() {
                 'subscribe/loon': 'loon.conf',
                 'subscribe/quantumultx': 'quantumult.conf',
                 'subscribe/sip008': 'sip008.json',
-                'files/chosen/base64.txt': 'chosen/base64.txt'
+                'chosen/base64.txt': 'chosen/base64.txt',
+                'chosen/base64-dns-safe.txt': 'chosen/base64-dns-safe.txt',
+                'chosen/base64-dns-hardened.txt': 'chosen/base64-dns-hardened.txt'
             };
             let targetFile = FILE_MAP[file] || file;
             if (window.getFullUrl) {

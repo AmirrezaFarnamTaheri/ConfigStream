@@ -112,7 +112,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 await window.cacheManager.cacheData(API_PROXIES_URL, proxies, newVersion);
 
                 // Dispatch event for UI updates
-                window.dispatchEvent(new CustomEvent('data-updated', { detail: { count: proxies.length } }));
+                window.dispatchEvent(new CustomEvent('configstream:dataUpdated', {
+                    detail: { count: proxies.length, generated_at: Date.now() }
+                }));
 
                 // Use state manager notification instead of alert() for better UX
                 if (window.stateManager && window.stateManager.showNotification) {
@@ -122,12 +124,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Full reload required
                 logger.log('[Diff] Server requested full reload');
                 await window.cacheManager.fetchFresh(API_PROXIES_URL);
-                window.dispatchEvent(new CustomEvent('data-updated'));
+                window.dispatchEvent(new CustomEvent('configstream:dataUpdated', { detail: { generated_at: Date.now() } }));
             }
         } catch (e) {
             logger.warn('[Diff] Failed, falling back to full fetch', e);
             await window.cacheManager.fetchFresh(API_PROXIES_URL);
-            window.dispatchEvent(new CustomEvent('data-updated'));
+            window.dispatchEvent(new CustomEvent('configstream:dataUpdated', { detail: { generated_at: Date.now() } }));
         }
     };
 
@@ -224,7 +226,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const totalConfigs = stats.total_unique_candidates;
                 updateElement('#totalConfigs', formatNum(totalConfigs));
 
-                const workingCount = stats.total_valid_proxies;
+                // total_working = native + shielded (total usable); total_valid_proxies = native only
+                const workingCount = stats.total_working ?? stats.total_valid_proxies ?? stats.working ?? 0;
                 updateElement('#workingConfigs', formatNum(workingCount));
 
                 const revivedWarp = stats.revived_warp || 0;

@@ -26,7 +26,12 @@ from .intelligence.chaining import generate_smart_chains
 from .intelligence.washer.core import ProxyWasher
 from .utils import AtomicFileWriter
 from .config import AppSettings
-from .constants import CHOSEN_TOP_PER_PROTOCOL, CHOSEN_TOTAL_TARGET
+from .constants import (
+    CHOSEN_TOP_PER_PROTOCOL,
+    CHOSEN_TOTAL_TARGET,
+    canonical_protocol_name,
+    protocol_sort_key,
+)
 from .dns_profiles import (
     build_singbox_dns_profile,
     build_clash_dns_profile,
@@ -468,23 +473,39 @@ def _build_wireguard_config(proxy: Proxy) -> Optional[str]:
 def _get_export_pool(proxies: List[Proxy]) -> List[Proxy]:
     """
     Selects the pool of proxies to export in subscription files.
-    Prefers working proxies. If none are working, falls back to all proxies
-    (excluding revived ones if they are failed) to ensure output files are not empty.
+    Prefers working proxies. If none are working, falls back to all non-revived proxies.
+    When that pool is empty (all proxies are revived), include revived proxies so users
+    get origin URIs to try in their own network (per AGENTS.md: revived kept with
+    is_working=False for user experimentation).
     """
     working = [p for p in proxies if p.is_working]
     if working:
         return working
 
-    # Fallback: return all non-revived proxies (revived ones that failed are likely useless)
-    return [
+    non_revived = [
         p
         for p in proxies
         if not (p.protocol == "revived" or (p.details or {}).get("is_revived"))
     ]
+    # Include revived when no other options, so base64/proxies.txt get origin URIs
+    return non_revived if non_revived else proxies
+
+
+def _order_export_proxies(proxies: List[Proxy]) -> List[Proxy]:
+    """Deterministic user-facing ordering for URI/adapters/export artifacts."""
+    return sorted(
+        proxies,
+        key=lambda p: (
+            protocol_sort_key(p.protocol or "unknown"),
+            p.latency is None,
+            p.latency if p.latency is not None else 9e9,
+            (p.country_code or "ZZ").upper(),
+            p.id or "",
+        ),
+    )
 
 
 def _select_chosen_proxies(proxies: List[Proxy]) -> List[Proxy]:
-
 
     if CHOSEN_TOP_PER_PROTOCOL <= 0 and CHOSEN_TOTAL_TARGET <= 0:
         return []
@@ -492,24 +513,21 @@ def _select_chosen_proxies(proxies: List[Proxy]) -> List[Proxy]:
     # Prefer working proxies; fall back to ALL proxies when none are working
     # so that chosen/ outputs are always populated for downstream consumers.
     working = [p for p in proxies if p.is_working]
-    # Fallback to all proxies, BUT exclude failed revived ones (junk)
-    pool = (
-        working
-        if working
-        else [
-            p
-            for p in proxies
-            if not (p.protocol == "revived" or (p.details or {}).get("is_revived"))
-        ]
-    )
+    non_revived = [
+        p
+        for p in proxies
+        if not (p.protocol == "revived" or (p.details or {}).get("is_revived"))
+    ]
+    # Include revived when no other options (per AGENTS.md: revived kept for user try)
+    pool = working if working else (non_revived if non_revived else proxies)
 
     by_protocol: Dict[str, List[Proxy]] = {}
     for proxy in pool:
-        proto = (proxy.protocol or "unknown").lower()
+        proto = canonical_protocol_name(proxy.protocol or "unknown")
         by_protocol.setdefault(proto, []).append(proxy)
 
     chosen: List[Proxy] = []
-    for proto in sorted(by_protocol.keys()):
+    for proto in sorted(by_protocol.keys(), key=protocol_sort_key):
         candidates = sorted(
             by_protocol[proto],
             key=lambda p: (p.latency is None, p.latency or 9e9),
@@ -523,7 +541,7 @@ def _select_chosen_proxies(proxies: List[Proxy]) -> List[Proxy]:
             :CHOSEN_TOTAL_TARGET
         ]
 
-    return chosen
+    return _order_export_proxies(chosen)
 
 
 def generate_categorized_outputs(
@@ -600,14 +618,26 @@ def generate_categorized_outputs(
     if "clash" in split_files:
         generated_files["clash_full"] = split_files["clash"]
 
+    export_pool = _order_export_proxies(_get_export_pool(proxies))
+    all_ordered_proxies = _order_export_proxies(proxies)
+
     # 3. Standard Subscription (Base64)
-    sub_content = generate_base64_subscription(_get_export_pool(proxies))
+    sub_content = generate_base64_subscription(export_pool)
+    raw_content = generate_plaintext_subscription(export_pool)
+    if not raw_content.strip() and all_ordered_proxies:
+        fallback_raw = generate_plaintext_subscription(all_ordered_proxies)
+        if fallback_raw.strip():
+            logger.info(
+                "Primary export pool produced empty URI list; falling back to all proxies for URI artifacts."
+            )
+            raw_content = fallback_raw
+            sub_content = generate_base64_subscription(all_ordered_proxies)
+
     base64_path = output_dir / "base64.txt"
     AtomicFileWriter.write_text(base64_path, sub_content)
     generated_files["base64"] = base64_path
 
     # 3b. Raw URI list (Plaintext) - single canonical file to avoid redundancy
-    raw_content = generate_plaintext_subscription(_get_export_pool(proxies))
     proxies_txt_path = output_dir / "proxies.txt"
     AtomicFileWriter.write_text(proxies_txt_path, raw_content)
     generated_files["proxies_txt"] = proxies_txt_path
@@ -616,6 +646,20 @@ def generate_categorized_outputs(
     # Always generate chosen/ outputs, even when empty, to avoid downstream 404s.
     chosen_dir = output_dir / "chosen"
     chosen_dir.mkdir(exist_ok=True)
+    for stale_name in (
+        "clash-dns-safe.yaml",
+        "clash-dns-hardened.yaml",
+        "proxies-dns-safe.txt",
+        "proxies-dns-hardened.txt",
+        "singbox-dns-safe.json",
+        "singbox-dns-hardened.json",
+    ):
+        stale_path = chosen_dir / stale_name
+        if stale_path.exists():
+            try:
+                stale_path.unlink()
+            except OSError:
+                pass
     chosen = _select_chosen_proxies(proxies)
 
     chosen_base64 = generate_base64_subscription(chosen)
@@ -650,9 +694,9 @@ def generate_categorized_outputs(
         try:
             adapter = get_adapter(adapter_name)
             if adapter_name in ("surge", "loon"):
-                content = adapter.export(_get_export_pool(proxies), washed_outbounds=washed_outbounds)
+                content = adapter.export(export_pool, washed_outbounds=washed_outbounds)
             else:
-                content = adapter.export(_get_export_pool(proxies))
+                content = adapter.export(export_pool)
             out_path = output_dir / filename
             AtomicFileWriter.write_text(out_path, content)
             generated_files[key] = out_path
@@ -662,10 +706,14 @@ def generate_categorized_outputs(
     # 3e. Side products pack (OpenVPN + WireGuard + plain URIs)
     side_products_path = output_dir / "side_products.zip"
     openvpn_candidates = [
-        p for p in _get_export_pool(proxies) if (p.protocol or "").lower() == "openvpn" and p.config
+        p
+        for p in export_pool
+        if canonical_protocol_name(p.protocol or "") == "openvpn" and p.config
     ]
     wireguard_candidates = [
-        p for p in _get_export_pool(proxies) if (p.protocol or "").lower() in ("wireguard", "wg")
+        p
+        for p in export_pool
+        if canonical_protocol_name(p.protocol or "") == "wireguard"
     ]
     tmp_path = None
     try:
@@ -709,22 +757,26 @@ def generate_categorized_outputs(
     for p in proxies:
         cc = (p.country_code or "XX").upper()
         by_country.setdefault(cc, []).append(p)
-        by_protocol.setdefault((p.protocol or "").lower(), []).append(p)
+        by_protocol.setdefault(canonical_protocol_name(p.protocol or ""), []).append(p)
 
     # Write Country files
     country_dir = output_dir / "countries"
     country_dir.mkdir(exist_ok=True)
 
-    for cc, plist in by_country.items():
+    for cc in sorted(by_country.keys()):
+        plist = by_country[cc]
         # We generate files for all, including XX
         cpath = country_dir / f"{cc}.json"
         AtomicFileWriter.write_text(cpath, generate_singbox_config(plist))
 
-        # Generate list format for API
+        # Generate list format for API — always JSON array, never single proxy object
         lpath = country_dir / f"{cc}.list.json"
-        lcontent = json.dumps(
-            [p.model_dump(mode="json") for p in plist], indent=2, ensure_ascii=False
+        arr = (
+            [p.model_dump(mode="json") for p in plist]
+            if isinstance(plist, list)
+            else []
         )
+        lcontent = json.dumps(arr, indent=2, ensure_ascii=False)
         AtomicFileWriter.write_text(lpath, lcontent)
 
         generated_files[f"country_{cc}"] = cpath
@@ -733,15 +785,19 @@ def generate_categorized_outputs(
     proto_dir = output_dir / "protocols"
     proto_dir.mkdir(exist_ok=True)
 
-    for proto, plist in by_protocol.items():
+    for proto in sorted(by_protocol.keys(), key=protocol_sort_key):
+        plist = by_protocol[proto]
         ppath = proto_dir / f"{proto}.json"
         AtomicFileWriter.write_text(ppath, generate_singbox_config(plist))
 
-        # Generate list format for API
+        # Generate list format for API — always JSON array, never single proxy object
         lpath = proto_dir / f"{proto}.list.json"
-        lcontent = json.dumps(
-            [p.model_dump(mode="json") for p in plist], indent=2, ensure_ascii=False
+        arr = (
+            [p.model_dump(mode="json") for p in plist]
+            if isinstance(plist, list)
+            else []
         )
+        lcontent = json.dumps(arr, indent=2, ensure_ascii=False)
         AtomicFileWriter.write_text(lpath, lcontent)
 
         generated_files[f"proto_{proto}"] = ppath
@@ -757,14 +813,35 @@ def generate_categorized_outputs(
     # This includes ALL chain types: standard washed, revived (warp/vwarp), smart chains, and shielded (gold)
     chain_outbounds: List[Dict[str, Any]] = []
     seen_tags: set[str] = set()
+    tag_remap: Dict[str, str] = {}  # old_tag -> new_tag when uniquified
+
+    def _uniquify_tag(tag: str) -> str:
+        """Ensure tag is unique; append suffix if collision."""
+        if not tag or tag not in seen_tags:
+            return tag
+        suffix = 0
+        while f"{tag}-{suffix}" in seen_tags:
+            suffix += 1
+        return f"{tag}-{suffix}"
 
     def _append_chain(outbounds: List[Dict[str, Any]]) -> None:
         for outbound in outbounds:
             if not isinstance(outbound, dict):
                 continue
+            outbound = copy.deepcopy(outbound)
+            # Resolve detour if target was uniquified
+            detour = outbound.get("detour")
+            if isinstance(detour, str) and detour in tag_remap:
+                outbound["detour"] = tag_remap[detour]
             tag = outbound.get("tag")
             if tag and tag in seen_tags:
-                continue
+                # CRITICAL: Uniquify instead of skipping. Skipping collapsed thousands
+                # of chains into one "single proxy" when format_proxy_name produced
+                # identical tags (e.g. shielded chains with same geo/protocol/latency).
+                new_tag = _uniquify_tag(tag)
+                tag_remap[tag] = new_tag
+                tag = new_tag
+                outbound["tag"] = tag
             chain_outbounds.append(outbound)
             if tag:
                 seen_tags.add(tag)
@@ -775,7 +852,15 @@ def generate_categorized_outputs(
         # Guard against None details to prevent AttributeError
         chain = (p.details or {}).get("chain_outbounds")
         if isinstance(chain, list) and chain:
-            _append_chain(copy.deepcopy(chain))
+            chain_copy = copy.deepcopy(chain)
+            # Apply proxy.remarks to entry point (last outbound) for revived chains
+            # so user-formatted names appear in singbox-chains.json
+            is_revived = (p.details or {}).get("is_revived") or (
+                p.process or ""
+            ).startswith("revived")
+            if is_revived and p.remarks and p.remarks not in seen_tags:
+                chain_copy[-1]["tag"] = p.remarks
+            _append_chain(chain_copy)
 
     # 2. Washed outbounds (includes standard washed + shielded/gold chains)
     if washed_outbounds:
@@ -871,6 +956,7 @@ def generate_categorized_outputs(
         key_suffix="dns_safe",
     )
     generated_files.update(dns_split_files)
+    dns_safe_export_pool = _order_export_proxies(_get_export_pool(dns_safe_proxies))
 
     dns_chain_outbounds = (
         _filter_outbounds_for_dns_safe(chain_outbounds, host_map)
@@ -888,12 +974,22 @@ def generate_categorized_outputs(
     AtomicFileWriter.write_text(dns_chains_alias, dns_chains_content)
     generated_files["chains_dns_safe"] = dns_chains_alias
 
-    dns_safe_base64 = generate_base64_subscription(_get_export_pool(dns_safe_proxies))
+    dns_safe_base64 = generate_base64_subscription(dns_safe_export_pool)
+    dns_raw_content = generate_plaintext_subscription(dns_safe_export_pool)
+    all_dns_safe_ordered = _order_export_proxies(dns_safe_proxies)
+    if not dns_raw_content.strip() and all_dns_safe_ordered:
+        fallback_dns_raw = generate_plaintext_subscription(all_dns_safe_ordered)
+        if fallback_dns_raw.strip():
+            logger.info(
+                "DNS-safe export pool produced empty URI list; falling back to all DNS-safe proxies for URI artifacts."
+            )
+            dns_raw_content = fallback_dns_raw
+            dns_safe_base64 = generate_base64_subscription(all_dns_safe_ordered)
+
     dns_base64_path = output_dir / "base64-dns-safe.txt"
     AtomicFileWriter.write_text(dns_base64_path, dns_safe_base64)
     generated_files["base64_dns_safe"] = dns_base64_path
 
-    dns_raw_content = generate_plaintext_subscription(_get_export_pool(dns_safe_proxies))
     dns_proxies_txt_path = output_dir / "proxies-dns-safe.txt"
     AtomicFileWriter.write_text(dns_proxies_txt_path, dns_raw_content)
     generated_files["proxies_txt_dns_safe"] = dns_proxies_txt_path
@@ -910,10 +1006,10 @@ def generate_categorized_outputs(
             adapter = get_adapter(adapter_name)
             if adapter_name in ("surge", "loon"):
                 content = adapter.export(
-                    _get_export_pool(dns_safe_proxies), washed_outbounds=dns_safe_washed
+                    dns_safe_export_pool, washed_outbounds=dns_safe_washed
                 )
             else:
-                content = adapter.export(_get_export_pool(dns_safe_proxies))
+                content = adapter.export(dns_safe_export_pool)
             dns_filename = _add_suffix(filename, "-dns-safe")
             out_path = output_dir / dns_filename
             AtomicFileWriter.write_text(out_path, content)
@@ -929,11 +1025,13 @@ def generate_categorized_outputs(
     side_dns_path = output_dir / "side_products-dns-safe.zip"
     openvpn_candidates_dns = [
         p
-        for p in _get_export_pool(dns_safe_proxies)
-        if (p.protocol or "").lower() == "openvpn" and p.config
+        for p in dns_safe_export_pool
+        if canonical_protocol_name(p.protocol or "") == "openvpn" and p.config
     ]
     wireguard_candidates_dns = [
-        p for p in _get_export_pool(dns_safe_proxies) if (p.protocol or "").lower() in ("wireguard", "wg")
+        p
+        for p in dns_safe_export_pool
+        if canonical_protocol_name(p.protocol or "") == "wireguard"
     ]
     tmp_path = None
     try:
@@ -1012,14 +1110,31 @@ def generate_categorized_outputs(
             clash_dns_profile=build_clash_dns_profile(),
         )
         generated_files.update(hardened_split_files)
+        dns_hardened_export_pool = _order_export_proxies(
+            _get_export_pool(dns_hardened_proxies)
+        )
 
         # Base64 + plaintext outputs (DNS-hardened prefer-IP)
-        dns_hardened_base64 = generate_base64_subscription(_get_export_pool(dns_hardened_proxies))
+        dns_hardened_base64 = generate_base64_subscription(dns_hardened_export_pool)
+        dns_hardened_raw = generate_plaintext_subscription(dns_hardened_export_pool)
+        all_dns_hardened_ordered = _order_export_proxies(dns_hardened_proxies)
+        if not dns_hardened_raw.strip() and all_dns_hardened_ordered:
+            fallback_hardened_raw = generate_plaintext_subscription(
+                all_dns_hardened_ordered
+            )
+            if fallback_hardened_raw.strip():
+                logger.info(
+                    "DNS-hardened export pool produced empty URI list; falling back to all DNS-hardened proxies for URI artifacts."
+                )
+                dns_hardened_raw = fallback_hardened_raw
+                dns_hardened_base64 = generate_base64_subscription(
+                    all_dns_hardened_ordered
+                )
+
         dns_hardened_base64_path = output_dir / "base64-dns-hardened.txt"
         AtomicFileWriter.write_text(dns_hardened_base64_path, dns_hardened_base64)
         generated_files["base64_dns_hardened"] = dns_hardened_base64_path
 
-        dns_hardened_raw = generate_plaintext_subscription(_get_export_pool(dns_hardened_proxies))
         dns_hardened_txt_path = output_dir / "proxies-dns-hardened.txt"
         AtomicFileWriter.write_text(dns_hardened_txt_path, dns_hardened_raw)
         generated_files["proxies_txt_dns_hardened"] = dns_hardened_txt_path
@@ -1033,7 +1148,7 @@ def generate_categorized_outputs(
         # Adapter-specific outputs (DNS-hardened)
         try:
             shadowrocket_hardened = _wrap_shadowrocket_profile(
-                _get_export_pool(dns_hardened_proxies), primary_resolvers, fallback_resolvers
+                dns_hardened_export_pool, primary_resolvers, fallback_resolvers
             )
             out_path = output_dir / "shadowrocket-dns-hardened.txt"
             AtomicFileWriter.write_text(out_path, shadowrocket_hardened)
@@ -1044,7 +1159,7 @@ def generate_categorized_outputs(
         try:
             surge_hardened = _wrap_surge_or_loon_profile(
                 "surge",
-                _get_export_pool(dns_hardened_proxies),
+                dns_hardened_export_pool,
                 hardened_washed,
                 primary_resolvers,
                 fallback_resolvers,
@@ -1058,7 +1173,7 @@ def generate_categorized_outputs(
         try:
             loon_hardened = _wrap_surge_or_loon_profile(
                 "loon",
-                _get_export_pool(dns_hardened_proxies),
+                dns_hardened_export_pool,
                 hardened_washed,
                 primary_resolvers,
                 fallback_resolvers,
@@ -1071,7 +1186,7 @@ def generate_categorized_outputs(
 
         try:
             quantumult_hardened = _wrap_quantumultx_profile(
-                _get_export_pool(dns_hardened_proxies), primary_resolvers, fallback_resolvers
+                dns_hardened_export_pool, primary_resolvers, fallback_resolvers
             )
             out_path = output_dir / "quantumult-dns-hardened.conf"
             AtomicFileWriter.write_text(out_path, quantumult_hardened)
@@ -1081,7 +1196,7 @@ def generate_categorized_outputs(
 
         try:
             sip_adapter = get_adapter("sip008")
-            sip_content = sip_adapter.export(_get_export_pool(dns_hardened_proxies))
+            sip_content = sip_adapter.export(dns_hardened_export_pool)
             sip_path = output_dir / "sip008-dns-hardened.json"
             AtomicFileWriter.write_text(sip_path, sip_content)
             generated_files["sip008_dns_hardened"] = sip_path
@@ -1092,13 +1207,13 @@ def generate_categorized_outputs(
         side_hardened_path = output_dir / "side_products-dns-hardened.zip"
         openvpn_hardened = [
             p
-            for p in _get_export_pool(dns_hardened_proxies)
-            if (p.protocol or "").lower() == "openvpn" and p.config
+            for p in dns_hardened_export_pool
+            if canonical_protocol_name(p.protocol or "") == "openvpn" and p.config
         ]
         wireguard_hardened = [
             p
-            for p in _get_export_pool(dns_hardened_proxies)
-            if (p.protocol or "").lower() in ("wireguard", "wg")
+            for p in dns_hardened_export_pool
+            if canonical_protocol_name(p.protocol or "") == "wireguard"
         ]
         tmp_path = None
         try:
@@ -1261,6 +1376,7 @@ def save_metadata(
     # Additional stats that were missing from export
     revived_warp = 0
     revived_vwarp = 0
+    warp_attempts = 0
     vwarp_attempts = 0
     vwarp_success = 0
     duration_seconds = 0.0
@@ -1308,6 +1424,7 @@ def save_metadata(
         # Extract additional stats from dict
         revived_warp = stats.get("revived_warp", 0)
         revived_vwarp = stats.get("revived_vwarp", 0)
+        warp_attempts = stats.get("warp_attempts", 0)
         vwarp_attempts = stats.get("vwarp_attempts", 0)
         vwarp_success = stats.get("vwarp_success", 0)
         duration_seconds = stats.get("duration", 0.0)
@@ -1359,6 +1476,8 @@ def save_metadata(
             revived_warp = stats.revived_warp
         if hasattr(stats, "revived_vwarp"):
             revived_vwarp = stats.revived_vwarp
+        if hasattr(stats, "warp_attempts"):
+            warp_attempts = stats.warp_attempts
         if hasattr(stats, "vwarp_attempts"):
             vwarp_attempts = stats.vwarp_attempts
         if hasattr(stats, "vwarp_success"):
@@ -1468,6 +1587,7 @@ def save_metadata(
         "country_stats": countries,
         "countries": countries,  # Alias consumed by statistics.js
         "rejection_reasons": reasons,
+        "drop_reasons": reasons,
         "asns": asns,
         "isp_stats": asns,  # Alias consumed by tests
         "total_revived": total_revived_count,
@@ -1491,6 +1611,7 @@ def save_metadata(
         # Export all revive/vwarp stats for complete tracking
         "revived_warp": revived_warp,
         "revived_vwarp": revived_vwarp,
+        "warp_attempts": warp_attempts,
         "vwarp_attempts": vwarp_attempts,
         "vwarp_success": vwarp_success,
         "washing_enabled": washing_enabled,

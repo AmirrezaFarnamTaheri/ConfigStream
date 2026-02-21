@@ -553,8 +553,6 @@ def generate_smart_chains(
     # Strategy: User (Intranet) -> Relay (IR) -> Exit (Foreign) [-> WARP]
 
     # Configurable intranet origin, defaulting to IR
-    # import os - removed
-
     intranet_origin = AppSettings().INTRANET_ORIGIN
     relays_intranet = [
         p for p in proxies if p.country_code == intranet_origin and p.is_working

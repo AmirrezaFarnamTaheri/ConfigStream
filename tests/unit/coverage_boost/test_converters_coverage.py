@@ -46,6 +46,8 @@ def test_to_singbox_outbound_wireguard():
     # Matches: 172.(16-31).x.x/32
     # The actual code generates a unique IP in the 172.16.0.0/12 block.
     # We use regex to be robust against minor changes in hashing.
-    assert re.match(r"^172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3}/32$", out["local_address"])
+    assert re.match(
+        r"^172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3}/32$", out["local_address"]
+    )
     assert out["private_key"] == "privkey"
     assert out["peer_public_key"] == "pubkey"

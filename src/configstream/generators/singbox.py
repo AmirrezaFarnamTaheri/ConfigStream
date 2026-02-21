@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import copy
 import json
 from typing import List, Dict, Any, Optional, cast
 from configstream.models import Proxy
@@ -45,14 +46,40 @@ class SingBoxGenerator:
         }
 
         added_tags: set[str] = set()
+        tag_remap: Dict[str, str] = {}  # old_tag -> new_tag when uniquified
+
+        def _uniquify_tag(tag: str) -> str:
+            if not tag or tag not in added_tags:
+                return tag
+            suffix = 0
+            while f"{tag}-{suffix}" in added_tags:
+                suffix += 1
+            return f"{tag}-{suffix}"
 
         def _append_outbound(
             outbound: Dict[str, Any], *, add_to_selector: bool
         ) -> bool:
             self._clean_outbound(outbound)
+            # Resolve detour if target was uniquified
+            detour = outbound.get("detour")
             tag = outbound.get("tag")
+            needs_copy = False
+            if isinstance(detour, str) and detour in tag_remap:
+                needs_copy = True
             if tag and tag in added_tags:
-                return False
+                needs_copy = True
+            if needs_copy:
+                outbound = copy.deepcopy(outbound)
+                if (
+                    isinstance(outbound.get("detour"), str)
+                    and outbound["detour"] in tag_remap
+                ):
+                    outbound["detour"] = tag_remap[outbound["detour"]]
+                if outbound.get("tag") and outbound["tag"] in added_tags:
+                    new_tag = _uniquify_tag(outbound["tag"])
+                    tag_remap[outbound["tag"]] = new_tag
+                    tag = new_tag
+                    outbound["tag"] = tag
             outbounds.append(outbound)
             if tag:
                 added_tags.add(tag)

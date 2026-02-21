@@ -1,4 +1,5 @@
 import shutil
+
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import asyncio
 import base64
@@ -25,7 +26,12 @@ from configstream.intelligence.chaining import find_optimal_relay, ProxyStub, CO
 from configstream.pipeline_stats import PipelineStats
 from configstream.config import AppSettings
 from configstream.constants import VWARP_SOCKS5_PORT, VWARP_BIND_ADDRESS
-from configstream.tagging import get_flag_emoji
+from configstream.tagging import (
+    get_flag_emoji,
+    build_proxy_stack,
+    format_proxy_name,
+    ProxyTagger,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -1085,7 +1091,6 @@ class ProxyWasher:
             "mtu": 1280,
         }
 
-
     def is_vwarp_available(self) -> bool:
         """Check if Vwarp tunnel is likely operational."""
         # Check if binary exists (fast)
@@ -1104,6 +1109,7 @@ class ProxyWasher:
         # We can use a simple socket check.
 
         import socket
+
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.settimeout(0.1)
@@ -1117,7 +1123,6 @@ class ProxyWasher:
         # But if it"s not started, using it will fail anyway.
         # So returning False is safe to prevent wasting resources.
         return False
-
 
     def wash_failed(
         self,
@@ -1173,6 +1178,8 @@ class ProxyWasher:
                 continue
 
             relay_out["tag"] = f"{relay_tag_prefix}-{relay.id[:8]}"
+            relay_out["_origin_country_code"] = relay.country_code or ""
+            relay_out["_origin_latency"] = relay.latency
 
             reserved_bytes = self._get_optimized_reserved(chain_id)
 
@@ -1220,16 +1227,20 @@ class ProxyWasher:
                 if settings.VWARP_MASQUE_ENABLED:
                     vwarp_mode = "MASQUE"
 
-            remark_prefix = f"⚡ VWARP {vwarp_mode}" if use_vwarp else "⚡ WARP"
+            # Sing-box requires detour targets before referrers. Vwarp: relay detours to warp
+            # → warp first. Standard WARP: warp detours to relay → relay first.
+            chain_order = [warp_out, relay_out] if use_vwarp else [relay_out, warp_out]
+            process_tag = "revived-vwarp" if use_vwarp else "revived-warp"
             revived_proxy = Proxy(
                 config=f"revived://{relay.address}",  # Dummy config
                 protocol="revived",  # Special protocol
                 address=clean_endpoint,
                 port=clean_port,
                 uuid=chain_id,
-                remarks=f"{remark_prefix} | {relay.protocol.upper()}",
+                remarks="",  # Set below via format_proxy_name
+                process=process_tag,
                 details={
-                    "chain_outbounds": [relay_out, warp_out],  # The full chain
+                    "chain_outbounds": chain_order,  # The full chain (inner hop first)
                     "is_revived": True,
                     "use_vwarp": use_vwarp,
                     "vwarp_mode": vwarp_mode if use_vwarp else None,
@@ -1237,6 +1248,9 @@ class ProxyWasher:
                     "origin_id": relay.id,
                 },
             )
+            # Unified scheme: geo | tech/protocol stack | latency | process | etc
+            _tpl = _SETTINGS_CACHE.RENAME_TEMPLATE or ProxyTagger.DEFAULT_TEMPLATE
+            revived_proxy.remarks = format_proxy_name(_tpl, revived_proxy)
 
             revived_candidates.append(revived_proxy)
             revived_count += 1
@@ -1300,6 +1314,8 @@ class ProxyWasher:
 
             relay_tag = f"RELAY-{chain_id}"
             relay_out["tag"] = relay_tag
+            relay_out["_origin_country_code"] = relay.country_code or ""
+            relay_out["_origin_latency"] = relay.latency
 
             endpoint_data = self._get_clean_endpoint(relay.id)
             if isinstance(endpoint_data, tuple):
@@ -1331,10 +1347,11 @@ class ProxyWasher:
 
             flag = get_flag_emoji(relay.country_code or "XX")
             lat_str = f"{int(relay.latency)}ms" if relay.latency else "N/A"
-            security_tier = "🛡️ OPTIMAL" if is_optimal else "🛡️ SECURE"
+            stack = build_proxy_stack(relay)
+            tier = "🛡️ OPTIMAL" if is_optimal else "🛡️ SECURE"
 
-            # Unified Tag Format: FLAG | TIER | WARP | LATENCY
-            exit_tag = f"{flag} | {security_tier} | WARP | {lat_str}"
+            # Unified scheme: geo | tech/protocol stack | latency | etc (like naive proxies)
+            exit_tag = f"{flag} | {stack} | {tier} | WARP | {lat_str}"
 
             reserved_bytes = self._get_optimized_reserved(chain_id)
 
@@ -1419,23 +1436,35 @@ class ProxyWasher:
             if not relay_out:
                 continue
 
+            relay_out["_origin_country_code"] = relay.country_code or ""
+            relay_out["_origin_latency"] = relay.latency
+
             # 3. THE ALCHEMY: Wrap the Proxy INSIDE the Shield
             # Sing-box logic: "detour" means "send this outbound's traffic through..."
             relay_out["detour"] = shield_tag
 
             # 4. Branding & Optimization
-            # Rename the proxy so the user knows it's a special chain
-            original_tag = relay_out.get("tag", f"proxy-{i}")
-
-            # If original tag already has pipes (formatted), prepend Gold/Shield info
-            # e.g., "🇺🇸 | VMESS..." -> "🥇 | SHIELDED | 🇺🇸 | VMESS..."
-            if "|" in original_tag:
-                new_tag = f"🥇 | SHIELDED | {original_tag}"
-            else:
-                flag = get_flag_emoji(relay.country_code or "XX")
-                new_tag = f"🥇 | SHIELDED | {flag} | {original_tag}"
-
-            relay_out["tag"] = new_tag
+            # Unified scheme: geo | tech/protocol stack | latency | process | etc
+            # CRITICAL: Append relay.id[:8] so each chain has a UNIQUE tag. Without this,
+            # format_proxy_name can produce identical tags for similar proxies, causing
+            # _append_chain to skip chains and collapse thousands into one "single proxy".
+            shield_proxy = Proxy(
+                config=relay.config or "",
+                protocol=relay.protocol or "unknown",
+                address=relay.address,
+                port=relay.port,
+                uuid=relay.uuid or "",
+                remarks=relay.remarks or "",
+                country_code=relay.country_code or "",
+                city=relay.city or "",
+                latency=relay.latency,
+                is_working=relay.is_working,
+                process="shielded",
+                details=(relay.details or {}) | {"is_shielded": True},
+            )
+            _tpl = _SETTINGS_CACHE.RENAME_TEMPLATE or ProxyTagger.DEFAULT_TEMPLATE
+            base_tag = format_proxy_name(_tpl, shield_proxy)
+            relay_out["tag"] = f"{base_tag} | {relay.id[:8]}"
             relay_out["_process"] = "shield_payload"
             # Keep shield metadata on outbound only.
             # Do not mutate the source proxy object (process/details), otherwise

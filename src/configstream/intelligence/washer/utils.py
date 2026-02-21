@@ -2,6 +2,8 @@
 import hashlib
 from typing import Optional, List
 from configstream.models import Proxy
+from configstream.tagging import format_proxy_name, ProxyTagger
+from configstream.config import AppSettings
 
 
 def make_entry(
@@ -44,14 +46,19 @@ def make_entry(
         "local_address": unique_local_ip,  # Unique IP based on private key
     }
 
-    return Proxy(
+    proxy = Proxy(
         config="warp://auto",
         protocol="wireguard",
         address=address,
         port=port,
         uuid=f"WARP-{source_tag}-{proxy_id}",
-        remarks=f"WARP ({source_tag})",
+        remarks="",
         country_code="XX",  # Unknown until tested
+        process="warp",
         details=details,
         is_working=True,  # Assume working until tested
     )
+    # Unified scheme: geo | tech/protocol stack | latency | process | etc
+    tpl = AppSettings().RENAME_TEMPLATE or ProxyTagger.DEFAULT_TEMPLATE
+    proxy.remarks = format_proxy_name(tpl, proxy) or f"WARP ({source_tag})"
+    return proxy

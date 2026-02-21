@@ -299,9 +299,7 @@ class GoBatchTester:
                 # Ensure temp dir is accessible
                 env["TMPDIR"] = os.environ.get("TMPDIR", "/tmp")  # nosec
                 env["PATH"] = os.environ.get("PATH", "/usr/bin:/bin")
-                # sing-box ≥1.11 deprecated legacy wireguard outbound;
-                # without this flag sing-box ≥1.12 fatally rejects WG configs.
-                env["ENABLE_DEPRECATED_WIREGUARD_OUTBOUND"] = "true"
+                # Use modern WireGuard outbound only (no deprecated compatibility flags).
 
                 # 🚀 FORCE TRAFFIC THROUGH VWARP TUNNEL IF AVAILABLE
                 # Check environment directly as it might be set dynamically by pipeline.py

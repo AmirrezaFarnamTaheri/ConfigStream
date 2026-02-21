@@ -17,7 +17,8 @@ class ProxyHistoryChart {
      */
     async loadHistoryData() {
         try {
-            const response = await fetch('data/proxy_history_viz.json');
+            const root = window.ROOT_PATH || '';
+            const response = await fetch(root + 'data/proxy_history_viz.json');
             if (!response.ok) {
                 console.warn('No history data available yet');
                 return false;

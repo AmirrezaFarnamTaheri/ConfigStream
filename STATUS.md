@@ -1,6 +1,6 @@
 # ConfigStream Project Status
 
-**Last Updated**: 2026-02-14
+**Last Updated**: 2026-02-21
 **Version**: v3.0.2
 **Status**: ✅ **PRODUCTION READY**
 
@@ -81,8 +81,9 @@
 - **Black**: ✅ 100% formatted
 
 ### Test Coverage
-- **Total Tests**: 785 unit tests
-- **Success Rate**: 100% passing (3 skipped — optional dependencies)
+- **Total Tests**: 814 tests (unit + e2e + scenario + fuzz)
+- **Latest Full Run**: 811 passed, 3 skipped
+- **Skip Reason**: Environment loopback restrictions for frontend E2E
 
 ---
 
@@ -110,7 +111,7 @@
 
 ### Completed ✅ (v2.5.0)
 - [x] Laboratory page — 5-step chain builder, 5 chain strategies, 8 export formats, network diagnosis, Layer 1 support
-- [x] Offline tools: `lab-scanner.py` (Python diagnostic), `lab-runner.sh` (Bash runner), `lab-offline.html`
+- [x] Offline tools: `tools/lab-scanner.py` (Python diagnostic), `tools/lab-runner.sh` (Bash runner), `frontend/lab-offline.html`
 - [x] Shared utility consolidation (`utils/net.py`)
 - [x] Dead code removal (`vwarp_proc`, duplicate functions)
 - [x] MD5→SHA256 hashing fix in consumer
@@ -133,7 +134,7 @@
 - [x] 31 new artifact consistency tests
 
 ### Completed ✅ (v3.0.1 - Refactoring Pass)
-- [x] Consolidated 12 redundant files (pipeline_stages.py, dns_prewarm.py, fetcher.py, output.py, crypto/, transport/, workers/, etc.)
+- [x] Consolidated 12 redundant files (pipeline_stages.py, dns_prewarm.py, fetcher_core/, pipeline_core/, output.py, crypto/, transport/, workers/, etc.)
 - [x] Removed all `_parse_*` aliases from parsers/__init__.py
 - [x] Consolidated pipeline.py error handling with `_cancel_all` helper
 - [x] Extracted `_prune_dangling_detours` helper in output_logic.py
@@ -150,7 +151,7 @@
 - [x] Flattened parser alias chains and merged duplicate transport blocks
 - [x] Cleaned stale labels across 10+ files
 - [x] Updated all documentation (AGENTS.md, CHANGELOG.md, CONTRIBUTING.md, STATUS.md)
-- [x] Full pyflakes scan clean, zero TODOs/FIXMEs, 785 tests passing
+- [x] Full pyflakes scan clean, zero TODOs/FIXMEs, latest full suite 811 passed / 3 skipped
 
 ### In Progress
 - [ ] Real-time API rate limiting
@@ -163,12 +164,10 @@
 ### Production Deployment Gates
 All gates must pass before production deployment:
 
-- ✅ **All tests passing** (100%)
+- ✅ **All required tests passing** (latest full suite: 811 passed, 3 skipped)
 - ✅ **Flake8 clean** (0 production errors)
 - ✅ **Mypy passing** (100%)
 - ✅ **Security audit completed**
 - ✅ **Documentation updated** (README, CHANGELOG, STATUS.md)
 
 ### Current Status: ✅ **ALL GATES PASSED**
-
-

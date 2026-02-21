@@ -98,7 +98,7 @@ The frontend is a critical security boundary.
 | `src/configstream/generators/` | Output format generators (Sing-box, Clash, Plaintext, Split) |
 | `src/configstream/converters/` | Proxy-to-config converters (Sing-box outbound, Clash dict) |
 | `src/configstream/parsers/` | Protocol-specific URI parsers (VLESS, VMess, Trojan, SS, etc.) |
-| `src/configstream/tools/` | CLI tools — VwarpTool, CensorshipLab, HTMLSmuggler |
+| `src/configstream/tools/` | CLI tools — VwarpTool, CensorshipLab (simulation), DNS scanner |
 | `src/configstream/history/` | Proxy history tracking, trend export, analytics |
 | `src/go/tester/` | Go sidecar — high-concurrency batch tester (NDJSON stdin/stdout) |
 | `src/go/tester/wasm_main.go` | WASM tester for browser-side verification |
@@ -110,7 +110,7 @@ The frontend is a critical security boundary.
 | `scripts/` | CI helper scripts — merge_batches, deduplicate_sources, frontend verification |
 | `tools/` | Standalone tools — Cloudflare Workers, DNS scanner, lab runner |
 | `docs/wiki/` | Documentation wiki (this directory) |
-| `sources/` | Batch source files (`batch_1.txt` … `batch_14.txt`) |
+| `sources/` | Batch source files (`batch_1.txt` … `batch_17.txt`) |
 
 ### Build the Go Tester
 

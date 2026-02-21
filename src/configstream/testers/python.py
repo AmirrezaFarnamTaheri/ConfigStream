@@ -4,7 +4,6 @@ import asyncio
 import logging
 import json
 import time
-import os
 from typing import Optional
 from datetime import datetime, timezone
 
@@ -23,10 +22,7 @@ from .utils import SecureConfigContext
 
 logger = logging.getLogger(__name__)
 
-# sing-box ≥1.11 deprecated legacy wireguard outbound; ≥1.12 fatally
-# rejects WG configs without this env var.  Set it early so that the
-# singbox2proxy library (and any other subprocess) inherits it.
-os.environ.setdefault("ENABLE_DEPRECATED_WIREGUARD_OUTBOUND", "true")
+# Use modern WireGuard outbound only (no deprecated compatibility flags).
 
 _singbox_factory = None
 

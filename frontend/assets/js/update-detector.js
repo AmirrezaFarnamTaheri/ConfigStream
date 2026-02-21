@@ -301,14 +301,9 @@ class UpdateDetector {
                 generated_at: generatedAt
             };
 
-            // Dispatch global event for other components
             window.dispatchEvent(new CustomEvent('configstream:dataUpdated', {
                 detail: eventDetail
             }));
-
-            // Backward-compatibility event names used by existing modules
-            window.dispatchEvent(new CustomEvent('dataUpdated', { detail: eventDetail }));
-            window.dispatchEvent(new CustomEvent('data-updated', { detail: eventDetail }));
         } else {
             if (window.ConfigStreamLogger) window.ConfigStreamLogger.debug('[UpdateDetector] No updates detected');
         }

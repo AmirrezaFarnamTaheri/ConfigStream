@@ -10,11 +10,11 @@ ConfigStream implements eight layers of censorship evasion — from DNS hardenin
 
 ConfigStream provides three evasion modes, controlled by the `EVASION_MODE` environment variable. Each mode progressively adds more techniques:
 
-| Mode | uTLS | Fragmentation | Multiplexing | ALPN | Overhead | Use Case |
-|---|---|---|---|---|---|---|
-| `standard` | — | — | — | — | 0ms | No censorship, maximum compatibility |
-| `stealth` | Yes | Yes | — | — | ~5-10ms | Moderate DPI (Turkey, Egypt, Pakistan) |
-| `aggressive` (default) | Yes | Yes | Yes | Yes | ~10-20ms | Heavy DPI (Iran, China, Russia) |
+| Mode | uTLS | Multiplexing | ALPN | Overhead | Use Case |
+|---|---|---|---|---|---|
+| `standard` | — | — | — | 0ms | No censorship, maximum compatibility |
+| `stealth` | Yes | — | — | ~5ms | Moderate DPI (Turkey, Egypt, Pakistan) |
+| `aggressive` (default) | Yes | Yes | Yes | ~10-20ms | Heavy DPI (Iran, China, Russia) |
 
 ```bash
 # Set via environment variable
@@ -150,13 +150,11 @@ ConfigStream rotates ALPN values deterministically per proxy: `h2`, `http/1.1`, 
 
 ## 4. Traffic Obfuscation
 
-### TLS Fragmentation ("DPI Shredder")
+### TLS Fragmentation ("DPI Shredder") — Disabled
 
-Stateless DPI boxes inspect individual packets to read the [SNI](wiki/encyclopedia/glossary/networking_terms.md) field in the TLS ClientHello. If the SNI is split across two packets, the DPI box can't read it.
+Sing-box removed `tls_fragment` from its schema. ConfigStream no longer applies TLS fragmentation.
 
-**How it works**: The ClientHello is split into 100-200 byte fragments with 0-10ms random delays between them. The proxy server reassembles them normally (TCP guarantees ordered delivery), but the DPI box — which only inspects individual packets — sees gibberish.
-
-> **Analogy**: Imagine a censor reading postcards at the post office. If you write your message across 5 postcards and mail them separately, the censor reading any single postcard can't understand the message.
+**Previously**: The ClientHello was split into fragments so stateless DPI could not read the SNI. For fragmentation-based evasion, use vwarp's AtomicNoize presets (`light`, `moderate`, `heavy`, `gfw`) or other tools that support packet fragmentation.
 
 ### Multiplexing with Padding
 
@@ -202,9 +200,7 @@ The "Hydra Strategy": instead of one shared worker that censors can block, each 
 
 ## 6. HTML Smuggling
 
-Hides proxy configs inside HTML pages to evade text-based content scanners. The config is embedded in a `<meta name="csrf-token">` tag as Base64, with a JavaScript decoder for extraction. A network administrator inspecting the page sees a normal HTML document.
-
-**File**: `src/configstream/tools/html_smuggler.py`
+Hides proxy configs inside HTML pages to evade text-based content scanners. The config is embedded in a `<meta name="csrf-token">` tag as Base64, with a JavaScript decoder for extraction. A network administrator inspecting the page sees a normal HTML document. Implemented via steganography (`stego.py`) and frontend assets; HTML smuggling is validated via stego tests.
 
 ---
 
@@ -351,7 +347,7 @@ All evasion metrics are exported to `metadata.json` and tracked over a 7-day rol
 {
   "evasion_utls_enabled": 3800,
   "evasion_alpn_enabled": 3200,
-  "evasion_fragmentation_enabled": 3800,
+  "evasion_fragmentation_enabled": 0,
   "evasion_multiplexing_enabled": 3500,
   "evasion_dns_safe_count": 4300,
   "evasion_dns_hardened_count": 4300,
@@ -385,10 +381,10 @@ The Go tester applies evasion features during testing to avoid false negatives. 
 
 ```bash
 # Run all evasion-related tests
-pytest tests/unit/test_evasion.py tests/unit/test_censorship_lab.py tests/unit/test_html_smuggler.py -v
+pytest tests/unit/test_evasion.py tests/unit/security/test_censorship.py -v
 ```
 
-Coverage includes: TLS fingerprint rotation, ALPN rotation, TLS fragmentation, multiplexing with padding, outbound enrichment, censorship lab simulation, and HTML smuggling.
+Coverage includes: TLS fingerprint rotation, ALPN rotation, multiplexing with padding, outbound enrichment, and censorship connectivity checks. (TLS fragmentation disabled; use vwarp AtomicNoize for fragmentation-based evasion.) Censorship simulation (tools/censorship_lab) is available for manual testing; HTML smuggling is validated via stego tests.
 
 ---
 

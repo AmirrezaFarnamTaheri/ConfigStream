@@ -1,6 +1,26 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import asyncio
+import os
 import nest_asyncio
+
+# Ensure TLS-related tests do not inherit a broken SSL_CERT_FILE/SSL_CERT_DIR
+# from the host environment. httpx reads these via trust_env=True by default.
+_ssl_cert_file = os.environ.get("SSL_CERT_FILE")
+if _ssl_cert_file and not os.path.exists(_ssl_cert_file):
+    os.environ.pop("SSL_CERT_FILE", None)
+
+_ssl_cert_dir = os.environ.get("SSL_CERT_DIR")
+if _ssl_cert_dir and not os.path.isdir(_ssl_cert_dir):
+    os.environ.pop("SSL_CERT_DIR", None)
+
+if not os.environ.get("SSL_CERT_FILE"):
+    try:
+        import certifi  # type: ignore[import-untyped]
+
+        os.environ["SSL_CERT_FILE"] = certifi.where()
+    except Exception:
+        # Fallback to system trust when certifi is unavailable.
+        pass
 
 # Apply nest_asyncio logic via Runner patching
 # This patches asyncio.Runner.run (and backports) to allow nested execution

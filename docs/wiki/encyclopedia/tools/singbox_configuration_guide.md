@@ -203,7 +203,7 @@ Hides packet size patterns by multiplexing streams and adding random padding.
 ```
 
 ### TLS Fragmentation
-Splits TLS ClientHello into small fragments to evade stateless DPI. Configured at the transport level (not in sing-box directly — used by the Lab's fragment chain strategy).
+Splits TLS ClientHello into small fragments to evade stateless DPI. **Disabled in ConfigStream** — sing-box removed `tls_fragment` from its schema. Use vwarp AtomicNoize presets for fragmentation-based evasion.
 
 ## 7. Xray/V2Ray Chain Compatibility
 Sing-box chains use `detour` to link outbounds. Xray/V2Ray use `proxySettings.tag` for the same purpose:
@@ -222,7 +222,7 @@ The Lab's export function automatically converts between these formats.
 The ConfigStream Laboratory page generates complete sing-box JSON configs with all the above features. The flow:
 1.  **Step 1:** Parse your proxy URI → creates the proxy outbound.
 2.  **Step 2:** Find clean IPs → configures the WARP outbound endpoint.
-3.  **Step 3:** Build chain → links outbounds with `detour` fields (7 strategies available: WARP, Double WARP, WARP+Psiphon, Relay Chain, TLS Fragment, CDN Worker, Custom).
+3.  **Step 3:** Build chain → links outbounds with `detour` fields (7 strategies: WARP, Double WARP, WARP+Psiphon, Relay Chain, TLS Fragment [disabled — use vwarp AtomicNoize], CDN Worker, Custom).
 4.  **Step 4:** Test → verifies the chain works end-to-end.
 5.  **Step 5:** Export → Sing-box JSON, Clash YAML, Xray JSON, URI, QR code, Python script, Bash script.
 

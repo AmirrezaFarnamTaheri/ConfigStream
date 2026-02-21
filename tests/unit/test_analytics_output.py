@@ -74,6 +74,8 @@ def test_save_metadata_analytics_structure(tmp_path: Path):
     p_stats = PipelineStats()
     p_stats.fetched_lines = 100
     p_stats.working = 5  # Set working count explicitly for test
+    p_stats.warp_attempts = 7
+    p_stats.drop_reasons = {"invalid_protocol": 3}
     # p_stats.end_time is usually set by pipeline context
 
     output_dir = tmp_path / "output"
@@ -93,6 +95,8 @@ def test_save_metadata_analytics_structure(tmp_path: Path):
     assert data["total_lines_sourced"] == 100
     assert data["total_proxies"] == 5
     assert data["total_working"] == 5
+    assert data["warp_attempts"] == 7
+    assert data["drop_reasons"]["invalid_protocol"] == 3
     # assert data["total_fetched"] == 100 # Field might be named differently or not exist
     # assert data["duration_seconds"] == 10.5
     assert "last_updated_utc" in data

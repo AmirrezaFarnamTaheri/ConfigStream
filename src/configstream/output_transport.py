@@ -27,7 +27,11 @@ def save_json(
 ) -> None:
     """
     Save list of proxies to JSON file atomically with fsync for durability.
+    Output is always a JSON array of proxy objects [{...}, {...}], never a single object.
     """
+    # Ensure proxies is always a list (never a single Proxy object)
+    if not isinstance(proxies, list):
+        proxies = [proxies] if proxies is not None else []
     if history is None:
         history = ProxyHistoryTracker()
         _owns_history = True
@@ -38,7 +42,9 @@ def save_json(
     finally:
         if _owns_history:
             history.close()
-    # Ensure proper JSON formatting (single JSON array, not concatenated objects)
+    # CRITICAL: Output must be a JSON array (set of proxies), never a single proxy object
+    if not isinstance(data, list):
+        data = [data]
     json_content = json.dumps(data, indent=2, ensure_ascii=False)
 
     AtomicFileWriter.write_text(path, json_content)

@@ -210,6 +210,9 @@ jobs:
           # Ensure .nojekyll exists
           touch output/.nojekyll
 
+          # Exclude test_cache.json from deploy (audit: ~18 MB, not needed for static site)
+          rm -f output/data/test_cache.json
+
           # Update cache version
           ts=$(date +%Y%m%d%H%M%S)
           cache_version="v${ts}"

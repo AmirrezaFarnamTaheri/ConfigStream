@@ -27,7 +27,7 @@ You can customize the behavior using GitHub Repository Secrets/Variables:
 -   `CF_API_TOKEN` (Secret): Optional. For Cloudflare cache purging after deployment.
 
 #### Environment Variables (set in workflow or `.env`)
--   `VWARP_VERSION`: Vwarp binary version (default: `v2.1.0`).
+-   `VWARP_VERSION`: Vwarp binary version (default: `v2.2.2`).
 -   `EVASION_MODE`: Evasion feature level — `aggressive`, `stealth`, or `standard`.
 -   `FAIL_ON_ZERO_WORKING`: Set to `false` to allow pipeline to continue with 0 working proxies.
 

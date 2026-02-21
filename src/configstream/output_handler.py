@@ -141,11 +141,12 @@ def _chain_to_proxy_entry(
     process: str,
     name_template: Optional[str] = None,
     used_names: Optional[Set[str]] = None,
+    override_tag: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Convert a chain of outbound dicts to a proxy-like dict for proxies.json."""
     entry = chain[-1]  # entry point is last element
     mini_config = _build_chain_config(chain)
-    tag = entry.get("tag", "Chain")
+    tag = override_tag if override_tag is not None else entry.get("tag", "Chain")
     server = entry.get("server", "")
     try:
         port = int(entry.get("server_port", 0) or 0)
@@ -155,6 +156,17 @@ def _chain_to_proxy_entry(
     if any(ob.get("type") == "wireguard" for ob in chain):
         tags.append("warp")
     remarks = tag
+    # Enrich from chain metadata (washer adds _origin_country_code, _origin_latency)
+    origin_data: Dict[str, Any] = {}
+    for ob in chain:
+        if isinstance(ob, dict) and ob.get("_origin_country_code") is not None:
+            origin_data["country_code"] = ob.get("_origin_country_code") or ""
+            if ob.get("_origin_latency") is not None:
+                origin_data["latency"] = ob["_origin_latency"]
+            break
+    details: Dict[str, Any] = {"is_chain": True}
+    if origin_data:
+        details["origin_proxy"] = origin_data
     if name_template:
         try:
             chain_proxy = Proxy(
@@ -166,7 +178,7 @@ def _chain_to_proxy_entry(
                 is_working=True,
                 process=process,
                 tags=tags.copy(),
-                details={"is_chain": True},
+                details=details,
             )
             remarks = format_proxy_name(name_template, chain_proxy)
         except Exception:  # nosec
@@ -199,7 +211,7 @@ def _chain_to_proxy_entry(
         "source": None,
         "security": {},
         "details": {
-            "is_chain": True,
+            **details,
             "chain_process": process,
             "chain_depth": len(chain),
         },
@@ -222,6 +234,15 @@ def _chain_outbounds_to_entries(
     entries: List[Dict[str, Any]] = []
     seen_tags: set[str] = set()
 
+    def _uniquify_entry_tag(tag: str) -> str:
+        """Ensure each chain entry has a unique tag for proxies.json."""
+        if not tag or tag not in seen_tags:
+            return tag
+        suffix = 0
+        while f"{tag}-{suffix}" in seen_tags:
+            suffix += 1
+        return f"{tag}-{suffix}"
+
     def _is_proxy_like_entry(ob: Dict[str, Any]) -> bool:
         server = ob.get("server")
         if not isinstance(server, str) or not server.strip():
@@ -240,8 +261,7 @@ def _chain_outbounds_to_entries(
             if not _is_proxy_like_entry(chain[-1]):
                 continue
             entry_tag = chain[-1].get("tag", "")
-            if entry_tag in seen_tags:
-                continue
+            entry_tag = _uniquify_entry_tag(entry_tag)
             seen_tags.add(entry_tag)
             # Classify process type
             process = "washed"
@@ -256,6 +276,7 @@ def _chain_outbounds_to_entries(
                     process,
                     name_template=name_template,
                     used_names=used_names,
+                    override_tag=entry_tag,
                 )
             )
 
@@ -270,8 +291,7 @@ def _chain_outbounds_to_entries(
                 ):
                     continue
                 entry_tag = chain[-1].get("tag", "")
-                if entry_tag in seen_tags:
-                    continue
+                entry_tag = _uniquify_entry_tag(entry_tag)
                 seen_tags.add(entry_tag)
                 entries.append(
                     _chain_to_proxy_entry(
@@ -279,6 +299,7 @@ def _chain_outbounds_to_entries(
                         "chain",
                         name_template=name_template,
                         used_names=used_names,
+                        override_tag=entry_tag,
                     )
                 )
 
@@ -316,6 +337,9 @@ def _save_proxies_with_chains(
     if chain_entries:
         data.extend(chain_entries)
 
+    # CRITICAL: proxies.json must be JSON array (list of proxies), never single object
+    if not isinstance(data, list):
+        data = [data] if data is not None else []
     json_content = json.dumps(data, indent=2, ensure_ascii=False)
     AtomicFileWriter.write_text(path, json_content)
 
@@ -493,7 +517,7 @@ async def generate_pipeline_outputs(
     stats.evasion_alpn_enabled = len(
         [p for p in tls_proxies if p.protocol in ["vmess", "vless", "trojan"]]
     )
-    stats.evasion_fragmentation_enabled = len(tls_proxies)
+    stats.evasion_fragmentation_enabled = 0  # sing-box removed tls_fragment
     stats.evasion_multiplexing_enabled = len(
         [
             p
@@ -632,8 +656,11 @@ async def generate_pipeline_outputs(
         None, save_metadata, stats_dict, optimized_proxies, output_path
     )
 
-    # 5b. Vector map for frontend similarity search
-    await loop.run_in_executor(None, generate_vectors, optimized_proxies, output_path)
+    # 5b. Vector map for frontend similarity search (with history for stability/reliability)
+    await loop.run_in_executor(
+        None,
+        lambda: generate_vectors(optimized_proxies, output_path, history=history),
+    )
 
     # 6. Stego Assets + Frontend Key Injection (optional)
     secret_key = settings.STEGO_KEY or settings.CONFIG_STREAM_KEY
