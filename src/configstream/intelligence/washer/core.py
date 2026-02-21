@@ -1,5 +1,8 @@
 import shutil
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import asyncio
 import base64
@@ -1091,6 +1094,10 @@ class ProxyWasher:
             "mtu": 1280,
         }
 
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
     def is_vwarp_available(self) -> bool:
         """Check if Vwarp tunnel is likely operational."""
         # Check if binary exists (fast)
@@ -1109,7 +1116,10 @@ class ProxyWasher:
         # We can use a simple socket check.
 
         import socket
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.settimeout(0.1)
@@ -1124,6 +1134,10 @@ class ProxyWasher:
         # So returning False is safe to prevent wasting resources.
         return False
 
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
     def wash_failed(
         self,
         failed_proxies: List[Proxy],

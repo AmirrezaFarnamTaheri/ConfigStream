@@ -9,7 +9,6 @@ from starlette.responses import Response
 import pytest
 from configstream.server import app
 
-
 @pytest.fixture
 async def async_client(monkeypatch):
     monkeypatch.setattr(sniffio, "current_async_library", lambda: "asyncio")

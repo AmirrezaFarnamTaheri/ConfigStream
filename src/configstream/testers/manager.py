@@ -95,8 +95,15 @@ class SingBoxTester:
                         async with sem:
                             return await self.test(p)
 
+<<<<<<< Updated upstream
                     await asyncio.gather(*[_guarded_test(p) for p in to_test])
                     # Proxies updated in place via list reference
+=======
+                    results = await asyncio.gather(*[_guarded_test(p) for p in to_test])
+                    # Update proxies in place (list reference)
+                    # No need to return, just update properties
+                    pass
+>>>>>>> Stashed changes
 
             # Test revived chains using custom config testing
             if revived_candidates:
@@ -188,7 +195,10 @@ class SingBoxTester:
                 chunk_results = await asyncio.gather(*chunk_tasks)
                 py_tester_results.extend(chunk_results)
             return py_tester_results
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
     def _finalize_result(self, proxy: Proxy):
         # proxy.tested_at is set in python_tester methods, or go tester response
         if self.cache:
