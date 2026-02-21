@@ -1,11 +1,59 @@
 # ConfigStream Batch 8
 # Optimized based on fetch duration for equal execution times
-# Est. Fetch Time: 6437.6s
+# Est. Fetch Time: 1127.0s
 
-https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub17.txt
-https://v2.alicivil.workers.dev/?count=2000&list=sg&shuffle=true
-https://raw.githubusercontent.com/barry-far/V2ray-config/main/Sub6.txt
-https://raw.githubusercontent.com/Barabama/FreeNodes/main/nodes/wenode.yaml
-https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/main/mtn/sub_4.txt
-https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-2.txt
-https://raw.githubusercontent.com/NiREvil/vless/main/sub/clash-meta.yml
+https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_raw_vless.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/filtered/subs/hysteria2.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/super-sub.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub30.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub3.txt
+https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/refs/heads/main/mtn/sub_3.txt
+https://raw.githubusercontent.com/Barabama/FreeNodes/main/nodes/ndnode.yaml
+https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/protocols/tr.txt
+https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/hiddify/WarpOnWarp.json
+https://v2.alicivil.workers.dev/?count=2000&list=my&shuffle=true
+https://raw.githubusercontent.com/itsyebekhe/PSG/main/subscriptions/clash/mix
+https://raw.githubusercontent.com/barry-far/V2ray-config/main/Sub8.txt
+https://raw.githubusercontent.com/wiki/gfpcom/free-proxy-list/lists/ssr.txt
+https://raw.githubusercontent.com/vpei/free-node-1/refs/heads/main/res/nod-5.txt
+https://raw.githubusercontent.com/ndsphonemy/proxy-sub/main/mobile.txt
+https://raw.githubusercontent.com/Epodonios/v2ray-configs/main/All_Configs_base64_Sub.txt
+https://raw.githubusercontent.com/Surfboardv2ray/TGParse/main/python/vmess
+https://raw.githubusercontent.com/Mosifree/-FREE2CONFIG/main/Reality
+https://raw.githubusercontent.com/Argh94/V2RayAutoConfig/refs/heads/main/configs/ShadowSocks.txt
+https://raw.githubusercontent.com/MhdiTaheri/V2rayCollector/refs/heads/main/sub/hysteria
+https://raw.githubusercontent.com/du5/free/master/file/0906/surge.conf
+https://raw.githubusercontent.com/taheri79/V2rayCollector/main/sub/normal/shadowsocks
+https://raw.githubusercontent.com/FNET00bot/FNET00/Config/Base64
+https://raw.githubusercontent.com/Surfboardv2ray/Subs/main/Realm
+https://cdn.jsdelivr.net/gh/xiaoji235/airport-free/v2ray.txt
+https://raw.githubusercontent.com/barry-far/V2ray-Config/main/Splitted-By-Protocol/trojan.txt
+https://raw.githubusercontent.com/SoliSpirit/v2ray-configs/main/Protocols/vmess.txt
+https://raw.githubusercontent.com/mahdibland/ShadowsocksAggregator/master/Eternity
+https://raw.githubusercontent.com/igeekshare/GeekshareFreeNode/main/clash/Geekshare.yaml
+https://raw.githubusercontent.com/mermeroo/Loon/main/node%202
+https://igdux.top/dnZR#vsoren.pnz4
+https://raw.githubusercontent.com/TheSpeedX/PROXY-List/main/http.txt
+https://raw.githubusercontent.com/YasserDivaR/pr0xy/main/ShadowSocks2021.txt
+https://raw.githubusercontent.com/sakha1370/OpenRay/refs/heads/main/output_iran/iran_top100_checked.txt
+https://raw.githubusercontent.com/10ium/ScrapeAndCategorize/refs/heads/main/output_configs/Vless.txt
+https://raw.githubusercontent.com/LalatinaHub/Mineral/master/result/nodes
+https://sub.shadowproxy66.workers.dev/sub/be80a76c-6044-417c-9bff-e587f9380d05
+https://raw.githubusercontent.com/prxchk/proxy-list/main/socks5.txt
+https://raw.githubusercontent.com/adiwzx/freenode/main/adispeed.yml
+https://raw.githubusercontent.com/liketolivefree/kobabi/main/sub_all.txt
+https://raw.githubusercontent.com/vxiaov/free_proxies/main/v2ray.txt
+https://raw.githubusercontent.com/LonUp/NodeList/main/V2RAY/NodeList.txt
+https://raw.githubusercontent.com/Zaeem20/FREE_PROXIES_LIST/master/socks4.txt
+https://Rayan-Config.github.io/NB
+https://raw.githubusercontent.com/sansorchi/sansorchi/refs/heads/main/data.txt
+https://raw.githubusercontent.com/chfchf0306/jeidian4.18/main/4.18
+https://raw.githubusercontent.com/Mahanfix/v2rayvpn/main/mahanfix
+https://raw.githubusercontent.com/cdp2020/v2ray/master/README.md
+https://raw.githubusercontent.com/Ai123999/6Satu/refs/heads/main/6Satu_Notorgamers
+https://raw.githubusercontent.com/CidVpn/cid-vpn-config/refs/heads/main/general.txt
+https://raw.githubusercontent.com/yebekhe/vpn-fail/refs/heads/main/sub-link
+https://raw.githubusercontent.com/ZY-404/v2ray/main/v2ray.txt
+https://raw.githubusercontent.com/Ashkan-m/v2ray/refs/heads/main/VIP.txt
+https://raw.githubusercontent.com/Syavar/V2ray-Configs/main/OK_google.com.txt
+https://tinyurl.com/2acy7v9p
