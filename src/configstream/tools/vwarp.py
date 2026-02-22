@@ -834,14 +834,11 @@ class VwarpTool:
         write_config.pop(
             "test_url", None
         )  # Explicitly remove test_url to avoid parse errors
-<<<<<<< Updated upstream
 
         # v2.2.1+ supports full config; v2.1.x rejects JunkInterval, masque.enabled/preferred
         version = os.environ.get("VWARP_VERSION", VWARP_VERSION)
         if version < "v2.2.1":
             write_config = self._sanitize_config_for_binary(write_config)
-=======
->>>>>>> Stashed changes
 
         # Flatten Masque if needed
         if "masque" in write_config:

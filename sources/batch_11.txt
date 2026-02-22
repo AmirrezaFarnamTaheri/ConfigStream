@@ -1,6 +1,5 @@
 # ConfigStream Batch 11
 # Optimized based on fetch duration for equal execution times
-<<<<<<< Updated upstream
 # Est. Fetch Time: 1125.1s
 
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub14.txt
@@ -32,10 +31,7 @@ https://raw.githubusercontent.com/learnhard-kk/free_proxy_ss/main/free
 https://raw.githubusercontent.com/erisll/v2ray/main/subscribe.txt
 https://dev.kuaidaili.com/api/freeproxy
 https://raw.githubusercontent.com/tkamirparsa/Javid-shah/refs/heads/main/Sub.text
-=======
 # Est. Fetch Time: 1187.3s
-
-https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub14.txt
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/all_sub.txt
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub8.txt
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub1.txt
@@ -45,7 +41,6 @@ https://github.com/Epodonios/v2ray-configs/raw/main/All_Configs_Sub.txt
 https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-19.txt
 https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-18.txt
 https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-11.txt
-https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-3.txt
 https://v2.alicivil.workers.dev/?count=2000&list=qa&shuffle=true
 https://v2.alicivil.workers.dev/?count=2000&list=ru&shuffle=true
 https://v2.alicivil.workers.dev/?count=2000&list=tr&shuffle=true
@@ -124,4 +119,3 @@ https://raw.githubusercontent.com/Junely/clash/main/template3.yaml
 https://raw.githubusercontent.com/MrPooyaX/SansorchiFucker/main/data.txt
 https://raw.githubusercontent.com/baipiao0/baipiao02/main/v2ray
 https://www.us-proxy.org/
->>>>>>> Stashed changes

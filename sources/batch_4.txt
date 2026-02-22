@@ -1,6 +1,5 @@
 # ConfigStream Batch 4
 # Optimized based on fetch duration for equal execution times
-<<<<<<< Updated upstream
 # Est. Fetch Time: 1125.2s
 
 https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_.txt
@@ -121,9 +120,7 @@ https://raw.githubusercontent.com/V2RAYCONFIGSPOOL/V2RAY_SUB/refs/heads/main/v2r
 https://api.pubproxy.com/v1/proxy?limit=5&format=txt&type=http
 https://raw.githubusercontent.com/Surfboardv2ray/Proxy-sorter/main/sub
 https://raw.githubusercontent.com/QQnight/SubCrawler/main/sub/share/all
-=======
 # Est. Fetch Time: 1186.9s
-
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub3.txt
 https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-1.txt
 https://v2.alicivil.workers.dev/?count=2000&list=my&shuffle=true
@@ -160,4 +157,3 @@ https://premproxy.com/list/ip-port/1.htm
 https://raw.githubusercontent.com/V2RaySSR/Tools/master/clash.yaml
 https://raw.githubusercontent.com/peweza/SUB-PUBLIC/refs/heads/main/PewezaVPN
 https://info.farsonline24.ir/
->>>>>>> Stashed changes

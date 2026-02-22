@@ -1,6 +1,5 @@
 # ConfigStream Batch 14
 # Optimized based on fetch duration for equal execution times
-<<<<<<< Updated upstream
 # Est. Fetch Time: 1125.1s
 
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub22.txt
@@ -69,9 +68,7 @@ https://raw.githubusercontent.com/googlehosts/hosts/master/hosts-files/hosts
 https://raw.githubusercontent.com/jikelonglie/meskell/main/meskell
 https://premproxy.com/list/ip-port/1.htm
 https://raw.githubusercontent.com/v2clash/V2ray-Configs/master/v2ray.txt
-=======
 # Est. Fetch Time: 1186.8s
-
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub37.txt
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub10.txt
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub5.txt
@@ -90,7 +87,6 @@ https://v2.alicivil.workers.dev/?count=2000&list=ae&shuffle=true
 https://raw.githubusercontent.com/peasoft/NoMoreWalls/refs/heads/master/list_raw.txt
 https://raw.githubusercontent.com/mohamadfg-dev/telegram-v2ray-configs-collector/refs/heads/main/category/xhttp.txt
 https://raw.githubusercontent.com/NiREvil/vless/main/sub/exclave-wg.txt
-https://raw.githubusercontent.com/NiREvil/vless/main/sub/SSTime
 https://raw.githubusercontent.com/NiREvil/vless/main/sing-box.json
 https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/warp.json
 https://raw.githubusercontent.com/NiREvil/vless/main/sub/nekobox-wg.txt
@@ -121,7 +117,6 @@ https://raw.githubusercontent.com/roosterkid/openproxylist/main/V2RAY.txt
 https://raw.githubusercontent.com/mermeroo/Loon/main/node%202
 https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/http.txt
 https://raw.githubusercontent.com/zhangkaiitugithub/passcro/main/speednodes.yaml
-https://raw.githubusercontent.com/coldwater-10/V2Hub1/main/Split/Base64/vless
 https://raw.githubusercontent.com/Mohammadgb0078/IRV2ray/main/vless.txt
 https://raw.githubusercontent.com/SnapdragonLee/SystemProxy/master/dist/clash_config.yaml
 https://raw.githubusercontent.com/Danialsamadi/v2go/refs/heads/main/AllConfigsSub.txt
@@ -129,11 +124,9 @@ https://raw.githubusercontent.com/STR97/STRUGOV/refs/heads/main/STR.BYPASS
 https://raw.githubusercontent.com/awesome-vpn/awesome-vpn/master/ss
 https://raw.githubusercontent.com/Stinsonysm/GO_V2rayCollector/refs/heads/main/mixed_iran.txt
 https://raw.githubusercontent.com/prxchk/proxy-list/main/socks5.txt
-https://raw.githubusercontent.com/Kolandone/v2raycollector/refs/heads/main/vless.txt
 https://raw.githubusercontent.com/Mahdi0024/ProxyCollector/master/sub/singbox.json
 https://raw.githubusercontent.com/AliDev-ir/FreeVPN/main/pcvpn
 https://raw.githubusercontent.com/sahar-km/Freedom/refs/heads/main/-/-/Arm64/-/V8A.txt
-https://raw.githubusercontent.com/Rayan-Config/C-Sub/refs/heads/main/configs/singbox_configs.json
 https://raw.githubusercontent.com/ermaozi01/free_clash_vpn/main/subscribe/clash.yml
 https://shz.al/~@FREE2CONFIG_T,H
 https://raw.githubusercontent.com/pojiezhiyuanjun/freev2/master/1225.txt
@@ -172,4 +165,3 @@ https://zhuanhuan.diga.workers.dev/sub?target=clash&url=https%3A%2F%2Fraw.github
 https://www.allfreevpn.com/proxy-list/
 https://raw.githubusercontent.com/xiyaowen/free-proxy/main/v2ray.txt
 https://vvsub.xyz/api/al/19786-xDX1SCq61Ymi
->>>>>>> Stashed changes

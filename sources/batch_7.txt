@@ -1,6 +1,5 @@
 # ConfigStream Batch 7
 # Optimized based on fetch duration for equal execution times
-<<<<<<< Updated upstream
 # Est. Fetch Time: 1125.2s
 
 https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_vless.txt
@@ -66,12 +65,9 @@ https://raw.githubusercontent.com/V2RaySSR/Tools/master/clash.yaml
 https://proxynium.com/
 https://info.farsonline24.ir/
 https://rahimohamadisweet-wood-2fa1.vip73619.workers.dev/public
-=======
 # Est. Fetch Time: 1186.9s
-
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub28.txt
 https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-5.txt
-https://v2.alicivil.workers.dev/?count=2000&list=ro&shuffle=true
 https://raw.githubusercontent.com/NiREvil/vless/main/sub/clash-meta-wg.yml
 https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/main/mtn/sub_4.txt
 https://raw.githubusercontent.com/barry-far/V2ray-config/main/Sub6.txt
@@ -96,7 +92,6 @@ https://raw.githubusercontent.com/w1770946466/Auto_proxy/main/Long_term_subscrip
 https://raw.githubusercontent.com/roosterkid/openproxylist/main/V2RAY_BASE64.txt
 https://raw.githubusercontent.com/mermeroo/Loon/main/node
 https://raw.githubusercontent.com/Leon406/SubCrawler/master/sub/share/vless
-https://raw.githubusercontent.com/zhangkaiitugithub/passcro/main/meta.yaml
 https://raw.githubusercontent.com/jetkai/proxy-list/main/online-proxies/yaml/proxies.yaml
 https://raw.githubusercontent.com/coldwater-10/V2Hub1/main/Split/Base64/shadowsocks
 https://raw.githubusercontent.com/SnapdragonLee/SystemProxy/master/dist/clash_config_extra_US.yaml
@@ -121,7 +116,6 @@ https://raw.githubusercontent.com/BUTUbird/ClashPoint/main/application.yaml
 https://raw.githubusercontent.com/chfchf0306/jeidian4.18/main/4.18
 https://raw.githubusercontent.com/ZywChannel/free/main/sub
 https://proxy-daily.com/
-https://trojanvmess.pages.dev/cmcm?b64#cmcm?b64
 https://raw.githubusercontent.com/WilliamStar007/ClashX-V2Ray-TopFreeProxy/main/combine/clash.config.yaml
 https://raw.githubusercontent.com/dream4network/telegram-configs-collector/main/subscribe/protocols/juicity
 https://gist.github.com/saisad387
@@ -153,5 +147,3 @@ https://raw.githubusercontent.com/darknessm427/V2ray-Sub-Collector/refs/heads/ma
 http://www.freeproxylist.com/
 https://iproyal.com/free-proxy-list
 https://api.pubproxy.com/v1/proxy?limit=5&format=txt&type=http
-https://raw.githubusercontent.com/ircfspace/warpkey/main/plus/full
->>>>>>> Stashed changes

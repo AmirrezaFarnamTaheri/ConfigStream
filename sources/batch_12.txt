@@ -1,6 +1,5 @@
 # ConfigStream Batch 12
 # Optimized based on fetch duration for equal execution times
-<<<<<<< Updated upstream
 # Est. Fetch Time: 1125.1s
 
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub36.txt
@@ -73,9 +72,7 @@ https://raw.githubusercontent.com/peweza/SUB-PUBLIC/refs/heads/main/PewezaVPN
 https://raw.githubusercontent.com/ineo6/hosts/master/hosts
 https://openproxylist.com/v2ray/
 https://zaya.io/HP-71
-=======
 # Est. Fetch Time: 1575.0s
-
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub32.txt
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub19.txt
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub26.txt
@@ -85,5 +82,3 @@ https://github.com/Epodonios/v2ray-configs/raw/main/Splitted-By-Protocol/trojan.
 https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-10.txt
 https://v2.alicivil.workers.dev/?count=2000&list=no&shuffle=true
 https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/sub/exclave-wg.txt
-https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/main/mtn/sub_1.txt
->>>>>>> Stashed changes
