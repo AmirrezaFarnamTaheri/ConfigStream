@@ -1,19 +1,50 @@
 # ConfigStream Batch 10
 # Optimized based on fetch duration for equal execution times
-# Est. Fetch Time: 4258.7s
+# Est. Fetch Time: 903.8s
 
-https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-2.txt
-https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-12.txt
-https://v2.alicivil.workers.dev/?count=5000&list=100&unique=true
-https://v2.alicivil.workers.dev/?count=2000&list=my&shuffle=true
-https://v2.alicivil.workers.dev/?count=2000&list=vn&shuffle=true
-https://v2.alicivil.workers.dev/?count=2000&list=pl&shuffle=true
-https://v2.alicivil.workers.dev?
-https://v2.alicivil.workers.dev
-https://raw.githubusercontent.com/learnhard-cn/free_proxy_ss/main/ss/sssub
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub31.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub30.txt
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub18.txt
-https://raw.githubusercontent.com/NiREvil/vless/main/sub/v2rayng-wg.txt
-https://raw.githubusercontent.com/barry-far/V2ray-config/main/Sub2.txt
-https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/refs/heads/main/mtn/sub_3.txt
-https://raw.githubusercontent.com/Barabama/FreeNodes/master/nodes.txt
-https://raw.githubusercontent.com/wiki/gfpcom/free-proxy-list/lists/hy.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub34.txt
+https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/main/mtn/sub_2.txt
+https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-6.txt
+https://v2.alicivil.workers.dev/?count=2000&list=mk&shuffle=true
+https://raw.githubusercontent.com/NiREvil/vless/main/sub/fragment
+https://igdux.top/~FREE2CONFIG,T,H
+https://raw.githubusercontent.com/Kwinshadow/TelegramV2rayCollector/master/sub/normal
+https://raw.githubusercontent.com/SnapdragonLee/SystemProxy/master/dist/clash_config_extra_US.yaml
+https://raw.githubusercontent.com/DarknessShade/WoW/main/Xray-WoW.json
+https://raw.githubusercontent.com/MahsaNetConfigTopic/config/main/xray_final.txt
+https://raw.githubusercontent.com/ripaojiedian/freenode/main/sub
+https://raw.githubusercontent.com/adiwzx/freenode/main/adinetmuisc.yml
+https://raw.githubusercontent.com/STR97/STRUGOV/refs/heads/main/STR.BYPASS
+http://robin.victoriacross.ir
+https://raw.githubusercontent.com/vxiaov/free_proxies/main/clash/clash.provider.yaml
+https://raw.githubusercontent.com/hsb4657/v2ray/master/v2ray.txt
+https://raw.githubusercontent.com/hkaa0/permalink/main/proxy/clash.yaml
+https://raw.githubusercontent.com/adminaliang/v2ray/main/v2ray
+https://neurotoxinw.coding.net/p/qifei/d/qifei/git/raw/master/README.md
+https://raw.githubusercontent.com/freebaipiao/freebaipiao/main/jiassweetoy3.yaml
+https://freenode.openrunner.net/uploads/20240617-clash.yaml
+https://raw.githubusercontent.com/abbasdvd3/clash/main/vless/x
+https://raw.githubusercontent.com/nasheep/FreeNode/main/clash/PlayLab
+https://raw.githubusercontent.com/imboys/proxyForClash/refs/heads/master/free%20proxy.yml
+https://raw.githubusercontent.com/freefq/free/master/v2
+https://raw.githubusercontent.com/baipiao0/baipiao02/main/v2ray
+http://gatherproxy.com/
+https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/normal/vmess
+http://proxydb.net/
+http://proxy-list.org/english/yourproxylists/sample.txt
+https://api.openproxy.space/lists/socks4
+https://openproxylist.xyz/all.txt
+https://rootjazz.com/proxies/proxies.txt
+https://raw.githubusercontent.com/Flik6/getNode/main/clash.yaml
+https://raw.githubusercontent.com/manuGMG/proxy-365/main/SOCKS5.txt
+https://raw.githubusercontent.com/AB-84-AB/WarpFree/refs/heads/main/WarpFree
+https://raw.githubusercontent.com/learnhard-kk/free_proxy_ss/main/free
+https://aliveproxy.com/proxy-list/
+https://raw.githubusercontent.com/googlehosts/hosts/master/hosts-files/hosts
+https://raw.githubusercontent.com/gitbigg/dy/main/sub.txt
+https://raw.githubusercontent.com/V2RaySSR/Tools/master/clash.yaml
+https://ghp.ci/https://gist.githubusercontent.com/dalazhi-hotmail/4c0033fda050c7290d0d1f04e90ad129/raw/clash.yaml
+https://config.elaheniloofar.link
