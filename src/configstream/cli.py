@@ -6,6 +6,7 @@ import click
 from rich.console import Console
 from pathlib import Path
 import sys
+from .logging_config import setup_logging
 
 console = Console()
 
@@ -22,7 +23,6 @@ def run(verbose):
     """Run the full ConfigStream pipeline."""
     from .pipeline import Pipeline
     from .config import AppSettings
-    from .logging_config import setup_logging
     import asyncio
 
     setup_logging(level="DEBUG" if verbose else "INFO")

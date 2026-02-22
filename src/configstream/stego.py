@@ -19,6 +19,8 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+MAGIC_MARKER = b"CSTREAM_PAYLOAD_START>>"
+
 class StegoPacker:
     def __init__(self, key: Optional[bytes] = None):
         """

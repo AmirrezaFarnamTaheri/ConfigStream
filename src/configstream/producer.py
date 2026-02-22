@@ -11,7 +11,7 @@ from .models import Proxy
 from .source_quality import SourceQualityTracker
 from .anomaly import AnomalyDetector
 from .security_validator import SecurityValidator
-from .utils.async_utils import safe_wait_for
+from .async_utils import safe_wait_for
 from .circuit_breaker import CircuitBreakerManager
 import httpx
 
