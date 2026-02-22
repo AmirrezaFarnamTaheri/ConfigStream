@@ -245,6 +245,7 @@ Optional (Vwarp tuning):
 - VWARP_FORCE_MASQUE=true
 
 Optional (production hardening):
+- STEGO_KEY=your-base64-fernet-key (enables LSB steganography)
 - ADMIN_API_KEY=your-secret-key
 - ALLOWED_ORIGINS=https://yourdomain.com
 - STEGO_KEY=your-base64-fernet-key (rotate every 6 hours)
@@ -292,6 +293,7 @@ Features:
 - 7 chain strategies: WARP, Double WARP, WARP+Psiphon, Relay Chain, TLS Fragment, CDN Worker, Custom JSON
 - Advanced evasion: uTLS fingerprint, ALPN, multiplex, padding
 - 8 export formats: Sing-Box JSON, Clash YAML, Xray JSON, Nekobox, URI, QR, Python script, Bash script
+- **Advanced Editor**: Integrated Monaco Editor for raw JSON manipulation and syntax highlighting.
 - Full transport support in all exports: WebSocket, gRPC, HTTP/2, httpupgrade, Reality
 
 Offline tools (no internet required):

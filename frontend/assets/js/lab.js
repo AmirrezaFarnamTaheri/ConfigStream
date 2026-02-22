@@ -1543,3 +1543,33 @@ sing-box run -c "$CFG"
         setupCopyButton('copyExport', 'exportCode');
     });
 })();
+
+// Monaco Editor Integration (Added by ConfigStream Pipeline)
+document.addEventListener('DOMContentLoaded', () => {
+    // Wait for module to load
+    setTimeout(() => {
+        if (window.LabEditor) {
+            const textarea = document.getElementById('proxyUri');
+            const container = document.getElementById('monaco-container');
+
+            if (textarea && container) {
+                // Initialize
+                container.style.display = 'block';
+                textarea.style.display = 'none'; // Hide original
+
+                window.LabEditor.init('monaco-container', textarea.value, 'text'); // URI is usually text/custom
+
+                // Sync Editor -> Textarea (for existing form logic)
+                window.LabEditor.instance().onDidChangeModelContent(() => {
+                    textarea.value = window.LabEditor.getValue();
+                    // Trigger input event for any listeners
+                    textarea.dispatchEvent(new Event('input'));
+                });
+
+                // Sync Textarea -> Editor (if external logic updates textarea)
+                // Note: observer is safer than overriding value property setter
+                // But for now, we assume one-way sync mainly or simple usage.
+            }
+        }
+    }, 1000); // Simple delay to ensure modules load. Better: use events.
+});
