@@ -12,7 +12,6 @@ from email.utils import parsedate_to_datetime
 from typing import Any
 
 import httpx
-
 from configstream.config import AppSettings
 
 logger = logging.getLogger(__name__)
@@ -20,8 +19,6 @@ logger = logging.getLogger(__name__)
 
 # --- Models ---
 
-# Allow override via env for low-memory environments
-# Default 0 means unlimited (managed via AppSettings in config.py)
 MAX_RESPONSE_SIZE = 0
 
 
@@ -123,7 +120,6 @@ async def fetch_single_source(
     try:
         enforce_limit = max_response_size > 0
         # Streaming Request to enforce size limit
-        # We assume standard streaming as hedging is complex to stream
         async with client.stream(
             "GET",
             source,
@@ -148,7 +144,7 @@ async def fetch_single_source(
                 try:
                     cl_size = int(content_len_header)
                 except (TypeError, ValueError):
-                    cl_size = None  # Malformed header, rely on streamed size checks
+                    cl_size = None  # Malformed header
                 if cl_size is not None and cl_size > max_response_size:
                     raise ValueError(
                         f"Response too large (header): {content_len_header} bytes"
@@ -157,7 +153,6 @@ async def fetch_single_source(
             # Stream Content (Binary)
             content_parts = []
             current_size = 0
-            # Use aiter_bytes for binary safety
             async for chunk in response.aiter_bytes():
                 chunk_len = len(chunk)
                 current_size += chunk_len
@@ -170,14 +165,13 @@ async def fetch_single_source(
             # Join binary parts
             content_bytes = b"".join(content_parts)
 
-            # Try to decode to string for compatibility, fallback to safe string if binary
+            # Try to decode to string
             try:
                 content_str = content_bytes.decode("utf-8")
             except UnicodeDecodeError:
                 try:
                     content_str = content_bytes.decode("latin-1")
                 except Exception:
-                    # Last resort fallback if it's purely binary garbage but we need a string
                     content_str = content_bytes.decode("utf-8", errors="replace")
 
             return FetchResult(
@@ -190,4 +184,6 @@ async def fetch_single_source(
             )
 
     except httpx.HTTPError as e:
+        # Wrap httpx errors in a generic way or let them bubble up
+        # Caller (producer) handles exceptions
         raise e

@@ -4,9 +4,18 @@
   "type": "object",
   "required": ["protocol", "address", "port"],
   "properties": {
-    "id": {"type": "string", "description": "Stable proxy identifier (UUID or hash)"},
+    "id": {"type": "string", "description": "Stable proxy identifier (SHA256 hash)"},
     "config": {"type": "string"},
-    "protocol": {"type": "string", "minLength": 1},
+    "protocol": {
+      "type": "string",
+      "enum": [
+        "vmess", "vless", "shadowsocks", "ss", "ss2022", "ssr", "trojan",
+        "hysteria", "hysteria2", "hy2", "husi", "tuic", "wireguard", "wg",
+        "exclave", "naive", "naive+https", "naive+http", "snell", "brook",
+        "juicity", "xray", "xtls", "v2ray", "ssh", "http", "https",
+        "socks", "socks4", "socks5", "anytls"
+      ]
+    },
     "address": {"type": "string", "minLength": 1},
     "port": {"type": "integer", "minimum": 1, "maximum": 65535},
     "uuid": {"type": "string"},
@@ -40,7 +49,63 @@
     "tested_at": {"type": "string"},
     "details": {
       "type": "object",
-      "additionalProperties": true
+      "description": "Protocol-specific details",
+      "oneOf": [
+        {
+           "title": "VLESS/VMess/Trojan",
+           "type": "object",
+           "properties": {
+             "sni": {"type": "string"},
+             "host": {"type": "string"},
+             "path": {"type": "string"},
+             "tls": {"type": ["boolean", "string"]},
+             "type": {"type": "string"},
+             "security": {"type": "string"},
+             "alpn": {"type": ["array", "string"], "items": {"type": "string"}},
+             "fp": {"type": "string"},
+             "pbk": {"type": "string"},
+             "sid": {"type": "string"},
+             "flow": {"type": "string"}
+           }
+        },
+        {
+           "title": "Shadowsocks",
+           "type": "object",
+           "properties": {
+             "method": {"type": "string"},
+             "password": {"type": "string"},
+             "plugin": {"type": "string"},
+             "plugin_opts": {"type": ["object", "string"]}
+           }
+        },
+        {
+           "title": "WireGuard",
+           "type": "object",
+           "properties": {
+             "private_key": {"type": "string", "pattern": "^[A-Za-z0-9+/]{42}[AEIMQUYcgkosw480]=$"},
+             "peer_public_key": {"type": "string"},
+             "pre_shared_key": {"type": "string"},
+             "ipv6": {"type": "string"},
+             "reserved": {"type": "array", "items": {"type": "integer"}},
+             "mtu": {"type": "integer"}
+           }
+        },
+        {
+           "title": "Hysteria2",
+           "type": "object",
+           "properties": {
+             "auth": {"type": "string"},
+             "sni": {"type": "string"},
+             "obfs": {"type": "string"},
+             "obfs-password": {"type": "string"}
+           }
+        },
+        {
+            "title": "Generic",
+            "type": "object",
+            "additionalProperties": true
+        }
+      ]
     },
     "throughput_kbps": {"type": ["integer", "null"]},
     "dns_over_https_ok": {"type": ["boolean", "null"]},
@@ -50,7 +115,13 @@
       "type": "object",
       "additionalProperties": {"type": "number"}
     },
-    "process": {"type": "string", "description": "Processing type: native, washed, revived-warp, revived-vwarp, chain, shielded"},
+    "process": {
+      "type": "string",
+      "enum": [
+        "native", "washed", "revived-warp", "revived-vwarp",
+        "chain", "shielded", "fragmented", "utls-mimic", "multipath"
+      ]
+    },
     "history": {"type": ["array", "null"], "items": {"type": "number"}, "description": "Historical latency values for sparklines"}
   },
   "additionalProperties": true

@@ -27,45 +27,45 @@ dependencies = [
     # Network Core
     "tenacity",
     "cachetools>=5.3.3",
-    "httpx[http2]>=0.27.0",
+    "httpx[http2]>=0.28.1",
     "h2>=4.1.0",
-    "sniffio>=1.3.0",
-    "aiohttp>=3.9.0",
-    "aiohttp-socks>=0.8.0",
-    "aiodns>=3.1.0",
-    "pycares<5.0.0",
+    "sniffio>=1.3.1",
+    "aiohttp>=3.13.2",
+    "aiohttp-socks>=0.11.0",
+    "aiodns>=3.6.1",
+    "pycares>=4.11.0",
     "aiohttp-proxy",
-    "requests",
+    "requests==2.32.5", # Kept for legacy compatibility if needed, but discouraged
 
     # Parsing & Logic
-    "PyYAML>=6.0",
-    "pydantic>=2.12.4",
-    "pydantic-settings",
+    "PyYAML>=6.0.3",
+    "pydantic>=2.12.5",
+    "pydantic-settings>=2.12.0",
     "singbox2proxy~=0.2.4",
 
     # I/O & Async
-    "aiofiles>=23.2.0",
-    "orjson>=3.9.0",
-    "nest-asyncio",
-    "wasmtime>=39.0.0",
+    "aiofiles>=25.1.0",
+    "orjson>=3.11.5",
+    "nest-asyncio>=1.6.0",
+    "wasmtime>=40.0.0",
     "slowapi>=0.1.9",
 
     # CLI & UI
-    "click",
-    "rich",
-    "python-telegram-bot>=20.0",
+    "click>=8.3.1",
+    "rich>=14.2.0",
+    "python-telegram-bot>=22.5",
 
     # Geo & Sys
-    "geoip2",
+    "geoip2>=5.2.0",
     "geopy>=2.3.0",
-    "psutil>=5.9.0; sys_platform != 'win32'", # Optional for adaptive workers
+    "psutil>=7.2.1; sys_platform != 'win32'",
 
     # Web Server
-    "fastapi>=0.109.0",
-    "uvicorn[standard]>=0.27.0",
+    "fastapi>=0.128.0",
+    "uvicorn[standard]>=0.40.0",
 
     # Crypto (for WARP)
-    "cryptography",
+    "cryptography>=46.0.3",
 
     # HTML Parsing (Security)
     "beautifulsoup4"
@@ -73,8 +73,8 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "playwright",
-    "pytest>=8.0.0",
+    "playwright==1.55.0",
+    "pytest>=9.0.2",
     "pytest-asyncio>=0.23.0",
     "pytest-cov>=4.1.0",
     "pytest-aiohttp",
@@ -85,10 +85,10 @@ dev = [
     "types-requests",
     "types-psutil",
     "types-cachetools",
-    "flake8",
+    "flake8>=7.3.0",
     "black",
     "mypy",
-    "respx",
+    "respx>=0.22.0",
     "hypothesis>=6.0.0",
     "types-aiofiles",
     "types-orjson"

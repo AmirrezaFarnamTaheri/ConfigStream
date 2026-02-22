@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import argparse
 import os
-import requests  # type: ignore
+import httpx  # type: ignore
 from pathlib import Path
 
 
@@ -145,7 +145,7 @@ def update_dnslink(cid: str, domain: str, cf_token: str, zone_id: str):
 
     # First, find the record ID for _dnslink.<domain>
     params = {"name": f"_dnslink.{domain}", "type": "TXT"}
-    resp = requests.get(url, headers=headers, params=params, timeout=30)
+    resp = httpx.get(url, headers=headers, params=params, timeout=30)
     records = resp.json().get("result", [])
 
     if not records:
@@ -163,7 +163,7 @@ def update_dnslink(cid: str, domain: str, cf_token: str, zone_id: str):
         "ttl": 60,
     }
 
-    update_resp = requests.put(update_url, headers=headers, json=payload, timeout=30)
+    update_resp = httpx.put(update_url, headers=headers, json=payload, timeout=30)
     if update_resp.status_code == 200:
         print(f"Successfully updated DNSLink for {domain} to {cid}")
     else:

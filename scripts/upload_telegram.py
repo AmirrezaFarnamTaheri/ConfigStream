@@ -5,7 +5,7 @@ Uploads the latest proxy files to a Telegram Channel.
 """
 
 import os
-import requests  # type: ignore
+import httpx  # type: ignore
 from pathlib import Path
 
 
@@ -15,7 +15,7 @@ def upload_to_telegram(token, chat_id, file_path, caption=""):
         with open(file_path, "rb") as f:
             files = {"document": f}
             data = {"chat_id": chat_id, "caption": caption}
-            response = requests.post(url, files=files, data=data, timeout=60)
+            response = httpx.post(url, files=files, data=data, timeout=60)
             response.raise_for_status()
             print(f"Successfully uploaded {file_path.name}")
     except Exception as e:

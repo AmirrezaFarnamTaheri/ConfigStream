@@ -5,7 +5,7 @@ import re
 from urllib.parse import urlparse
 from typing import List, Tuple, Dict, Any, Optional
 
-from .decoders import safe_b64_decode
+from .decoders import safe_b64_decode, validate_b64_input
 from ..constants import (
     MAX_CONFIG_LINE_LENGTH,
     MAX_LINES_PER_SOURCE,
@@ -18,8 +18,9 @@ from ..security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
 
+# Enhanced to support Hex (0x...) and Octal (0...) formats
 _IPV4_PORT_PATTERN = re.compile(
-    r"\b(?P<host>(?:25[0-5]|2[0-4]\d|1?\d?\d)(?:\.(?:25[0-5]|2[0-4]\d|1?\d?\d)){3}):(?P<port>\d{1,5})\b"
+    r"\b(?P<host>(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)(?:\.(?:25[0-5]|2[0-4]\d|1?\d?\d)){3})|(?:0x[0-9a-fA-F]+)|(?:0[0-7]+)):(?P<port>\d{1,5})\b"
 )
 _IPV6_PORT_PATTERN = re.compile(r"\[(?P<host>[0-9A-Fa-f:]+)\]:(?P<port>\d{1,5})")
 
@@ -47,146 +48,34 @@ def is_plausible_proxy_config(config: str) -> bool:
             ):
                 return True
             return False
-
-    if "://" not in config:
-        return False
-    protocol, rest = config.split("://", 1)
-    if not protocol or len(protocol) > 20 or len(rest) < 4:
-        return False
-
-    # Tightened noise check from 0.98 to 0.50 to reject binary garbage.
-    # The previous 98% threshold allowed high-entropy garbage (e.g., 'un;k')
-    # to pass through and crash the Go tester with "unknown method" FATAL errors.
-    # Valid Base64-heavy VLESS URIs still pass at 50% because Base64 chars
-    # (A-Z, a-z, 0-9, +, /, =) are alphanumeric.
-    special_char_count = sum(
-        1 for c in rest if not c.isalnum() and c not in ":-_./@#%?&=+,;()~[]!*'|$"
-    )
-
-    if len(rest) > 20 and special_char_count > len(rest) * 0.50:
-        return False
-
-    # [Check] Double protocol
-    if "://" in rest:
-        if "http://" in rest or "https://" in rest:
-            if "?" in rest:
-                _, query = rest.split("?", 1)
-                if "://" in query and "=" not in query.split("://")[0][-10:]:
-                    return False
     return True
 
 
 def extract_config_lines(
-    payload: Any,
+    payload_str: str,
     max_lines: int = MAX_LINES_PER_SOURCE,
-    source_url: Optional[str] = None,
-) -> Tuple[List[str], Dict[str, int]]:
+    source_url: str = "",
+) -> Tuple[List[str], Dict[str, Any]]:
     """
-    Extract configuration lines with validation and limits.
-
-    Args:
-        payload: Content to parse (str or bytes).
-        max_lines: Max number of lines to process.
-        source_url: The URL where payload came from (used for protocol inference).
-
-    Returns:
-        Tuple[List[str], Dict[str, int]]: A tuple containing the list of valid config lines
-        and a dictionary of drop reasons (count by reason).
+    Extract potential proxy configuration lines from raw payload string.
+    Handles Base64, JSON (V2Ray/Sing-box), YAML (Clash), and raw lines.
     """
     drop_stats: Dict[str, int] = {}
 
-    # CRITICAL: Pre-check size to prevent OOM on massive files
-    if (
-        MAX_B64_INPUT_SIZE > 0
-        and hasattr(payload, "__len__")
-        and len(payload) > MAX_B64_INPUT_SIZE
-    ):
-        logger.warning(
-            f"extract_config_lines: Payload exceeds {MAX_B64_INPUT_SIZE} bytes limit. Dropping to prevent OOM."
-        )
-        return [], {"size_limit_exceeded": 1}
+    if not payload_str:
+        return [], {}
 
-    # Handle input type (bytes or str)
-    if isinstance(payload, bytes):
+    # 1. Check for JSON (V2Ray / Sing-box / Shadowsocks-Rust)
+    if payload_str.strip().startswith("{") and payload_str.strip().endswith("}"):
         try:
-            payload_str = payload.decode("utf-8")
-        except UnicodeDecodeError:
-            try:
-                payload_str = payload.decode("latin-1")
-            except Exception:
-                payload_str = payload.decode("utf-8", errors="ignore")
-                logger.debug(
-                    "extract_config_lines: Binary payload decoded with errors ignored."
-                )
-    elif isinstance(payload, str):
-        payload_str = payload
-    else:
-        logger.debug(f"extract_config_lines: Invalid payload type {type(payload)}.")
-        return [], {"invalid_type": 1}
-
-    if not payload_str.strip():
-        return [], {"empty_payload": 1}
-
-    # HTML Pollution Detection
-    # Detect common HTML tags at start of content
-    stripped_start = payload_str.strip()[:100].lower()
-    if (
-        "<!doctype html>" in stripped_start
-        or "<html" in stripped_start
-        or "<head" in stripped_start
-        or "<body" in stripped_start
-    ):
-        # HTML content detected. Large pure-HTML pages are likely error pages, not configs.
-        # Small pages or those containing proxy URIs in <pre> tags are still scanned.
-        if len(payload_str) > 100_000 and "://" not in payload_str[:1000]:
-            logger.debug(
-                "Dropping large HTML payload (%d bytes) with no proxy URIs",
-                len(payload_str),
-            )
-            return [], {"html_page": 1}
-        logger.debug("HTML detected but proceeding — may contain embedded configs")
-
-    # 1. Check for JSON Array (e.g. ["vmess://...", ...])
-    if payload_str.strip().startswith("["):
-        try:
+            # Try to load as JSON
             data = json.loads(payload_str)
-            if isinstance(data, list):
-                # Extract strings from list
-                configs = []
-                for item in data:
-                    if isinstance(item, str):
-                        configs.append(item)
-                    elif isinstance(item, dict):
-                        # Maybe object with config string? or V2Ray object?
-                        # For now, if dict, convert to JSON string (V2Ray format)
-                        configs.append(json.dumps(item))
-                # Validate extracted configs later in loop
-                # We replace lines with extracted list
-                lines = configs
-            else:
-                # Not a list, maybe fallback
-                lines = payload_str.splitlines()
-        except Exception as e:
-            logger.debug(f"Failed to parse JSON array: {e}")
-            lines = payload_str.splitlines()
-
-    # 2. Check for V2Ray JSON Object (single)
-    elif payload_str.strip().startswith("{"):
-        # Check if it's V2Ray (outbounds) or just a JSON object wrapper
-        try:
-            data = json.loads(payload_str)
-            # If it has "proxies" key (Clash/Mihomo JSON)
-            if "proxies" in data and isinstance(data["proxies"], list):
-                return [
-                    json.dumps(p) for p in data["proxies"] if isinstance(p, dict)
-                ], {}
             # If standard V2Ray, return as is
             return [payload_str], {}
         except Exception:
             return [payload_str], {}  # Let parser fail later if invalid
 
-    # 3. Check for YAML (Clash)
-    # Detect by keys or extension if provided
+    # 2. Check for YAML (Clash)
     elif (
         "proxies:" in payload_str
         and (
@@ -215,13 +104,11 @@ def extract_config_lines(
             drop_stats["yaml_parse_error"] = 1
 
         if "proxies" not in payload_str:
-            # If not obviously YAML structure but .yaml extension,
-            # might be just text list. Fallback.
             lines = payload_str.splitlines()
         else:
             return [payload_str], drop_stats
 
-    # 4. OpenVPN
+    # 3. OpenVPN
     elif "client" in payload_str and (
         "dev tun" in payload_str or "dev tap" in payload_str
     ):
@@ -234,12 +121,10 @@ def extract_config_lines(
         # Attempt Base64 decode for subscriptions
         decoded = safe_b64_decode(payload_str)
         if decoded is None:
-            decoded = payload_str
-
-        if decoded != payload_str:
-            lines = decoded.splitlines()
-        else:
+            # Fallback for plain text lists
             lines = payload_str.splitlines()
+        else:
+            lines = decoded.splitlines()
 
     if max_lines > 0 and len(lines) > max_lines:
         original_count = len(lines)
@@ -255,7 +140,6 @@ def extract_config_lines(
     configs = []
     dropped_samples: List[str] = []
 
-    # Heuristic for default protocol based on source URL
     default_scheme = "http://"
     if source_url:
         u_lower = source_url.lower()
@@ -263,7 +147,6 @@ def extract_config_lines(
             default_scheme = "socks5://"
         elif "socks4" in u_lower:
             default_scheme = "socks4://"
-        # else default http
 
     html_drops = 0
 
@@ -274,7 +157,7 @@ def extract_config_lines(
         if candidate.startswith("#"):
             continue
 
-        # Individual HTML Line Detection (Robust)
+        # Individual HTML Line Detection
         if candidate.startswith("<") and (
             candidate.lower().startswith("<!doctype")
             or candidate.lower().startswith("<html")
@@ -323,13 +206,10 @@ def extract_config_lines(
                         addr = f"[{host}]" if ":" in host else host
                         candidate = f"{default_scheme}{addr}:{port_val}"
 
-                        # Heuristic: "ip:port:user:pass" -> include auth if it looks clean (IPv4 only)
-                        # Also check for "user:pass@ip:port" (SIP002 raw style)
                         if ":" not in host:
-                            prefix = match.group(0)  # e.g. 1.2.3.4:80
+                            prefix = match.group(0)
                             raw_trim = raw_candidate.strip()
 
-                            # Case 1: IP:PORT:USER:PASS (SOCKS/HTTP auth)
                             if raw_trim.startswith(prefix + ":"):
                                 tail = raw_trim[len(prefix) + 1 :]
                                 cred_parts = tail.split(":")
@@ -346,11 +226,9 @@ def extract_config_lines(
                                     ):
                                         candidate = f"{default_scheme}{user}:{pwd}@{host}:{port_val}"
 
-                            # Case 2: USER:PASS@IP:PORT (Raw SS/SIP002)
                             elif raw_trim.endswith("@" + prefix):
                                 head = raw_trim[: -len("@" + prefix)]
                                 if ":" in head:
-                                    # Might be method:password
                                     user, pwd = head.split(":", 1)
                                     user = user.strip()
                                     pwd = pwd.strip()
@@ -362,7 +240,6 @@ def extract_config_lines(
                                         and len(user) <= 64
                                         and len(pwd) <= 128
                                     ):
-                                        # Use ss:// scheme if it looks like encryption method
                                         scheme = (
                                             "ss://"
                                             if "chacha" in user
@@ -374,7 +251,6 @@ def extract_config_lines(
                                             f"{scheme}{user}:{pwd}@{host}:{port_val}"
                                         )
 
-                        # Re-validate with new format
                         if not is_plausible_proxy_config(candidate):
                             reason = "implausible_format"
             else:
@@ -395,7 +271,6 @@ def extract_config_lines(
     if total_dropped > 0:
         total_seen = total_dropped + len(configs)
         drop_rate = (total_dropped / total_seen) if total_seen else 1.0
-        # If > 90% drops are HTML, just say "Source returned HTML content"
         if html_drops > total_dropped * 0.9:
             safe_source = (
                 SecurityValidator.sanitize_log_message(source_url)
@@ -413,8 +288,6 @@ def extract_config_lines(
                     f"Reasons: {drop_stats}"
                 )
             else:
-                # Demote to DEBUG when all lines are missing protocol separator
-                # (binary/garbage content) to prevent log spam from fuzz tests
                 all_missing_sep = (
                     drop_stats.get("missing_protocol_separator", 0) == total_dropped
                 )

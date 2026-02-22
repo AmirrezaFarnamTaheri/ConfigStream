@@ -8,8 +8,21 @@ Defines the core Proxy object and Pydantic schemas.
 
 import hashlib
 from typing import Any, Dict, List, Optional
+from enum import Enum
 
 from pydantic import BaseModel, ConfigDict, Field
+
+
+class ProcessType(str, Enum):
+    NATIVE = "native"
+    WASHED = "washed"
+    REVIVED_WARP = "revived-warp"
+    REVIVED_VWARP = "revived-vwarp"
+    CHAIN = "chain"
+    SHIELDED = "shielded"
+    FRAGMENTED = "fragmented"
+    UTLS_MIMIC = "utls-mimic"
+    MULTIPATH = "multipath"
 
 
 class Proxy(BaseModel):
@@ -49,7 +62,7 @@ class Proxy(BaseModel):
     batch_source: Optional[str] = None
     source_line: Optional[int] = None
     history: Optional[List[float]] = None
-    process: str = "native"
+    process: ProcessType = ProcessType.NATIVE
 
     @property
     def latency_ms(self) -> Optional[float]:
@@ -65,25 +78,31 @@ class Proxy(BaseModel):
     def id(self) -> str:
         """
         Stable identifier used for caching, history, and external tools.
-
-        - Prefer explicit UUID when present.
-        - Otherwise derive a short, stable hash from protocol + address + port.
-        - Avoid using full config strings as IDs to keep keys compact and stable.
+        Uses a composite hash (protocol, host/address, port, uuid_or_key).
         """
-        if self.uuid:
-            return self.uuid.strip()
+        # Prefer explicit UUID or key-like field if present
+        key_part = self.uuid.strip()
+        if not key_part:
+            # Fallback to password or other unique identifiers in details
+            key_part = self.details.get("password", "") or self.details.get("private_key", "")
 
-        # Build a minimal fingerprint; fall back to config only if absolutely necessary.
-        if self.protocol and self.address and self.port:
-            key = f"{self.protocol}:{self.address}:{self.port}"
-        else:
-            key = (self.config or "").strip()
+        # Core identity tuple
+        # If address is a domain, use it. If IP, use it.
+        # We lowercase protocol and address for stability.
+        proto_norm = self.protocol.lower().strip()
+        addr_norm = self.address.lower().strip()
 
-        if not key:
+        # Build composite key string
+        composite_key = f"{proto_norm}:{addr_norm}:{self.port}:{key_part}"
+
+        if not composite_key.strip(":"):
+             # Absolute fallback to config hash if everything else is empty
+             composite_key = (self.config or "").strip()
+
+        if not composite_key:
             return ""
 
-        digest = hashlib.sha256(key.encode("utf-8")).hexdigest()
-        return digest[:16]
+        return hashlib.sha256(composite_key.encode("utf-8")).hexdigest()[:16]
 
     @property
     def scheme(self) -> str:

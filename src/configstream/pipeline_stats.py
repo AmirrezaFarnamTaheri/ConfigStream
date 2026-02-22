@@ -17,31 +17,42 @@ class PipelineStats:
     _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
 
     # Canonical Stats
-    total_configured_sources: int = (
-        0  # Total sources from sources.yaml (for frontend display)
-    )
-    fetched_sources: int = 0  # Sources actually processed
-    fetched_lines: int = 0  # Raw lines fetched
-    parsed: int = 0  # Valid proxies parsed
-    tested: int = 0  # Proxies sent to testing
-    working: int = 0  # Proxies that passed testing
+    total_configured_sources: int = 0
+    fetched_sources: int = 0
+    fetched_lines: int = 0
+    total_lines_sourced: int = 0  # Raw lines fetched from all sources
+    parsed: int = 0
+    total_unique_candidates: int = 0 # Parsed proxies before testing
+    tested: int = 0
+    total_tested: int = 0
+    working: int = 0
+    total_working: int = 0
+    total_valid_proxies: int = 0 # Working proxies after testing
+    total_proxies: int = 0 # Working + smart chains
+    total_clean: int = 0 # Working minus revived
+    total_dirty: int = 0 # Honeypots + dirty IPs blocked
     geo_resolved: int = 0
     duration: float = 0.0
+    duration_seconds: float = 0.0
     final_count: int = 0
     cache_misses: int = 0
+    success_rate: float = 0.0
 
     # Intelligence Layer Stats
     scanner_ips_found: int = 0
     washer_success_count: int = 0
     smart_chain_count: int = 0
+    total_smart_chains: int = 0
     chain_outbounds_count: int = 0
     # Time budget handling
     time_limited: bool = False
     time_limit_seconds: int = 0
+    chosen_subset_size: int = 0
 
     # Revived Stats
     revived_warp: int = 0
     revived_vwarp: int = 0
+    total_revived: int = 0
     shielded_count: int = 0  # Proxies resurrected via shielding (Copper to Gold)
 
     # Evasion Metrics
@@ -60,15 +71,20 @@ class PipelineStats:
     # Washing Enabled Flag
     washing_enabled: bool = True
 
+    # Detailed Stats
+    protocols: Dict[str, int] = field(default_factory=dict)
+    country_stats: Dict[str, int] = field(default_factory=dict)
+    asns: Dict[str, int] = field(default_factory=dict)
+    latency_distribution: Dict[str, int] = field(default_factory=dict)
+    latency_by_country: Dict[str, int] = field(default_factory=dict)
+    latency_by_protocol: Dict[str, int] = field(default_factory=dict)
+    smart_chains_breakdown: Dict[str, int] = field(default_factory=dict)
+
     @property
     def vwarp_win_rate(self) -> float:
         if self.vwarp_attempts == 0:
             return 0.0
         return (self.vwarp_success / self.vwarp_attempts) * 100
-
-    @property
-    def total_revived(self) -> int:
-        return self.revived_warp + self.revived_vwarp
 
     def get_snapshot(self) -> Dict[str, Any]:
         """
@@ -83,25 +99,51 @@ class PipelineStats:
         This is intentionally synchronous since it only uses threading.Lock.
         """
         with self._lock:
+            # Sync duplicate fields
+            self.total_lines_sourced = self.fetched_lines
+            self.total_unique_candidates = self.parsed
+            self.total_tested = self.tested
+            self.total_working = self.working
+            self.total_valid_proxies = self.working
+            self.total_proxies = self.working + self.smart_chain_count
+            self.total_revived = self.revived_warp + self.revived_vwarp
+            self.total_clean = max(0, self.working - self.total_revived)
+            self.total_smart_chains = self.smart_chain_count
+            self.duration_seconds = self.duration
+            if self.tested > 0:
+                self.success_rate = self.working / self.tested
+
             return {
                 "start_time": self.start_time.isoformat() if self.start_time else None,
                 "end_time": self.end_time.isoformat() if self.end_time else None,
                 "total_configured_sources": self.total_configured_sources,
                 "fetched_sources": self.fetched_sources,
                 "fetched_lines": self.fetched_lines,
+                "total_lines_sourced": self.total_lines_sourced,
                 "parsed": self.parsed,
+                "total_unique_candidates": self.total_unique_candidates,
                 "tested": self.tested,
+                "total_tested": self.total_tested,
                 "working": self.working,
+                "total_working": self.total_working,
+                "total_valid_proxies": self.total_valid_proxies,
+                "total_proxies": self.total_proxies,
+                "total_clean": self.total_clean,
+                "total_dirty": self.total_dirty,
                 "geo_resolved": self.geo_resolved,
                 "duration": self.duration,
+                "duration_seconds": self.duration_seconds,
                 "final_count": self.final_count,
                 "cache_misses": self.cache_misses,
+                "success_rate": self.success_rate,
                 "scanner_ips_found": self.scanner_ips_found,
                 "washer_success_count": self.washer_success_count,
                 "smart_chain_count": self.smart_chain_count,
+                "total_smart_chains": self.total_smart_chains,
                 "chain_outbounds_count": self.chain_outbounds_count,
                 "time_limited": self.time_limited,
                 "time_limit_seconds": self.time_limit_seconds,
+                "chosen_subset_size": self.chosen_subset_size,
                 "revived_warp": self.revived_warp,
                 "revived_vwarp": self.revived_vwarp,
                 "shielded_count": self.shielded_count,
@@ -119,6 +161,13 @@ class PipelineStats:
                 "washing_enabled": self.washing_enabled,
                 # Create a shallow copy of the dict to prevent iteration errors
                 "drop_reasons": dict(self.drop_reasons),
+                "protocols": dict(self.protocols),
+                "country_stats": dict(self.country_stats),
+                "asns": dict(self.asns),
+                "latency_distribution": dict(self.latency_distribution),
+                "latency_by_country": dict(self.latency_by_country),
+                "latency_by_protocol": dict(self.latency_by_protocol),
+                "smart_chains_breakdown": dict(self.smart_chains_breakdown),
             }
 
 

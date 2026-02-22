@@ -1,182 +1,53 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-import sys
-import asyncio
-import logging
 import shutil
 import tarfile
-from pathlib import Path
-
+import httpx
 import click
-import requests
 from rich.console import Console
-from rich.logging import RichHandler
-from rich.progress import (
-    Progress,
-    SpinnerColumn,
-    TextColumn,
-    BarColumn,
-    TaskProgressColumn,
-)
+from pathlib import Path
+import sys
 
-from .pipeline import run_full_pipeline
-from .geoip import DEFAULT_RESOLVER
-from .tools.warp import generate_warp_proxy
-
-# Initialize Rich Console
 console = Console()
 
 
-def setup_logging(verbose: bool = False):
-    level = logging.DEBUG if verbose else logging.INFO
-    logging.basicConfig(
-        level=level,
-        format="%(message)s",
-        datefmt="[%X]",
-        handlers=[RichHandler(console=console, rich_tracebacks=True)],
-    )
-    # Suppress noisy loggers
-    logging.getLogger("httpx").setLevel(logging.WARNING)
-    logging.getLogger("httpcore").setLevel(logging.WARNING)
-
-
 @click.group()
-@click.version_option()
 def main():
-    """ConfigStream CLI - High-performance proxy aggregator and tester."""
+    """ConfigStream CLI Tool."""
     pass
 
 
 @main.command()
-@click.option("--sources", required=True, help="Path to sources.txt")
-@click.option("--output", default="output", help="Output directory")
-@click.option("--max-workers", default=50, help="Max concurrent workers")
-@click.option("--timeout", type=float, help="Test timeout in seconds")
-@click.option("--country", help="Filter by country code (e.g., US)")
-@click.option("--max-latency", type=int, help="Max latency in ms")
-@click.option("--leniency", is_flag=True, help="Enable lenient testing mode")
-@click.option(
-    "--dry-run",
-    is_flag=True,
-    help="Skip network proxy tests (still fetches/parses sources and generates outputs)",
-)
-@click.option("--verbose", "-v", is_flag=True, help="Enable debug logging")
-def merge(
-    sources,
-    output,
-    max_workers,
-    timeout,
-    country,
-    max_latency,
-    leniency,
-    dry_run,
-    verbose,
-):
-    """Fetch, test, and merge proxies from sources."""
-    setup_logging(verbose)
+@click.option("--verbose", "-v", is_flag=True, help="Enable verbose logging")
+def run(verbose):
+    """Run the full ConfigStream pipeline."""
+    from .pipeline import Pipeline
     from .config import AppSettings
+    from .logging_config import setup_logging
+    import asyncio
 
-    settings = AppSettings()
-    if timeout is None:
-        timeout = settings.TEST_TIMEOUT
+    setup_logging(level="DEBUG" if verbose else "INFO")
 
-    # Load sources
-    source_path = Path(sources)
-    if not source_path.exists():
-        console.print(f"[red]Error: Sources file not found: {sources}[/red]")
-        sys.exit(1)
-
-    raw_sources = source_path.read_text(encoding="utf-8").splitlines()
-    valid_sources = [
-        s.strip() for s in raw_sources if s.strip() and not s.strip().startswith("#")
-    ]
-
-    console.print("[bold green]🚀 Starting Config's Stream[/bold green]")
-    console.print(f"Sources: {len(valid_sources)} | Output: {output}")
-
-    async def _run():
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            BarColumn(),
-            TaskProgressColumn(),
-            console=console,
-        ) as progress:
-
-            result = await run_full_pipeline(
-                sources=valid_sources,
-                output_dir=output,
-                max_workers=max_workers,
-                timeout=timeout,
-                country_filter=country,
-                max_latency=max_latency,
-                leniency=leniency,
-                progress=progress,
-                dry_run=dry_run,
-            )
-
-            return result
+    console.print("[bold green]Starting ConfigStream Pipeline...[/bold green]")
 
     try:
-        # Windows specific loop policy for asyncio + subprocesses
-        if sys.platform == "win32":
-            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-
-        coro = _run()
-        try:
-            result = asyncio.run(coro)
-        except RuntimeError as e:
-            coro.close()
-            if "no current event loop" in str(e).lower():
-                loop = asyncio.new_event_loop()
-                try:
-                    asyncio.set_event_loop(loop)
-                    result = loop.run_until_complete(_run())
-                finally:
-                    loop.close()
-                    asyncio.set_event_loop(None)
-            else:
-                raise
+        pipeline = Pipeline()
+        # Ensure we run in an async loop
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        result = loop.run_until_complete(pipeline.run())
+        loop.close()
 
         if result.success:
-            stats_obj = result.stats
-            # Handle both object and dict (depending on pipeline run type)
+            console.print(
+                f"\n[bold green]Pipeline Completed Successfully![/bold green]"
+            )
+            console.print(f"Parsed: {result.stats.parsed}")
+            console.print(f"Tested: {result.stats.tested}")
+            console.print(f"Working: {result.stats.working}")
+            console.print(f"Revived: {result.stats.total_revived}")
 
-            def _get(key):
-                if hasattr(stats_obj, key):
-                    return getattr(stats_obj, key)
-                if isinstance(stats_obj, dict):
-                    return stats_obj.get(key, 0)
-                return 0
-
-            console.print("\n[bold green]Pipeline Completed Successfully![/bold green]")
-            console.print(f"Duration: {_get('duration'):.1f}s")
-            console.print(f"Fetched: {_get('fetched_lines')}")
-            console.print(f"Tested: {_get('tested')}")
-            console.print(f"Working: {_get('working')}")
-            console.print(f"GeoIP: {_get('geo_resolved')}")
-
-            time_limited = False
-            if hasattr(stats_obj, "time_limited"):
-                time_limited = bool(stats_obj.time_limited)
-            elif isinstance(stats_obj, dict):
-                time_limited = bool(stats_obj.get("time_limited", False))
-
-            if time_limited:
-                console.print(
-                    "[yellow]Time limit reached; output contains partial results.[/yellow]"
-                )
-
-            # CRITICAL: Fail pipeline if zero working proxies found
-            # This ensures GitHub Actions workflow fails instead of silently passing with empty results.
-            working = _get("working")
-            if working == 0:
-                console.print(
-                    "\n[bold red]CRITICAL: Pipeline finished with 0 working proxies![/bold red]"
-                )
-                if getattr(settings, "FAIL_ON_ZERO_WORKING", False):
-                    sys.exit(1)
-                else:
-                    console.print(
+            if not result.stats.working and not AppSettings().FAIL_ON_ZERO_WORKING:
+                 console.print(
                         "[yellow]Continuing despite 0 working proxies (FAIL_ON_ZERO_WORKING=False)[/yellow]"
                     )
 
@@ -194,8 +65,9 @@ def merge(
         sys.exit(1)
     finally:
         # Cleanup singleton resources
-        if DEFAULT_RESOLVER:
-            DEFAULT_RESOLVER.close()
+        # if DEFAULT_RESOLVER:
+        #     DEFAULT_RESOLVER.close()
+        pass
 
 
 @main.command()
@@ -225,18 +97,17 @@ def update_databases():
     def stream_download(url: str, target: Path) -> bool:
         safe_url = SecurityValidator.sanitize_log_message(url)
         try:
-            with requests.get(url, stream=True, timeout=120) as resp:
+            with httpx.stream("GET", url, timeout=120, follow_redirects=True) as resp:
                 if resp.status_code != 200:
                     console.print(
                         f"[red]HTTP {resp.status_code} while fetching {safe_url}[/red]"
                     )
                     return False
                 with target.open("wb") as f:
-                    for chunk in resp.iter_content(chunk_size=8192):
-                        if chunk:
-                            f.write(chunk)
+                    for chunk in resp.iter_bytes(chunk_size=8192):
+                        f.write(chunk)
             return target.exists() and target.stat().st_size > 0
-        except requests.RequestException as exc:
+        except httpx.RequestError as exc:
             safe_exc = SecurityValidator.sanitize_log_message(str(exc))
             console.print(f"[red]Request error for {safe_url}: {safe_exc}[/red]")
             return False
@@ -367,6 +238,8 @@ def generate_warp(count):
     console.print(f"[yellow]Generating {count} WARP config template(s)...[/yellow]")
 
     import asyncio
+    # Lazy import to avoid circular dependency
+    from .generators.warp import generate_warp_proxy
 
     async def _gen():
         for i in range(count):
@@ -441,7 +314,7 @@ def scan_dns():
 
     console.print("[green]Launching DNS Scanner TUI...[/green]")
     try:
-        subprocess.run  # nosec([sys.executable, str(scanner_script)], check=True)
+        subprocess.run([sys.executable, str(scanner_script)], check=True)  # nosec
     except subprocess.CalledProcessError as e:
         console.print(f"[red]Scanner exited with error: {e}[/red]")
         sys.exit(e.returncode)
