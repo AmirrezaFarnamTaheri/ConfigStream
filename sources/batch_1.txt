@@ -1,15 +1,9 @@
 # ConfigStream Batch 1
 # Optimized based on fetch duration for equal execution times
-# Est. Fetch Time: 3627.1s
+# Est. Fetch Time: 6715.3s
 
-https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_trojan.txt
-https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub15.txt
-https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/main/mfc.txt
-https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-17.txt
-https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/sub/SSTime
-https://v2.alicivil.workers.dev/?count=2000&list=tw&shuffle=true
-# Est. Fetch Time: 4085.8s
-https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub24.txt
-https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-2.txt
-https://v2.alicivil.workers.dev/?count=2000&list=ua&shuffle=true
-https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/sing-box.json
+https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-10.txt
+https://v2.alicivil.workers.dev/?count=2000&list=es&shuffle=true
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub29.txt
+https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/sub/husi-wg.txt
+https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/refs/heads/main/app/sub.txt
