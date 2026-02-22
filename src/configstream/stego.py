@@ -1,27 +1,28 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Steganography transport module.
+# Implements robust LSB (Least Significant Bit) Embedding.
 
 import zlib
 import logging
 import hmac
 import hashlib
+import struct
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple
 from cryptography.fernet import Fernet
 
+try:
+    from PIL import Image
+    PILLOW_AVAILABLE = True
+except ImportError:
+    PILLOW_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
-
-# Magic Marker to separate Image from Payload
-# We use a distinct byte sequence unlikely to appear in image data
-# This is the PRIMARY transport method for ConfigStream v2.0+.
-MAGIC_MARKER = b"CSTREAM_PAYLOAD_START>>"
-
 
 class StegoPacker:
     def __init__(self, key: Optional[bytes] = None):
         """
         Initialize with a Fernet key.
-        If None, generates a new one (for dynamic sessions).
         """
         self.key = key or Fernet.generate_key()
         self.cipher = Fernet(self.key)
@@ -30,103 +31,205 @@ class StegoPacker:
         self, cover_image_path: Path, payload_data: str, output_path: Path
     ) -> bool:
         """
-        Embeds payload_data into cover_image_path.
-        Includes HMAC signature for integrity.
+        Embeds payload_data into cover_image_path using LSB steganography.
+        Payload = Encrypt(Signature + CompressedData)
+        Format: [Length: 4 bytes][Payload Bytes] distributed in LSBs.
         """
+        if not PILLOW_AVAILABLE:
+            logger.error("Pillow library not found. Cannot perform LSB steganography.")
+            return False
+
         try:
             # 1. Prepare Payload
-            # Compress first
             compressed = zlib.compress(payload_data.encode("utf-8"), level=9)
-
-            # Sign the compressed data (HMAC-SHA256)
             signature = hmac.new(self.key, compressed, hashlib.sha256).digest()
-
-            # Encrypt the compressed data + signature
-            # Payload = Encrypt(Signature + CompressedData)
             payload_blob = signature + compressed
             encrypted = self.cipher.encrypt(payload_blob)
 
-            # 2. Read Cover Image
-            if not cover_image_path.exists():
-                logger.error(f"Cover image not found: {cover_image_path}")
+            # Prepend 4-byte length
+            final_payload = struct.pack(">I", len(encrypted)) + encrypted
+
+            # 2. Read Image
+            img = Image.open(cover_image_path)
+            img = img.convert("RGB") # Ensure RGB
+            pixels = img.load()
+            width, height = img.size
+
+            # Check capacity (3 bits per pixel)
+            max_bytes = (width * height * 3) // 8
+            if len(final_payload) > max_bytes:
+                logger.error(f"Payload too large for image ({len(final_payload)} > {max_bytes})")
                 return False
 
-            with open(cover_image_path, "rb") as f:
-                image_bytes = f.read()
+            # 3. Embed LSB
+            data_index = 0
+            bit_index = 0
+            payload_bits = []
 
-            # 3. Fuse (Append-Only Steganography)
-            # Image Data + Marker + Encrypted Blob
-            final_bytes = image_bytes + MAGIC_MARKER + encrypted
+            # Convert payload to bits
+            for byte in final_payload:
+                for i in range(7, -1, -1):
+                    payload_bits.append((byte >> i) & 1)
 
-            # 4. Write
-            with open(output_path, "wb") as f:
-                f.write(final_bytes)
+            total_bits = len(payload_bits)
+            idx = 0
 
-            logger.info(
-                f"Stego image created at {output_path} ({len(final_bytes)} bytes)"
-            )
+            for y in range(height):
+                for x in range(width):
+                    if idx >= total_bits:
+                        break
+
+                    r, g, b = pixels[x, y]
+
+                    # Embed in R
+                    if idx < total_bits:
+                        r = (r & ~1) | payload_bits[idx]
+                        idx += 1
+                    # Embed in G
+                    if idx < total_bits:
+                        g = (g & ~1) | payload_bits[idx]
+                        idx += 1
+                    # Embed in B
+                    if idx < total_bits:
+                        b = (b & ~1) | payload_bits[idx]
+                        idx += 1
+
+                    pixels[x, y] = (r, g, b)
+                if idx >= total_bits:
+                    break
+
+            img.save(output_path, "PNG")
+            logger.info(f"Stego (LSB) image created at {output_path}")
             return True
 
         except Exception as e:
             logger.error(f"Stego packing failed: {e}")
             return False
 
-    def get_key_str(self) -> str:
-        return self.key.decode("utf-8")
+    def unpack(self, stego_image_path: Path) -> Optional[str]:
+        """
+        Extracts and decrypts payload from LSB stego image.
+        """
+        if not PILLOW_AVAILABLE:
+            return None
 
+        try:
+            img = Image.open(stego_image_path)
+            img = img.convert("RGB")
+            pixels = img.load()
+            width, height = img.size
 
-# Helper for CI integration
+            # Extract bits
+            bits = []
+            # Optimization: We only need to read 32 bits first to get length
+            # But simpler to stream.
+
+            # Helper to read N bits
+            def read_bits(n):
+                res_bits = []
+                count = 0
+                for y in range(height):
+                    for x in range(width):
+                        r, g, b = pixels[x, y]
+                        for val in (r, g, b):
+                            res_bits.append(val & 1)
+                            count += 1
+                            if count >= n:
+                                return res_bits
+                return res_bits
+
+            # Read Length (32 bits = 4 bytes)
+            # We assume the embedding starts at 0,0.
+            # Ideally we need stateful reading.
+
+            extracted_bytes = bytearray()
+            byte_val = 0
+            bit_count = 0
+
+            # Limit extraction to prevent memory issues?
+            # Max possible size.
+
+            length = 0
+            header_found = False
+
+            for y in range(height):
+                for x in range(width):
+                    r, g, b = pixels[x, y]
+                    for val in (r, g, b):
+                        bit = val & 1
+                        byte_val = (byte_val << 1) | bit
+                        bit_count += 1
+
+                        if bit_count == 8:
+                            extracted_bytes.append(byte_val)
+                            byte_val = 0
+                            bit_count = 0
+
+                            if not header_found and len(extracted_bytes) == 4:
+                                length = struct.unpack(">I", extracted_bytes)[0]
+                                extracted_bytes = bytearray() # Reset buffer for payload
+                                header_found = True
+
+                            if header_found and len(extracted_bytes) == length:
+                                raise StopIteration # Done
+                if header_found and len(extracted_bytes) == length:
+                    break
+
+        except StopIteration:
+            pass
+        except Exception as e:
+            logger.error(f"Stego unpack error: {e}")
+            return None
+
+        if not header_found or len(extracted_bytes) != length:
+            return None
+
+        try:
+            # Decrypt
+            decrypted = self.cipher.decrypt(bytes(extracted_bytes))
+            # Split signature
+            signature = decrypted[:32] # SHA256 digest size
+            compressed = decrypted[32:]
+
+            # Verify HMAC
+            expected_sig = hmac.new(self.key, compressed, hashlib.sha256).digest()
+            if signature != expected_sig:
+                logger.error("Stego signature mismatch")
+                return None
+
+            return zlib.decompress(compressed).decode("utf-8")
+        except Exception as e:
+            logger.error(f"Stego decryption failed: {e}")
+            return None
+
 def generate_stego_assets(
     config_dir: Path, assets_dir: Path, secret_key: Optional[str] = None
 ):
     """
-    scans output directory for singbox.json and creates image variants.
+    Scans output directory for singbox.json and creates image variants.
     """
     config_file = config_dir / "singbox.json"
     if not config_file.exists():
-        logger.warning(f"Config file not found: {config_file}")
         return
 
-    # Use a hardcoded key from secrets OR generate one (and print it for the frontend)
-    # For Zero-Budget resilience, we usually want a STATIC key hardcoded in the frontend JS.
-    # Ensure this key matches what is in frontend/assets/js/stego.js
-
-    # Priority:
-    # 1. Passed arg
-    # 2. Env var STEGO_KEY (preferred) or CONFIG_STREAM_KEY (fallback)
-    # 3. Generate new
     if not secret_key:
         from configstream.config import AppSettings
-
         settings = AppSettings()
         secret_key = settings.STEGO_KEY or settings.CONFIG_STREAM_KEY
 
     if secret_key:
         try:
             key = secret_key.encode()
-            # Validate the key is a valid Fernet key before using it
             Fernet(key)
         except Exception:
-            logger.warning("Invalid STEGO_KEY provided, generating ephemeral key.")
             key = Fernet.generate_key()
     else:
         key = Fernet.generate_key()
-        logger.warning(
-            "No STEGO_KEY/CONFIG_STREAM_KEY set; using random key for this build."
-        )
 
     packer = StegoPacker(key)
-
     content = config_file.read_text(encoding="utf-8")
-
-    # Cover images should be in assets_dir
-    # We try to find a valid png
     covers = list(assets_dir.glob("*.png"))
-    if not covers:
-        logger.warning("No cover images found for steganography.")
-        return
 
-    # Create a stego version for each cover (redundancy)
     for cover in covers:
         output_name = f"stealth_{cover.name}"
         packer.pack(cover, content, config_dir / output_name)

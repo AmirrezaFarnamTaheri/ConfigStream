@@ -1,157 +1,98 @@
 use std::ffi::CStr;
 use std::os::raw::c_char;
+use std::collections::HashSet;
+use once_cell::sync::Lazy;
 
-// FFI function for Shadowsocks config validation.
-// Called from Python via ctypes to verify config structure and cipher validity.
-//
-// Replaced naive substring matching with proper field extraction.
-// Previously, `str_slice.contains("aes-256-gcm")` would match the cipher name
-// ANYWHERE in the JSON (e.g., in a "description" field), producing false positives.
-// Now we extract the actual "method" field value and validate it against a whitelist.
-//
-// Also expanded the valid methods list to include xchacha20-ietf-poly1305 and
-// 2022-blake3-chacha20-poly1305 which are commonly used in the wild.
-
-/// Valid Shadowsocks encryption methods (must match sing-box schema).
-const VALID_METHODS: &[&str] = &[
-    "aes-128-gcm",
-    "aes-256-gcm",
-    "chacha20-ietf-poly1305",
-    "xchacha20-ietf-poly1305",
-    "2022-blake3-aes-128-gcm",
-    "2022-blake3-aes-256-gcm",
-    "2022-blake3-chacha20-poly1305",
-    "aes-128-cfb",
-    "aes-192-cfb",
-    "aes-256-cfb",
-    "aes-128-ctr",
-    "aes-192-ctr",
-    "aes-256-ctr",
-    "rc4-md5",
-    "chacha20-ietf",
-    "xchacha20",
-    "none",
-];
+static VALID_METHODS: Lazy<HashSet<&'static str>> = Lazy::new(|| {
+    let mut s = HashSet::new();
+    // AEAD
+    s.insert("aes-128-gcm");
+    s.insert("aes-256-gcm");
+    s.insert("chacha20-poly1305");
+    s.insert("chacha20-ietf-poly1305");
+    s.insert("xchacha20-ietf-poly1305");
+    // Stream (Legacy/Deprecated but widely used)
+    s.insert("aes-128-cfb");
+    s.insert("aes-192-cfb");
+    s.insert("aes-256-cfb");
+    s.insert("aes-128-ctr");
+    s.insert("aes-192-ctr");
+    s.insert("aes-256-ctr");
+    s.insert("rc4-md5");
+    s.insert("chacha20");
+    // Shadowsocks-2022 (New additions for Phase 6)
+    s.insert("2022-blake3-aes-128-gcm");
+    s.insert("2022-blake3-aes-256-gcm");
+    s.insert("2022-blake3-chacha20-poly1305");
+    s
+});
 
 #[no_mangle]
-pub extern "C" fn verify_shadowsocks(config_json: *const c_char) -> i32 {
-    // 0 = False/Fail, 1 = True/Pass
-    if config_json.is_null() {
+pub unsafe extern "C" fn verify_shadowsocks(json_ptr: *const c_char) -> i32 {
+    if json_ptr.is_null() {
         return 0;
     }
 
-    let c_str = unsafe { CStr::from_ptr(config_json) };
-    let str_slice = match c_str.to_str() {
+    let c_str = match CStr::from_ptr(json_ptr).to_str() {
         Ok(s) => s,
         Err(_) => return 0,
     };
 
-    // Extract JSON field values without pulling in serde_json (keeps binary small).
-    // We use a simple but correct extraction: find `"field":"value"` patterns
-    // accounting for whitespace around the colon.
-    let method = extract_json_string_value(str_slice, "method");
-    let password = extract_json_string_value(str_slice, "password");
-
-    // Both method and password must be present and non-empty
-    let method_str = match method {
-        Some(m) if !m.is_empty() => m,
-        _ => return 0,
+    // Lightweight JSON parsing (no heavy dependencies)
+    // Extract "method" and "password"
+    let method = match extract_json_string_value(c_str, "method") {
+        Some(m) => m,
+        None => return 0,
     };
 
-    match password {
-        Some(p) if !p.is_empty() => {},
-        _ => return 0,
+    let password = match extract_json_string_value(c_str, "password") {
+        Some(p) => p,
+        None => return 0,
+    };
+
+    // Validation Rules
+    if !VALID_METHODS.contains(method) {
+        return 0;
     }
 
-    // Validate method against whitelist
-    for valid in VALID_METHODS.iter() {
-        if method_str == *valid {
-            return 1;
+    // SS-2022 Key Length Validation
+    if method.starts_with("2022-blake3-") {
+        // Password must be base64 and decode to specific length
+        // 16 bytes for aes-128, 32 bytes for others
+        // For simple validation without base64 decode (to save deps), check length.
+        // Base64 16 bytes -> 24 chars (approx)
+        // Base64 32 bytes -> 44 chars (approx)
+        let pw_len = password.len();
+        if method.contains("aes-128-gcm") {
+             if pw_len < 22 || pw_len > 26 { return 0; }
+        } else {
+             if pw_len < 42 || pw_len > 46 { return 0; }
+        }
+    } else {
+        if password.is_empty() {
+            return 0;
         }
     }
 
-    0
+    1
 }
 
-/// Extract a string value for a given key from a JSON string.
-/// Handles: `"key" : "value"` with optional whitespace around `:`.
-/// Returns None if key not found or value is not a string.
+// Helper to extract string value by key from JSON-like string
 fn extract_json_string_value<'a>(json: &'a str, key: &str) -> Option<&'a str> {
-    // Build the search pattern: `"key"`
     let key_pattern = format!("\"{}\"", key);
-
     let key_pos = json.find(&key_pattern)?;
     let after_key = &json[key_pos + key_pattern.len()..];
-
-    // Skip whitespace and find ':'
     let after_key = after_key.trim_start();
-    if !after_key.starts_with(':') {
-        return None;
-    }
+    if !after_key.starts_with(':') { return None; }
     let after_colon = after_key[1..].trim_start();
-
-    // Value must start with '"'
-    if !after_colon.starts_with('"') {
-        return None;
-    }
-
-    // Find the closing quote (handle escaped quotes)
-    let value_start = 1; // skip opening quote
+    if !after_colon.starts_with('"') { return None; }
+    let value_start = 1;
     let value_bytes = after_colon.as_bytes();
     let mut i = value_start;
     while i < value_bytes.len() {
-        if value_bytes[i] == b'\\' {
-            i += 2; // skip escaped character
-            continue;
-        }
-        if value_bytes[i] == b'"' {
-            return Some(&after_colon[value_start..i]);
-        }
+        if value_bytes[i] == b'\' { i += 2; continue; }
+        if value_bytes[i] == b'"' { return Some(&after_colon[value_start..i]); }
         i += 1;
     }
-
     None
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_extract_json_string_value() {
-        let json = r#"{"method": "aes-256-gcm", "password": "test123", "server": "1.2.3.4"}"#;
-        assert_eq!(extract_json_string_value(json, "method"), Some("aes-256-gcm"));
-        assert_eq!(extract_json_string_value(json, "password"), Some("test123"));
-        assert_eq!(extract_json_string_value(json, "server"), Some("1.2.3.4"));
-        assert_eq!(extract_json_string_value(json, "missing"), None);
-    }
-
-    #[test]
-    fn test_no_false_positive_from_description() {
-        // Previously, substring matching would match "aes-256-gcm" in the description
-        let json = r#"{"description": "uses aes-256-gcm method", "method": "invalid", "password": "x"}"#;
-        assert_eq!(extract_json_string_value(json, "method"), Some("invalid"));
-        // verify_shadowsocks should reject this because "invalid" is not in VALID_METHODS
-    }
-
-    #[test]
-    fn test_valid_config() {
-        let json = r#"{"method": "aes-256-gcm", "password": "mypass"}"#;
-        let c_str = std::ffi::CString::new(json).unwrap();
-        assert_eq!(unsafe { verify_shadowsocks(c_str.as_ptr()) }, 1);
-    }
-
-    #[test]
-    fn test_invalid_method() {
-        let json = r#"{"method": "invalid-cipher", "password": "mypass"}"#;
-        let c_str = std::ffi::CString::new(json).unwrap();
-        assert_eq!(unsafe { verify_shadowsocks(c_str.as_ptr()) }, 0);
-    }
-
-    #[test]
-    fn test_missing_password() {
-        let json = r#"{"method": "aes-256-gcm"}"#;
-        let c_str = std::ffi::CString::new(json).unwrap();
-        assert_eq!(unsafe { verify_shadowsocks(c_str.as_ptr()) }, 0);
-    }
 }

@@ -68,7 +68,8 @@ dependencies = [
     "cryptography>=46.0.3",
 
     # HTML Parsing (Security)
-    "beautifulsoup4"
+    "beautifulsoup4",
+    "Pillow>=10.0.0"
 ]
 
 [project.optional-dependencies]
