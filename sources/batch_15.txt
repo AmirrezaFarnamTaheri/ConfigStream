@@ -1,6 +1,5 @@
 # ConfigStream Batch 15
 # Optimized based on fetch duration for equal execution times
-<<<<<<< Updated upstream
 # Est. Fetch Time: 1128.2s
 
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub38.txt
@@ -51,9 +50,7 @@ https://raw.githubusercontent.com/freefq/free/master/v2
 https://socks5.victoriacross.workers.dev/
 https://raw.githubusercontent.com/parvinxs/Fssociety/refs/heads/main/Fssociety.sub
 https://rahi-eq3.pages.dev/api/configs?limit=all
-=======
 # Est. Fetch Time: 1186.8s
-
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/super-sub.txt
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub31.txt
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub2.txt
@@ -73,7 +70,6 @@ https://raw.githubusercontent.com/peasoft/NoMoreWalls/master/list_raw.txt
 https://raw.githubusercontent.com/mohamadfg-dev/telegram-v2ray-configs-collector/main/category/xhttp.txt
 https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/sub/SSTime
 https://raw.githubusercontent.com/NiREvil/vless/main/sub/fragment
-https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/sub/v2rayng-wg.txt
 https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/hiddify/WarpOnWarp.json
 https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/sub/nekobox-wg.txt
 https://raw.githubusercontent.com/NiREvil/vless/main/sub/husi-wg.txt
@@ -158,4 +154,3 @@ https://subapi.fxxk.dedyn.io/sub?target=singbox&url=https%3A%2F%2Fraw.githubuser
 https://raw.githubusercontent.com/erisll/v2ray/main/subscribe.txt
 https://raw.githubusercontent.com/gfpcom/free-proxy-list/main/dist/hysteria2.txt
 https://raw.githubusercontent.com/Surfboardv2ray/Proxy-sorter/main/sub
->>>>>>> Stashed changes

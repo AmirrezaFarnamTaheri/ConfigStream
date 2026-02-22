@@ -1,6 +1,5 @@
 # ConfigStream Batch 5
 # Optimized based on fetch duration for equal execution times
-<<<<<<< Updated upstream
 # Est. Fetch Time: 1125.2s
 
 https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_raw_trojan.txt
@@ -71,9 +70,7 @@ https://www.allfreevpn.com/proxy-list/
 https://forum.antichat.com/forums/free-proxies/
 https://raw.githubusercontent.com/bamdad23/xray/main/config#Javid-Naman-Iran
 https://raw.githubusercontent.com/a2470982985/getNode/main/clash.yaml
-=======
 # Est. Fetch Time: 1186.9s
-
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub33.txt
 https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-8.txt
 https://v2.alicivil.workers.dev/?count=2000&list=fi&shuffle=true&unique=false
@@ -92,12 +89,9 @@ https://raw.githubusercontent.com/V2RET-V2RET-V2RET-V2RET-V2RET-V2RET/v2ret/main
 https://raw.githubusercontent.com/shbioc/clash/main/aaa01.yaml
 https://raw.githubusercontent.com/renyige1314/CLASH/main/CLASH
 https://raw.githubusercontent.com/yaney01/Yaney01/main/yaney_01
-https://raw.githubusercontent.com/nasheep/FreeNode/main/clash/PlayLab
 https://raw.githubusercontent.com/hotsymbol/vpnsetting/master/v2rayopen
-https://raw.githubusercontent.com/blueshekan/tcc/main/sub.html
 https://raw.githubusercontent.com/wrfree/free/refs/heads/main/v2
 https://raw.githubusercontent.com/ronghuaxueleng/get_v2/main/pub/combine.yaml
 https://raw.githubusercontent.com/10ium/V2Hub3/main/merged_base64
 https://stackoverflow.com/questions/tagged/proxy
 https://raw.githubusercontent.com/hkpc/V2ray-Configs/main/All_Configs_Sub.txt
->>>>>>> Stashed changes

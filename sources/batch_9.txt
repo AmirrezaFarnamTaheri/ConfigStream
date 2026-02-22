@@ -1,6 +1,5 @@
 # ConfigStream Batch 9
 # Optimized based on fetch duration for equal execution times
-<<<<<<< Updated upstream
 # Est. Fetch Time: 1125.1s
 
 https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_shadowsocks.txt
@@ -68,9 +67,7 @@ https://publicproxyservers.com/api/proxy
 http://0day.kiev.ua/proxy
 https://raw.githubusercontent.com/Misaka-blog/chromego_merge/main/sub/merged_proxies_new.yaml
 https://raw.githubusercontent.com/GozargahAzadi/config/main/sub
-=======
 # Est. Fetch Time: 1188.1s
-
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub38.txt
 https://raw.githubusercontent.com/Epodonios/v2ray-configs/main/Splitted-By-Protocol/hysteria2.txt
 https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-16.txt
@@ -104,7 +101,6 @@ https://bitbucket.org/huwo1/proxy_nodes/raw/f31ca9ec67b84071515729ff45b011b6b09c
 https://raw.githubusercontent.com/V2RayRoot/V2RayConfig/refs/heads/main/Config/vless.txt
 https://raw.githubusercontent.com/lagzian/SS-Collector/main/mix.txt
 https://raw.githubusercontent.com/MrMohebi/xray-proxy-grabber-telegram/refs/heads/master/collected-proxies/xray-json-full/actives_all.json
-https://raw.githubusercontent.com/Jsnzkpg/Jsnzkpg/Jsnzkpg/Jsnzkpg
 https://raw.githubusercontent.com/voken100g/AutoSSR/master/online
 https://raw.githubusercontent.com/mfuu/v2ray/main/clash.yaml
 https://raw.githubusercontent.com/vxiaov/free_proxy_ss/main/ssr/ssrsub
@@ -135,4 +131,3 @@ https://raw.githubusercontent.com/xhmotor/V2rayn/main/v2rayn
 https://raw.githubusercontent.com/yebekhe/vpn-fail/refs/heads/main/sub-link
 https://raw.githubusercontent.com/ZY-404/v2ray/main/v2ray.txt
 https://raw.githubusercontent.com/amirparsaxs/V2rayy/refs/heads/main/Sub.text555
->>>>>>> Stashed changes

@@ -1,6 +1,5 @@
 # ConfigStream Batch 10
 # Optimized based on fetch duration for equal execution times
-<<<<<<< Updated upstream
 # Est. Fetch Time: 1128.3s
 
 https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_raw_vmess.txt
@@ -55,9 +54,7 @@ https://raw.githubusercontent.com/nscl5/4/main/Splitted-By-Protocol/ss.txt
 https://raw.githubusercontent.com/shuaidaoya/FreeNodes/refs/heads/main/nodes/base64.txt
 https://hidemyip.com/proxylist
 https://raw.githubusercontent.com/kaoxindalao/v2raycheshi/main/v2raycheshi
-=======
 # Est. Fetch Time: 1187.8s
-
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub35.txt
 https://github.com/Epodonios/v2ray-configs/raw/main/Splitted-By-Protocol/ssr.txt
 https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/protocols/ss.txt
@@ -79,7 +76,6 @@ https://raw.githubusercontent.com/Huibq/TrojanLinks/master/links/vmess
 https://raw.githubusercontent.com/MhdiTaheri/V2rayCollector/refs/heads/main/sub/vmess
 https://raw.githubusercontent.com/du5/free/master/file/0312/clash.yaml
 https://raw.githubusercontent.com/taheri79/V2rayCollector/main/sub/normal/vless
-https://raw.githubusercontent.com/ebrasha/free-v2ray-public-list/main/all_extracted_configs.txt
 https://raw.githubusercontent.com/mahdibland/V2RayAggregator/master/sub/sub_list.json
 https://raw.githubusercontent.com/FNET00bot/FNET00/Config/Donate/Normal
 https://raw.githubusercontent.com/Surfboardv2ray/Subs/main/Realm
@@ -88,13 +84,10 @@ https://raw.githubusercontent.com/Firmfox/Proxify/refs/heads/main/v2ray_configs/
 https://raw.githubusercontent.com/shabane/kamaji/master/hub/b64/vmess.txt
 https://cdn.jsdelivr.net/gh/firefoxmmx2/v2rayshare_subcription/subscription/vray_sub.txt
 https://bitbucket.org/huwo1/proxy_nodes/raw/f31ca9ec67b84071515729ff45b011b6b09c10f2/clash.yaml
-https://raw.githubusercontent.com/V2RayRoot/V2RayConfig/main/Config/trojan.txt
 https://raw.githubusercontent.com/lagzian/SS-Collector/main/reality.txt
 https://raw.githubusercontent.com/MrMohebi/xray-proxy-grabber-telegram/master/collected-proxies/clash-meta/all.yaml
 https://raw.githubusercontent.com/Jsnzkpg/Jsnzkpg/Jsnzkpg/Jsnzkpg1
-https://raw.githubusercontent.com/aqayerez/MatnOfficial-VPN/refs/heads/main/MatnOfficial#MatnOfficial
 https://raw.githubusercontent.com/voken100g/AutoSSR/master/recent
-https://raw.githubusercontent.com/Leon406/SubCrawler/main/sub/share/a11
 https://raw.githubusercontent.com/snakem982/proxypool/main/source/clash-meta.yaml
 https://raw.githubusercontent.com/jetkai/proxy-list/main/online-proxies/txt/proxies.txt
 https://raw.githubusercontent.com/dalazhi/v2ray/master/V2RAY.txt
@@ -102,7 +95,6 @@ https://raw.githubusercontent.com/webdao/v2ray/refs/heads/master/nodes2.txt
 https://raw.githubusercontent.com/Kwinshadow/TelegramV2rayCollector/main/sublinks/b64mix.txt
 https://raw.githubusercontent.com/DiDiten/HiN-VPN/main/subscription/hiddify/mix
 https://raw.githubusercontent.com/ircfspace/tvc/main/sub/mix
-https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.json
 https://raw.githubusercontent.com/arshiacomplus/v2rayExtractor/main/mix/sub.html
 https://raw.githubusercontent.com/resasanian/Mirza/master/sub
 https://raw.githubusercontent.com/ripaojiedian/freenode/main/sub
@@ -121,4 +113,3 @@ https://raw.githubusercontent.com/eliv2-ray/ELENA-config/refs/heads/main/Shadow-
 https://raw.githubusercontent.com/Misaka-blog/chromego_merge/main/sub/merged_proxies_new.yaml
 https://bab.si/1jr7
 https://raw.githubusercontent.com/Ai123999/5Frid/refs/heads/main/5Frid_Notorgamers
->>>>>>> Stashed changes
