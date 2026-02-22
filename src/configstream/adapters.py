@@ -17,6 +17,7 @@ from .adapters_base import (
     format_shielded_chain_for_surge,
     format_shielded_chain_for_loon,
 )
+from .converters.chains import chain_outbounds_from_details
 from .utils.bool_parser import parse_tls_flag
 from .utils.net import is_ip_literal as _is_ip_literal
 
@@ -389,8 +390,8 @@ class ShadowrocketAdapter(Adapter):
         )
 
         def _extract_from_chain() -> Optional[str]:
-            chain_obs = details.get("chain_outbounds")
-            if isinstance(chain_obs, list):
+            chain_obs = chain_outbounds_from_details(details)
+            if chain_obs:
                 from .generators.plaintext import _proxy_from_outbound
 
                 for ob in chain_obs:

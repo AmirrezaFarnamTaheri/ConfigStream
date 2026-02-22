@@ -23,26 +23,77 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
           cache-dependency-path: pyproject.toml
+      - name: Install shift-left security tooling
+        run: pip install bandit pip-audit
+      - name: Shift-left security scan (dependency audit)
+        run: pip-audit -r requirements-prod.txt --format json
+      - name: Shift-left security scan (bandit)
+        run: bandit -r src/configstream -q
+      - name: Validate Versions
+        run: python scripts/validate_versions.py
+      - name: Check SPDX license headers
+        run: python scripts/check_license_headers.py
+      - name: Check dependency drift
+        run: python scripts/check_dependency_drift.py
       - name: Install dependencies
         run: |
           pip install -e .[dev]
-          pip install bandit pip-audit
       - name: Update routing databases
         run: |
           python -m configstream.cli update-databases || echo "Database update failed (non-fatal)"
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-${{ matrix.python-version }}-
       - name: Install Playwright browsers
         run: python -m playwright install --with-deps
       - name: Run tests
         run: pytest -q
+      - name: Forensic artifact audit (optional)
+        run: |
+          ARTIFACT=""
+          if [ -f pipeline-output.rar ]; then
+            ARTIFACT="pipeline-output.rar"
+          elif [ -d pipeline-output ]; then
+            ARTIFACT="pipeline-output"
+          fi
+          if [ -n "$ARTIFACT" ]; then
+            python scripts/audit_pipeline_outputs.py \
+              --artifact "$ARTIFACT" \
+              --report pipeline-audit-report.json \
+              --strict
+          else
+            echo "No pipeline-output artifact found; skipping forensic artifact audit."
+          fi
+      - name: Upload forensic audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-audit-report-py${{ matrix.python-version }}
+          path: pipeline-audit-report.json
+          if-no-files-found: ignore
       - name: Run flake8
         run: python -m flake8 src/ tests/
       - name: Run mypy
         run: python -m mypy .
       - name: Run black
         run: python -m black --check .
-      - name: Security Scan (Bandit)
-        run: bandit -r src/configstream -q
-      - name: Dependency Vulnerability Scan
-        run: pip-audit -r requirements-prod.txt --format json || true
-      - name: Validate Versions
-        run: python scripts/validate_versions.py
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install frontend dependencies
+        run: npm install
+      - name: Build frontend assets
+        run: npm run build

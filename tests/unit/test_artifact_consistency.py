@@ -192,6 +192,42 @@ class TestClashTrojanTransport:
 
 
 # ---------------------------------------------------------------------------
+# Clash converter: protocol alias support
+# ---------------------------------------------------------------------------
+
+
+class TestClashProtocolAliases:
+    def test_husi_alias_maps_to_hysteria2(self):
+        proxy = Proxy(
+            config="husi://pass@1.2.3.4:443?sni=example.com",
+            protocol="husi",
+            address="1.2.3.4",
+            port=443,
+            uuid="pass",
+            details={"sni": "example.com"},
+            is_working=True,
+        )
+        out = to_clash_proxy(proxy)
+        assert out is not None
+        assert out.get("type") == "hysteria2"
+
+    def test_exclave_alias_maps_to_vless(self):
+        proxy = Proxy(
+            config="exclave://uuid@1.2.3.4:443?security=tls&sni=example.com",
+            protocol="exclave",
+            address="1.2.3.4",
+            port=443,
+            uuid="11111111-1111-1111-1111-111111111111",
+            details={"sni": "example.com"},
+            is_working=True,
+        )
+        out = to_clash_proxy(proxy)
+        assert out is not None
+        assert out.get("type") == "vless"
+        assert out.get("uuid") == "11111111-1111-1111-1111-111111111111"
+
+
+# ---------------------------------------------------------------------------
 # adapters_base: relay protocol support in chain formatters
 # ---------------------------------------------------------------------------
 

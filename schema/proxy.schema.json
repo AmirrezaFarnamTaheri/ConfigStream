@@ -2,56 +2,1041 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "ConfigStream Proxy",
   "type": "object",
-  "required": ["protocol", "address", "port"],
+  "required": [
+    "config",
+    "protocol",
+    "address",
+    "port",
+    "details",
+    "process"
+  ],
   "properties": {
-    "id": {"type": "string", "description": "Stable proxy identifier (UUID or hash)"},
-    "config": {"type": "string"},
-    "protocol": {"type": "string", "minLength": 1},
-    "address": {"type": "string", "minLength": 1},
-    "port": {"type": "integer", "minimum": 1, "maximum": 65535},
-    "uuid": {"type": "string"},
-    "remarks": {"type": "string"},
-    "country": {"type": "string"},
-    "country_code": {"type": "string"},
-    "city": {"type": "string"},
-    "asn": {"type": "string"},
-    "isp": {"type": "string"},
-    "org": {"type": "string"},
-    "latency": {"type": ["number", "null"]},
-    "is_working": {"type": "boolean"},
-    "is_secure": {"type": "boolean"},
-    "tags": {"type": "array", "items": {"type": "string"}},
-    "last_checked": {"type": "string"},
-    "source": {"type": ["string", "null"]},
+    "id": {
+      "type": "string",
+      "description": "Stable proxy identifier generated from protocol/address/port/credential."
+    },
+    "config": {
+      "type": "string",
+      "minLength": 1
+    },
+    "protocol": {
+      "type": "string",
+      "enum": [
+        "vmess",
+        "vless",
+        "shadowsocks",
+        "ss",
+        "ss2022",
+        "ssr",
+        "trojan",
+        "hysteria",
+        "hysteria2",
+        "hy2",
+        "husi",
+        "tuic",
+        "wireguard",
+        "wg",
+        "exclave",
+        "naive",
+        "naive+https",
+        "naive+http",
+        "snell",
+        "brook",
+        "juicity",
+        "xray",
+        "xtls",
+        "v2ray",
+        "ssh",
+        "http",
+        "https",
+        "socks",
+        "socks4",
+        "socks4a",
+        "socks5",
+        "anytls",
+        "ws",
+        "test",
+        "openvpn",
+        "revived",
+        "unknown"
+      ]
+    },
+    "address": {
+      "type": "string",
+      "minLength": 1
+    },
+    "port": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 65535
+    },
+    "uuid": {
+      "type": "string",
+      "description": "Primary credential for UUID-based protocols.",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+    },
+    "remarks": {
+      "type": "string"
+    },
+    "country": {
+      "type": "string"
+    },
+    "country_code": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "asn": {
+      "type": "string"
+    },
+    "isp": {
+      "type": "string"
+    },
+    "org": {
+      "type": "string"
+    },
+    "latency": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "fetch_latency": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "is_working": {
+      "type": "boolean"
+    },
+    "is_secure": {
+      "type": "boolean"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "security": {
       "type": "object",
       "additionalProperties": {
         "type": "array",
-        "items": {"type": "string"}
+        "items": {
+          "type": "string"
+        }
       }
     },
     "security_issues": {
       "type": "object",
       "additionalProperties": {
         "type": "array",
-        "items": {"type": "string"}
+        "items": {
+          "type": "string"
+        }
       }
     },
-    "tested_at": {"type": "string"},
-    "details": {
-      "type": "object",
-      "additionalProperties": true
+    "tested_at": {
+      "type": "string"
     },
-    "throughput_kbps": {"type": ["integer", "null"]},
-    "dns_over_https_ok": {"type": ["boolean", "null"]},
-    "age_seconds": {"type": "integer"},
-    "stale": {"type": "boolean"},
+    "details": {
+      "type": "object"
+    },
+    "throughput_kbps": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "dns_over_https_ok": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "age_seconds": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "stale": {
+      "type": "boolean"
+    },
     "scores": {
       "type": "object",
-      "additionalProperties": {"type": "number"}
+      "additionalProperties": {
+        "type": "number"
+      }
     },
-    "process": {"type": "string", "description": "Processing type: native, washed, revived-warp, revived-vwarp, chain, shielded"},
-    "history": {"type": ["array", "null"], "items": {"type": "number"}, "description": "Historical latency values for sparklines"}
+    "process": {
+      "type": "string",
+      "description": "Processing type in the pipeline.",
+      "enum": [
+        "native",
+        "washed",
+        "warp",
+        "chain",
+        "revived-warp",
+        "revived-vwarp",
+        "shielded",
+        "fragmented",
+        "utls-mimic",
+        "multipath"
+      ]
+    },
+    "resolved_ip": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "batch_source": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "source_line": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "history": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": "number"
+      }
+    },
+    "source": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
   },
-  "additionalProperties": true
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "protocol": {
+            "enum": [
+              "vless",
+              "exclave"
+            ]
+          }
+        },
+        "required": [
+          "protocol"
+        ]
+      },
+      "then": {
+        "required": [
+          "uuid"
+        ],
+        "properties": {
+          "details": {
+            "$ref": "#/$defs/vless_details"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "protocol": {
+            "const": "vmess"
+          }
+        },
+        "required": [
+          "protocol"
+        ]
+      },
+      "then": {
+        "required": [
+          "uuid"
+        ],
+        "properties": {
+          "details": {
+            "$ref": "#/$defs/vmess_details"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "protocol": {
+            "const": "trojan"
+          }
+        },
+        "required": [
+          "protocol"
+        ]
+      },
+      "then": {
+        "properties": {
+          "details": {
+            "$ref": "#/$defs/trojan_details"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "protocol": {
+            "enum": [
+              "shadowsocks",
+              "ss",
+              "ss2022"
+            ]
+          }
+        },
+        "required": [
+          "protocol"
+        ]
+      },
+      "then": {
+        "properties": {
+          "details": {
+            "$ref": "#/$defs/shadowsocks_details"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "protocol": {
+            "enum": [
+              "wireguard",
+              "wg"
+            ]
+          }
+        },
+        "required": [
+          "protocol"
+        ]
+      },
+      "then": {
+        "properties": {
+          "details": {
+            "$ref": "#/$defs/wireguard_details"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "protocol": {
+            "enum": [
+              "hysteria2",
+              "hy2",
+              "husi"
+            ]
+          }
+        },
+        "required": [
+          "protocol"
+        ]
+      },
+      "then": {
+        "properties": {
+          "details": {
+            "$ref": "#/$defs/hysteria2_details"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "protocol": {
+            "const": "ssh"
+          }
+        },
+        "required": [
+          "protocol"
+        ]
+      },
+      "then": {
+        "properties": {
+          "details": {
+            "$ref": "#/$defs/ssh_details"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "protocol": {
+            "const": "revived"
+          }
+        },
+        "required": [
+          "protocol"
+        ]
+      },
+      "then": {
+        "properties": {
+          "details": {
+            "$ref": "#/$defs/revived_details"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "uuid_v4": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+    },
+    "non_empty_string": {
+      "type": "string",
+      "minLength": 1
+    },
+    "base64_wg_key": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9+/]{43}=$"
+    },
+    "vless_details": {
+      "type": "object",
+      "required": [
+        "uuid",
+        "flow",
+        "type",
+        "security"
+      ],
+      "properties": {
+        "uuid": {
+          "$ref": "#/$defs/uuid_v4"
+        },
+        "flow": {
+          "type": "string",
+          "enum": [
+            "",
+            "xtls-rprx-vision",
+            "vision",
+            "none"
+          ]
+        },
+        "type": {
+          "type": "string"
+        },
+        "net": {
+          "type": "string"
+        },
+        "security": {
+          "type": "string",
+          "enum": [
+            "",
+            "none",
+            "tls",
+            "reality"
+          ]
+        },
+        "encryption": {
+          "type": "string"
+        },
+        "sni": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "serviceName": {
+          "type": "string"
+        },
+        "grpc_service_name": {
+          "type": "string"
+        },
+        "http_host": {
+          "type": "string"
+        },
+        "ws_host": {
+          "type": "string"
+        },
+        "http_path": {
+          "type": "string"
+        },
+        "ws_path": {
+          "type": "string"
+        },
+        "server_name": {
+          "type": "string"
+        },
+        "original_host": {
+          "type": "string"
+        },
+        "resolved_ip": {
+          "type": "string"
+        },
+        "publicKey": {
+          "type": "string"
+        },
+        "pbk": {
+          "type": "string"
+        },
+        "shortId": {
+          "type": "string"
+        },
+        "short_id": {
+          "type": "string"
+        },
+        "sid": {
+          "type": "string"
+        },
+        "fp": {
+          "type": "string"
+        },
+        "fingerprint": {
+          "type": "string"
+        },
+        "alpn": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "tls": {
+          "oneOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "object"
+            }
+          ]
+        },
+        "allowInsecure": {
+          "type": "boolean"
+        },
+        "skip_cert_verify": {
+          "type": "boolean"
+        },
+        "detour": {
+          "type": "string"
+        },
+        "tag": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "vmess_details": {
+      "type": "object",
+      "required": [
+        "uuid"
+      ],
+      "properties": {
+        "uuid": {
+          "$ref": "#/$defs/uuid_v4"
+        },
+        "aid": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "alterId": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "security": {
+          "type": "string"
+        },
+        "sni": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "net": {
+          "type": "string"
+        },
+        "serviceName": {
+          "type": "string"
+        },
+        "grpc_service_name": {
+          "type": "string"
+        },
+        "http_host": {
+          "type": "string"
+        },
+        "ws_host": {
+          "type": "string"
+        },
+        "http_path": {
+          "type": "string"
+        },
+        "ws_path": {
+          "type": "string"
+        },
+        "fp": {
+          "type": "string"
+        },
+        "fingerprint": {
+          "type": "string"
+        },
+        "server_name": {
+          "type": "string"
+        },
+        "alpn": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "tls": {
+          "oneOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "object"
+            }
+          ]
+        },
+        "allowInsecure": {
+          "type": "boolean"
+        },
+        "skip_cert_verify": {
+          "type": "boolean"
+        },
+        "detour": {
+          "type": "string"
+        },
+        "tag": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "trojan_details": {
+      "type": "object",
+      "properties": {
+        "password": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "uuid": {
+          "type": "string"
+        },
+        "sni": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "net": {
+          "type": "string"
+        },
+        "serviceName": {
+          "type": "string"
+        },
+        "grpc_service_name": {
+          "type": "string"
+        },
+        "security": {
+          "type": "string"
+        },
+        "alpn": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "tls": {
+          "oneOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "object"
+            }
+          ]
+        },
+        "allowInsecure": {
+          "type": "boolean"
+        },
+        "skip_cert_verify": {
+          "type": "boolean"
+        },
+        "detour": {
+          "type": "string"
+        },
+        "tag": {
+          "type": "string"
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "password"
+          ]
+        },
+        {
+          "required": [
+            "uuid"
+          ]
+        }
+      ],
+      "additionalProperties": false
+    },
+    "shadowsocks_details": {
+      "type": "object",
+      "required": [
+        "method",
+        "password"
+      ],
+      "properties": {
+        "method": {
+          "type": "string",
+          "pattern": "^(?!ss$)(?!shadowsocks$).+"
+        },
+        "password": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "plugin": {
+          "type": "string"
+        },
+        "plugin_opts": {
+          "type": "string"
+        },
+        "obfs": {
+          "type": "string"
+        },
+        "obfs_param": {
+          "type": "string"
+        },
+        "protocol": {
+          "type": "string"
+        },
+        "protocol_param": {
+          "type": "string"
+        },
+        "server": {
+          "type": "string"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        },
+        "udp_over_tcp": {
+          "type": "boolean"
+        },
+        "detour": {
+          "type": "string"
+        },
+        "tag": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "wireguard_details": {
+      "type": "object",
+      "required": [
+        "private_key",
+        "peer_public_key"
+      ],
+      "properties": {
+        "private_key": {
+          "$ref": "#/$defs/base64_wg_key"
+        },
+        "peer_public_key": {
+          "$ref": "#/$defs/base64_wg_key"
+        },
+        "public_key": {
+          "$ref": "#/$defs/base64_wg_key"
+        },
+        "pre_shared_key": {
+          "$ref": "#/$defs/base64_wg_key"
+        },
+        "presharedKey": {
+          "$ref": "#/$defs/base64_wg_key"
+        },
+        "reserved": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              }
+            }
+          ]
+        },
+        "mtu": {
+          "type": "integer",
+          "minimum": 576,
+          "maximum": 9000
+        },
+        "local_address": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "private_ipv4": {
+          "type": "string"
+        },
+        "private_ipv6": {
+          "type": "string"
+        },
+        "server": {
+          "type": "string"
+        },
+        "server_port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        },
+        "detour": {
+          "type": "string"
+        },
+        "tag": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "hysteria2_details": {
+      "type": "object",
+      "properties": {
+        "password": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "uuid": {
+          "type": "string"
+        },
+        "sni": {
+          "type": "string"
+        },
+        "alpn": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "obfs": {
+          "type": "string"
+        },
+        "obfs-type": {
+          "type": "string"
+        },
+        "obfs-password": {
+          "type": "string"
+        },
+        "tls": {
+          "oneOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "object"
+            }
+          ]
+        },
+        "allowInsecure": {
+          "type": "boolean"
+        },
+        "skip_cert_verify": {
+          "type": "boolean"
+        },
+        "detour": {
+          "type": "string"
+        },
+        "tag": {
+          "type": "string"
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "password"
+          ]
+        },
+        {
+          "required": [
+            "uuid"
+          ]
+        }
+      ],
+      "additionalProperties": false
+    },
+    "ssh_details": {
+      "type": "object",
+      "properties": {
+        "username": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "private_key": {
+          "type": "string"
+        },
+        "host_key": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "detour": {
+          "type": "string"
+        },
+        "tag": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "revived_details": {
+      "type": "object",
+      "required": [
+        "is_revived"
+      ],
+      "properties": {
+        "is_revived": {
+          "type": "boolean"
+        },
+        "use_vwarp": {
+          "type": "boolean"
+        },
+        "vwarp_mode": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "origin_proxy": {
+          "type": "object"
+        },
+        "origin_id": {
+          "type": "string"
+        },
+        "origin_config": {
+          "type": "object"
+        },
+        "chain": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "chain_outbounds": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "dns_safe": {
+          "type": "boolean"
+        },
+        "dns_hardened": {
+          "type": "boolean"
+        },
+        "_origin_id": {
+          "type": "string"
+        },
+        "original_host": {
+          "type": "string"
+        },
+        "sni": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string"
+        },
+        "server_name": {
+          "type": "string"
+        },
+        "error": {
+          "type": "string"
+        },
+        "latency_is_estimate": {
+          "type": "boolean"
+        },
+        "detour": {
+          "type": "string"
+        },
+        "tag": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
 }

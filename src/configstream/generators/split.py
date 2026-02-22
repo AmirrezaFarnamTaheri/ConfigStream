@@ -8,6 +8,7 @@ from typing import List, Dict, Any, Set, Optional, Tuple
 from ..models import Proxy
 from .clash import generate_clash_config
 from ..converters import to_singbox_outbound
+from ..converters.chains import chain_outbounds_from_details
 from ..utils import AtomicFileWriter
 
 logger = logging.getLogger(__name__)
@@ -129,8 +130,8 @@ def generate_split_outputs(
     for p in proxies:
         if _is_washed_proxy(p, washed_ids):
             continue
-        chain_outbounds = p.details.get("chain_outbounds")
-        if isinstance(chain_outbounds, list) and chain_outbounds:
+        chain_outbounds = chain_outbounds_from_details(p.details or {})
+        if chain_outbounds:
             continue  # chains handled separately
         sb_proxy = to_singbox_outbound(p)
         if sb_proxy:
@@ -148,8 +149,8 @@ def generate_split_outputs(
         if _is_washed_proxy(p, washed_ids):
             continue
 
-        chain_outbounds = p.details.get("chain_outbounds")
-        if isinstance(chain_outbounds, list) and chain_outbounds:
+        chain_outbounds = chain_outbounds_from_details(p.details or {})
+        if chain_outbounds:
             _append_chain_uniquified(
                 chain_outbounds, outbounds, seen_tags, tag_remap, selector_tags
             )
@@ -313,8 +314,8 @@ def generate_split_outputs(
         if _is_washed_proxy(p, washed_ids):
             continue
 
-        chain_outbounds = p.details.get("chain_outbounds")
-        if isinstance(chain_outbounds, list) and chain_outbounds:
+        chain_outbounds = chain_outbounds_from_details(p.details or {})
+        if chain_outbounds:
             _append_chain_uniquified(
                 chain_outbounds,
                 tank_outbounds,

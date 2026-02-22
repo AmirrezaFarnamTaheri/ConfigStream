@@ -90,6 +90,10 @@ class FakeResponse:
         for i in range(0, len(self.payload), chunk_size):
             yield self.payload[i : i + chunk_size]
 
+    def iter_bytes(self, chunk_size=8192):
+        for i in range(0, len(self.payload), chunk_size):
+            yield self.payload[i : i + chunk_size]
+
     def __enter__(self):
         return self
 
@@ -109,17 +113,22 @@ def _tar_payload(edition: str):
 
 
 def test_update_databases_prefers_maxmind(monkeypatch, runner):
-    payloads = iter(
-        [
-            _tar_payload("GeoLite2-City"),
-            _tar_payload("GeoLite2-ASN"),
-        ]
-    )
+    maxmind_payloads = {
+        "GeoLite2-City": _tar_payload("GeoLite2-City"),
+        "GeoLite2-ASN": _tar_payload("GeoLite2-ASN"),
+    }
+    singbox_payload = b"db-bytes"
 
-    def fake_get(url, stream=True, timeout=120):
-        return FakeResponse(next(payloads))
+    def fake_stream(method, url, timeout=120.0, follow_redirects=True):
+        if "edition_id=GeoLite2-City" in url:
+            return FakeResponse(maxmind_payloads["GeoLite2-City"])
+        if "edition_id=GeoLite2-ASN" in url:
+            return FakeResponse(maxmind_payloads["GeoLite2-ASN"])
+        if url.endswith("/geosite.db") or url.endswith("/geoip.db"):
+            return FakeResponse(singbox_payload)
+        raise AssertionError(f"Unexpected download URL: {url}")
 
-    monkeypatch.setattr("configstream.cli.requests.get", fake_get)
+    monkeypatch.setattr("configstream.cli.httpx.stream", fake_stream)
 
     with runner.isolated_filesystem():
         result = runner.invoke(
@@ -131,12 +140,16 @@ def test_update_databases_prefers_maxmind(monkeypatch, runner):
 
 
 def test_update_databases_mirror_fallback(monkeypatch, runner):
-    payloads = iter([b"city-bytes", b"asn-bytes"])
+    def fake_stream(method, url, timeout=120.0, follow_redirects=True):
+        if url.endswith("/GeoLite2-City.mmdb"):
+            return FakeResponse(b"city-bytes")
+        if url.endswith("/GeoLite2-ASN.mmdb"):
+            return FakeResponse(b"asn-bytes")
+        if url.endswith("/geosite.db") or url.endswith("/geoip.db"):
+            return FakeResponse(b"db-bytes")
+        raise AssertionError(f"Unexpected download URL: {url}")
 
-    def fake_get(url, stream=True, timeout=120):
-        return FakeResponse(next(payloads))
-
-    monkeypatch.setattr("configstream.cli.requests.get", fake_get)
+    monkeypatch.setattr("configstream.cli.httpx.stream", fake_stream)
 
     with runner.isolated_filesystem():
         result = runner.invoke(main, ["update-databases"])

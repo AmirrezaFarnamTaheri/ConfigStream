@@ -8,6 +8,7 @@ import secrets
 import importlib.metadata
 from pathlib import Path
 from typing import Optional, List
+from datetime import datetime, timezone
 
 from fastapi import (
     FastAPI,
@@ -315,7 +316,7 @@ async def get_proxy_diff(request: Request, base_version: str):
         try:
             old_data = json.loads(old_path.read_text())
 
-            # Assuming proxies have 'id' field. If not, fallback to index
+            # Prefer stable proxy IDs; fallback to index for legacy payloads.
             current_ids = {p.get("id", str(i)): p for i, p in enumerate(current_data)}
             old_ids = {p.get("id", str(i)): p for i, p in enumerate(old_data)}
 
@@ -620,6 +621,16 @@ async def health_check():
         # Don't expose absolute filesystem paths to clients
         "output_available": OUTPUT_DIR.exists(),
         "files_present": files_count,
+        "version": VERSION,
+    }
+
+
+@app.get("/api/keepalive")
+async def keep_alive():
+    """Minimal heartbeat endpoint for platform anti-idle pings."""
+    return {
+        "status": "alive",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "version": VERSION,
     }
 

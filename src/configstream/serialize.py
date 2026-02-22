@@ -8,6 +8,7 @@ import json
 from typing import Dict, Any, List, Optional, Union
 
 from .models import Proxy
+from .converters.chains import chain_outbounds_from_details
 
 # Proxy object serialization.
 # Note: History data (latency points) is injected dynamically by the pipeline before serialization,
@@ -32,9 +33,19 @@ def serialize_proxy(
     # that v2rayN / xray / nekoray / Hiddify can import directly.
     config_value = proxy.config
     details_value = proxy.details
+    if isinstance(details_value, dict) and isinstance(details_value.get("chain"), list):
+        serialized_chain: List[Dict[str, Any]] = []
+        for hop in details_value.get("chain", []):
+            if isinstance(hop, Proxy):
+                serialized_chain.append(hop.model_dump(mode="json"))
+            elif isinstance(hop, dict):
+                serialized_chain.append(hop)
+        details_value = dict(details_value)
+        details_value["chain"] = serialized_chain
+
     if proxy.protocol == "revived" or (proxy.config or "").startswith("revived://"):
-        chain_obs = (proxy.details or {}).get("chain_outbounds")
-        if isinstance(chain_obs, list) and chain_obs:
+        chain_obs = chain_outbounds_from_details(proxy.details or {})
+        if chain_obs:
             config_value = _build_chain_config(chain_obs)
         # Strip heavy origin_proxy blob from serialized details but
         # preserve a compact origin_config for URI reconstruction in

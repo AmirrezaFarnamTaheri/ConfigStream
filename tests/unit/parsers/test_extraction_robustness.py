@@ -122,8 +122,9 @@ def test_is_plausible_proxy_config_relaxed():
     # Allowed: : - _ . / @ # % ? & = + , ; ( ) ~ [ ] ! * ' | $
     # Not allowed: ^ < > ` " \ { }
 
-    # Let's try a string with '^' which is NOT allowed.
-    bad_chars = "^" * 99
+    # '^' is now intentionally allowed for modern VLESS/Reality payloads.
+    # Use backticks (still disallowed) for a high-noise failure case.
+    bad_chars = "`" * 99
     good_chars = "A"
     bad_config = "vmess://" + good_chars + bad_chars
     # 99 bad, 1 good. 99/100 = 0.99. Should FAIL.
@@ -133,7 +134,7 @@ def test_is_plausible_proxy_config_relaxed():
     # Threshold was tightened from 0.98 to 0.50. A config with 97% special
     # chars is garbage and should now be rejected. Test updated to reflect this.
     # 97 bad, 3 good -> ratio 0.97 -> FAIL (> 0.50)
-    borderline_config = "vmess://" + "ABC" + "^" * 97
+    borderline_config = "vmess://" + "ABC" + "`" * 97
     assert is_plausible_proxy_config(borderline_config) is False
 
     # New borderline: 40% bad, 60% good -> ratio 0.40 -> PASS (< 0.50)

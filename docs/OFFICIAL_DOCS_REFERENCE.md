@@ -1,6 +1,6 @@
 # Official Documentation Reference
 
-**Purpose:** Central reference for external docs used by ConfigStream. Use for schema validation, format compliance, and troubleshooting. All URLs verified against live documentation (2026-02).
+**Purpose:** Central reference for external docs used by ConfigStream. Use for schema validation, format compliance, and troubleshooting. All URLs verified against live documentation on **2026-02-22**.
 
 ---
 
@@ -12,6 +12,11 @@
 | Sing-box WireGuard | [outbound/wireguard](https://sing-box.sagernet.org/configuration/outbound/wireguard/) | ✅ `private_key`, `peer_public_key`, `mtu` (1280); deprecated 1.11, removed 1.13 |
 | Sing-box VMess | [outbound/vmess](https://sing-box.sagernet.org/zh/configuration/outbound/vmess/) | ✅ `uuid`, `alter_id`, `security` (cipher) |
 | Sing-box VLESS | [outbound/vless](https://sing-box.sagernet.org/zh/configuration/outbound/vless/) | ✅ `uuid`, `flow` (xtls-rprx-vision only) |
+| Xray VLESS share format | [Xray URI Scheme: VLESS](https://github.com/XTLS/Xray-core/discussions/716) | ✅ parser-level `flow` validation; rejects obsolete `xtls-rprx-direct` |
+| Xray VMess share format | [Xray URI Scheme: VMess](https://github.com/XTLS/Xray-core/discussions/716) | ✅ UUID-aware CPO identity + strict schema |
+| Hysteria2 | [Official docs](https://v2.hysteria.network/docs/advanced/Full-Client-Config/) | ✅ password/auth fields and transport options mapped |
+| WireGuard key format | [Official Quick Start](https://www.wireguard.com/quickstart/) | ✅ strict Base64 key checks in schema/runtime |
+| Shadowsocks 2022 | [SIP022 AEAD-2022](https://shadowsocks.org/doc/sip022.html) | ✅ method family and key handoff coverage |
 | Surge proxy chain | [policy/proxy](https://manual.nssurge.com/policy/proxy.html) | ✅ `underlying-proxy` for WireGuard-over-Proxy |
 | Loon node chain | [Node](https://nsloon.app/docs/Node/) | ✅ `proxy=` for WireGuard chains |
 | Mihomo relay | [relay](https://wiki.metacubex.one/en/config/proxy-groups/relay/) | ⚠️ **WireGuard does NOT support relay**; use `dialer-proxy` or sing-box |

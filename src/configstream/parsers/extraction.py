@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import json
 import logging
+import math
 import re
 from urllib.parse import urlparse
 from typing import List, Tuple, Dict, Any, Optional
@@ -22,6 +23,52 @@ _IPV4_PORT_PATTERN = re.compile(
     r"\b(?P<host>(?:25[0-5]|2[0-4]\d|1?\d?\d)(?:\.(?:25[0-5]|2[0-4]\d|1?\d?\d)){3}):(?P<port>\d{1,5})\b"
 )
 _IPV6_PORT_PATTERN = re.compile(r"\[(?P<host>[0-9A-Fa-f:]+)\]:(?P<port>\d{1,5})")
+_OBFUSCATED_IPV4_PORT_PATTERN = re.compile(
+    r"\b(?P<host>(?:0x[0-9A-Fa-f]+|0[0-7]+|\d+)(?:\.(?:0x[0-9A-Fa-f]+|0[0-7]+|\d+)){3}):(?P<port>\d{1,5})\b"
+)
+
+
+def _parse_ip_octet(token: str) -> Optional[int]:
+    tok = token.strip()
+    if not tok:
+        return None
+    try:
+        if tok.lower().startswith("0x"):
+            value = int(tok, 16)
+        elif len(tok) > 1 and tok.startswith("0"):
+            value = int(tok, 8)
+        else:
+            value = int(tok, 10)
+    except ValueError:
+        return None
+    return value if 0 <= value <= 255 else None
+
+
+def _decode_obfuscated_ipv4(host: str) -> Optional[str]:
+    parts = host.split(".")
+    if len(parts) != 4:
+        return None
+    decoded = []
+    for part in parts:
+        octet = _parse_ip_octet(part)
+        if octet is None:
+            return None
+        decoded.append(str(octet))
+    return ".".join(decoded)
+
+
+def _shannon_entropy(sample: str) -> float:
+    if not sample:
+        return 0.0
+    counts: Dict[str, int] = {}
+    for ch in sample:
+        counts[ch] = counts.get(ch, 0) + 1
+    length = float(len(sample))
+    entropy = 0.0
+    for count in counts.values():
+        p = count / length
+        entropy -= p * math.log2(p)
+    return entropy
 
 
 def is_plausible_proxy_config(config: str) -> bool:
@@ -54,16 +101,27 @@ def is_plausible_proxy_config(config: str) -> bool:
     if not protocol or len(protocol) > 20 or len(rest) < 4:
         return False
 
-    # Tightened noise check from 0.98 to 0.50 to reject binary garbage.
-    # The previous 98% threshold allowed high-entropy garbage (e.g., 'un;k')
-    # to pass through and crash the Go tester with "unknown method" FATAL errors.
-    # Valid Base64-heavy VLESS URIs still pass at 50% because Base64 chars
-    # (A-Z, a-z, 0-9, +, /, =) are alphanumeric.
+    # Protocol-aware noise limits:
+    # VLESS links can carry heavily encoded query strings, so allow a higher ratio.
+    noise_threshold = 0.50
+    proto_lower = protocol.lower()
+    if proto_lower in ("vless", "exclave"):
+        noise_threshold = 0.65
+    elif proto_lower in ("vmess", "trojan"):
+        noise_threshold = 0.58
+    if len(rest) > 200:
+        noise_threshold += 0.05
+    if len(rest) > 500:
+        noise_threshold += 0.05
+    noise_threshold = min(0.90, noise_threshold)
+
     special_char_count = sum(
-        1 for c in rest if not c.isalnum() and c not in ":-_./@#%?&=+,;()~[]!*'|$"
+        1
+        for c in rest
+        if not c.isalnum() and c not in ":-_./@#%?&=+,;()~[]!*'|${}<>\\^\""
     )
 
-    if len(rest) > 20 and special_char_count > len(rest) * 0.50:
+    if len(rest) > 20 and special_char_count > len(rest) * noise_threshold:
         return False
 
     # [Check] Double protocol
@@ -126,6 +184,24 @@ def extract_config_lines(
 
     if not payload_str.strip():
         return [], {"empty_payload": 1}
+
+    # Reject hostile/binary payloads before deeper parsing to avoid OOM spikes.
+    if "\x00" in payload_str:
+        logger.debug("Dropping payload with NULL bytes.")
+        return [], {"hostile_payload": 1}
+
+    sample = payload_str[:8192]
+    non_printable = sum(
+        1 for c in sample if ord(c) < 9 or (13 < ord(c) < 32) or ord(c) == 127
+    )
+    if sample:
+        non_printable_ratio = non_printable / len(sample)
+        if non_printable_ratio > 0.20 and _shannon_entropy(sample) > 7.2:
+            logger.debug(
+                "Dropping high-entropy binary-like payload (ratio=%.2f).",
+                non_printable_ratio,
+            )
+            return [], {"hostile_payload": 1}
 
     # HTML Pollution Detection
     # Detect common HTML tags at start of content
@@ -305,19 +381,32 @@ def extract_config_lines(
                 reason = "implausible_format"
         else:
             raw_candidate = candidate
+            host_is_obfuscated = False
             match = _IPV6_PORT_PATTERN.search(candidate)
             if not match:
                 match = _IPV4_PORT_PATTERN.search(candidate)
+            if not match:
+                match = _OBFUSCATED_IPV4_PORT_PATTERN.search(candidate)
+                host_is_obfuscated = match is not None
 
             if match:
                 host = match.group("host")
+                if host_is_obfuscated:
+                    decoded = _decode_obfuscated_ipv4(host)
+                    if decoded:
+                        host = decoded
+                    else:
+                        reason = "invalid_obfuscated_ip"
+                        host = ""
                 port_str = match.group("port")
                 try:
                     port_val = int(port_str)
                 except (TypeError, ValueError):
                     reason = "invalid_port"
                 else:
-                    if not (1 <= port_val <= 65535):
+                    if reason:
+                        pass
+                    elif not (1 <= port_val <= 65535):
                         reason = "invalid_port"
                     else:
                         addr = f"[{host}]" if ":" in host else host

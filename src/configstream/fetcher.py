@@ -86,6 +86,19 @@ async def fetch_from_source(
             is_open = await is_open
 
         if is_open:
+            should_log_open = False
+            should_log_fn = getattr(breaker, "should_log_open", None)
+            if callable(should_log_fn):
+                maybe_should_log = should_log_fn()
+                if asyncio.iscoroutine(maybe_should_log):
+                    should_log_open = await maybe_should_log
+                else:
+                    should_log_open = bool(maybe_should_log)
+            if should_log_open:
+                logger.warning(
+                    "Circuit breaker opened for host %s; skipping fetches temporarily.",
+                    SecurityValidator.sanitize_log_message(str(key)),
+                )
             return FetchResult(
                 success=False,
                 source=source,
@@ -156,6 +169,8 @@ async def fetch_from_source(
                         await timeout_tracker.record_attempt(
                             source, response_time, success=False
                         )
+                    if breaker:
+                        await breaker.record_failure()
                     return FetchResult(
                         success=False,
                         source=source,
@@ -325,6 +340,7 @@ async def fetch_multiple_sources(
     client: Optional[httpx.AsyncClient] = None,
     use_adaptive_timeout: bool = True,
     quality_tracker: Optional[SourceQualityTracker] = None,
+    breaker_manager: Optional[CircuitBreakerManager] = None,
 ) -> Dict[str, FetchResult]:
     """
     High-level entry point for batch fetching.
@@ -336,10 +352,11 @@ async def fetch_multiple_sources(
     # Initialize Components
     timeout_tracker = AdaptiveTimeout() if use_adaptive_timeout else None
     rate_limiter = None
-    breaker_manager = CircuitBreakerManager(
-        failure_threshold=app_settings.CIRCUIT_TRIP_CONN_ERRORS,
-        recovery_timeout=app_settings.CIRCUIT_OPEN_SEC,
-    )
+    if breaker_manager is None:
+        breaker_manager = CircuitBreakerManager(
+            failure_threshold=app_settings.CIRCUIT_TRIP_CONN_ERRORS,
+            recovery_timeout=app_settings.CIRCUIT_OPEN_SEC,
+        )
 
     # Setup Concurrency Control
     loop = asyncio.get_running_loop()

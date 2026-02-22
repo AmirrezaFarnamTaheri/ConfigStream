@@ -24,13 +24,16 @@ from .adapters import get_adapter, ShadowrocketAdapter
 from .generators.plaintext import generate_plaintext_subscription
 from .intelligence.chaining import generate_smart_chains
 from .intelligence.washer.core import ProxyWasher
+from .converters.chains import chain_outbounds_from_details, update_chain_details
 from .utils import AtomicFileWriter
 from .config import AppSettings
 from .constants import (
     CHOSEN_TOP_PER_PROTOCOL,
     CHOSEN_TOTAL_TARGET,
+    DropCategory,
     canonical_protocol_name,
     protocol_sort_key,
+    latency_bucket_for_ms,
 )
 from .dns_profiles import (
     build_singbox_dns_profile,
@@ -86,8 +89,8 @@ def _rewrite_openvpn_remote(config: str, original_host: str, ip_value: str) -> s
 def _rewrite_chain_outbounds_for_dns(
     details: Dict[str, Any], host_map: Dict[str, str]
 ) -> None:
-    chain = details.get("chain_outbounds")
-    if not isinstance(chain, list) or not chain:
+    chain = chain_outbounds_from_details(details)
+    if not chain:
         return
     rewritten_chain: List[Dict[str, Any]] = []
     changed = False
@@ -108,7 +111,7 @@ def _rewrite_chain_outbounds_for_dns(
                 changed = True
         rewritten_chain.append(item)
     if changed and rewritten_chain:
-        details["chain_outbounds"] = rewritten_chain
+        update_chain_details(details, rewritten_chain)
 
 
 def _build_dns_safe_proxies(
@@ -850,8 +853,8 @@ def generate_categorized_outputs(
     # 1. Proxy-level chains (from revived proxies)
     for p in proxies:
         # Guard against None details to prevent AttributeError
-        chain = (p.details or {}).get("chain_outbounds")
-        if isinstance(chain, list) and chain:
+        chain = chain_outbounds_from_details(p.details or {})
+        if chain:
             chain_copy = copy.deepcopy(chain)
             # Apply proxy.remarks to entry point (last outbound) for revived chains
             # so user-formatted names appear in singbox-chains.json
@@ -914,8 +917,8 @@ def generate_categorized_outputs(
         # Guard against None details to prevent AttributeError
         _det = p.details or {}
         if _det.get("is_revived") or (p.process or "").startswith("revived"):
-            chain = _det.get("chain_outbounds")
-            if isinstance(chain, list) and chain:
+            chain = chain_outbounds_from_details(_det)
+            if chain:
                 revived_only_chains.extend(copy.deepcopy(chain))
 
     # Generate separate outputs for analytics/debugging (optional, not user-facing)
@@ -1324,15 +1327,7 @@ def save_metadata(
         working += 1
 
         # Latency distribution
-        latency = p.latency or 9999
-        if latency < 200:
-            lat_dist["fast"] += 1
-        elif latency < 800:
-            lat_dist["medium"] += 1
-        elif latency < 2000:
-            lat_dist["slow"] += 1
-        else:
-            lat_dist["very_slow"] += 1
+        lat_dist[latency_bucket_for_ms(p.latency)] += 1
 
         # Protocol count
         protocols[p.protocol] = protocols.get(p.protocol, 0) + 1
@@ -1393,6 +1388,9 @@ def save_metadata(
     evasion_multiplexing_enabled = 0
     evasion_dns_safe_count = 0
     evasion_dns_hardened_count = 0
+    backpressure_drop = 0
+    trace_id = "-"
+    pipeline_execution_audit: Dict[str, Any] = {}
 
     if isinstance(stats, dict):
         # Stats is a dict (from merge script)
@@ -1441,6 +1439,11 @@ def save_metadata(
         evasion_multiplexing_enabled = stats.get("evasion_multiplexing_enabled", 0)
         evasion_dns_safe_count = stats.get("evasion_dns_safe_count", 0)
         evasion_dns_hardened_count = stats.get("evasion_dns_hardened_count", 0)
+        backpressure_drop = stats.get("backpressure_drop", 0)
+        trace_id = str(stats.get("trace_id") or "-")
+        audit_obj = stats.get("pipeline_execution_audit")
+        if isinstance(audit_obj, dict):
+            pipeline_execution_audit = dict(audit_obj)
         start_time_iso = stats.get("start_time")
         if stats.get("end_time"):
             end_time_iso = str(stats.get("end_time") or "")
@@ -1510,6 +1513,14 @@ def save_metadata(
             evasion_dns_safe_count = stats.evasion_dns_safe_count
         if hasattr(stats, "evasion_dns_hardened_count"):
             evasion_dns_hardened_count = stats.evasion_dns_hardened_count
+        if hasattr(stats, "backpressure_drop"):
+            backpressure_drop = stats.backpressure_drop
+        if hasattr(stats, "trace_id"):
+            trace_id = str(getattr(stats, "trace_id") or "-")
+        if hasattr(stats, "pipeline_execution_audit"):
+            audit_obj = getattr(stats, "pipeline_execution_audit")
+            if isinstance(audit_obj, dict):
+                pipeline_execution_audit = dict(audit_obj)
         # Use stats.working as source of truth (more accurate than counting in loop)
         # But only if it's non-zero (to avoid overriding correct loop count)
         if hasattr(stats, "working") and stats.working > 0:
@@ -1521,6 +1532,44 @@ def save_metadata(
         stats_working = stats.get("working", 0)
         if stats_working > 0:
             working = stats_working
+
+    def _normalize_drop_reason(reason: str) -> str:
+        key = (reason or "").strip().lower()
+        if not key:
+            return DropCategory.UNKNOWN.value
+        if "duplicate" in key:
+            return DropCategory.DUPLICATE.value
+        if "invalid_protocol" in key:
+            return DropCategory.INVALID_PROTOCOL.value
+        if "invalid_port" in key:
+            return DropCategory.INVALID_PORT.value
+        if "missing_protocol_separator" in key:
+            return DropCategory.MISSING_PROTOCOL_SEPARATOR.value
+        if "implausible_format" in key:
+            return DropCategory.IMPLAUSIBLE_FORMAT.value
+        if "security" in key:
+            return DropCategory.SECURITY_VALIDATION.value
+        if "html" in key:
+            return DropCategory.HTML_CONTENT.value
+        if "hostile_payload" in key:
+            return DropCategory.HOSTILE_PAYLOAD.value
+        if "size_limit" in key:
+            return DropCategory.SIZE_LIMIT_EXCEEDED.value
+        if "backpressure" in key:
+            return DropCategory.BACKPRESSURE_DROP.value
+        if "tester_error" in key:
+            return DropCategory.TESTER_ERROR.value
+        if "fetch_error" in key:
+            return DropCategory.FETCH_ERROR.value
+        return key
+
+    normalized_reasons: Dict[str, int] = {}
+    for reason_key, reason_count in (reasons or {}).items():
+        category = _normalize_drop_reason(str(reason_key))
+        normalized_reasons[category] = normalized_reasons.get(category, 0) + int(
+            reason_count or 0
+        )
+    reasons = normalized_reasons
 
     # Note: Removed heuristic fallbacks - use exact counts from PipelineStats
     # If counts are 0, they should remain 0 (not estimated from tags)
@@ -1582,6 +1631,7 @@ def save_metadata(
         "success_rate": (working / tested_count) if tested_count > 0 else 0,
         "generated_at": end_time_iso,
         "last_updated_utc": end_time_iso,
+        "trace_id": trace_id,
         "latency_distribution": lat_dist,
         "protocols": protocols,
         "country_stats": countries,
@@ -1608,6 +1658,7 @@ def save_metadata(
         "washer_success_count": washed_count,
         "smart_chain_count": smart_chain_count,
         "chain_outbounds_count": chain_outbounds_count,
+        "backpressure_drop": backpressure_drop,
         # Export all revive/vwarp stats for complete tracking
         "revived_warp": revived_warp,
         "revived_vwarp": revived_vwarp,
@@ -1645,6 +1696,7 @@ def save_metadata(
         "fetched_sources": fetched_sources,  # Actual sources processed
         "sources_count": total_configured_sources
         or fetched_sources,  # Consumed by main.js
+        "total_sources": total_configured_sources or fetched_sources,
         "update_interval_hours": update_interval_hours,
         "latency_by_country": latency_by_country,
         "latency_by_protocol": latency_by_protocol,
@@ -1662,6 +1714,7 @@ def save_metadata(
                 else (working if working > 0 else len(proxies))
             ),
         ),
+        "pipeline_execution_audit": pipeline_execution_audit,
     }
 
     AtomicFileWriter.write_text(

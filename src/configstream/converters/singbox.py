@@ -4,12 +4,14 @@ import hashlib
 import base64
 import ipaddress
 import re
+import copy
 from typing import Any, Dict, Optional, Set
 from ..models import Proxy
 from ..security_validator import SecurityValidator
 from .singbox_utils import add_transport_sb, apply_stealth_profile
 from ..utils.bool_parser import parse_bool, parse_tls_flag
 from ..tagging import get_flag_emoji
+from .chains import chain_outbounds_from_details
 
 logger = logging.getLogger(__name__)
 
@@ -228,8 +230,15 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         # Not an IP address (domain name), proceed
         pass
 
-    # Use formatted remarks as tag when available
-    if proxy.remarks and proxy.remarks.lower() not in ["", "defaultproxyname", "none"]:
+    # Use explicit chain tag (when present), then remarks, then generated fallback.
+    detail_tag = proxy.details.get("tag")
+    if isinstance(detail_tag, str) and detail_tag.strip():
+        tag = detail_tag.strip()
+    elif proxy.remarks and proxy.remarks.lower() not in [
+        "",
+        "defaultproxyname",
+        "none",
+    ]:
         tag = proxy.remarks
     else:
         flag = get_flag_emoji(proxy.country_code)
@@ -370,23 +379,20 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             return None
 
     elif protocol == "revived":
-        chain_outbounds = proxy.details.get("chain_outbounds")
-        if not isinstance(chain_outbounds, list) or not chain_outbounds:
-            return None
-
-        chain_items = [o for o in chain_outbounds if isinstance(o, dict)]
-        if not chain_items:
+        chain_outbounds = chain_outbounds_from_details(proxy.details or {})
+        if not chain_outbounds:
             return None
 
         chain_head = next(
-            (o for o in chain_items if o.get("type") == "wireguard"), chain_items[0]
+            (o for o in chain_outbounds if o.get("type") == "wireguard"),
+            chain_outbounds[0],
         )
-        extra_outbounds = [o for o in chain_items if o is not chain_head]
-        out = chain_head.copy()
+        extra_outbounds = [o for o in chain_outbounds if o is not chain_head]
+        out = copy.deepcopy(chain_head)
         if proxy.remarks:
             out["tag"] = proxy.remarks
         if extra_outbounds:
-            out["_extra_outbounds"] = extra_outbounds
+            out["_extra_outbounds"] = copy.deepcopy(extra_outbounds)
 
     elif protocol == "http":
         tls_enabled = parse_tls_flag(proxy.details.get("tls")) or proxy.details.get(
@@ -655,6 +661,12 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "insecure": is_insecure,
             "alpn": proxy.details.get("alpn", []),
         }
+
+    # Generic detour passthrough for canonical chain hops represented as Proxy objects.
+    if out and isinstance(proxy.details.get("detour"), str):
+        detour = proxy.details.get("detour", "").strip()
+        if detour:
+            out["detour"] = detour
 
     # Final check using normalized protocol variable
     if out and protocol in ["vmess", "vless", "trojan", "shadowsocks"]:

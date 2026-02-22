@@ -10,6 +10,7 @@ from ..constants import canonical_protocol_name, protocol_sort_key
 from ..filtering import proxy_unique_key
 from ..models import Proxy
 from ..utils.net import is_ip_literal as _is_ip_literal
+from ..converters.chains import chain_outbounds_from_details
 
 logger = logging.getLogger(__name__)
 
@@ -144,8 +145,8 @@ def _extract_uri(proxy: Proxy, adapter: ShadowrocketAdapter) -> Optional[str]:
         )
 
         def _extract_from_chain() -> Optional[str]:
-            chain_obs = details.get("chain_outbounds")
-            if not isinstance(chain_obs, list):
+            chain_obs = chain_outbounds_from_details(details)
+            if not chain_obs:
                 return None
             for ob in chain_obs:
                 if not isinstance(ob, dict):

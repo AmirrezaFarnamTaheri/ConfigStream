@@ -2,7 +2,6 @@
 """Tests for AdaptiveTimeout."""
 
 import pytest
-import statistics
 import json
 from unittest.mock import patch
 from pathlib import Path
@@ -97,12 +96,11 @@ def test_save_fail(tmp_path):
         at.save()  # Should log warning but not crash
 
 
-def test_update_statistics_error():
-    at = AdaptiveTimeout(history_file=Path("dummy"))
-    # Mock statistics.quantiles to raise error even if list has items
-    with patch("statistics.quantiles", side_effect=statistics.StatisticsError("Err")):
-        at.latencies = [1.0, 2.0]
-        at.update()  # Should catch and log
+def test_update_requires_minimum_sample_size():
+    at = AdaptiveTimeout(initial=9.0, history_file=Path("dummy"))
+    at.latencies = [1.0] * 10  # < 20 => no adaptation
+    at.update()
+    assert at.current_timeout == 9.0
 
 
 @pytest.mark.asyncio

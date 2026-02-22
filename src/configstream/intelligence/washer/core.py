@@ -14,7 +14,7 @@ from typing import List, Dict, Optional, Set, Any, Tuple
 from cachetools import LRUCache  # type: ignore
 
 from configstream.models import Proxy
-from configstream.converters import to_singbox_outbound
+from configstream.converters import to_singbox_outbound, update_chain_details
 from configstream.warp_scanner import WarpScannerWorker
 from configstream.intelligence.washer.warp_scraper import WarpScraper
 from configstream.intelligence.washer.key_generator import (
@@ -1091,38 +1091,37 @@ class ProxyWasher:
             "mtu": 1280,
         }
 
+    def _has_vwarp_binary(self) -> bool:
+        """Best-effort local binary presence check."""
+        if shutil.which("vwarp"):
+            return True
+        return Path("vwarp").exists() or Path("/usr/local/bin/vwarp").exists()
+
     def is_vwarp_available(self) -> bool:
-        """Check if Vwarp tunnel is likely operational."""
-        # Check if binary exists (fast)
-        if not shutil.which("vwarp"):
-            # Check common paths from VwarpTool logic if needed, but shutil.which covers PATH
-            # Fallback to local check
-            if not Path("vwarp").exists() and not Path("/usr/local/bin/vwarp").exists():
-                return False
+        """
+        Synchronous compatibility check.
 
-        # If binary exists, we assume it MIGHT work, but really we should check the port.
-        # But checking port 8086 requires async or socket.
-        # Given consumer.py calls this in async context, but wash_failed is not async?
-        # Wait, wash_failed is synchronous in core.py?
-        # "def wash_failed(self, ...):" -> Yes, it is sync.
-        # So we cannot use "await vwarp.is_available()".
-        # We can use a simple socket check.
+        NOTE:
+        This method intentionally avoids blocking socket probes. Async code paths
+        should use ``is_vwarp_available_async`` for live tunnel checks.
+        """
+        return self._has_vwarp_binary()
 
-        import socket
-
+    async def is_vwarp_available_async(self) -> bool:
+        """Check binary presence and local SOCKS reachability without blocking."""
+        if not self._has_vwarp_binary():
+            return False
         try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.settimeout(0.1)
-                # Check Vwarp SOCKS port (8086 default)
-                if s.connect_ex((VWARP_BIND_ADDRESS, VWARP_SOCKS5_PORT)) == 0:
-                    return True
+            reader, writer = await asyncio.wait_for(
+                asyncio.open_connection(VWARP_BIND_ADDRESS, VWARP_SOCKS5_PORT),
+                timeout=0.25,
+            )
+            writer.close()
+            await writer.wait_closed()
+            _ = reader  # keep reference for type checkers
+            return True
         except Exception:
-            pass
-
-        # If port check fails, maybe it"s just not started yet, or dead.
-        # But if it"s not started, using it will fail anyway.
-        # So returning False is safe to prevent wasting resources.
-        return False
+            return False
 
     def wash_failed(
         self,
@@ -1163,6 +1162,7 @@ class ProxyWasher:
             else:
                 chain_id = f"WARP-REVIVE-{relay.id[:8]}"
                 relay_tag_prefix = "WARP-RELAY"
+            process_tag = "revived-vwarp" if use_vwarp else "revived-warp"
 
             endpoint_data = self._get_clean_endpoint(relay.id)
             if isinstance(endpoint_data, tuple):
@@ -1221,6 +1221,45 @@ class ProxyWasher:
             # Use the canonical Pydantic method for serialization.
             origin_dict = relay.model_dump(mode="json")
 
+            # Canonical protocol-agnostic chain representation.
+            relay_chain = relay.model_copy(deep=True)
+            relay_chain.details = dict(relay_chain.details or {})
+            relay_chain.details["tag"] = relay_out["tag"]
+            if use_vwarp:
+                relay_chain.details["detour"] = chain_id
+
+            if use_vwarp:
+                warp_chain = Proxy(
+                    config=f"socks5://{VWARP_BIND_ADDRESS}:{VWARP_SOCKS5_PORT}",
+                    protocol="socks5",
+                    address=VWARP_BIND_ADDRESS,
+                    port=VWARP_SOCKS5_PORT,
+                    details={
+                        "tag": chain_id,
+                        "version": "5",
+                    },
+                    is_working=True,
+                    process=process_tag,
+                )
+            else:
+                warp_chain = Proxy(
+                    config=f"wireguard://{exit_key['private_key']}@{clean_endpoint}:{clean_port}",
+                    protocol="wireguard",
+                    address=clean_endpoint,
+                    port=clean_port,
+                    details={
+                        "tag": chain_id,
+                        "private_key": exit_key["private_key"],
+                        "peer_public_key": peer_key,
+                        "local_address": [unique_ip],
+                        "reserved": reserved_bytes,
+                        "mtu": 1280,
+                        "detour": relay_out["tag"],
+                    },
+                    is_working=True,
+                    process=process_tag,
+                )
+
             vwarp_mode = "STANDARD"
             if use_vwarp:
                 settings = AppSettings()
@@ -1230,7 +1269,21 @@ class ProxyWasher:
             # Sing-box requires detour targets before referrers. Vwarp: relay detours to warp
             # → warp first. Standard WARP: warp detours to relay → relay first.
             chain_order = [warp_out, relay_out] if use_vwarp else [relay_out, warp_out]
-            process_tag = "revived-vwarp" if use_vwarp else "revived-warp"
+            chain_proxies = (
+                [warp_chain, relay_chain] if use_vwarp else [relay_chain, warp_chain]
+            )
+            revived_details: Dict[str, Any] = {
+                # Canonical chain data model (protocol-agnostic Proxy objects).
+                "chain": chain_proxies,
+                "is_revived": True,
+                "use_vwarp": use_vwarp,
+                "vwarp_mode": vwarp_mode if use_vwarp else None,
+                "origin_proxy": origin_dict,
+                "origin_id": relay.id,
+            }
+            # Keep legacy chain_outbounds in sync for downstream compatibility.
+            update_chain_details(revived_details, chain_order)
+
             revived_proxy = Proxy(
                 config=f"revived://{relay.address}",  # Dummy config
                 protocol="revived",  # Special protocol
@@ -1239,14 +1292,7 @@ class ProxyWasher:
                 uuid=chain_id,
                 remarks="",  # Set below via format_proxy_name
                 process=process_tag,
-                details={
-                    "chain_outbounds": chain_order,  # The full chain (inner hop first)
-                    "is_revived": True,
-                    "use_vwarp": use_vwarp,
-                    "vwarp_mode": vwarp_mode if use_vwarp else None,
-                    "origin_proxy": origin_dict,
-                    "origin_id": relay.id,
-                },
+                details=revived_details,
             )
             # Unified scheme: geo | tech/protocol stack | latency | process | etc
             _tpl = _SETTINGS_CACHE.RENAME_TEMPLATE or ProxyTagger.DEFAULT_TEMPLATE

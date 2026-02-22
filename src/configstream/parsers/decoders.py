@@ -2,11 +2,26 @@
 import base64
 import binascii
 import logging
+import math
 from typing import Optional
 
 from ..constants import MAX_B64_INPUT_SIZE
 
 logger = logging.getLogger(__name__)
+
+
+def _entropy(s: str) -> float:
+    if not s:
+        return 0.0
+    counts: dict[str, int] = {}
+    for ch in s:
+        counts[ch] = counts.get(ch, 0) + 1
+    total = float(len(s))
+    value = 0.0
+    for count in counts.values():
+        p = count / total
+        value -= p * math.log2(p)
+    return value
 
 
 def validate_b64_input(data: str) -> Optional[str]:
@@ -27,6 +42,15 @@ def validate_b64_input(data: str) -> Optional[str]:
 
     trimmed = data.strip()
     if not trimmed:
+        return None
+    if "\x00" in trimmed:
+        return None
+
+    sample = trimmed[:4096]
+    non_printable = sum(
+        1 for c in sample if ord(c) < 9 or (13 < ord(c) < 32) or ord(c) == 127
+    )
+    if sample and (non_printable / len(sample)) > 0.20 and _entropy(sample) > 7.2:
         return None
 
     # Fix URL-encoded base64 (e.g., %3D, %2F)

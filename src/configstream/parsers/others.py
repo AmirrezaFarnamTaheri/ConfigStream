@@ -140,7 +140,7 @@ def parse_hysteria2(c: str) -> Optional[Proxy]:
             # Auth is optional in some cases but usually required.
             # If no password, Hysteria2 is only valid if the server allows anonymous access.
             logger.debug(
-                "Hysteria2 config missing password (UUID field) - assuming anonymous auth."
+                "Hysteria2 config missing password (UUID field) - treating as anonymous auth."
             )
 
     return proxy

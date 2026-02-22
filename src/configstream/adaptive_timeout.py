@@ -118,15 +118,14 @@ class AdaptiveTimeout:
         if not self.latencies:
             return
 
-        # Calculate p95 latency
         try:
-            if len(self.latencies) < 2:
+            # Require a statistically meaningful sample before adapting.
+            if len(self.latencies) < 20:
                 return
 
-            # Use percentile for more robust calculation
-            # statistics.quantiles(data, n=100) returns 99 values (percentiles 1-99)
-            # For 95th percentile, we want index 94
-            p95 = statistics.quantiles(self.latencies, n=100)[94]  # 95th percentile
+            ordered = sorted(self.latencies)
+            p95_index = int((len(ordered) - 1) * 0.95)
+            p95 = ordered[max(0, min(len(ordered) - 1, p95_index))]
 
             # Safety margin: 2x the p95 latency, but bounded
             new_target = p95 * 2.0

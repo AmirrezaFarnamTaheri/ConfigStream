@@ -20,7 +20,7 @@ done
 
 # 2. Merge Batches
 echo "🧩 Merging Batches..."
-# Assuming WARP_KEY_POOL is set in env or .env
+# WARP_KEY_POOL is expected from environment or .env.
 python -m scripts.merge_batches
 
 # 3. Analyze and Refactor for NEXT time

@@ -2,7 +2,6 @@
 import asyncio
 import logging
 import inspect
-import os
 import time
 import hashlib
 from pathlib import Path
@@ -34,6 +33,7 @@ from configstream.config import AppSettings
 
 if TYPE_CHECKING:
     from configstream.event_stream import EventStream
+    from configstream.utils.bloom import BloomFilter
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +62,7 @@ async def processing_consumer(
     washer: Optional[ProxyWasher] = None,  # Receive shared washer
     stop_event: Optional[asyncio.Event] = None,
     test_budget: Optional[asyncio.Semaphore] = None,
+    seen_bloom: Optional["BloomFilter"] = None,
 ):
     settings = AppSettings()
     policy = TEST_POLICY if leniency else STRICT_POLICY
@@ -191,47 +192,54 @@ async def processing_consumer(
 
         unique_batch = []
         duplicates_count = 0
-        async with seen_lock:
-            # Use more efficient deduplication (LRU style)
-            max_seen = settings.MAX_SEEN_KEYS
 
-            for p in parsed_batch:
-                k = proxy_unique_key(p)
-                if k not in seen_keys:
-                    # If approaching limit, remove oldest entries
-                    if max_seen > 0 and len(seen_keys) >= max_seen:
-                        eviction_count = max(
-                            1000, max_seen // 10
-                        )  # Evict 10% (Audit Recommendation)
+        def _to_bloom_key(unique_key: Any) -> str:
+            if isinstance(unique_key, tuple):
+                return "|".join(str(part) for part in unique_key)
+            return str(unique_key)
+
+        async with seen_lock:
+            if seen_bloom is not None:
+                for p in parsed_batch:
+                    k = proxy_unique_key(p)
+                    bloom_key = _to_bloom_key(k)
+                    if bloom_key in seen_bloom:
+                        duplicates_count += 1
+                        continue
+                    seen_bloom.add(bloom_key)
+                    unique_batch.append(p)
+            else:
+                # Fallback exact dedupe with optional bounded memory.
+                max_seen = settings.MAX_SEEN_KEYS
+                for p in parsed_batch:
+                    k = proxy_unique_key(p)
+                    if k not in seen_keys:
+                        if max_seen > 0 and len(seen_keys) >= max_seen:
+                            eviction_count = max(1000, max_seen // 10)
+                            if isinstance(seen_keys, dict):
+                                keys_to_remove = []
+                                it = iter(seen_keys)
+                                try:
+                                    for _ in range(eviction_count):
+                                        keys_to_remove.append(next(it))
+                                except StopIteration:
+                                    pass
+                                for k_rm in keys_to_remove:
+                                    seen_keys.pop(k_rm, None)
+                            elif isinstance(seen_keys, set):
+                                for _ in range(eviction_count):
+                                    try:
+                                        seen_keys.pop()
+                                    except KeyError:
+                                        break
 
                         if isinstance(seen_keys, dict):
-                            # Dict: Iterating gives insertion order (oldest first)
-                            # Safe eviction: Collect keys first, then delete
-                            keys_to_remove = []
-                            it = iter(seen_keys)
-                            try:
-                                for _ in range(eviction_count):
-                                    keys_to_remove.append(next(it))
-                            except StopIteration:
-                                pass
-
-                            for k_rm in keys_to_remove:
-                                seen_keys.pop(k_rm, None)
+                            seen_keys[k] = None
                         elif isinstance(seen_keys, set):
-                            # Fallback for set (should generally not happen if initialized correctly)
-                            for _ in range(eviction_count):
-                                try:
-                                    seen_keys.pop()
-                                except KeyError:
-                                    break
-
-                    if isinstance(seen_keys, dict):
-                        seen_keys[k] = None  # Add to dict
-                    elif isinstance(seen_keys, set):
-                        seen_keys.add(k)
-                    unique_batch.append(p)
-                else:
-                    duplicates_count += 1
+                            seen_keys.add(k)
+                        unique_batch.append(p)
+                    else:
+                        duplicates_count += 1
             stats.drop_reasons["duplicate"] = (
                 stats.drop_reasons.get("duplicate", 0) + duplicates_count
             )
@@ -432,12 +440,20 @@ async def processing_consumer(
                     washer_ready = True
                 # 1. Attempt Vwarp Revival (Priority)
                 vwarp_candidates: List[Proxy] = []
+                vwarp_available = False
+                _async_vwarp_check = getattr(washer, "is_vwarp_available_async", None)
+                if callable(_async_vwarp_check):
+                    _check_result = _async_vwarp_check()
+                    if inspect.isawaitable(_check_result):
+                        vwarp_available = bool(await _check_result)
+                    else:
+                        vwarp_available = bool(_check_result)
+                else:
+                    _sync_vwarp_check = getattr(washer, "is_vwarp_available", None)
+                    if callable(_sync_vwarp_check):
+                        vwarp_available = bool(_sync_vwarp_check())
                 # Only attempt Vwarp if enabled and keys exist
-                if (
-                    settings.USE_VWARP_TUNNEL
-                    and washer.warp_keys
-                    and washer.is_vwarp_available()
-                ):
+                if settings.USE_VWARP_TUNNEL and washer.warp_keys and vwarp_available:
                     vwarp_candidates, _ = washer.wash_failed(
                         failed_proxies, stats=stats, use_vwarp=True
                     )
@@ -622,7 +638,7 @@ async def processing_consumer(
             except Exception:  # nosec
                 pass
             try:
-                batch_number = os.getenv("BATCH_NUMBER", "").strip()
+                batch_number = str(getattr(settings, "BATCH_NUMBER", "")).strip()
                 batch_source = f"batch_{batch_number}" if batch_number else "pipeline"
                 await loop.run_in_executor(
                     None,

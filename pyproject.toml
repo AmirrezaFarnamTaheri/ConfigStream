@@ -32,10 +32,9 @@ dependencies = [
     "sniffio>=1.3.0",
     "aiohttp>=3.9.0",
     "aiohttp-socks>=0.8.0",
-    "aiodns>=3.1.0",
+    "aiodns>=3.6.1",
     "pycares<5.0.0",
     "aiohttp-proxy",
-    "requests",
 
     # Parsing & Logic
     "PyYAML>=6.0",
@@ -47,7 +46,7 @@ dependencies = [
     "aiofiles>=23.2.0",
     "orjson>=3.9.0",
     "nest-asyncio",
-    "wasmtime>=39.0.0",
+    "wasmtime>=40.0.0",
     "slowapi>=0.1.9",
 
     # CLI & UI
@@ -82,7 +81,6 @@ dev = [
     "pytest-base-url",
     "pyfakefs",
     "types-PyYAML",
-    "types-requests",
     "types-psutil",
     "types-cachetools",
     "flake8",
