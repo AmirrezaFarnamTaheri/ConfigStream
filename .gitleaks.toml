@@ -4,5 +4,6 @@
         '''sources/.*\.yaml$''',
         '''output/.*''',
         '''data/.*''',
-        '''test_anomaly.db'''
+        '''test_anomaly.db''',
+        '''tests/fixtures/.*'''
     ]

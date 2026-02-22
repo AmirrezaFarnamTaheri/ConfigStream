@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from ..config import AppSettings
 from ..models import Proxy
 from ..test_cache import TestResultCache
+from ..converters.chains import chain_outbounds_from_details
 from .go import GoBatchTester
 from .python import PythonTester
 
@@ -63,7 +64,9 @@ class SingBoxTester:
             revived_candidates: List[Proxy] = []
 
             for p in proxies:
-                if p.protocol == "revived" and p.details.get("chain_outbounds"):
+                if p.protocol == "revived" and chain_outbounds_from_details(
+                    p.details or {}
+                ):
                     # Special handling for Revived proxies (chains)
                     revived_candidates.append(p)
                 elif self.cache and (cached := self.cache.get(p)):
@@ -102,26 +105,26 @@ class SingBoxTester:
             if revived_candidates:
                 configs = []
                 for p in revived_candidates:
-                    chain_outbounds = p.details.get("chain_outbounds")
-                    if isinstance(chain_outbounds, list):
-                        chain_outbounds = copy.deepcopy(chain_outbounds)
-                        head_index = None
+                    chain_outbounds = copy.deepcopy(
+                        chain_outbounds_from_details(p.details or {})
+                    )
+                    head_index = None
+                    for i, outbound in enumerate(chain_outbounds):
+                        if isinstance(outbound, dict) and outbound.get("detour"):
+                            head_index = i
+                            break
+                    if head_index is None:
                         for i, outbound in enumerate(chain_outbounds):
-                            if isinstance(outbound, dict) and outbound.get("detour"):
+                            if (
+                                isinstance(outbound, dict)
+                                and outbound.get("type") == "wireguard"
+                            ):
                                 head_index = i
                                 break
-                        if head_index is None:
-                            for i, outbound in enumerate(chain_outbounds):
-                                if (
-                                    isinstance(outbound, dict)
-                                    and outbound.get("type") == "wireguard"
-                                ):
-                                    head_index = i
-                                    break
-                        if head_index is not None:
-                            chain_outbounds[head_index]["tag"] = "proxy"
-                            head = chain_outbounds.pop(head_index)
-                            chain_outbounds.insert(0, head)
+                    if head_index is not None:
+                        chain_outbounds[head_index]["tag"] = "proxy"
+                        head = chain_outbounds.pop(head_index)
+                        chain_outbounds.insert(0, head)
                     configs.append({"id": p.id, "outbounds": chain_outbounds})
 
                 try:

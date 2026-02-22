@@ -20,6 +20,7 @@ from configstream.stego import generate_stego_assets
 from configstream.intelligence.washer.core import ProxyWasher
 from configstream.intelligence.chaining import generate_smart_chains
 from configstream.intelligence.vectors import generate_vectors
+from configstream.converters.chains import chain_outbounds_from_details
 from configstream.pipeline_stats import PipelineStats
 from configstream.tagging import ProxyTagger, format_proxy_name
 from configstream.config import AppSettings
@@ -638,8 +639,8 @@ async def generate_pipeline_outputs(
 
     _chain_tags: set[str] = set()
     for proxy in optimized_proxies:
-        chain = (proxy.details or {}).get("chain_outbounds")
-        if isinstance(chain, list):
+        chain = chain_outbounds_from_details(proxy.details or {})
+        if chain:
             _chain_tags |= _collect_tags(chain)
     if washed_outbounds:
         _chain_tags |= _collect_tags(washed_outbounds)

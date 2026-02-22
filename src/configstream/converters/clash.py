@@ -9,6 +9,13 @@ from .clash_utils import add_transport_opts
 
 logger = logging.getLogger(__name__)
 
+_PROTOCOL_ALIASES = {
+    "hy2": "hysteria2",
+    "husi": "hysteria2",
+    "exclave": "vless",
+    "wg": "wireguard",
+}
+
 
 def _convert_ss(proxy: Proxy, common: Dict[str, Any]) -> Dict[str, Any]:
     common["type"] = "ss"
@@ -161,14 +168,16 @@ def to_clash_proxy(
             flag = get_flag_emoji(proxy.country_code)
             name = f"{flag}-{proxy.protocol}-{proxy.id[:6]}"
 
+        protocol = _PROTOCOL_ALIASES.get((proxy.protocol or "").lower(), proxy.protocol)
+
         common = {
             "name": name,
             "server": proxy.address,
             "port": proxy.port,
-            "type": proxy.protocol,
+            "type": protocol,
         }
 
-        handler = _PROTOCOL_HANDLERS.get(proxy.protocol)
+        handler = _PROTOCOL_HANDLERS.get((protocol or "").lower())
         if handler:
             return handler(proxy, common)
 

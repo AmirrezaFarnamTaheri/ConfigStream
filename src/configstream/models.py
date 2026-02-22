@@ -9,7 +9,14 @@ Defines the core Proxy object and Pydantic schemas.
 import hashlib
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from .constants import (
+    PROCESS_TYPES,
+    VALID_PROTOCOLS,
+    canonical_protocol_name,
+    latency_bucket_for_ms,
+)
 
 
 class Proxy(BaseModel):
@@ -51,6 +58,37 @@ class Proxy(BaseModel):
     history: Optional[List[float]] = None
     process: str = "native"
 
+    @field_validator("protocol", mode="before")
+    @classmethod
+    def _validate_protocol(cls, value: Any) -> str:
+        raw = (str(value or "")).strip().lower()
+        normalized = canonical_protocol_name(raw)
+        valid = set(VALID_PROTOCOLS) | {"openvpn", "revived", "unknown"}
+        if raw in valid:
+            return raw
+        if normalized in valid:
+            return normalized
+        if normalized not in valid and raw not in valid:
+            raise ValueError(f"Unsupported protocol: {value!r}")
+        return raw
+
+    @field_validator("process", mode="before")
+    @classmethod
+    def _validate_process(cls, value: Any) -> str:
+        normalized = (str(value or "native")).strip().lower()
+        if normalized not in set(PROCESS_TYPES):
+            raise ValueError(f"Unsupported process: {value!r}")
+        return normalized
+
+    @field_validator("latency")
+    @classmethod
+    def _validate_latency(cls, value: Optional[float]) -> Optional[float]:
+        if value is None:
+            return None
+        if value < 0:
+            raise ValueError("latency must be >= 0")
+        return value
+
     @property
     def latency_ms(self) -> Optional[float]:
         """Get latency in milliseconds."""
@@ -65,25 +103,45 @@ class Proxy(BaseModel):
     def id(self) -> str:
         """
         Stable identifier used for caching, history, and external tools.
-
-        - Prefer explicit UUID when present.
-        - Otherwise derive a short, stable hash from protocol + address + port.
-        - Avoid using full config strings as IDs to keep keys compact and stable.
+        Composite key: (protocol, host/address, port, uuid_or_key).
         """
-        if self.uuid:
-            return self.uuid.strip()
+        credential = (self.uuid or "").strip()
+        if credential:
+            # Keep legacy behavior for stable references used across outputs/tests.
+            return credential
 
-        # Build a minimal fingerprint; fall back to config only if absolutely necessary.
-        if self.protocol and self.address and self.port:
-            key = f"{self.protocol}:{self.address}:{self.port}"
-        else:
-            key = (self.config or "").strip()
+        if not credential:
+            for key in (
+                "uuid",
+                "password",
+                "private_key",
+                "public_key",
+                "peer_public_key",
+                "psk",
+                "key",
+                "token",
+            ):
+                candidate = self.details.get(key)
+                if isinstance(candidate, str) and candidate.strip():
+                    credential = candidate.strip()
+                    break
+
+        proto = canonical_protocol_name(self.protocol)
+        addr = (self.address or "").strip().lower()
+        port = str(self.port or "")
+        composite = f"{proto}|{addr}|{port}|{credential}"
+        key = composite if composite.strip(" |") else (self.config or "").strip()
 
         if not key:
             return ""
 
         digest = hashlib.sha256(key.encode("utf-8")).hexdigest()
         return digest[:16]
+
+    @property
+    def latency_bucket(self) -> str:
+        """Canonical latency bucket used by metadata and frontend charts."""
+        return latency_bucket_for_ms(self.latency)
 
     @property
     def scheme(self) -> str:

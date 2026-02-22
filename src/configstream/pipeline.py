@@ -32,7 +32,10 @@ from .performance import PerformanceTracker
 from .history.tracker import ProxyHistoryTracker
 from .filtering import dedupe_and_shuffle, filter_unique_endpoints, dedupe_by_config
 from .constants import VWARP_SOCKS5_PORT, VWARP_BIND_ADDRESS
+from .utils.bloom import BloomFilter
 from .async_utils import safe_wait_for
+from .hard_stop import HardStopWatcher
+from .logging_config import set_trace_id, clear_trace_id
 
 from configstream.pipeline_stats import PipelineStats, PipelineResult
 from configstream.producer import source_producer
@@ -137,6 +140,7 @@ async def run_full_pipeline(
 
     start_time = datetime.now(timezone.utc)
     tracker = PerformanceTracker()
+    trace_id = set_trace_id()
 
     # 1. Initialization & Setup
     output_path = Path(output_dir)
@@ -180,10 +184,17 @@ async def run_full_pipeline(
     event_stream = EventStream(output_path)
 
     stats = PipelineStats()
+    stats.trace_id = trace_id
     # Track total configured sources for frontend display
     stats.total_configured_sources = len(sources) if sources else 0
     if time_limit_seconds:
         stats.time_limit_seconds = int(time_limit_seconds)
+    hard_stop_watcher = HardStopWatcher(
+        grace_seconds=float(getattr(settings, "SHUTDOWN_GRACE_SECONDS", 5.0)),
+        flush_timeout_seconds=float(
+            getattr(settings, "EVENT_STREAM_FLUSH_TIMEOUT_SECONDS", 2.0)
+        ),
+    )
 
     stop_event = asyncio.Event()
     test_budget: Optional[asyncio.Semaphore] = None
@@ -247,6 +258,12 @@ async def run_full_pipeline(
     final_proxies: List[Proxy] = []
     # Use Dict for ordered tracking (Python 3.7+ dicts preserve insertion order)
     seen_keys: Dict[tuple, None] = {}
+    seen_bloom = None
+    if settings.SEEN_BLOOM_ENABLED:
+        seen_bloom = BloomFilter(
+            expected_items=int(settings.SEEN_BLOOM_EXPECTED_ITEMS),
+            false_positive_rate=float(settings.SEEN_BLOOM_FALSE_POSITIVE_RATE),
+        )
     seen_lock = asyncio.Lock()
 
     # --- Progress Bar Setup ---
@@ -259,7 +276,11 @@ async def run_full_pipeline(
         task_process = progress.add_task("[green]Processing pipeline...", total=None)
 
     # 2. Execute Pipeline
-    logger.info(f"Starting pipeline with {max_workers} initial workers")
+    logger.info(
+        "Starting pipeline with %d initial workers (trace_id=%s)",
+        max_workers,
+        trace_id,
+    )
 
     tester = SingBoxTester(
         timeout=float(timeout),
@@ -318,6 +339,7 @@ async def run_full_pipeline(
             task_fetch,
             num_consumers=optimal_consumers,
             stop_event=stop_event,
+            stats=stats,
         )
     )
 
@@ -348,6 +370,7 @@ async def run_full_pipeline(
                 washer=washer,  # Pass shared washer
                 stop_event=stop_event,
                 test_budget=test_budget,
+                seen_bloom=seen_bloom,
             )
         )
         consumer_tasks.append(t)
@@ -492,9 +515,8 @@ async def run_full_pipeline(
             with suppress(asyncio.CancelledError):
                 await time_limit_task
 
-        # Shutdown tester (Go process)
-        if tester:
-            await tester.close()
+        # Shutdown tester/processes with bounded grace and hard-stop fallback.
+        await hard_stop_watcher.stop_tester(tester)
 
         # Shutdown Vwarp tunnel
         await vwarp_tool.stop_tunnel()
@@ -502,8 +524,6 @@ async def run_full_pipeline(
         # Close anomaly detector DB connection
         anomaly_detector.close()
 
-        # Ensure event stream is always closed to flush handles/buffers
-        try:
-            await event_stream.aclose()
-        except Exception as e:
-            logger.warning(f"Error closing EventStream: {e}")
+        # Ensure event stream is always flushed/closed before process exit.
+        await hard_stop_watcher.flush_event_stream(event_stream)
+        clear_trace_id()

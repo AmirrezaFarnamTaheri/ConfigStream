@@ -86,6 +86,11 @@ def parse_vless(url: str) -> Proxy | None:
         if not host or not port or not uuid_val:
             return None
 
+        flow_value = params.get("flow", "")
+        if flow_value.strip().lower() == "xtls-rprx-direct":
+            # Removed in modern sing-box/xray cores; reject at parse stage.
+            return None
+
         # Construct Proxy
         # Ensure Pydantic model "config" field is populated
         proxy = Proxy(
@@ -99,7 +104,7 @@ def parse_vless(url: str) -> Proxy | None:
                 "type": params.get("type", "tcp"),
                 "security": params.get("security", "none"),
                 "encryption": params.get("encryption", "none"),
-                "flow": params.get("flow", ""),
+                "flow": flow_value,
             },
         )
 

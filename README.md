@@ -42,6 +42,12 @@ ConfigStream uses a streaming producer-consumer pipeline.
 
 See `docs/wiki/project/02-architecture.md` for the full pipeline design and data flow.
 
+## Operational Governance
+- Living roadmap process: `docs/ROADMAP_UPDATE_PROCESS.md`
+- Release hardening and provenance controls: `docs/RELEASE_HARDENING_2026.md`
+- Finalization status and phase matrix: `docs/FINALIZATION_REPORT_2026.md`
+- Technical debt registry: `docs/DEBT_MATRIX.md`
+
 ## Evasion Features
 
 ConfigStream includes advanced censorship evasion capabilities:
@@ -223,6 +229,12 @@ Local (development):
 pip install -e ".[dev]"
 configstream merge --sources sources/batch_1.txt --output output
 pytest
+```
+
+Frontend build (optional, Vite):
+```bash
+npm install
+npm run build
 ```
 
 ## Environment Variables

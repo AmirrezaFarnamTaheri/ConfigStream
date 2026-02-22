@@ -112,3 +112,40 @@ async def test_fetch_invalid_url():
     assert not res.success
     # The error message depends on httpx handling or our validation
     assert res.error is not None
+
+
+@pytest.mark.asyncio
+async def test_fetch_404_trips_breaker_and_skips_subsequent_calls():
+    breaker_manager = CircuitBreakerManager(failure_threshold=2, recovery_timeout=60)
+    host = "dead.example"
+
+    with patch("httpx.AsyncClient.stream", new_callable=MagicMock) as mock_stream:
+        mock_stream.return_value = MockStreamResponse(404, "")
+        client = httpx.AsyncClient()
+
+        res1 = await fetch_from_source(
+            client,
+            f"http://{host}/missing-1",
+            max_retries=1,
+            app_settings=AppSettings(CIRCUIT_BREAKER_ENABLED=True),
+            breaker_manager=breaker_manager,
+        )
+        res2 = await fetch_from_source(
+            client,
+            f"http://{host}/missing-2",
+            max_retries=1,
+            app_settings=AppSettings(CIRCUIT_BREAKER_ENABLED=True),
+            breaker_manager=breaker_manager,
+        )
+        res3 = await fetch_from_source(
+            client,
+            f"http://{host}/missing-3",
+            max_retries=1,
+            app_settings=AppSettings(CIRCUIT_BREAKER_ENABLED=True),
+            breaker_manager=breaker_manager,
+        )
+
+    assert not res1.success and "Permanent Error: 404" in (res1.error or "")
+    assert not res2.success and "Permanent Error: 404" in (res2.error or "")
+    assert not res3.success and "Circuit Breaker Open" in (res3.error or "")
+    assert mock_stream.call_count == 2

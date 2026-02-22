@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from configstream.generators import generate_clash_config
+from configstream.models import Proxy
 from tests.unit.conftest_helper import create_test_proxy
 
 
@@ -29,3 +30,44 @@ def test_generate_clash():
     # "Test Proxy" is remarks, which is NOT used as the name in the generator loop.
     # It uses: f"{p.country_code or 'XX'} {i:02d} | {p.protocol.upper()}"
     assert "Test Proxy" in output
+
+
+def test_generate_clash_includes_revived_chain_entries():
+    revived = Proxy(
+        config="revived://example.com",
+        protocol="revived",
+        address="162.159.192.1",
+        port=2408,
+        uuid="revived-1",
+        remarks="Revived Chain",
+        is_working=True,
+        details={
+            "is_revived": True,
+            "chain_outbounds": [
+                {
+                    "type": "vless",
+                    "tag": "WARP-RELAY-1",
+                    "server": "1.2.3.4",
+                    "server_port": 443,
+                    "uuid": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                    "tls": {"enabled": True, "server_name": "example.com"},
+                },
+                {
+                    "type": "wireguard",
+                    "tag": "WARP-EXIT-1",
+                    "server": "162.159.192.1",
+                    "server_port": 2408,
+                    "local_address": ["10.0.0.2/32"],
+                    "private_key": "YNS+CEQE6JIQiVWcOUJd0K8FLFeCQBONJnXCdFnMRlQ=",
+                    "peer_public_key": "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=",
+                    "mtu": 1280,
+                },
+            ],
+        },
+    )
+
+    output = generate_clash_config([revived], ignore_status=True)
+
+    # Revival chains should survive Clash generation via relay/dialer-proxy links.
+    assert "dialer-proxy:" in output
+    assert "type: relay" in output

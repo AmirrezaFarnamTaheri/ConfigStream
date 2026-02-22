@@ -5,13 +5,11 @@
     const StegoLoader = {
         extractFromImage: async function(imageUrl) {
             try {
-                // Assuming stego.js exposes a global 'stego' object
-                // If not, this is a placeholder logic
                 if (global.stego && global.stego.extract) {
                     const config = await global.stego.extract(imageUrl);
                     return config;
                 } else {
-                    console.warn("Stego library not found.");
+                    console.warn("Stego extractor not found on window.stego.extract");
                     return null;
                 }
             } catch (e) {

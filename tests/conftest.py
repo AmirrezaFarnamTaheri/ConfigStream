@@ -5,7 +5,7 @@ import threading
 import http.server
 import socketserver
 import time
-import requests
+import httpx
 from pathlib import Path
 
 # Apply nest_asyncio globally
@@ -72,8 +72,7 @@ def http_server():
     base_url = f"http://127.0.0.1:{port}"
 
     # Wait for server. Disable env proxy usage so localhost checks stay local.
-    session = requests.Session()
-    session.trust_env = False
+    session = httpx.Client(trust_env=False)
     try:
         for _ in range(50):
             try:

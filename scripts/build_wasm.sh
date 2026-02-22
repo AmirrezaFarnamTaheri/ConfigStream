@@ -48,4 +48,18 @@ fi
 echo "📋 Found wasm_exec.js at: $WASM_EXEC_PATH"
 cp "$WASM_EXEC_PATH" ../../../frontend/assets/js/
 
+# Verify that wasm_exec.js in frontend exactly matches the compiler's runtime shim.
+if ! cmp -s "$WASM_EXEC_PATH" ../../../frontend/assets/js/wasm_exec.js; then
+    echo "❌ wasm_exec.js mismatch after copy."
+    exit 1
+fi
+
+# Optional size optimization when binaryen is available.
+if command -v wasm-opt &> /dev/null; then
+    echo "🗜️  Optimizing tester.wasm with wasm-opt -Oz..."
+    wasm-opt -Oz ../../../frontend/assets/wasm/tester.wasm -o ../../../frontend/assets/wasm/tester.wasm
+else
+    echo "ℹ️  wasm-opt not found; skipping size optimization."
+fi
+
 echo "✅ WASM Build Complete."

@@ -194,18 +194,6 @@ class CacheManager {
         // Correctly point to service-worker.js
         const swUrl = new URL('service-worker.js', document.baseURI).toString();
 
-        // Audit: Check if service worker file exists before registering
-        try {
-            const check = await fetch(swUrl, { method: 'HEAD' });
-            if (!check.ok) {
-                this.log.warn('Service Worker file not found, skipping registration.');
-                return;
-            }
-        } catch (e) {
-            this.log.warn('Could not verify Service Worker existence.');
-            return;
-        }
-
         const scopeUrl = new URL('.', document.baseURI).toString();
         this.swRegistration = await navigator.serviceWorker.register(swUrl, { scope: scopeUrl });
         this.log.info('Service Worker registered successfully');

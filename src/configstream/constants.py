@@ -1,21 +1,15 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Centralized constants for all modules."""
 
-import os
+from enum import Enum
 
+from .config import AppSettings
 
 # Network & Tunnel Configuration
-def _env_int(name: str, default: int) -> int:
-    try:
-        return int(os.getenv(name, str(default)))
-    except (TypeError, ValueError):
-        return default
-
-
-VWARP_SOCKS5_PORT = _env_int(
-    "VWARP_SOCKS5_PORT", 10808
-)  # Default port for Vwarp SOCKS5 tunnel
-VWARP_BIND_ADDRESS = "127.0.0.1"  # Localhost binding for security
+# Environment overrides are centralized in AppSettings.
+_SETTINGS = AppSettings()
+VWARP_SOCKS5_PORT = int(_SETTINGS.VWARP_SOCKS5_PORT)
+VWARP_BIND_ADDRESS = str(_SETTINGS.VWARP_BIND_ADDRESS)
 
 # Anomaly Detection Constants
 Z_SCORE_NORMAL_CONSTANT = 0.6745  # Modified Z-score constant (0.6745 ≈ 0.75 * IQR)
@@ -29,11 +23,11 @@ CACHE_WARMING_LOW_SCORE_THRESHOLD = 50  # Proxy count for low-score tier
 VIRUSTOTAL_CACHE_SIZE = 1000  # LRU cache size for VT lookups
 
 # Size Limits (0 = unlimited; use streaming for large sources.)
-MAX_B64_INPUT_SIZE = _env_int("MAX_B64_INPUT_SIZE", 0)
-MAX_B64_OUTPUT_SIZE = _env_int("MAX_B64_OUTPUT_SIZE", 0)
-MAX_CONFIG_LINE_LENGTH = _env_int("MAX_CONFIG_LINE_LENGTH", 0)  # 0 = unlimited
-MAX_LINES_PER_SOURCE = _env_int("MAX_LINES_PER_SOURCE", 0)  # 0 = unlimited
-MAX_OPENVPN_CONFIG_SIZE = _env_int("MAX_OPENVPN_CONFIG_SIZE", 0)
+MAX_B64_INPUT_SIZE = int(_SETTINGS.MAX_B64_INPUT_SIZE)
+MAX_B64_OUTPUT_SIZE = int(_SETTINGS.MAX_B64_OUTPUT_SIZE)
+MAX_CONFIG_LINE_LENGTH = int(_SETTINGS.MAX_CONFIG_LINE_LENGTH)
+MAX_LINES_PER_SOURCE = int(_SETTINGS.MAX_LINES_PER_SOURCE)
+MAX_OPENVPN_CONFIG_SIZE = int(_SETTINGS.MAX_OPENVPN_CONFIG_SIZE)
 
 # Ports & Domains
 # Removed 3306 (MySQL), 5432 (Postgres), 6379 (Redis), 27017 (Mongo)
@@ -74,6 +68,29 @@ SUSPICIOUS_DOMAINS = [
 
 MAX_PORT = 65535
 
+# Latency buckets for metadata and frontend consistency.
+LATENCY_BUCKET_FAST_MAX_MS = 200
+LATENCY_BUCKET_MEDIUM_MAX_MS = 800
+LATENCY_BUCKET_SLOW_MAX_MS = 2000
+
+
+def latency_bucket_for_ms(latency_ms: float | int | None) -> str:
+    """Map latency to canonical UI buckets."""
+    if latency_ms is None:
+        return "very_slow"
+    try:
+        value = float(latency_ms)
+    except (TypeError, ValueError):
+        return "very_slow"
+    if value < LATENCY_BUCKET_FAST_MAX_MS:
+        return "fast"
+    if value < LATENCY_BUCKET_MEDIUM_MAX_MS:
+        return "medium"
+    if value < LATENCY_BUCKET_SLOW_MAX_MS:
+        return "slow"
+    return "very_slow"
+
+
 # Protocols
 VALID_PROTOCOLS = [
     "vmess",
@@ -105,9 +122,44 @@ VALID_PROTOCOLS = [
     "https",
     "socks",
     "socks4",
+    "socks4a",
     "socks5",
     "anytls",
+    "ws",  # Test fixtures / transport placeholders
+    "test",  # Unit-test synthetic protocol
 ]
+
+PROCESS_TYPES = [
+    "native",
+    "washed",
+    "warp",
+    "chain",
+    "revived-warp",
+    "revived-vwarp",
+    "shielded",
+    "fragmented",
+    "utls-mimic",
+    "multipath",
+]
+
+
+class DropCategory(str, Enum):
+    """Canonical drop categories for metadata and frontend analytics."""
+
+    DUPLICATE = "duplicate"
+    INVALID_PROTOCOL = "invalid_protocol"
+    INVALID_PORT = "invalid_port"
+    MISSING_PROTOCOL_SEPARATOR = "missing_protocol_separator"
+    IMPLAUSIBLE_FORMAT = "implausible_format"
+    SECURITY_VALIDATION = "security_validation"
+    HTML_CONTENT = "html_content"
+    HOSTILE_PAYLOAD = "hostile_payload"
+    SIZE_LIMIT_EXCEEDED = "size_limit_exceeded"
+    BACKPRESSURE_DROP = "backpressure_drop"
+    TESTER_ERROR = "tester_error"
+    FETCH_ERROR = "fetch_error"
+    UNKNOWN = "unknown"
+
 
 # Canonical protocol ordering for user-facing output artifacts.
 # Keeps high-demand censorship-evasion transports first while preserving

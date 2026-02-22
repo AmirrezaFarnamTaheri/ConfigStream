@@ -7,7 +7,7 @@ import tarfile
 from pathlib import Path
 
 import click
-import requests
+import httpx
 from rich.console import Console
 from rich.logging import RichHandler
 from rich.progress import (
@@ -225,18 +225,18 @@ def update_databases():
     def stream_download(url: str, target: Path) -> bool:
         safe_url = SecurityValidator.sanitize_log_message(url)
         try:
-            with requests.get(url, stream=True, timeout=120) as resp:
+            with httpx.stream("GET", url, timeout=120.0, follow_redirects=True) as resp:
                 if resp.status_code != 200:
                     console.print(
                         f"[red]HTTP {resp.status_code} while fetching {safe_url}[/red]"
                     )
                     return False
                 with target.open("wb") as f:
-                    for chunk in resp.iter_content(chunk_size=8192):
+                    for chunk in resp.iter_bytes(chunk_size=8192):
                         if chunk:
                             f.write(chunk)
             return target.exists() and target.stat().st_size > 0
-        except requests.RequestException as exc:
+        except httpx.HTTPError as exc:
             safe_exc = SecurityValidator.sanitize_log_message(str(exc))
             console.print(f"[red]Request error for {safe_url}: {safe_exc}[/red]")
             return False

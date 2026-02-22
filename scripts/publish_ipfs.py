@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import argparse
 import os
-import requests  # type: ignore
+import httpx  # type: ignore
 from pathlib import Path
 
 
@@ -46,7 +46,7 @@ def _pin_to_ipfs_legacy(filepath: str, jwt: str) -> str:
 
             headers = {"Authorization": f"Bearer {jwt}"}
             # Note: 'files' is a list of tuples for multiple files
-            response = requests.post(
+            response = httpx.post(
                 url, files=files_payload, headers=headers, timeout=300
             )
 
@@ -60,7 +60,7 @@ def _pin_to_ipfs_legacy(filepath: str, jwt: str) -> str:
         with open(filepath, "rb") as f:
             single_file_payload = {"file": f}
             headers = {"Authorization": f"Bearer {jwt}"}
-            response = requests.post(
+            response = httpx.post(
                 url, files=single_file_payload, headers=headers, timeout=30
             )
 
@@ -82,9 +82,7 @@ def _pin_single_file_v3(filepath: str, jwt: str) -> str:
         files = {"file": (Path(filepath).name, f)}
         # Use public network so generated CID is directly consumable in gateway URLs.
         data = {"network": "public"}
-        response = requests.post(
-            url, files=files, data=data, headers=headers, timeout=60
-        )
+        response = httpx.post(url, files=files, data=data, headers=headers, timeout=60)
 
     if response.status_code == 200:
         try:
@@ -145,7 +143,7 @@ def update_dnslink(cid: str, domain: str, cf_token: str, zone_id: str):
 
     # First, find the record ID for _dnslink.<domain>
     params = {"name": f"_dnslink.{domain}", "type": "TXT"}
-    resp = requests.get(url, headers=headers, params=params, timeout=30)
+    resp = httpx.get(url, headers=headers, params=params, timeout=30)
     records = resp.json().get("result", [])
 
     if not records:
@@ -163,7 +161,7 @@ def update_dnslink(cid: str, domain: str, cf_token: str, zone_id: str):
         "ttl": 60,
     }
 
-    update_resp = requests.put(update_url, headers=headers, json=payload, timeout=30)
+    update_resp = httpx.put(update_url, headers=headers, json=payload, timeout=30)
     if update_resp.status_code == 200:
         print(f"Successfully updated DNSLink for {domain} to {cid}")
     else:

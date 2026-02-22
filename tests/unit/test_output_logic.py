@@ -296,6 +296,112 @@ def test_dns_safe_uses_detached_proxy_clones():
     assert dns_safe[0].process == "native"
 
 
+def test_dns_safe_rewrites_canonical_chain_proxy_hops() -> None:
+    """DNS-safe rewrite must update canonical chain Proxy hops, not only legacy outbounds."""
+    from configstream.output_logic import _build_dns_safe_proxies
+
+    relay = Proxy(
+        config="vless://123e4567-e89b-12d3-a456-426614174000@relay.example:443#relay",
+        protocol="vless",
+        address="relay.example",
+        port=443,
+        uuid="123e4567-e89b-12d3-a456-426614174000",
+        details={"security": "tls", "sni": "relay.example", "tag": "relay-hop"},
+    )
+    warp = Proxy(
+        config="wireguard://priv@162.159.192.1:2408#warp",
+        protocol="wireguard",
+        address="162.159.192.1",
+        port=2408,
+        details={
+            "private_key": "6M6tfYfQ6B0fLF8A3XJ2Z2z8jz4Yb9k+f0z8xN2aM0E=",
+            "peer_public_key": "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=",
+            "local_address": ["10.0.0.2/32"],
+            "mtu": 1280,
+            "detour": "relay-hop",
+            "tag": "warp-hop",
+        },
+    )
+    revived = Proxy(
+        config="revived://relay.example",
+        protocol="revived",
+        address="relay.example",
+        port=443,
+        uuid="revived-chain-proxy-hop",
+        resolved_ip="1.1.1.1",
+        details={"is_revived": True, "chain": [relay, warp]},
+    )
+
+    dns_safe, _ = _build_dns_safe_proxies([revived])
+    assert len(dns_safe) == 1
+
+    chain = dns_safe[0].details.get("chain")
+    assert isinstance(chain, list) and len(chain) == 2
+    assert isinstance(chain[0], Proxy)
+    assert chain[0].address == "1.1.1.1"
+
+    chain_outbounds = dns_safe[0].details.get("chain_outbounds")
+    assert isinstance(chain_outbounds, list) and chain_outbounds
+    assert chain_outbounds[0].get("server") == "1.1.1.1"
+
+
+def test_dns_safe_rewrites_canonical_chain_dict_hops() -> None:
+    """DNS-safe rewrite must update canonical chain dict hops after serialization boundaries."""
+    from configstream.output_logic import _build_dns_safe_proxies
+
+    revived = Proxy(
+        config="revived://relay.example",
+        protocol="revived",
+        address="relay.example",
+        port=443,
+        uuid="revived-chain-dict-hop",
+        resolved_ip="1.1.1.1",
+        details={
+            "is_revived": True,
+            "chain": [
+                {
+                    "config": "vless://123e4567-e89b-12d3-a456-426614174000@relay.example:443#relay",
+                    "protocol": "vless",
+                    "address": "relay.example",
+                    "port": 443,
+                    "uuid": "123e4567-e89b-12d3-a456-426614174000",
+                    "details": {
+                        "security": "tls",
+                        "sni": "relay.example",
+                        "tag": "relay-hop",
+                    },
+                },
+                {
+                    "config": "wireguard://priv@162.159.192.1:2408#warp",
+                    "protocol": "wireguard",
+                    "address": "162.159.192.1",
+                    "port": 2408,
+                    "details": {
+                        "private_key": "6M6tfYfQ6B0fLF8A3XJ2Z2z8jz4Yb9k+f0z8xN2aM0E=",
+                        "peer_public_key": "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=",
+                        "local_address": ["10.0.0.2/32"],
+                        "mtu": 1280,
+                        "detour": "relay-hop",
+                        "tag": "warp-hop",
+                    },
+                },
+            ],
+        },
+    )
+
+    dns_safe, _ = _build_dns_safe_proxies([revived])
+    assert len(dns_safe) == 1
+
+    chain = dns_safe[0].details.get("chain")
+    assert isinstance(chain, list) and len(chain) == 2
+    assert isinstance(chain[0], dict)
+    assert chain[0].get("address") == "1.1.1.1"
+
+    chain_outbounds = dns_safe[0].details.get("chain_outbounds")
+    assert isinstance(chain_outbounds, list) and chain_outbounds
+    assert chain_outbounds[0].get("server") == "1.1.1.1"
+
+
 def test_chain_uniquification_prevents_collapse():
     """Chains with duplicate tags must be uniquified, not skipped (fixes single-proxy collapse)."""
     from configstream.generators.singbox import SingBoxGenerator

@@ -35,6 +35,8 @@ class AppSettings(BaseSettings):
     # Grace period after soft stop for consumers to finish revival, then
     # output generation (DNS, chaining, washing) runs after gather completes.
     BATCH_TIME_LIMIT_GRACE_SECONDS: int = 2700
+    SHUTDOWN_GRACE_SECONDS: float = 5.0
+    EVENT_STREAM_FLUSH_TIMEOUT_SECONDS: float = 2.0
     GEOIP_CITY_DB_PATH: str = "data/GeoLite2-City.mmdb"
     GEOIP_ASN_DB_PATH: str = "data/GeoLite2-ASN.mmdb"
 
@@ -52,6 +54,11 @@ class AppSettings(BaseSettings):
 
     # Producer Concurrency
     PRODUCER_MAX_CONCURRENCY: int = 100
+    # Queue/backpressure controls
+    QUEUE_PUT_TIMEOUT_SECONDS: float = 0.75
+    QUEUE_OVERLOAD_THRESHOLD: float = 0.8
+    QUEUE_OVERLOAD_KEEP_RATIO: float = 0.6
+    INGEST_MICRO_CHUNK_LINES: int = 500
 
     # Tester Concurrency Limits
     GO_TESTER_BATCH_SIZE: int = 0
@@ -74,6 +81,11 @@ class AppSettings(BaseSettings):
     MAX_SEEN_KEYS: int = 0
     CACHE_TTL: int = 1800
     MAX_WORKERS: int = 0
+    MAX_B64_INPUT_SIZE: int = 0
+    MAX_B64_OUTPUT_SIZE: int = 0
+    MAX_CONFIG_LINE_LENGTH: int = 0
+    MAX_LINES_PER_SOURCE: int = 0
+    MAX_OPENVPN_CONFIG_SIZE: int = 0
 
     # Scoring weights
     SCORE_WEIGHTS: dict[str, float] = {
@@ -108,9 +120,8 @@ class AppSettings(BaseSettings):
     DNS_SAFE_OUTPUTS: bool = True
     DNS_HARDENED_OUTPUTS: bool = True
     # Fail the pipeline (exit non-zero) when 0 working proxies were found.
-    # Default is False because outputs are still useful for users in different
-    # networks/regions and to avoid GitHub Pages 404s due to missing artifacts.
-    FAIL_ON_ZERO_WORKING: bool = False
+    # Outputs are still generated before final status is returned.
+    FAIL_ON_ZERO_WORKING: bool = True
     DNS_SAFE_RESOLVE_TIMEOUT: float = 4.0
     DNS_SAFE_RESOLVE_BATCH: int = 500
     DNS_SAFE_RESOLVE_LIMIT: int = 0
@@ -141,6 +152,7 @@ class AppSettings(BaseSettings):
 
     # Update Interval
     UPDATE_INTERVAL_HOURS: int = 4
+    BATCH_NUMBER: str = ""
 
     # Security Validator
     ALLOW_PRIVATE_IPS: bool = True
@@ -163,6 +175,8 @@ class AppSettings(BaseSettings):
 
     # Flags
     USE_VWARP_TUNNEL: bool = True
+    VWARP_SOCKS5_PORT: int = 10808
+    VWARP_BIND_ADDRESS: str = "127.0.0.1"
     VWARP_MASQUE_ENABLED: bool = True  # Enable Masque by default
     PSIPHON_ENABLED: bool = False
     PSIPHON_COUNTRY: str = "US"
@@ -172,6 +186,9 @@ class AppSettings(BaseSettings):
     # Deduplication behavior
     DEDUP_IGNORE_PROTOCOL: bool = False
     ENABLE_ENDPOINT_FILTERING: bool = True
+    SEEN_BLOOM_ENABLED: bool = True
+    SEEN_BLOOM_EXPECTED_ITEMS: int = 2000000
+    SEEN_BLOOM_FALSE_POSITIVE_RATE: float = 0.001
 
     # Server Config
     FRONTEND_DIR: Optional[str] = None
@@ -210,10 +227,26 @@ class AppSettings(BaseSettings):
             raise ValueError("BATCH_TIME_LIMIT_SECONDS must be >= 0")
         if self.BATCH_TIME_LIMIT_GRACE_SECONDS < 0:
             raise ValueError("BATCH_TIME_LIMIT_GRACE_SECONDS must be >= 0")
+        if self.SHUTDOWN_GRACE_SECONDS <= 0:
+            raise ValueError("SHUTDOWN_GRACE_SECONDS must be > 0")
+        if self.EVENT_STREAM_FLUSH_TIMEOUT_SECONDS <= 0:
+            raise ValueError("EVENT_STREAM_FLUSH_TIMEOUT_SECONDS must be > 0")
         if self.MAX_WORKERS < 0:
             raise ValueError("MAX_WORKERS must be >= 0")
         if self.BATCH_SIZE <= 0:
             raise ValueError("BATCH_SIZE must be > 0")
+        if self.INGEST_MICRO_CHUNK_LINES <= 0:
+            raise ValueError("INGEST_MICRO_CHUNK_LINES must be > 0")
+        if self.QUEUE_PUT_TIMEOUT_SECONDS <= 0:
+            raise ValueError("QUEUE_PUT_TIMEOUT_SECONDS must be > 0")
+        if not 0 < self.QUEUE_OVERLOAD_THRESHOLD <= 1:
+            raise ValueError("QUEUE_OVERLOAD_THRESHOLD must be in (0, 1]")
+        if not 0 < self.QUEUE_OVERLOAD_KEEP_RATIO <= 1:
+            raise ValueError("QUEUE_OVERLOAD_KEEP_RATIO must be in (0, 1]")
+        if self.SEEN_BLOOM_EXPECTED_ITEMS <= 0:
+            raise ValueError("SEEN_BLOOM_EXPECTED_ITEMS must be > 0")
+        if not 0 < self.SEEN_BLOOM_FALSE_POSITIVE_RATE < 1:
+            raise ValueError("SEEN_BLOOM_FALSE_POSITIVE_RATE must be in (0, 1)")
         if self.RATE_LIMIT_REQUESTS <= 0:
             raise ValueError("RATE_LIMIT_REQUESTS must be positive")
         if self.SOURCE_PROBATION_FAILURES <= 0:

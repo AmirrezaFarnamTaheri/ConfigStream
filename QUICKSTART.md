@@ -8,6 +8,10 @@ This guide will help you get ConfigStream up and running in minutes.
 -   **Pip**
 -   **Git**
 -   **Go 1.21+** (Optional, for WASM/Tester builds)
+-   **Binaryen (`wasm-opt`)** (Optional, for optimized WASM builds)
+-   **Node.js 20+** (Optional, for frontend build pipeline)
+
+> WASM tester note: browser WASM checks are transport-level (WebSocket-capable paths) and do not replace full server-side protocol testing.
 
 ---
 
@@ -89,6 +93,25 @@ First, run the pipeline (Method 1) to create `output/` files.
 ### 2. Start Server
 ```bash
 uvicorn configstream.server:app --host 0.0.0.0 --port 8000 --reload
+```
+
+---
+
+## 🌐 Frontend Build Pipeline (Vite)
+
+Use this when validating production-ready static assets:
+
+```bash
+npm install
+npm run build
+```
+
+Build output is written to `frontend-dist/`.
+
+For local frontend-only development:
+
+```bash
+npm run dev
 ```
 
 ---

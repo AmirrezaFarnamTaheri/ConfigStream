@@ -4,13 +4,82 @@ from typing import Dict, Optional, Any
 from datetime import datetime, timezone
 import threading
 
-__all__ = ["PipelineStats", "PipelineResult"]
+__all__ = ["PipelineExecutionAudit", "PipelineStats", "PipelineResult"]
+
+
+@dataclass
+class PipelineExecutionAudit:
+    """Execution-level audit summary for post-run diagnostics."""
+
+    trace_id: str
+    tested: int
+    working: int
+    total_revived: int
+    revived_warp: int
+    revived_vwarp: int
+    revival_attempts: int
+    revival_win_rate: float
+    fetched_sources: int
+    total_sources: int
+    source_toxicity_rate: float
+    backpressure_drop: int
+    time_limited: bool
+
+    @classmethod
+    def from_stats(cls, stats: "PipelineStats") -> "PipelineExecutionAudit":
+        attempts = int(stats.warp_attempts) + int(stats.vwarp_attempts)
+        if attempts <= 0:
+            attempts = int(stats.total_revived)
+        revived = int(stats.total_revived)
+        revival_win_rate = (revived / attempts) * 100.0 if attempts > 0 else 0.0
+
+        toxic_drops = (
+            int(stats.drop_reasons.get("fetch_error", 0))
+            + int(stats.drop_reasons.get("security_validation", 0))
+            + int(stats.drop_reasons.get("hostile_payload", 0))
+        )
+        denom = max(1, int(stats.fetched_sources))
+        toxicity_rate = (toxic_drops / denom) * 100.0
+
+        return cls(
+            trace_id=stats.trace_id or "-",
+            tested=int(stats.tested),
+            working=int(stats.working),
+            total_revived=revived,
+            revived_warp=int(stats.revived_warp),
+            revived_vwarp=int(stats.revived_vwarp),
+            revival_attempts=attempts,
+            revival_win_rate=revival_win_rate,
+            fetched_sources=int(stats.fetched_sources),
+            total_sources=int(stats.total_sources),
+            source_toxicity_rate=toxicity_rate,
+            backpressure_drop=int(stats.backpressure_drop),
+            time_limited=bool(stats.time_limited),
+        )
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "trace_id": self.trace_id,
+            "tested": self.tested,
+            "working": self.working,
+            "total_revived": self.total_revived,
+            "revived_warp": self.revived_warp,
+            "revived_vwarp": self.revived_vwarp,
+            "revival_attempts": self.revival_attempts,
+            "revival_win_rate": self.revival_win_rate,
+            "fetched_sources": self.fetched_sources,
+            "total_sources": self.total_sources,
+            "source_toxicity_rate": self.source_toxicity_rate,
+            "backpressure_drop": self.backpressure_drop,
+            "time_limited": self.time_limited,
+        }
 
 
 @dataclass
 class PipelineStats:
     start_time: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     end_time: Optional[datetime] = None
+    trace_id: str = "-"
     drop_reasons: Dict[str, int] = field(default_factory=dict)
 
     # Internal lock for thread-safe access to dictionary fields
@@ -35,6 +104,7 @@ class PipelineStats:
     washer_success_count: int = 0
     smart_chain_count: int = 0
     chain_outbounds_count: int = 0
+    backpressure_drop: int = 0
     # Time budget handling
     time_limited: bool = False
     time_limit_seconds: int = 0
@@ -60,6 +130,19 @@ class PipelineStats:
     # Washing Enabled Flag
     washing_enabled: bool = True
 
+    # Metadata mirror fields (frontend consumes these keys directly)
+    protocols: Dict[str, int] = field(default_factory=dict)
+    country_stats: Dict[str, int] = field(default_factory=dict)
+    asns: Dict[str, int] = field(default_factory=dict)
+    latency_distribution: Dict[str, int] = field(
+        default_factory=lambda: {"fast": 0, "medium": 0, "slow": 0, "very_slow": 0}
+    )
+    latency_by_country: Dict[str, int] = field(default_factory=dict)
+    latency_by_protocol: Dict[str, int] = field(default_factory=dict)
+    smart_chains_breakdown: Dict[str, int] = field(default_factory=dict)
+    total_dirty: int = 0
+    chosen_subset_size: int = 0
+
     @property
     def vwarp_win_rate(self) -> float:
         if self.vwarp_attempts == 0:
@@ -67,14 +150,81 @@ class PipelineStats:
         return (self.vwarp_success / self.vwarp_attempts) * 100
 
     @property
+    def success_rate(self) -> float:
+        if self.tested == 0:
+            return 0.0
+        return self.working / self.tested
+
+    @property
     def total_revived(self) -> int:
         return self.revived_warp + self.revived_vwarp
+
+    @property
+    def total_clean(self) -> int:
+        return max(0, self.working - self.total_revived)
+
+    @property
+    def total_lines_sourced(self) -> int:
+        return self.fetched_lines
+
+    @property
+    def total_unique_candidates(self) -> int:
+        return self.parsed
+
+    @property
+    def total_valid_proxies(self) -> int:
+        return self.working
+
+    @property
+    def total_proxies(self) -> int:
+        return self.working + self.smart_chain_count + self.shielded_count
+
+    @property
+    def total_tested(self) -> int:
+        return self.tested
+
+    @property
+    def total_working(self) -> int:
+        return self.working
+
+    @property
+    def total_smart_chains(self) -> int:
+        return self.smart_chain_count
+
+    @property
+    def rejection_reasons(self) -> Dict[str, int]:
+        return dict(self.drop_reasons)
+
+    @property
+    def sources_count(self) -> int:
+        return self.total_configured_sources
+
+    @property
+    def total_sources(self) -> int:
+        return self.total_configured_sources
 
     def get_snapshot(self) -> Dict[str, Any]:
         """
         Thread-safe method to get a snapshot of stats.
         """
         return self.to_dict()
+
+    def add_drop_reason(self, reason: str, count: int = 1) -> None:
+        """Thread-safe increment for drop reason counters."""
+        if count <= 0:
+            return
+        with self._lock:
+            self.drop_reasons[reason] = self.drop_reasons.get(reason, 0) + count
+
+    def record_backpressure_drop(self, count: int = 1) -> None:
+        """Thread-safe backpressure drop accounting."""
+        if count <= 0:
+            return
+        with self._lock:
+            self.backpressure_drop += count
+            self.drop_reasons["backpressure_drop"] = (
+                self.drop_reasons.get("backpressure_drop", 0) + count
+            )
 
     def to_dict(self) -> Dict[str, Any]:
         """
@@ -86,6 +236,7 @@ class PipelineStats:
             return {
                 "start_time": self.start_time.isoformat() if self.start_time else None,
                 "end_time": self.end_time.isoformat() if self.end_time else None,
+                "trace_id": self.trace_id or "-",
                 "total_configured_sources": self.total_configured_sources,
                 "fetched_sources": self.fetched_sources,
                 "fetched_lines": self.fetched_lines,
@@ -100,12 +251,15 @@ class PipelineStats:
                 "washer_success_count": self.washer_success_count,
                 "smart_chain_count": self.smart_chain_count,
                 "chain_outbounds_count": self.chain_outbounds_count,
+                "backpressure_drop": self.backpressure_drop,
                 "time_limited": self.time_limited,
                 "time_limit_seconds": self.time_limit_seconds,
                 "revived_warp": self.revived_warp,
                 "revived_vwarp": self.revived_vwarp,
                 "shielded_count": self.shielded_count,
                 "total_revived": self.total_revived,
+                "total_clean": self.total_clean,
+                "total_dirty": self.total_dirty,
                 "warp_attempts": self.warp_attempts,
                 "evasion_utls_enabled": self.evasion_utls_enabled,
                 "evasion_alpn_enabled": self.evasion_alpn_enabled,
@@ -117,6 +271,28 @@ class PipelineStats:
                 "vwarp_success": self.vwarp_success,
                 "vwarp_win_rate": self.vwarp_win_rate,
                 "washing_enabled": self.washing_enabled,
+                "success_rate": self.success_rate,
+                "total_lines_sourced": self.total_lines_sourced,
+                "total_unique_candidates": self.total_unique_candidates,
+                "total_valid_proxies": self.total_valid_proxies,
+                "total_proxies": self.total_proxies,
+                "total_tested": self.total_tested,
+                "total_working": self.total_working,
+                "total_smart_chains": self.total_smart_chains,
+                "protocols": dict(self.protocols),
+                "country_stats": dict(self.country_stats),
+                "asns": dict(self.asns),
+                "latency_distribution": dict(self.latency_distribution),
+                "latency_by_country": dict(self.latency_by_country),
+                "latency_by_protocol": dict(self.latency_by_protocol),
+                "smart_chains_breakdown": dict(self.smart_chains_breakdown),
+                "rejection_reasons": self.rejection_reasons,
+                "sources_count": self.sources_count,
+                "total_sources": self.total_sources,
+                "chosen_subset_size": self.chosen_subset_size,
+                "pipeline_execution_audit": PipelineExecutionAudit.from_stats(
+                    self
+                ).to_dict(),
                 # Create a shallow copy of the dict to prevent iteration errors
                 "drop_reasons": dict(self.drop_reasons),
             }

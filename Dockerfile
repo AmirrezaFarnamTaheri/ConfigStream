@@ -49,13 +49,20 @@ COPY --from=builder /app/tester /usr/local/bin/configstream-tester
 # BUT, we need VWARP.
 
 # 3. Install Vwarp
+ARG TARGETARCH
 ARG VWARP_VERSION=v2.1.0
-# [SECURITY] Checksum for v2.1.0 updated on 2026-01-02.
-# The upstream asset was replaced. New checksum verified from: https://github.com/voidr3aper-anon/Vwarp/releases/tag/v2.1.0#checksums
-ARG VWARP_SHA256=4b971ed3696ed607bf91000f379f6308459fd1dafa1beae14404a8b7ce068cf7
+# [SECURITY] v2.1.0 checksums pinned per architecture.
+ARG VWARP_SHA256_AMD64=4b971ed3696ed607bf91000f379f6308459fd1dafa1beae14404a8b7ce068cf7
+ARG VWARP_SHA256_ARM64=580f5aed84d1da56d6184ed86aa8bd1a09fae01a2f931304cdf074d71794f935
 
 # Running as root before switching user
-RUN curl -fSsL --retry 3 --max-time 30 --proto =https -o /tmp/vwarp.zip https://github.com/voidr3aper-anon/Vwarp/releases/download/${VWARP_VERSION}/vwarp_linux-amd64.zip && \
+RUN set -eux; \
+    case "${TARGETARCH:-amd64}" in \
+      amd64) VWARP_ARCH="amd64"; VWARP_SHA256="${VWARP_SHA256_AMD64}" ;; \
+      arm64) VWARP_ARCH="arm64"; VWARP_SHA256="${VWARP_SHA256_ARM64}" ;; \
+      *) echo "Unsupported TARGETARCH: ${TARGETARCH}" >&2; exit 1 ;; \
+    esac; \
+    curl -fSsL --retry 3 --max-time 30 --proto =https -o /tmp/vwarp.zip "https://github.com/voidr3aper-anon/Vwarp/releases/download/${VWARP_VERSION}/vwarp_linux-${VWARP_ARCH}.zip" && \
     echo "${VWARP_SHA256}  /tmp/vwarp.zip" | sha256sum -c - && \
     unzip -tq /tmp/vwarp.zip && \
     mkdir -p /tmp/vwarp-extract && \

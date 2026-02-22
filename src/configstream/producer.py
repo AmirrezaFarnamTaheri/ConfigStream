@@ -2,10 +2,9 @@
 import asyncio
 import logging
 import json
-import os
 import random
 import time
-from typing import List, Optional, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
 from rich.progress import Progress, TaskID
 from functools import partial
 from urllib.parse import urlparse
@@ -13,6 +12,7 @@ from urllib.parse import urlparse
 from configstream.models import Proxy
 from configstream.config import AppSettings
 from configstream.fetcher import fetch_multiple_sources
+from configstream.circuit_breaker import CircuitBreakerManager
 from configstream.async_file_ops import read_multiple_files_async
 from configstream.parsers import extract_config_lines
 from configstream.source_quality import SourceQualityTracker
@@ -21,13 +21,22 @@ from configstream.security_validator import SecurityValidator
 
 if TYPE_CHECKING:
     from configstream.event_stream import EventStream
+    from configstream.pipeline_stats import PipelineStats
 
 logger = logging.getLogger(__name__)
+
+
+def _chunk_lines(lines: List[str], chunk_size: int) -> List[List[str]]:
+    """Split large source payloads into bounded chunks for fair queueing."""
+    if chunk_size <= 0 or len(lines) <= chunk_size:
+        return [lines]
+    return [lines[i : i + chunk_size] for i in range(0, len(lines), chunk_size)]
 
 
 async def _report_source_failure(
     loop: asyncio.AbstractEventLoop,
     quality_tracker: SourceQualityTracker,
+    settings: AppSettings,
     source: str,
     reason: str,
     duration_ms: float = 0.0,
@@ -36,7 +45,7 @@ async def _report_source_failure(
     """Report a source failure to the quality tracker (best-effort)."""
     try:
         await loop.run_in_executor(None, quality_tracker.report_failure, source, reason)
-        batch_number = os.getenv("BATCH_NUMBER", "").strip()
+        batch_number = str(getattr(settings, "BATCH_NUMBER", "")).strip()
         batch_source = f"batch_{batch_number}" if batch_number else "pipeline"
         await loop.run_in_executor(
             None,
@@ -67,12 +76,114 @@ async def source_producer(
     task_fetch: Optional[TaskID],
     num_consumers: int = 1,
     stop_event: Optional[asyncio.Event] = None,
+    stats: Optional["PipelineStats"] = None,
 ):
     settings = AppSettings()
     if stop_event is None:
         stop_event = asyncio.Event()
     enable_anomaly_detection = settings.ENABLE_ANOMALY_DETECTION
     loop = asyncio.get_running_loop()
+    queue_put_timeout = max(
+        0.05, float(getattr(settings, "QUEUE_PUT_TIMEOUT_SECONDS", 0.75))
+    )
+    ingest_chunk_size = max(1, int(getattr(settings, "INGEST_MICRO_CHUNK_LINES", 500)))
+    overload_threshold = float(getattr(settings, "QUEUE_OVERLOAD_THRESHOLD", 0.8))
+    keep_ratio = float(getattr(settings, "QUEUE_OVERLOAD_KEEP_RATIO", 0.6))
+    keep_ratio = min(1.0, max(0.05, keep_ratio))
+    breaker_manager = CircuitBreakerManager(
+        failure_threshold=max(1, int(getattr(settings, "CIRCUIT_TRIP_CONN_ERRORS", 5))),
+        recovery_timeout=max(1, int(getattr(settings, "CIRCUIT_OPEN_SEC", 120))),
+    )
+
+    def _queue_pressure() -> float:
+        maxsize = getattr(work_queue, "maxsize", 0) or 0
+        if maxsize <= 0:
+            return 0.0
+        return float(work_queue.qsize()) / float(maxsize)
+
+    def _record_backpressure_drop(
+        source: str, metadata: Dict[str, Any], dropped: int
+    ) -> None:
+        if dropped <= 0:
+            return
+        drop_stats = metadata.setdefault("drop_stats", {})
+        if isinstance(drop_stats, dict):
+            drop_stats["backpressure_drop"] = (
+                int(drop_stats.get("backpressure_drop", 0)) + dropped
+            )
+        if stats is not None:
+            stats.record_backpressure_drop(dropped)
+        safe_source = SecurityValidator.sanitize_log_message(source)
+        logger.warning(
+            "Backpressure drop: source=%s dropped=%d pressure=%.2f",
+            safe_source,
+            dropped,
+            _queue_pressure(),
+        )
+
+    def _drop_slowest_testing(lines: List[str]) -> tuple[List[str], int]:
+        """
+        Approximate slow-test candidates by URI length and drop them when queue
+        pressure exceeds threshold. Shorter URIs/configs are kept first.
+        """
+        if len(lines) <= 1:
+            return lines, 0
+        if _queue_pressure() < overload_threshold:
+            return lines, 0
+        keep_count = max(1, int(len(lines) * keep_ratio))
+        ranked = sorted(enumerate(lines), key=lambda item: len(item[1]))
+        keep_indexes = {idx for idx, _ in ranked[:keep_count]}
+        kept = [line for idx, line in enumerate(lines) if idx in keep_indexes]
+        return kept, max(0, len(lines) - len(kept))
+
+    async def _queue_payload(
+        source: str, lines: List[str], metadata: Optional[Dict[str, Any]] = None
+    ) -> int:
+        """
+        Enqueue payload with micro-chunking and bounded put timeout.
+        Returns number of chunks successfully queued.
+        """
+        base_meta: Dict[str, Any] = dict(metadata or {})
+        chunks = _chunk_lines(lines, ingest_chunk_size)
+        queued_chunks = 0
+
+        for idx, chunk in enumerate(chunks, start=1):
+            chunk_meta: Dict[str, Any] = dict(base_meta)
+            if idx > 1:
+                # Avoid double-counting parser drop stats on every chunk.
+                chunk_meta["drop_stats"] = {}
+            if len(chunks) > 1:
+                chunk_meta["chunk_index"] = idx
+                chunk_meta["chunk_total"] = len(chunks)
+
+            candidate_lines, dropped = _drop_slowest_testing(chunk)
+            if dropped:
+                _record_backpressure_drop(source, chunk_meta, dropped)
+            if not candidate_lines:
+                continue
+
+            try:
+                await asyncio.wait_for(
+                    work_queue.put((source, candidate_lines, chunk_meta)),
+                    timeout=queue_put_timeout,
+                )
+                queued_chunks += 1
+            except asyncio.TimeoutError:
+                _record_backpressure_drop(source, chunk_meta, len(candidate_lines))
+                safe_source = SecurityValidator.sanitize_log_message(source)
+                logger.warning(
+                    "Queue put timeout: dropping chunk from %s (size=%d, pressure=%.2f)",
+                    safe_source,
+                    len(candidate_lines),
+                    _queue_pressure(),
+                )
+                if event_stream:
+                    event_stream.emit(
+                        "warning",
+                        f"Backpressure dropped {len(candidate_lines)} lines from {safe_source}",
+                    )
+
+        return queued_chunks
 
     def _is_direct_proxy(candidate: str) -> bool:
         lower = candidate.lower()
@@ -114,7 +225,7 @@ async def source_producer(
         if proxies:
             supplied_lines = [p.config for p in proxies if p.config]
             if supplied_lines:
-                await work_queue.put(("supplied-proxies", supplied_lines, {}))
+                await _queue_payload("supplied-proxies", supplied_lines, {})
 
         # B. Handle File Sources
         local_files: List[str] = []
@@ -127,7 +238,7 @@ async def source_producer(
                 continue
             lower = s.lower()
             if _is_direct_proxy(s):
-                await work_queue.put(("supplied-config", [s], {}))
+                await _queue_payload("supplied-config", [s], {})
             elif lower.startswith("ssconf://"):
                 remote_urls.append(s.replace("ssconf://", "https://", 1))
             elif lower.startswith(("http://", "https://")):
@@ -146,11 +257,21 @@ async def source_producer(
                 )
                 if file_lines:
                     metadata: dict[str, object] = {"drop_stats": drop_stats}
-                    await work_queue.put((fpath, file_lines, metadata))
+                    queued = await _queue_payload(fpath, file_lines, metadata)
+                    if queued == 0:
+                        await _report_source_failure(
+                            loop,
+                            quality_tracker,
+                            settings,
+                            fpath,
+                            "backpressure_drop",
+                            failure_modes={"backpressure_drop": len(file_lines)},
+                        )
                 else:
                     await _report_source_failure(
                         loop,
                         quality_tracker,
+                        settings,
                         fpath,
                         "no_valid_lines",
                         failure_modes=drop_stats,
@@ -228,6 +349,7 @@ async def source_producer(
                     timeout=settings.FETCH_TIMEOUT,
                     use_adaptive_timeout=True,
                     quality_tracker=quality_tracker,
+                    breaker_manager=breaker_manager,
                 )
 
                 for source, res in results.items():
@@ -261,6 +383,7 @@ async def source_producer(
                             await _report_source_failure(
                                 loop,
                                 quality_tracker,
+                                settings,
                                 source,
                                 "no_valid_lines",
                                 duration_ms=(res.response_time or 0.0) * 1000,
@@ -296,7 +419,18 @@ async def source_producer(
                                     "fetch_duration": res.response_time or 0.0,
                                     "drop_stats": drop_stats,  # Pass stats downstream
                                 }
-                                await work_queue.put((source, lines, metadata))
+                                queued = await _queue_payload(source, lines, metadata)
+                                if queued == 0:
+                                    await _report_source_failure(
+                                        loop,
+                                        quality_tracker,
+                                        settings,
+                                        source,
+                                        "backpressure_drop",
+                                        duration_ms=(res.response_time or 0.0) * 1000,
+                                        failure_modes={"backpressure_drop": len(lines)},
+                                    )
+                                    continue
 
                                 # Single consolidated log via event stream (includes fetch metrics)
                                 if event_stream:
@@ -336,6 +470,7 @@ async def source_producer(
                         await _report_source_failure(
                             loop,
                             quality_tracker,
+                            settings,
                             source,
                             safe_error,
                             duration_ms=(res.response_time or 0.0) * 1000,
