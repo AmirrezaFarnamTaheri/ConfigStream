@@ -8,8 +8,23 @@ Defines the core Proxy object and Pydantic schemas.
 
 import hashlib
 from typing import Any, Dict, List, Optional
+from enum import Enum
 
 from pydantic import BaseModel, ConfigDict, Field
+
+class ProcessType(str, Enum):
+    """
+    Enum for proxy processing stages and evasion types.
+    """
+    NATIVE = "native"
+    WASHED = "washed"
+    REVIVED_WARP = "revived-warp"
+    REVIVED_VWARP = "revived-vwarp"
+    CHAIN = "chain"
+    SHIELDED = "shielded"
+    FRAGMENTED = "fragmented"
+    UTLS_MIMIC = "utls-mimic"
+    MULTIPATH = "multipath"
 
 
 class Proxy(BaseModel):
@@ -49,7 +64,7 @@ class Proxy(BaseModel):
     batch_source: Optional[str] = None
     source_line: Optional[int] = None
     history: Optional[List[float]] = None
-    process: str = "native"
+    process: ProcessType = ProcessType.NATIVE
 
     @property
     def latency_ms(self) -> Optional[float]:
@@ -65,23 +80,24 @@ class Proxy(BaseModel):
     def id(self) -> str:
         """
         Stable identifier used for caching, history, and external tools.
-
-        - Prefer explicit UUID when present.
-        - Otherwise derive a short, stable hash from protocol + address + port.
-        - Avoid using full config strings as IDs to keep keys compact and stable.
+        Enforces stable identity generation using a composite hash (protocol, host/address, port, uuid_or_key).
         """
-        if self.uuid:
-            return self.uuid.strip()
+        # Prioritize UUID if available, otherwise check common unique fields
+        unique_field = self.uuid
+        if not unique_field:
+             # Fallback to password or private key for protocols that rely on them
+             unique_field = self.details.get("password") or self.details.get("private_key") or ""
 
-        # Build a minimal fingerprint; fall back to config only if absolutely necessary.
-        if self.protocol and self.address and self.port:
-            key = f"{self.protocol}:{self.address}:{self.port}"
-        else:
-            key = (self.config or "").strip()
+        # Ensure we have protocol, address, port.
+        # Use config hash if minimal fields are missing (should not happen for valid proxies)
+        if not (self.protocol and self.address and self.port):
+             key = (self.config or "").strip()
+             if not key:
+                 return ""
+             return hashlib.sha256(key.encode("utf-8")).hexdigest()[:16]
 
-        if not key:
-            return ""
-
+        # Composite key
+        key = f"{self.protocol}:{self.address}:{self.port}:{unique_field}"
         digest = hashlib.sha256(key.encode("utf-8")).hexdigest()
         return digest[:16]
 

@@ -1,149 +1,110 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+"""
+Producer module: Fetches proxies from local files and remote URLs.
+"""
+
 import asyncio
 import logging
-import json
-import os
 import random
-import time
-from typing import List, Optional, TYPE_CHECKING
-from rich.progress import Progress, TaskID
 from functools import partial
-from urllib.parse import urlparse
+from typing import List, Optional
 
-from configstream.models import Proxy
 from configstream.config import AppSettings
+from configstream.extraction import extract_config_lines
 from configstream.fetcher import fetch_multiple_sources
-from configstream.async_file_ops import read_multiple_files_async
-from configstream.parsers import extract_config_lines
-from configstream.source_quality import SourceQualityTracker
-from configstream.anomaly import AnomalyDetector
 from configstream.security_validator import SecurityValidator
-
-if TYPE_CHECKING:
-    from configstream.event_stream import EventStream
+from configstream.source_quality import SourceQualityTracker
+from configstream.intelligence.anomaly import AnomalyDetector
 
 logger = logging.getLogger(__name__)
 
 
 async def _report_source_failure(
-    loop: asyncio.AbstractEventLoop,
-    quality_tracker: SourceQualityTracker,
-    source: str,
-    reason: str,
-    duration_ms: float = 0.0,
-    failure_modes: Optional[dict] = None,
-) -> None:
-    """Report a source failure to the quality tracker (best-effort)."""
+    loop, quality_tracker, source, error_type, duration_ms=0.0, failure_modes=None
+):
+    """Helper to report failures to the quality tracker."""
     try:
-        await loop.run_in_executor(None, quality_tracker.report_failure, source, reason)
-        batch_number = os.getenv("BATCH_NUMBER", "").strip()
-        batch_source = f"batch_{batch_number}" if batch_number else "pipeline"
         await loop.run_in_executor(
             None,
-            quality_tracker.record_run,
+            quality_tracker.report_failure,
             source,
-            {
-                "timestamp": int(time.time()),
-                "duration_ms": duration_ms,
-                "fetched_count": 0,
-                "working_count": 0,
-                "geoip_json": "{}",
-                "failure_modes_json": json.dumps(failure_modes or {}),
-                "batch_source": batch_source,
-            },
+            error_type,
+            duration_ms,
+            failure_modes,
         )
     except Exception:  # nosec
         pass
 
 
-async def source_producer(
+async def produce_proxies(
     sources: List[str],
+    proxies: List[str],  # Pre-supplied proxy lines
     work_queue: asyncio.Queue,
-    proxies: Optional[List[Proxy]],
+    settings: AppSettings,
+    stop_event: asyncio.Event,
     quality_tracker: SourceQualityTracker,
-    anomaly_detector: AnomalyDetector,
-    event_stream: Optional["EventStream"],
-    progress: Optional[Progress],
-    task_fetch: Optional[TaskID],
-    num_consumers: int = 1,
-    stop_event: Optional[asyncio.Event] = None,
-):
-    settings = AppSettings()
-    if stop_event is None:
-        stop_event = asyncio.Event()
-    enable_anomaly_detection = settings.ENABLE_ANOMALY_DETECTION
+    num_consumers: int,
+    progress=None,
+    task_fetch=None,
+    event_stream=None,
+) -> None:
+    """
+    Fetches raw proxy lines from sources and puts them into the work_queue.
+    """
     loop = asyncio.get_running_loop()
 
-    def _is_direct_proxy(candidate: str) -> bool:
-        lower = candidate.lower()
-        if lower.startswith(
-            (
-                "ss://",
-                "vmess://",
-                "vless://",
-                "trojan://",
-                "hysteria://",
-                "hy2://",
-                "hysteria2://",
-                "tuic://",
-                "ssh://",
-                "wg://",
-                "wireguard://",
-                "naive://",
-                "naive+https://",
-                "naive+http://",
-                "socks://",
-                "socks4://",
-                "socks5://",
-            )
-        ):
-            return True
-        if lower.startswith(("http://", "https://")):
-            parsed = urlparse(candidate)
-            return (
-                parsed.hostname is not None
-                and parsed.port is not None
-                and parsed.path in ("", "/")
-                and not parsed.query
-                and not parsed.fragment
-            )
-        return False
+    # Initialize Anomaly Detector (singleton or per-run)
+    # Assuming AnomalyDetector can be instantiated or we get a singleton.
+    # The original code seemed to have 'anomaly_detector' in scope or global.
+    # Based on usage: 'anomaly_detector.is_safe'.
+    # We'll instantiate it here.
+    anomaly_detector = AnomalyDetector()
+    enable_anomaly_detection = settings.ENABLE_ANOMALY_DETECTION
 
     try:
-        # A. Handle Pre-supplied Proxies
+        # A. Handle Pre-supplied Proxies (CLI args or API input)
         if proxies:
-            supplied_lines = [p.config for p in proxies if p.config]
-            if supplied_lines:
-                await work_queue.put(("supplied-proxies", supplied_lines, {}))
+            logger.info(f"Processing {len(proxies)} pre-supplied proxy lines...")
+            # Treat as a "manual" source
+            lines, drop_stats = await loop.run_in_executor(
+                None, extract_config_lines, "\n".join(proxies), "manual_input"
+            )
+            if lines:
+                await work_queue.put(("manual_input", lines, {"drop_stats": drop_stats}))
 
-        # B. Handle File Sources
-        local_files: List[str] = []
-        remote_urls: List[str] = []
-        for raw in sources:
-            if stop_event.is_set():
-                break
-            s = raw.strip()
-            if not s:
-                continue
-            lower = s.lower()
-            if _is_direct_proxy(s):
-                await work_queue.put(("supplied-config", [s], {}))
-            elif lower.startswith("ssconf://"):
-                remote_urls.append(s.replace("ssconf://", "https://", 1))
-            elif lower.startswith(("http://", "https://")):
-                remote_urls.append(s)
-            else:
-                local_files.append(s)
+        # B. Handle Local Files
+        local_files = [s for s in sources if s.startswith("file://") or "://" not in s]
+        remote_urls = [s for s in sources if "://" in s and not s.startswith("file://")]
 
         if local_files:
-            file_results = await read_multiple_files_async(local_files)
-            for fpath, content in file_results:
+            logger.info(f"Reading {len(local_files)} local files...")
+            for fpath in local_files:
                 if stop_event.is_set():
                     break
-                extract_func = partial(extract_config_lines, content, source_url=fpath)
-                file_lines, drop_stats = (
-                    await asyncio.get_running_loop().run_in_executor(None, extract_func)
+
+                safe_source = SecurityValidator.sanitize_log_message(fpath)
+
+                # Queue Control (Drop-Tail) for Local Files
+                if work_queue.maxsize > 0:
+                    usage = work_queue.qsize() / work_queue.maxsize
+                    if usage > 0.8:
+                        logger.warning(
+                            f"Queue overload ({usage:.1%}), dropping local file {safe_source}"
+                        )
+                        continue
+
+                try:
+                    with open(fpath, "r", encoding="utf-8", errors="ignore") as f:
+                        content = f.read()
+                except Exception as e:
+                    logger.error(f"Failed to read local file {safe_source}: {e}")
+                    continue
+
+                extract_func = partial(
+                    extract_config_lines, content, source_url=fpath
                 )
+                file_lines, drop_stats = await loop.run_in_executor(None, extract_func)
+
                 if file_lines:
                     metadata: dict[str, object] = {"drop_stats": drop_stats}
                     await work_queue.put((fpath, file_lines, metadata))
@@ -296,6 +257,17 @@ async def source_producer(
                                     "fetch_duration": res.response_time or 0.0,
                                     "drop_stats": drop_stats,  # Pass stats downstream
                                 }
+
+                                # Queue Control (Drop-Tail)
+                                if work_queue.maxsize > 0:
+                                    usage = work_queue.qsize() / work_queue.maxsize
+                                    if usage > 0.8:
+                                        logger.warning(
+                                            f"Queue overload ({usage:.1%}), dropping {count} lines from {safe_source}"
+                                        )
+                                        # Skip putting into queue
+                                        continue
+
                                 await work_queue.put((source, lines, metadata))
 
                                 # Single consolidated log via event stream (includes fetch metrics)

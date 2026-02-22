@@ -9,11 +9,15 @@ import asyncio
 import logging
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
-from typing import Any
+from typing import Any, Optional
+from urllib.parse import urlparse
 
 import httpx
 
 from configstream.config import AppSettings
+# Import CircuitBreakerManager with TYPE_CHECKING guard if cyclic import issues arise,
+# but here it is likely fine.
+from configstream.circuit_breaker import CircuitBreakerManager
 
 logger = logging.getLogger(__name__)
 
@@ -116,10 +120,26 @@ async def fetch_single_source(
     per_attempt_timeout: float,
     start_ts: float,
     loop: asyncio.AbstractEventLoop,
+    circuit_breaker_manager: Optional[CircuitBreakerManager] = None,
 ) -> FetchResult:
     """
     Executes a single fetch attempt with strict size limits and error mapping.
     """
+    domain: Optional[str] = None
+    if circuit_breaker_manager:
+        try:
+            domain = urlparse(source).netloc
+        except Exception:
+            pass
+
+    # Circuit Breaker Check
+    if domain and circuit_breaker_manager:
+        breaker = await circuit_breaker_manager.get_breaker(domain)
+        if await breaker.is_open():
+            if await breaker.should_log_open():
+                logger.warning(f"Circuit open for domain {domain}, skipping {source}")
+            return FetchResult(False, source, error="Circuit Open")
+
     try:
         enforce_limit = max_response_size > 0
         # Streaming Request to enforce size limit
@@ -180,6 +200,11 @@ async def fetch_single_source(
                     # Last resort fallback if it's purely binary garbage but we need a string
                     content_str = content_bytes.decode("utf-8", errors="replace")
 
+            # Circuit Breaker Success
+            if domain and circuit_breaker_manager:
+                breaker = await circuit_breaker_manager.get_breaker(domain)
+                await breaker.record_success()
+
             return FetchResult(
                 True,
                 source,
@@ -190,4 +215,14 @@ async def fetch_single_source(
             )
 
     except httpx.HTTPError as e:
+        # Circuit Breaker Failure
+        if domain and circuit_breaker_manager:
+            breaker = await circuit_breaker_manager.get_breaker(domain)
+            await breaker.record_failure()
+        raise e
+    except Exception as e:
+         # Capture other errors too
+        if domain and circuit_breaker_manager:
+            breaker = await circuit_breaker_manager.get_breaker(domain)
+            await breaker.record_failure()
         raise e

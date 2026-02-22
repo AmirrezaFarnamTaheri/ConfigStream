@@ -5,7 +5,7 @@ import threading
 import http.server
 import socketserver
 import time
-import requests
+import httpx
 from pathlib import Path
 
 # Apply nest_asyncio globally
@@ -72,21 +72,22 @@ def http_server():
     base_url = f"http://127.0.0.1:{port}"
 
     # Wait for server. Disable env proxy usage so localhost checks stay local.
-    session = requests.Session()
-    session.trust_env = False
     try:
-        for _ in range(50):
-            try:
-                session.get(base_url, timeout=0.5)
-                break
-            except Exception:
-                time.sleep(0.1)
-        else:
-            httpd.shutdown()
-            httpd.server_close()
-            pytest.skip("Loopback HTTP server is unavailable in this environment")
-    finally:
-        session.close()
+        with httpx.Client(trust_env=False) as client:
+            for _ in range(50):
+                try:
+                    client.get(base_url, timeout=0.5)
+                    break
+                except Exception:
+                    time.sleep(0.1)
+            else:
+                httpd.shutdown()
+                httpd.server_close()
+                pytest.skip("Loopback HTTP server is unavailable in this environment")
+    except Exception:
+        httpd.shutdown()
+        httpd.server_close()
+        raise
 
     yield base_url
 

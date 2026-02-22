@@ -6,7 +6,16 @@
   "properties": {
     "id": {"type": "string", "description": "Stable proxy identifier (UUID or hash)"},
     "config": {"type": "string"},
-    "protocol": {"type": "string", "minLength": 1},
+    "protocol": {
+      "type": "string",
+      "enum": [
+        "vmess", "vless", "shadowsocks", "ss", "ss2022", "ssr", "trojan",
+        "hysteria", "hysteria2", "hy2", "husi", "tuic", "wireguard", "wg",
+        "exclave", "naive", "naive+https", "naive+http", "snell", "brook",
+        "juicity", "xray", "xtls", "v2ray", "ssh", "http", "https",
+        "socks", "socks4", "socks5", "anytls"
+      ]
+    },
     "address": {"type": "string", "minLength": 1},
     "port": {"type": "integer", "minimum": 1, "maximum": 65535},
     "uuid": {"type": "string"},
@@ -40,7 +49,98 @@
     "tested_at": {"type": "string"},
     "details": {
       "type": "object",
-      "additionalProperties": true
+      "anyOf": [
+        {
+          "title": "VLESS Details",
+          "properties": {
+            "uuid": {"type": "string"},
+            "flow": {"type": "string"},
+            "encryption": {"type": "string"},
+            "network": {"type": "string"},
+            "type": {"type": "string"},
+            "host": {"type": "string"},
+            "path": {"type": "string"},
+            "tls": {"type": "string"},
+            "sni": {"type": "string"},
+            "alpn": {"type": "array", "items": {"type": "string"}},
+            "fingerprint": {"type": "string"},
+            "reality": {"type": "boolean"},
+            "pbk": {"type": "string"},
+            "sid": {"type": "string"},
+            "spx": {"type": "string"}
+          },
+          "required": ["uuid"]
+        },
+        {
+          "title": "VMess Details",
+          "properties": {
+            "uuid": {"type": "string"},
+            "alterId": {"type": "integer"},
+            "security": {"type": "string"},
+            "network": {"type": "string"},
+            "type": {"type": "string"},
+            "host": {"type": "string"},
+            "path": {"type": "string"},
+            "tls": {"type": "string"},
+            "sni": {"type": "string"},
+            "alpn": {"type": "array", "items": {"type": "string"}}
+          },
+          "required": ["uuid"]
+        },
+        {
+          "title": "Trojan Details",
+          "properties": {
+             "password": {"type": "string"},
+             "network": {"type": "string"},
+             "type": {"type": "string"},
+             "host": {"type": "string"},
+             "path": {"type": "string"},
+             "tls": {"type": "string"},
+             "sni": {"type": "string"},
+             "alpn": {"type": "array", "items": {"type": "string"}}
+          },
+          "required": ["password"]
+        },
+        {
+           "title": "Shadowsocks Details",
+           "properties": {
+             "password": {"type": "string"},
+             "method": {"type": "string"},
+             "plugin": {"type": "string"},
+             "plugin_opts": {"type": "string"}
+           },
+           "required": ["password", "method"]
+        },
+        {
+           "title": "Hysteria2 Details",
+           "properties": {
+             "password": {"type": "string"},
+             "up": {"type": "string"},
+             "down": {"type": "string"},
+             "sni": {"type": "string"},
+             "alpn": {"type": "array", "items": {"type": "string"}},
+             "obfs": {"type": "string"},
+             "obfs-password": {"type": "string"}
+           },
+           "required": ["password"]
+        },
+        {
+           "title": "WireGuard Details",
+           "properties": {
+             "private_key": {"type": "string"},
+             "peer_public_key": {"type": "string"},
+             "pre_shared_key": {"type": "string"},
+             "local_address": {"type": "array", "items": {"type": "string"}},
+             "mtu": {"type": "integer"}
+           },
+           "required": ["private_key", "peer_public_key"]
+        },
+        {
+           "title": "Generic Fallback (Strict Mode disabled for unknown protocols)",
+           "type": "object",
+           "additionalProperties": true
+        }
+      ]
     },
     "throughput_kbps": {"type": ["integer", "null"]},
     "dns_over_https_ok": {"type": ["boolean", "null"]},
@@ -50,7 +150,14 @@
       "type": "object",
       "additionalProperties": {"type": "number"}
     },
-    "process": {"type": "string", "description": "Processing type: native, washed, revived-warp, revived-vwarp, chain, shielded"},
+    "process": {
+        "type": "string",
+        "enum": [
+            "native", "washed", "revived-warp", "revived-vwarp", "chain", "shielded",
+            "fragmented", "utls-mimic", "multipath"
+        ],
+        "description": "Processing type"
+    },
     "history": {"type": ["array", "null"], "items": {"type": "number"}, "description": "Historical latency values for sparklines"}
   },
   "additionalProperties": true

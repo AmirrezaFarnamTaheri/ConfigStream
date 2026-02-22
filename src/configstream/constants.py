@@ -199,3 +199,8 @@ BLOCKED_DOMAINS = [
     "hf.space",
     "huggingface.co",
 ]
+
+# Latency Buckets (ms)
+LATENCY_FAST = 200
+LATENCY_MEDIUM = 800
+LATENCY_SLOW = 2000

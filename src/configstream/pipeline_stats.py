@@ -17,9 +17,7 @@ class PipelineStats:
     _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
 
     # Canonical Stats
-    total_configured_sources: int = (
-        0  # Total sources from sources.yaml (for frontend display)
-    )
+    total_configured_sources: int = 0  # Total sources from sources.yaml (for frontend display)
     fetched_sources: int = 0  # Sources actually processed
     fetched_lines: int = 0  # Raw lines fetched
     parsed: int = 0  # Valid proxies parsed
@@ -60,6 +58,12 @@ class PipelineStats:
     # Washing Enabled Flag
     washing_enabled: bool = True
 
+    # Latency & Distribution Stats (Metadata Schema Alignment)
+    latency_distribution: Dict[str, int] = field(default_factory=lambda: {"fast": 0, "medium": 0, "slow": 0, "very_slow": 0})
+    latency_by_country: Dict[str, int] = field(default_factory=dict)
+    latency_by_protocol: Dict[str, int] = field(default_factory=dict)
+    smart_chains_breakdown: Dict[str, int] = field(default_factory=dict)
+
     @property
     def vwarp_win_rate(self) -> float:
         if self.vwarp_attempts == 0:
@@ -83,7 +87,7 @@ class PipelineStats:
         This is intentionally synchronous since it only uses threading.Lock.
         """
         with self._lock:
-            return {
+            stats = {
                 "start_time": self.start_time.isoformat() if self.start_time else None,
                 "end_time": self.end_time.isoformat() if self.end_time else None,
                 "total_configured_sources": self.total_configured_sources,
@@ -119,7 +123,25 @@ class PipelineStats:
                 "washing_enabled": self.washing_enabled,
                 # Create a shallow copy of the dict to prevent iteration errors
                 "drop_reasons": dict(self.drop_reasons),
+
+                # Metadata Schema Mappings
+                "rejection_reasons": dict(self.drop_reasons),
+                "latency_distribution": dict(self.latency_distribution),
+                "latency_by_country": dict(self.latency_by_country),
+                "latency_by_protocol": dict(self.latency_by_protocol),
+                "smart_chains_breakdown": dict(self.smart_chains_breakdown),
+
+                # Aliases for schema compatibility
+                "total_lines_sourced": self.fetched_lines,
+                "total_unique_candidates": self.parsed,
+                "total_valid_proxies": self.working,
+                "total_proxies": self.working + self.smart_chain_count, # Approx
+                "total_tested": self.tested,
+                "total_working": self.working,
+                "sources_count": self.total_configured_sources,
+                "total_sources": self.total_configured_sources
             }
+            return stats
 
 
 class PipelineResult:

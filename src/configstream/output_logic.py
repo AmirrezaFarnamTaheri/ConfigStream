@@ -1643,6 +1643,7 @@ def save_metadata(
         # Secondary field: fetched_sources (actual sources processed)
         "total_configured_sources": total_configured_sources or fetched_sources,
         "fetched_sources": fetched_sources,  # Actual sources processed
+        "total_sources": total_configured_sources or fetched_sources,
         "sources_count": total_configured_sources
         or fetched_sources,  # Consumed by main.js
         "update_interval_hours": update_interval_hours,

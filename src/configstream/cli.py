@@ -1,182 +1,80 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-import sys
-import asyncio
+"""
+Command Line Interface for ConfigStream.
+"""
 import logging
 import shutil
+import sys
 import tarfile
 from pathlib import Path
 
 import click
-import requests
+import httpx
 from rich.console import Console
-from rich.logging import RichHandler
-from rich.progress import (
-    Progress,
-    SpinnerColumn,
-    TextColumn,
-    BarColumn,
-    TaskProgressColumn,
-)
 
-from .pipeline import run_full_pipeline
-from .geoip import DEFAULT_RESOLVER
-from .tools.warp import generate_warp_proxy
+from configstream import __version__
+from configstream.config import AppSettings
+from configstream.pipeline import Pipeline
+from configstream.pipeline_stats import PipelineStats
+from configstream.server import run_server
+from configstream.dns_cache import DEFAULT_RESOLVER
+from configstream.generators.warp import generate_warp_proxy
 
-# Initialize Rich Console
+# Configure logging
+logging.basicConfig(level=logging.WARNING)
+logging.getLogger("httpx").setLevel(logging.WARNING)
+
 console = Console()
 
 
-def setup_logging(verbose: bool = False):
-    level = logging.DEBUG if verbose else logging.INFO
-    logging.basicConfig(
-        level=level,
-        format="%(message)s",
-        datefmt="[%X]",
-        handlers=[RichHandler(console=console, rich_tracebacks=True)],
-    )
-    # Suppress noisy loggers
-    logging.getLogger("httpx").setLevel(logging.WARNING)
-    logging.getLogger("httpcore").setLevel(logging.WARNING)
-
-
 @click.group()
-@click.version_option()
+@click.version_option(__version__)
 def main():
-    """ConfigStream CLI - High-performance proxy aggregator and tester."""
+    """ConfigStream: High-performance VPN configuration aggregator."""
     pass
 
 
 @main.command()
-@click.option("--sources", required=True, help="Path to sources.txt")
-@click.option("--output", default="output", help="Output directory")
-@click.option("--max-workers", default=50, help="Max concurrent workers")
-@click.option("--timeout", type=float, help="Test timeout in seconds")
-@click.option("--country", help="Filter by country code (e.g., US)")
-@click.option("--max-latency", type=int, help="Max latency in ms")
-@click.option("--leniency", is_flag=True, help="Enable lenient testing mode")
-@click.option(
-    "--dry-run",
-    is_flag=True,
-    help="Skip network proxy tests (still fetches/parses sources and generates outputs)",
-)
-@click.option("--verbose", "-v", is_flag=True, help="Enable debug logging")
-def merge(
-    sources,
-    output,
-    max_workers,
-    timeout,
-    country,
-    max_latency,
-    leniency,
-    dry_run,
-    verbose,
-):
-    """Fetch, test, and merge proxies from sources."""
-    setup_logging(verbose)
-    from .config import AppSettings
+@click.option("--serve", is_flag=True, help="Run the API server after processing")
+@click.option("--port", default=8000, help="Port for the API server")
+@click.option("--host", default="0.0.0.0", help="Host for the API server")
+@click.option("--workers", default=None, type=int, help="Number of fetch workers")
+@click.option("--verbose", "-v", is_flag=True, help="Enable verbose logging")
+def run(serve, port, host, workers, verbose):
+    """Run the aggregation pipeline."""
+    if verbose:
+        logging.getLogger("configstream").setLevel(logging.DEBUG)
+        console.print("[yellow]Verbose logging enabled[/yellow]")
+    else:
+        logging.getLogger("configstream").setLevel(logging.INFO)
 
+    # Override settings via env or args if needed
     settings = AppSettings()
-    if timeout is None:
-        timeout = settings.TEST_TIMEOUT
+    if workers:
+        settings.MAX_WORKERS = workers
 
-    # Load sources
-    source_path = Path(sources)
-    if not source_path.exists():
-        console.print(f"[red]Error: Sources file not found: {sources}[/red]")
-        sys.exit(1)
+    console.print(f"[bold green]ConfigStream v{__version__}[/bold green]")
+    console.print(f"Workers: {settings.MAX_WORKERS}")
 
-    raw_sources = source_path.read_text(encoding="utf-8").splitlines()
-    valid_sources = [
-        s.strip() for s in raw_sources if s.strip() and not s.strip().startswith("#")
-    ]
-
-    console.print("[bold green]🚀 Starting Config's Stream[/bold green]")
-    console.print(f"Sources: {len(valid_sources)} | Output: {output}")
-
-    async def _run():
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            BarColumn(),
-            TaskProgressColumn(),
-            console=console,
-        ) as progress:
-
-            result = await run_full_pipeline(
-                sources=valid_sources,
-                output_dir=output,
-                max_workers=max_workers,
-                timeout=timeout,
-                country_filter=country,
-                max_latency=max_latency,
-                leniency=leniency,
-                progress=progress,
-                dry_run=dry_run,
-            )
-
-            return result
+    pipeline = Pipeline(settings)
 
     try:
-        # Windows specific loop policy for asyncio + subprocesses
-        if sys.platform == "win32":
-            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+        import asyncio
 
-        coro = _run()
-        try:
-            result = asyncio.run(coro)
-        except RuntimeError as e:
-            coro.close()
-            if "no current event loop" in str(e).lower():
-                loop = asyncio.new_event_loop()
-                try:
-                    asyncio.set_event_loop(loop)
-                    result = loop.run_until_complete(_run())
-                finally:
-                    loop.close()
-                    asyncio.set_event_loop(None)
-            else:
-                raise
+        result = asyncio.run(pipeline.run())
 
         if result.success:
-            stats_obj = result.stats
-            # Handle both object and dict (depending on pipeline run type)
+            console.print("\n[bold green]Pipeline Completed Successfully[/bold green]")
+            stats = result.stats
+            console.print(f"Sources: {stats.fetched_sources}/{stats.total_configured_sources}")
+            console.print(f"Proxies: {stats.total_valid_proxies} valid / {stats.total_unique_candidates} unique")
+            console.print(f"Duration: {stats.duration:.2f}s")
 
-            def _get(key):
-                if hasattr(stats_obj, key):
-                    return getattr(stats_obj, key)
-                if isinstance(stats_obj, dict):
-                    return stats_obj.get(key, 0)
-                return 0
-
-            console.print("\n[bold green]Pipeline Completed Successfully![/bold green]")
-            console.print(f"Duration: {_get('duration'):.1f}s")
-            console.print(f"Fetched: {_get('fetched_lines')}")
-            console.print(f"Tested: {_get('tested')}")
-            console.print(f"Working: {_get('working')}")
-            console.print(f"GeoIP: {_get('geo_resolved')}")
-
-            time_limited = False
-            if hasattr(stats_obj, "time_limited"):
-                time_limited = bool(stats_obj.time_limited)
-            elif isinstance(stats_obj, dict):
-                time_limited = bool(stats_obj.get("time_limited", False))
-
-            if time_limited:
+            if serve:
+                console.print(f"\n[yellow]Starting API Server on {host}:{port}...[/yellow]")
+                run_server(host=host, port=port)
+            elif stats.total_valid_proxies == 0 and not settings.FAIL_ON_ZERO_WORKING:
                 console.print(
-                    "[yellow]Time limit reached; output contains partial results.[/yellow]"
-                )
-
-            # CRITICAL: Fail pipeline if zero working proxies found
-            # This ensures GitHub Actions workflow fails instead of silently passing with empty results.
-            working = _get("working")
-            if working == 0:
-                console.print(
-                    "\n[bold red]CRITICAL: Pipeline finished with 0 working proxies![/bold red]"
-                )
-                if getattr(settings, "FAIL_ON_ZERO_WORKING", False):
-                    sys.exit(1)
-                else:
-                    console.print(
                         "[yellow]Continuing despite 0 working proxies (FAIL_ON_ZERO_WORKING=False)[/yellow]"
                     )
 
@@ -225,18 +123,18 @@ def update_databases():
     def stream_download(url: str, target: Path) -> bool:
         safe_url = SecurityValidator.sanitize_log_message(url)
         try:
-            with requests.get(url, stream=True, timeout=120) as resp:
+            with httpx.stream("GET", url, timeout=120, follow_redirects=True) as resp:
                 if resp.status_code != 200:
                     console.print(
                         f"[red]HTTP {resp.status_code} while fetching {safe_url}[/red]"
                     )
                     return False
                 with target.open("wb") as f:
-                    for chunk in resp.iter_content(chunk_size=8192):
+                    for chunk in resp.iter_bytes(chunk_size=8192):
                         if chunk:
                             f.write(chunk)
             return target.exists() and target.stat().st_size > 0
-        except requests.RequestException as exc:
+        except httpx.RequestError as exc:
             safe_exc = SecurityValidator.sanitize_log_message(str(exc))
             console.print(f"[red]Request error for {safe_url}: {safe_exc}[/red]")
             return False
