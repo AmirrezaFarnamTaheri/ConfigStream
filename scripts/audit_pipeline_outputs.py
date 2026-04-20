@@ -139,7 +139,9 @@ def audit_artifact(
     with tempfile.TemporaryDirectory(prefix="configstream-audit-") as td:
         extracted = _extract_artifact(artifact, Path(td))
 
-
+        json_files: tuple[str, ...] = ()
+        base64_files: tuple[str, ...] = ()
+        zip_files: tuple[str, ...] = ()
         if contract == "pages":
             json_files = (
                 "singbox.json",
@@ -159,7 +161,7 @@ def audit_artifact(
                 "data/clean_ips.json",
                 "data/proxy_history_viz.json",
                 "data/active_proxy_trend.json",
-                "data/evasion_trend.json"
+                "data/evasion_trend.json",
             )
             base64_files = (
                 "base64.txt",
@@ -170,12 +172,12 @@ def audit_artifact(
                 "chosen/base64-dns-hardened.txt",
                 "proxies.txt",
                 "proxies-dns-safe.txt",
-                "proxies-dns-hardened.txt"
+                "proxies-dns-hardened.txt",
             )
             zip_files = (
                 "side_products.zip",
                 "side_products-dns-safe.zip",
-                "side_products-dns-hardened.zip"
+                "side_products-dns-hardened.zip",
             )
         else:
             json_files = (
@@ -205,7 +207,6 @@ def audit_artifact(
             if not target.exists():
                 report["missing_expected"].append(name)
             # could add zip verification here if desired
-
 
         for name in ("stealth_apple-touch-icon.png",):
             target = extracted / name

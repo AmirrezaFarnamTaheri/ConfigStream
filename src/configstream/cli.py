@@ -436,7 +436,6 @@ def backup(days, dir):
 @main.command()
 def scan_dns():
     """Launch the interactive DNS Scanner TUI."""
-    import subprocess  # nosec
     import sys
     from pathlib import Path
 

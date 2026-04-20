@@ -493,9 +493,9 @@ async def run_full_pipeline(
         except Exception as e:
             logger.debug(f"Server notification skipped: {e}")
 
-        should_fail = (strict_security or bool(getattr(settings, "FAIL_ON_ZERO_WORKING", False))) and bool(
-            _zero_working
-        )
+        should_fail = (
+            strict_security or bool(getattr(settings, "FAIL_ON_ZERO_WORKING", False))
+        ) and bool(_zero_working)
         if should_fail:
             logger.error(
                 "0 working proxies detected and strict mode is enabled; "
