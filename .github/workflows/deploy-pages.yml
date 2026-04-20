@@ -39,6 +39,7 @@ jobs:
       - name: Download Pipeline Output (from workflow_run)
         if: github.event_name == 'workflow_run'
         env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
           GH_TOKEN: ${{ github.token }}
         run: |
           # Download artifact from the triggering workflow run using GitHub CLI
@@ -68,6 +69,7 @@ jobs:
       - name: Download Pipeline Output (from workflow_dispatch)
         if: github.event_name == 'workflow_dispatch'
         env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
           GH_TOKEN: ${{ github.token }}
         run: |
           # For manual dispatch, download from the latest successful pipeline run

@@ -57,7 +57,7 @@ fi
 # Optional size optimization when binaryen is available.
 if command -v wasm-opt &> /dev/null; then
     echo "🗜️  Optimizing tester.wasm with wasm-opt -Oz..."
-    wasm-opt -Oz ../../../frontend/assets/wasm/tester.wasm -o ../../../frontend/assets/wasm/tester.wasm
+    wasm-opt --enable-bulk-memory -Oz ../../../frontend/assets/wasm/tester.wasm -o ../../../frontend/assets/wasm/tester.wasm || echo "⚠️ wasm-opt failed, keeping unoptimized binary."
 else
     echo "ℹ️  wasm-opt not found; skipping size optimization."
 fi
