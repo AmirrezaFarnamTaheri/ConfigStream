@@ -28,6 +28,7 @@ jobs:
       - name: Check schedule eligibility
         id: gate
         env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
           CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
           GH_TOKEN: ${{ github.token }}
@@ -153,6 +154,7 @@ jobs:
             configstream-data-${{ github.ref }}-
       - name: Download GeoIP databases
         env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
           CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
           MAXMIND_LICENSE_KEY: ${{ secrets.MAXMIND_LICENSE_KEY }}
@@ -226,6 +228,7 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
       options: --user root
       env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
         CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
         CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
         PYTHONPATH: /app/src
@@ -251,12 +254,14 @@ jobs:
             configstream-data-
       - name: Download GeoIP databases
         env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
           CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
           MAXMIND_LICENSE_KEY: ${{ secrets.MAXMIND_LICENSE_KEY }}
         run: python -m configstream.cli update-databases
       - name: Run pipeline for Batch ${{ matrix.batch_number }}
         env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
           CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
           BATCH_NUMBER: ${{ matrix.batch_number }}
@@ -304,6 +309,7 @@ jobs:
         contents: write
         id-token: write
     env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
       CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -368,6 +374,7 @@ jobs:
           find artifacts -type f -name '*.log' -exec mv {} . \;
       - name: Run merge script
         env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
           CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
           WARP_KEY_POOL: ${{ secrets.WARP_KEY_POOL }}
@@ -394,6 +401,7 @@ jobs:
       - name: Publish to IPFS (Unstoppable)
         if: env.PINATA_JWT != ''
         env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
           CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
           PINATA_JWT: ${{ secrets.PINATA_JWT }}
@@ -421,6 +429,7 @@ jobs:
       - name: Upload to Hugging Face
         if: env.HF_TOKEN != ''
         env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
           CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
@@ -460,6 +469,7 @@ jobs:
           draft: false
           prerelease: false
         env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
           CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
