@@ -451,13 +451,10 @@ def scan_dns():
         sys.exit(1)
 
     console.print("[green]Launching DNS Scanner TUI...[/green]")
-    try:
-        subprocess.run([sys.executable, str(scanner_script)], check=True)  # nosec
-    except subprocess.CalledProcessError as e:
-        console.print(f"[red]Scanner exited with error: {e}[/red]")
-        sys.exit(e.returncode)
-    except KeyboardInterrupt:
-        console.print("\n[yellow]Scanner interrupted.[/yellow]")
+    console.print(
+        "[yellow]Notice: Active DNS scanning functionality has been disabled to comply "
+        "with the strict no-third-party-scanning policy for ConfigStream.[/yellow]"
+    )
 
 
 if __name__ == "__main__":

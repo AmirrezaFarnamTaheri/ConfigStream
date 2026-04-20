@@ -121,7 +121,11 @@ def _extract_stego(path: Path, secret_key: str | None) -> dict[str, Any]:
         return result
 
 
-def audit_artifact(artifact: Path, secret_key: str | None = None, contract: str = "runtime") -> dict[str, Any]:
+def audit_artifact(
+    artifact: Path,
+    secret_key: str | None = None,
+    contract: str = "runtime",
+) -> dict[str, Any]:
     report: dict[str, Any] = {
         "artifact": str(artifact),
         "json_configs": [],

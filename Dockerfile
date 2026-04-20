@@ -53,7 +53,7 @@ ARG TARGETARCH
 ARG VWARP_VERSION=v2.2.2
 # [SECURITY] v2.1.0 checksums pinned per architecture.
 ARG VWARP_SHA256_AMD64=90619d5e8ceec07fe09b967904f490d5a45f812951f7fae4cb375b60207b6312
-ARG VWARP_SHA256_ARM64=SKIP
+ARG VWARP_SHA256_ARM64=54adb472363f74dd83be93157b5491189d295bd1318de8637265db4f3b834168
 
 # Running as root before switching user
 RUN set -eux; \
@@ -63,7 +63,7 @@ RUN set -eux; \
       *) echo "Unsupported TARGETARCH: ${TARGETARCH}" >&2; exit 1 ;; \
     esac; \
     curl -fSsL --retry 3 --max-time 30 --proto =https -o /tmp/vwarp.zip "https://github.com/voidr3aper-anon/Vwarp/releases/download/${VWARP_VERSION}/vwarp_linux-${VWARP_ARCH}.zip" && \
-    [ "${VWARP_SHA256}" = "SKIP" ] || echo "${VWARP_SHA256}  /tmp/vwarp.zip" | sha256sum -c - && \
+    echo "${VWARP_SHA256}  /tmp/vwarp.zip" | sha256sum -c - && \
     unzip -tq /tmp/vwarp.zip && \
     mkdir -p /tmp/vwarp-extract && \
     unzip -Z1 /tmp/vwarp.zip > /tmp/vwarp-filelist && \
