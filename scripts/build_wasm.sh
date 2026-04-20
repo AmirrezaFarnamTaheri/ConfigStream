@@ -23,7 +23,7 @@ cd src/go/tester
 
 # 1. Build .wasm binary
 # Added tags to ensure frontend supports uTLS, Reality, QUIC, etc.
-GOOS=js GOARCH=wasm go build -tags "with_quic,with_dhcp,with_wireguard,with_ech,with_utls,with_reality_server,with_clash_api,with_gvisor" -o ../../../frontend/assets/wasm/tester.wasm wasm_main.go
+GOOS=js GOARCH=wasm go build -tags "with_quic with_dhcp with_wireguard with_ech with_utls with_reality_server with_clash_api with_gvisor" -o ../../../frontend/assets/wasm/tester.wasm wasm_main.go
 
 # 2. Copy JS Glue Code (Required for Go WASM to run)
 GOROOT=$(go env GOROOT)
@@ -57,7 +57,7 @@ fi
 # Optional size optimization when binaryen is available.
 if command -v wasm-opt &> /dev/null; then
     echo "🗜️  Optimizing tester.wasm with wasm-opt -Oz..."
-    wasm-opt -Oz ../../../frontend/assets/wasm/tester.wasm -o ../../../frontend/assets/wasm/tester.wasm
+    wasm-opt --enable-bulk-memory -Oz ../../../frontend/assets/wasm/tester.wasm -o ../../../frontend/assets/wasm/tester.wasm || echo "⚠️ wasm-opt failed, keeping unoptimized binary."
 else
     echo "ℹ️  wasm-opt not found; skipping size optimization."
 fi

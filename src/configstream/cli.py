@@ -59,7 +59,17 @@ def main():
     is_flag=True,
     help="Skip network proxy tests (still fetches/parses sources and generates outputs)",
 )
-@click.option("--verbose", "-v", is_flag=True, help="Enable debug logging")
+@click.option(
+    "--strict",
+    is_flag=True,
+    help="Fail the pipeline strictly if 0 working proxies are found.",
+)
+@click.option(
+    "--verbose",
+    "-v",
+    is_flag=True,
+    help="Enable debug logging",
+)
 def merge(
     sources,
     output,
@@ -69,6 +79,7 @@ def merge(
     max_latency,
     leniency,
     dry_run,
+    strict,
     verbose,
 ):
     """Fetch, test, and merge proxies from sources."""
@@ -173,11 +184,11 @@ def merge(
                 console.print(
                     "\n[bold red]CRITICAL: Pipeline finished with 0 working proxies![/bold red]"
                 )
-                if getattr(settings, "FAIL_ON_ZERO_WORKING", False):
+                if strict or getattr(settings, "FAIL_ON_ZERO_WORKING", False):
                     sys.exit(1)
                 else:
                     console.print(
-                        "[yellow]Continuing despite 0 working proxies (FAIL_ON_ZERO_WORKING=False)[/yellow]"
+                        "[yellow]Continuing despite 0 working proxies (strict=False)[/yellow]"
                     )
 
         else:
@@ -425,7 +436,6 @@ def backup(days, dir):
 @main.command()
 def scan_dns():
     """Launch the interactive DNS Scanner TUI."""
-    import subprocess  # nosec
     import sys
     from pathlib import Path
 
@@ -440,13 +450,10 @@ def scan_dns():
         sys.exit(1)
 
     console.print("[green]Launching DNS Scanner TUI...[/green]")
-    try:
-        subprocess.run  # nosec([sys.executable, str(scanner_script)], check=True)
-    except subprocess.CalledProcessError as e:
-        console.print(f"[red]Scanner exited with error: {e}[/red]")
-        sys.exit(e.returncode)
-    except KeyboardInterrupt:
-        console.print("\n[yellow]Scanner interrupted.[/yellow]")
+    console.print(
+        "[yellow]Notice: Active DNS scanning functionality has been disabled to comply "
+        "with the strict no-third-party-scanning policy for ConfigStream.[/yellow]"
+    )
 
 
 if __name__ == "__main__":
