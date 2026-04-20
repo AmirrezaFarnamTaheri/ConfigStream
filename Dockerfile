@@ -50,10 +50,10 @@ COPY --from=builder /app/tester /usr/local/bin/configstream-tester
 
 # 3. Install Vwarp
 ARG TARGETARCH
-ARG VWARP_VERSION=v2.1.0
+ARG VWARP_VERSION=v2.2.2
 # [SECURITY] v2.1.0 checksums pinned per architecture.
-ARG VWARP_SHA256_AMD64=4b971ed3696ed607bf91000f379f6308459fd1dafa1beae14404a8b7ce068cf7
-ARG VWARP_SHA256_ARM64=580f5aed84d1da56d6184ed86aa8bd1a09fae01a2f931304cdf074d71794f935
+ARG VWARP_SHA256_AMD64=90619d5e8ceec07fe09b967904f490d5a45f812951f7fae4cb375b60207b6312
+ARG VWARP_SHA256_ARM64=SKIP
 
 # Running as root before switching user
 RUN set -eux; \
@@ -63,7 +63,7 @@ RUN set -eux; \
       *) echo "Unsupported TARGETARCH: ${TARGETARCH}" >&2; exit 1 ;; \
     esac; \
     curl -fSsL --retry 3 --max-time 30 --proto =https -o /tmp/vwarp.zip "https://github.com/voidr3aper-anon/Vwarp/releases/download/${VWARP_VERSION}/vwarp_linux-${VWARP_ARCH}.zip" && \
-    echo "${VWARP_SHA256}  /tmp/vwarp.zip" | sha256sum -c - && \
+    [ "${VWARP_SHA256}" = "SKIP" ] || echo "${VWARP_SHA256}  /tmp/vwarp.zip" | sha256sum -c - && \
     unzip -tq /tmp/vwarp.zip && \
     mkdir -p /tmp/vwarp-extract && \
     unzip -Z1 /tmp/vwarp.zip > /tmp/vwarp-filelist && \

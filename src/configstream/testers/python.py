@@ -36,6 +36,7 @@ def _get_singbox_factory():
         from singbox2proxy import SingBoxProxy as singbox_factory  # type: ignore
 
         _singbox_factory = singbox_factory
+        logger.debug(f"singbox factory available: {bool(_singbox_factory)}")
     except ImportError:
         _singbox_factory = False
         logger.info(

@@ -441,7 +441,7 @@ def scan_dns():
 
     console.print("[green]Launching DNS Scanner TUI...[/green]")
     try:
-        subprocess.run  # nosec([sys.executable, str(scanner_script)], check=True)
+        subprocess.run([sys.executable, str(scanner_script)], check=True)  # nosec
     except subprocess.CalledProcessError as e:
         console.print(f"[red]Scanner exited with error: {e}[/red]")
         sys.exit(e.returncode)

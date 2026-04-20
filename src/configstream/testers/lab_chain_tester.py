@@ -80,8 +80,10 @@ async def test_chain_config(
     except ValueError as e:
         return {"success": False, "error": str(e)}
 
-    from singbox2proxy import SingBoxProxy  # type: ignore
-
+    try:
+        from singbox2proxy import SingBoxProxy  # type: ignore
+    except ImportError:
+        return {"success": False, "error": "singbox2proxy not installed, cannot test chain natively"}
     import aiohttp
 
     loop = asyncio.get_running_loop()

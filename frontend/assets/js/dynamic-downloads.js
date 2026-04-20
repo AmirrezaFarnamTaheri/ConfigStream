@@ -98,9 +98,9 @@ function initDynamicDownloads() {
         chains: {
             descKey: "downloads.client.chains.desc",
             desc: "WARP-shielded chain configs (Gold/Revived proxies, sing-box format).",
-            file: "chains.json",
-            dnsFile: "chains-dns-safe.json",
-            dnsHardenedFile: "chains-dns-hardened.json",
+            file: "singbox-chains.json",
+            dnsFile: "singbox-chains-dns-safe.json",
+            dnsHardenedFile: "singbox-chains-dns-hardened.json",
             icon: "link-2"
         },
         sideproducts: {
