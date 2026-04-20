@@ -493,12 +493,12 @@ async def run_full_pipeline(
         except Exception as e:
             logger.debug(f"Server notification skipped: {e}")
 
-        should_fail = bool(getattr(settings, "FAIL_ON_ZERO_WORKING", False)) and bool(
+        should_fail = (strict_security or bool(getattr(settings, "FAIL_ON_ZERO_WORKING", False))) and bool(
             _zero_working
         )
         if should_fail:
             logger.error(
-                "0 working proxies detected and FAIL_ON_ZERO_WORKING is enabled; "
+                "0 working proxies detected and strict mode is enabled; "
                 "marking pipeline result as failed."
             )
 
@@ -506,6 +506,7 @@ async def run_full_pipeline(
             success=not should_fail,
             stats=stats,
             output_files=generated_files,
+            error="0 working proxies detected" if should_fail else None,
         )
     finally:
         # Stop tuner if running

@@ -23,7 +23,7 @@ cd src/go/tester
 
 # 1. Build .wasm binary
 # Added tags to ensure frontend supports uTLS, Reality, QUIC, etc.
-GOOS=js GOARCH=wasm go build -tags "with_quic,with_dhcp,with_wireguard,with_ech,with_utls,with_reality_server,with_clash_api,with_gvisor" -o ../../../frontend/assets/wasm/tester.wasm wasm_main.go
+GOOS=js GOARCH=wasm go build -tags "with_quic with_dhcp with_wireguard with_ech with_utls with_reality_server with_clash_api with_gvisor" -o ../../../frontend/assets/wasm/tester.wasm wasm_main.go
 
 # 2. Copy JS Glue Code (Required for Go WASM to run)
 GOROOT=$(go env GOROOT)
