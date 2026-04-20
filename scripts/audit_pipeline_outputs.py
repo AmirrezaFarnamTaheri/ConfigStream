@@ -121,7 +121,11 @@ def _extract_stego(path: Path, secret_key: str | None) -> dict[str, Any]:
         return result
 
 
-def audit_artifact(artifact: Path, secret_key: str | None = None) -> dict[str, Any]:
+def audit_artifact(
+    artifact: Path,
+    secret_key: str | None = None,
+    contract: str = "runtime",
+) -> dict[str, Any]:
     report: dict[str, Any] = {
         "artifact": str(artifact),
         "json_configs": [],
@@ -135,23 +139,74 @@ def audit_artifact(artifact: Path, secret_key: str | None = None) -> dict[str, A
     with tempfile.TemporaryDirectory(prefix="configstream-audit-") as td:
         extracted = _extract_artifact(artifact, Path(td))
 
-        for name in (
-            "singbox-dns-hardened.json",
-            "singbox-dns-safe.json",
-            "singbox-vpn.json",
-        ):
+        json_files: tuple[str, ...] = ()
+        base64_files: tuple[str, ...] = ()
+        zip_files: tuple[str, ...] = ()
+        if contract == "pages":
+            json_files = (
+                "singbox.json",
+                "singbox-dns-safe.json",
+                "singbox-dns-hardened.json",
+                "singbox-vpn.json",
+                "singbox-vpn-dns-safe.json",
+                "singbox-vpn-dns-hardened.json",
+                "singbox-chains.json",
+                "singbox-chains-dns-safe.json",
+                "singbox-chains-dns-hardened.json",
+                "chains.json",
+                "chains-dns-safe.json",
+                "chains-dns-hardened.json",
+                "proxies.json",
+                "metadata.json",
+                "data/clean_ips.json",
+                "data/proxy_history_viz.json",
+                "data/active_proxy_trend.json",
+                "data/evasion_trend.json",
+            )
+            base64_files = (
+                "base64.txt",
+                "base64-dns-safe.txt",
+                "base64-dns-hardened.txt",
+                "chosen/base64.txt",
+                "chosen/base64-dns-safe.txt",
+                "chosen/base64-dns-hardened.txt",
+                "proxies.txt",
+                "proxies-dns-safe.txt",
+                "proxies-dns-hardened.txt",
+            )
+            zip_files = (
+                "side_products.zip",
+                "side_products-dns-safe.zip",
+                "side_products-dns-hardened.zip",
+            )
+        else:
+            json_files = (
+                "singbox-dns-hardened.json",
+                "singbox-dns-safe.json",
+                "singbox-vpn.json",
+            )
+            base64_files = ("base64-dns-hardened.txt",)
+            zip_files = ()
+
+        for name in json_files:
             target = extracted / name
             if target.exists():
                 report["json_configs"].append(_validate_json(target, sing_box_bin))
             else:
                 report["missing_expected"].append(name)
 
-        for name in ("base64-dns-hardened.txt",):
+        for name in base64_files:
             target = extracted / name
             if target.exists():
                 report["base64_lists"].append(_validate_base64_file(target))
             else:
                 report["missing_expected"].append(name)
+
+        for name in zip_files:
+            target = extracted / name
+            if not target.exists():
+                report["missing_expected"].append(name)
+            # could add zip verification here if desired
 
         for name in ("stealth_apple-touch-icon.png",):
             target = extracted / name
@@ -223,6 +278,12 @@ def main() -> None:
         help="Optional path to write JSON report.",
     )
     parser.add_argument(
+        "--contract",
+        choices=["runtime", "pages"],
+        default="runtime",
+        help="Validation contract mode",
+    )
+    parser.add_argument(
         "--strict",
         action="store_true",
         help="Exit with non-zero status when audit failures are detected.",
@@ -238,7 +299,7 @@ def main() -> None:
     if not artifact.exists():
         raise SystemExit(f"Artifact not found: {artifact}")
 
-    report = audit_artifact(artifact, args.stego_key)
+    report = audit_artifact(artifact, args.stego_key, contract=args.contract)
     rendered = json.dumps(report, indent=2, ensure_ascii=False)
     print(rendered)
     if args.report:

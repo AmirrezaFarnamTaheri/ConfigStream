@@ -17,6 +17,7 @@ jobs:
 
       - name: Download latest pipeline output
         env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
           GH_TOKEN: ${{ github.token }}
         run: |
           LATEST_RUN=$(gh run list --workflow=main.yml --status=success --limit=1 --json databaseId --jq '.[0].databaseId')
@@ -34,8 +35,9 @@ jobs:
           fi
 
       - name: Deploy to Vercel
-        if: env.VERCEL_TOKEN != ''
+        if: ${{ secrets.VERCEL_TOKEN != '' }}
         env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
@@ -48,8 +50,9 @@ jobs:
           vercel deploy --prod --token=$VERCEL_TOKEN
 
       - name: Deploy to Netlify
-        if: env.NETLIFY_AUTH_TOKEN != ''
+        if: ${{ secrets.NETLIFY_AUTH_TOKEN != '' }}
         env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         run: |
@@ -61,8 +64,9 @@ jobs:
           netlify deploy --prod --dir=output --site=$NETLIFY_SITE_ID --auth=$NETLIFY_AUTH_TOKEN
 
       - name: Deploy to IPFS
-        if: env.PINATA_JWT != ''
+        if: ${{ secrets.PINATA_JWT != '' }}
         env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
           PINATA_JWT: ${{ secrets.PINATA_JWT }}
         run: |
           if [ -z "$PINATA_JWT" ]; then

@@ -14,8 +14,10 @@ services:
   # 1. Web Dashboard (Always Running)
   web:
     build: .
+    image: configstream_web:latest
     container_name: configstream_web
     restart: unless-stopped
+    command: ["python", "-m", "configstream.server"]
     ports:
       - "8000:8000"
     volumes:
@@ -34,7 +36,7 @@ services:
 
   # 2. Aggregator Worker (Runs Interval Loop)
   worker:
-    image: configstream_web:latest # Reuses the image built above
+    image: configstream_web:latest
     container_name: configstream_worker
     restart: unless-stopped
     volumes:
