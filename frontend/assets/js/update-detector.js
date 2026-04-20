@@ -113,20 +113,39 @@ class UpdateDetector {
         try {
             const basePath = (window.ROOT_PATH || '') + 'metadata.json';
             // Fetch metadata.json but only parse the timestamp
-            // This is lightweight as we only need the header/timestamp field
-            const response = await fetch(basePath, {
-                method: 'HEAD',
-                cache: 'no-cache'
-            });
+            let response;
+            try {
+                response = await fetch(basePath, {
+                    method: 'HEAD',
+                    cache: 'no-cache'
+                });
+            } catch (networkError) {
+                // Offline or network error: attempt cache fallback
+                if ('caches' in window) {
+                    const matched = await caches.match(basePath);
+                    if (matched) response = matched;
+                    else throw networkError;
+                } else {
+                    throw networkError;
+                }
+            }
 
             // If HEAD is not supported, fall back to GET with minimal parsing
             let lastModified = response.headers.get('Last-Modified');
 
             if (!lastModified) {
                 // Fallback: fetch metadata.json and extract timestamp
-                const dataResponse = await fetch(basePath, {
-                    cache: 'no-cache'
-                });
+                let dataResponse;
+                try {
+                    dataResponse = await fetch(basePath, {
+                        cache: 'no-cache'
+                    });
+                } catch (netErr) {
+                    if ('caches' in window) {
+                        dataResponse = await caches.match(basePath);
+                    }
+                    if (!dataResponse) throw netErr;
+                }
 
                 if (dataResponse.ok) {
                     const data = await dataResponse.json();
@@ -216,7 +235,15 @@ class UpdateDetector {
                         return null;
                 }
 
-                const response = await fetch(url, { cache: 'reload' });
+                let response;
+                try {
+                    response = await fetch(url, { cache: 'reload' });
+                } catch (err) {
+                    if ('caches' in window) {
+                        response = await caches.match(url);
+                    }
+                    if (!response) throw err;
+                }
                 if (response.ok) {
                     const data = await response.json();
 

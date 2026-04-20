@@ -148,7 +148,9 @@ jobs:
             data/timeout_history.json
             data/GeoLite2-City.mmdb
             data/GeoLite2-ASN.mmdb
-          key: configstream-data-${{ github.ref }}
+          key: configstream-data-${{ github.ref }}-${{ github.run_id }}
+          restore-keys: |
+            configstream-data-${{ github.ref }}-
       - name: Download GeoIP databases
         env:
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
@@ -243,8 +245,9 @@ jobs:
             data/timeout_history.json
             data/GeoLite2-City.mmdb
             data/GeoLite2-ASN.mmdb
-          key: configstream-data-${{ github.ref }}
+          key: configstream-data-${{ github.ref }}-${{ github.run_id }}
           restore-keys: |
+            configstream-data-${{ github.ref }}-
             configstream-data-
       - name: Download GeoIP databases
         env:
