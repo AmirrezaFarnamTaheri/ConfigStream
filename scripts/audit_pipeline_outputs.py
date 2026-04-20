@@ -299,7 +299,7 @@ def main() -> None:
     if not artifact.exists():
         raise SystemExit(f"Artifact not found: {artifact}")
 
-    report = audit_artifact(artifact, args.stego_key)
+    report = audit_artifact(artifact, args.stego_key, contract=args.contract)
     rendered = json.dumps(report, indent=2, ensure_ascii=False)
     print(rendered)
     if args.report:
