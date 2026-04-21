@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
 
 jobs:
@@ -12,7 +12,7 @@ jobs:
       matrix:
         python-version: ['3.10', '3.11', '3.12']
     env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       PYTHONPATH: src
     steps:
       - uses: actions/checkout@v4
