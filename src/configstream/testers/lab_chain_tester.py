@@ -141,7 +141,7 @@ async def test_chain_config(
                                 exit_ip = (
                                     data.get("ip") if isinstance(data, dict) else None
                                 )
-                    except Exception:  # nosec
+                    except Exception:  # nosec B110  # nosec
                         pass
 
         except asyncio.TimeoutError:
@@ -157,7 +157,7 @@ async def test_chain_config(
                     loop.run_in_executor(None, sb_instance.stop),
                     timeout=5.0,
                 )
-            except Exception:
+            except Exception:  # nosec B110
                 pass
 
         if latency is None:
