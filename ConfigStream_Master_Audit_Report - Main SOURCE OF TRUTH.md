@@ -1202,3 +1202,381 @@ The project should not be called healthy until all of the following are true:
 - Experimental features are not marketed as stable.
 
 ---
+
+## 30. Gap-Closure Addendum (Local Source Verification + Deeper Granular Expansion)
+
+**Addendum date:** 2026-04-28  
+**Purpose:** close audit gaps by validating high-risk claims directly against the current repository checkout and adding overlooked, concrete defects that were under-specified in prior sections.
+
+### 30.1 Verification Method for This Addendum
+
+This addendum used direct local inspection and executable checks (not just public-surface inference):
+
+- Workflow parsing check with Ruby `YAML.load_file` across `.github/workflows/*.yml`.
+- Source inspection of `server.py`, `config.py`, and workflow files with line-level review.
+- Targeted grep-based inventory (`rg`) for drift indicators and path portability defects.
+- Existing project script validation (`scripts/validate_versions.py`).
+- Test-run attempt (`pytest -q`) and dependency bootstrap attempt (`pip install -e .[dev]`) to evaluate real execution readiness in this environment.
+
+---
+
+### 30.2 Confirmed High-Impact Findings (Now Proven, Not Just Reported)
+
+#### G1. Five workflow files are syntactically invalid YAML in their current committed state
+
+**Evidence:** YAML parser failed on `ci.yml`, `main.yml`, `retest.yml`, `deploy-pages.yml`, and `deploy_mirror.yml`. The common failure pattern is malformed indentation under `env:` blocks where `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24` is not nested correctly.
+
+**Why this matters deeper:** This is not a style issue. It means workflow definitions may fail to load at all, invalidating all downstream conclusions about CI quality gates, schedule behavior, retest integrity, Pages deploy reliability, and mirror deployment logic.
+
+**Granular corrective action:**
+1. Add required pre-merge workflow syntax check (`actionlint` + YAML parser).
+2. Fix all malformed `env:` mappings first; do not attempt behavioral tuning before syntax is valid.
+3. Add a repo-local script that parses all workflow YAML files in CI and pre-commit.
+
+---
+
+#### G2. The `/api/diff/proxies` contract bug is directly present in source
+
+**Evidence:** `server.py` treats loaded `proxies.json` as an iterable list of proxy objects and enumerates entries as `p.get(...)`. If `proxies.json` is an envelope object (as documented in earlier audit material), iteration yields keys and will break the delta logic.
+
+**Why this matters deeper:** This is a production data-plane bug, not only a documentation mismatch. It can force repeated full reloads, inflate bandwidth, and degrade client update latency under large datasets.
+
+**Granular corrective action:**
+1. Canonicalize accepted input (`{"proxies": [...]}` envelope + legacy list) before diff.
+2. Add contract tests for both shapes.
+3. Add a migration window with telemetry: count legacy list payload hits before hard deprecation.
+
+---
+
+#### G3. Admin notification endpoint remains fail-open when `ADMIN_API_KEY` is absent
+
+**Evidence:** `notify_update` enforces API-key checks only when `ADMIN_API_KEY` is set.
+
+**Why this matters deeper:** In production misconfiguration, unauthenticated callers can broadcast update notifications and trigger unnecessary client churn/refresh storms. This can be abused as low-cost disruption.
+
+**Granular corrective action:**
+1. Enforce deny-by-default for `ENVIRONMENT=production`.
+2. Require explicit opt-in (`ALLOW_UNAUTH_ADMIN=true`) only for local dev/CI.
+3. Add startup warning escalation to hard failure if production has no admin auth.
+
+---
+
+#### G4. WebSocket loop still lacks timeout/heartbeat enforcement
+
+**Evidence:** `websocket_endpoint` uses unbounded `receive_text()` loop and only reacts to inbound messages (`ping`, `sync`), with no server-side receive timeout or periodic heartbeat policy.
+
+**Why this matters deeper:** Dead connections can persist longer than expected; fan-out broadcast bookkeeping can accumulate stale sockets under hostile network conditions.
+
+**Granular corrective action:**
+1. Wrap receive loop with `asyncio.wait_for` timeout.
+2. Add server heartbeat task + stale-connection eviction policy.
+3. Bound outbound queue per client and enforce send timeout.
+
+---
+
+#### G5. Production CORS posture allows broad regex scope with credentials enabled
+
+**Evidence:** `allow_credentials=True` and `ALLOWED_ORIGIN_REGEX = r"https://.*\.github\.io"` default in config.
+
+**Why this matters deeper:** Over-broad regex with credentials risks trust expansion beyond intended origin set, especially across GitHub Pages subdomains.
+
+**Granular corrective action:**
+1. Prefer explicit allow-list origins for production.
+2. Disable credentials when not strictly required.
+3. Add integration tests to verify only expected origins are accepted.
+
+---
+
+### 30.3 Overlooked/Underdeveloped Findings Not Fully Expanded Earlier
+
+#### N1. Audit governance paradox: debt scanner outputs embed machine-local Windows paths
+
+`docs/DEBT_MATRIX.md` and `docs/debt_matrix.json` contain many `D:/GitHub/ConfigStream/...` absolute paths.
+
+**Risk:** repository-portability and trust drift. The debt artifact becomes environment-specific noise, not a reliable repo-wide governance signal.
+
+**Action:** normalize all paths to repo-relative before publishing generated debt artifacts.
+
+---
+
+#### N2. CI readiness is currently blocked by dependency bootstrap fragility in network-restricted environments
+
+`pytest -q` failed immediately due to missing `nest_asyncio`; dependency install also failed because build dependencies could not be fetched in this environment.
+
+**Risk:** local and constrained CI environments cannot validate regressions quickly; "tests exist" does not equal "tests are executable under expected runner constraints."
+
+**Action:** provide offline/dev bootstrap strategy (wheelhouse/cache, pinned lock export, or documented constrained-mode test subset).
+
+---
+
+#### N3. Workflow syntax failure creates a hidden single-point-of-failure across product surfaces
+
+Because deployment and mirror workflows are also invalid YAML, operational symptoms (stale pages, stale outputs, inconsistent mirrors) can masquerade as pipeline logic bugs while root cause is parser-level workflow invalidity.
+
+**Action:** classify workflow parse health as a first-class release gate and publish parse status in `health.json`.
+
+---
+
+### 30.4 Deepened Priority Reframe (What must happen first)
+
+1. **P0-A:** restore workflow syntactic validity across all workflow files.
+2. **P0-B:** add mandatory workflow lint/parse checks on every PR.
+3. **P1-A:** harden `/api/diff/proxies` schema handling and add contract tests.
+4. **P1-B:** enforce production-fail-closed admin auth behavior.
+5. **P1-C:** tighten CORS policy (explicit origins, credential minimization).
+6. **P2:** improve websocket lifecycle controls (timeouts/heartbeat/cleanup).
+7. **P2:** normalize generated governance artifacts to repo-relative paths.
+8. **P2:** provide constrained-environment test bootstrap path.
+
+---
+
+### 30.5 Updated "Source of Truth" Statement
+
+With this addendum, the report now contains both strategic breadth and locally-verified hard failures. The most material gap is no longer uncertainty about where to start: **workflow syntax integrity is the immediate blocker**, followed by **API/auth contract hardening** and **operational trust metadata**.
+
+
+---
+
+## 31. ConfigStream Master Audit — Gap Fill & Deep Verification Addendum (Integrated + Expanded)
+
+**Date:** 2026-04-28  
+**Scope:** Verification and deep expansion of this source-of-truth report against the local repository checkout.  
+**Purpose:** Close the remaining evidence gaps, validate high-risk claims with direct source checks, integrate reviewer feedback, and add overlooked findings with execution-grade detail.
+
+### 31.1 What this addendum does differently
+
+This addendum is intentionally more operational than strategic. It focuses on:
+
+1. **Ground-truth validation** of critical claims against the checked-out repository.
+2. **Granular decomposition** of each issue into trigger, failure mode, blast radius, and concrete controls.
+3. **Gap fill** for findings implied earlier but not explicitly enumerated as standalone defects.
+4. **Prioritization hardening** with explicit action buckets: **Immediate / 48h / 7d / 30d**.
+5. **Repository sweep evidence** (folder/module/script-level inspection) so closure criteria are tied to actual files, not only architecture narratives.
+
+---
+
+### 31.2 Re-validation of top critical themes (source-verified)
+
+#### C2 (Workflows malformed) — **CONFIRMED and more severe than originally framed**
+
+**What was re-validated:** 5 of 6 workflow YAML files fail parsing:
+
+- `.github/workflows/ci.yml`
+- `.github/workflows/main.yml`
+- `.github/workflows/retest.yml`
+- `.github/workflows/deploy-pages.yml`
+- `.github/workflows/deploy_mirror.yml`
+
+`release.yml` parses. The failing files share malformed indentation under `env:` blocks (e.g., `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24` at wrong depth).
+
+**Trigger:** malformed YAML mapping indentation.  
+**Failure mode:** workflow cannot parse/load reliably.  
+**Blast radius:** PR CI, schedule jobs, retest, Pages deploy, mirror deploy, and downstream security/quality checks tied to those workflows.  
+**Controls:** parser gate in pre-commit + required CI check; fail merges until all workflow files parse.
+
+---
+
+#### C3 (Self-triggering scheduled pipeline) — **LIKELY, but currently overshadowed by parser-fatal YAML state**
+
+The architectural loop warning remains valid: push + schedule workflows and shard-mutating steps can retrigger pipelines. But until workflows parse cleanly, loop prevention controls cannot be trusted as operationally active.
+
+**Trigger:** generated file commits under push-triggered workflows.  
+**Failure mode:** run amplification and non-deterministic scheduling/cost.  
+**Blast radius:** CI minute budget, stale/overlapping artifacts, causality ambiguity in incident response.  
+**Controls:** after syntax repair, enforce `paths-ignore`, isolate resharding workflow, and use explicit concurrency guards.
+
+---
+
+#### C5 (Frontend degraded placeholders) — **CONFIRMED**
+
+Static pages still contain unresolved/fallback states in shipped HTML/JS paths, including loading and checking placeholders and hero template tokens.
+
+**Trigger:** metadata/JS resolution absent or blocked.  
+**Failure mode:** UI trust degradation in no-JS or hostile network conditions.  
+**Blast radius:** end-user confidence, support burden, perceived freshness/reliability.  
+**Controls:** pre-render trustworthy fallback state and enforce placeholder-leak tests in frontend checks.
+
+---
+
+#### C7 (diff endpoint/schema drift) — **CONFIRMED with extra semantic flaw**
+
+The schema mismatch is active: docs present envelope semantics for `proxies.json`, while runtime comments/logic include list-based assumptions. Additionally, `base_version` is syntactically validated but not strongly negotiated against persisted version identity.
+
+**Trigger:** envelope/list drift + weak version matching semantics.  
+**Failure mode:** incorrect delta decisions and cache incoherence.  
+**Blast radius:** client update inefficiency, unnecessary full reloads, integrator breakage.  
+**Controls:** canonical contract, explicit version snapshot identity (ETag/hash/version index), and contract tests.
+
+---
+
+#### C8 (admin endpoint auth optionality) — **CONFIRMED**
+
+`/api/admin/notify-update` enforces API key checks only when key is configured.
+
+**Trigger:** missing `ADMIN_API_KEY` in production-like deployments.  
+**Failure mode:** unauthenticated update broadcast path.  
+**Blast radius:** forced refresh storms, control-plane abuse, noisy client behavior.  
+**Controls:** fail-closed default in production; explicit opt-in override for development/CI only.
+
+---
+
+#### C9 (security posture overclaim) — **CONFIRMED and evidence-strengthened**
+
+Workflow parse failures prevent relying on security checks that are supposed to run in CI. In addition, `retest.yml` contains non-blocking schema-validation behavior (`||` warning pattern), indicating warning-driven rather than gate-driven release integrity.
+
+---
+
+#### C10 (docs/product claim drift) — **CONFIRMED**
+
+`README.md` data-schema example still documents envelope-style `proxies.json`, while output/runtime paths include explicit list-centric behavior. This is a live high-visibility contract conflict.
+
+---
+
+### 31.3 Newly surfaced / under-emphasized findings (gap fill)
+
+#### G1. Workflow syntax failure is a root-cause aggregator (meta-failure)
+
+This should be modeled as dependency-root risk: when workflow YAML fails to parse, many second-order controls (schema validation, deployment hygiene, release checks, scanner checks) are not merely weak; they may never execute.
+
+---
+
+#### G2. `base_version` contract is partially cosmetic in `/api/diff/proxies`
+
+The current behavior validates input format but does not fully bind diff output to a guaranteed matching snapshot identity for the requesting client.
+
+---
+
+#### G3. External QR code generation in Lab transmits user payload to third party
+
+Lab QR rendering uses `api.qrserver.com` with encoded data in query parameters. For sovereignty-grade workflows, this is an avoidable exfiltration path for user-provided chain/config content.
+
+**Control:** local/offline QR generation in browser without network dependency.
+
+---
+
+#### G4. CORS + credentials remains deployment-sensitive and high-risk if broadened
+
+Credentialed CORS with regex-based origin allowances needs strict secure defaults plus regression tests to prevent accidental over-permissive deployment profiles.
+
+---
+
+#### G5. Public schema has conflicting “truths”
+
+- Docs truth: `proxies.json` envelope (`metadata`, `proxies`).
+- Runtime/output truth: list-oriented handling appears in server/output paths.
+
+This is API contract drift with direct operational impact.
+
+---
+
+### 31.4 Deeper remediation blueprint (execution-grade)
+
+#### Immediate (0–48h)
+
+1. Restore workflow YAML parsability in all workflow files.
+2. Add mandatory parser/lint gate for `.github/workflows/*.yml`.
+3. Lock admin notify endpoint to fail-closed behavior in production.
+4. Add temporary docs warning where schema transition exists.
+
+#### 7-day hardening
+
+1. Introduce canonical `output_manifest.json` (hashes, counts, schema version, generation metadata).
+2. Rework `/api/diff/proxies` to version-addressed diffing (ETag/hash/version mapping), not opportunistic old-file comparison.
+3. Replace external QR API with local generator.
+4. Add no-JS/static placeholder-leak tests for frontend pages.
+
+#### 30-day stabilization
+
+1. Unify `proxies.json` contract across backend/frontend/docs/tests/schema.
+2. Add contract tests for all public artifacts (schema + shape + semantic assertions).
+3. Publish machine-readable + human-readable trust surface (`health.json` + degraded reason taxonomy).
+
+---
+
+### 31.5 Expanded closure checklist (item closure evidence standard)
+
+Every high/critical finding should require all five proofs before closure:
+
+1. **Source proof** (file + line evidence).
+2. **Runtime proof** (command + expected output).
+3. **Regression proof** (automated test).
+4. **Docs proof** (public contract/docs updated).
+5. **Negative proof** (failure-mode test proving safe behavior under fault).
+
+Without all five, status remains **partially mitigated**.
+
+---
+
+### 31.6 Repository-wide sweep: folder/module coverage summary
+
+This section records the deeper end-to-end sweep scope and where further closure work should focus.
+
+#### Top-level folder coverage (checked in this addendum pass)
+
+- `.github/`: workflow parse integrity, trigger/concurrency/security gate posture.
+- `src/`: server/API, pipeline, parser, generator, security, intelligence, tooling modules.
+- `frontend/`: static fallback trust states, lab behavior, external dependency risk.
+- `scripts/`: governance scripts, dependency/version checks, debt matrix tooling.
+- `schema/`: declared schema artifacts and contract alignment touchpoints.
+- `docs/`: claim drift and generated-document portability quality.
+- `tests/`: execution readiness and dependency/bootstrap constraints.
+- `sources/`: shard inventory and schedule-loop implications.
+- `tools/`: operational helper scripts relevant to deployment/scanning.
+
+#### Observed repository composition (sanity metrics)
+
+- Top-level directory file counts indicate broad surface area: `.github`, `docs`, `frontend`, `src`, `tests`, `scripts`, `sources`, `schema`, `policy`, `tools` all present and active.
+- `src/` and `tests/` are large enough that closure must rely on layered evidence (automated checks + targeted deep dives), not single-pass manual inspection claims.
+
+#### Cross-cutting residual risks from sweep
+
+1. **Automation trust debt:** workflow parse failures currently undermine CI-derived confidence claims.
+2. **Contract trust debt:** `proxies.json` shape drift still spans docs/runtime expectations.
+3. **Frontend trust debt:** placeholder/degraded no-JS states are still user-visible paths.
+4. **Data minimization debt:** external QR service use conflicts with sovereignty-first posture.
+5. **Governance artifact portability debt:** generated debt matrix embeds machine-local absolute paths.
+
+---
+
+### 31.7 Additional granular notes by subsystem
+
+#### CI/CD subsystem
+
+- Parser-fatal YAML errors are immediate blockers.
+- Non-blocking validation patterns reduce enforcement strength.
+- Security/quality claims tied to CI should be treated as untrusted until parsability is restored.
+
+#### API/runtime subsystem
+
+- Diff endpoint needs strict version negotiation semantics.
+- Admin notify endpoint must fail closed in production profiles.
+- Websocket lifecycle should include heartbeat/timeout/bounded send policy.
+
+#### Output/data-contract subsystem
+
+- Canonical output contract should be manifest-driven and test-enforced.
+- Contract ambiguity between docs and output logic must be collapsed to one truth.
+
+#### Frontend/lab subsystem
+
+- Static fallback should be trustworthy and non-ambiguous.
+- External QR dependency should be removed for privacy and resilience reasons.
+
+#### Documentation/governance subsystem
+
+- Generated docs must be portable (repo-relative paths, not machine-local absolute paths).
+- Status language should map directly to executable controls.
+
+---
+
+### 31.8 Final conclusion of this integrated addendum
+
+The original master report was directionally correct on structural risk. This integrated deep-verification pass confirms the most urgent blockers are operationally concrete:
+
+- Workflow syntax breakage is immediate and foundational.
+- API/data contract drift is active.
+- Security posture includes misconfiguration-sensitive defaults.
+- Frontend trust degradation persists in static/degraded paths.
+
+The highest-leverage path remains: **restore deterministic automation, enforce one data contract truth, harden control-plane defaults, and make degraded behavior explicit and testable.**
+
