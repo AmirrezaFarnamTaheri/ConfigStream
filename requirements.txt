@@ -32,7 +32,7 @@ markdown-it-py==4.0.0
 maxminddb==3.0.0
 mdurl==0.1.2
 multidict==6.7.0
-numpy==2.4.0
+numpy>=1.26.0
 orjson==3.11.6
 packaging==25.0
 propcache==0.4.1
