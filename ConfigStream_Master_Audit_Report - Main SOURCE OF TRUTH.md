@@ -168,6 +168,8 @@ One source-level audit states that the main workflow runs on push/schedule/manua
 
 ### C4. Deployment can fail closed when outputs are empty or sparse
 
+✅ **IMPLEMENTED:** Relaxed strict `required_nonempty` file checks in `.github/workflows/deploy-pages.yml` and explicitly allowed outputs to be empty (but schema valid) during severe censorship spikes, moving away from fail-closed releases.
+
 **Evidence level:** Reported source evidence plus public-output concern.  
 **Severity:** Critical/High.  
 **Category:** Reliability, product contract.
@@ -195,6 +197,8 @@ The public frontend reportedly exposes unresolved placeholders such as `{sources
 **Priority:** P0/P1.
 
 ### C6. Public Base64/chosen outputs appear collapsed and not observably distinct
+
+✅ **IMPLEMENTED:** Integrated `health.json` (artifact manifest) generator inside `output_handler.py` to continuously export proxy pipeline health data, sizes, hashes, and detailed counts, offering verifiable proof of degraded states.
 
 **Evidence level:** Confirmed public-output sample in multiple reports.  
 **Severity:** High.  
@@ -1447,6 +1451,8 @@ The current behavior validates input format but does not fully bind diff output 
 ---
 
 #### G3. External QR code generation in Lab transmits user payload to third party
+
+✅ **IMPLEMENTED:** Removed the external API call `api.qrserver.com` in `frontend/assets/js/lab.js` that exfiltrated sensitive proxy/chain payloads. Substituted with a clear UI warning disabled-by-default for privacy preservation.
 
 Lab QR rendering uses `api.qrserver.com` with encoded data in query parameters. For sovereignty-grade workflows, this is an avoidable exfiltration path for user-provided chain/config content.
 
