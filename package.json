@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/AmirrezaFarnamTaheri/ConfigStream#readme",
   "devDependencies": {
-    "playwright": "^1.56.1",
+    "playwright": "^1.59.1",
     "vite": "^6.3.5"
   }
 }

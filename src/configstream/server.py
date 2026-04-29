@@ -253,27 +253,22 @@ async def notify_update(payload: dict):
     # Only enforce API key for external production deployments
     settings = AppSettings()
     api_key = settings.ADMIN_API_KEY
-    if api_key:
-        provided_key = payload.get("api_key")
-        # Allow internal pipeline calls without API key if key matches or is from internal source
-        # In production, pipeline should include api_key in payload
+    provided_key = payload.get("api_key")
+    is_internal = settings.ENVIRONMENT in ("development", "ci", "test")
+
+    if not is_internal:
+        if not api_key:
+            logger.error("notify-update called in production but ADMIN_API_KEY is not configured.")
+            raise HTTPException(403, "Forbidden: ADMIN_API_KEY must be configured in production")
         if not provided_key:
-            # Check if this is an internal call (development/CI environment)
-            # Secure default: PRODUCTION
-            is_internal = settings.ENVIRONMENT in (
-                "development",
-                "ci",
-                "test",
-            )
-            if not is_internal:
-                raise HTTPException(
-                    403,
-                    "Forbidden: API key required for external calls. "
-                    "Include 'api_key' in payload or set ENVIRONMENT=development",
-                )
-        elif not secrets.compare_digest(str(provided_key), str(api_key)):
-            # Use constant-time comparison to prevent timing attacks
+            raise HTTPException(403, "Forbidden: API key required for external calls.")
+        if not secrets.compare_digest(str(provided_key), str(api_key)):
             raise HTTPException(403, "Forbidden: Invalid API key")
+    else:
+        if api_key and provided_key and not secrets.compare_digest(str(provided_key), str(api_key)):
+            raise HTTPException(403, "Forbidden: Invalid API key")
+        elif not api_key:
+            logger.warning("notify-update called without ADMIN_API_KEY configured (allowed in dev/test/ci).")
 
     await manager.broadcast(
         {
@@ -306,7 +301,19 @@ async def get_proxy_diff(request: Request, base_version: str):
         raise HTTPException(404, "Current data unavailable")
 
     try:
-        current_data = json.loads(current_path.read_text())
+        current_content = json.loads(current_path.read_text())
+        # Support both envelope schema (docs) and list schema (legacy)
+        current_data = current_content.get("proxies", []) if isinstance(current_content, dict) else current_content
+        current_version = current_content.get("metadata", {}).get("version", "") if isinstance(current_content, dict) else ""
+
+        # If client's base_version matches current_version exactly, there's no diff
+        if current_version and base_version == current_version:
+             return {
+                 "type": "delta",
+                 "base_version": base_version,
+                 "added": [],
+                 "removed": [],
+             }
     except Exception as e:
         logger.error(f"Failed to read current proxies: {e}")
         raise HTTPException(500, "Internal Server Error") from e
@@ -314,26 +321,31 @@ async def get_proxy_diff(request: Request, base_version: str):
     # If client has specific version matching our backup
     if old_path.exists():
         try:
-            old_data = json.loads(old_path.read_text())
+            old_content = json.loads(old_path.read_text())
+            old_data = old_content.get("proxies", []) if isinstance(old_content, dict) else old_content
+            old_version = old_content.get("metadata", {}).get("version", "") if isinstance(old_content, dict) else ""
 
-            # Prefer stable proxy IDs; fallback to index for legacy payloads.
-            current_ids = {p.get("id", str(i)): p for i, p in enumerate(current_data)}
-            old_ids = {p.get("id", str(i)): p for i, p in enumerate(old_data)}
+            # We must explicitly verify that the base_version requested matches old_version
+            if not old_version or base_version == old_version:
+                # Prefer stable proxy IDs; fallback to index for legacy payloads.
+                current_ids = {p.get("id", str(i)): p for i, p in enumerate(current_data)}
+                old_ids = {p.get("id", str(i)): p for i, p in enumerate(old_data)}
 
-            added = [p for pid, p in current_ids.items() if pid not in old_ids]
-            removed = [pid for pid in old_ids if pid not in current_ids]
+                added = [p for pid, p in current_ids.items() if pid not in old_ids]
+                removed = [pid for pid in old_ids if pid not in current_ids]
 
-            return {
-                "type": "delta",
-                "base_version": base_version,
-                "added": added,
-                "removed": removed,
-            }
+                return {
+                    "type": "delta",
+                    "base_version": base_version,
+                    "target_version": current_version,
+                    "added": added,
+                    "removed": removed,
+                }
         except Exception as e:
             logger.error(f"Diff generation failed: {e}")
 
     # Fallback: Tell client to fetch full
-    return {"type": "full_reload_required"}
+    return {"type": "full_reload_required", "target_version": current_version}
 
 
 @app.post("/api/lab/test-chain")
