@@ -31,7 +31,7 @@ jobs:
       - name: Check schedule eligibility
         id: gate
         env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
           GH_TOKEN: ${{ github.token }}
         run: |
           # Non-schedule triggers always proceed
@@ -102,7 +102,7 @@ jobs:
     needs: [schedule_gate]
     if: "!needs.schedule_gate.outputs.proceed || needs.schedule_gate.outputs.proceed == 'true'"
     env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       PYTHONPATH: src
     steps:
       - uses: actions/checkout@v4
@@ -120,7 +120,7 @@ jobs:
       - name: Check for concurrent pipeline run
         id: check_pipeline
         env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
           GH_TOKEN: ${{ github.token }}
         run: |
           echo "Checking for active pipeline runs..."
@@ -168,7 +168,7 @@ jobs:
       - name: Download latest pipeline output
         if: steps.check_pipeline.outputs.should_cancel != 'true'
         env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
           GH_TOKEN: ${{ github.token }}
         run: |
           LATEST_RUN=$(gh run list --workflow=main.yml --status=success --limit=1 --json databaseId --jq '.[0].databaseId')

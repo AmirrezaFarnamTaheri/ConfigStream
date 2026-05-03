@@ -16,6 +16,12 @@ repos:
         entry: pytest -q
         language: system
         pass_filenames: false
+      - id: validate-workflows
+        name: validate GitHub workflow YAML
+        entry: python scripts/validate_workflows.py
+        language: system
+        files: ^\.github/workflows/.*\.ya?ml$
+        pass_filenames: false
 
 # NEW: Secret Scanning
   - repo: https://github.com/gitleaks/gitleaks

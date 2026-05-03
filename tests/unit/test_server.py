@@ -7,7 +7,8 @@ import sniffio
 from pathlib import Path
 from starlette.responses import Response
 import pytest
-from configstream.server import app
+from configstream.config import AppSettings
+from configstream.server import app, limiter, _validate_admin_startup_security
 
 
 @pytest.fixture
@@ -154,6 +155,79 @@ async def test_download_subscription(mock_output_dir, async_client):
 
         response = await async_client.get("/subscribe/invalid")
         assert response.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_admin_notify_requires_configured_key_in_production(
+    async_client, monkeypatch
+):
+    monkeypatch.delenv("ADMIN_API_KEY", raising=False)
+    monkeypatch.setenv("ENVIRONMENT", "production")
+
+    response = await async_client.post("/api/admin/notify-update", json={})
+
+    assert response.status_code == 403
+    assert "ADMIN_API_KEY must be configured" in response.text
+
+
+@pytest.mark.asyncio
+async def test_admin_notify_rejects_missing_key_when_configured_in_production(
+    async_client, monkeypatch
+):
+    monkeypatch.setenv("ADMIN_API_KEY", "secret")
+    monkeypatch.setenv("ENVIRONMENT", "production")
+
+    response = await async_client.post("/api/admin/notify-update", json={})
+
+    assert response.status_code == 403
+    assert "API key required" in response.text
+
+
+@pytest.mark.asyncio
+async def test_admin_notify_accepts_valid_key_in_production(async_client, monkeypatch):
+    monkeypatch.setenv("ADMIN_API_KEY", "secret")
+    monkeypatch.setenv("ENVIRONMENT", "production")
+
+    response = await async_client.post(
+        "/api/admin/notify-update", json={"api_key": "secret"}
+    )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "broadcast_sent"
+
+
+@pytest.mark.asyncio
+async def test_admin_notify_allows_unkeyed_development(async_client, monkeypatch):
+    monkeypatch.delenv("ADMIN_API_KEY", raising=False)
+    monkeypatch.setenv("ENVIRONMENT", "development")
+
+    response = await async_client.post("/api/admin/notify-update", json={})
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "broadcast_sent"
+
+
+def test_admin_notify_is_rate_limited() -> None:
+    assert "configstream.server.notify_update" in limiter._route_limits
+
+
+def test_startup_security_rejects_production_without_admin_key() -> None:
+    settings = AppSettings(ENVIRONMENT="production", ADMIN_API_KEY=None)
+
+    with pytest.raises(RuntimeError, match="ADMIN_API_KEY must be configured"):
+        _validate_admin_startup_security(settings)
+
+
+def test_startup_security_allows_development_without_admin_key() -> None:
+    settings = AppSettings(ENVIRONMENT="development", ADMIN_API_KEY=None)
+
+    _validate_admin_startup_security(settings)
+
+
+def test_startup_security_allows_production_with_admin_key() -> None:
+    settings = AppSettings(ENVIRONMENT="production", ADMIN_API_KEY="secret")
+
+    _validate_admin_startup_security(settings)
 
 
 @pytest.mark.asyncio

@@ -112,7 +112,9 @@ class PipelineStats:
     # Revived Stats
     revived_warp: int = 0
     revived_vwarp: int = 0
-    shielded_count: int = 0  # Proxies resurrected via shielding (Copper to Gold)
+    # Candidate chains created by shielding (Copper to Gold). These are not
+    # counted as working unless they are retested and represented in `working`.
+    shielded_count: int = 0
 
     # Evasion Metrics
     evasion_utls_enabled: int = 0  # Proxies with uTLS fingerprint rotation
@@ -177,7 +179,7 @@ class PipelineStats:
 
     @property
     def total_proxies(self) -> int:
-        return self.working + self.smart_chain_count + self.shielded_count
+        return self.working + self.smart_chain_count
 
     @property
     def total_tested(self) -> int:

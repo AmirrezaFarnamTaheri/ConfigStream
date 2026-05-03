@@ -52,7 +52,7 @@
 
 #### Encryption
 - **Stego Key**: Rotated every 6 hours via CI/CD (STEGO_KEY environment variable)
-- **Admin API**: Protected with ADMIN_API_KEY (optional, recommended in production)
+- **Admin API**: Protected with ADMIN_API_KEY. Production admin endpoints fail closed if this key is not configured.
 - **Fernet Encryption**: Used for steganography feature (obfuscation only)
 
 #### Privacy
@@ -135,7 +135,7 @@
 
 ### Required Environment Variables
 ```bash
-# Recommended for production:
+# Required for production admin endpoints:
 export ADMIN_API_KEY="your-secret-admin-key"
 export ALLOWED_ORIGINS="https://yourdomain.com"
 export STEGO_KEY="your-base64-fernet-key"

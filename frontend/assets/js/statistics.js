@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const uniqueCount = (metadata && metadata.total_unique_candidates) || 0;
         updateElement('#totalConfigs', uniqueCount.toLocaleString());
 
-        // total_working = native + shielded (total usable); total_valid_proxies = native only
+        // total_working is retested working proxies only; shielded_count is a candidate count.
         const workingCount = (metadata && (metadata.total_working ?? metadata.total_valid_proxies ?? metadata.working)) || 0;
         updateElement('#workingConfigs', workingCount.toLocaleString());
 

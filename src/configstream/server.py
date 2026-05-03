@@ -217,6 +217,25 @@ manager = ConnectionManager()
 # --- API Endpoints ---
 
 
+def _is_nonproduction_environment(environment: str) -> bool:
+    return environment.strip().lower() in {"development", "ci", "test"}
+
+
+def _validate_admin_startup_security(current_settings: AppSettings) -> None:
+    if (
+        not _is_nonproduction_environment(current_settings.ENVIRONMENT)
+        and not current_settings.ADMIN_API_KEY
+    ):
+        raise RuntimeError(
+            "ADMIN_API_KEY must be configured when ENVIRONMENT is production."
+        )
+
+
+@app.on_event("startup")
+async def validate_startup_security() -> None:
+    _validate_admin_startup_security(AppSettings())
+
+
 @app.websocket("/ws/updates")
 async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
@@ -243,33 +262,37 @@ async def websocket_endpoint(websocket: WebSocket):
 
 
 @app.post("/api/admin/notify-update")
-async def notify_update(payload: dict):
+@limiter.limit("10/minute")
+async def notify_update(request: Request, payload: dict):
     """
     Internal endpoint called by pipeline when a cycle finishes.
     Requires ADMIN_API_KEY environment variable for authentication
     (except for localhost/internal callers during development).
     """
-    # Simple API key authentication for admin endpoints
-    # Only enforce API key for external production deployments
     settings = AppSettings()
     api_key = settings.ADMIN_API_KEY
+    is_nonproduction = _is_nonproduction_environment(settings.ENVIRONMENT)
+
+    if not api_key:
+        if is_nonproduction:
+            logger.warning(
+                "Admin update notification accepted without ADMIN_API_KEY in %s environment.",
+                settings.ENVIRONMENT,
+            )
+        else:
+            raise HTTPException(
+                403,
+                "Forbidden: ADMIN_API_KEY must be configured for admin endpoints in production.",
+            )
+
     if api_key:
         provided_key = payload.get("api_key")
-        # Allow internal pipeline calls without API key if key matches or is from internal source
-        # In production, pipeline should include api_key in payload
         if not provided_key:
-            # Check if this is an internal call (development/CI environment)
-            # Secure default: PRODUCTION
-            is_internal = settings.ENVIRONMENT in (
-                "development",
-                "ci",
-                "test",
-            )
-            if not is_internal:
+            if not is_nonproduction:
                 raise HTTPException(
                     403,
                     "Forbidden: API key required for external calls. "
-                    "Include 'api_key' in payload or set ENVIRONMENT=development",
+                    "Include 'api_key' in payload.",
                 )
         elif not secrets.compare_digest(str(provided_key), str(api_key)):
             # Use constant-time comparison to prevent timing attacks

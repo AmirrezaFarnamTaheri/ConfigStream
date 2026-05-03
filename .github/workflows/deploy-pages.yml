@@ -39,7 +39,7 @@ jobs:
       - name: Download Pipeline Output (from workflow_run)
         if: github.event_name == 'workflow_run'
         env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
           GH_TOKEN: ${{ github.token }}
         run: |
           # Download artifact from the triggering workflow run using GitHub CLI
@@ -69,7 +69,7 @@ jobs:
       - name: Download Pipeline Output (from workflow_dispatch)
         if: github.event_name == 'workflow_dispatch'
         env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
           GH_TOKEN: ${{ github.token }}
         run: |
           # For manual dispatch, download from the latest successful pipeline run
@@ -127,85 +127,6 @@ jobs:
           # Create API simulation structure
           mkdir -p output/api
 
-          # Required artifacts: fail fast with clear message if missing
-          # Keep this list aligned with frontend references to avoid silent 404s on GitHub Pages.
-          # Some subscription files can be legitimately empty (e.g. during hostile CI networking
-          # when all tests fail, or when sources are temporarily down). For those, we require
-          # existence but do not require non-empty.
-          required_exists=(
-            output/proxies.json
-            output/metadata.json
-            output/base64.txt
-            output/base64-dns-safe.txt
-            output/base64-dns-hardened.txt
-            output/proxies.txt
-            output/proxies-dns-safe.txt
-            output/proxies-dns-hardened.txt
-            output/singbox.json
-            output/singbox-dns-safe.json
-            output/singbox-dns-hardened.json
-            output/singbox-vpn.json
-            output/singbox-vpn-dns-safe.json
-            output/singbox-vpn-dns-hardened.json
-            output/clash.yaml
-            output/clash-dns-safe.yaml
-            output/clash-dns-hardened.yaml
-            output/singbox-chains.json
-            output/singbox-chains-dns-safe.json
-            output/singbox-chains-dns-hardened.json
-            output/chains.json
-            output/chains-dns-safe.json
-            output/chains-dns-hardened.json
-            output/side_products.zip
-            output/side_products-dns-safe.zip
-            output/side_products-dns-hardened.zip
-            output/chosen/base64.txt
-            output/chosen/base64-dns-safe.txt
-            output/chosen/base64-dns-hardened.txt
-            output/data/clean_ips.json
-            output/data/proxy_history_viz.json
-            output/data/active_proxy_trend.json
-            output/data/evasion_trend.json
-            output/docs/wiki/index.md
-            output/index.html
-          )
-
-          required_nonempty=(
-            output/proxies.json
-            output/metadata.json
-            output/singbox.json
-            output/singbox-dns-safe.json
-            output/singbox-dns-hardened.json
-            output/singbox-vpn.json
-            output/singbox-vpn-dns-safe.json
-            output/singbox-vpn-dns-hardened.json
-            output/clash.yaml
-            output/clash-dns-safe.yaml
-            output/clash-dns-hardened.yaml
-            output/singbox-chains.json
-            output/singbox-chains-dns-safe.json
-            output/singbox-chains-dns-hardened.json
-            output/chains.json
-            output/chains-dns-safe.json
-            output/chains-dns-hardened.json
-            output/side_products.zip
-            output/side_products-dns-safe.zip
-            output/side_products-dns-hardened.zip
-            output/data/clean_ips.json
-            output/data/proxy_history_viz.json
-            output/data/active_proxy_trend.json
-            output/data/evasion_trend.json
-            output/docs/wiki/index.md
-            output/index.html
-          )
-
-          for f in "${required_exists[@]}"; do
-            [ -f "$f" ] || { echo "ERROR: missing required file: $f"; exit 1; }
-          done
-          for f in "${required_nonempty[@]}"; do
-            [ -s "$f" ] || { echo "ERROR: required file is empty: $f"; exit 1; }
-          done
-
           cp output/proxies.json output/api/proxies
           cp output/metadata.json output/api/stats
 
@@ -222,6 +143,12 @@ jobs:
              sed -i "s/VERSION: '[^']*'/VERSION: '${cache_version}'/" output/assets/js/cache-config.js
              sed -i "s/CACHE_NAME: 'configstream-cache-[^']*'/CACHE_NAME: 'configstream-cache-${cache_version}'/" output/assets/js/cache-config.js
           fi
+
+          # Required artifact validation is centralized in Python so the deploy
+          # contract can be tested and evolved without duplicating shell arrays.
+          # Refresh after frontend/API/cache-busting mutations so the manifest
+          # describes the exact Pages artifact being uploaded.
+          python scripts/validate_pages_artifact.py --refresh-contract output
 
       - name: List deployment files
         if: env.HAS_OUTPUT == 'true'
