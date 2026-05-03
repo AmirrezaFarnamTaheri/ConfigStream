@@ -32,7 +32,16 @@ def test_known_issues_does_not_reference_resolved_wasm_limitation_as_open() -> N
 
 def test_status_does_not_list_removed_fetcher_py_as_consolidated() -> None:
     status = _read("STATUS.md")
-    assert "dns_prewarm.py" in status
-    assert "fetcher_core/" in status
-    assert "pipeline_stages.py" in status
+    assert "Remediation in progress" in status
+    assert "Not production-ready" in status
     assert "dns_prewarm.py, fetcher.py, output.py" not in status
+
+
+def test_public_claims_do_not_mark_remediation_branch_stable() -> None:
+    pyproject = _read("pyproject.toml")
+    readme = _read("README.md")
+
+    assert "Development Status :: 5 - Production/Stable" not in pyproject
+    assert "Development Status :: 4 - Beta" in pyproject
+    assert "TLS Fragmentation**: Splits TLS packets" not in readme
+    assert "TLS Fragmentation**: Disabled" in readme

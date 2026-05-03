@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ConfigStream Public Health",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "status",
+    "generated_at",
+    "trace_id",
+    "total_working",
+    "total_tested",
+    "schema_validated",
+    "notes"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["ok", "degraded"]
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "trace_id": {
+      "type": "string"
+    },
+    "source_commit": {
+      "type": "string"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "run_attempt": {
+      "type": "string"
+    },
+    "total_working": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "total_tested": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "schema_validated": {
+      "type": "boolean"
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": false
+}

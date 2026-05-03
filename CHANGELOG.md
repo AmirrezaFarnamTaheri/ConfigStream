@@ -1,6 +1,32 @@
 
 ## [Unreleased]
 
+### Remediation: CI/CD Source-of-Truth Bootstrap (2026-05-03)
+- **Workflow YAML parse repair**: Fixed malformed `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24` indentation in `ci.yml`, `deploy-pages.yml`, `deploy_mirror.yml`, `main.yml`, and `retest.yml`; all workflow YAML files now parse locally.
+- **Workflow validation gate**: Added `scripts/validate_workflows.py` and wired it into CI plus pre-commit so workflow syntax drift is caught before merge/deploy.
+- **Workflow behavior guardrails**: Extended workflow validation to require concurrency on pipeline/retest/deploy workflows and to enforce source-reshard `paths-ignore` whenever a workflow can `git push`.
+- **Mirror deploy race guard**: Added a top-level concurrency policy to `deploy_mirror.yml` so optional mirrors cannot overlap stale deployments on the same ref.
+- **Pages artifact validation**: Added `scripts/validate_pages_artifact.py`, moved required Pages artifact checks out of shell arrays, and added tests for missing, empty, invalid JSON, and corrupt ZIP outputs.
+- **Public artifact contract**: Output generation now writes `health.json` and `artifact_manifest.json`; deploy validation requires them and verifies manifest coverage plus health status.
+- **Contract schemas**: Added `schema/artifact_manifest.schema.json` and `schema/health.schema.json` as the first canonical schemas for the public deploy control files.
+- **Deploy contract enforcement**: Pages validation now checks manifest size/hash integrity, manifest totals, `metadata.json` required schema keys, `proxies.json` array shape, and `health.json` required fields before upload.
+- **Exact deploy manifest refresh**: `deploy-pages.yml` now runs `scripts/validate_pages_artifact.py --refresh-contract output` after frontend copy, API alias creation, `.nojekyll`, cache-busting edits, and test-cache cleanup so `artifact_manifest.json` describes the exact Pages artifact being uploaded.
+- **Cross-platform version validation**: Rewrote `scripts/validate_versions.py` to use explicit UTF-8 file reads and ASCII-safe output, fixing Windows console/encoding failures.
+- **Audit source of truth**: Replaced the accumulated master audit/addendum document with a clean remediation report, claim-completion program, parity rules, cleanup policy, and production-readiness roadmap.
+- **Status/docs parity**: Rewrote `STATUS.md`, updated the DevOps wiki, and added a README remediation notice so public docs no longer claim final production readiness while P0/P1 work remains open.
+- **Package/readme claim cleanup**: Changed `pyproject.toml` from `Development Status :: 5 - Production/Stable` to `Development Status :: 4 - Beta` during remediation; corrected README TLS fragmentation language to state it is disabled in current sing-box outputs.
+- **Documentation hygiene guard**: Extended `tests/unit/test_documentation_hygiene.py` to prevent reintroducing Production/Stable or active TLS-fragmentation claims while remediation remains open.
+- **Metric trust correction**: `total_working` and `PipelineStats.total_proxies` no longer include untested shielded candidates; metadata now exposes `shielded_candidate_count` and `shielded_verified_count` while retaining `shielded_count` as the candidate count.
+- **Frontend metric parity**: Updated analytics/statistics comments so frontend logic treats `total_working` as retested working proxies only and `shielded_count` as a candidate count.
+- **Metric invariant tests**: Added regression coverage proving shielded candidates do not inflate `total_working`, `total_valid_proxies`, or `success_rate`.
+- **Production admin auth fail-closed**: `/api/admin/notify-update` now rejects production calls when `ADMIN_API_KEY` is unset and rejects production calls without a matching payload key when configured; unauthenticated calls are allowed only for explicit `development`, `ci`, or `test` environments.
+- **Admin endpoint rate limit**: Added a `10/minute` SlowAPI limit to `/api/admin/notify-update` and a regression test confirming limiter registration.
+- **Admin startup validation**: Server startup now fails in production when `ADMIN_API_KEY` is unset, with tests for production no-key, production keyed, and development no-key modes.
+- **Security docs parity**: Updated `SECURITY.md` to state `ADMIN_API_KEY` is required for production admin endpoints.
+- **Admin auth tests**: Added server tests for production without configured key, production missing payload key, production valid key, and explicit development no-key behavior.
+- **Validation run**: `scripts/validate_workflows.py` passes for 6 workflow files; `scripts/validate_versions.py` passes; focused remediation tests pass with 50 tests across server, output, deploy-contract, analytics, merge, docs hygiene, workflow, and version validation.
+- **Parity note**: This step restores workflow syntax trust and adds initial workflow/deploy guardrails. Artifact manifests, public schema contracts, deploy smoke tests, and public output freshness remain tracked in the master audit roadmap.
+
 ### Proxy JSON Format (2026-02)
 - **output_transport.save_json**: Always outputs JSON array (list of proxies), never single object; coerce non-list input
 - **output_handler._save_proxies_with_chains**: Validation that proxies.json root is array

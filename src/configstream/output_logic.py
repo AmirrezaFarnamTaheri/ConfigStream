@@ -2,6 +2,7 @@
 import json
 import logging
 import copy
+import hashlib
 import shutil
 import os
 import re
@@ -50,6 +51,110 @@ logger = logging.getLogger(__name__)
 
 # Pre-compiled pattern for filename sanitization
 _SAFE_FILENAME_RE = re.compile(r"[^A-Za-z0-9._-]+")
+
+PUBLIC_CONTRACT_SCHEMA_VERSION = "1.0"
+
+
+def _read_json_object(path: Path) -> Dict[str, Any]:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return payload if isinstance(payload, dict) else {}
+
+
+def _file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _artifact_category(rel_path: str) -> str:
+    if rel_path in {"metadata.json", "health.json", "artifact_manifest.json"}:
+        return "control"
+    if rel_path.startswith("api/"):
+        return "api"
+    if rel_path.startswith("assets/") or rel_path.endswith(".html"):
+        return "frontend"
+    if rel_path.startswith("docs/"):
+        return "docs"
+    if rel_path.startswith("data/"):
+        return "analytics"
+    if rel_path.endswith(".zip"):
+        return "side-product"
+    return "subscription"
+
+
+def write_public_artifact_contract(output_dir: Path) -> Dict[str, Any]:
+    """
+    Write health.json and artifact_manifest.json for the public output directory.
+
+    These files are intentionally generated from the final files on disk so deploy,
+    frontend, docs, and tests can share one artifact inventory instead of each
+    surface maintaining its own partial list.
+    """
+    output_dir.mkdir(parents=True, exist_ok=True)
+    metadata = _read_json_object(output_dir / "metadata.json")
+    now_iso = datetime.now(timezone.utc).isoformat()
+    generated_at = str(
+        metadata.get("generated_at") or metadata.get("last_updated_utc") or now_iso
+    )
+    trace_id = str(metadata.get("trace_id") or "-")
+
+    health = {
+        "schema_version": PUBLIC_CONTRACT_SCHEMA_VERSION,
+        "status": (
+            "degraded" if int(metadata.get("total_working", 0) or 0) == 0 else "ok"
+        ),
+        "generated_at": generated_at,
+        "trace_id": trace_id,
+        "source_commit": os.environ.get("GITHUB_SHA", ""),
+        "run_id": os.environ.get("GITHUB_RUN_ID", ""),
+        "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
+        "total_working": int(metadata.get("total_working", 0) or 0),
+        "total_tested": int(metadata.get("total_tested", 0) or 0),
+        "schema_validated": False,
+        "notes": [],
+    }
+    AtomicFileWriter.write_text(
+        output_dir / "health.json", json.dumps(health, indent=2, ensure_ascii=False)
+    )
+
+    files: List[Dict[str, Any]] = []
+    for path in sorted(output_dir.rglob("*")):
+        if not path.is_file():
+            continue
+        rel_path = path.relative_to(output_dir).as_posix()
+        if rel_path == "artifact_manifest.json" or rel_path.endswith(".tmp"):
+            continue
+        files.append(
+            {
+                "path": rel_path,
+                "size_bytes": path.stat().st_size,
+                "sha256": _file_sha256(path),
+                "category": _artifact_category(rel_path),
+            }
+        )
+
+    manifest = {
+        "schema_version": PUBLIC_CONTRACT_SCHEMA_VERSION,
+        "generated_at": now_iso,
+        "artifact_generated_at": generated_at,
+        "trace_id": trace_id,
+        "source_commit": os.environ.get("GITHUB_SHA", ""),
+        "run_id": os.environ.get("GITHUB_RUN_ID", ""),
+        "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
+        "file_count": len(files),
+        "total_size_bytes": sum(int(item["size_bytes"]) for item in files),
+        "files": files,
+    }
+    AtomicFileWriter.write_text(
+        output_dir / "artifact_manifest.json",
+        json.dumps(manifest, indent=2, ensure_ascii=False),
+    )
+    return manifest
 
 
 def _safe_filename(value: str, fallback: str) -> str:
@@ -1623,11 +1728,9 @@ def save_metadata(
     meta = {
         "schema_version": "3.0.2",
         "version": pkg_version,
-        "total_proxies": total
-        + smart_chain_count
-        + shielded_count,  # Working proxies + smart chains
+        "total_proxies": total + smart_chain_count,
         "total_tested": tested_count,  # Number of proxies actually tested
-        "total_working": working + shielded_count,
+        "total_working": working,
         "success_rate": (working / tested_count) if tested_count > 0 else 0,
         "generated_at": end_time_iso,
         "last_updated_utc": end_time_iso,
@@ -1668,6 +1771,8 @@ def save_metadata(
         "washing_enabled": washing_enabled,
         # Shielded & Evasion stats (consumed by frontend statistics.js)
         "shielded_count": shielded_count,
+        "shielded_candidate_count": shielded_count,
+        "shielded_verified_count": 0,
         "evasion_utls_enabled": evasion_utls_enabled,
         "evasion_alpn_enabled": evasion_alpn_enabled,
         "evasion_fragmentation_enabled": evasion_fragmentation_enabled,

@@ -11,6 +11,7 @@ from configstream.history.tracker import ProxyHistoryTracker
 from configstream.output_logic import (
     generate_categorized_outputs,
     save_metadata,
+    write_public_artifact_contract,
     _build_dns_safe_proxies,
     _build_dns_hardened_proxies,
 )
@@ -705,6 +706,8 @@ async def generate_pipeline_outputs(
     await loop.run_in_executor(
         None, history.export_evasion_trend, stats, evasion_trend_path
     )
+
+    await loop.run_in_executor(None, write_public_artifact_contract, output_path)
 
     logger.info(f"Output generation complete. Files created in {output_path}")
     return generated_files

@@ -2,6 +2,8 @@
 
 ConfigStream is a sovereignty-grade, zero-budget anti-censorship platform. It continuously aggregates, validates, and distributes resilient proxy configurations under hostile network conditions.
 
+> **Remediation status:** ConfigStream is currently being brought back into a verified production-ready state. The active source of truth is `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md`; older production-ready claims are superseded until the P0/P1 audit items are closed.
+
 ## Principles
 - Zero budget: free GitHub Actions/Pages, public APIs, and user-provided resources only
 - Resilience: fail-open or fail-safe handling for timeouts, blocklists, and unreliable sources
@@ -53,7 +55,7 @@ See `docs/wiki/project/02-architecture.md` for the full pipeline design and data
 ConfigStream includes advanced censorship evasion capabilities:
 
 - **TLS Fingerprint Rotation**: Mimics browser TLS handshakes (Chrome, Firefox, Safari, iOS)
-- **TLS Fragmentation**: Splits TLS packets to bypass stateless DPI
+- **TLS Fragmentation**: Disabled in current sing-box outputs; retained only as historical documentation and future research context.
 - **Multiplexing with Padding**: HTTP/2 multiplexing with random padding to hide traffic patterns
 - **ALPN Rotation**: Varies protocol negotiation to prevent fingerprinting
 - **DNS Hardening**: DoH/DoT/DoQ resolvers with prefer-IP strategy

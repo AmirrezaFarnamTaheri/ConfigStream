@@ -1,1582 +1,2115 @@
-# ConfigStream Master Audit Report
+# ConfigStream Master Audit Report - Main Source Of Truth
 
-**Date:** 2026-04-28  
-**Subject:** `AmirrezaFarnamTaheri/ConfigStream` repository, public deployment, documentation, CI/CD, backend, frontend, output contracts, security posture, and roadmap.  
-**Status:** Final consolidated audit report. The source material has been merged, deduplicated, reconciled, and polished into one coherent document.
-
----
-
-## 0. Method and Evidence Rules
-
-This report consolidates the audit corpus into a single unified assessment. The inputs did not have the same evidence quality. Several were access-limited public-surface audits based on repository listings, rendered documentation, GitHub Pages output, and sampled public artifacts. Others claimed direct inspection of workflow, server, configuration, and source snippets. One source went further into deep-systems and adversarial analysis; those items are preserved as useful threat-model and design-review material, but many must be verified in a local checkout before being treated as confirmed defects.
-
-This report therefore uses four evidence levels:
-
-- **Confirmed public evidence:** repeated across reports or observed from public frontend/output/repository inventory.
-- **Reported source evidence:** asserted by an input audit that claims it retrieved workflow/source snippets, but not re-executed in this consolidation.
-- **Needs source verification:** plausible, important, and actionable, but dependent on source inspection, runtime tests, or CI logs.
-- **Strategic or speculative risk:** a useful design warning, threat-model concern, or roadmap idea that should not be labeled as a current bug until verified.
-
-The consolidation rule is simple: duplicate findings are merged, but their unique details are retained. If one report gives evidence, another gives impact, and a third gives a concrete test or fix, the final finding includes all three. When reports conflict, this report preserves the conflict and gives the safest interpretation.
+**Audit date:** 2026-05-03
+**Repository:** `C:\Users\ACER\Documents\GitHub\ConfigStream`
+**Status:** Not production-ready, not ready-to-publish, and not currently trustworthy as a public release surface until the P0/P1 items in this report are closed.
+**Purpose:** Replace the previous accumulated audit/addendum document with one clean, current, cohesive, evidence-based source of truth.
 
 ---
 
-## 1. Executive Summary
+## 1. Executive Verdict
 
-ConfigStream is presented as a zero-budget, GitHub-hosted anti-censorship configuration platform. Its intended pipeline fetches public proxy sources, parses many protocols, normalizes and validates configurations, tests proxies with Go/Python engines, revives or "washes" failed candidates through WARP/Vwarp strategies, ranks results, generates many client-compatible outputs, and publishes static artifacts plus a frontend dashboard/laboratory through GitHub Pages.
+ConfigStream has a serious and valuable architecture: asynchronous ingestion, parser coverage across many proxy protocols, Go/Python testing paths, WARP/Vwarp washing and shielding ideas, static output publication, frontend analytics, a user-facing Laboratory, schema files, many tests, and extensive documentation.
 
-Across the eight reports, the strongest consolidated conclusion is that ConfigStream has a genuinely broad and ambitious product architecture, but it is held back by serious drift between promises, public output state, CI/CD controls, implementation evidence, documentation, and user-facing trust signals. The most urgent work is not adding more evasion features; it is making the existing pipeline, outputs, metadata, CI/CD, security posture, and frontend states truthful, validated, and self-consistent.
+The project is not currently in final production or ready-to-publish condition because its trust surface is split across conflicting truths:
 
-The highest-impact themes are:
+1. The local Python suite can pass, but five GitHub workflow files do not parse as YAML.
+2. Public GitHub Pages artifacts are stale and collapsed to one visible working proxy subscription.
+3. Current repository schemas and generated public metadata do not match.
+4. Runtime output metrics inflate `total_working` by counting untested shielded chains as working.
+5. The deployed frontend path bypasses the Vite build output and serves raw static files with placeholder key material.
+6. Security defaults and docs overclaim fail-closed behavior while admin auth, CORS, private IP policy, external QR generation, and lab test endpoints remain too permissive.
+7. Documentation, status files, roadmap files, wiki pages, README tables, and frontend strategy lists disagree.
+8. Several generated governance artifacts contain machine-local paths and self-referential noise.
 
-1. **Audit completeness risk.** Several reports say a complete file-by-file audit was blocked because source archives or raw files were unavailable. Other reports make direct source-level claims. A final authoritative audit still requires a fixed commit SHA, a full checkout/archive, and reproducible build/test runs.
-2. **CI/CD correctness risk.** Multiple reports identify malformed GitHub Actions YAML, self-triggering scheduled pipelines, broad workflow permissions, root container execution despite non-root claims, late/non-blocking validation, and too much work concentrated in release/deploy workflows.
-3. **Public output trust problem.** Public outputs were reported as collapsed or degraded: `base64.txt`, `chosen/base64.txt`, and DNS-safe Base64 output reportedly decoded to the same single SOCKS5 URI in one sample. A side-product archive was reported as suspiciously small. The site reportedly claims freshness and richness while public artifacts may be sparse.
-4. **Frontend degraded-state problem.** The public homepage, analytics, wiki, and lab surfaces reportedly expose placeholders, zero counters, "checking" states, and weak no-JS/static rendering. For an anti-censorship tool, degraded and script-hostile environments are first-class use cases, not edge cases.
-5. **Output and metadata contract drift.** The reports repeatedly call for canonical manifests and schemas: `artifact_manifest.json`, `output_manifest.json`, `metadata.schema.json`, `lab_strategies.json`, and a protocol/tester/output compatibility matrix. Without these, README tables, server routes, frontend cards, CI checks, generated files, and schemas drift independently.
-6. **Backend/API risks.** Repeated findings include a `/api/diff/proxies` schema mismatch, optional admin auth when `ADMIN_API_KEY` is unset, broad GitHub Pages CORS trust, WebSocket lifecycle risks, synchronous file/JSON work inside async routes, path containment concerns, and public config pack secret exposure.
-7. **Pipeline/concurrency risks.** The documents highlight shard-local deduplication, missing or weak semaphores, `TIME_WAIT`/ephemeral port exhaustion, cancellation during sync writes, unbounded `seen_keys`, queue shedding that poisons source quality, and fragile historical identity.
-8. **Security and abuse boundaries.** Risks include SSRF after DNS resolution, stored XSS through untrusted proxy fields, scanner safety, active probing/honeypot concerns, dependency/action pinning gaps, root containers, WARP/Cloudflare anti-abuse, Rust FFI panic boundaries, and optional external services that may undermine zero-budget guarantees.
-9. **Documentation and feature-claim drift.** Reports repeatedly flag Python version drift, Chain Laboratory strategy-count drift, protocol support drift, stale module references, overclaiming around autonomous intelligence, WASM browser testing, steganographic delivery, smart routing, and WARP/Vwarp revival.
-10. **Testing governance gap.** The project appears to have many tests, but the reports warn of missing required PR quality gates, non-blocking schema validation, insufficient deployed-site smoke tests, missing golden output tests, docs drift tests, and possible test sprawl.
-
-The practical remediation sequence is:
-
-1. Validate and repair workflows.
-2. Stop self-triggering and overlapping release pipelines.
-3. Establish artifact/output/metadata/lab/protocol manifests.
-4. Make public degraded states honest and useful.
-5. Make security controls executable and align docs with reality.
-6. Add regression tests around parser/tester/output/frontend contracts.
-7. Separate core zero-budget functionality from optional experimental features.
-8. Clean stale docs, duplicate paths, empty files, and legacy claims.
+The most important conclusion is this: **do not add more features until the project has one canonical contract per surface and every change is proven across backend, frontend, docs, schemas, tests, CI, and deployed artifacts.** Every capability claimed in project documents must either be completed, tested, documented, and published, or the claim must be removed until it is real.
 
 ---
 
-## 2. Consolidated Project Understanding
+## 2. Audit Method
 
-The intended ConfigStream system model is:
+This pass combined document review, repository inventory, source inspection, command-based validation, public artifact checks, and targeted scans.
 
-```text
-source lists
-  -> fetch with adaptive timeouts, redirects policy, circuit breakers, and hostile-input controls
-  -> parse and extract proxy configurations across many protocols
-  -> normalize protocol aliases and required fields
-  -> validate against security constraints and blocklists
-  -> deduplicate locally and, ideally, globally across shards
-  -> test via Go sidecar and Python fallback
-  -> classify, score, rank, tag, and preserve history
-  -> revive or wash failed candidates through WARP/Vwarp or chain strategies
-  -> generate subscription and client outputs
-  -> publish static artifacts, metadata, and frontend pages
-```
+Commands and checks run during the audit:
 
-The intended output surface includes `base64.txt`, `chosen/base64.txt`, `base64-dns-safe.txt`, `clash.yaml`, `singbox.json`, `singbox-vpn.json`, `singbox-chains.json`, `revived.json`, `proxies.json`, DNS-safe and DNS-hardened variants, protocol-specific outputs, side-product archives, and possible client-specific profiles for Mihomo/Clash.Meta, Shadowrocket, Surge, Loon, Quantumult X, Xray, SIP008, WireGuard, OpenVPN, and related clients.
+- `git status --short`
+- `git ls-files`
+- Markdown/document inventory
+- YAML parsing for `.github/workflows/*.yml`
+- `compileall -q src scripts tests`
+- `pytest`
+- `flake8 src tests`
+- `black --check .`
+- `mypy .`
+- `npm ci`
+- `npm audit --json`
+- `npm run build`
+- public artifact fetches from GitHub Pages:
+  - `https://amirrezafarnamtaheri.github.io/ConfigStream/metadata.json`
+  - `https://amirrezafarnamtaheri.github.io/ConfigStream/base64.txt`
+  - `https://amirrezafarnamtaheri.github.io/ConfigStream/chosen/base64.txt`
+  - `https://amirrezafarnamtaheri.github.io/ConfigStream/base64-dns-safe.txt`
+- targeted source scans for:
+  - workflow syntax, triggers, permissions, container user, and deployment logic
+  - admin/auth/CORS/WebSocket/API endpoints
+  - output metadata accounting
+  - parser and tester invariants
+  - frontend external dependencies, placeholders, and `innerHTML`
+  - docs drift
+  - generated debt artifacts
+  - removed/deprecated paths
+  - blocking filesystem calls in async code
+  - log sanitization gaps
 
-The project has three product surfaces:
+Repository inventory observed:
 
-1. **Pipeline product:** scheduled ingestion, parsing, testing, ranking, revival, output generation, and publication.
-2. **User-facing static site:** homepage, proxy list, analytics, lab/offline lab, wiki/about pages, and direct downloads.
-3. **Developer/API/data product:** JSON artifacts, metadata, WebSocket/API endpoints, lab test endpoints, output routes, schemas, and manifests.
+- 560 tracked files
+- 290 Python files
+- 70 Markdown files
+- 58 JavaScript files
+- 38 text files
+- Major tracked areas:
+  - `tests`: 150 files
+  - `src`: 137 files
+  - `frontend`: 96 files
+  - `docs`: 56 files
+  - `sources`: 34 files
+  - `scripts`: 26 files
+  - `tools`: 15 files
+  - `.github`: 7 files
 
-The repository inventory described across reports includes `.github/`, `_includes/`, `docs/`, `frontend/`, `policy/`, `schema/`, `scripts/`, `sources/`, `src/`, `tests/`, and `tools/`, plus root governance/build files such as `README.md`, `AGENTS.md`, `SECURITY.md`, `STATUS.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `KNOWN_ISSUES.md`, `QUICKSTART.md`, `Dockerfile`, `docker-compose.yml`, `pyproject.toml`, `package.json`, `requirements.txt`, `render.yaml`, and `vite.config.mjs`.
+Validation results:
 
-The audit corpus identifies real strengths. ConfigStream is not merely decorative: it has a broad multi-format output concept, parser/tester/security/frontend/lab modules, a multi-runtime architecture, extensive documentation, CI sharding ideas, frontend analytics, historical reliability concepts, source quality concepts, WARP/Vwarp revival ambitions, DNS-safe outputs, and a promising Chain Laboratory. This report treats it as a serious project with governance and correctness debt, not as an empty repository.
-
----
-
-## 3. Coverage Inventory and Audit Limitations
-
-Several reports were explicitly access-limited. They could inspect public repository listings, README/project intent, public pages, and sampled outputs, but could not clone the repository or fetch raw Python/Go/Rust/JavaScript/YAML source. Those reports could not honestly provide function-level parser bugs, line-level workflow validation, import-level dead-code proof, full frontend behavior, or complete test quality judgments.
-
-Other reports claim they retrieved workflow/source snippets and therefore assert concrete findings such as workflow indentation problems, `/api/diff/proxies` schema mismatch, optional admin auth, CORS regex issues, dependency pinning drift, and output-route duplication. These are high-priority findings, but they must still be checked against the current branch in a real checkout.
-
-The unresolved audit-risk areas are:
-
-- Full `.github/workflows/` syntax, triggers, permissions, concurrency, cache keys, artifact handling, and Pages deployment logic.
-- Full `src/configstream/**/*.py` implementation.
-- Parser contracts, malformed input handling, protocol aliases, drop reasons, and per-protocol output compatibility.
-- Go tester JSON payload shape, timeout behavior, process lifecycle, and WASM build behavior.
-- Rust `ss_checker` FFI panic/memory boundaries.
-- Frontend JavaScript data fetching, sanitization, DOM rendering, service-worker behavior, lab wiring, and large-data performance.
-- Schema contents and whether metadata fields match frontend consumers.
-- Test suite quality, actual coverage, and required PR gates.
-- WARP/Vwarp scanner/washer retention semantics and safety controls.
-- Side-product archive contents and secret scanning.
-- Optional external service behavior and zero-budget fallbacks.
-
-Because of this, the final remediation plan must include a real-checkout verification checklist rather than pretending the reports collectively prove every implementation-level claim.
-
----
-
-## 4. Evidence Conflict Map
-
-The main evidence conflict is between access-limited public-surface audits and stronger source-level claims. Some inputs repeatedly warn that raw source could not be retrieved; others present workflow, API, configuration, and code assertions as direct findings. The deep-systems material is valuable, but several assertions still need direct confirmation in a local checkout.
-
-The safest interpretation is:
-
-- Public frontend/output observations are high-confidence where repeated.
-- Workflow/API/config claims are urgent and likely actionable, but should be validated locally before being marked closed.
-- Deep systems claims are valuable risk inventory and test-design material, but not all should appear as confirmed bugs.
-- Roadmap ideas must be separated from defects so the report does not blur "broken today" with "could be improved later."
+- Python compile: passed.
+- `pytest`: 823 passed, 4 skipped after installing project dev dependencies.
+- `flake8 src tests`: passed.
+- `black --check .`: passed.
+- `mypy .`: passed, with notes that many untyped function bodies are not checked.
+- `npm ci`: completed, but `npm audit` reports 3 vulnerabilities.
+- `npm run build`: passed, but deploy does not use `frontend-dist`.
+- Workflow YAML parse: 5 failing workflows, 1 valid workflow.
+- Public Pages artifacts: reachable but stale and collapsed.
 
 ---
 
-## 5. Critical Findings
+## 3. Severity Model
 
-### C1. Full source audit remains incomplete without a repository archive
+**P0 - Release blocker:** Cannot call the project production-ready until fixed. Breaks CI/deploy/public trust/security fundamentals.
 
-**Evidence level:** Confirmed public/access-limited evidence.  
-**Severity:** Critical.  
-**Category:** Audit completeness.
+**P1 - High priority:** Serious production, security, reliability, or contract issue. Must be closed before public-ready status.
 
-Several reports state that the requested exhaustive, file-by-file audit could not be completed because a source archive or raw source files were not available. Public folder listings, rendered README/docs, public pages, and sampled outputs are useful, but they cannot validate function-level parser behavior, async correctness, workflow YAML, frontend sanitization, test quality, or runtime CI behavior.
+**P2 - Medium priority:** Important maintainability, correctness, or degraded-mode issue. Must be planned and tracked.
 
-**Impact:** Any implementation-level claim may be incomplete or wrong unless rechecked against a full checkout at a fixed commit SHA. This affects parser findings, workflow findings, dead-code claims, security-control claims, and runtime behavior.
+**P3 - Cleanup:** Hygiene, docs, portability, or lower-risk cleanup. Still required for a neat final state.
 
-**Fix:** Audit a ZIP/tar archive or local checkout at a fixed commit SHA, including `.github`, `src`, `frontend`, `tests`, `docs`, `scripts`, `tools`, `schema`, `policy`, `sources`, generated sample outputs, and CI logs.
+Closure standard for every item:
 
-**Priority:** P0.
-
-### C2. GitHub Actions YAML may be malformed in multiple workflow files
-
-**Evidence level:** Reported source evidence.  
-**Severity:** Critical.  
-**Category:** CI/CD correctness.
-
-Multiple reports say workflow files contain invalid or suspicious `env:` indentation, especially around keys such as `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24`, `CS_PUBLIC_KEY`, and `CS_IPNS_KEY`. Affected workflows are reported as `main.yml`, `retest.yml`, `ci.yml`, and/or `deploy-pages.yml` depending on the input audit.
-
-If true in committed YAML, this can disable or destabilize the entire GitHub Actions operating model: scheduled runs, sharding, artifact merge, Pages deploy, releases, retests, WASM builds, source optimization, and validation.
-
-**Fix:** Run `actionlint`, parse all workflow files with a YAML parser, manually inspect the affected `env:` blocks in GitHub or a local checkout, normalize formatting, and add workflow syntax validation to CI/pre-commit.
-
-**Priority:** P0.
-
-### C3. Scheduled pipeline can self-trigger through source-shard commits
-
-**Evidence level:** Reported source evidence.  
-**Severity:** Critical.  
-**Category:** DevOps, cost, reliability.
-
-One source-level audit states that the main workflow runs on push/schedule/manual dispatch and that a merge job can run `scripts/dynamic_reshard.py` and commit changed `sources/batch_*.txt` back to `main`. That push can retrigger the same workflow. A scheduled pipeline can therefore create follow-on runs by mutating source shards.
-
-**Impact:** Wasted GitHub Actions minutes, noisy back-to-back runs, confusing causality, and harder incident analysis. This undermines the zero-budget story.
-
-**Fix:** Move resharding to a manual workflow, publish reshard recommendations as artifacts, push only to a branch excluded from expensive workflows, add strict path filters, and define workflow `concurrency` rules.
-
-**Priority:** P0.
-
-### C4. Deployment can fail closed when outputs are empty or sparse
-
-**Evidence level:** Reported source evidence plus public-output concern.  
-**Severity:** Critical/High.  
-**Category:** Reliability, product contract.
-
-Reports say the README promises useful outputs even when no proxies pass live testing, but workflows treat empty or missing files such as `singbox.json`, `clash.yaml`, `singbox-vpn.json`, `base64.txt`, logs, chain outputs, side products, trend data, and docs artifacts as critical failures. That is a fail-closed release policy, while the product promise is degraded-but-useful publication.
-
-**Impact:** During censorship spikes or network failures, the pipeline may block publication exactly when users need stale or degraded-but-valid artifacts. Users may receive no update or misleading state instead of an honest degraded output.
-
-**Fix:** Publish schema-valid minimal outputs, stale-known-good artifacts, and `health.json`/`degraded.json` metadata. Gate on validity, provenance, and explicit status, not non-emptiness alone.
-
-**Priority:** P0/P1.
-
-### C5. Public frontend renders placeholders, zeros, and ambiguous loading states
-
-**Evidence level:** Confirmed public evidence across several reports.  
-**Severity:** High/Critical for product trust.  
-**Category:** Frontend, accessibility, degraded operation.
-
-The public frontend reportedly exposes unresolved placeholders such as `{sources}` and `{hours}`, zeroed counters, "Fetching latest configurations...", and "Last updated: checking..." in static/no-JS text. Analytics and wiki/docs pages were also reported as weak or JavaScript-dependent in accessible rendering.
-
-**Impact:** For a hostile-network anti-censorship project, JavaScript failure, blocked assets, low-power browsers, privacy browsers, text previews, link unfurlers, and no-JS users are realistic. Broken static fallback reduces trust and can make the project look empty or stale even if data exists elsewhere.
-
-**Fix:** Pre-render static fallback metadata, download links, last-known status, safety guidance, and clear degraded states at build time. Use JavaScript only for enhancements such as live refresh, filtering, charts, and lab interactions.
-
-**Priority:** P0/P1.
-
-### C6. Public Base64/chosen outputs appear collapsed and not observably distinct
-
-**Evidence level:** Confirmed public-output sample in multiple reports.  
-**Severity:** High.  
-**Category:** Output generation, product reliability.
-
-Several reports state that sampled public outputs `base64.txt`, `chosen/base64.txt`, and `base64-dns-safe.txt` decoded to the same single SOCKS5 URI. This conflicts with documentation that implies broad, curated, DNS-safe, and top-selection outputs.
-
-This may be an acceptable degraded state only if it is explicitly labeled. Without health metadata, users cannot tell whether the pipeline is healthy, stale, sparse, fallback-only, or broken.
-
-**Fix:** Add output-count regression tests and a public `health.json` or `artifact_manifest.json` that includes source count, parsed count, tested count, working count, chosen count, per-output byte size/hash, generated time, stale/degraded status, and reason codes.
-
-**Priority:** P0/P1.
-
-### C7. `/api/diff/proxies` appears incompatible with documented `proxies.json` schema
-
-**Evidence level:** Reported source evidence.  
-**Severity:** High.  
-**Category:** API/data contract.
-
-Reports state that the README documents `proxies.json` as an envelope with `metadata` and `proxies`, while `/api/diff/proxies` treats loaded `proxies.json` as an iterable list of proxy dictionaries. If the endpoint iterates the envelope object directly, it sees keys like `metadata` and `proxies` rather than proxy records, causing errors, incorrect diffs, or full reload fallback.
-
-**Impact:** Differential updates become unreliable. Large datasets may be re-downloaded, damaging frontend performance and undermining the advertised update model.
-
-**Fix:** Normalize accepted shapes before diffing. Support both legacy list and public envelope schemas during migration. Use distinct names such as `shard-proxies.jsonl` for shard intermediates and `proxies.json` for public envelope output.
-
-**Priority:** P1.
-
-### C8. Admin update endpoint can be unauthenticated if `ADMIN_API_KEY` is unset
-
-**Evidence level:** Reported source evidence.  
-**Severity:** High.  
-**Category:** API security.
-
-Reports say the admin notify endpoint enforces API-key validation only when `ADMIN_API_KEY` exists, while the README treats that key as optional production hardening. In a misconfigured public deployment, unauthenticated callers could trigger update broadcasts.
-
-**Impact:** Client confusion, forced refresh storms, misleading update state, and avoidable availability risk.
-
-**Fix:** Fail closed in production. Allow unauthenticated admin behavior only in explicit development/test/CI modes or behind an explicit `ALLOW_UNAUTH_ADMIN=true` flag.
-
-**Priority:** P1.
-
-### C9. Security documentation overstates automation hardening
-
-**Evidence level:** Reported source evidence plus documentation drift.  
-**Severity:** High.  
-**Category:** Security governance.
-
-Reports state that `SECURITY.md` claims minimal token permissions, pinned dependencies, non-root container operation, DOMPurify integration, and hardened frontend behavior, while workflows may grant broad permissions, containers may run as root, dependencies/actions may not be fully pinned, and frontend sanitization assets may not be evident in the inventory.
-
-**Impact:** Security-sensitive users and contributors are told a stronger story than automation and shipped assets may enforce.
-
-**Fix:** Turn security claims into executable checks: job-scoped workflow permissions, non-root runtime validation, lockfiles, action SHA pinning, frontend sanitizer presence checks, unsafe DOM API checks, gitleaks, dependency audit, and generated security posture docs.
-
-**Priority:** P1.
-
-### C10. Documentation and product claims are drifting from implementation and public output
-
-**Evidence level:** Confirmed across reports.  
-**Severity:** High.  
-**Category:** Documentation, governance, product trust.
-
-The reports repeatedly identify drift: Python version differences between README/About/workflows, Chain Laboratory strategy-count mismatch, shard-count mismatch between docs and source batches, protocol support claims requiring parser proof, stale module references, runtime freshness claims that do not match public outputs, and advanced capability claims that may be aspirational rather than implemented.
-
-**Impact:** Users may choose the wrong outputs, contributors may follow obsolete architecture, and security-sensitive claims may become misleading.
-
-**Fix:** Generate docs from manifests and current tree wherever possible. Mark features as stable, beta, experimental, deprecated, or aspirational. Add docs drift CI.
-
-**Priority:** P1.
+1. Source proof: exact files changed and why.
+2. Runtime proof: commands run and results.
+3. Regression proof: automated tests added or updated.
+4. Cross-surface proof: backend, frontend, docs, schema, tests, CI, and deploy contract all agree.
+5. Cleanup proof: no stale compatibility shim, duplicate helper, deprecated file, old doc claim, generated artifact, or unused path remains.
+6. Changelog proof: `CHANGELOG.md` updated with what changed, why, tests run, breaking cleanup, and public contract effect.
 
 ---
 
-## 6. High-Priority Findings
+## 4. Non-Negotiable Remediation Rules
 
-### H1. Side-product archive appears suspiciously small
+These rules apply after every remediation step in the roadmap.
 
-**Evidence level:** Confirmed public-output sample; contents need verification.  
-**Severity:** High.  
-**Category:** Output/archive health.
+### 4.1 Cross-Surface Parity Gate
 
-One report observed a very small public side-product archive content length, suggesting it may be empty or nearly empty. The docs imply rich side products and native client packs, so a tiny archive may indicate output generation, archive assembly, artifact upload, or Pages deployment failure.
+After each change, verify parity across:
 
-**Fix:** Publish an archive manifest containing file count, byte sizes, checksums, generated time, expected minimums, and secret-scan results. Mark the archive degraded or fail the artifact if it falls below expected thresholds.
+- Backend implementation
+- Frontend implementation
+- Static deployed files
+- Schemas
+- Tests
+- README
+- Wiki docs
+- SECURITY/STATUS/CHANGELOG
+- CI workflow gates
+- Public artifact names and shapes
 
-### H2. Public output freshness is not trustworthy
+No item is closed if one surface says the old truth and another surface says the new truth.
 
-**Evidence level:** Confirmed public evidence in multiple reports, root cause needs verification.  
-**Severity:** High.  
-**Category:** Product reliability.
+### 4.2 No Split-Brain Contracts
 
-Reports describe a mismatch between public copy claiming frequent auto-updates and readable outputs that appear sparse, stale, or collapsed. Even if sparse output is intentional fallback behavior, users need explicit freshness and degradation metadata.
+Every public concept must have one canonical owner:
 
-**Fix:** Add public badges and machine-readable status: last successful run, last artifact generation, last release, artifact counts, stale status, and error class.
+- `proxies.json` shape
+- `metadata.json` shape
+- output file list
+- lab strategy list
+- protocol support matrix
+- WARP/Vwarp behavior
+- revived/shielded/smart-chain accounting
+- public key/stego key injection
+- CI/deploy release gates
+- source shard count and reshard behavior
 
-### H3. Chain Laboratory documentation and UI disagree on strategy count
+Delete duplicate definitions once the canonical owner exists.
 
-**Evidence level:** Confirmed public/docs drift.  
-**Severity:** High/Medium.  
-**Category:** Frontend/docs contract.
+### 4.3 No Permanent Backward-Compatibility Debt
 
-Reports identify drift between README, AGENTS/docs, and live Chain Laboratory visible strategy buttons. Since the Lab is a central differentiator, strategy count drift signals a missing source of truth.
+This roadmap intentionally favors a clean final state over indefinite backward compatibility. Temporary migrations are allowed only inside the same pull request or same release step, and only if they are deleted before the item is marked done.
 
-**Fix:** Introduce `lab_strategies.json` with `id`, `name`, `description`, `stability`, required inputs, safe targets, output formats, and deployment modes. Generate UI buttons, docs, tests, and analytics labels from it.
+Required cleanup after each change:
 
-### H4. Runtime version documentation is inconsistent
+- Delete old aliases.
+- Delete deprecated files.
+- Delete stale docs.
+- Delete unused tests.
+- Delete unused frontend branches.
+- Delete fallback code that preserves a removed contract.
+- Delete generated files that no longer represent the repo.
+- Remove references to removed paths from docs, tests, workflows, and comments.
 
-**Evidence level:** Confirmed docs/UI drift.  
-**Severity:** Medium.  
-**Category:** Documentation/runtime.
+### 4.4 Concurrency And Race-Safety Gate
 
-Reports mention Python version drift, such as README prerequisites saying Python 3.10+ while the public About page describes Python 3.12. This can be valid if 3.10 is minimum and 3.12 is deployed, but it must be stated explicitly.
+Every change touching workflows, pipeline, producer/consumer, output writes, websocket broadcast, cache, history, source quality, or tester lifecycle must explicitly check:
 
-**Fix:** Maintain one runtime/version manifest and generate README/About/workflow badges from it.
+- no self-triggering workflow loops
+- no overlapping deploys publishing mixed artifacts
+- no concurrent writes to the same output path without atomic write or lock
+- no unbounded queue or unbounded connection fanout
+- no stale background task left running after shutdown
+- no race between artifact generation and frontend copy
+- no stale old artifact mixed into a new deploy
+- no partial schema migration
+- no shared mutable state accessed without a lock when used across threads/tasks
 
-### H5. Dependency pinning and install paths do not match security claims
+### 4.5 Changelog Rule
 
-**Evidence level:** Reported source evidence.  
-**Severity:** High.  
-**Category:** Supply chain.
+After every remediation step, update `CHANGELOG.md` with:
 
-Reports say security docs claim pinned dependencies, while CI installs from broad dependency ranges or inconsistent files. `requirements.txt`, `pyproject.toml`, and any lockfile must be aligned.
-
-**Fix:** Use `uv.lock`, `requirements.lock`, Poetry/PDM lockfiles, or compiled requirements. CI should install from the lock, verify the lock is fresh, and fail on drift.
-
-### H6. Production defaults may conflict with the advertised security posture
-
-**Evidence level:** Reported source evidence.  
-**Severity:** High/Medium.  
-**Category:** Security defaults, product modes.
-
-One source-level audit reports that configuration defaults include `ALLOW_PRIVATE_IPS=True`, `INCLUDE_INSECURE_PROXIES=True`, `USE_VWARP_TUNNEL=True`, and broad GitHub Pages CORS while credentials are allowed. The same report says the README documents `USE_VWARP_TUNNEL=true` as defaulting to false, creating direct config/docs drift.
-
-These settings may be valid for an anti-censorship fail-open mode, but they are not safe as implicit production defaults without clear labeling. Operators may believe private/insecure proxies are excluded when they are retained, or may run Vwarp unexpectedly.
-
-**Fix:** Introduce explicit operating profiles: `strict-consumer-safe`, `anti-censorship-fail-open`, `development`, and `ci`. Generate docs from actual defaults and publish the active profile in metadata.
-
-### H7. PR quality gates are missing or not clearly required
-
-**Evidence level:** Reported source evidence and governance gap.  
-**Severity:** High.  
-**Category:** CI/testing.
-
-Reports warn that quality checks may be concentrated in release workflows rather than a separate required PR workflow. Release validation is too late if broken code can merge first.
-
-**Fix:** Add a required `ci.yml` for PRs with workflow linting, Python lint/type/tests, frontend tests, schema validation, manifest drift checks, security checks, and artifact fixture validation.
-
-### H8. Frontend build story is unclear
-
-**Evidence level:** Reported source/docs evidence.  
-**Severity:** Medium.  
-**Category:** Frontend tooling, documentation drift.
-
-One report notes a documentation/tooling mismatch: the project is described as Vanilla JS/no-build in some places, while `package.json` and Vite-related files indicate a build/test toolchain exists. This may be acceptable if Vite is only for tests or optional development, but the docs must state the truth.
-
-**Fix:** Document whether Vite is required for production, optional for development, or used only for tests/build checks. Add a frontend build manifest if generated assets are published.
-
-### H9. Retest/schema validation appears non-blocking
-
-**Evidence level:** Reported source evidence.  
-**Severity:** High.  
-**Category:** Release integrity.
-
-Reports say schema validation is non-blocking in retest or release contexts. Public artifacts should not be published if they fail schema validation.
-
-**Fix:** Make schema validation blocking for public release artifacts. Allow warnings only on exploratory/nightly branches.
+- summary
+- motivation
+- files changed
+- public contract changes
+- removed legacy/deprecated behavior
+- tests and commands run
+- cross-surface parity confirmation
+- migration notes, if any
+- remaining follow-up, if any
 
 ---
 
-## 7. CI/CD, GitHub Actions, Releases, and Deployment
+## 5. P0 Findings
 
-### D1. Split release pipeline from PR quality gates
+### P0-1. Five GitHub workflow files are invalid YAML
 
-The reports repeatedly argue that CI does too much in the main release workflow. The pipeline should separate PR validation, scheduled aggregation, manual retest, Pages deploy, mirror deploy, and release packaging. Each workflow should have narrow permissions and a clear artifact contract.
-
-**Required checks:** `actionlint`, YAML parsing, Python unit tests, parser fixtures, output schema validation, frontend fixture rendering, docs drift checks, dependency drift checks, and security scans.
-
-### D2. Add workflow concurrency controls
-
-Scheduled runs should not overlap. Push-triggered follow-on runs should not race with scheduled runs. Use workflow `concurrency` with an explicit queue/cancel policy, and avoid committing generated source-shard changes from the production aggregation job.
-
-### D3. Make artifact expectations machine-checked
-
-Shard count, expected artifacts, output filenames, side-product archive contents, Pages deploy inputs, and release assets should be recorded in a run manifest. The merge job should fail or mark degraded if expected shard artifacts are missing or corrupt.
-
-### D4. Reduce merge and artifact I/O chokepoints
-
-Reports warn that merging many SQLite files or uploading many artifacts from simultaneous matrix jobs can become a GitHub Actions bottleneck. Intermediate formats such as JSONL or Parquet may be safer for shard outputs. At minimum, record checksums and use robust merge validation.
-
-### D5. Avoid rebuilding and repackaging too much on every schedule
-
-Container builds, WASM builds, release packages, mirrors, and heavy front-end rebuilds should be keyed to input changes. Scheduled proxy aggregation should not rebuild unrelated assets unless their source changed.
-
-### D6. Pin actions by SHA and narrow permissions per job
-
-Using mutable tags such as `actions/checkout@v4` is common but weaker than immutable SHA pinning for a security-sensitive project. Top-level broad permissions should be replaced with job-scoped minimal permissions.
-
----
-
-## 8. Backend, API, FastAPI Runtime, and WebSockets
-
-### B1. Synchronous file and JSON parsing inside async routes can block the event loop
-
-**Evidence level:** Needs source verification; reported by Gemini and consolidated reports.  
-**Severity:** Medium/High.
-
-`/api/diff/proxies` reportedly uses synchronous file reads and standard `json.loads()` on potentially large `proxies.json` payloads. For large datasets, this can block the FastAPI event loop and delay unrelated requests and WebSocket heartbeats.
-
-**Fix:** Use `aiofiles` for file reads, `orjson` for faster parsing, ETag/If-None-Match where possible, and precomputed static patch artifacts when feasible.
-
-### B2. WebSocket receive loops can leak or hang without heartbeat timeouts
-
-**Evidence level:** Needs source verification.  
-**Severity:** Medium.
-
-Reports warn that an infinite `await websocket.receive_text()` loop can keep dead clients open if the network drops without TCP FIN. Broadcast loops can also be delayed by slow clients.
-
-**Fix:** Add ping/pong heartbeat, `asyncio.wait_for` receive timeouts, per-client send timeouts, stale connection cleanup, and bounded message size.
-
-### B3. Path resolution should use resolved containment
-
-**Evidence level:** Needs source verification.  
-**Severity:** Medium.
-
-Reports mention path handling that uses character filters and `os.path.commonpath`, which can be fragile around symlinks or future directory changes.
-
-**Fix:** Use `Path.resolve()` for both base and target, then require `target.resolve().is_relative_to(base.resolve())`.
-
-### B4. Output routing needs a canonical manifest
-
-**Evidence level:** Confirmed structural risk.  
-**Severity:** High.
-
-Output names are reportedly duplicated across README tables, server route maps, `/subscribe` aliases, generator scripts, CI release assets, and frontend cards.
-
-**Fix:** Create `output_manifest.json` with filename, route, MIME type, subscription alias, client compatibility, schema, generator owner, docs label, and expected health fields. Generate server maps, docs tables, frontend cards, and CI checks from it.
-
-### B5. Native side products may expose secrets
-
-**Evidence level:** Needs source/policy verification.  
-**Severity:** Medium/High.
-
-WireGuard/OpenVPN/native packs can accidentally include inherited keys, endpoints, or user-provided secrets. Public publication requires secret scanning and clear policy.
-
-**Fix:** Add archive secret scanning, redaction tests, and explicit public/private artifact boundaries.
-
-One report specifically says the WireGuard side-product generator may build `.conf` files containing `PrivateKey` when available. That may be a legitimate client-export feature for private/local runs, but it is dangerous if the same artifact path is published publicly. The final policy should define which generated packs may contain secrets, which are public-safe, and which are local-only.
-
-### B6. Pydantic settings mutation may bypass validation
-
-**Evidence level:** Needs source verification; asserted by deep-systems review.  
-**Severity:** Medium.
-
-Gemini reports a Pydantic anti-pattern in which a dictionary defined at class level is overwritten in `model_post_init`, potentially bypassing schema validation for computed security settings such as blocked countries. If invalid environment values fail silently or crash later, configuration safety becomes brittle.
-
-**Fix:** Verify the settings model. Prefer `@field_validator` or `@model_validator` for derived settings, and add tests for valid/invalid `BLOCKED_COUNTRIES`, private-IP flags, Vwarp flags, and security profile combinations.
-
-### B7. Precomputed diff/patch artifacts may be better than dynamic server diffs
-
-**Evidence level:** Strategic optimization from deep-systems review.  
-**Severity:** Medium.
-
-Several reports already identify the dynamic diff endpoint as risky. Gemini adds a concrete optimization: compute a JSON Patch/RFC 6902 or equivalent `proxies-patch.json` during the build pipeline, then serve it statically. This avoids server CPU and event-loop pressure.
-
-**Fix:** Consider build-time patch generation only after the public schema is stabilized. Validate patch application against old/current fixture datasets.
-
----
-
-## 9. Pipeline, Async Execution, State, Caching, and Concurrency
-
-### P1. Synchronous history/cache saves in async pipeline
-
-Reports warn that `history.save()` or `test_cache.save()` may run synchronously near pipeline shutdown while other cleanup is offloaded to an executor. Slow disk writes or SQLite commits can stall shutdown and event streams.
-
-**Fix:** Make persistent writes explicit, bounded, and cancellation-safe. Use executor/off-thread writes or async-safe storage APIs consistently.
-
-### P2. `seen_keys` smart eviction may be documented but not implemented
-
-A deep-systems review states that docs describe smart eviction of `seen_keys`, while code allegedly initializes a basic dictionary with no eviction. If true, large runs can grow memory until CI OOM.
-
-**Fix:** Verify implementation. If missing, implement bounded LRU/ordered eviction or a tested Bloom/filter strategy with memory ceilings.
-
-### P3. Shard-local Bloom filters cause redundant testing
-
-Reports warn that per-shard dedupe cannot prevent different matrix jobs from testing the same proxy if duplicated across source batches.
-
-**Fix:** Add pre-flight global deduplication or a merge-aware dedupe strategy. At minimum, measure duplicate rate across shards and feed that back into source batching.
-
-### P4. Missing tester semaphore can exhaust file descriptors and ports
-
-Gemini reports that a missing `test_budget` semaphore can allow thousands of Python fallback sockets. Even with semaphores, high churn can exhaust ephemeral ports due to `TIME_WAIT`.
-
-**Fix:** Enforce global socket budgets, per-protocol concurrency, rate limits, TCP lifecycle tuning where safe, and CI stress tests for `Too many open files` and `EADDRNOTAVAIL`.
-
-### P5. Cancellation and hard timeouts can corrupt state
-
-Reports warn that cancelling consumers during synchronous DB/file writes can leave history/cache databases corrupt.
-
-**Fix:** Shield critical writes, use atomic temp-file replacement, WAL/integrity checks, and resumable state formats.
-
-### P6. Queue shedding can poison source quality metrics
-
-If overloaded queues drop a random portion of parsed configs, a good source can appear to have poor yield during runner/network spikes.
-
-**Fix:** Track dropped counts separately from failed validation/testing. Do not penalize sources for queue pressure or global runner anomalies.
-
-### P7. Adaptive concurrency can misread runner/network noise
-
-**Evidence level:** Strategic risk from deep-systems review.  
-**Severity:** Medium/High.
-
-Gemini warns that adaptive timeout/worker logic can mistake noisy GitHub Actions runner networking for proxy failure. If adjacent-tenant load or Azure network jitter spikes latency, the adaptive worker pool may throttle too aggressively or mark healthy proxies as failed.
-
-**Fix:** Separate runner-health signals from proxy-health signals. Track global latency anomalies, source-wide failure spikes, DNS/API failures, and runner network health before penalizing proxies or sources.
-
-### P8. Artifact upload throttling can break matrix merges
-
-**Evidence level:** Strategic CI risk from deep-systems review.  
-**Severity:** Medium/High.
-
-If 14-17 matrix shards finish at roughly the same time and upload artifacts concurrently, GitHub artifact APIs may throttle or fail. This can create partial merge state even when shard processing succeeded.
-
-**Fix:** Stagger uploads, retry with backoff, record expected artifacts in `run_manifest.json`, and make the merge job distinguish missing, corrupt, late, and empty artifacts.
-
----
-
-## 10. Data Model, Identity, History, and Source Quality
-
-### M1. Proxy identity may be too fragile for historical reliability
-
-Reports warn that an ID based on protocol, host, port, and credential resets history when public providers rotate UUIDs/passwords. That loses reliability data.
-
-**Fix:** Consider separating stable node identity from credential identity. Track `(protocol, host/asn, port, transport, sni/path)` plus credential revisions.
-
-### M2. Proxy identity may collapse multi-transport nodes
-
-Reports warn that VLESS/VMess/Trojan can share host, port, and credential but differ by transport, path, SNI, gRPC service name, HTTPUpgrade, or network type. If ID excludes these, one config can overwrite another.
-
-**Fix:** Include transport and routing-critical details in uniqueness keys and output IDs.
-
-### M3. SourceQualityTracker can be poisoned by adversarial timing
-
-An adversary can temporarily block high-quality sources only during scheduled CI windows. The quality tracker may mark those sources as bad, weaponizing the project against itself.
-
-**Fix:** Detect global network anomalies when many historically good sources fail simultaneously. Quarantine failures during runner/network anomalies and use EWMA/recency weighting.
-
-### M4. Historical trust should decay toward recent behavior
-
-**Evidence level:** Strategic risk from deep-systems review.  
-**Severity:** Medium/High.
-
-Gemini warns that static historical averages can be dangerous if a previously trustworthy source is seized or starts publishing honeypots. A long history of good behavior can mask recent malicious behavior.
-
-**Fix:** Use EWMA or another recency-weighted model. Keep long-term reputation, but let the last 24-72 hours strongly affect source trust, honeypot suspicion, and quarantine state.
-
----
-
-## 11. Fetching, SSRF Boundaries, DNS, GeoIP, and External Services
-
-### F1. Source fetching needs SSRF-grade validation
-
-The project fetches hostile public sources. Reports call for private-range blocking, redirect validation, credential masking, response-size caps, timeout ceilings, binary payload handling, and sanitized logs.
-
-**Fix:** Validate URLs before fetch and after redirects. Resolve DNS and reject loopback, private, link-local, multicast, metadata endpoints, Docker bridge ranges, and bogon addresses.
-
-### F2. DNS cache poisoning and post-resolution bogon filtering
-
-Scraped configs may use domain names that resolve to private or local addresses. Validation must happen after DNS resolution as well as before fetch.
-
-**Fix:** Add post-DNS bogon/RFC1918 filters and malicious-source accounting.
-
-### F3. GeoIP RAM duplication can hurt CI runners
-
-If GeoIP databases are loaded separately in many processes, memory can balloon.
-
-**Fix:** Use memory-mapped MaxMind readers and shared process initialization where possible.
-
-### F4. Optional external APIs need hard zero-budget fallbacks
-
-VirusTotal, Cloudflare, Google Drive, Hugging Face, IPFS, Telegram, or GeoIP enrichments must be optional, rate-limited, and disabled safely.
-
-**Fix:** Publish external-service state in metadata as required/optional/disabled/degraded.
-
----
-
-## 12. Parsers, Protocol Coverage, Normalization, and Drop Reasons
-
-### PR1. Parser contracts need adversarial fixtures
-
-Reports call for fixtures covering bad Base64, trailing garbage, percent-encoded credentials, invalid UUIDs, empty passwords, alias schemes, huge lines, private hosts, malicious remarks, and malformed query parameters.
-
-**Fix:** Define a parser contract: accepted schemes, required fields, normalized output model, drop reason taxonomy, max field lengths, and malicious input handling.
-
-### PR2. Protocol support claims require generated proof
-
-README and public pages claim broad protocol support, but visible parser filenames only prove a subset. Other protocols may live in `others.py` or generic parsing, but this needs tests.
-
-**Fix:** Generate a protocol matrix from tests: parser support, tester support, converter support, output support, known losses, and docs labels.
-
-### PR3. `others.py` can become a protocol graveyard
-
-If many high-value protocols are concentrated in a miscellaneous parser, ownership and tests become unclear.
-
-**Fix:** Split high-value protocols into dedicated modules or maintain a registry mapping schemes to parser/tester/converter owners.
-
----
-
-## 13. Tester Stack: Go, Python, Rust, WASM, and Contract Drift
-
-### T1. Tester implementations need one contract
-
-The reports identify Go sidecar, Python fallback, Lab tester, WASM assets, Rust `ss_checker`, and possible uTLS helpers. These can drift in payload format, timeout behavior, protocol coverage, and error taxonomy.
-
-**Fix:** Define one input JSON schema, output JSON schema, error taxonomy, timeout model, and protocol support matrix. Run every tester implementation against shared fixtures.
-
-### T2. Go tester JSON-array payload must be regression-tested
-
-Reports call out a known issue class: subprocess input must be a valid JSON array, not concatenated JSON objects or partial streams.
-
-**Fix:** Unit-test stdin payload shape for zero, one, and many proxies.
-
-### T3. Browser WASM cannot test arbitrary raw TCP/UDP proxies
-
-Gemini strongly argues that browser WASM cannot open arbitrary TCP/UDP sockets. Browser-side testing is limited to HTTP(S), WebSocket, WebTransport, WebRTC, or worker-mediated paths subject to CORS and browser sandboxing.
-
-**Fix:** Mark raw browser testing claims as unsupported unless bridged by a Worker/server. Lab docs should distinguish browser-local parsing/export from actual connectivity testing.
-
-### T4. Rust FFI panic boundaries need verification
-
-Reports warn that Rust panics across FFI can crash Python with undefined behavior or segmentation faults.
-
-**Fix:** Wrap Rust exports with `catch_unwind`, return error codes, expose explicit free APIs, and fuzz malformed configs at the FFI boundary.
-
-### T5. Go sidecar IPC optimization is a roadmap idea, not a current fix
-
-**Evidence level:** Strategic enhancement from deep-systems review.  
-**Severity:** Low/Medium.
-
-Gemini suggests compiling the Go tester as a C-shared library and using `ctypes`/`cffi` to reduce IPC overhead. This may improve performance, but it also increases FFI risk and operational complexity.
-
-**Fix:** Treat this as a later optimization only after JSON/NDJSON tester contracts, timeouts, process lifecycle, and output correctness are stable. If adopted, require FFI fuzzing and panic boundaries similar to the Rust checker.
-
----
-
-## 14. WARP/Vwarp, Washing, Revival, Active Scanning, and Abuse Risk
-
-### W1. Revival retention semantics need tests
-
-Reports repeatedly say WARP/Vwarp revival is central but unverified. The system must prove that failed proxies can be washed, retested, tagged, retained, and published correctly.
-
-**Fix:** Add E2E tests for failed proxy -> WARP wash -> retest success, failed proxy -> Vwarp fallback -> revived output, WARP unavailable -> degraded metadata.
-
-### W2. Cloudflare WARP anti-abuse can false-fail revived proxies
-
-GitHub Actions runner IPs may trigger Cloudflare anti-abuse if they register or handshake many WARP tunnels. The pipeline may misclassify Cloudflare rate limiting as proxy failure.
-
-**Fix:** Rotate WARP endpoints, back off registration, distinguish WARP endpoint failure from proxy failure, and publish WARP health separately.
-
-### W3. Vwarp subprocess lifecycle can leave orphan processes
-
-Gemini reports a risk that `vwarp` subprocesses may outlive the parent on timeout/crash and keep ports open.
-
-**Fix:** Bind child lifecycle to parent, use process groups, cleanup traps, timeout enforcement, and post-run port checks.
-
-### W4. Active scanners must be bounded and opt-in
-
-Reports warn that clean-IP discovery and scanner-like tools must be explicitly bounded.
-
-**Fix:** Add user consent, dry-run mode, rate limits, target allowlists, no private/reserved ranges, legal/ToS warnings, randomized traversal where appropriate, and scanner guardrail tests.
-
-### W5. VirusTotal lookups can disclose evasion nodes
-
-Reports warn that submitting live evasion nodes to third-party reputation services may disclose infrastructure.
-
-**Fix:** Disable VT for live candidates by default. Prefer offline blocklists or local datasets for sensitive paths.
-
-### W6. Canary proxies and active-probing detection are experimental
-
-**Evidence level:** Strategic roadmap idea.  
-**Severity:** Strategic.
-
-One roadmap proposal suggests controlled canary proxies to detect censor active probing and dynamically update blocklists. This could be valuable, but it changes the project from passive aggregation into active threat instrumentation.
-
-**Fix:** Keep this out of stable docs unless implemented with owned infrastructure, legal review, clear user disclosure, and strict separation from public user-submitted proxy lists.
-
----
-
-## 15. Output Generation, Client Formats, Archives, and Compatibility
-
-### O1. Artifact manifest is the central missing contract
-
-The most repeated remediation is a public artifact manifest containing every output file, schema, byte size, checksum, generated time, source stats, stale/degraded state, and reason codes.
-
-**Fix:** Publish `artifact_manifest.json` and make deploy/release validation depend on it.
-
-### O2. Converter/generator duplication needs clear ownership
-
-Both converter and generator packages reportedly contain Clash and sing-box logic. This may be intentional, but it needs a boundary.
-
-**Fix:** Define converters as model-to-client-object mappers and generators as serializers/writers. Add snapshot tests for every emitted format.
-
-### O3. Clash vs Mihomo compatibility must be loss-aware
-
-Reports warn that standard Clash may not support VLESS/Reality/Hysteria2 the way Mihomo/Clash.Meta does.
-
-**Fix:** Generate `clash.yaml` and `mihomo.yaml` separately, with explicit protocol inclusion/exclusion and warnings.
-
-### O4. Output cache busting and freshness must be visible
-
-Users and clients need to know whether a file is fresh, stale, generated from fallback, or sparse.
-
-**Fix:** Add generated comments where client formats allow them; otherwise rely on manifest metadata, stable ETags, versioned URLs, and public badges.
-
-### O5. Config Forge and protocol mutation claims need proof
-
-**Evidence level:** Strategic/docs critique from deep-systems review.  
-**Severity:** Medium for docs truthfulness.
-
-Gemini argues that docs around a "Config Forge" or mutation engine may imply active protocol hardening, TLS fingerprint mutation, padding, or obfuscation wrapping, while converters may simply perform static schema translation. If true, this is a documentation-truth problem.
-
-**Fix:** Split claims into what converters do today and what future mutation features might do. If mutation is implemented, add tests showing actual changes to output fingerprints, transport settings, padding, fragmentation, and client compatibility.
-
----
-
-## 16. Metadata, Schemas, Manifests, and Frontend/Data Contracts
-
-The reports converge on one architectural fix: make contracts explicit and generated.
-
-Required contracts:
-
-- `artifact_manifest.json`: every artifact, size, hash, schema, generated time, degradation state.
-- `output_manifest.json`: output names, routes, MIME types, aliases, client compatibility, docs labels.
-- `metadata.schema.json`: every backend-produced field and every frontend-consumed field.
-- `lab_strategies.json`: Chain Lab strategies and safety metadata.
-- `protocol_matrix.json`: parser/tester/converter/output support by protocol.
-- `tester_contract.schema.json`: tester input/output/error taxonomy.
-- `run_manifest.json`: workflow run metadata, shard counts, artifact counts, deploy SHA, Pages URL.
-
-These manifests should generate README tables, frontend cards, server routes, CI expectations, and docs fragments. Manual lists should become the exception.
-
----
-
-## 17. Frontend, Static Fallbacks, UX, Accessibility, and Trust Signals
-
-### FE1. Static/no-JS UX must be useful
-
-The static site should show direct downloads, latest known status, generated time, stale/degraded labels, and safe fallback text without requiring JavaScript.
-
-### FE2. Wiki/docs should not be JavaScript-dependent
-
-Documentation must be readable offline and with scripts disabled. Search and navigation can be progressive enhancements.
-
-### FE3. Frontend must treat proxy/source data as hostile
-
-Remarks, SNI, paths, tags, source URLs, and country labels may be attacker-controlled.
-
-**Fix:** Avoid raw `innerHTML`, add sanitizer utilities, enforce field length/character constraints, test malicious fixture rendering, and use CSP where possible.
-
-### FE4. Trust/status badges should be first-class
-
-Recommended badges: `fresh`, `stale`, `degraded`, `fallback`, `tested`, `untested`, `revived`, `dns-safe`, `chain`, `experimental`, `manual verification recommended`.
-
-### FE5. Frontend smoke tests should fail on specific placeholder strings
-
-The complete audit names concrete production strings that should never leak after build or hydration: `{sources}`, `{hours}`, `...`, `checking...`, all-zero loaded metric cards, and ambiguous "Last updated: checking..." states.
-
-**Fix:** Add static and hydrated DOM tests that fail if these strings appear in production output outside explicitly documented fallback text.
-
----
-
-## 18. Chain Laboratory, Offline Lab, Scanner UX, and Browser Limits
-
-The Chain Laboratory is repeatedly described as a strong product idea with visible drift and safety risk. The final report should treat it as important but requiring contract discipline.
-
-Required Lab contracts:
-
-- Strategy manifest.
-- Local-only vs transmitted secret labels.
-- Scanner consent and rate-limit policy.
-- Offline fixture tests for parse -> clean IP discovery -> chain build -> test -> export.
-- Clear distinction between browser-local operations and backend/Worker-mediated network testing.
-
-The exact live strategy names reported by the audit-prep and complete-audit reports should be preserved until a manifest replaces them: WARP Tunnel, Vwarp Masque, Vwarp AtomicNoize, Double WARP, WARP+Psiphon, Relay Chain, TLS Fragment, CDN Worker Relay, and Custom Chain.
-
-Roadmap ideas from the reports include visual topology builders, latency/traceroute widgets, survival-rate charts, evasion efficacy matrices, and interactive evasion tuning. These should be kept as roadmap items, not mixed with P0 defects.
-
----
-
-## 19. Security, Secrets, CORS, XSS, Supply Chain, and Container Posture
-
-### S1. CORS policy is too broad if credentialed/admin APIs exist
-
-Reports mention a regex like `https://.*\.github\.io`, which trusts arbitrary GitHub Pages origins.
-
-**Fix:** Use exact allowed origins for credentialed endpoints. Separate public static artifact access from credentialed APIs.
-
-### S2. Rate limiting by IP can punish censored-region users behind CGNAT
-
-Subscription downloads should generally be static/CDN-served rather than dynamically rate-limited by source IP.
-
-### S3. Dependency and action pinning are insufficient
-
-Use lockfiles and pin third-party GitHub Actions to immutable SHAs for high-trust release paths.
-
-### S4. Root container execution contradicts non-root posture
-
-If the workflow runs containers as root, security docs must say so or the workflow must stop doing it.
-
-### S5. AES-GCM nonce and steganography claims need reality checks
-
-Gemini raises nonce entropy and LSB image/CDN optimization concerns. These should be verified with code and deployment tests before docs claim robust encrypted/steganographic delivery.
-
-Gemini specifically warns that LSB image payloads can be destroyed by CDN/image optimization, EXIF stripping, recompression, or any lossy transformation. If steganographic delivery remains documented, it needs deployed-artifact integrity tests that fetch through the real CDN and verify the payload can still be extracted and authenticated.
-
-### S6. Security contact placeholders must be removed
-
-The audit corpus flags placeholder security contact information in `SECURITY.md`. Security-sensitive projects need a real contact, disclosure process, and response expectation. Placeholder text weakens trust and can delay vulnerability reporting.
-
-**Fix:** Provide a valid security email, GitHub Security Advisory process, or documented issue-label process, and make sure the policy is current.
-
-### S7. Public proxy safety copy should be explicit
-
-The audit-prep report notes that the homepage correctly warns against using public proxies for sensitive accounts, but the product framing can still sound broadly "secure." Public proxies are untrusted transports.
-
-**Fix:** Add a privacy model: public proxies may help reach blocked content, but they are not safe for credentials, banking, private accounts, or sensitive personal data unless end-to-end encryption and user threat model support that use.
-
----
-
-## 20. Documentation Drift, Governance, Dead Code, and Cleanup
-
-Reported cleanup targets include:
-
-- Empty root files such as `NL` and `US`.
-- Empty or stale `docs/DEBT_MATRIX.md`.
-- Duplicate `docs/encyclopedia` and `docs/wiki/encyclopedia` paths.
-- Multiple Home page docs.
-- Historical references to removed paths such as `pipeline_core`, `fetcher_core`, `output_handler.py`, or vendored frontend libraries.
-- Drift between README, AGENTS, STATUS, CHANGELOG, architecture/devops/frontend/API wiki pages, About page, and live outputs.
-- Test families with overlapping names such as old/new/comprehensive/coverage-boost variants.
-- Security contact placeholders in `SECURITY.md`.
-- Root or generated-looking files such as `consolidated_sources.txt`, `NL`, `US`, and output-related files whose ownership is unclear.
-
-**Fix:** Establish a canonical architecture map generated from the current tree, archive historical docs, enforce removed-file guard lists, and add docs drift CI.
-
----
-
-## 21. Testing Strategy and Regression Matrix
-
-### P0 tests
-
-- Workflow YAML parsing and `actionlint`.
-- Output manifest validation.
-- Metadata schema validation.
-- Public degraded-state frontend fixture.
-- Empty/sparse output publication.
-- `/api/diff/proxies` envelope/list compatibility.
-- Admin auth fail-closed.
-- Artifact count/byte-size/hash validation.
-- Parser hostile-input fixtures.
-- Go tester JSON-array payload shape.
-- XSS fixture rendering.
-
-### P1 tests
-
-- Shard count and source-batch consistency.
-- Lab strategy manifest drift.
-- Protocol support matrix generation.
-- WARP/Vwarp degraded behavior.
-- Side-product archive manifest and secret scan.
-- Dependency lock drift.
-- Action SHA pinning check.
-- CORS exact-origin check.
-- SSRF post-DNS bogon filtering.
-
-### P2/P3 tests
-
-- Large-output frontend performance budgets.
-- GeoIP memory mapping behavior.
-- Rust FFI fuzzing.
-- Ephemeral port exhaustion stress tests.
-- Chain generation snapshots.
-- Clash/Mihomo compatibility snapshots.
-- Optional external-service degradation fixtures.
-
----
-
-## 22. Refactor and Architecture Roadmap
-
-### Phase 0: Stop the bleeding
-
-Fix workflow syntax, self-triggering, deploy gating, admin auth, public degraded state, and manifest absence.
-
-### Phase 1: Stabilize contracts
-
-Introduce artifact, output, metadata, lab, protocol, tester, and run manifests. Generate docs/server/frontend/CI expectations from them.
-
-### Phase 2: Separate stages and reduce coupling
-
-Clarify fetch, parse, validate, test, rank, revive, convert, generate, publish boundaries. Separate converters from generators and core pipeline from optional mirrors/bots/labs.
-
-### Phase 3: Tier optional and experimental features
-
-Mark WARP/Vwarp, steganography, WASM testing, BYOW, domain fronting, autonomous intelligence, Rust FFI, and active scanning as stable/beta/experimental/deprecated with explicit tests and safety limits.
-
-### Phase 4: Clean and enforce governance
-
-Archive stale docs, remove empty files, rationalize tests, enforce removed-file guards, and make documentation drift fail CI.
-
----
-
-## 23. Product, UX, and Advanced Feature Roadmap
-
-Immediate product trust improvements:
-
-- Current run health panel.
-- Output freshness badges.
-- Degraded/fallback reason codes.
-- Recommended safe output guidance.
-- Static no-JS download page.
-- Public status manifest.
-
-Frontend/Lab improvements:
-
-- Lab strategy manifest.
-- Local-only secret handling.
-- Safer scanner UX.
-- Offline mocked lab workflow tests.
-- Large-output pagination/virtualization.
-- Survival-rate and output-health charts.
-
-Advanced roadmap ideas to keep explicitly experimental:
-
-- Visual topology builder.
-- Real-time traceroute/latency visualization.
-- Evasion efficacy matrix by ASN/technique.
-- Dynamic routing or Smart Chains v2.
-- BYOW provisioning.
-- Canary/honeypot detection.
-- Protocol translation/Config Forge.
-- WebRTC/WebTransport-based limited browser verification.
-- Threat-hunting dashboards.
-
-These are not prerequisites for stabilizing the current product.
-
----
-
-## 24. Prioritized Remediation Plan
-
-### Fix first
-
-1. Validate and fix all workflow YAML.
-2. Stop workflow self-trigger loops and add concurrency.
-3. Replace fail-closed empty-output deploy checks with schema-valid degraded outputs.
-4. Add artifact/output/metadata manifests.
-5. Fix `/api/diff/proxies` schema compatibility.
-6. Make admin auth fail closed in production.
-7. Pre-render honest static frontend fallback.
-8. Add public health/degraded metadata.
-9. Align security docs with actual controls.
-10. Add required PR quality gates.
-
-### Highest ROI next
-
-1. Generate README/server/frontend/CI output lists from `output_manifest.json`.
-2. Generate Lab UI/docs/tests from `lab_strategies.json`.
-3. Generate protocol support docs from tests.
-4. Add parser/tester/frontend malicious fixtures.
-5. Split core zero-budget mode from optional integrations.
-6. Clean empty files and duplicate docs.
-7. Rationalize test suites.
-
-### Must verify in a real checkout
-
-1. Workflow indentation and permissions.
-2. `/api/diff/proxies` implementation.
-3. Admin auth implementation.
-4. CORS configuration.
-5. Parser support matrix.
-6. Go/Python/Rust/WASM tester contracts.
-7. WARP/Vwarp retention and subprocess lifecycle.
-8. Frontend sanitizer and DOM rendering.
-9. Side-product archive contents.
-10. Docker root/non-root behavior.
-
----
-
-## 25. Real-Checkout Verification Checklist
-
-- Run `actionlint` and YAML parser over all workflows.
-- Run `git grep`/AST checks for output filename duplication.
-- Run schema validation for public `proxies.json`, `metadata.json`, and all generated artifacts.
-- Decode and compare `base64.txt`, `chosen/base64.txt`, and DNS-safe outputs.
-- Inspect side-product archive file count and secret scan.
-- Run a sparse-output/zero-working-proxy dry deploy.
-- Run frontend static fixture tests with JS disabled.
-- Run Playwright fixture tests for healthy, stale, empty, malformed, and degraded metadata.
-- Run parser adversarial fixtures.
-- Run tester contract fixtures across Go/Python/Rust/WASM where applicable.
-- Run SSRF/DNS bogon tests.
-- Run CORS/admin auth tests.
-- Run WARP/Vwarp unavailable tests.
-- Run docs drift and manifest generation checks.
-
----
-
-## 26. End-to-End Workflow Verification Matrix
-
-This matrix consolidates the end-to-end workflow checklist into regression targets. These workflows should become executable fixtures, not only documentation.
-
-| Workflow | Current consolidated status | Verification target |
-| --- | --- | --- |
-| Source ingestion -> parsing -> validation -> testing -> ranking -> outputs | Needs source and runtime verification. Public counters suggest either pipeline degradation or frontend metadata failure. | Run a local shard with fixture sources and assert counts at each stage. |
-| Failed proxy -> WARP/Vwarp washing -> retesting -> revived output | Needs source verification. Public revived/WARP/VWARP counters reportedly show zero or placeholders without reason. | Mock WARP/Vwarp success, failure, and unavailable states; assert tags, retained candidates, and metadata. |
-| Valid proxy -> smart chain generation -> chain output | Needs source verification. Docs mention chain outputs while public chain counters are weak/zero. | Use fixture proxies to generate chain output and validate client schemas. |
-| DNS-safe output generation | Needs source verification. Public docs advertise DNS-safe/hardened profiles without clear artifact health. | Generate DNS-safe outputs from mixed host/IP fixtures and validate expected inclusion/exclusion. |
-| CI shard processing -> partial artifacts -> merge -> Pages deploy | Not verified in this consolidation. | Inspect workflow matrix, shard count, artifact upload/download, merge rules, deploy directory, and Pages URL. |
-| Local Docker run | Not verified. | Build and run Docker image with fixture inputs; confirm non-root behavior and output paths. |
-| Local native run | Not verified. | Run CLI/package entry points from a clean environment and compare outputs to fixture snapshots. |
-| Frontend dashboard loading metadata and outputs | Publicly broken or degraded according to several reports. | Render healthy, stale, missing, malformed, and degraded metadata fixtures with JavaScript enabled and disabled. |
-| Proxies page loading, filtering, exporting | Not verified. | Test large `proxies.json`, filtering, export, virtual scrolling/pagination, and empty states. |
-| Analytics page reading stats | Not verified; public/static view reportedly shows zero stats. | Test analytics with full, sparse, stale, and failed-run metadata. |
-| Laboratory parse -> clean IP discovery -> chain build -> test -> export | Partially verified from UI only. | Run offline Lab fixture with mocked clean IPs and mocked tester responses. |
-| Offline lab/scanner/runner | Partially verified from route/UI only. | Confirm downloads, local-only behavior, scanner guardrails, and no unsafe default scanning. |
-| Error/empty-output workflow | Publicly weak. | Simulate no sources, malformed sources, parsed-but-none-working, tester unavailable, and WARP unavailable. |
-| Tester unavailable workflow | Needs source verification. | Disable Go tester and assert Python fallback or explicit degraded metadata. |
-| WARP/Vwarp unavailable workflow | Needs source verification. | Disable WARP/Vwarp and assert outputs remain valid with clear reason codes. |
-
----
-
-## 27. Detailed Verification Backlog
-
-This backlog is the actionable verification queue for a follow-up source audit. It is deliberately explicit so future code-audit work can check items off without rediscovering them.
-
-### 29.1 Repository and Governance Files
-
-- Verify `.env.example` documents every required and optional environment variable.
-- Verify `.gitleaks.toml` is current and CI-enforced.
-- Verify `.pre-commit-config.yaml` runs the same checks as CI, or document the difference.
-- Verify `AGENTS.md` reflects the current architecture and removed-file guard list.
-- Verify `CHANGELOG.md` is historical, not the current architecture source of truth.
-- Verify `CONTRIBUTING.md` commands match current package scripts and CI.
-- Verify `KNOWN_ISSUES.md` matches current known public failures.
-- Verify `QUICKSTART.md` works from a clean checkout.
-- Verify `README.md` output lists, protocol lists, shard count, runtime version, schedule, and security claims are generated or checked.
-- Verify `SECURITY.md` has real contact details, accurate permissions, accurate dependency-locking claims, and current frontend sanitizer claims.
-- Verify `STATUS.md` does not overclaim production readiness, audit status, security posture, or output health.
-- Verify `Dockerfile` and `docker-compose.yml` run as non-root where claimed and match local/CI paths.
-- Verify `render.yaml` is optional and documented as outside the zero-budget GitHub Pages reference deployment.
-- Verify `package.json`, `package-lock.json`, and `vite.config.mjs` define whether the frontend is buildless, Vite-built, or test-only.
-- Verify `pyproject.toml`, `requirements.txt`, and `requirements-prod.txt` have lockfile parity and no silent dependency drift.
-- Verify `mypy.ini`, lint configs, and pytest config are actually enforced in required PR checks.
-
-### 29.2 Workflow and Deployment Files
-
-- Validate `ci.yml`, `deploy-pages.yml`, `deploy_mirror.yml`, `main.yml`, `release.yml`, and `retest.yml` with `actionlint` and a YAML parser.
-- Check every `env:` block for indentation, especially keys such as `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24`, `CS_PUBLIC_KEY`, and `CS_IPNS_KEY`.
-- Confirm workflow schedules match the documented "every 4 hours" behavior.
-- Confirm comments do not mention stale "3-hour" or alternating schedules.
-- Confirm push triggers cannot be caused by production source-shard commits.
-- Confirm workflow `concurrency` prevents overlapping scheduled runs.
-- Confirm job permissions are least privilege and not broad at top level unless necessary.
-- Confirm Pages deployment publishes the exact directory the frontend expects.
-- Confirm merge jobs fail or mark degraded on missing/corrupt shard artifacts.
-- Confirm release assets match `artifact_manifest.json`.
-- Confirm retest schema validation is blocking for public artifacts.
-- Confirm mirror deploys are optional and cannot break the core Pages output.
-- Confirm Docker/image/WASM builds are cached or only run when relevant inputs change.
-
-### 29.3 Backend/API Routes
-
-- Verify `/api/diff/proxies` supports both legacy list and envelope-shaped `proxies.json`.
-- Verify diff implementation does not block the event loop on large files.
-- Verify `/api/proxies` supports pagination, projection, protocol/country filters, and does not default to huge full payloads for common UI paths.
-- Verify `/api/admin/notify-update` fails closed in production.
-- Verify CORS uses exact origins for credentialed/admin endpoints.
-- Verify WebSocket connection manager has heartbeat, idle timeout, bounded broadcast concurrency, message-size limits, and cleanup telemetry.
-- Verify static page serving uses resolved path containment and safe route allowlists.
-- Verify `/api/lab/test-chain` and similar Lab endpoints return useful manual fallback instructions on 503/unavailable.
-- Verify output routes and `/subscribe` aliases are generated from `output_manifest.json`.
-- Verify dynamic APIs are not required for the static GitHub Pages baseline unless explicitly documented as optional.
-
-### 29.4 Pipeline and State
-
-- Verify producer/consumer queues are bounded and backpressure is intentional.
-- Verify CPU-heavy parsing runs in executors or safe workers.
-- Verify no blocking file/DB/network calls occur inside hot async paths.
-- Verify `history.save()`, `test_cache.save()`, and source-quality writes are cancellation-safe.
-- Verify state writes are atomic and recoverable after timeout.
-- Verify `seen_keys` or equivalent dedupe state has a real memory ceiling.
-- Verify shard-local dedupe does not waste excessive test budget on duplicate proxies.
-- Verify queue shedding is source-aware and does not corrupt source-quality scoring.
-- Verify global runner/network anomaly detection prevents mass false source penalties.
-- Verify cache keys are stable and do not create unbounded per-run cache sprawl.
-- Verify partial artifacts are merged with checksums and schema validation.
-
-### 29.5 Fetching and Source Ingestion
-
-- Verify source URL validation blocks loopback, private, link-local, multicast, metadata endpoints, and Docker bridge ranges.
-- Verify DNS rebinding and post-resolution private-IP checks.
-- Verify redirect handling preserves SSRF constraints.
-- Verify response byte limits, streaming reads, binary/non-UTF8 handling, and decompression safety.
-- Verify malformed URLs and credentials-in-URL are sanitized in logs.
-- Verify timeouts are adaptive but bounded.
-- Verify circuit breakers are per-source or per-host and do not suppress unrelated sources.
-- Verify retry behavior avoids hammering unreliable public endpoints.
-- Verify source failures are represented in metadata and frontend degraded-state messages.
-- Verify public/free external APIs are optional and rate-limited.
-
-### 29.6 Parsers and Normalization
-
-- Verify every documented protocol has valid fixtures, malformed fixtures, parser support, normalization support, tester support, converter support, and output support.
-- Verify aliases such as `ss`, `shadowsocks`, `vmess`, `vless`, and client-specific variants normalize consistently.
-- Verify UUID validation for VMess/VLESS.
-- Verify Shadowsocks method validation and credential parsing.
-- Verify Base64 decoding tolerates padding errors and trailing garbage safely.
-- Verify percent-decoding cannot trigger crashes or injection.
-- Verify parser return contracts are uniform.
-- Verify parser drop reasons are counted and surfaced in metadata.
-- Verify unsupported protocols are rejected with structured reasons rather than silent drops.
-- Verify `others.py` is not an untested protocol graveyard.
-- Verify parser fields such as remarks, SNI, path, host, service name, ALPN, fingerprint, and tags are length-limited and sanitized.
-
-### 29.7 Tester Stack
-
-- Verify Go tester accepts valid JSON arrays and rejects malformed concatenated payloads.
-- Verify Python caller serializes payloads safely and checks tester exit status.
-- Verify timeout classification distinguishes network timeout, protocol mismatch, tester crash, DNS failure, WARP failure, and unsupported protocol.
-- Verify three-consecutive-timeout or daemon-restart behavior is implemented if documented.
-- Verify tester-unavailable mode still generates useful outputs with clear degraded metadata.
-- Verify chain testing uses the same schema discipline as native testing.
-- Verify Sing-box/Xray/Clash compatibility tests exist.
-- Verify WASM/browser tester claims are limited to browser-feasible transports.
-- Verify Rust `ss_checker` is active, experimental, or dead; if active, verify FFI panic/memory safety.
-- Verify socket and ephemeral-port budgets under high-volume tests.
-
-### 29.8 WARP/Vwarp, Lab, and Scanners
-
-- Verify WARP/Vwarp revival retains failed-but-revived candidates with explicit tags when appropriate.
-- Verify WARP unavailable, Vwarp unavailable, bad key, no candidates, and all-failed-candidates cases.
-- Verify WARP endpoint rotation and anti-abuse backoff if WARP registration is automated.
-- Verify WireGuard MTU handling, especially around MTU 1280 and UDP-heavy protocols.
-- Verify Vwarp subprocesses are bound to parent lifecycle and cleaned up on timeout/crash.
-- Verify scanner UI requires consent and uses safe default targets.
-- Verify scanner code rejects private/reserved ranges and has rate limits.
-- Verify Lab secrets are local-only unless explicitly transmitted.
-- Verify Lab avoids localStorage for secrets by default.
-- Verify Lab logs and errors redact WARP keys, worker URLs, tokens, UUIDs, and passwords.
-- Verify offline scanner/runner downloads exist and match docs.
-
-### 29.9 Output Artifacts and Manifests
-
-- Verify `base64.txt`, `chosen/base64.txt`, `base64-dns-safe.txt`, `clash.yaml`, `mihomo.yaml` if added, `singbox.json`, `singbox-vpn.json`, `singbox-chains.json`, `revived.json`, `proxies.json`, protocol-specific outputs, DNS-safe outputs, DNS-hardened outputs, side-product archives, and client adapters.
-- Verify universal and chosen outputs are intentionally different or explicitly marked degraded.
-- Verify all JSON/YAML outputs parse.
-- Verify Base64 outputs decode to valid lines.
-- Verify atomic writes prevent half-written artifacts.
-- Verify empty-run skeletons exist for every documented output.
-- Verify output item counts, byte sizes, hashes, generated times, and schema versions are in `artifact_manifest.json`.
-- Verify side-product archive contains expected files and passes secret scanning.
-- Verify public WireGuard/OpenVPN packs cannot leak private material unintentionally.
-- Verify adapter outputs for Shadowrocket, Surge, Loon, Quantumult X, SIP008, Xray, Clash/Mihomo, and Sing-box are loss-aware.
-- Verify standard Clash output drops unsupported VLESS/Reality/Hysteria2 nodes or routes them to Mihomo-only output.
-
-### 29.10 Frontend and UX
-
-- Fail production builds if `{sources}`, `{hours}`, `...`, `checking...`, or all-zero loaded metric states leak outside explicit fallback text.
-- Verify homepage, proxies page, analytics page, lab page, offline lab, wiki, and about page work with JavaScript disabled at baseline.
-- Verify metadata loader validates schema and transitions through loading, loaded, stale, degraded, failed, and offline states.
-- Verify frontend data access is centralized rather than duplicated across pages.
-- Verify proxy/source fields render as text, not HTML.
-- Verify sanitizer dependency or vendored asset is present if docs claim it.
-- Verify CSP policy and unsafe DOM API checks.
-- Verify QR generation cannot inject unsafe content.
-- Verify large proxy tables use pagination, filtering, lazy loading, or virtualization.
-- Verify mobile output cards, copy buttons, download links, focus states, keyboard navigation, and screen reader summaries.
-- Verify frontend retries stop or transition state when metadata is missing rather than polling forever.
-
-### 29.11 Documentation and Cleanup
-
-- Generate runtime version docs from a single support manifest.
-- Generate protocol support docs from tests.
-- Generate output docs from `output_manifest.json`.
-- Generate Lab docs from `lab_strategies.json`.
-- Generate security posture docs from actual executable controls.
-- Archive stale docs that describe removed layouts.
-- Remove or justify empty/stub files such as `NL`, `US`, and `docs/DEBT_MATRIX.md`.
-- Deduplicate `docs/encyclopedia` and `docs/wiki/encyclopedia` or generate one from the other.
-- Add CI checks for docs referencing removed files.
-- Add CI checks for env vars used but undocumented.
-- Add CI checks for documented outputs not generated.
-- Add CI checks for frontend routes without source pages.
-
-### 29.12 Final User-Facing Acceptance Criteria
-
-The project should not be called healthy until all of the following are true:
-
-- Workflows parse and required PR checks run.
-- Scheduled runs cannot self-trigger loops.
-- Public artifacts are schema-valid and manifest-described.
-- Empty/degraded runs still publish honest, safe, valid outputs.
-- Public pages do not show unresolved placeholders.
-- Users can see freshness, counts, health, and degraded reasons.
-- Universal and chosen outputs are either meaningfully distinct or clearly marked as degraded.
-- Admin/auth/CORS/security defaults fail closed in production.
-- Public docs are readable without JavaScript.
-- Lab strategies, scanner safety, and browser limits are explicit.
-- Experimental features are not marketed as stable.
-
----
-
-## 30. Gap-Closure Addendum (Local Source Verification + Deeper Granular Expansion)
-
-**Addendum date:** 2026-04-28  
-**Purpose:** close audit gaps by validating high-risk claims directly against the current repository checkout and adding overlooked, concrete defects that were under-specified in prior sections.
-
-### 30.1 Verification Method for This Addendum
-
-This addendum used direct local inspection and executable checks (not just public-surface inference):
-
-- Workflow parsing check with Ruby `YAML.load_file` across `.github/workflows/*.yml`.
-- Source inspection of `server.py`, `config.py`, and workflow files with line-level review.
-- Targeted grep-based inventory (`rg`) for drift indicators and path portability defects.
-- Existing project script validation (`scripts/validate_versions.py`).
-- Test-run attempt (`pytest -q`) and dependency bootstrap attempt (`pip install -e .[dev]`) to evaluate real execution readiness in this environment.
-
----
-
-### 30.2 Confirmed High-Impact Findings (Now Proven, Not Just Reported)
-
-#### G1. Five workflow files are syntactically invalid YAML in their current committed state
-
-**Evidence:** YAML parser failed on `ci.yml`, `main.yml`, `retest.yml`, `deploy-pages.yml`, and `deploy_mirror.yml`. The common failure pattern is malformed indentation under `env:` blocks where `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24` is not nested correctly.
-
-**Why this matters deeper:** This is not a style issue. It means workflow definitions may fail to load at all, invalidating all downstream conclusions about CI quality gates, schedule behavior, retest integrity, Pages deploy reliability, and mirror deployment logic.
-
-**Granular corrective action:**
-1. Add required pre-merge workflow syntax check (`actionlint` + YAML parser).
-2. Fix all malformed `env:` mappings first; do not attempt behavioral tuning before syntax is valid.
-3. Add a repo-local script that parses all workflow YAML files in CI and pre-commit.
-
----
-
-#### G2. The `/api/diff/proxies` contract bug is directly present in source
-
-**Evidence:** `server.py` treats loaded `proxies.json` as an iterable list of proxy objects and enumerates entries as `p.get(...)`. If `proxies.json` is an envelope object (as documented in earlier audit material), iteration yields keys and will break the delta logic.
-
-**Why this matters deeper:** This is a production data-plane bug, not only a documentation mismatch. It can force repeated full reloads, inflate bandwidth, and degrade client update latency under large datasets.
-
-**Granular corrective action:**
-1. Canonicalize accepted input (`{"proxies": [...]}` envelope + legacy list) before diff.
-2. Add contract tests for both shapes.
-3. Add a migration window with telemetry: count legacy list payload hits before hard deprecation.
-
----
-
-#### G3. Admin notification endpoint remains fail-open when `ADMIN_API_KEY` is absent
-
-**Evidence:** `notify_update` enforces API-key checks only when `ADMIN_API_KEY` is set.
-
-**Why this matters deeper:** In production misconfiguration, unauthenticated callers can broadcast update notifications and trigger unnecessary client churn/refresh storms. This can be abused as low-cost disruption.
-
-**Granular corrective action:**
-1. Enforce deny-by-default for `ENVIRONMENT=production`.
-2. Require explicit opt-in (`ALLOW_UNAUTH_ADMIN=true`) only for local dev/CI.
-3. Add startup warning escalation to hard failure if production has no admin auth.
-
----
-
-#### G4. WebSocket loop still lacks timeout/heartbeat enforcement
-
-**Evidence:** `websocket_endpoint` uses unbounded `receive_text()` loop and only reacts to inbound messages (`ping`, `sync`), with no server-side receive timeout or periodic heartbeat policy.
-
-**Why this matters deeper:** Dead connections can persist longer than expected; fan-out broadcast bookkeeping can accumulate stale sockets under hostile network conditions.
-
-**Granular corrective action:**
-1. Wrap receive loop with `asyncio.wait_for` timeout.
-2. Add server heartbeat task + stale-connection eviction policy.
-3. Bound outbound queue per client and enforce send timeout.
-
----
-
-#### G5. Production CORS posture allows broad regex scope with credentials enabled
-
-**Evidence:** `allow_credentials=True` and `ALLOWED_ORIGIN_REGEX = r"https://.*\.github\.io"` default in config.
-
-**Why this matters deeper:** Over-broad regex with credentials risks trust expansion beyond intended origin set, especially across GitHub Pages subdomains.
-
-**Granular corrective action:**
-1. Prefer explicit allow-list origins for production.
-2. Disable credentials when not strictly required.
-3. Add integration tests to verify only expected origins are accepted.
-
----
-
-### 30.3 Overlooked/Underdeveloped Findings Not Fully Expanded Earlier
-
-#### N1. Audit governance paradox: debt scanner outputs embed machine-local Windows paths
-
-`docs/DEBT_MATRIX.md` and `docs/debt_matrix.json` contain many `D:/GitHub/ConfigStream/...` absolute paths.
-
-**Risk:** repository-portability and trust drift. The debt artifact becomes environment-specific noise, not a reliable repo-wide governance signal.
-
-**Action:** normalize all paths to repo-relative before publishing generated debt artifacts.
-
----
-
-#### N2. CI readiness is currently blocked by dependency bootstrap fragility in network-restricted environments
-
-`pytest -q` failed immediately due to missing `nest_asyncio`; dependency install also failed because build dependencies could not be fetched in this environment.
-
-**Risk:** local and constrained CI environments cannot validate regressions quickly; "tests exist" does not equal "tests are executable under expected runner constraints."
-
-**Action:** provide offline/dev bootstrap strategy (wheelhouse/cache, pinned lock export, or documented constrained-mode test subset).
-
----
-
-#### N3. Workflow syntax failure creates a hidden single-point-of-failure across product surfaces
-
-Because deployment and mirror workflows are also invalid YAML, operational symptoms (stale pages, stale outputs, inconsistent mirrors) can masquerade as pipeline logic bugs while root cause is parser-level workflow invalidity.
-
-**Action:** classify workflow parse health as a first-class release gate and publish parse status in `health.json`.
-
----
-
-### 30.4 Deepened Priority Reframe (What must happen first)
-
-1. **P0-A:** restore workflow syntactic validity across all workflow files.
-2. **P0-B:** add mandatory workflow lint/parse checks on every PR.
-3. **P1-A:** harden `/api/diff/proxies` schema handling and add contract tests.
-4. **P1-B:** enforce production-fail-closed admin auth behavior.
-5. **P1-C:** tighten CORS policy (explicit origins, credential minimization).
-6. **P2:** improve websocket lifecycle controls (timeouts/heartbeat/cleanup).
-7. **P2:** normalize generated governance artifacts to repo-relative paths.
-8. **P2:** provide constrained-environment test bootstrap path.
-
----
-
-### 30.5 Updated "Source of Truth" Statement
-
-With this addendum, the report now contains both strategic breadth and locally-verified hard failures. The most material gap is no longer uncertainty about where to start: **workflow syntax integrity is the immediate blocker**, followed by **API/auth contract hardening** and **operational trust metadata**.
-
-
----
-
-## 31. ConfigStream Master Audit — Gap Fill & Deep Verification Addendum (Integrated + Expanded)
-
-**Date:** 2026-04-28  
-**Scope:** Verification and deep expansion of this source-of-truth report against the local repository checkout.  
-**Purpose:** Close the remaining evidence gaps, validate high-risk claims with direct source checks, integrate reviewer feedback, and add overlooked findings with execution-grade detail.
-
-### 31.1 What this addendum does differently
-
-This addendum is intentionally more operational than strategic. It focuses on:
-
-1. **Ground-truth validation** of critical claims against the checked-out repository.
-2. **Granular decomposition** of each issue into trigger, failure mode, blast radius, and concrete controls.
-3. **Gap fill** for findings implied earlier but not explicitly enumerated as standalone defects.
-4. **Prioritization hardening** with explicit action buckets: **Immediate / 48h / 7d / 30d**.
-5. **Repository sweep evidence** (folder/module/script-level inspection) so closure criteria are tied to actual files, not only architecture narratives.
-
----
-
-### 31.2 Re-validation of top critical themes (source-verified)
-
-#### C2 (Workflows malformed) — **CONFIRMED and more severe than originally framed**
-
-**What was re-validated:** 5 of 6 workflow YAML files fail parsing:
+Files:
 
 - `.github/workflows/ci.yml`
-- `.github/workflows/main.yml`
-- `.github/workflows/retest.yml`
 - `.github/workflows/deploy-pages.yml`
 - `.github/workflows/deploy_mirror.yml`
+- `.github/workflows/main.yml`
+- `.github/workflows/retest.yml`
 
-`release.yml` parses. The failing files share malformed indentation under `env:` blocks (e.g., `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24` at wrong depth).
+Observed state:
 
-**Trigger:** malformed YAML mapping indentation.  
-**Failure mode:** workflow cannot parse/load reliably.  
-**Blast radius:** PR CI, schedule jobs, retest, Pages deploy, mirror deploy, and downstream security/quality checks tied to those workflows.  
-**Controls:** parser gate in pre-commit + required CI check; fail merges until all workflow files parse.
+- YAML parsing fails with `ScannerError: mapping values are not allowed here`.
+- The common pattern is `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24` incorrectly indented under `env:`.
+- `release.yml` parses successfully.
 
----
+Concrete examples:
 
-#### C3 (Self-triggering scheduled pipeline) — **LIKELY, but currently overshadowed by parser-fatal YAML state**
+- `.github/workflows/main.yml` lines 30-34:
+  - `env:` appears at the step level.
+  - `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24` is not nested under the same mapping depth as the other env keys.
+- `.github/workflows/deploy-pages.yml` lines 41-43 has the same pattern.
+- `.github/workflows/ci.yml` lines 14-16 has the same pattern.
 
-The architectural loop warning remains valid: push + schedule workflows and shard-mutating steps can retrigger pipelines. But until workflows parse cleanly, loop prevention controls cannot be trusted as operationally active.
+Impact:
 
-**Trigger:** generated file commits under push-triggered workflows.  
-**Failure mode:** run amplification and non-deterministic scheduling/cost.  
-**Blast radius:** CI minute budget, stale/overlapping artifacts, causality ambiguity in incident response.  
-**Controls:** after syntax repair, enforce `paths-ignore`, isolate resharding workflow, and use explicit concurrency guards.
+- CI cannot be trusted.
+- Deployment cannot be trusted.
+- Retest cannot be trusted.
+- Mirror deployment cannot be trusted.
+- Any claim that "workflows are green" is currently invalid.
+- Security, style, test, schema, Pages, and release gates tied to these workflows may never execute.
 
----
+Required fix:
 
-#### C5 (Frontend degraded placeholders) — **CONFIRMED**
+1. Repair indentation in all workflows.
+2. Run YAML parser on every workflow.
+3. Add `actionlint`.
+4. Add a repo script that parses every workflow in CI and locally.
+5. Add a pre-commit hook for workflow parse/lint.
+6. Update `STATUS.md`, `CHANGELOG.md`, `docs/wiki/project/05-devops.md`, and any CI badge/docs claim.
 
-Static pages still contain unresolved/fallback states in shipped HTML/JS paths, including loading and checking placeholders and hero template tokens.
+Closure checklist:
 
-**Trigger:** metadata/JS resolution absent or blocked.  
-**Failure mode:** UI trust degradation in no-JS or hostile network conditions.  
-**Blast radius:** end-user confidence, support burden, perceived freshness/reliability.  
-**Controls:** pre-render trustworthy fallback state and enforce placeholder-leak tests in frontend checks.
-
----
-
-#### C7 (diff endpoint/schema drift) — **CONFIRMED with extra semantic flaw**
-
-The schema mismatch is active: docs present envelope semantics for `proxies.json`, while runtime comments/logic include list-based assumptions. Additionally, `base_version` is syntactically validated but not strongly negotiated against persisted version identity.
-
-**Trigger:** envelope/list drift + weak version matching semantics.  
-**Failure mode:** incorrect delta decisions and cache incoherence.  
-**Blast radius:** client update inefficiency, unnecessary full reloads, integrator breakage.  
-**Controls:** canonical contract, explicit version snapshot identity (ETag/hash/version index), and contract tests.
-
----
-
-#### C8 (admin endpoint auth optionality) — **CONFIRMED**
-
-`/api/admin/notify-update` enforces API key checks only when key is configured.
-
-**Trigger:** missing `ADMIN_API_KEY` in production-like deployments.  
-**Failure mode:** unauthenticated update broadcast path.  
-**Blast radius:** forced refresh storms, control-plane abuse, noisy client behavior.  
-**Controls:** fail-closed default in production; explicit opt-in override for development/CI only.
+- `actionlint` passes.
+- YAML parser passes all `.github/workflows/*.yml`.
+- GitHub Actions UI recognizes all workflows.
+- CI, deploy, retest, mirror, and release workflows can be manually dry-run or validated.
+- Changelog includes the workflow parse fix and lists all repaired files.
 
 ---
 
-#### C9 (security posture overclaim) — **CONFIRMED and evidence-strengthened**
+### P0-2. Public deployment is stale, collapsed, and schema-inconsistent
 
-Workflow parse failures prevent relying on security checks that are supposed to run in CI. In addition, `retest.yml` contains non-blocking schema-validation behavior (`||` warning pattern), indicating warning-driven rather than gate-driven release integrity.
+Live public artifact check on 2026-05-03:
 
----
+- `metadata.json`: HTTP 200, `Last-Modified: Sun, 22 Feb 2026 17:23:38 GMT`
+- `metadata.generated_at`: `2026-02-22T17:22:48.495777+00:00`
+- `base64.txt`: 152 bytes
+- `chosen/base64.txt`: 152 bytes
+- `base64-dns-safe.txt`: 152 bytes
+- all three Base64 files are identical
+- decoded subscription:
 
-#### C10 (docs/product claim drift) — **CONFIRMED**
+```text
+socks5://Og%3D%3D@121.169.46.116:1090#%F0%9F%8C%90%20%7C%20SOCKS5%2BTCP%20%7C%201011ms%20%7C%20UP%20%7C%20NATIVE
+```
 
-`README.md` data-schema example still documents envelope-style `proxies.json`, while output/runtime paths include explicit list-centric behavior. This is a live high-visibility contract conflict.
+Live metadata contradictions:
 
----
+- `working`: 1
+- `chosen_subset_size`: 1
+- `total_working`: 857
+- `shielded_count`: 856
+- `total_proxies`: 1717
+- `final_count`: 861
+- `success_rate`: `2.5987525987525989E-05`
+- `time_limited`: true
+- `duration_seconds`: 273946.40592700004
 
-### 31.3 Newly surfaced / under-emphasized findings (gap fill)
+Current repo schema mismatch:
 
-#### G1. Workflow syntax failure is a root-cause aggregator (meta-failure)
+- `schema/metadata.schema.json` requires `trace_id`, `backpressure_drop`, `total_sources`, and `pipeline_execution_audit`.
+- Live public `metadata.json` lacks those required fields.
 
-This should be modeled as dependency-root risk: when workflow YAML fails to parse, many second-order controls (schema validation, deployment hygiene, release checks, scanner checks) are not merely weak; they may never execute.
+Impact:
 
----
+- Users see stale data for months.
+- Public subscriptions collapse to one proxy.
+- Metadata claims many working entries while visible universal output has one entry.
+- Current repo schema cannot be assumed to validate deployed metadata.
+- The frontend and external consumers have no reliable health signal explaining degraded state.
 
-#### G2. `base_version` contract is partially cosmetic in `/api/diff/proxies`
+Required fix:
 
-The current behavior validates input format but does not fully bind diff output to a guaranteed matching snapshot identity for the requesting client.
+1. Repair workflow deploy path first.
+2. Add `artifact_manifest.json` with every public file, size, hash, count, schema version, generated time, degraded status, and reason.
+3. Add `health.json` with freshness, time-limited flag, last successful full run, last successful deploy, and current degraded reason.
+4. Add schema validation for public artifacts before deploy.
+5. Add public artifact smoke tests after deploy.
+6. Ensure stale public artifacts are clearly marked as stale if reused.
 
----
+Closure checklist:
 
-#### G3. External QR code generation in Lab transmits user payload to third party
-
-Lab QR rendering uses `api.qrserver.com` with encoded data in query parameters. For sovereignty-grade workflows, this is an avoidable exfiltration path for user-provided chain/config content.
-
-**Control:** local/offline QR generation in browser without network dependency.
-
----
-
-#### G4. CORS + credentials remains deployment-sensitive and high-risk if broadened
-
-Credentialed CORS with regex-based origin allowances needs strict secure defaults plus regression tests to prevent accidental over-permissive deployment profiles.
-
----
-
-#### G5. Public schema has conflicting “truths”
-
-- Docs truth: `proxies.json` envelope (`metadata`, `proxies`).
-- Runtime/output truth: list-oriented handling appears in server/output paths.
-
-This is API contract drift with direct operational impact.
-
----
-
-### 31.4 Deeper remediation blueprint (execution-grade)
-
-#### Immediate (0–48h)
-
-1. Restore workflow YAML parsability in all workflow files.
-2. Add mandatory parser/lint gate for `.github/workflows/*.yml`.
-3. Lock admin notify endpoint to fail-closed behavior in production.
-4. Add temporary docs warning where schema transition exists.
-
-#### 7-day hardening
-
-1. Introduce canonical `output_manifest.json` (hashes, counts, schema version, generation metadata).
-2. Rework `/api/diff/proxies` to version-addressed diffing (ETag/hash/version mapping), not opportunistic old-file comparison.
-3. Replace external QR API with local generator.
-4. Add no-JS/static placeholder-leak tests for frontend pages.
-
-#### 30-day stabilization
-
-1. Unify `proxies.json` contract across backend/frontend/docs/tests/schema.
-2. Add contract tests for all public artifacts (schema + shape + semantic assertions).
-3. Publish machine-readable + human-readable trust surface (`health.json` + degraded reason taxonomy).
+- Public metadata validates against current schema.
+- Public Base64/chosen/DNS-safe outputs have documented expected relationships.
+- Public `health.json` explains if outputs are degraded.
+- Dashboard shows accurate freshness.
+- `STATUS.md` no longer claims healthy if public artifacts are stale.
+- Changelog records public artifact contract changes.
 
 ---
 
-### 31.5 Expanded closure checklist (item closure evidence standard)
+### P0-3. Scheduled pipeline can self-trigger source optimization commits
 
-Every high/critical finding should require all five proofs before closure:
+Evidence:
 
-1. **Source proof** (file + line evidence).
-2. **Runtime proof** (command + expected output).
-3. **Regression proof** (automated test).
-4. **Docs proof** (public contract/docs updated).
-5. **Negative proof** (failure-mode test proving safe behavior under fault).
+- `.github/workflows/main.yml` triggers on push to `main`, schedule, pull request, and workflow dispatch.
+- The same workflow runs `python scripts/dynamic_reshard.py`.
+- It commits changed `sources/batch_*.txt`.
+- It pushes back to the current branch.
+- There is no reliable `paths-ignore` or skip marker protecting the expensive pipeline from source-only bot commits.
 
-Without all five, status remains **partially mitigated**.
+Impact:
 
----
+- Scheduled runs can trigger follow-on push runs.
+- Artifact provenance becomes confusing.
+- CI minutes are wasted.
+- Runs can overlap with deploy or retest.
+- Source quality and reshard data can race with active pipeline state.
 
-### 31.6 Repository-wide sweep: folder/module coverage summary
+Required fix:
 
-This section records the deeper end-to-end sweep scope and where further closure work should focus.
+1. Move resharding into a separate manual or low-cost workflow.
+2. Publish reshard recommendations as artifacts before auto-committing them.
+3. Add `paths-ignore` for source-only automation commits where appropriate.
+4. Use `[skip ci]` only if policy permits and it does not hide necessary checks.
+5. Add workflow concurrency groups that prevent mixed artifact publication.
+6. Add a source-reshard lock or version marker so reshard decisions are tied to a completed run.
 
-#### Top-level folder coverage (checked in this addendum pass)
+Closure checklist:
 
-- `.github/`: workflow parse integrity, trigger/concurrency/security gate posture.
-- `src/`: server/API, pipeline, parser, generator, security, intelligence, tooling modules.
-- `frontend/`: static fallback trust states, lab behavior, external dependency risk.
-- `scripts/`: governance scripts, dependency/version checks, debt matrix tooling.
-- `schema/`: declared schema artifacts and contract alignment touchpoints.
-- `docs/`: claim drift and generated-document portability quality.
-- `tests/`: execution readiness and dependency/bootstrap constraints.
-- `sources/`: shard inventory and schedule-loop implications.
-- `tools/`: operational helper scripts relevant to deployment/scanning.
-
-#### Observed repository composition (sanity metrics)
-
-- Top-level directory file counts indicate broad surface area: `.github`, `docs`, `frontend`, `src`, `tests`, `scripts`, `sources`, `schema`, `policy`, `tools` all present and active.
-- `src/` and `tests/` are large enough that closure must rely on layered evidence (automated checks + targeted deep dives), not single-pass manual inspection claims.
-
-#### Cross-cutting residual risks from sweep
-
-1. **Automation trust debt:** workflow parse failures currently undermine CI-derived confidence claims.
-2. **Contract trust debt:** `proxies.json` shape drift still spans docs/runtime expectations.
-3. **Frontend trust debt:** placeholder/degraded no-JS states are still user-visible paths.
-4. **Data minimization debt:** external QR service use conflicts with sovereignty-first posture.
-5. **Governance artifact portability debt:** generated debt matrix embeds machine-local absolute paths.
+- One scheduled run cannot cause another full scheduled-equivalent run.
+- Reshard commits cannot overlap with deploy of a different artifact generation.
+- Run ID and trace ID are written into metadata and artifacts.
+- Changelog records the new workflow ownership model.
 
 ---
 
-### 31.7 Additional granular notes by subsystem
+### P0-4. Deploy workflow fails closed on sparse outputs
 
-#### CI/CD subsystem
+Evidence:
 
-- Parser-fatal YAML errors are immediate blockers.
-- Non-blocking validation patterns reduce enforcement strength.
-- Security/quality claims tied to CI should be treated as untrusted until parsability is restored.
+- `.github/workflows/deploy-pages.yml` copies raw `frontend/.` into `output/`.
+- It requires many output files to exist.
+- It requires many output files to be non-empty.
+- Missing or empty files cause `exit 1`.
 
-#### API/runtime subsystem
+Impact:
 
-- Diff endpoint needs strict version negotiation semantics.
-- Admin notify endpoint must fail closed in production profiles.
-- Websocket lifecycle should include heartbeat/timeout/bounded send policy.
+- During hostile network conditions or time-limited runs, the project may publish nothing.
+- This conflicts with the project rule that outputs are always generated.
+- The deploy gate treats "not enough working proxies" as fatal rather than degraded.
+- Users lose access to stale-known-good or partial-but-valid outputs exactly when the network is unreliable.
 
-#### Output/data-contract subsystem
+Required fix:
 
-- Canonical output contract should be manifest-driven and test-enforced.
-- Contract ambiguity between docs and output logic must be collapsed to one truth.
+1. Replace non-empty checks with schema-valid degraded artifacts.
+2. Generate empty-but-valid JSON/YAML/text outputs with clear degraded metadata.
+3. Preserve stale-known-good artifacts only if explicitly labeled and hash-tracked.
+4. Fail deploy only on invalid schema, unsafe content, missing manifest, or impossible provenance.
+5. Add tests for zero-working-proxy deploy.
 
-#### Frontend/lab subsystem
+Closure checklist:
 
-- Static fallback should be trustworthy and non-ambiguous.
-- External QR dependency should be removed for privacy and resilience reasons.
-
-#### Documentation/governance subsystem
-
-- Generated docs must be portable (repo-relative paths, not machine-local absolute paths).
-- Status language should map directly to executable controls.
+- Zero working proxies still produce valid outputs.
+- Deploy succeeds with `health.status = degraded` when appropriate.
+- The frontend renders the degraded state without placeholders.
+- Changelog records fail-open/fail-safe deploy policy.
 
 ---
 
-### 31.8 Final conclusion of this integrated addendum
+## 6. P1 Findings
 
-The original master report was directionally correct on structural risk. This integrated deep-verification pass confirms the most urgent blockers are operationally concrete:
+### P1-1. Shielded chains are counted as working without retest
 
-- Workflow syntax breakage is immediate and foundational.
-- API/data contract drift is active.
-- Security posture includes misconfiguration-sensitive defaults.
-- Frontend trust degradation persists in static/degraded paths.
+Evidence:
 
-The highest-leverage path remains: **restore deterministic automation, enforce one data contract truth, harden control-plane defaults, and make degraded behavior explicit and testable.**
+- `src/configstream/output_handler.py` builds `failed_proxies = [p for p in optimized_proxies if not p.is_working]`.
+- It calls `washer.shield_batch(failed_proxies, stats=stats)`.
+- It sets `stats.shielded_count = len(shielded_ids)`.
+- `src/configstream/intelligence/washer/core.py` `shield_batch()` generates WARP/relay chain outbounds but does not retest them.
+- `src/configstream/output_logic.py` computes:
+  - `total_proxies = total + smart_chain_count + shielded_count`
+  - `total_working = working + shielded_count`
 
+Impact:
+
+- Failed proxies wrapped into untested chains become counted as working.
+- Live metadata shows this exact inflation: `working=1`, `shielded_count=856`, `total_working=857`.
+- Frontend analytics, success rates, and public trust signals become misleading.
+
+Required fix:
+
+1. Separate `working`, `revived_working`, `shielded_candidates`, `shielded_tested`, and `shielded_working`.
+2. Do not add untested shielded candidates to `total_working`.
+3. If keeping failed shielded candidates for user experimentation, label them as `is_working=false` and `process=shielded-candidate`.
+4. Retest shielded chains before counting them as working.
+5. Add tests for metric invariants.
+
+Closure checklist:
+
+- `total_working <= total_tested` unless explicitly documented otherwise.
+- `total_working` never includes untested chains.
+- Frontend labels candidate chains separately from working chains.
+- Public metadata explains candidate vs verified counts.
+- Changelog records the metric contract correction.
+
+Remediation progress:
+
+- `src/configstream/output_logic.py` no longer adds `shielded_count` to `total_working`.
+- `src/configstream/pipeline_stats.py` no longer adds `shielded_count` to `total_proxies`.
+- Metadata now exposes `shielded_candidate_count` and `shielded_verified_count`; `shielded_count` remains as the candidate-count compatibility field.
+- Frontend analytics/statistics comments now describe `total_working` as retested working proxies only.
+- `tests/unit/test_output.py` includes a regression test proving shielded candidates do not inflate working totals or success rate.
+
+Remaining:
+
+- Retest shielded chains before any future nonzero `shielded_verified_count`.
+- Update user-facing frontend labels where visual copy implies shielded candidates are verified working.
+
+---
+
+### P1-2. Admin notification endpoint is fail-open when no key is configured
+
+Evidence:
+
+- `src/configstream/server.py` enforces the API key only inside `if api_key:`.
+- `ADMIN_API_KEY` defaults to `None`.
+- If no key is configured, the endpoint broadcasts update notifications.
+
+Impact:
+
+- Production misconfiguration becomes unauthenticated control-plane access.
+- Attackers could trigger update notifications and client churn.
+- Docs imply stronger admin protection than the code guarantees.
+
+Required fix:
+
+1. In production, require `ADMIN_API_KEY`.
+2. Fail startup if production has no admin key.
+3. Allow unauthenticated admin calls only in explicit local/test mode.
+4. Add rate limiting to admin endpoints.
+5. Add tests for production without key, production with bad key, production with good key, and local opt-in behavior.
+
+Closure checklist:
+
+- Production without `ADMIN_API_KEY` fails closed.
+- Docs mark the key as required for production.
+- `.env.example` reflects the required key.
+- Changelog records the breaking production-auth change.
+
+Remediation progress:
+
+- `/api/admin/notify-update` now rejects production calls when `ADMIN_API_KEY` is unset.
+- Production calls must include a matching `api_key` payload when `ADMIN_API_KEY` is configured.
+- Unauthenticated admin notifications are allowed only in explicit `development`, `ci`, or `test` environments.
+- `/api/admin/notify-update` now has a `10/minute` SlowAPI limit.
+- Server startup now fails in production when `ADMIN_API_KEY` is unset.
+- `tests/unit/test_server.py` covers production without configured key, production missing payload key, production valid key, and explicit development no-key behavior.
+- `tests/unit/test_server.py` verifies rate-limit registration for the admin notification route.
+- `tests/unit/test_server.py` covers startup validation for production no-key, production keyed, and development no-key modes.
+- `SECURITY.md` now marks `ADMIN_API_KEY` as required for production admin endpoints.
+
+Remaining:
+
+- None for the admin notification fail-closed finding. Follow-up CORS, WebSocket lifecycle, and lab endpoint hardening remain separate P1 items.
+
+---
+
+### P1-3. CORS default allows broad credentialed GitHub Pages origins
+
+Evidence:
+
+- `src/configstream/server.py` sets `allow_credentials=True`.
+- `src/configstream/config.py` defaults `ALLOWED_ORIGIN_REGEX` to `https://.*\.github\.io`.
+
+Impact:
+
+- Any GitHub Pages subdomain can be treated as a credentialed origin.
+- This is broader than a project-specific deployment.
+- It expands trust beyond the intended frontend.
+
+Required fix:
+
+1. Remove broad default regex from production.
+2. Use explicit origin list for production.
+3. Set `allow_credentials=False` unless a specific endpoint requires cookies/credentials.
+4. Add CORS tests for allowed and denied origins.
+5. Document exact production origin configuration.
+
+Closure checklist:
+
+- Credentialed CORS accepts only intended project origins.
+- Security docs match runtime defaults.
+- Changelog records the CORS tightening.
+
+---
+
+### P1-4. WebSocket update endpoint has weak lifecycle control
+
+Evidence:
+
+- `src/configstream/server.py` has an infinite `receive_text()` loop.
+- It responds to client `ping`.
+- It has no server-side heartbeat, idle timeout, max connection control, bounded outbound queue, or send timeout policy.
+
+Impact:
+
+- Dead or hostile clients can remain in manager state longer than expected.
+- Broadcast operations can degrade under connection buildup.
+- Hostile networks make stale sockets common.
+
+Required fix:
+
+1. Add server heartbeat.
+2. Add idle timeout.
+3. Add max connections.
+4. Add send timeout and per-client queue cap.
+5. Add disconnect cleanup tests.
+
+Closure checklist:
+
+- Stale connections are evicted.
+- Broadcast cannot hang on one client.
+- Metrics expose active connections and dropped stale connections.
+- Changelog records WebSocket lifecycle hardening.
+
+---
+
+### P1-5. Lab live test endpoint is unauthenticated and resource-heavy
+
+Evidence:
+
+- `src/configstream/server.py` exposes `POST /api/lab/test-chain`.
+- It accepts arbitrary submitted config JSON.
+- It calls `test_chain_config(config, timeout=15.0)`.
+- `src/configstream/testers/lab_chain_tester.py` can start a sing-box process and run test traffic.
+- No auth, rate limit, payload-size guard, config schema gate, or host policy is visible at the route level.
+
+Impact:
+
+- Public deployment could be driven into repeated expensive process/test work.
+- Arbitrary submitted configs may contain unsafe routes.
+- This conflicts with the no-abuse and no-active-scanning posture unless heavily constrained.
+
+Required fix:
+
+1. Disable this endpoint by default in production.
+2. Require explicit `ENABLE_LAB_LIVE_TEST=true`.
+3. Add auth or signed one-time tokens for live tests.
+4. Add rate limits and payload size limits.
+5. Validate submitted configs against a strict allowlist.
+6. Block private/internal destinations unless explicitly local-only.
+7. Prefer static/manual fallback on GitHub Pages.
+
+Closure checklist:
+
+- Public static deployment cannot spawn tester work.
+- Local live server can opt in safely.
+- Frontend clearly distinguishes static manual testing from live API testing.
+- Changelog records endpoint policy.
+
+---
+
+### P1-6. Fetcher SSRF and redirect safety are incomplete
+
+Evidence:
+
+- `src/configstream/fetcher.py` validates only `http://` and `https://` prefixes at source fetch entry.
+- Fetching follows redirects.
+- `src/configstream/http_client.py` applies cached DNS safety only to HTTP requests and explicitly lets HTTPS use the standard resolver.
+- `ALLOW_PRIVATE_IPS` defaults to `True`.
+
+Impact:
+
+- Source URLs or redirects can resolve to unexpected private/internal addresses.
+- HTTPS redirects are not post-resolution-filtered by the custom DNS cache path.
+- A hostile source list can test boundaries around internal network access.
+
+Required fix:
+
+1. Canonicalize source URLs with structured parsing.
+2. Resolve and validate each final target after redirects.
+3. Block private, loopback, link-local, multicast, and special-use ranges by default for fetch sources.
+4. Add explicit local/test override only.
+5. Add SSRF tests for direct private URL, DNS rebinding style hostname, redirect to private IP, and HTTPS redirect.
+
+Closure checklist:
+
+- Fetcher blocks private/internal fetch targets by default.
+- Redirect target validation is tested.
+- Docs describe allowed source URL policy.
+- Changelog records fetcher security hardening.
+
+---
+
+### P1-7. Frontend key injection and verification are split-brain
+
+Evidence:
+
+- `frontend/assets/js/constants.js` contains placeholder `PUBLIC_KEY`.
+- `frontend/assets/js/stego.js` contains `PLACEHOLDER_KEY_INJECTED_BY_CI`.
+- `src/configstream/output_handler.py` can inject a stego key into the local frontend tree.
+- `.github/workflows/main.yml` uploads only `output/` as the pipeline artifact.
+- `.github/workflows/deploy-pages.yml` checks out the repo and copies raw `frontend/.` into `output/`.
+- `vite.config.mjs` builds to `frontend-dist`, but deploy does not use it.
+- `frontend/assets/js/verifier.js` skips verification when public key is not configured.
+
+Impact:
+
+- Production Pages likely serves placeholder key material.
+- CI secrets passed as env vars do not necessarily affect deployed frontend files.
+- Signature verification is advertised but can silently skip.
+- Stego assets and frontend code can diverge.
+
+Required fix:
+
+1. Choose one frontend production build path.
+2. Use generated build artifacts, not raw `frontend/`, for Pages.
+3. Inject keys at build time into a generated config file.
+4. Fail production build if required public key/stego key placeholders remain.
+5. Fail closed on signature verification for signed artifacts.
+6. Add placeholder leak tests.
+
+Closure checklist:
+
+- Deployed frontend contains no placeholder key strings.
+- Public-key source is documented and tested.
+- Production deploy uses the same build output tested by CI.
+- Changelog records frontend build/injection contract.
+
+---
+
+### P1-8. Public schemas, runtime outputs, docs, and deployed artifacts disagree
+
+Examples:
+
+- `README.md` says `proxies.json` is a full dataset with metadata.
+- `src/configstream/output_handler.py` says `proxies.json` must be a JSON array.
+- `docs/wiki/project/08-api-reference.md` now describes `proxies.json` as array items.
+- `schema/metadata.schema.json` requires fields missing from live public metadata.
+- `/api/diff/proxies` accepts a `base_version` string but does not verify it matches a specific persisted old snapshot identity.
+
+Impact:
+
+- Frontend, external tooling, and docs cannot rely on a single contract.
+- Diff updates may be semantically wrong even when syntactically valid.
+- API consumers cannot tell which shape is canonical.
+
+Required fix:
+
+1. Decide canonical public shapes:
+   - `proxies.json`: array or envelope, not both.
+   - `metadata.json`: schema-required fields must match generated output.
+2. Update schema, generator, server, frontend, README, wiki, tests, and examples together.
+3. Delete transitional references to the rejected shape.
+4. Version snapshots with hashes/ETags, not only `base_version` strings.
+5. Add contract tests that load generated artifacts and validate schemas.
+
+Closure checklist:
+
+- One canonical contract exists.
+- No docs mention rejected shape.
+- No server route assumes a different shape.
+- Public artifact validates against schema.
+- Changelog records breaking schema cleanup.
+
+---
+
+## 7. P2 Findings
+
+### P2-1. Lab strategy list is inconsistent and partially broken
+
+Evidence:
+
+- `frontend/lab.html` lists 9 strategies:
+  - `warp`
+  - `vwarp-masque`
+  - `vwarp-atomic`
+  - `warp-in-warp`
+  - `warp-psiphon`
+  - `relay-chain`
+  - `fragment`
+  - `worker`
+  - `custom`
+- `frontend/assets/js/lab.js` `CHAIN_HINTS` omits `vwarp-masque` and `vwarp-atomic`.
+- `handleStep3Next()` has no branches for those two values.
+- The function can continue to show success and proceed even when no new `chainConfig` was built for those selections.
+- Docs mention 5, 6, 7, and 9 strategies depending on file.
+
+Impact:
+
+- Users can select a strategy that does not generate the intended config.
+- Docs and UI disagree.
+- Vwarp feature claims are not reliably wired into the lab.
+
+Required fix:
+
+1. Create canonical `lab_strategies.json`.
+2. Generate HTML options, JS handling, docs tables, and tests from the canonical list.
+3. Implement or remove `vwarp-masque` and `vwarp-atomic`.
+4. Fail loudly if a selected strategy has no builder.
+5. Add UI tests for every strategy.
+
+Closure checklist:
+
+- Every strategy has docs, UI option, JS handler, export behavior, and test coverage.
+- Strategy count is identical in README, STATUS, wiki, AGENTS, and UI.
+- Changelog records lab strategy cleanup.
+
+---
+
+### P2-2. Lab QR generation leaks user config to an external service
+
+Evidence:
+
+- `frontend/assets/js/lab.js` builds an image URL to `https://api.qrserver.com/v1/create-qr-code/` and passes the encoded proxy/chain payload as a query parameter.
+
+Impact:
+
+- User proxy material is sent to a third party.
+- Offline/lab privacy guarantees are weakened.
+- This conflicts with sovereignty-grade and hostile-network assumptions.
+
+Required fix:
+
+1. Replace external QR API with a local browser QR library or small self-contained generator.
+2. Ensure QR generation works offline.
+3. Remove external QR CSP allowance if present.
+4. Add a test that exported QR generation makes no network request.
+
+Closure checklist:
+
+- No proxy payload is sent to third-party QR endpoints.
+- Lab works offline.
+- Changelog records privacy cleanup.
+
+---
+
+### P2-3. Lab manual clean IP table can inject HTML
+
+Evidence:
+
+- `frontend/assets/js/lab.js` renders manual IP entries with `tr.innerHTML`.
+- The `ip.ip` value can originate from user input.
+- `showResult()` also uses `innerHTML` for messages, including some error flows.
+
+Impact:
+
+- A pasted malicious value can render markup in the lab page.
+- Local-only XSS is still relevant because the lab handles sensitive proxy configs.
+
+Required fix:
+
+1. Replace dynamic `innerHTML` with `textContent` or sanitized templates.
+2. Validate manual IP/port values before storing.
+3. Add frontend XSS tests for manual clean IP input and custom JSON errors.
+4. Keep icon-only trusted templates separate from user data.
+
+Closure checklist:
+
+- Untrusted lab inputs never enter `innerHTML`.
+- XSS regression tests pass.
+- Changelog records frontend sanitization cleanup.
+
+---
+
+### P2-4. Async routes still perform blocking filesystem reads
+
+Evidence:
+
+- `server.py` `get_proxy_diff()` calls `Path.read_text()` inside an async route.
+- `server.py` `get_stats()` calls `Path.read_text()` inside an async route.
+
+Impact:
+
+- Large files can block the event loop.
+- Under load, unrelated requests can be delayed.
+
+Required fix:
+
+1. Use async file I/O or `run_in_executor`.
+2. Cache parsed artifacts with invalidation based on file mtime/hash.
+3. Add tests that large `proxies.json` does not block concurrent requests.
+
+Closure checklist:
+
+- Async route handlers do not perform blocking disk reads for large artifacts.
+- Changelog records async I/O cleanup.
+
+---
+
+### P2-5. Test budget semaphore is initialized but unused
+
+Evidence:
+
+- `src/configstream/pipeline.py` initializes `test_budget: Optional[asyncio.Semaphore] = None`.
+- It passes the value into `processing_consumer`.
+- `src/configstream/consumer.py` accepts `test_budget`.
+- The consumer body does not use it for Go batch testing.
+
+Impact:
+
+- The intended global test budget is not enforced.
+- Batch concurrency may be governed in multiple places inconsistently.
+- This increases risk of port exhaustion and overlapping tester pressure.
+
+Required fix:
+
+1. Decide whether `test_budget` is canonical.
+2. If yes, enforce it around both Go and Python test paths.
+3. If no, delete it everywhere and document the actual concurrency control.
+4. Add concurrency tests.
+
+Closure checklist:
+
+- One concurrency owner exists for testing.
+- No unused semaphore parameters remain.
+- Changelog records concurrency model cleanup.
+
+---
+
+### P2-6. Source-quality accounting can punish sources for queue pressure
+
+Evidence:
+
+- `producer.py` records `backpressure_drop`.
+- When the queue is pressured and no chunks are queued, source failure can be reported as `backpressure_drop`.
+
+Impact:
+
+- A good source can be penalized because the runner was overloaded.
+- Source-quality data can drift from actual source reliability.
+
+Required fix:
+
+1. Separate source failure from runner backpressure.
+2. Track backpressure as pipeline capacity metric, not source trust failure.
+3. Add tests for overloaded queue behavior.
+
+Closure checklist:
+
+- Backpressure is not treated as remote source unreliability.
+- Changelog records source-quality metric cleanup.
+
+---
+
+### P2-7. Unsanitized or partially sanitized logging remains
+
+Examples found by targeted scan:
+
+- `converters/common.py`: logs `proxy.address`.
+- `converters/singbox.py`: logs raw address/port in several drop paths.
+- `dns_batch_resolver.py`: logs hostname and exception.
+- `security/honeypot.py`: logs host.
+- `security/rules.py`: logs address.
+- `test_cache.py`: logs proxy address and port.
+- `tools/vwarp.py`: logs generated config text in at least one path.
+- parser modules log parse failures or config snippets in some cases.
+
+Impact:
+
+- Logs can contain proxy endpoints, credentials, UUIDs, hostnames, or config fragments.
+- This conflicts with the project rule that sensitive logs must be sanitized.
+
+Required fix:
+
+1. Create a logging policy test that flags sensitive arguments not passed through `SecurityValidator.sanitize_log_message`.
+2. Sanitize endpoints, URLs, UUIDs, passwords, keys, tokens, and raw config snippets.
+3. Use structured logging fields only after masking.
+4. Add tests for representative log messages.
+
+Closure checklist:
+
+- Sensitive log scan passes.
+- New logger policy is documented.
+- Changelog records log sanitization hardening.
+
+---
+
+### P2-8. Frontend still depends on remote CDNs and remote assets
+
+Examples:
+
+- `unpkg.com` for Feather, Three, Globe images.
+- `cdn.jsdelivr.net` for Chart, fonts, Bootstrap in worker UI.
+- `cdnjs.cloudflare.com` for pako and highlight assets.
+- `flagcdn.com` for country flags.
+- `raw.githubusercontent.com` for wiki/lab downloads.
+- `api.qrserver.com` for QR generation.
+
+Impact:
+
+- Restricted networks can block critical frontend behavior.
+- CSP allows several remote hosts.
+- Self-hosted fallback exists for some libraries but not every remote dependency.
+
+Required fix:
+
+1. Make production frontend local-first.
+2. Self-host all critical JS/CSS/image assets.
+3. Treat remote URLs as optional links, not runtime dependencies.
+4. Add a no-network frontend smoke test.
+5. Tighten CSP after self-hosting.
+
+Closure checklist:
+
+- Frontend usable with network blocked except same-origin.
+- CSP no longer needs broad external runtime dependencies.
+- Changelog records frontend dependency cleanup.
+
+---
+
+### P2-9. E2E browser tests are easy to skip
+
+Evidence:
+
+- `tests/e2e/test_frontend.py` applies `pytest.mark.skipif` when Playwright browsers are not installed.
+- Local full test pass had 4 skipped tests.
+- CI intends to install Playwright, but workflow YAML is currently invalid.
+
+Impact:
+
+- Local "all tests passed" can hide missing browser validation.
+- Frontend/lab regressions can escape.
+
+Required fix:
+
+1. Split test profiles:
+   - unit
+   - integration
+   - frontend-browser
+   - production-smoke
+2. Make browser tests required in CI after workflow repair.
+3. Make skip status visible in `STATUS.md`.
+4. Add no-JS/degraded frontend tests.
+
+Closure checklist:
+
+- Browser tests run in CI.
+- Local skipped-browser result is clearly labeled.
+- Changelog records testing profile cleanup.
+
+---
+
+### P2-10. `scripts/validate_versions.py` is not Windows-safe
+
+Evidence:
+
+- Running the script on Windows with default console encoding fails on emoji output.
+- With `PYTHONIOENCODING=utf-8`, it still fails reading `CHANGELOG.md` because `read_text()` has no explicit encoding and falls back to cp1252.
+
+Impact:
+
+- A governance script fails on a contributor platform.
+- Cross-platform readiness is overstated.
+
+Required fix:
+
+1. Add explicit `encoding="utf-8"` to file reads.
+2. Avoid emoji output in scripts or configure safe output.
+3. Add Windows CI or at least script-level tests under Windows semantics.
+
+Closure checklist:
+
+- `validate_versions.py` passes on Windows and Linux.
+- Changelog records cross-platform script fix.
+
+---
+
+### P2-11. Rust Shadowsocks FFI fallback and checksum story are incomplete
+
+Evidence:
+
+- `ss_ffi.py` has a hardcoded example hash unless `SS_LIB_SHA256` is set.
+- If the library is absent, enhanced validation is skipped and returns `True`.
+- If the library is present but does not match the placeholder hash, validation fails.
+
+Impact:
+
+- The feature is either absent, fail-open, or likely fail-closed depending on binary presence and env.
+- Docs should not imply strong Rust validation unless binary distribution and hash management are real.
+
+Required fix:
+
+1. Decide whether Rust FFI is production-supported.
+2. If supported, provide verified binaries or documented build step and real hashes.
+3. If optional, label it as optional and do not count it as a security guarantee.
+4. Add tests for missing library, bad hash, good hash, and invalid SS config.
+
+Closure checklist:
+
+- Rust validation behavior is deterministic and documented.
+- Changelog records FFI support decision.
+
+---
+
+### P2-12. WASM tester is browser-constrained and should not be described as native network testing
+
+Evidence:
+
+- `src/go/tester/wasm_main.go` uses `syscall/js`.
+- It creates browser `WebSocket` objects from transformed proxy URLs.
+- It cannot perform native proxy networking in the browser sandbox.
+
+Impact:
+
+- Browser verification is not equivalent to Go sidecar testing.
+- Docs must clearly state what the WASM tester can and cannot prove.
+
+Required fix:
+
+1. Document WASM tester as browser reachability/interop only.
+2. Add UI labels that distinguish browser-limited checks from sidecar tests.
+3. Add tests for unsupported schemes and invalid URL recovery.
+
+Closure checklist:
+
+- Docs stop overclaiming WASM test strength.
+- Changelog records WASM semantics cleanup.
+
+---
+
+## 8. P3 Findings
+
+### P3-1. Documentation status is stale and overconfident
+
+Examples:
+
+- `STATUS.md` claims latest full run `811 passed, 3 skipped`, but current local result after dev setup was `823 passed, 4 skipped`.
+- `STATUS.md` claims all workflows green, but five workflows do not parse.
+- `STATUS.md` and `CHANGELOG.md` claim zero TODO/FIXME despite generated debt matrices listing many markers.
+- `pyproject.toml` classifies the project as `Production/Stable`, which is not accurate for the current deployment/CI state.
+
+Required fix:
+
+1. Rewrite `STATUS.md` from executable evidence.
+2. Remove unsupported "production ready" claims until P0/P1 are closed.
+3. Make `STATUS.md` generated or checked by script.
+4. Update changelog after each remediation step.
+
+Remediation progress:
+
+- `STATUS.md` has been rewritten as a remediation status page and no longer claims final production readiness.
+- `pyproject.toml` now uses `Development Status :: 4 - Beta` during remediation instead of `Production/Stable`.
+- README TLS fragmentation language now matches the implementation state: disabled in current sing-box outputs.
+- `tests/unit/test_documentation_hygiene.py` now guards against reintroducing the stale Production/Stable and active TLS-fragmentation claims.
+
+Remaining:
+
+- Make `STATUS.md` generated or fully checked by script.
+- Continue removing stale readiness/metric claims from secondary docs and generated documentation.
+
+---
+
+### P3-2. Duplicate docs trees drift
+
+Evidence:
+
+- `docs/encyclopedia/...` and `docs/wiki/encyclopedia/...` contain matching topic paths but different content and different lengths.
+- 12 paired encyclopedia files differ.
+
+Impact:
+
+- Two documentation truths exist.
+- Updates can land in one tree and not the other.
+
+Required fix:
+
+1. Choose one canonical encyclopedia source.
+2. Generate the other if needed.
+3. Delete duplicate manually maintained copies.
+4. Add a docs-sync check.
+
+---
+
+### P3-3. Debt matrix artifacts contain machine-local absolute paths and self-reference
+
+Evidence:
+
+- `docs/DEBT_MATRIX.md` and `docs/debt_matrix.json` contain thousands of `D:/GitHub/ConfigStream/...` references.
+- The debt matrix includes entries about itself, causing self-amplifying noise.
+
+Impact:
+
+- The artifact is not portable.
+- The governance signal is noisy.
+- Windows/local path details leak into repo docs.
+
+Required fix:
+
+1. Generate repo-relative paths only.
+2. Exclude generated debt matrix files from their own scan.
+3. Separate test-only mocks from production TODOs.
+4. Regenerate the artifacts.
+
+---
+
+### P3-4. Zero-byte and placeholder assets remain
+
+Observed zero-byte tracked files:
+
+- `.nojekyll` - expected
+- `NL` - unclear
+- `US` - unclear
+- `frontend/assets/images/header-bg.png` - suspicious
+- `src/configstream/py.typed` - expected marker
+
+Required fix:
+
+1. Keep intentional marker files.
+2. Delete or replace `header-bg.png` if unused or broken.
+3. Explain or remove root `NL` and `US`.
+4. Add asset sanity checks for referenced images.
+
+---
+
+### P3-5. Optional external publishing scripts blur the zero-budget core
+
+Evidence:
+
+- Workflow and scripts include optional Pinata/IPFS, Hugging Face, Google Drive, and Telegram upload paths.
+- These are conditional on secrets, but docs sometimes present mirrors as part of the project capability.
+
+Impact:
+
+- Zero-budget core can be confused with optional external accounts/services.
+- Security and privacy posture becomes harder to audit.
+
+Required fix:
+
+1. Classify every external service as core, optional, experimental, or unsupported.
+2. Ensure core works without any paid or account-based service.
+3. Move optional mirror docs to a separate clearly labeled section.
+4. Add CI tests that core pipeline does not require optional secrets.
+
+---
+
+## 9. Confirmed Good / Partially Healthy Areas
+
+These items were verified as aligned with current project rules or at least materially improved:
+
+- Removed legacy files listed in AGENTS are absent:
+  - `pipeline_stages.py`
+  - `dns_prewarm.py`
+  - `quality/geo.py`
+  - `intelligence/washer.py`
+  - `tools/vwarp_tool.py`
+  - `fetcher_core/`
+  - `pipeline_core/`
+  - `output.py`
+  - `crypto/`
+  - `transport/`
+  - `workers/`
+- `BlocklistManager` and `GeoIPResolver` use locked singleton construction.
+- `pipeline.py` updates `DEFAULT_BLOCKLIST` before processing.
+- `pipeline.py` closes anomaly detector during shutdown.
+- `generators/split.py` caches base outbound generation and deep-copies for Sniper/Tank.
+- `tools/vwarp.py` is canonical and includes `VwarpTool.validate_warp_key`.
+- Vwarp constants are centralized.
+- Vwarp scan timeout is 60 seconds.
+- Washer WireGuard outbounds include `mtu: 1280`.
+- Go tester supports JSON array chain payloads.
+- Go batch tester tracks consecutive timeouts, disables after 5, and awaits restart.
+- VLESS, Trojan, and Shadowsocks parser credential fallback behavior is present.
+- Shadowsocks invalid method handling exists.
+- DNS cache passthrough into output generation exists.
+- Chosen output fallback from working to all proxies exists.
+- Country/protocol categorized outputs preserve all proxies.
+- `flake8`, `black --check`, and `mypy` pass locally.
+
+These positives do not cancel the P0/P1 blockers, but they matter: the codebase has real structure worth stabilizing.
+
+---
+
+## 10. Module-By-Module Audit Summary
+
+### 10.1 `.github/workflows`
+
+State:
+
+- Critical syntax failure in 5 workflows.
+- Broad permissions in `main.yml`.
+- Root container execution in `main.yml`.
+- Self-trigger risk via source optimization commits.
+- Deploy copies raw frontend and fails closed on sparse outputs.
+
+Next action:
+
+- Fix syntax first.
+- Add actionlint.
+- Redesign pipeline/deploy/reshard separation.
+
+### 10.2 Root config and package metadata
+
+State:
+
+- `pyproject.toml` says Production/Stable.
+- `package-lock.json` resolves vulnerable Vite/picomatch/postcss versions.
+- `requirements.txt` and `requirements-prod.txt` pin yanked `numpy==2.4.0`.
+- `validate_versions.py` is not Windows-safe.
+
+Next action:
+
+- Make metadata truthful.
+- Update vulnerable/yanked dependencies.
+- Add cross-platform script checks.
+
+### 10.3 Fetcher and HTTP client
+
+State:
+
+- Adaptive timeout and circuit breaker concepts exist.
+- Binary-safe streaming exists.
+- SSRF and redirect post-resolution filtering are incomplete.
+
+Next action:
+
+- Add strict source URL and redirect target validation.
+
+### 10.4 Producer/consumer/pipeline
+
+State:
+
+- Bounded queue exists.
+- Backpressure tracking exists.
+- Soft time limit exists.
+- Global test budget parameter appears unused.
+- Source-quality backpressure semantics need separation.
+
+Next action:
+
+- Define one concurrency/backpressure authority.
+- Ensure source quality reflects source behavior, not runner overload.
+
+### 10.5 Parsers
+
+State:
+
+- Robust credential fallback exists for key protocols.
+- Extraction returns configs plus drop stats.
+- Some log statements may expose snippets or endpoints.
+
+Next action:
+
+- Add parser log-sanitization tests.
+- Keep malformed-input fuzz tests.
+
+### 10.6 Testers
+
+State:
+
+- Go tester has important resilience features.
+- Python fallback exists.
+- Lab live test endpoint policy is too open.
+- WASM tester is browser-limited.
+
+Next action:
+
+- Separate sidecar test, Python fallback test, browser reachability test, and live lab test semantics.
+
+### 10.7 Washer/WARP/Vwarp
+
+State:
+
+- Canonical washer and Vwarp classes are in place.
+- WARP MTU invariant is present.
+- Shielded candidate accounting is wrong.
+
+Next action:
+
+- Separate candidate generation from verified revival.
+
+### 10.8 Output generation
+
+State:
+
+- Many outputs are generated.
+- DNS-safe/hardened pass-through exists.
+- Chosen fallback exists.
+- Metadata accounting has critical shielded-count inflation.
+- Public artifact manifest is missing.
+
+Next action:
+
+- Define output contracts with schemas and manifest.
+
+### 10.9 Server/API
+
+State:
+
+- Static file serving and route validation exist.
+- Diff route rate-limited.
+- Admin auth fail-open if key absent.
+- CORS too broad.
+- WebSocket lifecycle weak.
+- Lab live test endpoint too permissive.
+- Blocking reads inside async endpoints.
+
+Next action:
+
+- Harden production defaults.
+- Add API contract and abuse tests.
+
+### 10.10 Frontend
+
+State:
+
+- Multiple pages and modules exist.
+- Lab is feature-rich but split-brain.
+- Remote dependencies remain.
+- Placeholder key material remains.
+- Production deploy bypasses Vite output.
+- Static/no-JS degraded state is weak.
+
+Next action:
+
+- Make frontend local-first, build-driven, no-placeholder, and no-network smoke-tested.
+
+### 10.11 Docs
+
+State:
+
+- Extensive docs exist.
+- Many docs are stale, duplicated, or contradictory.
+- Generated debt artifacts are noisy.
+
+Next action:
+
+- Make docs generated/validated from canonical manifests where possible.
+
+### 10.12 Tests
+
+State:
+
+- Large test suite passes locally after dev deps.
+- Browser tests can skip.
+- Mypy does not check many untyped function bodies.
+- Workflow invalidity prevents trusting CI enforcement.
+
+Next action:
+
+- Repair CI.
+- Split required test profiles.
+- Add public artifact and deployed frontend smoke tests.
+
+### 10.13 Go and Rust
+
+State:
+
+- Go sidecar supports chain arrays and panic recovery.
+- WASM tester is constrained to browser JS/WebSocket.
+- Rust SS FFI is optional/fallback and checksum story is not production-clean.
+
+Next action:
+
+- Document runtime boundaries and harden optional native components.
+
+---
+
+## 11. Project-Document Claim Completion Program
+
+This audit is not only a bug-fix plan. It is also a plan to finish every capability the project documents claim. The rule is simple: **a claim is not allowed to remain in README, STATUS, wiki, SECURITY, docs, AGENTS, frontend copy, or changelog unless it is implemented, tested, deployed, and observable.**
+
+### 11.1 Claim Ledger
+
+Create a canonical `docs/CLAIM_LEDGER.md` or generated `docs/claim_ledger.json` before closing the audit.
+
+Each claim entry must include:
+
+- claim text
+- source file and line
+- product area
+- status: `complete`, `partial`, `planned`, `experimental`, `deprecated`, or `removed`
+- canonical owner file/module
+- tests proving it
+- frontend surface proving it, if user-facing
+- output artifact proving it, if artifact-facing
+- docs updated
+- changelog entry
+- cleanup/removal decision
+
+No claim may be closed as complete without proof across code, tests, docs, and public/deployed behavior.
+
+### 11.2 Claimed Capability Areas That Must Be Completed Or Removed
+
+The project documents currently claim or strongly imply the following capability groups. Each group must be finished completely or explicitly demoted.
+
+#### A. Streaming Pipeline Architecture
+
+Claimed capability:
+
+- producer/consumer streaming pipeline
+- bounded queues
+- adaptive timeouts
+- circuit breakers
+- fail-open/fail-safe source handling
+- time-limited batch execution
+- partial output generation
+- source quality tracking
+- dynamic resharding
+
+Completion requirements:
+
+1. Workflows must run the actual pipeline reliably.
+2. Queue pressure must not corrupt source-quality scoring.
+3. Time-limited runs must publish valid degraded outputs.
+4. Source quality and resharding must use run IDs and avoid races.
+5. Docs must explain exact failure modes and degraded behavior.
+
+Tests/proof:
+
+- overloaded queue test
+- source failure vs runner backpressure test
+- time-limited output test
+- reshard no-loop workflow test
+- generated `health.json` proof
+
+#### B. Protocol Support
+
+Claimed capability:
+
+- VLESS
+- VMess
+- Trojan
+- Shadowsocks
+- SSR
+- Hysteria
+- Hysteria2
+- TUIC
+- WireGuard
+- SSH
+- SOCKS/SOCKS4/SOCKS5
+- HTTP/HTTPS normalization
+- OpenVPN
+- other supported protocols in `proxy.schema.json`
+
+Completion requirements:
+
+1. Build one canonical protocol matrix.
+2. For every protocol, list parser support, validation support, tester support, Sing-box export support, Clash export support, Base64/plaintext support, frontend display support, and known limitations.
+3. Delete protocol claims with no parser/export/test path.
+4. Add malformed-input tests for every parser.
+5. Add golden output tests for every supported protocol.
+
+Tests/proof:
+
+- per-protocol parse fixtures
+- per-protocol conversion fixtures
+- per-protocol output artifacts
+- frontend render fixture for protocol badges/details
+
+#### C. Output Families
+
+Claimed capability:
+
+- `base64.txt`
+- `chosen/base64.txt`
+- `base64-dns-safe.txt`
+- DNS-hardened variants
+- `singbox.json`
+- `singbox-vpn.json`
+- `singbox-chains.json`
+- Clash YAML
+- protocol-specific files
+- side-product ZIPs
+- `proxies.json`
+- `metadata.json`
+- revived/washed/smart-chain/shielded outputs
+
+Completion requirements:
+
+1. Every output must be in `artifact_manifest.json`.
+2. Every output must have schema/format validation.
+3. Empty/degraded versions must be valid.
+4. Chosen outputs must be provably selected from a documented ranking rule.
+5. DNS-safe and DNS-hardened semantics must be tested and documented.
+6. Side-product ZIP contents must be manifest-listed and secret-scanned.
+
+Tests/proof:
+
+- golden output test
+- zero-working output test
+- DNS-safe/hardened differential test
+- ZIP content manifest test
+- deployed artifact smoke test
+
+#### D. WARP, Vwarp, Washing, Revival, Shielding, and Smart Chains
+
+Claimed capability:
+
+- WARP revival
+- Vwarp revival
+- MASQUE/AtomicNoize/Psiphon options
+- WARP shielding
+- smart chains
+- WARP-in-WARP / double WARP
+- preserved failed revived candidates
+
+Completion requirements:
+
+1. Separate candidate generation from verified success.
+2. Retest anything counted as working.
+3. Label failed-but-kept candidates honestly.
+4. Make Vwarp strategy support consistent across backend, frontend Lab, docs, and exports.
+5. Confirm all WARP WireGuard outbounds include `mtu: 1280`.
+6. Add safe fallback when Vwarp binary is absent.
+
+Tests/proof:
+
+- washer unit tests for each strategy
+- metric invariant tests
+- Lab strategy tests
+- generated chain schema tests
+- frontend labels for candidate vs verified chain
+
+#### E. Chain Laboratory
+
+Claimed capability:
+
+- five-step guided chain builder
+- proxy URI parsing
+- clean Cloudflare IP discovery
+- local/manual scan modes
+- WARP, Double WARP, Vwarp MASQUE, Vwarp AtomicNoize, WARP+Psiphon, Relay Chain, TLS Fragment, CDN Worker, Custom JSON
+- advanced evasion options
+- live or manual testing
+- exports: Sing-box JSON, Clash YAML, Xray JSON, Nekobox link, URI, QR, Python script, Bash script
+- offline lab support
+
+Completion requirements:
+
+1. Create canonical lab strategy registry.
+2. Every UI option must have a JS builder.
+3. Every builder must have export support.
+4. Every export must be tested.
+5. Live testing must be safe and production-disabled unless explicitly enabled.
+6. QR generation must be local/offline.
+7. Offline lab must match online lab capabilities or clearly document differences.
+
+Tests/proof:
+
+- one browser test per strategy
+- one export test per export format
+- no-network QR test
+- no-JS/manual fallback test
+- lab XSS test
+
+#### F. Frontend Public Site
+
+Claimed capability:
+
+- homepage dashboard
+- proxies table
+- analytics dashboard
+- wiki pages
+- about page
+- lab/offline lab
+- health/trust state
+- client-side verification
+- static hosting compatibility
+- IPFS/failover behavior
+
+Completion requirements:
+
+1. Production deploy path must match tested build path.
+2. Static/no-JS fallback must be useful.
+3. Public pages must never show unresolved placeholders.
+4. Public pages must show freshness and degraded reasons.
+5. Verification must either work or be removed as a claim.
+6. Remote runtime dependencies must be optional, not required.
+7. IPFS/failover claims must be proven or demoted.
+
+Tests/proof:
+
+- browser tests
+- no-JS snapshot tests
+- placeholder leak tests
+- deployed smoke tests
+- local-only asset test
+
+#### G. Security Claims
+
+Claimed capability:
+
+- sanitized logging
+- input validation
+- blocklist enforcement
+- no active scanning by default
+- admin auth
+- secure frontend verification
+- anti-abuse posture
+- safe defaults
+
+Completion requirements:
+
+1. Production admin endpoints fail closed.
+2. Logs are sanitization-tested.
+3. Fetcher blocks SSRF/private targets by default.
+4. Lab live testing is safe and bounded.
+5. CORS is explicit.
+6. Private IP allowance is documented as local/dev-only or made false by default.
+7. SECURITY.md must match runtime behavior exactly.
+
+Tests/proof:
+
+- security unit tests
+- route auth tests
+- CORS tests
+- SSRF redirect tests
+- log sanitization tests
+
+#### H. CI/CD, Zero Budget, and Publication
+
+Claimed capability:
+
+- GitHub Actions pipeline
+- GitHub Pages deployment
+- 17 batch shards
+- four-hour target batch timing
+- retest workflow
+- release workflow
+- optional mirrors
+- no paid required infrastructure
+
+Completion requirements:
+
+1. All workflows parse and run.
+2. Core pipeline works without optional paid/account services.
+3. Optional mirrors are clearly optional and never required for success.
+4. Artifact publication is deterministic and traceable.
+5. Batch count and timing docs match code.
+6. Retest and release workflows are real gates.
+
+Tests/proof:
+
+- workflow lint
+- workflow dry-run/check
+- artifact manifest
+- deploy smoke test
+- no-secret core CI test
+
+#### I. Documentation and Governance
+
+Claimed capability:
+
+- production-ready status
+- finalization reports
+- release hardening
+- zero TODO/FIXME
+- debt matrix
+- roadmap process
+- complete wiki
+
+Completion requirements:
+
+1. Remove production-ready claims until final gate passes.
+2. Regenerate debt matrix portably.
+3. Merge duplicate docs trees.
+4. Ensure docs reference no removed files.
+5. Validate docs against canonical manifests.
+
+Tests/proof:
+
+- docs drift tests
+- claim ledger
+- link/path tests
+- changelog validation
+
+### 11.3 Claim Closure Workflow
+
+For each claim group:
+
+1. Inventory all claims from docs/frontend/status/changelog.
+2. Pick one canonical owner.
+3. Implement missing behavior or remove/demote the claim.
+4. Add tests.
+5. Update frontend/backend/docs/schema parity.
+6. Delete deprecated code/docs.
+7. Update changelog.
+8. Run validation.
+9. Mark claim complete only after deployed/public proof exists.
+
+### 11.4 High-ROI Refinements To Add While Closing Claims
+
+These are not just nice-to-haves. They reduce future drift and make the project easier to keep production-ready.
+
+1. **Generate docs from manifests:** Use `artifact_manifest.json`, `protocol_matrix.json`, and `lab_strategies.json` to generate README tables and wiki matrices.
+2. **Single production health file:** Add `health.json` with status, freshness, degraded reasons, run ID, source commit, artifact counts, and validation results.
+3. **Public contract tests:** Add a test that runs output generation and validates every public artifact against schema/manifest.
+4. **No-placeholder gate:** Add a CI check for unresolved `{tokens}`, placeholder keys, example secrets, and stale production-ready claims.
+5. **No-network frontend mode:** Add a browser test where all non-same-origin requests are blocked and core pages still work.
+6. **Security posture test suite:** Add focused tests for CORS, admin auth, SSRF, log sanitization, lab endpoint policy, and private IP handling.
+7. **Docs drift bot/script:** Add a local script that reports docs claims not backed by a canonical manifest.
+8. **Run provenance everywhere:** Add `trace_id`, `source_commit`, `workflow_run_id`, and artifact hashes to metadata and frontend health display.
+9. **Strict dependency hygiene:** Gate `npm audit`, remove yanked Python pins, and separate core deps from optional mirror/lab extras.
+10. **Degraded-output UX:** Build first-class UI for stale, partial, time-limited, zero-working, and validation-failed states instead of generic loading/failure text.
+11. **Golden fixtures:** Maintain small deterministic fixtures for each protocol and each output family.
+12. **One cleanup script:** Add a maintenance script that checks generated artifacts, ignored outputs, duplicate docs, empty assets, and removed-path references.
+
+---
+
+## 12. Finalized Remediation Roadmap
+
+### Phase 0 - Freeze and Baseline
+
+Goal: stop changing product features until the project has a reliable baseline.
+
+Tasks:
+
+1. Freeze feature work.
+2. Create a remediation branch.
+3. Record current public artifact state.
+4. Record current local validation results.
+5. Mark `STATUS.md` as "remediation in progress, not production-ready".
+6. Add this audit report as the active source of truth.
+
+Parity check:
+
+- README, STATUS, SECURITY, wiki, and frontend banners must agree that remediation is active.
+
+Cleanup:
+
+- Delete old audit appendices only by replacing them with this single report.
+
+Changelog:
+
+- Add an entry for audit reset and production-readiness reclassification.
+
+### Phase 1 - Restore CI/CD Truth
+
+Goal: make automation parse, run, and enforce what docs claim.
+
+Tasks:
+
+1. Fix YAML indentation in all workflows.
+2. Add `actionlint`.
+3. Add workflow YAML parser script.
+4. Add pre-commit workflow lint hook.
+5. Repair `validate_versions.py` encoding issues.
+6. Re-run CI-equivalent local gates.
+7. Update workflow docs.
+
+Parity check:
+
+- `.github`, README, docs/wiki/project/05-devops.md, STATUS, and CHANGELOG all describe the same workflow set.
+
+Cleanup:
+
+- Remove any dead workflow env var blocks or unused secrets.
+
+Changelog:
+
+- List every workflow repaired and every validation command added.
+
+### Phase 2 - Stop Workflow Loops and Artifact Races
+
+Goal: remove self-triggering and mixed-artifact deployment.
+
+Tasks:
+
+1. Isolate resharding from full pipeline runs.
+2. Add `paths-ignore` or an equivalent safe trigger design.
+3. Add workflow concurrency groups for pipeline, retest, deploy, and mirror.
+4. Ensure deploy consumes exactly one artifact bundle from exactly one completed run.
+5. Add run ID, trace ID, and source commit SHA to metadata and manifest.
+
+Parity check:
+
+- Workflow files, metadata schema, frontend health display, and docs all expose the same run identity fields.
+
+Cleanup:
+
+- Delete old bot-commit behavior if no longer canonical.
+
+Changelog:
+
+- Document the new run ownership and concurrency model.
+
+### Phase 3 - Canonicalize Public Artifact Contracts
+
+Goal: one truth for every output.
+
+Tasks:
+
+1. Define `artifact_manifest.json`.
+2. Define or update `metadata.schema.json`.
+3. Define or update `proxy.schema.json`.
+4. Decide canonical `proxies.json` shape.
+5. Remove rejected shape from code and docs.
+6. Add schema validation in CI and deploy.
+7. Add public artifact smoke tests.
+
+Parity check:
+
+- Output generator, server routes, frontend fetchers, README, API docs, schemas, and tests all match.
+
+Cleanup:
+
+- Delete legacy schema branches and old docs examples.
+
+Changelog:
+
+- Mark any public schema breaking change clearly.
+
+### Phase 4 - Fix Metrics and Trust Signals
+
+Goal: make public numbers honest.
+
+Tasks:
+
+1. Fix shielded candidate accounting.
+2. Separate native, revived, shielded candidate, shielded verified, smart chain, and total counts.
+3. Make `success_rate` formula explicit.
+4. Add metric invariant tests.
+5. Update frontend analytics labels.
+6. Update docs.
+
+Parity check:
+
+- Backend stats, metadata schema, frontend charts, docs, and tests agree on every metric.
+
+Cleanup:
+
+- Delete old aliases that keep inflated semantics alive.
+
+Changelog:
+
+- Include before/after metric definitions.
+
+### Phase 5 - Harden Server Security Defaults
+
+Goal: production fails closed where it should.
+
+Tasks:
+
+1. Require admin auth in production.
+2. Tighten CORS.
+3. Add WebSocket heartbeat/idle/connection limits.
+4. Disable lab live test in production by default.
+5. Add payload-size and schema validation for lab live test.
+6. Replace blocking async route reads.
+7. Add SSRF-safe fetch/redirect validation.
+
+Parity check:
+
+- Runtime settings, `.env.example`, SECURITY.md, API docs, tests, and frontend behavior agree.
+
+Cleanup:
+
+- Delete permissive production fallbacks.
+
+Changelog:
+
+- Mark production security breaking changes.
+
+### Phase 6 - Make Frontend Production-Real
+
+Goal: deployed frontend equals tested frontend.
+
+Tasks:
+
+1. Choose Vite build or raw static, not both.
+2. If Vite is canonical, deploy `frontend-dist`.
+3. If raw static is canonical, remove Vite build claims.
+4. Inject public config through a generated file.
+5. Fail build on placeholder keys.
+6. Make frontend local-first and self-host critical assets.
+7. Remove external QR service.
+8. Fix Lab XSS surfaces.
+9. Add no-JS/degraded-state tests.
+10. Add browser tests for every lab strategy.
+
+Parity check:
+
+- Deployed HTML/JS, build config, workflow, docs, and tests use the same frontend production path.
+
+Cleanup:
+
+- Delete unused build path, unused scripts, and placeholder config files.
+
+Changelog:
+
+- Include production frontend path and deleted legacy path.
+
+### Phase 7 - Clean Docs and Governance
+
+Goal: docs become accurate and maintainable.
+
+Tasks:
+
+1. Rewrite `STATUS.md` from real gates.
+2. Update README output tables.
+3. Update SECURITY.md to match runtime defaults.
+4. Merge or generate duplicate encyclopedia docs.
+5. Regenerate debt matrix with repo-relative paths.
+6. Exclude generated artifacts from self-scans.
+7. Normalize lab strategy count everywhere.
+8. Remove stale module references.
+
+Parity check:
+
+- Docs must be checked by automated tests against canonical manifests.
+
+Cleanup:
+
+- Delete duplicate docs tree if generation replaces it.
+
+Changelog:
+
+- Include docs deleted, generated, or canonicalized.
+
+### Phase 8 - Dependency and Supply-Chain Cleanup
+
+Goal: dependency state matches production claims.
+
+Tasks:
+
+1. Update Vite/picomatch/postcss to patched versions.
+2. Replace yanked `numpy==2.4.0`.
+3. Add `npm audit` gate with documented exceptions only.
+4. Add Python dependency audit or lock review.
+5. Pin GitHub Actions by version and consider SHA pinning for critical actions.
+6. Review optional external service scripts.
+
+Parity check:
+
+- package files, requirements, docs, CI, and changelog all state the same dependency policy.
+
+Cleanup:
+
+- Remove unused deps and stale lock entries.
+
+Changelog:
+
+- Include security advisories fixed and dependency changes.
+
+### Phase 9 - Complete Documented Claims And High-ROI Refinements
+
+Goal: make every project-document claim true, observable, and maintainable.
+
+Tasks:
+
+1. Create the claim ledger.
+2. Inventory README, STATUS, SECURITY, wiki, roadmap, changelog, AGENTS, and frontend claim text.
+3. Complete or remove each claim.
+4. Add canonical manifests for protocols, artifacts, lab strategies, and production health.
+5. Generate docs tables from those manifests.
+6. Add no-placeholder, no-network frontend, public contract, and security posture tests.
+7. Delete every stale compatibility branch after each claim is migrated.
+8. Update changelog after each claim group is closed.
+
+Parity check:
+
+- Claim ledger, code, tests, docs, frontend, schemas, workflows, and deployed artifacts agree.
+
+Cleanup:
+
+- Remove every demoted/deprecated claim from public docs and UI.
+
+Changelog:
+
+- Include one entry per claim group completed or removed.
+
+### Phase 10 - Final Production Readiness Gate
+
+Goal: only mark ready when all public surfaces prove it.
+
+Required final commands:
+
+```text
+python -m compileall -q src scripts tests
+python scripts/validate_versions.py
+python -m flake8 src tests
+python -m black --check .
+python -m mypy .
+pytest
+npm ci
+npm audit
+npm run build
+workflow YAML parse check
+actionlint
+artifact schema validation
+frontend browser tests
+deployed public smoke test
+```
+
+Required final public checks:
+
+- `metadata.json` validates.
+- `artifact_manifest.json` validates.
+- `health.json` exists and is current.
+- universal, chosen, DNS-safe, DNS-hardened, Clash, Sing-box, chain, and side-product outputs are present or explicitly degraded.
+- frontend has no unresolved placeholders.
+- no placeholder key material is deployed.
+- public docs do not claim stale test counts.
+
+Final status rule:
+
+- Only after this phase may `STATUS.md`, README, pyproject classifier, and public homepage say production-ready.
+
+---
+
+## 13. Detailed Implementation Checklists
+
+### 13.1 Workflow Checklist
+
+- Parse every YAML file.
+- Run `actionlint`.
+- Verify all `env:` indentation.
+- Verify triggers.
+- Verify permissions are least-privilege.
+- Verify no workflow can self-trigger a full expensive run accidentally.
+- Verify `concurrency` prevents overlapping deploys.
+- Verify deploy consumes one artifact generation.
+- Verify CI gates are required.
+- Verify Pages deploy has post-deploy smoke tests.
+
+### 13.2 Backend Checklist
+
+- No blocking disk reads in async endpoints for large files.
+- Admin endpoints fail closed in production.
+- CORS is explicit and minimal.
+- Lab live test is disabled or protected in production.
+- Fetcher validates final resolved targets after redirects.
+- Logs sanitize endpoints, credentials, UUIDs, tokens, and configs.
+- Metrics do not count untested candidates as working.
+- Shutdown closes DB connections, subprocesses, and background tasks.
+- Concurrency ownership is documented and tested.
+
+### 13.3 Frontend Checklist
+
+- Production deploy uses the same frontend build that CI tests.
+- No placeholder keys.
+- No unresolved template tokens.
+- No remote dependency required for core UI.
+- No user data sent to external QR or analytics services.
+- Untrusted content never goes into `innerHTML`.
+- Lab strategy options are generated from canonical data.
+- No-JS fallback shows useful links, freshness, and degraded state.
+- Browser tests cover homepage, proxies page, analytics, wiki, lab, and offline lab.
+
+### 13.4 Output Contract Checklist
+
+- `metadata.json` schema-valid.
+- `proxies.json` schema-valid.
+- `artifact_manifest.json` exists.
+- `health.json` exists.
+- All output counts are internally consistent.
+- Chosen output selection is documented.
+- DNS-safe and DNS-hardened behavior is documented and tested.
+- Empty/degraded outputs are valid and labeled.
+- Side-product ZIP content is manifest-listed and secret-scanned.
+
+### 13.5 Docs Checklist
+
+- README matches implementation.
+- SECURITY.md matches runtime defaults.
+- STATUS.md is evidence-based.
+- CHANGELOG.md updated after every step.
+- Wiki API docs match schemas.
+- Lab strategy count matches UI.
+- Removed files are not referenced.
+- Generated docs use repo-relative paths.
+- Duplicate docs are generated from one source or deleted.
+
+### 13.6 Cleanup Checklist
+
+- Delete legacy files after migration.
+- Delete old aliases.
+- Delete duplicate helpers.
+- Delete stale docs.
+- Delete unused config flags.
+- Delete unused frontend code paths.
+- Delete old schema branches.
+- Delete ignored build output before commit unless intentionally tracked.
+- Verify `git status --short` is clean except intended changes.
+
+---
+
+## 14. Final Production-Ready Definition
+
+ConfigStream is production-ready only when:
+
+1. All workflows parse and required checks run.
+2. CI cannot silently skip core validation.
+3. Scheduled workflows cannot self-trigger loops.
+4. Deploy cannot publish mixed artifacts.
+5. Public artifacts are current, schema-valid, and manifest-described.
+6. Degraded output is explicit, valid, and useful.
+7. Metadata counts are honest.
+8. Security defaults fail closed in production.
+9. Frontend deploy path is the tested build path.
+10. Frontend has no placeholder keys or unresolved template tokens.
+11. No sensitive user payload is sent to third-party QR/runtime services.
+12. Docs, schemas, frontend, backend, tests, and workflows all share one truth.
+13. No deprecated compatibility layer remains after cleanup.
+14. Changelog records every remediation step.
+
+Until then, the correct public status is:
+
+```text
+Remediation in progress. Not production-ready. Public artifacts may be stale or degraded.
+```

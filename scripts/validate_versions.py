@@ -1,47 +1,44 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-import sys
 import re
+import sys
 from pathlib import Path
 
+ENCODING = "utf-8"
 
-def main():
+
+def main() -> None:
     root = Path(".")
 
-    # 1. Get Source of Truth (pyproject.toml)
-    pyproject = (root / "pyproject.toml").read_text()
+    pyproject = (root / "pyproject.toml").read_text(encoding=ENCODING)
     version_match = re.search(r'version = "(.*?)"', pyproject)
     if not version_match:
-        print("❌ Could not find version in pyproject.toml")
+        print("ERROR: Could not find version in pyproject.toml")
         sys.exit(1)
     truth_version = version_match.group(1)
-    print(f"🔹 Target Version: {truth_version}")
+    print(f"Target Version: {truth_version}")
 
-    errors = []
+    errors: list[str] = []
 
-    # 2. Check Changelog
-    changelog = (root / "CHANGELOG.md").read_text()
+    changelog = (root / "CHANGELOG.md").read_text(encoding=ENCODING)
     if f"[{truth_version}]" not in changelog:
         errors.append(f"CHANGELOG.md missing entry for [{truth_version}]")
 
-    # 3. Check Frontend Config
-    js_config = (root / "frontend/assets/js/cache-config.js").read_text()
+    js_config = (root / "frontend/assets/js/cache-config.js").read_text(
+        encoding=ENCODING
+    )
     if f"VERSION: 'v{truth_version}'" not in js_config:
         errors.append(
-            f"frontend/assets/js/cache-config.js version mismatch. Expected 'v{truth_version}'"
+            f"frontend/assets/js/cache-config.js version mismatch. "
+            f"Expected 'v{truth_version}'"
         )
 
-    # 4. Check Init
-    # init_py = (root / "src/configstream/__init__.py").read_text()
-    # Note: init uses importlib, so we check if the fallback matches or if it's dynamic
-    # Ideally, we don't hardcode version in init.py, so this check is soft.
-
     if errors:
-        print("❌ Version Validation Failed:")
-        for e in errors:
-            print(f"  - {e}")
+        print("ERROR: Version Validation Failed:")
+        for error in errors:
+            print(f"  - {error}")
         sys.exit(1)
 
-    print("✅ All versions synchronized.")
+    print("OK: All versions synchronized.")
 
 
 if __name__ == "__main__":

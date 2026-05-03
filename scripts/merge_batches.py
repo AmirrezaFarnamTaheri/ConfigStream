@@ -20,6 +20,7 @@ from configstream.filtering import (
 from configstream.history.tracker import ProxyHistoryTracker
 from configstream.models import Proxy
 from configstream import output_handler
+from configstream.output_logic import write_public_artifact_contract
 from configstream.sorter import sort_proxies_pareto
 from configstream.pipeline_stats import PipelineStats
 from configstream.quality.storage import QualityStorage
@@ -427,6 +428,7 @@ def merge_batches(batch_glob: str, output_dir: str) -> None:
                     pass
 
         _merge_logs(output_dir)
+        write_public_artifact_contract(output_path)
         return
 
     all_proxies: List[Proxy] = []
@@ -526,6 +528,7 @@ def merge_batches(batch_glob: str, output_dir: str) -> None:
             pass
 
     _merge_logs(output_dir)
+    write_public_artifact_contract(output_path)
     logger.info(f"Merged {len(all_proxies)} proxies into {output_dir}.")
 
 

@@ -91,7 +91,7 @@ function updateStats(data) {
     const totalConfigs = data.total_unique_candidates;
     update('totalConfigs', formatNum(totalConfigs));
 
-    // total_working = native + shielded (total usable); total_valid_proxies = native only
+    // total_working is retested working proxies only; shielded_count is a candidate count.
     const workingCount = data.total_working ?? data.total_valid_proxies ?? data.working ?? 0;
     update('workingConfigs', formatNum(workingCount));
 

@@ -191,6 +191,14 @@
       "type": "integer",
       "minimum": 0
     },
+    "shielded_candidate_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "shielded_verified_count": {
+      "type": "integer",
+      "minimum": 0
+    },
     "evasion_utls_enabled": {
       "type": "integer",
       "minimum": 0

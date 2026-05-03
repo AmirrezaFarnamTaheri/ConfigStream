@@ -14,7 +14,7 @@ authors = [
 ]
 keywords = ["vpn", "v2ray", "clash", "sing-box", "proxy", "aggregator", "asyncio"]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Topic :: Internet :: Proxy Servers",
     "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",

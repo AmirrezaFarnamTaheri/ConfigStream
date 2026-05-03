@@ -1,173 +1,60 @@
 # ConfigStream Project Status
 
-**Last Updated**: 2026-02-21
-**Version**: v3.0.2
-**Status**: ✅ **PRODUCTION READY**
+**Last updated:** 2026-05-04
+**Version:** v3.0.2
+**Status:** Remediation in progress. Not production-ready and not ready to publish as a final public release.
 
----
+The active source of truth is [ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md](ConfigStream_Master_Audit_Report%20-%20Main%20SOURCE%20OF%20TRUTH.md). That report supersedes older status, finalization, and roadmap claims when they conflict.
 
-## 📊 Overall Health: **EXCELLENT** ✅
+## Current Verdict
 
-| Category | Score | Grade | Status |
-|----------|-------|-------|--------|
-| **Production Readiness** | 98% | A+ | ✅ Deployed |
-| **Security** | 90% | A | ✅ Audited |
-| **Code Quality** | 98% | A+ | ✅ Excellent |
-| **Documentation** | 99% | A+ | ✅ Complete |
-| **Test Coverage** | 92% | A | ✅ Strong |
-| **Performance** | 90% | A | ✅ Optimized |
-| **Maintainability** | 95% | A | ✅ High |
+ConfigStream has a substantial architecture and a large test base, but the repository is currently being brought back into a single, verifiable production contract. Until the P0/P1 audit items are closed, public-facing claims must be treated as remediation targets rather than completed guarantees.
 
-**Overall Score**: **A (95/100)**
+Current blockers:
 
----
+- Workflow syntax was repaired locally, but workflow behavior still needs full CI validation.
+- Public artifact contracts need canonical schemas and deploy smoke tests.
+- Runtime metrics, frontend labels, schemas, and docs still need parity work.
+- Security defaults for admin APIs, CORS, lab testing, fetch redirects, and degraded public output still need hardening.
+- Frontend deployment must be made canonical: either tested Vite output or raw static output, not both as competing truths.
+- Legacy, duplicate, and stale documents still need cleanup after each implementation step.
 
-## 🚀 Current Release Status
+## Recently Restored
 
-### v3.0.2 (2026-02-14)
-- **Release Date**: February 14, 2026
-- **Status**: ✅ Production Deployed
-- **Deployment**: GitHub Pages + Actions
-- **Uptime**: 99.8%
-- **Update Frequency**: Every 4 hours (automated)
+- GitHub workflow YAML now parses locally through `scripts/validate_workflows.py`.
+- Workflow validation is wired into CI and pre-commit.
+- Source reshard commits are guarded by `paths-ignore` checks to reduce self-trigger loops.
+- Pages artifact validation is centralized in `scripts/validate_pages_artifact.py`.
+- Output generation now writes `health.json` and `artifact_manifest.json` so public deployments have a canonical status file and file inventory.
+- Pages validation now checks manifest file coverage, file sizes, SHA-256 hashes, manifest totals, metadata required keys, proxy array shape, and health required fields.
+- Pages deployment refreshes the public contract after all deploy-time mutations so the manifest describes the exact uploaded artifact.
+- `scripts/validate_versions.py` now uses explicit UTF-8 reads and ASCII-safe output for Windows compatibility.
+- `pyproject.toml` now classifies the project as Beta during remediation instead of Production/Stable.
+- README TLS fragmentation language now matches implementation: fragmentation is disabled in current sing-box outputs.
+- Shielded chain candidates no longer inflate `total_working`; metadata now exposes `shielded_candidate_count` and `shielded_verified_count`.
+- Production admin update notifications now fail closed unless `ADMIN_API_KEY` is configured and supplied; the endpoint is rate-limited, and server startup fails in production if the key is absent.
 
-### Key Metrics
-- **Active Proxies**: 10,000+ (Verified)
-- **Source Count**: 110+ Sources (Expanded)
-- **Supported Protocols**: 20+ protocols (VLESS, VMess, Trojan, SS, SSR, Hysteria2, TUIC, WireGuard, SSH, SOCKS, HTTP, Husi, AnyTLS, etc.)
-- **Test Success Rate**: 95%+
-- **Pipeline Success Rate**: 99%+
+## Required Closure Rule
 
----
+After every change, verify and update all affected surfaces:
 
-## 🔧 Build Status
+- backend implementation
+- frontend implementation
+- schemas and generated artifacts
+- tests and CI workflows
+- README, wiki docs, SECURITY, STATUS, and CHANGELOG
+- cleanup of deprecated files, old aliases, unused fallbacks, and stale references
 
-### CI/CD Pipeline Status
-- ✅ **Main Pipeline**: Passing (All workflows green)
-- ✅ **Docker Build**: Successful
-- ✅ **Frontend Deploy**: Active on GitHub Pages
-- ✅ **Security Checks**: Passed (Latest: 2026-02-08)
+No task is closed while any surface still documents or serves the old contract.
 
-### Latest Builds
-| Workflow | Status | Last Run |
-|----------|--------|----------|
-| Config's Stream | ✅ Passing | Auto (every 4h) |
-| Docker Build | ✅ Passing | On push |
-| GitHub Pages Deploy | ✅ Active | On pipeline success |
+## Validation Snapshot
 
----
+Latest local validation performed on 2026-05-04:
 
-## 🔐 Security Status
+- `python scripts/validate_workflows.py`: passed for 6 workflow files
+- `python scripts/validate_versions.py`: passed
+- `pytest -q tests/unit/test_output.py tests/unit/test_validate_pages_artifact.py tests/unit/test_analytics_output.py tests/unit/test_merge_batches.py`: 18 passed
+- `pytest -q tests/unit/test_documentation_hygiene.py tests/unit/test_validate_pages_artifact.py tests/unit/test_output.py tests/unit/test_validate_workflows.py tests/unit/test_validate_versions.py`: 22 passed
+- `pytest -q tests/unit/test_server.py tests/unit/test_server_new.py`: 23 passed
 
-### Security Audit (2026-02-08)
-- **Audit Type**: Full backend logic audit & source expansion
-- **Files Audited**: 900+ files
-- **Methodology**: Automated linting/typing + Manual logic review
-
-### Security Score: **A (90/100)** ✅
-
-**Issues Found & Resolved:**
-- **Parsing**: Fixed potential injection in malformed URLs.
-- **SOCKS**: Fixed protocol misidentification (Security/Privacy improvement).
-- **Dependencies**: Verified all dependencies are secure.
-
----
-
-## 📈 Code Quality Metrics
-
-### Static Analysis
-- **Flake8**: ✅ ZERO production errors
-- **Mypy**: ✅ 100% type check pass rate
-- **Black**: ✅ 100% formatted
-
-### Test Coverage
-- **Total Tests**: 814 tests (unit + e2e + scenario + fuzz)
-- **Latest Full Run**: 811 passed, 3 skipped
-- **Skip Reason**: Environment loopback restrictions for frontend E2E
-
----
-
-## ⚡ Performance Metrics
-
-### Pipeline Performance
-- **Batch Execution Time**: Optimized (Dynamic Resharding enabled)
-- **Proxy Testing**: 50 concurrent workers
-- **Throughput**: ~150 proxies/minute
-- **Resource Usage**: Optimized memory footprint
-
----
-
-## 🗺️ Roadmap Progress
-
-### Completed ✅ (v2.2.0)
-- [x] Comprehensive Backend Audit
-- [x] Dynamic Source Resharding (17 optimized batches)
-- [x] Massive Source Expansion (100+ new sources integrated)
-- [x] Fix SOCKS proxy handling (Protocol inference)
-- [x] Fix "200 OK" empty fetch handling
-- [x] Integrate reliability scoring into ranking
-- [x] Thread-safe stats collection
-- [x] Full test suite pass (Unit + Advanced)
-
-### Completed ✅ (v2.5.0)
-- [x] Laboratory page — 5-step chain builder, 5 chain strategies, 8 export formats, network diagnosis, Layer 1 support
-- [x] Offline tools: `tools/lab-scanner.py` (Python diagnostic), `tools/lab-runner.sh` (Bash runner), `frontend/lab-offline.html`
-- [x] Shared utility consolidation (`utils/net.py`)
-- [x] Dead code removal (`vwarp_proc`, duplicate functions)
-- [x] MD5→SHA256 hashing fix in consumer
-- [x] Parameter shadowing fix in server.py
-- [x] SPDX header ordering fixes
-- [x] Go tester import formatting fix
-- [x] Frontend nav consistency (Lab link on all 6 pages)
-- [x] Pre-existing test fixes (health endpoint, DNS profiles, server coverage)
-
-### Completed ✅ (v3.0.0)
-- [x] Multi-core export audit (Sing-box, Xray, Clash/Mihomo, Nekobox)
-- [x] Lab exports: full transport (ws/grpc/h2/httpupgrade), Reality, uTLS, ALPN
-- [x] Xray WireGuard native support in lab export
-- [x] Per-protocol URI subscription files (`protocols/*.txt`)
-- [x] Revived proxy URIs included in base64/plaintext subscriptions
-- [x] Trojan ws/grpc transport in Clash converter
-- [x] WireGuard mtu:1280 default across all converters
-- [x] Surge/Loon chain export broadened to all chain types
-- [x] Frontend download selector: chains + side products
-- [x] 31 new artifact consistency tests
-
-### Completed ✅ (v3.0.1 - Refactoring Pass)
-- [x] Consolidated 12 redundant files (pipeline_stages.py, dns_prewarm.py, fetcher_core/, pipeline_core/, output.py, crypto/, transport/, workers/, etc.)
-- [x] Removed all `_parse_*` aliases from parsers/__init__.py
-- [x] Consolidated pipeline.py error handling with `_cancel_all` helper
-- [x] Extracted `_prune_dangling_detours` helper in output_logic.py
-- [x] Updated all imports to use canonical module paths
-- [x] Updated AGENTS.md with Module Layout & Removed Files sections
-
-### Completed ✅ (v3.0.2 - Deep Review & Simplification)
-- [x] Fixed silent `orjson.dumps()` bug in consumer fingerprint save
-- [x] Fixed dead HTML detection block in extraction.py (was `pass`, now active)
-- [x] Removed dead code: `is_hex()`, `validate_proxy` alias, `total_sources` alias, unreachable regex fallback
-- [x] Extracted 6 shared helpers to eliminate duplication (~150 lines saved)
-- [x] Simplified triplicated exception handlers in quality/storage.py and redundant exception tuples in go.py
-- [x] Replaced if/elif chains with dict lookups (adapters.py, singbox.py)
-- [x] Flattened parser alias chains and merged duplicate transport blocks
-- [x] Cleaned stale labels across 10+ files
-- [x] Updated all documentation (AGENTS.md, CHANGELOG.md, CONTRIBUTING.md, STATUS.md)
-- [x] Full pyflakes scan clean, zero TODOs/FIXMEs, latest full suite 811 passed / 3 skipped
-
-### In Progress
-- [ ] Real-time API rate limiting
-- [ ] Further frontend bundle optimization
-
----
-
-## 🎯 Quality Gates
-
-### Production Deployment Gates
-All gates must pass before production deployment:
-
-- ✅ **All required tests passing** (latest full suite: 811 passed, 3 skipped)
-- ✅ **Flake8 clean** (0 production errors)
-- ✅ **Mypy passing** (100%)
-- ✅ **Security audit completed**
-- ✅ **Documentation updated** (README, CHANGELOG, STATUS.md)
-
-### Current Status: ✅ **ALL GATES PASSED**
+The full production gate remains open until the complete audit roadmap is implemented and the full local/CI/deploy verification matrix passes.
