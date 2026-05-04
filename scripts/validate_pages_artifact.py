@@ -151,6 +151,74 @@ def _required_schema_keys(schema_name: str) -> set[str]:
     return {str(item) for item in required if isinstance(item, str)}
 
 
+def _schema_payload(schema_name: str) -> dict:
+    payload, error = _load_json(SCHEMA_DIR / schema_name)
+    if error or not isinstance(payload, dict):
+        return {}
+    return payload
+
+
+def _type_matches(value: object, expected_type: object) -> bool:
+    expected = expected_type if isinstance(expected_type, list) else [expected_type]
+    for item in expected:
+        if item == "null" and value is None:
+            return True
+        if item == "boolean" and isinstance(value, bool):
+            return True
+        if item == "integer" and isinstance(value, int) and not isinstance(value, bool):
+            return True
+        if (
+            item == "number"
+            and isinstance(value, (int, float))
+            and not isinstance(value, bool)
+        ):
+            return True
+        if item == "string" and isinstance(value, str):
+            return True
+        if item == "array" and isinstance(value, list):
+            return True
+        if item == "object" and isinstance(value, dict):
+            return True
+    return False
+
+
+def _validate_schema_object(
+    payload: object, schema_name: str, file_name: str
+) -> list[str]:
+    errors = _validate_required_keys(payload, schema_name, file_name)
+    if not isinstance(payload, dict):
+        return errors
+    schema = _schema_payload(schema_name)
+    properties = schema.get("properties", {})
+    if not isinstance(properties, dict):
+        return errors
+
+    if schema.get("additionalProperties") is False:
+        allowed = {str(key) for key in properties.keys()}
+        for key in sorted(set(payload.keys()) - allowed):
+            errors.append(f"{file_name} contains unknown schema key: {key}")
+
+    for key, value in payload.items():
+        rule = properties.get(key)
+        if not isinstance(rule, dict):
+            continue
+        expected_type = rule.get("type")
+        if expected_type is not None and not _type_matches(value, expected_type):
+            errors.append(f"{file_name} {key} has invalid type")
+            continue
+        enum = rule.get("enum")
+        if isinstance(enum, list) and value not in enum:
+            errors.append(f"{file_name} {key} has invalid value")
+        minimum = rule.get("minimum")
+        if (
+            isinstance(minimum, (int, float))
+            and isinstance(value, (int, float))
+            and value < minimum
+        ):
+            errors.append(f"{file_name} {key} must be >= {minimum}")
+    return errors
+
+
 def _validate_required_keys(
     payload: object, schema_name: str, file_name: str
 ) -> list[str]:
@@ -163,7 +231,7 @@ def _validate_required_keys(
 
 
 def _validate_manifest(root: Path, manifest: object) -> list[str]:
-    errors = _validate_required_keys(
+    errors = _validate_schema_object(
         manifest, "artifact_manifest.schema.json", "artifact_manifest.json"
     )
     if not isinstance(manifest, dict):
@@ -223,7 +291,7 @@ def _validate_manifest(root: Path, manifest: object) -> list[str]:
 
 
 def _validate_health(health: object) -> list[str]:
-    errors = _validate_required_keys(health, "health.schema.json", "health.json")
+    errors = _validate_schema_object(health, "health.schema.json", "health.json")
     if not isinstance(health, dict):
         return errors
     if health.get("status") not in {"ok", "degraded"}:
@@ -237,7 +305,7 @@ def _validate_health(health: object) -> list[str]:
 
 
 def _validate_metadata(metadata: object) -> list[str]:
-    errors = _validate_required_keys(metadata, "metadata.schema.json", "metadata.json")
+    errors = _validate_schema_object(metadata, "metadata.schema.json", "metadata.json")
     if not isinstance(metadata, dict):
         return errors
     for key in ("total_working", "total_tested", "total_proxies"):
@@ -263,6 +331,21 @@ def _validate_proxies(payload: object, file_name: str) -> list[str]:
                 f"{file_name}[{index}] missing required proxy keys: "
                 f"{', '.join(sorted(missing))}"
             )
+    return errors
+
+
+def _validate_api_alias_parity(root: Path) -> list[str]:
+    errors: list[str] = []
+    for canonical, alias in (
+        ("proxies.json", "api/proxies"),
+        ("metadata.json", "api/stats"),
+    ):
+        canonical_path = root / canonical
+        alias_path = root / alias
+        if not canonical_path.is_file() or not alias_path.is_file():
+            continue
+        if _sha256(canonical_path) != _sha256(alias_path):
+            errors.append(f"{alias} must match {canonical}")
     return errors
 
 
@@ -415,6 +498,8 @@ def validate_pages_artifact(root: Path) -> list[str]:
         api_proxies, error = _load_json(api_proxies_path)
         if not error:
             errors.extend(_validate_proxies(api_proxies, "api/proxies"))
+
+    errors.extend(_validate_api_alias_parity(root))
 
     return errors
 

@@ -36,6 +36,16 @@ async def test_fetch_from_source_invalid_url():
 
 
 @pytest.mark.asyncio
+async def test_fetch_from_source_rejects_private_source_url():
+    client = AsyncMock(spec=httpx.AsyncClient)
+    result = await fetch_from_source(client, "http://127.0.0.1/sub")
+
+    assert result.success is False
+    assert "non-global" in result.error
+    client.stream.assert_not_called()
+
+
+@pytest.mark.asyncio
 async def test_fetch_from_source_success():
     client = AsyncMock(spec=httpx.AsyncClient)
     mock_response = AsyncMock()
@@ -79,6 +89,58 @@ async def test_fetch_from_source_rate_limit():
     assert not result.success
     assert "Rate limited" in result.error
     assert mock_sleep.call_count > 0
+
+
+@pytest.mark.asyncio
+async def test_fetch_from_source_follows_safe_redirect(respx_mock):
+    source = "https://example.com/start"
+    target = "https://example.org/final"
+    respx_mock.get(source).mock(
+        return_value=httpx.Response(302, headers={"Location": target})
+    )
+    respx_mock.get(target).mock(return_value=httpx.Response(200, text="redirected"))
+
+    async with httpx.AsyncClient() as client:
+        result = await fetch_from_source(client, source)
+
+    assert result.success is True
+    assert result.content == "redirected"
+
+
+@pytest.mark.asyncio
+async def test_fetch_from_source_rejects_private_redirect(respx_mock):
+    source = "https://example.com/start"
+    respx_mock.get(source).mock(
+        return_value=httpx.Response(
+            302,
+            headers={"Location": "http://127.0.0.1/admin"},
+        )
+    )
+
+    async with httpx.AsyncClient() as client:
+        result = await fetch_from_source(client, source)
+
+    assert result.success is False
+    assert "Unsafe redirect target" in result.error
+
+
+@pytest.mark.asyncio
+async def test_fetch_from_source_limits_redirect_depth(respx_mock):
+    settings = AppSettings()
+    settings.FETCH_MAX_REDIRECTS = 0
+    source = "https://example.com/start"
+    respx_mock.get(source).mock(
+        return_value=httpx.Response(
+            302,
+            headers={"Location": "https://example.org/final"},
+        )
+    )
+
+    async with httpx.AsyncClient() as client:
+        result = await fetch_from_source(client, source, app_settings=settings)
+
+    assert result.success is False
+    assert result.error == "Too many redirects"
 
 
 @pytest.mark.asyncio

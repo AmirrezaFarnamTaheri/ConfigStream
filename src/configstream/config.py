@@ -195,11 +195,20 @@ class AppSettings(BaseSettings):
     ALLOWED_ORIGINS: str = (
         "http://localhost:8000,http://localhost:3000,http://127.0.0.1:8000"
     )
-    ALLOWED_ORIGIN_REGEX: str = r"https://.*\.github\.io"
+    ALLOWED_ORIGIN_REGEX: str = ""
+    CORS_ALLOW_CREDENTIALS: bool = False
+    WS_MAX_CONNECTIONS: int = 100
+    WS_IDLE_TIMEOUT_SECONDS: float = 60.0
+    WS_SEND_TIMEOUT_SECONDS: float = 5.0
+    LAB_LIVE_TEST_ENABLED: bool = False
+    LAB_TEST_TIMEOUT_SECONDS: float = 15.0
+    LAB_MAX_CONFIG_BYTES: int = 65536
     ENVIRONMENT: str = "production"
 
     # Fetcher
     MAX_RESPONSE_SIZE: int = 0
+    FETCH_MAX_REDIRECTS: int = 5
+    FETCH_BLOCK_PRIVATE_NETWORKS: bool = True
     QUALITY_DB_PATH: str = "data/source_quality.db"
     SOURCE_PROBATION_FAILURES: int = 3
     SOURCE_DEAD_FAILURES: int = 10

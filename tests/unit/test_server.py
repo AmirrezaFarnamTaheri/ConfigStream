@@ -7,8 +7,35 @@ import sniffio
 from pathlib import Path
 from starlette.responses import Response
 import pytest
+import configstream.server as server_module
 from configstream.config import AppSettings
-from configstream.server import app, limiter, _validate_admin_startup_security
+from configstream.server import (
+    ConnectionManager,
+    app,
+    limiter,
+    _split_allowed_origins,
+    _validate_admin_startup_security,
+    _validate_cors_startup_security,
+)
+
+
+class FakeWebSocket:
+    def __init__(self, fail_send: bool = False):
+        self.accepted = False
+        self.closed_code = None
+        self.sent_messages = []
+        self.fail_send = fail_send
+
+    async def accept(self):
+        self.accepted = True
+
+    async def close(self, code=None):
+        self.closed_code = code
+
+    async def send_json(self, message):
+        if self.fail_send:
+            raise RuntimeError("send failed")
+        self.sent_messages.append(message)
 
 
 @pytest.fixture
@@ -110,6 +137,66 @@ async def test_get_stats(mock_output_dir, async_client):
         assert response.status_code == 200
         data = response.json()
         assert data["total_proxies"] == 100
+
+
+@pytest.mark.asyncio
+async def test_get_stats_reads_metadata_off_event_loop(
+    mock_output_dir, async_client, monkeypatch
+):
+    calls = []
+    original_to_thread = server_module.asyncio.to_thread
+
+    async def recording_to_thread(func, *args, **kwargs):
+        calls.append((func, args))
+        return await original_to_thread(func, *args, **kwargs)
+
+    monkeypatch.setattr(server_module.asyncio, "to_thread", recording_to_thread)
+
+    with patch("configstream.server.OUTPUT_DIR", mock_output_dir):
+        response = await async_client.get("/api/stats")
+
+    assert response.status_code == 200
+    assert any(
+        func is server_module._read_json_file
+        and args
+        and args[0].name == "metadata.json"
+        for func, args in calls
+    )
+
+
+@pytest.mark.asyncio
+async def test_get_proxy_diff_reads_proxy_files_off_event_loop(
+    mock_output_dir, async_client, monkeypatch
+):
+    (mock_output_dir / "proxies.old.json").write_text(
+        json.dumps([{"id": "old", "protocol": "vless"}]),
+        encoding="utf-8",
+    )
+    (mock_output_dir / "proxies.json").write_text(
+        json.dumps([{"id": "new", "protocol": "vless"}]),
+        encoding="utf-8",
+    )
+    calls = []
+    original_to_thread = server_module.asyncio.to_thread
+
+    async def recording_to_thread(func, *args, **kwargs):
+        calls.append((func, args))
+        return await original_to_thread(func, *args, **kwargs)
+
+    monkeypatch.setattr(server_module.asyncio, "to_thread", recording_to_thread)
+
+    with patch("configstream.server.OUTPUT_DIR", mock_output_dir):
+        response = await async_client.get("/api/diff/proxies?base_version=test")
+
+    assert response.status_code == 200
+    assert response.json()["type"] == "delta"
+    read_names = [
+        args[0].name
+        for func, args in calls
+        if func is server_module._read_json_file and args
+    ]
+    assert "proxies.json" in read_names
+    assert "proxies.old.json" in read_names
 
 
 @pytest.mark.asyncio
@@ -230,6 +317,76 @@ def test_startup_security_allows_production_with_admin_key() -> None:
     _validate_admin_startup_security(settings)
 
 
+def test_default_cors_config_is_explicit_and_noncredentialed() -> None:
+    settings = AppSettings()
+
+    assert settings.ALLOWED_ORIGIN_REGEX == ""
+    assert settings.CORS_ALLOW_CREDENTIALS is False
+    assert "https://.*\\.github\\.io" not in settings.ALLOWED_ORIGINS
+
+
+def test_default_websocket_limits_are_bounded() -> None:
+    settings = AppSettings()
+
+    assert settings.WS_MAX_CONNECTIONS > 0
+    assert settings.WS_IDLE_TIMEOUT_SECONDS > 0
+    assert settings.WS_SEND_TIMEOUT_SECONDS > 0
+
+
+def test_split_allowed_origins_trims_empty_entries() -> None:
+    assert _split_allowed_origins(" https://example.com, ,http://localhost:8000 ") == [
+        "https://example.com",
+        "http://localhost:8000",
+    ]
+
+
+def test_cors_startup_rejects_production_origin_regex() -> None:
+    settings = AppSettings(
+        ENVIRONMENT="production",
+        ALLOWED_ORIGIN_REGEX=r"https://.*\.github\.io",
+    )
+
+    with pytest.raises(RuntimeError, match="ALLOWED_ORIGIN_REGEX is not allowed"):
+        _validate_cors_startup_security(settings)
+
+
+def test_cors_startup_allows_development_origin_regex() -> None:
+    settings = AppSettings(
+        ENVIRONMENT="development",
+        ALLOWED_ORIGIN_REGEX=r"https://.*\.github\.io",
+    )
+
+    _validate_cors_startup_security(settings)
+
+
+@pytest.mark.asyncio
+async def test_websocket_manager_rejects_over_capacity() -> None:
+    manager = ConnectionManager(max_connections=1, send_timeout_seconds=0.1)
+    first = FakeWebSocket()
+    second = FakeWebSocket()
+
+    assert await manager.connect(first) is True
+    assert await manager.connect(second) is False
+
+    assert first.accepted is True
+    assert second.closed_code == 1013
+    assert manager.stats() == {"active_connections": 1, "dropped_connections": 1}
+
+
+@pytest.mark.asyncio
+async def test_websocket_manager_broadcast_removes_failed_connection() -> None:
+    manager = ConnectionManager(max_connections=2, send_timeout_seconds=0.1)
+    healthy = FakeWebSocket()
+    failing = FakeWebSocket(fail_send=True)
+    await manager.connect(healthy)
+    await manager.connect(failing)
+
+    await manager.broadcast({"type": "UPDATE_AVAILABLE"})
+
+    assert healthy.sent_messages == [{"type": "UPDATE_AVAILABLE"}]
+    assert manager.active_connections == [healthy]
+
+
 @pytest.mark.asyncio
 async def test_frontend_serving(mock_frontend_dir, async_client):
     with patch("configstream.server.FRONTEND_DIR", mock_frontend_dir):
@@ -243,15 +400,17 @@ async def test_frontend_serving(mock_frontend_dir, async_client):
 
 
 @pytest.mark.asyncio
-async def test_lab_test_chain_missing_config(async_client):
+async def test_lab_test_chain_missing_config(async_client, monkeypatch):
     """Lab test-chain returns 400 when config is missing."""
+    monkeypatch.setenv("ENVIRONMENT", "test")
     response = await async_client.post("/api/lab/test-chain", json={})
     assert response.status_code == 400
 
 
 @pytest.mark.asyncio
-async def test_lab_test_chain_success(async_client):
+async def test_lab_test_chain_success(async_client, monkeypatch):
     """Lab test-chain returns success when test_chain_config succeeds."""
+    monkeypatch.setenv("ENVIRONMENT", "test")
 
     async def mock_test(config, timeout=15.0):
         return {"success": True, "latency": 120.5, "exit_ip": "1.2.3.4"}
@@ -272,8 +431,9 @@ async def test_lab_test_chain_success(async_client):
 
 
 @pytest.mark.asyncio
-async def test_lab_test_chain_failure(async_client):
+async def test_lab_test_chain_failure(async_client, monkeypatch):
     """Lab test-chain returns 200 with success=false when chain test fails."""
+    monkeypatch.setenv("ENVIRONMENT", "test")
 
     async def mock_test(config, timeout=15.0):
         return {"success": False, "error": "Connection test timed out"}
@@ -293,8 +453,9 @@ async def test_lab_test_chain_failure(async_client):
 
 
 @pytest.mark.asyncio
-async def test_lab_test_chain_singbox_unavailable(async_client):
+async def test_lab_test_chain_singbox_unavailable(async_client, monkeypatch):
     """Lab test-chain returns 503 when singbox2proxy not installed."""
+    monkeypatch.setenv("ENVIRONMENT", "test")
 
     async def mock_test(config, timeout=15.0):
         return {"success": False, "error": "singbox2proxy not installed"}
@@ -308,3 +469,144 @@ async def test_lab_test_chain_singbox_unavailable(async_client):
             json={"config": {"outbounds": [{"type": "direct", "tag": "direct"}]}},
         )
     assert response.status_code == 503
+
+
+@pytest.mark.asyncio
+async def test_lab_test_chain_disabled_in_production(async_client, monkeypatch):
+    monkeypatch.setenv("ENVIRONMENT", "production")
+    monkeypatch.delenv("LAB_LIVE_TEST_ENABLED", raising=False)
+
+    response = await async_client.post(
+        "/api/lab/test-chain",
+        json={"config": {"outbounds": [{"type": "direct", "tag": "direct"}]}},
+    )
+
+    assert response.status_code == 403
+    assert "disabled in production" in response.text
+
+
+@pytest.mark.asyncio
+async def test_lab_test_chain_requires_admin_key_when_enabled_in_production(
+    async_client, monkeypatch
+):
+    monkeypatch.setenv("ENVIRONMENT", "production")
+    monkeypatch.setenv("LAB_LIVE_TEST_ENABLED", "true")
+    monkeypatch.setenv("ADMIN_API_KEY", "secret")
+
+    response = await async_client.post(
+        "/api/lab/test-chain",
+        json={"config": {"outbounds": [{"type": "direct", "tag": "direct"}]}},
+    )
+
+    assert response.status_code == 403
+    assert "API key required" in response.text
+
+
+@pytest.mark.asyncio
+async def test_lab_test_chain_allows_valid_admin_key_when_enabled_in_production(
+    async_client, monkeypatch
+):
+    monkeypatch.setenv("ENVIRONMENT", "production")
+    monkeypatch.setenv("LAB_LIVE_TEST_ENABLED", "true")
+    monkeypatch.setenv("ADMIN_API_KEY", "secret")
+
+    async def mock_test(config, timeout=15.0):
+        return {"success": True, "latency": 50}
+
+    with patch(
+        "configstream.testers.lab_chain_tester.test_chain_config",
+        side_effect=mock_test,
+    ):
+        response = await async_client.post(
+            "/api/lab/test-chain",
+            json={
+                "api_key": "secret",
+                "config": {"outbounds": [{"type": "direct", "tag": "direct"}]},
+            },
+        )
+
+    assert response.status_code == 200
+    assert response.json()["success"] is True
+
+
+@pytest.mark.asyncio
+async def test_lab_test_chain_rejects_oversized_config(async_client, monkeypatch):
+    monkeypatch.setenv("ENVIRONMENT", "test")
+    monkeypatch.setenv("LAB_MAX_CONFIG_BYTES", "16")
+
+    response = await async_client.post(
+        "/api/lab/test-chain",
+        json={"config": {"outbounds": [{"type": "direct", "tag": "direct"}]}},
+    )
+
+    assert response.status_code == 413
+
+
+@pytest.mark.asyncio
+async def test_lab_test_chain_rejects_missing_outbounds(async_client, monkeypatch):
+    monkeypatch.setenv("ENVIRONMENT", "test")
+
+    response = await async_client.post(
+        "/api/lab/test-chain",
+        json={"config": {"log": {"level": "info"}}},
+    )
+
+    assert response.status_code == 400
+    assert "outbounds" in response.text
+
+
+@pytest.mark.asyncio
+async def test_lab_test_chain_rejects_disallowed_outbound_type(
+    async_client, monkeypatch
+):
+    monkeypatch.setenv("ENVIRONMENT", "test")
+
+    response = await async_client.post(
+        "/api/lab/test-chain",
+        json={"config": {"outbounds": [{"type": "dns", "tag": "resolver"}]}},
+    )
+
+    assert response.status_code == 400
+    assert "not allowed" in response.text
+
+
+@pytest.mark.asyncio
+async def test_lab_test_chain_rejects_private_destination(async_client, monkeypatch):
+    monkeypatch.setenv("ENVIRONMENT", "test")
+
+    response = await async_client.post(
+        "/api/lab/test-chain",
+        json={
+            "config": {
+                "outbounds": [
+                    {"type": "vless", "tag": "private", "server": "192.168.1.10"}
+                ]
+            }
+        },
+    )
+
+    assert response.status_code == 400
+    assert "non-global" in response.text
+
+
+@pytest.mark.asyncio
+async def test_lab_test_chain_rejects_internal_hostname(async_client, monkeypatch):
+    monkeypatch.setenv("ENVIRONMENT", "test")
+
+    response = await async_client.post(
+        "/api/lab/test-chain",
+        json={
+            "config": {
+                "outbounds": [
+                    {"type": "trojan", "tag": "local", "server": "api.internal"}
+                ]
+            }
+        },
+    )
+
+    assert response.status_code == 400
+    assert "internal hostnames" in response.text
+
+
+def test_lab_test_chain_is_rate_limited() -> None:
+    assert "configstream.server.lab_test_chain" in limiter._route_limits

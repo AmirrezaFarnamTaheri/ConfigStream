@@ -1,13 +1,15 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import os
 import json
+import asyncio
+import ipaddress
 import logging
 import re
 import mimetypes
 import secrets
 import importlib.metadata
 from pathlib import Path
-from typing import Optional, List
+from typing import Any, Optional, List
 from datetime import datetime, timezone
 
 from fastapi import (
@@ -45,6 +47,15 @@ logger = logging.getLogger(__name__)
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 FRONTEND_DIR = settings.FRONTEND_DIR or (BASE_DIR / "frontend")
 
+
+def _read_json_file(path: Path) -> Any:
+    """Read and parse a JSON file from a worker thread."""
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+async def _read_json_file_async(path: Path) -> Any:
+    return await asyncio.to_thread(_read_json_file, path)
+
 try:
     VERSION = importlib.metadata.version("configstream")
 except importlib.metadata.PackageNotFoundError:
@@ -74,23 +85,21 @@ async def rate_limit_handler(request: Request, exc: Exception) -> Response:
 
 app.add_exception_handler(RateLimitExceeded, rate_limit_handler)
 
-# Enable CORS with restricted origins
-# Allow localhost for development and GitHub Pages for production deployment
-# Set ALLOWED_ORIGINS environment variable for custom domains
-ALLOWED_ORIGINS_STR = settings.ALLOWED_ORIGINS
-ALLOWED_ORIGINS = [
-    origin.strip() for origin in ALLOWED_ORIGINS_STR.split(",") if origin.strip()
-]
 
-# Use regex pattern for GitHub Pages and other wildcard domains
-# CORSMiddleware requires allow_origin_regex for wildcard patterns
-ALLOWED_ORIGIN_REGEX = settings.ALLOWED_ORIGIN_REGEX
+def _split_allowed_origins(value: str) -> List[str]:
+    return [origin.strip() for origin in value.split(",") if origin.strip()]
+
+
+# Enable CORS with explicit origins. Production must use ALLOWED_ORIGINS, not a
+# broad wildcard regex, so credentialed trust cannot drift to arbitrary domains.
+ALLOWED_ORIGINS = _split_allowed_origins(settings.ALLOWED_ORIGINS)
+ALLOWED_ORIGIN_REGEX = settings.ALLOWED_ORIGIN_REGEX.strip() or None
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
     allow_origin_regex=ALLOWED_ORIGIN_REGEX,
-    allow_credentials=True,
+    allow_credentials=settings.CORS_ALLOW_CREDENTIALS,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization"],
 )
@@ -173,13 +182,25 @@ def _make_output_handler(rel_path: str, media_type: Optional[str]):
 
 # --- WebSocket Connection Manager ---
 class ConnectionManager:
-    def __init__(self):
+    def __init__(
+        self,
+        max_connections: int = 100,
+        send_timeout_seconds: float = 5.0,
+    ):
+        self.max_connections = max_connections
+        self.send_timeout_seconds = send_timeout_seconds
         self.active_connections: List[WebSocket] = []
         self._failed_connections: set = set()  # Track failed connections for cleanup
+        self.dropped_connections = 0
 
-    async def connect(self, websocket: WebSocket):
+    async def connect(self, websocket: WebSocket) -> bool:
+        if len(self.active_connections) >= self.max_connections:
+            self.dropped_connections += 1
+            await websocket.close(code=1013)
+            return False
         await websocket.accept()
         self.active_connections.append(websocket)
+        return True
 
     def disconnect(self, websocket: WebSocket):
         if websocket in self.active_connections:
@@ -192,27 +213,42 @@ class ConnectionManager:
             :
         ]:  # Copy to avoid modification during iteration
             try:
-                await connection.send_json(message)
+                await asyncio.wait_for(
+                    connection.send_json(message),
+                    timeout=self.send_timeout_seconds,
+                )
             except (ConnectionError, RuntimeError) as e:
                 # WebSocket closed or connection lost
                 logger.debug(
                     f"WebSocket send failed (connection {id(connection)}): {e}"
                 )
                 self._failed_connections.add(connection)
+            except asyncio.TimeoutError:
+                logger.debug(f"WebSocket send timed out (connection {id(connection)})")
+                self._failed_connections.add(connection)
             except Exception as e:
                 # Unexpected error - log and continue
                 logger.warning(f"Unexpected error in WebSocket broadcast: {e}")
 
         # Cleanup failed connections
-        for failed in self._failed_connections:
+        for failed in list(self._failed_connections):
             try:
                 self.disconnect(failed)
             except ValueError:
                 pass  # Connection already removed from active set
         self._failed_connections.clear()
 
+    def stats(self) -> dict:
+        return {
+            "active_connections": len(self.active_connections),
+            "dropped_connections": self.dropped_connections,
+        }
 
-manager = ConnectionManager()
+
+manager = ConnectionManager(
+    max_connections=settings.WS_MAX_CONNECTIONS,
+    send_timeout_seconds=settings.WS_SEND_TIMEOUT_SECONDS,
+)
 
 # --- API Endpoints ---
 
@@ -231,18 +267,132 @@ def _validate_admin_startup_security(current_settings: AppSettings) -> None:
         )
 
 
+def _validate_cors_startup_security(current_settings: AppSettings) -> None:
+    if (
+        not _is_nonproduction_environment(current_settings.ENVIRONMENT)
+        and current_settings.ALLOWED_ORIGIN_REGEX.strip()
+    ):
+        raise RuntimeError(
+            "ALLOWED_ORIGIN_REGEX is not allowed in production; "
+            "use explicit ALLOWED_ORIGINS instead."
+        )
+
+
+def _require_payload_api_key(payload: dict, api_key: Optional[str]) -> None:
+    provided_key = payload.get("api_key") if isinstance(payload, dict) else None
+    if not api_key:
+        raise HTTPException(
+            403,
+            "Forbidden: ADMIN_API_KEY must be configured for protected endpoints.",
+        )
+    if not provided_key:
+        raise HTTPException(403, "Forbidden: API key required.")
+    if not secrets.compare_digest(str(provided_key), str(api_key)):
+        raise HTTPException(403, "Forbidden: Invalid API key")
+
+
+LAB_ALLOWED_OUTBOUND_TYPES = {
+    "block",
+    "direct",
+    "hysteria",
+    "hysteria2",
+    "http",
+    "https",
+    "shadowsocks",
+    "socks",
+    "socks4",
+    "socks5",
+    "trojan",
+    "tuic",
+    "vless",
+    "vmess",
+    "wireguard",
+}
+
+LAB_DESTINATION_KEYS = {"server", "address"}
+LAB_INTERNAL_HOST_SUFFIXES = (".local", ".localhost", ".lan", ".internal")
+
+
+def _validate_lab_destination(host: object, path: str) -> None:
+    if not isinstance(host, str) or not host.strip():
+        raise HTTPException(status_code=400, detail=f"{path} must be a non-empty host")
+
+    cleaned = host.strip().strip("[]").rstrip(".").lower()
+    if len(cleaned) > 253:
+        raise HTTPException(status_code=400, detail=f"{path} is too long")
+    if cleaned == "localhost" or cleaned.endswith(LAB_INTERNAL_HOST_SUFFIXES):
+        raise HTTPException(
+            status_code=400,
+            detail=f"{path} must not target localhost or internal hostnames",
+        )
+
+    try:
+        ip = ipaddress.ip_address(cleaned)
+    except ValueError:
+        if not re.fullmatch(r"[a-z0-9.-]+", cleaned):
+            raise HTTPException(status_code=400, detail=f"{path} is not a valid host")
+        return
+
+    if not ip.is_global:
+        raise HTTPException(
+            status_code=400,
+            detail=f"{path} must not target private or non-global addresses",
+        )
+
+
+def _validate_lab_config(config: object) -> None:
+    if not isinstance(config, dict):
+        raise HTTPException(status_code=400, detail="Config must be a JSON object")
+
+    outbounds = config.get("outbounds")
+    if not isinstance(outbounds, list) or not outbounds:
+        raise HTTPException(
+            status_code=400,
+            detail="Config must include a non-empty outbounds array",
+        )
+
+    for index, outbound in enumerate(outbounds):
+        path = f"outbounds[{index}]"
+        if not isinstance(outbound, dict):
+            raise HTTPException(status_code=400, detail=f"{path} must be an object")
+
+        outbound_type = outbound.get("type")
+        if not isinstance(outbound_type, str):
+            raise HTTPException(status_code=400, detail=f"{path}.type is required")
+        if outbound_type.lower() not in LAB_ALLOWED_OUTBOUND_TYPES:
+            raise HTTPException(
+                status_code=400,
+                detail=f"{path}.type is not allowed for live lab testing",
+            )
+
+        for key in LAB_DESTINATION_KEYS:
+            if key in outbound:
+                _validate_lab_destination(outbound[key], f"{path}.{key}")
+
+
 @app.on_event("startup")
 async def validate_startup_security() -> None:
-    _validate_admin_startup_security(AppSettings())
+    current_settings = AppSettings()
+    _validate_admin_startup_security(current_settings)
+    _validate_cors_startup_security(current_settings)
 
 
 @app.websocket("/ws/updates")
 async def websocket_endpoint(websocket: WebSocket):
-    await manager.connect(websocket)
+    if not await manager.connect(websocket):
+        return
+    ws_settings = AppSettings()
     try:
         while True:
             # Keep connection alive, wait for client messages if any
-            data = await websocket.receive_text()
+            try:
+                data = await asyncio.wait_for(
+                    websocket.receive_text(),
+                    timeout=ws_settings.WS_IDLE_TIMEOUT_SECONDS,
+                )
+            except asyncio.TimeoutError:
+                await websocket.close(code=1001)
+                break
             # Validate WebSocket messages
             if not isinstance(data, str) or len(data) > 1024:
                 logger.warning(
@@ -258,6 +408,8 @@ async def websocket_endpoint(websocket: WebSocket):
             else:
                 logger.debug(f"Unknown WebSocket command (length: {len(data)})")
     except WebSocketDisconnect:
+        manager.disconnect(websocket)
+    finally:
         manager.disconnect(websocket)
 
 
@@ -285,17 +437,11 @@ async def notify_update(request: Request, payload: dict):
                 "Forbidden: ADMIN_API_KEY must be configured for admin endpoints in production.",
             )
 
-    if api_key:
+    if api_key and not is_nonproduction:
+        _require_payload_api_key(payload, api_key)
+    elif api_key:
         provided_key = payload.get("api_key")
-        if not provided_key:
-            if not is_nonproduction:
-                raise HTTPException(
-                    403,
-                    "Forbidden: API key required for external calls. "
-                    "Include 'api_key' in payload.",
-                )
-        elif not secrets.compare_digest(str(provided_key), str(api_key)):
-            # Use constant-time comparison to prevent timing attacks
+        if provided_key and not secrets.compare_digest(str(provided_key), str(api_key)):
             raise HTTPException(403, "Forbidden: Invalid API key")
 
     await manager.broadcast(
@@ -329,7 +475,7 @@ async def get_proxy_diff(request: Request, base_version: str):
         raise HTTPException(404, "Current data unavailable")
 
     try:
-        current_data = json.loads(current_path.read_text())
+        current_data = await _read_json_file_async(current_path)
     except Exception as e:
         logger.error(f"Failed to read current proxies: {e}")
         raise HTTPException(500, "Internal Server Error") from e
@@ -337,7 +483,7 @@ async def get_proxy_diff(request: Request, base_version: str):
     # If client has specific version matching our backup
     if old_path.exists():
         try:
-            old_data = json.loads(old_path.read_text())
+            old_data = await _read_json_file_async(old_path)
 
             # Prefer stable proxy IDs; fallback to index for legacy payloads.
             current_ids = {p.get("id", str(i)): p for i, p in enumerate(current_data)}
@@ -360,16 +506,37 @@ async def get_proxy_diff(request: Request, base_version: str):
 
 
 @app.post("/api/lab/test-chain")
-async def lab_test_chain(payload: dict):
+@limiter.limit("30/minute")
+async def lab_test_chain(request: Request, payload: dict):
     """
     Lab chain test endpoint. Tests a sing-box config when singbox2proxy is available.
     Request: { "config": <sing-box JSON> }
     Response: { "success": true, "latency": float, "exit_ip"?: str } or { "success": false, "error": str }
     Returns 503 when sing-box/singbox2proxy unavailable.
     """
+    current_settings = AppSettings()
+    if not _is_nonproduction_environment(current_settings.ENVIRONMENT):
+        if not current_settings.LAB_LIVE_TEST_ENABLED:
+            raise HTTPException(
+                status_code=403,
+                detail="Live lab testing is disabled in production.",
+            )
+        _require_payload_api_key(payload, current_settings.ADMIN_API_KEY)
+
     config = payload.get("config") if isinstance(payload, dict) else None
     if config is None:
         raise HTTPException(status_code=400, detail="Missing 'config' in request body")
+    try:
+        config_size = len(json.dumps(config, separators=(",", ":")).encode("utf-8"))
+    except (TypeError, ValueError) as exc:
+        raise HTTPException(
+            status_code=400, detail="Config must be JSON serializable"
+        ) from exc
+    if config_size > current_settings.LAB_MAX_CONFIG_BYTES:
+        raise HTTPException(
+            status_code=413, detail="Config exceeds lab test size limit"
+        )
+    _validate_lab_config(config)
 
     try:
         from configstream.testers.lab_chain_tester import test_chain_config
@@ -379,7 +546,9 @@ async def lab_test_chain(payload: dict):
             detail="Live chain testing is not available. Use manual testing: save config to file and run 'sing-box run -c chain.json'.",
         ) from None
 
-    result = await test_chain_config(config, timeout=15.0)
+    result = await test_chain_config(
+        config, timeout=current_settings.LAB_TEST_TIMEOUT_SECONDS
+    )
     if result["success"]:
         return JSONResponse(content=result)
     # If singbox2proxy unavailable, return 503 so frontend shows manual instructions
@@ -406,7 +575,7 @@ async def get_stats():
 
     try:
         # Read and return JSON content directly to ensure proper content-type and parsing
-        content = json.loads(metadata_path.read_text(encoding="utf-8"))
+        content = await _read_json_file_async(metadata_path)
         return JSONResponse(content=content)
     except Exception as e:
         logger.error(f"Failed to read metadata.json: {e}")

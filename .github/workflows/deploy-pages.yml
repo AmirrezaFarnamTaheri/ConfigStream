@@ -113,6 +113,9 @@ jobs:
 
       - name: Build Pages artifact
         if: env.HAS_OUTPUT == 'true'
+        env:
+          CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
+          STEGO_KEY: ${{ secrets.STEGO_KEY }}
         run: |
           set -euxo pipefail
 
@@ -123,6 +126,8 @@ jobs:
           if [ -d "frontend" ]; then
             cp -R frontend/. output/
           fi
+
+          python scripts/validate_frontend_placeholders.py --inject-env --strict output
 
           # Create API simulation structure
           mkdir -p output/api

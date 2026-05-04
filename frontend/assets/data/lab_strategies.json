@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0",
+  "strategies": [
+    {
+      "id": "warp",
+      "label": "WARP Tunnel (Standard)",
+      "status": "implemented"
+    },
+    {
+      "id": "vwarp-masque",
+      "label": "Vwarp (Masque Obfuscation)",
+      "status": "implemented"
+    },
+    {
+      "id": "vwarp-atomic",
+      "label": "Vwarp (AtomicNoize)",
+      "status": "implemented"
+    },
+    {
+      "id": "warp-in-warp",
+      "label": "Double WARP (WARP-in-WARP)",
+      "status": "implemented"
+    },
+    {
+      "id": "warp-psiphon",
+      "label": "WARP + Psiphon (change exit location)",
+      "status": "implemented"
+    },
+    {
+      "id": "relay-chain",
+      "label": "Relay Chain (multi-hop, any protocol)",
+      "status": "implemented"
+    },
+    {
+      "id": "fragment",
+      "label": "TLS Fragment (legacy/manual)",
+      "status": "manual"
+    },
+    {
+      "id": "worker",
+      "label": "CDN Worker Relay",
+      "status": "implemented"
+    },
+    {
+      "id": "custom",
+      "label": "Custom Sing-box JSON",
+      "status": "implemented"
+    }
+  ]
+}

@@ -21,10 +21,27 @@
 - ✅ **Secret Management**: All secrets via environment variables, never hardcoded
 - ✅ **SSL Verification**: Certificate validation enabled (no verify=False)
 
+#### Lab Live Testing
+- `/api/lab/test-chain` is disabled by default in production.
+- Production deployments must set `LAB_LIVE_TEST_ENABLED=true` before the endpoint is exposed.
+- When enabled in production, requests must include a matching `ADMIN_API_KEY` payload field.
+- The endpoint is rate-limited and rejects configs larger than `LAB_MAX_CONFIG_BYTES`.
+- Submitted configs must include allowed outbound types only and cannot target localhost, internal hostnames, or private/non-global IP literals.
+
+#### Source Fetching
+- Source URLs are restricted to `http` and `https`.
+- Source URLs cannot include credentials, localhost/internal hostnames, or private/non-global IP literals by default.
+- Redirects are followed manually only after validating each `Location`; redirect depth is capped by `FETCH_MAX_REDIRECTS`.
+
+#### Frontend Deploy Integrity
+- GitHub Pages deploy injects `CS_PUBLIC_KEY` and `STEGO_KEY` into copied frontend assets before upload.
+- Deploy fails if the public-key placeholder or stego placeholder remains in the Pages artifact.
+- Workflow validation enforces the frontend placeholder guard so it cannot be removed from deploy without breaking validation.
+
 #### Frontend (JavaScript)
 - ✅ **XSS Protection**: DOMPurify library for HTML sanitization
-- ✅ **CORS**: Restricted to localhost + GitHub Pages (configurable via ALLOWED_ORIGINS)
-- ✅ **WebSocket Security**: Message validation with length limits and command whitelist
+- ✅ **CORS**: Restricted to explicit `ALLOWED_ORIGINS`; production rejects wildcard origin regex and disables browser credentialed CORS by default
+- ✅ **WebSocket Security**: Message validation with length limits, command whitelist, connection cap, idle timeout, send timeout, and stale-connection cleanup
 - ⚠️ **localStorage**: Used for non-sensitive data only (preferences, cache keys)
 - ⚠️ **Console Logging**: Stripped in production builds (see .build-config.json)
 
@@ -53,6 +70,7 @@
 #### Encryption
 - **Stego Key**: Rotated every 6 hours via CI/CD (STEGO_KEY environment variable)
 - **Admin API**: Protected with ADMIN_API_KEY. Production admin endpoints fail closed if this key is not configured.
+- **Lab Live Test API**: Disabled by default in production. When explicitly enabled, requests must include a matching `ADMIN_API_KEY` payload field and remain subject to rate and request-size limits.
 - **Fernet Encryption**: Used for steganography feature (obfuscation only)
 
 #### Privacy
@@ -95,7 +113,7 @@
 **Issues Fixed**:
 - ✅ P0: Hardcoded encryption key removed (replaced with CI/CD injection)
 - ✅ P0: CI/CD secret exposure fixed (HF_TOKEN via environment only)
-- ✅ P1: CORS wildcard restricted (configurable allowed origins)
+- ✅ P1: CORS wildcard removed from production defaults; production uses explicit allowed origins
 - ✅ P1: WebSocket message validation added
 - ✅ P1: Admin endpoint authentication implemented
 - ✅ P1: Parameter validation enhanced (base_version regex check)
@@ -138,6 +156,7 @@
 # Required for production admin endpoints:
 export ADMIN_API_KEY="your-secret-admin-key"
 export ALLOWED_ORIGINS="https://yourdomain.com"
+export CORS_ALLOW_CREDENTIALS="false"
 export STEGO_KEY="your-base64-fernet-key"
 
 # Optional security enhancements:
@@ -160,8 +179,9 @@ export MAXMIND_LICENSE_KEY="your-key"   # For GeoIP lookups
 ## Security Features by Component
 
 ### API Server (FastAPI)
-- CORS restrictions with allowed origins list
+- CORS restrictions with explicit allowed origins list and no production wildcard regex
 - WebSocket message validation (1024 char limit)
+- WebSocket lifecycle limits for max connections, idle timeout, send timeout, and stale cleanup
 - Admin endpoint authentication
 - Parameter validation (regex + length limits)
 - Path traversal protection (commonpath validation)

@@ -1,8 +1,9 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import asyncio
+import ipaddress
 import logging
 import random
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin
 from typing import Any, Dict, Optional, Tuple, List
 import httpx
 
@@ -30,6 +31,51 @@ USER_AGENTS = [
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36",
 ]
 
+FETCH_INTERNAL_HOST_SUFFIXES = (".local", ".localhost", ".lan", ".internal")
+
+
+def _reject_source_url(url: str, block_private_networks: bool = True) -> Optional[str]:
+    parsed = urlparse(url)
+    if parsed.scheme not in {"http", "https"}:
+        return "Invalid URL"
+    if not parsed.hostname:
+        return "Invalid URL host"
+    if parsed.username or parsed.password:
+        return "Source URL credentials are not allowed"
+
+    host = parsed.hostname.strip("[]").rstrip(".").lower()
+    if len(host) > 253:
+        return "Source URL host is too long"
+    if host == "localhost" or host.endswith(FETCH_INTERNAL_HOST_SUFFIXES):
+        return "Source URL targets an internal hostname"
+
+    try:
+        ip = ipaddress.ip_address(host)
+    except ValueError:
+        if not all(part for part in host.split(".")):
+            return "Source URL host is invalid"
+        return None
+
+    if block_private_networks and not ip.is_global:
+        return "Source URL targets a private or non-global address"
+    return None
+
+
+def _resolve_redirect_url(
+    current_url: str,
+    location: Optional[str],
+    block_private_networks: bool = True,
+) -> Tuple[Optional[str], Optional[str]]:
+    if not location:
+        return None, "Redirect response missing Location header"
+    candidate = urljoin(current_url, location.strip())
+    reason = _reject_source_url(
+        candidate, block_private_networks=block_private_networks
+    )
+    if reason:
+        return None, f"Unsafe redirect target: {reason}"
+    return candidate, None
+
 
 async def fetch_from_source(
     client: httpx.AsyncClient,
@@ -48,13 +94,24 @@ async def fetch_from_source(
     and response size limits.
     """
 
+    if app_settings is None:
+        app_settings = AppSettings()
+
     loop = asyncio.get_running_loop()
     safe_source = SecurityValidator.sanitize_log_message(source)
 
     # Validate URL
-    if not source or not source.startswith(("http://", "https://")):
+    url_error = _reject_source_url(
+        source,
+        block_private_networks=bool(app_settings.FETCH_BLOCK_PRIVATE_NETWORKS),
+    )
+    if not source or url_error:
         return FetchResult(
-            success=False, source=source, content="", error="Invalid URL", status_code=0
+            success=False,
+            source=source,
+            content="",
+            error=url_error or "Invalid URL",
+            status_code=0,
         )
 
     # Sanitize malformed raw.githubusercontent URLs
@@ -124,7 +181,13 @@ async def fetch_from_source(
         max_size = int(max_size_raw)
     except (TypeError, ValueError):
         max_size = 0
+    try:
+        max_redirects = max(0, int(app_settings.FETCH_MAX_REDIRECTS))
+    except (TypeError, ValueError):
+        max_redirects = 5
 
+    current_url = source
+    redirects_followed = 0
     while attempt < max_retries:
         start_ts = loop.time()
         try:
@@ -141,11 +204,55 @@ async def fetch_from_source(
 
             async with client.stream(
                 "GET",
-                source,
+                current_url,
                 headers=headers,
                 timeout=effective_timeout,
-                follow_redirects=True,
+                follow_redirects=False,
             ) as response:
+
+                if response.status_code in {301, 302, 303, 307, 308}:
+                    if redirects_followed >= max_redirects:
+                        response_time = loop.time() - start_ts
+                        if timeout_tracker:
+                            await timeout_tracker.record_attempt(
+                                source, response_time, success=False
+                            )
+                        if breaker:
+                            await breaker.record_failure()
+                        return FetchResult(
+                            success=False,
+                            source=source,
+                            content="",
+                            error="Too many redirects",
+                            status_code=response.status_code,
+                            response_time=response_time,
+                        )
+                    next_url, redirect_error = _resolve_redirect_url(
+                        current_url,
+                        response.headers.get("Location"),
+                        block_private_networks=bool(
+                            app_settings.FETCH_BLOCK_PRIVATE_NETWORKS
+                        ),
+                    )
+                    if redirect_error or next_url is None:
+                        response_time = loop.time() - start_ts
+                        if timeout_tracker:
+                            await timeout_tracker.record_attempt(
+                                source, response_time, success=False
+                            )
+                        if breaker:
+                            await breaker.record_failure()
+                        return FetchResult(
+                            success=False,
+                            source=source,
+                            content="",
+                            error=redirect_error or "Unsafe redirect target",
+                            status_code=response.status_code,
+                            response_time=response_time,
+                        )
+                    current_url = next_url
+                    redirects_followed += 1
+                    continue
 
                 # Check Status
                 if response.status_code == 429:

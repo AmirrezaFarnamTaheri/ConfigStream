@@ -113,13 +113,16 @@ The Laboratory is a 5-step interactive chain builder that guides users from zero
 *   **Manual Entry**: Users can paste their own `IP:port` list.
 *   **Local Scan**: Runs a browser-based scan of known Cloudflare endpoints.
 
-### Step 3: Build Chain (6 Strategies)
+### Step 3: Build Chain (9 Strategies)
 1.  **WARP Tunnel**: Standard shielding through Cloudflare WARP.
-2.  **Double WARP**: Two layers of WireGuard encryption.
-3.  **Relay Chain (Multi-Hop)**: Up to 4 intermediate hops of any protocol (SOCKS5, HTTP, VLESS, VMess, Trojan, SS, WARP). Replaces the old "Proxy Cascade" and "Intranet Relay" — a relay is any intermediate proxy, not limited to LAN. Each layer has a pipeline proxy picker.
-4.  **TLS Fragment**: Disabled (sing-box removed tls_fragment); use vwarp AtomicNoize for fragmentation-based evasion.
-5.  **CDN Worker**: Route through a user-deployed Cloudflare Worker.
-6.  **Custom JSON**: Paste raw sing-box outbound JSON for advanced users.
+2.  **Vwarp MASQUE**: Standard WARP chain plus Vwarp MASQUE metadata and CLI hint for deployments that use Vwarp's MASQUE/noize presets.
+3.  **Vwarp AtomicNoize**: Standard WARP chain plus AtomicNoize metadata and CLI hint for fragmentation-style evasion outside native sing-box output.
+4.  **Double WARP**: Two layers of WireGuard encryption.
+5.  **WARP + Psiphon**: Standard WARP chain with Vwarp Psiphon metadata and country hint.
+6.  **Relay Chain (Multi-Hop)**: Up to 4 intermediate hops of any protocol (SOCKS5, HTTP, VLESS, VMess, Trojan, SS, WARP). Replaces the old "Proxy Cascade" and "Intranet Relay" — a relay is any intermediate proxy, not limited to LAN. Each layer has a pipeline proxy picker.
+7.  **TLS Fragment**: Legacy/manual recipe only. Native sing-box `tls_fragment` output is disabled; use Vwarp AtomicNoize for fragmentation-based evasion.
+8.  **CDN Worker**: Route through a user-deployed Cloudflare Worker.
+9.  **Custom JSON**: Paste raw sing-box outbound JSON for advanced users.
 
 Each strategy has its own options panel. Advanced evasion options (uTLS fingerprint, ALPN, multiplexing, padding) are available as a collapsible section.
 
@@ -134,7 +137,7 @@ All chain configs are exported in formats compatible with the three major proxy 
 *   **Manual Fallback**: Provides `sing-box run -c` commands for local testing.
 
 ### Step 5: Export
-*   **Formats**: Sing-box JSON, Clash YAML, Xray JSON, Nekobox link, raw URI, QR code, Python script, Bash script.
+*   **Formats**: Sing-box JSON, Clash YAML, Xray JSON, Nekobox link, raw URI, offline QR payload, Python script, Bash script.
 *   **File Download**: One-click download of the generated config.
 *   **Import Guide**: Step-by-step instructions for Hiddify, Clash Verge, V2RayN, V2RayNG, Nekobox.
 

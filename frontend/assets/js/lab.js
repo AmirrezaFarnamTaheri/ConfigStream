@@ -519,15 +519,11 @@
         if (method === 'manual') {
             const raw = ($('#manualCleanIps') || {}).value || '';
             const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
-            cleanIps = lines.map(l => {
-                const parts = l.split(':');
-                return {
-                    ip: parts[0] || l,
-                    port: parseInt(parts[1]) || 443,
-                    latency: null,
-                    status: 'untested'
-                };
-            });
+            cleanIps = lines.map(parseManualCleanIpLine).filter(Boolean);
+            if (lines.length > 0 && cleanIps.length === 0) {
+                showResult('step2Result', 'error', 'No valid clean IP entries found. Use host:port, IPv4:port, or [IPv6]:port.');
+                return;
+            }
         } else if (method === 'auto') {
             // Try fetching from ConfigStream API first, fallback to defaults
             showResult('step2Result', 'pending', 'Fetching clean IPs from ConfigStream...');
@@ -583,16 +579,43 @@
         const container = $('#cleanIpResults');
         if (!tbody || !container) return;
 
-        tbody.innerHTML = '';
+        tbody.replaceChildren();
         cleanIps.forEach(ip => {
             const tr = document.createElement('tr');
             const statusCls = ip.status === 'ok' ? 'status-ok' : (ip.status === 'fail' ? 'status-fail' : '');
-            tr.innerHTML = `<td>${ip.ip}:${ip.port}</td>` +
-                `<td>${ip.latency !== null ? ip.latency + 'ms' : '-'}</td>` +
-                `<td class="${statusCls}">${ip.status === 'ok' ? 'OK' : ip.status === 'fail' ? 'Failed' : 'Untested'}</td>`;
+            const statusText = ip.status === 'ok' ? 'OK' : ip.status === 'fail' ? 'Failed' : 'Untested';
+            appendTableCell(tr, ip.ip + ':' + ip.port);
+            appendTableCell(tr, ip.latency !== null ? ip.latency + 'ms' : '-');
+            appendTableCell(tr, statusText, statusCls);
             tbody.appendChild(tr);
         });
         container.style.display = 'block';
+    }
+
+    function appendTableCell(row, text, className) {
+        const td = document.createElement('td');
+        if (className) td.className = className;
+        td.textContent = String(text);
+        row.appendChild(td);
+    }
+
+    function parseManualCleanIpLine(line) {
+        const raw = String(line || '').trim();
+        if (!raw) return null;
+
+        const match = raw.match(/^(\[[0-9a-fA-F:.]+\]|[A-Za-z0-9.-]+)(?::(\d{1,5}))?$/);
+        if (!match) return null;
+
+        const host = match[1].replace(/^\[|\]$/g, '');
+        const port = parseInt(match[2] || '443', 10);
+        if (!Number.isInteger(port) || port < 1 || port > 65535) return null;
+
+        return {
+            ip: host,
+            port,
+            latency: null,
+            status: 'untested'
+        };
     }
 
     function populateWarpIpSelect() {
@@ -611,10 +634,12 @@
     // --- Chain Type UI Toggle ---
     const CHAIN_HINTS = {
         'warp': 'Traffic flows through Cloudflare WARP to hide the proxy from your ISP.',
+        'vwarp-masque': 'WARP chain with Vwarp MASQUE metadata for deployments that use vwarp obfuscation presets.',
+        'vwarp-atomic': 'WARP chain with Vwarp AtomicNoize metadata for fragmentation-style evasion outside sing-box native outputs.',
         'warp-in-warp': 'Double encapsulation: outer WARP wraps inner WARP wraps your proxy. Maximum obfuscation.',
         'warp-psiphon': 'WARP + Psiphon: uses vwarp\'s --cfon to change the WARP exit country. Requires the vwarp binary.',
         'relay-chain': 'Up to 4 intermediate hops of any protocol (SOCKS5, HTTP, VLESS, VMess, Trojan, SS, WARP). Use local proxies, LAN relays, or pipeline proxies.',
-        'fragment': 'Splits TLS handshake into small fragments to bypass stateless DPI. No tunnel needed.',
+        'fragment': 'Legacy/manual TLS fragmentation recipe. Native sing-box tls_fragment output is disabled; use Vwarp AtomicNoize when available.',
         'worker': 'Routes traffic through your own Cloudflare Worker. Unblockable private relay.',
         'custom': 'Define your own outbound chain in raw Sing-box JSON format.'
     };
@@ -624,7 +649,7 @@
         const hint = $('#chainTypeHint');
         if (hint) hint.textContent = CHAIN_HINTS[ct] || '';
 
-        const showWarp = ct === 'warp' || ct === 'warp-in-warp' || ct === 'warp-psiphon';
+        const showWarp = ['warp', 'vwarp-masque', 'vwarp-atomic', 'warp-in-warp', 'warp-psiphon'].includes(ct);
         const el = (id) => document.getElementById(id);
         if (el('warpOptions')) el('warpOptions').style.display = showWarp ? '' : 'none';
         if (el('warpInWarpRow')) el('warpInWarpRow').style.display = ct === 'warp-in-warp' ? '' : 'none';
@@ -638,7 +663,7 @@
         const l1 = $('#chainLayer1Label');
         if (l1) {
             const labels = {
-                'warp': 'WARP', 'warp-in-warp': 'WARP x2', 'warp-psiphon': 'WARP+Psiphon',
+                'warp': 'WARP', 'vwarp-masque': 'Vwarp MASQUE', 'vwarp-atomic': 'AtomicNoize', 'warp-in-warp': 'WARP x2', 'warp-psiphon': 'WARP+Psiphon',
                 'fragment': 'Fragment', 'worker': 'Worker', 'relay-chain': 'Relay', 'custom': 'Custom'
             };
             l1.textContent = labels[ct] || 'WARP';
@@ -672,13 +697,25 @@
         const localAddr = ($('#localProxyAddr') || {}).value || '';
 
         // Build config based on chain type
-        if (chainType === 'warp' || chainType === 'warp-in-warp' || chainType === 'warp-psiphon') {
+        if (['warp', 'vwarp-masque', 'vwarp-atomic', 'warp-in-warp', 'warp-psiphon'].includes(chainType)) {
             if (!selectedCleanIp) {
                 showResult('step3Result', 'error', 'Please select a clean IP.');
                 return;
             }
             const [warpIp, warpPort] = selectedCleanIp.split(':');
-            if (chainType === 'warp-psiphon') {
+            if (chainType === 'vwarp-masque') {
+                chainConfig = buildSingboxChain(parsedProxy, warpIp, parseInt(warpPort) || 2408, warpKey, evasion);
+                chainConfig._vwarp = {
+                    masque: { enabled: true, noize: 'gfw' },
+                    cli_hint: 'vwarp --gfw --bind 127.0.0.1:8086'
+                };
+            } else if (chainType === 'vwarp-atomic') {
+                chainConfig = buildSingboxChain(parsedProxy, warpIp, parseInt(warpPort) || 2408, warpKey, evasion);
+                chainConfig._vwarp = {
+                    atomic_noize: { enabled: true, preset: 'moderate' },
+                    cli_hint: 'vwarp --noise moderate --bind 127.0.0.1:8086'
+                };
+            } else if (chainType === 'warp-psiphon') {
                 const psiphonCountry = ($('#psiphonCountry') || {}).value || 'US';
                 chainConfig = buildSingboxChain(parsedProxy, warpIp, parseInt(warpPort) || 2408, warpKey, evasion);
                 chainConfig._vwarp = {
@@ -721,6 +758,9 @@
                 showResult('step3Result', 'error', 'Invalid JSON: ' + e.message);
                 return;
             }
+        } else {
+            showResult('step3Result', 'error', 'Unsupported chain strategy: ' + chainType);
+            return;
         }
 
         // If local proxy Layer 1 is set, inject it as the outermost detour
@@ -1042,7 +1082,7 @@
                 break;
             case 'qr':
                 generateQR(parsedProxy ? parsedProxy.config : '');
-                showResult('step5Result', 'success', 'QR code generated. Scan with your mobile VPN client.');
+                showResult('step5Result', 'success', 'Offline QR payload ready. Copy it into a trusted local QR tool or VPN client.');
                 return;
             case 'script-python':
                 content = buildPythonScript();
@@ -1394,9 +1434,44 @@ sing-box run -c "$CFG"
     function generateQR(text) {
         const qrDiv = $('#qrOutput');
         if (!qrDiv) return;
-        // Simple fallback using a public QR API (no dependency)
-        const encoded = encodeURIComponent(text || '');
-        qrDiv.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encoded}" alt="QR Code" style="border-radius: 12px; max-width: 250px;">`;
+        qrDiv.replaceChildren();
+        const payload = text || '';
+        const panel = document.createElement('div');
+        panel.className = 'lab-result info';
+
+        const title = document.createElement('strong');
+        title.textContent = 'Offline QR payload';
+        const note = document.createElement('p');
+        note.textContent = 'External QR services are disabled so proxy material never leaves your browser. Copy this payload into an offline QR tool or your VPN client import screen.';
+
+        const code = document.createElement('pre');
+        code.className = 'lab-code';
+        code.style.whiteSpace = 'pre-wrap';
+        code.style.wordBreak = 'break-all';
+        code.textContent = payload;
+
+        const copyBtn = document.createElement('button');
+        copyBtn.type = 'button';
+        copyBtn.className = 'lab-btn lab-btn-secondary';
+        copyBtn.textContent = 'Copy Payload';
+        copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(payload).then(() => {
+                copyBtn.textContent = 'Copied';
+                setTimeout(() => { copyBtn.textContent = 'Copy Payload'; }, 1500);
+            }).catch(() => {
+                const range = document.createRange();
+                range.selectNodeContents(code);
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+                document.execCommand('copy');
+                copyBtn.textContent = 'Copied';
+                setTimeout(() => { copyBtn.textContent = 'Copy Payload'; }, 1500);
+            });
+        });
+
+        panel.append(title, note, code, copyBtn);
+        qrDiv.appendChild(panel);
         qrDiv.style.display = 'block';
         $('#exportOutput').style.display = 'none';
     }
