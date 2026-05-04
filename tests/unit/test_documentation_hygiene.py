@@ -45,3 +45,12 @@ def test_public_claims_do_not_mark_remediation_branch_stable() -> None:
     assert "Development Status :: 4 - Beta" in pyproject
     assert "TLS Fragmentation**: Splits TLS packets" not in readme
     assert "TLS Fragmentation**: Disabled" in readme
+
+
+def test_readme_describes_proxies_json_as_array_not_metadata_envelope() -> None:
+    readme = _read("README.md")
+
+    assert "proxies.json: full dataset with metadata" not in readme
+    assert "Full dataset with metadata" not in readme
+    assert "`proxies.json` is always a JSON array" in readme
+    assert "metadata lives in metadata.json" in readme

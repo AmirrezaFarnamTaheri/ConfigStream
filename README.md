@@ -110,7 +110,7 @@ Primary outputs:
 Derived outputs:
 - singbox-chains.json: washed + revived + smart + shielded chains
 - revived.json: revived-only dataset (proxies.json schema)
-- proxies.json: full dataset with metadata
+- proxies.json: full proxy dataset as a JSON array; metadata lives in metadata.json
 - side_products.zip: native configs pack (OpenVPN .ovpn, WireGuard .conf, raw URIs)
 - protocols/*.txt: per-protocol URI subscription files (e.g. vless.txt, trojan.txt)
 
@@ -133,7 +133,7 @@ Use the output that matches your client or use case. This matrix lists every out
 | `chosen/base64.txt` | Lightweight clients or quick start setups | Smaller curated list |
 | `side_products.zip` | OpenVPN and WireGuard clients | `.ovpn` and `.conf` files |
 | `protocols/*.txt` | Any client accepting URI subscriptions | Per-protocol plaintext URI lists |
-| `proxies.json` | Developers and tooling | Full dataset with metadata |
+| `proxies.json` | Developers and tooling | Full proxy array; pair with `metadata.json` for run statistics |
 | `revived.json` | Developers and tooling | Revived-only subset |
 
 DNS-safe variants:
@@ -170,45 +170,45 @@ Production subscription links:
 Self-hosting note: replace the base URL with your own GitHub Pages or server domain.
 
 ## Data Schema
-ConfigStream produces a structured JSON dataset for analytics and tooling.
+ConfigStream produces separate canonical JSON artifacts for analytics and tooling:
+`proxies.json` is always a JSON array of proxy objects, while `metadata.json`
+contains run statistics and frontend analytics fields.
 
 proxies.json (simplified example):
 ```json
+[
+  {
+    "id": "proxy-uuid",
+    "config": "vless://...",
+    "protocol": "vless",
+    "address": "example.com",
+    "port": 443,
+    "details": {},
+    "country_code": "US",
+    "latency": 210,
+    "is_working": true,
+    "process": "native",
+    "tags": ["NATIVE"]
+  }
+]
+```
+
+metadata.json (simplified example):
+```json
 {
-  "metadata": {
-    "generated_at": "2026-02-05T00:00:00Z",
-    "update_interval_hours": 4,
-    "total_proxies": 12345,
-    "total_configured_sources": 220,
-    "revived_warp": 120,
-    "revived_vwarp": 80,
-    "smart_chain_count": 300,
-    "chain_outbounds_count": 500,
-    "country_stats": {
-      "US": { "count": 1200, "median_latency_ms": 210 }
-    },
-    "latency_by_country": {
-      "US": { "p50": 210, "p90": 480 }
-    },
-    "latency_by_protocol": {
-      "vless": { "p50": 190, "p90": 420 }
-    }
-  },
-  "proxies": [
-    {
-      "id": "proxy-uuid",
-      "protocol": "vless",
-      "address": "example.com",
-      "port": 443,
-      "country": "US",
-      "latency_ms": 210,
-      "tags": ["revived-warp"]
-    }
-  ]
+  "schema_version": "3.0.2",
+  "generated_at": "2026-05-04T00:00:00Z",
+  "total_proxies": 12345,
+  "total_working": 4300,
+  "revived_warp": 120,
+  "revived_vwarp": 80,
+  "smart_chain_count": 300,
+  "shielded_candidate_count": 50,
+  "shielded_verified_count": 0
 }
 ```
 
-revived.json uses the same schema and contains only revived proxies.
+revived.json uses the proxy array shape and contains only revived proxies.
 singbox-chains.json contains chain-only outbounds for sing-box.
 
 ## Prerequisites
@@ -303,9 +303,9 @@ Online: https://amirrezafarnamtaheri.github.io/ConfigStream/lab.html
 Features:
 - Network diagnosis to understand what your connection can reach
 - Layer 1 support for local proxies (Psiphon, Lantern, V2RayN)
-- 7 chain strategies: WARP, Double WARP, WARP+Psiphon, Relay Chain, TLS Fragment, CDN Worker, Custom JSON
+- 9 chain strategies: WARP, Vwarp MASQUE, Vwarp AtomicNoize, Double WARP, WARP+Psiphon, Relay Chain, TLS Fragment (legacy/manual), CDN Worker, Custom JSON
 - Advanced evasion: uTLS fingerprint, ALPN, multiplex, padding
-- 8 export formats: Sing-Box JSON, Clash YAML, Xray JSON, Nekobox, URI, QR, Python script, Bash script
+- 8 export formats: Sing-Box JSON, Clash YAML, Xray JSON, Nekobox, URI, offline QR payload, Python script, Bash script
 - Full transport support in all exports: WebSocket, gRPC, HTTP/2, httpupgrade, Reality
 
 Offline tools (no internet required):

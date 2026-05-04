@@ -505,6 +505,19 @@ Closure checklist:
 - Security docs match runtime defaults.
 - Changelog records the CORS tightening.
 
+Remediation progress:
+
+- `src/configstream/config.py` now defaults `ALLOWED_ORIGIN_REGEX` to empty instead of `https://.*\.github\.io`.
+- `src/configstream/config.py` now defaults `CORS_ALLOW_CREDENTIALS` to `False`.
+- `src/configstream/server.py` now rejects `ALLOWED_ORIGIN_REGEX` in production startup validation; production must use explicit `ALLOWED_ORIGINS`.
+- `.env.example` documents regex CORS as development/test only and adds `CORS_ALLOW_CREDENTIALS=false`.
+- `SECURITY.md` now documents explicit-origin CORS and no production wildcard regex.
+- `tests/unit/test_server.py` covers default non-credentialed CORS, origin splitting, production regex rejection, and development regex allowance.
+
+Remaining:
+
+- Add HTTP preflight tests if/when the server test harness starts exercising ASGI lifespan and middleware headers directly.
+
 ---
 
 ### P1-4. WebSocket update endpoint has weak lifecycle control
@@ -536,17 +549,34 @@ Closure checklist:
 - Metrics expose active connections and dropped stale connections.
 - Changelog records WebSocket lifecycle hardening.
 
+Remediation progress:
+
+- `ConnectionManager` now enforces configurable `WS_MAX_CONNECTIONS`.
+- Over-capacity WebSocket clients are closed with code `1013` and counted as dropped.
+- `websocket_endpoint()` now applies `WS_IDLE_TIMEOUT_SECONDS` around `receive_text()`.
+- Broadcast sends now use `WS_SEND_TIMEOUT_SECONDS`; failed or timed-out clients are evicted.
+- `ConnectionManager.stats()` exposes active and dropped connection counts.
+- `.env.example` documents WebSocket lifecycle limits.
+- `SECURITY.md` documents WebSocket max connection, idle timeout, send timeout, and stale cleanup behavior.
+- `tests/unit/test_server.py` covers bounded defaults, over-capacity rejection, failed-send cleanup, and cleanup over a mutation-safe failed-connection snapshot.
+
+Remaining:
+
+- Add a server-originated heartbeat message if clients need active liveness probes beyond timeout-based cleanup.
+
 ---
 
 ### P1-5. Lab live test endpoint is unauthenticated and resource-heavy
+
+Status: remediated for backend route policy on 2026-05-04. Frontend live/manual labeling remains a follow-up parity polish item.
 
 Evidence:
 
 - `src/configstream/server.py` exposes `POST /api/lab/test-chain`.
 - It accepts arbitrary submitted config JSON.
-- It calls `test_chain_config(config, timeout=15.0)`.
+- It calls `test_chain_config(config, timeout=settings.LAB_TEST_TIMEOUT_SECONDS)`.
 - `src/configstream/testers/lab_chain_tester.py` can start a sing-box process and run test traffic.
-- No auth, rate limit, payload-size guard, config schema gate, or host policy is visible at the route level.
+- The route now has production opt-in, admin-key authentication, SlowAPI rate limiting, payload-size enforcement, submitted-config allowlisting, and private/internal destination blocking.
 
 Impact:
 
@@ -557,12 +587,30 @@ Impact:
 Required fix:
 
 1. Disable this endpoint by default in production.
-2. Require explicit `ENABLE_LAB_LIVE_TEST=true`.
+2. Require explicit `LAB_LIVE_TEST_ENABLED=true`.
 3. Add auth or signed one-time tokens for live tests.
 4. Add rate limits and payload size limits.
 5. Validate submitted configs against a strict allowlist.
 6. Block private/internal destinations unless explicitly local-only.
 7. Prefer static/manual fallback on GitHub Pages.
+
+Implemented so far:
+
+- `AppSettings.LAB_LIVE_TEST_ENABLED` defaults to `False`.
+- Production requests receive `403` unless live testing is explicitly enabled.
+- Production-enabled requests must include a matching `api_key` payload field backed by `ADMIN_API_KEY`.
+- The endpoint is registered with a `30/minute` rate limit.
+- Submitted `config` payloads must be JSON-serializable and no larger than `LAB_MAX_CONFIG_BYTES`.
+- Submitted configs must be JSON objects with a non-empty `outbounds` array.
+- Outbound types are limited to known low-level proxy/direct/block types needed by the lab.
+- Outbound `server` and `address` fields reject localhost, internal suffixes, invalid host syntax, and private/non-global IP literals.
+- The chain-test timeout is configurable through `LAB_TEST_TIMEOUT_SECONDS`.
+- Nonproduction `development`, `ci`, and `test` flows remain compatible for local testing.
+- `.env.example`, `SECURITY.md`, `STATUS.md`, `CHANGELOG.md`, and server tests now document and verify the new policy.
+
+Remaining:
+
+- Add frontend copy/state that makes live-vs-manual test mode visible without implying GitHub Pages can run server-side tests.
 
 Closure checklist:
 
@@ -570,15 +618,18 @@ Closure checklist:
 - Local live server can opt in safely.
 - Frontend clearly distinguishes static manual testing from live API testing.
 - Changelog records endpoint policy.
+- After each additional change, verify backend, frontend, docs, schema/config, tests, and changelog parity, then remove any stale legacy/deprecated statements instead of keeping backward-compatibility clutter.
 
 ---
 
 ### P1-6. Fetcher SSRF and redirect safety are incomplete
 
+Status: partially remediated on 2026-05-04. Literal private/internal targets and unsafe redirects are blocked; DNS-resolution/rebinding validation remains a follow-up hardening item.
+
 Evidence:
 
-- `src/configstream/fetcher.py` validates only `http://` and `https://` prefixes at source fetch entry.
-- Fetching follows redirects.
+- `src/configstream/fetcher.py` now parses source URLs structurally.
+- Fetching no longer delegates redirect following to `httpx`; redirects are followed manually after target validation.
 - `src/configstream/http_client.py` applies cached DNS safety only to HTTP requests and explicitly lets HTTPS use the standard resolver.
 - `ALLOW_PRIVATE_IPS` defaults to `True`.
 
@@ -588,6 +639,16 @@ Impact:
 - HTTPS redirects are not post-resolution-filtered by the custom DNS cache path.
 - A hostile source list can test boundaries around internal network access.
 
+Implemented so far:
+
+- `FETCH_BLOCK_PRIVATE_NETWORKS=true` blocks private/non-global IP literals by default for source URLs and redirect targets.
+- Source URLs with embedded credentials are rejected.
+- `localhost`, `.localhost`, `.local`, `.lan`, and `.internal` hostnames are rejected.
+- Redirects are validated one hop at a time through structured URL parsing.
+- Redirect depth is capped by `FETCH_MAX_REDIRECTS`.
+- Tests cover direct private source URLs, safe redirects, private redirect targets, and redirect-depth limits.
+- `.env.example`, `SECURITY.md`, `STATUS.md`, `CHANGELOG.md`, and this audit report now describe the fetch policy.
+
 Required fix:
 
 1. Canonicalize source URLs with structured parsing.
@@ -596,16 +657,26 @@ Required fix:
 4. Add explicit local/test override only.
 5. Add SSRF tests for direct private URL, DNS rebinding style hostname, redirect to private IP, and HTTPS redirect.
 
+Remaining:
+
+- Add async DNS resolution validation for hostname targets before connection, including HTTPS, without blocking the event loop.
+- Re-validate resolved addresses after each redirect target is chosen.
+- Add DNS rebinding-style hostname tests by injecting a resolver abstraction.
+- Decide whether the existing proxy-validation `ALLOW_PRIVATE_IPS` default should remain separate from fetch-source safety or be renamed/documented to avoid confusion.
+
 Closure checklist:
 
 - Fetcher blocks private/internal fetch targets by default.
 - Redirect target validation is tested.
 - Docs describe allowed source URL policy.
 - Changelog records fetcher security hardening.
+- After each additional fetch hardening change, verify backend tests, pipeline behavior, config docs, security docs, status, changelog, and remove stale redirect/SSRF claims instead of preserving backward-compatible ambiguity.
 
 ---
 
 ### P1-7. Frontend key injection and verification are split-brain
+
+Status: partially remediated on 2026-05-04. Pages deploy now injects and validates frontend placeholders; the larger Vite-vs-raw-frontend production-build decision remains open.
 
 Evidence:
 
@@ -624,6 +695,17 @@ Impact:
 - Signature verification is advertised but can silently skip.
 - Stego assets and frontend code can diverge.
 
+Implemented so far:
+
+- Added `scripts/validate_frontend_placeholders.py`.
+- Pages deploy runs `python scripts/validate_frontend_placeholders.py --inject-env --strict output` after copying frontend assets and before refreshing the public artifact contract.
+- Pages deploy now passes `CS_PUBLIC_KEY` and `STEGO_KEY` into the frontend placeholder guard step from GitHub secrets.
+- The validator replaces `assets/js/constants.js` `PUBLIC_KEY` from `CS_PUBLIC_KEY` when provided.
+- The validator replaces `assets/js/stego.js` `SECRET_KEY` from `STEGO_KEY` or `CONFIG_STREAM_KEY` when provided.
+- The validator fails if the public key placeholder marker or stego placeholder remains in the Pages artifact.
+- `scripts/validate_workflows.py` now requires the Pages frontend placeholder guard and secret env wiring.
+- Tests cover placeholder detection, env injection, optional non-strict stego handling, and workflow guard retention.
+
 Required fix:
 
 1. Choose one frontend production build path.
@@ -633,20 +715,30 @@ Required fix:
 5. Fail closed on signature verification for signed artifacts.
 6. Add placeholder leak tests.
 
+Remaining:
+
+- Decide and implement the canonical production frontend path: tested Vite build output or deliberately raw static output, not both.
+- Move frontend runtime keys into a generated config artifact rather than editing source-shaped JS in the deploy artifact.
+- Make `verifier.js` fail closed for signed artifacts when public key material is unavailable or WebCrypto is unsupported.
+- Add browser/deploy-smoke coverage proving the deployed frontend uses the same assets that CI tested.
+
 Closure checklist:
 
 - Deployed frontend contains no placeholder key strings.
 - Public-key source is documented and tested.
 - Production deploy uses the same build output tested by CI.
 - Changelog records frontend build/injection contract.
+- After each frontend contract change, verify backend output, deploy workflow, frontend files, tests, README/wiki/security/status/changelog, and delete stale placeholder/build-path language completely.
 
 ---
 
 ### P1-8. Public schemas, runtime outputs, docs, and deployed artifacts disagree
 
+Status: partially remediated on 2026-05-04. Pages validation now enforces tighter schema/key checks and API alias parity; README now describes the canonical `proxies.json` array contract. Snapshot identity and full schema/deploy smoke coverage remain open.
+
 Examples:
 
-- `README.md` says `proxies.json` is a full dataset with metadata.
+- `README.md` previously said `proxies.json` was a full dataset with metadata; it now states `proxies.json` is a JSON array and `metadata.json` owns run statistics.
 - `src/configstream/output_handler.py` says `proxies.json` must be a JSON array.
 - `docs/wiki/project/08-api-reference.md` now describes `proxies.json` as array items.
 - `schema/metadata.schema.json` requires fields missing from live public metadata.
@@ -658,6 +750,15 @@ Impact:
 - Diff updates may be semantically wrong even when syntactically valid.
 - API consumers cannot tell which shape is canonical.
 
+Implemented so far:
+
+- `scripts/validate_pages_artifact.py` now rejects unknown top-level keys for control-file schemas that declare `additionalProperties: false`.
+- Pages validation now checks that `api/proxies` is byte-equivalent to `proxies.json`.
+- Pages validation now checks that `api/stats` is byte-equivalent to `metadata.json`.
+- README now separates `proxies.json` as the canonical proxy array from `metadata.json` as the canonical statistics object.
+- Documentation hygiene tests prevent reintroducing the stale “proxies.json with metadata” envelope claim.
+- Artifact validation tests cover unknown metadata keys and API alias drift.
+
 Required fix:
 
 1. Decide canonical public shapes:
@@ -668,6 +769,13 @@ Required fix:
 4. Version snapshots with hashes/ETags, not only `base_version` strings.
 5. Add contract tests that load generated artifacts and validate schemas.
 
+Remaining:
+
+- Validate nested schema semantics more fully, either with a zero-budget vendored/minimal validator or by constraining the schemas to checks the local validator enforces.
+- Add generated-output contract tests that run the output writer and validate the produced artifact, not only hand-built fixtures.
+- Add snapshot identity/hashing for `/api/diff/proxies` so `base_version` cannot refer to an ambiguous old list.
+- Re-scan README and wiki examples after every output-contract change and delete stale envelope examples completely.
+
 Closure checklist:
 
 - One canonical contract exists.
@@ -675,12 +783,15 @@ Closure checklist:
 - No server route assumes a different shape.
 - Public artifact validates against schema.
 - Changelog records breaking schema cleanup.
+- After each public-contract change, verify generator, server aliases, frontend fetchers, schemas, deploy artifact validation, docs, changelog, and cleanup of old rejected shapes in one pass.
 
 ---
 
 ## 7. P2 Findings
 
 ### P2-1. Lab strategy list is inconsistent and partially broken
+
+Status: partially remediated on 2026-05-04. The UI, JS hints/build paths, README, wiki, and a canonical strategy manifest now agree on 9 strategies; browser-level strategy tests remain a follow-up.
 
 Evidence:
 
@@ -705,6 +816,16 @@ Impact:
 - Docs and UI disagree.
 - Vwarp feature claims are not reliably wired into the lab.
 
+Implemented so far:
+
+- Added `frontend/assets/data/lab_strategies.json` as the canonical 9-strategy manifest.
+- Added JS hints for `vwarp-masque` and `vwarp-atomic`.
+- Added build branches for `vwarp-masque` and `vwarp-atomic`; both build the standard WARP chain and attach `_vwarp` metadata plus CLI hints.
+- Added a fail-loud unsupported-strategy branch so unknown selections cannot silently advance with stale config.
+- Updated Lab copy to describe TLS Fragment as legacy/manual because native sing-box fragmentation remains disabled.
+- Updated README and frontend wiki to the same 9-strategy count.
+- Added `tests/unit/test_lab_strategy_parity.py` to verify manifest, HTML options, JS hints, and docs count stay aligned.
+
 Required fix:
 
 1. Create canonical `lab_strategies.json`.
@@ -713,65 +834,80 @@ Required fix:
 4. Fail loudly if a selected strategy has no builder.
 5. Add UI tests for every strategy.
 
+Remaining:
+
+- Move the HTML options and JS hints to generated or runtime-loaded data from `lab_strategies.json` instead of maintaining parallel literals.
+- Add browser tests that exercise every strategy through the actual Lab UI.
+- Add export assertions for Vwarp metadata in Sing-box/Clash/Xray/manual outputs.
+
 Closure checklist:
 
 - Every strategy has docs, UI option, JS handler, export behavior, and test coverage.
 - Strategy count is identical in README, STATUS, wiki, AGENTS, and UI.
 - Changelog records lab strategy cleanup.
+- After each Lab strategy change, verify frontend, export behavior, docs, tests, changelog, and delete stale strategy-count wording instead of preserving legacy counts.
 
 ---
 
 ### P2-2. Lab QR generation leaks user config to an external service
 
-Evidence:
+Status: remediated for the third-party leak; follow-up remains for a scannable local QR renderer.
+
+Previous evidence:
 
 - `frontend/assets/js/lab.js` builds an image URL to `https://api.qrserver.com/v1/create-qr-code/` and passes the encoded proxy/chain payload as a query parameter.
 
-Impact:
+Implemented remediation:
 
-- User proxy material is sent to a third party.
-- Offline/lab privacy guarantees are weakened.
-- This conflicts with sovereignty-grade and hostile-network assumptions.
+- `generateQR()` no longer builds an external image URL.
+- The Lab now renders an offline payload panel directly in the browser using DOM nodes and a copy button.
+- Exported QR payload material no longer leaves the page for `api.qrserver.com` or any other QR endpoint.
+- `tests/unit/test_lab_strategy_parity.py` asserts that the external QR service strings are absent and that the offline QR copy path is present.
 
-Required fix:
+Residual work:
 
-1. Replace external QR API with a local browser QR library or small self-contained generator.
-2. Ensure QR generation works offline.
-3. Remove external QR CSP allowance if present.
-4. Add a test that exported QR generation makes no network request.
+1. Add a small audited offline QR renderer if the UX must show a scannable matrix instead of a copyable payload.
+2. Keep the QR implementation dependency-free or vendored/free so it stays compatible with zero-budget/offline constraints.
+3. Add browser-level tests proving no network request is made while exporting the QR payload.
 
 Closure checklist:
 
-- No proxy payload is sent to third-party QR endpoints.
-- Lab works offline.
-- Changelog records privacy cleanup.
+- Done: no proxy payload is sent to third-party QR endpoints.
+- Done: Lab QR export works offline as a local copyable payload.
+- Done: changelog records privacy cleanup.
+- Remaining: optional scannable offline QR matrix and browser-level network assertion.
 
 ---
 
 ### P2-3. Lab manual clean IP table can inject HTML
 
-Evidence:
+Status: partially remediated; the manual clean-IP table path is fixed, while broader `showResult()` hardening remains open.
+
+Previous evidence:
 
 - `frontend/assets/js/lab.js` renders manual IP entries with `tr.innerHTML`.
 - The `ip.ip` value can originate from user input.
 - `showResult()` also uses `innerHTML` for messages, including some error flows.
 
-Impact:
+Implemented remediation:
 
-- A pasted malicious value can render markup in the lab page.
-- Local-only XSS is still relevant because the lab handles sensitive proxy configs.
+- Manual clean-IP rows now use `tbody.replaceChildren()`, explicit `td` creation, and `textContent`.
+- Manual clean-IP input is parsed through `parseManualCleanIpLine()` and accepts only hostnames, IPv4-style host strings, or bracketed IPv6 with optional valid port.
+- Invalid manual entries fail before storage with a clear message.
+- `tests/unit/test_lab_strategy_parity.py` asserts that the table renderer uses text nodes and no longer contains `tr.innerHTML`.
 
-Required fix:
+Remaining required fix:
 
-1. Replace dynamic `innerHTML` with `textContent` or sanitized templates.
-2. Validate manual IP/port values before storing.
-3. Add frontend XSS tests for manual clean IP input and custom JSON errors.
-4. Keep icon-only trusted templates separate from user data.
+1. Split `showResult()` into explicit safe-text and trusted-template helpers.
+2. Convert user-controlled success/error paths, including custom JSON parse errors and live-test errors, to text-node rendering.
+3. Add browser-level XSS tests for manual clean IP input, custom JSON errors, live-test errors, and parsed proxy remarks.
+4. Keep icon-only trusted templates separate from user data and document the trusted-template allowlist.
 
 Closure checklist:
 
-- Untrusted lab inputs never enter `innerHTML`.
-- XSS regression tests pass.
+- Done: manual clean-IP input no longer enters `innerHTML`.
+- Done: manual clean-IP table regression test passes.
+- Remaining: global Lab `showResult()` sanitization pass and browser XSS coverage.
 - Changelog records frontend sanitization cleanup.
 
 ---

@@ -43,6 +43,19 @@ def _contains_git_push(path: Path) -> bool:
         return False
 
 
+def _deploy_pages_has_frontend_placeholder_guard(path: Path) -> bool:
+    try:
+        content = path.read_text(encoding="utf-8")
+    except OSError:
+        return False
+    return (
+        "scripts/validate_frontend_placeholders.py --inject-env --strict output"
+        in content
+        and "CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}" in content
+        and "STEGO_KEY: ${{ secrets.STEGO_KEY }}" in content
+    )
+
+
 def main() -> int:
     if not WORKFLOW_DIR.exists():
         print(f"ERROR: workflow directory not found: {WORKFLOW_DIR}")
@@ -78,6 +91,13 @@ def main() -> int:
             errors.append(f"{path}: missing non-empty 'jobs' mapping")
         if path.name in CONCURRENCY_REQUIRED and "concurrency" not in data:
             errors.append(f"{path}: missing top-level concurrency policy")
+        if (
+            path.name == "deploy-pages.yml"
+            and not _deploy_pages_has_frontend_placeholder_guard(path)
+        ):
+            errors.append(
+                f"{path}: missing frontend placeholder injection/validation guard"
+            )
         if _contains_git_push(path):
             missing_ignores = SOURCE_RESHARD_PATHS - _push_paths_ignore(data)
             if missing_ignores:

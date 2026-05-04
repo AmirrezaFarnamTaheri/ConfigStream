@@ -148,6 +148,7 @@ def _write_manifest(root: Path) -> None:
 
 
 def _write_valid_artifact(root: Path) -> None:
+    metadata_payload = _metadata_payload()
     for rel_path in REQUIRED_EXISTS:
         if rel_path == "artifact_manifest.json":
             continue
@@ -175,7 +176,7 @@ def _write_valid_artifact(root: Path) -> None:
                 ),
             )
         elif rel_path == "metadata.json" or rel_path == "api/stats":
-            _write_text(path, json.dumps(_metadata_payload()))
+            _write_text(path, json.dumps(metadata_payload))
         elif rel_path.endswith("proxies.json") or rel_path == "api/proxies":
             _write_text(path, "[]")
         elif rel_path.endswith(".json"):
@@ -287,6 +288,33 @@ def test_validate_pages_artifact_reports_missing_metadata_schema_key(
         "metadata.json missing required key from schema: total_working" in error
         for error in errors
     )
+
+
+def test_validate_pages_artifact_reports_unknown_metadata_schema_key(
+    tmp_path: Path,
+) -> None:
+    _write_valid_artifact(tmp_path)
+    metadata = _metadata_payload()
+    metadata["legacy_extra"] = True
+    _write_text(tmp_path / "metadata.json", json.dumps(metadata))
+    _write_manifest(tmp_path)
+
+    errors = validate_pages_artifact(tmp_path)
+
+    assert any(
+        "metadata.json contains unknown schema key: legacy_extra" in error
+        for error in errors
+    )
+
+
+def test_validate_pages_artifact_reports_api_alias_drift(tmp_path: Path) -> None:
+    _write_valid_artifact(tmp_path)
+    _write_text(tmp_path / "api" / "proxies", '[{"config":"drift"}]')
+    _write_manifest(tmp_path)
+
+    errors = validate_pages_artifact(tmp_path)
+
+    assert any("api/proxies must match proxies.json" in error for error in errors)
 
 
 def test_write_pages_contract_refreshes_mutated_artifact(tmp_path: Path) -> None:
