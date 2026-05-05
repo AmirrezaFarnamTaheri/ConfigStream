@@ -6,8 +6,13 @@ from typing import Optional
 from ..models import Proxy
 from ..constants import MAX_CONFIG_LINE_LENGTH
 from .base import normalize_proxy_details, safe_b64_decode
+from ..security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
+
+
+def _safe_log_text(value: object) -> str:
+    return SecurityValidator.sanitize_log_message(str(value))
 
 
 def parse_vmess(config: str) -> Optional[Proxy]:
@@ -26,7 +31,7 @@ def parse_vmess(config: str) -> Optional[Proxy]:
             return None
 
         if MAX_CONFIG_LINE_LENGTH > 0 and len(decoded) > MAX_CONFIG_LINE_LENGTH:
-            logger.warning(f"VMess decoded data too large: {len(decoded)} bytes")
+            logger.warning("VMess decoded data too large: %d bytes", len(decoded))
             return None
 
         vmess_data = json.loads(decoded)
@@ -78,5 +83,5 @@ def parse_vmess(config: str) -> Optional[Proxy]:
         normalize_proxy_details(proxy)
         return proxy
     except (json.JSONDecodeError, binascii.Error, KeyError, ValueError, TypeError) as e:
-        logger.debug(f"Failed to parse VMess: {str(e)[:100]}")
+        logger.debug("Failed to parse VMess: %s", _safe_log_text(str(e)[:100]))
         return None

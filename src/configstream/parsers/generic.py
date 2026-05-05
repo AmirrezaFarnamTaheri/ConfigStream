@@ -10,6 +10,7 @@ from ..models import Proxy
 from .base import normalize_proxy_details
 from ..constants import MAX_CONFIG_LINE_LENGTH
 from ..config import AppSettings
+from ..security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +24,10 @@ _IPV4_PATTERN = re.compile(
 _HOSTNAME_PATTERN = re.compile(
     r"^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$"
 )
+
+
+def _safe_log_text(value: object) -> str:
+    return SecurityValidator.sanitize_log_message(str(value))
 
 
 def parse_generic_url_scheme(config: str) -> Optional[Proxy]:
@@ -62,14 +67,16 @@ def parse_generic_url_scheme(config: str) -> Optional[Proxy]:
 
                 if not (is_valid_ip or is_valid_hostname):
                     logger.debug(
-                        f"Naked IP:PORT rejected: invalid host format '{host}'"
+                        "Naked IP:PORT rejected: invalid host format %s",
+                        _safe_log_text(host),
                     )
                     return None
 
                 # Validate port range
                 if not (1 <= port_val <= 65535):
                     logger.debug(
-                        f"Naked IP:PORT rejected: port {port_val} out of range"
+                        "Naked IP:PORT rejected: port %d out of range",
+                        port_val,
                     )
                     return None
 
@@ -163,7 +170,7 @@ def parse_generic_url_scheme(config: str) -> Optional[Proxy]:
         normalize_proxy_details(proxy)
         return proxy
     except (ValueError, IndexError) as e:
-        logger.debug(f"Failed to parse Generic config: {str(e)[:50]}")
+        logger.debug("Failed to parse Generic config: %s", _safe_log_text(str(e)[:50]))
         return None
 
 
@@ -196,7 +203,7 @@ def parse_naive(config: str) -> Optional[Proxy]:
         normalize_proxy_details(proxy)
         return proxy
     except (ValueError, IndexError) as e:
-        logger.debug(f"Failed to parse Naive config: {str(e)[:50]}")
+        logger.debug("Failed to parse Naive config: %s", _safe_log_text(str(e)[:50]))
         return None
 
 
@@ -404,7 +411,7 @@ def parse_v2ray_json(config: str) -> Optional[Proxy]:
     try:
         port_int = int(port)
     except (ValueError, TypeError):
-        logger.debug(f"Invalid port in v2ray config: {port}")
+        logger.debug("Invalid port in v2ray config: %s", _safe_log_text(port))
         return None
 
     remarks = outbound.get("tag", data.get("remark", ""))

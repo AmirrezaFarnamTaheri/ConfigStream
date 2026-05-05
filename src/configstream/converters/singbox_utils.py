@@ -3,6 +3,7 @@ import logging
 import re
 from typing import Dict, Any
 from ..utils.bool_parser import parse_bool, parse_tls_flag
+from ..security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
 
@@ -97,7 +98,10 @@ def add_transport_sb(out: Dict[str, Any], details: Dict[str, Any]) -> Dict[str, 
             or parse_bool(details.get("skip_cert_verify"))
         ):
             tls["insecure"] = True
-            logger.debug(f"Enabled insecure TLS for {out.get('server')}")
+            logger.debug(
+                "Enabled insecure TLS for %s",
+                SecurityValidator.sanitize_log_message(str(out.get("server"))),
+            )
 
         if security == "reality":
             # Validate pbk exists - str(None) would create "None" string (data corruption)
@@ -111,7 +115,8 @@ def add_transport_sb(out: Dict[str, Any], details: Dict[str, Any]) -> Dict[str, 
             else:
                 # Fail validation for Reality without PBK
                 logger.debug(
-                    f"Skipping invalid Reality TLS for {out.get('server')}: missing pbk"
+                    "Skipping invalid Reality TLS for %s: missing pbk",
+                    SecurityValidator.sanitize_log_message(str(out.get("server"))),
                 )
                 return {}  # Return empty dict to signal failure
 

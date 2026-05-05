@@ -197,7 +197,6 @@ async def run_full_pipeline(
     )
 
     stop_event = asyncio.Event()
-    test_budget: Optional[asyncio.Semaphore] = None
 
     # Validate App Settings
     settings.validate_settings()
@@ -369,7 +368,6 @@ async def run_full_pipeline(
                 seen_lock=seen_lock,
                 washer=washer,  # Pass shared washer
                 stop_event=stop_event,
-                test_budget=test_budget,
                 seen_bloom=seen_bloom,
             )
         )

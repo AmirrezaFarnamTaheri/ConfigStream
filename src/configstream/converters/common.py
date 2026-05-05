@@ -4,6 +4,7 @@ import logging
 from typing import Any, Optional
 import urllib.parse
 from ..models import Proxy
+from ..security_validator import SecurityValidator
 from ..tagging import get_flag_emoji
 
 logger = logging.getLogger(__name__)
@@ -123,11 +124,17 @@ def to_uri(proxy: Proxy) -> Optional[str]:
 
     except (UnicodeDecodeError, ValueError, AttributeError, KeyError) as e:
         # Expected errors from malformed proxy details
-        logger.debug(f"URI reconstruction failed for {proxy.address}: {e}")
+        safe_proxy = SecurityValidator.sanitize_log_message(str(proxy.address))
+        safe_error = SecurityValidator.sanitize_log_message(str(e))
+        logger.debug("URI reconstruction failed for %s: %s", safe_proxy, safe_error)
     except Exception as e:
         # Unexpected errors - log as warning for debugging
+        safe_proxy = SecurityValidator.sanitize_log_message(str(proxy.address))
+        safe_error = SecurityValidator.sanitize_log_message(str(e))
         logger.warning(
-            f"Unexpected error in URI reconstruction for {proxy.address}: {e}"
+            "Unexpected error in URI reconstruction for %s: %s",
+            safe_proxy,
+            safe_error,
         )
 
     return None

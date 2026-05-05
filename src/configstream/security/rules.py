@@ -20,6 +20,7 @@ from configstream.constants import (
 )
 from configstream.security_validator import (
     LOCAL_IP_RANGES as _SPECIAL_ADDRESS_PATTERNS_BASE,
+    SecurityValidator,
 )
 
 logger = logging.getLogger(__name__)
@@ -55,6 +56,10 @@ _SPECIAL_ADDRESS_PATTERNS = list(_SPECIAL_ADDRESS_PATTERNS_BASE) + [
 _OCTAL_NOTATION_RE = re.compile(r"^0[0-7]{1,11}\.")
 _IP_STRUCTURE_RE = re.compile(r"^[\d\.]+$")
 _IP_PORT_CHARS_RE = re.compile(r"^[\d\.:]+$")
+
+
+def _safe_log_text(value: object) -> str:
+    return SecurityValidator.sanitize_log_message(str(value))
 
 
 def validate_port(port: int) -> Optional[str]:
@@ -97,7 +102,7 @@ def validate_address(
         ip = ipaddress.ip_address(address_check)
         if not _APP_SETTINGS_CACHE.ALLOW_PRIVATE_IPS:
             if ip.is_private or ip.is_loopback or ip.is_link_local:
-                logger.warning(f"Private IP detected: {address}")
+                logger.warning("Private IP detected: %s", _safe_log_text(address))
                 issues[SECURITY_CATEGORIES["ADDRESS_PRIVATE"]] = (
                     f"Private address: {address}"
                 )
@@ -107,7 +112,10 @@ def validate_address(
         # Check for suspicious patterns (exact or subdomain match)
         for suspicious in SUSPICIOUS_DOMAINS:
             if address_check == suspicious or address_check.endswith("." + suspicious):
-                logger.warning(f"Suspicious address pattern found: {address}")
+                logger.warning(
+                    "Suspicious address pattern found: %s",
+                    _safe_log_text(address),
+                )
                 issues[SECURITY_CATEGORIES["ADDRESS_SUSPICIOUS"]] = (
                     f"Suspicious address pattern: {address}"
                 )
@@ -126,7 +134,8 @@ def validate_address(
                 return issues
             else:
                 logger.warning(
-                    f"Non-standard IP notation (possible DNS rebinding): {address}"
+                    "Non-standard IP notation (possible DNS rebinding): %s",
+                    _safe_log_text(address),
                 )
                 issues[SECURITY_CATEGORIES["ADDRESS_SUSPICIOUS"]] = (
                     f"Non-standard notation: {address}"
@@ -134,7 +143,8 @@ def validate_address(
                 return issues
         else:
             logger.warning(
-                f"Non-standard IP notation (possible DNS rebinding): {address}"
+                "Non-standard IP notation (possible DNS rebinding): %s",
+                _safe_log_text(address),
             )
             issues[SECURITY_CATEGORIES["ADDRESS_SUSPICIOUS"]] = (
                 f"Non-standard notation: {address}"
@@ -146,7 +156,8 @@ def validate_address(
         is_ip_structure = _IP_STRUCTURE_RE.match(address_lower)
         if is_ip_structure:
             logger.warning(
-                f"Non-standard IP notation (possible DNS rebinding): {address}"
+                "Non-standard IP notation (possible DNS rebinding): %s",
+                _safe_log_text(address),
             )
             issues[SECURITY_CATEGORIES["ADDRESS_SUSPICIOUS"]] = (
                 f"Non-standard notation: {address}"
@@ -160,7 +171,9 @@ def validate_address(
             decoded = unquote(address_lower)
             if decoded.startswith("127.") or decoded in ("localhost", "::1"):
                 logger.warning(
-                    f"URL-encoded localhost/loopback detected: {address} -> {decoded}"
+                    "URL-encoded localhost/loopback detected: %s -> %s",
+                    _safe_log_text(address),
+                    _safe_log_text(decoded),
                 )
                 issues[SECURITY_CATEGORIES["ADDRESS_PRIVATE"]] = (
                     f"Encoded loopback address: {decoded}"
@@ -168,13 +181,20 @@ def validate_address(
                 return issues
         except Exception as e:
             # If decoding fails we just fall back to normal checks
-            logger.debug(f"Failed to URL-decode address {address}: {e}")
+            logger.debug(
+                "Failed to URL-decode address %s: %s",
+                _safe_log_text(address),
+                _safe_log_text(e),
+            )
 
     # 3) IPv6 loopback / IPv4-mapped loopback
     if address_lower in ("::1", "0:0:0:0:0:0:0:1") or address_lower.startswith(
         "::ffff:127."
     ):
-        logger.warning(f"Loopback IPv6 or IPv4-mapped localhost detected: {address}")
+        logger.warning(
+            "Loopback IPv6 or IPv4-mapped localhost detected: %s",
+            _safe_log_text(address),
+        )
         issues[SECURITY_CATEGORIES["ADDRESS_PRIVATE"]] = f"Loopback address: {address}"
         return issues
 
@@ -188,7 +208,10 @@ def validate_address(
         if is_ip_match or is_localhost:
             for pattern in _SPECIAL_ADDRESS_PATTERNS:
                 if pattern.match(address_lower):
-                    logger.warning(f"Special or private address detected: {address}")
+                    logger.warning(
+                        "Special or private address detected: %s",
+                        _safe_log_text(address),
+                    )
                     issues[SECURITY_CATEGORIES["ADDRESS_PRIVATE"]] = (
                         f"Special address: {address}"
                     )
@@ -223,7 +246,7 @@ def validate_config_string(config: str) -> Dict[str, str]:
 
     # Check length
     if MAX_CONFIG_LINE_LENGTH > 0 and len(config) > MAX_CONFIG_LINE_LENGTH:
-        logger.warning(f"Config too long: {len(config)} chars")
+        logger.warning("Config too long: %d chars", len(config))
         issues[SECURITY_CATEGORIES["CONFIG_TOO_LONG"]] = (
             f"Config exceeds max length: {len(config)} chars"
         )

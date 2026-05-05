@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import logging
 from ..models import Proxy
+from ..security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +57,11 @@ def normalize_proxy_details(proxy: Proxy) -> None:
             # Can be comma-separated
             alpn_list = [s.strip() for s in alpn.split(",")]
             proxy.details["alpn"] = alpn_list
-            logger.debug(f"Normalized ALPN for {proxy.id[:8]}: {alpn_list}")
+            logger.debug(
+                "Normalized ALPN for %s: %s",
+                SecurityValidator.sanitize_log_message(proxy.id[:8]),
+                SecurityValidator.sanitize_log_message(str(alpn_list)),
+            )
         elif isinstance(alpn, (list, tuple)):
             proxy.details["alpn"] = [str(item) for item in alpn]
 

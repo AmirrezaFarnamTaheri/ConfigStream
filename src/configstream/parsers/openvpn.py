@@ -4,6 +4,7 @@ import re
 from typing import Optional
 from ..models import Proxy
 from ..constants import MAX_OPENVPN_CONFIG_SIZE
+from ..security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +14,10 @@ _REMOTE_LINE_RE = re.compile(r"^remote\s+(\S+)\s+(\d+)", re.MULTILINE)
 _REMOTE_FALLBACK_RE = re.compile(r"remote\s+(\S+)\s+(\d+)")
 _HOSTNAME_FORMAT_RE = re.compile(r"^[\w\.\-\[\]:]+$")
 _PROTO_RE = re.compile(r"^proto\s+(\w+)", re.MULTILINE)
+
+
+def _safe_log_text(value: object) -> str:
+    return SecurityValidator.sanitize_log_message(str(value))
 
 
 def parse_openvpn(config: str) -> Optional[Proxy]:
@@ -29,7 +34,9 @@ def parse_openvpn(config: str) -> Optional[Proxy]:
         # Enforce config size limit to prevent DoS/memory exhaustion (0 = unlimited)
         if MAX_OPENVPN_CONFIG_SIZE > 0 and len(config) > MAX_OPENVPN_CONFIG_SIZE:
             logger.warning(
-                f"OpenVPN config rejected: size {len(config)} exceeds limit {MAX_OPENVPN_CONFIG_SIZE}"
+                "OpenVPN config rejected: size %d exceeds limit %d",
+                len(config),
+                MAX_OPENVPN_CONFIG_SIZE,
             )
             return None
 
@@ -52,23 +59,35 @@ def parse_openvpn(config: str) -> Optional[Proxy]:
 
         # Validate hostname length and format
         if len(host) > 255:
-            logger.warning(f"OpenVPN hostname rejected: length {len(host)} exceeds 255")
+            logger.warning(
+                "OpenVPN hostname rejected: length %d exceeds 255",
+                len(host),
+            )
             return None
 
         # Basic hostname format validation (alphanumeric, dots, hyphens, underscores)
         # Also allows IPv4 addresses and IPv6 addresses in brackets
         if not _HOSTNAME_FORMAT_RE.match(host):
-            logger.warning(f"OpenVPN hostname rejected: invalid format '{host}'")
+            logger.warning(
+                "OpenVPN hostname rejected: invalid format %s",
+                _safe_log_text(host),
+            )
             return None
 
         # Validate port range (1-65535)
         try:
             port = int(port_str)
             if port < 1 or port > 65535:
-                logger.warning(f"OpenVPN port rejected: {port} out of range (1-65535)")
+                logger.warning(
+                    "OpenVPN port rejected: %d out of range (1-65535)",
+                    port,
+                )
                 return None
         except (ValueError, TypeError):
-            logger.debug(f"Invalid port in openvpn config: {port_str}")
+            logger.debug(
+                "Invalid port in openvpn config: %s",
+                _safe_log_text(port_str),
+            )
             return None
 
         # Extract Proto
@@ -77,7 +96,10 @@ def parse_openvpn(config: str) -> Optional[Proxy]:
 
         # Validate transport protocol
         if transport.lower() not in ["tcp", "udp", "tcp-client", "udp-client"]:
-            logger.debug(f"Unknown OpenVPN transport: {transport}, defaulting to udp")
+            logger.debug(
+                "Unknown OpenVPN transport: %s, defaulting to udp",
+                _safe_log_text(transport),
+            )
             transport = "udp"
 
         return Proxy(
@@ -93,11 +115,20 @@ def parse_openvpn(config: str) -> Optional[Proxy]:
         )
 
     except ValueError as e:
-        logger.debug(f"Failed to parse OpenVPN (validation error): {e}")
+        logger.debug(
+            "Failed to parse OpenVPN (validation error): %s",
+            _safe_log_text(e),
+        )
         return None
     except re.error as e:
-        logger.warning(f"Failed to parse OpenVPN (regex error): {e}")
+        logger.warning(
+            "Failed to parse OpenVPN (regex error): %s",
+            _safe_log_text(e),
+        )
         return None
     except Exception as e:
-        logger.warning(f"Failed to parse OpenVPN (unexpected error): {e}")
+        logger.warning(
+            "Failed to parse OpenVPN (unexpected error): %s",
+            _safe_log_text(e),
+        )
         return None

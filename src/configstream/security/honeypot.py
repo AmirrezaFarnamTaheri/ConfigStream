@@ -11,6 +11,7 @@ standalone/alternative use.
 
 import logging
 from configstream.security.virus_total import check_ip_reputation
+from configstream.security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,7 @@ async def is_honeypot(host: str) -> bool:
     """
     try:
         report = await check_ip_reputation(host)
+        safe_host = SecurityValidator.sanitize_log_message(host)
 
         if report.get("api_key_missing"):
             logger.warning(
@@ -30,11 +32,16 @@ async def is_honeypot(host: str) -> bool:
 
         if report.get("malicious", 0) > 0:
             logger.warning(
-                f"Passive Intel: Host {host} flagged as malicious by VirusTotal."
+                "Passive Intel: Host %s flagged as malicious by VirusTotal.",
+                safe_host,
             )
             return True
 
         return False
     except Exception as e:
-        logger.error(f"Honeypot check failed for {host}: {e}")
+        logger.error(
+            "Honeypot check failed for %s: %s",
+            SecurityValidator.sanitize_log_message(host),
+            SecurityValidator.sanitize_log_message(str(e)),
+        )
         return False

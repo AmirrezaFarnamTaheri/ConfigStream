@@ -46,6 +46,18 @@ def _is_valid_ip(host: str) -> bool:
     return False
 
 
+def _sanitize_process_output(value: object, limit: int = 2048) -> str:
+    """Decode, sanitize, and bound subprocess output before logging/storing it."""
+    if isinstance(value, bytes):
+        text = value.decode(errors="ignore")
+    else:
+        text = str(value)
+    text = SecurityValidator.sanitize_log_message(text)
+    if len(text) > limit:
+        return f"{text[:limit]}...[truncated]"
+    return text
+
+
 # Constants for Vwarp binary management
 # Latest: v2.2.2 (2025-12-16) - https://github.com/voidr3aper-anon/Vwarp/releases
 # v2.2.1+ supports full JSON config (JunkInterval, masque.enabled, masque.preferred)
@@ -351,7 +363,8 @@ class VwarpTool:
                     )
 
                 logger.info(
-                    f"Downloading Vwarp from {SecurityValidator.sanitize_log_message(url)}"
+                    "Downloading Vwarp from %s",
+                    SecurityValidator.sanitize_log_message(url),
                 )
 
                 async with httpx.AsyncClient(
@@ -445,7 +458,7 @@ class VwarpTool:
                     return False
 
             except Exception as e:
-                logger.error(f"Failed to install Vwarp: {e}")
+                logger.error("Failed to install Vwarp: %s", _sanitize_process_output(e))
                 return False
 
     async def is_available(self) -> bool:
@@ -492,15 +505,15 @@ class VwarpTool:
                 return True
             if stderr:
                 logger.error(
-                    f"Vwarp version check failed: {stderr.decode(errors='ignore')}"
+                    "Vwarp version check failed: %s", _sanitize_process_output(stderr)
                 )
             elif stdout:
                 logger.error(
-                    f"Vwarp version check failed: {stdout.decode(errors='ignore')}"
+                    "Vwarp version check failed: %s", _sanitize_process_output(stdout)
                 )
             return False
         except Exception as exc:
-            logger.error(f"Vwarp version check error: {exc}")
+            logger.error("Vwarp version check error: %s", _sanitize_process_output(exc))
             return False
 
     async def _get_help_text(self) -> str:
@@ -850,7 +863,10 @@ class VwarpTool:
         try:
             tmp_path.write_text(json.dumps(write_config), encoding="utf-8")
         except OSError as exc:
-            logger.error(f"Failed to write Vwarp config: {exc}")
+            logger.error(
+                "Failed to write Vwarp config: %s",
+                _sanitize_process_output(exc),
+            )
             return None, []
 
         self._config_path = tmp_path
@@ -953,7 +969,10 @@ class VwarpTool:
                         if _is_valid_ip(host):
                             endpoints.append((host, port))
                         else:
-                            logger.debug("Vwarp scan: skipping non-IP host %r", host)
+                            logger.debug(
+                                "Vwarp scan: skipping non-IP host %s",
+                                _sanitize_process_output(host),
+                            )
 
             elapsed = time.time() - scan_start
             logger.info(
@@ -965,7 +984,9 @@ class VwarpTool:
 
         except Exception as e:
             logger.error(
-                "Vwarp scan failed after %.1fs: %s", time.time() - scan_start, e
+                "Vwarp scan failed after %.1fs: %s",
+                time.time() - scan_start,
+                _sanitize_process_output(e),
             )
             return []
 
@@ -1063,11 +1084,18 @@ class VwarpTool:
                     combined = (stdout or b"") + b"\n" + (stderr or b"")
                     details = combined.decode(errors="ignore")
                     if stdout:
-                        logger.error(f"Vwarp stdout: {stdout.decode(errors='ignore')}")
+                        logger.error(
+                            "Vwarp stdout: %s", _sanitize_process_output(stdout)
+                        )
                     if stderr:
-                        logger.error(f"Vwarp stderr: {stderr.decode(errors='ignore')}")
+                        logger.error(
+                            "Vwarp stderr: %s", _sanitize_process_output(stderr)
+                        )
                     if details:
-                        self._record_failure(self._classify_failure(details), details)
+                        self._record_failure(
+                            self._classify_failure(details),
+                            _sanitize_process_output(details),
+                        )
                 except Exception:  # nosec
                     pass
                 return False
@@ -1083,7 +1111,10 @@ class VwarpTool:
             except (OSError, asyncio.TimeoutError, ConnectionRefusedError) as e:
                 # Log only if debug is enabled to avoid spam
                 if logger.isEnabledFor(logging.DEBUG):
-                    logger.debug(f"Vwarp port check failed (retrying): {e}")
+                    logger.debug(
+                        "Vwarp port check failed (retrying): %s",
+                        _sanitize_process_output(e),
+                    )
                 # Throttling: wait a bit longer or use exponential backoff to reduce CPU/Net load
                 await asyncio.sleep(1.0)
         return False
@@ -1186,11 +1217,14 @@ class VwarpTool:
                 combined = (stdout or b"") + b"\n" + (stderr or b"")
                 details = combined.decode(errors="ignore")
                 if stdout:
-                    logger.error(f"Vwarp stdout: {stdout.decode(errors='ignore')}")
+                    logger.error("Vwarp stdout: %s", _sanitize_process_output(stdout))
                 if stderr:
-                    logger.error(f"Vwarp stderr: {stderr.decode(errors='ignore')}")
+                    logger.error("Vwarp stderr: %s", _sanitize_process_output(stderr))
                 if details:
-                    self._record_failure(self._classify_failure(details), details)
+                    self._record_failure(
+                        self._classify_failure(details),
+                        _sanitize_process_output(details),
+                    )
                 self._cleanup_config_file()
                 return False
 
@@ -1205,11 +1239,18 @@ class VwarpTool:
                     combined = (stdout or b"") + b"\n" + (stderr or b"")
                     details = combined.decode(errors="ignore")
                     if stdout:
-                        logger.debug(f"Vwarp stdout: {stdout.decode(errors='ignore')}")
+                        logger.debug(
+                            "Vwarp stdout: %s", _sanitize_process_output(stdout)
+                        )
                     if stderr:
-                        logger.error(f"Vwarp stderr: {stderr.decode(errors='ignore')}")
+                        logger.error(
+                            "Vwarp stderr: %s", _sanitize_process_output(stderr)
+                        )
                     if details and not self._last_failure_reason:
-                        self._record_failure(self._classify_failure(details), details)
+                        self._record_failure(
+                            self._classify_failure(details),
+                            _sanitize_process_output(details),
+                        )
                 else:
                     # Kill and read logs
                     try:
@@ -1223,16 +1264,21 @@ class VwarpTool:
                             details = combined.decode(errors="ignore")
                             if stderr:
                                 logger.error(
-                                    f"Vwarp stderr before kill: {stderr.decode(errors='ignore')}"
+                                    "Vwarp stderr before kill: %s",
+                                    _sanitize_process_output(stderr),
                                 )
                             if details and not self._last_failure_reason:
                                 self._record_failure(
-                                    self._classify_failure(details), details
+                                    self._classify_failure(details),
+                                    _sanitize_process_output(details),
                                 )
                         except asyncio.TimeoutError:
                             self._tunnel_proc.kill()
                     except Exception as e:
-                        logger.debug(f"Error killing hung vwarp: {e}")
+                        logger.debug(
+                            "Error killing hung vwarp: %s",
+                            _sanitize_process_output(e),
+                        )
 
                 self._tunnel_proc = None
                 if not self._last_failure_reason:
@@ -1255,9 +1301,8 @@ class VwarpTool:
                 while stream and not stream.at_eof():
                     line = await stream.readline()
                     if line:
-                        logger.log(
-                            level, f"Vwarp: {line.decode(errors='ignore').strip()}"
-                        )
+                        safe_line = _sanitize_process_output(line).strip()
+                        logger.log(level, "Vwarp: %s", safe_line)
 
             asyncio.create_task(consume_stream(self._tunnel_proc.stdout, logging.DEBUG))
             asyncio.create_task(
@@ -1278,7 +1323,7 @@ class VwarpTool:
                 "Failed to start Vwarp tunnel: %s. "
                 "Check config, WARP keys, and network. "
                 "Use USE_VWARP_TUNNEL=false to disable.",
-                e,
+                _sanitize_process_output(e),
             )
             if self._tunnel_proc:
                 try:
@@ -1309,7 +1354,11 @@ class VwarpTool:
             except ProcessLookupError:
                 logger.debug("Vwarp tunnel (pid=%s) already exited.", pid)
             except Exception as e:
-                logger.warning("Error stopping Vwarp tunnel (pid=%s): %s", pid, e)
+                logger.warning(
+                    "Error stopping Vwarp tunnel (pid=%s): %s",
+                    pid,
+                    _sanitize_process_output(e),
+                )
             finally:
                 self._tunnel_proc = None
         self._cleanup_config_file()
@@ -1326,7 +1375,7 @@ class VwarpTool:
 
     def _record_failure(self, reason: str, details: str) -> None:
         self._last_failure_reason = reason
-        self._last_failure_details = details
+        self._last_failure_details = _sanitize_process_output(details)
 
     @staticmethod
     def _classify_failure(text: str) -> str:

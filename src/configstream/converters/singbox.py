@@ -182,6 +182,18 @@ def _is_local_hostname(address: str) -> bool:
     return False
 
 
+def _safe_proxy_ref(proxy: Proxy) -> str:
+    return SecurityValidator.sanitize_log_message(
+        f"{getattr(proxy, 'protocol', 'unknown')}://{getattr(proxy, 'address', '')}:{getattr(proxy, 'port', '')}"
+    )
+
+
+def _safe_source_ref(proxy: Proxy) -> str:
+    return SecurityValidator.sanitize_log_message(
+        str(getattr(proxy, "details", {}).get("_source", "unknown"))
+    )
+
+
 def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
     """
     Convert a Proxy model to a Sing-box outbound configuration.
@@ -207,24 +219,24 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "t.me",
         ]
     ):
-        logger.debug(f"Conversion skipped for subscription URL: {proxy.address}")
+        logger.debug(
+            "Conversion skipped for subscription URL: %s", _safe_proxy_ref(proxy)
+        )
         return None
 
     # Reject invalid port ranges
     if not isinstance(proxy.port, int) or proxy.port <= 0 or proxy.port > 65535:
-        logger.warning(
-            f"Conversion failed: invalid port {proxy.port} for {proxy.address}"
-        )
+        logger.warning("Conversion failed: invalid port for %s", _safe_proxy_ref(proxy))
         return None
 
     # Drop loopback/private IPs AND local hostnames
     if _is_local_hostname(proxy.address):
-        logger.debug(f"Dropped local hostname proxy: {proxy.address}:{proxy.port}")
+        logger.debug("Dropped local hostname proxy: %s", _safe_proxy_ref(proxy))
         return None
     try:
         ip = ipaddress.ip_address(proxy.address)
         if ip.is_loopback or ip.is_private:
-            logger.debug(f"Dropped local/private proxy: {proxy.address}:{proxy.port}")
+            logger.debug("Dropped local/private proxy: %s", _safe_proxy_ref(proxy))
             return None
     except ValueError:
         # Not an IP address (domain name), proceed
@@ -271,17 +283,16 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
     protocol = _PROTOCOL_ALIASES.get(protocol, protocol)
 
     if protocol == "anytls":
-        logger.debug(
-            f"Dropping AnyTLS proxy (unsupported): {proxy.address}:{proxy.port}"
-        )
+        logger.debug("Dropping AnyTLS proxy (unsupported): %s", _safe_proxy_ref(proxy))
         return None
 
     if protocol == "vmess":
         uuid = proxy.uuid or proxy.details.get("uuid") or proxy.details.get("id")
         if not uuid:
             logger.warning(
-                f"Dropping VMess proxy missing UUID: {proxy.address}:{proxy.port}. "
-                f"Source: {proxy.details.get('_source', 'unknown')}"
+                "Dropping VMess proxy missing UUID: %s. Source: %s",
+                _safe_proxy_ref(proxy),
+                _safe_source_ref(proxy),
             )
             return None
         out = {
@@ -299,8 +310,9 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         uuid = proxy.uuid or proxy.details.get("uuid")
         if not uuid:
             logger.warning(
-                f"Dropping VLESS proxy missing UUID: {proxy.address}:{proxy.port}. "
-                f"Source: {proxy.details.get('_source', 'unknown')}"
+                "Dropping VLESS proxy missing UUID: %s. Source: %s",
+                _safe_proxy_ref(proxy),
+                _safe_source_ref(proxy),
             )
             return None
         out = {
@@ -313,7 +325,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         sanitized_flow = _sanitize_vless_flow(raw_flow)
         if sanitized_flow is None:
             logger.warning(
-                f"Dropping VLESS proxy with invalid flow: {proxy.address}:{proxy.port}"
+                "Dropping VLESS proxy with invalid flow: %s", _safe_proxy_ref(proxy)
             )
             return None
         if sanitized_flow:
@@ -324,8 +336,9 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
     elif protocol in ["shadowsocks", "ss2022"]:
         if not proxy.details.get("password"):
             logger.warning(
-                f"Dropping Shadowsocks proxy missing password: {proxy.address}:{proxy.port}. "
-                f"Source: {proxy.details.get('_source', 'unknown')}"
+                "Dropping Shadowsocks proxy missing password: %s. Source: %s",
+                _safe_proxy_ref(proxy),
+                _safe_source_ref(proxy),
             )
             return None
 
@@ -353,7 +366,9 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             # Since we don't have it, drop these proxies to prevent tester crash.
             if plugin_name.lower() in ("obfs", "obfs-local", "simple-obfs"):
                 logger.debug(
-                    f"Dropping Shadowsocks proxy with unsupported plugin '{plugin_name}': {proxy.address}"
+                    "Dropping Shadowsocks proxy with unsupported plugin %s: %s",
+                    SecurityValidator.sanitize_log_message(repr(plugin_name)),
+                    _safe_proxy_ref(proxy),
                 )
                 return None
 
@@ -361,15 +376,18 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             if "plugin_opts" in proxy.details:
                 out["plugin_opts"] = str(proxy.details["plugin_opts"])
             logger.debug(
-                f"Mapped Shadowsocks plugin for {proxy.address}: {out['plugin']}"
+                "Mapped Shadowsocks plugin for %s: %s",
+                _safe_proxy_ref(proxy),
+                SecurityValidator.sanitize_log_message(str(out["plugin"])),
             )
 
     elif protocol == "trojan":
         password = proxy.uuid or proxy.details.get("password")
         if not password:
             logger.warning(
-                f"Dropping Trojan proxy missing password: {proxy.address}:{proxy.port}. "
-                f"Source: {proxy.details.get('_source', 'unknown')}"
+                "Dropping Trojan proxy missing password: %s. Source: %s",
+                _safe_proxy_ref(proxy),
+                _safe_source_ref(proxy),
             )
             return None
         out = {"type": "trojan", **base, "password": str(password)}
@@ -475,8 +493,9 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         password = proxy.details.get("password", "")
         if not username or not password:
             logger.warning(
-                f"Dropping Naive proxy missing credentials: {proxy.address}:{proxy.port}. "
-                f"Source: {proxy.details.get('_source', 'unknown')}"
+                "Dropping Naive proxy missing credentials: %s. Source: %s",
+                _safe_proxy_ref(proxy),
+                _safe_source_ref(proxy),
             )
             return None
         out = {
@@ -502,7 +521,9 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             else:
                 local_addresses = [str(existing_ip)]
             logger.debug(
-                f"Using existing local_address for WireGuard proxy {proxy.address}: {local_addresses}"
+                "Using existing local_address for WireGuard proxy %s: %s",
+                _safe_proxy_ref(proxy),
+                SecurityValidator.sanitize_log_message(str(local_addresses)),
             )
         else:
             seed_key = (
@@ -517,15 +538,14 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             unique_ip = f"172.16.{octet3}.{octet4}/32"
             local_addresses = [unique_ip]
 
-            logger.debug(
-                f"Generated unique local IP {unique_ip} for WireGuard proxy (redacted)"
-            )
+            logger.debug("Generated unique local IP for WireGuard proxy (redacted)")
 
         private_key = proxy.details.get("private_key") or proxy.uuid
         if not private_key:
             logger.debug(
-                f"Dropping WireGuard proxy missing private_key: {proxy.address}:{proxy.port}. "
-                f"Source: {proxy.details.get('_source', 'unknown')}"
+                "Dropping WireGuard proxy missing private_key: %s. Source: %s",
+                _safe_proxy_ref(proxy),
+                _safe_source_ref(proxy),
             )
             return None
 
@@ -540,7 +560,8 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
                     raw = base64.b64decode(key, validate=True)
                     if len(raw) != 32:
                         logger.warning(
-                            f"WireGuard key length invalid ({len(raw)} bytes), expected 32."
+                            "WireGuard key length invalid (%d bytes), expected 32.",
+                            len(raw),
                         )
                         return ""
                     # Sing-box expects standard WireGuard Base64 keys; keep original Base64.
@@ -556,8 +577,9 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         # Enforce peer_public_key
         if not ppk:
             logger.debug(
-                f"Dropping WireGuard proxy missing peer_public_key: {proxy.address}:{proxy.port}. "
-                f"Source: {proxy.details.get('_source', 'unknown')}"
+                "Dropping WireGuard proxy missing peer_public_key: %s. Source: %s",
+                _safe_proxy_ref(proxy),
+                _safe_source_ref(proxy),
             )
             return None
 
@@ -628,7 +650,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         uuid = proxy.uuid or proxy.details.get("uuid")
         if not uuid:
             logger.warning(
-                f"Dropping TUIC proxy missing UUID: {proxy.address}:{proxy.port}"
+                "Dropping TUIC proxy missing UUID: %s", _safe_proxy_ref(proxy)
             )
             return None
         out = {
@@ -683,8 +705,10 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         proxy_tag = out.get("tag", "unknown")
 
         logger.debug(
-            f"Successfully converted {protocol} proxy (Tag: {proxy_tag}) "
-            f"(Source: {safe_source})"
+            "Successfully converted %s proxy (Tag: %s) (Source: %s)",
+            protocol,
+            SecurityValidator.sanitize_log_message(str(proxy_tag)),
+            safe_source,
         )
     else:
         details_to_log = proxy.details.copy()
@@ -718,9 +742,11 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             )
         else:
             logger.warning(
-                f"Dropped {protocol} proxy {SecurityValidator.sanitize_log_message(str(proxy.address))} during conversion. "
-                f"Reason: Logic fell through (Missing implementation or valid fields). "
-                f"Details: {details_to_log}"
+                "Dropped %s proxy %s during conversion. Reason: Logic fell through "
+                "(Missing implementation or valid fields). Details: %s",
+                protocol,
+                _safe_proxy_ref(proxy),
+                SecurityValidator.sanitize_log_message(str(details_to_log)),
             )
 
     return out

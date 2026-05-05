@@ -20,6 +20,14 @@
 - ✅ **API Authentication**: ADMIN_API_KEY environment variable for admin endpoints
 - ✅ **Secret Management**: All secrets via environment variables, never hardcoded
 - ✅ **SSL Verification**: Certificate validation enabled (no verify=False)
+- ✅ **Sanitized Logging**: High-risk proxy/config paths mask endpoints, URLs, tokens, UUIDs, passwords, keys, subprocess output, and exception text before logging
+
+#### Logging Policy
+- Python logs that may include proxy material, source URLs, parser input, subprocess output, hostnames, addresses, credentials, keys, UUIDs, tokens, or exception text must pass those values through `SecurityValidator.sanitize_log_message()` or a local wrapper such as `_safe_log_text()`, `_safe_proxy_ref()`, `_safe_source_ref()`, or `_sanitize_process_output()`.
+- High-risk modules covered by static logging policy tests include parsers, converters, `dns_batch_resolver.py`, `tools/vwarp.py`, `security/rules.py`, `security/honeypot.py`, and `test_cache.py`.
+- Parser extraction logs use generic dropped-line markers instead of raw config snippets.
+- Vwarp process stdout/stderr logs are decoded safely, sanitized, and length-bounded before logging or storing failure details.
+- Do not add f-string, `%`, or `.format()` logger messages that interpolate sensitive values in high-risk modules; use structured logger arguments after sanitizing the value.
 
 #### Lab Live Testing
 - `/api/lab/test-chain` is disabled by default in production.
@@ -76,6 +84,7 @@
 #### Privacy
 - **No Telemetry**: No user tracking or analytics sent to external services
 - **Local Processing**: All proxy testing done locally
+- **Log Privacy**: Runtime logs must not expose proxy endpoints, credentials, UUIDs, source tokens, raw configs, or subprocess output without sanitizer masking.
 - **No Cloud Dependencies**: Fully self-hosted solution
 - **Insecure Proxy Retention**: Non-fatal policy rejections are retained and tagged so consumers can filter or discard downstream (malformed/invalid configs still drop).
 
@@ -171,7 +180,7 @@ export MAXMIND_LICENSE_KEY="your-key"   # For GeoIP lookups
 - [ ] STEGO_KEY rotated regularly (recommend: every 6 hours)
 - [ ] Container running as non-root user
 - [ ] Health checks enabled in orchestrator
-- [ ] Logs monitored for suspicious activity
+- [ ] Logs monitored for suspicious activity without exposing raw proxy, token, credential, UUID, or key material
 - [ ] Dependencies updated regularly (run pip-audit weekly)
 - [ ] HTTPS enforced for all endpoints
 - [ ] Rate limiting enabled at reverse proxy level

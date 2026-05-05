@@ -65,6 +65,36 @@ async def _report_source_failure(
         pass
 
 
+async def _report_source_backpressure(
+    loop: asyncio.AbstractEventLoop,
+    quality_tracker: SourceQualityTracker,
+    settings: AppSettings,
+    source: str,
+    dropped: int,
+    duration_ms: float = 0.0,
+) -> None:
+    """Record queue pressure without penalizing the source health score."""
+    try:
+        batch_number = str(getattr(settings, "BATCH_NUMBER", "")).strip()
+        batch_source = f"batch_{batch_number}" if batch_number else "pipeline"
+        await loop.run_in_executor(
+            None,
+            quality_tracker.record_run,
+            source,
+            {
+                "timestamp": int(time.time()),
+                "duration_ms": duration_ms,
+                "fetched_count": 0,
+                "working_count": 0,
+                "geoip_json": "{}",
+                "failure_modes_json": json.dumps({"backpressure_drop": dropped}),
+                "batch_source": batch_source,
+            },
+        )
+    except Exception:  # nosec
+        pass
+
+
 async def source_producer(
     sources: List[str],
     work_queue: asyncio.Queue,
@@ -259,13 +289,12 @@ async def source_producer(
                     metadata: dict[str, object] = {"drop_stats": drop_stats}
                     queued = await _queue_payload(fpath, file_lines, metadata)
                     if queued == 0:
-                        await _report_source_failure(
+                        await _report_source_backpressure(
                             loop,
                             quality_tracker,
                             settings,
                             fpath,
-                            "backpressure_drop",
-                            failure_modes={"backpressure_drop": len(file_lines)},
+                            len(file_lines),
                         )
                 else:
                     await _report_source_failure(
@@ -421,14 +450,13 @@ async def source_producer(
                                 }
                                 queued = await _queue_payload(source, lines, metadata)
                                 if queued == 0:
-                                    await _report_source_failure(
+                                    await _report_source_backpressure(
                                         loop,
                                         quality_tracker,
                                         settings,
                                         source,
-                                        "backpressure_drop",
+                                        len(lines),
                                         duration_ms=(res.response_time or 0.0) * 1000,
-                                        failure_modes={"backpressure_drop": len(lines)},
                                     )
                                     continue
 

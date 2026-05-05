@@ -5,8 +5,13 @@ from urllib.parse import parse_qs, unquote, urlparse
 from ..models import Proxy
 from .base import normalize_proxy_details
 from ..constants import MAX_CONFIG_LINE_LENGTH
+from ..security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
+
+
+def _safe_log_text(value: object) -> str:
+    return SecurityValidator.sanitize_log_message(str(value))
 
 
 def parse_trojan(config: str) -> Optional[Proxy]:
@@ -53,5 +58,5 @@ def parse_trojan(config: str) -> Optional[Proxy]:
         normalize_proxy_details(proxy)
         return proxy
     except (ValueError, IndexError) as e:
-        logger.debug(f"Failed to parse Trojan: {e}")
+        logger.debug("Failed to parse Trojan: %s", _safe_log_text(e))
         return None
