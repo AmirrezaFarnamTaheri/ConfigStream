@@ -25,8 +25,13 @@ else:
 from .models import Proxy
 from .utils import AtomicFileWriter
 from .config import AppSettings
+from .security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
+
+
+def _safe_proxy_ref(proxy: Proxy) -> str:
+    return SecurityValidator.sanitize_log_message(f"{proxy.address}:{proxy.port}")
 
 
 class TestResultCache:
@@ -55,18 +60,23 @@ class TestResultCache:
         """Load cache from the JSON file if it exists."""
         if not self.db_path.exists():
             logger.info(
-                f"Cache file not found at {self.db_path}. Starting with an empty cache."
+                "Cache file not found at %s. Starting with an empty cache.",
+                self.db_path,
             )
             return
         try:
             with self.db_path.open("r", encoding="utf-8") as f:
                 self._cache = json.load(f)
             logger.info(
-                f"Loaded {len(self._cache)} entries from cache file: {self.db_path}"
+                "Loaded %d entries from cache file: %s",
+                len(self._cache),
+                self.db_path,
             )
         except (json.JSONDecodeError, IOError) as e:
             logger.error(
-                f"Failed to load cache file {self.db_path}: {e}. Starting fresh."
+                "Failed to load cache file %s: %s. Starting fresh.",
+                self.db_path,
+                SecurityValidator.sanitize_log_message(str(e)),
             )
             self._cache = {}
 
@@ -92,7 +102,11 @@ class TestResultCache:
                 self._merge_and_write()
 
         except IOError as e:
-            logger.error(f"Failed to save cache file {self.db_path}: {e}")
+            logger.error(
+                "Failed to save cache file %s: %s",
+                self.db_path,
+                SecurityValidator.sanitize_log_message(str(e)),
+            )
 
     def _merge_and_write(self):
         # Re-load to ensure we merge changes if another process wrote recently
@@ -109,7 +123,11 @@ class TestResultCache:
 
         content = json.dumps(self._cache, indent=2)
         AtomicFileWriter.write_text(self.db_path, content)
-        logger.info(f"Saved {len(self._cache)} entries to cache file: {self.db_path}")
+        logger.info(
+            "Saved %d entries to cache file: %s",
+            len(self._cache),
+            self.db_path,
+        )
 
     def get(self, proxy: Proxy) -> Optional[Proxy]:
         """
@@ -128,7 +146,7 @@ class TestResultCache:
         entry = self._cache.get(config_hash)
 
         if not entry:
-            logger.debug(f"Cache MISS for {proxy.address}:{proxy.port} (no entry)")
+            logger.debug("Cache MISS for %s (no entry)", _safe_proxy_ref(proxy))
             return None
 
         current_time = time.time()
@@ -136,7 +154,7 @@ class TestResultCache:
         tested_at = entry.get("tested_at", 0.0)
 
         if tested_at < cutoff_time:
-            logger.debug(f"Cache MISS for {proxy.address}:{proxy.port} (expired)")
+            logger.debug("Cache MISS for %s (expired)", _safe_proxy_ref(proxy))
             return None
 
         # Update proxy with cached results
@@ -148,9 +166,8 @@ class TestResultCache:
         proxy.tested_at = datetime.fromtimestamp(tested_at, tz=timezone.utc).isoformat()
 
         logger.debug(
-            "Cache HIT for %s:%s (age: %.1fs)",
-            proxy.address,
-            proxy.port,
+            "Cache HIT for %s (age: %.1fs)",
+            _safe_proxy_ref(proxy),
             current_time - tested_at,
         )
         return proxy
@@ -232,7 +249,7 @@ class TestResultCache:
         deleted = initial_count - len(self._cache)
 
         if deleted > 0:
-            logger.info(f"Cleaned up {deleted} expired cache entries")
+            logger.info("Cleaned up %d expired cache entries", deleted)
 
         return deleted
 

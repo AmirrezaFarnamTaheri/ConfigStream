@@ -3,6 +3,7 @@ from typing import Dict, Any, Optional, Callable
 import logging
 
 from ..models import Proxy
+from ..security_validator import SecurityValidator
 from ..tagging import get_flag_emoji
 from ..utils.bool_parser import parse_bool
 from .clash_utils import add_transport_opts
@@ -184,5 +185,9 @@ def to_clash_proxy(
         return None
 
     except Exception as e:
-        logger.debug(f"Failed to convert proxy {proxy.id} to Clash: {e}")
+        logger.debug(
+            "Failed to convert proxy %s to Clash: %s",
+            SecurityValidator.sanitize_log_message(str(proxy.id)),
+            SecurityValidator.sanitize_log_message(str(e)),
+        )
         return None

@@ -6,8 +6,13 @@ from urllib.parse import parse_qs, unquote
 from ..models import Proxy
 from .base import normalize_proxy_details, safe_b64_decode
 from ..constants import MAX_CONFIG_LINE_LENGTH
+from ..security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
+
+
+def _safe_log_text(value: object) -> str:
+    return SecurityValidator.sanitize_log_message(str(value))
 
 
 def parse_ss(config: str) -> Optional[Proxy]:
@@ -115,7 +120,10 @@ def parse_ss(config: str) -> Optional[Proxy]:
         try:
             port = int(port_str)
         except (ValueError, TypeError):
-            logger.debug(f"Invalid port in shadowsocks config: {port_str}")
+            logger.debug(
+                "Invalid port in shadowsocks config: %s",
+                _safe_log_text(port_str),
+            )
             return None
         if not (1 <= port <= 65535) or not host:
             return None
@@ -134,7 +142,8 @@ def parse_ss(config: str) -> Optional[Proxy]:
         # Relaxed length check to allow older short methods (e.g. rc4)
         if method.lower() in invalid_methods or len(method) < 2:
             logger.debug(
-                f"Invalid Shadowsocks method detected: {method} in {config[:50]}..."
+                "Invalid Shadowsocks method detected: %s",
+                _safe_log_text(method),
             )
             return None
 
@@ -177,7 +186,8 @@ def parse_ss(config: str) -> Optional[Proxy]:
         return proxy
     except (ValueError, IndexError, binascii.Error) as e:
         logger.debug(
-            f"Failed to parse Shadowsocks config: {str(e)[:100]} | Context: {config[:50]}..."
+            "Failed to parse Shadowsocks config: %s",
+            _safe_log_text(str(e)[:100]),
         )
         return None
 
@@ -203,5 +213,5 @@ def parse_ss2022(config: str) -> Optional[Proxy]:
 
         return proxy
     except Exception as e:
-        logger.debug(f"Failed to parse Shadowsocks 2022: {e}")
+        logger.debug("Failed to parse Shadowsocks 2022: %s", _safe_log_text(e))
         return None

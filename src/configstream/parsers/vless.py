@@ -158,5 +158,4 @@ def parse_vless(url: str) -> Proxy | None:
         return proxy
 
     except Exception:
-        # logger.debug(f"Failed to parse VLESS: {e}")
         return None

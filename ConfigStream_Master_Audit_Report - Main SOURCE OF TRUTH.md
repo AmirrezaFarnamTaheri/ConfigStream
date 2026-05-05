@@ -914,96 +914,102 @@ Closure checklist:
 
 ### P2-4. Async routes still perform blocking filesystem reads
 
-Evidence:
+Status: remediated for direct blocking JSON reads in the affected routes; cache/performance load testing remains a follow-up.
+
+Previous evidence:
 
 - `server.py` `get_proxy_diff()` calls `Path.read_text()` inside an async route.
 - `server.py` `get_stats()` calls `Path.read_text()` inside an async route.
 
-Impact:
+Implemented remediation:
 
-- Large files can block the event loop.
-- Under load, unrelated requests can be delayed.
+- `src/configstream/server.py` now centralizes JSON artifact loading in `_read_json_file()`.
+- Async route handlers call `_read_json_file_async()`, which uses `asyncio.to_thread()` so disk reads and JSON parsing happen outside the event loop.
+- `/api/stats` now reads `metadata.json` off the event loop.
+- `/api/diff/proxies` now reads both `proxies.json` and `proxies.old.json` off the event loop.
+- `tests/unit/test_server.py` verifies both routes dispatch artifact reads through `asyncio.to_thread()`.
 
-Required fix:
+Remaining work:
 
-1. Use async file I/O or `run_in_executor`.
-2. Cache parsed artifacts with invalidation based on file mtime/hash.
-3. Add tests that large `proxies.json` does not block concurrent requests.
+1. Add parsed-artifact caching with invalidation based on file mtime/hash if route load becomes significant.
+2. Add a concurrent large-file route test or benchmark to quantify latency under heavy artifact size.
+3. Revisit `/api/diff/proxies` snapshot identity so diff reads are both nonblocking and semantically tied to a specific artifact version.
 
 Closure checklist:
 
-- Async route handlers do not perform blocking disk reads for large artifacts.
+- Done: affected async route handlers no longer perform direct blocking disk reads for JSON artifacts.
+- Done: route-level regression tests cover off-event-loop dispatch.
 - Changelog records async I/O cleanup.
 
 ---
 
 ### P2-5. Test budget semaphore is initialized but unused
 
-Evidence:
+Status: remediated by deleting the unused semaphore wiring and retaining `ConcurrencyManager` as the canonical test limiter.
+
+Previous evidence:
 
 - `src/configstream/pipeline.py` initializes `test_budget: Optional[asyncio.Semaphore] = None`.
 - It passes the value into `processing_consumer`.
 - `src/configstream/consumer.py` accepts `test_budget`.
 - The consumer body does not use it for Go batch testing.
 
-Impact:
+Implemented remediation:
 
-- The intended global test budget is not enforced.
-- Batch concurrency may be governed in multiple places inconsistently.
-- This increases risk of port exhaustion and overlapping tester pressure.
+- Removed the unused `test_budget` local from `src/configstream/pipeline.py`.
+- Removed the unused `test_budget` argument from the `processing_consumer()` call.
+- Removed the unused `test_budget` parameter from `src/configstream/consumer.py`.
+- Kept Python fallback testing under `ConcurrencyManager.get_semaphore()`, which is already the active limiter.
+- Added `tests/unit/test_concurrency_contract.py` to prevent reintroducing `test_budget` and to assert that the consumer still uses `ConcurrencyManager` for Python test concurrency.
 
-Required fix:
+Remaining work:
 
-1. Decide whether `test_budget` is canonical.
-2. If yes, enforce it around both Go and Python test paths.
-3. If no, delete it everywhere and document the actual concurrency control.
-4. Add concurrency tests.
+1. Add deeper integration tests for Go batch daemon pressure if a future change adds multi-daemon or per-host limiter behavior.
+2. Keep revival retests under review because Vwarp/WARP batch tests still rely on the Go tester's own batch/timeout protections.
 
 Closure checklist:
 
-- One concurrency owner exists for testing.
-- No unused semaphore parameters remain.
+- Done: `ConcurrencyManager` remains the single Python fallback test-concurrency owner.
+- Done: no unused `test_budget` semaphore parameters remain.
+- Done: contract tests prevent reintroducing the dead wiring.
 - Changelog records concurrency model cleanup.
 
 ---
 
 ### P2-6. Source-quality accounting can punish sources for queue pressure
 
-Evidence:
+Status: remediated for the producer zero-queued backpressure path.
+
+Previous evidence:
 
 - `producer.py` records `backpressure_drop`.
 - When the queue is pressured and no chunks are queued, source failure can be reported as `backpressure_drop`.
 
-Impact:
+Implemented remediation:
 
-- A good source can be penalized because the runner was overloaded.
-- Source-quality data can drift from actual source reliability.
+- Added `_report_source_backpressure()` in `src/configstream/producer.py`.
+- Local-file and remote-source zero-queued backpressure paths now record a run with `failure_modes_json={"backpressure_drop": ...}` without calling `SourceQualityTracker.report_failure()`.
+- Pipeline stats still receive backpressure counts through the existing `_record_backpressure_drop()` path.
+- `tests/unit/test_producer_quality_accounting.py` verifies backpressure accounting does not increment source failure state.
 
-Required fix:
+Remaining work:
 
-1. Separate source failure from runner backpressure.
-2. Track backpressure as pipeline capacity metric, not source trust failure.
-3. Add tests for overloaded queue behavior.
+1. Add an end-to-end overloaded bounded-queue producer test if the producer sentinel path is refactored to make that scenario easy to isolate.
+2. Consider exposing backpressure pressure/keep-ratio snapshots in metadata so operators can distinguish source poverty from runner capacity pressure.
 
 Closure checklist:
 
-- Backpressure is not treated as remote source unreliability.
-- Changelog records source-quality metric cleanup.
+- Done: backpressure is no longer treated as remote source unreliability in the zero-queued producer path.
+- Done: pipeline capacity metrics still record backpressure drops.
+- Done: changelog records source-quality metric cleanup.
 
 ---
 
 ### P2-7. Unsanitized or partially sanitized logging remains
 
-Examples found by targeted scan:
+Status: substantially remediated. Converter hot paths, batch DNS failure logs, Vwarp subprocess-output/tunnel failure logs, security rule address logs, honeypot passive-intel logs, test-cache endpoint logs, and parser drop/error logs now sanitize sensitive text with regression coverage. High-risk static enforcement and security-doc policy are in place; broader full-repository f-string/log-call debt outside these high-risk surfaces remains a follow-up.
 
-- `converters/common.py`: logs `proxy.address`.
-- `converters/singbox.py`: logs raw address/port in several drop paths.
-- `dns_batch_resolver.py`: logs hostname and exception.
-- `security/honeypot.py`: logs host.
-- `security/rules.py`: logs address.
-- `test_cache.py`: logs proxy address and port.
-- `tools/vwarp.py`: logs generated config text in at least one path.
-- parser modules log parse failures or config snippets in some cases.
+Examples found by targeted scan have been remediated in the affected converter, DNS, Vwarp, security, cache, and parser paths. The remaining risk is lower-priority log-call drift in modules outside the high-risk proxy/config handling surfaces.
 
 Impact:
 
@@ -1022,6 +1028,25 @@ Closure checklist:
 - Sensitive log scan passes.
 - New logger policy is documented.
 - Changelog records log sanitization hardening.
+
+Implemented so far:
+
+- `src/configstream/converters/common.py` now sanitizes proxy address and exception text before URI reconstruction failure logs.
+- `src/configstream/converters/singbox.py` now uses `_safe_proxy_ref()` and `_safe_source_ref()` for key drop/conversion logs that previously interpolated `proxy.address`, `proxy.port`, source URLs, or plugin values directly.
+- `src/configstream/dns_batch_resolver.py` now sanitizes both hostname and exception text before debug logging DNS resolution failures.
+- `src/configstream/tools/vwarp.py` now routes Vwarp version-check errors, install/config write errors, scan exceptions, tunnel stdout/stderr, port-check exceptions, background process lines, and stored `_last_failure_details` through `_sanitize_process_output()`, which decodes safely, masks sensitive material, and bounds log length.
+- `src/configstream/security/rules.py` now sanitizes address/error values in security-rule warning/debug logs.
+- `src/configstream/security/honeypot.py` now sanitizes host and exception values in passive reputation logs.
+- `src/configstream/test_cache.py` now sanitizes proxy endpoint references in cache hit/miss logs.
+- Parser modules now sanitize parse exceptions, invalid host/port values, WireGuard key diagnostics, OpenVPN host/transport failures, SSR/Shadowsocks/VMess/Trojan failures, and extraction drop samples. Extraction no longer logs raw dropped-line snippets.
+- `tests/unit/test_logging_sanitization_policy.py` verifies that converter, DNS, Vwarp, security-rule, honeypot, test-cache, Shadowsocks, OpenVPN, and extraction logs mask representative endpoint/token/config material.
+- `tests/unit/test_logging_sanitization_policy.py` also includes an AST/static policy guard for high-risk logging surfaces. It rejects sensitive f-string interpolation, `%` or `.format()` logger messages, and raw sensitive logger arguments unless they use the approved sanitizer wrappers.
+- `SECURITY.md` now documents the logging policy, approved sanitizer wrappers, high-risk module coverage, dropped-line marker behavior, and Vwarp subprocess-output bounds.
+
+Remaining:
+
+1. Extend static logging policy beyond the high-risk surfaces once the older full-repository f-string logger debt is burned down.
+2. Keep the parser/converter/security log scan in the validation checklist so future protocol additions do not reintroduce raw config snippets.
 
 ---
 

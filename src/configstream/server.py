@@ -56,6 +56,7 @@ def _read_json_file(path: Path) -> Any:
 async def _read_json_file_async(path: Path) -> Any:
     return await asyncio.to_thread(_read_json_file, path)
 
+
 try:
     VERSION = importlib.metadata.version("configstream")
 except importlib.metadata.PackageNotFoundError:

@@ -160,7 +160,8 @@ def extract_config_lines(
         and len(payload) > MAX_B64_INPUT_SIZE
     ):
         logger.warning(
-            f"extract_config_lines: Payload exceeds {MAX_B64_INPUT_SIZE} bytes limit. Dropping to prevent OOM."
+            "extract_config_lines: Payload exceeds %d bytes limit. Dropping to prevent OOM.",
+            MAX_B64_INPUT_SIZE,
         )
         return [], {"size_limit_exceeded": 1}
 
@@ -179,7 +180,10 @@ def extract_config_lines(
     elif isinstance(payload, str):
         payload_str = payload
     else:
-        logger.debug(f"extract_config_lines: Invalid payload type {type(payload)}.")
+        logger.debug(
+            "extract_config_lines: Invalid payload type %s.",
+            SecurityValidator.sanitize_log_message(str(type(payload))),
+        )
         return [], {"invalid_type": 1}
 
     if not payload_str.strip():
@@ -243,7 +247,10 @@ def extract_config_lines(
                 # Not a list, maybe fallback
                 lines = payload_str.splitlines()
         except Exception as e:
-            logger.debug(f"Failed to parse JSON array: {e}")
+            logger.debug(
+                "Failed to parse JSON array: %s",
+                SecurityValidator.sanitize_log_message(str(e)),
+            )
             lines = payload_str.splitlines()
 
     # 2. Check for V2Ray JSON Object (single)
@@ -287,7 +294,10 @@ def extract_config_lines(
             logger.warning("PyYAML not installed, skipping Clash YAML parsing")
             drop_stats["missing_dependency_yaml"] = 1
         except Exception as e:
-            logger.debug(f"Failed to parse Clash YAML: {e}")
+            logger.debug(
+                "Failed to parse Clash YAML: %s",
+                SecurityValidator.sanitize_log_message(str(e)),
+            )
             drop_stats["yaml_parse_error"] = 1
 
         if "proxies" not in payload_str:
@@ -320,7 +330,9 @@ def extract_config_lines(
     if max_lines > 0 and len(lines) > max_lines:
         original_count = len(lines)
         logger.warning(
-            f"Payload has {original_count} lines, truncating to {max_lines}."
+            "Payload has %d lines, truncating to %d.",
+            original_count,
+            max_lines,
         )
         lines = lines[:max_lines]
         drop_stats["truncated_lines"] = original_count - max_lines
@@ -474,7 +486,7 @@ def extract_config_lines(
         else:
             drop_stats[reason] = drop_stats.get(reason, 0) + 1
             if len(dropped_samples) < 5:
-                sample = f"{candidate[:50]}... [{reason}]"
+                sample = f"[dropped_line] [{reason}]"
                 dropped_samples.append(SecurityValidator.sanitize_log_message(sample))
 
     if html_drops > 0:
@@ -492,14 +504,18 @@ def extract_config_lines(
                 else "unknown"
             )
             logger.debug(
-                f"Source {safe_source} dropped {html_drops} lines of HTML content."
+                "Source %s dropped %d lines of HTML content.",
+                safe_source,
+                html_drops,
             )
         else:
             log_method = logger.warning if drop_rate > 0.5 else logger.debug
             if len(configs) > 0:
                 log_method(
-                    f"Parsed {len(configs)} configs. Dropped {total_dropped} lines. "
-                    f"Reasons: {drop_stats}"
+                    "Parsed %d configs. Dropped %d lines. Reasons: %s",
+                    len(configs),
+                    total_dropped,
+                    drop_stats,
                 )
             else:
                 # Demote to DEBUG when all lines are missing protocol separator
@@ -509,7 +525,9 @@ def extract_config_lines(
                 )
                 method = logger.debug if all_missing_sep else log_method
                 method(
-                    f"All lines dropped. Reasons: {drop_stats}. Samples: {dropped_samples}"
+                    "All lines dropped. Reasons: %s. Samples: %s",
+                    drop_stats,
+                    dropped_samples,
                 )
 
     return configs, drop_stats

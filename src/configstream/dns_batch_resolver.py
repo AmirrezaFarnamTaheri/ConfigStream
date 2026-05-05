@@ -10,6 +10,7 @@ from typing import Dict, List, Optional, cast
 import aiodns
 
 from .async_utils import safe_wait_for
+from .security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +47,11 @@ class BatchDNSResolver:
             if result:
                 return cast(Optional[str], result[0].host)
         except Exception as e:
-            logger.debug(f"DNS resolution failed for {hostname}: {e}")
+            logger.debug(
+                "DNS resolution failed for %s: %s",
+                SecurityValidator.sanitize_log_message(hostname),
+                SecurityValidator.sanitize_log_message(str(e)),
+            )
             return None
         return None
 

@@ -75,5 +75,8 @@ def parse_clash_json(config: str) -> Optional[Proxy]:
         normalize_proxy_details(proxy)
         return proxy
     except Exception as e:
-        logger.debug(f"Failed to parse Clash JSON: {e}")
+        logger.debug(
+            "Failed to parse Clash JSON: %s",
+            SecurityValidator.sanitize_log_message(str(e)),
+        )
         return None

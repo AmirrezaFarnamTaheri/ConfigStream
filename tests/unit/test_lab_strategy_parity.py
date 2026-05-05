@@ -26,7 +26,10 @@ def test_lab_strategy_manifest_matches_html_options_and_js_hints() -> None:
 
     html_ids = re.findall(r'<option value="([^"]+)">', lab_html)
     chain_html_ids = html_ids[html_ids.index("warp") : html_ids.index("custom") + 1]
-    hint_ids = re.findall(r"'([^']+)':\s*'[^']*'", lab_js.split("const CHAIN_HINTS = {", 1)[1].split("};", 1)[0])
+    hint_ids = re.findall(
+        r"'([^']+)':\s*'[^']*'",
+        lab_js.split("const CHAIN_HINTS = {", 1)[1].split("};", 1)[0],
+    )
 
     assert chain_html_ids == strategy_ids
     assert sorted(hint_ids) == sorted(strategy_ids)

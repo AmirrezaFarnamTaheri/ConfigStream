@@ -61,7 +61,6 @@ async def processing_consumer(
     seen_lock: Optional[asyncio.Lock] = None,
     washer: Optional[ProxyWasher] = None,  # Receive shared washer
     stop_event: Optional[asyncio.Event] = None,
-    test_budget: Optional[asyncio.Semaphore] = None,
     seen_bloom: Optional["BloomFilter"] = None,
 ):
     settings = AppSettings()
