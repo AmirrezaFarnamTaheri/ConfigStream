@@ -56,6 +56,18 @@ def _deploy_pages_has_frontend_placeholder_guard(path: Path) -> bool:
     )
 
 
+def _ci_has_required_frontend_browser_profile(path: Path) -> bool:
+    try:
+        content = path.read_text(encoding="utf-8")
+    except OSError:
+        return False
+    return (
+        "frontend-browser:" in content
+        and "python -m playwright install --with-deps chromium" in content
+        and "npm run test:frontend:browser" in content
+    )
+
+
 def main() -> int:
     if not WORKFLOW_DIR.exists():
         print(f"ERROR: workflow directory not found: {WORKFLOW_DIR}")
@@ -97,6 +109,12 @@ def main() -> int:
         ):
             errors.append(
                 f"{path}: missing frontend placeholder injection/validation guard"
+            )
+        if path.name == "ci.yml" and not _ci_has_required_frontend_browser_profile(
+            path
+        ):
+            errors.append(
+                f"{path}: missing required frontend-browser Playwright profile"
             )
         if _contains_git_push(path):
             missing_ignores = SOURCE_RESHARD_PATHS - _push_paths_ignore(data)

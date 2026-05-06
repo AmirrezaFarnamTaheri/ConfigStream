@@ -23,7 +23,8 @@ async def test_converter_logging_invalid_port(caplog):
 
     result = to_singbox_outbound(proxy)
     assert result is None
-    assert "Conversion failed: invalid port 99999" in caplog.text
+    assert "Conversion failed: invalid port for" in caplog.text
+    assert "99999" not in caplog.text
 
 
 @pytest.mark.asyncio

@@ -100,6 +100,39 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - name: Install frontend dependencies
-        run: npm install
+        run: npm ci
       - name: Build frontend assets
         run: npm run build
+      - name: Same-origin frontend smoke
+        run: npm run test:frontend:no-network
+      - name: Degraded no-JS frontend smoke
+        run: npm run test:frontend:degraded
+
+  frontend-browser:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      PYTHONPATH: src
+      ENVIRONMENT: test
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: pyproject.toml
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install Python dependencies
+        run: pip install -e .[dev]
+      - name: Install frontend dependencies
+        run: npm ci
+      - name: Install Python Playwright browser
+        run: python -m playwright install --with-deps chromium
+      - name: Run required frontend browser profile
+        run: npm run test:frontend:browser

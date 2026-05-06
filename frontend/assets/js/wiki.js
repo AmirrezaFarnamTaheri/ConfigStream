@@ -1,9 +1,5 @@
 // Wiki Loader Script
 
-const WIKI_BASE_URL = 'https://raw.githubusercontent.com/AmirrezaFarnamTaheri/ConfigStream/main/docs/wiki/project/';
-// Fallback for local dev or different repo structure
-const LOCAL_WIKI_BASE = '../docs/wiki/project/';
-
 const WIKI_PAGES = [
     { id: 'Home', title: 'wiki.nav.home', defaultTitle: 'Wiki Home', file: 'Home.md' },
     { id: 'intro', title: 'wiki.nav.intro', defaultTitle: 'Introduction', file: '01-introduction.md' },
@@ -103,9 +99,9 @@ async function renderPage(filename) {
 
     try {
         // Strategy:
-        // 1. Prefer same-origin wiki files (works on GitHub Pages deployment artifacts)
-        // 2. Fallback to repo-relative paths (opening frontend/wiki.html directly)
-        // 3. Last resort: Raw GitHub (may be blocked under censorship or in restricted networks)
+        // Prefer same-origin wiki files so the page remains usable when external
+        // network access is blocked. Remote GitHub fallbacks are deliberately
+        // avoided for local-first production behavior.
 
         let content = '';
         let success = false;
@@ -120,8 +116,6 @@ async function renderPage(filename) {
             // Alternative layouts (if a wiki/ folder exists next to wiki.html)
             `wiki/${filename}`,
             `${filename}`,
-            // Remote fallback (hard-coded upstream). Keep last to avoid noisy 404s.
-            WIKI_BASE_URL + filename,
         ];
 
         for (const url of strategies) {

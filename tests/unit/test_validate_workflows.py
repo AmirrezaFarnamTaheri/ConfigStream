@@ -47,3 +47,26 @@ jobs:
     monkeypatch.setattr(validate_workflows, "WORKFLOW_DIR", workflow_dir)
 
     assert validate_workflows.main() == 1
+
+
+def test_validate_workflows_requires_ci_frontend_browser_profile(
+    tmp_path: Path, monkeypatch
+) -> None:
+    workflow_dir = tmp_path / ".github" / "workflows"
+    workflow_dir.mkdir(parents=True)
+    (workflow_dir / "ci.yml").write_text(
+        """
+name: CI
+on:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: pytest -q
+""".lstrip(),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(validate_workflows, "WORKFLOW_DIR", workflow_dir)
+
+    assert validate_workflows.main() == 1

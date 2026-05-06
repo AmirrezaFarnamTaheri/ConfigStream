@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="ConfigStream Laboratory - Build, test, and troubleshoot chained proxy routes for free internet access.">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' ws: wss: data:; worker-src 'self' blob:; object-src 'self'; base-uri 'self'; form-action 'self';">
     <title>Laboratory - ConfigStream</title>
 
     <script>
@@ -22,7 +23,7 @@
     <link rel="stylesheet" href="assets/css/header-animation.css">
     <link rel="stylesheet" href="assets/css/logo-animations.css">
 
-    <script src="https://unpkg.com/feather-icons@4.29.1/dist/feather.min.js" defer onerror="this.onerror=null;this.src='assets/libs/feather.min.js';"></script>
+    <script src="assets/libs/feather.min.js" defer></script>
 
     <style>
         /* ===== Laboratory Page Styles ===== */
@@ -1070,12 +1071,12 @@
                     <div class="lab-trouble-item">
                         <strong>Lab Scanner (Python)</strong>
                         <p>Full network diagnostic: find clean IPs, discover local proxies, test DNS, build multi-layer chains interactively. Works on Windows/Linux/Mac with Python 3.7+.</p>
-                        <a href="https://raw.githubusercontent.com/AmirrezaFarnamTaheri/ConfigStream/main/tools/lab-scanner.py" class="lab-btn lab-btn-secondary" style="margin-top:0.5rem;font-size:0.8rem;" download>Download lab-scanner.py</a>
+                        <a href="tools/lab-scanner.py" class="lab-btn lab-btn-secondary" style="margin-top:0.5rem;font-size:0.8rem;" download>Download lab-scanner.py</a>
                     </div>
                     <div class="lab-trouble-item">
                         <strong>Lab Runner (Bash)</strong>
                         <p>Run and test chain configs, scan clean IPs, test individual layers. Auto-downloads sing-box. For Linux/Mac.</p>
-                        <a href="https://raw.githubusercontent.com/AmirrezaFarnamTaheri/ConfigStream/main/tools/lab-runner.sh" class="lab-btn lab-btn-secondary" style="margin-top:0.5rem;font-size:0.8rem;" download>Download lab-runner.sh</a>
+                        <a href="tools/lab-runner.sh" class="lab-btn lab-btn-secondary" style="margin-top:0.5rem;font-size:0.8rem;" download>Download lab-runner.sh</a>
                     </div>
                     <div class="lab-trouble-item">
                         <strong>Offline Lab Page</strong>
