@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="ConfigStream Analytics: Real-time data on proxy performance, distribution, and reliability.">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' ws: wss: data:; worker-src 'self' blob:; object-src 'self'; base-uri 'self'; form-action 'self';">
     <title>Analytics - ConfigStream</title>
 
     <script>
@@ -16,9 +17,9 @@
     <link rel="apple-touch-icon" sizes="180x180" href="assets/images/apple-touch-icon.png">
     <link rel="stylesheet" href="assets/css/style.css">
     <!-- Globe.gl / Three.js -->
-    <script src="https://unpkg.com/three@0.160.0/build/three.min.js" onerror="this.onerror=null;this.src='assets/libs/three.min.js';"></script>
-    <script src="https://unpkg.com/globe.gl@2.30.0/dist/globe.gl.min.js" defer onerror="this.onerror=null;this.src='assets/libs/globe.gl.min.js';"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" onerror="this.onerror=null;this.src='assets/libs/chart.min.js';"></script>
+    <script src="assets/libs/three.min.js"></script>
+    <script src="assets/libs/globe.gl.min.js" defer></script>
+    <script src="assets/libs/chart.min.js"></script>
     <style>
         #globe-viz {
             width: 100%;
@@ -337,7 +338,7 @@
     <script src="assets/js/utils.js" defer></script>
     <script src="assets/js/inline-icons.js" defer></script>
     <script src="assets/js/common-ui.js" defer></script>
-    <script src="https://unpkg.com/feather-icons@4.29.1/dist/feather.min.js" defer onerror="this.onerror=null;this.src='assets/libs/feather.min.js';"></script>
+    <script src="assets/libs/feather.min.js" defer></script>
     <script>
         // Feather replace handled by common-ui.js or inline-icons.js if present
         // but if not, let's keep it safe

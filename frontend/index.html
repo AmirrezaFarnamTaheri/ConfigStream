@@ -4,13 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Access the free, open internet with ConfigStream. We provide auto-updating, security-tested VPN configurations for everyone.">
-    <!-- CSP: Removed unsafe-inline for scripts where possible. If strictly needed for some libs, consider using nonces. -->
-    <!-- Reverted style-src to allow unsafe-inline due to heavy reliance on inline styles for animations/layout -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://unpkg.com; script-src 'self' https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: https://unpkg.com; connect-src 'self' ws: wss: https://raw.githubusercontent.com https://unpkg.com data:;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' ws: wss: data:; worker-src 'self' blob:; object-src 'self'; base-uri 'self'; form-action 'self';">
     <title>ConfigStream - Your Gateway to the Open Internet</title>
 
     <script src="assets/js/init.js" defer></script>
-    <script src="https://unpkg.com/feather-icons@4.29.1/dist/feather.min.js" defer onerror="this.onerror=null;this.src='assets/libs/feather.min.js';"></script>
+    <script src="assets/libs/feather.min.js" defer></script>
     <link rel="icon" type="image/svg+xml" href="assets/svg/favicon.svg">
     <link rel="alternate icon" href="assets/images/favicon.ico">
     <link rel="icon" type="image/png" sizes="16x16" href="assets/images/favicon-16x16.png">

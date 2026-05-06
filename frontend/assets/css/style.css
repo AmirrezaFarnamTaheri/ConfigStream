@@ -1,14 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;800&family=DM+Serif+Display&display=swap');
-
-/* Farsi/Persian Fonts - Vazirmatn (UI) and Mikhak (Display) */
-@import url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css');
+@import url('fonts.css');
 
 /*
     ConfigStream - The "Perfect" UI/UX Redesign v4.0
     ------------------------------------------------
     - **UI/UX:** Neumorphic Glassmorphism, Liquid Animations, AR/VR-inspired Depth
-    - **Typography:** DM Serif Display (Headlines), Be Vietnam Pro (UI)
-    - **Farsi Typography:** Mikhak (Headlines), Vazirmatn (UI)
+    - **Typography:** Vendored Be Vietnam Pro (UI), DM Serif Display (Headlines)
+    - **Farsi Typography:** Vendored Mikhak (Headlines), Vazirmatn (UI)
     - **Layout:** 8px Grid, Fluid & Asymmetric
     - **Motion:** Fluid Transitions, Delightful Microinteractions
     - **Themeing:** Vibrant Light & Deep Dark Modes
@@ -2787,6 +2784,24 @@ body.dark #preloader {
     flex-shrink: 0;
     object-fit: cover;
     transition: transform var(--transition-fast);
+}
+
+.country-flag-text {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 18px;
+    padding: 0 6px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--glass-light);
+    color: var(--text-secondary);
+    font-size: 0.68rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0;
+    object-fit: unset;
 }
 
 .country-flag-icon {

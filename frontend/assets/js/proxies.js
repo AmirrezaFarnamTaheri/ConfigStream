@@ -273,9 +273,10 @@ function renderTable() {
         locCell.className = 'location-cell';
         // Escape country code to prevent XSS
         const safeCountryCode = escapeHtml(p.country_code || 'Unknown');
-        // Added onerror handler for flag loading failure (fallback to text)
-        const flag = p.country_code && p.country_code !== 'XX'
-            ? `<img src="https://flagcdn.com/w20/${p.country_code.toLowerCase()}.png" class="country-flag" alt="${escapeHtml(p.country_code)}" onerror="this.onerror=null;this.replaceWith(document.createTextNode('${escapeHtml(p.country_code)}'))">`
+        const normalizedCountryCode = typeof p.country_code === 'string' ? p.country_code.trim().toLowerCase() : '';
+        const hasLocalFlag = /^[a-z]{2}$/.test(normalizedCountryCode) && normalizedCountryCode !== 'xx';
+        const flag = hasLocalFlag
+            ? `<img src="assets/images/flags/w20/${normalizedCountryCode}.png" class="country-flag" alt="${safeCountryCode}" onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('span'),{className:'country-flag country-flag-text',textContent:'${safeCountryCode}',ariaLabel:'${safeCountryCode}'}))">`
             : `<i data-feather="globe" class="country-flag-icon"></i>`;
         const locText = p.city ? `${escapeHtml(p.city)}, ${safeCountryCode}` : safeCountryCode;
         locCell.innerHTML = `${flag} <span>${locText}</span>`;

@@ -1,6 +1,7 @@
 # Known Issues and Limitations
 
 ## Recently Resolved (v3.0.2)
+- **Remote frontend/CDN runtime dependencies**: Primary pages now load critical JS/CSS/fonts/globe/flag assets and Lab helper downloads from same-origin files, with static and browser smoke tests guarding against CDN regressions.
 - **Xray WireGuard export**: Lab was incorrectly claiming Xray doesn't support WireGuard. Fixed — now generates native `secretKey` + `peers[]` format.
 - **Clash/Xray transport**: Lab exports were missing WebSocket, gRPC, HTTP/2, httpupgrade, and Reality settings. Fixed with full transport support.
 - **Trojan transport in Clash**: Pipeline Clash converter was missing ws/grpc transport for Trojan. Fixed.
@@ -35,13 +36,9 @@ The CSS includes comprehensive mobile responsive design with:
 
 ## 3. Country Flag Asset Dependency
 
-**Status:** Low Priority
+**Status:** Resolved
 
-The frontend relies on `flagcdn.com` for country flag images. If this external service is unavailable:
-- Flags will not load (broken image icons)
-- Fallback to Feather "globe" icon is in place
-
-**Mitigation:** Consider bundling flag SVGs locally or using a fallback sprite sheet.
+Country rendering no longer depends on `flagcdn.com`. The proxy table uses vendored 20px flag PNGs with a text fallback only when an unknown or missing country asset is encountered.
 
 ---
 

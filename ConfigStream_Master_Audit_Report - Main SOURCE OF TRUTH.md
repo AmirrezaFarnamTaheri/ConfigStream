@@ -1052,6 +1052,19 @@ Remaining:
 
 ### P2-8. Frontend still depends on remote CDNs and remote assets
 
+Status: Remediated in this checkpoint. Primary production pages now load
+critical scripts, styles, fonts, globe textures, country flags, and Lab helper
+downloads from same-origin assets; runtime CDN hosts are covered by static and
+browser same-origin-only regression tests. Localized assets preserve the online
+experience, with reduced offline fallbacks kept separate from the main path;
+`frontend/assets/vendor-manifest.json` records the mirrored sources.
+
+Validation: `npm run build`, `npm run test:frontend:no-network`,
+`tests/unit/test_frontend_local_first.py`, workflow and documentation hygiene
+tests passed locally. The Python Playwright e2e file still records the
+environment skip when its browser bundle is unavailable; P2-9 tracks making
+browser execution non-optional in CI.
+
 Examples:
 
 - `unpkg.com` for Feather, Three, Globe images.
@@ -1077,13 +1090,19 @@ Required fix:
 
 Closure checklist:
 
-- Frontend usable with network blocked except same-origin.
-- CSP no longer needs broad external runtime dependencies.
-- Changelog records frontend dependency cleanup.
+- [x] Frontend usable with network blocked except same-origin.
+- [x] CSP no longer needs broad external runtime dependencies.
+- [x] Changelog records frontend dependency cleanup.
 
 ---
 
 ### P2-9. E2E browser tests are easy to skip
+
+Status: Remediated in this checkpoint. Test profiles now split unit,
+integration, frontend-browser, and production-smoke runs; the frontend-browser
+profile fails loudly when Python Playwright browsers are required but missing.
+CI has a dedicated required frontend-browser job, and Node Playwright smokes
+cover same-origin and no-JS degraded frontend loading.
 
 Evidence:
 
@@ -1109,13 +1128,17 @@ Required fix:
 
 Closure checklist:
 
-- Browser tests run in CI.
-- Local skipped-browser result is clearly labeled.
-- Changelog records testing profile cleanup.
+- [x] Browser tests are required by CI configuration.
+- [x] Local skipped-browser result is clearly labeled.
+- [x] Changelog records testing profile cleanup.
 
 ---
 
 ### P2-10. `scripts/validate_versions.py` is not Windows-safe
+
+Status: Remediated in this checkpoint. The script now uses explicit UTF-8
+file reads and ASCII-only status/error output, and a regression test simulates
+Windows cp1252 console semantics while reading a UTF-8 changelog entry.
 
 Evidence:
 
@@ -1135,8 +1158,13 @@ Required fix:
 
 Closure checklist:
 
-- `validate_versions.py` passes on Windows and Linux.
-- Changelog records cross-platform script fix.
+- [x] `validate_versions.py` passes on Windows and Linux.
+- [x] Changelog records cross-platform script fix.
+
+Validation: `python scripts/validate_versions.py` passed through the
+`production-smoke` profile, and `python -m pytest
+tests/unit/test_validate_versions.py -q` passed with coverage for UTF-8 file
+reads under strict cp1252 stdout semantics.
 
 ---
 

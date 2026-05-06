@@ -41,10 +41,14 @@ When making changes to the frontend, you **must** adhere to these security pract
 ### 4. Dependencies
 *   **Vendor everything**. Do not rely on external CDNs (they can be blocked or compromised).
 *   Keep `assets/libs/` clean. Only minimal, audited libraries.
+*   Production pages load critical JS/CSS, fonts, globe textures, country flags, and Lab helper downloads from same-origin assets (`assets/libs/`, `assets/fonts/`, `assets/images/globe/`, `assets/images/flags/`, and `tools/`). Remote URLs may exist only as user-initiated links or explicitly optional fallbacks, not as runtime dependencies.
+*   Localized assets must preserve the online experience. If an exact local equivalent is not available, keep the original behavior in the online path and add a clearly separate offline fallback instead of silently downgrading the main UI.
+*   Update `assets/vendor-manifest.json` whenever adding, refreshing, or replacing vendored runtime assets.
 
 ### 5. Content Security Policy (CSP)
-*   The `index.html` should enforce a strict CSP (via meta tag or headers).
-*   `script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:;` (Adjusted for WASM/Inline scripts requirements, tighten where possible).
+*   Primary pages enforce a local-first CSP via meta tag.
+*   Baseline policy: `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' ws: wss: data:; worker-src 'self' blob:; object-src 'self'; base-uri 'self'; form-action 'self';`
+*   Do not add remote CDN hosts to CSP for production runtime assets.
 
 ## Visualization Components
 
@@ -142,9 +146,17 @@ All chain configs are exported in formats compatible with the three major proxy 
 *   **Import Guide**: Step-by-step instructions for Hiddify, Clash Verge, V2RayN, V2RayNG, Nekobox.
 
 ### Offline Tools
-*   **`tools/lab-scanner.py`**: Zero-dependency Python scanner with 7+ scan phases, interactive chain builder, and 6-strategy auto-chain detection.
-*   **`tools/lab-runner.sh`**: Bash script that auto-downloads sing-box and runs chain configs.
+*   **`tools/lab-scanner.py`**: Zero-dependency Python scanner with 7+ scan phases, interactive chain builder, and 6-strategy auto-chain detection. GitHub Pages deploy copies it to `output/tools/lab-scanner.py`.
+*   **`tools/lab-runner.sh`**: Bash script that auto-downloads sing-box and runs chain configs. GitHub Pages deploy copies it to `output/tools/lab-runner.sh`.
 *   **`frontend/lab-offline.html`**: Self-contained HTML chain builder that works without a server.
+
+## Regression Coverage
+
+*   `tests/unit/test_frontend_local_first.py` blocks reintroducing runtime CDN hosts in primary frontend sources and verifies required vendored assets exist.
+*   `tests/e2e/test_frontend.py::test_frontend_pages_load_with_external_network_blocked` loads primary pages while aborting every non-same-origin browser request.
+*   `npm run test:frontend:no-network` runs the same same-origin-only browser smoke through Node Playwright for environments where the Python browser bundle is unavailable.
+*   `npm run test:frontend:degraded` loads the same primary pages with JavaScript disabled, while still blocking non-same-origin requests.
+*   `python scripts/run_test_profile.py frontend-browser` sets `CONFIGSTREAM_REQUIRE_PLAYWRIGHT=1`; missing Python Playwright browsers are a hard failure in that profile and in CI.
 
 ## Cache Architecture
 

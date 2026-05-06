@@ -1,6 +1,6 @@
 # ConfigStream Project Status
 
-**Last updated:** 2026-05-05
+**Last updated:** 2026-05-06
 **Version:** v3.0.2
 **Status:** Remediation in progress. Not production-ready and not ready to publish as a final public release.
 
@@ -28,7 +28,7 @@ Current blockers:
 - Output generation now writes `health.json` and `artifact_manifest.json` so public deployments have a canonical status file and file inventory.
 - Pages validation now checks manifest file coverage, file sizes, SHA-256 hashes, manifest totals, metadata required keys, proxy array shape, and health required fields.
 - Pages deployment refreshes the public contract after all deploy-time mutations so the manifest describes the exact uploaded artifact.
-- `scripts/validate_versions.py` now uses explicit UTF-8 reads and ASCII-safe output for Windows compatibility.
+- `scripts/validate_versions.py` now uses explicit UTF-8 reads and ASCII-safe output for Windows compatibility, with a cp1252-stdout regression test.
 - `pyproject.toml` now classifies the project as Beta during remediation instead of Production/Stable.
 - README TLS fragmentation language now matches implementation: fragmentation is disabled in current sing-box outputs.
 - Shielded chain candidates no longer inflate `total_working`; metadata now exposes `shielded_candidate_count` and `shielded_verified_count`.
@@ -46,6 +46,8 @@ Current blockers:
 - The unused `test_budget` semaphore wiring was removed from the pipeline and consumer; `ConcurrencyManager` remains the canonical Python fallback test limiter.
 - Producer backpressure accounting no longer calls source-quality failure reporting when runner queue pressure prevents any chunks from being queued.
 - Logging hardening now masks proxy endpoints, source URLs, source tokens, DNS failure host/error material, Vwarp subprocess/tunnel output, security-rule address logs, honeypot reputation logs, test-cache endpoint logs, parser drop/error logs, and converter logs; high-risk static logging policy tests and `SECURITY.md` logging policy documentation are in place.
+- Frontend runtime assets are local-first with parity tracking: critical JS/CSS/fonts/globe textures/flags and Lab helper downloads are same-origin, CSP no longer needs broad remote runtime hosts, and `frontend/assets/vendor-manifest.json` records mirrored sources.
+- Test execution is split into explicit profiles: `unit`, `integration`, `frontend-browser`, and `production-smoke`. The CI `frontend-browser` job installs Python Playwright Chromium and runs with `CONFIGSTREAM_REQUIRE_PLAYWRIGHT=1` so missing browser coverage fails instead of silently skipping.
 
 ## Required Closure Rule
 
@@ -62,10 +64,11 @@ No task is closed while any surface still documents or serves the old contract.
 
 ## Validation Snapshot
 
-Latest local validation performed on 2026-05-05:
+Latest local validation performed on 2026-05-06:
 
 - `python scripts/validate_workflows.py`: passed for 6 workflow files
 - `python scripts/validate_versions.py`: passed
+- `python -m pytest tests/unit/test_validate_versions.py -q`: 3 passed
 - `pytest -q tests/unit/test_output.py tests/unit/test_validate_pages_artifact.py tests/unit/test_analytics_output.py tests/unit/test_merge_batches.py`: 18 passed
 - `pytest -q tests/unit/test_documentation_hygiene.py tests/unit/test_validate_pages_artifact.py tests/unit/test_output.py tests/unit/test_validate_workflows.py tests/unit/test_validate_versions.py`: 22 passed
 - `pytest -q tests/unit/test_server.py tests/unit/test_server_new.py`: 41 passed
@@ -78,5 +81,15 @@ Latest local validation performed on 2026-05-05:
 - `pytest -q tests/unit/test_logging_sanitization_policy.py tests/unit/test_output.py`: 15 passed
 - `pytest -q tests/unit/test_server.py tests/unit/test_server_new.py tests/unit/test_output.py tests/unit/test_validate_pages_artifact.py tests/unit/test_analytics_output.py tests/unit/test_merge_batches.py tests/unit/test_documentation_hygiene.py tests/unit/test_validate_workflows.py tests/unit/test_validate_versions.py`: 66 passed
 - `pytest -q tests/unit/test_server.py tests/unit/test_server_new.py tests/unit/test_fetcher.py tests/unit/test_fetcher_config.py tests/unit/test_fetcher_resilience.py tests/unit/test_fetcher_retries.py tests/unit/test_fetcher_advanced.py tests/unit/fetcher/test_fetcher_core.py tests/unit/test_output.py tests/unit/test_validate_pages_artifact.py tests/unit/test_analytics_output.py tests/unit/test_merge_batches.py tests/unit/test_documentation_hygiene.py tests/unit/test_validate_workflows.py tests/unit/test_validate_versions.py tests/unit/test_validate_frontend_placeholders.py tests/unit/test_lab_strategy_parity.py tests/unit/test_concurrency_contract.py tests/unit/test_producer_quality_accounting.py tests/unit/test_logging_sanitization_policy.py`: 127 passed
+- `npm run build`: passed
+- `npm run test:frontend:no-network`: passed, including same-origin no-JS smoke
+- `npm run test:frontend:degraded`: passed
+- `python -m pytest -q`: 900 passed, 5 skipped
+
+Browser skip visibility:
+
+- The 5 local skips are the Python Playwright frontend e2e tests when the Python browser bundle is not installed.
+- `CONFIGSTREAM_REQUIRE_PLAYWRIGHT=1` converts that condition into a hard failure for the `frontend-browser` profile and CI job.
+- The Node Playwright same-origin and no-JS smokes run locally through npm and passed in this checkpoint.
 
 The full production gate remains open until the complete audit roadmap is implemented and the full local/CI/deploy verification matrix passes.

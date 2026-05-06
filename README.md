@@ -233,6 +233,22 @@ configstream merge --sources sources/batch_1.txt --output output
 pytest
 ```
 
+Named validation profiles:
+```bash
+python scripts/run_test_profile.py unit
+python scripts/run_test_profile.py integration
+python scripts/run_test_profile.py frontend-browser
+python scripts/run_test_profile.py production-smoke
+```
+
+`frontend-browser` requires installed Python Playwright browsers and fails
+loudly when `CONFIGSTREAM_REQUIRE_PLAYWRIGHT=1` is set. For local same-origin
+frontend smoke coverage without relying on the Python browser bundle:
+```bash
+npm run test:frontend:no-network
+npm run test:frontend:degraded
+```
+
 Frontend build (optional, Vite):
 ```bash
 npm install

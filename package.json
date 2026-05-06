@@ -8,6 +8,9 @@
     "dev": "vite --host",
     "build": "vite build",
     "preview": "vite preview --host",
+    "test:frontend:no-network": "node scripts/frontend_same_origin_smoke.cjs",
+    "test:frontend:degraded": "node scripts/frontend_same_origin_smoke.cjs --no-js-only",
+    "test:frontend:browser": "python scripts/run_test_profile.py frontend-browser",
     "test:e2e": "playwright test",
     "test:e2e:install": "playwright install --with-deps"
   },

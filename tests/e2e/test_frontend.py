@@ -5,6 +5,8 @@ from playwright.sync_api import Page, expect, sync_playwright
 from playwright._impl._errors import Error as PlaywrightError
 import re
 import json
+import os
+from urllib.parse import urlparse
 
 
 def _playwright_ready() -> bool:
@@ -15,8 +17,18 @@ def _playwright_ready() -> bool:
         return False
 
 
+_PLAYWRIGHT_READY = _playwright_ready()
+_REQUIRE_PLAYWRIGHT = os.getenv("CONFIGSTREAM_REQUIRE_PLAYWRIGHT") == "1"
+
+if _REQUIRE_PLAYWRIGHT and not _PLAYWRIGHT_READY:
+    raise RuntimeError(
+        "CONFIGSTREAM_REQUIRE_PLAYWRIGHT=1 but Python Playwright browsers are "
+        "not installed. Run `python -m playwright install --with-deps` before "
+        "the frontend-browser test profile."
+    )
+
 pytestmark = pytest.mark.skipif(
-    not _playwright_ready(), reason="Playwright browsers not installed"
+    not _PLAYWRIGHT_READY, reason="Playwright browsers not installed"
 )
 
 
@@ -194,3 +206,66 @@ def test_widgets_presence(page: Page, http_server):
     # Protocol Chart
     # Wait for chart to be rendered (canvas present)
     expect(page.locator("#protocolChart")).to_be_visible(timeout=10000)
+
+
+@pytest.mark.e2e
+def test_frontend_pages_load_with_external_network_blocked(page: Page, http_server):
+    """Primary pages must not depend on runtime CDNs or external image hosts."""
+
+    allowed_origin = urlparse(http_server).netloc
+    blocked_urls = []
+
+    def route_handler(route):
+        request_url = route.request.url
+        parsed = urlparse(request_url)
+
+        if parsed.scheme in {"http", "https"} and parsed.netloc != allowed_origin:
+            blocked_urls.append(request_url)
+            route.abort()
+            return
+
+        route.continue_()
+
+    page.route("**/*", route_handler)
+    page.route("**/*.wasm", lambda route: route.abort())
+    page.route("**/wasm_*.js", lambda route: route.abort())
+    page.route("**/plugin_loader.js", lambda route: route.abort())
+    page.route("**/stego_loader.js", lambda route: route.abort())
+
+    page.add_init_script("""
+        const style = document.createElement('style');
+        style.innerHTML = `
+            *, *::before, *::after {
+                animation: none !important;
+                transition: none !important;
+                opacity: 1 !important;
+            }
+        `;
+        document.head.appendChild(style);
+    """)
+
+    for page_name in (
+        "index.html",
+        "about.html",
+        "analytics.html",
+        "proxies.html",
+        "lab.html",
+        "wiki.html",
+    ):
+        try:
+            page.goto(
+                f"{http_server}/{page_name}",
+                wait_until="domcontentloaded",
+                timeout=10000,
+            )
+        except PlaywrightError as e:
+            if "crashed" in str(e).lower():
+                pytest.skip(
+                    "Browser crashed - likely due to containerized environment limitations"
+                )
+            raise
+
+        expect(page.locator(".header-logo-text")).to_be_visible(timeout=10000)
+        expect(page.locator("#main-nav")).to_be_visible(timeout=10000)
+
+    assert blocked_urls == []

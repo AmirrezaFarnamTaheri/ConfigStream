@@ -183,9 +183,10 @@ def _is_local_hostname(address: str) -> bool:
 
 
 def _safe_proxy_ref(proxy: Proxy) -> str:
-    return SecurityValidator.sanitize_log_message(
-        f"{getattr(proxy, 'protocol', 'unknown')}://{getattr(proxy, 'address', '')}:{getattr(proxy, 'port', '')}"
+    protocol = SecurityValidator.sanitize_log_message(
+        str(getattr(proxy, "protocol", "unknown"))
     )
+    return f"{protocol}://[endpoint]"
 
 
 def _safe_source_ref(proxy: Proxy) -> str:

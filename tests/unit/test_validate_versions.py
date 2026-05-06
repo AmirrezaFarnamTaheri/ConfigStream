@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 import pytest
@@ -47,3 +48,34 @@ def test_validate_versions_fails_on_mismatched_frontend_version(
         validate_versions.main()
 
     assert exc.value.code == 1
+
+
+class _StrictCp1252Stdout:
+    def __init__(self) -> None:
+        self.lines: list[str] = []
+
+    def write(self, text: str) -> int:
+        text.encode("cp1252", errors="strict")
+        self.lines.append(text)
+        return len(text)
+
+    def flush(self) -> None:
+        return None
+
+
+def test_validate_versions_is_safe_with_windows_console_semantics(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _write_repo(tmp_path)
+    (tmp_path / "CHANGELOG.md").write_text(
+        "## [3.0.2] - 2026-05-03\n\n- UTF-8 marker: ✅\n",
+        encoding="utf-8",
+    )
+    strict_stdout = _StrictCp1252Stdout()
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(sys, "stdout", strict_stdout)
+
+    validate_versions.main()
+
+    output = "".join(strict_stdout.lines)
+    assert "OK: All versions synchronized." in output

@@ -491,10 +491,16 @@ function _initGlobeInternal(data, container) {
         });
     }
 
+    const globeAssets = {
+        earthNight: 'assets/images/globe/earth-night.jpg',
+        earthBlueMarble: 'assets/images/globe/earth-blue-marble.jpg',
+        earthTopology: 'assets/images/globe/earth-topology.png',
+        nightSky: 'assets/images/globe/night-sky.png',
+    };
     const isDarkMode = document.body.classList.contains('dark');
     const globeTexture = isDarkMode
-        ? '//unpkg.com/three-globe/example/img/earth-night.jpg'
-        : '//unpkg.com/three-globe/example/img/earth-blue-marble.jpg';
+        ? globeAssets.earthNight
+        : globeAssets.earthBlueMarble;
 
     // Renamed from 'Globe' to 'globe' to avoid shadowing window.Globe
     // which causes "Cannot access 'Globe' before initialization" error
@@ -503,7 +509,7 @@ function _initGlobeInternal(data, container) {
         globe = window.Globe()
           (container)
           .globeImageUrl(globeTexture)
-          .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
+          .bumpImageUrl(globeAssets.earthTopology)
           .pointsData(pointsData)
           .pointAltitude(0.01)
           .pointRadius('size')
@@ -517,7 +523,7 @@ function _initGlobeInternal(data, container) {
           .onPointHover(point => container.style.cursor = point ? 'pointer' : 'default');
 
         if (isDarkMode) {
-            globe.backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png');
+            globe.backgroundImageUrl(globeAssets.nightSky);
         } else {
             const scene = globe.scene();
             if (scene) {
@@ -592,13 +598,13 @@ function _initGlobeInternal(data, container) {
     window.addEventListener('themechanged', (e) => {
         const newIsDark = e.detail.theme === 'dark';
         const newGlobeTexture = newIsDark
-            ? '//unpkg.com/three-globe/example/img/earth-night.jpg'
-            : '//unpkg.com/three-globe/example/img/earth-blue-marble.jpg';
+            ? globeAssets.earthNight
+            : globeAssets.earthBlueMarble;
 
         globe.globeImageUrl(newGlobeTexture);
 
         if (newIsDark) {
-            globe.backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png');
+            globe.backgroundImageUrl(globeAssets.nightSky);
         } else {
             const scene = globe.scene();
             if (scene) {

@@ -127,6 +127,12 @@ jobs:
             cp -R frontend/. output/
           fi
 
+          # Self-host user-facing offline Lab helper scripts so the frontend
+          # does not depend on raw.githubusercontent.com at runtime.
+          mkdir -p output/tools
+          cp tools/lab-scanner.py output/tools/lab-scanner.py
+          cp tools/lab-runner.sh output/tools/lab-runner.sh
+
           python scripts/validate_frontend_placeholders.py --inject-env --strict output
 
           # Create API simulation structure

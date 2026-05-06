@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="ConfigStream Wiki - Documentation and Guides">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' ws: wss: data:; worker-src 'self' blob:; object-src 'self'; base-uri 'self'; form-action 'self';">
     <title>ConfigStream Wiki - Documentation</title>
     <link rel="icon" type="image/svg+xml" href="assets/svg/favicon.svg">
     <link rel="alternate icon" href="assets/images/favicon.ico">
@@ -19,14 +20,14 @@
     <link rel="stylesheet" href="assets/css/logo-animations.css">
 
     <!-- Marked.js for Markdown parsing -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" onerror="this.onerror=null;this.src='assets/libs/marked.min.js';"></script>
+    <script src="assets/libs/marked.min.js"></script>
 
     <!-- DOMPurify for sanitization -->
-    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js" onerror="this.onerror=null;this.src='assets/libs/purify.min.js';"></script>
+    <script src="assets/libs/purify.min.js"></script>
 
     <!-- Highlight.js for syntax highlighting -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" onerror="this.onerror=null;this.href='assets/libs/atom-one-dark.min.css';">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" onerror="this.onerror=null;this.src='assets/libs/highlight.min.js';"></script>
+    <link rel="stylesheet" href="assets/libs/atom-one-dark.min.css">
+    <script src="assets/libs/highlight.min.js"></script>
 
     <style>
         /* Language Selector */

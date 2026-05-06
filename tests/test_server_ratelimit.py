@@ -1,3 +1,7 @@
+import os
+
+os.environ.setdefault("ENVIRONMENT", "test")
+
 import pytest
 import nest_asyncio
 from fastapi.testclient import TestClient

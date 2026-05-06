@@ -139,7 +139,7 @@ def test_singbox_missing_uuid_log_masks_endpoint(caplog) -> None:
     text = caplog.text
     assert "8.8.8.8" not in text
     assert "super-secret" not in text
-    assert "[IP]" in text
+    assert "vless://[endpoint]" in text
     assert "token=[MASKED]" in text
 
 
