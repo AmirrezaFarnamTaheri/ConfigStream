@@ -1,9 +1,38 @@
 # ConfigStream Batch 2
 # Optimized based on fetch duration for equal execution times
-# Est. Fetch Time: 6339.7s
+# Est. Fetch Time: 5155.2s
 
-https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub7.txt
-https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/protocols/tr.txt
-https://v2.alicivil.workers.dev/?count=2000&list=ru&shuffle=true
-https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/sub/ServerLess_TLS_Fragment_xray_config.json
-https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/refs/heads/main/mci/sub_4.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub16.txt
+https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-18.txt
+https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/http.txt
+https://v2.alicivil.workers.dev/?count=2000&list=pa&shuffle=true
+https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/sub/ServerLess_1-1_Fragment_xray_config.json
+https://raw.githubusercontent.com/ndsphonemy/proxy-sub/main/hys-tuic.txt
+https://raw.githubusercontent.com/iboxz/free-v2ray-collector/main/main/mix.txt
+https://raw.githubusercontent.com/itsyebekhe/PSG/main/lite/subscriptions/xray/base64/mix
+https://raw.githubusercontent.com/peasoft/NoMoreWalls/refs/heads/master/list.txt
+https://raw.githubusercontent.com/wiki/gfpcom/free-proxy-list/lists/https.txt
+https://raw.githubusercontent.com/Firmfox/Proxify/main/v2ray_configs/mixed/subscription-1.txt
+https://raw.githubusercontent.com/barry-far/V2ray-config/main/Sub4.txt
+https://raw.githubusercontent.com/vpei/free-node-1/refs/heads/main/res/nod-2.txt
+https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_raw_shadowsocks.txt
+https://raw.githubusercontent.com/F0rc3Run/F0rc3Run/main/splitted-by-protocol/shadowsocks.txt
+https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/main/mci/sub_4.txt
+https://raw.githubusercontent.com/V2RayRoot/V2RayConfig/refs/heads/main/Config/vless.txt
+https://raw.githubusercontent.com/hamedcode/port-based-v2ray-configs/main/sub/ss.txt
+https://raw.githubusercontent.com/igeekshare/GeekshareFreeNode/main/v2ray/Geekshare.txt
+https://raw.githubusercontent.com/ALIILAPRO/Proxy/main/socks4.txt
+https://raw.githubusercontent.com/Farid-Karimi/Config-Collector/refs/heads/main/mixed_iran.txt
+https://raw.githubusercontent.com/LalatinaHub/Mineral/master/result/nodes
+https://raw.githubusercontent.com/ripaojiedian/freenode/main/sub
+https://www.proxyscan.io/download?type=http,https,socks4,socks5
+https://raw.githubusercontent.com/vxiaov/free_proxies/main/clash/clash.provider.yaml
+https://raw.githubusercontent.com/freefq/free/master/v2
+https://raw.githubusercontent.com/HosseinKoofi/GO_V2rayCollector/main/mixed_iran.txt
+https://raw.githubusercontent.com/mermeroo/V2RAY-CLASH-BASE64-Subscription.Links/main/SUB%20LINKS
+https://raw.githubusercontent.com/BUTUbird/ClashPoint/main/application.yaml
+https://raw.githubusercontent.com/valid7996/Gozargah/main/Gozargah_sing-box_sub
+https://raw.githubusercontent.com/PangTouY00/Auto_proxy/main/Long_term_subscription_num
+https://raw.githubusercontent.com/mermeroo/QuantumultX/refs/heads/main/Trojan.nodes
+https://raw.githubusercontent.com/Created-By/Telegram-Eag1e_YT/main/%40Eag1e_YT
+https://raw.githubusercontent.com/dream4network/telegram-configs-collector/main/subscribe/protocols/juicity
