@@ -48,13 +48,9 @@ class TestShadowsocksPasswordDrop:
         encoded = base64.urlsafe_b64encode(b"aes-256-gcm:").decode().rstrip("=")
         config = f"ss://{encoded}@1.2.3.4:8388/?password=secretpass#test"
         proxy = parse_ss(config)
-        # Should still be dropped because the query param fallback happens before host parsing
-        # and our fix drops AFTER the fallback check
-        # Let's verify: if password is found via fallback, it should parse
-        # But the current structure checks query params from details dict which is
-        # built from the query string AFTER host parsing... so this tests the fallback path
-        if proxy is not None:
-            assert proxy.address == "1.2.3.4"
+        assert proxy is not None
+        assert proxy.address == "1.2.3.4"
+        assert proxy.details["password"] == "secretpass"
 
     def test_ss_valid_password_parses_normally(self):
         """SS config with valid method:password should not trigger the drop."""

@@ -216,6 +216,9 @@ export MAXMIND_LICENSE_KEY="your-key"   # For GeoIP lookups
 - Quality tracking with anomaly detection
 - Blocklist integration (FireHol Level 1)
 - Security validation (VirusTotal integration)
+- Optional Shadowsocks-Rust FFI validation only when an operator supplies a
+  local binary and matching `SS_LIB_SHA256`; otherwise Python validation remains
+  authoritative, and a configured hash mismatch fails closed.
 
 ## Compliance
 

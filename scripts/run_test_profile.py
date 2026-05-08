@@ -14,7 +14,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -49,7 +48,10 @@ def run_profile(profile: str) -> int:
     profiles: dict[str, list[tuple[list[str], dict[str, str] | None]]] = {
         "unit": [
             ([python, "-m", "pytest", "-q", "tests/unit"], {"ENVIRONMENT": "test"}),
-            ([python, "-m", "pytest", "-q", "tests/test_*.py"], {"ENVIRONMENT": "test"}),
+            (
+                [python, "-m", "pytest", "-q", "tests/test_*.py"],
+                {"ENVIRONMENT": "test"},
+            ),
         ],
         "integration": [
             (
@@ -78,6 +80,15 @@ def run_profile(profile: str) -> int:
         "production-smoke": [
             ([python, "scripts/validate_workflows.py"], None),
             ([python, "scripts/validate_versions.py"], None),
+            ([python, "scripts/validate_status.py"], None),
+            ([python, "scripts/validate_docs_sync.py"], None),
+            ([python, "scripts/validate_debt_matrix.py"], None),
+            ([python, "scripts/validate_assets.py"], None),
+            ([python, "scripts/validate_optional_mirrors.py"], None),
+            ([python, "scripts/validate_claim_ledger.py"], None),
+            ([python, "scripts/validate_protocol_matrix.py"], None),
+            ([python, "scripts/validate_output_matrix.py"], None),
+            ([python, "scripts/generate_output_docs.py", "--check"], None),
             ([npm, "run", "build"], None),
             ([npm, "run", "test:frontend:no-network"], None),
             ([npm, "run", "test:frontend:degraded"], None),
@@ -91,6 +102,15 @@ def run_profile(profile: str) -> int:
                     "tests/unit/test_validate_frontend_placeholders.py",
                     "tests/unit/test_validate_pages_artifact.py",
                     "tests/unit/test_documentation_hygiene.py",
+                    "tests/unit/test_validate_status.py",
+                    "tests/unit/test_validate_docs_sync.py",
+                    "tests/unit/test_debt_matrix.py",
+                    "tests/unit/test_validate_assets.py",
+                    "tests/unit/test_validate_optional_mirrors.py",
+                    "tests/unit/test_validate_claim_ledger.py",
+                    "tests/unit/test_protocol_output_golden.py",
+                    "tests/unit/test_validate_protocol_matrix.py",
+                    "tests/unit/test_validate_output_matrix.py",
                 ],
                 {"ENVIRONMENT": "test"},
             ),

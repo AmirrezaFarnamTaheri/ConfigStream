@@ -17,7 +17,7 @@ We act as a global refinery for the open internet:
 3.  **Verify**: We test connectivity, latency, and protocol handshake validity in real-time using a hybrid Python/Go engine.
 4.  **Secure**: We actively probe for honeypots, strip tracking metadata, and "wash" dirty IPs using Cloudflare WARP.
 5.  **Enrich**: We add geolocation, ISP data, and historical reliability scores.
-6.  **Distribute**: We publish the "refined fuel" (clean, working proxies) via high-availability, censorship-resistant CDNs (GitHub Pages, Cloudflare, IPFS, Hugging Face).
+6.  **Distribute**: We publish the "refined fuel" (clean, working proxies) via GitHub Pages as the core zero-budget target. External mirrors are optional and secret-gated.
 
 ## The "Zero Budget" Manifesto
 
@@ -39,11 +39,11 @@ By strictly adhering to "Zero Budget," ConfigStream becomes:
 | **Storage** | **GitHub Repository** | Source code and configuration. |
 | **Persistence** | **GitHub Artifacts & Cache** | Ephemeral state passing. Databases (`sqlite`) are cached between runs. |
 | **Hosting** | **GitHub Pages** | Static file hosting for subscriptions and the frontend. |
-| **CDN** | **Fastly / Cloudflare** | GitHub Pages uses Fastly; we also deploy mirrors to Cloudflare Pages. |
+| **CDN** | **GitHub Pages / Fastly** | GitHub Pages is the core zero-budget publication target. |
 | **Database** | **SQLite (Serverless)** | We treat the DB as a file. It is downloaded at the start of a job and uploaded at the end. |
 | **Intelligence** | **VirusTotal (Free API)** | Passive IP reputation scanning. |
 | **Edge Logic** | **Cloudflare Workers** | Stateless API endpoints and Telegram bot hosting. |
-| **Mirrors** | **Hugging Face / IPFS** | Immutable, redundant storage for outputs. |
+| **Optional Mirrors** | **IPFS / Hugging Face / Google Drive / Telegram** | External mirrors are optional, secret-gated publication paths. They are not required for core success. |
 
 ## Digital Sovereignty & The User
 
@@ -80,8 +80,8 @@ Trust is earned.
 
 ### 5. Decentralization
 A central point of failure is a censorship target.
-*   **Multiple Mirrors**: If GitHub is blocked, we have mirrors on GitLab, Hugging Face, and IPFS.
-*   **Distributed Testing**: Our WASM client allows users to verify proxies from *their* network perspective, not just ours.
+*   **Optional Mirrors**: If GitHub Pages is blocked, operators may enable secret-gated mirrors such as IPFS, Hugging Face, Google Drive, or Telegram. The core project must still succeed without them.
+*   **Distributed Signals**: Our WASM client can run browser-limited reachability checks from *their* network perspective. It is not equivalent to native Go sidecar proxy testing.
 
 ## Current Capabilities (v3.0)
 

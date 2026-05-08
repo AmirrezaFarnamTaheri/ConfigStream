@@ -5,6 +5,7 @@
 package main
 
 import (
+	"net/url"
 	"strings"
 	"syscall/js"
 	"time"
@@ -27,7 +28,7 @@ func main() {
 	})
 	js.Global().Set("cleanupWasm", cleanupFunc)
 
-	println("WASM Proxy Tester Initialized (JS-Native)")
+	println("WASM Browser Reachability Tester Initialized")
 	<-c
 }
 
@@ -69,22 +70,12 @@ func doTestProxy(rawURL string) map[string]interface{} {
 
 	start := time.Now()
 
-	// Handle all known proxy protocol schemes, not just vmess/vless/ss.
-	// Previously, trojan://, hysteria://, etc. were passed directly to WebSocket.New()
-	// which throws a JS exception.
-	wsURL := rawURL
-	knownSchemes := []string{
-		"vmess://", "vless://", "trojan://", "hysteria://",
-		"hysteria2://", "hy2://", "tuic://", "ssr://",
-	}
-	for _, scheme := range knownSchemes {
-		if len(wsURL) >= len(scheme) && strings.EqualFold(wsURL[:len(scheme)], scheme) {
-			wsURL = "wss://" + wsURL[len(scheme):]
-			break
+	wsURL, unsupported := normalizeBrowserReachabilityURL(rawURL)
+	if unsupported != "" {
+		return map[string]interface{}{
+			"alive": false,
+			"error": unsupported,
 		}
-	}
-	if len(wsURL) > 5 && wsURL[:5] == "ss://" {
-		wsURL = "wss://" + wsURL[5:]
 	}
 
 	// Create channels for async result
@@ -120,4 +111,39 @@ func doTestProxy(rawURL string) map[string]interface{} {
 		jsWS.Call("close")
 		return map[string]interface{}{"alive": false, "error": "Timeout"}
 	}
+}
+
+func normalizeBrowserReachabilityURL(rawURL string) (string, string) {
+	rawURL = strings.TrimSpace(rawURL)
+	if rawURL == "" {
+		return "", "Invalid URL"
+	}
+
+	lowerURL := strings.ToLower(rawURL)
+	if strings.HasPrefix(lowerURL, "ws://") || strings.HasPrefix(lowerURL, "wss://") {
+		return validateBrowserURL(rawURL)
+	}
+
+	knownProxySchemes := []string{
+		"vmess://", "vless://", "trojan://", "hysteria://",
+		"hysteria2://", "hy2://", "tuic://", "ssr://", "ss://",
+	}
+	for _, scheme := range knownProxySchemes {
+		if strings.HasPrefix(lowerURL, scheme) {
+			return validateBrowserURL("wss://" + rawURL[len(scheme):])
+		}
+	}
+
+	return "", "Unsupported browser reachability scheme"
+}
+
+func validateBrowserURL(candidate string) (string, string) {
+	parsed, err := url.Parse(candidate)
+	if err != nil || parsed.Host == "" {
+		return "", "Invalid URL"
+	}
+	if parsed.Scheme != "ws" && parsed.Scheme != "wss" {
+		return "", "Unsupported browser reachability scheme"
+	}
+	return candidate, ""
 }

@@ -30,15 +30,23 @@ def parse_clash_json(config: str) -> Optional[Proxy]:
         protocol = data["type"].lower()
         address = data["server"]
         port = int(data.get("port", 0))
+        if not (1 <= port <= 65535):
+            return None
         uuid = data.get("uuid") or data.get("password") or ""
 
         # Basic mapping
         if protocol == "vmess":
             uuid = data.get("uuid", "")
+            if not uuid:
+                return None
         elif protocol == "vless":
             uuid = data.get("uuid", "")
+            if not uuid:
+                return None
         elif protocol == "trojan":
             uuid = data.get("password", "")
+            if not uuid:
+                return None
         elif protocol == "ss" or protocol == "shadowsocks":
             protocol = "shadowsocks"
             uuid = ""  # SS uses password in details
@@ -48,6 +56,19 @@ def parse_clash_json(config: str) -> Optional[Proxy]:
                 return None
             data["password"] = password
             data["method"] = data.get("cipher", "")
+            method = str(data["method"]).lower()
+            invalid_methods = {
+                "ss",
+                "shadowsocks",
+                "",
+                "null",
+                "default",
+                "cipher",
+                "aes",
+                "chacha20",
+            }
+            if method in invalid_methods or len(method) < 2:
+                return None
         elif protocol == "wireguard" or protocol == "wg":
             protocol = "wireguard"
             # Enforce private_key for WireGuard (accept common aliases)
@@ -62,6 +83,14 @@ def parse_clash_json(config: str) -> Optional[Proxy]:
                         SecurityValidator.sanitize_log_message(address),
                     )
                     return None
+            if not data.get("private_key"):
+                logger.debug(
+                    "Dropping WireGuard proxy missing private_key: %s",
+                    SecurityValidator.sanitize_log_message(address),
+                )
+                return None
+        else:
+            return None
 
         proxy = Proxy(
             config=config,  # Store the JSON blob as config

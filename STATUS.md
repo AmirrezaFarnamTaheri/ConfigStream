@@ -1,6 +1,6 @@
 # ConfigStream Project Status
 
-**Last updated:** 2026-05-06
+**Last updated:** 2026-05-08
 **Version:** v3.0.2
 **Status:** Remediation in progress. Not production-ready and not ready to publish as a final public release.
 
@@ -48,6 +48,18 @@ Current blockers:
 - Logging hardening now masks proxy endpoints, source URLs, source tokens, DNS failure host/error material, Vwarp subprocess/tunnel output, security-rule address logs, honeypot reputation logs, test-cache endpoint logs, parser drop/error logs, and converter logs; high-risk static logging policy tests and `SECURITY.md` logging policy documentation are in place.
 - Frontend runtime assets are local-first with parity tracking: critical JS/CSS/fonts/globe textures/flags and Lab helper downloads are same-origin, CSP no longer needs broad remote runtime hosts, and `frontend/assets/vendor-manifest.json` records mirrored sources.
 - Test execution is split into explicit profiles: `unit`, `integration`, `frontend-browser`, and `production-smoke`. The CI `frontend-browser` job installs Python Playwright Chromium and runs with `CONFIGSTREAM_REQUIRE_PLAYWRIGHT=1` so missing browser coverage fails instead of silently skipping.
+- Shadowsocks-Rust FFI validation is explicitly optional: it runs only with a local platform binary and matching `SS_LIB_SHA256`; otherwise Python validation remains authoritative, and configured hash mismatches fail closed.
+- Frontend WASM verification is labeled as browser-limited reachability only. Unsupported transports keep Go sidecar/Python results authoritative, and invalid browser-check URLs fail explicitly before `WebSocket` construction.
+- Encyclopedia documentation now has one canonical source: `docs/wiki/encyclopedia`. The root `docs/encyclopedia` tree is a synced mirror guarded by `scripts/validate_docs_sync.py`.
+- Debt matrix artifacts are portable: generated paths are repo-relative, generated debt files are excluded from self-scans, and marker summaries separate production/frontend/tooling/docs debt from test-only mocks.
+- Optional external publishing is separated from the zero-budget core: GitHub Pages is the core publication target, while IPFS/Pinata, Hugging Face, Google Drive, and Telegram are optional secret-gated mirrors guarded by `scripts/validate_optional_mirrors.py`.
+- The first canonical claim ledger now lives at `docs/claim_ledger.json`, with `scripts/validate_claim_ledger.py` guarding required proof fields and preventing complete claims without tests/docs/changelog evidence.
+- Protocol claims now have a canonical inventory in `docs/protocol_matrix.json`; `scripts/validate_protocol_matrix.py` checks schema enum coverage, parser-export references, README protocol claims, and frontend display capability. `tests/unit/test_protocol_output_golden.py` now checks every public canonical protocol fixture against the matrix's Sing-box/Clash export flags, generated subscription outputs, the real frontend `processProxyData()` normalizer after parser ingestion, and representative malformed inputs that must fail closed for every public canonical parser. `scripts/frontend_same_origin_smoke.cjs` also serves browser fixture `proxies.json` data for every public canonical protocol and verifies the rendered Proxies page table badges plus protocol filter options in Chromium. The protocol-matrix inventory claim is complete; deeper protocol-specific fuzzing remains tracked as separate parser hardening.
+- Parser hardening now drops additional missing-credential edge cases for TUIC, Snell, Brook, and SSH while preserving anonymous Hysteria/Hysteria2 and unauthenticated generic HTTP/SOCKS behavior where the existing parser contract allows it.
+- VLESS/VMess credential-boundary proof now locks the intended split between compatibility parsing and strict validation: VLESS query-parameter UUID recovery is covered, VMess missing/empty IDs are covered as malformed parser inputs, public golden UUID fixtures use schema-compatible UUIDv4 values, and the security validator proves missing VMess/VLESS UUIDs remain fatal even when insecure proxy retention is enabled.
+- Shadowsocks credential recovery now preserves intended compatibility by parsing host-side query parameters before the empty-password fallback decision, so links such as `ss://method:@host:port/?password=...` recover the password instead of being dropped prematurely.
+- Clash JSON import parsing now fails closed for missing VMess/VLESS UUIDs, missing Trojan/Shadowsocks credentials, invalid Shadowsocks methods, invalid ports, empty WireGuard private keys, and unknown Clash `type` values while preserving valid imported entries.
+- Public output claims now have a canonical inventory in `docs/output_matrix.json`; `scripts/validate_output_matrix.py` checks that every Pages-required artifact is listed, nonempty flags match the deploy validator, core control artifacts keep schema validation, degraded outputs remain explicitly valid, side-product required ZIP members mirror the deploy validator, and optional OpenVPN/WireGuard member patterns match the generator contract. Pages validation checks side-product ZIP integrity, safe member paths, the required `proxies.txt` member, deploy-secret markers inside ZIP members without blocking normal proxy credentials, and Sing-box/Clash reference semantics for selectors, detours, route/DNS outbounds, groups, and rule policies. When `--native-client-check` is requested, Pages validation also runs local `sing-box` and `mihomo`/Clash config checks if those binaries are available, while missing binaries remain a clean skip. `scripts/generate_output_docs.py` renders the README/API output tables from the matrix and production-smoke checks they are current. `tests/unit/test_output.py` now builds a deterministic public artifact directory from the real output generator and validates it with the Pages contract. `tests/unit/test_protocol_output_golden.py` adds per-protocol generator/export fixtures and parser-to-frontend normalizer fixtures for every public canonical protocol, and the Node frontend smoke verifies browser-rendered protocol badges/filter options. The public output artifact contract claim is complete for current Pages-required outputs.
 
 ## Required Closure Rule
 
@@ -64,11 +76,33 @@ No task is closed while any surface still documents or serves the old contract.
 
 ## Validation Snapshot
 
-Latest local validation performed on 2026-05-06:
+Latest local validation performed on 2026-05-08:
 
 - `python scripts/validate_workflows.py`: passed for 6 workflow files
 - `python scripts/validate_versions.py`: passed
 - `python -m pytest tests/unit/test_validate_versions.py -q`: 3 passed
+- `python -m pytest tests/unit/test_ss_ffi.py -q`: 18 passed
+- `python -m pytest tests/unit/test_wasm_browser_semantics.py tests/unit/test_documentation_hygiene.py -q`: 9 passed
+- `python scripts/validate_status.py`: passed
+- `python -m pytest tests/unit/test_validate_status.py tests/unit/test_documentation_hygiene.py -q`: 9 passed
+- `python scripts/validate_docs_sync.py`: passed
+- `python -m pytest tests/unit/test_validate_docs_sync.py -q`: 3 passed
+- `python scripts/validate_debt_matrix.py`: passed
+- `python -m pytest tests/unit/test_debt_matrix.py -q`: 5 passed
+- `python scripts/validate_assets.py`: passed
+- `python -m pytest tests/unit/test_validate_assets.py -q`: 6 passed
+- `python scripts/validate_optional_mirrors.py`: passed
+- `python -m pytest tests/unit/test_validate_optional_mirrors.py -q`: 3 passed
+- `python scripts/validate_claim_ledger.py`: passed
+- `python -m pytest tests/unit/test_validate_claim_ledger.py -q`: 4 passed
+- `python scripts/validate_protocol_matrix.py`: passed
+- `python -m pytest tests/unit/test_validate_protocol_matrix.py -q`: 3 passed
+- `python -m pytest tests/unit/test_protocol_output_golden.py tests/unit/test_validate_protocol_matrix.py -q`: 8 passed
+- `python scripts/validate_output_matrix.py`: passed
+- `python scripts/generate_output_docs.py --check`: passed
+- `python -m pytest tests/unit/test_validate_output_matrix.py -q`: 8 passed
+- `python -m pytest tests/unit/test_validate_pages_artifact.py tests/unit/test_validate_output_matrix.py -q`: 32 passed
+- `python -m pytest tests/unit/test_output.py::test_generated_public_artifact_fixture_matches_pages_contract -q`: 1 passed
 - `pytest -q tests/unit/test_output.py tests/unit/test_validate_pages_artifact.py tests/unit/test_analytics_output.py tests/unit/test_merge_batches.py`: 18 passed
 - `pytest -q tests/unit/test_documentation_hygiene.py tests/unit/test_validate_pages_artifact.py tests/unit/test_output.py tests/unit/test_validate_workflows.py tests/unit/test_validate_versions.py`: 22 passed
 - `pytest -q tests/unit/test_server.py tests/unit/test_server_new.py`: 41 passed
@@ -81,10 +115,13 @@ Latest local validation performed on 2026-05-06:
 - `pytest -q tests/unit/test_logging_sanitization_policy.py tests/unit/test_output.py`: 15 passed
 - `pytest -q tests/unit/test_server.py tests/unit/test_server_new.py tests/unit/test_output.py tests/unit/test_validate_pages_artifact.py tests/unit/test_analytics_output.py tests/unit/test_merge_batches.py tests/unit/test_documentation_hygiene.py tests/unit/test_validate_workflows.py tests/unit/test_validate_versions.py`: 66 passed
 - `pytest -q tests/unit/test_server.py tests/unit/test_server_new.py tests/unit/test_fetcher.py tests/unit/test_fetcher_config.py tests/unit/test_fetcher_resilience.py tests/unit/test_fetcher_retries.py tests/unit/test_fetcher_advanced.py tests/unit/fetcher/test_fetcher_core.py tests/unit/test_output.py tests/unit/test_validate_pages_artifact.py tests/unit/test_analytics_output.py tests/unit/test_merge_batches.py tests/unit/test_documentation_hygiene.py tests/unit/test_validate_workflows.py tests/unit/test_validate_versions.py tests/unit/test_validate_frontend_placeholders.py tests/unit/test_lab_strategy_parity.py tests/unit/test_concurrency_contract.py tests/unit/test_producer_quality_accounting.py tests/unit/test_logging_sanitization_policy.py`: 127 passed
+- `python -m pytest tests/unit/test_protocol_output_golden.py tests/unit/test_security_validator.py tests/unit/test_security_validator_full.py tests/unit/test_proxy_schema.py -q`: 15 passed, 1 skipped
+- `python -m pytest tests/unit/parsers/test_parser_fixes.py tests/unit/test_protocol_output_golden.py tests/unit/test_parsers_robustness.py -q`: 58 passed
+- `python -m pytest tests/unit/test_parsers_json_yaml.py tests/unit/test_protocol_output_golden.py tests/unit/test_parsers_robustness.py -q`: 49 passed
 - `npm run build`: passed
 - `npm run test:frontend:no-network`: passed, including same-origin no-JS smoke
 - `npm run test:frontend:degraded`: passed
-- `python -m pytest -q`: 900 passed, 5 skipped
+- `python -m pytest -q`: 970 passed, 5 skipped
 
 Browser skip visibility:
 

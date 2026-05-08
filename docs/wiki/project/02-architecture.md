@@ -111,10 +111,10 @@ To test 10,000+ proxies in minutes on a free runner, Python's `asyncio` loop is 
 
 ## 3. The Edge Plane (WASM)
 
-To decentralize testing and provide users with truth from *their* perspective, we moved limited verification to the browser.
+To decentralize some local signals and provide users with a browser-side view from *their* network, we keep limited verification in the browser.
 
 *   **WebAssembly (WASM)**: We compile the Go tester code to WASM (`tester.wasm`).
-*   **Current Limitation**: Browsers cannot open raw TCP/UDP sockets from WASM. The current WASM verifier is limited to local config integrity checks and lightweight logic. Full network testing remains a server-side capability (see `KNOWN_ISSUES.md`).
+*   **Browser-limited reachability**: Browsers cannot open raw TCP/UDP sockets from WASM or perform native proxy handshakes. The current WASM verifier can only attempt browser `WebSocket` reachability for compatible endpoints and perform local integrity logic. Full proxy testing remains the Go sidecar/Python tester responsibility.
 
 ## 4. Frontend Architecture (Edge Plane)
 
@@ -122,7 +122,7 @@ The frontend is a Progressive Web App (PWA) designed for resilience and offline 
 
 *   **Self-Hosted Dependencies** (v2.1.0): To ensure accessibility in restricted network environments (where CDNs like unpkg or jsdelivr might be blocked), all critical libraries (`Three.js`, `Globe.gl`, `Chart.js`, `Feather`) are self-hosted within the `assets/libs/` directory. The application attempts to load from CDN for performance but automatically falls back to local copies upon failure.
 *   **Real-Time Stats**: Connects to the `metadata.json` API to render live threat maps and performance graphs.
-*   **WASM Verifier**: Runs a subset of the Go tester logic in the browser for "Turbo-Verify", allowing users to verify config integrity locally without sending private keys to the server.
+*   **WASM Verifier**: Runs browser-limited reachability and local integrity logic for "Turbo-Verify"; it preserves sidecar/Python results for unsupported transports instead of treating browser checks as authoritative native proxy tests.
 
 ## Memory Management Strategy
 
@@ -162,11 +162,11 @@ This architecture allows ConfigStream to scale linearly. To double capacity, we 
 *   **Usage:** Clients download `gallery.png`, which renders as a normal image but contains an encrypted Zip payload. A network administrator sees an image download, not a config file.
 *   **Frontend Integration:** The `STEGO_KEY` (Fernet) is injected into the frontend JS at build time so the browser can decrypt the latest steganography image.
 
-### IPFS Dead Man's Switch
-*   **Objective:** Censorship-resistant fallback distribution.
-*   **Implementation:** Daily snapshots of the output directory are pinned to IPFS/IPNS.
-*   **Failover:** If `github.io` is blocked, the frontend's `failover.js` detects the outage and redirects to IPFS gateways automatically.
-*   **Requirement:** The `publish_ipfs.py` script requires a local `ipfs` daemon or a pinning service with API support.
+### Optional External Mirrors
+*   **Objective:** Censorship-resistant fallback distribution when an operator chooses to configure it.
+*   **Core Target:** GitHub Pages is the core zero-budget publication target.
+*   **Implementation:** External mirrors are optional and secret-gated. IPFS/Pinata, Hugging Face, Google Drive, and Telegram upload paths run only when their credentials are configured.
+*   **Requirement:** Core pipeline success must not depend on external mirror accounts, paid APIs, or user-provided publishing secrets.
 
 ### Signed Subscription Integrity
 *   **Objective:** Prevent Man-in-the-Middle tampering with subscription files.

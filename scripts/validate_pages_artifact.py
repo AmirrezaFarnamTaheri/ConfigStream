@@ -7,10 +7,18 @@ import argparse
 import hashlib
 import json
 import os
+import re
+import shutil
+import subprocess
 import sys
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
+
+try:
+    import yaml  # type: ignore
+except ImportError:  # pragma: no cover - PyYAML is a normal dependency.
+    yaml = None  # type: ignore
 
 REQUIRED_EXISTS: tuple[str, ...] = (
     "proxies.json",
@@ -96,6 +104,42 @@ JSON_FILES: tuple[str, ...] = tuple(
 ZIP_FILES: tuple[str, ...] = tuple(
     name for name in REQUIRED_EXISTS if name.endswith(".zip")
 )
+SINGBOX_FILES: tuple[str, ...] = tuple(
+    name
+    for name in REQUIRED_EXISTS
+    if name.startswith("singbox") and name.endswith(".json")
+)
+CLASH_FILES: tuple[str, ...] = tuple(
+    name
+    for name in REQUIRED_EXISTS
+    if name.startswith("clash") and name.endswith(".yaml")
+)
+SING_BOX_BINARY_NAMES: tuple[str, ...] = ("sing-box", "sing-box.exe")
+MIHOMO_BINARY_NAMES: tuple[str, ...] = (
+    "mihomo",
+    "mihomo.exe",
+    "clash-meta",
+    "clash-meta.exe",
+    "clash",
+    "clash.exe",
+)
+REQUIRED_ZIP_MEMBERS: dict[str, tuple[str, ...]] = {
+    "side_products.zip": ("proxies.txt",),
+    "side_products-dns-safe.zip": ("proxies.txt",),
+    "side_products-dns-hardened.zip": ("proxies.txt",),
+}
+ZIP_SECRET_SCAN_MAX_BYTES = 1024 * 1024
+ZIP_DEPLOY_SECRET_RE = re.compile(
+    r"(?im)\b(?:"
+    r"ADMIN_API_KEY|CS_PUBLIC_KEY|STEGO_KEY|CONFIG_STREAM_KEY|"
+    r"PINATA_JWT|HF_TOKEN|TELEGRAM_BOT_TOKEN|GDRIVE_CLIENT_SECRET|"
+    r"GDRIVE_REFRESH_TOKEN|CF_TOKEN"
+    r")\s*[:=]\s*[^\s#'\"]{8,}"
+)
+ZIP_DEPLOY_SECRET_MARKERS = (
+    "PLACEHOLDER_KEY_INJECTED_BY_CI",
+    "PLACEHOLDER_PUBLIC_KEY",
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_DIR = REPO_ROOT / "schema"
@@ -110,12 +154,74 @@ def _load_json(path: Path) -> tuple[object | None, str | None]:
         return None, f"could not read {path.name}: {exc}"
 
 
+def _load_yaml(path: Path) -> tuple[object | None, str | None]:
+    if yaml is None:
+        return None, "PyYAML is not available for Clash semantic validation"
+    try:
+        return yaml.safe_load(path.read_text(encoding="utf-8")), None
+    except yaml.YAMLError as exc:  # type: ignore[attr-defined]
+        return None, f"invalid YAML in {path.name}: {exc}"
+    except OSError as exc:
+        return None, f"could not read {path.name}: {exc}"
+
+
 def _sha256(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _first_available_binary(names: tuple[str, ...]) -> str | None:
+    for name in names:
+        binary = shutil.which(name)
+        if binary:
+            return binary
+    return None
+
+
+def _run_native_check(command: list[str], rel_path: str) -> str | None:
+    try:
+        proc = subprocess.run(
+            command,
+            capture_output=True,
+            check=False,
+            text=True,
+            timeout=30,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        return f"{rel_path} native client check could not run: {exc}"
+    if proc.returncode == 0:
+        return None
+    output = (proc.stderr or proc.stdout or "native client returned non-zero").strip()
+    if len(output) > 500:
+        output = output[:500] + "...[truncated]"
+    return f"{rel_path} native client check failed: {output}"
+
+
+def _validate_native_clients(root: Path) -> list[str]:
+    errors: list[str] = []
+    sing_box = _first_available_binary(SING_BOX_BINARY_NAMES)
+    if sing_box:
+        for rel_path in SINGBOX_FILES:
+            target = root / rel_path
+            if not target.is_file():
+                continue
+            error = _run_native_check([sing_box, "check", "-c", str(target)], rel_path)
+            if error:
+                errors.append(error)
+
+    mihomo = _first_available_binary(MIHOMO_BINARY_NAMES)
+    if mihomo:
+        for rel_path in CLASH_FILES:
+            target = root / rel_path
+            if not target.is_file():
+                continue
+            error = _run_native_check([mihomo, "-t", "-f", str(target)], rel_path)
+            if error:
+                errors.append(error)
+    return errors
 
 
 def _artifact_category(rel_path: str) -> str:
@@ -334,6 +440,166 @@ def _validate_proxies(payload: object, file_name: str) -> list[str]:
     return errors
 
 
+def _validate_singbox_config(payload: object, file_name: str) -> list[str]:
+    if not isinstance(payload, dict):
+        return [f"{file_name} must be a JSON object"]
+    outbounds = payload.get("outbounds")
+    if not isinstance(outbounds, list) or not outbounds:
+        return [f"{file_name} outbounds must be a non-empty list"]
+    errors: list[str] = []
+    tags: set[str] = set()
+    for index, outbound in enumerate(outbounds):
+        if not isinstance(outbound, dict):
+            errors.append(f"{file_name} outbounds[{index}] must be an object")
+            continue
+        outbound_type = outbound.get("type")
+        tag = outbound.get("tag")
+        if not isinstance(outbound_type, str) or not outbound_type:
+            errors.append(f"{file_name} outbounds[{index}] missing type")
+        if not isinstance(tag, str) or not tag:
+            errors.append(f"{file_name} outbounds[{index}] missing tag")
+            continue
+        if tag in tags:
+            errors.append(f"{file_name} duplicate outbound tag: {tag}")
+        tags.add(tag)
+
+    for index, outbound in enumerate(outbounds):
+        if not isinstance(outbound, dict):
+            continue
+        outbound_type = outbound.get("type")
+        detour = outbound.get("detour")
+        if detour is not None:
+            if not isinstance(detour, str) or not detour:
+                errors.append(f"{file_name} outbounds[{index}] has invalid detour")
+            elif detour not in tags:
+                errors.append(f"{file_name} unknown outbound detour: {detour}")
+        if outbound_type not in {"selector", "urltest"}:
+            continue
+        refs = outbound.get("outbounds")
+        if not isinstance(refs, list):
+            errors.append(f"{file_name} outbounds[{index}] missing outbound references")
+            continue
+        for ref in refs:
+            if not isinstance(ref, str) or not ref:
+                errors.append(f"{file_name} outbounds[{index}] has invalid reference")
+            elif ref not in tags:
+                errors.append(f"{file_name} unknown outbound reference: {ref}")
+
+    route = payload.get("route")
+    if isinstance(route, dict):
+        rules = route.get("rules")
+        if isinstance(rules, list):
+            for index, rule in enumerate(rules):
+                if not isinstance(rule, dict):
+                    continue
+                ref = rule.get("outbound")
+                if ref is None:
+                    continue
+                if not isinstance(ref, str) or not ref:
+                    errors.append(
+                        f"{file_name} route.rules[{index}] has invalid outbound"
+                    )
+                elif ref not in tags:
+                    errors.append(f"{file_name} unknown route outbound: {ref}")
+
+    dns = payload.get("dns")
+    if isinstance(dns, dict):
+        servers = dns.get("servers")
+        if isinstance(servers, list):
+            for index, server in enumerate(servers):
+                if not isinstance(server, dict):
+                    continue
+                detour = server.get("detour")
+                if detour is None:
+                    continue
+                if not isinstance(detour, str) or not detour:
+                    errors.append(
+                        f"{file_name} dns.servers[{index}] has invalid detour"
+                    )
+                elif detour not in tags:
+                    errors.append(f"{file_name} unknown DNS detour: {detour}")
+    return errors
+
+
+def _validate_clash_config(payload: object, file_name: str) -> list[str]:
+    if not isinstance(payload, dict):
+        return [f"{file_name} must be a YAML object"]
+    proxies = payload.get("proxies")
+    groups = payload.get("proxy-groups")
+    rules = payload.get("rules")
+    errors: list[str] = []
+    if not isinstance(proxies, list):
+        errors.append(f"{file_name} proxies must be a list")
+        proxies = []
+    if not isinstance(groups, list) or not groups:
+        errors.append(f"{file_name} proxy-groups must be a non-empty list")
+        groups = []
+    if not isinstance(rules, list) or not rules:
+        errors.append(f"{file_name} rules must be a non-empty list")
+
+    names: set[str] = {"DIRECT", "REJECT", "GLOBAL"}
+    for index, proxy in enumerate(proxies):
+        if not isinstance(proxy, dict):
+            errors.append(f"{file_name} proxies[{index}] must be an object")
+            continue
+        name = proxy.get("name")
+        proxy_type = proxy.get("type")
+        if not isinstance(name, str) or not name:
+            errors.append(f"{file_name} proxies[{index}] missing name")
+            continue
+        if name in names:
+            errors.append(f"{file_name} duplicate proxy/group name: {name}")
+        names.add(name)
+        if not isinstance(proxy_type, str) or not proxy_type:
+            errors.append(f"{file_name} proxies[{index}] missing type")
+
+    group_refs: list[tuple[int, str]] = []
+    for index, group in enumerate(groups):
+        if not isinstance(group, dict):
+            errors.append(f"{file_name} proxy-groups[{index}] must be an object")
+            continue
+        name = group.get("name")
+        group_type = group.get("type")
+        refs = group.get("proxies")
+        if not isinstance(name, str) or not name:
+            errors.append(f"{file_name} proxy-groups[{index}] missing name")
+        else:
+            if name in names:
+                errors.append(f"{file_name} duplicate proxy/group name: {name}")
+            names.add(name)
+        if not isinstance(group_type, str) or not group_type:
+            errors.append(f"{file_name} proxy-groups[{index}] missing type")
+        if not isinstance(refs, list) or not refs:
+            errors.append(
+                f"{file_name} proxy-groups[{index}] proxies must be non-empty"
+            )
+            continue
+        for ref in refs:
+            if isinstance(ref, str) and ref:
+                group_refs.append((index, ref))
+            else:
+                errors.append(
+                    f"{file_name} proxy-groups[{index}] has invalid reference"
+                )
+
+    for index, ref in group_refs:
+        if ref not in names:
+            errors.append(f"{file_name} proxy-groups[{index}] unknown reference: {ref}")
+
+    if isinstance(rules, list):
+        for index, rule in enumerate(rules):
+            if not isinstance(rule, str):
+                errors.append(f"{file_name} rules[{index}] must be a string")
+                continue
+            parts = [part.strip() for part in rule.split(",")]
+            if len(parts) < 2:
+                continue
+            policy = parts[-1]
+            if policy and policy not in names:
+                errors.append(f"{file_name} rules[{index}] unknown policy: {policy}")
+    return errors
+
+
 def _validate_api_alias_parity(root: Path) -> list[str]:
     errors: list[str] = []
     for canonical, alias in (
@@ -346,6 +612,43 @@ def _validate_api_alias_parity(root: Path) -> list[str]:
             continue
         if _sha256(canonical_path) != _sha256(alias_path):
             errors.append(f"{alias} must match {canonical}")
+    return errors
+
+
+def _validate_zip_members(rel_path: str, archive: zipfile.ZipFile) -> list[str]:
+    errors: list[str] = []
+    names = set(archive.namelist())
+    for member in REQUIRED_ZIP_MEMBERS.get(rel_path, ()):
+        if member not in names:
+            errors.append(f"{rel_path} missing ZIP member: {member}")
+    for name in sorted(names):
+        normalized = name.replace("\\", "/")
+        parts = [part for part in normalized.split("/") if part]
+        if (
+            not normalized
+            or normalized.startswith("/")
+            or normalized.startswith("../")
+            or "/../" in normalized
+            or ".." in parts
+            or ":" in parts[0]
+        ):
+            errors.append(f"{rel_path} contains unsafe ZIP member path: {name}")
+            continue
+        if name.endswith("/"):
+            continue
+        try:
+            with archive.open(name, "r") as member:
+                chunk = member.read(ZIP_SECRET_SCAN_MAX_BYTES + 1)
+        except (KeyError, OSError, RuntimeError, zipfile.BadZipFile) as exc:
+            errors.append(f"{rel_path} could not read ZIP member {name}: {exc}")
+            continue
+        text = chunk[:ZIP_SECRET_SCAN_MAX_BYTES].decode("utf-8", errors="ignore")
+        if any(marker in text for marker in ZIP_DEPLOY_SECRET_MARKERS):
+            errors.append(f"{rel_path} ZIP member leaks deploy secret marker: {name}")
+        if ZIP_DEPLOY_SECRET_RE.search(text):
+            errors.append(
+                f"{rel_path} ZIP member leaks deploy secret assignment: {name}"
+            )
     return errors
 
 
@@ -411,7 +714,9 @@ def write_pages_contract(root: Path) -> None:
     )
 
 
-def validate_pages_artifact(root: Path) -> list[str]:
+def validate_pages_artifact(
+    root: Path, *, native_client_check: bool = False
+) -> list[str]:
     errors: list[str] = []
     if not root.exists():
         return [f"artifact directory does not exist: {root}"]
@@ -459,11 +764,31 @@ def validate_pages_artifact(root: Path) -> list[str]:
         try:
             with zipfile.ZipFile(target, "r") as archive:
                 bad_member = archive.testzip()
+                errors.extend(_validate_zip_members(rel_path, archive))
         except zipfile.BadZipFile as exc:
             errors.append(f"invalid ZIP in {rel_path}: {exc}")
             continue
         if bad_member:
             errors.append(f"corrupt ZIP member in {rel_path}: {bad_member}")
+
+    for rel_path in SINGBOX_FILES:
+        target = root / rel_path
+        if not target.is_file():
+            continue
+        payload, error = _load_json(target)
+        if error:
+            continue
+        errors.extend(_validate_singbox_config(payload, rel_path))
+
+    for rel_path in CLASH_FILES:
+        target = root / rel_path
+        if not target.is_file():
+            continue
+        payload, error = _load_yaml(target)
+        if error:
+            errors.append(error.replace(target.name, rel_path, 1))
+            continue
+        errors.extend(_validate_clash_config(payload, rel_path))
 
     manifest_path = root / "artifact_manifest.json"
     if manifest_path.is_file():
@@ -500,6 +825,8 @@ def validate_pages_artifact(root: Path) -> list[str]:
             errors.extend(_validate_proxies(api_proxies, "api/proxies"))
 
     errors.extend(_validate_api_alias_parity(root))
+    if native_client_check:
+        errors.extend(_validate_native_clients(root))
 
     return errors
 
@@ -511,13 +838,23 @@ def main() -> int:
         action="store_true",
         help="Rewrite health.json and artifact_manifest.json before validation.",
     )
+    parser.add_argument(
+        "--native-client-check",
+        action="store_true",
+        help=(
+            "Also run local sing-box/mihomo config checks when those binaries are "
+            "available. Missing binaries are treated as a skip."
+        ),
+    )
     parser.add_argument("artifact_dir", type=Path, help="Prepared Pages output dir")
     args = parser.parse_args()
 
     if args.refresh_contract:
         write_pages_contract(args.artifact_dir)
 
-    errors = validate_pages_artifact(args.artifact_dir)
+    errors = validate_pages_artifact(
+        args.artifact_dir, native_client_check=args.native_client_check
+    )
     if errors:
         print("ERROR: Pages artifact validation failed")
         for error in errors:

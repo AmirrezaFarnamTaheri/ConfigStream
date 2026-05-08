@@ -4,6 +4,7 @@ from configstream.security_validator import (
     STRICT_POLICY,
     TEST_POLICY,
 )
+from configstream.models import Proxy
 from tests.unit.conftest_helper import create_test_proxy
 
 
@@ -40,3 +41,21 @@ def test_validate_rejects_invalid_uuid(monkeypatch):
     assert len(results) == 1
     assert results[0].is_secure is False
     assert "invalid_uuid_format" in results[0].security_issues.get("policy", [])
+
+
+def test_validate_missing_vmess_uuid_is_fatal_even_when_insecure_kept(monkeypatch):
+    proxy = Proxy(
+        config="vmess://missing-uuid",
+        protocol="vmess",
+        address="1.1.1.1",
+        port=443,
+        uuid="",
+        details={},
+    )
+
+    monkeypatch.setenv("INCLUDE_INSECURE_PROXIES", "true")
+    results = validate_batch_configs([proxy], TEST_POLICY)
+
+    assert results == []
+    assert proxy.is_secure is False
+    assert "missing_uuid" in proxy.security_issues.get("policy", [])

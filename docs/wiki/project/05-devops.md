@@ -2,15 +2,17 @@
 
 ConfigStream is in remediation. The workflow files are the executable contract, and the master audit is the planning contract. This page describes the current intended automation model after the first remediation pass; if it conflicts with workflow YAML, tests, or the master audit, treat the executable files and audit report as authoritative.
 
+GitHub Pages is the core zero-budget publication target. External mirrors are optional and secret-gated; their absence must not fail the core pipeline or Pages deployment.
+
 ## 1. Workflow Inventory
 
 | Workflow | File | Purpose |
 | :--- | :--- | :--- |
 | CI | `.github/workflows/ci.yml` | Pull request and push validation, including workflow syntax validation. |
-| Config's Stream | `.github/workflows/main.yml` | Scheduled/manual production pipeline, sharded batch execution, merge, output generation, optional mirrors, and release creation. |
+| Config's Stream | `.github/workflows/main.yml` | Scheduled/manual production pipeline, sharded batch execution, merge, output generation, and optional secret-gated mirrors/releases. |
 | Retest | `.github/workflows/retest.yml` | Retests the latest successful `pipeline-output` artifact without running a full source ingestion cycle. |
 | Deploy to GitHub Pages | `.github/workflows/deploy-pages.yml` | Deploys one completed `pipeline-output` artifact to GitHub Pages after validation. |
-| Deploy Mirror | `.github/workflows/deploy_mirror.yml` | Optional Vercel, Netlify, or IPFS mirror deployment from the latest successful `pipeline-output`. |
+| Deploy Mirror | `.github/workflows/deploy_mirror.yml` | Optional secret-gated mirror deployment from the latest successful `pipeline-output`. |
 | Release | `.github/workflows/release.yml` | Tagged package release, Python distributions, native binaries, attestations, PyPI publish, and GitHub release assets. |
 
 ## 2. Trigger and Concurrency Model

@@ -641,3 +641,5 @@ function setupActionButtons() {
         });
     }
 }
+
+export { processProxyData };

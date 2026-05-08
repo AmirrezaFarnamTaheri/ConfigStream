@@ -4,6 +4,7 @@
 let go = null;
 let wasmReady = false;
 let wasmError = null;
+const WASM_SCOPE_LABEL = 'Browser-limited reachability check';
 
 // 1. Initialize WASM
 async function initWasm() {
@@ -37,13 +38,13 @@ async function initWasm() {
         window.wasmReady = true;
         document.dispatchEvent(new Event('wasm-ready'));
         if (window.ConfigStreamLogger) {
-            window.ConfigStreamLogger.info("✅ ConfigStream WASM Core Loaded and Event Dispatched");
+            window.ConfigStreamLogger.info(`${WASM_SCOPE_LABEL} loaded`);
         }
     } catch (err) {
         if (window.ConfigStreamLogger) {
-            window.ConfigStreamLogger.error("❌ WASM Load Failed:", err);
+            window.ConfigStreamLogger.error(`${WASM_SCOPE_LABEL} failed to load:`, err);
         } else {
-            console.error("❌ WASM Load Failed:", err);
+            console.error(`${WASM_SCOPE_LABEL} failed to load:`, err);
         }
         wasmError = err;
         // Set wasmReady to false explicitly and expose error
@@ -59,7 +60,7 @@ function cleanup() {
     if (window.cleanupWasm) {
         window.cleanupWasm();
         if (window.ConfigStreamLogger) {
-            window.ConfigStreamLogger.info("🧹 WASM Cleaned up");
+            window.ConfigStreamLogger.info(`${WASM_SCOPE_LABEL} cleaned up`);
         }
     }
 }
@@ -69,13 +70,13 @@ window.addEventListener('beforeunload', cleanup);
 async function verifyProxyBatch(proxies) {
     // Better error handling for WASM unavailability
     if (!wasmReady || !window.wasmReady) {
-        if (window.ConfigStreamLogger) window.ConfigStreamLogger.warn("WASM not ready - skipping client-side verification");
+        if (window.ConfigStreamLogger) window.ConfigStreamLogger.warn(`${WASM_SCOPE_LABEL} not ready - keeping sidecar/Python results`);
         return proxies;
     }
 
     // Check if testProxyWasm function is available
     if (typeof window.testProxyWasm !== 'function') {
-        if (window.ConfigStreamLogger) window.ConfigStreamLogger.warn("WASM testProxyWasm function not available - skipping client-side verification");
+        if (window.ConfigStreamLogger) window.ConfigStreamLogger.warn(`${WASM_SCOPE_LABEL} function unavailable - keeping sidecar/Python results`);
         return proxies;
     }
 
@@ -86,7 +87,7 @@ async function verifyProxyBatch(proxies) {
         const chunk = proxies.slice(i, i + CHUNK_SIZE);
         const chunkResults = await Promise.all(chunk.map(async (p) => {
             try {
-                // Determine if proxy is testable via WebSocket
+                // Browsers cannot perform native proxy handshakes; this only checks WebSocket reachability.
                 let isWebSocket = false;
 
                 // Check transport in details
@@ -99,8 +100,12 @@ async function verifyProxyBatch(proxies) {
                     isWebSocket = true;
                 }
 
-                // We can only test WebSocket endpoints from browser
+                // We can only attempt WebSocket reachability from the browser.
                 if (!isWebSocket) {
+                     if (!p.tags) p.tags = [];
+                     if (!p.tags.includes("browser-check-unsupported")) {
+                         p.tags.push("browser-check-unsupported");
+                     }
                      return p;
                 }
 
@@ -120,6 +125,9 @@ async function verifyProxyBatch(proxies) {
                     if (!p.tags) p.tags = [];
                     if (!p.tags.includes("verified-local")) {
                         p.tags.push("verified-local");
+                    }
+                    if (!p.tags.includes("browser-limited")) {
+                        p.tags.push("browser-limited");
                     }
                 } else {
                     // Only override latency if proxy doesn't already have one
