@@ -28,6 +28,8 @@ def test_frontend_docs_reference_vendored_libs_path() -> None:
 def test_known_issues_does_not_reference_resolved_wasm_limitation_as_open() -> None:
     known_issues = _read("KNOWN_ISSUES.md")
     assert "particularly the Go WASM networking limitation" not in known_issues
+    assert "browser-limited reachability checks" in known_issues
+    assert "sidecar/Python test results remain authoritative" in known_issues
 
 
 def test_status_does_not_list_removed_fetcher_py_as_consolidated() -> None:

@@ -11,6 +11,7 @@ from configstream.output_logic import (
 from configstream.models import Proxy
 from configstream.pipeline_stats import PipelineStats
 from configstream.quality.storage import QualityStorage
+from scripts.validate_pages_artifact import validate_pages_artifact
 
 
 @pytest.fixture
@@ -129,3 +130,104 @@ def test_split_outputs_atomic(tmp_path, sample_proxies):
     # v2.0 file names
     assert (tmp_path / "singbox.json").exists()
     assert (tmp_path / "clash.yaml").exists()
+
+
+def test_generated_public_artifact_fixture_matches_pages_contract(tmp_path):
+    """Generate a deterministic public artifact and validate the full Pages contract."""
+    proxies = [
+        Proxy(
+            config=(
+                "vless://123e4567-e89b-12d3-a456-426614174000@1.1.1.1:443"
+                "?security=tls&sni=example.com#fixture-vless"
+            ),
+            protocol="vless",
+            address="1.1.1.1",
+            port=443,
+            uuid="123e4567-e89b-12d3-a456-426614174000",
+            is_working=True,
+            latency=42,
+            country_code="US",
+            resolved_ip="1.1.1.1",
+            remarks="fixture-vless",
+            details={"security": "tls", "sni": "example.com"},
+        ),
+        Proxy(
+            config="ss://YWVzLTEyOC1nY206cGFzcw==@8.8.8.8:8388#fixture-ss",
+            protocol="shadowsocks",
+            address="8.8.8.8",
+            port=8388,
+            is_working=True,
+            latency=88,
+            country_code="US",
+            resolved_ip="8.8.8.8",
+            remarks="fixture-ss",
+            password="pass",
+            details={"method": "aes-128-gcm", "password": "pass"},
+        ),
+        Proxy(
+            config="wireguard://fixture@162.159.192.1:2408#fixture-wg",
+            protocol="wireguard",
+            address="162.159.192.1",
+            port=2408,
+            is_working=True,
+            latency=120,
+            country_code="US",
+            resolved_ip="162.159.192.1",
+            remarks="fixture-wg",
+            details={
+                "private_key": "6M6tfYfQ6B0fLF8A3XJ2Z2z8jz4Yb9k+f0z8xN2aM0E=",
+                "peer_public_key": "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=",
+                "local_address": ["10.0.0.2/32"],
+                "mtu": 1280,
+            },
+        ),
+        Proxy(
+            config="client\nremote 9.9.9.9 1194 udp\n<ca>\nfixture\n</ca>\n",
+            protocol="openvpn",
+            address="9.9.9.9",
+            port=1194,
+            is_working=True,
+            latency=140,
+            country_code="US",
+            resolved_ip="9.9.9.9",
+            remarks="fixture-ovpn",
+        ),
+    ]
+
+    generate_categorized_outputs(proxies, tmp_path, smart_chains={})
+    save_json(proxies, tmp_path / "proxies.json")
+
+    stats = PipelineStats(fetched_lines=len(proxies))
+    stats.tested = len(proxies)
+    stats.working = len(proxies)
+    save_metadata(stats, proxies, tmp_path)
+
+    api_dir = tmp_path / "api"
+    api_dir.mkdir()
+    (api_dir / "proxies").write_text(
+        (tmp_path / "proxies.json").read_text(encoding="utf-8"), encoding="utf-8"
+    )
+    (api_dir / "stats").write_text(
+        (tmp_path / "metadata.json").read_text(encoding="utf-8"), encoding="utf-8"
+    )
+
+    data_dir = tmp_path / "data"
+    data_dir.mkdir(exist_ok=True)
+    for name in (
+        "clean_ips.json",
+        "proxy_history_viz.json",
+        "active_proxy_trend.json",
+        "evasion_trend.json",
+    ):
+        (data_dir / name).write_text("[]", encoding="utf-8")
+
+    docs_dir = tmp_path / "docs" / "wiki"
+    docs_dir.mkdir(parents=True)
+    (docs_dir / "index.md").write_text("# Fixture docs\n", encoding="utf-8")
+    (tmp_path / "index.html").write_text(
+        "<!doctype html><title>Fixture</title>", encoding="utf-8"
+    )
+
+    write_public_artifact_contract(tmp_path)
+
+    assert validate_pages_artifact(tmp_path) == []

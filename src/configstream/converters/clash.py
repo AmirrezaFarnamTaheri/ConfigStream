@@ -11,6 +11,7 @@ from .clash_utils import add_transport_opts
 logger = logging.getLogger(__name__)
 
 _PROTOCOL_ALIASES = {
+    "ss2022": "shadowsocks",
     "hy2": "hysteria2",
     "husi": "hysteria2",
     "exclave": "vless",

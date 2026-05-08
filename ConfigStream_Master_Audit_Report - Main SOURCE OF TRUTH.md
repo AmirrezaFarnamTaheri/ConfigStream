@@ -1170,6 +1170,12 @@ reads under strict cp1252 stdout semantics.
 
 ### P2-11. Rust Shadowsocks FFI fallback and checksum story are incomplete
 
+Status: Remediated in this checkpoint. The Rust Shadowsocks FFI checker is
+explicitly optional, is not counted as a production security guarantee, and is
+enabled only when a local platform binary exists and `SS_LIB_SHA256` is
+configured. Missing binaries and unset hashes skip the FFI path while preserving
+Python validation; configured hash mismatches fail closed.
+
 Evidence:
 
 - `ss_ffi.py` has a hardcoded example hash unless `SS_LIB_SHA256` is set.
@@ -1190,12 +1196,22 @@ Required fix:
 
 Closure checklist:
 
-- Rust validation behavior is deterministic and documented.
-- Changelog records FFI support decision.
+- [x] Rust validation behavior is deterministic and documented.
+- [x] Changelog records FFI support decision.
+
+Validation: `python -m pytest tests/unit/test_ss_ffi.py -q` passed with
+coverage for missing library, present library without configured hash, bad hash,
+good hash, invalid config, ctypes loading errors, and FFI exceptions.
 
 ---
 
 ### P2-12. WASM tester is browser-constrained and should not be described as native network testing
+
+Status: Remediated in this checkpoint. WASM/browser verification is now
+documented and labeled as browser-limited reachability only. The frontend keeps
+sidecar/Python results authoritative for unsupported transports, and the Go WASM
+path reports unsupported schemes and invalid URLs explicitly before creating a
+browser `WebSocket`.
 
 Evidence:
 
@@ -1216,14 +1232,24 @@ Required fix:
 
 Closure checklist:
 
-- Docs stop overclaiming WASM test strength.
-- Changelog records WASM semantics cleanup.
+- [x] Docs stop overclaiming WASM test strength.
+- [x] Changelog records WASM semantics cleanup.
+
+Validation: `python -m pytest tests/unit/test_wasm_browser_semantics.py
+tests/unit/test_documentation_hygiene.py -q` passed with checks for
+browser-limited labels, unsupported/invalid URL handling, and documentation
+wording.
 
 ---
 
 ## 8. P3 Findings
 
 ### P3-1. Documentation status is stale and overconfident
+
+Status: Remediated for the primary status page in this checkpoint.
+`STATUS.md` is now checked by `scripts/validate_status.py`, and the
+`production-smoke` profile runs that validator before frontend build/smoke
+checks. Secondary docs cleanup remains an ongoing P3 track.
 
 Examples:
 
@@ -1248,12 +1274,24 @@ Remediation progress:
 
 Remaining:
 
-- Make `STATUS.md` generated or fully checked by script.
+- Done for primary status: `scripts/validate_status.py` checks remediation
+  posture, source-of-truth linkage, browser-skip visibility, full pytest
+  snapshot shape, and Beta classifier parity.
 - Continue removing stale readiness/metric claims from secondary docs and generated documentation.
+
+Validation: `python scripts/validate_status.py` and `python -m pytest
+tests/unit/test_validate_status.py tests/unit/test_documentation_hygiene.py -q`
+passed locally.
 
 ---
 
 ### P3-2. Duplicate docs trees drift
+
+Status: Remediated in this checkpoint. `docs/wiki/encyclopedia` is canonical
+because it is the path referenced by the wiki index and frontend wiki flow.
+`docs/encyclopedia` has been synced as a byte-identical mirror, and
+`scripts/validate_docs_sync.py` now fails on missing, extra, or drifted mirror
+files.
 
 Evidence:
 
@@ -1267,14 +1305,26 @@ Impact:
 
 Required fix:
 
-1. Choose one canonical encyclopedia source.
-2. Generate the other if needed.
-3. Delete duplicate manually maintained copies.
-4. Add a docs-sync check.
+1. Done: `docs/wiki/encyclopedia` is canonical.
+2. Done: `docs/encyclopedia` is treated as a generated/synced mirror.
+3. Done for current drift: all 12 mirrored files are byte-identical.
+4. Done: `scripts/validate_docs_sync.py` and
+   `tests/unit/test_validate_docs_sync.py` guard mirror parity.
+
+Validation: `python scripts/validate_docs_sync.py` and `python -m pytest
+tests/unit/test_validate_docs_sync.py -q` passed locally.
 
 ---
 
 ### P3-3. Debt matrix artifacts contain machine-local absolute paths and self-reference
+
+Status: Remediated in this checkpoint. `scripts/generate_debt_matrix.py` now
+scans tracked text files, emits repo-relative POSIX paths, excludes generated
+debt artifacts and generated/mirrored/vendor trees, classifies entries by
+surface (`production`, `test`, `frontend`, `docs`, `ci`, `tooling`, `other`),
+and regenerates portable `docs/DEBT_MATRIX.md` / `docs/debt_matrix.json`.
+`scripts/validate_debt_matrix.py` now fails on absolute paths, backslash paths,
+generated-artifact self-reference, and missing category summaries.
 
 Evidence:
 
@@ -1289,10 +1339,17 @@ Impact:
 
 Required fix:
 
-1. Generate repo-relative paths only.
-2. Exclude generated debt matrix files from their own scan.
-3. Separate test-only mocks from production TODOs.
-4. Regenerate the artifacts.
+1. Done: generated paths are repo-relative POSIX paths only.
+2. Done: `docs/DEBT_MATRIX.md` and `docs/debt_matrix.json` are excluded from
+   scans.
+3. Done: entries include a `category` field and summaries separate test-only
+   mocks from production/frontend/tooling/docs debt.
+4. Done: artifacts regenerated on 2026-05-07; marker count reduced from 5,411
+   noisy absolute/self-referential entries to 1,402 portable categorized
+   entries.
+
+Validation: `python scripts/validate_debt_matrix.py` and `python -m pytest
+tests/unit/test_debt_matrix.py -q` passed locally.
 
 ---
 
@@ -1301,17 +1358,19 @@ Required fix:
 Observed zero-byte tracked files:
 
 - `.nojekyll` - expected
-- `NL` - unclear
-- `US` - unclear
-- `frontend/assets/images/header-bg.png` - suspicious
 - `src/configstream/py.typed` - expected marker
 
 Required fix:
 
-1. Keep intentional marker files.
-2. Delete or replace `header-bg.png` if unused or broken.
-3. Explain or remove root `NL` and `US`.
-4. Add asset sanity checks for referenced images.
+1. Done: intentional marker files are allowlisted by `scripts/validate_assets.py`.
+2. Done: unused zero-byte `frontend/assets/images/header-bg.png` was deleted.
+3. Done: unreferenced root `NL` and `US` placeholder files were removed.
+4. Done: tracked concrete frontend image references are checked for existence and
+   non-empty files; dynamic template refs are ignored, and broken optional PWA
+   screenshot entries were removed from `frontend/manifest.json`.
+
+Validation: `python scripts/validate_assets.py` and `python -m pytest
+tests/unit/test_validate_assets.py -q` passed locally.
 
 ---
 
@@ -1329,10 +1388,17 @@ Impact:
 
 Required fix:
 
-1. Classify every external service as core, optional, experimental, or unsupported.
-2. Ensure core works without any paid or account-based service.
-3. Move optional mirror docs to a separate clearly labeled section.
-4. Add CI tests that core pipeline does not require optional secrets.
+1. Done for publishing docs: GitHub Pages is classified as the core
+   zero-budget publication target.
+2. Done for publishing docs: IPFS/Pinata, Hugging Face, Google Drive, and
+   Telegram publishing paths are classified as optional, secret-gated mirrors.
+3. Done: introduction, architecture, DevOps, and configuration docs now state
+   optional mirrors are not required for core success.
+4. Done: `scripts/validate_optional_mirrors.py` is wired into
+   `production-smoke` and blocks stale always-on mirror claims.
+
+Validation: `python scripts/validate_optional_mirrors.py` and `python -m pytest
+tests/unit/test_validate_optional_mirrors.py -q` passed locally.
 
 ---
 
@@ -1550,11 +1616,14 @@ State:
 
 - Go sidecar supports chain arrays and panic recovery.
 - WASM tester is constrained to browser JS/WebSocket.
-- Rust SS FFI is optional/fallback and checksum story is not production-clean.
+- Rust SS FFI is optional and deterministic: it runs only with a local binary
+  plus configured `SS_LIB_SHA256`, otherwise the Python validation path remains
+  authoritative; configured hash mismatches fail closed.
 
 Next action:
 
-- Document runtime boundaries and harden optional native components.
+- Document WASM runtime boundaries and continue hardening optional native
+  components.
 
 ---
 
@@ -1564,7 +1633,11 @@ This audit is not only a bug-fix plan. It is also a plan to finish every capabil
 
 ### 11.1 Claim Ledger
 
-Create a canonical `docs/CLAIM_LEDGER.md` or generated `docs/claim_ledger.json` before closing the audit.
+Created `docs/claim_ledger.json` as the first canonical claim ledger and
+`scripts/validate_claim_ledger.py` as the guardrail. It is intentionally a
+living ledger: it captures closed claims with proof and keeps broader claims as
+`partial` or `planned` until code, tests, docs, frontend surfaces, output
+artifacts, and cleanup decisions are all aligned.
 
 Each claim entry must include:
 
@@ -1581,6 +1654,9 @@ Each claim entry must include:
 - cleanup/removal decision
 
 No claim may be closed as complete without proof across code, tests, docs, and public/deployed behavior.
+
+Validation: `python scripts/validate_claim_ledger.py` and `python -m pytest
+tests/unit/test_validate_claim_ledger.py -q` passed locally.
 
 ### 11.2 Claimed Capability Areas That Must Be Completed Or Removed
 
@@ -1637,11 +1713,44 @@ Claimed capability:
 
 Completion requirements:
 
-1. Build one canonical protocol matrix.
+1. Done for inventory: `docs/protocol_matrix.json` is the canonical protocol
+   matrix and `scripts/validate_protocol_matrix.py` checks it against
+   `schema/proxy.schema.json`, parser exports, README protocol claims, and
+   frontend display capability.
 2. For every protocol, list parser support, validation support, tester support, Sing-box export support, Clash export support, Base64/plaintext support, frontend display support, and known limitations.
 3. Delete protocol claims with no parser/export/test path.
 4. Add malformed-input tests for every parser.
 5. Add golden output tests for every supported protocol.
+
+Current status: remediated for the protocol-matrix inventory claim. The matrix now separates canonical protocols, input
+aliases, schema-only compatibility markers, and internal markers.
+`tests/unit/test_protocol_output_golden.py` checks every public canonical
+protocol fixture against the matrix's Sing-box/Clash export flags and generated
+subscription output, then parses every public protocol sample and sends the
+resulting proxy records through the real frontend `processProxyData()`
+normalizer. The same golden file now also checks representative malformed input
+for every public canonical parser and requires fail-closed `None` results.
+`scripts/frontend_same_origin_smoke.cjs` also serves fixture `proxies.json` data
+for every public canonical protocol and verifies browser-rendered Proxies page
+protocol badges plus protocol filter options in Chromium. Deeper
+protocol-specific fuzzing remains a separate parser-hardening track.
+This checkpoint also tightens missing-credential handling for TUIC, Snell,
+Brook, and SSH authorities. Hysteria/Hysteria2 anonymous mode and generic
+HTTP/SOCKS unauthenticated proxies remain preserved as compatibility behavior.
+The VLESS/VMess boundary is now documented by tests rather than tightened in a
+regression-prone parser path: VLESS query-parameter UUID recovery remains
+covered, VMess missing/empty IDs are malformed parser fixtures, public protocol
+goldens use UUIDv4 values compatible with the schema, and missing VMess/VLESS
+UUIDs remain fatal in the security validator even when insecure proxy retention
+is enabled.
+Shadowsocks credential fallback also preserves the intended compatibility path:
+host-side password/pass/psk/pwd query parameters are parsed before the
+empty-password drop, so fallback credentials are recovered while links with no
+credential material still fail closed.
+Clash JSON imports now use the same fail-closed parser posture for malformed
+entries: missing VMess/VLESS UUIDs, missing Trojan/Shadowsocks credentials,
+invalid Shadowsocks methods, invalid ports, empty WireGuard private keys, and
+unknown imported types are rejected before they can become public proxy records.
 
 Tests/proof:
 
@@ -1684,6 +1793,28 @@ Tests/proof:
 - DNS-safe/hardened differential test
 - ZIP content manifest test
 - deployed artifact smoke test
+
+Checkpoint update:
+
+- `docs/output_matrix.json` now inventories the current Pages-required public outputs by family, category, format, nonempty requirement, schema-validation flag, and degraded-output validity.
+- `scripts/validate_output_matrix.py` checks the matrix against `scripts/validate_pages_artifact.py` and the side-product generator contract so required artifact coverage, nonempty semantics, required ZIP members, and optional OpenVPN/WireGuard member patterns cannot drift silently.
+- `tests/unit/test_validate_output_matrix.py` covers current-repo acceptance, generated output docs parity, missing required output detection, and nonempty-flag drift.
+- `scripts/run_test_profile.py` now includes the output-matrix validator and focused tests in `production-smoke`.
+- `scripts/validate_pages_artifact.py` now checks side-product ZIP integrity, rejects unsafe member paths, and requires the stable `proxies.txt` member in universal, DNS-safe, and DNS-hardened ZIP bundles.
+- Side-product ZIP validation now rejects deploy/CI secret assignments and placeholder markers in ZIP members while allowing normal proxy credentials and WireGuard/OpenVPN material.
+- Sing-box artifact validation now checks unique outbound tags, selector/urltest references, outbound detours, route rule outbounds, and DNS detours. Clash artifact validation now checks proxy/group names, group references, and rule policy references.
+- `scripts/generate_output_docs.py` now renders the README and API-reference output tables from `docs/output_matrix.json`; `production-smoke` runs it in `--check` mode so hand-maintained output table drift fails.
+- `scripts/validate_pages_artifact.py --native-client-check` now runs `sing-box check -c` for Sing-box outputs and `mihomo -t -f` / Clash-compatible config tests for Clash outputs when local binaries are available. Missing native binaries are treated as a clean skip so the zero-budget path remains intact.
+- `tests/unit/test_output.py` now builds a deterministic Pages-style artifact from the real output generator, adds deploy aliases and static placeholder files, refreshes `health.json` / `artifact_manifest.json`, and validates the complete directory with `scripts/validate_pages_artifact.py`.
+- `tests/unit/test_protocol_output_golden.py` now provides per-protocol generator/export golden fixtures for every public canonical protocol, checks the protocol matrix's Sing-box/Clash export flags against actual converters, checks generated Sing-box/Clash configs, and decodes the Base64 subscription output to assert representative URI families survive generation.
+- `tests/unit/test_protocol_output_golden.py` now also parses sample strings for every public canonical protocol and imports `frontend/assets/js/proxies.js` from Node to verify the real `processProxyData()` normalizer preserves the expected protocol labels.
+- `tests/unit/test_protocol_output_golden.py` now includes representative malformed inputs for every public canonical parser and asserts they fail closed without being accepted.
+- `scripts/frontend_same_origin_smoke.cjs` now serves browser fixture `proxies.json` / `metadata.json` data for every public canonical protocol and checks rendered Proxies page protocol badges plus filter options while still blocking non-same-origin runtime requests.
+- `src/configstream/parsers/others.py` now drops TUIC, Snell, Brook, and SSH links that omit mandatory credential material, with focused parser regressions covering those edges.
+
+Remaining:
+
+- None for the current public output-family contract. Continue the separate parser-hardening track for malformed-input depth and the broader deployment-readiness roadmap.
 
 #### D. WARP, Vwarp, Washing, Revival, Shielding, and Smart Chains
 
@@ -2263,6 +2394,7 @@ Final status rule:
 - Removed files are not referenced.
 - Generated docs use repo-relative paths.
 - Duplicate docs are generated from one source or deleted.
+- Referenced static frontend assets exist and are non-empty.
 
 ### 13.6 Cleanup Checklist
 

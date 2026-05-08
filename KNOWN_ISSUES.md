@@ -13,12 +13,15 @@ For full resolved history, see `CHANGELOG.md`.
 
 ---
 
-## 1. Go WASM Networking Limitation (Resolved)
+## 1. WASM Browser Networking Boundary
 
-**Status:** Fixed in v3.0.2
+**Status:** Documented and guarded in v3.0.2
 
-**Issue:** Previous versions used Go standard networking which failed in WASM.
-**Resolution:** The WASM module (`src/go/tester/wasm_main.go`) has been updated to use `syscall/js` to access the browser's native `WebSocket` API, enabling direct connectivity from the frontend.
+Browsers cannot open raw TCP/UDP sockets or perform native proxy handshakes from
+WASM. The frontend WASM module (`src/go/tester/wasm_main.go`) uses
+`syscall/js` and the browser `WebSocket` API only for browser-limited reachability checks on compatible WebSocket endpoints. Unsupported schemes and
+invalid URLs are reported as browser-check failures while existing Go
+sidecar/Python test results remain authoritative.
 
 ## 2. Mobile Layout Considerations
 

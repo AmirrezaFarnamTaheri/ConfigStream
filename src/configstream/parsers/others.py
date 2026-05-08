@@ -172,6 +172,10 @@ def parse_tuic(c: str) -> Optional[Proxy]:
             # Use UUID as password if password is missing
             proxy.details["password"] = proxy.uuid
 
+        if not proxy.uuid or not proxy.details.get("password"):
+            logger.debug("TUIC config missing UUID or password.")
+            return None
+
         # Ensure ALPN is present for TUIC (mandatory for some versions)
         if "alpn" not in proxy.details:
             proxy.details["alpn"] = ["h3"]
@@ -350,12 +354,20 @@ def parse_xray(c: str) -> Optional[Proxy]:
 
 def parse_snell(c: str) -> Optional[Proxy]:
     """Parse Snell proxy configuration."""
-    return _parse_url_scheme(c, "snell", 443)
+    proxy = _parse_url_scheme(c, "snell", 443)
+    if proxy and not (proxy.uuid or proxy.details.get("password")):
+        logger.debug("Snell config missing password.")
+        return None
+    return proxy
 
 
 def parse_brook(c: str) -> Optional[Proxy]:
     """Parse Brook proxy configuration."""
-    return _parse_url_scheme(c, "brook", 9999)
+    proxy = _parse_url_scheme(c, "brook", 9999)
+    if proxy and not (proxy.uuid or proxy.details.get("password")):
+        logger.debug("Brook config missing password.")
+        return None
+    return proxy
 
 
 def parse_juicity(c: str) -> Optional[Proxy]:
@@ -372,6 +384,10 @@ def parse_ssh(config: str) -> Optional[Proxy]:
     # format: ssh://user:pass@host:port#remark
     proxy = _parse_url_scheme(config, "ssh", 22)
     if proxy:
+        if not proxy.uuid:
+            logger.debug("SSH config missing username.")
+            return None
+
         # Validate host matches strict regex (IP or Domain) to avoid injection
         if not _SSH_HOSTNAME_RE.match(proxy.address):
             logger.warning(

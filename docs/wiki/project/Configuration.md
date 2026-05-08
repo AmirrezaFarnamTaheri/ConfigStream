@@ -51,15 +51,27 @@ ConfigStream is configured via Environment Variables.
 | `TLS_TESTS_ENABLED` | `true` | Require TLS-capable configs when TLS validation is enabled. |
 | `DEDUP_IGNORE_PROTOCOL` | `false` | Ignore protocol when endpoint-deduplicating (more aggressive). |
 | `ENABLE_ENDPOINT_FILTERING` | `true` | Enable endpoint-level deduplication after testing. |
+| `SS_LIB_SHA256` | *None* | Optional SHA-256 for a local `bin/ss_checker` Shadowsocks-Rust FFI library. When unset, the FFI path is disabled and Python validation remains authoritative. |
 
 ## External Services
+
+GitHub Pages is the core zero-budget publication target. External mirrors are optional and secret-gated; leave these values unset for the core free path.
 
 | Variable | Default | Description |
 | :--- | :--- | :--- |
 | `VT_API_KEY` | *None* | VirusTotal API key for IP reputation checks. |
-| `TELEGRAM_BOT_TOKEN` | *None* | Bot token for uploading results to Telegram. |
-| `TELEGRAM_CHAT_ID` | *None* | Chat ID for Telegram upload. |
+| `TELEGRAM_BOT_TOKEN` | *None* | Optional bot token for Telegram result uploads. |
+| `TELEGRAM_CHAT_ID` | *None* | Optional chat ID for Telegram uploads. |
 | `ADMIN_API_KEY` | *None* | API key for admin endpoints (e.g., `POST /api/admin/notify-update`). |
+
+## Optional Native Validation
+
+The Shadowsocks-Rust FFI checker is optional. ConfigStream does not download,
+build, or trust this binary automatically. To enable it, operators must provide
+a local `bin/ss_checker` library for their platform and set `SS_LIB_SHA256` to
+the exact SHA-256 of that file. If the binary is missing or the hash is unset,
+the Rust path is skipped and the standard Python validation path continues. If
+the hash is set but does not match, validation fails closed for that FFI check.
 
 ## GitHub Actions Secrets
 
@@ -70,8 +82,8 @@ These are set in the repository's Settings → Secrets → Actions:
 | `WARP_KEY_POOL` | JSON array of WARP credentials for washing/shielding. |
 | `VT_API_KEY` | VirusTotal API key for IP reputation checks. |
 | `VWARP_VERSION` | Vwarp binary version to download in CI. |
-| `TELEGRAM_BOT_TOKEN` | Bot token for Telegram result uploads. |
-| `TELEGRAM_CHAT_ID` | Chat ID for Telegram uploads. |
+| `TELEGRAM_BOT_TOKEN` | Optional bot token for Telegram result uploads. |
+| `TELEGRAM_CHAT_ID` | Optional chat ID for Telegram uploads. |
 
 ## File Paths
 

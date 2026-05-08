@@ -85,7 +85,19 @@ def parse_ss(config: str) -> Optional[Proxy]:
                 else:
                     return None
 
-        # Parse user_info
+        # Parse host_info
+        # Check for plugin params (SIP003 simple-obfs etc often appended as /?plugin=...)
+        # But usually in SS links, plugins are encoded.
+
+        # Strip query params from host_info (SIP003 plugin params)
+        for sep in ("/?", "?"):
+            if sep in host_info:
+                host_info, query = host_info.split(sep, 1)
+                details.update({k: v[0] for k, v in parse_qs(query).items() if v})
+                break
+
+        # Parse user_info after host query params so empty-password links can recover
+        # credentials from password/pass/psk/pwd fallbacks before being dropped.
         if ":" not in user_info:
             return None
         method, password = user_info.split(":", 1)
@@ -101,17 +113,6 @@ def parse_ss(config: str) -> Optional[Proxy]:
                     "Shadowsocks proxy dropped: no password after fallback check"
                 )
                 return None
-
-        # Parse host_info
-        # Check for plugin params (SIP003 simple-obfs etc often appended as /?plugin=...)
-        # But usually in SS links, plugins are encoded.
-
-        # Strip query params from host_info (SIP003 plugin params)
-        for sep in ("/?", "?"):
-            if sep in host_info:
-                host_info, query = host_info.split(sep, 1)
-                details.update({k: v[0] for k, v in parse_qs(query).items() if v})
-                break
 
         if ":" not in host_info:
             return None

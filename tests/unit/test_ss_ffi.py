@@ -1,7 +1,24 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from unittest.mock import patch, MagicMock
+import hashlib
+from pathlib import Path
+from typing import Iterator
+
+import pytest
+
+import configstream.security.ss_ffi as ss_ffi
 from configstream.security.ss_ffi import verify_ss_rust, ensure_library, LIB_PATH
 import sys
+
+
+@pytest.fixture(autouse=True)
+def _configured_ss_hash(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
+    monkeypatch.setattr(
+        ss_ffi,
+        "_expected_binary_checksum",
+        lambda: "a" * 64,
+    )
+    yield
 
 
 def test_ss_ffi_graceful_degradation():
@@ -9,6 +26,41 @@ def test_ss_ffi_graceful_degradation():
     with patch("configstream.security.ss_ffi.ensure_library", return_value=False):
         # Should log warning and return True
         assert verify_ss_rust({"server": "1.1.1.1"}) is True
+
+
+def test_ss_ffi_present_library_without_configured_hash_is_optional(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A stray local binary is ignored unless SS_LIB_SHA256 is configured."""
+    monkeypatch.setattr(ss_ffi, "_expected_binary_checksum", lambda: None)
+    with patch("configstream.security.ss_ffi.ensure_library", return_value=True):
+        with patch("ctypes.CDLL") as mock_cdll:
+            assert verify_ss_rust({"server": "1.1.1.1"}) is True
+            mock_cdll.assert_not_called()
+
+
+def test_ss_ffi_bad_hash_fails_closed(tmp_path: Path) -> None:
+    binary = tmp_path / "ss_checker.dll"
+    binary.write_bytes(b"not the expected binary")
+
+    with patch(
+        "configstream.security.ss_ffi._expected_binary_checksum",
+        return_value="0" * 64,
+    ):
+        assert ss_ffi._verify_binary_checksum(binary) is False
+
+
+def test_ss_ffi_good_hash_is_accepted(tmp_path: Path) -> None:
+    binary = tmp_path / "ss_checker.dll"
+    content = b"verified optional binary"
+    binary.write_bytes(content)
+    expected = hashlib.sha256(content).hexdigest()
+
+    with patch(
+        "configstream.security.ss_ffi._expected_binary_checksum",
+        return_value=expected,
+    ):
+        assert ss_ffi._verify_binary_checksum(binary) is True
 
 
 def test_ss_ffi_valid_check():

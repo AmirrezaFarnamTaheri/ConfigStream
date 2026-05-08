@@ -4,10 +4,14 @@ Shadowsocks-Rust FFI Wrapper.
 """
 
 import ctypes
+import hashlib
 import logging
 import json
 from pathlib import Path
 import sys
+from typing import Optional
+
+from configstream.config import AppSettings
 
 logger = logging.getLogger(__name__)
 
@@ -37,22 +41,29 @@ def ensure_library():
 
 _lib = None
 _warned_missing = False
+_warned_unconfigured_hash = False
+
+
+def _expected_binary_checksum() -> Optional[str]:
+    expected_hash = AppSettings().SS_LIB_SHA256
+    if not expected_hash:
+        return None
+    expected_hash = expected_hash.strip().lower()
+    if not expected_hash:
+        return None
+    return expected_hash
 
 
 def _verify_binary_checksum(path: Path) -> bool:
     """
-    Verify the SHA-256 checksum of the binary.
-    Currently trusts the local filesystem until binary signing infrastructure is established.
+    Verify the SHA-256 checksum of the optional Rust binary.
+
+    The Rust FFI path is enabled only when operators provide SS_LIB_SHA256.
+    Without that configured hash, callers must treat the binary as unavailable.
     """
-    # Implement real checksum verification if hash is provided via ENV
-    expected_hash = "773b0631f4e3c83758364860d50711626084807494f6c12140a321943806a642"  # Example hash, replace with real one or env var
-    import hashlib
-
-    from configstream.config import AppSettings
-
-    env_hash = AppSettings().SS_LIB_SHA256
-    if env_hash:
-        expected_hash = env_hash.strip().lower()
+    expected_hash = _expected_binary_checksum()
+    if not expected_hash:
+        return False
 
     if not path.exists():
         return False
@@ -65,17 +76,16 @@ def _verify_binary_checksum(path: Path) -> bool:
 
         calculated = sha256_hash.hexdigest()
 
-        # Always enforce checksum. Use ENV var if present, otherwise fallback to hardcoded.
         if calculated != expected_hash:
             logger.critical(
                 "SS Library Hash Mismatch! Integrity check failed. "
-                f"Expected: {expected_hash}, Got: {calculated}"
+                "Expected configured SHA-256 does not match local binary."
             )
             return False
 
         return True
-    except Exception as e:
-        logger.error(f"Failed to verify checksum: {e}")
+    except Exception:
+        logger.error("Failed to verify Shadowsocks-Rust library checksum.")
         return False
 
 
@@ -84,18 +94,26 @@ def verify_ss_rust(config: dict) -> bool:
     Verify a Shadowsocks config using the Rust core.
 
     Returns:
-        True if config is valid or if Rust library unavailable (graceful degradation).
+        True if config is valid or if optional Rust validation is unavailable.
         False if config validation explicitly failed.
     """
-    global _lib, _warned_missing
+    global _lib, _warned_missing, _warned_unconfigured_hash
     if not ensure_library():
-        # Graceful degradation: Skip this enhanced validation if library unavailable
         if not _warned_missing:
             logger.warning(
-                "Shadowsocks-Rust library unavailable - enhanced SS validation disabled. "
-                "Pre-build binary required for this feature."
+                "Optional Shadowsocks-Rust validation unavailable; "
+                "continuing with Python validation only."
             )
             _warned_missing = True
+        return True
+
+    if _expected_binary_checksum() is None:
+        if not _warned_unconfigured_hash:
+            logger.warning(
+                "Optional Shadowsocks-Rust validation disabled because "
+                "SS_LIB_SHA256 is not configured."
+            )
+            _warned_unconfigured_hash = True
         return True
 
     if not _verify_binary_checksum(LIB_PATH):
@@ -111,6 +129,6 @@ def verify_ss_rust(config: dict) -> bool:
         config_json = json.dumps(config).encode("utf-8")
         result = _lib.verify_shadowsocks(config_json)
         return bool(result == 1)
-    except Exception as e:
-        logger.error(f"FFI Error: {e}")
+    except Exception:
+        logger.error("Shadowsocks-Rust FFI validation failed.")
         return False
