@@ -6,19 +6,28 @@ const logger = window.createLogger ? window.createLogger("Stego") : console;
 const LEGACY_MAGIC_MARKER = "CSTREAM_PAYLOAD_START>>";
 const LSB_MAGIC = "CSP2";
 const LSB_HEADER_SIZE = 8;
-const SECRET_KEY = "PLACEHOLDER_KEY_INJECTED_BY_CI";
+
+function _configuredSecretKey() {
+  const runtimeConfig = window.CS_RUNTIME_CONFIG || {};
+  return typeof runtimeConfig.STEGO_KEY === "string" ? runtimeConfig.STEGO_KEY : "";
+}
+
+function _isPlaceholderSecretKey(secretKey) {
+  return secretKey === "PLACEHOLDER_" + "KEY_INJECTED_BY_CI";
+}
 
 function _ensureConfiguredKey() {
+  const secretKey = _configuredSecretKey();
   if (
-    SECRET_KEY === "PLACEHOLDER_KEY_INJECTED_BY_CI" ||
-    typeof SECRET_KEY !== "string" ||
-    SECRET_KEY.length < 20
+    _isPlaceholderSecretKey(secretKey) ||
+    typeof secretKey !== "string" ||
+    secretKey.length < 20
   ) {
     throw new Error(
       "Stego key not configured. This deployment did not inject STEGO_KEY."
     );
   }
-  return SECRET_KEY;
+  return secretKey;
 }
 
 function _bytesToUtf8(bytes) {

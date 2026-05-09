@@ -2,6 +2,7 @@
 import os
 import json
 import asyncio
+import hashlib
 import ipaddress
 import logging
 import re
@@ -42,6 +43,16 @@ setup_logging(
     mask_sensitive=settings.MASK_SENSITIVE_DATA,
 )
 logger = logging.getLogger(__name__)
+
+
+def _json_snapshot_sha256(payload: Any) -> str:
+    canonical = json.dumps(
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    ).encode("utf-8")
+    return hashlib.sha256(canonical).hexdigest()
 
 # Define paths relative to the container structure
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -485,6 +496,13 @@ async def get_proxy_diff(request: Request, base_version: str):
     if old_path.exists():
         try:
             old_data = await _read_json_file_async(old_path)
+            expected_base_version = _json_snapshot_sha256(old_data)
+            if not secrets.compare_digest(base_version, expected_base_version):
+                return {
+                    "type": "full_reload_required",
+                    "reason": "base_version_mismatch",
+                    "expected_base_version": expected_base_version,
+                }
 
             # Prefer stable proxy IDs; fallback to index for legacy payloads.
             current_ids = {p.get("id", str(i)): p for i, p in enumerate(current_data)}
@@ -496,6 +514,7 @@ async def get_proxy_diff(request: Request, base_version: str):
             return {
                 "type": "delta",
                 "base_version": base_version,
+                "current_version": _json_snapshot_sha256(current_data),
                 "added": added,
                 "removed": removed,
             }

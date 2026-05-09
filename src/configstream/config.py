@@ -209,6 +209,7 @@ class AppSettings(BaseSettings):
     MAX_RESPONSE_SIZE: int = 0
     FETCH_MAX_REDIRECTS: int = 5
     FETCH_BLOCK_PRIVATE_NETWORKS: bool = True
+    FETCH_VALIDATE_DNS: bool = True
     QUALITY_DB_PATH: str = "data/source_quality.db"
     SOURCE_PROBATION_FAILURES: int = 3
     SOURCE_DEAD_FAILURES: int = 10

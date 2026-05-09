@@ -17,7 +17,7 @@ The project is not currently in final production or ready-to-publish condition b
 2. Public GitHub Pages artifacts are stale and collapsed to one visible working proxy subscription.
 3. Current repository schemas and generated public metadata do not match.
 4. Runtime output metrics inflate `total_working` by counting untested shielded chains as working.
-5. The deployed frontend path bypasses the Vite build output and serves raw static files with placeholder key material.
+5. The deployed frontend path is now deliberately raw static for GitHub Pages, with generated runtime-config key injection, placeholder validation, workflow guards, and Pages artifact presence checks.
 6. Security defaults and docs overclaim fail-closed behavior while admin auth, CORS, private IP policy, external QR generation, and lab test endpoints remain too permissive.
 7. Documentation, status files, roadmap files, wiki pages, README tables, and frontend strategy lists disagree.
 8. Several generated governance artifacts contain machine-local paths and self-referential noise.
@@ -86,7 +86,7 @@ Validation results:
 - `black --check .`: passed.
 - `mypy .`: passed, with notes that many untyped function bodies are not checked.
 - `npm ci`: completed, but `npm audit` reports 3 vulnerabilities.
-- `npm run build`: passed, but deploy does not use `frontend-dist`.
+- `npm run build`: passed as an optional/local build sanity check; deploy intentionally does not use `frontend-dist`.
 - Workflow YAML parse: 5 failing workflows, 1 valid workflow.
 - Public Pages artifacts: reachable but stale and collapsed.
 
@@ -423,11 +423,12 @@ Remediation progress:
 - Metadata now exposes `shielded_candidate_count` and `shielded_verified_count`; `shielded_count` remains as the candidate-count compatibility field.
 - Frontend analytics/statistics comments now describe `total_working` as retested working proxies only.
 - `tests/unit/test_output.py` includes a regression test proving shielded candidates do not inflate working totals or success rate.
+- Frontend visible labels now say `Unique Candidates`, `Retested Working`, and `Shielded Candidates`, and the shielded-chain card tells users to retest candidate chains in their own network.
+- `tests/unit/test_frontend_trust_labels.py` prevents reintroducing the previous overclaiming labels and shielded-candidate wording drift.
 
 Remaining:
 
 - Retest shielded chains before any future nonzero `shielded_verified_count`.
-- Update user-facing frontend labels where visual copy implies shielded candidates are verified working.
 
 ---
 
@@ -626,7 +627,7 @@ Closure checklist:
 
 ### P1-6. Fetcher SSRF and redirect safety are incomplete
 
-Status: partially remediated on 2026-05-04. Literal private/internal targets and unsafe redirects are blocked; DNS-resolution/rebinding validation remains a follow-up hardening item.
+Status: remediated for current source URL, redirect, and DNS-resolution guardrails. Further socket-level pinning would be a defense-in-depth enhancement if the HTTP transport is later customized.
 
 Evidence:
 
@@ -648,7 +649,8 @@ Implemented so far:
 - `localhost`, `.localhost`, `.local`, `.lan`, and `.internal` hostnames are rejected.
 - Redirects are validated one hop at a time through structured URL parsing.
 - Redirect depth is capped by `FETCH_MAX_REDIRECTS`.
-- Tests cover direct private source URLs, safe redirects, private redirect targets, and redirect-depth limits.
+- `FETCH_VALIDATE_DNS=true` resolves hostname targets asynchronously immediately before each fetch attempt, including redirect targets, and rejects private/non-global DNS answers before opening the HTTP stream.
+- Tests cover direct private source URLs, safe redirects, private redirect targets, redirect-depth limits, private DNS answers, and redirect targets whose hostnames resolve to private addresses.
 - `.env.example`, `SECURITY.md`, `STATUS.md`, `CHANGELOG.md`, and this audit report now describe the fetch policy.
 
 Required fix:
@@ -661,9 +663,7 @@ Required fix:
 
 Remaining:
 
-- Add async DNS resolution validation for hostname targets before connection, including HTTPS, without blocking the event loop.
-- Re-validate resolved addresses after each redirect target is chosen.
-- Add DNS rebinding-style hostname tests by injecting a resolver abstraction.
+- Optional defense-in-depth: pin the HTTP connection to the already-validated resolved address with explicit Host/SNI handling if ConfigStream later owns a custom fetch transport.
 - Decide whether the existing proxy-validation `ALLOW_PRIVATE_IPS` default should remain separate from fetch-source safety or be renamed/documented to avoid confusion.
 
 Closure checklist:
@@ -678,22 +678,22 @@ Closure checklist:
 
 ### P1-7. Frontend key injection and verification are split-brain
 
-Status: partially remediated on 2026-05-04. Pages deploy now injects and validates frontend placeholders; the larger Vite-vs-raw-frontend production-build decision remains open.
+Status: substantially remediated. Pages deploy now has a canonical raw static frontend path, generates and validates `assets/js/runtime-config.js` from deploy secrets, leaves checked-in source-shaped JS immutable, and signed artifacts now fail closed when verification cannot run.
 
 Evidence:
 
-- `frontend/assets/js/constants.js` contains placeholder `PUBLIC_KEY`.
-- `frontend/assets/js/stego.js` contains `PLACEHOLDER_KEY_INJECTED_BY_CI`.
+- `frontend/assets/js/constants.js` and `frontend/assets/js/stego.js` now read runtime key material from `window.CS_RUNTIME_CONFIG`.
+- `frontend/assets/js/runtime-config.js` carries local/offline empty defaults in source and is regenerated with production keys during Pages deploy.
 - `src/configstream/output_handler.py` can inject a stego key into the local frontend tree.
 - `.github/workflows/main.yml` uploads only `output/` as the pipeline artifact.
 - `.github/workflows/deploy-pages.yml` checks out the repo and copies raw `frontend/.` into `output/`.
-- `vite.config.mjs` builds to `frontend-dist`, but deploy does not use it.
+- `vite.config.mjs` builds to `frontend-dist` for local/CI sanity checks, but deploy intentionally does not use it.
 - `frontend/assets/js/verifier.js` skips verification when public key is not configured.
 
 Impact:
 
-- Production Pages likely serves placeholder key material.
-- CI secrets passed as env vars do not necessarily affect deployed frontend files.
+- Production Pages previously risked serving placeholder key material; deploy now writes a generated runtime config artifact before upload.
+- CI secrets passed as env vars now affect the deployed frontend through `assets/js/runtime-config.js`, not source-shaped JS mutation.
 - Signature verification is advertised but can silently skip.
 - Stego assets and frontend code can diverge.
 
@@ -701,28 +701,30 @@ Implemented so far:
 
 - Added `scripts/validate_frontend_placeholders.py`.
 - Pages deploy runs `python scripts/validate_frontend_placeholders.py --inject-env --strict output` after copying frontend assets and before refreshing the public artifact contract.
-- Pages deploy now passes `CS_PUBLIC_KEY` and `STEGO_KEY` into the frontend placeholder guard step from GitHub secrets.
-- The validator replaces `assets/js/constants.js` `PUBLIC_KEY` from `CS_PUBLIC_KEY` when provided.
-- The validator replaces `assets/js/stego.js` `SECRET_KEY` from `STEGO_KEY` or `CONFIG_STREAM_KEY` when provided.
-- The validator fails if the public key placeholder marker or stego placeholder remains in the Pages artifact.
+- Pages deploy now passes `CS_PUBLIC_KEY` and `STEGO_KEY` into the frontend runtime-config guard step from GitHub secrets.
+- The validator generates `assets/js/runtime-config.js` with `PUBLIC_KEY`, `STEGO_KEY`, and optional `IPNS_KEY`, rather than mutating copied `constants.js` or `stego.js`.
+- The validator fails if required runtime keys are missing, or if the public key placeholder marker or stego placeholder remains in source-shaped JS or the generated runtime config.
 - `scripts/validate_workflows.py` now requires the Pages frontend placeholder guard and secret env wiring.
-- Tests cover placeholder detection, env injection, optional non-strict stego handling, and workflow guard retention.
+- Tests cover placeholder detection, runtime-config generation, optional non-strict stego handling, and workflow guard retention.
+- `frontend/assets/js/verifier.js` now fails closed for signed objects when WebCrypto is unavailable or the public key is missing/placeholder, while preserving unsigned local/offline parsing.
+- `tests/unit/test_frontend_verifier.py` executes the browser verifier script in Node VM and covers missing WebCrypto, missing key, placeholder key, and unsigned local content behavior.
+- `.github/workflows/deploy-pages.yml` is now treated as canonical raw static Pages deployment: it copies `frontend/.` into `output/`, then generates/validates runtime config, API aliases, nojekyll, cache version, and public artifact contract files.
+- `scripts/validate_workflows.py` rejects Pages workflow drift toward `frontend-dist`, `npm run build`, or `vite build` deployment, and `tests/unit/test_validate_workflows.py` covers that guard.
+- `scripts/validate_pages_artifact.py` now requires `assets/js/runtime-config.js` in the assembled Pages artifact.
+- `scripts/deploy_artifact_smoke.py` now assembles a temporary Pages-shaped artifact, generates runtime config, validates placeholders and the public artifact contract, and runs `scripts/frontend_same_origin_smoke.cjs --root ... --require-runtime-config` against that exact artifact.
 
 Required fix:
 
 1. Choose one frontend production build path.
 2. Use generated build artifacts, not raw `frontend/`, for Pages.
-3. Inject keys at build time into a generated config file.
+3. Done: inject keys at deploy time into a generated runtime config file.
 4. Fail production build if required public key/stego key placeholders remain.
 5. Fail closed on signature verification for signed artifacts.
 6. Add placeholder leak tests.
 
 Remaining:
 
-- Decide and implement the canonical production frontend path: tested Vite build output or deliberately raw static output, not both.
-- Move frontend runtime keys into a generated config artifact rather than editing source-shaped JS in the deploy artifact.
-- Make `verifier.js` fail closed for signed artifacts when public key material is unavailable or WebCrypto is unsupported.
-- Add browser/deploy-smoke coverage proving the deployed frontend uses the same assets that CI tested.
+- Add post-upload public URL smoke after GitHub Pages deployment to prove the uploaded artifact matches the locally assembled artifact contract.
 
 Closure checklist:
 
@@ -736,7 +738,7 @@ Closure checklist:
 
 ### P1-8. Public schemas, runtime outputs, docs, and deployed artifacts disagree
 
-Status: partially remediated on 2026-05-04. Pages validation now enforces tighter schema/key checks and API alias parity; README now describes the canonical `proxies.json` array contract. Snapshot identity and full schema/deploy smoke coverage remain open.
+Status: substantially remediated. Pages validation now enforces tighter schema/key checks, nested public-schema semantics, API alias parity, generated-artifact contract coverage, and hash-bound snapshot identity; README now describes the canonical `proxies.json` array contract. Ongoing README/wiki example rescans remain required after future output-contract changes.
 
 Examples:
 
@@ -744,7 +746,7 @@ Examples:
 - `src/configstream/output_handler.py` says `proxies.json` must be a JSON array.
 - `docs/wiki/project/08-api-reference.md` now describes `proxies.json` as array items.
 - `schema/metadata.schema.json` requires fields missing from live public metadata.
-- `/api/diff/proxies` accepts a `base_version` string but does not verify it matches a specific persisted old snapshot identity.
+- `/api/diff/proxies` previously accepted a `base_version` string without verifying it matched a specific persisted old snapshot identity.
 
 Impact:
 
@@ -760,6 +762,12 @@ Implemented so far:
 - README now separates `proxies.json` as the canonical proxy array from `metadata.json` as the canonical statistics object.
 - Documentation hygiene tests prevent reintroducing the stale “proxies.json with metadata” envelope claim.
 - Artifact validation tests cover unknown metadata keys and API alias drift.
+- Metadata now publishes `proxies_snapshot_hash` and `previous_proxies_snapshot_hash`.
+- `/api/diff/proxies` requires `base_version` to match the hash of `proxies.old.json`; mismatches return `full_reload_required` instead of an ambiguous delta.
+- Frontend proxy-array cache identity uses the metadata snapshot hash for differential updates.
+- Tests cover generated metadata snapshot hashes, diff base-version mismatch handling, schema fixture fields, and frontend cache snapshot wiring.
+- `scripts/validate_pages_artifact.py` now recursively validates the schema subset used by public control/proxy contracts, including nested required keys, additional-property closure, patterns, arrays, refs, oneOf/anyOf branches, and protocol-conditioned proxy `details`.
+- `tests/unit/test_validate_pages_artifact.py` covers nested metadata drift and protocol-specific proxy detail drift.
 
 Required fix:
 
@@ -768,14 +776,11 @@ Required fix:
    - `metadata.json`: schema-required fields must match generated output.
 2. Update schema, generator, server, frontend, README, wiki, tests, and examples together.
 3. Delete transitional references to the rejected shape.
-4. Version snapshots with hashes/ETags, not only `base_version` strings.
-5. Add contract tests that load generated artifacts and validate schemas.
+4. Done for diffs: version snapshots with hashes, not ambiguous `base_version` strings.
+5. Done for current Pages-required outputs: generated public artifact fixture validates the Pages contract.
 
 Remaining:
 
-- Validate nested schema semantics more fully, either with a zero-budget vendored/minimal validator or by constraining the schemas to checks the local validator enforces.
-- Add generated-output contract tests that run the output writer and validate the produced artifact, not only hand-built fixtures.
-- Add snapshot identity/hashing for `/api/diff/proxies` so `base_version` cannot refer to an ambiguous old list.
 - Re-scan README and wiki examples after every output-contract change and delete stale envelope examples completely.
 
 Closure checklist:
@@ -938,7 +943,7 @@ Remaining work:
 
 1. Add parsed-artifact caching with invalidation based on file mtime/hash if route load becomes significant.
 2. Add a concurrent large-file route test or benchmark to quantify latency under heavy artifact size.
-3. Revisit `/api/diff/proxies` snapshot identity so diff reads are both nonblocking and semantically tied to a specific artifact version.
+3. Done: `/api/diff/proxies` now ties the nonblocking diff read to the hash of `proxies.old.json`; mismatches require a full reload.
 
 Closure checklist:
 
@@ -1066,9 +1071,13 @@ experience, with reduced offline fallbacks kept separate from the main path;
 
 Validation: `npm run build`, `npm run test:frontend:no-network`,
 `tests/unit/test_frontend_local_first.py`, workflow and documentation hygiene
-tests passed locally. The Python Playwright e2e file still records the
-environment skip when its browser bundle is unavailable; P2-9 tracks making
-browser execution non-optional in CI.
+tests passed locally. Python Playwright Chromium is installed locally in this
+checkpoint; `CONFIGSTREAM_REQUIRE_PLAYWRIGHT=1 python
+scripts/run_test_profile.py frontend-browser` passes with the Python browser
+E2E tests plus Node same-origin/no-JS smokes, and the strict full suite passes
+with browser execution enabled. `npm run test:frontend:pages-artifact` also
+passes against a temporary assembled Pages artifact with generated runtime
+config and public artifact contract validation.
 
 Examples:
 
@@ -1103,22 +1112,25 @@ Closure checklist:
 
 ### P2-9. E2E browser tests are easy to skip
 
-Status: Remediated in this checkpoint. Test profiles now split unit,
-integration, frontend-browser, and production-smoke runs; the frontend-browser
-profile fails loudly when Python Playwright browsers are required but missing.
-CI has a dedicated required frontend-browser job, and Node Playwright smokes
-cover same-origin and no-JS degraded frontend loading.
+Status: Remediated in this checkpoint for local and profile-level execution.
+Test profiles now split unit, integration, frontend-browser, and
+production-smoke runs; the frontend-browser profile fails loudly when Python
+Playwright browsers are required but missing. Python Playwright Chromium is
+installed and detected locally, CI has a dedicated required frontend-browser
+job, and Node Playwright smokes cover same-origin and no-JS degraded frontend
+loading.
 
 Evidence:
 
-- `tests/e2e/test_frontend.py` applies `pytest.mark.skipif` when Playwright browsers are not installed.
-- Local full test pass had 4 skipped tests.
-- CI intends to install Playwright, but workflow YAML is currently invalid.
+- `tests/e2e/test_frontend.py` detects the Python Playwright browser cache, including the `PLAYWRIGHT_BROWSERS_PATH=0` local-cache mode, and applies the Windows proactor event loop policy needed for subprocess-backed browser launches.
+- `CONFIGSTREAM_REQUIRE_PLAYWRIGHT=1 python scripts/run_test_profile.py frontend-browser` passes with 4 Python Playwright E2E tests plus Node same-origin/no-JS browser smokes.
+- `CONFIGSTREAM_REQUIRE_PLAYWRIGHT=1 python -m pytest -q` passes with 991 tests and 1 remaining non-frontend-browser skip.
+- Workflow validation now parses the CI workflows and keeps the dedicated frontend-browser job guarded.
 
 Impact:
 
-- Local "all tests passed" can hide missing browser validation.
-- Frontend/lab regressions can escape.
+- A non-strict local run can still skip browser tests if the browser bundle is absent, but the strict profile and status ledger now make that visible.
+- Final deploy readiness still needs a public/assembled Pages artifact smoke with generated runtime config.
 
 Required fix:
 
@@ -1136,6 +1148,7 @@ Closure checklist:
 - [x] Browser tests are required by CI configuration.
 - [x] Local skipped-browser result is clearly labeled.
 - [x] Changelog records testing profile cleanup.
+- [x] Strict local browser execution has been proven with installed Python Playwright Chromium.
 
 ---
 
@@ -1580,13 +1593,13 @@ State:
 - Multiple pages and modules exist.
 - Lab is feature-rich but split-brain.
 - Remote dependencies remain.
-- Placeholder key material remains.
-- Production deploy bypasses Vite output.
+- Source placeholder key material has been removed from the runtime path; generated runtime config still needs deploy-smoke proof on a fully assembled artifact.
+- Production deploy intentionally uses raw static frontend output; Vite is no longer the deployment source of truth.
 - Static/no-JS degraded state is weak.
 
 Next action:
 
-- Make frontend local-first, build-driven, no-placeholder, and no-network smoke-tested.
+- Continue browser/deploy-smoke proof for the local-first, raw-static, generated-runtime-config frontend path.
 
 ### 10.11 Docs
 
@@ -2205,12 +2218,12 @@ Goal: deployed frontend equals tested frontend.
 
 Tasks:
 
-1. Choose Vite build or raw static, not both.
-2. If Vite is canonical, deploy `frontend-dist`.
-3. If raw static is canonical, remove Vite build claims.
-4. Inject public config through a generated file.
-5. Fail build on placeholder keys.
-6. Make frontend local-first and self-host critical assets.
+1. Done: raw static is canonical for Pages deploy.
+2. Done: workflow validation rejects accidental `frontend-dist` deployment.
+3. Done: Vite is documented as optional/local build sanity, not the deployment source.
+4. Done: inject public config through a generated runtime config file.
+5. Done: fail deploy on missing runtime keys or placeholder key markers.
+6. Done: frontend is local-first and self-hosts critical runtime assets.
 7. Remove external QR service.
 8. Fix Lab XSS surfaces.
 9. Add no-JS/degraded-state tests.

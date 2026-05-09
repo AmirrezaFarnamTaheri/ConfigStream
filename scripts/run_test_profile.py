@@ -92,6 +92,7 @@ def run_profile(profile: str) -> int:
             ([npm, "run", "build"], None),
             ([npm, "run", "test:frontend:no-network"], None),
             ([npm, "run", "test:frontend:degraded"], None),
+            ([npm, "run", "test:frontend:pages-artifact"], None),
             (
                 [
                     python,
@@ -99,7 +100,10 @@ def run_profile(profile: str) -> int:
                     "pytest",
                     "-q",
                     "tests/unit/test_frontend_local_first.py",
+                    "tests/unit/test_frontend_cache_snapshot.py",
                     "tests/unit/test_frontend_failover.py",
+                    "tests/unit/test_frontend_trust_labels.py",
+                    "tests/unit/test_frontend_verifier.py",
                     "tests/unit/test_validate_frontend_placeholders.py",
                     "tests/unit/test_validate_pages_artifact.py",
                     "tests/unit/test_documentation_hygiene.py",

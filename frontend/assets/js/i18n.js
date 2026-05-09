@@ -32,8 +32,8 @@ const translations = {
         "pipeline.title": "Live Pipeline Status",
 
         "stats.sourced": "Total Sourced",
-        "stats.unique": "Unique & Verified",
-        "stats.online": "Online Now",
+        "stats.unique": "Unique Candidates",
+        "stats.online": "Retested Working",
         "stats.clean": "Clean (Native)",
         "stats.revived": "Revived (Washed)",
         "stats.revived_warp": "Revived WARP",

@@ -170,6 +170,7 @@ Use the output that matches your client or use case. This table is generated fro
 | `data/clean_ips.json` | analytics | json | yes | json | Clean IP data consumed by frontend tools. |
 | `data/evasion_trend.json` | analytics | json | yes | json | Evasion trend data. |
 | `data/proxy_history_viz.json` | analytics | json | yes | json | Proxy history visualization data. |
+| `assets/js/runtime-config.js` | frontend | text | yes | presence | Generated deploy-time frontend runtime config carrying public verification and stego keys. |
 | `index.html` | frontend | html | yes | presence | Published frontend entry point. |
 | `docs/wiki/index.md` | docs | markdown | yes | presence | Published docs entry point. |
 
@@ -293,6 +294,13 @@ Frontend build (optional, Vite):
 npm install
 npm run build
 ```
+
+GitHub Pages deploys the raw static `frontend/` tree merged into `output/`.
+The Vite build is a local/CI sanity check, not the production Pages artifact.
+During Pages deploy, `assets/js/runtime-config.js` is generated from
+`CS_PUBLIC_KEY` and `STEGO_KEY` secrets after the raw frontend copy, so source
+JavaScript keeps local/offline empty defaults while the uploaded artifact gets
+production runtime keys.
 
 ## Environment Variables
 Core:

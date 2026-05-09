@@ -1,20 +1,40 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import pytest
+import asyncio
 from pathlib import Path
 from playwright.sync_api import Page, expect, sync_playwright
 from playwright._impl._errors import Error as PlaywrightError
 import re
 import json
 import os
+import sys
 from urllib.parse import urlparse
+
+
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
 
 def _playwright_ready() -> bool:
     try:
         with sync_playwright() as p:
-            return Path(p.chromium.executable_path).exists()
+            if Path(p.chromium.executable_path).exists():
+                return True
     except Exception:
-        return False
+        pass
+
+    configured_browser_root = os.getenv("PLAYWRIGHT_BROWSERS_PATH", "")
+    browser_root = Path(configured_browser_root)
+    if not configured_browser_root or configured_browser_root == "0":
+        local_app_data = os.getenv("LOCALAPPDATA")
+        if not local_app_data:
+            return False
+        browser_root = Path(local_app_data) / "ms-playwright"
+
+    return any(
+        path.exists()
+        for path in browser_root.glob("chromium-*/chrome-win64/chrome.exe")
+    )
 
 
 _PLAYWRIGHT_READY = _playwright_ready()
@@ -39,6 +59,7 @@ def test_homepage_loads(page: Page, http_server):
     # Block WebAssembly and problematic scripts that crash in containerized Chromium
     page.route("**/*.wasm", lambda route: route.abort())
     page.route("**/wasm_*.js", lambda route: route.abort())
+    page.route("**/globe.gl.min.js", lambda route: route.abort())
     page.route("**/plugin_loader.js", lambda route: route.abort())
     page.route("**/stego_loader.js", lambda route: route.abort())
 
@@ -101,6 +122,7 @@ def test_pwa_manifest_link(page: Page, http_server):
     # Block WebAssembly and problematic scripts
     page.route("**/*.wasm", lambda route: route.abort())
     page.route("**/wasm_*.js", lambda route: route.abort())
+    page.route("**/globe.gl.min.js", lambda route: route.abort())
     page.route("**/plugin_loader.js", lambda route: route.abort())
     page.route("**/stego_loader.js", lambda route: route.abort())
 
@@ -137,6 +159,7 @@ def test_widgets_presence(page: Page, http_server):
     # Block WebAssembly and problematic scripts
     page.route("**/*.wasm", lambda route: route.abort())
     page.route("**/wasm_*.js", lambda route: route.abort())
+    page.route("**/globe.gl.min.js", lambda route: route.abort())
     page.route("**/plugin_loader.js", lambda route: route.abort())
     page.route("**/stego_loader.js", lambda route: route.abort())
 
@@ -166,8 +189,9 @@ def test_widgets_presence(page: Page, http_server):
     page.add_init_script(f"""
         const originalFetch = window.fetch;
         window.fetch = async (url, options) => {{
+            const requestUrl = typeof url === 'string' ? url : (url && url.url) || '';
             // Mock metadata.json (unified stats) and api/stats endpoints
-            if (url.includes('api/stats') || url.includes('metadata.json')) {{
+            if (requestUrl.includes('api/stats') || requestUrl.includes('metadata.json')) {{
                 return {{
                     ok: true,
                     status: 200,

@@ -2,16 +2,15 @@
 // Attached to window.CS_CONSTANTS to avoid namespace pollution
 
 (function(global) {
+    const runtimeConfig = global.CS_RUNTIME_CONFIG || {};
     global.CS_CONSTANTS = {
         // Ed25519 Public Key for Subscription Verification
-        // Set via environment variable in production builds
-        // Build command: CS_PUBLIC_KEY="actual_key" npm run build
-        PUBLIC_KEY: "MCowBQYDK2VwAyEA79e/79e/79e/79e/79e/79e/79e/79e/79e/79e/79e=",
+        // Set by generated assets/js/runtime-config.js in production deploys.
+        PUBLIC_KEY: runtimeConfig.PUBLIC_KEY || "",
 
         // IPNS Key for Failover
-        // Set via environment variable in production builds
-        // Build command: CS_IPNS_KEY="actual_key" npm run build
-        IPNS_KEY: "k51qzi5uqu5d...",
+        // Set by generated assets/js/runtime-config.js when configured.
+        IPNS_KEY: runtimeConfig.IPNS_KEY || "",
 
         // API Endpoints
         API_BASE: "/api",
@@ -39,14 +38,14 @@
                          ? window.ConfigStreamLogger.error
                          : console.error;
 
-        if (global.CS_CONSTANTS.PUBLIC_KEY.includes("79e/79e/")) {
-            logError("❌ CRITICAL: Production deployment using placeholder PUBLIC_KEY!");
-            logError("   Set CS_PUBLIC_KEY environment variable during build.");
+        if (!global.CS_CONSTANTS.PUBLIC_KEY) {
+            logError("❌ CRITICAL: Production deployment missing PUBLIC_KEY!");
+            logError("   Generate assets/js/runtime-config.js during deploy.");
             logError("   Subscription verification will NOT work!");
         }
-        if (global.CS_CONSTANTS.IPNS_KEY.includes("...")) {
-            logError("❌ CRITICAL: Production deployment using placeholder IPNS_KEY!");
-            logError("   Set CS_IPNS_KEY environment variable during build.");
+        if (!global.CS_CONSTANTS.IPNS_KEY) {
+            logError("❌ CRITICAL: Production deployment missing IPNS_KEY!");
+            logError("   Generate assets/js/runtime-config.js during deploy.");
             logError("   IPFS failover will NOT work!");
         }
     }

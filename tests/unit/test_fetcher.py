@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import asyncio
 import pytest
 import httpx
 from datetime import datetime, timezone, timedelta
@@ -9,6 +10,12 @@ from configstream.fetcher_worker import FetchResult
 from configstream.fetcher_worker import parse_retry_after as _parse_retry_after
 
 from configstream.config import AppSettings
+
+
+def _mocked_fetch_settings() -> AppSettings:
+    settings = AppSettings()
+    settings.FETCH_VALIDATE_DNS = False
+    return settings
 
 
 def test_parse_retry_after():
@@ -48,6 +55,8 @@ async def test_fetch_from_source_rejects_private_source_url():
 @pytest.mark.asyncio
 async def test_fetch_from_source_success():
     client = AsyncMock(spec=httpx.AsyncClient)
+    app_settings = AppSettings()
+    app_settings.FETCH_VALIDATE_DNS = False
     mock_response = AsyncMock()
     mock_response.status_code = 200
     mock_response.headers = {}
@@ -63,7 +72,9 @@ async def test_fetch_from_source_success():
     mock_stream_ctx.__aenter__.return_value = mock_response
     client.stream.return_value = mock_stream_ctx
 
-    result = await fetch_from_source(client, "http://valid.com")
+    result = await fetch_from_source(
+        client, "http://valid.com", app_settings=app_settings
+    )
 
     assert result.success
     assert result.content == "data"
@@ -73,6 +84,8 @@ async def test_fetch_from_source_success():
 @pytest.mark.asyncio
 async def test_fetch_from_source_rate_limit():
     client = AsyncMock(spec=httpx.AsyncClient)
+    app_settings = AppSettings()
+    app_settings.FETCH_VALIDATE_DNS = False
     mock_response = AsyncMock()
     mock_response.status_code = 429
     mock_response.headers = {"Retry-After": "0.1"}
@@ -83,7 +96,9 @@ async def test_fetch_from_source_rate_limit():
 
     # Should retry. We mock sleep to be fast.
     with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
-        result = await fetch_from_source(client, "http://valid.com", max_retries=2)
+        result = await fetch_from_source(
+            client, "http://valid.com", max_retries=2, app_settings=app_settings
+        )
 
     # It fails after retries if it keeps returning 429
     assert not result.success
@@ -125,6 +140,54 @@ async def test_fetch_from_source_rejects_private_redirect(respx_mock):
 
 
 @pytest.mark.asyncio
+async def test_fetch_from_source_rejects_private_dns_resolution():
+    client = AsyncMock(spec=httpx.AsyncClient)
+
+    async def fake_getaddrinfo(*args, **kwargs):
+        return [
+            (
+                2,
+                1,
+                6,
+                "",
+                ("10.0.0.5", 443),
+            )
+        ]
+
+    loop = asyncio.get_running_loop()
+    with patch.object(loop, "getaddrinfo", side_effect=fake_getaddrinfo):
+        result = await fetch_from_source(client, "https://safe-name.example/sub")
+
+    assert result.success is False
+    assert "resolves to a private or non-global address" in result.error
+    client.stream.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_fetch_from_source_validates_redirect_dns_before_fetch(respx_mock):
+    settings = AppSettings()
+    source = "https://example.com/start"
+    target = "https://safe-name.example/final"
+    respx_mock.get(source).mock(
+        return_value=httpx.Response(302, headers={"Location": target})
+    )
+
+    async def fake_getaddrinfo(host, *args, **kwargs):
+        ip = "93.184.216.34" if host == "example.com" else "127.0.0.1"
+        return [(2, 1, 6, "", (ip, 443))]
+
+    loop = asyncio.get_running_loop()
+    with patch.object(loop, "getaddrinfo", side_effect=fake_getaddrinfo):
+        async with httpx.AsyncClient() as client:
+            result = await fetch_from_source(
+                client, source, app_settings=settings, max_retries=1
+            )
+
+    assert result.success is False
+    assert "resolves to a private or non-global address" in result.error
+
+
+@pytest.mark.asyncio
 async def test_fetch_from_source_limits_redirect_depth(respx_mock):
     settings = AppSettings()
     settings.FETCH_MAX_REDIRECTS = 0
@@ -154,6 +217,7 @@ async def test_fetch_from_source_rate_limiter_precheck():
     rate_limiter.is_allowed = AsyncMock(side_effect=[False, True])
     rate_limiter.get_wait_time = AsyncMock(return_value=0.01)
 
+    app_settings = _mocked_fetch_settings()
     with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
         # Ensure successful fetch after waiting
         mock_response = AsyncMock()
@@ -169,7 +233,10 @@ async def test_fetch_from_source_rate_limiter_precheck():
         client.stream.return_value = mock_stream_ctx
 
         result = await fetch_from_source(
-            client, "http://valid.com", rate_limiter=rate_limiter
+            client,
+            "http://valid.com",
+            rate_limiter=rate_limiter,
+            app_settings=app_settings,
         )
 
     assert result.success
@@ -205,6 +272,7 @@ async def test_fetch_from_source_too_large_header():
     mock_response.status_code = 200
     app_settings = AppSettings()
     app_settings.MAX_RESPONSE_SIZE = 100
+    app_settings.FETCH_VALIDATE_DNS = False
     mock_response.headers = {
         "Content-Length": str(app_settings.MAX_RESPONSE_SIZE + 100)
     }
@@ -229,6 +297,7 @@ async def test_fetch_from_source_too_large_stream():
     mock_response.headers = {}
     app_settings = AppSettings()
     app_settings.MAX_RESPONSE_SIZE = 100
+    app_settings.FETCH_VALIDATE_DNS = False
 
     # Generate large chunks
     async def async_iter():

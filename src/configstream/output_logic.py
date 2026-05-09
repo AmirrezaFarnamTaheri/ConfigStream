@@ -14,6 +14,7 @@ from datetime import datetime, timezone
 from importlib.metadata import version
 
 from .models import Proxy
+from .pipeline_stats import PipelineExecutionAudit
 from .converters.common import safe_int_conversion
 from .generators import (
     generate_singbox_config,
@@ -28,6 +29,7 @@ from .intelligence.washer.core import ProxyWasher
 from .converters.chains import chain_outbounds_from_details, update_chain_details
 from .utils import AtomicFileWriter
 from .config import AppSettings
+from .serialize import serialize_proxy
 from .constants import (
     CHOSEN_TOP_PER_PROTOCOL,
     CHOSEN_TOTAL_TARGET,
@@ -69,6 +71,16 @@ def _file_sha256(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _json_snapshot_sha256(payload: Any) -> str:
+    canonical = json.dumps(
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    ).encode("utf-8")
+    return hashlib.sha256(canonical).hexdigest()
 
 
 def _artifact_category(rel_path: str) -> str:
@@ -1460,6 +1472,18 @@ def save_metadata(
         # Note: Heuristic counts removed - use exact counts from PipelineStats instead
         # (revived_warp, revived_vwarp, washer_success_count)
 
+    proxies_snapshot_hash = _json_snapshot_sha256(
+        [serialize_proxy(p) for p in proxies]
+    )
+    old_snapshot_hash = None
+    old_snapshot_path = output_dir / "proxies.old.json"
+    if old_snapshot_path.is_file():
+        try:
+            old_payload = json.loads(old_snapshot_path.read_text(encoding="utf-8"))
+            old_snapshot_hash = _json_snapshot_sha256(old_payload)
+        except (OSError, json.JSONDecodeError):
+            old_snapshot_hash = None
+
     # Extract info from stats (dict or object)
     total_sourced = total
     parsed_count = total
@@ -1626,6 +1650,8 @@ def save_metadata(
             audit_obj = getattr(stats, "pipeline_execution_audit")
             if isinstance(audit_obj, dict):
                 pipeline_execution_audit = dict(audit_obj)
+        if not pipeline_execution_audit:
+            pipeline_execution_audit = PipelineExecutionAudit.from_stats(stats).to_dict()
         # Use stats.working as source of truth (more accurate than counting in loop)
         # But only if it's non-zero (to avoid overriding correct loop count)
         if hasattr(stats, "working") and stats.working > 0:
@@ -1735,6 +1761,8 @@ def save_metadata(
         "generated_at": end_time_iso,
         "last_updated_utc": end_time_iso,
         "trace_id": trace_id,
+        "proxies_snapshot_hash": proxies_snapshot_hash,
+        "previous_proxies_snapshot_hash": old_snapshot_hash,
         "latency_distribution": lat_dist,
         "protocols": protocols,
         "country_stats": countries,

@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import json
+import hashlib
 from unittest.mock import patch
 import asyncio
 import httpx
@@ -17,6 +18,17 @@ from configstream.server import (
     _validate_admin_startup_security,
     _validate_cors_startup_security,
 )
+
+
+def _snapshot_hash(payload):
+    return hashlib.sha256(
+        json.dumps(
+            payload,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+        ).encode("utf-8")
+    ).hexdigest()
 
 
 class FakeWebSocket:
@@ -168,9 +180,9 @@ async def test_get_stats_reads_metadata_off_event_loop(
 async def test_get_proxy_diff_reads_proxy_files_off_event_loop(
     mock_output_dir, async_client, monkeypatch
 ):
+    old_payload = [{"id": "old", "protocol": "vless"}]
     (mock_output_dir / "proxies.old.json").write_text(
-        json.dumps([{"id": "old", "protocol": "vless"}]),
-        encoding="utf-8",
+        json.dumps(old_payload), encoding="utf-8"
     )
     (mock_output_dir / "proxies.json").write_text(
         json.dumps([{"id": "new", "protocol": "vless"}]),
@@ -186,7 +198,9 @@ async def test_get_proxy_diff_reads_proxy_files_off_event_loop(
     monkeypatch.setattr(server_module.asyncio, "to_thread", recording_to_thread)
 
     with patch("configstream.server.OUTPUT_DIR", mock_output_dir):
-        response = await async_client.get("/api/diff/proxies?base_version=test")
+        response = await async_client.get(
+            f"/api/diff/proxies?base_version={_snapshot_hash(old_payload)}"
+        )
 
     assert response.status_code == 200
     assert response.json()["type"] == "delta"
@@ -197,6 +211,32 @@ async def test_get_proxy_diff_reads_proxy_files_off_event_loop(
     ]
     assert "proxies.json" in read_names
     assert "proxies.old.json" in read_names
+
+
+@pytest.mark.asyncio
+async def test_get_proxy_diff_requires_matching_snapshot_hash(
+    mock_output_dir, async_client
+):
+    old_payload = [{"id": "old", "protocol": "vless"}]
+    (mock_output_dir / "proxies.old.json").write_text(
+        json.dumps(old_payload),
+        encoding="utf-8",
+    )
+    (mock_output_dir / "proxies.json").write_text(
+        json.dumps([{"id": "new", "protocol": "vless"}]),
+        encoding="utf-8",
+    )
+
+    with patch("configstream.server.OUTPUT_DIR", mock_output_dir):
+        response = await async_client.get(
+            "/api/diff/proxies?base_version=ambiguous-version"
+        )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["type"] == "full_reload_required"
+    assert payload["reason"] == "base_version_mismatch"
+    assert payload["expected_base_version"] == _snapshot_hash(old_payload)
 
 
 @pytest.mark.asyncio

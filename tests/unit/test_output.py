@@ -69,6 +69,23 @@ def test_metadata_generation(tmp_path, sample_proxies, mock_storage):
     assert data["total_working"] == 2
     assert data["latency_distribution"]["fast"] == 1  # 50ms
     assert data["latency_distribution"]["medium"] == 1  # 200ms
+    assert len(data["proxies_snapshot_hash"]) == 64
+    assert data["previous_proxies_snapshot_hash"] is None
+
+
+def test_metadata_includes_previous_proxy_snapshot_hash(tmp_path, sample_proxies):
+    """Metadata records old proxy snapshot identity for diff clients."""
+    old_payload = [{"id": "old", "protocol": "vless"}]
+    (tmp_path / "proxies.old.json").write_text(
+        json.dumps(old_payload), encoding="utf-8"
+    )
+
+    save_metadata(PipelineStats(fetched_lines=10), sample_proxies, tmp_path)
+
+    data = json.loads((tmp_path / "metadata.json").read_text(encoding="utf-8"))
+    assert len(data["proxies_snapshot_hash"]) == 64
+    assert len(data["previous_proxies_snapshot_hash"]) == 64
+    assert data["previous_proxies_snapshot_hash"] != data["proxies_snapshot_hash"]
 
 
 def test_metadata_does_not_count_shielded_candidates_as_working(
@@ -226,6 +243,12 @@ def test_generated_public_artifact_fixture_matches_pages_contract(tmp_path):
     (docs_dir / "index.md").write_text("# Fixture docs\n", encoding="utf-8")
     (tmp_path / "index.html").write_text(
         "<!doctype html><title>Fixture</title>", encoding="utf-8"
+    )
+    runtime_config_dir = tmp_path / "assets" / "js"
+    runtime_config_dir.mkdir(parents=True)
+    (runtime_config_dir / "runtime-config.js").write_text(
+        "window.CS_RUNTIME_CONFIG = { PUBLIC_KEY: 'x', STEGO_KEY: 'x' };",
+        encoding="utf-8",
     )
 
     write_public_artifact_contract(tmp_path)

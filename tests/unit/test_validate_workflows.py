@@ -49,6 +49,37 @@ jobs:
     assert validate_workflows.main() == 1
 
 
+def test_validate_workflows_rejects_pages_frontend_dist_deploy(
+    tmp_path: Path, monkeypatch
+) -> None:
+    workflow_dir = tmp_path / ".github" / "workflows"
+    workflow_dir.mkdir(parents=True)
+    (workflow_dir / "deploy-pages.yml").write_text(
+        """
+name: Deploy
+on:
+  workflow_dispatch:
+concurrency:
+  group: pages
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          npm run build
+          cp -R frontend-dist/. output/
+          python scripts/validate_frontend_placeholders.py --inject-env --strict output
+        env:
+          CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
+          STEGO_KEY: ${{ secrets.STEGO_KEY }}
+""".lstrip(),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(validate_workflows, "WORKFLOW_DIR", workflow_dir)
+
+    assert validate_workflows.main() == 1
+
+
 def test_validate_workflows_requires_ci_frontend_browser_profile(
     tmp_path: Path, monkeypatch
 ) -> None:
