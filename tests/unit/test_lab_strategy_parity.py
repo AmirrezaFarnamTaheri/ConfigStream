@@ -73,3 +73,53 @@ def test_lab_manual_clean_ip_table_uses_text_nodes() -> None:
     assert "tr.innerHTML" not in render_table
     assert "parseManualCleanIpLine" in lab_js
     assert "No valid clean IP entries found" in lab_js
+
+
+def test_lab_show_result_dynamic_values_are_escaped() -> None:
+    lab_js = _read("frontend/assets/js/lab.js")
+
+    assert "function escapeHtml(value)" in lab_js
+    assert "'&': '&amp;'" in lab_js
+    assert "'<': '&lt;'" in lab_js
+    assert "'>': '&gt;'" in lab_js
+
+    local_proxy = lab_js.split("async function testLocalProxy()", 1)[1].split(
+        "// --- Pipeline Proxy Integration ---", 1
+    )[0]
+    assert "escapeHtml(type)" in local_proxy
+    assert "escapeHtml(addr)" in local_proxy
+    assert "${type}://${addr}" not in local_proxy
+
+    step1 = lab_js.split("function handleStep1Next()", 1)[1].split(
+        "// --- Step 2: Clean IP Discovery ---", 1
+    )[0]
+    assert "escapeHtml(parsedProxy.address)" in step1
+    assert "escapeHtml(parsedProxy.remark)" in step1
+
+    step3 = lab_js.split("function handleStep3Next()", 1)[1].split(
+        "// If local proxy Layer 1 is set", 1
+    )[0]
+    assert "escapeHtml(e.message)" in step3
+    assert "escapeHtml(chainType)" in step3
+
+    step4 = lab_js.split("async function handleStep4Test()", 1)[1].split(
+        "function showManualTestInstructions()", 1
+    )[0]
+    assert "escapeHtml(result.latency || 'N/A')" in step4
+    assert "escapeHtml(result.exit_ip)" in step4
+    assert "escapeHtml(result.error || 'Unknown error')" in step4
+
+
+def test_lab_step4_live_manual_modes_are_visible() -> None:
+    lab_html = _read("frontend/lab.html")
+    lab_js = _read("frontend/assets/js/lab.js")
+
+    assert 'id="step4Mode"' in lab_html
+    assert "function updateStep4TestMode()" in lab_js
+    assert "Manual test mode." in lab_js
+    assert "Live test mode." in lab_js
+    assert "Static hosting cannot run server-side proxy tests" in lab_js
+    assert "testBtn.textContent = 'Show Manual Test'" in lab_js
+    assert "testBtn.textContent = 'Run Live Test'" in lab_js
+    assert "protocol === 'file:'" in lab_js
+    assert "updateStep4TestMode();" in lab_js

@@ -9,6 +9,12 @@ const { chromium } = require("playwright");
 const repoRoot = path.resolve(__dirname, "..");
 const frontendRoot = path.join(repoRoot, "frontend");
 const protocolMatrixPath = path.join(repoRoot, "docs", "protocol_matrix.json");
+const labStrategiesPath = path.join(
+  frontendRoot,
+  "assets",
+  "data",
+  "lab_strategies.json",
+);
 const pages = [
   "index.html",
   "about.html",
@@ -35,6 +41,10 @@ function createServer(overrides = {}) {
     const requestPath = new URL(request.url, "http://127.0.0.1").pathname;
     const override = overrides[requestPath];
     if (override) {
+      if (typeof override === "function") {
+        override(request, response);
+        return;
+      }
       response.writeHead(override.status || 200, {
         "content-type": override.contentType || "application/json; charset=utf-8",
       });
@@ -90,6 +100,11 @@ function buildProtocolFixture() {
     config: `${protocol}://fixture.example/${index}`,
     history: [50 + index, 55 + index],
   }));
+}
+
+function labStrategyIds() {
+  const manifest = JSON.parse(fs.readFileSync(labStrategiesPath, "utf8"));
+  return manifest.strategies.map((strategy) => strategy.id);
 }
 
 function isExpectedProtocolSmokeConsoleError(message) {
@@ -285,6 +300,146 @@ async function exerciseProtocolRender(browser) {
   }
 }
 
+async function exerciseLabXss(browser) {
+  const payload = `<img src=x onerror="window.__configstreamXss = true">`;
+  let labTestCalls = 0;
+  const server = createServer({
+    "/api/lab/test-chain": (_request, response) => {
+      labTestCalls += 1;
+      const body = labTestCalls === 1
+        ? { success: false, error: payload }
+        : { success: true, latency: payload, exit_ip: payload };
+      response.writeHead(200, {
+        "content-type": "application/json; charset=utf-8",
+      });
+      response.end(JSON.stringify(body));
+    },
+  });
+  const port = await listen(server);
+  const baseUrl = `http://127.0.0.1:${port}`;
+  const allowedHost = new URL(baseUrl).host;
+  const blockedUrls = [];
+  const context = await browser.newContext();
+  const page = await context.newPage();
+
+  await page.route("**/*", (route) => {
+    const requestUrl = route.request().url();
+    const parsed = new URL(requestUrl);
+    if (
+      (parsed.protocol === "http:" || parsed.protocol === "https:") &&
+      parsed.host !== allowedHost
+    ) {
+      blockedUrls.push(requestUrl);
+      return route.abort();
+    }
+
+    return route.continue();
+  });
+
+  try {
+    await page.goto(`${baseUrl}/lab.html`, {
+      waitUntil: "domcontentloaded",
+      timeout: 10000,
+    });
+    await page.locator("#proxyUri").waitFor({ state: "visible", timeout: 10000 });
+    await assertLabStrategies(page);
+
+    await page.locator("#localProxyType").evaluate((select) => {
+      select.closest("details").open = true;
+    });
+    await page.selectOption("#localProxyType", "socks5");
+    await page.fill("#localProxyAddr", `127.0.0.1:1080${payload}`);
+    await page.click("#testLocalProxy");
+    await assertNoLabInjection(page, "#localProxyResult", "local proxy input");
+
+    const proxyUri =
+      `vless://11111111-1111-4111-8111-111111111111@example.com:443#${encodeURIComponent(payload)}`;
+    await page.fill("#proxyUri", proxyUri);
+    await page.click("#step1Next");
+    await assertNoLabInjection(page, "#step1Result", "parsed proxy remark");
+    await page.locator("#step-2.active").waitFor({ state: "visible", timeout: 10000 });
+
+    await page.click("#step2Next");
+    await page.locator("#step-3.active").waitFor({ state: "visible", timeout: 10000 });
+
+    await page.selectOption("#chainType", "custom");
+    await page.fill("#customOutboundsJson", payload);
+    await page.click("#step3Next");
+    await assertNoLabInjection(page, "#step3Result", "custom JSON error");
+
+    await page.selectOption("#chainType", "fragment");
+    await page.click("#step3Next");
+    await page.locator("#step-4.active").waitFor({ state: "visible", timeout: 10000 });
+    const step4Mode = await page.locator("#step4Mode").innerText();
+    if (!step4Mode.includes("Live test mode.")) {
+      throw new Error("Lab Step 4 did not expose live test mode on backend-capable hosting");
+    }
+    await page.click("#step4Test");
+    await page.locator("#step4Result").waitFor({ state: "visible", timeout: 10000 });
+    await assertNoLabInjection(page, "#step4Result", "live-test API error");
+
+    await page.click("#step4Test");
+    await page.locator("#step4Next:not([disabled])").waitFor({
+      state: "visible",
+      timeout: 10000,
+    });
+    await assertNoLabInjection(page, "#step4Result", "live-test API success");
+    await page.click("#step4Next");
+    await page.locator("#step-5.active").waitFor({ state: "visible", timeout: 10000 });
+
+    await page.selectOption("#exportFormat", "qr");
+    await page.click("#step5Export");
+    await page.locator("#qrOutput").waitFor({ state: "visible", timeout: 10000 });
+    const qrText = await page.locator("#qrOutput").innerText();
+    if (!qrText.includes("Offline QR payload")) {
+      throw new Error("Lab QR export did not render the offline payload panel");
+    }
+    await assertNoLabInjection(page, "#qrOutput", "offline QR payload");
+
+    if (blockedUrls.length > 0) {
+      throw new Error(`External requests blocked: ${blockedUrls.join(", ")}`);
+    }
+  } finally {
+    await context.close();
+    await closeServer(server);
+  }
+}
+
+async function assertLabStrategies(page) {
+  const expectedStrategies = labStrategyIds();
+  const renderedStrategies = await page
+    .locator("#chainType option")
+    .evaluateAll((options) => options.map((option) => option.value));
+  const missingStrategies = expectedStrategies.filter(
+    (strategy) => !renderedStrategies.includes(strategy),
+  );
+  const unexpectedStrategies = renderedStrategies.filter(
+    (strategy) => !expectedStrategies.includes(strategy),
+  );
+
+  if (missingStrategies.length > 0 || unexpectedStrategies.length > 0) {
+    throw new Error(
+      `Lab strategy dropdown mismatch. Missing: ${missingStrategies.join(", ")}; unexpected: ${unexpectedStrategies.join(", ")}`,
+    );
+  }
+}
+
+async function assertNoLabInjection(page, selector, label) {
+  const result = page.locator(selector);
+  await result.waitFor({ state: "visible", timeout: 10000 });
+  const injectedNodes = await result.locator("img,script,svg,iframe").count();
+  if (injectedNodes > 0) {
+    throw new Error(`Lab ${label} rendered injected nodes`);
+  }
+
+  const xssExecuted = await page.evaluate(
+    () => Boolean(window.__configstreamXss),
+  );
+  if (xssExecuted) {
+    throw new Error(`Lab ${label} executed injected script`);
+  }
+}
+
 async function main() {
   const noJsOnly = process.argv.includes("--no-js-only");
   const server = createServer();
@@ -300,6 +455,8 @@ async function main() {
       console.log("same-origin frontend smoke passed");
       await exerciseProtocolRender(browser);
       console.log("protocol render smoke passed");
+      await exerciseLabXss(browser);
+      console.log("lab xss smoke passed");
     }
 
     await exercisePages(browser, baseUrl, allowedHost, {

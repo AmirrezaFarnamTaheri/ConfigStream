@@ -137,8 +137,9 @@ All chain configs are exported in formats compatible with the three major proxy 
 *   **Clash/Mihomo YAML**: Uses `dialer-proxy` for chaining.
 
 ### Step 4: Test Chain
-*   **Live API Test**: Sends the chain config to a test endpoint.
-*   **Manual Fallback**: Provides `sing-box run -c` commands for local testing.
+*   **Visible Mode State**: The Lab shows whether it is in live-test mode or manual-test mode before the user runs a check.
+*   **Live API Test**: On backend-capable hosting, sends the chain config to a test endpoint.
+*   **Manual Fallback**: On static hosting such as GitHub Pages, labels the page as manual-test mode and provides `sing-box run -c` commands for local testing.
 
 ### Step 5: Export
 *   **Formats**: Sing-box JSON, Clash YAML, Xray JSON, Nekobox link, raw URI, offline QR payload, Python script, Bash script.

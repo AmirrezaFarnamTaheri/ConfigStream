@@ -99,6 +99,7 @@ def run_profile(profile: str) -> int:
                     "pytest",
                     "-q",
                     "tests/unit/test_frontend_local_first.py",
+                    "tests/unit/test_frontend_failover.py",
                     "tests/unit/test_validate_frontend_placeholders.py",
                     "tests/unit/test_validate_pages_artifact.py",
                     "tests/unit/test_documentation_hygiene.py",

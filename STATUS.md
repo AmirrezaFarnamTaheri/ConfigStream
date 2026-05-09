@@ -1,6 +1,6 @@
 # ConfigStream Project Status
 
-**Last updated:** 2026-05-08
+**Last updated:** 2026-05-09
 **Version:** v3.0.2
 **Status:** Remediation in progress. Not production-ready and not ready to publish as a final public release.
 
@@ -36,17 +36,22 @@ Current blockers:
 - Production CORS now uses explicit origins only: wildcard origin regex is empty by default, credentialed CORS is disabled by default, and production startup rejects `ALLOWED_ORIGIN_REGEX`.
 - WebSocket update connections now have bounded connection count, idle timeout, send timeout, stale cleanup, and connection/drop stats.
 - Lab live chain testing is disabled by default in production; when explicitly enabled, it requires `ADMIN_API_KEY`, enforces a `30/minute` rate limit, rejects oversized configs, validates submitted outbound shape/type/hosts, blocks private/internal destinations, and keeps the frontend manual fallback path available.
+- Laboratory Step 4 now exposes visible live-test/manual-test mode state: backend-capable hosting keeps the live endpoint path, while GitHub Pages/file-style static hosting is labeled for manual sing-box testing.
 - Source fetching now rejects source URL credentials, localhost/internal hostnames, and private/non-global IP literals by default; redirects are followed manually only after validating each target and respecting `FETCH_MAX_REDIRECTS`.
 - Pages deploy now injects `CS_PUBLIC_KEY`/`STEGO_KEY` into copied frontend assets and fails before upload if frontend public-key or stego placeholders remain; workflow validation enforces this guard.
 - Public artifact validation now rejects unknown top-level control schema keys and verifies that `api/proxies` and `api/stats` match `proxies.json` and `metadata.json`; README now documents `proxies.json` as a JSON array, not a metadata envelope.
 - Laboratory chain strategies now have a canonical 9-strategy manifest, UI/JS/docs parity, Vwarp MASQUE and AtomicNoize build branches, and a fail-loud unsupported-strategy path.
+- The same-origin frontend browser smoke now checks the rendered Laboratory strategy dropdown against the canonical 9-strategy manifest.
 - Laboratory QR export no longer sends proxy or chain payload material to an external QR service; the Lab now renders an offline copyable payload panel and keeps a scannable local QR renderer as an optional follow-up.
 - Laboratory manual clean-IP rows now render with DOM text nodes instead of `tr.innerHTML`, and manual clean-IP input is validated before storage.
+- Laboratory result messages now escape dynamic user/API values before inserting trusted helper markup, covering local proxy input, parsed proxy remarks, custom JSON parse errors, unsupported strategy names, live-test latency/exit IP/error text, and export format labels.
+- The same-origin frontend browser smoke now exercises Lab XSS payloads for local proxy input, parsed proxy remarks, custom JSON errors, live-test API errors/successes, and offline QR export while blocking external network requests.
 - `/api/stats` and `/api/diff/proxies` now read and parse JSON artifacts through `asyncio.to_thread()` so route handlers do not block the event loop on artifact disk reads.
 - The unused `test_budget` semaphore wiring was removed from the pipeline and consumer; `ConcurrencyManager` remains the canonical Python fallback test limiter.
 - Producer backpressure accounting no longer calls source-quality failure reporting when runner queue pressure prevents any chunks from being queued.
 - Logging hardening now masks proxy endpoints, source URLs, source tokens, DNS failure host/error material, Vwarp subprocess/tunnel output, security-rule address logs, honeypot reputation logs, test-cache endpoint logs, parser drop/error logs, and converter logs; high-risk static logging policy tests and `SECURITY.md` logging policy documentation are in place.
 - Frontend runtime assets are local-first with parity tracking: critical JS/CSS/fonts/globe textures/flags and Lab helper downloads are same-origin, CSP no longer needs broad remote runtime hosts, and `frontend/assets/vendor-manifest.json` records mirrored sources.
+- Optional IPFS/IPNS frontend failover is now covered by local tests: the frontend probes a same-origin static asset, skips placeholder IPNS keys, preserves the current leaf page/query/hash when building gateway URLs, normalizes gateway bases, and prevents repeated redirect attempts within the same session.
 - Test execution is split into explicit profiles: `unit`, `integration`, `frontend-browser`, and `production-smoke`. The CI `frontend-browser` job installs Python Playwright Chromium and runs with `CONFIGSTREAM_REQUIRE_PLAYWRIGHT=1` so missing browser coverage fails instead of silently skipping.
 - Shadowsocks-Rust FFI validation is explicitly optional: it runs only with a local platform binary and matching `SS_LIB_SHA256`; otherwise Python validation remains authoritative, and configured hash mismatches fail closed.
 - Frontend WASM verification is labeled as browser-limited reachability only. Unsupported transports keep Go sidecar/Python results authoritative, and invalid browser-check URLs fail explicitly before `WebSocket` construction.
@@ -76,7 +81,7 @@ No task is closed while any surface still documents or serves the old contract.
 
 ## Validation Snapshot
 
-Latest local validation performed on 2026-05-08:
+Latest local validation performed on 2026-05-09:
 
 - `python scripts/validate_workflows.py`: passed for 6 workflow files
 - `python scripts/validate_versions.py`: passed
@@ -87,6 +92,7 @@ Latest local validation performed on 2026-05-08:
 - `python -m pytest tests/unit/test_validate_status.py tests/unit/test_documentation_hygiene.py -q`: 9 passed
 - `python scripts/validate_docs_sync.py`: passed
 - `python -m pytest tests/unit/test_validate_docs_sync.py -q`: 3 passed
+- `python -m pytest tests/unit/test_lab_strategy_parity.py tests/unit/test_frontend_failover.py -q`: 9 passed
 - `python scripts/validate_debt_matrix.py`: passed
 - `python -m pytest tests/unit/test_debt_matrix.py -q`: 5 passed
 - `python scripts/validate_assets.py`: passed
@@ -109,7 +115,7 @@ Latest local validation performed on 2026-05-08:
 - `pytest -q tests/unit/test_fetcher.py tests/unit/test_fetcher_config.py tests/unit/test_fetcher_resilience.py tests/unit/test_fetcher_retries.py tests/unit/test_fetcher_advanced.py tests/unit/fetcher/test_fetcher_core.py`: 34 passed
 - `pytest -q tests/unit/test_validate_frontend_placeholders.py tests/unit/test_validate_workflows.py`: 6 passed
 - `pytest -q tests/unit/test_validate_pages_artifact.py tests/unit/test_documentation_hygiene.py`: 17 passed
-- `pytest -q tests/unit/test_lab_strategy_parity.py`: 5 passed
+- `pytest -q tests/unit/test_lab_strategy_parity.py`: 7 passed
 - `pytest -q tests/unit/test_concurrency_contract.py tests/unit/test_pipeline_stages.py tests/unit/test_consumer.py tests/unit/test_pipeline_coverage.py tests/unit/test_pipeline_deep.py`: 16 passed
 - `pytest -q tests/unit/test_producer_quality_accounting.py tests/unit/test_pipeline_stages.py`: 12 passed
 - `pytest -q tests/unit/test_logging_sanitization_policy.py tests/unit/test_output.py`: 15 passed
@@ -118,10 +124,12 @@ Latest local validation performed on 2026-05-08:
 - `python -m pytest tests/unit/test_protocol_output_golden.py tests/unit/test_security_validator.py tests/unit/test_security_validator_full.py tests/unit/test_proxy_schema.py -q`: 15 passed, 1 skipped
 - `python -m pytest tests/unit/parsers/test_parser_fixes.py tests/unit/test_protocol_output_golden.py tests/unit/test_parsers_robustness.py -q`: 58 passed
 - `python -m pytest tests/unit/test_parsers_json_yaml.py tests/unit/test_protocol_output_golden.py tests/unit/test_parsers_robustness.py -q`: 49 passed
+- `python -m pytest tests/unit/test_frontend_failover.py -q`: 3 passed
 - `npm run build`: passed
-- `npm run test:frontend:no-network`: passed, including same-origin no-JS smoke
+- `npm run test:frontend:no-network`: passed, including protocol render, Lab XSS, and same-origin no-JS smoke
 - `npm run test:frontend:degraded`: passed
-- `python -m pytest -q`: 970 passed, 5 skipped
+- `python scripts/run_test_profile.py production-smoke`: passed, including 82 focused pytest tests
+- `python -m pytest -q`: 974 passed, 5 skipped
 
 Browser skip visibility:
 

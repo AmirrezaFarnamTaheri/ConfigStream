@@ -87,7 +87,7 @@ These are the primary endpoints used by the frontend. They are flat files, not d
 |---|---|---|
 | `/api/proxies` | Copy of `proxies.json` | Fallback for `fetchProxies()` |
 | `/api/stats` | Copy of `metadata.json` | Fallback for `fetchMetadata()` |
-| `/health_check` | Does not exist on static | Failure triggers IPFS failover (expected) |
+| `assets/svg/favicon.svg` | Static frontend asset | Same-origin connectivity probe for optional IPFS/IPNS failover |
 | `/ws/updates` | Disabled on static hosting | WebSocket — only available with live server |
 | `/api/diff/proxies` | Only with live server | Differential updates |
 
