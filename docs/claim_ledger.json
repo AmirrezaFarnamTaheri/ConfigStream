@@ -187,16 +187,21 @@
       "claim": "The frontend provides proven IPFS/failover behavior when GitHub Pages is blocked.",
       "source": "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md",
       "product_area": "frontend",
-      "status": "planned",
+      "status": "complete",
       "owner": "frontend/assets/js/failover.js",
-      "tests": [],
+      "tests": [
+        "tests/unit/test_frontend_failover.py",
+        "scripts/run_test_profile.py production-smoke"
+      ],
       "frontend_surface": "frontend/failover behavior",
       "output_artifact": null,
       "docs": [
-        "docs/wiki/project/02-architecture.md"
+        "docs/wiki/project/02-architecture.md",
+        "docs/wiki/project/08-api-reference.md",
+        "STATUS.md"
       ],
-      "changelog": null,
-      "cleanup_decision": "Either prove with browser/deploy tests or keep demoted as optional mirror behavior."
+      "changelog": "CHANGELOG.md",
+      "cleanup_decision": "IPFS/IPNS failover remains optional and requires a configured IPNS key; local tests prove the same-origin connectivity probe, placeholder-key no-op, leaf-page/query/hash preservation, gateway URL normalization, and session loop prevention without requiring a live IPFS gateway."
     }
   ]
 }

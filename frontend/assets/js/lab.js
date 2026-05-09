@@ -97,6 +97,16 @@
         return Number(a.port || 0) - Number(b.port || 0);
     }
 
+    function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        }[ch]));
+    }
+
     function showResult(elId, type, message) {
         const el = document.getElementById(elId);
         if (!el) return;
@@ -289,12 +299,15 @@
             showResult('localProxyResult', 'error', 'Select a proxy type and enter the address.');
             return;
         }
-        showResult('localProxyResult', 'pending', `Testing ${type}://${addr}...`);
+        const safeType = escapeHtml(type);
+        const safeTypeLabel = escapeHtml(String(type).toUpperCase());
+        const safeAddr = escapeHtml(addr);
+        showResult('localProxyResult', 'pending', `Testing ${safeType}://${safeAddr}...`);
         // Browser can't directly test SOCKS/HTTP proxies, so provide guidance
         showResult('localProxyResult', 'info',
-            `<strong>Browser cannot test ${type.toUpperCase()} proxies directly.</strong><br>` +
+            `<strong>Browser cannot test ${safeTypeLabel} proxies directly.</strong><br>` +
             `To verify, run in terminal:<br>` +
-            `<code>curl -x ${type}://${addr} --connect-timeout 5 http://cp.cloudflare.com/generate_204</code><br><br>` +
+            `<code>curl -x ${safeType}://${safeAddr} --connect-timeout 5 http://cp.cloudflare.com/generate_204</code><br><br>` +
             `If it returns HTTP 204, your proxy works. It will be added as Layer 1 of your chain.`
         );
     }
@@ -312,7 +325,26 @@
 
     function isStaticHosting() {
         const host = (window.location && window.location.hostname) || '';
-        return STATIC_HOST_SUFFIXES.some((suffix) => host.includes(suffix));
+        const protocol = (window.location && window.location.protocol) || '';
+        return protocol === 'file:' || STATIC_HOST_SUFFIXES.some((suffix) => host.includes(suffix));
+    }
+
+    function updateStep4TestMode() {
+        const mode = $('#step4Mode');
+        const testBtn = $('#step4Test');
+        if (!mode) return;
+
+        if (isStaticHosting()) {
+            mode.className = 'lab-test-result info';
+            mode.innerHTML = '<strong>Manual test mode.</strong> Static hosting cannot run server-side proxy tests; use the sing-box instructions below, then continue to export when your local test succeeds.';
+            mode.style.display = 'block';
+            if (testBtn) testBtn.textContent = 'Show Manual Test';
+        } else {
+            mode.className = 'lab-test-result success';
+            mode.innerHTML = '<strong>Live test mode.</strong> This page can try the backend Lab endpoint; manual sing-box testing remains available if the endpoint is disabled or unreachable.';
+            mode.style.display = 'block';
+            if (testBtn) testBtn.textContent = 'Run Live Test';
+        }
     }
 
     function joinBase(base, file) {
@@ -498,8 +530,8 @@
         }
 
         showResult('step1Result', 'success',
-            `<strong>Parsed:</strong> ${parsedProxy.protocol.toUpperCase()} @ ${parsedProxy.address}:${parsedProxy.port}` +
-            (parsedProxy.remark ? ` (${parsedProxy.remark})` : '')
+            `<strong>Parsed:</strong> ${escapeHtml(parsedProxy.protocol.toUpperCase())} @ ${escapeHtml(parsedProxy.address)}:${escapeHtml(parsedProxy.port)}` +
+            (parsedProxy.remark ? ` (${escapeHtml(parsedProxy.remark)})` : '')
         );
 
         setTimeout(() => goToStep(2), 600);
@@ -755,11 +787,11 @@
                 const custom = JSON.parse(raw);
                 chainConfig = buildCustomChain(parsedProxy, custom, evasion);
             } catch (e) {
-                showResult('step3Result', 'error', 'Invalid JSON: ' + e.message);
+                showResult('step3Result', 'error', 'Invalid JSON: ' + escapeHtml(e.message));
                 return;
             }
         } else {
-            showResult('step3Result', 'error', 'Unsupported chain strategy: ' + chainType);
+            showResult('step3Result', 'error', 'Unsupported chain strategy: ' + escapeHtml(chainType));
             return;
         }
 
@@ -791,6 +823,7 @@
         showResult('step3Result', 'success', 'Chain configuration generated! Proceed to test it.');
         setTimeout(() => {
             goToStep(4);
+            updateStep4TestMode();
             const preview = $('#chainConfigPreview');
             const code = $('#chainConfigCode');
             if (preview && code) {
@@ -1011,14 +1044,14 @@
                 const result = await resp.json();
                 if (result.success) {
                     showResult('step4Result', 'success',
-                        `<strong>Chain is working!</strong> Latency: ${result.latency || 'N/A'}ms` +
-                        (result.exit_ip ? ` | Exit IP: ${result.exit_ip}` : '')
+                        `<strong>Chain is working!</strong> Latency: ${escapeHtml(result.latency || 'N/A')}ms` +
+                        (result.exit_ip ? ` | Exit IP: ${escapeHtml(result.exit_ip)}` : '')
                     );
                     const nextBtn = $('#step4Next');
                     if (nextBtn) nextBtn.disabled = false;
                 } else {
                     showResult('step4Result', 'error',
-                        `<strong>Test failed:</strong> ${result.error || 'Unknown error'}. Check troubleshooting below.`
+                        `<strong>Test failed:</strong> ${escapeHtml(result.error || 'Unknown error')}. Check troubleshooting below.`
                     );
                 }
             } else {
@@ -1109,7 +1142,7 @@
         window._labExportContent = content;
         window._labExportFilename = filename;
 
-        showResult('step5Result', 'success', `${format.toUpperCase()} export ready. Copy or download the config.`);
+        showResult('step5Result', 'success', `${escapeHtml(format.toUpperCase())} export ready. Copy or download the config.`);
     }
 
     function singboxOutboundToClash(sbOut) {
@@ -1536,6 +1569,7 @@ sing-box run -c "$CFG"
 
     // --- Init ---
     document.addEventListener('DOMContentLoaded', () => {
+        updateStep4TestMode();
         // Step navigation via dots
         $$('.lab-step-dot').forEach(dot => {
             dot.addEventListener('click', () => {

@@ -568,7 +568,7 @@ Remaining:
 
 ### P1-5. Lab live test endpoint is unauthenticated and resource-heavy
 
-Status: remediated for backend route policy on 2026-05-04. Frontend live/manual labeling remains a follow-up parity polish item.
+Status: remediated for backend route policy and frontend live/manual labeling.
 
 Evidence:
 
@@ -607,16 +607,18 @@ Implemented so far:
 - The chain-test timeout is configurable through `LAB_TEST_TIMEOUT_SECONDS`.
 - Nonproduction `development`, `ci`, and `test` flows remain compatible for local testing.
 - `.env.example`, `SECURITY.md`, `STATUS.md`, `CHANGELOG.md`, and server tests now document and verify the new policy.
+- Lab Step 4 now displays visible live-test/manual-test mode state. Backend-capable hosting keeps the `Run Live Test` path, while GitHub Pages/file-style static hosting is labeled as manual-test mode and relabels the action to manual instructions.
+- `tests/unit/test_lab_strategy_parity.py` and `scripts/frontend_same_origin_smoke.cjs` guard the visible mode state.
 
 Remaining:
 
-- Add frontend copy/state that makes live-vs-manual test mode visible without implying GitHub Pages can run server-side tests.
+- None for the audited endpoint-policy and frontend-labeling requirements.
 
 Closure checklist:
 
 - Public static deployment cannot spawn tester work.
 - Local live server can opt in safely.
-- Frontend clearly distinguishes static manual testing from live API testing.
+- Done: frontend clearly distinguishes static manual testing from live API testing.
 - Changelog records endpoint policy.
 - After each additional change, verify backend, frontend, docs, schema/config, tests, and changelog parity, then remove any stale legacy/deprecated statements instead of keeping backward-compatibility clutter.
 
@@ -791,7 +793,7 @@ Closure checklist:
 
 ### P2-1. Lab strategy list is inconsistent and partially broken
 
-Status: partially remediated on 2026-05-04. The UI, JS hints/build paths, README, wiki, and a canonical strategy manifest now agree on 9 strategies; browser-level strategy tests remain a follow-up.
+Status: partially remediated on 2026-05-04. The UI, JS hints/build paths, README, wiki, and a canonical strategy manifest now agree on 9 strategies; browser-level dropdown parity is now covered, while exhaustive per-strategy UI/export exercising remains a follow-up.
 
 Evidence:
 
@@ -825,6 +827,7 @@ Implemented so far:
 - Updated Lab copy to describe TLS Fragment as legacy/manual because native sing-box fragmentation remains disabled.
 - Updated README and frontend wiki to the same 9-strategy count.
 - Added `tests/unit/test_lab_strategy_parity.py` to verify manifest, HTML options, JS hints, and docs count stay aligned.
+- Added same-origin Chromium smoke coverage that compares the rendered Lab strategy dropdown to `frontend/assets/data/lab_strategies.json`.
 
 Required fix:
 
@@ -837,7 +840,7 @@ Required fix:
 Remaining:
 
 - Move the HTML options and JS hints to generated or runtime-loaded data from `lab_strategies.json` instead of maintaining parallel literals.
-- Add browser tests that exercise every strategy through the actual Lab UI.
+- Add browser tests that exercise every strategy builder/export through the actual Lab UI.
 - Add export assertions for Vwarp metadata in Sing-box/Clash/Xray/manual outputs.
 
 Closure checklist:
@@ -851,7 +854,7 @@ Closure checklist:
 
 ### P2-2. Lab QR generation leaks user config to an external service
 
-Status: remediated for the third-party leak; follow-up remains for a scannable local QR renderer.
+Status: remediated for the third-party leak and browser network assertion; follow-up remains only for an optional scannable local QR renderer.
 
 Previous evidence:
 
@@ -863,25 +866,26 @@ Implemented remediation:
 - The Lab now renders an offline payload panel directly in the browser using DOM nodes and a copy button.
 - Exported QR payload material no longer leaves the page for `api.qrserver.com` or any other QR endpoint.
 - `tests/unit/test_lab_strategy_parity.py` asserts that the external QR service strings are absent and that the offline QR copy path is present.
+- `scripts/frontend_same_origin_smoke.cjs` now drives the Lab export flow to the QR option in Chromium while blocking non-same-origin requests.
 
 Residual work:
 
 1. Add a small audited offline QR renderer if the UX must show a scannable matrix instead of a copyable payload.
 2. Keep the QR implementation dependency-free or vendored/free so it stays compatible with zero-budget/offline constraints.
-3. Add browser-level tests proving no network request is made while exporting the QR payload.
 
 Closure checklist:
 
 - Done: no proxy payload is sent to third-party QR endpoints.
 - Done: Lab QR export works offline as a local copyable payload.
+- Done: same-origin browser smoke proves QR export makes no non-same-origin request.
 - Done: changelog records privacy cleanup.
-- Remaining: optional scannable offline QR matrix and browser-level network assertion.
+- Remaining: optional scannable offline QR matrix.
 
 ---
 
 ### P2-3. Lab manual clean IP table can inject HTML
 
-Status: partially remediated; the manual clean-IP table path is fixed, while broader `showResult()` hardening remains open.
+Status: remediated for the identified Lab XSS paths. The manual clean-IP table path is fixed, dynamic `showResult()` values are escaped before entering trusted helper markup, and same-origin browser smoke coverage exercises representative injection payloads.
 
 Previous evidence:
 
@@ -894,20 +898,21 @@ Implemented remediation:
 - Manual clean-IP rows now use `tbody.replaceChildren()`, explicit `td` creation, and `textContent`.
 - Manual clean-IP input is parsed through `parseManualCleanIpLine()` and accepts only hostnames, IPv4-style host strings, or bracketed IPv6 with optional valid port.
 - Invalid manual entries fail before storage with a clear message.
-- `tests/unit/test_lab_strategy_parity.py` asserts that the table renderer uses text nodes and no longer contains `tr.innerHTML`.
+- Dynamic Lab result values from local proxy input, parsed proxy remarks, custom JSON parse errors, unsupported strategy names, live-test latency/exit IP/error text, and export format labels are escaped with `escapeHtml()` before being interpolated into trusted status markup.
+- `tests/unit/test_lab_strategy_parity.py` asserts that the table renderer uses text nodes, no longer contains `tr.innerHTML`, and that dynamic `showResult()` call sites use escaping.
+- `scripts/frontend_same_origin_smoke.cjs` injects XSS payloads through local proxy input, parsed proxy remarks, custom JSON errors, and live-test API errors in Chromium while blocking non-same-origin requests.
 
-Remaining required fix:
+Remaining follow-up:
 
-1. Split `showResult()` into explicit safe-text and trusted-template helpers.
-2. Convert user-controlled success/error paths, including custom JSON parse errors and live-test errors, to text-node rendering.
-3. Add browser-level XSS tests for manual clean IP input, custom JSON errors, live-test errors, and parsed proxy remarks.
-4. Keep icon-only trusted templates separate from user data and document the trusted-template allowlist.
+1. Split `showResult()` into explicit safe-text and trusted-template helpers if future Lab changes add more rich templates.
+2. Keep trusted templates separate from user/API data and document the trusted-template allowlist if the Lab grows new rich-message surfaces.
 
 Closure checklist:
 
 - Done: manual clean-IP input no longer enters `innerHTML`.
 - Done: manual clean-IP table regression test passes.
-- Remaining: global Lab `showResult()` sanitization pass and browser XSS coverage.
+- Done: dynamic Lab `showResult()` values are escaped before entering trusted markup.
+- Done: browser-level XSS smoke covers representative Lab dynamic-input/error paths.
 - Changelog records frontend sanitization cleanup.
 
 ---
@@ -1901,6 +1906,15 @@ Completion requirements:
 5. Verification must either work or be removed as a claim.
 6. Remote runtime dependencies must be optional, not required.
 7. IPFS/failover claims must be proven or demoted.
+
+Current status: optional IPFS/IPNS frontend failover is proven locally for the
+behavior owned by the static frontend. `tests/unit/test_frontend_failover.py`
+executes `frontend/assets/js/failover.js` in a Node VM and verifies the
+same-origin static connectivity probe, placeholder IPNS-key no-op, gateway base
+normalization, current leaf page/query/hash preservation, and same-session
+redirect loop prevention. This does not make IPFS a required zero-budget
+dependency; the optional mirror remains a parallel path beside the GitHub Pages
+core.
 
 Tests/proof:
 
