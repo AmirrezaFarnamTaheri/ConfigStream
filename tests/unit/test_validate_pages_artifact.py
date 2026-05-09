@@ -86,6 +86,8 @@ def _metadata_payload() -> dict:
         "generated_at": now,
         "last_updated_utc": now,
         "trace_id": "-",
+        "proxies_snapshot_hash": "a" * 64,
+        "previous_proxies_snapshot_hash": None,
         "total_lines_sourced": 0,
         "total_unique_candidates": 0,
         "total_valid_proxies": 0,
@@ -397,6 +399,64 @@ def test_validate_pages_artifact_reports_unknown_metadata_schema_key(
 
     assert any(
         "metadata.json contains unknown schema key: legacy_extra" in error
+        for error in errors
+    )
+
+
+def test_validate_pages_artifact_reports_nested_metadata_schema_drift(
+    tmp_path: Path,
+) -> None:
+    _write_valid_artifact(tmp_path)
+    metadata = _metadata_payload()
+    metadata["latency_distribution"].pop("fast")
+    metadata["pipeline_execution_audit"]["unexpected"] = 1
+    _write_text(tmp_path / "metadata.json", json.dumps(metadata))
+    _write_manifest(tmp_path)
+
+    errors = validate_pages_artifact(tmp_path)
+
+    assert any(
+        "metadata.json latency_distribution missing required key: fast" in error
+        for error in errors
+    )
+    assert any(
+        "metadata.json pipeline_execution_audit contains unknown schema key: unexpected"
+        in error
+        for error in errors
+    )
+
+
+def test_validate_pages_artifact_reports_protocol_detail_schema_drift(
+    tmp_path: Path,
+) -> None:
+    _write_valid_artifact(tmp_path)
+    proxy = {
+        "config": "vless://11111111-1111-4111-8111-111111111111@example.com:443",
+        "protocol": "vless",
+        "address": "example.com",
+        "port": 443,
+        "uuid": "11111111-1111-4111-8111-111111111111",
+        "process": "native",
+        "details": {
+            "uuid": "not-a-uuid-v4",
+            "flow": "",
+            "type": "ws",
+            "security": "tls",
+            "unexpected": True,
+        },
+    }
+    _write_text(tmp_path / "proxies.json", json.dumps([proxy]))
+    _write_text(tmp_path / "api" / "proxies", json.dumps([proxy]))
+    _write_manifest(tmp_path)
+
+    errors = validate_pages_artifact(tmp_path)
+
+    assert any(
+        "proxies.json[0].details.uuid does not match required pattern" in error
+        for error in errors
+    )
+    assert any(
+        "proxies.json[0].details contains unknown schema key: unexpected" in error
         for error in errors
     )
 

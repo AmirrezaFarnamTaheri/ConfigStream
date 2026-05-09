@@ -43,6 +43,7 @@
     {"path": "data/evasion_trend.json", "family": "analytics", "category": "analytics", "format": "json", "required": true, "nonempty": true, "schema_validation": false, "degraded_valid": true, "notes": "Evasion trend data."},
     {"path": "docs/wiki/index.md", "family": "docs", "category": "docs", "format": "markdown", "required": true, "nonempty": true, "schema_validation": false, "degraded_valid": true, "notes": "Published docs entry point."},
     {"path": "index.html", "family": "frontend", "category": "frontend", "format": "html", "required": true, "nonempty": true, "schema_validation": false, "degraded_valid": true, "notes": "Published frontend entry point."},
+    {"path": "assets/js/runtime-config.js", "family": "frontend", "category": "frontend", "format": "text", "required": true, "nonempty": true, "schema_validation": false, "degraded_valid": true, "notes": "Generated deploy-time frontend runtime config carrying public verification and stego keys."},
     {"path": "api/proxies", "family": "api-alias", "category": "api", "format": "json", "required": true, "nonempty": true, "schema_validation": true, "degraded_valid": true, "notes": "API alias that must match proxies.json."},
     {"path": "api/stats", "family": "api-alias", "category": "api", "format": "json", "required": true, "nonempty": true, "schema_validation": true, "degraded_valid": true, "notes": "API alias that must match metadata.json."}
   ],

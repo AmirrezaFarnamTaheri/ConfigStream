@@ -7,6 +7,12 @@ from configstream.config import AppSettings
 from configstream.circuit_breaker import CircuitBreakerManager
 
 
+def mocked_fetch_settings(**kwargs):
+    settings = AppSettings(**kwargs)
+    settings.FETCH_VALIDATE_DNS = False
+    return settings
+
+
 # Helper to mock the stream context manager
 class MockStreamResponse:
     def __init__(self, status_code, text="", headers=None):
@@ -41,7 +47,9 @@ async def test_fetch_success():
         mock_stream.return_value = MockStreamResponse(200, "ok")
 
         client = httpx.AsyncClient()
-        res = await fetch_from_source(client, "http://ok.com")
+        res = await fetch_from_source(
+            client, "http://ok.com", app_settings=mocked_fetch_settings()
+        )
         assert res.success
         assert res.content == "ok"
 
@@ -56,7 +64,12 @@ async def test_fetch_rate_limit_retry():
         mock_stream.side_effect = [resp1, resp2]
 
         client = httpx.AsyncClient()
-        res = await fetch_from_source(client, "http://retry.com", max_retries=2)
+        res = await fetch_from_source(
+            client,
+            "http://retry.com",
+            max_retries=2,
+            app_settings=mocked_fetch_settings(),
+        )
 
         assert res.success
         assert res.content == "ok"
@@ -94,7 +107,7 @@ async def test_hedged_request_success():
     with patch("httpx.AsyncClient.stream", new_callable=MagicMock) as mock_stream:
         mock_stream.return_value = MockStreamResponse(200, "streamed_content")
 
-        settings = AppSettings(HEDGING_ENABLED=True, HEDGE_AFTER_MS=100)
+        settings = mocked_fetch_settings(HEDGING_ENABLED=True, HEDGE_AFTER_MS=100)
         client = httpx.AsyncClient()
 
         res = await fetch_from_source(client, "http://hedge.com", app_settings=settings)
@@ -127,21 +140,21 @@ async def test_fetch_404_trips_breaker_and_skips_subsequent_calls():
             client,
             f"http://{host}/missing-1",
             max_retries=1,
-            app_settings=AppSettings(CIRCUIT_BREAKER_ENABLED=True),
+            app_settings=mocked_fetch_settings(CIRCUIT_BREAKER_ENABLED=True),
             breaker_manager=breaker_manager,
         )
         res2 = await fetch_from_source(
             client,
             f"http://{host}/missing-2",
             max_retries=1,
-            app_settings=AppSettings(CIRCUIT_BREAKER_ENABLED=True),
+            app_settings=mocked_fetch_settings(CIRCUIT_BREAKER_ENABLED=True),
             breaker_manager=breaker_manager,
         )
         res3 = await fetch_from_source(
             client,
             f"http://{host}/missing-3",
             max_retries=1,
-            app_settings=AppSettings(CIRCUIT_BREAKER_ENABLED=True),
+            app_settings=mocked_fetch_settings(CIRCUIT_BREAKER_ENABLED=True),
             breaker_manager=breaker_manager,
         )
 

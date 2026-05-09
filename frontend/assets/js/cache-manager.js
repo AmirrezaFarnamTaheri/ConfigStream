@@ -319,8 +319,13 @@ class CacheManager {
           this.log.warn(`Compression skipped for ${url}: ${e}`);
       }
 
-      // Store version from data if available (for differential updates)
-      const version = data.version || data.last_updated_utc || Date.now();
+      // Store snapshot identity for differential updates. Proxy arrays do not
+      // carry their own version, so use the metadata hash published beside them.
+      const version = data.version ||
+        data.proxies_snapshot_hash ||
+        (Array.isArray(data) && url.includes('api/proxies') ? window.CONFIGSTREAM_PROXY_SNAPSHOT_HASH : null) ||
+        data.last_updated_utc ||
+        Date.now();
 
       const cacheItem = {
           data: storedData,

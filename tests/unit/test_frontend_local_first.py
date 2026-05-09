@@ -39,6 +39,7 @@ REQUIRED_LOCAL_ASSETS = (
     "assets/libs/purify.min.js",
     "assets/libs/highlight.min.js",
     "assets/libs/atom-one-dark.min.css",
+    "assets/js/runtime-config.js",
     "assets/images/globe/earth-blue-marble.jpg",
     "assets/images/globe/earth-night.jpg",
     "assets/images/globe/earth-topology.png",

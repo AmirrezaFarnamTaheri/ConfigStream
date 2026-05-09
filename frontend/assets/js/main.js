@@ -190,6 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 fetchMetadata(),
                 fetchStatistics()
             ]);
+            window.CONFIGSTREAM_PROXY_SNAPSHOT_HASH = metadata?.proxies_snapshot_hash || null;
 
             // Store protocol colors globally
             if (metadata && metadata.protocol_colors) {

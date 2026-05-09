@@ -40,11 +40,13 @@
 - Source URLs are restricted to `http` and `https`.
 - Source URLs cannot include credentials, localhost/internal hostnames, or private/non-global IP literals by default.
 - Redirects are followed manually only after validating each `Location`; redirect depth is capped by `FETCH_MAX_REDIRECTS`.
+- When `FETCH_VALIDATE_DNS=true`, source hostnames are resolved immediately before each fetch attempt, including redirect targets, and any private/non-global DNS answer is rejected before opening the HTTP stream.
+- Signed frontend artifacts fail closed when WebCrypto is unavailable or public key material is missing/placeholder. Unsigned local content can still be parsed without verification.
 
 #### Frontend Deploy Integrity
-- GitHub Pages deploy injects `CS_PUBLIC_KEY` and `STEGO_KEY` into copied frontend assets before upload.
-- Deploy fails if the public-key placeholder or stego placeholder remains in the Pages artifact.
-- Workflow validation enforces the frontend placeholder guard so it cannot be removed from deploy without breaking validation.
+- GitHub Pages deploy generates `assets/js/runtime-config.js` from `CS_PUBLIC_KEY` and `STEGO_KEY` after copying frontend assets, leaving source-shaped JavaScript immutable.
+- Deploy fails if required runtime keys are missing or if the public-key placeholder or stego placeholder remains in the Pages artifact.
+- Workflow and Pages artifact validation enforce the frontend runtime-config guard so it cannot be removed from deploy without breaking validation.
 
 #### Frontend (JavaScript)
 - ✅ **XSS Protection**: DOMPurify library for HTML sanitization

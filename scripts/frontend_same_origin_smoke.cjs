@@ -7,14 +7,35 @@ const path = require("path");
 const { chromium } = require("playwright");
 
 const repoRoot = path.resolve(__dirname, "..");
-const frontendRoot = path.join(repoRoot, "frontend");
+function parseArgs(argv) {
+  const options = {
+    noJsOnly: false,
+    requireRuntimeConfig: false,
+    root: path.join(repoRoot, "frontend"),
+  };
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index];
+    if (arg === "--no-js-only") {
+      options.noJsOnly = true;
+    } else if (arg === "--require-runtime-config") {
+      options.requireRuntimeConfig = true;
+    } else if (arg === "--root") {
+      index += 1;
+      if (index >= argv.length) {
+        throw new Error("--root requires a directory argument");
+      }
+      options.root = path.resolve(argv[index]);
+    } else if (arg.startsWith("--root=")) {
+      options.root = path.resolve(arg.slice("--root=".length));
+    } else {
+      throw new Error(`Unknown argument: ${arg}`);
+    }
+  }
+  return options;
+}
+
+let frontendRoot = path.join(repoRoot, "frontend");
 const protocolMatrixPath = path.join(repoRoot, "docs", "protocol_matrix.json");
-const labStrategiesPath = path.join(
-  frontendRoot,
-  "assets",
-  "data",
-  "lab_strategies.json",
-);
 const pages = [
   "index.html",
   "about.html",
@@ -35,6 +56,10 @@ const mimeTypes = new Map([
   [".jpeg", "image/jpeg"],
   [".woff2", "font/woff2"],
 ]);
+
+function labStrategiesPath() {
+  return path.join(frontendRoot, "assets", "data", "lab_strategies.json");
+}
 
 function createServer(overrides = {}) {
   return http.createServer((request, response) => {
@@ -103,8 +128,32 @@ function buildProtocolFixture() {
 }
 
 function labStrategyIds() {
-  const manifest = JSON.parse(fs.readFileSync(labStrategiesPath, "utf8"));
+  const manifest = JSON.parse(fs.readFileSync(labStrategiesPath(), "utf8"));
   return manifest.strategies.map((strategy) => strategy.id);
+}
+
+function assertRuntimeConfig(root) {
+  const runtimeConfigPath = path.join(root, "assets", "js", "runtime-config.js");
+  if (!fs.existsSync(runtimeConfigPath)) {
+    throw new Error("Missing deploy runtime config: assets/js/runtime-config.js");
+  }
+  const content = fs.readFileSync(runtimeConfigPath, "utf8");
+  const forbiddenMarkers = [
+    "79e/79e/",
+    "PLACEHOLDER_PUBLIC_KEY",
+    "PLACEHOLDER_KEY_INJECTED_BY_CI",
+  ];
+  for (const marker of forbiddenMarkers) {
+    if (content.includes(marker)) {
+      throw new Error(`Deploy runtime config still contains placeholder marker: ${marker}`);
+    }
+  }
+  if (/PUBLIC_KEY:\s*""/.test(content)) {
+    throw new Error("Deploy runtime config is missing PUBLIC_KEY");
+  }
+  if (/STEGO_KEY:\s*""/.test(content)) {
+    throw new Error("Deploy runtime config is missing STEGO_KEY");
+  }
 }
 
 function isExpectedProtocolSmokeConsoleError(message) {
@@ -441,7 +490,14 @@ async function assertNoLabInjection(page, selector, label) {
 }
 
 async function main() {
-  const noJsOnly = process.argv.includes("--no-js-only");
+  const options = parseArgs(process.argv.slice(2));
+  frontendRoot = options.root;
+  if (!fs.existsSync(frontendRoot) || !fs.statSync(frontendRoot).isDirectory()) {
+    throw new Error(`Frontend root does not exist: ${frontendRoot}`);
+  }
+  if (options.requireRuntimeConfig) {
+    assertRuntimeConfig(frontendRoot);
+  }
   const server = createServer();
   const port = await listen(server);
   const baseUrl = `http://127.0.0.1:${port}`;
@@ -450,7 +506,7 @@ async function main() {
 
   try {
     browser = await chromium.launch();
-    if (!noJsOnly) {
+    if (!options.noJsOnly) {
       await exercisePages(browser, baseUrl, allowedHost);
       console.log("same-origin frontend smoke passed");
       await exerciseProtocolRender(browser);

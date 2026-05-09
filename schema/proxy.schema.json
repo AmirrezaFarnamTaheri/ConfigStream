@@ -73,7 +73,7 @@
     "uuid": {
       "type": "string",
       "description": "Primary credential for UUID-based protocols.",
-      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+      "pattern": "^$|^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
     },
     "remarks": {
       "type": "string"
@@ -141,6 +141,9 @@
       }
     },
     "tested_at": {
+      "type": "string"
+    },
+    "last_checked": {
       "type": "string"
     },
     "details": {
@@ -413,9 +416,6 @@
     "vless_details": {
       "type": "object",
       "required": [
-        "uuid",
-        "flow",
-        "type",
         "security"
       ],
       "properties": {
@@ -540,6 +540,15 @@
         },
         "tag": {
           "type": "string"
+        },
+        "has_utls": {
+          "type": "boolean"
+        },
+        "has_alpn_rotation": {
+          "type": "boolean"
+        },
+        "has_multiplexing": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false
@@ -640,6 +649,15 @@
         },
         "tag": {
           "type": "string"
+        },
+        "has_utls": {
+          "type": "boolean"
+        },
+        "has_alpn_rotation": {
+          "type": "boolean"
+        },
+        "has_multiplexing": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false
@@ -711,6 +729,15 @@
         },
         "tag": {
           "type": "string"
+        },
+        "has_utls": {
+          "type": "boolean"
+        },
+        "has_alpn_rotation": {
+          "type": "boolean"
+        },
+        "has_multiplexing": {
+          "type": "boolean"
         }
       },
       "anyOf": [
@@ -775,6 +802,15 @@
         },
         "tag": {
           "type": "string"
+        },
+        "has_utls": {
+          "type": "boolean"
+        },
+        "has_alpn_rotation": {
+          "type": "boolean"
+        },
+        "has_multiplexing": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false
@@ -853,6 +889,15 @@
         },
         "tag": {
           "type": "string"
+        },
+        "has_utls": {
+          "type": "boolean"
+        },
+        "has_alpn_rotation": {
+          "type": "boolean"
+        },
+        "has_multiplexing": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false
@@ -912,6 +957,15 @@
         },
         "tag": {
           "type": "string"
+        },
+        "has_utls": {
+          "type": "boolean"
+        },
+        "has_alpn_rotation": {
+          "type": "boolean"
+        },
+        "has_multiplexing": {
+          "type": "boolean"
         }
       },
       "anyOf": [
@@ -958,6 +1012,15 @@
         },
         "tag": {
           "type": "string"
+        },
+        "has_utls": {
+          "type": "boolean"
+        },
+        "has_alpn_rotation": {
+          "type": "boolean"
+        },
+        "has_multiplexing": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false

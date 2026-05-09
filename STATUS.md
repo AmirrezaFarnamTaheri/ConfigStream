@@ -1,6 +1,6 @@
 # ConfigStream Project Status
 
-**Last updated:** 2026-05-09
+**Last updated:** 2026-05-10
 **Version:** v3.0.2
 **Status:** Remediation in progress. Not production-ready and not ready to publish as a final public release.
 
@@ -14,9 +14,9 @@ Current blockers:
 
 - Workflow syntax was repaired locally, but workflow behavior still needs full CI validation.
 - Public artifact contracts need canonical schemas and deploy smoke tests.
-- Runtime metrics, frontend labels, schemas, and docs still need parity work.
+- Runtime metrics, frontend labels, schemas, deploy-time runtime config, and docs have focused parity guardrails in place; remaining work is narrower future-contract hygiene.
 - Security defaults for degraded public output still need hardening; admin APIs, production CORS, WebSocket lifecycle, the lab live-test endpoint, and fetch redirect handling have focused guardrails in place.
-- Frontend deployment must be made canonical: either tested Vite output or raw static output, not both as competing truths.
+- Frontend deployment is canonical raw static for Pages: deploy copies `frontend/.` into `output/`, while Vite remains an optional/local build sanity check and is not treated as the deploy artifact.
 - Legacy, duplicate, and stale documents still need cleanup after each implementation step.
 
 ## Recently Restored
@@ -37,9 +37,15 @@ Current blockers:
 - WebSocket update connections now have bounded connection count, idle timeout, send timeout, stale cleanup, and connection/drop stats.
 - Lab live chain testing is disabled by default in production; when explicitly enabled, it requires `ADMIN_API_KEY`, enforces a `30/minute` rate limit, rejects oversized configs, validates submitted outbound shape/type/hosts, blocks private/internal destinations, and keeps the frontend manual fallback path available.
 - Laboratory Step 4 now exposes visible live-test/manual-test mode state: backend-capable hosting keeps the live endpoint path, while GitHub Pages/file-style static hosting is labeled for manual sing-box testing.
+- Frontend trust labels now distinguish unique candidates, retested working proxies, and shielded candidates so shielded chain counts are not presented as verified working.
+- Pages workflow validation now enforces the canonical raw static frontend deploy path and rejects accidental `frontend-dist`/Vite deployment drift.
 - Source fetching now rejects source URL credentials, localhost/internal hostnames, and private/non-global IP literals by default; redirects are followed manually only after validating each target and respecting `FETCH_MAX_REDIRECTS`.
-- Pages deploy now injects `CS_PUBLIC_KEY`/`STEGO_KEY` into copied frontend assets and fails before upload if frontend public-key or stego placeholders remain; workflow validation enforces this guard.
-- Public artifact validation now rejects unknown top-level control schema keys and verifies that `api/proxies` and `api/stats` match `proxies.json` and `metadata.json`; README now documents `proxies.json` as a JSON array, not a metadata envelope.
+- Source fetching now validates DNS answers before each HTTP stream when `FETCH_VALIDATE_DNS=true`, rejecting hostname and redirect targets that resolve to private or non-global addresses before network I/O begins.
+- Pages deploy now generates `assets/js/runtime-config.js` from `CS_PUBLIC_KEY`/`STEGO_KEY` after copying frontend assets, leaves checked-in source-shaped JS immutable, and fails before upload if required runtime keys are missing or placeholder markers remain; workflow and Pages artifact validation enforce this guard.
+- A repeatable deploy-artifact browser smoke now assembles a temporary Pages-shaped artifact, generates runtime config, validates the public artifact contract, and runs same-origin browser/protocol/Lab/no-JS checks against that exact artifact.
+- Frontend signed-artifact verification now fails closed when WebCrypto is unavailable or public key material is missing/placeholder, while unsigned local content remains parseable for offline use.
+- Public artifact validation now rejects unknown control/proxy schema keys, validates nested metadata and protocol-specific proxy `details`, and verifies that `api/proxies` and `api/stats` match `proxies.json` and `metadata.json`; README now documents `proxies.json` as a JSON array, not a metadata envelope.
+- Public metadata now includes `proxies_snapshot_hash` and `previous_proxies_snapshot_hash`; `/api/diff/proxies` requires `base_version` to match the old snapshot hash before returning a delta, and frontend proxy-array caching uses the metadata snapshot hash.
 - Laboratory chain strategies now have a canonical 9-strategy manifest, UI/JS/docs parity, Vwarp MASQUE and AtomicNoize build branches, and a fail-loud unsupported-strategy path.
 - The same-origin frontend browser smoke now checks the rendered Laboratory strategy dropdown against the canonical 9-strategy manifest.
 - Laboratory QR export no longer sends proxy or chain payload material to an external QR service; the Lab now renders an offline copyable payload panel and keeps a scannable local QR renderer as an optional follow-up.
@@ -81,7 +87,7 @@ No task is closed while any surface still documents or serves the old contract.
 
 ## Validation Snapshot
 
-Latest local validation performed on 2026-05-09:
+Latest local validation performed on 2026-05-10:
 
 - `python scripts/validate_workflows.py`: passed for 6 workflow files
 - `python scripts/validate_versions.py`: passed
@@ -121,6 +127,12 @@ Latest local validation performed on 2026-05-09:
 - `pytest -q tests/unit/test_logging_sanitization_policy.py tests/unit/test_output.py`: 15 passed
 - `pytest -q tests/unit/test_server.py tests/unit/test_server_new.py tests/unit/test_output.py tests/unit/test_validate_pages_artifact.py tests/unit/test_analytics_output.py tests/unit/test_merge_batches.py tests/unit/test_documentation_hygiene.py tests/unit/test_validate_workflows.py tests/unit/test_validate_versions.py`: 66 passed
 - `pytest -q tests/unit/test_server.py tests/unit/test_server_new.py tests/unit/test_fetcher.py tests/unit/test_fetcher_config.py tests/unit/test_fetcher_resilience.py tests/unit/test_fetcher_retries.py tests/unit/test_fetcher_advanced.py tests/unit/fetcher/test_fetcher_core.py tests/unit/test_output.py tests/unit/test_validate_pages_artifact.py tests/unit/test_analytics_output.py tests/unit/test_merge_batches.py tests/unit/test_documentation_hygiene.py tests/unit/test_validate_workflows.py tests/unit/test_validate_versions.py tests/unit/test_validate_frontend_placeholders.py tests/unit/test_lab_strategy_parity.py tests/unit/test_concurrency_contract.py tests/unit/test_producer_quality_accounting.py tests/unit/test_logging_sanitization_policy.py`: 127 passed
+- `python -m pytest tests/unit/test_fetcher.py tests/unit/test_fetcher_config.py tests/unit/test_fetcher_resilience.py tests/unit/test_fetcher_retries.py tests/unit/test_fetcher_advanced.py tests/unit/fetcher/test_fetcher_core.py -q`: 36 passed
+- `python -m pytest tests/unit/test_frontend_verifier.py -q`: 1 passed
+- `python -m pytest tests/unit/test_output.py tests/unit/test_server.py tests/unit/test_validate_pages_artifact.py tests/unit/test_frontend_cache_snapshot.py -q`: 72 passed
+- `python -m pytest tests/unit/test_validate_pages_artifact.py -q`: 26 passed
+- `python -m pytest tests/unit/test_frontend_trust_labels.py tests/unit/test_documentation_hygiene.py -q`: 8 passed
+- `python -m pytest tests/unit/test_validate_workflows.py -q`: 5 passed
 - `python -m pytest tests/unit/test_protocol_output_golden.py tests/unit/test_security_validator.py tests/unit/test_security_validator_full.py tests/unit/test_proxy_schema.py -q`: 15 passed, 1 skipped
 - `python -m pytest tests/unit/parsers/test_parser_fixes.py tests/unit/test_protocol_output_golden.py tests/unit/test_parsers_robustness.py -q`: 58 passed
 - `python -m pytest tests/unit/test_parsers_json_yaml.py tests/unit/test_protocol_output_golden.py tests/unit/test_parsers_robustness.py -q`: 49 passed
@@ -128,13 +140,15 @@ Latest local validation performed on 2026-05-09:
 - `npm run build`: passed
 - `npm run test:frontend:no-network`: passed, including protocol render, Lab XSS, and same-origin no-JS smoke
 - `npm run test:frontend:degraded`: passed
-- `python scripts/run_test_profile.py production-smoke`: passed, including 82 focused pytest tests
-- `python -m pytest -q`: 974 passed, 5 skipped
+- `python scripts/run_test_profile.py production-smoke`: passed, including 89 focused pytest tests
+- `python scripts/run_test_profile.py frontend-browser` with `CONFIGSTREAM_REQUIRE_PLAYWRIGHT=1`: passed, including 4 Python Playwright E2E tests, same-origin no-network browser smoke, protocol render smoke, Lab XSS smoke, and no-JS degraded smoke
+- `npm run test:frontend:pages-artifact`: passed, including generated runtime config, Pages contract validation, same-origin browser smoke, protocol render smoke, Lab XSS smoke, and no-JS degraded smoke against a temporary assembled Pages artifact
+- `python -m pytest -q`: 991 passed, 1 skipped, with `CONFIGSTREAM_REQUIRE_PLAYWRIGHT=1`
 
 Browser skip visibility:
 
-- The 5 local skips are the Python Playwright frontend e2e tests when the Python browser bundle is not installed.
-- `CONFIGSTREAM_REQUIRE_PLAYWRIGHT=1` converts that condition into a hard failure for the `frontend-browser` profile and CI job.
-- The Node Playwright same-origin and no-JS smokes run locally through npm and passed in this checkpoint.
+- Python Playwright Chromium is installed locally in this checkpoint.
+- `CONFIGSTREAM_REQUIRE_PLAYWRIGHT=1` now proves the Python frontend E2E tests run instead of skipping; the strict full suite passed with 991 tests and 1 remaining skip outside the frontend-browser path.
+- The Node Playwright same-origin and no-JS smokes also run locally through npm and passed in this checkpoint.
 
 The full production gate remains open until the complete audit roadmap is implemented and the full local/CI/deploy verification matrix passes.

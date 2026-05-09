@@ -23,25 +23,38 @@
             return bytes;
         },
 
+        _isSignedObject: function(signedObj) {
+            return !!(signedObj && typeof signedObj.signature === "string" && signedObj.signature.length > 0);
+        },
+
+        _isConfiguredPublicKey: function(publicKey) {
+            return !!(
+                publicKey &&
+                typeof publicKey === "string" &&
+                publicKey.length >= 20 &&
+                !publicKey.includes("PLACEHOLDER") &&
+                !publicKey.includes("79e/79e/")
+            );
+        },
+
         /**
          * Verifies the signature of the configuration object using Web Crypto API.
          * @param {Object} signedObj - The object containing { content, signature }
          * @returns {Promise<Object>} - The parsed JSON content if verification succeeds.
          */
         verifyConfig: async function(signedObj) {
-            if (!window.crypto || !window.crypto.subtle) {
-                console.warn("Web Crypto API not supported. Skipping verification.");
-                // Fail closed on unsupported crypto if strictness is required,
-                // but usually we allow old browsers. The audit says "fail closed when verification fails".
-                // If API is missing, we can't verify.
+            if (!this._isSignedObject(signedObj)) {
                 return JSON.parse(signedObj.content);
+            }
+
+            if (!window.crypto || !window.crypto.subtle) {
+                throw new Error("Signature verification unavailable: Web Crypto API not supported.");
             }
 
             const PUBLIC_KEY = global.CS_CONSTANTS ? global.CS_CONSTANTS.PUBLIC_KEY : null;
 
-            if (!PUBLIC_KEY || PUBLIC_KEY.includes("PLACEHOLDER") || PUBLIC_KEY.length < 20) {
-                console.warn("Signature verification skipped: Public Key not configured.");
-                return JSON.parse(signedObj.content);
+            if (!this._isConfiguredPublicKey(PUBLIC_KEY)) {
+                throw new Error("Signature verification unavailable: Public Key not configured.");
             }
 
             try {
@@ -93,7 +106,7 @@
             const statusEl = document.getElementById('wasm-status');
             const PUBLIC_KEY = global.CS_CONSTANTS ? global.CS_CONSTANTS.PUBLIC_KEY : null;
 
-            if (!PUBLIC_KEY || PUBLIC_KEY.includes("PLACEHOLDER") || PUBLIC_KEY.length < 20) {
+            if (!this._isConfiguredPublicKey(PUBLIC_KEY)) {
                 if(statusEl) {
                     statusEl.textContent = "⚠️ Verification unavailable (No Key)";
                     statusEl.style.color = "var(--text-secondary)";

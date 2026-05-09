@@ -56,6 +56,19 @@ def _deploy_pages_has_frontend_placeholder_guard(path: Path) -> bool:
     )
 
 
+def _deploy_pages_uses_canonical_raw_frontend(path: Path) -> bool:
+    try:
+        content = path.read_text(encoding="utf-8")
+    except OSError:
+        return False
+    return (
+        "cp -R frontend/. output/" in content
+        and "frontend-dist" not in content
+        and "npm run build" not in content
+        and "vite build" not in content
+    )
+
+
 def _ci_has_required_frontend_browser_profile(path: Path) -> bool:
     try:
         content = path.read_text(encoding="utf-8")
@@ -109,6 +122,12 @@ def main() -> int:
         ):
             errors.append(
                 f"{path}: missing frontend placeholder injection/validation guard"
+            )
+        if path.name == "deploy-pages.yml" and not _deploy_pages_uses_canonical_raw_frontend(
+            path
+        ):
+            errors.append(
+                f"{path}: Pages deploy must use canonical raw static frontend"
             )
         if path.name == "ci.yml" and not _ci_has_required_frontend_browser_profile(
             path

@@ -58,6 +58,7 @@ REQUIRED_EXISTS: tuple[str, ...] = (
     "data/evasion_trend.json",
     "docs/wiki/index.md",
     "index.html",
+    "assets/js/runtime-config.js",
     "api/proxies",
     "api/stats",
 )
@@ -91,6 +92,7 @@ REQUIRED_NONEMPTY: tuple[str, ...] = (
     "data/evasion_trend.json",
     "docs/wiki/index.md",
     "index.html",
+    "assets/js/runtime-config.js",
     "api/proxies",
     "api/stats",
 )
@@ -288,6 +290,156 @@ def _type_matches(value: object, expected_type: object) -> bool:
     return False
 
 
+def _resolve_schema_ref(schema: dict, ref: str) -> dict:
+    prefix = "#/$defs/"
+    if not ref.startswith(prefix):
+        return {}
+    defs = schema.get("$defs", {})
+    if not isinstance(defs, dict):
+        return {}
+    target = defs.get(ref[len(prefix) :], {})
+    return target if isinstance(target, dict) else {}
+
+
+def _validate_schema_rule(
+    value: object, rule: dict, root_schema: dict, label: str
+) -> list[str]:
+    errors: list[str] = []
+    ref = rule.get("$ref")
+    if isinstance(ref, str):
+        target = _resolve_schema_ref(root_schema, ref)
+        if target:
+            return _validate_schema_rule(value, target, root_schema, label)
+
+    for branch_key in ("oneOf", "anyOf"):
+        branches = rule.get(branch_key)
+        if isinstance(branches, list):
+            branch_errors = [
+                _validate_schema_rule(value, branch, root_schema, label)
+                for branch in branches
+                if isinstance(branch, dict)
+            ]
+            if any(not branch_error for branch_error in branch_errors):
+                return []
+            errors.append(f"{label} does not match any allowed schema shape")
+            return errors
+
+    expected_type = rule.get("type")
+    if expected_type is not None and not _type_matches(value, expected_type):
+        errors.append(f"{label} has invalid type")
+        return errors
+
+    enum = rule.get("enum")
+    if isinstance(enum, list) and value not in enum:
+        errors.append(f"{label} has invalid value")
+
+    pattern = rule.get("pattern")
+    if isinstance(pattern, str) and isinstance(value, str):
+        if not re.match(pattern, value):
+            errors.append(f"{label} does not match required pattern")
+
+    minimum = rule.get("minimum")
+    if (
+        isinstance(minimum, (int, float))
+        and isinstance(value, (int, float))
+        and not isinstance(value, bool)
+        and value < minimum
+    ):
+        errors.append(f"{label} must be >= {minimum}")
+
+    if isinstance(value, dict):
+        errors.extend(_validate_dict_against_rule(value, rule, root_schema, label))
+    elif isinstance(value, list):
+        item_rule = rule.get("items")
+        if isinstance(item_rule, dict):
+            for index, item in enumerate(value):
+                errors.extend(
+                    _validate_schema_rule(
+                        item, item_rule, root_schema, f"{label}[{index}]"
+                    )
+                )
+    return errors
+
+
+def _validate_dict_against_rule(
+    value: dict, rule: dict, root_schema: dict, label: str
+) -> list[str]:
+    errors: list[str] = []
+    required = rule.get("required", [])
+    if isinstance(required, list):
+        for key in sorted(str(item) for item in required if isinstance(item, str)):
+            if key not in value:
+                errors.append(f"{label} missing required key: {key}")
+
+    properties = rule.get("properties", {})
+    if isinstance(properties, dict):
+        if rule.get("additionalProperties") is False:
+            allowed = {str(key) for key in properties.keys()}
+            for key in sorted(set(value.keys()) - allowed):
+                errors.append(f"{label} contains unknown schema key: {key}")
+        for key, nested_value in value.items():
+            nested_rule = properties.get(key)
+            if isinstance(nested_rule, dict):
+                errors.extend(
+                    _validate_schema_rule(
+                        nested_value, nested_rule, root_schema, f"{label}.{key}"
+                    )
+                )
+
+    additional = rule.get("additionalProperties")
+    if isinstance(additional, dict) and isinstance(properties, dict):
+        known = {str(key) for key in properties.keys()}
+        for key, nested_value in value.items():
+            if key in known:
+                continue
+            errors.extend(
+                _validate_schema_rule(
+                    nested_value, additional, root_schema, f"{label}.{key}"
+                )
+            )
+    return errors
+
+
+def _validate_conditional_schema(
+    payload: dict, schema: dict, file_name: str
+) -> list[str]:
+    errors: list[str] = []
+    clauses = schema.get("allOf", [])
+    if not isinstance(clauses, list):
+        return errors
+    for clause in clauses:
+        if not isinstance(clause, dict):
+            continue
+        condition = clause.get("if")
+        then = clause.get("then")
+        if not isinstance(condition, dict) or not isinstance(then, dict):
+            continue
+        if not _schema_condition_matches(payload, condition):
+            continue
+        errors.extend(_validate_dict_against_rule(payload, then, schema, file_name))
+    return errors
+
+
+def _schema_condition_matches(payload: dict, condition: dict) -> bool:
+    required = condition.get("required", [])
+    if isinstance(required, list):
+        for key in required:
+            if isinstance(key, str) and key not in payload:
+                return False
+    properties = condition.get("properties", {})
+    if not isinstance(properties, dict):
+        return True
+    for key, rule in properties.items():
+        if key not in payload or not isinstance(rule, dict):
+            continue
+        if "const" in rule and payload[key] != rule["const"]:
+            return False
+        enum = rule.get("enum")
+        if isinstance(enum, list) and payload[key] not in enum:
+            return False
+    return True
+
+
 def _validate_schema_object(
     payload: object, schema_name: str, file_name: str
 ) -> list[str]:
@@ -306,22 +458,11 @@ def _validate_schema_object(
 
     for key, value in payload.items():
         rule = properties.get(key)
-        if not isinstance(rule, dict):
-            continue
-        expected_type = rule.get("type")
-        if expected_type is not None and not _type_matches(value, expected_type):
-            errors.append(f"{file_name} {key} has invalid type")
-            continue
-        enum = rule.get("enum")
-        if isinstance(enum, list) and value not in enum:
-            errors.append(f"{file_name} {key} has invalid value")
-        minimum = rule.get("minimum")
-        if (
-            isinstance(minimum, (int, float))
-            and isinstance(value, (int, float))
-            and value < minimum
-        ):
-            errors.append(f"{file_name} {key} must be >= {minimum}")
+        if isinstance(rule, dict):
+            errors.extend(
+                _validate_schema_rule(value, rule, schema, f"{file_name} {key}")
+            )
+    errors.extend(_validate_conditional_schema(payload, schema, file_name))
     return errors
 
 
@@ -437,6 +578,9 @@ def _validate_proxies(payload: object, file_name: str) -> list[str]:
                 f"{file_name}[{index}] missing required proxy keys: "
                 f"{', '.join(sorted(missing))}"
             )
+        errors.extend(
+            _validate_schema_object(item, "proxy.schema.json", f"{file_name}[{index}]")
+        )
     return errors
 
 

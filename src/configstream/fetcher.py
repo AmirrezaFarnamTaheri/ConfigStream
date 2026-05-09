@@ -3,6 +3,7 @@ import asyncio
 import ipaddress
 import logging
 import random
+import socket
 from urllib.parse import urlparse, urljoin
 from typing import Any, Dict, Optional, Tuple, List
 import httpx
@@ -75,6 +76,57 @@ def _resolve_redirect_url(
     if reason:
         return None, f"Unsafe redirect target: {reason}"
     return candidate, None
+
+
+async def _reject_source_dns(
+    url: str,
+    block_private_networks: bool = True,
+    validate_dns: bool = True,
+) -> Optional[str]:
+    if not validate_dns or not block_private_networks:
+        return None
+
+    parsed = urlparse(url)
+    host = parsed.hostname
+    if not host:
+        return "Invalid URL host"
+
+    host = host.strip("[]")
+    try:
+        ipaddress.ip_address(host)
+        return None
+    except ValueError:
+        pass
+
+    port = parsed.port or (443 if parsed.scheme == "https" else 80)
+    loop = asyncio.get_running_loop()
+    try:
+        infos = await loop.getaddrinfo(
+            host,
+            port,
+            type=socket.SOCK_STREAM,
+        )
+    except socket.gaierror:
+        return "Source URL host could not be resolved"
+    except OSError:
+        return "Source URL host DNS validation failed"
+
+    resolved_ips = {
+        sockaddr[0].strip("[]")
+        for *_prefix, sockaddr in infos
+        if sockaddr and sockaddr[0]
+    }
+    if not resolved_ips:
+        return "Source URL host resolved to no addresses"
+
+    for raw_ip in resolved_ips:
+        try:
+            ip = ipaddress.ip_address(raw_ip)
+        except ValueError:
+            return "Source URL host resolved to an invalid address"
+        if not ip.is_global:
+            return "Source URL host resolves to a private or non-global address"
+    return None
 
 
 async def fetch_from_source(
@@ -185,12 +237,35 @@ async def fetch_from_source(
         max_redirects = max(0, int(app_settings.FETCH_MAX_REDIRECTS))
     except (TypeError, ValueError):
         max_redirects = 5
+    validate_dns = bool(getattr(app_settings, "FETCH_VALIDATE_DNS", True))
 
     current_url = source
     redirects_followed = 0
     while attempt < max_retries:
         start_ts = loop.time()
         try:
+            dns_error = await _reject_source_dns(
+                current_url,
+                block_private_networks=bool(app_settings.FETCH_BLOCK_PRIVATE_NETWORKS),
+                validate_dns=validate_dns,
+            )
+            if dns_error:
+                response_time = loop.time() - start_ts
+                if timeout_tracker:
+                    await timeout_tracker.record_attempt(
+                        source, response_time, success=False
+                    )
+                if breaker:
+                    await breaker.record_failure()
+                return FetchResult(
+                    success=False,
+                    source=source,
+                    content="",
+                    error=dns_error,
+                    status_code=0,
+                    response_time=response_time,
+                )
+
             # Jitter / Timeout Tracking
             effective_timeout = float(timeout) if timeout is not None else 30.0
             if timeout_tracker:
