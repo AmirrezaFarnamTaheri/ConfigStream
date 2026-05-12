@@ -45,9 +45,9 @@ ConfigStream uses a streaming producer-consumer pipeline.
 See `docs/wiki/project/02-architecture.md` for the full pipeline design and data flow.
 
 ## Operational Governance
-- Living roadmap process: `docs/ROADMAP_UPDATE_PROCESS.md`
-- Release hardening and provenance controls: `docs/RELEASE_HARDENING_2026.md`
-- Historical finalization snapshot: `docs/FINALIZATION_REPORT_2026.md` (superseded by the current audit/status hierarchy)
+- Unified source of truth, integrated roadmap history, release-hardening notes, and historical finalization/closure evidence: `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md`
+- Current remediation checkpoint: `STATUS.md`
+- Chronological implementation history: `CHANGELOG.md`
 - Technical debt registry: `docs/DEBT_MATRIX.md`
 
 ## Evasion Features

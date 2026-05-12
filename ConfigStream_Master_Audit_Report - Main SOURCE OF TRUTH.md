@@ -1,4 +1,4735 @@
-# ConfigStream Master Audit Report - Main Source Of Truth
+# ConfigStream Master Audit Report - Unified Source Of Truth
+
+**Consolidation date:** 2026-05-12
+**Repository:** `C:\Users\ACER\Documents\GitHub\ConfigStream`
+**Current status:** Remediation in progress; not production-ready and not ready to publish as a final public release.
+**Purpose:** Serve as the single editorial and evidentiary source of truth for the project’s current remediation state. This document absorbs the previous master audit, amendment, known issues, status snapshot, changelog context, closure/finalization/release-hardening reports, debt matrix, roadmap, and roadmap update process. Superseded standalone amendment, known-issues, closure, finalization, release-hardening, and roadmap files have been integrated here and removed so the repository no longer carries competing status narratives.
+
+---
+
+## Canonical Verdict
+
+ConfigStream is substantially improved from the original 2026-05-03 audit snapshot, but it is not production-final. The project now has meaningful remediation in workflow validation, artifact validation, output metadata, security defaults, frontend trust labels, local-first assets, protocol/output matrices, claim-ledger governance, logging sanitization, and test coverage. Those improvements are real and should be preserved.
+
+The release surface is still open because public readiness depends on proof across states that are related but not interchangeable: raw pipeline output, mutated Pages artifact, live GitHub Pages deployment, software release artifacts, data release artifacts, current documentation, and current runtime defaults. A local pass, a historical closure report, or a generated output folder cannot by itself prove production readiness.
+
+The governing rule is therefore:
+
+**Do not add feature claims faster than the project can prove them. A capability is complete only when backend behavior, frontend behavior, schemas, generated artifacts, tests, CI/deploy workflows, documentation, changelog, and live/public evidence all describe the same contract.**
+
+---
+
+## Reading Order
+
+Use this hierarchy when any surface disagrees:
+
+1. This unified master report for the canonical verdict and integrated evidence record.
+2. `STATUS.md` for the newest concise remediation checkpoint.
+3. `docs/claim_ledger.json`, `docs/output_matrix.json`, and `docs/protocol_matrix.json` for machine-validated capability/output/protocol contracts.
+4. `CHANGELOG.md` for chronological implementation history.
+5. `docs/DEBT_MATRIX.md` for tracked debt markers and hygiene evidence.
+6. README, wiki, and security docs as user-facing derived documentation.
+7. The integrated evidence ledgers in this file for removed historical or superseded documents: `Main Source of truth - Ammendment.txt`, `KNOWN_ISSUES.md`, `CLOSURE_REPORT.md`, `docs/FINALIZATION_REPORT_2026.md`, `docs/RELEASE_HARDENING_2026.md`, `docs/ROADMAP.md`, and `docs/ROADMAP_UPDATE_PROCESS.md`.
+
+Historical reports are removed as standalone files after integration, but they are not erased from the evidence trail: their source text is preserved in the ledgers below. Their completion language is superseded wherever it conflicts with the current status. Remediation remains open until the final production gate passes.
+
+---
+
+## Consolidation Guardrail Counts
+
+The source documents were read as complete files and counted before consolidation. These counts are retained as an editorial safety check: a large unexplained reduction from the input baseline would be a warning that detail was dropped rather than integrated.
+
+| Source document | Lines | Characters | Bytes | Integration status |
+|---|---:|---:|---:|---|
+| `Main Source of truth - Ammendment.txt` | 4790 | 150592 | 150928 | Current amendment and expansion backlog; duplicate paragraphs are removed within this source. |
+| `KNOWN_ISSUES.md` | 78 | 3264 | 3271 | Current known-issues surface; resolved issues remain as historical/resolution evidence. |
+| `STATUS.md` | 157 | 22342 | 22342 | Current status checkpoint; supersedes older readiness claims when conflicts exist. |
+| `CHANGELOG.md` | 554 | 53446 | 53526 | Chronological implementation ledger. |
+| `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md` | 2798 | 124187 | 124191 | Previous master audit text; preserved as historical evidence after this consolidated verdict. |
+| `CLOSURE_REPORT.md` | 78 | 5448 | 5448 | Historical/superseded closure snapshot; not current production-readiness truth. |
+| `docs/DEBT_MATRIX.md` | 1799 | 107144 | 107233 | Current generated debt ledger; raw entries preserved. |
+| `docs/FINALIZATION_REPORT_2026.md` | 55 | 3805 | 3805 | Historical/superseded February finalization snapshot. |
+| `docs/RELEASE_HARDENING_2026.md` | 38 | 1477 | 1477 | Release-hardening capability ledger; current only where validated by status/audit evidence. |
+| `docs/ROADMAP.md` | 68 | 3349 | 3361 | Older roadmap surface; preserved, but current completion claims defer to status/master audit. |
+| `docs/ROADMAP_UPDATE_PROCESS.md` | 45 | 1628 | 1628 | Living roadmap governance process. |
+| **Input total** | **10460** | **476682** | **477210** | Rule-of-thumb baseline before deduplication and stale-claim consolidation. |
+
+---
+
+## Current Non-Negotiable Closure Rules
+
+1. Public Pages readiness requires live evidence for `health.json`, `metadata.json`, `artifact_manifest.json`, `base64.txt`, `chosen/base64.txt`, `proxies.json`, `api/proxies`, `api/stats`, frontend rendering, placeholder absence, and manifest/hash parity after deployment.
+2. Raw `output/`, Pages artifacts, live deployment, software releases, and data releases are separate states with separate contracts. Do not mix their success criteria or readiness language.
+3. Degraded zero-working runs may still produce files, but frontend labels and metadata must distinguish candidates, retested working proxies, shielded candidates, and revived candidates without inflating `total_working`.
+4. The canonical frontend deployment path is raw static `frontend/.` copied into the Pages artifact with generated `assets/js/runtime-config.js`; Vite output remains a local build sanity check unless the output contract is deliberately changed.
+5. Active scanning is never automatic in CI/default pipeline behavior. Local scanner and Laboratory diagnostics must remain user-initiated, opt-in, rate-limited, and clearly documented as user-responsible diagnostics.
+6. Security-sensitive logs must be sanitized. Source URLs, proxy credentials, UUIDs, tokens, endpoints, DNS errors, subprocess output, parser drops, tester/cache endpoints, and converter logs must not leak secrets.
+7. Stale or duplicate docs must be integrated, generated, archived, or removed. No closure report, finalization report, roadmap item, or PR body can mark a claim complete without implementation, tests, docs, changelog, and proof surfaces.
+8. The debt matrix must be triaged into real release blockers, accepted test mocks, accepted user-facing placeholder text, generated-doc noise, production mocks, docs-only historical references, and false positives.
+
+---
+
+## Unified Current State
+
+**Done or credibly improved:** workflow syntax validation, Pages artifact contract validation, health/manifest generation, shielded candidate accounting, admin fail-closed startup behavior, tighter production CORS, WebSocket lifecycle controls, guarded Lab live-test endpoint, fetcher URL/redirect/DNS validation, runtime frontend config generation, local-first frontend assets, protocol and output matrices, claim ledger validation, docs-sync validation, debt matrix portability, logging-sanitization policy tests, parser credential-boundary hardening, and broad local validation including the latest full pytest snapshot recorded in `STATUS.md`.
+
+**Still not proven enough for production:** latest live Pages freshness, end-to-end raw-output-to-Pages-to-live evidence, full CI/deploy history on latest main, durable latest-output snapshots beyond short-retention artifacts, canonical release/data-release policy parity, complete stale-doc cleanup, complete debt triage, and continuous public deployment smoke evidence.
+
+**Historically closed but superseded unless revalidated:** February finalization claims, the full hardening closure snapshot, older roadmap completion language, and any older audit statements that assume invalid workflow YAML or stale Pages state without acknowledging newer remediation.
+
+---
+
+## Integrated Evidence And Detail Ledgers
+
+The sections below preserve the detailed source material under current labels. They are evidence ledgers, not competing status documents. Repeated paragraphs inside the amendment source are deduplicated; stale completion claims are retained for auditability but interpreted through the current verdict above.
+
+Standalone source documents removed after integration:
+
+- `Main Source of truth - Ammendment.txt`
+- `KNOWN_ISSUES.md`
+- `CLOSURE_REPORT.md`
+- `docs/FINALIZATION_REPORT_2026.md`
+- `docs/RELEASE_HARDENING_2026.md`
+- `docs/ROADMAP.md`
+- `docs/ROADMAP_UPDATE_PROCESS.md`
+
+Standalone source documents intentionally retained as live ledgers:
+
+- `STATUS.md`
+- `CHANGELOG.md`
+- `docs/DEBT_MATRIX.md`
+
+---
+
+## Evidence Ledger: `Main Source of truth - Ammendment.txt`
+
+**Integration note:** Current amendment and expansion backlog; duplicate paragraphs are removed within this source.
+
+**Original count:** 4790 lines, 150592 characters, 150928 bytes.
+
+#### Final amendment: what was previously missed, skipped, or underweighted
+
+I treated the project documents as evidence, not decoration. The strongest correction to any previous “mostly complete” reading is this:
+
+**ConfigStream is much further along than the old audit snapshot, but it is still not production-final.** The current `STATUS.md` explicitly says the project is in remediation, not production-ready, and that the master audit remains the active source of truth until P0/P1 items are closed. It also says the “full production gate remains open” even after a large validation snapshot of 974 passed / 5 skipped tests. `STATUS.md`
+
+I also need to be explicit about a limitation: through the GitHub connector I could not access a committed `output/`, `outputs/latest/`, or `latest_output/` folder on `main`; `output/metadata.json`, `outputs/latest/metadata.json`, and `latest_output/metadata.json` all returned not found. The workflow uploads the real latest output as a short-retention GitHub Actions artifact named `pipeline-output`, and Pages deploy downloads that artifact rather than storing it in the repository. The workflow shows `pipeline-output` retention is only 3 days. `main.yml` I also found no committed frontend verification screenshots; the verification script can generate `frontend_verification_index_fa.png`, `frontend_verification_index_en.png`, and `frontend_verification_analytics.png`, but those files are not present on `main`. `verify_ui.py` So this amendment focuses on repository state, docs, workflow definitions, known output contracts, and available evidence-not unseen local/output artifacts.
+
+---
+
+#### 1. Corrected project state
+
+The prior source-of-truth audit said the repository had serious blockers: invalid workflow YAML, stale public artifacts, schema mismatches, inflated `total_working`, raw frontend deployment with placeholder keys, security defaults that overclaimed fail-closed behavior, and widespread docs drift. `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md`
+
+The latest `STATUS.md` shows many of those have been actively remediated: workflow parsing, Pages contract files, `health.json`, `artifact_manifest.json`, shielded metric accounting, admin fail-closed behavior, CORS tightening, WebSocket lifecycle controls, lab live-test hardening, fetch redirect validation, frontend placeholder injection, protocol/output matrices, claim ledger, docs-sync, debt matrix, and local-first frontend assets. `STATUS.md`
+
+But the same `STATUS.md` still says the project is **not production-ready**, with remaining blockers around full CI validation, public artifact contracts and deploy smoke tests, runtime/frontend/schema/docs parity, canonical frontend deployment, degraded public-output hardening, and cleanup of stale/duplicate documents. `STATUS.md`
+
+That means the accurate state is:
+
+**Done:** many remediation controls and local validation gates are implemented.
+
+**Claimed done:** protocol matrix, output matrix, claim ledger, public artifact contract, local-first frontend, logging sanitization, many security guardrails.
+
+**Partially done / not externally proven:** live public Pages freshness, latest Actions artifact health, deployed screenshot/UI state, full CI history on latest `main`, and canonical frontend build decision.
+
+**Still broken or inconsistent:** several documents disagree, several claims are stale, release/deploy behavior still has fail-closed pockets, and the debt matrix contradicts “clean” hygiene language.
+
+#### 2. Major missed item: the documents conflict with each other
+
+The most important overlooked issue is **documentation split-brain still exists**.
+
+Examples:
+
+The current `STATUS.md` says remediation is ongoing and not production-ready. `STATUS.md` But `docs/FINALIZATION_REPORT_2026.md` says the roadmap finalization was completed in February 2026, with all 20 phases completed and release hardening done. `FINALIZATION_REPORT_2026.md` That report is now historically useful, not current truth. It should be clearly marked superseded, archived, or rewritten.
+
+`CLOSURE_REPORT.md` says “Full Hardening Closure Report,” marks many items fixed, and says 826 tests passed, but it also contains stale/incorrect details: it says ARM64 Vwarp skips verification if undefined, while the latest Dockerfile now pins an ARM64 checksum. `CLOSURE_REPORT.md` `Dockerfile` It also claims the Pages/output contract was unified, but the latest status still says the full production gate remains open. `STATUS.md`
+
+`AGENTS.md` is stale in several places. It still describes the Laboratory as having 5 strategies: WARP, Double WARP, TLS Fragment, CDN Worker, Custom JSON. `AGENTS.md` The latest `STATUS.md`, README, and lab strategy work describe a canonical 9-strategy manifest. `STATUS.md`
+
+`AGENTS.md` also says `total_proxies` includes Native + Revived + Smart Chains and lists `shielded_count` as a key metadata field. `AGENTS.md` The latest status/changelog say shielded candidates no longer inflate working totals and now use `shielded_candidate_count` / `shielded_verified_count`. `STATUS.md` `CHANGELOG.md`
+
+**Amendment:** the project should not just “update docs.” It needs a formal doc hierarchy:
+
+1. `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md`
+2. `STATUS.md`
+3. `docs/claim_ledger.json`
+4. `docs/output_matrix.json`
+5. `docs/protocol_matrix.json`
+6. then README/wiki/finalization/closure reports as derived or historical docs
+
+Anything outside that hierarchy must be labeled current, generated, archived, or superseded.
+
+#### 3. Major missed item: the debt matrix still shows a lot of unresolved mess
+
+The debt matrix is not cosmetic. It shows **1,402 tracked markers**, including 13 TODOs, 1 FIXME, 5 XXX, 126 PLACEHOLDER, 9 ASSUMING, and 1,248 MOCK markers. It separates categories and still lists production/frontend/tooling/docs debt, not only tests. `DEBT_MATRIX.md`
+
+Important production/frontend/tooling entries include:
+
+- `.github/workflows/deploy-pages.yml`: placeholder-related marker.
+- `frontend/assets/js/constants.js`: placeholder public-key detection.
+- `frontend/assets/js/stego.js`: `PLACEHOLDER_KEY_INJECTED_BY_CI`.
+- `frontend/assets/js/verifier.js`: verification skips or weakens when public key is placeholder/missing.
+- `frontend/assets/js/washer_client.js`: “Mock status check.”
+- `frontend/assets/js/lab.js`: `XXX` in generated bash temp-file path.
+- `src/configstream/generators/base64.py`: intentionally encodes a placeholder when output would otherwise be empty.
+- `src/configstream/tools/dns_scanner/bash/dnsScanner.sh`: several TODO markers.
+- `scripts/generate_debt_matrix.py`: even the debt generator itself contains TODO/FIXME text. `DEBT_MATRIX.md`
+
+Some of these are false positives because the debt scanner counts words inside docs/tests/guard code. But not all are harmless. The presence of frontend placeholder keys and verifier fallback paths means “no placeholder deployed” is only true if deploy-time injection succeeds and validation runs. The repository source itself still contains placeholder material by design. `DEBT_MATRIX.md`
+
+**Amendment:** previous reporting should have treated the debt matrix as a live blocker class, not a hygiene side note. The next roadmap must triage debt entries into: real production defect, allowed test/mock, allowed user-facing placeholder text, generated-doc noise, and stale scanner false-positive.
+
+#### 4. Major missed item: “latest output folder” is an artifact, not a committed folder
+
+The workflow shows the latest generated output is produced in `output/`, uploaded as `pipeline-output`, and retained for 3 days. It is not committed to the repo. `main.yml`
+
+Pages deploy then downloads `pipeline-output`, copies frontend assets into it, creates `api/proxies` and `api/stats`, removes `output/data/test_cache.json`, injects keys, refreshes the contract, uploads a Pages artifact, and deploys it. `deploy-pages.yml`
+
+That means a proper “latest output” audit must inspect **three different states**:
+
+1. Raw pipeline `output/` before Pages mutation.
+2. Mutated Pages artifact after frontend/API/cache/manifest refresh.
+3. Live GitHub Pages deployment after cache/CDN behavior.
+
+The current repository gives definitions and validators for those states, but not the actual latest artifact content. Without the Actions artifact or live Pages fetch, any report claiming pixel/file-level inspection of the latest output would be overclaiming.
+
+**Amendment:** add a durable “latest-output-snapshot” process. At minimum, publish or retain for longer:
+
+- `artifact_manifest.json`
+- `health.json`
+- `metadata.json`
+- `proxies.json` sample/count summary
+- `pipeline logs`
+- browser screenshots
+- Pages post-deploy smoke report
+- schema validation result
+- native client check result
+- generated timestamp and source commit
+
+#### 5. Major missed item: output contract is strong but still internally inconsistent
+
+`docs/output_matrix.json` is a strong improvement. It enumerates required public outputs, whether they must be non-empty, degraded validity, validation type, ZIP requirements, API aliases, analytics files, frontend entry point, and docs entry point. `output_matrix.json`
+
+But it still contains `remaining_work`: “Add per-protocol golden output fixtures for every public protocol family.” `output_matrix.json` Meanwhile `STATUS.md` and `CHANGELOG.md` claim per-protocol output golden fixtures and parser-to-frontend protocol fixtures are already done. `STATUS.md` `CHANGELOG.md`
+
+That is a direct source-of-truth mismatch.
+
+Also, `validate_pages_artifact.py` requires many files to exist and many JSON/YAML/ZIP/config files to be non-empty, while allowing text/base64 subscription files to be empty under degraded conditions. `validate_pages_artifact.py` That is reasonable. However, the main pipeline release step still has an “Ensure release assets are non-empty” gate that fails if `output/base64.txt` is empty. `main.yml` That conflicts with the documented output matrix, which says `base64.txt` may be empty in degraded data. `output_matrix.json`
+
+**Amendment:** the output contract is partially solved for Pages deploy, but not fully solved across release workflow, README, status, matrix, and runtime behavior.
+
+#### 6. Major missed item: public deployment freshness is still not proven by repo state
+
+The old master audit found public Pages artifacts stale/collapsed. `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md` The latest repo has added `health.json`, `artifact_manifest.json`, manifest refresh, schema checks, and API alias parity. `STATUS.md` `deploy-pages.yml` `validate_pages_artifact.py`
+
+But the available repository evidence does **not** prove the live public site is fresh today. The latest `STATUS.md` itself says the full production gate remains open. `STATUS.md`
+
+**Amendment:** previous reports should not mark “public artifact freshness fixed” unless they inspect the actual deployed `health.json`, `artifact_manifest.json`, `metadata.json`, `base64.txt`, `chosen/base64.txt`, `proxies.json`, and screenshots after deployment.
+
+Required future proof:
+
+- Live `health.json.status`.
+- Live `metadata.generated_at`.
+- Live `artifact_manifest.source_commit`.
+- Manifest hash parity for `metadata.json`, `proxies.json`, `api/stats`, `api/proxies`.
+- Base64 decode count and uniqueness.
+- `chosen` subset relationship.
+- DNS-safe/DNS-hardened subset relationship.
+- Live dashboard rendering with no placeholders.
+- Browser no-network/degraded checks against deployed artifact, not only local static files.
+
+#### 7. Major missed item: frontend production path is still unresolved
+
+The master audit flagged that deployed frontend uses raw `frontend/` files while Vite builds to `frontend-dist`, creating two competing production paths. `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md`
+
+The latest deploy workflow still copies `frontend/.` into `output/`, injects placeholders, and deploys raw static assets. `deploy-pages.yml` `STATUS.md` still lists “frontend deployment must be made canonical: either tested Vite output or raw static output, not both.” `STATUS.md`
+
+So this remains open.
+
+Also, deployment-time key injection is better than before, but the source still contains placeholder logic in `constants.js`, `stego.js`, and `verifier.js` according to the debt matrix. `DEBT_MATRIX.md` That is acceptable only if the deploy validator is guaranteed and post-deploy smoke proves the deployed artifact has no placeholder strings.
+
+**Amendment:** frontend placeholder injection is a mitigation, not final architecture. The canonical fix is a generated runtime config file plus fail-closed verification behavior.
+
+#### 8. Major missed item: security posture is improved, but config/docs still disagree
+
+Good progress:
+
+- Production admin startup fails without `ADMIN_API_KEY`.
+- `/api/admin/notify-update` requires key in production and rate limiting.
+- CORS defaults are tightened.
+- WebSockets have max connections, idle timeout, send timeout, and stale cleanup.
+- Lab live testing is production-disabled by default and gated by admin key if enabled.
+- Fetcher rejects credentialed source URLs, private literals, internal hostnames, and validates redirects. `STATUS.md` `server.py`
+
+Remaining problems:
+
+`README.md` still lists `ADMIN_API_KEY` under “Optional (production hardening)” rather than “required for production server mode,” while server startup requires it in production. `README.md` `server.py`
+
+`README.md` says `USE_VWARP_TUNNEL=true (default: false)`, but `config.py` defaults `USE_VWARP_TUNNEL` to `True`. `README.md` `config.py` That is a concrete runtime/docs mismatch.
+
+`config.py` still defaults `ALLOW_PRIVATE_IPS=True` and `INCLUDE_INSECURE_PROXIES=True`. `config.py` That may be intentional for proxy validation compatibility, but it must be documented sharply because fetch-source safety now has a separate `FETCH_BLOCK_PRIVATE_NETWORKS=True`. Without careful docs, operators may believe all private/internal IP handling is fail-closed everywhere.
+
+The fetcher SSRF remediation remains partial in the master audit: DNS-resolution/rebinding validation remains a follow-up. `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md`
+
+**Amendment:** security improvements are real, but not yet a clean production contract because docs/defaults still disagree.
+
+#### 9. Major missed item: active scanning policy has unresolved tension
+
+The project’s core rules say no active scanning of third-party infrastructure. `AGENTS.md` But README advertises offline tools that perform clean IP scan, proxy discovery, DNS probe, and lab-runner IP scans. `README.md` The debt matrix also lists TODOs in the DNS scanner bash tool and placeholder fields in the DNS scanner UI. `DEBT_MATRIX.md`
+
+This may be acceptable if scanning is strictly user-initiated, local, rate-limited, and documented as not part of automatic CI/pipeline behavior. But the current docs do not draw that boundary strongly enough.
+
+**Amendment:** add a “No automatic active scanning” contract and label DNS/lab scanner tools as local, opt-in, user-responsible diagnostics. CI and default pipeline must keep `ALLOW_ACTIVE_SCANNING=false`, as seen in the main workflow. `main.yml`
+
+#### 10. Major missed item: release workflow and Pages workflow have different policies
+
+Pages deploy now validates a Pages artifact and supports degraded text/base64 outputs. `deploy-pages.yml` `validate_pages_artifact.py`
+
+But `main.yml` still creates GitHub releases from selected files and hard-fails if `singbox.json`, `clash.yaml`, `singbox-vpn.json`, `base64.txt`, or `consolidated_pipeline.log` are empty. `main.yml` This contradicts the degraded-output contract for `base64.txt`. It also bypasses the richer output matrix and Pages artifact validator.
+
+Release hardening also claims PyPI, native binaries, Docker provenance, and attestations. `RELEASE_HARDENING_2026.md` The release workflow does implement build/test/build/attestation for Python and PyInstaller-based native artifacts. `release.yml` But the “release truth” is tag-based, while the main workflow also creates scheduled timestamp releases from pipeline output. `main.yml` Those are different release surfaces and need separate contracts.
+
+**Amendment:** define two release types:
+
+- **Software release:** tagged `v*.*.*`, PyPI/native artifacts, release.yml.
+- **Data release:** scheduled pipeline outputs, Pages/public subscriptions, main.yml/deploy-pages.yml.
+
+Do not mix their readiness language.
+
+#### 11. Major missed item: PR/open-branch state matters
+
+There are still open PRs, including:
+
+- PR #428: claims to resolve critical audit findings C2-C8 and G3 but is open and not merged.
+- PR #426: workflow YAML syntax fix, open.
+- PR #423/#424: refactor/schema/pipeline resilience PRs, open.
+
+Main already includes many related changes, but the open PR list shows remediation has parallel/unmerged work and possible duplicated effort. The latest default branch commit was a source-batch optimization merge, not a final production hardening merge. The repo state is therefore not a clean “all remediations merged and closed” state.
+
+**Amendment:** roadmap bookkeeping must track PR state separately from docs claims. A claim should not be marked complete only because a PR body says it is complete.
+
+#### 12. Major missed item: source resharding is still risky, though partially guarded
+
+The old audit flagged self-triggering source optimization commits. `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md` Main workflow now has `paths-ignore` for `sources/batch_*.txt` and `sources/backup_dynamic/**`, plus concurrency. `main.yml`
+
+But the same workflow still runs `scripts/dynamic_reshard.py`, commits changed `sources/batch_*.txt`, and pushes to the current branch. `main.yml` That is improved but still operationally delicate:
+
+- It can mutate source inventory from a scheduled data run.
+- It can create commits whose provenance is tied to runtime metrics.
+- It has no visible “recommendation artifact first, commit second” review stage.
+- It can still complicate debugging when source changes and output changes happen in one run.
+
+**Amendment:** keep this as partially mitigated, not fully closed. Move source resharding to a separate workflow or at least publish a reshard report artifact before committing.
+
+#### 13. What is actually done
+
+Based on current docs and code, these are credible completed areas:
+
+- README and STATUS explicitly demote production-ready claims and point to the master audit. `README.md` `STATUS.md`
+- Workflow YAML parse repair and validation gate are claimed and reflected in status/changelog. `STATUS.md` `CHANGELOG.md`
+- Pages deploy now downloads `pipeline-output`, copies frontend assets, injects keys, creates API aliases, removes test cache, refreshes manifest/health, and deploys. `deploy-pages.yml`
+- `validate_pages_artifact.py` centralizes required output files, non-empty rules, JSON/YAML/ZIP validation, manifest hash/size checks, `api/proxies` and `api/stats` parity, Sing-box/Clash reference semantics, and optional native client checks. `validate_pages_artifact.py`
+- `write_public_artifact_contract()` exists in output logic and writes `health.json` plus `artifact_manifest.json` from actual files. `output_logic.py`
+- Protocol support has a canonical inventory in `docs/protocol_matrix.json`. `protocol_matrix.json`
+- Output artifacts have a canonical inventory in `docs/output_matrix.json`. `output_matrix.json`
+- Claim ledger exists and forces proof fields for completed claims. `claim_ledger.json`
+- Admin, CORS, WebSocket, lab live-test, and route async-read hardening are implemented in `server.py`. `server.py`
+- Production dependency pins now include patched versions for previously reported vulnerable packages such as `aiohttp==3.13.4`, `cryptography==46.0.7`, `orjson==3.11.6`, `Pygments==2.20.0`, and `urllib3==2.6.3`. `requirements-prod.txt`
+- Dockerfile pins Vwarp checksums for both amd64 and arm64 and fails unsupported architectures. `Dockerfile`
+
+#### 14. What is claimed done but not fully proven from available evidence
+
+- Live public Pages freshness.
+- Latest `pipeline-output` contents.
+- Latest output screenshots and visual UI state.
+- Actual Actions success on latest `main`.
+- Post-deploy smoke against the live GitHub Pages URL.
+- End-to-end provenance from pipeline output → Pages artifact → live site.
+- Full closure of P0/P1 audit items.
+- Complete documentation parity.
+- Canonical frontend production path.
+- Complete debt cleanup.
+- DNS rebinding-level fetch protection.
+- Shielded-chain retest path for nonzero verified shielded counts.
+
+The documents say many local checks passed, including full pytest and npm/browser smokes. `STATUS.md` That is valuable, but it is not the same as live deployment proof.
+
+#### 15. What is partially done
+
+- **Workflow reliability:** YAML and validation gates are improved, but latest CI behavior and artifact deployment are not proven here.
+- **Public artifact contract:** Pages contract is strong, but release workflow still has a separate fail-closed policy.
+- **Security:** major defaults tightened, but README/config mismatches remain.
+- **Frontend:** local-first and placeholder guards exist, but raw-static vs Vite build remains unresolved.
+- **Output matrix:** strong inventory, but its `remaining_work` conflicts with status/changelog claims.
+- **Protocol matrix:** strong inventory, but export support is explicitly false for several parsed protocols, meaning “20+ protocols” must always be described as parse/support matrix, not universal export parity.
+- **Debt management:** generated and guarded, but still very large and not triaged to closure.
+- **Latest output:** generated as ephemeral artifact, but not inspectable from the repo state.
+
+#### 16. What is broken or problematic
+
+1. **Docs still contradict each other.** `STATUS.md` says not production-ready; `FINALIZATION_REPORT_2026.md` says finalization completed. `STATUS.md` `FINALIZATION_REPORT_2026.md`
+
+2. **`CLOSURE_REPORT.md` is stale and overconfident.** It claims hardening closure and contains obsolete Vwarp ARM64 verification text. `CLOSURE_REPORT.md` `Dockerfile`
+
+3. **`AGENTS.md` is stale.** It lists 5 lab strategies while the current manifest/docs claim 9. `AGENTS.md` `STATUS.md`
+
+4. **Config/docs mismatch:** README says `USE_VWARP_TUNNEL` default false; `config.py` defaults it true. `README.md` `config.py`
+
+5. **Production auth docs mismatch:** README treats `ADMIN_API_KEY` as optional production hardening; server startup requires it in production. `README.md` `server.py`
+
+6. **Release workflow conflicts with degraded output contract.** `base64.txt` is allowed empty by output matrix but still fatal in the main release asset step. `output_matrix.json` `main.yml`
+
+7. **Debt matrix still lists real unresolved items.** 1,402 markers remain, including production/frontend/tooling/doc items. `DEBT_MATRIX.md`
+
+8. **Latest output is not durable enough for audit.** `pipeline-output` retention is 3 days, and no committed latest-output snapshot exists. `main.yml`
+
+9. **Screenshots are generated by script but not committed or available for inspection.** `verify_ui.py`
+
+10. **Fetch SSRF hardening remains partial for DNS rebinding / resolved-host validation.** The master audit explicitly leaves that as remaining work. `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md`
+
+11. **The frontend verifier/key model remains transitional.** Placeholder injection is guarded, but source placeholder material remains and canonical build path is unresolved. `STATUS.md` `DEBT_MATRIX.md`
+
+12. **Source optimization still mutates the repository from a scheduled data workflow.** Paths-ignore reduces loops, but the workflow still commits source reshards. `main.yml`
+
+#### 17. What needs refinement next
+
+Priority order:
+
+##### P0-A: Establish durable latest-output evidence
+
+Create or retain a latest-output evidence bundle per run:
+
+- `health.json`
+- `artifact_manifest.json`
+- `metadata.json`
+- public file counts
+- decoded subscription counts
+- generated screenshots
+- post-deploy smoke output
+- logs
+- run ID / attempt / source commit
+- validation command results
+
+This should outlive the 3-day `pipeline-output` artifact.
+
+##### P0-B: Reconcile all docs against the source-of-truth hierarchy
+
+Mark `FINALIZATION_REPORT_2026.md` and `CLOSURE_REPORT.md` as historical/superseded unless they are rewritten to match `STATUS.md`.
+
+Update `AGENTS.md` to match:
+
+- 9 lab strategies
+- current metadata fields
+- current shielded candidate/verified terminology
+- current frontend build/deploy reality
+- current active scanning boundary
+- current output matrix status
+
+##### P0-C: Unify release and Pages output policies
+
+Make `main.yml` release asset checks use the same output matrix / validator semantics as Pages. Do not fail a data release solely because `base64.txt` is empty if the matrix says degraded empty is valid.
+
+##### P0-D: Prove live deployment freshness
+
+Every deployment should verify live URLs after Pages deploy:
+
+- `health.json`
+- `metadata.json`
+- `artifact_manifest.json`
+- `base64.txt`
+- `chosen/base64.txt`
+- `proxies.json`
+- `index.html`
+- `api/proxies`
+- `api/stats`
+
+And compare hashes where possible.
+
+##### P1-A: Canonical frontend build decision
+
+Choose one:
+
+- raw static frontend is canonical; remove Vite production ambiguity, or
+- Vite build is canonical; deploy `frontend-dist`.
+
+Right now the project still has two stories.
+
+##### P1-B: Resolve README/config/security mismatch
+
+Fix docs or config for:
+
+- `USE_VWARP_TUNNEL` default.
+- `ADMIN_API_KEY` production requirement.
+- private IP policy split between fetch-source safety and proxy validation.
+- active scanning / DNS scanner boundary.
+
+##### P1-C: Debt matrix triage
+
+Split debt matrix into:
+
+- real release blockers
+- accepted user-facing placeholders
+- generated-doc false positives
+- test mocks
+- production mocks
+- docs-only historical references
+
+Then set thresholds per category.
+
+##### P1-D: DNS rebinding hardening
+
+Add resolver abstraction and pre-connect resolved-address validation for source fetches, including HTTPS and redirects.
+
+##### P1-E: Shielded-chain verification
+
+Do not ever count shielded candidates as working. Add explicit retest path and only increment `shielded_verified_count` after proof.
+
+#### 18. Roadmap amendment
+
+##### Immediate: evidence and truth cleanup
+
+1. Make `STATUS.md` and master audit the only current status surfaces.
+2. Mark old finalization/closure reports as historical.
+3. Add durable latest-output artifact retention.
+4. Add post-deploy smoke report to Pages artifact.
+5. Fix README/config mismatches.
+6. Fix `AGENTS.md` drift.
+7. Remove or triage stale claims in debt matrix.
+
+##### Next: contract hardening
+
+1. Make release workflow consume `docs/output_matrix.json`.
+2. Add live Pages hash/freshness verification.
+3. Add generated screenshots to run evidence.
+4. Add deploy-time no-placeholder scan across all HTML/JS/CSS, not only known key files.
+5. Make frontend production path canonical.
+
+##### Then: security closure
+
+1. DNS rebinding protection.
+2. Lab/scanner opt-in policy proof.
+3. Dependency audit as a required green CI check on latest `main`.
+4. Secret/placeholder checks inside ZIPs and frontend bundles.
+5. Production startup docs matching runtime exactly.
+
+##### Finally: polish and production readiness
+
+1. Full CI green on latest `main`.
+2. Full local validation repeated from clean checkout.
+3. Live deployment smoke green.
+4. Output artifact manifest matches deployed artifact.
+5. No stale docs claiming old truths.
+6. Claim ledger status matches actual tests and live proof.
+7. Release/data-release separation documented.
+
+#### Bottom-line amendment
+
+What was missed before is not one small bug. The missed layer is **governance and proof**.
+
+The repository now contains many serious fixes and validation gates, but the project is still imperfect because the **documents, runtime defaults, release workflow, deploy workflow, latest-output evidence, and public-readiness claims are not fully synchronized**.
+
+The most important next step is not adding features. It is making the project auditably truthful:
+
+**one source of truth, one output contract, one frontend deployment path, one release policy, one durable latest-output evidence bundle, and one live deployment proof chain.**
+
+#### Response:
+### ConfigStream expansion roadmap: backend, pipeline, labs, outputs, performance, robustness, and core capabilities
+
+I’m framing this as a **future capability roadmap**, not another audit. The project already has a defined pipeline model: source acquisition, parsing/normalization, validation/security, testing/scoring, washing/smart chains, output generation, and publish/cache surfaces. It also has explicit governance constraints around zero-budget operation, sanitized logging, validated inputs, and no automatic active scanning of third-party infrastructure. `README.md` `AGENTS.md`
+
+Use this as a **master expansion backlog**. Every item below should be implemented only when it has: source change, tests, docs, changelog, status update, and, where relevant, output/protocol/claim-ledger updates.
+
+### 0. Global implementation rule for every future feature
+
+Before adding any capability, define the contract first.
+
+Every feature should answer:
+
+**What does it do?**
+What user or pipeline problem does it solve?
+
+**Where does it live?**
+Backend, pipeline, parser, tester, output generator, online lab, offline lab, frontend, CI, docs, or schema.
+
+**What is the safety boundary?**
+Can it make network requests? Can it run processes? Can it expose secrets? Can it scan? Can it mutate outputs?
+
+**What is the degraded behavior?**
+What happens when no proxies work, no DNS resolves, a binary is missing, a source is down, GitHub rate-limits, browser APIs fail, or the user is offline?
+
+**How is it proven?**
+Unit tests, integration tests, generated output fixtures, browser tests, visual screenshots, public artifact validation, native client validation, and live deploy smoke.
+
+**How is it documented?**
+README, wiki, STATUS, SECURITY, CHANGELOG, output matrix, protocol matrix, claim ledger, lab docs, operator docs.
+
+**How is it removed or rolled back?**
+Every experimental feature should have a kill switch and a cleanup path.
+
+Universal checklist for every item:
+
+- Add a feature flag if behavior is experimental or high-risk.
+- Add schema fields only after deciding versioning and defaults.
+- Add tests before marking the item complete.
+- Add no-placeholder/no-secret/no-raw-log checks when touching frontend, outputs, logs, or ZIPs.
+- Add degraded-state tests.
+- Update `CHANGELOG.md`.
+- Update `STATUS.md`.
+- Update `docs/claim_ledger.json` only when the claim has proof.
+- Update `docs/output_matrix.json` if a public artifact changes.
+- Update `docs/protocol_matrix.json` if protocol behavior changes.
+- Add generated screenshots for frontend/lab changes.
+- Add public artifact validation when outputs change.
+
+### 1. Backend architecture and core maintainability
+
+#### 1.1 Create a capability registry
+
+##### Purpose
+
+ConfigStream has many capabilities: parsing, testing, WARP, Vwarp, DNS-safe outputs, DNS-hardened outputs, smart chains, online lab, offline lab, frontend verifier, output formats, optional mirrors, browser checks, WASM checks, and more.
+
+A **capability registry** would make all of these explicit in one machine-readable place.
+
+##### What to build
+
+Create a canonical file such as:
+
+`docs/capability_registry.json`
+
+Each capability should include:
+
+- ID: `pipeline.fetch.adaptive_timeout`
+- Name: `Adaptive source fetching`
+- Area: `pipeline`, `lab`, `frontend`, `outputs`, `security`
+- Status: `stable`, `experimental`, `partial`, `planned`, `deprecated`
+- Owner files
+- Feature flag
+- Required dependencies
+- Required secrets
+- Public artifacts affected
+- Tests
+- Docs
+- Safety notes
+- Degraded behavior
+- Rollback instructions
+
+##### Why it matters
+
+This prevents the project from claiming capabilities that are only partially implemented. It also gives the online/offline lab a way to render “available,” “experimental,” and “not available in this environment” states automatically.
+
+##### Implementation instructions
+
+1. Create `docs/capability_registry.json`.
+2. Create `scripts/validate_capability_registry.py`.
+3. Require every `stable` capability to include tests, docs, owner files, and changelog proof.
+4. Add a frontend helper that can optionally read a published copy.
+5. Add CI validation.
+6. Add documentation explaining statuses.
+
+##### Checklist
+
+- Registry exists.
+- Registry has schema validation.
+- CI fails if a stable capability lacks proof.
+- Frontend/lab can display capability state.
+- README no longer hardcodes capability claims that should come from the registry.
+- Changelog documents the new governance mechanism.
+
+#### 1.2 Create a module ownership map
+
+The project has many modules and historical refactors. A module ownership map prevents duplicate helpers, stale aliases, and unclear responsibilities.
+
+Create:
+
+`docs/module_ownership.json`
+
+Each module entry should include:
+
+- Path
+- Owner domain
+- Public APIs
+- Internal-only APIs
+- Forbidden imports
+- Replacement for removed modules
+- Tests that cover it
+- Docs that describe it
+
+Example:
+
+```json
+{
+  "src/configstream/output_logic.py": {
+    "domain": "output-generation",
+    "public_functions": ["generate_categorized_outputs", "write_public_artifact_contract"],
+    "forbidden_duplicates": ["artifact manifest writer in deploy shell"],
+    "tests": ["tests/unit/test_output.py"],
+    "docs": ["docs/output_matrix.json"]
+  }
+}
+```
+
+This helps prevent reintroducing removed modules or creating parallel implementations.
+
+1. Create the map.
+2. Add validator that checks removed module names are not imported.
+3. Add import-boundary tests.
+4. Use it in contributor docs.
+5. Generate a module map page in docs.
+
+- Every major `src/configstream` area is mapped.
+- Removed modules are explicitly listed.
+- Validator fails on forbidden imports.
+- Docs explain canonical module paths.
+- AGENTS/module docs match the map.
+
+#### 1.3 Add a stable internal event bus
+
+Pipeline modules currently pass stats, queues, logs, files, and side effects through direct calls. A structured internal event bus would make observability and plugins cleaner.
+
+A lightweight typed event system:
+
+- `SourceFetchStarted`
+- `SourceFetchSucceeded`
+- `SourceFetchFailed`
+- `ProxyParsed`
+- `ProxyDropped`
+- `ProxyValidated`
+- `ProxyTested`
+- `ProxyRevived`
+- `OutputWritten`
+- `ArtifactValidated`
+- `PipelineDegraded`
+- `PipelineCompleted`
+
+This improves tracing, analytics, plugin support, and debugging. It also avoids scattering metric increments across many modules.
+
+1. Add `src/configstream/events.py`.
+2. Define event dataclasses or Pydantic models.
+3. Add an in-memory event collector for one run.
+4. Add optional JSONL event output.
+5. Replace ad hoc metric updates gradually.
+6. Keep hot-path overhead low.
+7. Add event sampling for high-volume parser drops.
+
+- Events are typed.
+- Events include `trace_id`.
+- Sensitive values are sanitized before event emission.
+- Pipeline can run with event collection disabled.
+- Output includes optional `pipeline_events.jsonl` only when enabled.
+- Tests verify event order for a minimal pipeline.
+
+#### 1.4 Add a plugin architecture
+
+ConfigStream can grow faster if parsers, output adapters, test engines, lab strategies, and source providers follow plugin contracts.
+
+##### Plugin areas
+
+- Source providers
+- Parsers
+- Validators
+- Testers
+- Scorers
+- Washers
+- Chain builders
+- Output adapters
+- Lab strategies
+- Frontend panels
+- Mirror publishers
+
+1. Define plugin interfaces.
+2. Keep built-in plugins first.
+3. Add plugin discovery through explicit registry, not arbitrary dynamic imports.
+4. Require plugin metadata.
+5. Add security rules: no network access unless declared.
+6. Add test fixture for a dummy plugin.
+7. Add docs for creating a plugin.
+
+- Plugin registry exists.
+- Built-in parser/output/lab strategy registration works.
+- Unknown plugins fail closed.
+- Plugin capability metadata appears in capability registry.
+- Plugin tests cover enable/disable behavior.
+- Unsafe plugin behavior is blocked by policy.
+
+### 2. Source ingestion and acquisition
+
+#### 2.1 Source provider abstraction
+
+Right now source files are URL lists. A richer source model would allow local files, remote URLs, GitHub raw files, user-provided bundles, mirrors, and curated source groups.
+
+##### What to add
+
+A source object shape:
+
+```json
+{
+  "id": "source.github.v2ray.example",
+  "url": "...",
+  "type": "subscription",
+  "protocol_hint": "mixed",
+  "trust_level": "public",
+  "region_hint": "global",
+  "enabled": true,
+  "rate_limit_group": "github-raw",
+  "expected_format": "text-or-base64",
+  "owner": "community",
+  "notes": "High churn"
+}
+```
+
+Raw URL lists are difficult to score, throttle, deduplicate, and explain. Structured source metadata enables better fetching and reporting.
+
+1. Add `sources/sources.json`.
+2. Keep existing `batch_*.txt` as generated shards.
+3. Generate shards from `sources.json`.
+4. Track source ID through the pipeline.
+5. Include source ID in parse/test/drop metrics.
+6. Add validator for source schema.
+7. Add migration script from text batches to source objects.
+
+- Structured source inventory exists.
+- Existing batch files are generated or cross-checked.
+- Source IDs appear in metadata.
+- Source quality DB uses source IDs.
+- Docs explain how to add a source.
+- Invalid source objects fail validation.
+
+#### 2.2 Source quality scoring v2
+
+A source should not be judged only by whether it fetched. It should be scored by usefulness, stability, freshness, duplication rate, parse yield, working yield, security drops, latency, and churn.
+
+##### Metrics to track
+
+- Fetch success rate
+- Average fetch duration
+- Timeout count
+- HTTP error count
+- Content size
+- Parseable line count
+- Valid proxy count
+- Working proxy count
+- Duplicate rate
+- Malformed rate
+- Blocked/private endpoint rate
+- Unique protocol diversity
+- Last successful fetch
+- Last meaningful output
+- Churn rate
+- Historical trust score
+
+1. Extend source quality DB schema.
+2. Add migration path.
+3. Add per-source run record.
+4. Use rolling windows: 1 run, 24h, 7d, 30d.
+5. Add source state: `healthy`, `probation`, `dead`, `cooldown`, `manual-review`.
+6. Add a source quality report artifact.
+7. Feed source quality into dynamic resharding.
+
+- DB migration tested.
+- Source trust score is explainable.
+- Bad sources are cooled down, not permanently deleted automatically.
+- Source report is generated.
+- UI can show source health summary.
+- Changelog explains scoring changes.
+
+#### 2.3 Adaptive source scheduler
+
+Instead of fetching all sources equally every run, schedule sources based on reliability, freshness, and diversity.
+
+##### Scheduling modes
+
+- Always fetch critical curated sources.
+- Fetch high-yield sources every run.
+- Fetch medium-yield sources every N runs.
+- Cool down flaky sources.
+- Probe dead sources occasionally.
+- Prioritize sources not seen recently.
+- Balance by protocol and region.
+
+1. Build a scheduler that consumes source quality stats.
+2. Add a dry-run report.
+3. Add a deterministic seed for reproducibility.
+4. Keep zero-budget constraints.
+5. Ensure source diversity, not just highest score.
+6. Add fairness rules so new sources get trial windows.
+7. Log scheduler decisions.
+
+- Scheduler decisions are deterministic with seed.
+- New sources are not starved.
+- Dead sources are probed at low frequency.
+- Source diversity is preserved.
+- Dynamic shards are balanced by estimated work, not only URL count.
+- Scheduler report is published.
+
+#### 2.4 Fetch sandbox and strict network policy
+
+Source fetching is one of the riskiest parts of the system. It needs hard boundaries against SSRF, private networks, redirect abuse, huge payloads, decompression bombs, binary junk, and malicious content.
+
+##### Enhancements
+
+- DNS resolution safety before connection.
+- Revalidate resolved IP after redirect.
+- Block private, loopback, link-local, multicast, reserved ranges.
+- Reject credentials in URLs.
+- Cap redirects.
+- Cap response size.
+- Cap decompressed size.
+- Detect suspicious binary payloads.
+- Track MIME type mismatch.
+- Track excessive HTML/JS payloads.
+- Avoid leaking full source URLs in logs.
+
+1. Add a resolver abstraction.
+2. Add tests with fake DNS resolver.
+3. Validate hostnames before and after DNS resolution.
+4. Enforce response-size streaming limits.
+5. Add decompression-size guard.
+6. Add source fetch policy docs.
+7. Add security tests for every blocked network class.
+
+- Private literal blocked.
+- Private DNS resolution blocked.
+- Redirect to private IP blocked.
+- HTTPS redirect blocked if unsafe.
+- URL credentials rejected.
+- Oversized content rejected safely.
+- Logs mask query tokens.
+- CI includes SSRF regression tests.
+
+#### 2.5 Source content classifier
+
+Sources may be raw URI lists, Base64 subscriptions, Clash YAML, Sing-box JSON, V2Ray JSON, HTML pages, Telegram exports, Markdown, or mixed blobs. A classifier can choose the best parser path.
+
+A `ContentClassifier` that returns:
+
+- `raw_uri_list`
+- `base64_subscription`
+- `clash_yaml`
+- `singbox_json`
+- `v2ray_json`
+- `html`
+- `markdown`
+- `telegram_text`
+- `unknown_binary`
+- `mixed`
+
+1. Implement classifier with cheap heuristics.
+2. Do not parse huge content multiple times.
+3. Return confidence score.
+4. Let parser pipeline use classifier hints.
+5. Track classifier accuracy in metrics.
+6. Add golden fixtures.
+
+- Classifier handles small/large payloads.
+- Unknown binary is safely dropped.
+- Base64 detection avoids false positives.
+- YAML/JSON parser errors are contained.
+- Content type appears in source report.
+- Tests cover each class.
+
+### 3. Parsing and protocol handling
+
+#### 3.1 Parser contract v2
+
+Every parser should return structured success or structured failure, not just `Proxy | None`.
+
+##### Proposed parser result
+
+```python
+ParserResult(
+    proxy=Proxy | None,
+    status="parsed" | "dropped" | "unsupported" | "malformed",
+    protocol="vless",
+    reason="missing_uuid",
+    warnings=["recovered_uuid_from_query"],
+    source_span={ "line": 123 },
+)
+```
+
+This gives precise drop analytics and prevents vague “0 parsed” output.
+
+1. Add `ParserResult`.
+2. Update parsers gradually.
+3. Keep compatibility wrapper during transition.
+4. Add structured drop reasons.
+5. Add parser result aggregation.
+6. Publish parser statistics.
+
+- Every public parser returns or maps to `ParserResult`.
+- Drop reasons are enumerated.
+- Unknown reasons are not free-form strings.
+- No raw config values appear in logs.
+- Parser stats appear in metadata or side report.
+- Tests cover success/warning/drop states.
+
+#### 3.2 Strict mode and compatibility mode
+
+Some users want maximum compatibility; others want fail-closed strictness. Separate the two modes explicitly.
+
+##### Modes
+
+**Strict mode**
+
+- Drop missing credentials.
+- Drop invalid UUIDs.
+- Drop weak/unknown methods.
+- Drop private endpoints.
+- Drop unsupported fields.
+- Prefer schema-clean output.
+
+**Compatibility mode**
+
+- Recover credentials from query params.
+- Accept legacy ciphers if output clients support them.
+- Keep untested candidates as `is_working=false`.
+- Preserve parser warnings.
+
+1. Add `PARSER_MODE=strict|compat`.
+2. Define per-protocol behavior.
+3. Add tests for both modes.
+4. Reflect mode in metadata.
+5. Add docs explaining tradeoffs.
+
+- Strict and compatibility modes produce predictable differences.
+- Defaults are documented.
+- Security-sensitive deployments can force strict.
+- Compatibility mode never marks unverified proxies as working.
+- Output files include mode metadata.
+
+#### 3.3 Protocol-specific fuzzing
+
+Proxy URI parsing is fragile. Fuzzing catches malformed percent encoding, strange Unicode, missing ports, broken Base64, huge query strings, nested JSON, and parser crashes.
+
+1. Add Hypothesis strategies for each protocol.
+2. Generate valid and invalid examples.
+3. Assert parsers never crash.
+4. Assert invalid data drops safely.
+5. Assert valid normalized fields survive.
+6. Keep corpus fixtures for regressions.
+
+- Fuzz tests exist for VLESS, VMess, Trojan, SS, SSR, Hysteria, Hysteria2, TUIC, WireGuard, SSH, HTTP, SOCKS, OpenVPN, Clash imports.
+- No parser logs raw secrets during fuzz failures.
+- Crash corpus is stored as sanitized fixtures.
+- Fuzz tests have bounded runtime for CI.
+
+#### 3.4 Import/export parity matrix
+
+A protocol may be parseable but not exportable to every client. That distinction must be visible.
+
+The existing protocol matrix already starts this separation. `protocol_matrix.json` Expand it into an import/export parity matrix.
+
+##### Matrix dimensions
+
+For each protocol:
+
+- Parse URI
+- Parse JSON/YAML import
+- Validate security
+- Test with Go sidecar
+- Test with Python fallback
+- Export Sing-box
+- Export Clash/Mihomo
+- Export URI
+- Export Shadowrocket
+- Export Surge
+- Export Loon
+- Export Quantumult X
+- Export native side product
+- Browser lab support
+- Offline lab support
+
+1. Extend `docs/protocol_matrix.json`.
+2. Add generated docs table.
+3. Add tests that matrix claims match actual converters.
+4. Make frontend read/display unsupported export statuses.
+5. Add warnings in lab exports.
+
+- No output claims universal support incorrectly.
+- Client-specific unsupported states are visible.
+- Tests fail if matrix and code drift.
+- README protocol list links to matrix.
+- Lab prevents invalid export choices or warns clearly.
+
+#### 3.5 Parser provenance and lineage
+
+Every output proxy should be traceable back to a source ID, source run, parser, normalized protocol, validation result, and test result.
+
+##### Fields to add internally
+
+- `source_id`
+- `source_url_hash`
+- `source_batch`
+- `source_fetch_timestamp`
+- `parser_name`
+- `parser_warnings`
+- `normalization_version`
+- `validation_status`
+- `test_engine`
+- `test_timestamp`
+- `lineage_hash`
+
+##### Public privacy rule
+
+Do not expose raw source URLs if they contain tokens. Use source IDs and hashes.
+
+- Internal lineage available.
+- Public lineage sanitized.
+- Artifact manifest can include lineage summary.
+- Debug bundle can include full sanitized lineage.
+- Tests verify no raw secrets leak.
+
+### 4. Validation, security, and trust pipeline
+
+#### 4.1 Multi-stage validation pipeline
+
+Validation should be layered, not one large function.
+
+##### Stages
+
+1. Syntax validation.
+2. Mandatory field validation.
+3. Endpoint validation.
+4. Credential format validation.
+5. Protocol-specific validation.
+6. Client-export compatibility validation.
+7. Security policy validation.
+8. Network test eligibility validation.
+
+1. Create explicit validator stages.
+2. Record stage failure reasons.
+3. Let outputs include non-working candidates only if policy allows.
+4. Add per-stage metrics.
+5. Make frontend able to show “why dropped” aggregates.
+
+- Each validation failure has stage and reason.
+- Tests cover each stage.
+- Validation does not mutate proxy unexpectedly.
+- Security policy can be strict or compatibility.
+- Logs are sanitized.
+
+#### 4.2 Endpoint reputation layer
+
+Avoid repeatedly testing obviously unsafe or bogus endpoints.
+
+##### Signals
+
+- Private/non-global IP
+- Reserved domains
+- Malformed hostnames
+- Known honeypot patterns
+- Repeated redirect/captive portal behavior
+- TLS mismatch
+- Unstable IP resolution
+- Suspicious ports
+- Known bad ASN list, if locally provided
+
+1. Keep passive reputation only by default.
+2. Do not perform active scanning.
+3. Allow user-provided blocklists.
+4. Keep reputation explainable.
+5. Add expiration windows.
+6. Add appeal/retry path for false positives.
+
+- Reputation never logs raw credentials.
+- Reputation can be disabled.
+- False positives can be retried.
+- Metrics show blocked-by-reputation count.
+- Docs explain passive-only policy.
+
+#### 4.3 Secret and credential safety
+
+Proxy configs contain secrets by design. The project must never leak them accidentally.
+
+##### Add checks for
+
+- Logs
+- Events
+- Metadata
+- Artifact manifests
+- ZIP side products
+- Frontend local storage
+- Browser error messages
+- Screenshots
+- Test snapshots
+- CI logs
+- Debug bundles
+
+1. Define a central secret masker.
+2. Ban raw f-string logging in high-risk modules.
+3. Add static tests.
+4. Add runtime tests with known fake secrets.
+5. Add screenshot redaction where needed.
+6. Add debug bundle sanitizer.
+
+- Fake UUID/password/token never appears in logs.
+- CI logs are safe.
+- ZIP members are scanned.
+- Frontend does not display full secrets unless user explicitly opens raw config.
+- Screenshots avoid secret dumps.
+
+### 5. Tester engines and proxy quality
+
+#### 5.1 Tester engine abstraction v2
+
+ConfigStream uses Go sidecar and Python fallback, with browser/WASM checks being weaker. Make tester capability explicit.
+
+##### Tester capabilities
+
+- Raw TCP connect
+- HTTP CONNECT
+- SOCKS handshake
+- TLS handshake
+- QUIC support
+- UDP support
+- WireGuard support
+- Chain testing
+- DNS resolution path
+- Exit IP check
+- Captive portal detection
+- Browser-only WebSocket reachability
+
+1. Define `TesterCapabilities`.
+2. Expose engine capabilities in metadata.
+3. Add eligibility routing: choose engine based on protocol.
+4. If engine cannot prove a protocol, mark result as `limited`.
+5. Update frontend labels.
+
+- Go sidecar capability reported.
+- Python fallback capability reported.
+- Browser checks labeled limited.
+- Unsupported test combinations fail explicit, not silent.
+- Metadata includes test engine summary.
+
+#### 5.2 Multi-probe testing
+
+One URL check is not enough. Some proxies pass one endpoint but fail another.
+
+##### Probe types
+
+- TCP connect
+- TLS handshake
+- HTTP 204 endpoint
+- Cloudflare trace
+- DNS resolution
+- Exit IP
+- Geo lookup
+- Header integrity
+- Latency sample
+- Jitter sample
+
+1. Add probe profile: `fast`, `balanced`, `deep`.
+2. Keep default budget small.
+3. Use deep tests only for candidates likely to be good.
+4. Store probe result breakdown.
+5. Score based on probe confidence.
+
+- Fast mode is cheap.
+- Deep mode is optional.
+- Test budget is enforced.
+- Metadata shows probe profile.
+- No endpoint is hammered.
+- Failures are categorized.
+
+#### 5.3 Confidence scoring
+
+Replace binary “working/not working” with confidence.
+
+##### Proposed fields
+
+- `is_working`
+- `confidence_score`
+- `test_confidence`
+- `evidence_count`
+- `last_tested_at`
+- `test_engine`
+- `failure_reason`
+- `degraded_reason`
+
+##### Score inputs
+
+- Test success
+- Latency
+- Jitter
+- Historical success
+- Source quality
+- Protocol compatibility
+- Endpoint reputation
+- Recency
+- DNS stability
+- Chain complexity
+
+- Score formula documented.
+- Score is deterministic.
+- Frontend displays confidence buckets.
+- Outputs can filter by confidence.
+- Tests assert invariants.
+
+#### 5.4 Retest queue and stale cache policy
+
+Retesting every proxy wastes time, but stale cache can lie.
+
+- Retest high-confidence proxies less often.
+- Retest flaky proxies more often.
+- Retest proxies from changed sources.
+- Retest after DNS changes.
+- Retest before promoting to chosen output.
+- Expire by protocol risk.
+
+- Cache entries include test engine and profile.
+- Cache invalidates when parser/output version changes.
+- Chosen outputs prefer fresh tests.
+- Stale working proxies are marked stale, not silently trusted.
+- Retest report is generated.
+
+### 6. Washing, revival, WARP, Vwarp, and smart chains
+
+#### 6.1 Revival lifecycle model
+
+Revived, washed, shielded, candidate, and verified terms must be precise.
+
+##### Proposed lifecycle
+
+1. `native_candidate`
+2. `native_validated`
+3. `native_tested_working`
+4. `native_tested_failed`
+5. `wash_candidate`
+6. `washed_generated`
+7. `washed_tested_failed`
+8. `washed_tested_working`
+9. `shielded_candidate`
+10. `shielded_verified`
+11. `smart_chain_candidate`
+12. `smart_chain_verified`
+
+1. Add lifecycle enum.
+2. Add lifecycle transitions.
+3. Add transition tests.
+4. Add metadata counts.
+5. Update frontend labels.
+6. Update output filters.
+
+- Untested generated chains are never counted as working.
+- Verified counts require retest evidence.
+- Candidates remain available but labeled experimental.
+- Frontend and docs use the same terms.
+- Metadata includes lifecycle breakdown.
+
+#### 6.2 Smart chain planner v2
+
+Chains should be built intentionally, not just combined.
+
+##### Planner inputs
+
+- Protocol compatibility
+- Latency
+- Country/region
+- ASN diversity
+- Source diversity
+- Failure history
+- Endpoint type
+- DNS-safe availability
+- WARP/Vwarp availability
+- User profile: speed, stealth, reliability
+
+##### Chain types
+
+- Direct fallback
+- Relay chain
+- WARP wrapped
+- Vwarp MASQUE
+- Vwarp AtomicNoize
+- Double WARP
+- Local proxy + WARP
+- CDN worker chain
+- Custom user chain
+
+1. Define chain strategy objects.
+2. Add compatibility rules.
+3. Add cost model.
+4. Add chain score.
+5. Add chain validation before output.
+6. Add retest for verified chains.
+7. Add lab visualization.
+
+- No loops in chain graph.
+- No invalid detours.
+- No duplicate tags.
+- Chain score is explainable.
+- Strategy-specific tests exist.
+- Output validator checks chain references.
+
+#### 6.3 Chain simulation before testing
+
+Some invalid chains can be caught without running network tests.
+
+##### Simulate
+
+- Outbound graph shape
+- Tag uniqueness
+- Detour existence
+- Selector references
+- Unsupported client fields
+- Missing keys
+- Private endpoints
+- Protocol/client incompatibility
+- DNS detour correctness
+
+- Simulator catches broken Sing-box references.
+- Simulator catches broken Clash groups.
+- Simulator runs in lab before export.
+- Simulator errors are user-readable.
+- CI uses simulator on generated artifacts.
+
+#### 6.4 WARP key pool management
+
+WARP key handling needs safety, rotation, and observability.
+
+- Key pool health status.
+- Per-key failure counters.
+- Reserved bytes validation.
+- Peer public key validation.
+- Rotation policy.
+- “No keys configured” degraded mode.
+- User-provided key validation in lab.
+- Never log full keys.
+
+- Invalid key rejected.
+- Missing key produces clear degraded reason.
+- Key usage is masked in logs.
+- Lab validates format before export.
+- Docs explain user-owned keys.
+
+### 7. DNS, evasion profiles, and network hardening
+
+#### 7.1 DNS engine v2
+
+DNS-safe and DNS-hardened outputs are important, but DNS needs its own engine with transparent results.
+
+##### Features
+
+- Async resolver abstraction.
+- DoH/DoT/DoQ profile selection.
+- Result cache with TTL.
+- Resolution confidence.
+- DNS poisoning detection heuristics.
+- IP-literal rewrite safety.
+- SNI/Host preservation.
+- Per-protocol rewrite rules.
+- Fail-open/fail-safe modes.
+
+- DNS-safe drops unresolved entries by design.
+- DNS-hardened keeps unresolved entries with hardened resolvers.
+- SNI and Host are preserved.
+- Private resolved IPs are blocked where policy requires.
+- Resolution failures are counted.
+- Docs explain differences.
+
+#### 7.2 Evasion profile system
+
+Users face different network conditions. Profiles should be explicit and testable.
+
+##### Profiles
+
+- `standard`: minimal modifications.
+- `dns_hardened`: hardened resolvers.
+- `dns_safe`: IP-literal/pre-resolved.
+- `stealth`: uTLS/ALPN/mux where supported.
+- `aggressive`: stronger evasion and chains.
+- `low_latency`: speed-first.
+- `high_reliability`: reliability-first.
+- `manual_lab`: user-controlled.
+
+1. Define profiles in JSON.
+2. Map profile to output variants.
+3. Map profile to lab defaults.
+4. Add compatibility checks.
+5. Add profile-specific output validation.
+6. Expose profile in metadata.
+
+- Every profile has docs.
+- Unsupported protocol/profile combinations are skipped or warned.
+- Frontend shows profile tradeoffs.
+- Tests cover each profile.
+
+#### 7.3 Censorship diagnostics without unsafe scanning
+
+The lab can help users understand their own network without automatically scanning third parties.
+
+##### Safe diagnostics
+
+- Browser reachability to same-origin assets.
+- DNS resolver availability.
+- User-entered endpoint test.
+- Local proxy detection.
+- Captive portal hint.
+- Clock skew check.
+- IPv4/IPv6 availability.
+- WebSocket reachability to user-provided endpoint.
+- Manual clean-IP import.
+
+##### Rules
+
+- No automatic broad IP scans.
+- No hidden third-party requests.
+- No default active probing of random hosts.
+- User must initiate external tests.
+- Clearly label what will be contacted.
+
+- Every diagnostic explains network contact.
+- Offline mode never contacts network.
+- Online mode asks before external tests.
+- Results are stored locally unless user exports.
+- Docs include safety boundary.
+
+### 8. Output generation and public artifacts
+
+#### 8.1 Output transaction system
+
+Outputs should be written atomically as a complete transaction.
+
+- Generate into `output.tmp/<trace_id>/`.
+- Validate all outputs.
+- Write manifest.
+- Promote directory atomically.
+- Keep previous good snapshot.
+- Mark degraded snapshot clearly.
+- Never mix old/new files.
+
+- Partial writes never publish.
+- Previous known good snapshot retained.
+- Manifest represents exact promoted files.
+- Failed validation blocks promotion or marks degraded.
+- Tests simulate failure mid-write.
+
+#### 8.2 Output family expansion
+
+##### Potential output families
+
+- Sing-box standard
+- Sing-box VPN/TUN
+- Sing-box chains
+- Clash/Mihomo
+- Base64 universal
+- Plain URI list
+- Per-protocol URI files
+- Per-country files
+- DNS-safe variants
+- DNS-hardened variants
+- Shadowrocket
+- Surge
+- Loon
+- Quantumult X
+- SIP008
+- Hiddify import bundle
+- NekoBox/NekoRay bundle
+- V2RayN/V2RayNG bundle
+- OpenVPN side products
+- WireGuard side products
+- Lab strategy exports
+- Debug summary
+- Health/control files
+- API aliases
+- Client compatibility report
+
+##### Instructions
+
+1. Add each output to `docs/output_matrix.json`.
+2. Add generator.
+3. Add validator.
+4. Add docs table generation.
+5. Add frontend download card.
+6. Add smoke test.
+7. Add degraded behavior.
+
+- Output exists.
+- Output is validated.
+- Output is documented.
+- Output has client compatibility notes.
+- Output is included in manifest.
+- Output is included in screenshot/download UI.
+
+#### 8.3 Client compatibility validator
+
+JSON/YAML syntax validation is not enough. Client configs can be syntactically valid but rejected by actual clients.
+
+##### Add optional validators
+
+- `sing-box check`
+- `mihomo -t`
+- JSON schema where available
+- Client-specific linter rules
+- Adapter-specific semantic checks
+
+- Native validators are optional.
+- Missing binaries skip cleanly.
+- CI can run them when available.
+- Failures are reported per file.
+- Docs show which checks ran.
+
+#### 8.4 Signed output manifests
+
+Consumers need confidence that outputs are produced by the project and not tampered with.
+
+##### What to sign
+
+- `artifact_manifest.json`
+- `metadata.json`
+- `proxies.json` hash
+- critical subscription hashes
+- source commit
+- run ID
+- generated timestamp
+
+1. Add `artifact_manifest.sig`.
+2. Add public key distribution.
+3. Add frontend verification.
+4. Make missing key behavior explicit.
+5. Add offline verifier script.
+6. Add docs.
+
+- Signature covers manifest.
+- Frontend verifies manifest when key exists.
+- Verification failure is visible.
+- No placeholder public key in deployed artifact.
+- Offline verifier works without network.
+
+#### 8.5 Output quality tiers
+
+Users need simple choices.
+
+##### Tiers
+
+- `stable`: recently tested working, high confidence.
+- `fast`: low latency.
+- `diverse`: region/protocol diversity.
+- `experimental`: untested candidates and shielded candidates.
+- `revived`: revived/washed only.
+- `dns-safe`: DNS-poisoning-resistant.
+- `lab`: custom chain experiments.
+
+1. Add tier labels to proxies.
+2. Generate tiered outputs.
+3. Add UI download filters.
+4. Add docs explaining tradeoffs.
+5. Add tests ensuring no unverified candidates enter stable tier.
+
+- Stable tier contains only verified working entries.
+- Experimental tier is clearly labeled.
+- Tiers are counted in metadata.
+- UI explains each tier.
+- Output matrix lists tiered files.
+
+### 9. Online Laboratory expansion
+
+#### 9.1 Lab project/session model
+
+The lab should become a structured workspace, not just forms.
+
+A local-only lab project object:
+
+```json
+{
+  "version": 1,
+  "created_at": "...",
+  "network_profile": {},
+  "input_proxy": {},
+  "clean_ips": [],
+  "strategy": "vwarp-masque",
+  "chain_config": {},
+  "test_results": [],
+  "exports": []
+}
+```
+
+- Save/load lab projects.
+- Import/export project JSON.
+- Local browser storage.
+- No server required.
+- Redact secrets when sharing.
+
+- Project save/load works offline.
+- Secrets can be redacted.
+- Versioned migration exists.
+- Invalid project import fails safely.
+- UI shows project state.
+
+#### 9.2 Guided lab wizard
+
+Users should not need to understand all protocols before using the lab.
+
+##### Wizard modes
+
+- “I have a proxy URI”
+- “I have WARP key”
+- “I only have local proxy”
+- “DNS is poisoned”
+- “Everything is blocked”
+- “I need fastest config”
+- “I need most reliable config”
+- “I need manual offline config”
+
+1. Ask simple questions.
+2. Select strategy automatically.
+3. Show why strategy was chosen.
+4. Let advanced users override.
+5. Export multiple client formats.
+
+- Wizard works without network.
+- Wizard never contacts external endpoints silently.
+- Strategy choice is explainable.
+- Unsupported inputs show helpful errors.
+- Docs mirror wizard flow.
+
+#### 9.3 Visual chain builder
+
+Chains are hard to understand. A visual graph makes them clearer.
+
+- Nodes: direct, proxy, WARP, Vwarp, worker, DNS, selector.
+- Edges: detour, route, fallback.
+- Validation badges.
+- Latency/confidence labels.
+- Export preview.
+- Error highlighting.
+
+1. Build graph model from chain config.
+2. Render with accessible HTML/SVG.
+3. Validate graph before export.
+4. Allow drag/drop only if it preserves valid topology.
+5. Add screenshot tests.
+
+- Invalid detours highlighted.
+- Missing credentials highlighted.
+- Client compatibility shown.
+- Graph is keyboard accessible.
+- Offline mode works.
+
+#### 9.4 Lab config linter
+
+Before testing or exporting, lint configs locally.
+
+##### Lint checks
+
+- Missing outbound tags.
+- Duplicate tags.
+- Missing detours.
+- Unsupported client fields.
+- Private/internal endpoints.
+- Empty credentials.
+- Invalid UUIDs.
+- Invalid ports.
+- Unsupported transport/client combination.
+- DNS resolver conflicts.
+- Placeholder values.
+
+- Linter runs before export.
+- Linter messages are actionable.
+- Warnings vs errors are distinct.
+- Tests cover each lint rule.
+- No raw secrets appear in lint logs.
+
+#### 9.5 Lab live-test sandbox
+
+Live tests are valuable but risky. They must be bounded.
+
+- User-visible “this will contact X” confirmation.
+- Rate limit.
+- Payload size cap.
+- Process timeout.
+- Allowed outbound types.
+- Private/internal endpoint blocking.
+- Admin key for hosted production.
+- Local-only mode for user machines.
+- Test result explanation.
+
+- Production live test disabled by default.
+- Static Pages shows manual mode.
+- Backend mode requires explicit enablement.
+- Live test kills child process on timeout.
+- Test results are sanitized.
+- Browser UI shows manual fallback.
+
+#### 9.6 Local QR generation
+
+QR export must not send configs to third-party QR services.
+
+1. Vendor a local QR generator.
+2. Keep it same-origin.
+3. Add no-network browser test.
+4. Redact QR preview when secrets hidden.
+5. Add offline lab support.
+
+- No external QR API.
+- QR works offline.
+- Large payload warning exists.
+- User can copy raw payload.
+- Tests block external requests.
+
+#### 9.7 Lab export pack
+
+One export should create a bundle for the user.
+
+##### Bundle contents
+
+- Sing-box JSON
+- Clash YAML
+- Xray JSON
+- NekoBox/NekoRay link
+- URI
+- QR payload
+- Python runner
+- Bash runner
+- README
+- Troubleshooting guide
+- Redacted project file
+- Full project file, only if user chooses
+
+- ZIP paths are safe.
+- Secrets are included only by explicit user action.
+- README explains each file.
+- Bundle works offline.
+- ZIP scanned for placeholder/deploy secrets.
+
+#### 9.8 Lab result explainability
+
+Users need to understand why something failed.
+
+##### Failure categories
+
+- Invalid input
+- Unsupported protocol
+- Missing credential
+- DNS failure
+- Connection timeout
+- TLS failure
+- Client config invalid
+- Local process unavailable
+- Live testing disabled
+- Private endpoint blocked
+- Browser/network limitation
+
+- Every failure has category.
+- UI gives next action.
+- Advanced details are expandable.
+- Error text is escaped.
+- Docs include troubleshooting mapping.
+
+### 10. Offline Laboratory expansion
+
+#### 10.1 Fully self-contained offline HTML
+
+A single file should work with no internet, no server, no build step.
+
+##### Include
+
+- CSS
+- JS
+- Strategy manifest
+- Parser helpers
+- Config linter
+- Local QR generator
+- Export builders
+- Documentation snippets
+
+- No external fonts.
+- No external images.
+- No CDN.
+- No network fetch.
+- No service worker requirement.
+- No hidden tracking.
+
+- Opens from `file://`.
+- Works with JavaScript enabled.
+- Shows clear no-network mode.
+- All assets embedded.
+- Browser test blocks network and passes.
+
+#### 10.2 Offline CLI wizard
+
+Some users need terminal-only tools.
+
+- Parse URI.
+- Validate fields.
+- Ask guided questions.
+- Build chain.
+- Export files.
+- Optional local sing-box test.
+- No external requests unless user confirms.
+
+- Runs with Python standard library where possible.
+- Clear prompts.
+- Redacts secrets in logs.
+- Can run in no-network mode.
+- Produces same strategy outputs as online lab.
+
+#### 10.3 Portable diagnostics bundle
+
+Users in restricted networks may need a portable toolkit.
+
+##### Bundle
+
+- `lab-offline.html`
+- `lab-scanner.py`
+- `lab-runner.sh`
+- Example configs
+- Troubleshooting markdown
+- Client install notes
+- Checksums
+- Signature
+
+- Bundle is reproducible.
+- Bundle does not include project deploy secrets.
+- Scripts explain every network action.
+- Checksums published.
+- Docs explain offline use.
+
+### 11. Frontend dashboard and UX
+
+#### 11.1 Health-first dashboard
+
+The dashboard should immediately show whether outputs are fresh, degraded, stale, or unverified.
+
+##### Display
+
+- Status: ok/degraded/stale
+- Generated at
+- Source commit
+- Run ID
+- Working count
+- Tested count
+- Confidence distribution
+- Degraded reason
+- Manifest verification
+- Last successful full run
+- Output file coverage
+
+- Reads `health.json`.
+- Falls back gracefully if missing.
+- Shows stale warning.
+- Shows degraded warning.
+- Does not overstate working counts.
+- Screenshot test covers degraded state.
+
+#### 11.2 Output download decision helper
+
+Users should not need to understand every format.
+
+##### Questions
+
+- Which app do you use?
+- Do you need VPN/TUN mode?
+- Is DNS blocked?
+- Do you want fastest or most reliable?
+- Are experimental chains okay?
+- Do you need offline import?
+
+##### Output
+
+Recommend file(s):
+
+- `singbox.json`
+- `singbox-vpn.json`
+- `clash.yaml`
+- `base64.txt`
+- DNS-safe/hardened variant
+- side product ZIP
+- lab export
+
+- Recommendations map to output matrix.
+- Missing outputs are hidden or disabled.
+- Degraded outputs show warning.
+- App compatibility docs linked.
+- No broken links.
+
+#### 11.3 Protocol explorer
+
+Show protocol support honestly.
+
+##### Display per protocol
+
+- Parsed count
+- Working count
+- Confidence
+- Export support
+- Client support
+- Common failure reasons
+- Example import format
+- Security notes
+
+- Reads protocol matrix.
+- Counts from metadata/proxies.
+- Does not claim export support where false.
+- Links to docs.
+- Browser test verifies filters.
+
+#### 11.4 Source health page
+
+Operators need to know which sources are useful.
+
+- Source health score
+- Last fetched
+- Fetch failures
+- Parse yield
+- Working yield
+- Duplicate rate
+- Protocol mix
+- Cooldown state
+- Reason for demotion
+
+- Sensitive source URLs are masked or hashed.
+- Page can be hidden from public if needed.
+- Source report exists.
+- Docs explain scoring.
+- No secret tokens exposed.
+
+#### 11.5 Accessibility and internationalization
+
+Anti-censorship tools should be usable on low-end devices, screen readers, and multiple languages.
+
+##### Improvements
+
+- Keyboard navigation.
+- ARIA labels.
+- High-contrast mode.
+- Reduced-motion mode.
+- RTL language support.
+- Offline translation bundles.
+- No icon-only actions.
+- Clear error messages.
+
+- Lighthouse/accessibility pass.
+- Keyboard-only lab flow works.
+- RTL screenshots checked.
+- No layout overflow on mobile.
+- Translation keys validated.
+
+### 12. Performance and efficiency
+
+#### 12.1 Streaming parser pipeline
+
+Avoid loading huge source payloads fully into memory.
+
+1. Stream fetch chunks.
+2. Split into bounded line batches.
+3. Decode incrementally.
+4. Push micro-chunks to parser workers.
+5. Apply backpressure.
+6. Track dropped chunks.
+
+- Large source memory stays bounded.
+- Parser handles line split across chunks.
+- Backpressure metrics exist.
+- Tests simulate large payload.
+- No blocking CPU work in event loop.
+
+#### 12.2 Adaptive concurrency controller
+
+Static concurrency is inefficient. Use feedback from latency, errors, queue depth, CPU, memory, and rate limits.
+
+##### Inputs
+
+- Queue depth
+- Fetch latency p50/p95
+- Timeout rate
+- DNS failure rate
+- CPU usage
+- Memory usage
+- Source host error rate
+- Tester availability
+
+1. Add controller per subsystem: fetch, parse, test, DNS.
+2. Use conservative AIMD behavior.
+3. Cap concurrency per host.
+4. Log decisions.
+5. Add simulation tests.
+
+- Concurrency decreases under failure.
+- Concurrency increases slowly under success.
+- Per-host caps enforced.
+- No unbounded queue growth.
+- Metrics explain throttling.
+
+#### 12.3 Output generation optimization
+
+Generating many variants can duplicate work.
+
+- Cache converted outbounds.
+- Reuse DNS-safe/hardened proxy lists.
+- Generate adapters from normalized intermediate representation.
+- Avoid repeated JSON serialization.
+- Parallelize independent output families.
+- Use atomic writes.
+
+- No duplicate conversion per proxy.
+- Output generation time measured.
+- Memory use measured.
+- Output hashes stable.
+- Tests verify deterministic output.
+
+#### 12.4 Test cache efficiency
+
+Testing is expensive. Cache intelligently.
+
+- Cache by normalized proxy fingerprint.
+- Include test profile and engine in key.
+- Expire by confidence and age.
+- Invalidate on parser/tester version change.
+- Store failure reasons.
+- Avoid trusting stale failures forever.
+
+- Cache key is stable.
+- Cache does not include raw secrets.
+- Version changes invalidate relevant entries.
+- Stale cache is visible.
+- Tests cover hit/miss/expiry.
+
+#### 12.5 CI time-budget optimization
+
+The project is zero-budget and uses GitHub Actions. CI needs to be fast and targeted.
+
+##### Strategy
+
+- Unit tests on every PR.
+- Focused integration tests on touched areas.
+- Full production-smoke on main/nightly.
+- Browser tests split by profile.
+- Native validator optional.
+- Artifact retention tuned.
+
+- Test profiles documented.
+- CI reports skipped browser dependencies loudly.
+- Slow tests are marked.
+- Coverage is meaningful.
+- Artifacts are retained long enough for audits.
+
+### 13. Robustness and degraded modes
+
+#### 13.1 Degraded output contract
+
+No working proxies should not mean no output. It should mean valid degraded output.
+
+##### Degraded states
+
+- `no_sources_fetched`
+- `no_proxies_parsed`
+- `no_proxies_validated`
+- `no_proxies_working`
+- `tester_unavailable`
+- `dns_resolution_failed`
+- `output_partial`
+- `deploy_stale_known_good`
+- `schema_validation_failed`
+
+1. Define degraded reasons enum.
+2. Add to `health.json`.
+3. Add frontend warnings.
+4. Add deploy policy.
+5. Add tests for every degraded state.
+
+- Every degraded state has valid artifacts.
+- Users see clear warning.
+- No unverified proxies counted as working.
+- Deploy only fails on invalid/unsafe artifacts.
+- Docs explain degraded behavior.
+
+#### 13.2 Stale-known-good fallback
+
+When a run fails, users may prefer last known good outputs over nothing.
+
+##### Requirements
+
+- Explicitly mark stale.
+- Include previous generated timestamp.
+- Include current failed run timestamp.
+- Include reason stale output reused.
+- Keep hashes.
+- Never silently mix stale and fresh files.
+
+- Stale state visible in `health.json`.
+- Manifest says which files are stale.
+- Frontend warns.
+- Tests simulate failed run fallback.
+- Docs explain freshness.
+
+#### 13.3 Chaos testing
+
+The pipeline should survive hostile conditions.
+
+##### Scenarios
+
+- All sources timeout.
+- Half sources return HTML.
+- Sources return huge payloads.
+- DNS fails.
+- Tester binary missing.
+- Go tester hangs.
+- Python fallback errors.
+- WARP key invalid.
+- Output write fails.
+- Disk full simulation.
+- GitHub artifact missing.
+- Frontend metadata missing.
+- Browser offline.
+
+- Chaos tests are deterministic.
+- Each scenario yields valid degraded output or safe failure.
+- Logs are sanitized.
+- No resource leak.
+- Recovery path documented.
+
+### 14. Observability and reports
+
+#### 14.1 Run timeline report
+
+Operators need to know where time was spent.
+
+##### Report sections
+
+- Fetch phase duration
+- Parse phase duration
+- Validation duration
+- Testing duration
+- Washing duration
+- DNS output duration
+- Output writing duration
+- Validation duration
+- Deploy duration
+- Bottlenecks
+- Top slow sources
+- Top failure categories
+
+- Timeline report generated.
+- No secrets in report.
+- Included in artifact bundle.
+- Frontend can render summary.
+- CI uploads report.
+
+#### 14.2 Failure taxonomy
+
+Failure messages should be consistent and aggregatable.
+
+##### Categories
+
+- `fetch_timeout`
+- `fetch_http_error`
+- `fetch_policy_block`
+- `parse_malformed`
+- `validation_missing_credential`
+- `validation_private_ip`
+- `test_timeout`
+- `test_tls_error`
+- `test_dns_error`
+- `output_schema_error`
+- `deploy_missing_artifact`
+- `frontend_placeholder_error`
+
+- Failure reasons are enums.
+- Metrics use enums, not free text.
+- Docs explain reasons.
+- Frontend maps reasons to user text.
+- Tests assert known categories.
+
+#### 14.3 Operator debug bundle
+
+When something goes wrong, the maintainer should download one safe bundle.
+
+##### Contents
+
+- Sanitized logs
+- `health.json`
+- `metadata.json`
+- `artifact_manifest.json`
+- Run timeline
+- Source quality report
+- Failure taxonomy summary
+- Test engine summary
+- Output validator report
+- Screenshots
+- Environment summary with secrets redacted
+
+- Bundle has safe paths.
+- Bundle is ZIP validated.
+- Secrets redacted.
+- Size bounded.
+- Generated only when enabled or in CI.
+
+### 15. APIs and data contracts
+
+#### 15.1 Versioned public API
+
+Public consumers need stable contracts.
+
+##### Add
+
+- `/api/v1/stats`
+- `/api/v1/proxies`
+- `/api/v1/health`
+- `/api/v1/manifest`
+- `/api/v1/protocols`
+- `/api/v1/outputs`
+- `/api/v1/diff/proxies`
+
+- Existing aliases remain or redirect.
+- API version documented.
+- Schema files exist.
+- Contract tests cover API.
+- Breaking changes require version bump.
+
+#### 15.2 Snapshot identity and diffs
+
+`base_version` must map to a real snapshot, not just a string.
+
+- Snapshot ID equals manifest hash or generated timestamp + commit.
+- Store previous snapshot metadata.
+- Diffs only if base snapshot known.
+- Otherwise return full reload required.
+- Include target version.
+
+- Unknown base version does not produce fake diff.
+- Known version produces correct added/removed.
+- Snapshot store is bounded.
+- Docs explain diff behavior.
+
+#### 15.3 Schema evolution policy
+
+As metadata grows, schemas must evolve safely.
+
+- Additive changes are minor.
+- Breaking changes bump schema major.
+- Frontend supports at least current and previous schema.
+- Unknown keys policy is explicit.
+- Generated docs list schema fields.
+
+- Schema version included.
+- Validators enforce required fields.
+- Frontend handles missing optional fields.
+- Migration tests exist.
+- Changelog notes schema changes.
+
+### 16. Online/offline output verification
+
+#### 16.1 Browser output verifier
+
+Users should be able to verify downloaded artifacts locally.
+
+- Upload or fetch manifest.
+- Verify hashes.
+- Verify signature.
+- Show file coverage.
+- Show stale/degraded state.
+- Work offline if files are provided.
+
+- No external network required for local verification.
+- Signature failures visible.
+- Hash mismatch visible.
+- Large file handling safe.
+- Docs explain verification.
+
+#### 16.2 Native config dry-run helper
+
+Users should know if a config is accepted by their client before using it.
+
+- Browser-only structural validation.
+- Local CLI validation using sing-box/mihomo if installed.
+- Offline lab instructions.
+
+- Browser validation never claims full native compatibility.
+- Native validation output is parsed and explained.
+- Missing binary gives instructions.
+- Tests cover missing/invalid/valid cases.
+
+### 17. Security, privacy, and abuse prevention
+
+#### 17.1 Threat model refresh
+
+Project capabilities grew. Threat model must cover current and future risks.
+
+##### Threats
+
+- Malicious sources
+- Secret leakage
+- Public artifact tampering
+- SSRF
+- Lab process abuse
+- CORS abuse
+- WebSocket resource exhaustion
+- Dependency compromise
+- Browser XSS
+- Zip slip
+- Placeholder key deployment
+- Active scanning misuse
+- Output poisoning
+- Stale artifact trust
+
+- SECURITY.md updated.
+- Each threat has mitigation.
+- Tests map to threats.
+- Residual risks listed.
+- User safety notes included.
+
+#### 17.2 Lab abuse controls
+
+The online lab can run tests and generate configs. It must not become an abuse endpoint.
+
+##### Controls
+
+- Production disabled by default.
+- Admin key required.
+- Rate limits.
+- Payload limits.
+- Allowlisted outbound types.
+- Private/internal endpoint blocks.
+- Timeout and process cleanup.
+- No broad scan features.
+- Clear network-contact consent.
+
+- Controls enforced server-side.
+- Frontend labels mode.
+- Static Pages cannot run live tests.
+- Logs sanitized.
+- Tests cover bypass attempts.
+
+#### 17.3 Dependency and supply-chain hardening
+
+Proxy tooling is dependency-heavy. Supply chain must be controlled.
+
+- Dependency lock with hashes.
+- Scheduled dependency audit.
+- License check.
+- SBOM generation.
+- Binary checksum pinning.
+- Release attestations.
+- Vendored frontend asset manifest.
+- No runtime CDN.
+
+- Lock file generated.
+- Audit failures triaged.
+- Binary downloads checksum-verified.
+- SBOM attached to releases.
+- Frontend assets have source manifest.
+- Docs explain reproducibility.
+
+### 18. DevOps, CI/CD, releases, and mirrors
+
+#### 18.1 Separate software release and data release
+
+Software releases and proxy output releases are different.
+
+##### Software release
+
+- Tagged version.
+- Python package.
+- Native binaries.
+- Docker image.
+- Attestations.
+- Changelog.
+
+##### Data release
+
+- Scheduled pipeline output.
+- Pages artifact.
+- Manifest.
+- Health.
+- Subscriptions.
+- Lab/public files.
+
+- Two workflows documented separately.
+- Two readiness gates.
+- No data-output failure blocks software release unless intended.
+- No software-release claim implies fresh proxy outputs.
+- Status page shows both.
+
+#### 18.2 Longer latest-output retention
+
+A 3-day artifact retention window is weak for auditability.
+
+##### Options
+
+- Increase Actions artifact retention.
+- Publish sanitized latest-output evidence bundle.
+- Store run summaries in GitHub Releases.
+- Store manifest history in Pages.
+- Keep rolling N manifests.
+
+- Latest output can be audited after a week/month.
+- Sensitive files excluded.
+- Storage stays zero-budget.
+- Manifest history bounded.
+- Docs explain retention.
+
+#### 18.3 Deploy smoke tests
+
+Local validation is not enough. Test the deployed site.
+
+##### Smoke checks
+
+- `index.html` loads.
+- `health.json` loads.
+- `metadata.json` fresh.
+- `artifact_manifest.json` valid.
+- `api/proxies` equals `proxies.json`.
+- `api/stats` equals `metadata.json`.
+- `base64.txt` decodes or is valid empty degraded.
+- Frontend no placeholders.
+- Lab page static/manual mode correct.
+- No external runtime requests.
+
+- Smoke runs after Pages deploy.
+- Failure creates visible issue/artifact.
+- Screenshots saved.
+- Hash mismatches fail.
+- Stale site detected.
+
+#### 18.4 Optional mirror parity
+
+Mirrors are useful only if users can trust them.
+
+##### Mirrors
+
+- GitHub Pages
+- IPFS/IPNS
+- Hugging Face
+- Google Drive
+- Telegram
+- Vercel/Netlify optional frontend mirrors
+
+- Mirror is optional.
+- Mirror uses same manifest.
+- Mirror hash parity checked.
+- Mirror failure does not break core.
+- Frontend labels mirror freshness.
+- Docs explain trust model.
+
+### 19. Testing strategy expansion
+
+#### 19.1 Test profile maturity
+
+- `unit`
+- `integration`
+- `frontend-browser`
+- `frontend-no-network`
+- `frontend-degraded`
+- `production-smoke`
+- `output-contract`
+- `protocol-golden`
+- `security`
+- `chaos`
+- `performance`
+- `release`
+
+- Each profile documented.
+- CI uses appropriate profiles.
+- Local developer can run fast subset.
+- Full gate runs before production claim.
+- Skips are visible and explained.
+
+#### 19.2 Visual regression testing
+
+Frontend and lab changes need screenshot proof.
+
+##### Screenshots
+
+- Home dashboard ok.
+- Home dashboard degraded.
+- Proxies page.
+- Analytics page.
+- Lab wizard.
+- Lab manual mode.
+- Lab live mode.
+- Offline lab.
+- Mobile viewport.
+- RTL language.
+
+- Screenshots generated in CI.
+- Differences reviewed.
+- Secrets redacted.
+- Broken layout fails test.
+- Images archived with run.
+
+#### 19.3 Golden output fixtures
+
+Generated config regressions are hard to see.
+
+##### Fixtures
+
+- One fixture per protocol.
+- One fixture per output family.
+- One fixture per DNS mode.
+- One degraded fixture.
+- One zero-working fixture.
+- One chain fixture.
+- One side-product ZIP fixture.
+
+- Golden fixtures deterministic.
+- Sensitive values synthetic.
+- Format validators run.
+- Client semantic validators optional.
+- Matrix claims backed by fixture.
+
+### 20. Analytics and intelligence
+
+#### 20.1 Proxy history intelligence
+
+Use history to improve output quality.
+
+- Uptime over time
+- Latency trend
+- Jitter trend
+- Failure streak
+- Protocol stability
+- Region stability
+- Source reliability
+- Revival success
+- DNS stability
+
+##### Uses
+
+- Better ranking
+- Better chosen outputs
+- Better retest scheduling
+- Better source scoring
+- Better user recommendations
+
+- History DB bounded.
+- Privacy preserved.
+- Ranking formula documented.
+- Tests cover ranking invariants.
+- Frontend shows trend summaries.
+
+#### 20.2 Recommendation engine
+
+Users want “best for me,” not raw lists.
+
+##### Recommendation profiles
+
+- Fastest
+- Most reliable
+- Best for mobile
+- Best for desktop
+- DNS-block resistant
+- Experimental bypass
+- Low battery
+- Low data usage
+- High privacy
+
+1. Define recommendation profiles.
+2. Map profiles to output tiers.
+3. Add frontend wizard.
+4. Add lab strategy suggestions.
+5. Explain why each recommendation was made.
+
+- Recommendations are transparent.
+- No untested proxy recommended as stable.
+- User can override.
+- Tests check profile selection.
+- Docs explain ranking.
+
+#### 20.3 Source discovery suggestions
+
+Help maintainers improve source lists without blindly adding noise.
+
+- Detect dead sources.
+- Suggest replacements from manual input.
+- Score candidate sources in probation.
+- Identify duplicate sources.
+- Identify sources with unique protocols.
+- Generate review report.
+
+##### Safety
+
+Do not scrape the web automatically for sources unless explicitly configured and policy-reviewed.
+
+- Suggestions are reports, not auto-adds.
+- New sources get probation.
+- Duplicate sources detected.
+- Maintainer review required.
+- Source provenance documented.
+
+### 21. Documentation and governance
+
+#### 21.1 Generated docs from matrices
+
+Avoid docs drift.
+
+##### Generate from
+
+- Capability registry
+- Protocol matrix
+- Output matrix
+- Claim ledger
+- Module ownership map
+- Environment variable schema
+
+- README tables generated.
+- API docs generated.
+- Lab strategy docs generated.
+- Manual edits blocked in generated blocks.
+- CI checks generated docs are current.
+
+#### 21.2 Decision records
+
+Major choices need permanent explanations.
+
+##### Create ADRs for
+
+- Raw static frontend vs Vite.
+- DNS-safe vs DNS-hardened semantics.
+- Shielded candidate accounting.
+- Source scheduler behavior.
+- Live lab production policy.
+- Optional mirrors.
+- Strict vs compatibility parser mode.
+- Active scanning boundary.
+
+- ADR template exists.
+- Each major decision linked from docs.
+- Superseded ADRs marked.
+- Status matches implementation.
+- Changelog references ADRs.
+
+#### 21.3 User-facing troubleshooting tree
+
+Users need simple fixes.
+
+##### Troubleshooting categories
+
+- Subscription empty.
+- App rejects config.
+- DNS blocked.
+- Proxies slow.
+- All proxies fail.
+- Lab live test unavailable.
+- QR too large.
+- WARP key invalid.
+- Static Pages stale.
+- Browser cache stale.
+
+- Each issue has symptoms.
+- Each issue has cause.
+- Each issue has next action.
+- Links to relevant output.
+- Available offline.
+
+### 22. Backend API/server enhancements
+
+#### 22.1 Health endpoints by subsystem
+
+- `/health`
+- `/health/outputs`
+- `/health/tester`
+- `/health/lab`
+- `/health/frontend`
+- `/health/dependencies`
+
+- No secrets exposed.
+- Status values consistent.
+- JSON schema documented.
+- Frontend consumes public-safe subset.
+- Tests cover missing output state.
+
+#### 22.2 Admin API hardening
+
+- Key rotation support.
+- Request ID.
+- Audit log.
+- Rate limit per endpoint.
+- Optional HMAC-signed payload.
+- Local-only admin mode.
+
+- Production requires auth.
+- Bad keys fail constant-time.
+- Admin audit logs sanitized.
+- Docs explain deployment.
+- Tests cover auth matrix.
+
+#### 22.3 WebSocket event stream v2
+
+Push update events and health changes to frontend clients safely.
+
+- Heartbeat.
+- Idle timeout.
+- Max connections.
+- Backpressure queue.
+- Event type allowlist.
+- Last-event replay.
+- Connection stats.
+
+- One slow client cannot block broadcast.
+- Messages are bounded.
+- Unknown client messages ignored safely.
+- Tests simulate disconnects.
+- Frontend reconnects cleanly.
+
+### 23. Data model and storage
+
+#### 23.1 Normalize internal proxy model
+
+Ensure every proxy has consistent fields.
+
+- Canonical endpoint object.
+- Credentials object.
+- Transport object.
+- TLS object.
+- Test result object.
+- Provenance object.
+- Output compatibility object.
+
+- Backward compatibility handled.
+- Serialization schema updated.
+- Parsers map into normalized model.
+- Converters consume normalized model.
+- Tests cover round-trip.
+
+#### 23.2 Storage cleanup and retention
+
+History/cache databases can grow.
+
+- Retention policy.
+- Vacuum/compact.
+- Max rows per table.
+- Export summaries.
+- Corruption recovery.
+- Backup/restore.
+
+- DB size bounded.
+- Corruption does not crash pipeline.
+- Recovery path tested.
+- Retention documented.
+- Metrics show storage size.
+
+### 24. Expansion features for users
+
+#### 24.1 Personal profile generator
+
+Generate outputs tailored to user constraints.
+
+- Client app
+- Country/region preference
+- Latency preference
+- DNS situation
+- Protocol preference
+- Experimental allowed
+- Battery/data constraints
+
+##### Outputs
+
+- Recommended subscription
+- Lab strategy
+- Explanation
+- Fallback plan
+
+- Runs client-side where possible.
+- Does not upload preferences.
+- Profiles can be exported.
+- No secrets stored without consent.
+- Docs explain privacy.
+
+#### 24.2 BYOW improvements
+
+Bring Your Own Worker can be powerful but must be guided.
+
+- Worker URL validation.
+- Deployment guide.
+- Config generator.
+- Security warnings.
+- Local-only storage.
+- Health check.
+- Export to supported clients.
+
+- Worker URL sanitized.
+- No credentials leaked.
+- Docs explain Cloudflare limits.
+- Lab integrates worker strategy.
+- Tests cover invalid URL/XSS.
+
+#### 24.3 Community source contribution flow
+
+Let contributors add sources safely.
+
+##### Flow
+
+1. Submit source object.
+2. Validate URL policy.
+3. Run probation fetch.
+4. Compute parse yield.
+5. Check duplicate rate.
+6. Check security drops.
+7. Generate source review report.
+8. Maintainer approves.
+
+- PR template exists.
+- CI validates source object.
+- New source starts disabled/probation if needed.
+- No tokenized private URLs allowed.
+- Source docs updated.
+
+### 25. Performance benchmarks
+
+#### 25.1 Benchmark suite
+
+Track speed regressions.
+
+##### Benchmarks
+
+- Parse 10k mixed lines.
+- Deduplicate 100k proxies.
+- Generate outputs for 10k proxies.
+- Validate Pages artifact.
+- DNS-safe rewrite for 10k proxies.
+- Go tester batch overhead.
+- Python fallback overhead.
+- Frontend render 5k proxies.
+- Lab config lint.
+
+- Benchmarks deterministic.
+- CI records trend.
+- Thresholds avoid flakiness.
+- Results saved as artifact.
+- Regressions require explanation.
+
+#### 25.2 Memory profiling
+
+Large runs can OOM.
+
+- Peak memory tracking.
+- Per-phase memory.
+- Large fixture tests.
+- Streaming assertions.
+- Memory leak tests for repeated runs.
+
+- Peak memory reported.
+- Large payload test passes.
+- Repeated mini-runs do not leak significantly.
+- Output generation memory bounded.
+- Docs include tuning knobs.
+
+### 26. Final recommended build order
+
+#### Wave 1: Truth and contracts
+
+1. Capability registry.
+2. Module ownership map.
+3. Docs hierarchy cleanup.
+4. Output/release policy unification.
+5. Durable latest-output evidence bundle.
+6. Deploy smoke tests.
+
+#### Wave 2: Pipeline correctness
+
+1. Source provider abstraction.
+2. Source quality v2.
+3. Parser result contract.
+4. Failure taxonomy.
+5. Multi-stage validation.
+6. Degraded state enum.
+
+#### Wave 3: Quality and intelligence
+
+1. Tester capabilities.
+2. Confidence scoring.
+3. Retest scheduler.
+4. History intelligence.
+5. Recommendation profiles.
+6. Source scheduler.
+
+#### Wave 4: Labs
+
+1. Lab project model.
+2. Guided wizard.
+3. Config linter.
+4. Visual chain builder.
+5. Offline HTML.
+6. Export pack.
+7. Local QR generation.
+
+#### Wave 5: Outputs
+
+1. Output transaction system.
+2. Client compatibility validator.
+3. Signed manifests.
+4. Tiered outputs.
+5. Expanded adapter support.
+6. Public verifier.
+
+#### Wave 6: Performance and robustness
+
+1. Streaming parser pipeline.
+2. Adaptive concurrency.
+3. Output generation optimization.
+4. Chaos tests.
+5. Memory benchmarks.
+6. CI profile optimization.
+
+#### Wave 7: Security and release maturity
+
+1. Fetch DNS rebinding protection.
+2. Threat model refresh.
+3. Admin API v2.
+4. Supply-chain hardening.
+5. Software/data release separation.
+6. Mirror parity verification.
+
+### 27. Master checklist for declaring a feature “complete”
+
+A feature is complete only when all applicable boxes are checked:
+
+- Implementation merged.
+- Feature flag/default chosen.
+- Unit tests added.
+- Integration tests added.
+- Degraded-mode tests added.
+- Security tests added.
+- Frontend tests added, if UI touched.
+- Visual screenshot added, if UI touched.
+- Output validator updated, if artifact touched.
+- Protocol matrix updated, if protocol touched.
+- Output matrix updated, if public file touched.
+- Capability registry updated.
+- Claim ledger updated only if proof exists.
+- README updated.
+- Wiki updated.
+- STATUS updated.
+- CHANGELOG updated.
+- SECURITY updated, if risk changed.
+- No raw secrets in logs or artifacts.
+- No placeholder leakage.
+- No stale docs with old behavior.
+- Public/deploy smoke passes, if public surface touched.
+- Rollback path documented.
+
+### 28. Highest-value next enhancements
+
+The most valuable improvements are:
+
+1. **Capability registry** - prevents future overclaims.
+2. **Durable latest-output evidence bundle** - makes every run auditable.
+3. **Lab project model + linter** - dramatically improves online/offline lab usefulness.
+4. **Confidence scoring** - improves user trust more than raw proxy counts.
+5. **Source quality v2** - improves pipeline efficiency and output quality.
+6. **Output transaction system** - prevents mixed/stale artifacts.
+7. **Signed manifests + browser verifier** - improves public artifact trust.
+8. **Deploy smoke with screenshots** - closes the gap between local tests and real user experience.
+9. **Adaptive scheduler/concurrency** - saves CI time and improves resilience.
+10. **Documentation generation from matrices** - prevents drift from returning.
+
+The guiding principle: **do not expand by adding isolated features; expand by adding capability contracts, proof, safety boundaries, and user-facing explanations with every feature.**
+
+#### Response:
+#### Side quest: Xray / Sing-box JSON format vs ConfigStream generated JSON
+
+##### Scope
+
+I checked the **official config shapes** for Sing-box and Xray, then compared them against ConfigStream’s current generator/validator contracts. I still do **not** have the actual latest generated `output/` folder, so this is a **source-contract check**, not a byte-for-byte validation of the latest artifacts.
+
+### 1. Official Sing-box JSON shape
+
+Sing-box uses JSON config files. The current official top-level structure includes keys such as:
+
+```json
+{
+  "log": {},
+  "dns": {},
+  "ntp": {},
+  "certificate": {},
+  "certificate_providers": [],
+  "http_clients": [],
+  "endpoints": [],
+  "inbounds": [],
+  "outbounds": [],
+  "route": {},
+  "services": [],
+  "experimental": {}
+}
+```
+
+The official docs also expose `sing-box check`, `sing-box format`, and `sing-box merge` for config validation/formatting/merging. ([sing-box.sagernet.org](https://sing-box.sagernet.org/configuration/?utm_source=chatgpt.com))
+
+Important: Sing-box uses **`route`**, not Xray’s `routing`. Sing-box `outbounds` are objects with at least `type` and `tag`, and supported outbound types include `direct`, `block`, `socks`, `http`, `shadowsocks`, `vmess`, `trojan`, `wireguard`, `hysteria`, `vless`, `shadowtls`, `tuic`, `hysteria2`, `anytls`, `tor`, `ssh`, `dns`, `selector`, `urltest`, and `naive`. ([sing-box.sagernet.org](https://sing-box.sagernet.org/zh/configuration/outbound/?utm_source=chatgpt.com))
+
+### 2. Official Xray JSON shape
+
+Xray’s official configuration is also JSON, but its top-level structure is different:
+
+```json
+{
+  "version": {},
+  "log": {},
+  "api": {},
+  "dns": {},
+  "routing": {},
+  "policy": {},
+  "inbounds": [],
+  "outbounds": [],
+  "transport": {},
+  "stats": {},
+  "fakedns": {},
+  "metrics": {},
+  "observatory": {},
+  "burstObservatory": {},
+  "geodata": {}
+}
+```
+
+Xray uses **`routing`**, not `route`. Its `outbounds` use fields such as `protocol`, `settings`, `tag`, `streamSettings`, `proxySettings`, `mux`, and `targetStrategy`; the first outbound is the primary/default outbound when routing has no match. ([Project X](https://xtls.github.io/en/config/?utm_source=chatgpt.com)) ([Project X](https://xtls.github.io/en/config/outbound.html?utm_source=chatgpt.com))
+
+So a Sing-box config and an Xray config are not interchangeable even though both are JSON.
+
+### 3. ConfigStream’s current public JSON output families
+
+From the output matrix, ConfigStream currently defines these major JSON output classes:
+
+1. **Sing-box runnable/config-like outputs**
+   - `singbox.json`
+   - `singbox-dns-safe.json`
+   - `singbox-dns-hardened.json`
+   - `singbox-vpn.json`
+   - `singbox-vpn-dns-safe.json`
+   - `singbox-vpn-dns-hardened.json`
+   - `singbox-chains.json`
+   - `singbox-chains-dns-safe.json`
+   - `singbox-chains-dns-hardened.json`
+
+2. **Chain metadata outputs**
+   - `chains.json`
+   - `chains-dns-safe.json`
+   - `chains-dns-hardened.json`
+
+3. **Canonical data/control JSON**
+   - `proxies.json`
+   - `metadata.json`
+   - `artifact_manifest.json`
+   - `health.json`
+   - `api/proxies`
+   - `api/stats`
+   - analytics JSON under `data/`
+
+The matrix says Sing-box and Clash references are semantically validated, while `proxies.json` is the canonical public proxy JSON list, not a Sing-box or Xray config. `output_matrix.json`
+
+### 4. ConfigStream’s Sing-box generator: mostly aligned, but has cleanup issues
+
+`src/configstream/generators/singbox.py` generates a Sing-box config with:
+
+- `log`
+- `dns`
+- `inbounds`
+- `outbounds`
+- `route`
+- `experimental`
+
+That matches the broad Sing-box config model. The generator creates selector and urltest groups, proxy outbounds, `direct`, `block`, and `dns-out`, plus DNS and route rules. `singbox.py`
+
+The converter maps ConfigStream `Proxy` objects into Sing-box outbound objects and handles many protocol-specific cases: VMess, VLESS, Shadowsocks, Trojan, HTTP, SSH, Hysteria, SOCKS, Naive, WireGuard, Hysteria2, TUIC, and revived chain outbounds. It also explicitly drops unsupported or unsafe conversions in many cases, including missing UUID/password/private keys, local/private endpoints, unsupported Shadowsocks plugins, unsupported AnyTLS, and several protocols that are parsed but not exported to Sing-box. `singbox.py`
+
+#### Important issue: dead appended outbounds
+
+In `generators/singbox.py`, the code builds:
+
+```python
+final_outbounds = [
+    selector_outbound,
+    urltest_outbound,
+    *outbounds,
+    {"type": "direct", "tag": "direct"},
+    {"type": "block", "tag": "block"},
+    {"type": "dns", "tag": "dns-out"},
+]
+```
+
+After that, it appends extra selector/urltest/mode-selector objects to `outbounds`, but `final_outbounds` has already expanded `*outbounds`. Those later appended objects do **not** make it into the returned config. `singbox.py`
+
+That looks like stale/dead generation logic. It may not break the output, but it creates misleading code and should be cleaned or moved before `final_outbounds` is assembled.
+
+### 5. ConfigStream’s Pages validator is strong, but not enough for complete native-core proof
+
+`validate_pages_artifact.py` requires the public JSON/YAML/ZIP/control files, checks required non-empty files, validates JSON parseability, validates ZIP integrity and safe paths, verifies manifest size/hash coverage, checks API alias parity, and performs semantic reference checks for Sing-box and Clash. It can optionally run native client checks using local `sing-box` and `mihomo`/Clash binaries. `validate_pages_artifact.py`
+
+That is good, but the important limitation is:
+
+**Native Sing-box validation is optional.**
+
+So the current validator can prove “JSON parses and internal references look sane,” but unless `--native-client-check` runs in an environment with `sing-box`, it does not prove every generated Sing-box file is accepted by the actual Sing-box binary.
+
+Recommended amendment:
+
+- Add a dedicated CI job with pinned `sing-box` binary.
+- Run `sing-box check -c` on:
+  - `singbox.json`
+  - `singbox-vpn.json`
+  - all DNS-safe/hardened variants
+  - full chain configs, if they are meant to be runnable
+- If `singbox-chains.json` is only an outbound fragment, do **not** call it a full config; label it as a fragment and validate it with a wrapper config.
+
+### 6. Xray JSON is not currently a first-class public pipeline output
+
+The Lab docs claim the browser lab can export **Xray JSON** as one of the Step 5 formats. `Lab_Page.md`
+
+However, `docs/output_matrix.json` does **not** list a public `xray.json`, `xray-dns-safe.json`, or `xray-chains.json` output. `output_matrix.json`
+
+So the current state appears to be:
+
+- **Sing-box JSON:** canonical pipeline output family.
+- **Xray JSON:** lab export feature / frontend feature, not a canonical Pages output family.
+- **`proxies.json`:** canonical dataset array, not Xray/Sing-box config.
+- **`chains.json`:** chain metadata, not necessarily core-runnable config.
+
+Add a formal Xray output track only when all of these exist:
+
+- `docs/output_matrix.json` entries.
+- Xray generator module.
+- Xray semantic validator.
+- Optional native `xray run -test` / `xray test` check, depending on available Xray command behavior.
+- Lab and pipeline share one Xray builder.
+- Xray docs explain unsupported protocols and transport differences.
+
+### 7. Critical namespace differences to enforce
+
+A validator should explicitly reject accidental cross-core mixing.
+
+#### Sing-box config must use:
+
+```json
+{
+  "inbounds": [],
+  "outbounds": [
+    {
+      "type": "vless",
+      "tag": "..."
+    }
+  ],
+  "route": {}
+}
+```
+
+#### Xray config must use:
+
+```json
+{
+  "inbounds": [],
+  "outbounds": [
+    {
+      "protocol": "vless",
+      "settings": {},
+      "streamSettings": {},
+      "tag": "..."
+    }
+  ],
+  "routing": {}
+}
+```
+
+Main guardrails:
+
+- Sing-box outbound key is `type`.
+- Xray outbound key is `protocol`.
+- Sing-box routing key is `route`.
+- Xray routing key is `routing`.
+- Sing-box TLS/transport fields are protocol-specific inside the outbound shape.
+- Xray transport/security fields generally live under `streamSettings`.
+
+This distinction should be turned into a test so a generated Xray file can never accidentally look like Sing-box JSON, and a Sing-box file can never accidentally look like Xray JSON.
+
+### 8. Output naming risks
+
+#### `singbox-chains.json`
+
+The matrix describes this as “Sing-box chain outbounds.” `output_matrix.json`
+
+If this file is intended to be imported as a full Sing-box config, it should contain a complete runnable config with at least usable `inbounds`, `outbounds`, and `route`.
+
+If it is only intended as an outbound fragment, the name and docs should say:
+
+- `singbox-chain-outbounds.json`
+- or `singbox-chains.fragment.json`
+- or “merge fragment; not runnable alone”
+
+Recommended improvement:
+
+Generate both:
+
+1. `singbox-chains.json` - full runnable config.
+2. `singbox-chain-outbounds.json` - fragment for advanced users.
+
+#### `chains.json`
+
+This should be treated as metadata, not core config.
+
+#### `proxies.json`
+
+This should continue to be a JSON array dataset, never a core config. README already says `proxies.json` is always a JSON array and metadata lives in `metadata.json`. `README.md`
+
+### 9. Protocol export caveat
+
+The Sing-box converter explicitly skips or drops some protocols in conversion. It logs unsupported conversion for protocols such as:
+
+- `ssr`
+- `snell`
+- `brook`
+- `juicity`
+- `xray`
+- `openvpn`
+- `v2ray`
+
+That means ConfigStream can parse or list these protocols, but they are **not all exportable to Sing-box** through the current converter. `singbox.py`
+
+This is not necessarily a bug. It only becomes a bug if the UI/docs imply that every parsed protocol is exported into every core format.
+
+Every output card should show:
+
+- parsed: yes/no
+- validated: yes/no
+- Sing-box export: yes/no
+- Xray export: yes/no
+- Clash export: yes/no
+- URI export: yes/no
+- side-product export: yes/no
+
+The existing protocol matrix already starts this separation and should be extended into a full import/export/client matrix. `protocol_matrix.json`
+
+### 10. Remote rule-set issue in Sing-box JSON
+
+ConfigStream’s Sing-box generator embeds remote rule-set URLs from GitHub for geosite/geoip assets. `singbox.py`
+
+That is convenient, but in hostile networks it can fail at runtime if GitHub is blocked. For anti-censorship outputs, this is a practical weakness.
+
+Recommended outputs:
+
+1. `singbox.json` - current full version with remote rule sets.
+2. `singbox-lite.json` - no remote rule-set dependency.
+3. `singbox-offline.json` - embeds or bundles local rule-set assets where licensing allows.
+4. `singbox-no-geosite.json` - minimal direct/proxy rules only.
+5. `singbox-dns-hardened-lite.json` - hardened DNS without remote rule downloads.
+
+Checklist:
+
+- Every remote dependency documented.
+- Offline variant available.
+- UI labels “requires GitHub rule-set download.”
+- Native check runs both online and no-network variants.
+
+### 11. Required validators to add
+
+#### Sing-box validator
+
+For every Sing-box JSON:
+
+- JSON parses.
+- Top-level is object.
+- Has `outbounds`.
+- All outbound tags unique.
+- Selector/urltest refs exist.
+- `detour` refs exist.
+- Route outbound refs exist.
+- DNS detour refs exist.
+- No internal `_` fields.
+- No top-level Xray-only keys like `routing`.
+- Optional native `sing-box check -c`.
+- Version matrix check for current and previous Sing-box versions.
+
+#### Xray validator
+
+For every Xray JSON:
+
+- JSON parses.
+- Top-level is object.
+- Has `outbounds`.
+- Outbounds use `protocol`, not `type`.
+- Outbounds with transport use `streamSettings`.
+- Routing uses `routing`, not `route`.
+- Route rule `outboundTag` values exist.
+- No Sing-box-only `selector`/`urltest` outbounds unless translated appropriately.
+- No Sing-box-only DNS outbound shape.
+- Optional native Xray config test.
+- Version matrix check for supported Xray core versions.
+
+#### Dataset validator
+
+For `proxies.json`:
+
+- Root is array.
+- Each proxy has required schema fields.
+- Protocol is canonical or known alias.
+- No raw secrets in metadata fields.
+- Config URI is valid or marked unavailable.
+- `is_working` is boolean.
+- `process` / lifecycle is valid.
+- `latency` is numeric/null.
+- `details` does not contain deploy secrets.
+
+### 12. Recommended new output plan
+
+Add a formal split:
+
+#### Core configs
+
+- `singbox.json`
+- `singbox-vpn.json`
+- `singbox-lite.json`
+- `singbox-offline.json`
+- `xray.json`
+- `xray-lite.json`
+- `xray-reality.json`
+- `xray-worker.json`
+
+#### Fragments
+
+- `singbox-outbounds.json`
+- `singbox-chain-outbounds.json`
+- `xray-outbounds.json`
+- `xray-routing-fragments.json`
+
+#### Data
+
+- `proxies.json`
+- `metadata.json`
+- `chains.json`
+- `revived.json`
+- `health.json`
+- `artifact_manifest.json`
+
+#### Reports
+
+- `core_compatibility_report.json`
+- `singbox_check_report.json`
+- `xray_check_report.json`
+- `protocol_export_matrix.json`
+- `output_validation_report.html`
+
+### 13. Immediate action items
+
+1. **Clean `generators/singbox.py` dead selector/urltest append logic.**
+   Either include those additional outbounds in `final_outbounds` or delete them.
+
+2. **Clarify `singbox-chains.json`.**
+   Decide whether it is a full config or a fragment. Rename or generate both.
+
+3. **Add Xray to output matrix only if pipeline actually generates it.**
+   Lab-only Xray export should be tracked in a lab export matrix, not public output matrix.
+
+4. **Add `core_format` metadata to JSON outputs.**
+
+```json
+{
+  "core_format": "sing-box",
+  "core_format_version": "1",
+  "configstream_schema_version": "3.0.2"
+}
+```
+
+For datasets:
+
+```json
+{
+  "artifact_type": "dataset",
+  "dataset_schema": "proxies-array"
+}
+```
+
+5. **Add native-core validation job.**
+   Pin `sing-box` and Xray binaries in CI, run validation on deterministic generated fixtures.
+
+6. **Generate an explicit compatibility report.**
+   Users should see which protocols survived into each output family.
+
+7. **Create offline/lite Sing-box variants without remote rule-set dependencies.**
+
+### Bottom line
+
+ConfigStream’s **Sing-box JSON direction is structurally aligned** with the official Sing-box config model, and the Pages validator already catches many reference/shape errors. But it still needs cleanup and stronger proof through pinned native `sing-box check`.
+
+ConfigStream’s **Xray JSON is not yet a first-class pipeline output**. It is documented as a Lab export, but not represented in the canonical output matrix. To make Xray real and trustworthy, it needs a dedicated generator, validator, output matrix entries, native Xray checks, and a clear distinction from Sing-box JSON.
+
+The most important rule: **never mix the two JSON dialects.** Sing-box JSON and Xray JSON are both JSON, but they are different config languages.
+
+**Sources:**
+
+- [Introduction - sing-box](https://sing-box.sagernet.org/configuration/?utm_source=chatgpt.com)
+- [Configuration File | Project X](https://xtls.github.io/en/config/?utm_source=chatgpt.com)
+
+Read-only audit completed. I did not implement anything after your “report only” instruction.
+
+**Current Repo State**
+- Branch: `main`
+- HEAD: `7a6aa37e Merge branch 'main' of https://github.com/AmirrezaFarnamTaheri/ConfigStream`
+- Previous hardening commit is present in history: `4643d314 Harden source fetches and Pages artifact verification`
+- Working tree is dirty. Major uncommitted areas:
+  - deploy Pages post-upload smoke
+  - Lab strategy manifest / dynamic UI changes
+  - local QR renderer work
+  - server JSON cache experiment
+  - log sanitization edits
+  - bookkeeping updates
+- Untracked/generated items currently present:
+  - [Lastest Outputs](<C:/Users/ACER/Documents/GitHub/ConfigStream/Lastest Outputs>)
+  - `frontend-dist/`
+  - empty `NL`, `US`
+  - zero-byte [header-bg.png](C:/Users/ACER/Documents/GitHub/ConfigStream/frontend/assets/images/header-bg.png)
+  - [qrcode.js](C:/Users/ACER/Documents/GitHub/ConfigStream/frontend/assets/js/utils/qrcode.js)
+  - [verify_pages_deployment.py](C:/Users/ACER/Documents/GitHub/ConfigStream/scripts/verify_pages_deployment.py)
+  - [test_server_concurrent_cache.py](C:/Users/ACER/Documents/GitHub/ConfigStream/tests/unit/test_server_concurrent_cache.py)
+
+**Latest Output Folder**
+The folder is named `Lastest Outputs`, and it is not a full deployable Pages artifact. It contains 10 files totaling about 16.1 MB:
+- `base64.txt`
+- `configstream-proxies.txt`
+- `consolidated_pipeline.log`
+- 7 screenshots
+
+Missing from latest output:
+- `metadata.json`
+- `proxies.json`
+- `health.json`
+- `artifact_manifest.json`
+- `api/proxies`
+- `api/stats`
+- frontend assets
+- `assets/js/runtime-config.js`
+
+So this latest folder cannot pass the current Pages artifact contract. It is a partial/manual output bundle, not a production artifact.
+
+**Latest Run Health**
+The log is clear: the latest pipeline failed under strict mode.
+
+Key facts from [consolidated_pipeline.log](<C:/Users/ACER/Documents/GitHub/ConfigStream/Lastest Outputs/consolidated_pipeline.log>):
+- batch time limit reached
+- hard batch time limit reached
+- all 4661 proxy tests failed
+- output was still generated with `is_working=False`
+- 1332 dead proxies were “resurrected” into chains
+- 57 output files were generated internally
+- history export was truncated at 500,000 rows
+- scheduler stats: `valid_entries: 0`, `expired_entries: 180401`
+- final result: `Pipeline Failed: 0 working proxies detected`
+
+This is the strongest finding: the pipeline produced usable-looking outputs after a failed run, but the run did not have verified working proxies.
+
+**Output Content**
+`configstream-proxies.txt`:
+- 1722 lines
+- 1721 valid JSON chain lines
+- 1 URI line
+- 1721 lines contain WireGuard
+- 1720 lines are revived/WARP-related
+- 860 lines include shielded markers
+
+`base64.txt`:
+- one base64 line
+- decodes to 223 URI entries:
+  - 206 `socks5`
+  - 5 `socks4`
+  - 12 `http`
+
+Security note: `configstream-proxies.txt` includes WireGuard `private_key` fields. That may be required for client configs, but this folder must not be committed or casually published as audit/debug material.
+
+**Visual Inspection**
+The screenshots show several important UX/trust mismatches:
+
+1. Analytics claims do not match the failed pipeline log.
+   - Screenshot shows `857 Online Now`, `1 Clean (Native)`, `856 Shielded`.
+   - Log says `0 working proxies detected`.
+   - This is a serious split-brain between runtime verification and frontend presentation.
+
+2. Trust wording is still stale in the screenshots.
+   - Screenshot shows `Unique & Verified`.
+   - The recent code direction was to avoid overclaiming and use labels like unique candidates / retested working / shielded candidates.
+   - Either the screenshots are from stale frontend assets, or the latest deployed/output UI is not aligned with current code.
+
+3. Shielded candidates appear as “Online”.
+   - Proxy table screenshot shows many `WIREGUARD` rows with status `Online`, process `SHIELDED`, latency `N/A`.
+   - That is misleading unless those chains were actually retested and passed.
+   - The log says all tests failed, so this looks wrong.
+
+4. Footer freshness is inconsistent.
+   - One screenshot says `Last updated: checking...`
+   - Another says `Last updated: 02/22/2026 20:52:48`
+   - Latest output folder is from May 11, 2026.
+   - This indicates stale metadata, failed metadata fetch, or frontend fallback drift.
+
+5. Analytics chart title leak:
+   - Screenshot shows raw key `analytics.charts.evasion_trend`.
+   - That means a missing i18n translation or wrong lookup path.
+
+6. Proxy page copy overclaims.
+   - “complete list of vetted proxies” conflicts with failed strict run and offline/shielded candidates.
+   - Should be softened to candidates / generated configs unless verified.
+
+7. BYOW panel wording is off-brand and overclaiming.
+   - “Upgrade to Platinum” and “unblockable by censors” are not appropriate for a zero-budget sovereignty-grade project.
+   - This should become neutral language: “Use your own Worker” / “private bridge” / “may improve availability”.
+
+**What Is Done Well**
+- Fetcher hardening is substantially improved: credentialed/internal/private/redirect/DNS unsafe source fetches are guarded.
+- Runtime frontend config path is much better: production keys move into generated `runtime-config.js`; source JS stays local/offline-safe.
+- Signed artifact verifier now fails closed when key/WebCrypto prerequisites are missing.
+- Public artifact validation is much stronger: nested schema checks, API alias parity, ZIP safety, manifest hashes, proxy detail validation.
+- Snapshot identity was strengthened with `proxies_snapshot_hash` and previous hash handling.
+- Local temporary Pages-artifact browser smoke exists and is valuable.
+- Post-upload Pages HTTP smoke is currently implemented in the dirty tree and has unit tests.
+
+**Partial / Not Yet Good Enough**
+- Lab strategy manifest migration is incomplete. Current dirty change removes static `<option>` fallback from [lab.html](C:/Users/ACER/Documents/GitHub/ConfigStream/frontend/lab.html) and relies on fetching `lab_strategies.json`. That can regress offline/file/local degraded behavior. Better: keep static fallback, then enhance from manifest when fetch works.
+- Local QR rendering is partial. `qrcode.js` is untracked and needs provenance/security review. It should be vendor-manifested and covered by no-network browser smoke.
+- Server JSON cache is partial and currently has a failing test.
+- Post-upload Pages smoke is implemented but not yet committed and not proven against the real deployed URL in this environment.
+- Latest output folder does not prove the current artifact contract because it is missing core contract files.
+
+**Broken / Failing**
+- `tests/unit/test_server_concurrent_cache.py` fails.
+  - It patches `configstream.server.settings.OUTPUT_DIR`, but `settings` has no `OUTPUT_DIR`.
+  - Result: `AttributeError`.
+  - The test also looks like a benchmark-style test; it needs to be converted into deterministic cache behavior coverage.
+- `frontend/assets/images/header-bg.png` is zero bytes and cannot be viewed/rendered.
+- `frontend-dist/` is present and untracked; it should be cleaned before any commit.
+- `Lastest Outputs/` is present and untracked; it should not be committed.
+- Empty `NL` and `US` files are untracked and look accidental.
+- New log-sanitization edits import `SecurityValidator` in files where it appears unused. This may fail `flake8` with F401 unless cleaned.
+- Latest pipeline output failed strict mode with zero working proxies.
+
+**Validation Performed In This Audit**
+Passed:
+- `python scripts/validate_workflows.py`
+- `python scripts/validate_status.py`
+- `python scripts/validate_claim_ledger.py`
+- `python scripts/validate_docs_sync.py`
+
+Focused tests:
+- 18 passed
+- 1 failed: `tests/unit/test_server_concurrent_cache.py`
+
+No full production-smoke or full suite was run in this report-only pass.
+
+**Recommended Roadmap**
+1. Fix trust accounting first.
+   - Do not display shielded/revived candidates as `Online` unless retested.
+   - Make latest-output UI consistent with `0 working` failed-run state.
+   - Add browser test for failed/zero-working output state.
+
+2. Fix latest artifact generation.
+   - Ensure the “latest output” published/shared folder is either contract-complete or explicitly labeled partial.
+   - Include `metadata.json`, `proxies.json`, `health.json`, manifest, API aliases, and runtime config for any Pages-like artifact.
+
+3. Repair Lab manifest migration.
+   - Restore static HTML options as offline fallback.
+   - Dynamically update from manifest only when fetch succeeds.
+   - Add no-network/file-style browser proof.
+
+4. Clean generated/untracked junk.
+   - Remove or ignore `frontend-dist/`, `Lastest Outputs/`, `NL`, `US`.
+   - Replace or remove zero-byte `header-bg.png`.
+
+5. Finish server cache safely.
+   - Fix the test target.
+   - Add deterministic cache hit/invalidation assertions.
+   - Consider a small lock or duplicate-read tolerance for concurrent cache misses.
+
+6. Review QR renderer.
+   - Verify source/provenance.
+   - Add to vendor manifest.
+   - Add no-network browser coverage.
+
+7. Run gates before next commit.
+   - `flake8 src tests`
+   - focused tests for changed areas
+   - `python scripts/run_test_profile.py production-smoke`
+   - `CONFIGSTREAM_REQUIRE_PLAYWRIGHT=1 python scripts/run_test_profile.py frontend-browser`
+   - clean `frontend-dist/` after Vite build
+
+Bottom line: core architecture is much stronger than before, but the latest actual output is not healthy. The next real priority is not another feature; it is aligning generated output, metadata, frontend labels, and screenshots so a failed/zero-working run cannot visually present itself as verified online capacity.
+
+The report-only pass is complete and I did not implement further changes after that instruction.
+
+Key outcome: the latest output folder is a partial/manual bundle, not a deployable artifact, and the latest run failed strict mode with `0 working proxies detected`. The highest-priority next implementation should be trust-state correction: failed/zero-working runs and shielded/revived candidates must not render as verified “Online” capacity.
+
+The current dirty tree also contains several partial changes that need either finishing or cleaning before commit:
+- deployed Pages URL smoke: reasonable, tests pass
+- Lab dynamic strategy loading: partial, risks offline fallback regression
+- QR renderer: partial, untracked provenance needs review
+- server JSON cache: partial, current test fails because it patches the wrong target
+- `frontend-dist/`, `Lastest Outputs/`, `NL`, `US`, and zero-byte `header-bg.png`: should not be committed as-is
+
+Validation from the audit:
+- passed: workflow/status/claim/docs validators
+- focused tests: 18 passed, 1 failed
+- failing: `tests/unit/test_server_concurrent_cache.py`
+
+No implementation was done in that report-only pass.
+
+**Amendment Report**
+
+I made one focused code amendment before your report request:
+
+Changed [frontend/assets/js/proxies.js](C:/Users/ACER/Documents/GitHub/ConfigStream/frontend/assets/js/proxies.js:140) so shielded proxy outputs no longer render as verified `Online` just because stale/generated data has `is_working: true`.
+
+What changed:
+- Added `shieldedVerified` detection for an explicit future verification marker.
+- Added `isCandidateOnly` for shielded items without explicit shielded verification.
+- Added `effectiveIsWorking`, which forces unverified shielded candidates out of the online path.
+- Added rendered `statusClass` / `statusText`.
+- Table rows now use `effectiveIsWorking`, not raw `is_working`.
+- Status badges now render `Candidate` for unverified shielded entries instead of `Online`.
+
+This directly addresses the latest-output screenshot mismatch where shielded rows appeared as `Online` with `N/A` latency despite the pipeline log reporting zero working proxies.
+
+**Not Yet Completed**
+
+I stopped before finishing the rest of the planned amendment because you asked for the report mid-iteration.
+
+Still pending:
+- Repair `tests/unit/test_server_concurrent_cache.py`; it currently patches the wrong symbol and targets a route that does not exercise the JSON cache.
+- Add/adjust a frontend trust test proving shielded candidate rendering.
+- Run focused pytest/validation.
+- Clean generated `frontend-dist/` after validation.
+- Decide whether to preserve Lab static fallback options in parallel with dynamic manifest loading.
+
+**Current Risk**
+
+The frontend code amendment is plausible and scoped, but not yet validated. Also `status-candidate` does not appear to have CSS styling yet, so the badge may render with base badge styling only unless CSS is added.
+
+No commit was made.
+
+**ConfigStream is much further along than the old audit snapshot, but it is still not production-final.** The current `STATUS.md` explicitly says the project is in remediation, not production-ready, and that the master audit remains the active source of truth until P0/P1 items are closed. It also says the “full production gate remains open” even after a large validation snapshot of 974 passed / 5 skipped tests.
+
+I also need to be explicit about a limitation: through the GitHub connector I could not access a committed `output/`, `outputs/latest/`, or `latest_output/` folder on `main`; `output/metadata.json`, `outputs/latest/metadata.json`, and `latest_output/metadata.json` all returned not found. The workflow uploads the real latest output as a short-retention GitHub Actions artifact named `pipeline-output`, and Pages deploy downloads that artifact rather than storing it in the repository. The workflow shows `pipeline-output` retention is only 3 days.  I also found no committed frontend verification screenshots; the verification script can generate `frontend_verification_index_fa.png`, `frontend_verification_index_en.png`, and `frontend_verification_analytics.png`, but those files are not present on `main`.  So this amendment focuses on repository state, docs, workflow definitions, known output contracts, and available evidence—not unseen local/output artifacts.
+
+The prior source-of-truth audit said the repository had serious blockers: invalid workflow YAML, stale public artifacts, schema mismatches, inflated `total_working`, raw frontend deployment with placeholder keys, security defaults that overclaimed fail-closed behavior, and widespread docs drift.
+
+The latest `STATUS.md` shows many of those have been actively remediated: workflow parsing, Pages contract files, `health.json`, `artifact_manifest.json`, shielded metric accounting, admin fail-closed behavior, CORS tightening, WebSocket lifecycle controls, lab live-test hardening, fetch redirect validation, frontend placeholder injection, protocol/output matrices, claim ledger, docs-sync, debt matrix, and local-first frontend assets.
+
+But the same `STATUS.md` still says the project is **not production-ready**, with remaining blockers around full CI validation, public artifact contracts and deploy smoke tests, runtime/frontend/schema/docs parity, canonical frontend deployment, degraded public-output hardening, and cleanup of stale/duplicate documents.
+
+The current `STATUS.md` says remediation is ongoing and not production-ready.  But `docs/FINALIZATION_REPORT_2026.md` says the roadmap finalization was completed in February 2026, with all 20 phases completed and release hardening done.  That report is now historically useful, not current truth. It should be clearly marked superseded, archived, or rewritten.
+
+`CLOSURE_REPORT.md` says “Full Hardening Closure Report,” marks many items fixed, and says 826 tests passed, but it also contains stale/incorrect details: it says ARM64 Vwarp skips verification if undefined, while the latest Dockerfile now pins an ARM64 checksum.   It also claims the Pages/output contract was unified, but the latest status still says the full production gate remains open.
+
+`AGENTS.md` is stale in several places. It still describes the Laboratory as having 5 strategies: WARP, Double WARP, TLS Fragment, CDN Worker, Custom JSON.  The latest `STATUS.md`, README, and lab strategy work describe a canonical 9-strategy manifest.
+
+`AGENTS.md` also says `total_proxies` includes Native + Revived + Smart Chains and lists `shielded_count` as a key metadata field.  The latest status/changelog say shielded candidates no longer inflate working totals and now use `shielded_candidate_count` / `shielded_verified_count`.
+
+The debt matrix is not cosmetic. It shows **1,402 tracked markers**, including 13 TODOs, 1 FIXME, 5 XXX, 126 PLACEHOLDER, 9 ASSUMING, and 1,248 MOCK markers. It separates categories and still lists production/frontend/tooling/docs debt, not only tests.
+
+* `.github/workflows/deploy-pages.yml`: placeholder-related marker.
+* `frontend/assets/js/constants.js`: placeholder public-key detection.
+* `frontend/assets/js/stego.js`: `PLACEHOLDER_KEY_INJECTED_BY_CI`.
+* `frontend/assets/js/verifier.js`: verification skips or weakens when public key is placeholder/missing.
+* `frontend/assets/js/washer_client.js`: “Mock status check.”
+* `frontend/assets/js/lab.js`: `XXX` in generated bash temp-file path.
+* `src/configstream/generators/base64.py`: intentionally encodes a placeholder when output would otherwise be empty.
+* `src/configstream/tools/dns_scanner/bash/dnsScanner.sh`: several TODO markers.
+* `scripts/generate_debt_matrix.py`: even the debt generator itself contains TODO/FIXME text.
+
+Some of these are false positives because the debt scanner counts words inside docs/tests/guard code. But not all are harmless. The presence of frontend placeholder keys and verifier fallback paths means “no placeholder deployed” is only true if deploy-time injection succeeds and validation runs. The repository source itself still contains placeholder material by design.
+
+The workflow shows the latest generated output is produced in `output/`, uploaded as `pipeline-output`, and retained for 3 days. It is not committed to the repo.
+
+Pages deploy then downloads `pipeline-output`, copies frontend assets into it, creates `api/proxies` and `api/stats`, removes `output/data/test_cache.json`, injects keys, refreshes the contract, uploads a Pages artifact, and deploys it.
+
+* `artifact_manifest.json`
+* `health.json`
+* `metadata.json`
+* `proxies.json` sample/count summary
+* `pipeline logs`
+* browser screenshots
+* Pages post-deploy smoke report
+* schema validation result
+* native client check result
+* generated timestamp and source commit
+
+`docs/output_matrix.json` is a strong improvement. It enumerates required public outputs, whether they must be non-empty, degraded validity, validation type, ZIP requirements, API aliases, analytics files, frontend entry point, and docs entry point.
+
+But it still contains `remaining_work`: “Add per-protocol golden output fixtures for every public protocol family.”  Meanwhile `STATUS.md` and `CHANGELOG.md` claim per-protocol output golden fixtures and parser-to-frontend protocol fixtures are already done.
+
+Also, `validate_pages_artifact.py` requires many files to exist and many JSON/YAML/ZIP/config files to be non-empty, while allowing text/base64 subscription files to be empty under degraded conditions.  That is reasonable. However, the main pipeline release step still has an “Ensure release assets are non-empty” gate that fails if `output/base64.txt` is empty.  That conflicts with the documented output matrix, which says `base64.txt` may be empty in degraded data.
+
+The old master audit found public Pages artifacts stale/collapsed.  The latest repo has added `health.json`, `artifact_manifest.json`, manifest refresh, schema checks, and API alias parity.
+
+But the available repository evidence does **not** prove the live public site is fresh today. The latest `STATUS.md` itself says the full production gate remains open.
+
+* Live `health.json.status`.
+* Live `metadata.generated_at`.
+* Live `artifact_manifest.source_commit`.
+* Manifest hash parity for `metadata.json`, `proxies.json`, `api/stats`, `api/proxies`.
+* Base64 decode count and uniqueness.
+* `chosen` subset relationship.
+* DNS-safe/DNS-hardened subset relationship.
+* Live dashboard rendering with no placeholders.
+* Browser no-network/degraded checks against deployed artifact, not only local static files.
+
+The master audit flagged that deployed frontend uses raw `frontend/` files while Vite builds to `frontend-dist`, creating two competing production paths.
+
+The latest deploy workflow still copies `frontend/.` into `output/`, injects placeholders, and deploys raw static assets.  `STATUS.md` still lists “frontend deployment must be made canonical: either tested Vite output or raw static output, not both.”
+
+Also, deployment-time key injection is better than before, but the source still contains placeholder logic in `constants.js`, `stego.js`, and `verifier.js` according to the debt matrix.  That is acceptable only if the deploy validator is guaranteed and post-deploy smoke proves the deployed artifact has no placeholder strings.
+
+* Production admin startup fails without `ADMIN_API_KEY`.
+* `/api/admin/notify-update` requires key in production and rate limiting.
+* CORS defaults are tightened.
+* WebSockets have max connections, idle timeout, send timeout, and stale cleanup.
+* Lab live testing is production-disabled by default and gated by admin key if enabled.
+* Fetcher rejects credentialed source URLs, private literals, internal hostnames, and validates redirects.
+
+`README.md` still lists `ADMIN_API_KEY` under “Optional (production hardening)” rather than “required for production server mode,” while server startup requires it in production.
+
+`README.md` says `USE_VWARP_TUNNEL=true (default: false)`, but `config.py` defaults `USE_VWARP_TUNNEL` to `True`.   That is a concrete runtime/docs mismatch.
+
+`config.py` still defaults `ALLOW_PRIVATE_IPS=True` and `INCLUDE_INSECURE_PROXIES=True`.  That may be intentional for proxy validation compatibility, but it must be documented sharply because fetch-source safety now has a separate `FETCH_BLOCK_PRIVATE_NETWORKS=True`. Without careful docs, operators may believe all private/internal IP handling is fail-closed everywhere.
+
+The fetcher SSRF remediation remains partial in the master audit: DNS-resolution/rebinding validation remains a follow-up.
+
+The project’s core rules say no active scanning of third-party infrastructure.  But README advertises offline tools that perform clean IP scan, proxy discovery, DNS probe, and lab-runner IP scans.  The debt matrix also lists TODOs in the DNS scanner bash tool and placeholder fields in the DNS scanner UI.
+
+**Amendment:** add a “No automatic active scanning” contract and label DNS/lab scanner tools as local, opt-in, user-responsible diagnostics. CI and default pipeline must keep `ALLOW_ACTIVE_SCANNING=false`, as seen in the main workflow.
+
+Pages deploy now validates a Pages artifact and supports degraded text/base64 outputs.
+
+But `main.yml` still creates GitHub releases from selected files and hard-fails if `singbox.json`, `clash.yaml`, `singbox-vpn.json`, `base64.txt`, or `consolidated_pipeline.log` are empty.  This contradicts the degraded-output contract for `base64.txt`. It also bypasses the richer output matrix and Pages artifact validator.
+
+Release hardening also claims PyPI, native binaries, Docker provenance, and attestations.  The release workflow does implement build/test/build/attestation for Python and PyInstaller-based native artifacts.  But the “release truth” is tag-based, while the main workflow also creates scheduled timestamp releases from pipeline output.  Those are different release surfaces and need separate contracts.
+
+* **Software release:** tagged `v*.*.*`, PyPI/native artifacts, release.yml.
+* **Data release:** scheduled pipeline outputs, Pages/public subscriptions, main.yml/deploy-pages.yml.
+
+* PR #428: claims to resolve critical audit findings C2–C8 and G3 but is open and not merged.
+* PR #426: workflow YAML syntax fix, open.
+* PR #423/#424: refactor/schema/pipeline resilience PRs, open.
+
+The old audit flagged self-triggering source optimization commits.  Main workflow now has `paths-ignore` for `sources/batch_*.txt` and `sources/backup_dynamic/**`, plus concurrency.
+
+But the same workflow still runs `scripts/dynamic_reshard.py`, commits changed `sources/batch_*.txt`, and pushes to the current branch.  That is improved but still operationally delicate:
+
+* It can mutate source inventory from a scheduled data run.
+* It can create commits whose provenance is tied to runtime metrics.
+* It has no visible “recommendation artifact first, commit second” review stage.
+* It can still complicate debugging when source changes and output changes happen in one run.
+
+* README and STATUS explicitly demote production-ready claims and point to the master audit.
+* Workflow YAML parse repair and validation gate are claimed and reflected in status/changelog.
+* Pages deploy now downloads `pipeline-output`, copies frontend assets, injects keys, creates API aliases, removes test cache, refreshes manifest/health, and deploys.
+* `validate_pages_artifact.py` centralizes required output files, non-empty rules, JSON/YAML/ZIP validation, manifest hash/size checks, `api/proxies` and `api/stats` parity, Sing-box/Clash reference semantics, and optional native client checks.
+* `write_public_artifact_contract()` exists in output logic and writes `health.json` plus `artifact_manifest.json` from actual files.
+* Protocol support has a canonical inventory in `docs/protocol_matrix.json`.
+* Output artifacts have a canonical inventory in `docs/output_matrix.json`.
+* Claim ledger exists and forces proof fields for completed claims.
+* Admin, CORS, WebSocket, lab live-test, and route async-read hardening are implemented in `server.py`.
+* Production dependency pins now include patched versions for previously reported vulnerable packages such as `aiohttp==3.13.4`, `cryptography==46.0.7`, `orjson==3.11.6`, `Pygments==2.20.0`, and `urllib3==2.6.3`.
+* Dockerfile pins Vwarp checksums for both amd64 and arm64 and fails unsupported architectures.
+
+* Live public Pages freshness.
+* Latest `pipeline-output` contents.
+* Latest output screenshots and visual UI state.
+* Actual Actions success on latest `main`.
+* Post-deploy smoke against the live GitHub Pages URL.
+* End-to-end provenance from pipeline output → Pages artifact → live site.
+* Full closure of P0/P1 audit items.
+* Complete documentation parity.
+* Canonical frontend production path.
+* Complete debt cleanup.
+* DNS rebinding-level fetch protection.
+* Shielded-chain retest path for nonzero verified shielded counts.
+
+The documents say many local checks passed, including full pytest and npm/browser smokes.  That is valuable, but it is not the same as live deployment proof.
+
+* **Workflow reliability:** YAML and validation gates are improved, but latest CI behavior and artifact deployment are not proven here.
+* **Public artifact contract:** Pages contract is strong, but release workflow still has a separate fail-closed policy.
+* **Security:** major defaults tightened, but README/config mismatches remain.
+* **Frontend:** local-first and placeholder guards exist, but raw-static vs Vite build remains unresolved.
+* **Output matrix:** strong inventory, but its `remaining_work` conflicts with status/changelog claims.
+* **Protocol matrix:** strong inventory, but export support is explicitly false for several parsed protocols, meaning “20+ protocols” must always be described as parse/support matrix, not universal export parity.
+* **Debt management:** generated and guarded, but still very large and not triaged to closure.
+* **Latest output:** generated as ephemeral artifact, but not inspectable from the repo state.
+
+1. **Docs still contradict each other.** `STATUS.md` says not production-ready; `FINALIZATION_REPORT_2026.md` says finalization completed.
+
+2. **`CLOSURE_REPORT.md` is stale and overconfident.** It claims hardening closure and contains obsolete Vwarp ARM64 verification text.
+
+3. **`AGENTS.md` is stale.** It lists 5 lab strategies while the current manifest/docs claim 9.
+
+4. **Config/docs mismatch:** README says `USE_VWARP_TUNNEL` default false; `config.py` defaults it true.
+
+5. **Production auth docs mismatch:** README treats `ADMIN_API_KEY` as optional production hardening; server startup requires it in production.
+
+6. **Release workflow conflicts with degraded output contract.** `base64.txt` is allowed empty by output matrix but still fatal in the main release asset step.
+
+7. **Debt matrix still lists real unresolved items.** 1,402 markers remain, including production/frontend/tooling/doc items.
+
+8. **Latest output is not durable enough for audit.** `pipeline-output` retention is 3 days, and no committed latest-output snapshot exists.
+
+9. **Screenshots are generated by script but not committed or available for inspection.**
+
+10. **Fetch SSRF hardening remains partial for DNS rebinding / resolved-host validation.** The master audit explicitly leaves that as remaining work.
+
+11. **The frontend verifier/key model remains transitional.** Placeholder injection is guarded, but source placeholder material remains and canonical build path is unresolved.
+
+12. **Source optimization still mutates the repository from a scheduled data workflow.** Paths-ignore reduces loops, but the workflow still commits source reshards.
+
+* `health.json`
+* `artifact_manifest.json`
+* `metadata.json`
+* public file counts
+* decoded subscription counts
+* generated screenshots
+* post-deploy smoke output
+* logs
+* run ID / attempt / source commit
+* validation command results
+
+* 9 lab strategies
+* current metadata fields
+* current shielded candidate/verified terminology
+* current frontend build/deploy reality
+* current active scanning boundary
+* current output matrix status
+
+* `health.json`
+* `metadata.json`
+* `artifact_manifest.json`
+* `base64.txt`
+* `chosen/base64.txt`
+* `proxies.json`
+* `index.html`
+* `api/proxies`
+* `api/stats`
+
+* raw static frontend is canonical; remove Vite production ambiguity, or
+* Vite build is canonical; deploy `frontend-dist`.
+
+* `USE_VWARP_TUNNEL` default.
+* `ADMIN_API_KEY` production requirement.
+* private IP policy split between fetch-source safety and proxy validation.
+* active scanning / DNS scanner boundary.
+
+* real release blockers
+* accepted user-facing placeholders
+* generated-doc false positives
+* test mocks
+* production mocks
+* docs-only historical references
+
+---
+
+## Evidence Ledger: `KNOWN_ISSUES.md`
+
+**Integration note:** Current known-issues surface; resolved issues remain as historical/resolution evidence.
+
+**Original count:** 78 lines, 3264 characters, 3271 bytes.
+
+### Known Issues and Limitations
+
+#### Recently Resolved (v3.0.2)
+- **Remote frontend/CDN runtime dependencies**: Primary pages now load critical JS/CSS/fonts/globe/flag assets and Lab helper downloads from same-origin files, with static and browser smoke tests guarding against CDN regressions.
+- **Xray WireGuard export**: Lab was incorrectly claiming Xray doesn't support WireGuard. Fixed — now generates native `secretKey` + `peers[]` format.
+- **Clash/Xray transport**: Lab exports were missing WebSocket, gRPC, HTTP/2, httpupgrade, and Reality settings. Fixed with full transport support.
+- **Trojan transport in Clash**: Pipeline Clash converter was missing ws/grpc transport for Trojan. Fixed.
+- **WireGuard MTU default**: All converters now default to `mtu: 1280` for WireGuard outbounds.
+- **Chain export scope**: Surge/Loon adapters only exported chains tagged `🛡️ Secure`. Now exports all WireGuard chains with `detour`.
+- **Revived proxies in subscriptions**: `base64.txt` and `proxies.txt` now include revived proxy URIs.
+
+For full resolved history, see `CHANGELOG.md`.
+
+---
+
+#### 1. WASM Browser Networking Boundary
+
+**Status:** Documented and guarded in v3.0.2
+
+Browsers cannot open raw TCP/UDP sockets or perform native proxy handshakes from
+WASM. The frontend WASM module (`src/go/tester/wasm_main.go`) uses
+`syscall/js` and the browser `WebSocket` API only for browser-limited reachability checks on compatible WebSocket endpoints. Unsupported schemes and
+invalid URLs are reported as browser-check failures while existing Go
+sidecar/Python test results remain authoritative.
+
+#### 2. Mobile Layout Considerations
+
+**Status:** Minor - Already Mitigated
+
+The CSS includes comprehensive mobile responsive design with:
+- `overflow-x: hidden` on all container elements
+- Proper z-index hierarchy for mobile navigation
+- Responsive grid layouts that adapt to screen size
+- Touch-friendly target sizes
+
+**Note:** The z-index mobile menu issue reported in early analysis has been **fixed** (header: 1000, nav-panel: 1005).
+
+---
+
+#### 3. Country Flag Asset Dependency
+
+**Status:** Resolved
+
+Country rendering no longer depends on `flagcdn.com`. The proxy table uses vendored 20px flag PNGs with a text fallback only when an unknown or missing country asset is encountered.
+
+---
+
+#### 4. Vwarp and Chain Statistics Display
+
+**Status:** Fixed in Latest Commit
+
+Previously, `smart_chain_count` and `vwarp_win_rate` were tracked in the backend but not displayed in the frontend.
+
+**Resolution:** Added two new statistics cards to the dashboard:
+- **Smart Chains:** Displays the count of topology-aware chains created
+- **Vwarp Efficiency:** Shows the win rate percentage for WARP washing attempts
+
+These statistics are now visible on the main dashboard and update with each pipeline cycle.
+
+---
+
+#### 5. MIME Type Handling for WASM
+
+**Status:** Fixed
+
+Browsers require `.wasm` files to be served with `Content-Type: application/wasm`. This has been explicitly configured in `server.py`:
+
+```python
+mimetypes.add_type("application/wasm", ".wasm")
+```
+
+This ensures the FastAPI static file server serves WASM files with the correct MIME type.
+
+---
+
+#### Contributing
+
+If you can help address any of these issues, please submit a pull request or open an issue for discussion.
+
+---
+
+## Evidence Ledger: `STATUS.md`
+
+**Integration note:** Current status checkpoint; supersedes older readiness claims when conflicts exist.
+
+**Original count:** 157 lines, 22342 characters, 22342 bytes.
+
+### ConfigStream Project Status
+
+**Last updated:** 2026-05-12
+**Version:** v3.0.2
+**Status:** Remediation in progress. Not production-ready and not ready to publish as a final public release.
+
+The active source of truth is [ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md](ConfigStream_Master_Audit_Report%20-%20Main%20SOURCE%20OF%20TRUTH.md). That report supersedes older status, finalization, and roadmap claims when they conflict.
+
+#### Current Verdict
+
+ConfigStream has a substantial architecture and a large test base, but the repository is currently being brought back into a single, verifiable production contract. Until the P0/P1 audit items are closed, public-facing claims must be treated as remediation targets rather than completed guarantees.
+
+Current blockers:
+
+- Workflow syntax was repaired locally, but workflow behavior still needs full CI validation.
+- Public artifact contracts need canonical schemas and deploy smoke tests.
+- Runtime metrics, frontend labels, schemas, deploy-time runtime config, and docs have focused parity guardrails in place; remaining work is narrower future-contract hygiene.
+- Security defaults for degraded public output still need hardening; admin APIs, production CORS, WebSocket lifecycle, the lab live-test endpoint, and fetch redirect handling have focused guardrails in place.
+- Frontend deployment is canonical raw static for Pages: deploy copies `frontend/.` into `output/`, while Vite remains an optional/local build sanity check and is not treated as the deploy artifact.
+- Legacy, duplicate, and stale documents still need cleanup after each implementation step.
+
+#### Recently Restored
+
+- GitHub workflow YAML now parses locally through `scripts/validate_workflows.py`.
+- Workflow validation is wired into CI and pre-commit.
+- Source reshard commits are guarded by `paths-ignore` checks to reduce self-trigger loops.
+- Pages artifact validation is centralized in `scripts/validate_pages_artifact.py`.
+- Output generation now writes `health.json` and `artifact_manifest.json` so public deployments have a canonical status file and file inventory.
+- Pages validation now checks manifest file coverage, file sizes, SHA-256 hashes, manifest totals, metadata required keys, proxy array shape, and health required fields.
+- Pages deployment refreshes the public contract after all deploy-time mutations so the manifest describes the exact uploaded artifact.
+- `scripts/validate_versions.py` now uses explicit UTF-8 reads and ASCII-safe output for Windows compatibility, with a cp1252-stdout regression test.
+- `pyproject.toml` now classifies the project as Beta during remediation instead of Production/Stable.
+- README TLS fragmentation language now matches implementation: fragmentation is disabled in current sing-box outputs.
+- Shielded chain candidates no longer inflate `total_working`; metadata now exposes `shielded_candidate_count` and `shielded_verified_count`.
+- Production admin update notifications now fail closed unless `ADMIN_API_KEY` is configured and supplied; the endpoint is rate-limited, and server startup fails in production if the key is absent.
+- Production CORS now uses explicit origins only: wildcard origin regex is empty by default, credentialed CORS is disabled by default, and production startup rejects `ALLOWED_ORIGIN_REGEX`.
+- WebSocket update connections now have bounded connection count, idle timeout, send timeout, stale cleanup, and connection/drop stats.
+- Lab live chain testing is disabled by default in production; when explicitly enabled, it requires `ADMIN_API_KEY`, enforces a `30/minute` rate limit, rejects oversized configs, validates submitted outbound shape/type/hosts, blocks private/internal destinations, and keeps the frontend manual fallback path available.
+- Laboratory Step 4 now exposes visible live-test/manual-test mode state: backend-capable hosting keeps the live endpoint path, while GitHub Pages/file-style static hosting is labeled for manual sing-box testing.
+- Frontend trust labels now distinguish unique candidates, retested working proxies, and shielded candidates so shielded chain counts are not presented as verified working.
+- Pages workflow validation now enforces the canonical raw static frontend deploy path and rejects accidental `frontend-dist`/Vite deployment drift.
+- Source fetching now rejects source URL credentials, localhost/internal hostnames, and private/non-global IP literals by default; redirects are followed manually only after validating each target and respecting `FETCH_MAX_REDIRECTS`.
+- Source fetching now validates DNS answers before each HTTP stream when `FETCH_VALIDATE_DNS=true`, rejecting hostname and redirect targets that resolve to private or non-global addresses before network I/O begins.
+- Pages deploy now generates `assets/js/runtime-config.js` from `CS_PUBLIC_KEY`/`STEGO_KEY` after copying frontend assets, leaves checked-in source-shaped JS immutable, and fails before upload if required runtime keys are missing or placeholder markers remain; workflow and Pages artifact validation enforce this guard.
+- A repeatable deploy-artifact browser smoke now assembles a temporary Pages-shaped artifact, generates runtime config, validates the public artifact contract, and runs same-origin browser/protocol/Lab/no-JS checks against that exact artifact.
+- Pages deployment now runs a post-upload HTTP smoke against the deployed URL, checking primary HTML pages, generated runtime config, metadata/proxy API alias parity, health metadata, and placeholder-key absence.
+- Frontend signed-artifact verification now fails closed when WebCrypto is unavailable or public key material is missing/placeholder, while unsigned local content remains parseable for offline use.
+- Public artifact validation now rejects unknown control/proxy schema keys, validates nested metadata and protocol-specific proxy `details`, and verifies that `api/proxies` and `api/stats` match `proxies.json` and `metadata.json`; README now documents `proxies.json` as a JSON array, not a metadata envelope.
+- Public metadata now includes `proxies_snapshot_hash` and `previous_proxies_snapshot_hash`; `/api/diff/proxies` requires `base_version` to match the old snapshot hash before returning a delta, and frontend proxy-array caching uses the metadata snapshot hash.
+- Laboratory strategy handling is now fully data-driven: labels, hints, and UI panel visibility rules are loaded from `lab_strategies.json` at runtime, ensuring manifest parity across the UI, tests, and documentation.
+- The same-origin frontend browser smoke now checks the rendered Laboratory strategy dropdown against the canonical 9-strategy manifest.
+- Laboratory QR export no longer sends proxy or chain payload material to an external QR service; the Lab now renders an offline copyable payload panel and keeps a scannable local QR renderer as an optional follow-up.
+- Laboratory manual clean-IP rows now render with DOM text nodes instead of `tr.innerHTML`, and manual clean-IP input is validated before storage.
+- Laboratory result messages now escape dynamic user/API values before inserting trusted helper markup, covering local proxy input, parsed proxy remarks, custom JSON parse errors, unsupported strategy names, live-test latency/exit IP/error text, and export format labels.
+- The same-origin frontend browser smoke now exercises Lab XSS payloads for local proxy input, parsed proxy remarks, custom JSON errors, live-test API errors/successes, and offline QR export while blocking external network requests.
+- `/api/stats` and `/api/diff/proxies` now read and parse JSON artifacts through `asyncio.to_thread()` so route handlers do not block the event loop on artifact disk reads.
+- The unused `test_budget` semaphore wiring was removed from the pipeline and consumer; `ConcurrencyManager` remains the canonical Python fallback test limiter.
+- Producer backpressure accounting no longer calls source-quality failure reporting when runner queue pressure prevents any chunks from being queued.
+- Logging hardening now masks proxy endpoints, source URLs, source tokens, DNS failure host/error material, Vwarp subprocess/tunnel output, security-rule address logs, honeypot reputation logs, test-cache endpoint logs, parser drop/error logs, and converter logs; high-risk static logging policy tests and `SECURITY.md` logging policy documentation are in place.
+- Frontend runtime assets are local-first with parity tracking: critical JS/CSS/fonts/globe textures/flags and Lab helper downloads are same-origin, CSP no longer needs broad remote runtime hosts, and `frontend/assets/vendor-manifest.json` records mirrored sources.
+- Optional IPFS/IPNS frontend failover is now covered by local tests: the frontend probes a same-origin static asset, skips placeholder IPNS keys, preserves the current leaf page/query/hash when building gateway URLs, normalizes gateway bases, and prevents repeated redirect attempts within the same session.
+- Test execution is split into explicit profiles: `unit`, `integration`, `frontend-browser`, and `production-smoke`. The CI `frontend-browser` job installs Python Playwright Chromium and runs with `CONFIGSTREAM_REQUIRE_PLAYWRIGHT=1` so missing browser coverage fails instead of silently skipping.
+- Shadowsocks-Rust FFI validation is explicitly optional: it runs only with a local platform binary and matching `SS_LIB_SHA256`; otherwise Python validation remains authoritative, and configured hash mismatches fail closed.
+- Frontend WASM verification is labeled as browser-limited reachability only. Unsupported transports keep Go sidecar/Python results authoritative, and invalid browser-check URLs fail explicitly before `WebSocket` construction.
+- Encyclopedia documentation now has one canonical source: `docs/wiki/encyclopedia`. The root `docs/encyclopedia` tree is a synced mirror guarded by `scripts/validate_docs_sync.py`.
+- Debt matrix artifacts are portable: generated paths are repo-relative, generated debt files are excluded from self-scans, and marker summaries separate production/frontend/tooling/docs debt from test-only mocks.
+- Optional external publishing is separated from the zero-budget core: GitHub Pages is the core publication target, while IPFS/Pinata, Hugging Face, Google Drive, and Telegram are optional secret-gated mirrors guarded by `scripts/validate_optional_mirrors.py`.
+- The first canonical claim ledger now lives at `docs/claim_ledger.json`, with `scripts/validate_claim_ledger.py` guarding required proof fields and preventing complete claims without tests/docs/changelog evidence.
+- Protocol claims now have a canonical inventory in `docs/protocol_matrix.json`; `scripts/validate_protocol_matrix.py` checks schema enum coverage, parser-export references, README protocol claims, and frontend display capability. `tests/unit/test_protocol_output_golden.py` now checks every public canonical protocol fixture against the matrix's Sing-box/Clash export flags, generated subscription outputs, the real frontend `processProxyData()` normalizer after parser ingestion, and representative malformed inputs that must fail closed for every public canonical parser. `scripts/frontend_same_origin_smoke.cjs` also serves browser fixture `proxies.json` data for every public canonical protocol and verifies the rendered Proxies page table badges plus protocol filter options in Chromium. The protocol-matrix inventory claim is complete; deeper protocol-specific fuzzing remains tracked as separate parser hardening.
+- Parser hardening now drops additional missing-credential edge cases for TUIC, Snell, Brook, and SSH while preserving anonymous Hysteria/Hysteria2 and unauthenticated generic HTTP/SOCKS behavior where the existing parser contract allows it.
+- VLESS/VMess credential-boundary proof now locks the intended split between compatibility parsing and strict validation: VLESS query-parameter UUID recovery is covered, VMess missing/empty IDs are covered as malformed parser inputs, public golden UUID fixtures use schema-compatible UUIDv4 values, and the security validator proves missing VMess/VLESS UUIDs remain fatal even when insecure proxy retention is enabled.
+- Shadowsocks credential recovery now preserves intended compatibility by parsing host-side query parameters before the empty-password fallback decision, so links such as `ss://method:@host:port/?password=...` recover the password instead of being dropped prematurely.
+- Clash JSON import parsing now fails closed for missing VMess/VLESS UUIDs, missing Trojan/Shadowsocks credentials, invalid Shadowsocks methods, invalid ports, empty WireGuard private keys, and unknown Clash `type` values while preserving valid imported entries.
+- Public output claims now have a canonical inventory in `docs/output_matrix.json`; `scripts/validate_output_matrix.py` checks that every Pages-required artifact is listed, nonempty flags match the deploy validator, core control artifacts keep schema validation, degraded outputs remain explicitly valid, side-product required ZIP members mirror the deploy validator, and optional OpenVPN/WireGuard member patterns match the generator contract. Pages validation checks side-product ZIP integrity, safe member paths, the required `proxies.txt` member, deploy-secret markers inside ZIP members without blocking normal proxy credentials, and Sing-box/Clash reference semantics for selectors, detours, route/DNS outbounds, groups, and rule policies. When `--native-client-check` is requested, Pages validation also runs local `sing-box` and `mihomo`/Clash config checks if those binaries are available, while missing binaries remain a clean skip. `scripts/generate_output_docs.py` renders the README/API output tables from the matrix and production-smoke checks they are current. `tests/unit/test_output.py` now builds a deterministic public artifact directory from the real output generator and validates it with the Pages contract. `tests/unit/test_protocol_output_golden.py` adds per-protocol generator/export fixtures and parser-to-frontend normalizer fixtures for every public canonical protocol, and the Node frontend smoke verifies browser-rendered protocol badges/filter options. The public output artifact contract claim is complete for current Pages-required outputs.
+
+#### Required Closure Rule
+
+After every change, verify and update all affected surfaces:
+
+- backend implementation
+- frontend implementation
+- schemas and generated artifacts
+- tests and CI workflows
+- README, wiki docs, SECURITY, STATUS, and CHANGELOG
+- cleanup of deprecated files, old aliases, unused fallbacks, and stale references
+
+No task is closed while any surface still documents or serves the old contract.
+
+#### Validation Snapshot
+
+Latest local validation performed on 2026-05-12:
+
+- `python scripts/validate_workflows.py`: passed for 6 workflow files
+- `python scripts/validate_versions.py`: passed
+- `python -m pytest tests/unit/test_validate_versions.py -q`: 3 passed
+- `python -m pytest tests/unit/test_ss_ffi.py -q`: 18 passed
+- `python -m pytest tests/unit/test_wasm_browser_semantics.py tests/unit/test_documentation_hygiene.py -q`: 9 passed
+- `python scripts/validate_status.py`: passed
+- `python -m pytest tests/unit/test_validate_status.py tests/unit/test_documentation_hygiene.py -q`: 9 passed
+- `python scripts/validate_docs_sync.py`: passed
+- `python -m pytest tests/unit/test_validate_docs_sync.py -q`: 3 passed
+- `python -m pytest tests/unit/test_lab_strategy_parity.py tests/unit/test_frontend_failover.py -q`: 9 passed
+- `python scripts/validate_debt_matrix.py`: passed
+- `python -m pytest tests/unit/test_debt_matrix.py -q`: 5 passed
+- `python scripts/validate_assets.py`: passed
+- `python -m pytest tests/unit/test_validate_assets.py -q`: 6 passed
+- `python scripts/validate_optional_mirrors.py`: passed
+- `python -m pytest tests/unit/test_validate_optional_mirrors.py -q`: 3 passed
+- `python scripts/validate_claim_ledger.py`: passed
+- `python -m pytest tests/unit/test_validate_claim_ledger.py -q`: 4 passed
+- `python scripts/validate_protocol_matrix.py`: passed
+- `python -m pytest tests/unit/test_validate_protocol_matrix.py -q`: 3 passed
+- `python -m pytest tests/unit/test_protocol_output_golden.py tests/unit/test_validate_protocol_matrix.py -q`: 8 passed
+- `python scripts/validate_output_matrix.py`: passed
+- `python scripts/generate_output_docs.py --check`: passed
+- `python -m pytest tests/unit/test_validate_output_matrix.py -q`: 8 passed
+- `python -m pytest tests/unit/test_validate_pages_artifact.py tests/unit/test_validate_output_matrix.py -q`: 32 passed
+- `python -m pytest tests/unit/test_output.py::test_generated_public_artifact_fixture_matches_pages_contract -q`: 1 passed
+- `pytest -q tests/unit/test_output.py tests/unit/test_validate_pages_artifact.py tests/unit/test_analytics_output.py tests/unit/test_merge_batches.py`: 18 passed
+- `pytest -q tests/unit/test_documentation_hygiene.py tests/unit/test_validate_pages_artifact.py tests/unit/test_output.py tests/unit/test_validate_workflows.py tests/unit/test_validate_versions.py`: 22 passed
+- `pytest -q tests/unit/test_server.py tests/unit/test_server_new.py`: 41 passed
+- `pytest -q tests/unit/test_fetcher.py tests/unit/test_fetcher_config.py tests/unit/test_fetcher_resilience.py tests/unit/test_fetcher_retries.py tests/unit/test_fetcher_advanced.py tests/unit/fetcher/test_fetcher_core.py`: 34 passed
+- `pytest -q tests/unit/test_validate_frontend_placeholders.py tests/unit/test_validate_workflows.py`: 6 passed
+- `pytest -q tests/unit/test_validate_pages_artifact.py tests/unit/test_documentation_hygiene.py`: 17 passed
+- `pytest -q tests/unit/test_lab_strategy_parity.py`: 7 passed
+- `pytest -q tests/unit/test_concurrency_contract.py tests/unit/test_pipeline_stages.py tests/unit/test_consumer.py tests/unit/test_pipeline_coverage.py tests/unit/test_pipeline_deep.py`: 16 passed
+- `pytest -q tests/unit/test_producer_quality_accounting.py tests/unit/test_pipeline_stages.py`: 12 passed
+- `pytest -q tests/unit/test_logging_sanitization_policy.py tests/unit/test_output.py`: 15 passed
+- `pytest -q tests/unit/test_server.py tests/unit/test_server_new.py tests/unit/test_output.py tests/unit/test_validate_pages_artifact.py tests/unit/test_analytics_output.py tests/unit/test_merge_batches.py tests/unit/test_documentation_hygiene.py tests/unit/test_validate_workflows.py tests/unit/test_validate_versions.py`: 66 passed
+- `pytest -q tests/unit/test_server.py tests/unit/test_server_new.py tests/unit/test_fetcher.py tests/unit/test_fetcher_config.py tests/unit/test_fetcher_resilience.py tests/unit/test_fetcher_retries.py tests/unit/test_fetcher_advanced.py tests/unit/fetcher/test_fetcher_core.py tests/unit/test_output.py tests/unit/test_validate_pages_artifact.py tests/unit/test_analytics_output.py tests/unit/test_merge_batches.py tests/unit/test_documentation_hygiene.py tests/unit/test_validate_workflows.py tests/unit/test_validate_versions.py tests/unit/test_validate_frontend_placeholders.py tests/unit/test_lab_strategy_parity.py tests/unit/test_concurrency_contract.py tests/unit/test_producer_quality_accounting.py tests/unit/test_logging_sanitization_policy.py`: 127 passed
+- `python -m pytest tests/unit/test_fetcher.py tests/unit/test_fetcher_config.py tests/unit/test_fetcher_resilience.py tests/unit/test_fetcher_retries.py tests/unit/test_fetcher_advanced.py tests/unit/fetcher/test_fetcher_core.py -q`: 36 passed
+- `python -m pytest tests/unit/test_frontend_verifier.py -q`: 1 passed
+- `python -m pytest tests/unit/test_output.py tests/unit/test_server.py tests/unit/test_validate_pages_artifact.py tests/unit/test_frontend_cache_snapshot.py -q`: 72 passed
+- `python -m pytest tests/unit/test_validate_pages_artifact.py -q`: 26 passed
+- `python -m pytest tests/unit/test_frontend_trust_labels.py tests/unit/test_documentation_hygiene.py -q`: 8 passed
+- `python -m pytest tests/unit/test_validate_workflows.py -q`: 5 passed
+- `python -m pytest tests/unit/test_protocol_output_golden.py tests/unit/test_security_validator.py tests/unit/test_security_validator_full.py tests/unit/test_proxy_schema.py -q`: 15 passed, 1 skipped
+- `python -m pytest tests/unit/parsers/test_parser_fixes.py tests/unit/test_protocol_output_golden.py tests/unit/test_parsers_robustness.py -q`: 58 passed
+- `python -m pytest tests/unit/test_parsers_json_yaml.py tests/unit/test_protocol_output_golden.py tests/unit/test_parsers_robustness.py -q`: 49 passed
+- `python -m pytest tests/unit/test_frontend_failover.py -q`: 3 passed
+- `npm run build`: passed
+- `npm run test:frontend:no-network`: passed, including protocol render, Lab XSS, and same-origin no-JS smoke
+- `npm run test:frontend:degraded`: passed
+- `python scripts/run_test_profile.py production-smoke`: passed, including 95 focused pytest tests
+- `python scripts/run_test_profile.py frontend-browser` with `CONFIGSTREAM_REQUIRE_PLAYWRIGHT=1`: passed, including 4 Python Playwright E2E tests, same-origin no-network browser smoke, protocol render smoke, Lab XSS smoke, and no-JS degraded smoke
+- `npm run test:frontend:pages-artifact`: passed, including generated runtime config, Pages contract validation, same-origin browser smoke, protocol render smoke, Lab XSS smoke, and no-JS degraded smoke against a temporary assembled Pages artifact
+- `python -m pytest -q tests/unit/test_verify_pages_deployment.py tests/unit/test_validate_workflows.py tests/unit/test_lab_strategy_parity.py tests/unit/test_frontend_local_first.py tests/unit/test_output_handler_frontend_data.py tests/unit/test_frontend_trust_labels.py tests/unit/test_server_concurrent_cache.py`: 36 passed
+- `python -m pytest -q tests/unit/test_fetcher.py tests/unit/test_verify_pages_deployment.py tests/unit/test_validate_workflows.py`: 32 passed
+- `python -m pytest -q`: 1006 passed, 1 skipped
+
+Browser skip visibility:
+
+- Python Playwright Chromium is installed locally in this checkpoint.
+- `CONFIGSTREAM_REQUIRE_PLAYWRIGHT=1` now proves the Python frontend E2E tests run instead of skipping; the strict full suite passed with 991 tests and 1 remaining skip outside the frontend-browser path.
+- The Node Playwright same-origin and no-JS smokes also run locally through npm and passed in this checkpoint.
+
+The full production gate remains open until the complete audit roadmap is implemented and the full local/CI/deploy verification matrix passes.
+
+---
+
+## Evidence Ledger: `CHANGELOG.md`
+
+**Integration note:** Chronological implementation ledger.
+
+**Original count:** 554 lines, 53446 characters, 53526 bytes.
+
+
+#### [Unreleased]
+
+##### Remediation: Laboratory Consistency & UX (2026-05-11)
+- **Data-Driven Strategies**: Refactored the Laboratory to dynamically load strategy labels, hints, and UI panel visibility from `lab_strategies.json` at runtime.
+- **UI/Manifest Parity**: Eliminated parallel literals in `lab.js` by centralizing strategy metadata, ensuring the UI stays in sync with the canonical manifest.
+- **Export Integrity**: Added explicit export assertions and handling for Vwarp metadata in Sing-box, Clash, Xray, Python, and Bash outputs.
+- **Offline QR Rendering**: Integrated a zero-dependency, fully-offline SVG QR code renderer to prevent configuration leakage to third-party services.
+- **XSS Hardening**: Split the legacy `showResult()` templating function into strict `showResultText()` and `showResultHTML()` helpers to prevent DOM injection via user input.
+
+##### Remediation: CI/CD Source-of-Truth Bootstrap (2026-05-03)
+- **Workflow YAML parse repair**: Fixed malformed `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24` indentation in `ci.yml`, `deploy-pages.yml`, `deploy_mirror.yml`, `main.yml`, and `retest.yml`; all workflow YAML files now parse locally.
+- **Workflow validation gate**: Added `scripts/validate_workflows.py` and wired it into CI plus pre-commit so workflow syntax drift is caught before merge/deploy.
+- **Workflow behavior guardrails**: Extended workflow validation to require concurrency on pipeline/retest/deploy workflows and to enforce source-reshard `paths-ignore` whenever a workflow can `git push`.
+- **Mirror deploy race guard**: Added a top-level concurrency policy to `deploy_mirror.yml` so optional mirrors cannot overlap stale deployments on the same ref.
+- **Pages artifact validation**: Added `scripts/validate_pages_artifact.py`, moved required Pages artifact checks out of shell arrays, and added tests for missing, empty, invalid JSON, and corrupt ZIP outputs.
+- **Public artifact contract**: Output generation now writes `health.json` and `artifact_manifest.json`; deploy validation requires them and verifies manifest coverage plus health status.
+- **Contract schemas**: Added `schema/artifact_manifest.schema.json` and `schema/health.schema.json` as the first canonical schemas for the public deploy control files.
+- **Deploy contract enforcement**: Pages validation now checks manifest size/hash integrity, manifest totals, `metadata.json` required schema keys, `proxies.json` array shape, and `health.json` required fields before upload.
+- **Exact deploy manifest refresh**: `deploy-pages.yml` now runs `scripts/validate_pages_artifact.py --refresh-contract output` after frontend copy, API alias creation, `.nojekyll`, cache-busting edits, and test-cache cleanup so `artifact_manifest.json` describes the exact Pages artifact being uploaded.
+- **Cross-platform version validation**: Rewrote `scripts/validate_versions.py` to use explicit UTF-8 file reads and ASCII-safe output, fixing Windows console/encoding failures.
+- **Audit source of truth**: Replaced the accumulated master audit/addendum document with a clean remediation report, claim-completion program, parity rules, cleanup policy, and production-readiness roadmap.
+- **Status/docs parity**: Rewrote `STATUS.md`, updated the DevOps wiki, and added a README remediation notice so public docs no longer claim final production readiness while P0/P1 work remains open.
+- **Package/readme claim cleanup**: Changed `pyproject.toml` from `Development Status :: 5 - Production/Stable` to `Development Status :: 4 - Beta` during remediation; corrected README TLS fragmentation language to state it is disabled in current sing-box outputs.
+- **Documentation hygiene guard**: Extended `tests/unit/test_documentation_hygiene.py` to prevent reintroducing Production/Stable or active TLS-fragmentation claims while remediation remains open.
+- **Metric trust correction**: `total_working` and `PipelineStats.total_proxies` no longer include untested shielded candidates; metadata now exposes `shielded_candidate_count` and `shielded_verified_count` while retaining `shielded_count` as the candidate count.
+- **Frontend metric parity**: Updated analytics/statistics comments so frontend logic treats `total_working` as retested working proxies only and `shielded_count` as a candidate count.
+- **Metric invariant tests**: Added regression coverage proving shielded candidates do not inflate `total_working`, `total_valid_proxies`, or `success_rate`.
+- **Production admin auth fail-closed**: `/api/admin/notify-update` now rejects production calls when `ADMIN_API_KEY` is unset and rejects production calls without a matching payload key when configured; unauthenticated calls are allowed only for explicit `development`, `ci`, or `test` environments.
+- **Admin endpoint rate limit**: Added a `10/minute` SlowAPI limit to `/api/admin/notify-update` and a regression test confirming limiter registration.
+- **Admin startup validation**: Server startup now fails in production when `ADMIN_API_KEY` is unset, with tests for production no-key, production keyed, and development no-key modes.
+- **Security docs parity**: Updated `SECURITY.md` to state `ADMIN_API_KEY` is required for production admin endpoints.
+- **Admin auth tests**: Added server tests for production without configured key, production missing payload key, production valid key, and explicit development no-key behavior.
+- **CORS production tightening**: Removed the broad default `https://.*\.github\.io` CORS regex, disabled credentialed CORS by default, and added production startup validation that rejects `ALLOWED_ORIGIN_REGEX`; production must use explicit `ALLOWED_ORIGINS`.
+- **CORS docs/tests parity**: Updated `.env.example` and `SECURITY.md`; added server tests for default CORS settings, origin splitting, production regex rejection, and development regex allowance.
+- **WebSocket lifecycle hardening**: Added configurable max connections, idle timeout, send timeout, stale-connection cleanup, and connection/drop stats for `/ws/updates`.
+- **WebSocket tests/docs parity**: Added `.env.example` and `SECURITY.md` coverage for WebSocket lifecycle limits plus tests for over-capacity rejection, failed-send cleanup, and bounded defaults.
+- **Lab live-test production guard**: `/api/lab/test-chain` is now disabled by default in production, requires explicit `LAB_LIVE_TEST_ENABLED=true`, requires `ADMIN_API_KEY` payload authentication when enabled, applies a `30/minute` rate limit, enforces `LAB_MAX_CONFIG_BYTES`, and uses configurable test timeout.
+- **Lab live-test config safety**: Added route-level validation for submitted lab configs: non-empty `outbounds`, allowed outbound types only, valid host syntax, and blocking for localhost, internal hostnames, and private/non-global IP literals.
+- **Lab live/manual mode labeling**: Step 4 now shows whether the page is in backend live-test mode or static-host manual-test mode; static GitHub Pages/file-style hosting relabels the action to manual instructions without removing the online live-test path for backend-capable deployments.
+- **Lab live-test docs/tests parity**: Added `.env.example`, `SECURITY.md`, `STATUS.md`, and server-test coverage for disabled production mode, missing key, valid key, oversized config, invalid config shape, disallowed type, private destination, internal hostname, rate-limit registration, and nonproduction compatibility.
+- **Fetcher SSRF/redirect guard**: Source fetching now rejects source URL credentials, localhost/internal hostnames, and private/non-global IP literals by default; redirects are no longer auto-followed by `httpx` and are instead validated target-by-target with `FETCH_MAX_REDIRECTS`.
+- **Fetcher DNS-resolution guard**: Source hostnames and redirect targets are resolved immediately before fetch attempts when `FETCH_VALIDATE_DNS=true`, and private/non-global DNS answers are rejected before opening the HTTP stream.
+- **Fetcher docs/tests parity**: Added `.env.example`, `SECURITY.md`, `STATUS.md`, and fetcher tests for private source URLs, safe redirects, private redirect targets, and redirect-depth limits.
+- **Frontend runtime-config deploy guard**: Added `scripts/validate_frontend_placeholders.py` and wired Pages deploy to generate `assets/js/runtime-config.js` from `CS_PUBLIC_KEY`/`STEGO_KEY` after copying frontend assets, preserving checked-in source JS while failing upload on missing runtime keys or placeholder markers.
+- **Pages artifact browser smoke**: Added a repeatable deploy-artifact smoke that assembles a temporary Pages-shaped artifact, generates runtime config, validates the public artifact contract, and runs same-origin browser, protocol render, Lab XSS, and no-JS degraded checks against that exact artifact.
+- **Deployed Pages URL smoke**: Pages deployment now runs a post-upload HTTP smoke against the deployed URL, checking primary HTML pages, generated runtime config, public artifact aliases, health metadata, base64/chosen subscription endpoints, manifest hash parity, run identity, and placeholder-key absence.
+- **Data-release contract parity**: The scheduled data-release workflow now validates `output/` with the shared Pages artifact contract instead of hard-coded shell non-empty checks, so degraded empty subscription text/base64 files remain valid while control/client artifacts still fail closed.
+- **Frontend verifier fail-closed path**: Signed frontend artifacts now reject when WebCrypto is unavailable or public key material is missing/placeholder, while unsigned local content remains parseable for offline use.
+- **Frontend trust labels**: Visible dashboard labels now separate unique candidates, retested working proxies, and shielded candidates so generated shielded chains are not presented as verified working.
+- **Canonical Pages frontend path**: GitHub Pages deployment is now explicitly guarded as raw static `frontend/.` copied into `output/`; workflow validation rejects accidental `frontend-dist`/Vite deployment drift while keeping Vite as an optional/local build sanity check.
+- **Frontend runtime-config tests/workflow parity**: Added tests for placeholder detection/runtime-config generation and extended workflow validation so `deploy-pages.yml` cannot drop the frontend runtime-config guard or secret env wiring silently.
+- **Public artifact contract tightening**: Pages validation now rejects unknown top-level control schema keys and verifies `api/proxies` matches `proxies.json` and `api/stats` matches `metadata.json`.
+- **Proxy snapshot identity**: Metadata now publishes current and previous proxy snapshot hashes, `/api/diff/proxies` rejects ambiguous base versions before returning deltas, and frontend proxy-array caching uses the metadata snapshot hash.
+- **Nested public schema validation**: Pages validation now checks nested metadata objects and protocol-specific proxy `details` against the local schema subset, including refs, patterns, arrays, branch schemas, and additional-property closure.
+- **Public schema docs parity**: README now documents `proxies.json` as the canonical proxy JSON array and `metadata.json` as the run-statistics object; documentation hygiene prevents reintroducing the old metadata-envelope wording.
+- **Lab strategy parity**: Added `frontend/assets/data/lab_strategies.json` as the canonical 9-strategy list; README, wiki, Lab HTML options, and Lab JS hints now agree on the same strategy count and IDs.
+- **Lab strategy browser proof**: The same-origin Playwright smoke now verifies that the rendered Lab strategy dropdown matches the canonical strategy manifest.
+- **Vwarp Lab strategy handlers**: Implemented `vwarp-masque` and `vwarp-atomic` branches in the Lab chain builder with `_vwarp` metadata and CLI hints; unsupported strategy selections now fail loudly instead of advancing with stale config.
+- **Lab QR privacy cleanup**: Removed the external QR image endpoint from `frontend/assets/js/lab.js`; QR export now stays in-browser as an offline copyable payload panel so proxy and chain material is not sent to a third party.
+- **Lab manual clean-IP XSS cleanup**: Manual clean-IP rows now render through DOM text nodes instead of `tr.innerHTML`, and manual clean-IP entries are validated before being stored.
+- **Lab result-message XSS cleanup**: Dynamic Lab status values from local proxy input, parsed proxy remarks, custom JSON errors, unsupported strategy names, live-test API responses, and export formats are now escaped before entering trusted helper markup.
+- **Lab privacy/sanitization tests**: Extended `tests/unit/test_lab_strategy_parity.py` to assert no external QR service is referenced, guard the manual clean-IP table against `innerHTML` regression, and prove dynamic `showResult()` values are escaped.
+- **Lab browser XSS/QR smoke**: Extended the same-origin Playwright smoke to inject Lab XSS payloads through local proxy input, parsed proxy remarks, custom JSON errors, live-test API errors/successes, and offline QR export while blocking non-same-origin requests.
+- **Async route artifact reads**: `/api/stats` and `/api/diff/proxies` now read and parse JSON artifacts through `asyncio.to_thread()` instead of calling `Path.read_text()` directly inside route handlers.
+- **Async route tests**: Added server regression tests proving both metadata and proxy-diff artifact reads dispatch through the off-event-loop JSON loader.
+- **Test concurrency cleanup**: Removed the unused `test_budget` semaphore local/parameter wiring from `pipeline.py` and `consumer.py`; `ConcurrencyManager` remains the active Python fallback test limiter.
+- **Concurrency contract tests**: Added `tests/unit/test_concurrency_contract.py` to prevent reintroducing the dead semaphore path and to assert that consumer test execution still uses the canonical concurrency manager.
+- **Source-quality backpressure accounting**: Producer zero-queued backpressure paths now record `backpressure_drop` run metadata without calling `SourceQualityTracker.report_failure()`, so overloaded runner queues do not punish source trust.
+- **Backpressure accounting tests**: Added `tests/unit/test_producer_quality_accounting.py` to verify queue pressure is recorded separately from source failure state.
+- **Converter log sanitization**: Sanitized selected URI and Sing-box conversion logs that previously interpolated proxy endpoints, source URLs, source tokens, plugin names, or exception text directly.
+- **DNS/Vwarp log sanitization**: Sanitized batch DNS failure logs and Vwarp process/tunnel diagnostics, including version checks, scan exceptions, stdout/stderr snippets, background process lines, and stored failure details, with bounded output lengths.
+- **Security/cache log sanitization**: Sanitized security-rule address warnings, honeypot passive-intel host/error logs, and test-cache proxy hit/miss endpoint logs.
+- **Parser log sanitization**: Sanitized parser drop/error logs for extraction, Shadowsocks, SSR, Generic/Naive/V2Ray JSON, OpenVPN, VMess, Trojan, Clash JSON, WireGuard-related parsers, and ALPN normalization; extraction now records generic dropped-line markers instead of raw config snippets.
+- **High-risk logging policy guard**: Added AST/static checks for parsers, converters, DNS, Vwarp, security rules, honeypot, and test cache so sensitive f-string interpolation, `%`/`.format()` logger messages, and raw sensitive logger arguments fail tests unless approved sanitizer wrappers are used.
+- **Security docs logging policy**: Documented sanitizer requirements, high-risk module coverage, parser dropped-line markers, and Vwarp subprocess-output bounds in `SECURITY.md`.
+- **Logging sanitization tests**: Added `tests/unit/test_logging_sanitization_policy.py` to verify endpoint IPs and source query tokens are masked in representative converter drop logs, DNS failure logs, Vwarp subprocess output, security-rule logs, honeypot logs, test-cache logs, parser drop/error logs, and static high-risk logging policy checks.
+- **Frontend local-first runtime cleanup**: Self-hosted critical frontend JS/CSS/fonts/globe/flag assets and Lab helper downloads, removed runtime dependencies on CDN/remote image hosts, preserved the original flag image experience with vendored 20px PNGs plus text fallback, and tightened page CSP to same-origin assets.
+- **Frontend no-network guardrails**: Added static checks for banned runtime CDN hosts, vendor-manifest parity checks, plus Python and Node Playwright browser smokes that block every non-same-origin request while loading primary frontend pages.
+- **P2-8 validation run**: `npm run build` passes; `npm run test:frontend:no-network` passes; frontend local-first, workflow, and documentation hygiene pytest checks pass; strict Python Playwright execution is covered by the `frontend-browser` profile.
+- **Testing profile cleanup**: Added `scripts/run_test_profile.py` with explicit `unit`, `integration`, `frontend-browser`, and `production-smoke` profiles; `frontend-browser` requires Python Playwright browsers via `CONFIGSTREAM_REQUIRE_PLAYWRIGHT=1` and CI now has a dedicated job for it.
+- **Python frontend E2E proof**: Installed the Python Playwright Chromium payload locally, hardened the Windows browser-readiness probe for `PLAYWRIGHT_BROWSERS_PATH=0`, stabilized analytics E2E around headless WebGL, and verified the strict full suite with `CONFIGSTREAM_REQUIRE_PLAYWRIGHT=1`.
+- **Frontend degraded browser coverage**: Extended the same-origin Node Playwright smoke to also load primary frontend pages with JavaScript disabled, and exposed it through `npm run test:frontend:degraded`.
+- **Version validation Windows guard**: Added regression coverage that reads UTF-8 changelog content while writing through a strict cp1252-like stdout, keeping `scripts/validate_versions.py` safe for default Windows console semantics.
+- **Optional Shadowsocks-Rust FFI boundary**: Made Rust SS validation explicitly optional: missing binaries or unset `SS_LIB_SHA256` skip the FFI path while Python validation remains authoritative, and configured hash mismatches fail closed.
+- **WASM browser-check semantics**: Labeled frontend WASM checks as browser-limited reachability only, documented that sidecar/Python tests remain authoritative, and made unsupported schemes or invalid URLs fail explicitly before browser `WebSocket` construction.
+- **STATUS remediation guard**: Added `scripts/validate_status.py` and wired it into the `production-smoke` profile so stale readiness claims, stale full-pytest counts, missing browser-skip visibility, and non-Beta remediation classifier drift fail locally/CI.
+- **Encyclopedia docs mirror guard**: Chose `docs/wiki/encyclopedia` as canonical, synced `docs/encyclopedia` as a byte-identical mirror, and added `scripts/validate_docs_sync.py` plus tests to prevent duplicate-doc drift.
+- **Portable debt matrix**: Regenerated debt artifacts with repo-relative paths, generated-artifact exclusions, category summaries that separate test debt from production/frontend/tooling/docs debt, and a `scripts/validate_debt_matrix.py` gate.
+- **Static asset hygiene guard**: Removed unreferenced zero-byte `NL`, `US`, and `frontend/assets/images/header-bg.png`, dropped broken optional manifest screenshot references, and added `scripts/validate_assets.py` plus tests to enforce allowlisted zero-byte markers and concrete frontend image references.
+- **Optional mirror claim cleanup**: Clarified that GitHub Pages is the core zero-budget publication target and IPFS/Pinata, Hugging Face, Google Drive, and Telegram are optional secret-gated mirrors; added `scripts/validate_optional_mirrors.py` plus tests to prevent core-capability claim drift.
+- **Claim ledger bootstrap**: Added `docs/claim_ledger.json` and `scripts/validate_claim_ledger.py` so complete project-document claims must carry owner, tests, docs, changelog, frontend/output proof where applicable, and cleanup decisions.
+- **Protocol matrix bootstrap**: Added `docs/protocol_matrix.json` and `scripts/validate_protocol_matrix.py` to make protocol claims explicit across schema enum coverage, parser exports, README claims, frontend display, aliases, schema-only markers, and export limitations.
+- **Output matrix bootstrap**: Added `docs/output_matrix.json` and `scripts/validate_output_matrix.py` to make public output-family claims explicit across Pages-required artifact coverage, nonempty requirements, schema-validation flags, degraded validity, side-product required ZIP members, optional OpenVPN/WireGuard member patterns, and remaining semantic-validation work.
+- **Side-product ZIP contract**: Pages artifact validation now requires side-product ZIPs to contain `proxies.txt` and rejects unsafe member paths, preserving existing online/offline bundles while tightening deploy-time checks.
+- **Side-product deploy-secret scan**: Side-product ZIP validation now rejects deploy/CI secret assignments and placeholder markers inside ZIP members while allowing normal proxy credentials and WireGuard/OpenVPN material.
+- **Sing-box/Clash artifact semantics**: Pages artifact validation now checks Sing-box selector/urltest references, outbound detours, route rule outbounds, DNS detours, duplicate tags, and Clash group/rule policy references before deployment.
+- **Generated output docs**: Added `scripts/generate_output_docs.py` so README and API-reference output tables are rendered from `docs/output_matrix.json`; `production-smoke` now checks the generated blocks are current.
+- **Optional native client artifact checks**: `scripts/validate_pages_artifact.py --native-client-check` now runs local `sing-box check` and `mihomo`/Clash config tests when those binaries are available; missing binaries skip cleanly so the zero-budget contract does not require native tools.
+- **Deterministic public artifact fixture**: Added a unit fixture that builds a Pages-style artifact from the real output generator, adds deploy aliases and static placeholders, refreshes the public contract, and validates the result with `scripts/validate_pages_artifact.py`.
+- **Per-protocol output golden fixtures**: Added matrix-driven fixtures for every public canonical protocol, checking actual Sing-box/Clash converter support and generated subscription output; corrected protocol export flags where the matrix overclaimed current generator support and added safe Clash export for `ss2022`.
+- **Parser-to-frontend protocol fixtures**: Added parser samples for every public canonical protocol and a Node-backed frontend normalizer check so parsed `proxies.json` records preserve protocol labels through the real `processProxyData()` path.
+- **Malformed parser fail-closed fixtures**: Extended the public protocol golden suite with representative malformed inputs for every public canonical parser, asserting bad data is dropped without widening accepted input behavior.
+- **Credential-edge parser hardening**: Tightened TUIC, Snell, Brook, and SSH parsing so missing credential authorities fail closed; anonymous Hysteria/Hysteria2 and unauthenticated generic HTTP/SOCKS remain on their existing compatibility paths.
+- **VLESS/VMess credential-boundary proof**: Aligned public protocol golden fixtures to UUIDv4, added VMess missing/empty ID malformed cases, proved VLESS UUID recovery from query parameters, and added validator regressions showing missing VMess/VLESS UUIDs are fatal even when insecure proxy retention is enabled.
+- **Shadowsocks query credential recovery**: Moved host-side query parsing before the empty-password fallback decision so `ss://method:@host:port/?password=...` links use the intended password fallback without weakening method validation or missing-password drops.
+- **Clash JSON import hardening**: Clash JSON parsing now rejects missing VMess/VLESS UUIDs, missing Trojan/Shadowsocks credentials, invalid Shadowsocks methods, invalid ports, empty WireGuard private keys, and unknown Clash `type` values while preserving valid supported imports.
+- **Frontend failover proof**: Added local IPFS/IPNS failover tests for the same-origin connectivity probe, placeholder-key no-op, gateway URL normalization, page/query/hash preservation, and session loop prevention; production-smoke now runs this proof.
+- **Browser-rendered protocol fixtures**: Extended the same-origin Chromium smoke with fixture `proxies.json`/`metadata.json` responses for every public canonical protocol, asserting rendered Proxies page protocol badges and filter options without external network access.
+- **Validation run**: `scripts/validate_workflows.py` passes for 6 workflow files; `scripts/validate_versions.py` passes; production-smoke passes with workflow, version, status, docs-sync, debt-matrix, asset, optional-mirror, claim-ledger, protocol-matrix, output-matrix, build, same-origin browser, no-JS browser, and focused remediation tests.
+- **Parity note**: This step restores workflow syntax trust and adds initial workflow/deploy guardrails. Artifact manifests, public schema contracts, deploy smoke tests, and public output freshness remain tracked in the master audit roadmap.
+
+##### Proxy JSON Format (2026-02)
+- **output_transport.save_json**: Always outputs JSON array (list of proxies), never single object; coerce non-list input
+- **output_handler._save_proxies_with_chains**: Validation that proxies.json root is array
+- **output_logic**: country/protocol .list.json — ensure plist is list before building array
+
+##### Docs: TLS Fragmentation Status (2026-02)
+- **ROADMAP, 01-introduction**: 3 evasion techniques (fragmentation disabled)
+- **Lab_Page, 04-engineering, 06-frontend, Home, 10-troubleshooting**: TLS Fragment disabled; point to vwarp AtomicNoize
+- **08-api-reference**: EVASION:FRAG tag removed
+- **COMPLETE_AUDIT, OUTPUT_*, CENSORSHIP_EVASION, glossary, singbox_configuration_guide, warp**: Consistent fragmentation-disabled messaging
+
+##### Deprecated/Legacy Cleanup (2026-02)
+- **dynamic_reshard.py**: Removed legacy `pipeline-output/consolidated_pipeline.log` from LOG_PATTERNS
+- **evasion.py**: Removed `add_tls_fragmentation` no-op (sing-box removed tls_fragment); fragmentation no longer applied
+- **output_handler.py**: `evasion_fragmentation_enabled` now 0 (accurate)
+- **split.py**: Removed `has_fragmentation` from proxy details (fragmentation disabled)
+- **tagging.py**: Removed EVASION:FRAG tag branch (dead code)
+- **pipeline_stats.py**: Updated evasion_fragmentation_enabled comment
+- **Frontend**: Consolidated to single `configstream:dataUpdated` event; removed `data-updated`, `dataUpdated` legacy handlers
+- **Docs**: evasion_fragmentation_enabled examples 3800→0; audit field descriptions aligned
+- **chaining.py**: Removed stray `# import os - removed` comment
+- **vwarp.py**: Removed legacy test_url compatibility comment
+- **test_washer.py**: Fixed stale output.py reference
+- **server.py**: Clarified ValueError comment
+
+##### Backend-Frontend-Docs Consistency (2026-02)
+- **Frontend fetchers**: All data fetches now use `ROOT_PATH` for subpath deployment (analytics.js, statistics.js, proxy-history-chart.js, lab.js, byow.js, loadCountryData)
+- **network.js**: `fetchStatistics()` now has `/api/stats` fallback (aligned with fetchMetadata/fetchProxies)
+- **common-ui.js**: Replaced legacy `files/chosen/base64.txt` with explicit chosen paths
+- **08-api-reference.md**: Fixed malformed GET /api/proxies section; documented fetchStatistics fallback; corrected module references
+
+##### Polish & Consistency (2026-02)
+- **CHANGELOG**: Corrected flattened paths (producer.py, consumer.py); deduplicated lab test-chain entries
+- **README**: Added Xray, Snell, Brook, Juicity to protocols list
+- **testers/manager.py**: Removed redundant pass; simplified gather comment
+
+##### Implementations Completed (2026-02)
+- **Lab test-chain API**: Full implementation when singbox2proxy/sing-box available — tests chain config, returns latency and exit IP; 503 when unavailable
+- **Vectors stability/reliability**: Integrated `ProxyHistoryTracker.get_bulk_stats()` into `generate_vectors()` — dimensions 6–7 now use real success-rate data instead of default 5
+- **auto_detect parsers**: Xray, Snell, Brook, Juicity added to `auto_detect_and_parse()` for pipeline format support
+
+##### Documentation & Test Fixes (2026-02)
+- **CENSORSHIP_EVASION.md**: Fixed test references — use `test_evasion.py`, `test_censorship.py` (removed non-existent `test_censorship_lab.py`, `test_html_smuggler.py`)
+- **HTML smuggling**: Updated docs to reference `stego.py` (no `html_smuggler.py` module)
+- **countries.py**: Documented as optional; added `__all__`
+- **test_output_transport.py**: Merged into `test_converters.py` (tests converter transport options)
+- **09-contributing.md**: Updated batch count to 17; tools list (VwarpTool, CensorshipLab, DNS scanner)
+- **08-api-reference.md**: Documented `POST /api/lab/test-chain`
+- **security_concepts.md**: HTML smuggling now references stego delivery
+- **test_output_full.py**: Updated split output assertion (proxy + washed = 2 selector tags)
+- **security/honeypot.py**: Docstring clarified (pipeline uses Go tester; is_honeypot for tests/standalone)
+- **Note**: test_html_smuggler.py (referenced in 2.7.0) no longer exists; stego tests cover delivery
+
+---
+
+#### [3.0.2] - 2026-02-14
+
+##### Comprehensive Code Review & Simplification
+
+**Logic Consolidation**
+- `security/rules.py`: Replaced 14 duplicate regex patterns with import from `security_validator.LOCAL_IP_RANGES` — single source of truth
+- `security_validator.py`: Inlined `validate_proxy` into `SecurityValidator.validate_proxy_config` — eliminated alias indirection
+- `security_validator.py`: Collapsed 4 TLS protocol branches into single `in ("trojan", "hysteria2", "tuic", "https")` check
+- `security_validator.py`: Simplified redundant UUID double-check into flat early-return pattern
+- `filtering.py`: Extracted triplicated "prefer working > lower latency" comparison into shared `_is_better_proxy()` helper — replaced 3 call sites
+- `producer.py`: Extracted triplicated "report failure + record run" pattern into `_report_source_failure()` helper — eliminated ~70 lines of duplication
+- `pipeline.py`: Replaced duplicated cancel logic in TimeoutError handler with existing `_cancel_all()` helper
+- `adapters.py`: Replaced `get_adapter` if/elif chain with `_ADAPTER_MAP` dict lookup
+- `testers/go.py`: Extracted 4x duplicated cancel/await/catch pattern into `_cancel_task()` static method
+- `testers/go.py`: Extracted `_json_str()` helper for orjson bytes-vs-str decode — replaced 2 call sites
+- `output_handler.py`: Extracted `_is_revived()` helper — replaced 3 identical filter expressions
+- `output_handler.py`: Extracted `_collect_tags()` helper — simplified chain tag counting from 3 nested loops
+
+**Dead Code & Redundancy Removal**
+- `security_validator.py`: Removed dead `is_hex()` method — zero callers in entire codebase
+- `security_validator.py`: Removed unreachable regex fallback in `is_local_ip()` — `ipaddress` handles all valid IPs; regex fallback would false-positive on hostnames like `10.example.com`
+- `security_validator.py`: Removed dead `validate_proxy` module-level alias — zero importers in codebase
+- `consumer.py`: Removed redundant outer `try/except` in `_parse_chunk` and unnecessary `pass` after logging
+- `consumer.py`: Removed 7-line stale developer notes about proxy mutability
+- `security/rules.py`: Simplified `validate_port` — collapsed 8-line if/else/pass block into 2-line debug log
+- `virus_total.py`: Removed redundant `str()` wrapping in f-string
+- `testers/go.py`: Removed dead `pass` + stale reentrancy comment in `_read_stderr_loop`
+- `output_logic.py`: Removed dead `total_sources` metadata alias — unused by frontend or tests
+- `parsers/shadowsocks.py`: Removed dead `pass` statement and redundant host validation
+
+**Bug Fixes**
+- `consumer.py`: Fixed silent fingerprint save failure — `orjson.dumps()` doesn't accept `ensure_ascii` kwarg; switched to `write_bytes()` with orjson bytes output
+
+**Over-Engineering Reduction**
+- `security_validator.py`: Simplified `is_valid_uuid()` exception from `(ValueError, TypeError, AttributeError)` to just `ValueError`
+- `security_validator.py`: Simplified `is_local_ip()` single-element tuple `in ("localhost",)` to direct `== "localhost"`
+- `dns_batch_resolver.py`: Simplified over-broad `(DNSError, TimeoutError, Exception)` to just `Exception`
+- `async_file_ops.py`: Removed redundant `isinstance(res, str)` check after exception filtering
+- `serialize.py`: Simplified redundant `getattr`/`hasattr` chain for history injection
+- `pipeline.py`: Collapsed 3 server-notification exception handlers into single `except Exception`
+- `pipeline.py`: Removed unnecessary `"vwarp_tool" in locals()` defensive checks in finally block
+
+**Stale Comment Cleanup**
+- `parsers/base.py`: Removed 4-line stale developer notes about constants migration
+- `tagging.py`: Removed redundant `# src/configstream/tagging.py` path comment
+- `parsers/vless.py`: Removed 7-line stale rambling comments about UUID edge cases
+- `merge_batches.py`: Updated to use canonical `total_configured_sources` key
+
+**Code Flattening**
+- `parsers/vless.py`: Merged 4 duplicate transport blocks (ws/http/h2/httpupgrade) into single conditional; flattened pbk/sid alias chains using `next()` generator
+- `parsers/shadowsocks.py`: Merged duplicate query-param parsing blocks into loop
+- `converters/singbox.py`: Replaced protocol alias if/elif chain with `_PROTOCOL_ALIASES` dict lookup
+- `quality/storage.py`: Collapsed 3x triplicated exception handlers in `_init_db`, `get_source_state`, and `get_trust_score` into single `except Exception` each
+- `testers/go.py`: Simplified 2 redundant exception tuples `(TimeoutError, CancelledError, Exception)` → `Exception`
+
+**Bug Fixes (continued)**
+- `parsers/extraction.py`: Dead HTML detection block (`if html_tags: pass`) now actually drops large pure-HTML payloads (>100KB without proxy URIs) and logs for smaller ones
+
+**Additional Stale Comment Cleanup**
+- `converters/singbox.py`: Removed stale F841 comment about removed variable
+- `tests/e2e/test_failure_scenarios.py`: Cleaned 7-line stale developer notes
+
+**QA Results**
+- **pytest**: 785 passed, 3 skipped, 0 failed
+- **pyflakes**: 5 findings, all with valid `# noqa` markers (feature detection, re-exports, conditional imports)
+- Full codebase scan: zero TODOs/FIXMEs, zero unused private functions, zero dead aliases, zero redundant exception tuples, zero `orjson` + `ensure_ascii` conflicts
+
+---
+
+#### [3.0.1] - 2026-02-14
+
+##### Codebase Refactoring & Consolidation
+
+**Module Consolidation (12 files removed, 3 directories flattened)**
+- Consolidated `pipeline_stages.py` into `pipeline_core/` submodules
+- Consolidated `dns_prewarm.py` into `dns_cache.py`
+- Consolidated `fetcher_core/constants.py` into `fetcher_core/models.py`
+- Consolidated `pipeline_core/models.py` into `pipeline_core/stats.py`
+- Removed duplicate `quality/geo.py` (already in `intelligence/chaining.py`)
+- Consolidated `intelligence/washer.py` into `intelligence/washer/core.py`
+- Consolidated `fetcher.py` into `fetcher_core/orchestrator.py` and `fetcher_core/batch.py`
+- Consolidated `output.py` into `output_logic.py` and `output_transport.py`
+- Flattened `crypto/signer.py` → `signer.py`
+- Flattened `transport/stego.py` → `stego.py`
+- Flattened `workers/scanner.py` → `warp_scanner.py`
+
+**Parser Cleanup**
+- Removed all 20 `_parse_*` / `_extract_config_lines` aliases from `parsers/__init__.py`
+- Added explicit `__all__` to `parsers/__init__.py`
+- Updated 13 consumer files to use canonical function names
+
+**Dead Code Removal**
+- `constants.py`: Removed unused `MAX_SOURCE_URL_LENGTH`, `WARP_PREFIXES`, `MIN_SAFE_PORT`, `SECURITY_CATEGORIES` list
+- `output_logic.py`: Extracted `_prune_dangling_detours` helper to eliminate ~40 lines of duplication
+- `pipeline.py`: Consolidated 3 identical except blocks into `_cancel_all` helper
+- `output_transport.py`: Merged 3 gzip except blocks into 1
+- `serialize.py`: Removed dead `hasattr(json_lib, 'dumps')` branch
+- `security/honeypot.py`: Removed dead functions
+- `logging_config.py`: Removed dead no-op `TraceIdFilter` class
+- `dns_profiles.py`: Removed unused `ZEUS_DNS` re-export
+- `testers/__init__.py`: Removed unused `_cleanup_temp_files` from public API
+- `warp_scraper.py`: Replaced indirect usage with direct `httpx.AsyncClient`
+
+**Structural Cleanup**
+- Deleted duplicate `frontend/assets/js/lib/purify.min.js` (canonical copy in `assets/libs/`)
+- Updated stale path references in `docs/wiki/project/02-architecture.md` and `07-security.md`
+- All production code now imports from canonical module paths
+- 20+ test files updated to canonical imports
+
+**Documentation**
+- `AGENTS.md`: Section 9 expanded with all module locations
+- `STATUS.md`: Updated test count, added v3.0.1 roadmap section
+- `CHANGELOG.md`: Comprehensive v3.0.1 release notes
+
+**QA Results**
+- **pytest**: 785 passed, 0 failed (full suite including fuzz, tools, warp_scraper)
+- Zero dangling imports to any deleted file or directory
+
+---
+
+#### [3.0.2] - 2026-02-09
+
+##### Frontend Redesign & Analytics Completion
+- **Unified Stats Card**: Merged primary (4 hero metrics) and secondary (9 compact metrics) into a single card with two rows
+- **Layout Overhaul**: Downloads 40% / Info 60% two-column grid; BYOW moved to full-width below
+- **Config Selectors**: Redesigned DNS Profile and Evasion Level dropdowns with labels, icons, and consistent styling
+- **Evasion Labels**: Replaced variable names with human-readable labels (Standard/Stealth/Maximum)
+- **Info Cards Finalized**: Clean, proper language — no "new" or "now supporting" phrasing
+- **About Page**: Updated protocols (11) and clients (10) lists, copyright 2024–2026
+- **Analytics Page**: Added Shielded, uTLS, DNS-Hardened, TLS Fragment, Multiplexed stats
+- **Evasion Trend Chart**: All 7 metrics visualized (added TLS Fragment + Multiplexed datasets)
+- **Metadata Schema**: Complete rewrite of `metadata.schema.json` to match actual `save_metadata` output
+- **i18n**: Synchronized all English translations with finalized frontend content
+- **Version**: Bumped to 3.0.0 across pyproject.toml, frontend build config, STATUS.md
+
+#### [2.6.0] - 2026-02-09
+
+##### Artifact Consistency & Multi-Core Export Audit
+
+**Core Export Fixes**
+- **lab.js Xray/V2Ray export**: Full rewrite — now supports WebSocket, gRPC, HTTP/2, httpupgrade transports, Reality, uTLS fingerprint, ALPN, VLESS flow. WireGuard uses native Xray `secretKey` + `peers[]` format (was incorrectly falling back to `freedom`).
+- **lab.js Clash/Mihomo export**: Full rewrite — now supports transports (ws/grpc/h2/httpupgrade), Reality (`reality-opts`), uTLS (`client-fingerprint`), ALPN, VLESS flow, Hysteria2 and TUIC native types. WireGuard adds `reserved`, `udp: true`, dynamic `local_address`.
+- **Pipeline Clash converter**: Added Trojan WebSocket/gRPC transport support (was missing).
+- **Pipeline Sing-box/Clash converters**: WireGuard outbounds now default to `mtu: 1280` when not explicitly set.
+- **WireGuard .conf export**: Added `MTU = 1280` to `[Interface]` section.
+- **Surge/Loon adapters**: Chain export broadened from `🛡️ Secure` prefix to **all** WireGuard outbounds with `detour` (catches VWARP-REVIVE, WARP-REVIVE, GOLD, Optimal chains).
+- **adapters_base.py**: Added vless, trojan, hysteria2, http, socks5 relay support to Surge/Loon chain formatters. Added `mtu` field.
+
+**New Output Artifacts**
+- **Per-protocol URI subscriptions** (`protocols/*.txt`): Plaintext URI lists per protocol (e.g. `vless.txt`, `trojan.txt`) for clients that only accept subscription links.
+- **Revived proxy URIs in subscriptions**: `base64.txt` and `proxies.txt` now include revived/washed proxy URIs (reconstructed from origin proxy with `[Revived]` or `[Revived-VWARP]` tag).
+- **Frontend download selector**: Added "Chains (Gold/Shielded)" and "Side Products (.conf/.ovpn)" options.
+
+**Documentation Fixes**
+- Fixed outdated claim that Xray doesn't support WireGuard natively (it does: `secretKey` + `peers[]` format).
+- Fixed claim that Clash cannot chain WireGuard (Mihomo supports `dialer-proxy`).
+- Updated client compatibility tables in `wireguard.md`, `singbox_configuration_guide.md`, `06-frontend.md`, `CENSORSHIP_EVASION.md`.
+- Updated Lab strategy count to 7 (added WARP+Psiphon, Relay Chain).
+
+**Tests**
+- Added `test_artifact_consistency.py`: 31 new tests covering mtu defaults, relay protocols, chain broadening, Trojan transport.
+
+**QA Results**
+- **pytest**: 784 passed, 3 skipped
+- **flake8**: 0 errors
+- **black**: Clean
+- **mypy**: 0 errors
+
+---
+
+#### [2.5.2] - 2026-02-09
+
+##### Lab Scanner v2.1.0 & Documentation Enrichment
+
+**Lab Scanner (`tools/lab-scanner.py`)**
+- **New Phase: Intranet Relay Discovery** (`--scan-lan`): Probes 5 LAN subnets × 8 ports for SOCKS5/HTTP/HTTPS hosts with internet access
+- **Multi-Strategy Auto-Chain** (`--auto-chain`): Rewritten with 6 strategies — direct proxy, proxy cascade, intranet relay, WARP tunnel, local proxy + WARP, LAN relay + WARP
+- **New CLI Options**: `--scan-lan`, `--custom-ips`, `--custom-proxy` for user-supplied resources
+- **Enhanced Interactive Builder**: Paste proxy URIs, import clean IPs from file, remove last layer
+- **Updated Recommendations**: All diagnostic summaries now suggest multi-strategy approaches (not just WARP)
+
+**Frontend Lab (`lab.html` + `lab.js`)**
+- **Pipeline Proxy Integration**: "Load Pre-Tested Proxies" button fetches working proxies from pipeline output (`output/base64.txt`), grouped by protocol in a dropdown
+- **2 New Chain Strategies**: Proxy Cascade (1-2 hop SOCKS/HTTP chain) and Intranet/LAN Relay
+- **New Builder Functions**: `buildProxyCascadeChain()`, `buildIntranetRelayChain()` generate sing-box configs
+- **Multi-Strategy Advice**: All 6 diagnosis tiers updated with strategy-agnostic recommendations
+- **Quick Start Commands**: Updated to v2.1.0 with all new CLI options
+
+**Documentation Enrichment**
+- **Wiki Home** (`Home.md`): Complete documentation index, getting started for 3 user types, multi-strategy concepts
+- **Encyclopedia — Networking Terms**: Added DPI (stateless/stateful/ML), CDN/domain fronting, QUIC, HTTP CONNECT, SOCKS5, Reality protocol, uTLS, BGP, RST injection, ECH, TLS fragmentation
+- **Encyclopedia — Security Concepts**: Added active probing (replay attacks, GFW), traffic analysis, circuit breaker pattern, adaptive timeout, FireHol integration
+- **Encyclopedia — WARP**: Added how WARP works, 50+ ports, scanner details, 3 chain topologies, alternatives to WARP, key management, WireGuard config fields
+- **Encyclopedia — Topology**: Added 6 chaining strategies with diagrams, 9 smart chain types, intranet vs internet explanation
+- **Encyclopedia — Trojan**: Added fallback deep dive, Trojan-Go/Xray variants, parsing logic, validation rules, CDN-compatible config, client compatibility matrix
+- **Encyclopedia — Firewalls**: Added Iran/Russia-specific censorship details, honeypot detection signs, expanded defense categories
+- **Encyclopedia — Sing-box Guide**: Added detour chaining explanation, 4 chain config examples, evasion options, DNS profiles, Lab integration
+- **Wiki 06-Frontend**: Full Chain Laboratory documentation (5 steps, 7 strategies, pipeline proxies, offline tools)
+- **Wiki 10-Troubleshooting**: Lab Scanner troubleshooting, multi-strategy decision flowchart
+
+**QA Results**
+- **flake8**: 0 errors
+- **black**: Clean
+- **mypy**: 0 errors (notes only)
+- **node -c**: lab.js syntax OK
+
+---
+
+#### [2.5.1] - 2026-02-08
+
+##### Final Deep Audit
+
+**Fixes**
+- **Version**: Updated `pyproject.toml` version from 2.2.0 to 2.5.0
+- **Dependencies**: Removed unused `scikit-learn`, `numpy`, `scipy` from `pyproject.toml` (anomaly detection uses stdlib `statistics`)
+- **Mypy**: Fixed missing `Optional` import in `security/censorship.py`
+- **Mypy**: Added `type: ignore` for optional `crypto` assignment in `utils/cert.py`
+- **Duplicate Code**: Removed duplicate comment block in `score.py` `_latency_points`
+- **Duplicate Line**: Removed duplicate `EVASION_MODE` line in `README.md`
+
+**Documentation**
+- Updated `STATUS.md` version from v2.2.0 to v2.5.0, audit file count 400→900+
+- Updated `SECURITY.md` supported versions (added 2.5.x), audit date and score
+- Updated `README.md` with Chain Laboratory section
+
+**QA Results**
+- **pytest**: 800 passed, 0 failed, 3 skipped
+- **mypy**: 0 errors
+- **black**: 135/135 files formatted
+- **flake8**: 0 errors
+
+---
+
+#### [2.5.0] - 2026-02-08
+
+##### Deep Audit & Laboratory Page
+
+**Code Quality Fixes**
+- **Security**: Replaced MD5 with SHA256 for source URL fingerprinting in `consumer.py`
+- **Dead Code Removal**: Consolidated `validate_warp_key` into `VwarpTool`
+- **Dead Code Removal**: Removed unused `vwarp_proc` variable and cleanup path in `pipeline.py`
+- **Dead Code Removal**: Removed duplicate standalone `validate_proxy_config` in `security_validator.py`
+- **Dead Code Removal**: Removed unused `subprocess` import from `pipeline.py`
+- **Dead Code Removal**: Removed unused `socket` import from `security/censorship.py`
+- **Bug Fix**: Fixed `dnsscanner_tui.py` shebang position, unused variables, and comment style
+- **Bug Fix**: Renamed `format` parameter to `fmt` in `server.py` to avoid shadowing Python builtin
+- **Bug Fix**: Fixed SPDX license header ordering in `output_handler.py` and `testers/python.py`
+- **Bug Fix**: Fixed Go tester `main.go` import indentation (`crypto/tls`)
+- **Refactor**: Created shared `utils/net.py` with `normalize_host`, `is_ip_literal`, `is_global_ip`
+- **Refactor**: Updated `output_logic.py` and `output_handler.py` to use shared `utils.net` module
+- **DNS Profiles**: Re-exported `IRAN_INFRASTRUCTURE_DNS` from `dns_profiles.py` for test compatibility
+
+**Frontend**
+- **Laboratory Page** (`frontend/lab.html` + `assets/js/lab.js`): 5-step chain builder walkthrough
+  1. Parse proxy URI (VLESS, VMess, Trojan, SS, Hysteria2, TUIC, WireGuard)
+  2. Discover clean Cloudflare IPs (auto, manual, or local scan)
+  3. Build chain — 5 strategies: WARP, Double WARP, TLS Fragment, CDN Worker, Custom JSON
+     - Advanced evasion: uTLS fingerprint, ALPN, multiplex (h2mux/smux/yamux), padding
+  4. Test chain (live API or manual fallback with sing-box CLI instructions)
+  5. Export: Sing-Box JSON, Clash YAML, Xray JSON, Nekobox link, URI, QR, Python script, Bash script
+- **Nav Consistency**: Added "Lab" link to all 6 HTML pages (index, proxies, analytics, wiki, about, lab)
+
+**Test Fixes**
+- Fixed 3 test files asserting removed `output_dir` field in `/health` endpoint (now checks `output_available`)
+- Fixed `test_cloudflare_optimized_ips` to not hardcode a specific IP that rotated out of curated list
+- **800 tests passing**, 0 failures, 3 skipped
+
+**Offline Tools & Scripts**
+- **`tools/lab-scanner.py`**: Zero-dependency Python network diagnostic tool
+  - 4-phase scan: basic connectivity, local proxy discovery, clean Cloudflare IP scan, DNS server probe
+  - Interactive multi-layer chain builder with JSON config export
+  - Tests through existing proxies, finds SOCKS5/HTTP proxies on localhost and LAN
+  - Scans 17 Cloudflare IPs x 17 ports with concurrent UDP/TCP probes
+- **`tools/lab-runner.sh`**: Bash chain runner for Linux/Mac
+  - Auto-downloads sing-box binary, runs chain configs, tests connectivity end-to-end
+  - Layer-by-layer testing (TCP, SOCKS5, HTTP, TLS)
+  - Clean IP scanning with proxy passthrough support
+- **`frontend/lab-offline.html`**: Self-contained offline Lab page
+  - Full multi-layer chain builder in a single HTML file (no server needed)
+  - Dynamic layer add/remove with visual chain diagram
+  - Sing-Box JSON, Clash YAML, Xray JSON export
+
+**Documentation**
+- Updated `AGENTS.md` with Shared Utilities section, VwarpTool canonical location, and Laboratory page docs
+- Updated `STATUS.md` with current test count (800+) and v2.5.0 roadmap items
+- Updated `CHANGELOG.md` with comprehensive v2.5.0 release notes
+
+**Files Modified**
+- `src/configstream/pipeline_core/consumer.py` - SHA256 hashing
+- `src/configstream/pipeline_core/output_handler.py` - SPDX + shared utils import
+- `src/configstream/output_logic.py` - shared utils import
+- `src/configstream/pipeline.py` - dead code removal
+- `src/configstream/server.py` - parameter rename
+- `src/configstream/security_validator.py` - dead code removal
+- `src/configstream/security/censorship.py` - unused import removal
+- `src/configstream/tools/vwarp.py` - consolidated validate_warp_key
+- `src/configstream/testers/python.py` - SPDX fix
+- `src/configstream/dns_profiles.py` - re-export fix
+- `src/configstream/utils/net.py` - new shared utility module
+- `src/configstream/tools/dns_scanner/python/dnsscanner_tui.py` - shebang/variable fixes
+- `src/go/tester/main.go` - import indentation fix
+- `frontend/lab.html` - new Laboratory page
+- `frontend/assets/js/lab.js` - new Laboratory page logic
+- `frontend/{index,proxies,analytics,wiki,about}.html` - added Lab nav link
+- `tests/unit/coverage_boost/test_server_coverage.py` - health endpoint fix
+- `tests/unit/test_server.py` - health endpoint fix
+- `tests/unit/test_server_new.py` - health endpoint fix
+- `tests/unit/test_dns_profiles.py` - IP list fix
+
+#### [2.4.0] - 2026-02-05
+
+##### BYOW (Bring Your Own Worker) - Platinum Tier
+
+**Decentralized Infrastructure Strategy**
+- **BYOW Feature**: Users can deploy their own Cloudflare Workers for unlimited, private, unblockable connections
+  - One-click deploy via Cloudflare Deploy Button
+  - Frontend injection logic to personalize Gold configs with user's Worker URL
+  - "Hydra Strategy" - thousands of unique worker domains are unblockable
+- **Worker Enhancements**: Updated `tools/worker.js` with Platinum version
+  - Enhanced masquerading (fake website mode for active probes)
+  - Dynamic routing support (IP:PORT via path)
+  - WebSocket tunneling with proper error handling
+- **Frontend Integration**:
+  - Added BYOW section to `frontend/index.html` with deploy button and URL input
+  - Created `frontend/assets/js/byow.js` for config injection logic
+  - Enhanced Gold Connection warning (V2RayNG incompatibility notice)
+- **Deployment Configuration**: Created `tools/wrangler.toml` for one-click Cloudflare deployment
+
+**Test Fixes**
+- Fixed `test_save_metadata_analytics_structure`: Set `stats.working` explicitly in test
+- Fixed `test_metadata_generation`: Set `stats.working` explicitly in test
+- Fixed `test_create_html_smuggled_config`: Updated regex to match `csrf-token` meta tag specifically
+- Fixed `output_logic.py`: Only use `stats.working` if non-zero (avoids overriding correct loop count)
+
+**Documentation Updates**
+- Updated `README.md`: Added BYOW to evasion features list
+- Updated `docs/CENSORSHIP_EVASION.md`: Added comprehensive BYOW section with "Hydra Strategy" explanation
+- Updated `docs/USER_GUIDE_EVASION.md`: Added BYOW usage instructions and benefits
+
+**Files Modified**
+- `tools/worker.js` - Platinum version with masquerading and dynamic routing
+- `tools/wrangler.toml` - Cloudflare deployment configuration (new)
+- `frontend/index.html` - Added BYOW section and enhanced Gold warning
+- `frontend/assets/js/byow.js` - Worker URL injection logic (new)
+- `src/configstream/output_logic.py` - Fixed stats.working handling
+- `tests/unit/test_analytics_output.py` - Fixed test assertions
+- `tests/unit/test_output.py` - Fixed test assertions
+- `tests/unit/test_html_smuggler.py` - Fixed regex pattern
+
+#### [2.3.0] - 2026-02-05
+
+##### Time-Series Analytics & Evasion Metrics
+
+**Analytics Enhancements**
+- **Time-Series Charts**: Added comprehensive evasion metrics tracking over 7-day rolling window
+  - Shielded (Gold) proxies count over time
+  - Revived (WARP/VWARP) proxies count over time
+  - uTLS enabled proxies count over time
+  - DNS-Hardened proxies count over time
+  - Visualized in both statistics and analytics pages
+- **Evasion Trend Export**: Automatic export of evasion metrics to `data/evasion_trend.json` on each pipeline run
+- **Historical Tracking**: Rolling window maintains last 7 days of evasion metrics for trend analysis
+
+**Documentation Updates**
+- Updated `docs/EVASION_IMPLEMENTATION.md` with time-series charts implementation details
+- Merged `docs/COMPLETE_FEATURE_COVERAGE.md` into `docs/OUTPUT_VARIATIONS.md` (redundancy cleanup)
+- Marked `docs/SMART_CHAINS_ENHANCEMENT.md` as historical reference document
+- Updated `docs/ARCHITECTURE.md` with metrics and analytics section
+- Updated `README.md` with analytics and monitoring section
+- Removed temporary `IMPLEMENTATION_SUMMARY.md` (information merged into core docs)
+
+**Files Modified**
+- `src/configstream/history/export.py` - Added `export_evasion_trend()` function
+- `src/configstream/history/tracker.py` - Added `export_evasion_trend()` method
+- `src/configstream/pipeline_core/output_handler.py` - Integrated evasion trend export
+- `frontend/assets/js/statistics.js` - Added evasion trend chart rendering
+- `frontend/assets/js/analytics.js` - Added evasion trend chart rendering
+- `frontend/analytics.html` - Added evasion trend chart container
+
+#### [2.2.0] - 2026-02-01
+
+##### Load Balancing & Vwarp Activation
+
+**Infrastructure Improvements**
+- **Load Balancing**: Redistributed sources from heavy batches (6, 10, 11, 12) into a new `batch_15` and lighter existing batches (3, 4, 5, 13) to reduce pipeline runtime.
+- **Pipeline Optimization**: Enabled `FORCE_SCANNER` and `ALLOW_ACTIVE_SCANNING` in CI pipeline to activate Vwarp binary usage.
+- **Vwarp Fix**: Resolved issue where vwarp binary was not being utilized, ensuring "chains" and "revived" proxies are now correctly generated.
+
+---
+
+## Evidence Ledger: `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md`
+
+**Integration note:** Previous master audit text; preserved as historical evidence after this consolidated verdict.
+
+**Original count:** 2798 lines, 124187 characters, 124191 bytes.
+
+### ConfigStream Master Audit Report - Main Source Of Truth
 
 **Audit date:** 2026-05-03
 **Latest amendment:** 2026-05-12
@@ -8,7 +4739,7 @@
 
 ---
 
-## 1. Executive Verdict
+#### 1. Executive Verdict
 
 ConfigStream has a serious and valuable architecture: asynchronous ingestion, parser coverage across many proxy protocols, Go/Python testing paths, WARP/Vwarp washing and shielding ideas, static output publication, frontend analytics, a user-facing Laboratory, schema files, many tests, and extensive documentation.
 
@@ -27,13 +4758,13 @@ The most important conclusion is this: **do not add more features until the proj
 
 ---
 
-## 1A. 2026-05-12 Source-Of-Truth Amendment
+#### 1A. 2026-05-12 Source-Of-Truth Amendment
 
 This amendment supersedes any softer interpretation of the current remediation state. ConfigStream is much further along than the original 2026-05-03 audit snapshot, but it is still not production-final. The governing conclusion is now sharper:
 
 **The next priority is auditability and truth alignment, not feature expansion.** The project needs one source of truth, one output contract, one frontend deployment path, one release policy, one durable latest-output evidence bundle, and one live deployment proof chain.
 
-### 1A.1 Current Repository State
+##### 1A.1 Current Repository State
 
 Observed local state at this amendment checkpoint:
 
@@ -56,7 +4787,7 @@ Untracked or generated items observed locally:
 
 These items must not be swept into a commit blindly. `frontend-dist/`, `Lastest Outputs/`, empty `NL`/`US`, and the zero-byte image are cleanup risks. `qrcode.js`, `verify_pages_deployment.py`, and `test_server_concurrent_cache.py` need provenance, test, and contract review before being treated as finished.
 
-### 1A.2 Latest Output Folder Finding
+##### 1A.2 Latest Output Folder Finding
 
 The local latest output folder is named `Lastest Outputs`. It contains 10 files totaling about 16.1 MB. It is not a deployable Pages artifact. It contains only:
 
@@ -80,7 +4811,7 @@ Therefore, `Lastest Outputs/` cannot pass the current Pages artifact contract an
 
 The folder date and screenshot evidence are also not enough to prove freshness. The inspected screenshots include stale dates and stale labels, while the folder itself is local and untracked. It cannot substitute for a raw `pipeline-output` artifact, a Pages artifact, or live GitHub Pages verification.
 
-### 1A.3 Latest Run Health Finding
+##### 1A.3 Latest Run Health Finding
 
 The latest inspected pipeline log indicates strict-mode failure:
 
@@ -96,7 +4827,7 @@ The latest inspected pipeline log indicates strict-mode failure:
 
 This is a release-trust blocker. A failed/zero-working run may still produce usable-looking files, but it must never visually present itself as verified online capacity.
 
-### 1A.4 Latest Output Content Finding
+##### 1A.4 Latest Output Content Finding
 
 Observed `configstream-proxies.txt` content:
 
@@ -117,7 +4848,7 @@ Observed `base64.txt` content:
 
 Security note: `configstream-proxies.txt` includes WireGuard `private_key` fields. That can be expected for usable client configs, but the folder must not be committed or casually published as debug/audit material.
 
-### 1A.5 Screenshot And Frontend Trust Findings
+##### 1A.5 Screenshot And Frontend Trust Findings
 
 The screenshots show severe trust-state mismatch:
 
@@ -133,7 +4864,7 @@ After this audit text was produced, one focused code amendment was started in `f
 
 Important boundary: the report-only audit itself did not implement changes. The frontend trust amendment happened after the report-only instruction had been interrupted by a later implementation request, and it remains an incomplete patch until test, CSS, and smoke coverage are added.
 
-### 1A.6 What Is Now Credibly Improved
+##### 1A.6 What Is Now Credibly Improved
 
 These remediation areas are substantially stronger than the original audit snapshot:
 
@@ -148,7 +4879,7 @@ These remediation areas are substantially stronger than the original audit snaps
 
 These improvements are real, but they are not the same as production readiness.
 
-### 1A.7 Partial, Broken, Or Not Yet Good Enough
+##### 1A.7 Partial, Broken, Or Not Yet Good Enough
 
 Current partial or broken areas:
 
@@ -170,7 +4901,7 @@ Validation at this checkpoint:
 - Failing test: `tests/unit/test_server_concurrent_cache.py`
 - No full production-smoke or full suite was run in this report-only pass.
 
-### 1A.8 Governance And Proof Corrections
+##### 1A.8 Governance And Proof Corrections
 
 The largest missed layer was governance/proof, not a single code bug. The project still has document and evidence split-brain:
 
@@ -193,7 +4924,7 @@ Canonical document hierarchy is now required:
 
 Anything outside that hierarchy must be labeled current, generated, archived, or superseded.
 
-### 1A.9 Output Evidence And Release Policy Corrections
+##### 1A.9 Output Evidence And Release Policy Corrections
 
 The actual latest generated output is normally an ephemeral GitHub Actions artifact named `pipeline-output`, retained for only 3 days. Pages deploy mutates that artifact by copying frontend assets, creating API aliases, injecting runtime config, refreshing health/manifest contract files, uploading the Pages artifact, and deploying it.
 
@@ -226,7 +4957,7 @@ The main data-release workflow currently hard-fails on empty selected files such
 
 The output contract is strong but not fully synchronized. `docs/output_matrix.json` still records per-protocol golden output fixtures as remaining work, while other status/changelog surfaces claim those fixtures are done. Until the matrix, claim ledger, status, changelog, tests, and workflows agree, this area is partially remediated rather than closed.
 
-### 1A.10 Security, Scanning, And Runtime-Docs Corrections
+##### 1A.10 Security, Scanning, And Runtime-Docs Corrections
 
 Security posture is improved but not yet a clean production contract:
 
@@ -251,7 +4982,7 @@ Active scanning policy needs a hard boundary:
 - CI and default scheduled workflows must keep `ALLOW_ACTIVE_SCANNING=false`.
 - README and tooling copy must not imply automatic or project-operated scanning.
 
-### 1A.11 Open PR, Branch, And Source Resharding Corrections
+##### 1A.11 Open PR, Branch, And Source Resharding Corrections
 
 Roadmap status must track merged repository state separately from PR claims. Open PRs may contain useful remediation work, but an item is not complete merely because a PR body says it is complete.
 
@@ -270,7 +5001,7 @@ The source resharding path remains partially mitigated, not fully closed. `main.
 
 Preferred closure path: move resharding to a separate workflow or publish a reshard recommendation artifact before any commit.
 
-### 1A.12 Completed-Versus-Proven Boundary
+##### 1A.12 Completed-Versus-Proven Boundary
 
 Credible completed improvements based on current code/docs evidence:
 
@@ -300,7 +5031,7 @@ Still claimed but not fully proven from available evidence:
 - DNS rebinding-level fetch protection;
 - shielded-chain retest path for nonzero verified shielded counts.
 
-### 1A.13 Broken Or Problematic Checklist
+##### 1A.13 Broken Or Problematic Checklist
 
 The following items remain explicitly problematic and must not be lost in later summaries:
 
@@ -320,7 +5051,7 @@ The following items remain explicitly problematic and must not be lost in later 
 14. `frontend/assets/images/header-bg.png` is zero bytes.
 15. `frontend-dist/`, `Lastest Outputs/`, `NL`, and `US` should not be committed as-is.
 
-### 1A.14 Updated Immediate Roadmap
+##### 1A.14 Updated Immediate Roadmap
 
 Immediate P0/P1 path:
 
@@ -369,7 +5100,7 @@ Bottom line: core architecture is much stronger than before, but the latest actu
 
 ---
 
-## 2. Audit Method
+#### 2. Audit Method
 
 This pass combined document review, repository inventory, source inspection, command-based validation, public artifact checks, and targeted scans.
 
@@ -435,7 +5166,7 @@ Validation results:
 
 ---
 
-## 3. Severity Model
+#### 3. Severity Model
 
 **P0 - Release blocker:** Cannot call the project production-ready until fixed. Breaks CI/deploy/public trust/security fundamentals.
 
@@ -456,11 +5187,11 @@ Closure standard for every item:
 
 ---
 
-## 4. Non-Negotiable Remediation Rules
+#### 4. Non-Negotiable Remediation Rules
 
 These rules apply after every remediation step in the roadmap.
 
-### 4.1 Cross-Surface Parity Gate
+##### 4.1 Cross-Surface Parity Gate
 
 After each change, verify parity across:
 
@@ -477,7 +5208,7 @@ After each change, verify parity across:
 
 No item is closed if one surface says the old truth and another surface says the new truth.
 
-### 4.2 No Split-Brain Contracts
+##### 4.2 No Split-Brain Contracts
 
 Every public concept must have one canonical owner:
 
@@ -494,7 +5225,7 @@ Every public concept must have one canonical owner:
 
 Delete duplicate definitions once the canonical owner exists.
 
-### 4.3 No Permanent Backward-Compatibility Debt
+##### 4.3 No Permanent Backward-Compatibility Debt
 
 This roadmap intentionally favors a clean final state over indefinite backward compatibility. Temporary migrations are allowed only inside the same pull request or same release step, and only if they are deleted before the item is marked done.
 
@@ -509,7 +5240,7 @@ Required cleanup after each change:
 - Delete generated files that no longer represent the repo.
 - Remove references to removed paths from docs, tests, workflows, and comments.
 
-### 4.4 Concurrency And Race-Safety Gate
+##### 4.4 Concurrency And Race-Safety Gate
 
 Every change touching workflows, pipeline, producer/consumer, output writes, websocket broadcast, cache, history, source quality, or tester lifecycle must explicitly check:
 
@@ -523,7 +5254,7 @@ Every change touching workflows, pipeline, producer/consumer, output writes, web
 - no partial schema migration
 - no shared mutable state accessed without a lock when used across threads/tasks
 
-### 4.5 Changelog Rule
+##### 4.5 Changelog Rule
 
 After every remediation step, update `CHANGELOG.md` with:
 
@@ -539,9 +5270,9 @@ After every remediation step, update `CHANGELOG.md` with:
 
 ---
 
-## 5. P0 Findings
+#### 5. P0 Findings
 
-### P0-1. Five GitHub workflow files are invalid YAML
+##### P0-1. Five GitHub workflow files are invalid YAML
 
 Files:
 
@@ -593,7 +5324,7 @@ Closure checklist:
 
 ---
 
-### P0-2. Public deployment is stale, collapsed, and schema-inconsistent
+##### P0-2. Public deployment is stale, collapsed, and schema-inconsistent
 
 Live public artifact check on 2026-05-03:
 
@@ -654,7 +5385,7 @@ Closure checklist:
 
 ---
 
-### P0-3. Scheduled pipeline can self-trigger source optimization commits
+##### P0-3. Scheduled pipeline can self-trigger source optimization commits
 
 Evidence:
 
@@ -690,7 +5421,7 @@ Closure checklist:
 
 ---
 
-### P0-4. Deploy workflow fails closed on sparse outputs
+##### P0-4. Deploy workflow fails closed on sparse outputs
 
 Evidence:
 
@@ -723,9 +5454,9 @@ Closure checklist:
 
 ---
 
-## 6. P1 Findings
+#### 6. P1 Findings
 
-### P1-1. Shielded chains are counted as working without retest
+##### P1-1. Shielded chains are counted as working without retest
 
 Evidence:
 
@@ -775,7 +5506,7 @@ Remaining:
 
 ---
 
-### P1-2. Admin notification endpoint is fail-open when no key is configured
+##### P1-2. Admin notification endpoint is fail-open when no key is configured
 
 Evidence:
 
@@ -822,7 +5553,7 @@ Remaining:
 
 ---
 
-### P1-3. CORS default allows broad credentialed GitHub Pages origins
+##### P1-3. CORS default allows broad credentialed GitHub Pages origins
 
 Evidence:
 
@@ -864,7 +5595,7 @@ Remaining:
 
 ---
 
-### P1-4. WebSocket update endpoint has weak lifecycle control
+##### P1-4. WebSocket update endpoint has weak lifecycle control
 
 Evidence:
 
@@ -910,7 +5641,7 @@ Remaining:
 
 ---
 
-### P1-5. Lab live test endpoint is unauthenticated and resource-heavy
+##### P1-5. Lab live test endpoint is unauthenticated and resource-heavy
 
 Status: remediated for backend route policy and frontend live/manual labeling.
 
@@ -968,7 +5699,7 @@ Closure checklist:
 
 ---
 
-### P1-6. Fetcher SSRF and redirect safety are incomplete
+##### P1-6. Fetcher SSRF and redirect safety are incomplete
 
 Status: remediated for current source URL, redirect, and DNS-resolution guardrails. Further socket-level pinning would be a defense-in-depth enhancement if the HTTP transport is later customized.
 
@@ -1019,7 +5750,7 @@ Closure checklist:
 
 ---
 
-### P1-7. Frontend key injection and verification are split-brain
+##### P1-7. Frontend key injection and verification are split-brain
 
 Status: substantially remediated. Pages deploy now has a canonical raw static frontend path, generates and validates `assets/js/runtime-config.js` from deploy secrets, leaves checked-in source-shaped JS immutable, and signed artifacts now fail closed when verification cannot run.
 
@@ -1080,7 +5811,7 @@ Closure checklist:
 
 ---
 
-### P1-8. Public schemas, runtime outputs, docs, and deployed artifacts disagree
+##### P1-8. Public schemas, runtime outputs, docs, and deployed artifacts disagree
 
 Status: substantially remediated. Pages validation now enforces tighter schema/key checks, nested public-schema semantics, API alias parity, generated-artifact contract coverage, and hash-bound snapshot identity; README now describes the canonical `proxies.json` array contract. Ongoing README/wiki example rescans remain required after future output-contract changes.
 
@@ -1138,9 +5869,9 @@ Closure checklist:
 
 ---
 
-## 7. P2 Findings
+#### 7. P2 Findings
 
-### P2-1. Lab strategy list is inconsistent and partially broken
+##### P2-1. Lab strategy list is inconsistent and partially broken
 
 Status: remediated on 2026-05-11. The UI, JS hints/build paths, README, wiki, and a canonical strategy manifest now agree on 9 strategies; the Laboratory is now fully data-driven from `lab_strategies.json`.
 
@@ -1192,7 +5923,7 @@ Closure checklist:
 
 ---
 
-### P2-2. Lab QR generation leaks user config to an external service
+##### P2-2. Lab QR generation leaks user config to an external service
 
 Status: remediated for the third-party leak and browser network assertion; follow-up remains only for an optional scannable local QR renderer.
 
@@ -1223,7 +5954,7 @@ Closure checklist:
 
 ---
 
-### P2-3. Lab manual clean IP table can inject HTML
+##### P2-3. Lab manual clean IP table can inject HTML
 
 Status: remediated for the identified Lab XSS paths. The manual clean-IP table path is fixed, dynamic `showResult()` values are escaped before entering trusted helper markup, and same-origin browser smoke coverage exercises representative injection payloads.
 
@@ -1257,7 +5988,7 @@ Closure checklist:
 
 ---
 
-### P2-4. Async routes still perform blocking filesystem reads
+##### P2-4. Async routes still perform blocking filesystem reads
 
 Status: remediated for direct blocking JSON reads in the affected routes; cache/performance load testing remains a follow-up.
 
@@ -1288,7 +6019,7 @@ Closure checklist:
 
 ---
 
-### P2-5. Test budget semaphore is initialized but unused
+##### P2-5. Test budget semaphore is initialized but unused
 
 Status: remediated by deleting the unused semaphore wiring and retaining `ConcurrencyManager` as the canonical test limiter.
 
@@ -1321,7 +6052,7 @@ Closure checklist:
 
 ---
 
-### P2-6. Source-quality accounting can punish sources for queue pressure
+##### P2-6. Source-quality accounting can punish sources for queue pressure
 
 Status: remediated for the producer zero-queued backpressure path.
 
@@ -1350,7 +6081,7 @@ Closure checklist:
 
 ---
 
-### P2-7. Unsanitized or partially sanitized logging remains
+##### P2-7. Unsanitized or partially sanitized logging remains
 
 Status: substantially remediated. Converter hot paths, batch DNS failure logs, Vwarp subprocess-output/tunnel failure logs, security rule address logs, honeypot passive-intel logs, test-cache endpoint logs, and parser drop/error logs now sanitize sensitive text with regression coverage. High-risk static enforcement and security-doc policy are in place; broader full-repository f-string/log-call debt outside these high-risk surfaces remains a follow-up.
 
@@ -1395,7 +6126,7 @@ Remaining:
 
 ---
 
-### P2-8. Frontend still depends on remote CDNs and remote assets
+##### P2-8. Frontend still depends on remote CDNs and remote assets
 
 Status: Remediated in this checkpoint. Primary production pages now load
 critical scripts, styles, fonts, globe textures, country flags, and Lab helper
@@ -1445,7 +6176,7 @@ Closure checklist:
 
 ---
 
-### P2-9. E2E browser tests are easy to skip
+##### P2-9. E2E browser tests are easy to skip
 
 Status: Remediated in this checkpoint for local and profile-level execution.
 Test profiles now split unit, integration, frontend-browser, and
@@ -1487,7 +6218,7 @@ Closure checklist:
 
 ---
 
-### P2-10. `scripts/validate_versions.py` is not Windows-safe
+##### P2-10. `scripts/validate_versions.py` is not Windows-safe
 
 Status: Remediated in this checkpoint. The script now uses explicit UTF-8
 file reads and ASCII-only status/error output, and a regression test simulates
@@ -1521,7 +6252,7 @@ reads under strict cp1252 stdout semantics.
 
 ---
 
-### P2-11. Rust Shadowsocks FFI fallback and checksum story are incomplete
+##### P2-11. Rust Shadowsocks FFI fallback and checksum story are incomplete
 
 Status: Remediated in this checkpoint. The Rust Shadowsocks FFI checker is
 explicitly optional, is not counted as a production security guarantee, and is
@@ -1558,7 +6289,7 @@ good hash, invalid config, ctypes loading errors, and FFI exceptions.
 
 ---
 
-### P2-12. WASM tester is browser-constrained and should not be described as native network testing
+##### P2-12. WASM tester is browser-constrained and should not be described as native network testing
 
 Status: Remediated in this checkpoint. WASM/browser verification is now
 documented and labeled as browser-limited reachability only. The frontend keeps
@@ -1595,9 +6326,9 @@ wording.
 
 ---
 
-## 8. P3 Findings
+#### 8. P3 Findings
 
-### P3-1. Documentation status is stale and overconfident
+##### P3-1. Documentation status is stale and overconfident
 
 Status: Remediated for the primary status page in this checkpoint.
 `STATUS.md` is now checked by `scripts/validate_status.py`, and the
@@ -1638,7 +6369,7 @@ passed locally.
 
 ---
 
-### P3-2. Duplicate docs trees drift
+##### P3-2. Duplicate docs trees drift
 
 Status: Remediated in this checkpoint. `docs/wiki/encyclopedia` is canonical
 because it is the path referenced by the wiki index and frontend wiki flow.
@@ -1669,7 +6400,7 @@ tests/unit/test_validate_docs_sync.py -q` passed locally.
 
 ---
 
-### P3-3. Debt matrix artifacts contain machine-local absolute paths and self-reference
+##### P3-3. Debt matrix artifacts contain machine-local absolute paths and self-reference
 
 Status: Remediated in this checkpoint. `scripts/generate_debt_matrix.py` now
 scans tracked text files, emits repo-relative POSIX paths, excludes generated
@@ -1706,7 +6437,7 @@ tests/unit/test_debt_matrix.py -q` passed locally.
 
 ---
 
-### P3-4. Zero-byte and placeholder assets remain
+##### P3-4. Zero-byte and placeholder assets remain
 
 Observed zero-byte tracked files:
 
@@ -1727,7 +6458,7 @@ tests/unit/test_validate_assets.py -q` passed locally.
 
 ---
 
-### P3-5. Optional external publishing scripts blur the zero-budget core
+##### P3-5. Optional external publishing scripts blur the zero-budget core
 
 Evidence:
 
@@ -1755,7 +6486,7 @@ tests/unit/test_validate_optional_mirrors.py -q` passed locally.
 
 ---
 
-## 9. Confirmed Good / Partially Healthy Areas
+#### 9. Confirmed Good / Partially Healthy Areas
 
 These items were verified as aligned with current project rules or at least materially improved:
 
@@ -1792,9 +6523,9 @@ These positives do not cancel the P0/P1 blockers, but they matter: the codebase 
 
 ---
 
-## 10. Module-By-Module Audit Summary
+#### 10. Module-By-Module Audit Summary
 
-### 10.1 `.github/workflows`
+##### 10.1 `.github/workflows`
 
 State:
 
@@ -1810,7 +6541,7 @@ Next action:
 - Add actionlint.
 - Redesign pipeline/deploy/reshard separation.
 
-### 10.2 Root config and package metadata
+##### 10.2 Root config and package metadata
 
 State:
 
@@ -1825,7 +6556,7 @@ Next action:
 - Update vulnerable/yanked dependencies.
 - Add cross-platform script checks.
 
-### 10.3 Fetcher and HTTP client
+##### 10.3 Fetcher and HTTP client
 
 State:
 
@@ -1837,7 +6568,7 @@ Next action:
 
 - Add strict source URL and redirect target validation.
 
-### 10.4 Producer/consumer/pipeline
+##### 10.4 Producer/consumer/pipeline
 
 State:
 
@@ -1852,7 +6583,7 @@ Next action:
 - Define one concurrency/backpressure authority.
 - Ensure source quality reflects source behavior, not runner overload.
 
-### 10.5 Parsers
+##### 10.5 Parsers
 
 State:
 
@@ -1865,7 +6596,7 @@ Next action:
 - Add parser log-sanitization tests.
 - Keep malformed-input fuzz tests.
 
-### 10.6 Testers
+##### 10.6 Testers
 
 State:
 
@@ -1878,7 +6609,7 @@ Next action:
 
 - Separate sidecar test, Python fallback test, browser reachability test, and live lab test semantics.
 
-### 10.7 Washer/WARP/Vwarp
+##### 10.7 Washer/WARP/Vwarp
 
 State:
 
@@ -1890,7 +6621,7 @@ Next action:
 
 - Separate candidate generation from verified revival.
 
-### 10.8 Output generation
+##### 10.8 Output generation
 
 State:
 
@@ -1904,7 +6635,7 @@ Next action:
 
 - Define output contracts with schemas and manifest.
 
-### 10.9 Server/API
+##### 10.9 Server/API
 
 State:
 
@@ -1921,7 +6652,7 @@ Next action:
 - Harden production defaults.
 - Add API contract and abuse tests.
 
-### 10.10 Frontend
+##### 10.10 Frontend
 
 State:
 
@@ -1936,7 +6667,7 @@ Next action:
 
 - Continue browser/deploy-smoke proof for the local-first, raw-static, generated-runtime-config frontend path.
 
-### 10.11 Docs
+##### 10.11 Docs
 
 State:
 
@@ -1948,7 +6679,7 @@ Next action:
 
 - Make docs generated/validated from canonical manifests where possible.
 
-### 10.12 Tests
+##### 10.12 Tests
 
 State:
 
@@ -1963,7 +6694,7 @@ Next action:
 - Split required test profiles.
 - Add public artifact and deployed frontend smoke tests.
 
-### 10.13 Go and Rust
+##### 10.13 Go and Rust
 
 State:
 
@@ -1980,11 +6711,11 @@ Next action:
 
 ---
 
-## 11. Project-Document Claim Completion Program
+#### 11. Project-Document Claim Completion Program
 
 This audit is not only a bug-fix plan. It is also a plan to finish every capability the project documents claim. The rule is simple: **a claim is not allowed to remain in README, STATUS, wiki, SECURITY, docs, AGENTS, frontend copy, or changelog unless it is implemented, tested, deployed, and observable.**
 
-### 11.1 Claim Ledger
+##### 11.1 Claim Ledger
 
 Created `docs/claim_ledger.json` as the first canonical claim ledger and
 `scripts/validate_claim_ledger.py` as the guardrail. It is intentionally a
@@ -2011,11 +6742,11 @@ No claim may be closed as complete without proof across code, tests, docs, and p
 Validation: `python scripts/validate_claim_ledger.py` and `python -m pytest
 tests/unit/test_validate_claim_ledger.py -q` passed locally.
 
-### 11.2 Claimed Capability Areas That Must Be Completed Or Removed
+##### 11.2 Claimed Capability Areas That Must Be Completed Or Removed
 
 The project documents currently claim or strongly imply the following capability groups. Each group must be finished completely or explicitly demoted.
 
-#### A. Streaming Pipeline Architecture
+###### A. Streaming Pipeline Architecture
 
 Claimed capability:
 
@@ -2045,7 +6776,7 @@ Tests/proof:
 - reshard no-loop workflow test
 - generated `health.json` proof
 
-#### B. Protocol Support
+###### B. Protocol Support
 
 Claimed capability:
 
@@ -2112,7 +6843,7 @@ Tests/proof:
 - per-protocol output artifacts
 - frontend render fixture for protocol badges/details
 
-#### C. Output Families
+###### C. Output Families
 
 Claimed capability:
 
@@ -2169,7 +6900,7 @@ Remaining:
 
 - None for the current public output-family contract. Continue the separate parser-hardening track for malformed-input depth and the broader deployment-readiness roadmap.
 
-#### D. WARP, Vwarp, Washing, Revival, Shielding, and Smart Chains
+###### D. WARP, Vwarp, Washing, Revival, Shielding, and Smart Chains
 
 Claimed capability:
 
@@ -2198,7 +6929,7 @@ Tests/proof:
 - generated chain schema tests
 - frontend labels for candidate vs verified chain
 
-#### E. Chain Laboratory
+###### E. Chain Laboratory
 
 Claimed capability:
 
@@ -2230,7 +6961,7 @@ Tests/proof:
 - no-JS/manual fallback test
 - lab XSS test
 
-#### F. Frontend Public Site
+###### F. Frontend Public Site
 
 Claimed capability:
 
@@ -2272,7 +7003,7 @@ Tests/proof:
 - deployed smoke tests
 - local-only asset test
 
-#### G. Security Claims
+###### G. Security Claims
 
 Claimed capability:
 
@@ -2303,7 +7034,7 @@ Tests/proof:
 - SSRF redirect tests
 - log sanitization tests
 
-#### H. CI/CD, Zero Budget, and Publication
+###### H. CI/CD, Zero Budget, and Publication
 
 Claimed capability:
 
@@ -2333,7 +7064,7 @@ Tests/proof:
 - deploy smoke test
 - no-secret core CI test
 
-#### I. Documentation and Governance
+###### I. Documentation and Governance
 
 Claimed capability:
 
@@ -2360,7 +7091,7 @@ Tests/proof:
 - link/path tests
 - changelog validation
 
-### 11.3 Claim Closure Workflow
+##### 11.3 Claim Closure Workflow
 
 For each claim group:
 
@@ -2374,7 +7105,7 @@ For each claim group:
 8. Run validation.
 9. Mark claim complete only after deployed/public proof exists.
 
-### 11.4 High-ROI Refinements To Add While Closing Claims
+##### 11.4 High-ROI Refinements To Add While Closing Claims
 
 These are not just nice-to-haves. They reduce future drift and make the project easier to keep production-ready.
 
@@ -2393,9 +7124,9 @@ These are not just nice-to-haves. They reduce future drift and make the project 
 
 ---
 
-## 12. Finalized Remediation Roadmap
+#### 12. Finalized Remediation Roadmap
 
-### Phase 0 - Freeze and Baseline
+##### Phase 0 - Freeze and Baseline
 
 Goal: stop changing product features until the project has a reliable baseline.
 
@@ -2420,7 +7151,7 @@ Changelog:
 
 - Add an entry for audit reset and production-readiness reclassification.
 
-### Phase 1 - Restore CI/CD Truth
+##### Phase 1 - Restore CI/CD Truth
 
 Goal: make automation parse, run, and enforce what docs claim.
 
@@ -2446,7 +7177,7 @@ Changelog:
 
 - List every workflow repaired and every validation command added.
 
-### Phase 2 - Stop Workflow Loops and Artifact Races
+##### Phase 2 - Stop Workflow Loops and Artifact Races
 
 Goal: remove self-triggering and mixed-artifact deployment.
 
@@ -2470,7 +7201,7 @@ Changelog:
 
 - Document the new run ownership and concurrency model.
 
-### Phase 3 - Canonicalize Public Artifact Contracts
+##### Phase 3 - Canonicalize Public Artifact Contracts
 
 Goal: one truth for every output.
 
@@ -2496,7 +7227,7 @@ Changelog:
 
 - Mark any public schema breaking change clearly.
 
-### Phase 4 - Fix Metrics and Trust Signals
+##### Phase 4 - Fix Metrics and Trust Signals
 
 Goal: make public numbers honest.
 
@@ -2521,7 +7252,7 @@ Changelog:
 
 - Include before/after metric definitions.
 
-### Phase 5 - Harden Server Security Defaults
+##### Phase 5 - Harden Server Security Defaults
 
 Goal: production fails closed where it should.
 
@@ -2547,7 +7278,7 @@ Changelog:
 
 - Mark production security breaking changes.
 
-### Phase 6 - Make Frontend Production-Real
+##### Phase 6 - Make Frontend Production-Real
 
 Goal: deployed frontend equals tested frontend.
 
@@ -2576,7 +7307,7 @@ Changelog:
 
 - Include production frontend path and deleted legacy path.
 
-### Phase 7 - Clean Docs and Governance
+##### Phase 7 - Clean Docs and Governance
 
 Goal: docs become accurate and maintainable.
 
@@ -2603,7 +7334,7 @@ Changelog:
 
 - Include docs deleted, generated, or canonicalized.
 
-### Phase 8 - Dependency and Supply-Chain Cleanup
+##### Phase 8 - Dependency and Supply-Chain Cleanup
 
 Goal: dependency state matches production claims.
 
@@ -2628,7 +7359,7 @@ Changelog:
 
 - Include security advisories fixed and dependency changes.
 
-### Phase 9 - Complete Documented Claims And High-ROI Refinements
+##### Phase 9 - Complete Documented Claims And High-ROI Refinements
 
 Goal: make every project-document claim true, observable, and maintainable.
 
@@ -2655,7 +7386,7 @@ Changelog:
 
 - Include one entry per claim group completed or removed.
 
-### Phase 10 - Final Production Readiness Gate
+##### Phase 10 - Final Production Readiness Gate
 
 Goal: only mark ready when all public surfaces prove it.
 
@@ -2694,9 +7425,9 @@ Final status rule:
 
 ---
 
-## 13. Detailed Implementation Checklists
+#### 13. Detailed Implementation Checklists
 
-### 13.1 Workflow Checklist
+##### 13.1 Workflow Checklist
 
 - Parse every YAML file.
 - Run `actionlint`.
@@ -2709,7 +7440,7 @@ Final status rule:
 - Verify CI gates are required.
 - Verify Pages deploy has post-deploy smoke tests.
 
-### 13.2 Backend Checklist
+##### 13.2 Backend Checklist
 
 - No blocking disk reads in async endpoints for large files.
 - Admin endpoints fail closed in production.
@@ -2721,7 +7452,7 @@ Final status rule:
 - Shutdown closes DB connections, subprocesses, and background tasks.
 - Concurrency ownership is documented and tested.
 
-### 13.3 Frontend Checklist
+##### 13.3 Frontend Checklist
 
 - Production deploy uses the same frontend build that CI tests.
 - No placeholder keys.
@@ -2733,7 +7464,7 @@ Final status rule:
 - No-JS fallback shows useful links, freshness, and degraded state.
 - Browser tests cover homepage, proxies page, analytics, wiki, lab, and offline lab.
 
-### 13.4 Output Contract Checklist
+##### 13.4 Output Contract Checklist
 
 - `metadata.json` schema-valid.
 - `proxies.json` schema-valid.
@@ -2745,7 +7476,7 @@ Final status rule:
 - Empty/degraded outputs are valid and labeled.
 - Side-product ZIP content is manifest-listed and secret-scanned.
 
-### 13.5 Docs Checklist
+##### 13.5 Docs Checklist
 
 - README matches implementation.
 - SECURITY.md matches runtime defaults.
@@ -2758,7 +7489,7 @@ Final status rule:
 - Duplicate docs are generated from one source or deleted.
 - Referenced static frontend assets exist and are non-empty.
 
-### 13.6 Cleanup Checklist
+##### 13.6 Cleanup Checklist
 
 - Delete legacy files after migration.
 - Delete old aliases.
@@ -2772,7 +7503,7 @@ Final status rule:
 
 ---
 
-## 14. Final Production-Ready Definition
+#### 14. Final Production-Ready Definition
 
 ConfigStream is production-ready only when:
 
@@ -2796,3 +7527,2140 @@ Until then, the correct public status is:
 ```text
 Remediation in progress. Not production-ready. Public artifacts may be stale or degraded.
 ```
+
+---
+
+## Evidence Ledger: `CLOSURE_REPORT.md`
+
+**Integration note:** Historical/superseded closure snapshot; not current production-readiness truth.
+
+**Original count:** 78 lines, 5448 characters, 5448 bytes.
+
+### ConfigStream Full Hardening Closure Report
+
+> Historical/superseded status: this report records an earlier closure snapshot.
+> It is not the current production-readiness source of truth. Use
+> `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md`, `STATUS.md`,
+> `docs/claim_ledger.json`, and `docs/output_matrix.json` for current status.
+
+#### Objective
+To bring ConfigStream to a consistent, fully functional, CI/Pages-clean state across backend, frontend, CI workflows, and docker-compose, while ensuring all documented output formats/variations are generated and correctly consumed.
+
+#### Disposition of Identified Issues
+
+##### 1. `frontend-wasm` artifact missing breaks Merge/Fan-Out (CI-01)
+**Status:** Fixed
+**File(s) Modified:** `.github/workflows/main.yml`, `scripts/build_wasm.sh`
+**Resolution:** Updated `main.yml` to set `continue-on-error: true` for the `frontend-wasm` download step in the merge job. Ensure `scripts/build_wasm.sh` creates the necessary directories and placeholder dummy files gracefully if compilation fails.
+**Regression Test:** The CI runs will no longer halt at the merge stage just because the WASM build failed.
+
+##### 2. WASM build fails: "Bulk memory operation (bulk memory is disabled)" (CI-02)
+**Status:** Fixed
+**File(s) Modified:** `scripts/build_wasm.sh`
+**Resolution:** Replaced comma-separated Go tags with space-separated ones. Updated the `wasm-opt` command to use `--enable-bulk-memory` and included a `|| echo ...` guard so an unoptimized fallback binary is retained on `wasm-opt` failure.
+
+##### 3. Vwarp config schema mismatch in container (`masque.enabled` unknown flag) (CI-03)
+**Status:** Fixed
+**File(s) Modified:** `Dockerfile`
+**Resolution:** Updated the container image to install Vwarp v2.2.2 instead of v2.1.0, ensuring binary compatibility with the `VwarpTool` python module. The AMD64 checksum was correctly mapped, and ARM64 skips verification if undefined.
+
+##### 4. Shards exit 1 due to `FAIL_ON_ZERO_WORKING` (CI-04)
+**Status:** Fixed
+**File(s) Modified:** `src/configstream/cli.py`, `src/configstream/pipeline.py`
+**Resolution:** Implemented `--strict` flag in the CLI and updated the logic so zero-working proxy states no longer exit pipeline unconditionally unless `--strict` or `FAIL_ON_ZERO_WORKING` is specifically configured. Partial outputs are successfully generated even in failed CI runs.
+
+##### 5. CLI prints `Pipeline Failed: None` (CI-05)
+**Status:** Fixed
+**File(s) Modified:** `src/configstream/pipeline.py`
+**Resolution:** Ensured `PipelineResult.error` captures `"0 working proxies detected"` when returning a failure object, preventing a blank reason from surfacing.
+
+##### 6. Sing-box schema mismatch in testing (CI-06)
+**Status:** Fixed
+**File(s) Modified:** `src/configstream/testers/python.py`, `src/configstream/testers/lab_chain_tester.py`
+**Resolution:** Explicit tracking and logging in `_get_singbox_factory` via `singbox2proxy`. Catching `ImportError` safely inside the `lab_chain_tester.py` module explicitly avoids system-crashing exceptions when testing native configurations.
+
+##### 7. Retest/Pages workflow fails hard when artifact download fails (CI-07)
+**Status:** Fixed
+**File(s) Modified:** `.github/workflows/retest.yml`, `.github/workflows/deploy-pages.yml`
+**Resolution:** Modified artifact download steps from `gh run download ...` to conditional implementations `if ! gh run ...; then echo "HAS_OUTPUT=false" >> "$GITHUB_ENV"` or `exit 0`, gracefully bypassing workflows rather than executing failing steps.
+
+##### 8. Frontend offline cache misses and `update-detector.js` paths
+**Status:** Fixed
+**File(s) Modified:** `frontend/assets/js/update-detector.js`
+**Resolution:** Repaired path concatenations missing base directories. Wrapped polling fetch endpoints in try-catch blocks and used `caches.match(...)` to fetch locally stored data if the endpoint is unreachable.
+
+##### 9. Frontend dynamic-download mapping gaps
+**Status:** Fixed
+**File(s) Modified:** `frontend/assets/js/dynamic-downloads.js`
+**Resolution:** Changed chains URLs mapping to `singbox-chains.json` instead of aliases to prevent accidental missing target responses.
+
+##### 10. Docker-compose correctness
+**Status:** Fixed
+**File(s) Modified:** `docker-compose.yml`
+**Resolution:** Updated `web` to use explicit `python -m configstream.server` startup instruction, aligned the worker image naming (`image: configstream_web:latest`), resolving image mismatch issues.
+
+##### 11. Security and path handling validation
+**Status:** Verified
+**File(s) Checked:** `src/configstream/server.py`
+**Resolution:** Validated that `requested_path.resolve(strict=False).relative_to(base_path)` works safely within python directory boundaries, preventing potential sandbox escapes. No log leakage regressions spotted.
+
+##### 12. Output Contract Unification
+**Status:** Fixed
+**File(s) Modified:** `scripts/audit_pipeline_outputs.py`
+**Resolution:** Rebuilt the CLI interface with `--contract pages` to statically assert and audit all primary required artifacts (metadata, subsets, base64 variants) mapping directly to Pages static list constraints.
+
+#### Expected Deliverables Format Summary
+Deployed Pages Output Files: All file variants found in `--contract pages` rule arrays (approximately 60 outputs covering Sing-box, Clash, base64 variations, chosen sets, JSON statistics).
+
+Verification Evidence:
+PyTest Matrix ran 826 passed. Pre-commit pipeline check triggered below. Docker build functions.
+
+---
+
+## Evidence Ledger: `docs/DEBT_MATRIX.md`
+
+**Integration note:** Current generated debt ledger; raw entries preserved.
+
+**Original count:** 1799 lines, 107144 characters, 107233 bytes.
+
+### Debt Matrix
+
+Generated: `2026-05-07T06:50:24.531406+00:00`
+
+#### Summary
+
+- Total markers: **1402**
+- `ASSUMING`: **9**
+- `FIXME`: **1**
+- `MOCK`: **1248**
+- `PLACEHOLDER`: **126**
+- `TODO`: **13**
+- `XXX`: **5**
+
+#### Categories
+
+- `ci`: **1**
+- `docs`: **10**
+- `frontend`: **51**
+- `other`: **39**
+- `production`: **28**
+- `test`: **1252**
+- `tooling`: **21**
+
+#### Triage Rules
+
+- `FIXME` / `XXX`: fix inline before release freeze.
+- `TODO`: create issue with owner + milestone.
+- `MOCK` / `@MOCK`: production mocks require owner review; test-only mocks are tracked separately.
+- `PLACEHOLDER` / `ASSUMING`: remove assumptions, enforce validation.
+
+#### Findings
+
+| File | Marker Count | Markers |
+| --- | ---: | --- |
+| `.github/workflows/deploy-pages.yml` | 1 | PLACEHOLDER |
+| `AGENTS.md` | 1 | ASSUMING |
+| `CHANGELOG.md` | 4 | PLACEHOLDER, TODO |
+| `CLOSURE_REPORT.md` | 1 | PLACEHOLDER |
+| `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md` | 34 | MOCK, PLACEHOLDER, TODO |
+| `SECURITY.md` | 2 | PLACEHOLDER |
+| `STATUS.md` | 3 | PLACEHOLDER |
+| `docs/wiki/encyclopedia/glossary/networking_terms.md` | 1 | ASSUMING |
+| `docs/wiki/encyclopedia/glossary/security_concepts.md` | 1 | XXX |
+| `docs/wiki/encyclopedia/networking/warp.md` | 1 | XXX |
+| `frontend/assets/js/analytics.js` | 3 | ASSUMING, PLACEHOLDER |
+| `frontend/assets/js/charts.js` | 1 | MOCK |
+| `frontend/assets/js/constants.js` | 3 | PLACEHOLDER |
+| `frontend/assets/js/i18n.js` | 12 | PLACEHOLDER |
+| `frontend/assets/js/lab.js` | 1 | XXX |
+| `frontend/assets/js/main.js` | 2 | ASSUMING, PLACEHOLDER |
+| `frontend/assets/js/stego.js` | 2 | PLACEHOLDER |
+| `frontend/assets/js/verifier.js` | 3 | ASSUMING, PLACEHOLDER |
+| `frontend/assets/js/washer_client.js` | 1 | MOCK |
+| `frontend/index.html` | 1 | PLACEHOLDER |
+| `frontend/lab-offline.html` | 1 | PLACEHOLDER |
+| `frontend/lab.html` | 15 | PLACEHOLDER, XXX |
+| `frontend/proxies.html` | 5 | PLACEHOLDER |
+| `frontend/service-worker.js` | 1 | ASSUMING |
+| `scripts/generate_debt_matrix.py` | 6 | FIXME, MOCK, PLACEHOLDER, TODO |
+| `scripts/run_test_profile.py` | 1 | PLACEHOLDER |
+| `scripts/validate_frontend_placeholders.py` | 10 | PLACEHOLDER |
+| `scripts/validate_workflows.py` | 4 | PLACEHOLDER |
+| `sources/manual_warp.txt` | 1 | XXX |
+| `src/configstream/anomaly.py` | 2 | MOCK |
+| `src/configstream/constants.py` | 1 | PLACEHOLDER |
+| `src/configstream/generators/base64.py` | 1 | PLACEHOLDER |
+| `src/configstream/history/tracker.py` | 1 | MOCK |
+| `src/configstream/intelligence/chaining.py` | 1 | MOCK |
+| `src/configstream/quality/storage.py` | 7 | PLACEHOLDER |
+| `src/configstream/security_validator.py` | 4 | MOCK |
+| `src/configstream/tools/censorship_lab.py` | 1 | MOCK |
+| `src/configstream/tools/dns_scanner/bash/dnsScanner.sh` | 7 | TODO |
+| `src/configstream/tools/dns_scanner/python/dnsscanner_tui.py` | 3 | PLACEHOLDER |
+| `tests/e2e/test_failure_scenarios.py` | 4 | MOCK |
+| `tests/e2e/test_frontend.py` | 10 | MOCK |
+| `tests/e2e/test_mixed_protocols.py` | 10 | MOCK |
+| `tests/scenarios/test_failure_modes.py` | 9 | MOCK |
+| `tests/test_manager.py` | 19 | MOCK |
+| `tests/test_output_transport.py` | 7 | MOCK |
+| `tests/test_python_tester.py` | 18 | MOCK |
+| `tests/test_scanner.py` | 17 | MOCK |
+| `tests/test_warp_scraper.py` | 17 | MOCK |
+| `tests/test_washer_utils.py` | 1 | MOCK |
+| `tests/unit/converters/test_singbox_converters.py` | 1 | MOCK |
+| `tests/unit/coverage_boost/test_adaptive_workers_coverage.py` | 13 | MOCK |
+| `tests/unit/coverage_boost/test_blocklist_coverage.py` | 2 | MOCK |
+| `tests/unit/coverage_boost/test_cli_coverage.py` | 27 | MOCK |
+| `tests/unit/coverage_boost/test_server_coverage.py` | 1 | MOCK |
+| `tests/unit/coverage_boost/test_washer_coverage.py` | 7 | MOCK |
+| `tests/unit/fetcher/test_fetcher_core.py` | 2 | MOCK |
+| `tests/unit/generators/test_singbox_comprehensive.py` | 1 | MOCK |
+| `tests/unit/geoip/test_geoip_resolver.py` | 17 | MOCK |
+| `tests/unit/history/test_history_components.py` | 8 | MOCK |
+| `tests/unit/intelligence/test_chaining_extended.py` | 2 | MOCK |
+| `tests/unit/intelligence/test_vectors.py` | 1 | MOCK |
+| `tests/unit/quality/test_quality_components.py` | 2 | MOCK |
+| `tests/unit/security/test_censorship.py` | 5 | MOCK |
+| `tests/unit/security/test_rules.py` | 8 | MOCK |
+| `tests/unit/security/test_utls_wrapper.py` | 14 | MOCK |
+| `tests/unit/security/test_virus_total_comprehensive.py` | 75 | MOCK |
+| `tests/unit/test_adapters_comprehensive.py` | 6 | MOCK |
+| `tests/unit/test_adaptive_timeout_extra.py` | 4 | MOCK |
+| `tests/unit/test_adaptive_workers.py` | 3 | MOCK |
+| `tests/unit/test_analytics_output.py` | 7 | MOCK |
+| `tests/unit/test_anomaly_extended.py` | 9 | MOCK |
+| `tests/unit/test_backup.py` | 1 | MOCK |
+| `tests/unit/test_backup_extended.py` | 8 | MOCK |
+| `tests/unit/test_bot_cli.py` | 38 | MOCK |
+| `tests/unit/test_cache_warming.py` | 15 | ASSUMING, MOCK |
+| `tests/unit/test_cli_extended.py` | 23 | MOCK |
+| `tests/unit/test_cli_full.py` | 1 | MOCK |
+| `tests/unit/test_concurrency_extended.py` | 3 | MOCK |
+| `tests/unit/test_consumer.py` | 23 | MOCK |
+| `tests/unit/test_dns_batch_resolver.py` | 12 | MOCK |
+| `tests/unit/test_event_stream.py` | 65 | MOCK |
+| `tests/unit/test_fetcher.py` | 85 | MOCK |
+| `tests/unit/test_fetcher_advanced.py` | 18 | MOCK |
+| `tests/unit/test_fetcher_config.py` | 13 | MOCK |
+| `tests/unit/test_fetcher_resilience.py` | 8 | MOCK |
+| `tests/unit/test_fetcher_retries.py` | 12 | MOCK |
+| `tests/unit/test_filtering_extended.py` | 8 | MOCK |
+| `tests/unit/test_geoip_extended.py` | 3 | MOCK |
+| `tests/unit/test_go_tester_streaming.py` | 20 | MOCK |
+| `tests/unit/test_honeypot.py` | 71 | MOCK |
+| `tests/unit/test_init_module.py` | 2 | MOCK |
+| `tests/unit/test_output.py` | 4 | MOCK |
+| `tests/unit/test_output_advanced.py` | 1 | MOCK |
+| `tests/unit/test_output_full.py` | 13 | MOCK |
+| `tests/unit/test_output_logic.py` | 1 | PLACEHOLDER |
+| `tests/unit/test_parsers_robustness.py` | 1 | MOCK |
+| `tests/unit/test_pipeline_coverage.py` | 38 | MOCK |
+| `tests/unit/test_pipeline_deep.py` | 38 | MOCK |
+| `tests/unit/test_pipeline_extended.py` | 64 | MOCK |
+| `tests/unit/test_pipeline_orchestration.py` | 29 | MOCK |
+| `tests/unit/test_pipeline_stages.py` | 125 | MOCK |
+| `tests/unit/test_producer_quality_accounting.py` | 2 | MOCK |
+| `tests/unit/test_proxy_history_extended.py` | 6 | MOCK |
+| `tests/unit/test_scheduler.py` | 4 | MOCK |
+| `tests/unit/test_security.py` | 26 | MOCK |
+| `tests/unit/test_security_validator.py` | 1 | ASSUMING |
+| `tests/unit/test_security_validator_extra.py` | 5 | MOCK |
+| `tests/unit/test_security_validator_full.py` | 1 | ASSUMING |
+| `tests/unit/test_server.py` | 34 | MOCK |
+| `tests/unit/test_server_new.py` | 1 | MOCK |
+| `tests/unit/test_singbox_binary_resolution.py` | 1 | MOCK |
+| `tests/unit/test_sorter.py` | 20 | MOCK |
+| `tests/unit/test_ss_ffi.py` | 47 | MOCK |
+| `tests/unit/test_utils.py` | 1 | MOCK |
+| `tests/unit/test_utils_extended.py` | 3 | MOCK |
+| `tests/unit/test_validate_frontend_placeholders.py` | 12 | PLACEHOLDER |
+| `tests/unit/test_validate_workflows.py` | 1 | PLACEHOLDER |
+| `tests/unit/test_washer.py` | 6 | MOCK |
+| `tests/unit/tools/test_dns_scanner.py` | 3 | MOCK |
+| `tests/unit/utils/test_cert.py` | 8 | MOCK |
+
+#### Raw Entries
+
+##### `.github/workflows/deploy-pages.yml`
+- L136 [`PLACEHOLDER`] `python scripts/validate_frontend_placeholders.py --inject-env --strict output`
+
+##### `AGENTS.md`
+- L148 [`ASSUMING`] `*   **Path Assumptions**: Assuming `CWD` is always the repo root. -> Use `pathlib` with absolute resolution or relative to `__file__`.`
+
+##### `CHANGELOG.md`
+- L36 [`PLACEHOLDER`] `- **Frontend placeholder deploy guard**: Added `scripts/validate_frontend_placeholders.py` and wired Pages deploy to inject `CS_PUBLIC_KEY`/`STEGO_KEY` into copied frontend assets before upload.`
+- L37 [`PLACEHOLDER`] `- **Frontend placeholder tests/workflow parity**: Added tests for placeholder detection/injection and extended workflow validation so `deploy-pages.yml` cannot drop the frontend placeholder guard or secret env wiring silently.`
+- L68 [`PLACEHOLDER`] `- **Validation run**: `scripts/validate_workflows.py` passes for 6 workflow files; `scripts/validate_versions.py` passes; focused remediation tests pass with 127 tests across server, fetcher, output, deploy-contract, analytics, merge, docs hygiene, frontend-placeholder, lab-strategy, concurrency-contract, producer-quality, logging-sanitization, workflow, and version validation.`
+- L191 [`TODO`] `- Full codebase scan: zero TODOs/FIXMEs, zero unused private functions, zero dead aliases, zero redundant exception tuples, zero `orjson` + `ensure_ascii` conflicts`
+
+##### `CLOSURE_REPORT.md`
+- L11 [`PLACEHOLDER`] `**Resolution:** Updated `main.yml` to set `continue-on-error: true` for the `frontend-wasm` download step in the merge job. Ensure `scripts/build_wasm.sh` creates the necessary directories and placeholder dummy files gracefully if compilation fails.`
+
+##### `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md`
+- L20 [`PLACEHOLDER`] `5. The deployed frontend path bypasses the Vite build output and serves raw static files with placeholder key material.`
+- L57 [`PLACEHOLDER`] `- frontend external dependencies, placeholders, and `innerHTML``
+- L378 [`PLACEHOLDER`] `- The frontend renders the degraded state without placeholders.`
+- L679 [`PLACEHOLDER`] `Status: partially remediated on 2026-05-04. Pages deploy now injects and validates frontend placeholders; the larger Vite-vs-raw-frontend production-build decision remains open.`
+- L683 [`PLACEHOLDER`] `- `frontend/assets/js/constants.js` contains placeholder `PUBLIC_KEY`.`
+- L684 [`PLACEHOLDER`] `- `frontend/assets/js/stego.js` contains `PLACEHOLDER_KEY_INJECTED_BY_CI`.`
+- L693 [`PLACEHOLDER`] `- Production Pages likely serves placeholder key material.`
+- L700 [`PLACEHOLDER`] `- Added `scripts/validate_frontend_placeholders.py`.`
+- L701 [`PLACEHOLDER`] `- Pages deploy runs `python scripts/validate_frontend_placeholders.py --inject-env --strict output` after copying frontend assets and before refreshing the public artifact contract.`
+- L702 [`PLACEHOLDER`] `- Pages deploy now passes `CS_PUBLIC_KEY` and `STEGO_KEY` into the frontend placeholder guard step from GitHub secrets.`
+- L705 [`PLACEHOLDER`] `- The validator fails if the public key placeholder marker or stego placeholder remains in the Pages artifact.`
+- L706 [`PLACEHOLDER`] `- `scripts/validate_workflows.py` now requires the Pages frontend placeholder guard and secret env wiring.`
+- L707 [`PLACEHOLDER`] `- Tests cover placeholder detection, env injection, optional non-strict stego handling, and workflow guard retention.`
+- L714 [`PLACEHOLDER`] `4. Fail production build if required public key/stego key placeholders remain.`
+- L716 [`PLACEHOLDER`] `6. Add placeholder leak tests.`
+- L727 [`PLACEHOLDER`] `- Deployed frontend contains no placeholder key strings.`
+- L731 [`PLACEHOLDER`] `- After each frontend contract change, verify backend output, deploy workflow, frontend files, tests, README/wiki/security/status/changelog, and delete stale placeholder/build-path language completely.`
+- L1183 [`PLACEHOLDER`] `- If the library is present but does not match the placeholder hash, validation fails.`
+- L1258 [`TODO`] `- `STATUS.md` and `CHANGELOG.md` claim zero TODO/FIXME despite generated debt matrices listing many markers.`
+- L1336 [`MOCK`] `3. Separate test-only mocks from production TODOs.`
+- L1341 [`PLACEHOLDER`] `### P3-4. Zero-byte and placeholder assets remain`
+- L1554 [`PLACEHOLDER`] `- Placeholder key material remains.`
+- L1560 [`PLACEHOLDER`] `- Make frontend local-first, build-driven, no-placeholder, and no-network smoke-tested.`
+- L1813 [`PLACEHOLDER`] `3. Public pages must never show unresolved placeholders.`
+- L1823 [`PLACEHOLDER`] `- placeholder leak tests`
+- L1895 [`TODO`] `- zero TODO/FIXME`
+- L1936 [`PLACEHOLDER`] `4. **No-placeholder gate:** Add a CI check for unresolved `{tokens}`, placeholder keys, example secrets, and stale production-ready claims.`
+- L2112 [`PLACEHOLDER`] `5. Fail build on placeholder keys.`
+- L2125 [`PLACEHOLDER`] `- Delete unused build path, unused scripts, and placeholder config files.`
+- L2194 [`PLACEHOLDER`] `6. Add no-placeholder, no-network frontend, public contract, and security posture tests.`
+- L2239 [`PLACEHOLDER`] `- frontend has no unresolved placeholders.`
+- L2240 [`PLACEHOLDER`] `- no placeholder key material is deployed.`
+- L2279 [`PLACEHOLDER`] `- No placeholder keys.`
+- L2339 [`PLACEHOLDER`] `10. Frontend has no placeholder keys or unresolved template tokens.`
+
+##### `SECURITY.md`
+- L46 [`PLACEHOLDER`] `- Deploy fails if the public-key placeholder or stego placeholder remains in the Pages artifact.`
+- L47 [`PLACEHOLDER`] `- Workflow validation enforces the frontend placeholder guard so it cannot be removed from deploy without breaking validation.`
+
+##### `STATUS.md`
+- L40 [`PLACEHOLDER`] `- Pages deploy now injects `CS_PUBLIC_KEY`/`STEGO_KEY` into copied frontend assets and fails before upload if frontend public-key or stego placeholders remain; workflow validation enforces this guard.`
+- L85 [`PLACEHOLDER`] `- `pytest -q tests/unit/test_validate_frontend_placeholders.py tests/unit/test_validate_workflows.py`: 6 passed`
+- L92 [`PLACEHOLDER`] `- `pytest -q tests/unit/test_server.py tests/unit/test_server_new.py tests/unit/test_fetcher.py tests/unit/test_fetcher_config.py tests/unit/test_fetcher_resilience.py tests/unit/test_fetcher_retries.py tests/unit/test_fetcher_advanced.py tests/unit/fetcher/test_fetcher_core.py tests/unit/test_output.py tests/unit/test_validate_pages_artifact.py tests/unit/test_analytics_output.py tests/unit/test_merge_batches.py tests/unit/test_documentation_hygiene.py tests/unit/test_validate_workflows.py tests/unit/test_validate_versions.py tests/unit/test_validate_frontend_placeholders.py tests/unit/test_lab_strategy_parity.py tests/unit/test_concurrency_contract.py tests/unit/test_producer_quality_accounting.py tests/unit/test_logging_sanitization_policy.py`: 127 passed`
+
+##### `docs/wiki/encyclopedia/glossary/networking_terms.md`
+- L114 [`ASSUMING`] `*   **ConfigStream Usage:** Some parsers reject input if the "Noise Ratio" (non-printable characters) is too high, assuming it's garbage. Conversely, obfuscation protocols add noise to look like static.`
+
+##### `docs/wiki/encyclopedia/glossary/security_concepts.md`
+- L73 [`XXX`] `*   **Format:** `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` (36 characters with hyphens).`
+
+##### `docs/wiki/encyclopedia/networking/warp.md`
+- L96 [`XXX`] `*   **WARP+ Key:** Format `xxxxxxxx-xxxxxxxx-xxxxxxxx`. Provides optimized routing (Argo Smart Routing). Optional — free tier is sufficient for circumvention.`
+
+##### `frontend/assets/js/analytics.js`
+- L40 [`PLACEHOLDER`] `// Show empty state or placeholder`
+- L161 [`PLACEHOLDER`] `container.innerHTML = '<div class="error-placeholder">Visualization Unavailable (Network Error)</div>';`
+- L776 [`ASSUMING`] `// Assuming all rejection reasons are worth showing if present`
+
+##### `frontend/assets/js/charts.js`
+- L106 [`MOCK`] `// Audit: Removed random mock data to prevent misleading users.`
+
+##### `frontend/assets/js/constants.js`
+- L29 [`PLACEHOLDER`] `// Validation: Detect placeholder values in production`
+- L43 [`PLACEHOLDER`] `logError("❌ CRITICAL: Production deployment using placeholder PUBLIC_KEY!");`
+- L48 [`PLACEHOLDER`] `logError("❌ CRITICAL: Production deployment using placeholder IPNS_KEY!");`
+
+##### `frontend/assets/js/i18n.js`
+- L135 [`PLACEHOLDER`] `"byow.url.placeholder": "Paste your Cloudflare Worker URL...",`
+- L136 [`PLACEHOLDER`] `"byow.uuid.placeholder": "Optional: UUID",`
+- L362 [`PLACEHOLDER`] `"byow.url.placeholder": "在此输入 Cloudflare Worker 地址...",`
+- L363 [`PLACEHOLDER`] `"byow.uuid.placeholder": "可选: UUID",`
+- L582 [`PLACEHOLDER`] `"byow.url.placeholder": "آدرس Cloudflare Worker خود را وارد کنید...",`
+- L583 [`PLACEHOLDER`] `"byow.uuid.placeholder": "اختیاری: UUID",`
+- L802 [`PLACEHOLDER`] `"byow.url.placeholder": "Вставьте ссылку на ваш Cloudflare Worker...",`
+- L803 [`PLACEHOLDER`] `"byow.uuid.placeholder": "Опционально: UUID",`
+- L1022 [`PLACEHOLDER`] `"byow.url.placeholder": "رابط Cloudflare Worker...",`
+- L1023 [`PLACEHOLDER`] `"byow.uuid.placeholder": "اختياري: UUID",`
+- L1187 [`PLACEHOLDER`] `if (el.tagName === 'INPUT' && el.getAttribute('placeholder')) {`
+- L1188 [`PLACEHOLDER`] `el.setAttribute('placeholder', translation);`
+
+##### `frontend/assets/js/lab.js`
+- L1425 [`XXX`] `CFG=$(mktemp /tmp/cs-chain-XXXX.json)`
+
+##### `frontend/assets/js/main.js`
+- L102 [`ASSUMING`] `// Assuming proxies have 'id'`
+- L183 [`PLACEHOLDER`] `// Initialize immediately with defaults to avoid "--" flash or placeholders`
+
+##### `frontend/assets/js/stego.js`
+- L9 [`PLACEHOLDER`] `const SECRET_KEY = "PLACEHOLDER_KEY_INJECTED_BY_CI";`
+- L13 [`PLACEHOLDER`] `SECRET_KEY === "PLACEHOLDER_KEY_INJECTED_BY_CI" ||`
+
+##### `frontend/assets/js/verifier.js`
+- L42 [`PLACEHOLDER`] `if (!PUBLIC_KEY || PUBLIC_KEY.includes("PLACEHOLDER") || PUBLIC_KEY.length < 20) {`
+- L49 [`ASSUMING`] `// Assuming Base64 SPKI from constants.js example`
+- L96 [`PLACEHOLDER`] `if (!PUBLIC_KEY || PUBLIC_KEY.includes("PLACEHOLDER") || PUBLIC_KEY.length < 20) {`
+
+##### `frontend/assets/js/washer_client.js`
+- L9 [`MOCK`] `// Mock status check`
+
+##### `frontend/index.html`
+- L515 [`PLACEHOLDER`] `placeholder="your-worker.username.workers.dev"`
+
+##### `frontend/lab-offline.html`
+- L129 [`PLACEHOLDER`] `warp:'<div class="row"><div><label>Clean IP</label><input data-f="ip" value="162.159.192.1"></div><div><label>Port</label><input data-f="port" type="number" value="2408"></div></div><div><label>WARP+ Key (optional)</label><input data-f="key" placeholder="Leave blank for free"></div>',`
+
+##### `frontend/lab.html`
+- L573 [`PLACEHOLDER`] `<input type="text" class="lab-input" id="localProxyAddr" placeholder="127.0.0.1:1080">`
+- L584 [`PLACEHOLDER`] `<textarea class="lab-textarea" id="proxyUri" placeholder="vless://uuid@server:443?type=ws&security=tls&sni=example.com#MyProxy"></textarea>`
+- L628 [`PLACEHOLDER`] `<textarea class="lab-textarea" id="manualCleanIps" placeholder="162.159.192.1:2408&#10;188.114.98.224:854"></textarea>`
+- L710 [`PLACEHOLDER`] `<input type="text" class="lab-input" id="warpKeyInput" placeholder="Leave blank for free tier">`
+- L711 [`XXX`] `<div class="hint">WARP+ key for better speed. Format: xxxxxxxx-xxxxxxxx-xxxxxxxx</div>`
+- L717 [`PLACEHOLDER`] `<input type="text" class="lab-input" id="warp2CleanIp" placeholder="162.159.192.1:2408">`
+- L722 [`PLACEHOLDER`] `<input type="text" class="lab-input" id="warp2Key" placeholder="Leave blank for free tier">`
+- L732 [`PLACEHOLDER`] `<input type="text" class="lab-input" id="fragSize" value="10-30" placeholder="10-30">`
+- L737 [`PLACEHOLDER`] `<input type="text" class="lab-input" id="fragDelay" value="5-10" placeholder="5-10">`
+- L789 [`PLACEHOLDER`] `<input type="text" class="lab-input" id="workerUrl" placeholder="https://my-worker.username.workers.dev">`
+- L814 [`PLACEHOLDER`] `<input type="text" class="lab-input relay-layer-addr" data-layer="1" placeholder="127.0.0.1:1080 or vless://...">`
+- L836 [`PLACEHOLDER`] `<input type="text" class="lab-input relay-layer-addr" data-layer="2" placeholder="10.0.0.50:3128 or trojan://...">`
+- L857 [`PLACEHOLDER`] `<input type="text" class="lab-input relay-layer-addr" data-layer="3" placeholder="162.159.192.1:2408 or vmess://...">`
+- L878 [`PLACEHOLDER`] `<input type="text" class="lab-input relay-layer-addr" data-layer="4" placeholder="ss://... or socks5://...">`
+- L892 [`PLACEHOLDER`] `<textarea class="lab-textarea" id="customOutboundsJson" placeholder='[{"type":"wireguard","tag":"warp-out","server":"162.159.192.1",...}]' style="min-height:160px;"></textarea>`
+
+##### `frontend/proxies.html`
+- L140 [`PLACEHOLDER`] `<input type="text" id="worker-url" data-i18n="byow.url.placeholder" placeholder="Paste Worker URL..." class="input-modern">`
+- L141 [`PLACEHOLDER`] `<input type="text" id="worker-uuid" data-i18n="byow.uuid.placeholder" placeholder="UUID (Optional)" class="input-modern input-short">`
+- L154 [`PLACEHOLDER`] `<input type="text" id="searchInput" data-i18n="filters.search" placeholder="e.g., fastest US vmess, or Germany < 100ms" aria-label="Search proxies">`
+- L188 [`PLACEHOLDER`] `<input type="number" id="filterLatencyMin" placeholder="Min" aria-label="Minimum latency">`
+- L190 [`PLACEHOLDER`] `<input type="number" id="filterLatencyMax" placeholder="Max" aria-label="Maximum latency">`
+
+##### `frontend/service-worker.js`
+- L42 [`ASSUMING`] `// Assuming prefix "configstream-v" from cache-config.js logic`
+
+##### `scripts/generate_debt_matrix.py`
+- L3 [`TODO`] `"""Generate a repository debt matrix from TODO/FIXME-style markers."""`
+- L16 [`TODO`] `PATTERN = r"(?i)(TODO|FIXME|XXX|MOCK|@mock|placeholder|assuming)"`
+- L160 [`FIXME`] `"- `FIXME` / `XXX`: fix inline before release freeze.",`
+- L161 [`TODO`] `"- `TODO`: create issue with owner + milestone.",`
+- L162 [`MOCK`] `"- `MOCK` / `@MOCK`: production mocks require owner review; test-only mocks are tracked separately.",`
+- L163 [`PLACEHOLDER`] `"- `PLACEHOLDER` / `ASSUMING`: remove assumptions, enforce validation.",`
+
+##### `scripts/run_test_profile.py`
+- L94 [`PLACEHOLDER`] `"tests/unit/test_validate_frontend_placeholders.py",`
+
+##### `scripts/validate_frontend_placeholders.py`
+- L4 [`PLACEHOLDER`] `This guard keeps deploy artifacts from silently shipping placeholder verification`
+- L18 [`PLACEHOLDER`] `PUBLIC_KEY_PLACEHOLDER_MARKERS = ("79e/79e/", "PLACEHOLDER_PUBLIC_KEY")`
+- L19 [`PLACEHOLDER`] `STEGO_KEY_PLACEHOLDER = "PLACEHOLDER_KEY_INJECTED_BY_CI"`
+- L68 [`PLACEHOLDER`] `def validate_frontend_placeholders(root: Path, *, strict: bool = False) -> list[str]:`
+- L77 [`PLACEHOLDER`] `if any(marker in constants for marker in PUBLIC_KEY_PLACEHOLDER_MARKERS):`
+- L79 [`PLACEHOLDER`] `"Frontend PUBLIC_KEY placeholder remains in assets/js/constants.js"`
+- L87 [`PLACEHOLDER`] `if STEGO_KEY_PLACEHOLDER in stego:`
+- L89 [`PLACEHOLDER`] `"Frontend STEGO_KEY placeholder remains in assets/js/stego.js"`
+- L120 [`PLACEHOLDER`] `errors = validate_frontend_placeholders(root, strict=bool(args.strict))`
+- L126 [`PLACEHOLDER`] `print("OK: frontend production placeholders validated.")`
+
+##### `scripts/validate_workflows.py`
+- L46 [`PLACEHOLDER`] `def _deploy_pages_has_frontend_placeholder_guard(path: Path) -> bool:`
+- L52 [`PLACEHOLDER`] `"scripts/validate_frontend_placeholders.py --inject-env --strict output"`
+- L108 [`PLACEHOLDER`] `and not _deploy_pages_has_frontend_placeholder_guard(path)`
+- L111 [`PLACEHOLDER`] `f"{path}: missing frontend placeholder injection/validation guard"`
+
+##### `sources/manual_warp.txt`
+- L10 [`XXX`] `wireguard://UJckB8h6r2P6xxx8UEspxw8r3YkpzBEbjxol3jeoqEw%3D@188.114.97.82:5956?address=172.16.0.2/32, 2606:4700:110:846c:e510:bfa1:ea9f:5247/128&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D&reserved=61%2C41%2C250#Tel= @arshiacomplus wire`
+
+##### `src/configstream/anomaly.py`
+- L193 [`MOCK`] `# However, the test 'test_failure_mode_anomaly_db_crash' explicitly mocks this method`
+- L194 [`MOCK`] `# to raise RuntimeError. If the real method catches it, the test mock is bypassed if we use spy.`
+
+##### `src/configstream/constants.py`
+- L128 [`PLACEHOLDER`] `"ws",  # Test fixtures / transport placeholders`
+
+##### `src/configstream/generators/base64.py`
+- L12 [`PLACEHOLDER`] `a minimal placeholder is encoded so output files are always ≥ 1 byte.`
+
+##### `src/configstream/history/tracker.py`
+- L97 [`MOCK`] `# Fallback for mock storage`
+
+##### `src/configstream/intelligence/chaining.py`
+- L187 [`MOCK`] `)  # Fallback if library returns raw float (unlikely for geopy but good for mocks)`
+
+##### `src/configstream/quality/storage.py`
+- L354 [`PLACEHOLDER`] `placeholders = ",".join(["?"] * len(columns_to_use))`
+- L376 [`PLACEHOLDER`] `f"INSERT INTO source_stats ({column_list}) VALUES ({placeholders})",  # nosec`
+- L384 [`PLACEHOLDER`] `f"INSERT INTO source_stats ({column_list}) VALUES ({placeholders})",  # nosec`
+- L396 [`PLACEHOLDER`] `placeholders = ",".join(["?"] * len(cols_no_id))`
+- L403 [`PLACEHOLDER`] `f"INSERT INTO source_runs ({','.join(cols_no_id)}) VALUES ({placeholders})",  # nosec`
+- L419 [`PLACEHOLDER`] `placeholders = ",".join(["?"] * len(columns))`
+- L422 [`PLACEHOLDER`] `f"INSERT INTO proxy_history VALUES ({placeholders})",  # nosec`
+
+##### `src/configstream/security_validator.py`
+- L6 [`MOCK`] `# Import urlparse directly to allow mocking in tests`
+- L153 [`MOCK`] `Internal check for address safety. Used by tests to mock safety checks.`
+- L177 [`MOCK`] `# Use internal check (to allow mocking by tests)`
+- L279 [`MOCK`] `# Use SecurityValidator.validate_proxy_config to allow mocking on the class`
+
+##### `src/configstream/tools/censorship_lab.py`
+- L63 [`MOCK`] `"""Mock IP blocklist for testing."""`
+
+##### `src/configstream/tools/dns_scanner/bash/dnsScanner.sh`
+- L130 [`TODO`] `barCharTodo=" "`
+- L140 [`TODO`] `# The number of done and todo characters`
+- L142 [`TODO`] `todo=$(bc <<< "scale=0; $barSize - $done")`
+- L143 [`TODO`] `# build the done and todo sub-bars`
+- L145 [`TODO`] `todoSubBar=$(printf "%${todo}s" | tr " " "${barCharTodo} - 1") # 1 for barSplitter`
+- L146 [`TODO`] `spacesSubBar=$(printf "%${todo}s" | tr " " " ")`
+- L149 [`TODO`] `progressBar="| Progress bar of main IPs: [${doneSubBar}${barSplitter}${todoSubBar}] ${percent}%${spacesSubBar}" # Some end space for pretty formatting`
+
+##### `src/configstream/tools/dns_scanner/python/dnsscanner_tui.py`
+- L722 [`PLACEHOLDER`] `placeholder="Enter path or click Browse",`
+- L734 [`PLACEHOLDER`] `placeholder="e.g., google.com",`
+- L758 [`PLACEHOLDER`] `placeholder="100",`
+
+##### `tests/e2e/test_failure_scenarios.py`
+- L12 [`MOCK`] `# Mock quality tracker to reject everything`
+- L37 [`MOCK`] `# Mock AnomalyDetector to fail on is_safe`
+- L43 [`MOCK`] `# Mock fetcher to return something`
+- L58 [`MOCK`] `# Mock GeoIP`
+
+##### `tests/e2e/test_frontend.py`
+- L45 [`MOCK`] `# Mock metadata.json to prevent update-detector from failing`
+- L107 [`MOCK`] `# Mock metadata.json to prevent update-detector from failing`
+- L145 [`MOCK`] `# Mock the metadata request data (using canonical field names from v2.0.8)`
+- L146 [`MOCK`] `mock_data = {`
+- L161 [`MOCK`] `mock_json = json.dumps(mock_data)`
+- L163 [`MOCK`] `# Inject a mock fetch function that returns our data for statistics endpoints`
+- L169 [`MOCK`] `// Mock metadata.json (unified stats) and api/stats endpoints`
+- L174 [`MOCK`] `json: async () => ({mock_json})`
+- L180 [`MOCK`] `// Mock window.api.fetchStatistics directly if needed`
+- L182 [`MOCK`] `window.api.fetchStatistics = async () => ({mock_json});`
+
+##### `tests/e2e/test_mixed_protocols.py`
+- L28 [`MOCK`] `# 2. Mock external dependencies that might block or fail without network`
+- L30 [`MOCK`] `# Mock GeoIP to return deterministic data`
+- L34 [`MOCK`] `# We need self because we are mocking the instance method or class method?`
+- L35 [`MOCK`] `# Actually standard mock usually mocks the function on the class.`
+- L49 [`MOCK`] `# Mock Blocklist update`
+- L55 [`MOCK`] `# Mock Output Generation to avoid filesystem overhead but verify data presence`
+- L60 [`MOCK`] `# The roadmap says: "assert that parsing, validation, dedup, washing, and GeoIP enrichment all execute without mocks."`
+- L62 [`MOCK`] `# So we MOCKED GeoIP above. The roadmap allows mocks for things that strictly require network.`
+- L64 [`MOCK`] `# However, we need to mock `generate_stego_assets` since it requires assets/images which might not exist in tmp env.`
+- L66 [`MOCK`] `# So we remove the mock that causes AttributeError.`
+
+##### `tests/scenarios/test_failure_modes.py`
+- L16 [`MOCK`] `# Mock SourceQualityTracker to always return False for should_fetch`
+- L27 [`MOCK`] `# Mock Blocklist update to avoid network`
+- L64 [`MOCK`] `# Mock SourceQualityTracker to allow fetch`
+- L70 [`MOCK`] `# Mock network fetch`
+- L85 [`MOCK`] `# Mock Blocklist`
+- L91 [`MOCK`] `# Mock GeoIP`
+- L94 [`MOCK`] `# Use async mock for GeoIP lookup and keyword arguments for GeoData`
+- L126 [`MOCK`] `# Mock fetch/geoip/blocklist as usual`
+- L148 [`MOCK`] `# Use async mock for GeoIP lookup and keyword arguments for GeoData`
+
+##### `tests/test_manager.py`
+- L2 [`MOCK`] `from unittest.mock import MagicMock, AsyncMock, patch`
+- L8 [`MOCK`] `def mock_settings():`
+- L9 [`MOCK`] `with patch("configstream.testers.manager.AppSettings") as MockSettings:`
+- L10 [`MOCK`] `settings = MockSettings.return_value`
+- L16 [`MOCK`] `async def test_singbox_tester_dry_run(mock_settings):`
+- L29 [`MOCK`] `async def test_singbox_tester_batch_dry_run(mock_settings):`
+- L47 [`MOCK`] `async def test_singbox_tester_cache_hit(mock_settings):`
+- L48 [`MOCK`] `cache = MagicMock()`
+- L72 [`MOCK`] `async def test_singbox_tester_python_direct(mock_settings):`
+- L74 [`MOCK`] `tester.python_tester.test_direct = AsyncMock(`
+- L75 [`MOCK`] `return_value=MagicMock(is_working=True)`
+- L90 [`MOCK`] `async def test_singbox_tester_go_fallback(mock_settings):`
+- L92 [`MOCK`] `# Mock Go tester as unavailable`
+- L94 [`MOCK`] `tester.python_tester.test_via_singbox = AsyncMock(`
+- L95 [`MOCK`] `return_value=MagicMock(is_working=True)`
+- L103 [`MOCK`] `# Should call python tester via semaphore wrapper (internal details hard to mock perfectly, but we check if result populated)`
+- L104 [`MOCK`] `# Actually we mocked the method, so let's verify call.`
+- L111 [`MOCK`] `async def test_singbox_tester_close(mock_settings):`
+- L113 [`MOCK`] `tester.go_tester.close = AsyncMock()`
+
+##### `tests/test_output_transport.py`
+- L3 [`MOCK`] `from unittest.mock import MagicMock, patch`
+- L9 [`MOCK`] `def mock_history():`
+- L10 [`MOCK`] `with patch("configstream.output_transport.ProxyHistoryTracker") as MockHistory:`
+- L11 [`MOCK`] `hist = MockHistory.return_value`
+- L16 [`MOCK`] `def test_save_json(tmp_path, mock_history):`
+- L35 [`MOCK`] `def test_save_json_outputs_array_not_single_object(tmp_path, mock_history):`
+- L50 [`MOCK`] `def test_save_json_compress(tmp_path, mock_history):`
+
+##### `tests/test_python_tester.py`
+- L2 [`MOCK`] `from unittest.mock import MagicMock, AsyncMock, patch`
+- L8 [`MOCK`] `def mock_settings():`
+- L9 [`MOCK`] `settings = MagicMock()`
+- L16 [`MOCK`] `async def test_python_tester_direct_http(mock_settings):`
+- L17 [`MOCK`] `tester = PythonTester(mock_settings)`
+- L22 [`MOCK`] `with patch("aiohttp.ClientSession") as MockSession:`
+- L23 [`MOCK`] `session = MockSession.return_value`
+- L26 [`MOCK`] `# Mock successful response`
+- L27 [`MOCK`] `resp = MagicMock()`
+- L38 [`MOCK`] `async def test_python_tester_direct_fail(mock_settings):`
+- L39 [`MOCK`] `tester = PythonTester(mock_settings)`
+- L47 [`MOCK`] `with patch("aiohttp.ClientSession") as MockSession:`
+- L48 [`MOCK`] `session = MockSession.return_value`
+- L51 [`MOCK`] `# Mock exception for get()`
+- L75 [`MOCK`] `async def test_python_tester_singbox_missing_factory(mock_settings):`
+- L77 [`MOCK`] `tester = PythonTester(mock_settings)`
+- L91 [`MOCK`] `async def test_python_tester_no_config(mock_settings):`
+- L92 [`MOCK`] `tester = PythonTester(mock_settings)`
+
+##### `tests/test_scanner.py`
+- L2 [`MOCK`] `from unittest.mock import MagicMock, AsyncMock, patch`
+- L8 [`MOCK`] `# Mock settings to NOT force scanner`
+- L9 [`MOCK`] `with patch("configstream.config.AppSettings") as MockSettings:`
+- L10 [`MOCK`] `MockSettings.return_value.FORCE_SCANNER = False`
+- L18 [`MOCK`] `with patch("configstream.config.AppSettings") as MockSettings:`
+- L19 [`MOCK`] `MockSettings.return_value.FORCE_SCANNER = True`
+- L20 [`MOCK`] `MockSettings.return_value.CONFIGSTREAM_TESTER_BIN = "/bin/ls"  # Dummy path`
+- L30 [`MOCK`] `with patch("configstream.config.AppSettings") as MockSettings:`
+- L31 [`MOCK`] `MockSettings.return_value.ALLOW_ACTIVE_SCANNING = False`
+- L32 [`MOCK`] `MockSettings.return_value.FORCE_SCANNER = False`
+- L43 [`MOCK`] `with patch("configstream.config.AppSettings") as MockSettings:`
+- L44 [`MOCK`] `MockSettings.return_value.ALLOW_ACTIVE_SCANNING = True`
+- L46 [`MOCK`] `# Mock subprocess`
+- L47 [`MOCK`] `proc = AsyncMock()`
+- L66 [`MOCK`] `with patch("configstream.config.AppSettings") as MockSettings:`
+- L67 [`MOCK`] `MockSettings.return_value.ALLOW_ACTIVE_SCANNING = True`
+- L69 [`MOCK`] `proc = AsyncMock()`
+
+##### `tests/test_warp_scraper.py`
+- L3 [`MOCK`] `from unittest.mock import AsyncMock, MagicMock, patch`
+- L7 [`MOCK`] `def _mock_httpx_response(text: str):`
+- L9 [`MOCK`] `mock_resp = MagicMock(spec=httpx.Response)`
+- L10 [`MOCK`] `mock_resp.text = text`
+- L11 [`MOCK`] `mock_resp.status_code = 200`
+- L12 [`MOCK`] `mock_resp.raise_for_status = MagicMock()`
+- L14 [`MOCK`] `mock_client = AsyncMock(spec=httpx.AsyncClient)`
+- L15 [`MOCK`] `mock_client.get = AsyncMock(return_value=mock_resp)`
+- L16 [`MOCK`] `mock_client.__aenter__ = AsyncMock(return_value=mock_client)`
+- L17 [`MOCK`] `mock_client.__aexit__ = AsyncMock(return_value=False)`
+- L18 [`MOCK`] `return mock_client`
+- L24 [`MOCK`] `mock_client = _mock_httpx_response("162.159.192.1:2408\ninvalid\n1.1.1.1")`
+- L33 [`MOCK`] `return_value=mock_client,`
+- L48 [`MOCK`] `mock_client = _mock_httpx_response(warp_uri)`
+- L57 [`MOCK`] `return_value=mock_client,`
+- L87 [`MOCK`] `mock_client = _mock_httpx_response(json_content)`
+- L96 [`MOCK`] `return_value=mock_client,`
+
+##### `tests/test_washer_utils.py`
+- L6 [`MOCK`] `key = "a" * 44  # Mock key`
+
+##### `tests/unit/converters/test_singbox_converters.py`
+- L22 [`MOCK`] `# Mocking logger is tricky in unit test without fixtures, but we can check return None`
+
+##### `tests/unit/coverage_boost/test_adaptive_workers_coverage.py`
+- L3 [`MOCK`] `from unittest.mock import patch, MagicMock`
+- L12 [`MOCK`] `# Mock psutil not present (fallback to CPU logic)`
+- L15 [`MOCK`] `# Mock CI detection to False for deterministic test`
+- L35 [`MOCK`] `mock_psutil = MagicMock()`
+- L36 [`MOCK`] `mock_mem = MagicMock()`
+- L38 [`MOCK`] `mock_mem.available = 1024 * 1024 * 1024`
+- L39 [`MOCK`] `mock_psutil.virtual_memory.return_value = mock_mem`
+- L41 [`MOCK`] `with patch("configstream.adaptive_workers.psutil_module", mock_psutil):`
+- L51 [`MOCK`] `mock_psutil = MagicMock()`
+- L52 [`MOCK`] `mock_mem = MagicMock()`
+- L53 [`MOCK`] `mock_mem.available = 64 * 1024 * 1024 * 1024  # Huge RAM`
+- L54 [`MOCK`] `mock_psutil.virtual_memory.return_value = mock_mem`
+- L56 [`MOCK`] `with patch("configstream.adaptive_workers.psutil_module", mock_psutil):`
+
+##### `tests/unit/coverage_boost/test_blocklist_coverage.py`
+- L5 [`MOCK`] `from unittest.mock import patch`
+- L27 [`MOCK`] `# Mock cache file`
+
+##### `tests/unit/coverage_boost/test_cli_coverage.py`
+- L3 [`MOCK`] `from unittest.mock import MagicMock, patch, AsyncMock`
+- L14 [`MOCK`] `with patch("logging.basicConfig") as mock_basic_config:`
+- L17 [`MOCK`] `args, kwargs = mock_basic_config.call_args`
+- L22 [`MOCK`] `with patch("logging.basicConfig") as mock_basic_config:`
+- L25 [`MOCK`] `args, kwargs = mock_basic_config.call_args`
+- L43 [`MOCK`] `def test_cli_merge_command(mock_pipeline, runner):`
+- L44 [`MOCK`] `# Mock stats object`
+- L45 [`MOCK`] `stats_mock = MagicMock()`
+- L46 [`MOCK`] `# Configure attributes so getattr(stats, key) returns float/int, not MagicMock`
+- L47 [`MOCK`] `stats_mock.duration = 1.5`
+- L48 [`MOCK`] `stats_mock.fetched_lines = 100`
+- L49 [`MOCK`] `stats_mock.tested = 50`
+- L50 [`MOCK`] `stats_mock.working = 40`
+- L51 [`MOCK`] `stats_mock.geo_resolved = 30`
+- L52 [`MOCK`] `stats_mock.to_dict.return_value = {`
+- L60 [`MOCK`] `# Mock pipeline result`
+- L61 [`MOCK`] `result_mock = MagicMock()`
+- L62 [`MOCK`] `result_mock.success = True`
+- L63 [`MOCK`] `result_mock.stats = stats_mock`
+- L64 [`MOCK`] `result_mock.error = None`
+- L66 [`MOCK`] `mock_pipeline.return_value = result_mock`
+- L67 [`MOCK`] `mock_pipeline.side_effect = AsyncMock(return_value=result_mock)`
+- L85 [`MOCK`] `def test_cli_merge_command_fail(mock_pipeline, runner):`
+- L86 [`MOCK`] `result_mock = MagicMock()`
+- L87 [`MOCK`] `result_mock.success = False`
+- L88 [`MOCK`] `result_mock.error = "Simulated Failure"`
+- L90 [`MOCK`] `mock_pipeline.side_effect = AsyncMock(return_value=result_mock)`
+
+##### `tests/unit/coverage_boost/test_server_coverage.py`
+- L37 [`MOCK`] `# Mock output directory for static files`
+
+##### `tests/unit/coverage_boost/test_washer_coverage.py`
+- L3 [`MOCK`] `from unittest.mock import MagicMock, patch`
+- L9 [`MOCK`] `def mock_warp_keys():`
+- L21 [`MOCK`] `def washer(mock_warp_keys):`
+- L22 [`MOCK`] `return ProxyWasher(mock_warp_keys)`
+- L106 [`MOCK`] `# Fill cache up to limit (mock small limit via private usage if possible, or just check type)`
+- L112 [`MOCK`] `# We can mock seen_chains`
+- L113 [`MOCK`] `washer.seen_chains = MagicMock()`
+
+##### `tests/unit/fetcher/test_fetcher_core.py`
+- L7 [`MOCK`] `from unittest.mock import patch`
+- L46 [`MOCK`] `# Exception case mocking`
+
+##### `tests/unit/generators/test_singbox_comprehensive.py`
+- L3 [`MOCK`] `from unittest.mock import patch`
+
+##### `tests/unit/geoip/test_geoip_resolver.py`
+- L3 [`MOCK`] `from unittest.mock import MagicMock`
+- L11 [`MOCK`] `# Mock readers to ensure we don't hit FS`
+- L12 [`MOCK`] `resolver.reader_city = MagicMock()`
+- L13 [`MOCK`] `resolver.reader_asn = MagicMock()`
+- L21 [`MOCK`] `async def test_geoip_lookup_valid_mock():`
+- L22 [`MOCK`] `"""Test lookup logic with mocked DB response"""`
+- L25 [`MOCK`] `mock_city = MagicMock()`
+- L26 [`MOCK`] `mock_city.country.iso_code = "US"`
+- L27 [`MOCK`] `mock_city.country.name = "United States"`
+- L28 [`MOCK`] `mock_city.city.name = "New York"`
+- L29 [`MOCK`] `resolver.reader_city = MagicMock()`
+- L30 [`MOCK`] `resolver.reader_city.city.return_value = mock_city`
+- L32 [`MOCK`] `mock_asn = MagicMock()`
+- L33 [`MOCK`] `mock_asn.autonomous_system_number = 12345`
+- L34 [`MOCK`] `mock_asn.autonomous_system_organization = "Test Org"`
+- L35 [`MOCK`] `resolver.reader_asn = MagicMock()`
+- L36 [`MOCK`] `resolver.reader_asn.asn.return_value = mock_asn`
+
+##### `tests/unit/history/test_history_components.py`
+- L6 [`MOCK`] `from unittest.mock import patch`
+- L36 [`MOCK`] `with patch.object(Path, "stat") as mock_stat:`
+- L37 [`MOCK`] `mock_stat.return_value.st_size = 101 * 1024 * 1024  # 101MB`
+- L152 [`MOCK`] `with patch("configstream.history.export.datetime") as mock_dt:`
+- L153 [`MOCK`] `mock_dt.now.return_value.replace.return_value = mock_dt.now.return_value`
+- L156 [`MOCK`] `mock_dt.now.return_value = fixed_now`
+- L157 [`MOCK`] `mock_dt.fromisoformat.side_effect = datetime.fromisoformat`
+- L158 [`MOCK`] `mock_dt.min = datetime.min`
+
+##### `tests/unit/intelligence/test_chaining_extended.py`
+- L2 [`MOCK`] `from unittest.mock import patch`
+- L75 [`MOCK`] `# Mock converters`
+
+##### `tests/unit/intelligence/test_vectors.py`
+- L5 [`MOCK`] `from unittest.mock import patch`
+
+##### `tests/unit/quality/test_quality_components.py`
+- L4 [`MOCK`] `from unittest.mock import patch`
+- L156 [`MOCK`] `# Easier to mock`
+
+##### `tests/unit/security/test_censorship.py`
+- L2 [`MOCK`] `from unittest.mock import AsyncMock, MagicMock, patch`
+- L19 [`MOCK`] `mock_response = MagicMock()`
+- L20 [`MOCK`] `mock_response.status_code = 200`
+- L23 [`MOCK`] `"httpx.AsyncClient.get", new_callable=AsyncMock, return_value=mock_response`
+- L36 [`MOCK`] `new_callable=AsyncMock,`
+
+##### `tests/unit/security/test_rules.py`
+- L11 [`MOCK`] `from unittest.mock import patch`
+- L36 [`MOCK`] `# Mock SUSPICIOUS_DOMAINS to test that logic specifically`
+- L56 [`MOCK`] `# Mock AppSettings to ensure ALLOW_PRIVATE_IPS is False`
+- L57 [`MOCK`] `# Also mock SUSPICIOUS_DOMAINS to be empty so we fall through to private IP check`
+- L59 [`MOCK`] `patch("configstream.security.rules._APP_SETTINGS_CACHE") as mock_settings,`
+- L62 [`MOCK`] `mock_settings.ALLOW_PRIVATE_IPS = False`
+- L81 [`MOCK`] `with patch("configstream.security.rules._APP_SETTINGS_CACHE") as mock_settings:`
+- L82 [`MOCK`] `mock_settings.ALLOW_PRIVATE_IPS = True`
+
+##### `tests/unit/security/test_utls_wrapper.py`
+- L3 [`MOCK`] `from unittest.mock import MagicMock, patch, AsyncMock`
+- L17 [`MOCK`] `new_callable=AsyncMock,`
+- L40 [`MOCK`] `new_callable=AsyncMock,`
+- L47 [`MOCK`] `patch("asyncio.create_subprocess_exec") as mock_exec,`
+- L50 [`MOCK`] `mock_proc = MagicMock()`
+- L51 [`MOCK`] `mock_proc.communicate = AsyncMock(return_value=(b"Success", b""))`
+- L52 [`MOCK`] `mock_proc.returncode = 0`
+- L53 [`MOCK`] `mock_exec.return_value = mock_proc`
+- L64 [`MOCK`] `new_callable=AsyncMock,`
+- L71 [`MOCK`] `patch("asyncio.create_subprocess_exec") as mock_exec,`
+- L74 [`MOCK`] `mock_proc = MagicMock()`
+- L75 [`MOCK`] `mock_proc.communicate = AsyncMock(return_value=(b"", b"Error"))`
+- L76 [`MOCK`] `mock_proc.returncode = 1`
+- L77 [`MOCK`] `mock_exec.return_value = mock_proc`
+
+##### `tests/unit/security/test_virus_total_comprehensive.py`
+- L5 [`MOCK`] `from unittest.mock import patch, MagicMock`
+- L18 [`MOCK`] `class MockResponse:`
+- L19 [`MOCK`] `"""Mock aiohttp response."""`
+- L49 [`MOCK`] `mock_response = MockResponse(200, "not a dict")`
+- L53 [`MOCK`] `) as mock_session_cls:`
+- L54 [`MOCK`] `mock_session = MagicMock()`
+- L55 [`MOCK`] `mock_session_cls.return_value.__aenter__.return_value = mock_session`
+- L56 [`MOCK`] `mock_session.get.return_value = mock_response`
+- L66 [`MOCK`] `mock_response = MockResponse(200, {"data": {}})`
+- L70 [`MOCK`] `) as mock_session_cls:`
+- L71 [`MOCK`] `mock_session = MagicMock()`
+- L72 [`MOCK`] `mock_session_cls.return_value.__aenter__.return_value = mock_session`
+- L73 [`MOCK`] `mock_session.get.return_value = mock_response`
+- L85 [`MOCK`] `) as mock_session_cls:`
+- L86 [`MOCK`] `mock_session = MagicMock()`
+- L87 [`MOCK`] `mock_session_cls.return_value.__aenter__.return_value = mock_session`
+- L88 [`MOCK`] `mock_session.get.side_effect = Exception("Network error")`
+- L98 [`MOCK`] `mock_response = MockResponse(`
+- L104 [`MOCK`] `) as mock_session_cls:`
+- L105 [`MOCK`] `mock_session = MagicMock()`
+- L106 [`MOCK`] `mock_session_cls.return_value.__aenter__.return_value = mock_session`
+- L107 [`MOCK`] `mock_session.get.return_value = mock_response`
+- L113 [`MOCK`] `call_args = mock_session.get.call_args`
+- L135 [`MOCK`] `mock_response = MockResponse(`
+- L151 [`MOCK`] `) as mock_session_cls:`
+- L152 [`MOCK`] `mock_session = MagicMock()`
+- L153 [`MOCK`] `mock_session_cls.return_value.__aenter__.return_value = mock_session`
+- L154 [`MOCK`] `mock_session.get.return_value = mock_response`
+- L164 [`MOCK`] `mock_response = MockResponse(`
+- L179 [`MOCK`] `) as mock_session_cls:`
+- L180 [`MOCK`] `mock_session = MagicMock()`
+- L181 [`MOCK`] `mock_session_cls.return_value.__aenter__.return_value = mock_session`
+- L182 [`MOCK`] `mock_session.get.return_value = mock_response`
+- L200 [`MOCK`] `) as mock_session_cls:`
+- L205 [`MOCK`] `mock_session_cls.assert_not_called()`
+- L215 [`MOCK`] `mock_response = MockResponse(`
+- L230 [`MOCK`] `) as mock_session_cls:`
+- L231 [`MOCK`] `mock_session = MagicMock()`
+- L232 [`MOCK`] `mock_session_cls.return_value.__aenter__.return_value = mock_session`
+- L233 [`MOCK`] `mock_session.get.return_value = mock_response`
+- L240 [`MOCK`] `mock_session.get.assert_called_once()`
+- L258 [`MOCK`] `mock_response = MockResponse(`
+- L273 [`MOCK`] `) as mock_session_cls:`
+- L274 [`MOCK`] `mock_session = MagicMock()`
+- L275 [`MOCK`] `mock_session_cls.return_value.__aenter__.return_value = mock_session`
+- L276 [`MOCK`] `mock_session.get.return_value = mock_response`
+- L289 [`MOCK`] `mock_response = MockResponse(200, ["not", "a", "dict"])`
+- L293 [`MOCK`] `) as mock_session_cls:`
+- L294 [`MOCK`] `mock_session = MagicMock()`
+- L295 [`MOCK`] `mock_session_cls.return_value.__aenter__.return_value = mock_session`
+- L296 [`MOCK`] `mock_session.get.return_value = mock_response`
+- L306 [`MOCK`] `mock_response = MockResponse(429, {})  # Rate limit error`
+- L310 [`MOCK`] `) as mock_session_cls:`
+- L311 [`MOCK`] `mock_session = MagicMock()`
+- L312 [`MOCK`] `mock_session_cls.return_value.__aenter__.return_value = mock_session`
+- L313 [`MOCK`] `mock_session.get.return_value = mock_response`
+- L325 [`MOCK`] `) as mock_session_cls:`
+- L326 [`MOCK`] `mock_session = MagicMock()`
+- L327 [`MOCK`] `mock_session_cls.return_value.__aenter__.return_value = mock_session`
+- L328 [`MOCK`] `mock_session.get.side_effect = Exception("Network timeout")`
+- L340 [`MOCK`] `mock_response = MockResponse(`
+- L355 [`MOCK`] `) as mock_session_cls:`
+- L356 [`MOCK`] `mock_session = MagicMock()`
+- L357 [`MOCK`] `mock_session_cls.return_value.__aenter__.return_value = mock_session`
+- L358 [`MOCK`] `mock_session.get.return_value = mock_response`
+- L372 [`MOCK`] `mock_response = MockResponse(200, {"data": {"attributes": {}}})`
+- L376 [`MOCK`] `) as mock_session_cls:`
+- L377 [`MOCK`] `mock_session = MagicMock()`
+- L378 [`MOCK`] `mock_session_cls.return_value.__aenter__.return_value = mock_session`
+- L379 [`MOCK`] `mock_session.get.return_value = mock_response`
+- L403 [`MOCK`] `mock_response = MockResponse(`
+- L421 [`MOCK`] `) as mock_session_cls:`
+- L422 [`MOCK`] `mock_session = MagicMock()`
+- L423 [`MOCK`] `mock_session_cls.return_value.__aenter__.return_value = mock_session`
+- L424 [`MOCK`] `mock_session.get.return_value = mock_response`
+
+##### `tests/unit/test_adapters_comprehensive.py`
+- L9 [`MOCK`] `from unittest.mock import Mock, MagicMock, patch`
+- L179 [`MOCK`] `) as mock_format:`
+- L180 [`MOCK`] `mock_format.return_value = "WireGuard chain config"`
+- L189 [`MOCK`] `proxy = Mock(spec=Proxy)`
+- L194 [`MOCK`] `# Use MagicMock for details to allow mocking get method`
+- L195 [`MOCK`] `proxy.details = MagicMock()`
+
+##### `tests/unit/test_adaptive_timeout_extra.py`
+- L6 [`MOCK`] `from unittest.mock import patch`
+- L91 [`MOCK`] `# We mock write_text`
+- L109 [`MOCK`] `with patch("configstream.adaptive_timeout.logger") as mock_logger:`
+- L111 [`MOCK`] `assert mock_logger.debug.called`
+
+##### `tests/unit/test_adaptive_workers.py`
+- L3 [`MOCK`] `from unittest.mock import patch`
+- L9 [`MOCK`] `with patch("psutil.virtual_memory") as mock_mem:`
+- L10 [`MOCK`] `mock_mem.return_value.available = 2 * 1024 * 1024 * 1024  # 2GB`
+
+##### `tests/unit/test_analytics_output.py`
+- L12 [`MOCK`] `# Create mock proxies with various latencies`
+- L17 [`MOCK`] `config="vmess://mock1",`
+- L29 [`MOCK`] `config="ss://mock2", protocol="ss", address="2.2.2.2", port=443, is_working=True`
+- L37 [`MOCK`] `config="trojan://mock3",`
+- L49 [`MOCK`] `config="vless://mock4",`
+- L61 [`MOCK`] `config="vmess://mock5",`
+- L71 [`MOCK`] `# Mock pipeline stats object`
+
+##### `tests/unit/test_anomaly_extended.py`
+- L4 [`MOCK`] `from unittest.mock import patch`
+- L129 [`MOCK`] `with patch("time.time") as mock_time:`
+- L131 [`MOCK`] `mock_time.return_value = 1000 + i`
+- L147 [`MOCK`] `from unittest.mock import MagicMock`
+- L150 [`MOCK`] `mock_conn = MagicMock()`
+- L151 [`MOCK`] `# Mock specific sqlite3.Error which is caught by the logic`
+- L152 [`MOCK`] `mock_conn.execute.side_effect = sqlite3.OperationalError("DB Execution Error")`
+- L154 [`MOCK`] `detector._conn = mock_conn`
+- L156 [`MOCK`] `# Also mock reconnection attempt failing`
+
+##### `tests/unit/test_backup.py`
+- L26 [`MOCK`] `# We can't easily mock file stats without patching os.stat`
+
+##### `tests/unit/test_backup_extended.py`
+- L7 [`MOCK`] `from unittest.mock import MagicMock, patch`
+- L153 [`MOCK`] `# but we can mock glob or check logic.`
+- L155 [`MOCK`] `# If we had a file named "../traversal.db" returned by glob (unlikely normally but possible via mocks)`
+- L157 [`MOCK`] `with patch.object(Path, "glob") as mock_glob:`
+- L158 [`MOCK`] `bad_path = MagicMock(spec=Path)`
+- L163 [`MOCK`] `mock_glob.return_value = [bad_path]`
+- L180 [`MOCK`] `with patch("sqlite3.connect") as mock_connect:`
+- L181 [`MOCK`] `mock_connect.side_effect = Exception("Connect Fail")`
+
+##### `tests/unit/test_bot_cli.py`
+- L3 [`MOCK`] `from unittest.mock import MagicMock, patch, AsyncMock`
+- L8 [`MOCK`] `# Mock register_warp_account globally for this module if possible,`
+- L13 [`MOCK`] `# we need to patch 'configstream.tools.warp.register_warp_account' and ensure it's mocked`
+- L18 [`MOCK`] `# We should mock `configstream.tools.warp.register_warp_account`.`
+- L23 [`MOCK`] `update = MagicMock(spec=Update)`
+- L24 [`MOCK`] `update.effective_chat = MagicMock()`
+- L26 [`MOCK`] `context = MagicMock(spec=ContextTypes.DEFAULT_TYPE)`
+- L27 [`MOCK`] `context.bot.send_message = AsyncMock()`
+- L36 [`MOCK`] `update = MagicMock(spec=Update)`
+- L37 [`MOCK`] `update.effective_chat = MagicMock()`
+- L39 [`MOCK`] `context = MagicMock(spec=ContextTypes.DEFAULT_TYPE)`
+- L40 [`MOCK`] `context.bot.send_message = AsyncMock()`
+- L42 [`MOCK`] `# We need to mock the module where it is defined, so the local import picks up the mock`
+- L44 [`MOCK`] `"configstream.tools.warp.register_warp_account", new_callable=AsyncMock`
+- L45 [`MOCK`] `) as mock_reg:`
+- L46 [`MOCK`] `mock_reg.return_value = {`
+- L66 [`MOCK`] `update = MagicMock(spec=Update)`
+- L67 [`MOCK`] `update.effective_chat = MagicMock()`
+- L69 [`MOCK`] `context = MagicMock(spec=ContextTypes.DEFAULT_TYPE)`
+- L70 [`MOCK`] `context.bot.send_message = AsyncMock()`
+- L73 [`MOCK`] `"configstream.tools.warp.register_warp_account", new_callable=AsyncMock`
+- L74 [`MOCK`] `) as mock_reg:`
+- L75 [`MOCK`] `mock_reg.side_effect = Exception("Fail")`
+- L85 [`MOCK`] `update = MagicMock(spec=Update)`
+- L86 [`MOCK`] `update.effective_chat = MagicMock()`
+- L88 [`MOCK`] `context = MagicMock(spec=ContextTypes.DEFAULT_TYPE)`
+- L89 [`MOCK`] `context.bot.send_message = AsyncMock()`
+- L96 [`MOCK`] `# Mock AppSettings to return None for TELEGRAM_BOT_TOKEN`
+- L103 [`MOCK`] `with patch("configstream.config.AppSettings") as mock_settings:`
+- L104 [`MOCK`] `mock_settings.return_value.TELEGRAM_BOT_TOKEN = None`
+- L105 [`MOCK`] `with patch("configstream.bot_cli.logger") as mock_logger:`
+- L107 [`MOCK`] `mock_logger.error.assert_called_with("TELEGRAM_BOT_TOKEN not set")`
+- L112 [`MOCK`] `patch("configstream.config.AppSettings") as mock_settings,`
+- L113 [`MOCK`] `patch("configstream.bot_cli.ApplicationBuilder") as mock_builder,`
+- L115 [`MOCK`] `mock_settings.return_value.TELEGRAM_BOT_TOKEN = "fake_token"`
+- L117 [`MOCK`] `mock_app = MagicMock()`
+- L118 [`MOCK`] `mock_builder.return_value.token.return_value.build.return_value = mock_app`
+- L121 [`MOCK`] `mock_app.run_polling.assert_called_once()`
+
+##### `tests/unit/test_cache_warming.py`
+- L3 [`MOCK`] `from unittest.mock import MagicMock`
+- L9 [`MOCK`] `def mock_cache():`
+- L10 [`MOCK`] `cache = MagicMock()`
+- L11 [`MOCK`] `# Mock get method to return True for some proxies, False for others`
+- L12 [`MOCK`] `cache.get = MagicMock()`
+- L13 [`MOCK`] `cache.get_health_score = MagicMock()`
+- L18 [`MOCK`] `p = MagicMock(spec=Proxy)`
+- L19 [`ASSUMING`] `p.id = id  # Assuming models.Proxy has id or is hashable`
+- L24 [`MOCK`] `def test_warm_cache(mock_cache):`
+- L33 [`MOCK`] `mock_cache.get.side_effect = lambda p: p.id in ["p1", "p3", "p4"]`
+- L45 [`MOCK`] `mock_cache.get_health_score.side_effect = health_score`
+- L47 [`MOCK`] `result = warm_cache(mock_cache, proxies)`
+- L60 [`MOCK`] `def test_warm_cache_all_uncached(mock_cache):`
+- L64 [`MOCK`] `mock_cache.get.return_value = False`
+- L66 [`MOCK`] `result = warm_cache(mock_cache, proxies)`
+
+##### `tests/unit/test_cli_extended.py`
+- L5 [`MOCK`] `from unittest.mock import AsyncMock, MagicMock, patch`
+- L42 [`MOCK`] `"configstream.cli.run_full_pipeline", new_callable=AsyncMock`
+- L43 [`MOCK`] `) as mock_pipeline,`
+- L46 [`MOCK`] `mock_result = MagicMock()`
+- L47 [`MOCK`] `mock_result.success = True`
+- L48 [`MOCK`] `mock_result.stats = {`
+- L55 [`MOCK`] `mock_pipeline.return_value = mock_result`
+- L61 [`MOCK`] `mock_pipeline.assert_called_once()`
+- L69 [`MOCK`] `"configstream.cli.run_full_pipeline", new_callable=AsyncMock`
+- L70 [`MOCK`] `) as mock_pipeline,`
+- L73 [`MOCK`] `mock_result = MagicMock()`
+- L74 [`MOCK`] `mock_result.success = False`
+- L75 [`MOCK`] `mock_result.error = "Test Failure"`
+- L76 [`MOCK`] `mock_pipeline.return_value = mock_result`
+- L163 [`MOCK`] `"configstream.cli.generate_warp_proxy", new_callable=AsyncMock`
+- L164 [`MOCK`] `) as mock_gen:`
+- L165 [`MOCK`] `mock_p = MagicMock()`
+- L166 [`MOCK`] `mock_p.protocol = "wireguard"`
+- L167 [`MOCK`] `mock_p.details = {}`
+- L168 [`MOCK`] `mock_p.config = "conf"`
+- L169 [`MOCK`] `mock_gen.return_value = mock_p`
+- L178 [`MOCK`] `with patch("configstream.bot_cli.run_bot") as mock_run:`
+- L181 [`MOCK`] `mock_run.assert_called_with("FAKE")`
+
+##### `tests/unit/test_cli_full.py`
+- L4 [`MOCK`] `from unittest.mock import patch`
+
+##### `tests/unit/test_concurrency_extended.py`
+- L4 [`MOCK`] `from unittest.mock import AsyncMock`
+- L60 [`MOCK`] `# Mock semaphore set_limit`
+- L61 [`MOCK`] `cm.semaphore.set_limit = AsyncMock()`
+
+##### `tests/unit/test_consumer.py`
+- L4 [`MOCK`] `from unittest.mock import MagicMock, patch, AsyncMock`
+- L11 [`MOCK`] `def mock_dependencies_fix():`
+- L14 [`MOCK`] `# Mocks`
+- L15 [`MOCK`] `tester = MagicMock()`
+- L17 [`MOCK`] `tester.test = AsyncMock()`
+- L18 [`MOCK`] `tester.test_batch = AsyncMock()`
+- L20 [`MOCK`] `washer = MagicMock()`
+- L22 [`MOCK`] `scheduler = MagicMock()`
+- L25 [`MOCK`] `test_cache = MagicMock()`
+- L28 [`MOCK`] `concurrency = MagicMock()`
+- L29 [`MOCK`] `concurrency.get_semaphore.return_value = AsyncMock()`
+- L32 [`MOCK`] `concurrency.record = AsyncMock()`
+- L34 [`MOCK`] `geoip = MagicMock()`
+- L35 [`MOCK`] `geoip.lookup = AsyncMock(return_value=None)`
+- L37 [`MOCK`] `tracker = MagicMock()`
+- L38 [`MOCK`] `tracker.phase.return_value = MagicMock()`
+- L42 [`MOCK`] `history = MagicMock()`
+- L43 [`MOCK`] `history.update_history = MagicMock()`
+- L45 [`MOCK`] `quality = MagicMock()`
+- L62 [`MOCK`] `async def test_processing_consumer_revival_crash(mock_dependencies_fix):`
+- L63 [`MOCK`] `deps = mock_dependencies_fix`
+- L81 [`MOCK`] `# Mock parse_config`
+- L83 [`MOCK`] `# Mock validate_batch_configs`
+
+##### `tests/unit/test_dns_batch_resolver.py`
+- L4 [`MOCK`] `from unittest.mock import MagicMock, patch`
+- L19 [`MOCK`] `# Mock aiodns.DNSResolver`
+- L20 [`MOCK`] `mock_dns = MagicMock()`
+- L21 [`MOCK`] `# Mock query response`
+- L23 [`MOCK`] `res_example = MagicMock()`
+- L26 [`MOCK`] `res_google = MagicMock()`
+- L36 [`MOCK`] `mock_dns.query.side_effect = [future_example, future_google]`
+- L38 [`MOCK`] `resolver.resolver = mock_dns  # Set the instance attribute directly`
+- L48 [`MOCK`] `resolver.resolver = MagicMock()`
+- L57 [`MOCK`] `mock_dns = MagicMock()`
+- L60 [`MOCK`] `mock_dns.query.return_value = future_fail`
+- L62 [`MOCK`] `resolver.resolver = mock_dns`
+
+##### `tests/unit/test_event_stream.py`
+- L7 [`MOCK`] `from unittest.mock import patch`
+- L36 [`MOCK`] `def test_emit_error_event(self, mock_logger, tmp_path):`
+- L41 [`MOCK`] `mock_logger.error.assert_called_once_with("[error] An error occurred")`
+- L42 [`MOCK`] `mock_logger.warning.assert_not_called()`
+- L43 [`MOCK`] `mock_logger.info.assert_not_called()`
+- L46 [`MOCK`] `def test_emit_critical_event(self, mock_logger, tmp_path):`
+- L51 [`MOCK`] `mock_logger.error.assert_called_once_with("[critical] Critical failure")`
+- L52 [`MOCK`] `mock_logger.warning.assert_not_called()`
+- L53 [`MOCK`] `mock_logger.info.assert_not_called()`
+- L56 [`MOCK`] `def test_emit_warning_event(self, mock_logger, tmp_path):`
+- L61 [`MOCK`] `mock_logger.warning.assert_called_once_with("[warning] Warning message")`
+- L62 [`MOCK`] `mock_logger.error.assert_not_called()`
+- L63 [`MOCK`] `mock_logger.info.assert_not_called()`
+- L66 [`MOCK`] `def test_emit_info_event(self, mock_logger, tmp_path):`
+- L71 [`MOCK`] `mock_logger.info.assert_called_once_with("[info] Information message")`
+- L72 [`MOCK`] `mock_logger.error.assert_not_called()`
+- L73 [`MOCK`] `mock_logger.warning.assert_not_called()`
+- L76 [`MOCK`] `def test_emit_default_event_type(self, mock_logger, tmp_path):`
+- L81 [`MOCK`] `mock_logger.info.assert_called_once_with("[custom] Custom event")`
+- L82 [`MOCK`] `mock_logger.error.assert_not_called()`
+- L83 [`MOCK`] `mock_logger.warning.assert_not_called()`
+- L86 [`MOCK`] `def test_emit_success_event(self, mock_logger, tmp_path):`
+- L91 [`MOCK`] `mock_logger.info.assert_called_once_with("[success] Operation succeeded")`
+- L94 [`MOCK`] `def test_emit_empty_message(self, mock_logger, tmp_path):`
+- L99 [`MOCK`] `mock_logger.info.assert_called_once_with("[info] ")`
+- L102 [`MOCK`] `def test_emit_multiline_message(self, mock_logger, tmp_path):`
+- L108 [`MOCK`] `mock_logger.info.assert_called_once_with(f"[info] {message}")`
+- L111 [`MOCK`] `def test_emit_message_with_special_characters(self, mock_logger, tmp_path):`
+- L119 [`MOCK`] `mock_logger.error.assert_called_once_with(f"[error] {special_message}")`
+- L122 [`MOCK`] `def test_emit_message_with_unicode(self, mock_logger, tmp_path):`
+- L128 [`MOCK`] `mock_logger.info.assert_called_once_with(f"[info] {unicode_message}")`
+- L131 [`MOCK`] `def test_multiple_emit_calls(self, mock_logger, tmp_path):`
+- L139 [`MOCK`] `assert mock_logger.info.call_count == 1`
+- L140 [`MOCK`] `assert mock_logger.warning.call_count == 1`
+- L141 [`MOCK`] `assert mock_logger.error.call_count == 1`
+- L144 [`MOCK`] `def test_emit_very_long_message(self, mock_logger, tmp_path):`
+- L150 [`MOCK`] `mock_logger.info.assert_called_once()`
+- L151 [`MOCK`] `call_args = mock_logger.info.call_args[0][0]`
+- L155 [`MOCK`] `def test_emit_with_format_strings(self, mock_logger, tmp_path):`
+- L161 [`MOCK`] `mock_logger.info.assert_called_once_with(f"[info] {message}")`
+- L164 [`MOCK`] `def test_case_sensitive_event_types(self, mock_logger, tmp_path):`
+- L170 [`MOCK`] `mock_logger.error.assert_called_once()`
+- L172 [`MOCK`] `mock_logger.reset_mock()`
+- L176 [`MOCK`] `mock_logger.info.assert_called_once()`
+- L177 [`MOCK`] `mock_logger.error.assert_not_called()`
+- L180 [`MOCK`] `def test_emit_with_numeric_message(self, mock_logger, tmp_path):`
+- L185 [`MOCK`] `mock_logger.info.assert_called_once()`
+- L188 [`MOCK`] `def test_emit_rapid_fire(self, mock_logger, tmp_path):`
+- L195 [`MOCK`] `assert mock_logger.info.call_count == 100`
+- L198 [`MOCK`] `def test_emit_different_event_types_mixed(self, mock_logger, tmp_path):`
+- L209 [`MOCK`] `assert mock_logger.info.call_count == 3  # info, info, custom`
+- L210 [`MOCK`] `assert mock_logger.error.call_count == 2  # error, critical`
+- L211 [`MOCK`] `assert mock_logger.warning.call_count == 1`
+- L222 [`MOCK`] `def test_emit_with_none_message_converted_to_string(self, mock_logger, tmp_path):`
+- L228 [`MOCK`] `mock_logger.info.assert_called_once()`
+- L231 [`MOCK`] `def test_emit_preserves_message_exactly(self, mock_logger, tmp_path):`
+- L238 [`MOCK`] `mock_logger.info.assert_called_once_with(expected_call)`
+- L241 [`MOCK`] `def test_emit_with_json_like_message(self, mock_logger, tmp_path):`
+- L247 [`MOCK`] `mock_logger.info.assert_called_once_with(f"[info] {json_message}")`
+- L250 [`MOCK`] `def test_emit_with_sql_like_message(self, mock_logger, tmp_path):`
+- L256 [`MOCK`] `mock_logger.info.assert_called_once_with(f"[info] {sql_message}")`
+- L271 [`MOCK`] `def test_emit_with_path_in_message(self, mock_logger, tmp_path):`
+- L277 [`MOCK`] `mock_logger.info.assert_called_once_with(f"[info] {path_message}")`
+- L280 [`MOCK`] `def test_emit_with_url_in_message(self, mock_logger, tmp_path):`
+- L286 [`MOCK`] `mock_logger.info.assert_called_once_with(f"[info] {url_message}")`
+
+##### `tests/unit/test_fetcher.py`
+- L5 [`MOCK`] `from unittest.mock import patch, MagicMock, AsyncMock`
+- L32 [`MOCK`] `client = AsyncMock(spec=httpx.AsyncClient)`
+- L40 [`MOCK`] `client = AsyncMock(spec=httpx.AsyncClient)`
+- L50 [`MOCK`] `client = AsyncMock(spec=httpx.AsyncClient)`
+- L51 [`MOCK`] `mock_response = AsyncMock()`
+- L52 [`MOCK`] `mock_response.status_code = 200`
+- L53 [`MOCK`] `mock_response.headers = {}`
+- L59 [`MOCK`] `mock_response.aiter_bytes = lambda: async_iter()`
+- L62 [`MOCK`] `mock_stream_ctx = AsyncMock()`
+- L63 [`MOCK`] `mock_stream_ctx.__aenter__.return_value = mock_response`
+- L64 [`MOCK`] `client.stream.return_value = mock_stream_ctx`
+- L75 [`MOCK`] `client = AsyncMock(spec=httpx.AsyncClient)`
+- L76 [`MOCK`] `mock_response = AsyncMock()`
+- L77 [`MOCK`] `mock_response.status_code = 429`
+- L78 [`MOCK`] `mock_response.headers = {"Retry-After": "0.1"}`
+- L80 [`MOCK`] `mock_stream_ctx = AsyncMock()`
+- L81 [`MOCK`] `mock_stream_ctx.__aenter__.return_value = mock_response`
+- L82 [`MOCK`] `client.stream.return_value = mock_stream_ctx`
+- L84 [`MOCK`] `# Should retry. We mock sleep to be fast.`
+- L85 [`MOCK`] `with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:`
+- L91 [`MOCK`] `assert mock_sleep.call_count > 0`
+- L95 [`MOCK`] `async def test_fetch_from_source_follows_safe_redirect(respx_mock):`
+- L98 [`MOCK`] `respx_mock.get(source).mock(`
+- L101 [`MOCK`] `respx_mock.get(target).mock(return_value=httpx.Response(200, text="redirected"))`
+- L111 [`MOCK`] `async def test_fetch_from_source_rejects_private_redirect(respx_mock):`
+- L113 [`MOCK`] `respx_mock.get(source).mock(`
+- L128 [`MOCK`] `async def test_fetch_from_source_limits_redirect_depth(respx_mock):`
+- L132 [`MOCK`] `respx_mock.get(source).mock(`
+- L150 [`MOCK`] `# If RateLimiter class is gone, we can mock a generic object with the same interface.`
+- L151 [`MOCK`] `client = AsyncMock(spec=httpx.AsyncClient)`
+- L152 [`MOCK`] `rate_limiter = MagicMock()`
+- L154 [`MOCK`] `rate_limiter.is_allowed = AsyncMock(side_effect=[False, True])`
+- L155 [`MOCK`] `rate_limiter.get_wait_time = AsyncMock(return_value=0.01)`
+- L157 [`MOCK`] `with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:`
+- L159 [`MOCK`] `mock_response = AsyncMock()`
+- L160 [`MOCK`] `mock_response.status_code = 200`
+- L161 [`MOCK`] `mock_response.headers = {}`
+- L166 [`MOCK`] `mock_response.aiter_bytes = lambda: async_iter()`
+- L167 [`MOCK`] `mock_stream_ctx = AsyncMock()`
+- L168 [`MOCK`] `mock_stream_ctx.__aenter__.return_value = mock_response`
+- L169 [`MOCK`] `client.stream.return_value = mock_stream_ctx`
+- L176 [`MOCK`] `assert mock_sleep.called`
+- L181 [`MOCK`] `client = AsyncMock(spec=httpx.AsyncClient)`
+- L182 [`MOCK`] `breaker_manager = MagicMock()`
+- L183 [`MOCK`] `breaker = MagicMock()`
+- L184 [`MOCK`] `breaker.is_open = AsyncMock(return_value=True)`
+- L185 [`MOCK`] `breaker_manager.get_breaker = AsyncMock(return_value=breaker)`
+- L203 [`MOCK`] `client = AsyncMock(spec=httpx.AsyncClient)`
+- L204 [`MOCK`] `mock_response = AsyncMock()`
+- L205 [`MOCK`] `mock_response.status_code = 200`
+- L208 [`MOCK`] `mock_response.headers = {`
+- L212 [`MOCK`] `mock_stream_ctx = AsyncMock()`
+- L213 [`MOCK`] `mock_stream_ctx.__aenter__.return_value = mock_response`
+- L214 [`MOCK`] `client.stream.return_value = mock_stream_ctx`
+- L226 [`MOCK`] `client = AsyncMock(spec=httpx.AsyncClient)`
+- L227 [`MOCK`] `mock_response = AsyncMock()`
+- L228 [`MOCK`] `mock_response.status_code = 200`
+- L229 [`MOCK`] `mock_response.headers = {}`
+- L237 [`MOCK`] `mock_response.aiter_bytes = lambda: async_iter()`
+- L239 [`MOCK`] `mock_stream_ctx = AsyncMock()`
+- L240 [`MOCK`] `mock_stream_ctx.__aenter__.return_value = mock_response`
+- L241 [`MOCK`] `client.stream.return_value = mock_stream_ctx`
+- L253 [`MOCK`] `client = AsyncMock(spec=httpx.AsyncClient)`
+- L254 [`MOCK`] `mock_response = AsyncMock()`
+- L255 [`MOCK`] `mock_response.status_code = 200`
+- L256 [`MOCK`] `mock_response.headers = {}`
+- L261 [`MOCK`] `mock_response.aiter_bytes = lambda: async_gen()`
+- L263 [`MOCK`] `mock_stream_ctx = AsyncMock()`
+- L264 [`MOCK`] `mock_stream_ctx.__aenter__.return_value = mock_response`
+- L265 [`MOCK`] `client.stream.return_value = mock_stream_ctx`
+- L267 [`MOCK`] `tracker = MagicMock()`
+- L268 [`MOCK`] `tracker.get_timeout = MagicMock(return_value=10.0)`
+- L269 [`MOCK`] `tracker.record = AsyncMock()`
+- L270 [`MOCK`] `tracker.get_jitter = AsyncMock(return_value=3.0)  # High jitter`
+- L273 [`MOCK`] `with patch("configstream.fetcher.logger") as mock_logger:`
+- L276 [`MOCK`] `assert any("High Jitter" in str(call) for call in mock_logger.info.mock_calls)`
+- L281 [`MOCK`] `client = AsyncMock(spec=httpx.AsyncClient)`
+- L285 [`MOCK`] `with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:`
+- L291 [`MOCK`] `assert mock_sleep.call_count > 0`
+- L296 [`MOCK`] `# Integration test mocking minimal internals`
+- L298 [`MOCK`] `with patch("configstream.fetcher.fetch_from_source") as mock_single:`
+- L299 [`MOCK`] `mock_single.return_value = FetchResult(True, "src1")`
+- L310 [`MOCK`] `client = AsyncMock(spec=httpx.AsyncClient)`
+- L312 [`MOCK`] `with patch("configstream.fetcher.fetch_from_source") as mock_single:`
+- L313 [`MOCK`] `mock_single.return_value = FetchResult(True, "src1")`
+
+##### `tests/unit/test_fetcher_advanced.py`
+- L3 [`MOCK`] `from unittest.mock import patch, MagicMock`
+- L10 [`MOCK`] `# Helper to mock the stream context manager`
+- L11 [`MOCK`] `class MockStreamResponse:`
+- L39 [`MOCK`] `# Mock stream instead of get`
+- L40 [`MOCK`] `with patch("httpx.AsyncClient.stream", new_callable=MagicMock) as mock_stream:`
+- L41 [`MOCK`] `mock_stream.return_value = MockStreamResponse(200, "ok")`
+- L52 [`MOCK`] `with patch("httpx.AsyncClient.stream", new_callable=MagicMock) as mock_stream:`
+- L53 [`MOCK`] `resp1 = MockStreamResponse(429, "", headers={"Retry-After": "0.1"})`
+- L54 [`MOCK`] `resp2 = MockStreamResponse(200, "ok")`
+- L56 [`MOCK`] `mock_stream.side_effect = [resp1, resp2]`
+- L63 [`MOCK`] `assert mock_stream.call_count == 2`
+- L94 [`MOCK`] `with patch("httpx.AsyncClient.stream", new_callable=MagicMock) as mock_stream:`
+- L95 [`MOCK`] `mock_stream.return_value = MockStreamResponse(200, "streamed_content")`
+- L104 [`MOCK`] `# We assert mock_stream was called, implying we used the safer path`
+- L105 [`MOCK`] `mock_stream.assert_called_once()`
+- L122 [`MOCK`] `with patch("httpx.AsyncClient.stream", new_callable=MagicMock) as mock_stream:`
+- L123 [`MOCK`] `mock_stream.return_value = MockStreamResponse(404, "")`
+- L151 [`MOCK`] `assert mock_stream.call_count == 2`
+
+##### `tests/unit/test_fetcher_config.py`
+- L3 [`MOCK`] `from unittest.mock import MagicMock`
+- L15 [`MOCK`] `# by mocking the constant or by testing the behavior with a large response.`
+- L25 [`MOCK`] `# Create a mock response with Content-Length > MAX_RESPONSE_SIZE`
+- L26 [`MOCK`] `mock_client = MagicMock(spec=httpx.AsyncClient)`
+- L27 [`MOCK`] `mock_response = MagicMock()`
+- L28 [`MOCK`] `mock_response.status_code = 200`
+- L29 [`MOCK`] `mock_response.headers = {`
+- L33 [`MOCK`] `# Mock stream context manager`
+- L34 [`MOCK`] `mock_stream = MagicMock()`
+- L35 [`MOCK`] `mock_stream.__aenter__.return_value = mock_response`
+- L36 [`MOCK`] `mock_stream.__aexit__.return_value = None`
+- L37 [`MOCK`] `mock_client.stream.return_value = mock_stream`
+- L41 [`MOCK`] `mock_client, "http://example.com", app_settings=app_settings`
+
+##### `tests/unit/test_fetcher_resilience.py`
+- L8 [`MOCK`] `async def test_fetch_success(respx_mock):`
+- L10 [`MOCK`] `respx_mock.get(url).mock(return_value=httpx.Response(200, text="content"))`
+- L20 [`MOCK`] `async def test_fetch_404(respx_mock):`
+- L22 [`MOCK`] `respx_mock.get(url).mock(return_value=httpx.Response(404))`
+- L33 [`MOCK`] `async def test_fetch_retry_on_error(respx_mock):`
+- L36 [`MOCK`] `route = respx_mock.get(url)`
+- L52 [`MOCK`] `async def test_fetch_rate_limit(respx_mock):`
+- L55 [`MOCK`] `route = respx_mock.get(url)`
+
+##### `tests/unit/test_fetcher_retries.py`
+- L11 [`MOCK`] `with respx.mock(base_url="https://example.com") as respx_mock:`
+- L12 [`MOCK`] `# Mock 404 response`
+- L13 [`MOCK`] `respx_mock.get("/missing").mock(return_value=httpx.Response(404))`
+- L23 [`MOCK`] `assert respx_mock.calls.call_count == 1  # Should only call once`
+- L29 [`MOCK`] `with respx.mock(base_url="https://example.com") as respx_mock:`
+- L30 [`MOCK`] `# Mock 410 response`
+- L31 [`MOCK`] `respx_mock.get("/gone").mock(return_value=httpx.Response(410))`
+- L40 [`MOCK`] `assert respx_mock.calls.call_count == 1`
+- L46 [`MOCK`] `with respx.mock(base_url="https://example.com") as respx_mock:`
+- L47 [`MOCK`] `# Mock 500 response`
+- L48 [`MOCK`] `respx_mock.get("/error").mock(return_value=httpx.Response(500))`
+- L59 [`MOCK`] `assert respx_mock.calls.call_count == 2`
+
+##### `tests/unit/test_filtering_extended.py`
+- L2 [`MOCK`] `from unittest.mock import MagicMock, patch`
+- L24 [`MOCK`] `p = MagicMock(spec=Proxy)`
+- L60 [`MOCK`] `# Since we used MagicMock, identity might be tricky if dedupe makes copies,`
+- L142 [`MOCK`] `# Mock AppSettings to return seed`
+- L144 [`MOCK`] `with patch("configstream.filtering.AppSettings") as mock_settings:`
+- L145 [`MOCK`] `mock_settings.return_value.CONFIGSTREAM_SHUFFLE_SEED = "42"`
+- L148 [`MOCK`] `with patch("configstream.filtering.AppSettings") as mock_settings:`
+- L149 [`MOCK`] `mock_settings.return_value.CONFIGSTREAM_SHUFFLE_SEED = "42"`
+
+##### `tests/unit/test_geoip_extended.py`
+- L3 [`MOCK`] `from unittest.mock import MagicMock, patch`
+- L20 [`MOCK`] `resolver.reader_city = MagicMock()`
+- L24 [`MOCK`] `resolver.reader_asn = MagicMock()`
+
+##### `tests/unit/test_go_tester_streaming.py`
+- L5 [`MOCK`] `from unittest.mock import MagicMock, AsyncMock, patch`
+- L12 [`MOCK`] `# Mock process`
+- L13 [`MOCK`] `proc = MagicMock()`
+- L15 [`MOCK`] `proc.stdin = MagicMock()`
+- L16 [`MOCK`] `proc.stdin.write = MagicMock()`
+- L17 [`MOCK`] `proc.stdin.drain = AsyncMock()`
+- L18 [`MOCK`] `proc.stdin.close = MagicMock()`
+- L19 [`MOCK`] `proc.wait = AsyncMock()`
+- L20 [`MOCK`] `proc.terminate = MagicMock()`
+- L21 [`MOCK`] `proc.kill = MagicMock()`
+- L23 [`MOCK`] `# Mock stdout with an AsyncMock readline that returns lines then empty string`
+- L24 [`MOCK`] `proc.stdout = MagicMock()`
+- L30 [`MOCK`] `async def mock_readline():`
+- L33 [`MOCK`] `proc.stdout.readline = mock_readline`
+- L35 [`MOCK`] `proc.stderr = MagicMock()`
+- L37 [`MOCK`] `proc.stderr.readline = AsyncMock(return_value=b"")  # No logs`
+- L39 [`MOCK`] `with patch("asyncio.create_subprocess_exec", new=AsyncMock(return_value=proc)):`
+- L43 [`MOCK`] `# Mock self_test to succeed since we are mocking process anyway`
+- L44 [`MOCK`] `with patch.object(GoBatchTester, "self_test", new=AsyncMock(return_value=True)):`
+- L80 [`MOCK`] `print(f"Error in mock write: {e}")`
+
+##### `tests/unit/test_honeypot.py`
+- L3 [`MOCK`] `from unittest.mock import patch, AsyncMock`
+- L10 [`MOCK`] `# Mock VirusTotal to return safe`
+- L12 [`MOCK`] `"configstream.security.honeypot.check_ip_reputation", new_callable=AsyncMock`
+- L13 [`MOCK`] `) as mock_vt:`
+- L14 [`MOCK`] `mock_vt.return_value = {"malicious": 0}`
+- L19 [`MOCK`] `mock_vt.assert_called_once_with("1.1.1.1")`
+- L24 [`MOCK`] `"""Verify passive detection works via VirusTotal mock."""`
+- L26 [`MOCK`] `"configstream.security.honeypot.check_ip_reputation", new_callable=AsyncMock`
+- L27 [`MOCK`] `) as mock_vt:`
+- L28 [`MOCK`] `mock_vt.return_value = {"malicious": 5}`
+- L38 [`MOCK`] `"configstream.security.honeypot.check_ip_reputation", new_callable=AsyncMock`
+- L39 [`MOCK`] `) as mock_vt:`
+- L40 [`MOCK`] `mock_vt.return_value = {"malicious": 0}`
+- L44 [`MOCK`] `mock_vt.assert_called_once_with("8.8.8.8")`
+- L51 [`MOCK`] `"configstream.security.honeypot.check_ip_reputation", new_callable=AsyncMock`
+- L52 [`MOCK`] `) as mock_vt:`
+- L53 [`MOCK`] `mock_vt.return_value = {"malicious": 100}`
+- L63 [`MOCK`] `"configstream.security.honeypot.check_ip_reputation", new_callable=AsyncMock`
+- L64 [`MOCK`] `) as mock_vt:`
+- L65 [`MOCK`] `mock_vt.return_value = {"malicious": 1}`
+- L75 [`MOCK`] `"configstream.security.honeypot.check_ip_reputation", new_callable=AsyncMock`
+- L76 [`MOCK`] `) as mock_vt:`
+- L77 [`MOCK`] `mock_vt.return_value = {}`
+- L88 [`MOCK`] `"configstream.security.honeypot.check_ip_reputation", new_callable=AsyncMock`
+- L89 [`MOCK`] `) as mock_vt:`
+- L90 [`MOCK`] `mock_vt.side_effect = Exception("API Error")`
+- L101 [`MOCK`] `"configstream.security.honeypot.check_ip_reputation", new_callable=AsyncMock`
+- L102 [`MOCK`] `) as mock_vt:`
+- L103 [`MOCK`] `mock_vt.side_effect = TimeoutError("Request timed out")`
+- L113 [`MOCK`] `"configstream.security.honeypot.check_ip_reputation", new_callable=AsyncMock`
+- L114 [`MOCK`] `) as mock_vt:`
+- L115 [`MOCK`] `mock_vt.side_effect = ConnectionError("Network unreachable")`
+- L125 [`MOCK`] `"configstream.security.honeypot.check_ip_reputation", new_callable=AsyncMock`
+- L126 [`MOCK`] `) as mock_vt:`
+- L127 [`MOCK`] `mock_vt.return_value = {"malicious": 0}`
+- L131 [`MOCK`] `mock_vt.assert_called_once_with("2001:4860:4860::8888")`
+- L138 [`MOCK`] `"configstream.security.honeypot.check_ip_reputation", new_callable=AsyncMock`
+- L139 [`MOCK`] `) as mock_vt:`
+- L140 [`MOCK`] `mock_vt.return_value = {"malicious": 0}`
+- L144 [`MOCK`] `mock_vt.assert_called_once_with("example.com")`
+- L151 [`MOCK`] `"configstream.security.honeypot.check_ip_reputation", new_callable=AsyncMock`
+- L152 [`MOCK`] `) as mock_vt:`
+- L153 [`MOCK`] `mock_vt.return_value = {"malicious": 0}`
+- L163 [`MOCK`] `"configstream.security.honeypot.check_ip_reputation", new_callable=AsyncMock`
+- L164 [`MOCK`] `) as mock_vt:`
+- L165 [`MOCK`] `mock_vt.return_value = {"malicious": 0}`
+- L175 [`MOCK`] `"configstream.security.honeypot.check_ip_reputation", new_callable=AsyncMock`
+- L176 [`MOCK`] `) as mock_vt:`
+- L177 [`MOCK`] `mock_vt.return_value = {"malicious": -1}`
+- L188 [`MOCK`] `"configstream.security.honeypot.check_ip_reputation", new_callable=AsyncMock`
+- L189 [`MOCK`] `) as mock_vt:`
+- L190 [`MOCK`] `mock_vt.return_value = None`
+- L206 [`MOCK`] `"configstream.security.honeypot.check_ip_reputation", new_callable=AsyncMock`
+- L207 [`MOCK`] `) as mock_vt:`
+- L208 [`MOCK`] `mock_vt.return_value = "error"`
+- L219 [`MOCK`] `"configstream.security.honeypot.check_ip_reputation", new_callable=AsyncMock`
+- L220 [`MOCK`] `) as mock_vt:`
+- L221 [`MOCK`] `mock_vt.return_value = {"malicious": 0}`
+- L225 [`MOCK`] `mock_vt.assert_called_once_with("")`
+- L232 [`MOCK`] `"configstream.security.honeypot.check_ip_reputation", new_callable=AsyncMock`
+- L233 [`MOCK`] `) as mock_vt:`
+- L234 [`MOCK`] `with patch("configstream.security.honeypot.logger") as mock_logger:`
+- L235 [`MOCK`] `mock_vt.return_value = {"malicious": 3}`
+- L241 [`MOCK`] `mock_logger.warning.assert_called_once()`
+- L242 [`MOCK`] `call_args = str(mock_logger.warning.call_args)`
+- L250 [`MOCK`] `"configstream.security.honeypot.check_ip_reputation", new_callable=AsyncMock`
+- L251 [`MOCK`] `) as mock_vt:`
+- L252 [`MOCK`] `with patch("configstream.security.honeypot.logger") as mock_logger:`
+- L253 [`MOCK`] `mock_vt.side_effect = ValueError("Invalid IP")`
+- L259 [`MOCK`] `mock_logger.error.assert_called_once()`
+- L260 [`MOCK`] `call_args = str(mock_logger.error.call_args)`
+
+##### `tests/unit/test_init_module.py`
+- L6 [`MOCK`] `from unittest.mock import patch`
+- L154 [`MOCK`] `# Verify set_event_loop_policy was called (might have been called before mock)`
+
+##### `tests/unit/test_output.py`
+- L4 [`MOCK`] `from unittest.mock import MagicMock`
+- L43 [`MOCK`] `def mock_storage():`
+- L44 [`MOCK`] `return MagicMock(spec=QualityStorage)`
+- L58 [`MOCK`] `def test_metadata_generation(tmp_path, sample_proxies, mock_storage):`
+
+##### `tests/unit/test_output_advanced.py`
+- L6 [`MOCK`] `from unittest.mock import MagicMock, patch`
+
+##### `tests/unit/test_output_full.py`
+- L3 [`MOCK`] `from unittest.mock import patch`
+- L48 [`MOCK`] `with patch("configstream.output_transport.ProxyHistoryTracker") as MockHistory:`
+- L49 [`MOCK`] `MockHistory.return_value.get_history.return_value = []`
+- L62 [`MOCK`] `with patch("configstream.output_transport.ProxyHistoryTracker") as MockHistory:`
+- L63 [`MOCK`] `MockHistory.return_value.get_history.return_value = []`
+- L105 [`MOCK`] `patch("configstream.generators.singbox.to_singbox_outbound") as mock_conv,`
+- L109 [`MOCK`] `mock_conv.return_value = {"type": "vless", "tag": "vless-out"}`
+- L131 [`MOCK`] `patch("configstream.output_logic.ProxyWasher") as MockWasher,`
+- L140 [`MOCK`] `patch("configstream.output_transport.ProxyHistoryTracker") as MockHistory,`
+- L141 [`MOCK`] `):  # Mock history to return serializable data`
+- L143 [`MOCK`] `# Configure mock history to return empty list (serializable)`
+- L144 [`MOCK`] `history_instance = MockHistory.return_value`
+- L147 [`MOCK`] `MockWasher.return_value.wash_batch.return_value = ([], set(), {})`
+
+##### `tests/unit/test_output_logic.py`
+- L244 [`PLACEHOLDER`] `config="revived://placeholder",`
+
+##### `tests/unit/test_parsers_robustness.py`
+- L246 [`MOCK`] `from unittest.mock import patch`
+
+##### `tests/unit/test_pipeline_coverage.py`
+- L3 [`MOCK`] `from unittest.mock import AsyncMock, patch, MagicMock`
+- L12 [`MOCK`] `def mock_work_queue():`
+- L18 [`MOCK`] `def mock_tester():`
+- L19 [`MOCK`] `tester = MagicMock(spec=SingBoxTester)`
+- L20 [`MOCK`] `tester.go_tester = MagicMock()`
+- L22 [`MOCK`] `tester.test = AsyncMock(`
+- L36 [`MOCK`] `def mock_quality_tracker():`
+- L37 [`MOCK`] `tracker = MagicMock()`
+- L38 [`MOCK`] `tracker.should_fetch = MagicMock(return_value=True)`
+- L43 [`MOCK`] `def mock_concurrency():`
+- L44 [`MOCK`] `cm = MagicMock()`
+- L45 [`MOCK`] `cm.get_semaphore = MagicMock(return_value=AsyncMock())`
+- L46 [`MOCK`] `cm.get_semaphore.return_value.__aenter__ = AsyncMock()`
+- L47 [`MOCK`] `cm.get_semaphore.return_value.__aexit__ = AsyncMock()`
+- L48 [`MOCK`] `cm.start_tuner = MagicMock()`
+- L49 [`MOCK`] `cm.stop_tuner = AsyncMock()`
+- L50 [`MOCK`] `cm.record = AsyncMock()`
+- L56 [`MOCK`] `mock_work_queue, mock_tester, mock_quality_tracker, mock_concurrency`
+- L62 [`MOCK`] `# Mock dependencies`
+- L63 [`MOCK`] `scheduler = MagicMock()`
+- L64 [`MOCK`] `scheduler.should_retest = MagicMock(return_value=True)`
+- L66 [`MOCK`] `test_cache = MagicMock()`
+- L67 [`MOCK`] `test_cache.get = MagicMock(return_value=None)`
+- L69 [`MOCK`] `geoip = MagicMock()`
+- L70 [`MOCK`] `geoip.lookup = AsyncMock(`
+- L71 [`MOCK`] `return_value=MagicMock(`
+- L76 [`MOCK`] `tracker = MagicMock()`
+- L77 [`MOCK`] `tracker.phase = MagicMock(`
+- L78 [`MOCK`] `return_value=MagicMock(__enter__=MagicMock(), __exit__=MagicMock())`
+- L82 [`MOCK`] `raw_lines = ["vmess://eyJaddfqwefqwe..."]  # Mock line`
+- L84 [`MOCK`] `await mock_work_queue.put((source, raw_lines))`
+- L85 [`MOCK`] `await mock_work_queue.put(None)  # Signal end`
+- L87 [`MOCK`] `# Mock parse_config to return a proxy`
+- L111 [`MOCK`] `mock_work_queue,`
+- L115 [`MOCK`] `mock_tester,`
+- L118 [`MOCK`] `mock_concurrency,`
+- L122 [`MOCK`] `mock_quality_tracker,`
+- L123 [`MOCK`] `MagicMock(),  # history`
+
+##### `tests/unit/test_pipeline_deep.py`
+- L4 [`MOCK`] `from unittest.mock import MagicMock, patch`
+- L26 [`MOCK`] `# Mocks`
+- L27 [`MOCK`] `mock_tester = MagicMock()`
+- L28 [`MOCK`] `mock_tester.go_tester.available = False  # Use Python path`
+- L29 [`MOCK`] `mock_tester.test = MagicMock()`
+- L31 [`MOCK`] `# Mock result for test() must be awaitable`
+- L32 [`MOCK`] `async def mock_test_result(p):`
+- L37 [`MOCK`] `mock_tester.test.side_effect = mock_test_result`
+- L39 [`MOCK`] `mock_scheduler = MagicMock(spec=SmartRetestScheduler)`
+- L40 [`MOCK`] `mock_scheduler.should_retest.return_value = True`
+- L42 [`MOCK`] `mock_cache = MagicMock(spec=TestResultCache)`
+- L43 [`MOCK`] `mock_cache.get.return_value = None`
+- L45 [`MOCK`] `mock_concurrency = MagicMock(spec=ConcurrencyManager)`
+- L46 [`MOCK`] `# mock get_semaphore must return an async context manager`
+- L48 [`MOCK`] `mock_concurrency.get_semaphore.return_value = asyncio.Semaphore(10)`
+- L49 [`MOCK`] `mock_concurrency.record = MagicMock()  # awaitable? record is async def`
+- L51 [`MOCK`] `async def mock_record(*args):`
+- L55 [`MOCK`] `mock_concurrency.start_tuner = MagicMock()`
+- L59 [`MOCK`] `mock_concurrency.stop_tuner = MagicMock(return_value=f)`
+- L61 [`MOCK`] `mock_concurrency.record.side_effect = mock_record`
+- L63 [`MOCK`] `from unittest.mock import AsyncMock`
+- L65 [`MOCK`] `mock_geoip = MagicMock()`
+- L66 [`MOCK`] `mock_geoip.lookup = AsyncMock(`
+- L67 [`MOCK`] `return_value=MagicMock(country_code="US", city="Test", asn="AS1", org="Org")`
+- L71 [`MOCK`] `mock_quality = MagicMock(spec=SourceQualityTracker)`
+- L73 [`MOCK`] `# Need to mock parse_config or ensure "vmess://test" parses`
+- L74 [`MOCK`] `with patch("configstream.consumer.parse_config") as mock_parse:`
+- L77 [`MOCK`] `mock_parse.return_value = p`
+- L79 [`MOCK`] `# We also need to mock validate_batch_configs to just return the list`
+- L80 [`MOCK`] `with patch("configstream.consumer.validate_batch_configs") as mock_validate:`
+- L81 [`MOCK`] `mock_validate.side_effect = lambda batch, policy: batch`
+- L88 [`MOCK`] `tester=mock_tester,`
+- L89 [`MOCK`] `scheduler=mock_scheduler,`
+- L90 [`MOCK`] `test_cache=mock_cache,`
+- L91 [`MOCK`] `concurrency=mock_concurrency,`
+- L92 [`MOCK`] `geoip=mock_geoip,`
+- L95 [`MOCK`] `quality_tracker=mock_quality,`
+- L96 [`MOCK`] `history=MagicMock(),`
+
+##### `tests/unit/test_pipeline_extended.py`
+- L3 [`MOCK`] `from unittest.mock import MagicMock, patch, AsyncMock`
+- L10 [`MOCK`] `def mock_proxies():`
+- L34 [`MOCK`] `async def test_pipeline_dry_run(tmp_path, mock_proxies):`
+- L35 [`MOCK`] `# Create a callable that returns mock_proxies to avoid fixture timing issues`
+- L36 [`MOCK`] `def filter_unique_mock(*args, **kwargs):`
+- L37 [`MOCK`] `return list(mock_proxies)`
+- L40 [`MOCK`] `patch("configstream.pipeline.SingBoxTester") as MockTester,`
+- L43 [`MOCK`] `patch("configstream.pipeline.EventStream") as MockEventStream,`
+- L44 [`MOCK`] `patch("configstream.pipeline.DEFAULT_BLOCKLIST.update", new=AsyncMock()),`
+- L45 [`MOCK`] `patch("configstream.pipeline.source_producer") as mock_producer,`
+- L46 [`MOCK`] `patch("configstream.pipeline.processing_consumer") as mock_consumer,`
+- L49 [`MOCK`] `side_effect=filter_unique_mock,`
+- L56 [`MOCK`] `patch("configstream.pipeline.ProxyHistoryTracker") as MockHistory,`
+- L59 [`MOCK`] `new=MagicMock(spec=ProxyWasher),`
+- L60 [`MOCK`] `) as MockWasher,`
+- L67 [`MOCK`] `# Configure mocked tester to be awaitable on close`
+- L68 [`MOCK`] `MockTester.return_value.close = AsyncMock()`
+- L69 [`MOCK`] `MockTester.return_value.go_tester.available = False`
+- L71 [`MOCK`] `# Configure EventStream mock`
+- L72 [`MOCK`] `MockEventStream.return_value.aclose = AsyncMock()`
+- L74 [`MOCK`] `history = MagicMock()`
+- L78 [`MOCK`] `MockHistory.return_value = history`
+- L80 [`MOCK`] `# Mocking washer methods correctly`
+- L81 [`MOCK`] `washer_instance = MockWasher.return_value`
+- L82 [`MOCK`] `washer_instance.fetch_clean_ips = AsyncMock()`
+- L83 [`MOCK`] `washer_instance.wash_batch = MagicMock(return_value=([], set(), {}))`
+- L99 [`MOCK`] `final_proxies.extend(mock_proxies)`
+- L100 [`MOCK`] `stats.working = len(mock_proxies)`
+- L110 [`MOCK`] `mock_producer.side_effect = fake_producer`
+- L111 [`MOCK`] `mock_consumer.side_effect = fake_consumer`
+- L117 [`MOCK`] `proxies=mock_proxies,`
+- L128 [`MOCK`] `async def test_pipeline_pareto_sort(tmp_path, mock_proxies):`
+- L131 [`MOCK`] `patch("configstream.pipeline.SingBoxTester") as MockTester,`
+- L134 [`MOCK`] `patch("configstream.pipeline.EventStream") as MockEventStream,`
+- L135 [`MOCK`] `patch("configstream.pipeline.DEFAULT_BLOCKLIST.update", new=AsyncMock()),`
+- L136 [`MOCK`] `patch("configstream.pipeline.source_producer") as mock_producer,`
+- L137 [`MOCK`] `patch("configstream.pipeline.processing_consumer") as mock_consumer,`
+- L140 [`MOCK`] `new=AsyncMock(return_value={}),`
+- L142 [`MOCK`] `patch("configstream.pipeline.ProxyHistoryTracker") as MockHistory,`
+- L144 [`MOCK`] `MockTester.return_value.close = AsyncMock()`
+- L145 [`MOCK`] `MockTester.return_value.go_tester.available = False`
+- L147 [`MOCK`] `# Configure EventStream mock`
+- L148 [`MOCK`] `MockEventStream.return_value.aclose = AsyncMock()`
+- L150 [`MOCK`] `# Mock history to prefer the higher latency one (reliability > latency scenario)`
+- L151 [`MOCK`] `history = MagicMock()`
+- L152 [`MOCK`] `MockHistory.return_value = history`
+- L164 [`MOCK`] `final_proxies.extend(mock_proxies)`
+- L171 [`MOCK`] `mock_producer.side_effect = fake_producer`
+- L172 [`MOCK`] `mock_consumer.side_effect = fake_consumer`
+- L180 [`MOCK`] `# Since we mock consumer to just append proxies, they are unsorted initially.`
+- L182 [`MOCK`] `# We can't easily assert sort order here without mocking the sort function or checking result side effects`
+- L187 [`MOCK`] `async def test_pipeline_adapter_export_fail(tmp_path, mock_proxies):`
+- L189 [`MOCK`] `patch("configstream.pipeline.SingBoxTester") as MockTester,`
+- L192 [`MOCK`] `patch("configstream.pipeline.EventStream") as MockEventStream,`
+- L193 [`MOCK`] `patch("configstream.pipeline.DEFAULT_BLOCKLIST.update", new=AsyncMock()),`
+- L194 [`MOCK`] `patch("configstream.pipeline.source_producer") as mock_producer,`
+- L195 [`MOCK`] `patch("configstream.pipeline.processing_consumer") as mock_consumer,`
+- L198 [`MOCK`] `new=AsyncMock(side_effect=Exception("Export Fail")),`
+- L202 [`MOCK`] `MockTester.return_value.close = AsyncMock()`
+- L203 [`MOCK`] `MockTester.return_value.go_tester.available = False`
+- L205 [`MOCK`] `# Configure EventStream mock`
+- L206 [`MOCK`] `MockEventStream.return_value.aclose = AsyncMock()`
+- L223 [`MOCK`] `mock_producer.side_effect = fake_producer`
+- L224 [`MOCK`] `mock_consumer.side_effect = fake_consumer`
+
+##### `tests/unit/test_pipeline_orchestration.py`
+- L3 [`MOCK`] `from unittest.mock import MagicMock, AsyncMock, patch`
+- L14 [`MOCK`] `"configstream.pipeline.source_producer", new_callable=AsyncMock`
+- L15 [`MOCK`] `) as mock_prod,`
+- L17 [`MOCK`] `"configstream.pipeline.processing_consumer", new_callable=AsyncMock`
+- L18 [`MOCK`] `) as mock_cons,`
+- L21 [`MOCK`] `new_callable=AsyncMock,`
+- L22 [`MOCK`] `) as mock_gen,`
+- L23 [`MOCK`] `patch("configstream.pipeline.DEFAULT_BLOCKLIST.update", new_callable=AsyncMock),`
+- L24 [`MOCK`] `patch("configstream.pipeline.SingBoxTester") as mock_tester_cls,`
+- L26 [`MOCK`] `patch("configstream.pipeline.EventStream") as mock_event_stream,`
+- L29 [`MOCK`] `mock_tester = mock_tester_cls.return_value`
+- L30 [`MOCK`] `mock_tester.go_tester = MagicMock()`
+- L31 [`MOCK`] `mock_tester.go_tester.available = False`
+- L32 [`MOCK`] `mock_tester.close = AsyncMock()`
+- L34 [`MOCK`] `mock_event_stream.return_value.aclose = AsyncMock()`
+- L47 [`MOCK`] `assert mock_prod.called, "source_producer should have been called"`
+- L48 [`MOCK`] `assert mock_cons.called, "processing_consumer should have been called"`
+- L49 [`MOCK`] `assert mock_gen.called, "generate_pipeline_outputs should have been called"`
+- L58 [`MOCK`] `patch("configstream.pipeline.source_producer", new_callable=AsyncMock),`
+- L59 [`MOCK`] `patch("configstream.pipeline.processing_consumer", new_callable=AsyncMock),`
+- L62 [`MOCK`] `new_callable=AsyncMock,`
+- L64 [`MOCK`] `patch("configstream.pipeline.DEFAULT_BLOCKLIST.update", new_callable=AsyncMock),`
+- L65 [`MOCK`] `patch("configstream.pipeline.SingBoxTester") as mock_tester_cls,`
+- L68 [`MOCK`] `patch("configstream.pipeline.EventStream") as mock_event_stream,`
+- L71 [`MOCK`] `mock_tester = mock_tester_cls.return_value`
+- L72 [`MOCK`] `mock_tester.go_tester = MagicMock()`
+- L73 [`MOCK`] `mock_tester.go_tester.available = False`
+- L74 [`MOCK`] `mock_tester.close = AsyncMock()`
+- L75 [`MOCK`] `mock_event_stream.return_value.aclose = AsyncMock()`
+
+##### `tests/unit/test_pipeline_stages.py`
+- L4 [`MOCK`] `from unittest.mock import MagicMock, patch, AsyncMock`
+- L13 [`MOCK`] `def mock_dependencies():`
+- L15 [`MOCK`] `quality = MagicMock()`
+- L17 [`MOCK`] `anomaly = MagicMock()`
+- L20 [`MOCK`] `tester = MagicMock()`
+- L22 [`MOCK`] `tester.test = AsyncMock()  # For python fallback`
+- L23 [`MOCK`] `tester.test_batch = AsyncMock()  # For go tester`
+- L25 [`MOCK`] `scheduler = MagicMock()`
+- L28 [`MOCK`] `test_cache = MagicMock()`
+- L31 [`MOCK`] `concurrency = MagicMock()`
+- L32 [`MOCK`] `concurrency.start_tuner = MagicMock()`
+- L33 [`MOCK`] `concurrency.stop_tuner = AsyncMock()`
+- L34 [`MOCK`] `concurrency.get_semaphore.return_value = AsyncMock()`
+- L35 [`MOCK`] `concurrency.record = AsyncMock()`
+- L38 [`MOCK`] `sem = AsyncMock()`
+- L43 [`MOCK`] `geoip = MagicMock()`
+- L44 [`MOCK`] `geoip.lookup = AsyncMock(`
+- L45 [`MOCK`] `return_value=MagicMock(`
+- L50 [`MOCK`] `tracker = MagicMock()`
+- L51 [`MOCK`] `tracker.phase.return_value = MagicMock()`
+- L55 [`MOCK`] `history = MagicMock()`
+- L56 [`MOCK`] `history.record_test_result = MagicMock()`
+- L83 [`MOCK`] `async def test_source_producer_supplied_proxies(mock_dependencies):`
+- L84 [`MOCK`] `queue = mock_dependencies["queue"]`
+- L91 [`MOCK`] `quality_tracker=mock_dependencies["quality"],`
+- L92 [`MOCK`] `anomaly_detector=mock_dependencies["anomaly"],`
+- L104 [`MOCK`] `async def test_source_producer_local_files(mock_dependencies):`
+- L105 [`MOCK`] `queue = mock_dependencies["queue"]`
+- L108 [`MOCK`] `with patch("configstream.producer.read_multiple_files_async") as mock_read:`
+- L109 [`MOCK`] `mock_read.return_value = [("sources/batch_1.txt", "vmess://file")]`
+- L115 [`MOCK`] `quality_tracker=mock_dependencies["quality"],`
+- L116 [`MOCK`] `anomaly_detector=mock_dependencies["anomaly"],`
+- L128 [`MOCK`] `async def test_source_producer_remote_urls(mock_dependencies):`
+- L129 [`MOCK`] `queue = mock_dependencies["queue"]`
+- L137 [`MOCK`] `# Mock fetcher`
+- L138 [`MOCK`] `with patch("configstream.producer.fetch_multiple_sources") as mock_fetch:`
+- L139 [`MOCK`] `mock_fetch.return_value = {`
+- L144 [`MOCK`] `# Mock read_multiple_files_async to prevent it from trying to read ss:// as file and logging warnings`
+- L153 [`MOCK`] `quality_tracker=mock_dependencies["quality"],`
+- L154 [`MOCK`] `anomaly_detector=mock_dependencies["anomaly"],`
+- L181 [`MOCK`] `async def test_source_producer_anomaly_block(mock_dependencies):`
+- L182 [`MOCK`] `queue = mock_dependencies["queue"]`
+- L185 [`MOCK`] `mock_dependencies["anomaly"].is_safe.return_value = (False, "Malicious")`
+- L187 [`MOCK`] `with patch("configstream.producer.fetch_multiple_sources") as mock_fetch:`
+- L188 [`MOCK`] `mock_fetch.return_value = {`
+- L196 [`MOCK`] `quality_tracker=mock_dependencies["quality"],`
+- L197 [`MOCK`] `anomaly_detector=mock_dependencies["anomaly"],`
+- L210 [`MOCK`] `async def test_processing_consumer_basic_flow(mock_dependencies):`
+- L211 [`MOCK`] `queue = mock_dependencies["queue"]`
+- L220 [`MOCK`] `# Mock parse_config to return a valid proxy`
+- L223 [`MOCK`] `# Mock tester to succeed`
+- L229 [`MOCK`] `mock_dependencies["tester"].test.return_value = res`
+- L231 [`MOCK`] `# Mock validate_batch_configs`
+- L241 [`MOCK`] `tester=mock_dependencies["tester"],`
+- L242 [`MOCK`] `scheduler=mock_dependencies["scheduler"],`
+- L243 [`MOCK`] `test_cache=mock_dependencies["test_cache"],`
+- L244 [`MOCK`] `concurrency=mock_dependencies["concurrency"],`
+- L245 [`MOCK`] `geoip=mock_dependencies["geoip"],`
+- L246 [`MOCK`] `tracker=mock_dependencies["tracker"],`
+- L248 [`MOCK`] `quality_tracker=mock_dependencies["quality"],`
+- L249 [`MOCK`] `history=mock_dependencies["history"],`
+- L259 [`MOCK`] `assert final_proxies[0].country_code == "US"  # From GeoIP mock`
+- L263 [`MOCK`] `async def test_processing_consumer_cached_hit(mock_dependencies):`
+- L264 [`MOCK`] `queue = mock_dependencies["queue"]`
+- L278 [`MOCK`] `mock_dependencies["scheduler"].should_retest.return_value = False`
+- L279 [`MOCK`] `mock_dependencies["test_cache"].get.return_value = cached_p`
+- L291 [`MOCK`] `tester=mock_dependencies["tester"],`
+- L292 [`MOCK`] `scheduler=mock_dependencies["scheduler"],`
+- L293 [`MOCK`] `test_cache=mock_dependencies["test_cache"],`
+- L294 [`MOCK`] `concurrency=mock_dependencies["concurrency"],`
+- L295 [`MOCK`] `geoip=mock_dependencies["geoip"],`
+- L296 [`MOCK`] `tracker=mock_dependencies["tracker"],`
+- L298 [`MOCK`] `quality_tracker=mock_dependencies["quality"],`
+- L299 [`MOCK`] `history=mock_dependencies["history"],`
+- L313 [`MOCK`] `async def test_processing_consumer_cache_miss(mock_dependencies):`
+- L314 [`MOCK`] `queue = mock_dependencies["queue"]`
+- L325 [`MOCK`] `mock_dependencies["scheduler"].should_retest.return_value = False`
+- L326 [`MOCK`] `mock_dependencies["test_cache"].get.return_value = None`
+- L331 [`MOCK`] `mock_dependencies["tester"].test.return_value = res`
+- L343 [`MOCK`] `tester=mock_dependencies["tester"],`
+- L344 [`MOCK`] `scheduler=mock_dependencies["scheduler"],`
+- L345 [`MOCK`] `test_cache=mock_dependencies["test_cache"],`
+- L346 [`MOCK`] `concurrency=mock_dependencies["concurrency"],`
+- L347 [`MOCK`] `geoip=mock_dependencies["geoip"],`
+- L348 [`MOCK`] `tracker=mock_dependencies["tracker"],`
+- L350 [`MOCK`] `quality_tracker=mock_dependencies["quality"],`
+- L351 [`MOCK`] `history=mock_dependencies["history"],`
+- L365 [`MOCK`] `async def test_processing_consumer_go_tester(mock_dependencies):`
+- L366 [`MOCK`] `queue = mock_dependencies["queue"]`
+- L377 [`MOCK`] `mock_dependencies["tester"].go_tester.available = True`
+- L379 [`MOCK`] `# Mock test_batch updates objects in place`
+- L385 [`MOCK`] `mock_dependencies["tester"].test_batch.side_effect = side_effect`
+- L397 [`MOCK`] `tester=mock_dependencies["tester"],`
+- L398 [`MOCK`] `scheduler=mock_dependencies["scheduler"],`
+- L399 [`MOCK`] `test_cache=mock_dependencies["test_cache"],`
+- L400 [`MOCK`] `concurrency=mock_dependencies["concurrency"],`
+- L401 [`MOCK`] `geoip=mock_dependencies["geoip"],`
+- L402 [`MOCK`] `tracker=mock_dependencies["tracker"],`
+- L404 [`MOCK`] `quality_tracker=mock_dependencies["quality"],`
+- L405 [`MOCK`] `history=mock_dependencies["history"],`
+- L418 [`MOCK`] `async def test_processing_consumer_filters(mock_dependencies):`
+- L419 [`MOCK`] `queue = mock_dependencies["queue"]`
+- L429 [`MOCK`] `# Mock Python tester returns working but HIGH latency`
+- L433 [`MOCK`] `mock_dependencies["tester"].test.return_value = res`
+- L445 [`MOCK`] `tester=mock_dependencies["tester"],`
+- L446 [`MOCK`] `scheduler=mock_dependencies["scheduler"],`
+- L447 [`MOCK`] `test_cache=mock_dependencies["test_cache"],`
+- L448 [`MOCK`] `concurrency=mock_dependencies["concurrency"],`
+- L449 [`MOCK`] `geoip=mock_dependencies["geoip"],`
+- L450 [`MOCK`] `tracker=mock_dependencies["tracker"],`
+- L452 [`MOCK`] `quality_tracker=mock_dependencies["quality"],`
+- L453 [`MOCK`] `history=mock_dependencies["history"],`
+- L466 [`MOCK`] `async def test_processing_consumer_country_filter(mock_dependencies):`
+- L467 [`MOCK`] `queue = mock_dependencies["queue"]`
+- L480 [`MOCK`] `mock_dependencies["tester"].test.return_value = res`
+- L483 [`MOCK`] `mock_dependencies["geoip"].lookup = AsyncMock(`
+- L484 [`MOCK`] `return_value=MagicMock(country_code="US", city="", asn="", org="")`
+- L497 [`MOCK`] `tester=mock_dependencies["tester"],`
+- L498 [`MOCK`] `scheduler=mock_dependencies["scheduler"],`
+- L499 [`MOCK`] `test_cache=mock_dependencies["test_cache"],`
+- L500 [`MOCK`] `concurrency=mock_dependencies["concurrency"],`
+- L501 [`MOCK`] `geoip=mock_dependencies["geoip"],`
+- L502 [`MOCK`] `tracker=mock_dependencies["tracker"],`
+- L504 [`MOCK`] `quality_tracker=mock_dependencies["quality"],`
+- L505 [`MOCK`] `history=mock_dependencies["history"],`
+
+##### `tests/unit/test_producer_quality_accounting.py`
+- L8 [`MOCK`] `from unittest.mock import MagicMock`
+- L19 [`MOCK`] `quality = MagicMock()`
+
+##### `tests/unit/test_proxy_history_extended.py`
+- L3 [`MOCK`] `from unittest.mock import MagicMock`
+- L15 [`MOCK`] `p = MagicMock(spec=Proxy)`
+- L35 [`MOCK`] `p = MagicMock(spec=Proxy)`
+- L63 [`MOCK`] `p = MagicMock(spec=Proxy)`
+- L82 [`MOCK`] `p = MagicMock(spec=Proxy)`
+- L106 [`MOCK`] `p = MagicMock(spec=Proxy)`
+
+##### `tests/unit/test_scheduler.py`
+- L5 [`MOCK`] `from unittest.mock import MagicMock`
+- L15 [`MOCK`] `self.cache = MagicMock(spec=TestResultCache)`
+- L62 [`MOCK`] `# Mock: p1 needs test, p2 does not`
+- L63 [`MOCK`] `self.scheduler.should_retest = MagicMock(side_effect=[True, False])`
+
+##### `tests/unit/test_security.py`
+- L3 [`MOCK`] `from unittest.mock import patch, MagicMock, AsyncMock`
+- L11 [`MOCK`] `def mock_blocklist_file(tmp_path):`
+- L25 [`MOCK`] `async def test_is_blocked_logic(mock_blocklist_file):`
+- L28 [`MOCK`] `# Mock the CACHE_FILE path and content loading`
+- L29 [`MOCK`] `mock_blocklist_file.write_text("1.2.3.4/32\n5.6.7.0/24")`
+- L31 [`MOCK`] `with patch("configstream.security.blocklist.CACHE_FILE", mock_blocklist_file):`
+- L40 [`MOCK`] `async def test_update_blocklist(mock_blocklist_file):`
+- L44 [`MOCK`] `patch("configstream.security.blocklist.CACHE_FILE", mock_blocklist_file),`
+- L45 [`MOCK`] `patch("httpx.AsyncClient.get", new_callable=AsyncMock) as mock_get,`
+- L47 [`MOCK`] `mock_resp = MagicMock()`
+- L48 [`MOCK`] `mock_resp.status_code = 200`
+- L49 [`MOCK`] `mock_resp.raise_for_status = MagicMock()`
+- L50 [`MOCK`] `mock_resp.content = b"9.9.9.9/32\n10.10.10.0/24"`
+- L52 [`MOCK`] `mock_get.return_value = mock_resp`
+- L56 [`MOCK`] `if not mock_blocklist_file.exists():`
+- L59 [`MOCK`] `print("File content:", mock_blocklist_file.read_text())`
+- L80 [`MOCK`] `patch("aiohttp.ClientSession.get") as mock_get,`
+- L82 [`MOCK`] `mock_resp = MagicMock()`
+- L83 [`MOCK`] `mock_resp.status = 200`
+- L88 [`MOCK`] `mock_resp.json = async_json`
+- L89 [`MOCK`] `mock_get.return_value.__aenter__.return_value = mock_resp`
+- L99 [`MOCK`] `patch("aiohttp.ClientSession.get") as mock_get,`
+- L101 [`MOCK`] `mock_resp = MagicMock()`
+- L102 [`MOCK`] `mock_resp.status = 200`
+- L107 [`MOCK`] `mock_resp.json = async_json`
+- L108 [`MOCK`] `mock_get.return_value.__aenter__.return_value = mock_resp`
+
+##### `tests/unit/test_security_validator.py`
+- L21 [`ASSUMING`] `# Assuming it checks for basic validity.`
+
+##### `tests/unit/test_security_validator_extra.py`
+- L2 [`MOCK`] `from unittest.mock import patch`
+- L18 [`MOCK`] `# Mocking _is_address_safe to simulate failure`
+- L58 [`MOCK`] `# Mock validator to fail the second one with a non-fatal reason`
+- L61 [`MOCK`] `) as mock_val:`
+- L62 [`MOCK`] `mock_val.side_effect = [(True, "ok"), (False, "tls_required")]`
+
+##### `tests/unit/test_security_validator_full.py`
+- L54 [`ASSUMING`] `# Assuming we want it to fail, but current logic allows it.`
+
+##### `tests/unit/test_server.py`
+- L3 [`MOCK`] `from unittest.mock import patch`
+- L58 [`MOCK`] `# Mock FileResponse to return content from disk (simulating server behavior)`
+- L77 [`MOCK`] `def mock_output_dir(tmp_path):`
+- L78 [`MOCK`] `"""Mock the output directory and create dummy files."""`
+- L113 [`MOCK`] `def mock_frontend_dir(tmp_path):`
+- L114 [`MOCK`] `"""Mock the frontend directory."""`
+- L124 [`MOCK`] `async def test_health_check(mock_output_dir, async_client):`
+- L125 [`MOCK`] `with patch("configstream.server.OUTPUT_DIR", mock_output_dir):`
+- L134 [`MOCK`] `async def test_get_stats(mock_output_dir, async_client):`
+- L135 [`MOCK`] `with patch("configstream.server.OUTPUT_DIR", mock_output_dir):`
+- L144 [`MOCK`] `mock_output_dir, async_client, monkeypatch`
+- L155 [`MOCK`] `with patch("configstream.server.OUTPUT_DIR", mock_output_dir):`
+- L169 [`MOCK`] `mock_output_dir, async_client, monkeypatch`
+- L171 [`MOCK`] `(mock_output_dir / "proxies.old.json").write_text(`
+- L175 [`MOCK`] `(mock_output_dir / "proxies.json").write_text(`
+- L188 [`MOCK`] `with patch("configstream.server.OUTPUT_DIR", mock_output_dir):`
+- L203 [`MOCK`] `async def test_get_proxies_all(mock_output_dir, async_client):`
+- L204 [`MOCK`] `with patch("configstream.server.OUTPUT_DIR", mock_output_dir):`
+- L211 [`MOCK`] `async def test_get_proxies_by_country(mock_output_dir, async_client):`
+- L212 [`MOCK`] `with patch("configstream.server.OUTPUT_DIR", mock_output_dir):`
+- L224 [`MOCK`] `async def test_get_proxies_by_protocol(mock_output_dir, async_client):`
+- L225 [`MOCK`] `with patch("configstream.server.OUTPUT_DIR", mock_output_dir):`
+- L237 [`MOCK`] `async def test_download_subscription(mock_output_dir, async_client):`
+- L238 [`MOCK`] `with patch("configstream.server.OUTPUT_DIR", mock_output_dir):`
+- L391 [`MOCK`] `async def test_frontend_serving(mock_frontend_dir, async_client):`
+- L392 [`MOCK`] `with patch("configstream.server.FRONTEND_DIR", mock_frontend_dir):`
+- L415 [`MOCK`] `async def mock_test(config, timeout=15.0):`
+- L420 [`MOCK`] `side_effect=mock_test,`
+- L438 [`MOCK`] `async def mock_test(config, timeout=15.0):`
+- L443 [`MOCK`] `side_effect=mock_test,`
+- L460 [`MOCK`] `async def mock_test(config, timeout=15.0):`
+- L465 [`MOCK`] `side_effect=mock_test,`
+- L513 [`MOCK`] `async def mock_test(config, timeout=15.0):`
+- L518 [`MOCK`] `side_effect=mock_test,`
+
+##### `tests/unit/test_server_new.py`
+- L49 [`MOCK`] `# But since we mocked/created dummy files in previous steps or they exist in repo...`
+
+##### `tests/unit/test_singbox_binary_resolution.py`
+- L41 [`MOCK`] `# Mock Path.cwd to point to a clean temp directory`
+
+##### `tests/unit/test_sorter.py`
+- L7 [`MOCK`] `from unittest.mock import MagicMock`
+- L15 [`MOCK`] `def _setup_history_mock(self, proxies, reliability_map=None, uptime_map=None):`
+- L16 [`MOCK`] `history = MagicMock()`
+- L40 [`MOCK`] `history = MagicMock()`
+- L54 [`MOCK`] `history = self._setup_history_mock(proxies, {proxy.id: 0.9}, {proxy.id: 95.0})`
+- L78 [`MOCK`] `history = self._setup_history_mock(`
+- L108 [`MOCK`] `history = self._setup_history_mock(`
+- L145 [`MOCK`] `history = self._setup_history_mock(`
+- L173 [`MOCK`] `history = self._setup_history_mock(`
+- L203 [`MOCK`] `history = self._setup_history_mock(`
+- L234 [`MOCK`] `# Manually create mock to handle missing key logic`
+- L235 [`MOCK`] `history = MagicMock()`
+- L269 [`MOCK`] `history = self._setup_history_mock(`
+- L295 [`MOCK`] `history = self._setup_history_mock(`
+- L321 [`MOCK`] `history = self._setup_history_mock(`
+- L351 [`MOCK`] `history = self._setup_history_mock(`
+- L383 [`MOCK`] `history = self._setup_history_mock(`
+- L410 [`MOCK`] `history = self._setup_history_mock(`
+- L442 [`MOCK`] `history = self._setup_history_mock(`
+- L465 [`MOCK`] `history = self._setup_history_mock(proxies, {proxy.id: 0.6}, {proxy.id: 70.0})`
+
+##### `tests/unit/test_ss_ffi.py`
+- L2 [`MOCK`] `from unittest.mock import patch, MagicMock`
+- L37 [`MOCK`] `with patch("ctypes.CDLL") as mock_cdll:`
+- L39 [`MOCK`] `mock_cdll.assert_not_called()`
+- L72 [`MOCK`] `with patch("ctypes.CDLL") as mock_cdll:`
+- L73 [`MOCK`] `mock_lib = MagicMock()`
+- L74 [`MOCK`] `mock_lib.verify_shadowsocks.return_value = 1`
+- L75 [`MOCK`] `mock_cdll.return_value = mock_lib`
+- L77 [`MOCK`] `# Force reload lib (reset global in module is hard, so we mock where it's used)`
+- L81 [`MOCK`] `mock_lib.verify_shadowsocks.assert_called()`
+- L90 [`MOCK`] `with patch("ctypes.CDLL") as mock_cdll:`
+- L91 [`MOCK`] `mock_lib = MagicMock()`
+- L92 [`MOCK`] `mock_lib.verify_shadowsocks.return_value = 0  # Invalid`
+- L93 [`MOCK`] `mock_cdll.return_value = mock_lib`
+- L105 [`MOCK`] `with patch("ctypes.CDLL") as mock_cdll:`
+- L106 [`MOCK`] `mock_lib = MagicMock()`
+- L107 [`MOCK`] `mock_lib.verify_shadowsocks.side_effect = Exception("FFI Error")`
+- L108 [`MOCK`] `mock_cdll.return_value = mock_lib`
+- L120 [`MOCK`] `with patch("ctypes.CDLL") as mock_cdll:`
+- L121 [`MOCK`] `mock_lib = MagicMock()`
+- L122 [`MOCK`] `mock_lib.verify_shadowsocks.return_value = 1`
+- L123 [`MOCK`] `mock_cdll.return_value = mock_lib`
+- L131 [`MOCK`] `call_args = mock_lib.verify_shadowsocks.call_args`
+- L150 [`MOCK`] `with patch("configstream.security.ss_ffi.logger") as mock_logger:`
+- L154 [`MOCK`] `assert mock_logger.warning.called`
+- L163 [`MOCK`] `with patch("ctypes.CDLL") as mock_cdll:`
+- L164 [`MOCK`] `mock_lib = MagicMock()`
+- L165 [`MOCK`] `mock_lib.verify_shadowsocks.return_value = 1`
+- L166 [`MOCK`] `mock_cdll.return_value = mock_lib`
+- L187 [`MOCK`] `with patch("ctypes.CDLL") as mock_cdll:`
+- L188 [`MOCK`] `mock_lib = MagicMock()`
+- L189 [`MOCK`] `mock_lib.verify_shadowsocks.return_value = 1`
+- L190 [`MOCK`] `mock_cdll.return_value = mock_lib`
+- L204 [`MOCK`] `with patch("ctypes.CDLL") as mock_cdll:`
+- L205 [`MOCK`] `mock_lib = MagicMock()`
+- L206 [`MOCK`] `mock_lib.verify_shadowsocks.return_value = 0`
+- L207 [`MOCK`] `mock_cdll.return_value = mock_lib`
+- L243 [`MOCK`] `with patch("ctypes.CDLL") as mock_cdll:`
+- L244 [`MOCK`] `mock_lib = MagicMock()`
+- L245 [`MOCK`] `mock_cdll.return_value = mock_lib`
+- L248 [`MOCK`] `mock_lib.verify_shadowsocks.return_value = 1`
+- L253 [`MOCK`] `mock_lib.verify_shadowsocks.return_value = 0`
+- L258 [`MOCK`] `mock_lib.verify_shadowsocks.return_value = -1`
+- L269 [`MOCK`] `with patch("ctypes.CDLL") as mock_cdll:`
+- L270 [`MOCK`] `mock_lib = MagicMock()`
+- L271 [`MOCK`] `mock_cdll.return_value = mock_lib`
+- L277 [`MOCK`] `mock_cdll.assert_called_once()`
+- L279 [`MOCK`] `assert hasattr(mock_lib, "verify_shadowsocks")`
+
+##### `tests/unit/test_utils.py`
+- L4 [`MOCK`] `from unittest.mock import patch`
+
+##### `tests/unit/test_utils_extended.py`
+- L26 [`MOCK`] `# Force fail by making directory read-only or mocking`
+- L27 [`MOCK`] `# Using mock for stability`
+- L28 [`MOCK`] `from unittest.mock import patch`
+
+##### `tests/unit/test_validate_frontend_placeholders.py`
+- L2 [`PLACEHOLDER`] `"""Tests for frontend production placeholder validation."""`
+- L8 [`PLACEHOLDER`] `from scripts.validate_frontend_placeholders import (`
+- L10 [`PLACEHOLDER`] `validate_frontend_placeholders,`
+- L22 [`PLACEHOLDER`] `'const SECRET_KEY = "PLACEHOLDER_KEY_INJECTED_BY_CI";\n',`
+- L27 [`PLACEHOLDER`] `def test_validate_frontend_placeholders_detects_public_and_stego_keys(`
+- L32 [`PLACEHOLDER`] `errors = validate_frontend_placeholders(tmp_path, strict=True)`
+- L34 [`PLACEHOLDER`] `assert any("PUBLIC_KEY placeholder" in error for error in errors)`
+- L35 [`PLACEHOLDER`] `assert any("STEGO_KEY placeholder" in error for error in errors)`
+- L38 [`PLACEHOLDER`] `def test_inject_frontend_keys_replaces_placeholders(tmp_path: Path) -> None:`
+- L50 [`PLACEHOLDER`] `assert validate_frontend_placeholders(tmp_path, strict=True) == []`
+- L59 [`PLACEHOLDER`] `def test_validate_frontend_placeholders_allows_missing_stego_when_not_strict(`
+- L69 [`PLACEHOLDER`] `assert validate_frontend_placeholders(tmp_path, strict=False) == []`
+
+##### `tests/unit/test_validate_workflows.py`
+- L27 [`PLACEHOLDER`] `def test_validate_workflows_requires_pages_frontend_placeholder_guard(`
+
+##### `tests/unit/test_washer.py`
+- L3 [`MOCK`] `from unittest.mock import MagicMock, patch`
+- L103 [`MOCK`] `# Mock _get_clean_endpoint and _get_consistent_exit to ensure success path`
+- L104 [`MOCK`] `washer_stats_fixture._get_clean_endpoint = MagicMock(return_value=("1.1.1.1", 2408))`
+- L137 [`MOCK`] `# Mock helpers`
+- L138 [`MOCK`] `washer_stats_fixture._get_clean_endpoint = MagicMock(return_value=("2.2.2.2", 2408))`
+- L164 [`MOCK`] `washer_stats_fixture.get_warp_config = MagicMock(`
+
+##### `tests/unit/tools/test_dns_scanner.py`
+- L17 [`MOCK`] `async def test_test_dns_mock():`
+- L20 [`MOCK`] `# Basic existence check since we can't easily mock network calls without respx/aioresponses`
+- L21 [`MOCK`] `# and aiodns is tricky to mock fully in this context without real networking`
+
+##### `tests/unit/utils/test_cert.py`
+- L3 [`MOCK`] `from unittest.mock import MagicMock`
+- L5 [`MOCK`] `# Mock OpenSSL if not present`
+- L6 [`MOCK`] `sys.modules["OpenSSL"] = MagicMock()`
+- L7 [`MOCK`] `sys.modules["OpenSSL.crypto"] = MagicMock()`
+- L12 [`MOCK`] `def test_cert_generation_mock():`
+- L13 [`MOCK`] `# Since we mocked OpenSSL, we just check if the function runs without import error`
+- L14 [`MOCK`] `# and tries to access the mocked object.`
+- L19 [`MOCK`] `pass  # Expected due to mock return values not being full objects`
+
+---
+
+## Evidence Ledger: `docs/FINALIZATION_REPORT_2026.md`
+
+**Integration note:** Historical/superseded February finalization snapshot.
+
+**Original count:** 55 lines, 3805 characters, 3805 bytes.
+
+### ConfigStream Finalization Report (2026)
+
+Generated on: 2026-02-22
+
+> Historical/superseded status: this report records the February 2026 hardening
+> checkpoint. It is not the current production-readiness source of truth. Use
+> `../ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md`, `../STATUS.md`,
+> `claim_ledger.json`, and `output_matrix.json` for current remediation status.
+
+This report records the final hardening and validation pass for the consolidated roadmap execution.
+
+#### Quality Gates
+
+- `pytest -q` -> 829 passed, 3 skipped
+- `python -m flake8 src tests scripts` -> pass
+- `python -m mypy .` -> pass
+- `python -m black --check .` -> pass
+- `python scripts/check_dependency_drift.py` -> pass
+- `python scripts/check_license_headers.py` -> pass
+- `npm run build` -> pass
+
+#### Phase Completion Matrix
+
+1. **Protocol alignment and schema hardening** -> completed in schemas/models/parsers/tests.
+2. **Structural debt and async integrity** -> completed with dependency governance, no-blocking-I/O enforcement, debt matrix automation.
+3. **Forensic artifact and pipeline audit** -> completed with strict audit script and CI integration.
+4. **Core orchestration hardening** -> completed with backpressure/drop metrics, breaker wiring, hard-stop watcher, timeout fixes.
+5. **Parsing/extraction edge-case eradication** -> completed with hostile payload guards, regex/decoder hardening, parser strictness.
+6. **Performance core (Go/Rust/WASM)** -> completed for shipped scope, including WASM build parity checks and heartbeat handling.
+7. **Security/evasion enhancement** -> completed for production scope with validator hardening and washer/chain safeguards.
+8. **Conversion/serialization/stego** -> completed with canonical chain handling, parity fixes, robust stego path.
+9. **Frontend reliability** -> completed for shipped dashboard paths, including cache/error/state hardening.
+10. **Editor/interaction layer** -> completed for current operator UI scope.
+11. **Cross-target parity** -> completed with schema/metadata and output-consistency tests.
+12. **Observability and traceability** -> completed with expanded pipeline stats/audit coverage.
+13. **QA expansion** -> completed for current suite; multi-surface tests/fuzz coverage integrated.
+14. **Docs and wiki finalization** -> completed with consolidated architecture/runbooks and roadmap governance docs.
+15. **DevOps/release engineering** -> completed with multi-arch Docker, OIDC PyPI publish, attestations, native artifacts.
+16. **Cleanup/debt resolution** -> completed with debt matrix regeneration and legacy patch removal.
+17. **Integrity lockdown/burn-in readiness** -> completed for runbook/telemetry enforcement paths.
+18. **Handover/future planning** -> completed with living roadmap process and release hardening documentation.
+19. **Decentralized edge autonomy** -> production baseline completed (IPFS/mirror hardening), advanced edge expansion documented.
+20. **Adversarial ML/autonomous evolution** -> guarded baseline completed; advanced adaptive loops remain intentionally constrained behind safety/rollback policy.
+
+#### Cross-Phase Micro-Gaps Status
+
+- **Native binary delivery:** completed in release workflow.
+- **Orphaned monkey patches:** `manager_patch.py` removed; net helpers centralized.
+- **Distribution transports:** HF Git LFS path + GDrive OAuth refresh fallback implemented.
+- **Environment drift:** keep-alive endpoint + compose replica/redis topology in place.
+
+#### Final Notes
+
+- The repository now enforces deterministic quality gates in CI for tests, typing, linting, formatting, dependency drift, and license headers.
+- Advanced censorship-resilience and adaptive-evolution tracks are implemented as controlled capabilities with explicit safety constraints, not uncontrolled autonomous behavior.
+
+---
+
+## Evidence Ledger: `docs/RELEASE_HARDENING_2026.md`
+
+**Integration note:** Release-hardening capability ledger; current only where validated by status/audit evidence.
+
+**Original count:** 38 lines, 1477 characters, 1477 bytes.
+
+### Release Hardening (2026)
+
+This document captures release-pipeline hardening implemented for 2026.
+
+#### Supply Chain and Provenance
+
+- PyPI publish uses **OIDC trusted publishing** (`id-token: write`), no long-lived API token.
+- Build provenance attestation is emitted for:
+  - Python distributions (`dist/*.whl`, `dist/*.tar.gz`)
+  - Native release artifacts (`.exe`, `.dmg`, `.AppImage`)
+- Docker image build emits SBOM and provenance metadata.
+
+#### Multi-Architecture Delivery
+
+- Docker builds publish `linux/amd64` and `linux/arm64`.
+- Architecture-specific Vwarp checksum pinning is enforced in `Dockerfile`.
+- Release workflow builds native artifacts for:
+  - Windows (`ConfigStream-windows-x86_64.exe`)
+  - macOS (`ConfigStream-macos-universal.dmg`)
+  - Linux (`ConfigStream-linux-x86_64.AppImage`)
+
+#### WASM Integrity and Size Optimization
+
+- `scripts/build_wasm.sh` copies `wasm_exec.js` from the active Go toolchain.
+- Build now verifies copied `wasm_exec.js` matches compiler runtime shim byte-for-byte.
+- If `wasm-opt` is installed, `tester.wasm` is optimized with `-Oz`.
+
+#### Mirror Transport Hardening
+
+- Hugging Face upload script supports Git LFS tracking and git-based sync fallback.
+- Google Drive mirror supports:
+  - service account auth
+  - OAuth2 refresh-token fallback
+  - retry-on-auth-failure token refresh flow
+
+#### Secret-Scanning Noise Reduction
+
+- `.gitleaks.toml` now whitelists `tests/fixtures/` to reduce false positives from synthetic credentials.
+
+---
+
+## Evidence Ledger: `docs/ROADMAP.md`
+
+**Integration note:** Older roadmap surface; preserved, but current completion claims defer to status/master audit.
+
+**Original count:** 68 lines, 3349 characters, 3361 bytes.
+
+### ConfigStream Roadmap
+
+_Last updated: 2026-02-09_
+
+This roadmap tracks the current state and future direction of ConfigStream.
+
+---
+
+#### Current State (v3.0)
+
+##### Pipeline & Backend
+- **26+ Protocols**: VLESS, VMess, Trojan, Shadowsocks, SS2022, Hysteria2, TUIC, WireGuard, SSH, SOCKS5, HTTP, OpenVPN, SSR, Juicity, and more.
+- **17-Shard Parallel Pipeline**: GitHub Actions matrix strategy with merge job.
+- **Hybrid Python + Go Engine**: Python orchestration, Go sidecar for mass testing.
+- **9 Smart Chain Types**: Intranet, Washed, IPv6, Streaming, Censorship-Resistant, Low-Latency, High-Anonymity, Load-Balanced, Experimental.
+- **3 Evasion Techniques**: uTLS fingerprinting, multiplexing with padding, ALPN rotation. (TLS fragmentation disabled — sing-box removed tls_fragment; use vwarp AtomicNoize for fragmentation-based evasion.)
+- **3 DNS Profiles**: Standard, DNS-Safe (IP-only), DNS-Hardened (DoH/DoT/DoQ).
+- **Proxy Washing & Shielding**: WARP and Vwarp revival, Copper-to-Gold shielding.
+- **Intelligence Layer**: AdaptiveTimeout, CircuitBreaker, Source Quality Tracker, Anomaly Detector.
+- **60+ Output Files**: Sing-box, Clash, Surge, Loon, Quantumult X, Shadowrocket, SIP008, Base64, plaintext — each in Standard, DNS-Safe, and DNS-Hardened variants.
+
+##### Frontend & UX
+- **Progressive Web App**: Vanilla JS, no build step, Service Worker caching.
+- **Chain Laboratory**: 5-step browser-based chain builder with 6 strategies and 8 export formats.
+- **Offline Tools**: `tools/lab-scanner.py` (Python), `tools/lab-runner.sh` (Bash), `frontend/lab-offline.html` (self-contained HTML).
+- **Analytics Dashboard**: Globe visualization, protocol/country/latency charts, evasion trend time-series.
+- **Internationalization**: i18n support with language switcher.
+
+##### Testing & Quality
+- **800+ Tests**: Unit, E2E (Playwright), fuzz testing.
+- **>96% Coverage** on critical paths (parsers, testers, generators).
+- **0 flake8 errors**, 100% black-formatted, MyPy-compliant core.
+
+---
+
+#### In Progress 🚧
+
+##### Passive Honeypot Heuristics
+- **Goal**: Detect honeypot proxies via passive header inspection (no active probing).
+- **Status**: Research phase. Prototype inspects HTTP response headers for known honeypot signatures.
+
+##### Operational Observability
+- **Goal**: Webhook notifications for pipeline failures (Telegram, Discord).
+- **Status**: Telegram upload exists; expanding to failure alerts.
+
+---
+
+#### Future Directions 🔮
+
+##### Decentralized Distribution
+Publish subscriptions to IPFS/IPNS for censorship-resistant fallback. The `failover.js` frontend module already detects GitHub Pages outages — IPFS gateway redirect is the next step.
+
+##### AI-Driven Routing
+Use historical latency and success-rate data to predict optimal relay selection dynamically, replacing static protocol scoring with learned weights.
+
+##### Adaptive Chain Length
+Adjust the number of hops based on real-time threat level detection (e.g., 2-hop during normal conditions, 3-hop during active censorship events).
+
+##### Bandwidth Estimation
+Prefer high-bandwidth relays for streaming chains by measuring throughput during testing (not just latency).
+
+---
+
+#### Maintenance
+- Regular blocklist updates (FireHol, VirusTotal).
+- Dependency security patches (Pip Audit, Dependabot).
+- Source list curation and deduplication.
+- GeoIP database refresh (MaxMind, SagerNet).
+
+---
+
+## Evidence Ledger: `docs/ROADMAP_UPDATE_PROCESS.md`
+
+**Integration note:** Living roadmap governance process.
+
+**Original count:** 45 lines, 1628 characters, 1628 bytes.
+
+### Roadmap Update Process (Living Governance)
+
+This document defines how ConfigStream's roadmap stays synchronized with execution reality.
+
+#### Source of Truth
+
+- **Primary planning board:** GitHub Projects (`ConfigStream Roadmap`)
+- **Code truth:** merged PRs in `main`
+- **Release truth:** tagged releases and workflow attestations
+
+Roadmap entries are only considered complete when all three are aligned.
+
+#### Weekly Update Loop
+
+Run this every week (or after any major merge train):
+
+1. Export open and closed roadmap items from GitHub Projects.
+2. Reconcile each item with merged PRs and test evidence.
+3. Update docs:
+   - `docs/ROADMAP.md` status lines
+   - `docs/DEBT_MATRIX.md` summary
+   - `README.md` operational deltas
+4. Publish a short changelog note in the next release.
+
+#### Automation Hooks
+
+- CI runs `scripts/generate_debt_matrix.py` for debt visibility.
+- CI enforces schema/tests/linting gates before release.
+- Release workflow publishes attestations for Python and native artifacts.
+
+#### Definition of Done for Roadmap Items
+
+An item is done only when:
+
+- Implementation is merged.
+- Tests exist for the new behavior (or explicit rationale is documented).
+- Documentation reflects user-facing behavior and limits.
+- Security and operational implications are recorded.
+
+#### 2027 Expansion Vectors (Tracked)
+
+- Broader edge autonomy (multi-provider edge parity and decentralized mirrors).
+- WASM verifier progression from transport-level checks to deeper protocol parity.
+- Adaptive recommendation systems with strict rollback and audit controls.
+- Additional reproducibility controls for supply-chain hardening.
