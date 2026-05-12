@@ -1,6 +1,11 @@
 
 ## [Unreleased]
 
+### Documentation: Unified Source of Truth (2026-05-12)
+- **Master audit consolidation**: Integrated the amendment, known issues, status context, changelog context, closure report, debt matrix, finalization report, release-hardening notes, roadmap, and roadmap update process into `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md`.
+- **Split-brain cleanup**: Removed superseded standalone amendment, known-issues, closure, finalization, release-hardening, roadmap, and roadmap-process files after preserving their content in the master report's evidence ledgers.
+- **Status alignment**: Updated `STATUS.md` to point readers to the unified master report for integrated historical and current remediation context.
+
 ### Remediation: Laboratory Consistency & UX (2026-05-11)
 - **Data-Driven Strategies**: Refactored the Laboratory to dynamically load strategy labels, hints, and UI panel visibility from `lab_strategies.json` at runtime.
 - **UI/Manifest Parity**: Eliminated parallel literals in `lab.js` by centralizing strategy metadata, ensuring the UI stays in sync with the canonical manifest.

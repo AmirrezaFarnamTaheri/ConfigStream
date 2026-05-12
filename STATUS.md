@@ -4,7 +4,7 @@
 **Version:** v3.0.2
 **Status:** Remediation in progress. Not production-ready and not ready to publish as a final public release.
 
-The active source of truth is [ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md](ConfigStream_Master_Audit_Report%20-%20Main%20SOURCE%20OF%20TRUTH.md). That report supersedes older status, finalization, and roadmap claims when they conflict.
+The active source of truth is [ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md](ConfigStream_Master_Audit_Report%20-%20Main%20SOURCE%20OF%20TRUTH.md). That report now contains the integrated amendment, known-issues, closure, finalization, release-hardening, roadmap, and roadmap-process material; it supersedes older standalone claims whenever they conflict.
 
 ## Current Verdict
 
