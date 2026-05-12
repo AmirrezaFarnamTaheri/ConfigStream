@@ -137,9 +137,14 @@ function processProxyData(raw) {
     const tags = raw.tags ? (Array.isArray(raw.tags) ? raw.tags.join(' ') : raw.tags) : '';
     const tagsLower = tags.toLowerCase();
     const proc = (raw.process || 'native').toLowerCase();
+    const shieldedVerified = raw.shielded_verified === true || raw.verification_status === 'shielded_verified';
     const isWashed = tagsLower.includes('warp') || tagsLower.includes('secure') || tagsLower.includes('optimal') || proc === 'washed';
     const isShielded = proc === 'shielded';
+    const isCandidateOnly = isShielded && !shieldedVerified;
     const isSmart = tagsLower.includes('relay') || tagsLower.includes('intranet') || tagsLower.includes('streaming') || proc === 'chain';
+    const effectiveIsWorking = Boolean(raw.is_working) && !isCandidateOnly;
+    const statusClass = isCandidateOnly ? 'status-candidate' : (effectiveIsWorking ? 'status-online' : 'status-offline');
+    const statusText = isCandidateOnly ? 'Candidate' : (effectiveIsWorking ? 'Online' : 'Offline');
 
     // Determine Type Tag
     let typeTag = null;
@@ -155,6 +160,10 @@ function processProxyData(raw) {
 
     return {
         ...raw,
+        isCandidateOnly,
+        effectiveIsWorking,
+        statusClass,
+        statusText,
         latencyVal: raw.latency ?? 9999,
         region: raw.country_code || 'XX',
         protocol: raw.protocol || 'unknown',
@@ -247,7 +256,7 @@ function renderTable() {
     pageData.forEach((p, index) => {
         const row = document.createElement('tr');
         row.style.setProperty('--delay', `${index * 0.02}s`);
-        row.className = p.is_working ? 'proxy-row' : 'proxy-row proxy-row--offline';
+        row.className = p.effectiveIsWorking ? 'proxy-row' : 'proxy-row proxy-row--offline';
 
         // Protocol
         const protoCell = document.createElement('td');
@@ -302,12 +311,10 @@ function renderTable() {
         const statusCell = document.createElement('td');
         statusCell.setAttribute('data-label', 'Status');
         statusCell.className = 'status-cell';
-        const statusClass = p.is_working ? 'status-online' : 'status-offline';
-        const statusText = p.is_working ? 'Online' : 'Offline';
 
         const statusBadge = document.createElement('span');
-        statusBadge.className = `status-badge ${statusClass}`;
-        statusBadge.textContent = statusText;
+        statusBadge.className = `status-badge ${p.statusClass}`;
+        statusBadge.textContent = p.statusText;
         statusCell.appendChild(statusBadge);
         row.appendChild(statusCell);
 

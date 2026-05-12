@@ -2365,6 +2365,12 @@ body.dark .proxies-table tbody tr:hover td {
     border: 1px solid color-mix(in srgb, var(--danger-color) 30%, transparent);
 }
 
+.status-badge.status-candidate {
+    background: color-mix(in srgb, var(--warning-color) 15%, transparent);
+    color: var(--warning-color);
+    border: 1px solid color-mix(in srgb, var(--warning-color) 30%, transparent);
+}
+
 .status-icon {
     font-weight: 700;
     font-size: 0.9rem;
@@ -2376,6 +2382,10 @@ body.dark .status-badge.status-online {
 
 body.dark .status-badge.status-offline {
     background: color-mix(in srgb, var(--danger-color) 20%, transparent);
+}
+
+body.dark .status-badge.status-candidate {
+    background: color-mix(in srgb, var(--warning-color) 20%, transparent);
 }
 
 /* Empty State Styles */

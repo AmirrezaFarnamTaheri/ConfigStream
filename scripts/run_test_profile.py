@@ -116,6 +116,7 @@ def run_profile(profile: str) -> int:
                     "tests/unit/test_protocol_output_golden.py",
                     "tests/unit/test_validate_protocol_matrix.py",
                     "tests/unit/test_validate_output_matrix.py",
+                    "tests/unit/test_verify_pages_deployment.py",
                 ],
                 {"ENVIRONMENT": "test"},
             ),

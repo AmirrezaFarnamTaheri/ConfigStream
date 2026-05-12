@@ -476,7 +476,9 @@ async function assertLabStrategies(page) {
 async function assertNoLabInjection(page, selector, label) {
   const result = page.locator(selector);
   await result.waitFor({ state: "visible", timeout: 10000 });
-  const injectedNodes = await result.locator("img,script,svg,iframe").count();
+  // Allow svg for QR output, block otherwise
+  const blockedTags = selector === "#qrOutput" ? "img,script,iframe" : "img,script,svg,iframe";
+  const injectedNodes = await result.locator(blockedTags).count();
   if (injectedNodes > 0) {
     throw new Error(`Lab ${label} rendered injected nodes`);
   }

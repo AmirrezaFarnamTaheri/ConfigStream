@@ -1,6 +1,13 @@
 
 ## [Unreleased]
 
+### Remediation: Laboratory Consistency & UX (2026-05-11)
+- **Data-Driven Strategies**: Refactored the Laboratory to dynamically load strategy labels, hints, and UI panel visibility from `lab_strategies.json` at runtime.
+- **UI/Manifest Parity**: Eliminated parallel literals in `lab.js` by centralizing strategy metadata, ensuring the UI stays in sync with the canonical manifest.
+- **Export Integrity**: Added explicit export assertions and handling for Vwarp metadata in Sing-box, Clash, Xray, Python, and Bash outputs.
+- **Offline QR Rendering**: Integrated a zero-dependency, fully-offline SVG QR code renderer to prevent configuration leakage to third-party services.
+- **XSS Hardening**: Split the legacy `showResult()` templating function into strict `showResultText()` and `showResultHTML()` helpers to prevent DOM injection via user input.
+
 ### Remediation: CI/CD Source-of-Truth Bootstrap (2026-05-03)
 - **Workflow YAML parse repair**: Fixed malformed `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24` indentation in `ci.yml`, `deploy-pages.yml`, `deploy_mirror.yml`, `main.yml`, and `retest.yml`; all workflow YAML files now parse locally.
 - **Workflow validation gate**: Added `scripts/validate_workflows.py` and wired it into CI plus pre-commit so workflow syntax drift is caught before merge/deploy.
@@ -37,6 +44,8 @@
 - **Fetcher docs/tests parity**: Added `.env.example`, `SECURITY.md`, `STATUS.md`, and fetcher tests for private source URLs, safe redirects, private redirect targets, and redirect-depth limits.
 - **Frontend runtime-config deploy guard**: Added `scripts/validate_frontend_placeholders.py` and wired Pages deploy to generate `assets/js/runtime-config.js` from `CS_PUBLIC_KEY`/`STEGO_KEY` after copying frontend assets, preserving checked-in source JS while failing upload on missing runtime keys or placeholder markers.
 - **Pages artifact browser smoke**: Added a repeatable deploy-artifact smoke that assembles a temporary Pages-shaped artifact, generates runtime config, validates the public artifact contract, and runs same-origin browser, protocol render, Lab XSS, and no-JS degraded checks against that exact artifact.
+- **Deployed Pages URL smoke**: Pages deployment now runs a post-upload HTTP smoke against the deployed URL, checking primary HTML pages, generated runtime config, public artifact aliases, health metadata, base64/chosen subscription endpoints, manifest hash parity, run identity, and placeholder-key absence.
+- **Data-release contract parity**: The scheduled data-release workflow now validates `output/` with the shared Pages artifact contract instead of hard-coded shell non-empty checks, so degraded empty subscription text/base64 files remain valid while control/client artifacts still fail closed.
 - **Frontend verifier fail-closed path**: Signed frontend artifacts now reject when WebCrypto is unavailable or public key material is missing/placeholder, while unsigned local content remains parseable for offline use.
 - **Frontend trust labels**: Visible dashboard labels now separate unique candidates, retested working proxies, and shielded candidates so generated shielded chains are not presented as verified working.
 - **Canonical Pages frontend path**: GitHub Pages deployment is now explicitly guarded as raw static `frontend/.` copied into `output/`; workflow validation rejects accidental `frontend-dist`/Vite deployment drift while keeping Vite as an optional/local build sanity check.

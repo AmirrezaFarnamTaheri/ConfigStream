@@ -296,3 +296,22 @@ def validate_batch_configs(
                 safe_proxies.append(p)
 
     return safe_proxies
+
+def _safe_log_text(value: object) -> str:
+    """Sanitize arbitrary text for logging."""
+    return SecurityValidator.sanitize_log_message(str(value))
+
+
+def _safe_proxy_ref(proxy: "Proxy") -> str:
+    """Sanitize proxy endpoint reference for logging."""
+    protocol = SecurityValidator.sanitize_log_message(
+        str(getattr(proxy, "protocol", "unknown"))
+    )
+    return f"{protocol}://[endpoint]"
+
+
+def _safe_source_ref(proxy: "Proxy") -> str:
+    """Sanitize proxy source URL for logging."""
+    return SecurityValidator.sanitize_log_message(
+        str(getattr(proxy, "details", {}).get("_source", "unknown"))
+    )

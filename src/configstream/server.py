@@ -59,13 +59,27 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 FRONTEND_DIR = settings.FRONTEND_DIR or (BASE_DIR / "frontend")
 
 
+_json_cache: dict[Path, tuple[float, Any]] = {}
+
 def _read_json_file(path: Path) -> Any:
     """Read and parse a JSON file from a worker thread."""
     return json.loads(path.read_text(encoding="utf-8"))
 
-
 async def _read_json_file_async(path: Path) -> Any:
-    return await asyncio.to_thread(_read_json_file, path)
+    try:
+        current_mtime = await asyncio.to_thread(os.path.getmtime, path)
+    except FileNotFoundError:
+        if path in _json_cache:
+            del _json_cache[path]
+        raise
+
+    cached = _json_cache.get(path)
+    if cached and cached[0] == current_mtime:
+        return cached[1]
+
+    data = await asyncio.to_thread(_read_json_file, path)
+    _json_cache[path] = (current_mtime, data)
+    return data
 
 
 try:

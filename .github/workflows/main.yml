@@ -383,24 +383,14 @@ jobs:
           WARP_KEY_POOL: ${{ secrets.WARP_KEY_POOL }}
           STEGO_KEY: ${{ secrets.STEGO_KEY }}
         run: python -m scripts.merge_batches
-      - name: Optimize Sources
+      - name: Generate source reshard recommendation
         run: python scripts/dynamic_reshard.py
-      - name: Commit Optimized Sources
-        if: github.event_name != 'pull_request'
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          if git diff --quiet sources/; then
-            echo "No changes to sources, skipping commit"
-          else
-            git add sources/batch_*.txt
-            git commit -m "chore: optimize source distribution based on performance data
-
-          - Dynamic resharding based on observed proxy counts
-          - Balanced load distribution across batches
-          - Automated by pipeline run ${{ github.run_number }}"
-            git push origin HEAD:${{ github.ref_name }} || echo "⚠️ Push failed, optimization will apply next run"
-          fi
+      - name: Upload source reshard recommendation
+        uses: actions/upload-artifact@v4
+        with:
+          name: source-reshard-recommendation
+          path: sources/batch_*.txt
+          retention-days: 30
       - name: Publish to IPFS (Unstoppable)
         if: env.PINATA_JWT != ''
         env:
@@ -419,7 +409,7 @@ jobs:
         with:
           name: pipeline-output
           path: output/
-          retention-days: 3
+          retention-days: 30
       - name: Generate Version Tag
         id: tag
         run: |
@@ -443,21 +433,8 @@ jobs:
         run: |
           pip install google-api-python-client google-auth
           python scripts/upload_gdrive.py --path output/ --folder-id $GDRIVE_FOLDER_ID
-      - name: Ensure release assets are non-empty
-        run: |
-          HAS_ERRORS=0
-          for f in output/singbox.json output/clash.yaml output/singbox-vpn.json output/base64.txt output/consolidated_pipeline.log; do
-            if [ ! -s "$f" ]; then
-              echo "::error file=$f::Pipeline produced empty output for $f"
-              HAS_ERRORS=1
-              mkdir -p "$(dirname "$f")"
-              echo "# FAILED GENERATION" > "$f"
-            fi
-          done
-          if [ "$HAS_ERRORS" -eq 1 ]; then
-            echo "Critical failure: One or more artifacts are empty."
-            exit 1
-          fi
+      - name: Validate data release output contract
+        run: python scripts/validate_pages_artifact.py output
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:

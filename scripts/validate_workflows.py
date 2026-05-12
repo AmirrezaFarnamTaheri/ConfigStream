@@ -43,6 +43,42 @@ def _contains_git_push(path: Path) -> bool:
         return False
 
 
+def _main_has_durable_pipeline_output(path: Path) -> bool:
+    try:
+        content = path.read_text(encoding="utf-8")
+    except OSError:
+        return False
+    return (
+        "name: pipeline-output" in content
+        and "retention-days: 30" in content
+    )
+
+
+def _main_publishes_reshard_recommendation(path: Path) -> bool:
+    try:
+        content = path.read_text(encoding="utf-8")
+    except OSError:
+        return False
+    return (
+        "python scripts/dynamic_reshard.py" in content
+        and "name: source-reshard-recommendation" in content
+        and "git push origin HEAD" not in content
+    )
+
+
+def _main_release_assets_use_output_contract(path: Path) -> bool:
+    try:
+        content = path.read_text(encoding="utf-8")
+    except OSError:
+        return False
+    return (
+        "python scripts/validate_pages_artifact.py output" in content
+        and "Ensure release assets are non-empty" not in content
+        and "test -s output/base64.txt" not in content
+        and "echo \"# FAILED GENERATION\"" not in content
+    )
+
+
 def _deploy_pages_has_frontend_placeholder_guard(path: Path) -> bool:
     try:
         content = path.read_text(encoding="utf-8")
@@ -66,6 +102,17 @@ def _deploy_pages_uses_canonical_raw_frontend(path: Path) -> bool:
         and "frontend-dist" not in content
         and "npm run build" not in content
         and "vite build" not in content
+    )
+
+
+def _deploy_pages_has_public_smoke(path: Path) -> bool:
+    try:
+        content = path.read_text(encoding="utf-8")
+    except OSError:
+        return False
+    return (
+        "scripts/verify_pages_deployment.py" in content
+        and "steps.deployment.outputs.page_url" in content
     )
 
 
@@ -129,20 +176,41 @@ def main() -> int:
             errors.append(
                 f"{path}: Pages deploy must use canonical raw static frontend"
             )
+        if path.name == "deploy-pages.yml" and not _deploy_pages_has_public_smoke(path):
+            errors.append(f"{path}: missing deployed Pages URL smoke")
         if path.name == "ci.yml" and not _ci_has_required_frontend_browser_profile(
             path
         ):
             errors.append(
                 f"{path}: missing required frontend-browser Playwright profile"
             )
+        if path.name == "main.yml" and _contains_git_push(path):
+            errors.append(f"{path}: main data workflow must not push commits")
+        if path.name == "main.yml" and not _main_publishes_reshard_recommendation(
+            path
+        ):
+            errors.append(
+                f"{path}: dynamic resharding must publish an artifact recommendation"
+            )
+        if path.name == "main.yml" and not _main_has_durable_pipeline_output(path):
+            errors.append(
+                f"{path}: pipeline-output artifact retention must be durable"
+            )
+        if path.name == "main.yml" and not _main_release_assets_use_output_contract(
+            path
+        ):
+            errors.append(
+                f"{path}: data release assets must use the shared output contract"
+            )
+        if path.name == "main.yml" and not _main_publishes_reshard_recommendation(
+            path
+        ):
+            errors.append(
+                f"{path}: source resharding must publish recommendations "
+                "instead of pushing source mutations"
+            )
         if _contains_git_push(path):
-            missing_ignores = SOURCE_RESHARD_PATHS - _push_paths_ignore(data)
-            if missing_ignores:
-                missing = ", ".join(sorted(missing_ignores))
-                errors.append(
-                    f"{path}: git push workflow must ignore source reshard paths: "
-                    f"{missing}"
-                )
+            errors.append(f"{path}: workflows must not push directly to the repository")
 
     if errors:
         print("ERROR: workflow validation failed")

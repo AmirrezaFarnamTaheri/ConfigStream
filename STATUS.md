@@ -1,6 +1,6 @@
 # ConfigStream Project Status
 
-**Last updated:** 2026-05-10
+**Last updated:** 2026-05-12
 **Version:** v3.0.2
 **Status:** Remediation in progress. Not production-ready and not ready to publish as a final public release.
 
@@ -43,10 +43,11 @@ Current blockers:
 - Source fetching now validates DNS answers before each HTTP stream when `FETCH_VALIDATE_DNS=true`, rejecting hostname and redirect targets that resolve to private or non-global addresses before network I/O begins.
 - Pages deploy now generates `assets/js/runtime-config.js` from `CS_PUBLIC_KEY`/`STEGO_KEY` after copying frontend assets, leaves checked-in source-shaped JS immutable, and fails before upload if required runtime keys are missing or placeholder markers remain; workflow and Pages artifact validation enforce this guard.
 - A repeatable deploy-artifact browser smoke now assembles a temporary Pages-shaped artifact, generates runtime config, validates the public artifact contract, and runs same-origin browser/protocol/Lab/no-JS checks against that exact artifact.
+- Pages deployment now runs a post-upload HTTP smoke against the deployed URL, checking primary HTML pages, generated runtime config, metadata/proxy API alias parity, health metadata, and placeholder-key absence.
 - Frontend signed-artifact verification now fails closed when WebCrypto is unavailable or public key material is missing/placeholder, while unsigned local content remains parseable for offline use.
 - Public artifact validation now rejects unknown control/proxy schema keys, validates nested metadata and protocol-specific proxy `details`, and verifies that `api/proxies` and `api/stats` match `proxies.json` and `metadata.json`; README now documents `proxies.json` as a JSON array, not a metadata envelope.
 - Public metadata now includes `proxies_snapshot_hash` and `previous_proxies_snapshot_hash`; `/api/diff/proxies` requires `base_version` to match the old snapshot hash before returning a delta, and frontend proxy-array caching uses the metadata snapshot hash.
-- Laboratory chain strategies now have a canonical 9-strategy manifest, UI/JS/docs parity, Vwarp MASQUE and AtomicNoize build branches, and a fail-loud unsupported-strategy path.
+- Laboratory strategy handling is now fully data-driven: labels, hints, and UI panel visibility rules are loaded from `lab_strategies.json` at runtime, ensuring manifest parity across the UI, tests, and documentation.
 - The same-origin frontend browser smoke now checks the rendered Laboratory strategy dropdown against the canonical 9-strategy manifest.
 - Laboratory QR export no longer sends proxy or chain payload material to an external QR service; the Lab now renders an offline copyable payload panel and keeps a scannable local QR renderer as an optional follow-up.
 - Laboratory manual clean-IP rows now render with DOM text nodes instead of `tr.innerHTML`, and manual clean-IP input is validated before storage.
@@ -87,7 +88,7 @@ No task is closed while any surface still documents or serves the old contract.
 
 ## Validation Snapshot
 
-Latest local validation performed on 2026-05-10:
+Latest local validation performed on 2026-05-12:
 
 - `python scripts/validate_workflows.py`: passed for 6 workflow files
 - `python scripts/validate_versions.py`: passed
@@ -140,10 +141,12 @@ Latest local validation performed on 2026-05-10:
 - `npm run build`: passed
 - `npm run test:frontend:no-network`: passed, including protocol render, Lab XSS, and same-origin no-JS smoke
 - `npm run test:frontend:degraded`: passed
-- `python scripts/run_test_profile.py production-smoke`: passed, including 89 focused pytest tests
+- `python scripts/run_test_profile.py production-smoke`: passed, including 95 focused pytest tests
 - `python scripts/run_test_profile.py frontend-browser` with `CONFIGSTREAM_REQUIRE_PLAYWRIGHT=1`: passed, including 4 Python Playwright E2E tests, same-origin no-network browser smoke, protocol render smoke, Lab XSS smoke, and no-JS degraded smoke
 - `npm run test:frontend:pages-artifact`: passed, including generated runtime config, Pages contract validation, same-origin browser smoke, protocol render smoke, Lab XSS smoke, and no-JS degraded smoke against a temporary assembled Pages artifact
-- `python -m pytest -q`: 991 passed, 1 skipped, with `CONFIGSTREAM_REQUIRE_PLAYWRIGHT=1`
+- `python -m pytest -q tests/unit/test_verify_pages_deployment.py tests/unit/test_validate_workflows.py tests/unit/test_lab_strategy_parity.py tests/unit/test_frontend_local_first.py tests/unit/test_output_handler_frontend_data.py tests/unit/test_frontend_trust_labels.py tests/unit/test_server_concurrent_cache.py`: 36 passed
+- `python -m pytest -q tests/unit/test_fetcher.py tests/unit/test_verify_pages_deployment.py tests/unit/test_validate_workflows.py`: 32 passed
+- `python -m pytest -q`: 1006 passed, 1 skipped
 
 Browser skip visibility:
 
