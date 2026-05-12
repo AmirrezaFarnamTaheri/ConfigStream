@@ -320,6 +320,7 @@ async def test_fetch_from_source_too_large_stream():
 @pytest.mark.asyncio
 async def test_fetch_from_source_jitter_warning(caplog):
     client = AsyncMock(spec=httpx.AsyncClient)
+    app_settings = _mocked_fetch_settings()
     mock_response = AsyncMock()
     mock_response.status_code = 200
     mock_response.headers = {}
@@ -340,7 +341,12 @@ async def test_fetch_from_source_jitter_warning(caplog):
 
     # Patch correct logger location after refactor
     with patch("configstream.fetcher.logger") as mock_logger:
-        await fetch_from_source(client, "http://valid.com", timeout_tracker=tracker)
+        await fetch_from_source(
+            client,
+            "http://valid.com",
+            timeout_tracker=tracker,
+            app_settings=app_settings,
+        )
         # Check if any call to info contains "High Jitter"
         assert any("High Jitter" in str(call) for call in mock_logger.info.mock_calls)
 
@@ -348,11 +354,17 @@ async def test_fetch_from_source_jitter_warning(caplog):
 @pytest.mark.asyncio
 async def test_fetch_from_source_unexpected_exception():
     client = AsyncMock(spec=httpx.AsyncClient)
+    app_settings = _mocked_fetch_settings()
     # client.stream raises generic Exception
     client.stream.side_effect = Exception("Boom")
 
     with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
-        result = await fetch_from_source(client, "http://valid.com", max_retries=2)
+        result = await fetch_from_source(
+            client,
+            "http://valid.com",
+            max_retries=2,
+            app_settings=app_settings,
+        )
 
     assert not result.success
     assert "Max retries exceeded" in result.error

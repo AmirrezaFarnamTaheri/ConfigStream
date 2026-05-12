@@ -11,6 +11,7 @@ import base64
 import urllib.parse
 from typing import List, Optional, Dict, Any
 from .models import Proxy
+from .security_validator import _safe_log_text, _safe_proxy_ref
 from .adapters_base import (
     format_singbox_chain_for_surge,
     format_singbox_chain_for_loon,
@@ -72,7 +73,9 @@ class SurgeAdapter(Adapter):
                     lines.append(line)
                     exported_count += 1
             except Exception as e:
-                logger.debug(f"Failed to export {p.protocol} to Surge: {e}")
+                logger.debug(
+                    f"Failed to export {_safe_proxy_ref(p)} to Surge: {_safe_log_text(e)}"
+                )
                 failed_count += 1
 
         # 2. Export Washed/Revived/Shielded Chains
@@ -101,7 +104,7 @@ class SurgeAdapter(Adapter):
                                 lines.append(chain_line)
                                 chain_count += 1
                 except Exception as e:
-                    logger.debug(f"Failed to export chain to Surge: {e}")
+                    logger.debug(f"Failed to export chain to Surge: {_safe_log_text(e)}")
                     failed_count += 1
 
         logger.info(
@@ -191,7 +194,9 @@ class LoonAdapter(Adapter):
                 if line:
                     lines.append(line)
             except Exception as e:
-                logger.debug(f"Failed to export {p.protocol} to Loon: {e}")
+                logger.debug(
+                    f"Failed to export {_safe_proxy_ref(p)} to Loon: {_safe_log_text(e)}"
+                )
 
         # 2. Export Washed/Revived/Shielded Chains
         chain_count = 0
@@ -219,7 +224,7 @@ class LoonAdapter(Adapter):
                                 lines.append(chain_line)
                                 chain_count += 1
                 except Exception as e:
-                    logger.debug(f"Failed to export chain to Loon: {e}")
+                    logger.debug(f"Failed to export chain to Loon: {_safe_log_text(e)}")
 
         logger.info(
             f"Loon export summary: {len(lines) - 1 - chain_count} proxies, {chain_count} chains"
@@ -298,7 +303,9 @@ class QuantumultXAdapter(Adapter):
                 if line:
                     lines.append(line)
             except Exception as e:
-                logger.debug(f"Failed to export {p.protocol} to QuantumultX: {e}")
+                logger.debug(
+                    f"Failed to export {_safe_proxy_ref(p)} to QuantumultX: {_safe_log_text(e)}"
+                )
                 failed_count += 1
 
         logger.info(
@@ -555,7 +562,9 @@ class ShadowrocketAdapter(Adapter):
                     lines.append(uri)
                     reconstructed_count += 1
             except Exception as e:
-                logger.debug(f"Failed to reconstruct URI for {p.protocol}: {e}")
+                logger.debug(
+                    f"Failed to reconstruct URI for {_safe_proxy_ref(p)}: {_safe_log_text(e)}"
+                )
 
         logger.info(
             f"Shadowrocket export summary: {len(lines)} links (Reconstructed: {reconstructed_count})"

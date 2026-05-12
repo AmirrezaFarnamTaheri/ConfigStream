@@ -60,6 +60,12 @@
       "version": "11.9.0",
       "source": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css",
       "local": "assets/libs/atom-one-dark.min.css"
+    },
+    {
+      "name": "qrcode-svg",
+      "version": "0.9.1",
+      "source": "https://github.com/papnkukn/qrcode-svg",
+      "local": "assets/js/utils/qrcode.js"
     }
   ],
   "fonts": [

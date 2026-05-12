@@ -4,7 +4,7 @@
 ConfigStream is a **sovereignty-grade, zero-budget anti-censorship platform**. Every line of code must align with these core tenets:
 1.  **Zero Budget**: Do not introduce dependencies on paid APIs, databases, or infrastructure. We rely exclusively on free GitHub Actions/Pages, public APIs, and user-provided resources.
 2.  **Resilience**: The system must assume hostile network conditions. It must handle timeouts, blocklists, and unreliable sources gracefully (Fail-Open or Fail-Safe).
-3.  **Security**: We operate in a high-risk domain. Logs must be sanitized. Inputs must be validated. No active scanning of third-party infrastructure.
+3.  **Security**: We operate in a high-risk domain. Logs must be sanitized. Inputs must be validated. No project-operated active scanning of third-party infrastructure. Local scanner tools are opt-in, user-run diagnostics only, and scheduled CI must keep active scanning disabled.
 
 ## 2. Architectural Overview
 The system follows a **Streaming Pipeline Architecture** (`Producer-Consumer`):
@@ -115,18 +115,21 @@ The system follows a **Streaming Pipeline Architecture** (`Producer-Consumer`):
 
 ## 5. Metrics & Analytics
 *   **Stats Tracking**:
-    *   `PipelineStats` tracks granular metrics: `revived_warp`, `revived_vwarp`, `smart_chain_count`, `shielded_count`, evasion metrics, etc.
+    *   `PipelineStats` tracks granular metrics: `revived_warp`, `revived_vwarp`, `smart_chain_count`, `shielded_count`, `shielded_candidate_count`, `shielded_verified_count`, evasion metrics, etc.
     *   `total_proxies` in metadata includes Native + Revived + Smart Chains.
-    *   **Metadata Completeness**: `save_metadata` in `output_logic.py` **MUST** export every field that `PipelineStats.to_dict()` produces and that the frontend reads. Key fields: `shielded_count`, `evasion_utls_enabled`, `evasion_alpn_enabled`, `evasion_fragmentation_enabled`, `evasion_multiplexing_enabled`, `evasion_dns_safe_count`, `evasion_dns_hardened_count`.
+    *   **Shielded Accounting**: Untested shielded chains are candidates, not working proxies. They must be exposed with `is_working=False`, candidate tags/details, and must not inflate `total_working`. Only retested chains may count toward `shielded_verified_count`.
+    *   **Metadata Completeness**: `save_metadata` in `output_logic.py` **MUST** export every field that `PipelineStats.to_dict()` produces and that the frontend reads. Key fields: `shielded_count`, `shielded_candidate_count`, `shielded_verified_count`, `evasion_utls_enabled`, `evasion_alpn_enabled`, `evasion_fragmentation_enabled`, `evasion_multiplexing_enabled`, `evasion_dns_safe_count`, `evasion_dns_hardened_count`.
 *   **Frontend**:
     *   Analytics dashboard displays split stats for Revived proxies (Warp vs Vwarp).
     *   **Laboratory page** (`frontend/lab.html` + `assets/js/lab.js`) provides a 5-step chain builder walkthrough for end users:
         1. Parse proxy URI (VLESS, VMess, Trojan, SS, Hysteria2, TUIC, WireGuard)
         2. Discover clean Cloudflare IPs (auto, manual, local scan)
-        3. Build chain — 5 strategies: **WARP**, **Double WARP**, **TLS Fragment**, **CDN Worker**, **Custom JSON**
+        3. Build chain — the canonical 9 strategies live in `frontend/assets/data/lab_strategies.json`: **WARP**, **Vwarp MASQUE**, **Vwarp AtomicNoize**, **Double WARP**, **WARP + Psiphon**, **Relay Chain**, **TLS Fragment**, **CDN Worker**, **Custom Sing-box JSON**
            - Advanced evasion: uTLS fingerprint, ALPN, multiplex (h2mux/smux/yamux), padding
         4. Test chain (live API or manual fallback with sing-box CLI instructions)
         5. Export: Sing-Box JSON, Clash YAML, Xray JSON, Nekobox link, URI, QR, **Python script**, **Bash script**
+    *   **Frontend Deploy Reality**: GitHub Pages deploys the raw static `frontend/.` tree copied into `output/`, then injects `assets/js/runtime-config.js`, API aliases, and refreshed `health.json` / `artifact_manifest.json`. `frontend-dist/` is a local/Vite build artifact and must not become the Pages source unless the output contract is deliberately changed.
+    *   **Public Output Contract**: Pages and data-release workflows must share `scripts/validate_pages_artifact.py` / `docs/output_matrix.json` semantics. Empty text/base64 subscription files can be valid in degraded zero-working runs, but control JSON, client configs, API aliases, and manifest/health files must remain valid and hash-tracked.
 
 ## 6. Git & Version Control
 *   **Diffs**: When generating patches, ensure context is accurate.

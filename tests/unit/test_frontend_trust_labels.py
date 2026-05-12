@@ -31,3 +31,15 @@ def test_frontend_shielded_copy_marks_candidates() -> None:
     assert "shielded chains that work" not in index_html
     assert "shielded candidate chains" in index_html
     assert "candidate chain configs" in index_html
+
+
+def test_frontend_shielded_rows_render_as_candidates_not_online() -> None:
+    proxies_js = (FRONTEND_DIR / "assets/js/proxies.js").read_text(encoding="utf-8")
+    style_css = (FRONTEND_DIR / "assets/css/style.css").read_text(encoding="utf-8")
+
+    assert "const isCandidateOnly = isShielded && !shieldedVerified;" in proxies_js
+    assert "const effectiveIsWorking = Boolean(raw.is_working) && !isCandidateOnly;" in proxies_js
+    assert "isCandidateOnly ? 'status-candidate'" in proxies_js
+    assert "isCandidateOnly ? 'Candidate'" in proxies_js
+    assert "row.className = p.effectiveIsWorking" in proxies_js
+    assert ".status-badge.status-candidate" in style_css

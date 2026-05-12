@@ -149,6 +149,10 @@ def _chain_to_proxy_entry(
     entry = chain[-1]  # entry point is last element
     mini_config = _build_chain_config(chain)
     tag = override_tag if override_tag is not None else entry.get("tag", "Chain")
+    process_lower = str(process or "").lower()
+    is_shielded_candidate = process_lower == "shielded" or any(
+        bool(ob.get("_is_shielded")) for ob in chain if isinstance(ob, dict)
+    )
     server = entry.get("server", "")
     try:
         port = int(entry.get("server_port", 0) or 0)
@@ -157,6 +161,8 @@ def _chain_to_proxy_entry(
     tags = ["chain"]
     if any(ob.get("type") == "wireguard" for ob in chain):
         tags.append("warp")
+    if is_shielded_candidate:
+        tags.extend(["shielded", "candidate"])
     remarks = tag
     # Enrich from chain metadata (washer adds _origin_country_code, _origin_latency)
     origin_data: Dict[str, Any] = {}
@@ -177,7 +183,7 @@ def _chain_to_proxy_entry(
                 address=str(server or ""),
                 port=port,
                 remarks=tag,
-                is_working=True,
+                is_working=not is_shielded_candidate,
                 process=process,
                 tags=tags.copy(),
                 details=details,
@@ -207,7 +213,7 @@ def _chain_to_proxy_entry(
         "asn": "",
         "org": "",
         "latency": None,
-        "is_working": True,
+        "is_working": not is_shielded_candidate,
         "tags": tags,
         "last_checked": "",
         "source": None,
@@ -216,6 +222,8 @@ def _chain_to_proxy_entry(
             **details,
             "chain_process": process,
             "chain_depth": len(chain),
+            "shielded_candidate": is_shielded_candidate,
+            "shielded_verified": False,
         },
         "config": mini_config,
         "remarks": remarks,

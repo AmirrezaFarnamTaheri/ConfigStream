@@ -1,6 +1,7 @@
 # ConfigStream Master Audit Report - Main Source Of Truth
 
 **Audit date:** 2026-05-03
+**Latest amendment:** 2026-05-12
 **Repository:** `C:\Users\ACER\Documents\GitHub\ConfigStream`
 **Status:** Not production-ready, not ready-to-publish, and not currently trustworthy as a public release surface until the P0/P1 items in this report are closed.
 **Purpose:** Replace the previous accumulated audit/addendum document with one clean, current, cohesive, evidence-based source of truth.
@@ -23,6 +24,348 @@ The project is not currently in final production or ready-to-publish condition b
 8. Several generated governance artifacts contain machine-local paths and self-referential noise.
 
 The most important conclusion is this: **do not add more features until the project has one canonical contract per surface and every change is proven across backend, frontend, docs, schemas, tests, CI, and deployed artifacts.** Every capability claimed in project documents must either be completed, tested, documented, and published, or the claim must be removed until it is real.
+
+---
+
+## 1A. 2026-05-12 Source-Of-Truth Amendment
+
+This amendment supersedes any softer interpretation of the current remediation state. ConfigStream is much further along than the original 2026-05-03 audit snapshot, but it is still not production-final. The governing conclusion is now sharper:
+
+**The next priority is auditability and truth alignment, not feature expansion.** The project needs one source of truth, one output contract, one frontend deployment path, one release policy, one durable latest-output evidence bundle, and one live deployment proof chain.
+
+### 1A.1 Current Repository State
+
+Observed local state at this amendment checkpoint:
+
+- Branch: `main`.
+- HEAD: `7a6aa37e Merge branch 'main' of https://github.com/AmirrezaFarnamTaheri/ConfigStream`.
+- Previous hardening commit present in history: `4643d314 Harden source fetches and Pages artifact verification`.
+- Working tree is dirty.
+- Major uncommitted areas include deploy Pages post-upload smoke, Lab strategy manifest/dynamic UI work, local QR renderer work, server JSON cache experiment, log sanitization edits, and bookkeeping updates.
+
+Untracked or generated items observed locally:
+
+- `Lastest Outputs/`
+- `frontend-dist/`
+- empty `NL`
+- empty `US`
+- zero-byte `frontend/assets/images/header-bg.png`
+- `frontend/assets/js/utils/qrcode.js`
+- `scripts/verify_pages_deployment.py`
+- `tests/unit/test_server_concurrent_cache.py`
+
+These items must not be swept into a commit blindly. `frontend-dist/`, `Lastest Outputs/`, empty `NL`/`US`, and the zero-byte image are cleanup risks. `qrcode.js`, `verify_pages_deployment.py`, and `test_server_concurrent_cache.py` need provenance, test, and contract review before being treated as finished.
+
+### 1A.2 Latest Output Folder Finding
+
+The local latest output folder is named `Lastest Outputs`. It contains 10 files totaling about 16.1 MB. It is not a deployable Pages artifact. It contains only:
+
+- `base64.txt`
+- `configstream-proxies.txt`
+- `consolidated_pipeline.log`
+- seven screenshots
+
+It is missing core public contract files:
+
+- `metadata.json`
+- `proxies.json`
+- `health.json`
+- `artifact_manifest.json`
+- `api/proxies`
+- `api/stats`
+- frontend assets
+- `assets/js/runtime-config.js`
+
+Therefore, `Lastest Outputs/` cannot pass the current Pages artifact contract and must be treated as a partial/manual output bundle, not as production evidence.
+
+The folder date and screenshot evidence are also not enough to prove freshness. The inspected screenshots include stale dates and stale labels, while the folder itself is local and untracked. It cannot substitute for a raw `pipeline-output` artifact, a Pages artifact, or live GitHub Pages verification.
+
+### 1A.3 Latest Run Health Finding
+
+The latest inspected pipeline log indicates strict-mode failure:
+
+- batch time limit reached
+- hard batch time limit reached
+- all 4661 proxy tests failed
+- output was still generated with `is_working=False`
+- 1332 dead proxies were resurrected into chains
+- 57 output files were generated internally
+- history export was truncated at 500,000 rows
+- scheduler stats reported `valid_entries: 0` and `expired_entries: 180401`
+- final result: `Pipeline Failed: 0 working proxies detected`
+
+This is a release-trust blocker. A failed/zero-working run may still produce usable-looking files, but it must never visually present itself as verified online capacity.
+
+### 1A.4 Latest Output Content Finding
+
+Observed `configstream-proxies.txt` content:
+
+- 1722 lines total
+- 1721 valid JSON chain lines
+- 1 URI line
+- 1721 lines contain WireGuard
+- 1720 lines are revived/WARP-related
+- 860 lines include shielded markers
+
+Observed `base64.txt` content:
+
+- one base64 line
+- decodes to 223 URI entries
+- 206 `socks5`
+- 5 `socks4`
+- 12 `http`
+
+Security note: `configstream-proxies.txt` includes WireGuard `private_key` fields. That can be expected for usable client configs, but the folder must not be committed or casually published as debug/audit material.
+
+### 1A.5 Screenshot And Frontend Trust Findings
+
+The screenshots show severe trust-state mismatch:
+
+1. Analytics claims do not match the failed pipeline log. Screenshots show `857 Online Now`, `1 Clean (Native)`, and `856 Shielded`, while the log says `0 working proxies detected`.
+2. Trust wording is stale in screenshots. `Unique & Verified` appears even though current remediation direction is `Unique Candidates`, `Retested Working`, and `Shielded Candidates`.
+3. Shielded rows render as `Online` with `N/A` latency, despite the failed-run log. That is misleading unless those chains were explicitly retested and passed.
+4. Footer freshness is inconsistent: `Last updated: checking...` appears in one screenshot, while another shows `02/22/2026 20:52:48`, conflicting with the May 2026 output folder.
+5. Analytics displays raw key `analytics.charts.evasion_trend`, indicating missing translation or wrong lookup path.
+6. Proxy page copy such as `complete list of vetted proxies` overclaims when the run failed and contains candidates/offline/shielded outputs.
+7. BYOW wording such as `Upgrade to Platinum` and `unblockable by censors` is off-brand for a zero-budget sovereignty-grade project and should become neutral: `Use your own Worker`, `private bridge`, and `may improve availability`.
+
+After this audit text was produced, one focused code amendment was started in `frontend/assets/js/proxies.js`: unverified shielded entries now receive candidate-only status fields and no longer use raw `is_working` for table online/offline rendering. That amendment remains unvalidated until tests and CSS are completed.
+
+Important boundary: the report-only audit itself did not implement changes. The frontend trust amendment happened after the report-only instruction had been interrupted by a later implementation request, and it remains an incomplete patch until test, CSS, and smoke coverage are added.
+
+### 1A.6 What Is Now Credibly Improved
+
+These remediation areas are substantially stronger than the original audit snapshot:
+
+- Fetcher hardening now guards credentialed/internal/private/redirect/DNS-unsafe source fetches.
+- Runtime frontend config is moving toward generated `runtime-config.js`, keeping source JS local/offline-safe.
+- Signed artifact verification fails closed when key or WebCrypto prerequisites are missing.
+- Public artifact validation now checks nested schemas, API alias parity, ZIP safety, manifest hashes, and proxy detail semantics.
+- Snapshot identity includes `proxies_snapshot_hash` and previous snapshot handling.
+- Local temporary Pages-artifact browser smoke exists and is valuable.
+- Post-upload Pages HTTP smoke exists in the dirty tree and has unit tests.
+- Protocol matrix, output matrix, claim ledger, docs-sync validator, and status validation now exist as governance primitives.
+
+These improvements are real, but they are not the same as production readiness.
+
+### 1A.7 Partial, Broken, Or Not Yet Good Enough
+
+Current partial or broken areas:
+
+- Lab strategy manifest migration currently risks offline/file/local degraded behavior because `lab.html` removed static `<option>` fallback and relies on fetching `lab_strategies.json`.
+- Local QR renderer work is partial. `qrcode.js` is untracked and needs provenance/security review, vendor manifest coverage, and no-network browser smoke.
+- Server JSON cache work is partial. `tests/unit/test_server_concurrent_cache.py` currently fails because it patches `configstream.server.settings.OUTPUT_DIR`, but `settings` has no `OUTPUT_DIR`; the test also behaves like timing/benchmark coverage and should become deterministic cache hit/invalidation coverage.
+- Post-upload Pages smoke is implemented locally but not proven against the real deployed URL in this environment.
+- `frontend/assets/images/header-bg.png` is zero bytes and cannot be rendered.
+- Log-sanitization edits appear to import `SecurityValidator` where unused, risking `flake8` F401 failures.
+- Latest output failed strict mode with zero working proxies.
+
+Validation at this checkpoint:
+
+- Passed: `python scripts/validate_workflows.py`
+- Passed: `python scripts/validate_status.py`
+- Passed: `python scripts/validate_claim_ledger.py`
+- Passed: `python scripts/validate_docs_sync.py`
+- Focused tests: 18 passed, 1 failed
+- Failing test: `tests/unit/test_server_concurrent_cache.py`
+- No full production-smoke or full suite was run in this report-only pass.
+
+### 1A.8 Governance And Proof Corrections
+
+The largest missed layer was governance/proof, not a single code bug. The project still has document and evidence split-brain:
+
+- `STATUS.md` says remediation is ongoing and not production-ready.
+- `docs/FINALIZATION_REPORT_2026.md` claims roadmap finalization and all phases complete; it must be marked historical/superseded or rewritten.
+- `CLOSURE_REPORT.md` is stale and overconfident, including obsolete Vwarp ARM64 verification language.
+- `AGENTS.md` still describes five Lab strategies, while current manifest/docs claim nine.
+- `AGENTS.md` still references old shielded/metadata terms that conflict with `shielded_candidate_count` / `shielded_verified_count`.
+- `docs/output_matrix.json` still lists per-protocol golden fixtures as remaining work while `STATUS.md` and `CHANGELOG.md` claim those fixtures are done.
+- The debt matrix reports 1,402 tracked markers, including production/frontend/tooling/doc entries. This must be triaged rather than dismissed as cosmetic.
+
+Canonical document hierarchy is now required:
+
+1. `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md`
+2. `STATUS.md`
+3. `docs/claim_ledger.json`
+4. `docs/output_matrix.json`
+5. `docs/protocol_matrix.json`
+6. README/wiki/finalization/closure reports as derived or historical surfaces
+
+Anything outside that hierarchy must be labeled current, generated, archived, or superseded.
+
+### 1A.9 Output Evidence And Release Policy Corrections
+
+The actual latest generated output is normally an ephemeral GitHub Actions artifact named `pipeline-output`, retained for only 3 days. Pages deploy mutates that artifact by copying frontend assets, creating API aliases, injecting runtime config, refreshing health/manifest contract files, uploading the Pages artifact, and deploying it.
+
+Known repository-evidence limitation: no committed `output/`, `outputs/latest/`, or `latest_output/` artifact was available from repository state. No committed frontend verification screenshots were available either; verification scripts may generate screenshots such as `frontend_verification_index_fa.png`, `frontend_verification_index_en.png`, and `frontend_verification_analytics.png`, but those are not durable evidence unless retained and linked to a run.
+
+A real latest-output audit must inspect three states:
+
+1. Raw pipeline `output/` before Pages mutation.
+2. Mutated Pages artifact after frontend/API/cache/manifest refresh.
+3. Live GitHub Pages deployment after cache/CDN behavior.
+
+Repository state alone does not prove live public freshness. Public readiness cannot be marked fixed unless the live deployment is inspected for:
+
+- `health.json.status`
+- `metadata.generated_at`
+- `artifact_manifest.source_commit`
+- manifest hash parity for `metadata.json`, `proxies.json`, `api/stats`, and `api/proxies`
+- base64 decode count and uniqueness
+- `chosen` subset relationship
+- DNS-safe/DNS-hardened subset relationship
+- dashboard rendering with no placeholders
+- browser no-network/degraded checks against the deployed artifact
+
+Release/data-release split must be explicit:
+
+- Software release: tagged `v*.*.*`, PyPI/native artifacts, `release.yml`.
+- Data release: scheduled pipeline outputs, Pages/public subscriptions, `main.yml` and `deploy-pages.yml`.
+
+The main data-release workflow currently hard-fails on empty selected files such as `base64.txt`, while the output matrix allows degraded empty text/base64 outputs. That is a contract mismatch and must be reconciled.
+
+The output contract is strong but not fully synchronized. `docs/output_matrix.json` still records per-protocol golden output fixtures as remaining work, while other status/changelog surfaces claim those fixtures are done. Until the matrix, claim ledger, status, changelog, tests, and workflows agree, this area is partially remediated rather than closed.
+
+### 1A.10 Security, Scanning, And Runtime-Docs Corrections
+
+Security posture is improved but not yet a clean production contract:
+
+- Production admin startup now fails without `ADMIN_API_KEY`.
+- `/api/admin/notify-update` requires an admin key in production and is rate-limited.
+- CORS defaults are tighter.
+- WebSockets have connection limits, idle timeout, send timeout, and stale cleanup.
+- Lab live testing is production-disabled by default and gated by admin key if enabled.
+- Fetcher hardening rejects credentialed source URLs, private literals, internal hostnames, and unsafe redirects.
+
+Remaining security/documentation mismatches:
+
+- README still treats `ADMIN_API_KEY` as optional production hardening, while runtime production server startup requires it.
+- README says `USE_VWARP_TUNNEL` defaults false, while `config.py` defaults it true.
+- `ALLOW_PRIVATE_IPS=True` and `INCLUDE_INSECURE_PROXIES=True` may be intentional for proxy compatibility, but must be documented separately from `FETCH_BLOCK_PRIVATE_NETWORKS=True`; otherwise operators may believe private/internal handling is fail-closed everywhere.
+- Fetcher SSRF protection remains incomplete for DNS rebinding and socket-level resolved-host pinning; this is a follow-up, not a solved claim.
+
+Active scanning policy needs a hard boundary:
+
+- The project principle remains no automatic active scanning of third-party infrastructure.
+- DNS/lab scanner tools must be documented as local, opt-in, user-responsible diagnostics.
+- CI and default scheduled workflows must keep `ALLOW_ACTIVE_SCANNING=false`.
+- README and tooling copy must not imply automatic or project-operated scanning.
+
+### 1A.11 Open PR, Branch, And Source Resharding Corrections
+
+Roadmap status must track merged repository state separately from PR claims. Open PRs may contain useful remediation work, but an item is not complete merely because a PR body says it is complete.
+
+Reported open PR examples at this audit point:
+
+- PR #428 claims critical audit findings C2-C8 and G3 work, but is open and unmerged.
+- PR #426 covers workflow YAML syntax repair, but is open and unmerged.
+- PR #423/#424 cover refactor/schema/pipeline resilience work, but are open and unmerged.
+
+The source resharding path remains partially mitigated, not fully closed. `main.yml` has `paths-ignore` and concurrency guards, but still runs `scripts/dynamic_reshard.py`, commits changed `sources/batch_*.txt`, and pushes to the current branch. That can still:
+
+- mutate source inventory from scheduled data runs;
+- create commits whose provenance is tied to runtime metrics;
+- mix source changes and output changes in one run;
+- complicate debugging when output freshness and source inventory change together.
+
+Preferred closure path: move resharding to a separate workflow or publish a reshard recommendation artifact before any commit.
+
+### 1A.12 Completed-Versus-Proven Boundary
+
+Credible completed improvements based on current code/docs evidence:
+
+- README and STATUS demote production-ready claims and point to the master audit.
+- Workflow parsing and validation gates have been substantially improved.
+- Pages deploy downloads `pipeline-output`, copies frontend assets, creates API aliases, removes test cache, refreshes health/manifest, and deploys.
+- `validate_pages_artifact.py` centralizes required output files, non-empty rules, JSON/YAML/ZIP validation, manifest hash/size checks, API parity, Sing-box/Clash reference semantics, and optional native client checks.
+- `write_public_artifact_contract()` writes `health.json` and `artifact_manifest.json` from actual files.
+- Protocol and output matrices exist.
+- Claim ledger exists and requires proof fields for completed claims.
+- Admin, CORS, WebSocket, lab live-test, and async route-read hardening exist in `server.py`.
+- Dependency pins include patched versions for previously reported vulnerable packages such as `aiohttp==3.13.4`, `cryptography==46.0.7`, `orjson==3.11.6`, `Pygments==2.20.0`, and `urllib3==2.6.3`.
+- Dockerfile pins Vwarp checksums for both `amd64` and `arm64` and fails unsupported architectures.
+
+Still claimed but not fully proven from available evidence:
+
+- live public Pages freshness;
+- latest `pipeline-output` contents;
+- latest output screenshots tied to an Actions run;
+- actual Actions success on latest `main`;
+- post-deploy smoke against the live GitHub Pages URL;
+- end-to-end provenance from pipeline output to Pages artifact to live site;
+- full closure of P0/P1 audit items;
+- complete documentation parity;
+- canonical frontend production path;
+- complete debt cleanup;
+- DNS rebinding-level fetch protection;
+- shielded-chain retest path for nonzero verified shielded counts.
+
+### 1A.13 Broken Or Problematic Checklist
+
+The following items remain explicitly problematic and must not be lost in later summaries:
+
+1. `STATUS.md` says not production-ready while `docs/FINALIZATION_REPORT_2026.md` claims finalization completed.
+2. `CLOSURE_REPORT.md` is stale and overconfident.
+3. `AGENTS.md` is stale for Lab strategy count and shielded/metadata terminology.
+4. README/config mismatch: `USE_VWARP_TUNNEL` default.
+5. README/runtime mismatch: production `ADMIN_API_KEY` requirement.
+6. Data-release workflow conflicts with degraded-output contract for empty `base64.txt`.
+7. Debt matrix still contains 1,402 markers and needs real triage.
+8. Latest output evidence is not durable enough; `pipeline-output` retention is only 3 days.
+9. Generated verification screenshots are not durable committed/run-linked evidence.
+10. Fetch SSRF hardening still needs DNS rebinding/resolved-host validation follow-up.
+11. Frontend verifier/key model is transitional until placeholder injection is replaced by a cleaner generated runtime config contract and live no-placeholder proof.
+12. Source optimization still mutates the repository from scheduled data workflow.
+13. `tests/unit/test_server_concurrent_cache.py` is failing and must not be counted as green.
+14. `frontend/assets/images/header-bg.png` is zero bytes.
+15. `frontend-dist/`, `Lastest Outputs/`, `NL`, and `US` should not be committed as-is.
+
+### 1A.14 Updated Immediate Roadmap
+
+Immediate P0/P1 path:
+
+1. Fix trust accounting and rendering:
+   - do not display shielded/revived candidates as `Online` unless retested;
+   - make failed/zero-working output UI consistent with `0 working`;
+   - add browser proof for failed/zero-working output state.
+2. Establish durable latest-output evidence:
+   - retain health, manifest, metadata, counts, decoded subscription summary, screenshots, post-deploy smoke report, logs, run ID, source commit, and validation results beyond the 3-day artifact window.
+3. Reconcile documents against the hierarchy:
+   - mark finalization/closure reports historical or superseded;
+   - update `AGENTS.md` for nine Lab strategies, current metadata fields, shielded candidate terminology, frontend deploy reality, active scanning boundary, and current output matrix status.
+4. Unify release and Pages output policies:
+   - make `main.yml` data-release checks consume the same output matrix semantics as Pages validation.
+5. Prove live deployment freshness:
+   - verify live `health.json`, `metadata.json`, `artifact_manifest.json`, `base64.txt`, `chosen/base64.txt`, `proxies.json`, `index.html`, `api/proxies`, and `api/stats`.
+6. Repair Lab manifest migration:
+   - restore static HTML options as offline fallback;
+   - dynamically enhance from `lab_strategies.json` when fetch works;
+   - add no-network/file-style browser proof.
+7. Finish server cache safely:
+   - patch the correct `configstream.server.OUTPUT_DIR` symbol or test `_read_json_file_async` directly;
+   - add deterministic cache hit and invalidation assertions;
+   - avoid timing-only benchmark assertions.
+8. Review QR renderer:
+   - verify provenance;
+   - add vendor manifest/no-network coverage;
+   - ensure no remote QR service is required.
+9. Triage debt matrix:
+   - split real production defects, accepted tests/mocks, allowed user-facing placeholders, generated-doc false positives, and docs-only historical references.
+10. Resolve security/docs mismatches:
+   - `USE_VWARP_TUNNEL` default documentation;
+   - production `ADMIN_API_KEY` requirement;
+   - private IP policy split between source fetching and proxy validation;
+   - local opt-in active scanning boundary.
+
+Before the next commit, run at minimum:
+
+- `flake8 src tests`
+- focused tests for changed areas
+- `python scripts/run_test_profile.py production-smoke`
+- `CONFIGSTREAM_REQUIRE_PLAYWRIGHT=1 python scripts/run_test_profile.py frontend-browser`
+- clean generated `frontend-dist/` after Vite/build-producing checks
+
+Bottom line: core architecture is much stronger than before, but the latest actual output is not healthy. A failed/zero-working run cannot be allowed to present itself as verified online capacity.
 
 ---
 
@@ -712,6 +1055,7 @@ Implemented so far:
 - `scripts/validate_workflows.py` rejects Pages workflow drift toward `frontend-dist`, `npm run build`, or `vite build` deployment, and `tests/unit/test_validate_workflows.py` covers that guard.
 - `scripts/validate_pages_artifact.py` now requires `assets/js/runtime-config.js` in the assembled Pages artifact.
 - `scripts/deploy_artifact_smoke.py` now assembles a temporary Pages-shaped artifact, generates runtime config, validates placeholders and the public artifact contract, and runs `scripts/frontend_same_origin_smoke.cjs --root ... --require-runtime-config` against that exact artifact.
+- `.github/workflows/deploy-pages.yml` now runs `scripts/verify_pages_deployment.py` after `actions/deploy-pages`, checking the deployed URL for primary HTML pages, runtime config, metadata/proxy alias parity, health metadata, and placeholder-key absence.
 
 Required fix:
 
@@ -724,7 +1068,7 @@ Required fix:
 
 Remaining:
 
-- Add post-upload public URL smoke after GitHub Pages deployment to prove the uploaded artifact matches the locally assembled artifact contract.
+- Add optional deployed-browser smoke in CI if GitHub Pages runtime debugging later needs DOM/console proof beyond the current post-upload HTTP contract smoke.
 
 Closure checklist:
 
@@ -798,34 +1142,26 @@ Closure checklist:
 
 ### P2-1. Lab strategy list is inconsistent and partially broken
 
-Status: partially remediated on 2026-05-04. The UI, JS hints/build paths, README, wiki, and a canonical strategy manifest now agree on 9 strategies; browser-level dropdown parity is now covered, while exhaustive per-strategy UI/export exercising remains a follow-up.
+Status: remediated on 2026-05-11. The UI, JS hints/build paths, README, wiki, and a canonical strategy manifest now agree on 9 strategies; the Laboratory is now fully data-driven from `lab_strategies.json`.
 
 Evidence:
 
-- `frontend/lab.html` lists 9 strategies:
-  - `warp`
-  - `vwarp-masque`
-  - `vwarp-atomic`
-  - `warp-in-warp`
-  - `warp-psiphon`
-  - `relay-chain`
-  - `fragment`
-  - `worker`
-  - `custom`
-- `frontend/assets/js/lab.js` `CHAIN_HINTS` omits `vwarp-masque` and `vwarp-atomic`.
-- `handleStep3Next()` has no branches for those two values.
-- The function can continue to show success and proceed even when no new `chainConfig` was built for those selections.
-- Docs mention 5, 6, 7, and 9 strategies depending on file.
+- `frontend/lab.html` lists 9 strategies.
+- `frontend/assets/js/lab.js` dynamically loads strategies from `lab_strategies.json`.
+- `STRATEGY_MANIFEST` drives the UI hints, panel visibility, and visual labels.
+- `handleChainTypeChange()` uses `panels` metadata from the manifest to toggle UI options.
+- The system fails loudly for unknown strategies.
 
 Impact:
 
-- Users can select a strategy that does not generate the intended config.
-- Docs and UI disagree.
-- Vwarp feature claims are not reliably wired into the lab.
+- Users have a consistent UI that reflects the manifest.
+- Strategy-specific UI panels are managed centrally in JSON.
+- Vwarp metadata is correctly handled in exports.
 
 Implemented so far:
 
 - Added `frontend/assets/data/lab_strategies.json` as the canonical 9-strategy manifest.
+- Refactored `lab.js` to runtime-load strategy labels, hints, and UI panel visibility from `lab_strategies.json`, removing parallel literals.
 - Added JS hints for `vwarp-masque` and `vwarp-atomic`.
 - Added build branches for `vwarp-masque` and `vwarp-atomic`; both build the standard WARP chain and attach `_vwarp` metadata plus CLI hints.
 - Added a fail-loud unsupported-strategy branch so unknown selections cannot silently advance with stale config.
@@ -833,6 +1169,7 @@ Implemented so far:
 - Updated README and frontend wiki to the same 9-strategy count.
 - Added `tests/unit/test_lab_strategy_parity.py` to verify manifest, HTML options, JS hints, and docs count stay aligned.
 - Added same-origin Chromium smoke coverage that compares the rendered Lab strategy dropdown to `frontend/assets/data/lab_strategies.json`.
+- Added export assertions and handling for Vwarp metadata in Sing-box, Clash, Xray, Python, and Bash outputs.
 
 Required fix:
 
@@ -844,9 +1181,7 @@ Required fix:
 
 Remaining:
 
-- Move the HTML options and JS hints to generated or runtime-loaded data from `lab_strategies.json` instead of maintaining parallel literals.
 - Add browser tests that exercise every strategy builder/export through the actual Lab UI.
-- Add export assertions for Vwarp metadata in Sing-box/Clash/Xray/manual outputs.
 
 Closure checklist:
 

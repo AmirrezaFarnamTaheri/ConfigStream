@@ -19,20 +19,39 @@ def _strategy_ids() -> list[str]:
     return [str(item["id"]) for item in payload["strategies"]]
 
 
-def test_lab_strategy_manifest_matches_html_options_and_js_hints() -> None:
-    strategy_ids = _strategy_ids()
+def test_lab_strategy_dynamically_loaded() -> None:
     lab_html = _read("frontend/lab.html")
     lab_js = _read("frontend/assets/js/lab.js")
 
-    html_ids = re.findall(r'<option value="([^"]+)">', lab_html)
-    chain_html_ids = html_ids[html_ids.index("warp") : html_ids.index("custom") + 1]
-    hint_ids = re.findall(
-        r"'([^']+)':\s*'[^']*'",
-        lab_js.split("const CHAIN_HINTS = {", 1)[1].split("};", 1)[0],
-    )
+    assert '<select class="lab-select" id="chainType">' in lab_html
+    assert '<option value="warp">WARP Tunnel (Standard)</option>' in lab_html
 
-    assert chain_html_ids == strategy_ids
-    assert sorted(hint_ids) == sorted(strategy_ids)
+    assert "fetch(" in lab_js
+    assert "lab_strategies.json" in lab_js
+    assert "STRATEGY_MANIFEST[s.id] = s" in lab_js
+
+
+def test_lab_strategy_static_fallback_matches_manifest() -> None:
+    lab_html = _read("frontend/lab.html")
+    payload = json.loads(_read("frontend/assets/data/lab_strategies.json"))
+    chain_select = lab_html.split('id="chainType"', 1)[1].split("</select>", 1)[0]
+
+    for strategy in payload["strategies"]:
+        option = f'<option value="{strategy["id"]}">{strategy["label"]}</option>'
+        assert option in chain_select
+
+
+def test_lab_strategy_schema_is_complete() -> None:
+    payload = json.loads(_read("frontend/assets/data/lab_strategies.json"))
+    assert payload["schema_version"] == "1.1"
+    for s in payload["strategies"]:
+        assert "id" in s
+        assert "label" in s
+        assert "hint" in s
+        assert "visual_label" in s
+        assert "panels" in s
+        assert isinstance(s["panels"], list)
+        assert len(s["panels"]) > 0 or s["id"] == "direct"
 
 
 def test_lab_strategy_build_path_fails_loudly_for_unknown_strategy() -> None:
@@ -58,6 +77,7 @@ def test_lab_qr_generation_does_not_use_external_service() -> None:
     assert "api.qrserver.com" not in lab_js
     assert "create-qr-code" not in lab_js
     assert "External QR services are disabled" in lab_js
+    assert "new QRCode(" in lab_js
 
 
 def test_lab_manual_clean_ip_table_uses_text_nodes() -> None:
@@ -123,3 +143,12 @@ def test_lab_step4_live_manual_modes_are_visible() -> None:
     assert "testBtn.textContent = 'Run Live Test'" in lab_js
     assert "protocol === 'file:'" in lab_js
     assert "updateStep4TestMode();" in lab_js
+
+
+def test_lab_vwarp_metadata_exports() -> None:
+    lab_js = _read("frontend/assets/js/lab.js")
+
+    assert r"vwarpComment = `\n# VWARP Metadata: ${JSON.stringify(chainConfig._vwarp)}`;" in lab_js
+    assert r"xray._vwarp = chainConfig._vwarp;" in lab_js
+    assert """const vwarpPrint = chainConfig._vwarp ? `\\n    print("[*] Note: Config uses Vwarp metadata:", CONFIG.get("_vwarp"))` : '';""" in lab_js
+    assert """const vwarpEcho = chainConfig._vwarp ? `\\necho "[*] Note: Config uses Vwarp metadata: ${JSON.stringify(chainConfig._vwarp).replace(/"/g, '\\\\"')}"` : '';""" in lab_js

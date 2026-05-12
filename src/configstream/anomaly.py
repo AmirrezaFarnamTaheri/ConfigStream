@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any, Dict, Tuple
 
 from .constants import Z_SCORE_NORMAL_CONSTANT
+from .security_validator import _safe_log_text
 
 # Removed heavy sklearn/numpy dependency
 # import numpy as np
@@ -51,7 +52,7 @@ CREATE TABLE IF NOT EXISTS history (
                 conn.execute("CREATE INDEX IF NOT EXISTS idx_url ON history(url)")
                 conn.commit()
         except Exception as e:  # pylint: disable=broad-exception-caught
-            logger.error(f"Failed to init anomaly DB: {e}")
+            logger.error(f"Failed to init anomaly DB: {_safe_log_text(e)}")
 
     def is_safe(self, url: str, current_count: int) -> Tuple[bool, str]:
         """
@@ -74,7 +75,7 @@ CREATE TABLE IF NOT EXISTS history (
                     try:
                         self._init_db()
                     except Exception as e:
-                        return True, f"DB Init Error (Fail Open): {e}"
+                        return True, f"DB Init Error (Fail Open): {_safe_log_text(e)}"
 
                 # Mypy safety: ensure _conn is not None before usage
                 if self._conn is None:
@@ -87,7 +88,7 @@ CREATE TABLE IF NOT EXISTS history (
                     ).fetchall()
                 except (sqlite3.Error, AttributeError) as e:
                     # Attempt reconnection once
-                    logger.warning(f"Anomaly DB connection lost ({e}), reconnecting...")
+                    logger.warning(f"Anomaly DB connection lost ({_safe_log_text(e)}), reconnecting...")
                     try:
                         if self._conn:
                             self._conn.close()
@@ -142,13 +143,13 @@ CREATE TABLE IF NOT EXISTS history (
 
                     if current_count < (median * 0.5) and current_count > 20:
                         logger.debug(
-                            f"Significant volume drop for {url}: {current_count} vs median {median}. "
+                            f"Significant volume drop for {_safe_log_text(url)}: {current_count} vs median {median}. "
                             "Treated as safe."
                         )
 
                 except Exception as stat_err:
                     logger.warning(
-                        f"Anomaly check failed, falling back to Z-Score: {stat_err}"
+                        f"Anomaly check failed, falling back to Z-Score: {_safe_log_text(stat_err)}"
                     )
                     # Fall through to Z-Score logic
 
@@ -185,8 +186,8 @@ CREATE TABLE IF NOT EXISTS history (
             # anomaly database is temporarily unavailable.
             logger.error(
                 "Anomaly DB error for %s: %s - allowing source (fail-open behaviour)",
-                url,
-                e,
+                _safe_log_text(url),
+                _safe_log_text(e),
             )
             # Re-raise runtime errors to test fail-open logic in tests if intended,
             # but for production we return True.
@@ -251,7 +252,7 @@ CREATE TABLE IF NOT EXISTS history (
                     )
                     conn.commit()
         except Exception as e:  # pylint: disable=broad-exception-caught
-            logger.warning(f"Failed to record anomaly stats: {e}")
+            logger.warning(f"Failed to record anomaly stats: {_safe_log_text(e)}")
 
     def get_statistics(self) -> Dict[str, Any]:
         """Get anomaly detection statistics for monitoring."""
@@ -282,7 +283,7 @@ CREATE TABLE IF NOT EXISTS history (
                 )
                 return stats
         except Exception as e:  # pylint: disable=broad-exception-caught
-            logger.error(f"Failed to get anomaly stats: {e}")
+            logger.error(f"Failed to get anomaly stats: {_safe_log_text(e)}")
             return {}
 
     def merge_from(self, other_db_path: Path):
@@ -326,7 +327,7 @@ CREATE TABLE IF NOT EXISTS history (
                     dst.commit()
                     logger.info(f"Merged anomaly stats from {other_db_path}")
         except Exception as e:  # pylint: disable=broad-exception-caught
-            logger.error(f"Failed to merge anomaly DB {other_db_path}: {e}")
+            logger.error(f"Failed to merge anomaly DB {other_db_path}: {_safe_log_text(e)}")
 
     def close(self) -> None:
         """Close the persistent SQLite connection."""

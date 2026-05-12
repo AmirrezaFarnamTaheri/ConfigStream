@@ -1,5 +1,10 @@
 # ConfigStream Full Hardening Closure Report
 
+> Historical/superseded status: this report records an earlier closure snapshot.
+> It is not the current production-readiness source of truth. Use
+> `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md`, `STATUS.md`,
+> `docs/claim_ledger.json`, and `docs/output_matrix.json` for current status.
+
 ## Objective
 To bring ConfigStream to a consistent, fully functional, CI/Pages-clean state across backend, frontend, CI workflows, and docker-compose, while ensuring all documented output formats/variations are generated and correctly consumed.
 

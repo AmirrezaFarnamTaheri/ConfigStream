@@ -666,7 +666,7 @@
                         <option value="relay-chain">Relay Chain (multi-hop, any protocol)</option>
                         <option value="fragment">TLS Fragment (legacy/manual)</option>
                         <option value="worker">CDN Worker Relay</option>
-                        <option value="custom">Custom Chain (Advanced)</option>
+                        <option value="custom">Custom Sing-box JSON</option>
                     </select>
                     <div class="hint" id="chainTypeHint">Pick a strategy based on what works on your network. Not sure? Run the scanner's <code>--auto-chain</code> to find out.</div>
                 </div>
@@ -1163,6 +1163,7 @@ python lab-scanner.py --scan-ips --json > clean-ips.json</code>
     <script src="assets/js/loading-controller.js" defer></script>
     <script src="assets/js/common-ui.js" defer></script>
     <script src="assets/js/inline-icons.js"></script>
+    <script src="assets/js/utils/qrcode.js" defer></script>
     <script src="assets/js/lab.js" defer></script>
 </body>
 </html>

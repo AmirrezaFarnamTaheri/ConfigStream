@@ -2,6 +2,11 @@
 
 Generated on: 2026-02-22
 
+> Historical/superseded status: this report records the February 2026 hardening
+> checkpoint. It is not the current production-readiness source of truth. Use
+> `../ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md`, `../STATUS.md`,
+> `claim_ledger.json`, and `output_matrix.json` for current remediation status.
+
 This report records the final hardening and validation pass for the consolidated roadmap execution.
 
 ## Quality Gates

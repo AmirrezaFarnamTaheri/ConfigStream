@@ -7,7 +7,7 @@ import pytest
 from configstream.history.tracker import ProxyHistoryTracker
 from configstream.intelligence.washer.core import ProxyWasher
 from configstream.models import Proxy
-from configstream.output_handler import generate_pipeline_outputs
+from configstream.output_handler import _chain_to_proxy_entry, generate_pipeline_outputs
 from configstream.pipeline_stats import PipelineStats
 
 
@@ -120,3 +120,30 @@ async def test_generate_pipeline_outputs_preserves_revived_process_and_dns_flags
         (row.get("details") or {}).get("dns_safe") is True
         for row in revived_dns_safe_rows
     )
+
+
+def test_shielded_chain_entries_are_candidates_not_working() -> None:
+    chain = [
+        {
+            "type": "vless",
+            "tag": "origin",
+            "server": "origin.example",
+            "server_port": 443,
+        },
+        {
+            "type": "wireguard",
+            "tag": "GOLD-origin",
+            "server": "162.159.192.1",
+            "server_port": 2408,
+            "detour": "origin",
+            "_is_shielded": True,
+        },
+    ]
+
+    row = _chain_to_proxy_entry(chain, process="shielded")
+
+    assert row["is_working"] is False
+    assert row["process"] == "shielded"
+    assert "candidate" in row["tags"]
+    assert row["details"]["shielded_candidate"] is True
+    assert row["details"]["shielded_verified"] is False

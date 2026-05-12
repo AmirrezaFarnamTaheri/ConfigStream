@@ -107,11 +107,20 @@
         }[ch]));
     }
 
-    function showResult(elId, type, message) {
+    function showResultText(elId, type, text) {
         const el = document.getElementById(elId);
         if (!el) return;
         el.className = 'lab-test-result ' + type;
-        el.innerHTML = message;
+        el.textContent = text;
+        el.style.display = 'block';
+    }
+
+    function showResultHTML(elId, type, html) {
+        // ONLY use this with trusted template literals, never raw user input.
+        const el = document.getElementById(elId);
+        if (!el) return;
+        el.className = 'lab-test-result ' + type;
+        el.innerHTML = html;
         el.style.display = 'block';
     }
 
@@ -254,35 +263,35 @@
         // Advice — multi-strategy aware
         if (advice) {
             if (reachable >= 5) {
-                showResult('diagAdvice', 'success',
+                showResultHTML('diagAdvice', 'success',
                     '<strong>Excellent connectivity!</strong> All strategies work: ' +
                     'WARP, Proxy Cascade, TLS Fragment, CDN Worker, or direct connection. ' +
                     'Pick whichever is most convenient.');
             } else if (reachable >= 3) {
-                showResult('diagAdvice', 'success',
+                showResultHTML('diagAdvice', 'success',
                     '<strong>Good connectivity</strong> with some filtering. ' +
                     'Best strategies: <strong>WARP</strong>, <strong>Proxy Cascade</strong>, or <strong>TLS Fragment</strong>. ' +
                     'If you have a working local proxy (Psiphon, V2RayN), cascade through it.');
             } else if (results.cf || results.cf_tls) {
-                showResult('diagAdvice', 'info',
+                showResultHTML('diagAdvice', 'info',
                     '<strong>Cloudflare reachable</strong> but other sites are filtered. ' +
                     'Strategies: <strong>WARP chain</strong>, <strong>TLS Fragment</strong>, or <strong>Double WARP</strong>. ' +
                     'If you have a local proxy with broader access, try <strong>Proxy Cascade</strong> instead.');
             } else if (results.doh) {
-                showResult('diagAdvice', 'info',
+                showResultHTML('diagAdvice', 'info',
                     '<strong>DNS-over-HTTPS works</strong> but direct HTTPS is blocked. ' +
                     'Strategies: <strong>CDN Worker relay</strong>, <strong>Proxy Cascade</strong> through a local tool, ' +
                     'or <strong>Intranet Relay</strong> if a LAN host has less-filtered access. ' +
                     'Run <code>python lab-scanner.py --scan-lan</code> to find LAN relays.');
             } else if (reachable > 0) {
-                showResult('diagAdvice', 'info',
+                showResultHTML('diagAdvice', 'info',
                     '<strong>Limited access.</strong> Most services are blocked. ' +
                     'Strategies: Use a local proxy (Psiphon, Lantern, V2RayN, Tor) as Layer 1, ' +
                     'then <strong>cascade</strong> your destination proxy on top. ' +
                     'Or find a <strong>LAN relay</strong> with internet: <code>python lab-scanner.py --scan-lan</code>. ' +
                     'WARP may also work if stacked on top of the local proxy.');
             } else {
-                showResult('diagAdvice', 'error',
+                showResultHTML('diagAdvice', 'error',
                     '<strong>No direct internet detected.</strong> ' +
                     'Strategies: 1) Install Psiphon/Lantern/Tor as Layer 1, then cascade. ' +
                     '2) Find a LAN machine with internet: <code>python lab-scanner.py --scan-lan</code>. ' +
@@ -296,15 +305,15 @@
         const type = ($('#localProxyType') || {}).value;
         const addr = ($('#localProxyAddr') || {}).value || '';
         if (!type || !addr) {
-            showResult('localProxyResult', 'error', 'Select a proxy type and enter the address.');
+            showResultText('localProxyResult', 'error', 'Select a proxy type and enter the address.');
             return;
         }
         const safeType = escapeHtml(type);
         const safeTypeLabel = escapeHtml(String(type).toUpperCase());
         const safeAddr = escapeHtml(addr);
-        showResult('localProxyResult', 'pending', `Testing ${safeType}://${safeAddr}...`);
+        showResultText('localProxyResult', 'pending', `Testing ${safeType}://${safeAddr}...`);
         // Browser can't directly test SOCKS/HTTP proxies, so provide guidance
-        showResult('localProxyResult', 'info',
+        showResultHTML('localProxyResult', 'info',
             `<strong>Browser cannot test ${safeTypeLabel} proxies directly.</strong><br>` +
             `To verify, run in terminal:<br>` +
             `<code>curl -x ${safeType}://${safeAddr} --connect-timeout 5 http://cp.cloudflare.com/generate_204</code><br><br>` +
@@ -405,7 +414,7 @@
         if (btn) btn.textContent = 'Load Pre-Tested Proxies';
 
         if (proxies.length === 0) {
-            showResult('step1Result', 'info',
+            showResultHTML('step1Result', 'info',
                 '<strong>No pipeline proxies available.</strong> Paste your own proxy URI above, or run ' +
                 '<code>python lab-scanner.py --test-proxy socks5://127.0.0.1:1080</code> to test a local proxy.');
             return;
@@ -444,7 +453,7 @@
             };
         }
         container.style.display = '';
-        showResult('step1Result', 'success',
+        showResultHTML('step1Result', 'success',
             '<strong>' + proxies.length + ' pre-tested proxies loaded</strong> from ConfigStream pipeline output. ' +
             'Select one from the dropdown or paste your own URI above.');
     }
@@ -525,11 +534,11 @@
         }
 
         if (!parsedProxy) {
-            showResult('step1Result', 'error', 'Could not parse proxy URI. Ensure it starts with a valid protocol (vless://, vmess://, trojan://, ss://, etc.).');
+            showResultText('step1Result', 'error', 'Could not parse proxy URI. Ensure it starts with a valid protocol (vless://, vmess://, trojan://, ss://, etc.).');
             return;
         }
 
-        showResult('step1Result', 'success',
+        showResultHTML('step1Result', 'success',
             `<strong>Parsed:</strong> ${escapeHtml(parsedProxy.protocol.toUpperCase())} @ ${escapeHtml(parsedProxy.address)}:${escapeHtml(parsedProxy.port)}` +
             (parsedProxy.remark ? ` (${escapeHtml(parsedProxy.remark)})` : '')
         );
@@ -553,12 +562,12 @@
             const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
             cleanIps = lines.map(parseManualCleanIpLine).filter(Boolean);
             if (lines.length > 0 && cleanIps.length === 0) {
-                showResult('step2Result', 'error', 'No valid clean IP entries found. Use host:port, IPv4:port, or [IPv6]:port.');
+                showResultText('step2Result', 'error', 'No valid clean IP entries found. Use host:port, IPv4:port, or [IPv6]:port.');
                 return;
             }
         } else if (method === 'auto') {
             // Try fetching from ConfigStream API first, fallback to defaults
-            showResult('step2Result', 'pending', 'Fetching clean IPs from ConfigStream...');
+            showResultText('step2Result', 'pending', 'Fetching clean IPs from ConfigStream...');
             try {
                 const resp = await fetch((window.ROOT_PATH || '') + 'data/clean_ips.json?cb=' + Date.now());
                 if (resp.ok) {
@@ -580,7 +589,7 @@
                 });
             }
         } else if (method === 'scan') {
-            showResult('step2Result', 'info',
+            showResultHTML('step2Result', 'info',
                 '<strong>Local Scan:</strong> Open a terminal and run:<br>' +
                 '<code>for ip in 162.159.192.1 188.114.98.224 162.159.195.2; do ' +
                 'for port in 854 890 2408 500; do ' +
@@ -594,7 +603,7 @@
         }
 
         if (cleanIps.length === 0) {
-            showResult('step2Result', 'error', 'No clean IPs found. Try manual input or local scan.');
+            showResultText('step2Result', 'error', 'No clean IPs found. Try manual input or local scan.');
             return;
         }
 
@@ -602,7 +611,7 @@
         renderCleanIpTable();
         populateWarpIpSelect();
 
-        showResult('step2Result', 'success', `Found ${cleanIps.length} clean IP(s). Select one in the next step.`);
+        showResultText('step2Result', 'success', `Found ${cleanIps.length} clean IP(s). Select one in the next step.`);
         setTimeout(() => goToStep(3), 600);
     }
 
@@ -664,42 +673,26 @@
     }
 
     // --- Chain Type UI Toggle ---
-    const CHAIN_HINTS = {
-        'warp': 'Traffic flows through Cloudflare WARP to hide the proxy from your ISP.',
-        'vwarp-masque': 'WARP chain with Vwarp MASQUE metadata for deployments that use vwarp obfuscation presets.',
-        'vwarp-atomic': 'WARP chain with Vwarp AtomicNoize metadata for fragmentation-style evasion outside sing-box native outputs.',
-        'warp-in-warp': 'Double encapsulation: outer WARP wraps inner WARP wraps your proxy. Maximum obfuscation.',
-        'warp-psiphon': 'WARP + Psiphon: uses vwarp\'s --cfon to change the WARP exit country. Requires the vwarp binary.',
-        'relay-chain': 'Up to 4 intermediate hops of any protocol (SOCKS5, HTTP, VLESS, VMess, Trojan, SS, WARP). Use local proxies, LAN relays, or pipeline proxies.',
-        'fragment': 'Legacy/manual TLS fragmentation recipe. Native sing-box tls_fragment output is disabled; use Vwarp AtomicNoize when available.',
-        'worker': 'Routes traffic through your own Cloudflare Worker. Unblockable private relay.',
-        'custom': 'Define your own outbound chain in raw Sing-box JSON format.'
-    };
+    let STRATEGY_MANIFEST = {};
 
     function handleChainTypeChange() {
         const ct = ($('#chainType') || {}).value || 'warp';
-        const hint = $('#chainTypeHint');
-        if (hint) hint.textContent = CHAIN_HINTS[ct] || '';
+        const s = STRATEGY_MANIFEST[ct];
+        if (!s) return;
 
-        const showWarp = ['warp', 'vwarp-masque', 'vwarp-atomic', 'warp-in-warp', 'warp-psiphon'].includes(ct);
-        const el = (id) => document.getElementById(id);
-        if (el('warpOptions')) el('warpOptions').style.display = showWarp ? '' : 'none';
-        if (el('warpInWarpRow')) el('warpInWarpRow').style.display = ct === 'warp-in-warp' ? '' : 'none';
-        if (el('psiphonOptions')) el('psiphonOptions').style.display = ct === 'warp-psiphon' ? '' : 'none';
-        if (el('fragmentOptions')) el('fragmentOptions').style.display = ct === 'fragment' ? '' : 'none';
-        if (el('workerOptions')) el('workerOptions').style.display = ct === 'worker' ? '' : 'none';
-        if (el('relayChainOptions')) el('relayChainOptions').style.display = ct === 'relay-chain' ? '' : 'none';
-        if (el('customChainOptions')) el('customChainOptions').style.display = ct === 'custom' ? '' : 'none';
+        const hint = $('#chainTypeHint');
+        if (hint) hint.textContent = s.hint || '';
+
+        // Dynamic panel visibility
+        const activePanels = new Set(s.panels || []);
+        ['warpOptions', 'warpInWarpRow', 'psiphonOptions', 'fragmentOptions', 'workerOptions', 'relayChainOptions', 'customChainOptions'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = activePanels.has(id) ? '' : 'none';
+        });
 
         // Update chain visual layer1 label
         const l1 = $('#chainLayer1Label');
-        if (l1) {
-            const labels = {
-                'warp': 'WARP', 'vwarp-masque': 'Vwarp MASQUE', 'vwarp-atomic': 'AtomicNoize', 'warp-in-warp': 'WARP x2', 'warp-psiphon': 'WARP+Psiphon',
-                'fragment': 'Fragment', 'worker': 'Worker', 'relay-chain': 'Relay', 'custom': 'Custom'
-            };
-            l1.textContent = labels[ct] || 'WARP';
-        }
+        if (l1) l1.textContent = s.visual_label || s.label || 'WARP';
     }
 
     function getEvasionOptions() {
@@ -718,7 +711,7 @@
         warpKey = ($('#warpKeyInput') || {}).value || '';
 
         if (!parsedProxy) {
-            showResult('step3Result', 'error', 'No base proxy configured. Go back to Step 1.');
+            showResultText('step3Result', 'error', 'No base proxy configured. Go back to Step 1.');
             return;
         }
 
@@ -731,7 +724,7 @@
         // Build config based on chain type
         if (['warp', 'vwarp-masque', 'vwarp-atomic', 'warp-in-warp', 'warp-psiphon'].includes(chainType)) {
             if (!selectedCleanIp) {
-                showResult('step3Result', 'error', 'Please select a clean IP.');
+                showResultText('step3Result', 'error', 'Please select a clean IP.');
                 return;
             }
             const [warpIp, warpPort] = selectedCleanIp.split(':');
@@ -770,14 +763,14 @@
         } else if (chainType === 'worker') {
             const workerUrl = ($('#workerUrl') || {}).value || '';
             if (!workerUrl) {
-                showResult('step3Result', 'error', 'Please enter your Worker URL.');
+                showResultText('step3Result', 'error', 'Please enter your Worker URL.');
                 return;
             }
             chainConfig = buildWorkerChain(parsedProxy, workerUrl, evasion);
         } else if (chainType === 'relay-chain') {
             const layers = collectRelayLayers();
             if (layers.length === 0) {
-                showResult('step3Result', 'error', 'Please configure at least Layer 1 for the relay chain.');
+                showResultText('step3Result', 'error', 'Please configure at least Layer 1 for the relay chain.');
                 return;
             }
             chainConfig = buildRelayChain(parsedProxy, layers, evasion);
@@ -787,11 +780,11 @@
                 const custom = JSON.parse(raw);
                 chainConfig = buildCustomChain(parsedProxy, custom, evasion);
             } catch (e) {
-                showResult('step3Result', 'error', 'Invalid JSON: ' + escapeHtml(e.message));
+                showResultText('step3Result', 'error', 'Invalid JSON: ' + escapeHtml(e.message));
                 return;
             }
         } else {
-            showResult('step3Result', 'error', 'Unsupported chain strategy: ' + escapeHtml(chainType));
+            showResultText('step3Result', 'error', 'Unsupported chain strategy: ' + escapeHtml(chainType));
             return;
         }
 
@@ -820,7 +813,7 @@
         if (pl) pl.textContent = parsedProxy.protocol.toUpperCase();
         if (pd) pd.textContent = parsedProxy.address;
 
-        showResult('step3Result', 'success', 'Chain configuration generated! Proceed to test it.');
+        showResultText('step3Result', 'success', 'Chain configuration generated! Proceed to test it.');
         setTimeout(() => {
             goToStep(4);
             updateStep4TestMode();
@@ -1019,7 +1012,7 @@
     // --- Step 4: Test ---
     async function handleStep4Test() {
         if (!chainConfig) {
-            showResult('step4Result', 'error', 'No chain config generated. Go back to Step 3.');
+            showResultText('step4Result', 'error', 'No chain config generated. Go back to Step 3.');
             return;
         }
 
@@ -1028,7 +1021,7 @@
             return;
         }
 
-        showResult('step4Result', 'pending', 'Testing chain connectivity... This may take up to 15 seconds.');
+        showResultText('step4Result', 'pending', 'Testing chain connectivity... This may take up to 15 seconds.');
         const testBtn = $('#step4Test');
         if (testBtn) testBtn.disabled = true;
 
@@ -1043,14 +1036,14 @@
             if (resp.ok) {
                 const result = await resp.json();
                 if (result.success) {
-                    showResult('step4Result', 'success',
+                    showResultHTML('step4Result', 'success',
                         `<strong>Chain is working!</strong> Latency: ${escapeHtml(result.latency || 'N/A')}ms` +
                         (result.exit_ip ? ` | Exit IP: ${escapeHtml(result.exit_ip)}` : '')
                     );
                     const nextBtn = $('#step4Next');
                     if (nextBtn) nextBtn.disabled = false;
                 } else {
-                    showResult('step4Result', 'error',
+                    showResultHTML('step4Result', 'error',
                         `<strong>Test failed:</strong> ${escapeHtml(result.error || 'Unknown error')}. Check troubleshooting below.`
                     );
                 }
@@ -1068,7 +1061,7 @@
 
     function showManualTestInstructions() {
         const configStr = JSON.stringify(chainConfig, null, 2);
-        showResult('step4Result', 'info',
+        showResultHTML('step4Result', 'info',
             '<strong>Live test unavailable</strong> (static hosting detected).<br><br>' +
             'To test manually:<br>' +
             '1. Save the config above to a file (e.g. <code>chain.json</code>)<br>' +
@@ -1084,7 +1077,7 @@
     // --- Step 5: Export ---
     function handleStep5Export() {
         if (!chainConfig) {
-            showResult('step5Result', 'error', 'No chain config. Go back and complete previous steps.');
+            showResultText('step5Result', 'error', 'No chain config. Go back and complete previous steps.');
             return;
         }
 
@@ -1115,7 +1108,7 @@
                 break;
             case 'qr':
                 generateQR(parsedProxy ? parsedProxy.config : '');
-                showResult('step5Result', 'success', 'Offline QR payload ready. Copy it into a trusted local QR tool or VPN client.');
+                showResultText('step5Result', 'success', 'Offline QR payload ready. Copy it into a trusted local QR tool or VPN client.');
                 return;
             case 'script-python':
                 content = buildPythonScript();
@@ -1142,7 +1135,7 @@
         window._labExportContent = content;
         window._labExportFilename = filename;
 
-        showResult('step5Result', 'success', `${escapeHtml(format.toUpperCase())} export ready. Copy or download the config.`);
+        showResultText('step5Result', 'success', `${escapeHtml(format.toUpperCase())} export ready. Copy or download the config.`);
     }
 
     function singboxOutboundToClash(sbOut) {
@@ -1233,8 +1226,12 @@
             blocks.push(block);
         }
         const primaryTag = proxyOuts.length > 0 ? proxyOuts[0].tag : 'DIRECT';
+        let vwarpComment = '';
+        if (chainConfig._vwarp) {
+            vwarpComment = `\n# VWARP Metadata: ${JSON.stringify(chainConfig._vwarp)}`;
+        }
         return `# ConfigStream Chain Config (Clash/Mihomo)
-# Generated by ConfigStream Laboratory
+# Generated by ConfigStream Laboratory${vwarpComment}
 mixed-port: 2080
 allow-lan: false
 
@@ -1362,6 +1359,9 @@ rules:
             outbounds: [],
             routing: { rules: [{ type: 'field', inboundTag: ['socks'], outboundTag: chainConfig.outbounds[0].tag }] }
         };
+        if (chainConfig._vwarp) {
+            xray._vwarp = chainConfig._vwarp;
+        }
         // Convert each sing-box outbound to Xray format, preserving chain via proxySettings
         for (const sbOut of chainConfig.outbounds) {
             if (sbOut.type === 'direct') {
@@ -1384,6 +1384,7 @@ rules:
 
     function buildPythonScript() {
         const configJson = JSON.stringify(chainConfig).replace(/'/g, "\\'");
+        const vwarpPrint = chainConfig._vwarp ? `\n    print("[*] Note: Config uses Vwarp metadata:", CONFIG.get("_vwarp"))` : '';
         return `#!/usr/bin/env python3
 """ConfigStream Chain Runner - Generated by Laboratory
 Downloads sing-box if needed and runs the chain config.
@@ -1419,7 +1420,7 @@ def main():
     with open(cfg_path, "w") as f:
         json.dump(CONFIG, f)
     print(f"[*] Starting chain proxy on 127.0.0.1:2080")
-    print(f"[*] Set your browser/system proxy to socks5://127.0.0.1:2080")
+    print(f"[*] Set your browser/system proxy to socks5://127.0.0.1:2080")${vwarpPrint}
     try:
         subprocess.run([binary, "run", "-c", cfg_path], check=True)
     except KeyboardInterrupt:
@@ -1434,6 +1435,7 @@ if __name__ == "__main__":
 
     function buildBashScript() {
         const configJson = JSON.stringify(chainConfig);
+        const vwarpEcho = chainConfig._vwarp ? `\necho "[*] Note: Config uses Vwarp metadata: ${JSON.stringify(chainConfig._vwarp).replace(/"/g, '\\"')}"` : '';
         return `#!/usr/bin/env bash
 # ConfigStream Chain Runner - Generated by Laboratory
 set -euo pipefail
@@ -1458,7 +1460,7 @@ command -v sing-box >/dev/null 2>&1 || {
 CFG=$(mktemp /tmp/cs-chain-XXXX.json)
 echo "$CONFIG" > "$CFG"
 echo "[*] Starting chain proxy on 127.0.0.1:$LISTEN_PORT"
-echo "[*] Set your proxy to socks5://127.0.0.1:$LISTEN_PORT"
+echo "[*] Set your proxy to socks5://127.0.0.1:$LISTEN_PORT"${vwarpEcho}
 trap "rm -f $CFG" EXIT
 sing-box run -c "$CFG"
 `;
@@ -1475,7 +1477,36 @@ sing-box run -c "$CFG"
         const title = document.createElement('strong');
         title.textContent = 'Offline QR payload';
         const note = document.createElement('p');
-        note.textContent = 'External QR services are disabled so proxy material never leaves your browser. Copy this payload into an offline QR tool or your VPN client import screen.';
+        note.textContent = 'External QR services are disabled so proxy material never leaves your browser. Copy this payload or scan the offline QR code below.';
+
+        // QR Code SVG rendering
+        const qrWrapper = document.createElement('div');
+        qrWrapper.className = 'lab-qr-wrapper';
+        qrWrapper.style.background = '#fff';
+        qrWrapper.style.padding = '10px';
+        qrWrapper.style.display = 'inline-block';
+        qrWrapper.style.marginTop = '1rem';
+        qrWrapper.style.borderRadius = '5px';
+
+        try {
+            if (typeof QRCode !== 'undefined') {
+                const qr = new QRCode({
+                    content: payload,
+                    padding: 2,
+                    width: 256,
+                    height: 256,
+                    color: '#000000',
+                    background: '#ffffff',
+                    ecl: 'M'
+                });
+                qrWrapper.innerHTML = qr.svg();
+            } else {
+                qrWrapper.textContent = 'QR renderer unavailable offline.';
+            }
+        } catch (e) {
+            console.error('QR rendering failed:', e);
+            qrWrapper.textContent = 'Error rendering QR code.';
+        }
 
         const code = document.createElement('pre');
         code.className = 'lab-code';
@@ -1503,7 +1534,7 @@ sing-box run -c "$CFG"
             });
         });
 
-        panel.append(title, note, code, copyBtn);
+        panel.append(title, note, qrWrapper, code, copyBtn);
         qrDiv.appendChild(panel);
         qrDiv.style.display = 'block';
         $('#exportOutput').style.display = 'none';
@@ -1513,7 +1544,7 @@ sing-box run -c "$CFG"
         const content = window._labExportContent;
         const filename = window._labExportFilename;
         if (!content) {
-            showResult('step5Result', 'error', 'Generate an export first.');
+            showResultText('step5Result', 'error', 'Generate an export first.');
             return;
         }
         const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
@@ -1560,15 +1591,36 @@ sing-box run -c "$CFG"
             if (lines.length > 0) {
                 const textarea = $('#proxyUri');
                 if (textarea) textarea.value = lines[0];
-                showResult('step1Result', 'info', `Loaded ${lines.length} proxy(s) from subscription. First one selected.`);
+                showResultText('step1Result', 'info', `Loaded ${lines.length} proxy(s) from subscription. First one selected.`);
             }
         } catch {
-            showResult('step1Result', 'error', 'Could not load subscription. Try pasting a proxy URI manually.');
+            showResultText('step1Result', 'error', 'Could not load subscription. Try pasting a proxy URI manually.');
         }
     }
 
     // --- Init ---
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            const resp = await fetch((window.ROOT_PATH || '') + 'assets/data/lab_strategies.json?cb=' + Date.now());
+            if (resp.ok) {
+                const data = await resp.json();
+                const select = $('#chainType');
+                if (select) select.innerHTML = '';
+                data.strategies.forEach(s => {
+                    STRATEGY_MANIFEST[s.id] = s;
+                    if (select) {
+                        const opt = document.createElement('option');
+                        opt.value = s.id;
+                        opt.textContent = s.label;
+                        select.appendChild(opt);
+                    }
+                });
+                handleChainTypeChange();
+            }
+        } catch (e) {
+            console.error('Failed to load lab strategies', e);
+        }
+
         updateStep4TestMode();
         // Step navigation via dots
         $$('.lab-step-dot').forEach(dot => {
@@ -1617,7 +1669,7 @@ sing-box run -c "$CFG"
                 const proxies = await fetchPipelineProxies();
                 this.textContent = '\u{1F4E6} Pipeline';
                 if (proxies.length === 0) {
-                    showResult('step3Result', 'info', 'No pipeline proxies available. Paste a URI manually.');
+                    showResultText('step3Result', 'info', 'No pipeline proxies available. Paste a URI manually.');
                     return;
                 }
                 // Show a simple prompt with first 20 proxies
