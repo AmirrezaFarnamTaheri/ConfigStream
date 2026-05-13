@@ -157,7 +157,7 @@ async def test_chain_config(
                     loop.run_in_executor(None, sb_instance.stop),
                     timeout=5.0,
                 )
-            except Exception:
+            except Exception:  # nosec
                 pass
 
         if latency is None:
