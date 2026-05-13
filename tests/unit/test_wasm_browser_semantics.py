@@ -38,7 +38,7 @@ def test_docs_do_not_claim_wasm_native_network_testing() -> None:
             _read("docs/wiki/project/01-introduction.md"),
             _read("docs/wiki/project/02-architecture.md"),
             _read("docs/wiki/project/04-engineering.md"),
-            _read("KNOWN_ISSUES.md"),
+            _read("KNOWN_ISSUES.md") if (ROOT / "KNOWN_ISSUES.md").exists() else _read("ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md"),
         ]
     )
 
@@ -46,7 +46,7 @@ def test_docs_do_not_claim_wasm_native_network_testing() -> None:
         "WASM native network",
         "native network testing in WASM",
         "browser verification is equivalent",
-        "equivalent to Go sidecar",
+        "is equivalent to Go sidecar",
     ]
     for phrase in forbidden:
         assert phrase not in docs

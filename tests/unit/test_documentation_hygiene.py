@@ -29,7 +29,7 @@ def test_known_issues_does_not_reference_resolved_wasm_limitation_as_open() -> N
     try:
         known_issues = _read("KNOWN_ISSUES.md")
     except FileNotFoundError:
-        return
+        known_issues = _read("ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md")
     assert "particularly the Go WASM networking limitation" not in known_issues
     assert "browser-limited reachability checks" in known_issues
     assert "sidecar/Python test results remain authoritative" in known_issues

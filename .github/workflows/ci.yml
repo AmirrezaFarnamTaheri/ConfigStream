@@ -132,6 +132,8 @@ jobs:
         run: pip install -e .[dev]
       - name: Install frontend dependencies
         run: npm ci
+      - name: Install Node Playwright browser
+        run: npx playwright install --with-deps chromium
       - name: Install Python Playwright browser
         run: python -m playwright install --with-deps chromium
       - name: Run required frontend browser profile
