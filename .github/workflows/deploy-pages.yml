@@ -178,7 +178,7 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: output
-          retention-days: 7
+          retention-days: 30
 
       - name: Deploy to GitHub Pages
         if: env.HAS_OUTPUT == 'true'
