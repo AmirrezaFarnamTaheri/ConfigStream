@@ -103,6 +103,8 @@ jobs:
         run: npm ci
       - name: Build frontend assets
         run: npm run build
+      - name: Install Node Playwright browser
+        run: npx playwright install --with-deps chromium
       - name: Same-origin frontend smoke
         run: npm run test:frontend:no-network
       - name: Degraded no-JS frontend smoke
