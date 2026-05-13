@@ -3428,7 +3428,7 @@ Read-only audit completed. I did not implement anything after your “report onl
   - bookkeeping updates
 - Untracked/generated items currently present:
   - [Lastest Outputs](<C:/Users/ACER/Documents/GitHub/ConfigStream/Lastest Outputs>)
-  - `frontend-dist/`
+
   - empty `NL`, `US`
   - zero-byte [header-bg.png](C:/Users/ACER/Documents/GitHub/ConfigStream/frontend/assets/images/header-bg.png)
   - [qrcode.js](C:/Users/ACER/Documents/GitHub/ConfigStream/frontend/assets/js/utils/qrcode.js)
@@ -3546,7 +3546,7 @@ The screenshots show several important UX/trust mismatches:
   - Result: `AttributeError`.
   - The test also looks like a benchmark-style test; it needs to be converted into deterministic cache behavior coverage.
 - `frontend/assets/images/header-bg.png` is zero bytes and cannot be viewed/rendered.
-- `frontend-dist/` is present and untracked; it should be cleaned before any commit.
+ is present and untracked; it should be cleaned before any commit.
 - `Lastest Outputs/` is present and untracked; it should not be committed.
 - Empty `NL` and `US` files are untracked and look accidental.
 - New log-sanitization edits import `SecurityValidator` in files where it appears unused. This may fail `flake8` with F401 unless cleaned.
@@ -3581,7 +3581,7 @@ No full production-smoke or full suite was run in this report-only pass.
    - Add no-network/file-style browser proof.
 
 4. Clean generated/untracked junk.
-   - Remove or ignore `frontend-dist/`, `Lastest Outputs/`, `NL`, `US`.
+   - Remove or ignore `Lastest Outputs/`, `NL`, `US`.
    - Replace or remove zero-byte `header-bg.png`.
 
 5. Finish server cache safely.
@@ -3599,7 +3599,7 @@ No full production-smoke or full suite was run in this report-only pass.
    - focused tests for changed areas
    - `python scripts/run_test_profile.py production-smoke`
    - `CONFIGSTREAM_REQUIRE_PLAYWRIGHT=1 python scripts/run_test_profile.py frontend-browser`
-   - clean `frontend-dist/` after Vite build
+
 
 Bottom line: core architecture is much stronger than before, but the latest actual output is not healthy. The next real priority is not another feature; it is aligning generated output, metadata, frontend labels, and screenshots so a failed/zero-working run cannot visually present itself as verified online capacity.
 
@@ -3612,7 +3612,7 @@ The current dirty tree also contains several partial changes that need either fi
 - Lab dynamic strategy loading: partial, risks offline fallback regression
 - QR renderer: partial, untracked provenance needs review
 - server JSON cache: partial, current test fails because it patches the wrong target
-- `frontend-dist/`, `Lastest Outputs/`, `NL`, `US`, and zero-byte `header-bg.png`: should not be committed as-is
+- `Lastest Outputs/`, `NL`, `US`, and zero-byte `header-bg.png`: should not be committed as-is
 
 Validation from the audit:
 - passed: workflow/status/claim/docs validators
@@ -3645,7 +3645,7 @@ Still pending:
 - Repair `tests/unit/test_server_concurrent_cache.py`; it currently patches the wrong symbol and targets a route that does not exercise the JSON cache.
 - Add/adjust a frontend trust test proving shielded candidate rendering.
 - Run focused pytest/validation.
-- Clean generated `frontend-dist/` after validation.
+
 - Decide whether to preserve Lab static fallback options in parallel with dynamic manifest loading.
 
 **Current Risk**
@@ -4718,7 +4718,7 @@ Observed local state at this amendment checkpoint:
 Untracked or generated items observed locally:
 
 - `Lastest Outputs/`
-- `frontend-dist/`
+
 - empty `NL`
 - empty `US`
 - zero-byte `frontend/assets/images/header-bg.png`
@@ -4990,7 +4990,7 @@ The following items remain explicitly problematic and must not be lost in later 
 12. Source optimization still mutates the repository from scheduled data workflow.
 13. `tests/unit/test_server_concurrent_cache.py` is failing and must not be counted as green.
 14. `frontend/assets/images/header-bg.png` is zero bytes.
-15. `frontend-dist/`, `Lastest Outputs/`, `NL`, and `US` should not be committed as-is.
+15. `Lastest Outputs/`, `NL`, and `US` should not be committed as-is.
 
 ##### 1A.14 Updated Immediate Roadmap
 
@@ -5035,7 +5035,7 @@ Before the next commit, run at minimum:
 - focused tests for changed areas
 - `python scripts/run_test_profile.py production-smoke`
 - `CONFIGSTREAM_REQUIRE_PLAYWRIGHT=1 python scripts/run_test_profile.py frontend-browser`
-- clean generated `frontend-dist/` after Vite/build-producing checks
+
 
 Bottom line: core architecture is much stronger than before, but the latest actual output is not healthy. A failed/zero-working run cannot be allowed to present itself as verified online capacity.
 
