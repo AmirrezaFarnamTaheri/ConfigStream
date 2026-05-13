@@ -44,7 +44,7 @@ pydantic-settings==2.12.0
 pydantic_core==2.41.5
 pyee==13.0.0
 Pygments==2.20.0
-python-dotenv==1.2.1
+python-dotenv==1.2.2
 python-socks==2.8.0
 python-telegram-bot==22.5
 PyYAML==6.0.3
@@ -59,7 +59,7 @@ threadpoolctl==3.6.0
 types-cachetools==6.2.0.20251022
 typing-inspection==0.4.2
 typing_extensions==4.15.0
-urllib3==2.6.3
+urllib3==2.7.0
 uvicorn==0.40.0
 wasmtime==40.0.0
 yarl==1.22.0
