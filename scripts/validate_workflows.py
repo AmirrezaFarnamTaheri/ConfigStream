@@ -54,6 +54,30 @@ def _main_has_durable_pipeline_output(path: Path) -> bool:
     )
 
 
+
+
+def _deploy_pages_has_durable_pipeline_output(path: Path) -> bool:
+    try:
+        content = path.read_text(encoding="utf-8")
+    except OSError:
+        return False
+    return (
+        "uses: actions/upload-pages-artifact@v3" in content
+        and "retention-days: 30" in content
+    )
+
+
+def _retest_has_durable_pipeline_output(path: Path) -> bool:
+    try:
+        content = path.read_text(encoding="utf-8")
+    except OSError:
+        return False
+    return (
+        "name: pipeline-output" in content
+        and "retention-days: 30" in content
+    )
+
+
 def _main_publishes_reshard_recommendation(path: Path) -> bool:
     try:
         content = path.read_text(encoding="utf-8")
@@ -192,9 +216,19 @@ def main() -> int:
             errors.append(
                 f"{path}: dynamic resharding must publish an artifact recommendation"
             )
+
         if path.name == "main.yml" and not _main_has_durable_pipeline_output(path):
             errors.append(
                 f"{path}: pipeline-output artifact retention must be durable"
+            )
+
+        if path.name == "retest.yml" and not _retest_has_durable_pipeline_output(path):
+            errors.append(
+                f"{path}: pipeline-output artifact retention must be durable"
+            )
+        if path.name == "deploy-pages.yml" and not _deploy_pages_has_durable_pipeline_output(path):
+            errors.append(
+                f"{path}: Pages artifact retention must be durable"
             )
         if path.name == "main.yml" and not _main_release_assets_use_output_contract(
             path

@@ -229,3 +229,56 @@ jobs:
     monkeypatch.setattr(validate_workflows, "WORKFLOW_DIR", workflow_dir)
 
     assert validate_workflows.main() == 1
+
+
+def test_validate_workflows_rejects_short_pipeline_retention_retest(
+    tmp_path: Path, monkeypatch
+) -> None:
+    workflow_dir = tmp_path / ".github" / "workflows"
+    workflow_dir.mkdir(parents=True)
+    (workflow_dir / "retest.yml").write_text(
+        """
+name: Retest
+on:
+  workflow_dispatch:
+concurrency:
+  group: retest
+jobs:
+  data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-output
+          path: output/
+          retention-days: 3
+"""
+    )
+    monkeypatch.setattr("scripts.validate_workflows.WORKFLOW_DIR", workflow_dir)
+    assert validate_workflows.main() != 0
+
+
+def test_validate_workflows_rejects_short_pipeline_retention_deploy_pages(
+    tmp_path: Path, monkeypatch
+) -> None:
+    workflow_dir = tmp_path / ".github" / "workflows"
+    workflow_dir.mkdir(parents=True)
+    (workflow_dir / "deploy-pages.yml").write_text(
+        """
+name: Deploy Pages
+on:
+  workflow_dispatch:
+concurrency:
+  group: pages
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: output
+          retention-days: 7
+"""
+    )
+    monkeypatch.setattr("scripts.validate_workflows.WORKFLOW_DIR", workflow_dir)
+    assert validate_workflows.main() != 0
