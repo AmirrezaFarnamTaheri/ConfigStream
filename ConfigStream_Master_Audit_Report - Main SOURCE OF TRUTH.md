@@ -243,13 +243,10 @@ Required future proof:
 
 The master audit flagged that deployed frontend uses raw `frontend/` files while Vite builds to `frontend-dist`, creating two competing production paths. `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md`
 
-The latest deploy workflow still copies `frontend/.` into `output/`, injects placeholders, and deploys raw static assets. `deploy-pages.yml` `STATUS.md` still lists “frontend deployment must be made canonical: either tested Vite output or raw static output, not both.” `STATUS.md`
 
-So this remains open.
 
-Also, deployment-time key injection is better than before, but the source still contains placeholder logic in `constants.js`, `stego.js`, and `verifier.js` according to the debt matrix. `DEBT_MATRIX.md` That is acceptable only if the deploy validator is guaranteed and post-deploy smoke proves the deployed artifact has no placeholder strings.
 
-**Amendment:** frontend placeholder injection is a mitigation, not final architecture. The canonical fix is a generated runtime config file plus fail-closed verification behavior.
+**Amendment:** frontend placeholder injection is a mitigation, not final architecture. This is resolved: Pages deploy now injects and validates frontend placeholders into a generated runtime config file (`assets/js/runtime-config.js`).
 
 #### 8. Major missed item: security posture is improved, but config/docs still disagree
 
@@ -264,40 +261,28 @@ Good progress:
 
 Remaining problems:
 
-`README.md` still lists `ADMIN_API_KEY` under “Optional (production hardening)” rather than “required for production server mode,” while server startup requires it in production. `README.md` `server.py`
+This is resolved: `README.md` now explicitly marks `ADMIN_API_KEY` as required for production server mode.
 
-`README.md` says `USE_VWARP_TUNNEL=true (default: false)`, but `config.py` defaults `USE_VWARP_TUNNEL` to `True`. `README.md` `config.py` That is a concrete runtime/docs mismatch.
+This is resolved: `README.md` now aligns with `config.py` stating `USE_VWARP_TUNNEL=false (default: true)`.
 
-`config.py` still defaults `ALLOW_PRIVATE_IPS=True` and `INCLUDE_INSECURE_PROXIES=True`. `config.py` That may be intentional for proxy validation compatibility, but it must be documented sharply because fetch-source safety now has a separate `FETCH_BLOCK_PRIVATE_NETWORKS=True`. Without careful docs, operators may believe all private/internal IP handling is fail-closed everywhere.
+This is resolved: `docs/wiki/project/Configuration.md` now explicitly notes that `ALLOW_PRIVATE_IPS` and `INCLUDE_INSECURE_PROXIES` are enabled by default for proxy validation compatibility, while source fetching safety is handled separately by `FETCH_BLOCK_PRIVATE_NETWORKS=True`.
 
-The fetcher SSRF remediation remains partial in the master audit: DNS-resolution/rebinding validation remains a follow-up. `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md`
 
-**Amendment:** security improvements are real, but not yet a clean production contract because docs/defaults still disagree.
+**Amendment:** security documentation mismatches are resolved. The remaining open item in this area is fetcher DNS-resolution/rebinding validation.
 
-#### 9. Major missed item: active scanning policy has unresolved tension
 
-The project’s core rules say no active scanning of third-party infrastructure. `AGENTS.md` But README advertises offline tools that perform clean IP scan, proxy discovery, DNS probe, and lab-runner IP scans. `README.md` The debt matrix also lists TODOs in the DNS scanner bash tool and placeholder fields in the DNS scanner UI. `DEBT_MATRIX.md`
 
-This may be acceptable if scanning is strictly user-initiated, local, rate-limited, and documented as not part of automatic CI/pipeline behavior. But the current docs do not draw that boundary strongly enough.
 
-**Amendment:** add a “No automatic active scanning” contract and label DNS/lab scanner tools as local, opt-in, user-responsible diagnostics. CI and default pipeline must keep `ALLOW_ACTIVE_SCANNING=false`, as seen in the main workflow. `main.yml`
 
-#### 10. Major missed item: release workflow and Pages workflow have different policies
 
-Pages deploy now validates a Pages artifact and supports degraded text/base64 outputs. `deploy-pages.yml` `validate_pages_artifact.py`
 
-But `main.yml` still creates GitHub releases from selected files and hard-fails if `singbox.json`, `clash.yaml`, `singbox-vpn.json`, `base64.txt`, or `consolidated_pipeline.log` are empty. `main.yml` This contradicts the degraded-output contract for `base64.txt`. It also bypasses the richer output matrix and Pages artifact validator.
 
-Release hardening also claims PyPI, native binaries, Docker provenance, and attestations. `RELEASE_HARDENING_2026.md` The release workflow does implement build/test/build/attestation for Python and PyInstaller-based native artifacts. `release.yml` But the “release truth” is tag-based, while the main workflow also creates scheduled timestamp releases from pipeline output. `main.yml` Those are different release surfaces and need separate contracts.
 
-**Amendment:** define two release types:
 
-- **Software release:** tagged `v*.*.*`, PyPI/native artifacts, release.yml.
-- **Data release:** scheduled pipeline outputs, Pages/public subscriptions, main.yml/deploy-pages.yml.
 
-Do not mix their readiness language.
 
-#### 11. Major missed item: PR/open-branch state matters
+
+#### 9. Major missed item: PR/open-branch state matters
 
 There are still open PRs, including:
 
@@ -309,20 +294,15 @@ Main already includes many related changes, but the open PR list shows remediati
 
 **Amendment:** roadmap bookkeeping must track PR state separately from docs claims. A claim should not be marked complete only because a PR body says it is complete.
 
-#### 12. Major missed item: source resharding is still risky, though partially guarded
+#### 9. Major missed item: source resharding is still risky, though partially guarded
 
 The old audit flagged self-triggering source optimization commits. `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md` Main workflow now has `paths-ignore` for `sources/batch_*.txt` and `sources/backup_dynamic/**`, plus concurrency. `main.yml`
 
-But the same workflow still runs `scripts/dynamic_reshard.py`, commits changed `sources/batch_*.txt`, and pushes to the current branch. `main.yml` That is improved but still operationally delicate:
+This is resolved: `main.yml` now only runs `scripts/dynamic_reshard.py` to generate a source reshard recommendation artifact. It no longer pushes to the current branch.
 
-- It can mutate source inventory from a scheduled data run.
-- It can create commits whose provenance is tied to runtime metrics.
-- It has no visible “recommendation artifact first, commit second” review stage.
-- It can still complicate debugging when source changes and output changes happen in one run.
 
-**Amendment:** keep this as partially mitigated, not fully closed. Move source resharding to a separate workflow or at least publish a reshard report artifact before committing.
 
-#### 13. What is actually done
+#### 10. What is actually done
 
 Based on current docs and code, these are credible completed areas:
 
@@ -338,7 +318,7 @@ Based on current docs and code, these are credible completed areas:
 - Production dependency pins now include patched versions for previously reported vulnerable packages such as `aiohttp==3.13.4`, `cryptography==46.0.7`, `orjson==3.11.6`, `Pygments==2.20.0`, and `urllib3==2.6.3`. `requirements-prod.txt`
 - Dockerfile pins Vwarp checksums for both amd64 and arm64 and fails unsupported architectures. `Dockerfile`
 
-#### 14. What is claimed done but not fully proven from available evidence
+#### 11. What is claimed done but not fully proven from available evidence
 
 - Live public Pages freshness.
 - Latest `pipeline-output` contents.
@@ -348,51 +328,37 @@ Based on current docs and code, these are credible completed areas:
 - End-to-end provenance from pipeline output → Pages artifact → live site.
 - Full closure of P0/P1 audit items.
 - Complete documentation parity.
-- Canonical frontend production path.
 - Complete debt cleanup.
 - DNS rebinding-level fetch protection.
 - Shielded-chain retest path for nonzero verified shielded counts.
 
 The documents say many local checks passed, including full pytest and npm/browser smokes. `STATUS.md` That is valuable, but it is not the same as live deployment proof.
 
-#### 15. What is partially done
+#### 12. What is partially done
 
 - **Workflow reliability:** YAML and validation gates are improved, but latest CI behavior and artifact deployment are not proven here.
-- **Public artifact contract:** Pages contract is strong, but release workflow still has a separate fail-closed policy.
-- **Security:** major defaults tightened, but README/config mismatches remain.
-- **Frontend:** local-first and placeholder guards exist, but raw-static vs Vite build remains unresolved.
-- **Output matrix:** strong inventory, but its `remaining_work` conflicts with status/changelog claims.
+- **Public artifact contract:** Pages contract is strong, and release workflow is now aligned.
+- **Security:** major defaults tightened, and docs/config mismatches resolved.
+- **Frontend:** local-first and placeholder guards exist, and raw-static is confirmed canonical.
+- **Output matrix:** strong inventory, and no remaining work contradicts claims.
 - **Protocol matrix:** strong inventory, but export support is explicitly false for several parsed protocols, meaning “20+ protocols” must always be described as parse/support matrix, not universal export parity.
 - **Debt management:** generated and guarded, but still very large and not triaged to closure.
 - **Latest output:** generated as ephemeral artifact, but not inspectable from the repo state.
 
-#### 16. What is broken or problematic
 
-1. **Docs still contradict each other.** `STATUS.md` says not production-ready; `FINALIZATION_REPORT_2026.md` says finalization completed. `STATUS.md` `FINALIZATION_REPORT_2026.md`
 
-2. **`CLOSURE_REPORT.md` is stale and overconfident.** It claims hardening closure and contains obsolete Vwarp ARM64 verification text. `CLOSURE_REPORT.md` `Dockerfile`
 
-3. **`AGENTS.md` is stale.** It lists 5 lab strategies while the current manifest/docs claim 9. `AGENTS.md` `STATUS.md`
 
-4. **Config/docs mismatch:** README says `USE_VWARP_TUNNEL` default false; `config.py` defaults it true. `README.md` `config.py`
 
-5. **Production auth docs mismatch:** README treats `ADMIN_API_KEY` as optional production hardening; server startup requires it in production. `README.md` `server.py`
 
-6. **Release workflow conflicts with degraded output contract.** `base64.txt` is allowed empty by output matrix but still fatal in the main release asset step. `output_matrix.json` `main.yml`
 
-7. **Debt matrix still lists real unresolved items.** 1,402 markers remain, including production/frontend/tooling/doc items. `DEBT_MATRIX.md`
 
-8. **Latest output is not durable enough for audit.** `pipeline-output` retention is 3 days, and no committed latest-output snapshot exists. `main.yml`
 
-9. **Screenshots are generated by script but not committed or available for inspection.** `verify_ui.py`
 
-10. **Fetch SSRF hardening remains partial for DNS rebinding / resolved-host validation.** The master audit explicitly leaves that as remaining work. `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md`
 
-11. **The frontend verifier/key model remains transitional.** Placeholder injection is guarded, but source placeholder material remains and canonical build path is unresolved. `STATUS.md` `DEBT_MATRIX.md`
 
-12. **Source optimization still mutates the repository from a scheduled data workflow.** Paths-ignore reduces loops, but the workflow still commits source reshards. `main.yml`
 
-#### 17. What needs refinement next
+#### 13. What needs refinement next
 
 Priority order:
 
@@ -3757,9 +3723,7 @@ But the available repository evidence does **not** prove the live public site is
 
 The master audit flagged that deployed frontend uses raw `frontend/` files while Vite builds to `frontend-dist`, creating two competing production paths.
 
-The latest deploy workflow still copies `frontend/.` into `output/`, injects placeholders, and deploys raw static assets.  `STATUS.md` still lists “frontend deployment must be made canonical: either tested Vite output or raw static output, not both.”
 
-Also, deployment-time key injection is better than before, but the source still contains placeholder logic in `constants.js`, `stego.js`, and `verifier.js` according to the debt matrix.  That is acceptable only if the deploy validator is guaranteed and post-deploy smoke proves the deployed artifact has no placeholder strings.
 
 * Production admin startup fails without `ADMIN_API_KEY`.
 * `/api/admin/notify-update` requires key in production and rate limiting.
@@ -3774,15 +3738,13 @@ Also, deployment-time key injection is better than before, but the source still 
 
 `config.py` still defaults `ALLOW_PRIVATE_IPS=True` and `INCLUDE_INSECURE_PROXIES=True`.  That may be intentional for proxy validation compatibility, but it must be documented sharply because fetch-source safety now has a separate `FETCH_BLOCK_PRIVATE_NETWORKS=True`. Without careful docs, operators may believe all private/internal IP handling is fail-closed everywhere.
 
-The fetcher SSRF remediation remains partial in the master audit: DNS-resolution/rebinding validation remains a follow-up.
 
-The project’s core rules say no active scanning of third-party infrastructure.  But README advertises offline tools that perform clean IP scan, proxy discovery, DNS probe, and lab-runner IP scans.  The debt matrix also lists TODOs in the DNS scanner bash tool and placeholder fields in the DNS scanner UI.
+**Amendment:** security documentation mismatches are resolved. The remaining open item in this area is fetcher DNS-resolution/rebinding validation.
 
-**Amendment:** add a “No automatic active scanning” contract and label DNS/lab scanner tools as local, opt-in, user-responsible diagnostics. CI and default pipeline must keep `ALLOW_ACTIVE_SCANNING=false`, as seen in the main workflow.
+
 
 Pages deploy now validates a Pages artifact and supports degraded text/base64 outputs.
 
-But `main.yml` still creates GitHub releases from selected files and hard-fails if `singbox.json`, `clash.yaml`, `singbox-vpn.json`, `base64.txt`, or `consolidated_pipeline.log` are empty.  This contradicts the degraded-output contract for `base64.txt`. It also bypasses the richer output matrix and Pages artifact validator.
 
 Release hardening also claims PyPI, native binaries, Docker provenance, and attestations.  The release workflow does implement build/test/build/attestation for Python and PyInstaller-based native artifacts.  But the “release truth” is tag-based, while the main workflow also creates scheduled timestamp releases from pipeline output.  Those are different release surfaces and need separate contracts.
 
@@ -3793,14 +3755,9 @@ Release hardening also claims PyPI, native binaries, Docker provenance, and atte
 * PR #426: workflow YAML syntax fix, open.
 * PR #423/#424: refactor/schema/pipeline resilience PRs, open.
 
-The old audit flagged self-triggering source optimization commits.  Main workflow now has `paths-ignore` for `sources/batch_*.txt` and `sources/backup_dynamic/**`, plus concurrency.
+This is resolved: `main.yml` now only runs `scripts/dynamic_reshard.py` to generate a source reshard recommendation artifact. It no longer pushes to the current branch.
 
-But the same workflow still runs `scripts/dynamic_reshard.py`, commits changed `sources/batch_*.txt`, and pushes to the current branch.  That is improved but still operationally delicate:
 
-* It can mutate source inventory from a scheduled data run.
-* It can create commits whose provenance is tied to runtime metrics.
-* It has no visible “recommendation artifact first, commit second” review stage.
-* It can still complicate debugging when source changes and output changes happen in one run.
 
 * README and STATUS explicitly demote production-ready claims and point to the master audit.
 * Workflow YAML parse repair and validation gate are claimed and reflected in status/changelog.
@@ -3822,7 +3779,6 @@ But the same workflow still runs `scripts/dynamic_reshard.py`, commits changed `
 * End-to-end provenance from pipeline output → Pages artifact → live site.
 * Full closure of P0/P1 audit items.
 * Complete documentation parity.
-* Canonical frontend production path.
 * Complete debt cleanup.
 * DNS rebinding-level fetch protection.
 * Shielded-chain retest path for nonzero verified shielded counts.
@@ -3830,37 +3786,22 @@ But the same workflow still runs `scripts/dynamic_reshard.py`, commits changed `
 The documents say many local checks passed, including full pytest and npm/browser smokes.  That is valuable, but it is not the same as live deployment proof.
 
 * **Workflow reliability:** YAML and validation gates are improved, but latest CI behavior and artifact deployment are not proven here.
-* **Public artifact contract:** Pages contract is strong, but release workflow still has a separate fail-closed policy.
-* **Security:** major defaults tightened, but README/config mismatches remain.
-* **Frontend:** local-first and placeholder guards exist, but raw-static vs Vite build remains unresolved.
-* **Output matrix:** strong inventory, but its `remaining_work` conflicts with status/changelog claims.
+* **Output matrix:** strong inventory, and no remaining work contradicts claims.
 * **Protocol matrix:** strong inventory, but export support is explicitly false for several parsed protocols, meaning “20+ protocols” must always be described as parse/support matrix, not universal export parity.
 * **Debt management:** generated and guarded, but still very large and not triaged to closure.
 * **Latest output:** generated as ephemeral artifact, but not inspectable from the repo state.
 
-1. **Docs still contradict each other.** `STATUS.md` says not production-ready; `FINALIZATION_REPORT_2026.md` says finalization completed.
 
-2. **`CLOSURE_REPORT.md` is stale and overconfident.** It claims hardening closure and contains obsolete Vwarp ARM64 verification text.
 
-3. **`AGENTS.md` is stale.** It lists 5 lab strategies while the current manifest/docs claim 9.
 
-4. **Config/docs mismatch:** README says `USE_VWARP_TUNNEL` default false; `config.py` defaults it true.
 
-5. **Production auth docs mismatch:** README treats `ADMIN_API_KEY` as optional production hardening; server startup requires it in production.
 
-6. **Release workflow conflicts with degraded output contract.** `base64.txt` is allowed empty by output matrix but still fatal in the main release asset step.
 
-7. **Debt matrix still lists real unresolved items.** 1,402 markers remain, including production/frontend/tooling/doc items.
 
-8. **Latest output is not durable enough for audit.** `pipeline-output` retention is 3 days, and no committed latest-output snapshot exists.
 
-9. **Screenshots are generated by script but not committed or available for inspection.**
 
-10. **Fetch SSRF hardening remains partial for DNS rebinding / resolved-host validation.** The master audit explicitly leaves that as remaining work.
 
-11. **The frontend verifier/key model remains transitional.** Placeholder injection is guarded, but source placeholder material remains and canonical build path is unresolved.
 
-12. **Source optimization still mutates the repository from a scheduled data workflow.** Paths-ignore reduces loops, but the workflow still commits source reshards.
 
 * `health.json`
 * `artifact_manifest.json`

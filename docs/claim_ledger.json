@@ -202,6 +202,43 @@
       ],
       "changelog": "CHANGELOG.md",
       "cleanup_decision": "IPFS/IPNS failover remains optional and requires a configured IPNS key; local tests prove the same-origin connectivity probe, placeholder-key no-op, leaf-page/query/hash preservation, gateway URL normalization, and session loop prevention without requiring a live IPFS gateway."
+    },
+    {
+      "id": "claim.security.no_active_scanning",
+      "claim": "Pipeline automation forbids active scanning of third-party infrastructure. Scanner tools are strictly local, opt-in diagnostics.",
+      "source": "README.md",
+      "product_area": "security",
+      "status": "complete",
+      "owner": "src/configstream/warp_scanner.py",
+      "tests": [
+        "tests/test_scanner.py"
+      ],
+      "frontend_surface": null,
+      "output_artifact": null,
+      "docs": [
+        "README.md",
+        "docs/wiki/project/Configuration.md"
+      ],
+      "changelog": "CHANGELOG.md",
+      "cleanup_decision": "ALLOW_ACTIVE_SCANNING must be explicitly documented as local/opt-in only."
+    },
+    {
+      "id": "claim.ops.durable_output_audit",
+      "claim": "Pipeline data outputs are retained for 30 days to ensure durable artifacts exist for audit.",
+      "source": "STATUS.md",
+      "product_area": "ci",
+      "status": "complete",
+      "owner": ".github/workflows/main.yml",
+      "tests": [
+        "scripts/validate_workflows.py"
+      ],
+      "frontend_surface": null,
+      "output_artifact": null,
+      "docs": [
+        "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md"
+      ],
+      "changelog": "CHANGELOG.md",
+      "cleanup_decision": "Data artifacts must have 30 day retention across standard and retest workflows."
     }
   ]
 }

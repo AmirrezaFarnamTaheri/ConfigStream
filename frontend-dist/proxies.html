@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Explore and filter our full list of tested VPN configurations. Find the best proxy by location, protocol, and latency.">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' ws: wss: data:; worker-src 'self' blob:; object-src 'self'; base-uri 'self'; form-action 'self';">
+    <title>Proxy List - ConfigStream</title>
+
+    <script>
+        window.ROOT_PATH = './';
+    </script>
+    <link rel="icon" type="image/svg+xml" href="./assets/favicon-CH9asLmD.svg">
+    <link rel="alternate icon" href="./assets/favicon-Bwmwy_Hq.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="./assets/favicon-16x16-B7uDy4EM.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="./assets/favicon-32x32-mTTvLmsu.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="./assets/apple-touch-icon-Fzfbj3D9.png">
+  <script type="module" crossorigin src="./assets/proxies-Ijk-F1hR.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/logger-CwEYLPGp.js">
+  <link rel="modulepreload" crossorigin href="./assets/main-DcYjDa7t.js">
+  <link rel="stylesheet" crossorigin href="./assets/proxies-CuOmCkCh.css">
+  <link rel="stylesheet" crossorigin href="./assets/style-pW6aRj9J.css">
+  <link rel="stylesheet" crossorigin href="./assets/loading-CuR8uSan.css">
+  <link rel="stylesheet" crossorigin href="./assets/logo-animations-BIfqoMnn.css">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen" role="status" aria-live="polite">
+      <div class="loading-container">
+        <!-- Logo Animation -->
+        <div class="loading-logo">
+          <object data="./assets/logo-loading-HDbDK9B3.svg" type="image/svg+xml" aria-label="ConfigStream Logo"></object>
+        </div>
+
+        <!-- Loading Message -->
+        <div class="loading-message">
+          <p class="loading-text" id="loadingText">Fetching latest configurations...</p>
+          <div class="loading-dots">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+        </div>
+
+        <!-- Progress hint -->
+        <p class="loading-hint" id="loadingHint">Taking longer than usual...</p>
+      </div>
+
+      <!-- Screen reader -->
+      <span class="sr-only" aria-atomic="true" id="loadingAnnounce">Loading content, please wait</span>
+    </div>
+    <div class="nav-overlay"></div>
+    <header class="header">
+        <div class="container">
+            <div class="header-logo-wrapper">
+              <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg" class="header-logo" id="headerLogo" aria-label="ConfigStream Logo">
+                <defs>
+                    <linearGradient id="logo-gradient-header" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="var(--brand-primary)">
+                            <animate attributeName="stop-color" values="var(--brand-primary);var(--brand-tertiary);var(--brand-secondary);var(--brand-primary)" dur="8s" repeatCount="indefinite"></animate>
+                        </stop>
+                        <stop offset="50%" stop-color="var(--brand-tertiary)">
+                            <animate attributeName="stop-color" values="var(--brand-tertiary);var(--brand-secondary);var(--brand-primary);var(--brand-tertiary)" dur="8s" repeatCount="indefinite"></animate>
+                        </stop>
+                        <stop offset="100%" stop-color="var(--brand-secondary)">
+                            <animate attributeName="stop-color" values="var(--brand-secondary);var(--brand-primary);var(--brand-tertiary);var(--brand-secondary)" dur="8s" repeatCount="indefinite"></animate>
+                        </stop>
+                    </linearGradient>
+                    <filter id="logo-shadow-header" x="-30%" y="-30%" width="160%" height="160%">
+                        <feDropShadow dx="1" dy="2" stdDeviation="3.5" flood-color="var(--brand-secondary)" flood-opacity="0.25"/>
+                    </filter>
+                </defs>
+                <g filter="url(#logo-shadow-header)">
+                    <path d="M33 8C40.1797 8 46 13.8203 46 21C46 28.1797 40.1797 34 33 34H17" stroke="url(#logo-gradient-header)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+                        <animate attributeName="d" values="M33 8C40.1797 8 46 13.8203 46 21C46 28.1797 40.1797 34 33 34H17;M33 10C40.1797 10 46 15.8203 46 23C46 30.1797 40.1797 36 33 36H17;M33 8C40.1797 8 46 13.8203 46 21C46 28.1797 40.1797 34 33 34H17" dur="8s" repeatCount="indefinite" />
+                    </path>
+                    <path d="M17 42C9.8203 42 4 36.1797 4 29C4 21.8203 9.8203 16 17 16H33" stroke="url(#logo-gradient-header)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none">
+                        <animate attributeName="d" values="M17 42C9.8203 42 4 36.1797 4 29C4 21.8203 9.8203 16 17 16H33;M17 40C9.8203 40 4 34.1797 4 27C4 19.8203 9.8203 14 17 14H33;M17 42C9.8203 42 4 36.1797 4 29C4 21.8203 9.8203 16 17 16H33" dur="8s" repeatCount="indefinite" />
+                    </path>
+                </g>
+              </svg>
+              <span class="header-logo-text">ConfigStream</span>
+            </div>
+            <nav class="nav" id="main-nav" aria-label="Main navigation">
+                <a href="index.html" class="nav-link" data-i18n="nav.home">Home</a>
+                <a href="proxies.html" class="nav-link" data-i18n="nav.proxies">Proxy List</a>
+                <a href="analytics.html" class="nav-link" data-i18n="nav.analytics">Analytics</a>
+                <a href="lab.html" class="nav-link" data-i18n="nav.lab">Lab</a>
+                <a href="wiki.html" class="nav-link" data-i18n="nav.wiki">Wiki</a>
+                <a href="about.html" class="nav-link" data-i18n="nav.about">About</a>
+            </nav>
+            <div class="header-actions">
+                <!-- Modern Language Dropdown -->
+                <div class="lang-dropdown">
+                    <button class="lang-btn" aria-label="Select Language">
+                        <i data-feather="globe"></i> <span id="current-lang-label"></span>
+                    </button>
+                    <div class="lang-menu" id="lang-menu">
+                        <button onclick="window.i18n.setLanguage('en')">English</button>
+                        <button onclick="window.i18n.setLanguage('zh')">中文</button>
+                        <button onclick="window.i18n.setLanguage('ru')">Русский</button>
+                        <button onclick="window.i18n.setLanguage('fa')">فارسی</button>
+                        <button onclick="window.i18n.setLanguage('ar')">العربية</button>
+                    </div>
+                </div>
+
+                <button id="theme-switcher" class="theme-btn" aria-label="Toggle theme">
+                    <div class="theme-btn-inner">
+                        <i data-feather="moon" class="moon-icon"></i>
+                        <i data-feather="sun" class="sun-icon"></i>
+                    </div>
+                </button>
+                <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream" class="github-btn" target="_blank" rel="noopener noreferrer" aria-label="View on GitHub">
+                    <i data-feather="github"></i>
+                </a>
+                <button class="mobile-nav-toggle" id="mobile-nav-toggle" aria-label="Open navigation menu" aria-expanded="false" aria-controls="main-nav">
+                    <i data-feather="menu" class="menu-icon"></i>
+                    <i data-feather="x" class="close-icon"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <section id="proxies-card" class="card">
+                <div class="card-header">
+                    <h2 data-i18n="proxies.hero.title">Live Proxy List</h2>
+                    <p data-i18n="proxies.hero.subtitle">Explore our complete list of vetted proxies. Search, sort, and find the perfect connection for your needs.</p>
+                </div>
+
+                <!-- Modern BYOW Panel -->
+                <div class="byow-panel">
+                    <div class="byow-header">
+                        <h3 data-i18n="byow.title">🚀 Turbo Mode (BYOW)</h3>
+                        <p class="hint" data-i18n="byow.hint">Deploy your own worker for private speeds.</p>
+                    </div>
+                    <div class="byow-actions">
+                        <input type="text" id="worker-url" data-i18n="byow.url.placeholder" placeholder="Paste Worker URL..." class="input-modern">
+                        <input type="text" id="worker-uuid" data-i18n="byow.uuid.placeholder" placeholder="UUID (Optional)" class="input-modern input-short">
+                        <button id="apply-byow" onclick="applyBYOW()" class="btn btn-primary" data-i18n="byow.apply">Apply</button>
+                    </div>
+                    <div id="byow-links" style="width: 100%; text-align: right; display:none; margin-top: 10px;">
+                        <a id="btn-singbox-byow" class="btn btn-success" data-i18n="byow.download">Download Turbo Config</a>
+                    </div>
+                </div>
+
+                <div class="filter-controls-redesigned">
+                    <!-- Search Input (Natural Language) -->
+                    <div class="filter-bar" style="margin-bottom: 1rem;">
+                        <div class="filter-input-wrapper" style="width: 100%;">
+                            <i data-feather="search" class="filter-icon"></i>
+                            <input type="text" id="searchInput" data-i18n="filters.search" placeholder="e.g., fastest US vmess, or Germany < 100ms" aria-label="Search proxies">
+                        </div>
+                    </div>
+
+                    <div class="filter-bar">
+                        <div class="filter-group">
+                            <div class="filter-input-wrapper">
+                                <i data-feather="list" class="filter-icon"></i>
+                                <select id="filterProtocol" aria-label="Filter by protocol">
+                                    <option value="" data-i18n="filters.protocol">All Protocols</option>
+                                </select>
+                            </div>
+                            <div class="filter-input-wrapper">
+                                <i data-feather="map-pin" class="filter-icon"></i>
+                                <span class="country-flag-display" id="countryFlagDisplay">
+                                    <i data-feather="globe" class="country-flag-icon-small"></i>
+                                </span>
+                                <select id="filterCountry" aria-label="Filter by country">
+                                    <option value="" data-i18n="filters.country">All Countries</option>
+                                </select>
+                            </div>
+                            <div class="filter-input-wrapper">
+                                <i data-feather="navigation" class="filter-icon"></i>
+                                <span class="city-flag-display" id="cityFlagDisplay">
+                                    <i data-feather="globe" class="country-flag-icon-small"></i>
+                                </span>
+                                <select id="filterCity" aria-label="Filter by city">
+                                    <option value="" data-i18n="filters.city">All Cities</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="filter-group">
+                            <div class="filter-input-wrapper latency-wrapper">
+                                <i data-feather="activity" class="filter-icon"></i>
+                                <input type="number" id="filterLatencyMin" placeholder="Min" aria-label="Minimum latency">
+                                <span>-</span>
+                                <input type="number" id="filterLatencyMax" placeholder="Max" aria-label="Maximum latency">
+                            </div>
+                            <button id="clearFilters" class="btn btn-secondary btn-icon" aria-label="Clear all filters">
+                                <i data-feather="x"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="actions-bar">
+                        <div class="action-group">
+                            <button id="copyAll" class="btn btn-secondary">
+                                <i data-feather="copy"></i>
+                                <span data-i18n="filters.copy_all">Copy All</span>
+                            </button>
+                            <button id="copyFiltered" class="btn btn-secondary">
+                                <i data-feather="copy"></i>
+                                <span data-i18n="filters.copy_filtered">Copy Filtered</span>
+                            </button>
+                            <button id="downloadFiltered" class="btn btn-primary">
+                                <i data-feather="download"></i>
+                                <span data-i18n="filters.download_filtered">Download Filtered</span>
+                            </button>
+                        </div>
+                        <div class="pagination-info">
+                            <span id="filterCount" role="status" aria-live="polite">Loading...</span>
+                            <div class="page-size-wrapper">
+                                <select id="pageSize" aria-label="Proxies per page">
+                                    <option value="25">25/page</option>
+                                    <option value="50" selected>50/page</option>
+                                    <option value="100">100/page</option>
+                                </select>
+                                <i data-feather="chevron-down"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <div id="loadingContainer" class="loader" role="status" aria-live="polite">
+                        <object data="./assets/logo-loading-HDbDK9B3.svg" type="image/svg+xml" width="80" height="80" aria-hidden="true">
+                            <img src="data:image/svg+xml,%3csvg%20width='200'%20height='200'%20viewBox='0%200%20200%20200'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cdefs%3e%3c!--%20Primary%20Gradient%20(Purple%20to%20Pink)%20--%3e%3clinearGradient%20id='primaryGradient'%20x1='0%25'%20y1='0%25'%20x2='100%25'%20y2='100%25'%3e%3cstop%20offset='0%25'%20style='stop-color:%23667eea'%20/%3e%3cstop%20offset='50%25'%20style='stop-color:%23764ba2'%20/%3e%3cstop%20offset='100%25'%20style='stop-color:%23f093fb'%20/%3e%3c/linearGradient%3e%3c!--%20Flow%20Gradient%20(for%20animation%20effect)%20--%3e%3clinearGradient%20id='flowGradient'%20x1='0%25'%20y1='0%25'%20x2='100%25'%20y2='0%25'%3e%3cstop%20offset='0%25'%20style='stop-color:rgba(255,255,255,0);stop-opacity:0'%20/%3e%3cstop%20offset='50%25'%20style='stop-color:rgba(255,255,255,0.8);stop-opacity:1'%20/%3e%3cstop%20offset='100%25'%20style='stop-color:rgba(255,255,255,0);stop-opacity:0'%20/%3e%3c/linearGradient%3e%3c!--%20Glow%20Filter%20--%3e%3cfilter%20id='glow'%3e%3cfeGaussianBlur%20stdDeviation='3'%20result='coloredBlur'/%3e%3cfeMerge%3e%3cfeMergeNode%20in='coloredBlur'/%3e%3cfeMergeNode%20in='SourceGraphic'/%3e%3c/feMerge%3e%3c/filter%3e%3c!--%20Drop%20Shadow%20--%3e%3cfilter%20id='shadow'%20x='-50%25'%20y='-50%25'%20width='200%25'%20height='200%25'%3e%3cfeDropShadow%20dx='0'%20dy='4'%20stdDeviation='6'%20flood-color='%23667eea'%20flood-opacity='0.3'/%3e%3c/filter%3e%3c/defs%3e%3c!--%20Outer%20C%20Arc%20(Protective%20Container)%20--%3e%3cpath%20id='outerC'%20d='M%20150%2040%20A%2060%2060%200%201%201%20150%20160'%20stroke='url(%23primaryGradient)'%20stroke-width='8'%20stroke-linecap='round'%20fill='none'%20filter='url(%23shadow)'/%3e%3c!--%20Inner%20S%20Stream%20(Flowing%20Data)%20--%3e%3cg%20id='innerS'%3e%3c!--%20Top%20curve%20of%20S%20--%3e%3cpath%20d='M%2070%2070%20Q%2090%2060%20110%2070%20Q%20130%2080%20130%20100'%20stroke='url(%23primaryGradient)'%20stroke-width='6'%20stroke-linecap='round'%20fill='none'/%3e%3c!--%20Bottom%20curve%20of%20S%20--%3e%3cpath%20d='M%20130%20100%20Q%20130%20120%20110%20130%20Q%2090%20140%2070%20130'%20stroke='url(%23primaryGradient)'%20stroke-width='6'%20stroke-linecap='round'%20fill='none'/%3e%3c/g%3e%3c!--%20Flowing%20Data%20Particles%20--%3e%3cg%20id='dataParticles'%3e%3ccircle%20cx='75'%20cy='75'%20r='3'%20fill='%23667eea'%20opacity='0.8'/%3e%3ccircle%20cx='95'%20cy='68'%20r='2.5'%20fill='%23764ba2'%20opacity='0.7'/%3e%3ccircle%20cx='115'%20cy='75'%20r='3'%20fill='%23f093fb'%20opacity='0.8'/%3e%3ccircle%20cx='125'%20cy='95'%20r='2'%20fill='%23667eea'%20opacity='0.6'/%3e%3ccircle%20cx='120'%20cy='110'%20r='2.5'%20fill='%23764ba2'%20opacity='0.7'/%3e%3ccircle%20cx='105'%20cy='125'%20r='3'%20fill='%23f093fb'%20opacity='0.8'/%3e%3ccircle%20cx='85'%20cy='132'%20r='2.5'%20fill='%23667eea'%20opacity='0.7'/%3e%3ccircle%20cx='75'%20cy='125'%20r='2'%20fill='%23764ba2'%20opacity='0.6'/%3e%3c/g%3e%3c!--%20Connection%20Lines%20(Neural%20Network%20Style)%20--%3e%3cg%20id='connections'%20opacity='0.3'%3e%3cline%20x1='75'%20y1='75'%20x2='95'%20y2='68'%20stroke='%23667eea'%20stroke-width='1'/%3e%3cline%20x1='95'%20y1='68'%20x2='115'%20y2='75'%20stroke='%23764ba2'%20stroke-width='1'/%3e%3cline%20x1='115'%20y1='75'%20x2='125'%20y2='95'%20stroke='%23f093fb'%20stroke-width='1'/%3e%3cline%20x1='125'%20y1='95'%20x2='120'%20y2='110'%20stroke='%23667eea'%20stroke-width='1'/%3e%3cline%20x1='120'%20y1='110'%20x2='105'%20y2='125'%20stroke='%23764ba2'%20stroke-width='1'/%3e%3cline%20x1='105'%20y1='125'%20x2='85'%20y2='132'%20stroke='%23f093fb'%20stroke-width='1'/%3e%3c/g%3e%3c!--%20Center%20Dot%20(Connection%20Point)%20--%3e%3ccircle%20cx='100'%20cy='100'%20r='5'%20fill='url(%23primaryGradient)'%20filter='url(%23glow)'/%3e%3c/svg%3e" alt="" />
+                        </object>
+                        <p>Loading and testing live proxies...</p>
+                    </div>
+                    <div id="emptyState" class="empty-state hidden">
+                        <div class="empty-state-icon">
+                            <i data-feather="frown"></i>
+                        </div>
+                        <h3 data-i18n="filters.empty_title">No Matches Found</h3>
+                        <p data-i18n="filters.empty_text">Your search for proxies didn't return any results. Please try adjusting your filters.</p>
+                    </div>
+                    <table id="proxiesTable" class="proxies-table hidden" aria-live="polite">
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-sort="protocol" aria-sort="none"><span data-i18n="table.protocol">Protocol</span> <i data-feather="chevron-down"></i></th>
+                                <th class="sortable" data-sort="location" aria-sort="none"><span data-i18n="table.location">Location</span> <i data-feather="chevron-down"></i></th>
+                                <th class="sortable" data-sort="latency" aria-sort="ascending"><span data-i18n="table.latency">Latency</span> <i data-feather="chevron-down"></i></th>
+                                <th class="sortable" data-sort="status" aria-sort="none"><span data-i18n="table.status">Status</span> <i data-feather="chevron-down"></i></th>
+                                <th data-i18n="table.process">Process</th>
+                                <th data-i18n="table.trend">Trend</th>
+                                <th data-i18n="table.copy">Copy Link</th>
+                            </tr>
+                        </thead>
+                        <tbody id="proxiesTableBody"></tbody>
+                    </table>
+                </div>
+                <div id="pagination-container" class="pagination-container"></div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="social-links">
+                <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream" target="_blank" rel="noopener noreferrer" aria-label="Visit our GitHub page"><i data-feather="github"></i></a>
+                <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream/issues" target="_blank" rel="noopener noreferrer" aria-label="Report an issue"><i data-feather="alert-circle"></i></a>
+            </div>
+            <p data-i18n="footer.love">A passion project for a free and open internet. ✨</p>
+            <p class="last-updated">Last updated: <span id="footerUpdate" class="loading">checking...</span></p>
+        </div>
+    </footer>
+
+    <!-- Inline icons (MIT licensed Feather icons, self-hosted for zero external dependencies) -->
+    <script src="assets/js/inline-icons.js"></script>
+
+    <!-- Steganography Deps -->
+    <script src="assets/libs/pako.min.js"></script>
+    <script src="assets/libs/fernetBrowser.min.js"></script>
+    <script src="assets/js/runtime-config.js"></script>
+    <script src="assets/js/stego.js"></script>
+
+    <!-- CRITICAL: Load cache config FIRST -->
+    <script src="assets/js/cache-config.js" defer></script>
+
+    <!-- Then load other scripts -->
+    <script src="assets/js/i18n.js" defer></script>
+    <script src="assets/js/error-handler.js" defer></script>
+    <script src="assets/js/state-manager.js" defer></script>
+    <script src="assets/js/utils/helpers.js" defer></script>
+    <script src="assets/js/utils/format.js" defer></script>
+    <script src="assets/js/utils/dom.js" defer></script>
+    <script src="assets/js/utils/network.js" defer></script>
+    <script src="assets/js/utils/ui.js" defer></script>
+    <script src="assets/js/utils.js" defer></script>
+    <script src="assets/js/cache-manager.js" defer></script>
+    <script src="assets/js/update-detector.js" defer></script>
+    <script src="assets/js/loading-controller.js" defer></script>
+    <script src="assets/js/logo-controller.js" defer></script>
+    <script src="assets/js/health-score.js" defer></script>
+    <script src="assets/js/incremental-loader.js" defer></script>
+    <script src="assets/js/proxy-history-chart.js" defer></script>
+
+    <!-- v2.0 Architecture Modules (Standard Scripts) -->
+    <script src="assets/js/constants.js" defer></script>
+    <script src="assets/js/verifier.js" defer></script>
+    <script src="assets/js/stego_loader.js" defer></script>
+    <script src="assets/js/washer_client.js" defer></script>
+    <script src="assets/js/failover.js" defer></script>
+
+    <script src="assets/js/wasm_exec.js" defer></script>
+    <script src="assets/js/wasm_loader.js" defer></script>
+    <script src="assets/js/plugin_loader.js" defer></script>
+
+    <!--
+    <div class="wasm-control" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000; background: var(--bg-card); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+        <button id="btn-verify-local" class="btn btn-outline-success" onclick="runLocalVerification()">
+            <i data-feather="cpu"></i> <span data-i18n="verify.local">Turbo-Verify (Local)</span>
+        </button>
+        <span id="wasm-status" class="text-muted text-sm" style="display: block; margin-top: 5px; font-size: 0.8rem;" data-i18n="verify.status">Ready to verify via WASM</span>
+    </div>
+    -->
+    <script src="assets/js/byow.js" defer></script>
+    <script src="assets/js/common-ui.js" defer></script>
+</body>
+</html>
