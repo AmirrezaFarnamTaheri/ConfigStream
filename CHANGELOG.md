@@ -1,6 +1,12 @@
 
 ## [Unreleased]
 
+### Remediation: Core Posture Hardening (2026-05-13)
+- **Security Contract**: explicitly documented the `ALLOW_ACTIVE_SCANNING` policy in README, marking all scanner tools as local/opt-in only.
+- **Release Workflow Parity**: aligned the main `.github/workflows/main.yml` release step with the public artifact degraded-output matrix, relaxing the previous hard fail-on-empty `base64.txt` check to use `validate_pages_artifact.py` and renaming the output to a Data Release instead of a GitHub Release.
+- **Frontend Audit**: confirmed the frontend production output uses raw statics deployed into the output directory with placeholders validated and resolved at deploy time into `assets/js/runtime-config.js`.
+- **Durable Pipeline Auditing**: increased pipeline and Pages artifact retention to 30 days to ensure evidence remains available for inspection.
+
 ### Documentation: Unified Source of Truth (2026-05-12)
 - **Master audit consolidation**: Integrated the amendment, known issues, status context, changelog context, closure report, debt matrix, finalization report, release-hardening notes, roadmap, and roadmap update process into `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md`.
 - **Split-brain cleanup**: Removed superseded standalone amendment, known-issues, closure, finalization, release-hardening, roadmap, and roadmap-process files after preserving their content in the master report's evidence ledgers.
