@@ -143,6 +143,8 @@ This helps prevent reintroducing removed modules or creating parallel implementa
 - Docs explain canonical module paths.
 - AGENTS/module docs match the map.
 
+**Status (2026-05-16): Done.** `docs/module_ownership.json` now maps every major `src/configstream` area inspected in this pass, including pipeline producer/consumer/stats, fetcher, DNS cache, output logic/handler/transport, parsers, generators, converters, security, washer/Vwarp, signer, stego, WARP scanner, source quality, chaining, network utilities, and API server ownership. `docs/MODULE_OWNERSHIP.md` documents how contributors use the map. `scripts/validate_module_ownership.py` validates required fields, proof paths, removed-module absence, and AST-level imports of removed modules across `src/`, `scripts/`, `tests/`, and `tools/`. `tests/unit/test_validate_module_ownership.py` covers current-repo acceptance, valid custom maps, missing proof paths, recreated removed paths, and removed imports. `.github/workflows/ci.yml` and `.github/workflows/release.yml` run the validator, and `scripts/validate_workflows.py` now fails CI/release workflows that omit the ownership guard. AGENTS now lists the module ownership map as a canonical source-of-truth surface. Verified immediately after implementation with `python scripts/validate_module_ownership.py`, `python scripts/validate_workflows.py`, and focused validator tests.
+
 #### 1.3 Add a stable internal event bus
 
 Pipeline modules currently pass stats, queues, logs, files, and side effects through direct calls. A structured internal event bus would make observability and plugins cleaner.

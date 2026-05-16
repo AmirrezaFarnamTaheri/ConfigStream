@@ -39,6 +39,8 @@ jobs:
         run: python scripts/validate_capability_registry.py
       - name: Validate core compatibility report
         run: python scripts/validate_core_compatibility.py
+      - name: Validate module ownership map
+        run: python scripts/validate_module_ownership.py
       - name: Check SPDX license headers
         run: python scripts/check_license_headers.py
       - name: Check dependency drift
@@ -105,6 +107,8 @@ jobs:
           cache: 'npm'
       - name: Install frontend dependencies
         run: npm ci
+      - name: Install Node Playwright browser
+        run: npx playwright install chromium
       - name: Build frontend assets
         run: npm run build
       - name: Same-origin frontend smoke

@@ -38,6 +38,8 @@ jobs:
         run: python scripts/validate_capability_registry.py
       - name: Validate core compatibility report
         run: python scripts/validate_core_compatibility.py
+      - name: Validate module ownership map
+        run: python scripts/validate_module_ownership.py
       - name: Run tests
         run: pytest -q
       - name: Build source and wheel distributions

@@ -16,6 +16,7 @@ The system follows a **Streaming Pipeline Architecture** (`Producer-Consumer`):
 *   **Output Matrix (`docs/output_matrix.json`)**: Definitive inventory of generated artifacts, client config requirements, and Pages deploy rules.
 *   **Claim Ledger (`docs/claim_ledger.json`)**: Tracking of implemented features and their proof (tests/docs/changelog).
 *   **Debt Matrix (`docs/DEBT_MATRIX.md`)**: Tracking of technical debt, mocks, and placeholders.
+*   **Module Ownership Map (`docs/module_ownership.json`)**: Canonical ownership/import-boundary map for major modules and removed-module replacements.
 
 ### Core Components
 *   **Producer (`source_producer`)**: Fetches raw data from remote URLs or local files. It pushes raw content into a bounded `asyncio.Queue`.

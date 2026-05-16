@@ -266,6 +266,30 @@
       "cleanup_decision": "Keep stable capabilities machine-validated; downgrade or remove stale capability claims instead of preserving backward-compatible overclaims."
     },
     {
+      "id": "claim.governance.module_ownership_contract",
+      "claim": "Major modules and removed-module replacements are mapped in a validated ownership contract, and stale removed-module imports fail CI.",
+      "source": "Main SOURCE OF TRUTH - PART 2.md",
+      "product_area": "governance",
+      "status": "complete",
+      "owner": "docs/module_ownership.json",
+      "tests": [
+        "scripts/validate_module_ownership.py",
+        "tests/unit/test_validate_module_ownership.py",
+        "tests/unit/test_validate_workflows.py"
+      ],
+      "frontend_surface": null,
+      "output_artifact": null,
+      "docs": [
+        "docs/module_ownership.json",
+        "docs/MODULE_OWNERSHIP.md",
+        "AGENTS.md",
+        "STATUS.md",
+        "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md"
+      ],
+      "changelog": "CHANGELOG.md",
+      "cleanup_decision": "Keep removed-module paths absent and fail validation when stale imports, duplicate ownership boundaries, or legacy module locations reappear."
+    },
+    {
       "id": "claim.outputs.native_client_check_report",
       "claim": "Optional native Sing-box and Clash client checks produce structured evidence reports that are archived with pipeline evidence without polluting public output artifacts.",
       "source": "Main SOURCE OF TRUTH - PART 3.md",

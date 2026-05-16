@@ -159,34 +159,43 @@
         "docs/capability_registry.json",
         "docs/DEBT_MATRIX.md",
         "docs/debt_matrix.json",
+        "docs/module_ownership.json",
+        "docs/MODULE_OWNERSHIP.md",
         "scripts/validate_claim_ledger.py",
         "scripts/validate_capability_registry.py",
         "scripts/validate_debt_matrix.py",
+        "scripts/validate_module_ownership.py",
         "scripts/validate_status.py"
       ],
       "claim_ids": [
         "claim.governance.debt_matrix_portable",
-        "claim.governance.capability_registry_contract"
+        "claim.governance.capability_registry_contract",
+        "claim.governance.module_ownership_contract"
       ],
       "tests": [
         "tests/unit/test_validate_claim_ledger.py",
         "tests/unit/test_validate_capability_registry.py",
         "tests/unit/test_debt_matrix.py",
+        "tests/unit/test_validate_module_ownership.py",
+        "tests/unit/test_validate_workflows.py",
         "tests/unit/test_validate_status.py"
       ],
       "docs": [
         "README.md",
         "STATUS.md",
         "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md",
-        "docs/capability_registry.json"
+        "docs/capability_registry.json",
+        "docs/module_ownership.json",
+        "docs/MODULE_OWNERSHIP.md"
       ],
       "outputs": [
-        "docs/debt_matrix.json"
+        "docs/debt_matrix.json",
+        "docs/module_ownership.json"
       ],
       "limitations": [
         "The registry proves repository claims; it does not prove the currently deployed public Pages artifact is fresh."
       ],
-      "cleanup_decision": "Use the registry as the stable capability surface; remove or downgrade claims that lose implementation, tests, docs, or complete claim-ledger proof."
+      "cleanup_decision": "Use the registry and module ownership map as stable governance surfaces; remove or downgrade claims that lose implementation, tests, docs, complete claim-ledger proof, or canonical module ownership."
     },
     {
       "id": "cap.core.xray_pipeline_export",
