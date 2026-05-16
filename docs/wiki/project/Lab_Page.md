@@ -30,21 +30,25 @@ Find clean Cloudflare IP addresses to use as intermediaries in the chain. Three 
 
 ### Step 3 — Build Chain
 
-Select a chain-building strategy and configure evasion options:
+Select a chain-building strategy and configure evasion options. The canonical 9 strategies are loaded at runtime from `frontend/assets/data/lab_strategies.json`:
 
 | Strategy | Description |
 |----------|-------------|
 | **WARP** | Single Cloudflare WARP hop before the proxy |
+| **Vwarp MASQUE** | WARP chain with Vwarp MASQUE/noize obfuscation and CLI hint |
+| **Vwarp AtomicNoize** | WARP chain with AtomicNoize fragmentation-style evasion and CLI hint |
 | **Double WARP** | Two WARP hops for extra obfuscation |
-| **TLS Fragment** | Disabled — sing-box removed tls_fragment; use vwarp AtomicNoize for fragmentation |
-| **CDN Worker** | Route through a Cloudflare Worker endpoint |
-| **Custom JSON** | Paste a raw sing-box outbound JSON object |
+| **WARP + Psiphon** | WARP chain with Vwarp Psiphon exit-country routing |
+| **Relay Chain** | Up to 4 intermediate hops of any protocol (SOCKS5, HTTP, VLESS, VMess, Trojan, SS, WARP) |
+| **TLS Fragment** | Legacy/manual recipe only — native sing-box `tls_fragment` is disabled; use Vwarp AtomicNoize for fragmentation-based evasion |
+| **CDN Worker** | Route through a user-deployed Cloudflare Worker endpoint |
+| **Custom JSON** | Paste a raw sing-box outbound JSON object for advanced users |
 
 **Advanced evasion options** (available per strategy):
 - **uTLS Fingerprint** — Mimic browser TLS fingerprints (Chrome, Firefox, Safari, Edge, etc.)
 - **ALPN** — Application-Layer Protocol Negotiation settings
 - **Multiplex** — Connection multiplexing (h2mux, smux, yamux) with optional padding
-- **TLS Fragmentation** — Disabled (sing-box removed tls_fragment); use vwarp AtomicNoize for fragmentation-based evasion
+- **TLS Fragmentation** — Disabled in native sing-box outputs; use Vwarp AtomicNoize for fragmentation-based evasion
 
 ### Step 4 — Test Chain
 

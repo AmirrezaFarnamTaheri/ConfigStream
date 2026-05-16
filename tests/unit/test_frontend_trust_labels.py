@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FRONTEND_DIR = REPO_ROOT / "frontend"
 
@@ -38,7 +37,10 @@ def test_frontend_shielded_rows_render_as_candidates_not_online() -> None:
     style_css = (FRONTEND_DIR / "assets/css/style.css").read_text(encoding="utf-8")
 
     assert "const isCandidateOnly = isShielded && !shieldedVerified;" in proxies_js
-    assert "const effectiveIsWorking = Boolean(raw.is_working) && !isCandidateOnly;" in proxies_js
+    assert (
+        "const effectiveIsWorking = Boolean(raw.is_working) && !isCandidateOnly;"
+        in proxies_js
+    )
     assert "isCandidateOnly ? 'status-candidate'" in proxies_js
     assert "isCandidateOnly ? 'Candidate'" in proxies_js
     assert "row.className = p.effectiveIsWorking" in proxies_js

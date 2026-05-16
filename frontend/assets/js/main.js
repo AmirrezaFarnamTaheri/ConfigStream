@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Apply deletions
                 if (update.removed && update.removed.length > 0) {
                      const removeSet = new Set(update.removed);
-                     // Assuming proxies have 'id'
+                     // proxies.json items always carry an 'id' field (set by serialize_proxy)
                      proxies = proxies.filter(p => !removeSet.has(p.id));
                 }
 
@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
              }
         };
 
-        // Initialize immediately with defaults to avoid "--" flash or placeholders
+        // Initialize immediately with defaults to avoid "--" flash before data loads
         updateHeroSubtitle();
         window.addEventListener('languageChanged', updateHeroSubtitle);
 

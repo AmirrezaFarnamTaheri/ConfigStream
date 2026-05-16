@@ -19,7 +19,7 @@ def _write_frontend(root: Path) -> None:
         encoding="utf-8",
     )
     (js_dir / "stego.js").write_text(
-        'const runtimeConfig = window.CS_RUNTIME_CONFIG || {};\n',
+        "const runtimeConfig = window.CS_RUNTIME_CONFIG || {};\n",
         encoding="utf-8",
     )
     (js_dir / "runtime-config.js").write_text(

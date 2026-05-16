@@ -148,7 +148,16 @@ def test_lab_step4_live_manual_modes_are_visible() -> None:
 def test_lab_vwarp_metadata_exports() -> None:
     lab_js = _read("frontend/assets/js/lab.js")
 
-    assert r"vwarpComment = `\n# VWARP Metadata: ${JSON.stringify(chainConfig._vwarp)}`;" in lab_js
+    assert (
+        r"vwarpComment = `\n# VWARP Metadata: ${JSON.stringify(chainConfig._vwarp)}`;"
+        in lab_js
+    )
     assert r"xray._vwarp = chainConfig._vwarp;" in lab_js
-    assert """const vwarpPrint = chainConfig._vwarp ? `\\n    print("[*] Note: Config uses Vwarp metadata:", CONFIG.get("_vwarp"))` : '';""" in lab_js
-    assert """const vwarpEcho = chainConfig._vwarp ? `\\necho "[*] Note: Config uses Vwarp metadata: ${JSON.stringify(chainConfig._vwarp).replace(/"/g, '\\\\"')}"` : '';""" in lab_js
+    assert (
+        """const vwarpPrint = chainConfig._vwarp ? `\\n    print("[*] Note: Config uses Vwarp metadata:", CONFIG.get("_vwarp"))` : '';"""
+        in lab_js
+    )
+    assert (
+        """const vwarpEcho = chainConfig._vwarp ? `\\necho "[*] Note: Config uses Vwarp metadata: ${JSON.stringify(chainConfig._vwarp).replace(/"/g, '\\\\"')}"` : '';"""
+        in lab_js
+    )

@@ -483,6 +483,12 @@ def merge_batches(batch_glob: str, output_dir: str) -> None:
     stats.time_limited = bool(stats_payload.get("time_limited", False))
     stats.time_limit_seconds = int(stats_payload.get("time_limit_seconds", 0) or 0)
     stats.shielded_count = int(stats_payload.get("shielded_count", 0) or 0)
+    stats.shielded_candidate_count = int(
+        stats_payload.get("shielded_candidate_count", 0) or 0
+    )
+    stats.shielded_verified_count = int(
+        stats_payload.get("shielded_verified_count", 0) or 0
+    )
     stats.smart_chain_count = int(stats_payload.get("smart_chain_count", 0) or 0)
     stats.chain_outbounds_count = int(
         stats_payload.get("chain_outbounds_count", 0) or 0

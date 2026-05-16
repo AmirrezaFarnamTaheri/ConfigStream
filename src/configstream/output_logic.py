@@ -26,7 +26,7 @@ from .adapters import get_adapter, ShadowrocketAdapter
 from .generators.plaintext import generate_plaintext_subscription
 from .intelligence.chaining import generate_smart_chains
 from .intelligence.washer.core import ProxyWasher
-from .converters.chains import chain_outbounds_from_details, update_chain_details
+from .converters.chains import chain_obs_from_details, update_chain_details
 from .utils import AtomicFileWriter
 from .config import AppSettings
 from .serialize import serialize_proxy
@@ -203,10 +203,10 @@ def _rewrite_openvpn_remote(config: str, original_host: str, ip_value: str) -> s
     return "\n".join(out_lines) + ("\n" if config.endswith("\n") else "")
 
 
-def _rewrite_chain_outbounds_for_dns(
+def _rewrite_chain_obs_for_dns(
     details: Dict[str, Any], host_map: Dict[str, str]
 ) -> None:
-    chain = chain_outbounds_from_details(details)
+    chain = chain_obs_from_details(details)
     if not chain:
         return
     rewritten_chain: List[Dict[str, Any]] = []
@@ -249,7 +249,7 @@ def _build_dns_safe_proxies(
                 clone = proxy.model_copy(deep=True)
                 details = dict(clone.details or {})
                 details["dns_safe"] = True
-                _rewrite_chain_outbounds_for_dns(details, host_map)
+                _rewrite_chain_obs_for_dns(details, host_map)
                 clone.details = details
                 safe.append(clone)
             continue
@@ -278,7 +278,7 @@ def _build_dns_safe_proxies(
             details["host"] = addr
         if details.get("server_name") is None:
             details["server_name"] = addr
-        _rewrite_chain_outbounds_for_dns(details, host_map)
+        _rewrite_chain_obs_for_dns(details, host_map)
         clone.details = details
 
         if isinstance(clone.config, str) and "://" in clone.config:
@@ -311,7 +311,7 @@ def _build_dns_hardened_proxies(
             clone = proxy.model_copy(deep=True)
             details = dict(clone.details or {})
             details["dns_hardened"] = True
-            _rewrite_chain_outbounds_for_dns(details, host_map)
+            _rewrite_chain_obs_for_dns(details, host_map)
             clone.details = details
             hardened.append(clone)
             continue
@@ -338,7 +338,7 @@ def _build_dns_hardened_proxies(
                 details["host"] = addr
             if details.get("server_name") is None:
                 details["server_name"] = addr
-            _rewrite_chain_outbounds_for_dns(details, host_map)
+            _rewrite_chain_obs_for_dns(details, host_map)
             clone.details = details
 
             if isinstance(clone.config, str) and "://" in clone.config:
@@ -350,7 +350,7 @@ def _build_dns_hardened_proxies(
             clone = proxy.model_copy(deep=True)
             details = dict(clone.details or {})
             details["dns_hardened"] = True
-            _rewrite_chain_outbounds_for_dns(details, host_map)
+            _rewrite_chain_obs_for_dns(details, host_map)
             clone.details = details
             hardened.append(clone)
 
@@ -375,7 +375,7 @@ def _rewrite_outbound_for_dns_safe(
             tls = dict(tls)
             tls["server_name"] = server
             outbound["tls"] = tls
-        # Do NOT set top-level 'sni' — sing-box uses tls.server_name.
+        # Do NOT set top-level 'sni' â€” sing-box uses tls.server_name.
         # A top-level 'sni' causes: "unknown field" parse error in sing-box.
     return outbound
 
@@ -395,7 +395,7 @@ def _rewrite_outbound_for_dns_hardened(
                 tls = dict(tls)
                 tls["server_name"] = server
                 outbound["tls"] = tls
-            # Do NOT set top-level 'sni' — sing-box uses tls.server_name.
+            # Do NOT set top-level 'sni' â€” sing-box uses tls.server_name.
             # A top-level 'sni' causes: "unknown field" parse error in sing-box.
     return outbound
 
@@ -868,7 +868,7 @@ def generate_categorized_outputs(
                 pass
 
     # 4. Categorized Sub-files (By Country & Protocol)
-    # Grouping — include ALL proxies so users in different networks can still
+    # Grouping â€” include ALL proxies so users in different networks can still
     # use country/protocol subscriptions.  The is_working flag is preserved in
     # the data for client-side filtering.
     by_country: Dict[str, List[Proxy]] = {}
@@ -889,7 +889,7 @@ def generate_categorized_outputs(
         cpath = country_dir / f"{cc}.json"
         AtomicFileWriter.write_text(cpath, generate_singbox_config(plist))
 
-        # Generate list format for API — always JSON array, never single proxy object
+        # Generate list format for API â€” always JSON array, never single proxy object
         lpath = country_dir / f"{cc}.list.json"
         arr = (
             [p.model_dump(mode="json") for p in plist]
@@ -910,7 +910,7 @@ def generate_categorized_outputs(
         ppath = proto_dir / f"{proto}.json"
         AtomicFileWriter.write_text(ppath, generate_singbox_config(plist))
 
-        # Generate list format for API — always JSON array, never single proxy object
+        # Generate list format for API â€” always JSON array, never single proxy object
         lpath = proto_dir / f"{proto}.list.json"
         arr = (
             [p.model_dump(mode="json") for p in plist]
@@ -931,7 +931,7 @@ def generate_categorized_outputs(
 
     # 5. Chain-only output (Washed + Revived + Smart Chains + Shielded)
     # This includes ALL chain types: standard washed, revived (warp/vwarp), smart chains, and shielded (gold)
-    chain_outbounds: List[Dict[str, Any]] = []
+    chain_obs: List[Dict[str, Any]] = []
     seen_tags: set[str] = set()
     tag_remap: Dict[str, str] = {}  # old_tag -> new_tag when uniquified
 
@@ -962,7 +962,7 @@ def generate_categorized_outputs(
                 tag_remap[tag] = new_tag
                 tag = new_tag
                 outbound["tag"] = tag
-            chain_outbounds.append(outbound)
+            chain_obs.append(outbound)
             if tag:
                 seen_tags.add(tag)
 
@@ -970,7 +970,7 @@ def generate_categorized_outputs(
     # 1. Proxy-level chains (from revived proxies)
     for p in proxies:
         # Guard against None details to prevent AttributeError
-        chain = chain_outbounds_from_details(p.details or {})
+        chain = chain_obs_from_details(p.details or {})
         if chain:
             chain_copy = copy.deepcopy(chain)
             # Apply proxy.remarks to entry point (last outbound) for revived chains
@@ -994,7 +994,7 @@ def generate_categorized_outputs(
                     _append_chain(copy.deepcopy(chain))
 
     # Always emit chain outputs to prevent frontend/client 404s even when no chains exist.
-    chains_config_content = generate_singbox_config([], extra_outbounds=chain_outbounds)
+    chains_config_content = generate_singbox_config([], extra_outbounds=chain_obs)
 
     chains_path = output_dir / "singbox-chains.json"
     AtomicFileWriter.write_text(chains_path, chains_config_content)
@@ -1026,7 +1026,7 @@ def generate_categorized_outputs(
             ):
                 shielded_chains.append(copy.deepcopy(outbound))
             # Standard washed chains (not shielded)
-            elif tag.startswith("🛡️") or process == "washed":
+            elif tag.startswith("ðŸ›¡ï¸") or process == "washed":
                 washed_only_chains.append(copy.deepcopy(outbound))
 
     # Revived chains from proxy details
@@ -1034,7 +1034,7 @@ def generate_categorized_outputs(
         # Guard against None details to prevent AttributeError
         _det = p.details or {}
         if _det.get("is_revived") or (p.process or "").startswith("revived"):
-            chain = chain_outbounds_from_details(_det)
+            chain = chain_obs_from_details(_det)
             if chain:
                 revived_only_chains.extend(copy.deepcopy(chain))
 
@@ -1078,14 +1078,10 @@ def generate_categorized_outputs(
     generated_files.update(dns_split_files)
     dns_safe_export_pool = _order_export_proxies(_get_export_pool(dns_safe_proxies))
 
-    dns_chain_outbounds = (
-        _filter_outbounds_for_dns_safe(chain_outbounds, host_map)
-        if chain_outbounds
-        else []
+    dns_chain_obs = (
+        _filter_outbounds_for_dns_safe(chain_obs, host_map) if chain_obs else []
     )
-    dns_chains_content = generate_singbox_config(
-        [], extra_outbounds=dns_chain_outbounds
-    )
+    dns_chains_content = generate_singbox_config([], extra_outbounds=dns_chain_obs)
     dns_chains_path = output_dir / "singbox-chains-dns-safe.json"
     AtomicFileWriter.write_text(dns_chains_path, dns_chains_content)
     generated_files["singbox_chains_dns_safe"] = dns_chains_path
@@ -1375,13 +1371,13 @@ def generate_categorized_outputs(
                     pass
 
         # DNS-hardened chains (includes all chain types: washed, revived, smart, shielded)
-        hardened_chain_outbounds = (
-            _filter_outbounds_for_dns_hardened(chain_outbounds, hardened_map)
-            if chain_outbounds
+        hardened_chain_obs = (
+            _filter_outbounds_for_dns_hardened(chain_obs, hardened_map)
+            if chain_obs
             else []
         )
         hardened_chains_content = generate_singbox_config(
-            [], extra_outbounds=hardened_chain_outbounds
+            [], extra_outbounds=hardened_chain_obs
         )
         hardened_chains_path = output_dir / "singbox-chains-dns-hardened.json"
         AtomicFileWriter.write_text(hardened_chains_path, hardened_chains_content)
@@ -1472,9 +1468,7 @@ def save_metadata(
         # Note: Heuristic counts removed - use exact counts from PipelineStats instead
         # (revived_warp, revived_vwarp, washer_success_count)
 
-    proxies_snapshot_hash = _json_snapshot_sha256(
-        [serialize_proxy(p) for p in proxies]
-    )
+    proxies_snapshot_hash = _json_snapshot_sha256([serialize_proxy(p) for p in proxies])
     old_snapshot_hash = None
     old_snapshot_path = output_dir / "proxies.old.json"
     if old_snapshot_path.is_file():
@@ -1507,10 +1501,12 @@ def save_metadata(
     geo_resolved = 0
     cache_misses = 0
     final_count = 0
-    chain_outbounds_count = 0
+    chain_obs_count = 0
     time_limited = False
     time_limit_seconds = 0
     shielded_count = 0
+    shielded_candidate_count = 0
+    shielded_verified_count = 0
     evasion_utls_enabled = 0
     evasion_alpn_enabled = 0
     evasion_fragmentation_enabled = 0
@@ -1558,10 +1554,12 @@ def save_metadata(
         geo_resolved = stats.get("geo_resolved", 0)
         cache_misses = stats.get("cache_misses", 0)
         final_count = stats.get("final_count", 0)
-        chain_outbounds_count = stats.get("chain_outbounds_count", 0)
+        chain_obs_count = stats.get("chain_obs_count", 0)
         time_limited = bool(stats.get("time_limited", False))
         time_limit_seconds = int(stats.get("time_limit_seconds", 0) or 0)
         shielded_count = stats.get("shielded_count", 0)
+        shielded_candidate_count = stats.get("shielded_candidate_count", shielded_count)
+        shielded_verified_count = stats.get("shielded_verified_count", 0)
         evasion_utls_enabled = stats.get("evasion_utls_enabled", 0)
         evasion_alpn_enabled = stats.get("evasion_alpn_enabled", 0)
         evasion_fragmentation_enabled = stats.get("evasion_fragmentation_enabled", 0)
@@ -1622,14 +1620,18 @@ def save_metadata(
             cache_misses = stats.cache_misses
         if hasattr(stats, "final_count"):
             final_count = stats.final_count
-        if hasattr(stats, "chain_outbounds_count"):
-            chain_outbounds_count = stats.chain_outbounds_count
+        if hasattr(stats, "chain_obs_count"):
+            chain_obs_count = stats.chain_obs_count
         if hasattr(stats, "time_limited"):
             time_limited = bool(stats.time_limited)
         if hasattr(stats, "time_limit_seconds"):
             time_limit_seconds = int(stats.time_limit_seconds or 0)
         if hasattr(stats, "shielded_count"):
             shielded_count = stats.shielded_count
+        if hasattr(stats, "shielded_candidate_count"):
+            shielded_candidate_count = stats.shielded_candidate_count
+        if hasattr(stats, "shielded_verified_count"):
+            shielded_verified_count = stats.shielded_verified_count
         if hasattr(stats, "evasion_utls_enabled"):
             evasion_utls_enabled = stats.evasion_utls_enabled
         if hasattr(stats, "evasion_alpn_enabled"):
@@ -1651,7 +1653,9 @@ def save_metadata(
             if isinstance(audit_obj, dict):
                 pipeline_execution_audit = dict(audit_obj)
         if not pipeline_execution_audit:
-            pipeline_execution_audit = PipelineExecutionAudit.from_stats(stats).to_dict()
+            pipeline_execution_audit = PipelineExecutionAudit.from_stats(
+                stats
+            ).to_dict()
         # Use stats.working as source of truth (more accurate than counting in loop)
         # But only if it's non-zero (to avoid overriding correct loop count)
         if hasattr(stats, "working") and stats.working > 0:
@@ -1788,7 +1792,8 @@ def save_metadata(
         "scanner_ips_found": scanner_ips_found,
         "washer_success_count": washed_count,
         "smart_chain_count": smart_chain_count,
-        "chain_outbounds_count": chain_outbounds_count,
+        "chain_obs_count": chain_obs_count,
+        "chain_outbounds_count": chain_obs_count,  # schema-canonical alias
         "backpressure_drop": backpressure_drop,
         # Export all revive/vwarp stats for complete tracking
         "revived_warp": revived_warp,
@@ -1798,9 +1803,11 @@ def save_metadata(
         "vwarp_success": vwarp_success,
         "washing_enabled": washing_enabled,
         # Shielded & Evasion stats (consumed by frontend statistics.js)
-        "shielded_count": shielded_count,
-        "shielded_candidate_count": shielded_count,
-        "shielded_verified_count": 0,
+        "shielded_count": (
+            stats.shielded_count if hasattr(stats, "shielded_count") else shielded_count
+        ),
+        "shielded_candidate_count": shielded_candidate_count,
+        "shielded_verified_count": shielded_verified_count,
         "evasion_utls_enabled": evasion_utls_enabled,
         "evasion_alpn_enabled": evasion_alpn_enabled,
         "evasion_fragmentation_enabled": evasion_fragmentation_enabled,

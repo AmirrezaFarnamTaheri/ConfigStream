@@ -97,6 +97,7 @@ def test_metadata_does_not_count_shielded_candidates_as_working(
         "tested": 4,
         "fetched_lines": 10,
         "shielded_count": 3,
+        "shielded_verified_count": 1,
     }
 
     save_metadata(stats, sample_proxies, tmp_path)
@@ -106,7 +107,7 @@ def test_metadata_does_not_count_shielded_candidates_as_working(
     assert data["total_valid_proxies"] == 2
     assert data["shielded_count"] == 3
     assert data["shielded_candidate_count"] == 3
-    assert data["shielded_verified_count"] == 0
+    assert data["shielded_verified_count"] == 1
     assert data["success_rate"] == 0.5
 
 
@@ -147,6 +148,15 @@ def test_split_outputs_atomic(tmp_path, sample_proxies):
     # v2.0 file names
     assert (tmp_path / "singbox.json").exists()
     assert (tmp_path / "clash.yaml").exists()
+    assert (tmp_path / "chains.json").read_text(encoding="utf-8") == (
+        tmp_path / "singbox-chains.json"
+    ).read_text(encoding="utf-8")
+    assert (tmp_path / "chains-dns-safe.json").read_text(encoding="utf-8") == (
+        tmp_path / "singbox-chains-dns-safe.json"
+    ).read_text(encoding="utf-8")
+    assert (tmp_path / "chains-dns-hardened.json").read_text(encoding="utf-8") == (
+        tmp_path / "singbox-chains-dns-hardened.json"
+    ).read_text(encoding="utf-8")
 
 
 def test_generated_public_artifact_fixture_matches_pages_contract(tmp_path):

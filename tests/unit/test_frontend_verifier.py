@@ -7,13 +7,11 @@ import subprocess
 import textwrap
 from pathlib import Path
 
-
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
 def test_signed_artifacts_fail_closed_without_key_or_webcrypto() -> None:
-    script = textwrap.dedent(
-        f"""
+    script = textwrap.dedent(f"""
         const fs = require('fs');
         const vm = require('vm');
         const verifierJs = fs.readFileSync({str(REPO_ROOT / 'frontend/assets/js/verifier.js')!r}, 'utf8');
@@ -70,7 +68,6 @@ def test_signed_artifacts_fail_closed_without_key_or_webcrypto() -> None:
           console.error(error.message);
           process.exit(1);
         }});
-        """
-    )
+        """)
 
     subprocess.run(["node", "-e", script], cwd=REPO_ROOT, check=True)

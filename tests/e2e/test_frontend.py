@@ -10,7 +10,6 @@ import os
 import sys
 from urllib.parse import urlparse
 
-
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 

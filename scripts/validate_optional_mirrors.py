@@ -40,7 +40,9 @@ def validate_optional_mirrors() -> list[str]:
 
     for phrase in FORBIDDEN_PHRASES:
         if phrase in combined:
-            errors.append(f"optional mirror docs contain core-capability claim: {phrase}")
+            errors.append(
+                f"optional mirror docs contain core-capability claim: {phrase}"
+            )
 
     return errors
 

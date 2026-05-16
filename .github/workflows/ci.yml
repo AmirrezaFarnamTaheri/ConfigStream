@@ -35,6 +35,10 @@ jobs:
         run: bandit -r src/configstream -q
       - name: Validate Versions
         run: python scripts/validate_versions.py
+      - name: Validate capability registry
+        run: python scripts/validate_capability_registry.py
+      - name: Validate core compatibility report
+        run: python scripts/validate_core_compatibility.py
       - name: Check SPDX license headers
         run: python scripts/check_license_headers.py
       - name: Check dependency drift
@@ -132,7 +136,9 @@ jobs:
         run: pip install -e .[dev]
       - name: Install frontend dependencies
         run: npm ci
-      - name: Install Python Playwright browser
-        run: python -m playwright install --with-deps chromium
+      - name: Install Playwright browsers
+        run: |
+          python -m playwright install --with-deps chromium
+          npx playwright install chromium
       - name: Run required frontend browser profile
         run: npm run test:frontend:browser

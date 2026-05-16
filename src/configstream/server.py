@@ -54,6 +54,7 @@ def _json_snapshot_sha256(payload: Any) -> str:
     ).encode("utf-8")
     return hashlib.sha256(canonical).hexdigest()
 
+
 # Define paths relative to the container structure
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 FRONTEND_DIR = settings.FRONTEND_DIR or (BASE_DIR / "frontend")
@@ -61,9 +62,11 @@ FRONTEND_DIR = settings.FRONTEND_DIR or (BASE_DIR / "frontend")
 
 _json_cache: dict[Path, tuple[float, Any]] = {}
 
+
 def _read_json_file(path: Path) -> Any:
     """Read and parse a JSON file from a worker thread."""
     return json.loads(path.read_text(encoding="utf-8"))
+
 
 async def _read_json_file_async(path: Path) -> Any:
     try:

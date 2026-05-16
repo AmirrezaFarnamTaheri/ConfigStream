@@ -21,7 +21,7 @@ from configstream.stego import generate_stego_assets
 from configstream.intelligence.washer.core import ProxyWasher
 from configstream.intelligence.chaining import generate_smart_chains
 from configstream.intelligence.vectors import generate_vectors
-from configstream.converters.chains import chain_outbounds_from_details
+from configstream.converters.chains import chain_obs_from_details
 from configstream.pipeline_stats import PipelineStats
 from configstream.tagging import ProxyTagger, format_proxy_name
 from configstream.config import AppSettings
@@ -32,6 +32,13 @@ from configstream.utils.net import (
     normalize_host as _normalize_host,
     is_ip_literal as _is_ip_literal,
 )
+
+# SingBoxTester is imported lazily inside generate_pipeline_outputs to avoid
+# circular imports; the type hint uses TYPE_CHECKING to keep mypy happy.
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from configstream.testers.manager import SingBoxTester
 
 logger = logging.getLogger(__name__)
 
@@ -100,7 +107,7 @@ def _save_clean_ips(clean_ips: List[tuple[str, int]], path: Path) -> None:
     AtomicFileWriter.write_text(path, json.dumps(items, indent=2, ensure_ascii=False))
 
 
-def _group_chain_outbounds(
+def _group_chain_obs(
     outbounds: List[Dict[str, Any]],
 ) -> List[List[Dict[str, Any]]]:
     """Group flat outbound list into chains by following detour relationships."""
@@ -231,7 +238,7 @@ def _chain_to_proxy_entry(
     }
 
 
-def _chain_outbounds_to_entries(
+def _chain_obs_to_entries(
     washed_outbounds: Optional[List[Dict[str, Any]]],
     smart_chains: Optional[Dict[str, List[List[Dict[str, Any]]]]],
     name_template: Optional[str] = None,
@@ -263,9 +270,9 @@ def _chain_outbounds_to_entries(
             return False
         return 1 <= port <= 65535
 
-    # Washed outbounds (flat list → group into chains)
+    # Washed outbounds (flat list â†’ group into chains)
     if washed_outbounds:
-        for chain in _group_chain_outbounds(washed_outbounds):
+        for chain in _group_chain_obs(washed_outbounds):
             if not chain:
                 continue
             if not _is_proxy_like_entry(chain[-1]):
@@ -338,7 +345,7 @@ def _save_proxies_with_chains(
         for item in data
         if isinstance(item, dict) and item.get("remarks")
     }
-    chain_entries = _chain_outbounds_to_entries(
+    chain_entries = _chain_obs_to_entries(
         washed_outbounds,
         smart_chains,
         name_template=name_template,
@@ -412,10 +419,33 @@ async def generate_pipeline_outputs(
     stats: PipelineStats,
     history: ProxyHistoryTracker,
     washer: Optional[ProxyWasher] = None,
+    tester: Optional["SingBoxTester"] = None,
 ):
     """
     Orchestrates the generation of all pipeline outputs.
     Integrates Tagging, Washing, Smart Chaining, and File Generation.
+
+    Parameters
+    ----------
+    optimized_proxies:
+        Deduplicated, sorted proxy list from the pipeline.
+    output_path:
+        Root directory for all generated output files.
+    stats:
+        Mutable stats object; updated in-place with washing/shielding metrics.
+    history:
+        Proxy history tracker used for sparklines and trend data.
+    washer:
+        Optional pre-initialised ProxyWasher.  A new instance is created when
+        ``None`` is passed.
+    tester:
+        Optional SingBoxTester used to actively verify shielded chain
+        candidates (P1-E).  When provided, shielded proxies that pass
+        re-testing are appended to *optimized_proxies* and
+        ``stats.shielded_verified_count`` is incremented accordingly.
+        When ``None``, shielded candidates are still included in the output
+        with ``is_working=False`` so end-users can try them on their own
+        networks.
     """
     logger.info("Starting final output generation phase...")
 
@@ -495,7 +525,7 @@ async def generate_pipeline_outputs(
 
     if failed_proxies and washer:
         logger.info(
-            f"⚰️  Attempting to resurrect {len(failed_proxies)} dead proxies with Alchemy..."
+            f"âš°ï¸  Attempting to resurrect {len(failed_proxies)} dead proxies with Alchemy..."
         )
         try:
             shielded_outbounds, shielded_ids = washer.shield_batch(
@@ -503,12 +533,63 @@ async def generate_pipeline_outputs(
             )
             if shielded_outbounds:
                 logger.info(
-                    f"✨  Alchemy Success! Resurrected {len(shielded_outbounds)//2} chains."
+                    f"âœ¨  Alchemy Success! Resurrected {len(shielded_outbounds)//2} candidates."
                 )
-                # Merge shielded outbounds with washed outbounds
+
+                # P1-E: Truth in Metrics. Shielded chains are candidates until verified.
+                # Create Proxy models for these candidates so they can be tested.
+                shielded_proxies = []
+                for i in range(0, len(shielded_outbounds), 2):
+                    entry = shielded_outbounds[i]
+                    exit_p = shielded_outbounds[i + 1]
+                    # This helper builds a 'revived' proxy model from chain details
+                    p = washer.create_revived_proxy(entry, exit_p, "shielded")
+                    shielded_proxies.append(p)
+
+                # Active Verification — only runs when a tester was supplied.
+                # When tester is None the candidates are still included in the
+                # output with is_working=False so end-users can try them.
+                if tester is not None and shielded_proxies:
+                    logger.info(
+                        "🧪  Verifying %d shielded candidates...",
+                        len(shielded_proxies),
+                    )
+                    try:
+                        verified_results = await tester.test_batch(shielded_proxies)
+                        verified_count = sum(
+                            1 for p in verified_results if p.is_working
+                        )
+                        stats.shielded_verified_count = verified_count
+                        logger.info(
+                            "✅  Shielded Verification: %d/%d chains verified working.",
+                            verified_count,
+                            len(shielded_proxies),
+                        )
+                        # Only add verified chains to the working proxy pool so
+                        # they count toward total_working and appear in outputs.
+                        for p in verified_results:
+                            if p.is_working:
+                                optimized_proxies.append(p)
+                    except Exception as verify_exc:  # nosec
+                        logger.warning(
+                            "Shielded chain verification failed: %s",
+                            str(verify_exc),
+                            exc_info=True,
+                        )
+                else:
+                    if tester is None:
+                        logger.debug(
+                            "No tester supplied; shielded candidates kept with "
+                            "is_working=False for user-side testing."
+                        )
+
+                # Always track candidates and total created
+                stats.shielded_count = len(shielded_ids)
+                stats.shielded_candidate_count = len(shielded_ids)
+
+                # Add ALL shielded outbounds for the output generation (preserved for user testing)
                 washed_outbounds.extend(shielded_outbounds)
                 washed_ids.update(shielded_ids)
-                stats.shielded_count = len(shielded_ids)
             else:
                 logger.info(
                     "No dead proxies could be resurrected (no WARP keys or clean IPs available)."
@@ -648,7 +729,7 @@ async def generate_pipeline_outputs(
 
     _chain_tags: set[str] = set()
     for proxy in optimized_proxies:
-        chain = chain_outbounds_from_details(proxy.details or {})
+        chain = chain_obs_from_details(proxy.details or {})
         if chain:
             _chain_tags |= _collect_tags(chain)
     if washed_outbounds:
@@ -658,7 +739,7 @@ async def generate_pipeline_outputs(
             for chain in chain_list:
                 if isinstance(chain, list):
                     _chain_tags |= _collect_tags(chain)
-    stats.chain_outbounds_count = len(_chain_tags)
+    stats.chain_obs_count = len(_chain_tags)
 
     stats_dict = stats.to_dict()
 

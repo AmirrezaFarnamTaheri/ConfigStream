@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.validate_pages_artifact import (
+from scripts.validate_pages_artifact import (  # noqa: E402
     REQUIRED_EXISTS,
     REQUIRED_NONEMPTY,
     REQUIRED_ZIP_MEMBERS,
@@ -42,6 +42,20 @@ EXPECTED_ZIP_OPTIONAL_PATTERNS = {
     "side_products.zip": ("openvpn/*.ovpn", "wireguard/*.conf"),
     "side_products-dns-safe.zip": ("openvpn/*.ovpn", "wireguard/*.conf"),
     "side_products-dns-hardened.zip": ("openvpn/*.ovpn", "wireguard/*.conf"),
+}
+CLIENT_CONFIG_FAMILIES = {
+    "chains",
+    "clash",
+    "singbox",
+    "singbox-vpn",
+}
+VALID_CORE_FORMATS = {
+    "clash",
+    "sing-box",
+}
+VALID_ARTIFACT_TYPES = {
+    "full_config",
+    "full_config_alias",
 }
 REQUIRED_FIELDS = {
     "path",
@@ -131,6 +145,17 @@ def validate_output_matrix(path: Path = MATRIX_PATH) -> list[str]:
         if not _is_nonempty_string(item.get("notes")):
             errors.append(f"{prefix}.notes must be a non-empty string")
 
+        family = str(item.get("family", ""))
+        if family in CLIENT_CONFIG_FAMILIES:
+            if item.get("core_format") not in VALID_CORE_FORMATS:
+                errors.append(f"{prefix}.core_format is required for client configs")
+            if item.get("artifact_type") not in VALID_ARTIFACT_TYPES:
+                errors.append(f"{prefix}.artifact_type is required for client configs")
+        elif "core_format" in item or "artifact_type" in item:
+            errors.append(
+                f"{prefix} declares core metadata outside a client config family"
+            )
+
         for field in ("required", "nonempty", "schema_validation", "degraded_valid"):
             if not isinstance(item.get(field), bool):
                 errors.append(f"{prefix}.{field} must be boolean")
@@ -194,7 +219,12 @@ def validate_output_matrix(path: Path = MATRIX_PATH) -> list[str]:
             + ", ".join(sorted(nonempty_mismatch))
         )
 
-    for rel_path in ("artifact_manifest.json", "health.json", "metadata.json", "proxies.json"):
+    for rel_path in (
+        "artifact_manifest.json",
+        "health.json",
+        "metadata.json",
+        "proxies.json",
+    ):
         if rel_path not in schema_validated:
             errors.append(f"{rel_path} must be marked schema_validation=true")
 
@@ -204,9 +234,7 @@ def validate_output_matrix(path: Path = MATRIX_PATH) -> list[str]:
 
     for rel_path, members in REQUIRED_ZIP_MEMBERS.items():
         if matrix_zip_members.get(rel_path) != members:
-            errors.append(
-                f"{rel_path} zip_required_members drift from Pages validator"
-            )
+            errors.append(f"{rel_path} zip_required_members drift from Pages validator")
     for rel_path in sorted(set(matrix_zip_members) - set(REQUIRED_ZIP_MEMBERS)):
         errors.append(f"{rel_path} declares unexpected zip_required_members")
 

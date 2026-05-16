@@ -164,7 +164,9 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
                 try:
                     return parse_generic_url_scheme(config)
                 except ValueError as exc:
-                    logger.debug(f"SOCKS candidate parser skipped: {_safe_log_text(exc)}")
+                    logger.debug(
+                        f"SOCKS candidate parser skipped: {_safe_log_text(exc)}"
+                    )
 
     except (ValueError, AttributeError):
         # Handles cases where urlparse fails or port is not present
