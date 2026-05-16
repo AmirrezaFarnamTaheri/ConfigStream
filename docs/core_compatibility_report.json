@@ -47,10 +47,10 @@
       "structural_validator": null,
       "optional_native_validator": "xray run -test -config <artifact>",
       "native_validation_status": "not-applicable",
-      "notes": "Xray is not a pipeline output contract today. Lab-only Xray export must not be advertised as docs/output_matrix.json output until generator and validation exist."
+      "notes": "Xray is not a pipeline output contract today. Lab-only Xray export becomes eligible for docs/output_matrix.json after generator, validator, tests, docs, and native-check semantics exist."
     }
   ],
-  "forbidden_pipeline_outputs_until_generated": [
+  "planned_pipeline_outputs_requiring_implementation": [
     "xray.json",
     "xray-lite.json",
     "xray-reality.json",

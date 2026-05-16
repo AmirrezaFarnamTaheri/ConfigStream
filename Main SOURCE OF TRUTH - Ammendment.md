@@ -213,7 +213,7 @@ Based on current docs and code, these are credible completed areas:
 - Output artifacts have a canonical inventory in `docs/output_matrix.json`. `output_matrix.json`
 - Claim ledger exists and forces proof fields for completed claims. `claim_ledger.json`
 - Admin, CORS, WebSocket, lab live-test, and route async-read hardening are implemented in `server.py`. `server.py`
-- Production dependency pins now include patched versions for previously reported vulnerable packages such as `aiohttp==3.13.4`, `cryptography==46.0.7`, `orjson==3.11.6`, `Pygments==2.20.0`, and `urllib3==2.6.3`. `requirements-prod.txt`
+- Production dependency pins now include patched versions for previously reported vulnerable packages such as `aiohttp==3.13.4`, `cryptography==46.0.7`, `orjson==3.11.6`, `Pygments==2.20.0`, `python-dotenv==1.2.2`, and `urllib3==2.7.0`. `requirements-prod.txt`
 - Dockerfile pins Vwarp checksums for both amd64 and arm64 and fails unsupported architectures. `Dockerfile`
 
 #### 11. What is claimed done but not fully proven from available evidence
@@ -762,7 +762,7 @@ This is resolved: `main.yml` now only runs `scripts/dynamic_reshard.py` to gener
 * Output artifacts have a canonical inventory in `docs/output_matrix.json`.
 * Claim ledger exists and forces proof fields for completed claims.
 * Admin, CORS, WebSocket, lab live-test, and route async-read hardening are implemented in `server.py`.
-* Production dependency pins now include patched versions for previously reported vulnerable packages such as `aiohttp==3.13.4`, `cryptography==46.0.7`, `orjson==3.11.6`, `Pygments==2.20.0`, and `urllib3==2.6.3`.
+* Production dependency pins now include patched versions for previously reported vulnerable packages such as `aiohttp==3.13.4`, `cryptography==46.0.7`, `orjson==3.11.6`, `Pygments==2.20.0`, `python-dotenv==1.2.2`, and `urllib3==2.7.0`.
 * Dockerfile pins Vwarp checksums for both amd64 and arm64 and fails unsupported architectures.
 
 * Live public Pages freshness.

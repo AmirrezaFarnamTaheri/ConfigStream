@@ -198,6 +198,14 @@ def _has_capability_and_core_contract_validators(path: Path) -> bool:
     )
 
 
+def _uses_secret_context_in_if(path: Path) -> bool:
+    try:
+        content = path.read_text(encoding="utf-8")
+    except OSError:
+        return False
+    return "if: ${{ secrets." in content or "if:${{ secrets." in content
+
+
 def main() -> int:
     if not WORKFLOW_DIR.exists():
         print(f"ERROR: workflow directory not found: {WORKFLOW_DIR}")
@@ -231,6 +239,10 @@ def main() -> int:
             errors.append(f"{path}: missing 'on' trigger")
         if not isinstance(data.get("jobs"), dict) or not data["jobs"]:
             errors.append(f"{path}: missing non-empty 'jobs' mapping")
+        if _uses_secret_context_in_if(path):
+            errors.append(
+                f"{path}: secrets context must not be used directly in if expressions"
+            )
         if path.name in CONCURRENCY_REQUIRED and "concurrency" not in data:
             errors.append(f"{path}: missing top-level concurrency policy")
         if (

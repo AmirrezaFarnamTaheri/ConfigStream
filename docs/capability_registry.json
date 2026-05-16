@@ -204,7 +204,7 @@
       "limitations": [
         "Xray support is currently parser/import and Lab export surface only; no pipeline-generated xray.json artifact is claimed."
       ],
-      "cleanup_decision": "Do not add Xray artifacts to docs/output_matrix.json until generator, validator, tests, docs, and native-check semantics exist."
+      "cleanup_decision": "Add Xray artifacts to docs/output_matrix.json when generator, validator, tests, docs, and native-check semantics land together."
     },
     {
       "id": "cap.outputs.native_client_evidence",
@@ -236,7 +236,7 @@
       "limitations": [
         "Native client checks are skipped when sing-box or mihomo binaries are absent; skipped checks are recorded as evidence, not counted as pass claims."
       ],
-      "cleanup_decision": "Keep native compatibility evidence outside public output artifacts and do not claim pinned native validation until binaries are pinned in CI."
+      "cleanup_decision": "Keep native compatibility evidence outside public output artifacts; pinned native validation becomes claimable after zero-budget binaries are pinned in CI."
     }
   ]
 }

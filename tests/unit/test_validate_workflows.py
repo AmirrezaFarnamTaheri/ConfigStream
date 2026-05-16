@@ -182,6 +182,32 @@ jobs:
     assert validate_workflows.main() == 1
 
 
+def test_validate_workflows_rejects_secret_context_in_if(
+    tmp_path: Path, monkeypatch
+) -> None:
+    workflow_dir = tmp_path / ".github" / "workflows"
+    workflow_dir.mkdir(parents=True)
+    (workflow_dir / "deploy_mirror.yml").write_text(
+        """
+name: Mirror
+on:
+  workflow_dispatch:
+concurrency:
+  group: mirror
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo deploy
+        if: ${{ secrets.VERCEL_TOKEN != '' }}
+""".lstrip(),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(validate_workflows, "WORKFLOW_DIR", workflow_dir)
+
+    assert validate_workflows.main() == 1
+
+
 def test_validate_workflows_rejects_main_git_push(tmp_path: Path, monkeypatch) -> None:
     workflow_dir = tmp_path / ".github" / "workflows"
     workflow_dir.mkdir(parents=True)

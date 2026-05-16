@@ -380,7 +380,7 @@ Features:
 - Full transport support in all exports: WebSocket, gRPC, HTTP/2, httpupgrade, Reality
 
 Offline diagnostic tools (local, opt-in, user-responsible):
-> **Security Contract:** ConfigStream pipeline automation forbids active scanning of third-party infrastructure. These scanner tools are strictly local, opt-in diagnostics requiring explicit user execution. They are never run automatically in CI.
+> **Security Contract:** ConfigStream pipeline automation keeps active scanning out of CI/default runs. These scanner tools are strictly local, opt-in diagnostics requiring explicit user execution. They are never run automatically in CI.
 
 - `tools/lab-scanner.py`: Python network diagnostic — clean IP scan, proxy discovery, DNS probe, interactive chain builder
 - `tools/lab-runner.sh`: Bash chain runner — auto-installs sing-box, tests chains, scans IPs
