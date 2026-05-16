@@ -8,11 +8,14 @@ import hashlib
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any, cast
 
 from scripts.validate_pages_artifact import (
     REQUIRED_EXISTS,
     REQUIRED_NONEMPTY,
+    collect_native_client_report,
     validate_pages_artifact,
+    write_native_client_report,
     write_pages_contract,
 )
 
@@ -148,7 +151,7 @@ def _metadata_payload() -> dict:
 
 def _write_manifest(root: Path) -> None:
     now = datetime.now(timezone.utc).isoformat()
-    files = []
+    files: list[dict[str, object]] = []
     for path in sorted(root.rglob("*")):
         if not path.is_file() or path.name == "artifact_manifest.json":
             continue
@@ -170,7 +173,7 @@ def _write_manifest(root: Path) -> None:
         "run_id": "",
         "run_attempt": "",
         "file_count": len(files),
-        "total_size_bytes": sum(item["size_bytes"] for item in files),
+        "total_size_bytes": sum(cast(int, item["size_bytes"]) for item in files),
         "files": files,
     }
     _write_text(root / "artifact_manifest.json", json.dumps(manifest))
@@ -608,6 +611,10 @@ def test_validate_pages_artifact_native_check_skips_when_binaries_missing(
 
     assert errors == []
 
+    report = cast(dict[str, Any], collect_native_client_report(tmp_path))
+    assert report["summary"]["skipped"] == 12
+    assert report["summary"]["failed"] == 0
+
 
 def test_validate_pages_artifact_native_check_reports_singbox_failure(
     tmp_path: Path, monkeypatch
@@ -637,6 +644,12 @@ def test_validate_pages_artifact_native_check_reports_singbox_failure(
         for error in errors
     )
 
+    report_path = tmp_path / "native_client_check_report.json"
+    write_native_client_report(tmp_path, report_path)
+    report = cast(dict[str, Any], json.loads(report_path.read_text(encoding="utf-8")))
+    assert report["summary"]["failed"] == 9
+    assert report["tools"]["sing-box"]["available"] is True
+
 
 def test_validate_pages_artifact_native_check_reports_mihomo_failure(
     tmp_path: Path, monkeypatch
@@ -665,6 +678,35 @@ def test_validate_pages_artifact_native_check_reports_mihomo_failure(
         "clash.yaml native client check failed: bad clash config" in error
         for error in errors
     )
+
+
+def test_write_native_client_report_records_passed_checks(
+    tmp_path: Path, monkeypatch
+) -> None:
+    _write_valid_artifact(tmp_path)
+
+    def fake_which(name: str) -> str | None:
+        if name in {"sing-box", "mihomo"}:
+            return name
+        return None
+
+    def fake_run(command, **kwargs):
+        class Result:
+            returncode = 0
+            stderr = ""
+            stdout = "ok"
+
+        return Result()
+
+    monkeypatch.setattr("scripts.validate_pages_artifact.shutil.which", fake_which)
+    monkeypatch.setattr("scripts.validate_pages_artifact.subprocess.run", fake_run)
+
+    report_path = tmp_path / "evidence" / "native_client_check_report.json"
+    write_native_client_report(tmp_path, report_path)
+    report = cast(dict[str, Any], json.loads(report_path.read_text(encoding="utf-8")))
+
+    assert report["summary"] == {"passed": 12, "failed": 0, "skipped": 0}
+    assert {check["core"] for check in report["checks"]} == {"sing-box", "clash"}
 
 
 def test_write_pages_contract_refreshes_mutated_artifact(tmp_path: Path) -> None:

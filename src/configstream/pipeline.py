@@ -449,7 +449,7 @@ async def run_full_pipeline(
 
         # Pass washer instance to reuse clean IPs and keys
         generated_files = await output_handler.generate_pipeline_outputs(
-            optimized_proxies, output_path, stats, history, washer=washer
+            optimized_proxies, output_path, stats, history, washer=washer, tester=tester
         )
 
         # Log scheduling and anomaly statistics for observability

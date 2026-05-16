@@ -304,13 +304,15 @@ MALFORMED_PARSER_FIXTURES: dict[str, tuple[str, ...]] = {
     "vmess": (
         "vmess://not-base64",
         "vmess://e2JhZA==",
-        "vmess://" + base64.b64encode(
+        "vmess://"
+        + base64.b64encode(
             json.dumps({"add": "fixture.example", "port": "443"}).encode("utf-8")
         ).decode("ascii"),
-        "vmess://" + base64.b64encode(
-            json.dumps(
-                {"add": "fixture.example", "port": "443", "id": ""}
-            ).encode("utf-8")
+        "vmess://"
+        + base64.b64encode(
+            json.dumps({"add": "fixture.example", "port": "443", "id": ""}).encode(
+                "utf-8"
+            )
         ).decode("ascii"),
     ),
     "vless": ("vless://@fixture.example:443",),

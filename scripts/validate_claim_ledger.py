@@ -86,7 +86,7 @@ def validate_claim_ledger(path: Path = LEDGER_PATH) -> list[str]:
         elif claim_id in seen_ids:
             errors.append(f"duplicate claim id: {claim_id}")
         else:
-            seen_ids.add(claim_id)
+            seen_ids.add(str(claim_id))
 
         for field in ("claim", "source", "product_area", "owner", "cleanup_decision"):
             if not _is_nonempty_string(claim.get(field)):

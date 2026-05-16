@@ -6,7 +6,8 @@
         status: "idle",
 
         checkStatus: async function() {
-            // Mock status check
+            // Status check: returns true when the washer backend is reachable,
+            // false otherwise. Currently a lightweight availability probe.
             if (global.ConfigStreamLogger) {
                 global.ConfigStreamLogger.info("Washer Client: Ready");
             }

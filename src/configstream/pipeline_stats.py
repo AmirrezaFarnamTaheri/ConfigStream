@@ -103,7 +103,7 @@ class PipelineStats:
     scanner_ips_found: int = 0
     washer_success_count: int = 0
     smart_chain_count: int = 0
-    chain_outbounds_count: int = 0
+    chain_obs_count: int = 0
     backpressure_drop: int = 0
     # Time budget handling
     time_limited: bool = False
@@ -115,6 +115,8 @@ class PipelineStats:
     # Candidate chains created by shielding (Copper to Gold). These are not
     # counted as working unless they are retested and represented in `working`.
     shielded_count: int = 0
+    shielded_candidate_count: int = 0
+    shielded_verified_count: int = 0
 
     # Evasion Metrics
     evasion_utls_enabled: int = 0  # Proxies with uTLS fingerprint rotation
@@ -252,13 +254,15 @@ class PipelineStats:
                 "scanner_ips_found": self.scanner_ips_found,
                 "washer_success_count": self.washer_success_count,
                 "smart_chain_count": self.smart_chain_count,
-                "chain_outbounds_count": self.chain_outbounds_count,
+                "chain_obs_count": self.chain_obs_count,
                 "backpressure_drop": self.backpressure_drop,
                 "time_limited": self.time_limited,
                 "time_limit_seconds": self.time_limit_seconds,
                 "revived_warp": self.revived_warp,
                 "revived_vwarp": self.revived_vwarp,
                 "shielded_count": self.shielded_count,
+                "shielded_candidate_count": self.shielded_candidate_count,
+                "shielded_verified_count": self.shielded_verified_count,
                 "total_revived": self.total_revived,
                 "total_clean": self.total_clean,
                 "total_dirty": self.total_dirty,

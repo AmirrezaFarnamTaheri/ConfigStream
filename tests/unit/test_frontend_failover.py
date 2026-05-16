@@ -5,9 +5,9 @@ import json
 import shutil
 import subprocess
 from pathlib import Path
+from typing import cast
 
 import pytest
-
 
 ROOT = Path(__file__).resolve().parents[2]
 FAILOVER_JS = ROOT / "frontend" / "assets" / "js" / "failover.js"
@@ -136,8 +136,7 @@ def test_failover_preserves_leaf_page_and_prevents_session_loop(
 
     assert result["attempted"] == "1"
     assert result["firstHref"] == (
-        "https://dweb.link/ipns/k51qzi5uqu5d-real-key/"
-        "proxies.html?country=US#row-1"
+        "https://dweb.link/ipns/k51qzi5uqu5d-real-key/" "proxies.html?country=US#row-1"
     )
     assert result["href"] == result["firstHref"]
     assert result["calls"] == [
@@ -166,4 +165,5 @@ def test_failover_skips_placeholder_ipns_key(tmp_path: Path) -> None:
     assert result["attempted"] == "1"
     assert result["href"] == ""
     assert result["calls"] == []
-    assert any("IPNS_KEY not configured" in item for item in result["warnings"])
+    warnings = cast(list[str], result["warnings"])
+    assert any("IPNS_KEY not configured" in item for item in warnings)

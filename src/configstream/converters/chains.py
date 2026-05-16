@@ -23,7 +23,6 @@ def extract_chain_proxies(details: Dict[str, Any]) -> List[Proxy]:
 
     Supported formats:
     - ``details["chain"]`` as list[Proxy] or list[dict]
-    - legacy ``details["chain_outbounds"]`` is ignored here (handled elsewhere)
     """
     chain = details.get("chain")
     if not isinstance(chain, list):
@@ -41,14 +40,19 @@ def extract_chain_proxies(details: Dict[str, Any]) -> List[Proxy]:
     return proxies
 
 
-def chain_outbounds_from_details(details: Dict[str, Any]) -> List[Dict[str, Any]]:
+def chain_obs_from_details(details: Dict[str, Any]) -> List[Dict[str, Any]]:
     """
-    Resolve sing-box outbounds from canonical or legacy chain details.
+    Resolve sing-box outbounds from canonical chain details.
 
-    Preference order:
-    1. canonical ``details["chain"]`` converted via ``to_singbox_outbound``
-    2. legacy ``details["chain_outbounds"]``
+    Checks two sources in priority order:
+    1. ``details["chain"]`` — canonical Proxy objects or dicts (highest priority).
+       Converted via ``to_singbox_outbound`` so the result is always fresh and
+       consistent with the current converter state.
+    2. ``details["chain_outbounds"]`` — pre-resolved sing-box outbound dicts.
+       Used as a fast-path fallback when no canonical ``chain`` is present
+       (e.g. after serialisation boundaries where Proxy objects are not available).
     """
+    # Priority 1: canonical Proxy chain — always preferred when present.
     chain_proxies = extract_chain_proxies(details)
     if chain_proxies:
         from .singbox import to_singbox_outbound
@@ -58,13 +62,20 @@ def chain_outbounds_from_details(details: Dict[str, Any]) -> List[Dict[str, Any]
             out = to_singbox_outbound(hop)
             if isinstance(out, dict):
                 resolved.append(out)
-        if resolved:
-            return resolved
+        return resolved
 
-    legacy = details.get("chain_outbounds")
-    if isinstance(legacy, list):
-        return [copy.deepcopy(o) for o in legacy if isinstance(o, dict)]
+    # Priority 2: pre-resolved outbound dicts (fast path / post-serialisation).
+    chain_outbounds = details.get("chain_outbounds")
+    if isinstance(chain_outbounds, list) and chain_outbounds:
+        return [ob for ob in chain_outbounds if isinstance(ob, dict)]
+
     return []
+
+
+# Canonical alias used by adapters, testers, generators, and serializers.
+# Both names refer to the same function; ``chain_outbounds_from_details`` is
+# the preferred public name going forward.
+chain_outbounds_from_details = chain_obs_from_details
 
 
 def _safe_port(value: Any) -> Optional[int]:
@@ -151,7 +162,6 @@ def update_chain_details(
     Persist rewritten chain outbounds back into details.
 
     - Updates canonical ``details["chain"]`` hop address/port/tag/detour when present.
-    - Keeps ``details["chain_outbounds"]`` for backward compatibility.
     """
     sanitized = [copy.deepcopy(ob) for ob in outbounds if isinstance(ob, dict)]
     if not sanitized:
@@ -173,4 +183,6 @@ def update_chain_details(
                 rewritten_chain.append(hop)
         details["chain"] = rewritten_chain
 
+    # Also persist the resolved sing-box outbounds so downstream consumers
+    # (Clash generator, DNS-safe rewrite tests) can read them directly.
     details["chain_outbounds"] = sanitized

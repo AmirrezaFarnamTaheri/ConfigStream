@@ -83,11 +83,7 @@ def _tracked_files() -> list[Path]:
             if path.is_file() and ".git" not in path.relative_to(ROOT).parts
         )
 
-    names = [
-        name.decode(ENCODING)
-        for name in completed.stdout.split(b"\0")
-        if name
-    ]
+    names = [name.decode(ENCODING) for name in completed.stdout.split(b"\0") if name]
     return [ROOT / name for name in names if (ROOT / name).is_file()]
 
 
@@ -95,8 +91,7 @@ def _is_excluded_reference(path: Path) -> bool:
     rel = _repo_relative(path)
     parts = set(Path(rel).parts)
     return any(
-        rel == excluded or excluded in parts
-        for excluded in EXCLUDED_REFERENCE_ROOTS
+        rel == excluded or excluded in parts for excluded in EXCLUDED_REFERENCE_ROOTS
     )
 
 
@@ -154,7 +149,9 @@ def _validate_image_references(tracked: list[Path]) -> list[str]:
                 errors.append(f"{_repo_relative(path)} references missing image: {ref}")
                 continue
             if target.suffix.lower() in IMAGE_EXTENSIONS and target.stat().st_size == 0:
-                errors.append(f"{_repo_relative(path)} references empty image: {rel_target}")
+                errors.append(
+                    f"{_repo_relative(path)} references empty image: {rel_target}"
+                )
     return errors
 
 

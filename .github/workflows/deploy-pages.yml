@@ -203,7 +203,31 @@ jobs:
       - name: Smoke deployed Pages URL
         if: env.HAS_OUTPUT == 'true'
         run: |
-          python scripts/verify_pages_deployment.py "${{ steps.deployment.outputs.page_url }}"
+          python scripts/verify_pages_deployment.py "${{ steps.deployment.outputs.page_url }}" --report-file smoke-report.json
+
+      - name: Install Playwright for Evidence
+        if: env.HAS_OUTPUT == 'true'
+        run: |
+          pip install playwright
+          playwright install chromium --with-deps
+
+      - name: Take Deployment Screenshots
+        if: env.HAS_OUTPUT == 'true'
+        run: |
+          python scripts/take_deployment_screenshots.py "${{ steps.deployment.outputs.page_url }}"
+
+      - name: Generate Evidence Bundle
+        if: env.HAS_OUTPUT == 'true'
+        run: |
+          python scripts/generate_evidence_bundle.py --output-dir output --evidence-dir evidence --smoke-report smoke-report.json
+
+      - name: Upload Evidence Bundle
+        if: env.HAS_OUTPUT == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy-evidence-${{ github.run_id }}
+          path: evidence/
+          retention-days: 30
 
       - name: Trigger CDN cache purge
         if: always() && env.HAS_OUTPUT == 'true'

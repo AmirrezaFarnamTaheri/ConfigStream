@@ -974,7 +974,7 @@ class ProxyWasher:
                 port = 2408
 
                 if host.startswith("[") and "]" in host:
-                    # Bracketed IPv6: [addr]:port — strip brackets
+                    # Bracketed IPv6: [addr]:port â€” strip brackets
                     end = host.find("]")
                     ip = host[1:end]
                     rest = host[end + 1 :].lstrip()
@@ -1267,7 +1267,7 @@ class ProxyWasher:
                     vwarp_mode = "MASQUE"
 
             # Sing-box requires detour targets before referrers. Vwarp: relay detours to warp
-            # → warp first. Standard WARP: warp detours to relay → relay first.
+            # â†’ warp first. Standard WARP: warp detours to relay â†’ relay first.
             chain_order = [warp_out, relay_out] if use_vwarp else [relay_out, warp_out]
             chain_proxies = (
                 [warp_chain, relay_chain] if use_vwarp else [relay_chain, warp_chain]
@@ -1281,7 +1281,7 @@ class ProxyWasher:
                 "origin_proxy": origin_dict,
                 "origin_id": relay.id,
             }
-            # Keep legacy chain_outbounds in sync for downstream compatibility.
+            # Keep legacy chain in sync for downstream compatibility.
             update_chain_details(revived_details, chain_order)
 
             revived_proxy = Proxy(
@@ -1394,7 +1394,7 @@ class ProxyWasher:
             flag = get_flag_emoji(relay.country_code or "XX")
             lat_str = f"{int(relay.latency)}ms" if relay.latency else "N/A"
             stack = build_proxy_stack(relay)
-            tier = "🛡️ OPTIMAL" if is_optimal else "🛡️ SECURE"
+            tier = "ðŸ›¡ï¸ OPTIMAL" if is_optimal else "ðŸ›¡ï¸ SECURE"
 
             # Unified scheme: geo | tech/protocol stack | latency | etc (like naive proxies)
             exit_tag = f"{flag} | {stack} | {tier} | WARP | {lat_str}"
@@ -1441,6 +1441,41 @@ class ProxyWasher:
                 stats.washer_success_count = len(washed_ids)
 
         return washed_outbounds, washed_ids, skip_reasons
+
+    def create_revived_proxy(
+        self,
+        entry_outbound: Dict[str, Any],
+        exit_outbound: Dict[str, Any],
+        process: str = "washed",
+    ) -> Proxy:
+        """
+        Builds a 'revived' Proxy model from two outbounds forming a chain.
+        This model can be passed to SingBoxTester for active verification.
+        """
+        # The 'exit' outbound typically carries the user-visible tag and geo info
+        # if it was derived from a native proxy.
+        details = {
+            "chain": [entry_outbound, exit_outbound],
+            "is_revived": True,
+            "process": process,
+        }
+
+        # Determine country and city from outbounds if possible
+        country = exit_outbound.get("_origin_country_code") or ""
+        latency = exit_outbound.get("_origin_latency") or 0.0
+
+        return Proxy(
+            config="chain://",
+            protocol="revived",
+            address=exit_outbound.get("server", "127.0.0.1"),
+            port=exit_outbound.get("server_port", 0),
+            remarks=exit_outbound.get("tag", "Revived Chain"),
+            country_code=country,
+            latency=latency,
+            process=process,
+            details=details,
+            is_working=False,  # Starts as False until verified
+        )
 
     def shield_batch(
         self,

@@ -14,6 +14,7 @@ import sys
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import cast
 
 try:
     import yaml  # type: ignore
@@ -183,7 +184,7 @@ def _first_available_binary(names: tuple[str, ...]) -> str | None:
     return None
 
 
-def _run_native_check(command: list[str], rel_path: str) -> str | None:
+def _run_native_check(command: list[str], rel_path: str) -> tuple[str, str | None]:
     try:
         proc = subprocess.run(
             command,
@@ -193,37 +194,101 @@ def _run_native_check(command: list[str], rel_path: str) -> str | None:
             timeout=30,
         )
     except (OSError, subprocess.TimeoutExpired) as exc:
-        return f"{rel_path} native client check could not run: {exc}"
+        return "failed", f"{rel_path} native client check could not run: {exc}"
     if proc.returncode == 0:
-        return None
+        return "passed", None
     output = (proc.stderr or proc.stdout or "native client returned non-zero").strip()
     if len(output) > 500:
         output = output[:500] + "...[truncated]"
-    return f"{rel_path} native client check failed: {output}"
+    return "failed", f"{rel_path} native client check failed: {output}"
+
+
+def collect_native_client_report(root: Path) -> dict[str, object]:
+    """Return structured optional native client check evidence."""
+    generated_at = datetime.now(timezone.utc).isoformat()
+    report: dict[str, object] = {
+        "schema_version": 1,
+        "generated_at": generated_at,
+        "artifact_dir": str(root),
+        "tools": {},
+        "checks": [],
+        "summary": {"passed": 0, "failed": 0, "skipped": 0},
+    }
+    tools = report["tools"]
+    checks = report["checks"]
+    summary = report["summary"]
+    assert isinstance(tools, dict)
+    assert isinstance(checks, list)
+    assert isinstance(summary, dict)
+
+    sing_box = _first_available_binary(SING_BOX_BINARY_NAMES)
+    tools["sing-box"] = {"available": bool(sing_box), "binary": sing_box}
+    for rel_path in SINGBOX_FILES:
+        target = root / rel_path
+        if not target.is_file():
+            continue
+        if not sing_box:
+            status, error = "skipped", None
+            command = None
+        else:
+            command = [sing_box, "check", "-c", str(target)]
+            status, error = _run_native_check(command, rel_path)
+        summary[status] = int(summary.get(status, 0)) + 1
+        checks.append(
+            {
+                "core": "sing-box",
+                "path": rel_path,
+                "status": status,
+                "command": command,
+                "error": error,
+            }
+        )
+
+    mihomo = _first_available_binary(MIHOMO_BINARY_NAMES)
+    tools["mihomo"] = {"available": bool(mihomo), "binary": mihomo}
+    for rel_path in CLASH_FILES:
+        target = root / rel_path
+        if not target.is_file():
+            continue
+        if not mihomo:
+            status, error = "skipped", None
+            command = None
+        else:
+            command = [mihomo, "-t", "-f", str(target)]
+            status, error = _run_native_check(command, rel_path)
+        summary[status] = int(summary.get(status, 0)) + 1
+        checks.append(
+            {
+                "core": "clash",
+                "path": rel_path,
+                "status": status,
+                "command": command,
+                "error": error,
+            }
+        )
+
+    return report
 
 
 def _validate_native_clients(root: Path) -> list[str]:
-    errors: list[str] = []
-    sing_box = _first_available_binary(SING_BOX_BINARY_NAMES)
-    if sing_box:
-        for rel_path in SINGBOX_FILES:
-            target = root / rel_path
-            if not target.is_file():
-                continue
-            error = _run_native_check([sing_box, "check", "-c", str(target)], rel_path)
-            if error:
-                errors.append(error)
+    report = collect_native_client_report(root)
+    checks = report.get("checks", [])
+    if not isinstance(checks, list):
+        return ["native client report malformed"]
+    return [
+        str(check["error"])
+        for check in checks
+        if isinstance(check, dict) and check.get("status") == "failed"
+    ]
 
-    mihomo = _first_available_binary(MIHOMO_BINARY_NAMES)
-    if mihomo:
-        for rel_path in CLASH_FILES:
-            target = root / rel_path
-            if not target.is_file():
-                continue
-            error = _run_native_check([mihomo, "-t", "-f", str(target)], rel_path)
-            if error:
-                errors.append(error)
-    return errors
+
+def write_native_client_report(root: Path, report_path: Path) -> None:
+    """Write optional native client check evidence to *report_path*."""
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text(
+        json.dumps(collect_native_client_report(root), indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
 
 
 def _artifact_category(rel_path: str) -> str:
@@ -781,8 +846,8 @@ def _validate_zip_members(rel_path: str, archive: zipfile.ZipFile) -> list[str]:
         if name.endswith("/"):
             continue
         try:
-            with archive.open(name, "r") as member:
-                chunk = member.read(ZIP_SECRET_SCAN_MAX_BYTES + 1)
+            with archive.open(name, "r") as member_file:
+                chunk = member_file.read(ZIP_SECRET_SCAN_MAX_BYTES + 1)
         except (KeyError, OSError, RuntimeError, zipfile.BadZipFile) as exc:
             errors.append(f"{rel_path} could not read ZIP member {name}: {exc}")
             continue
@@ -808,7 +873,7 @@ def write_pages_contract(root: Path) -> None:
     total_working = int(metadata_obj.get("total_working", 0) or 0)
     total_tested = int(metadata_obj.get("total_tested", 0) or 0)
 
-    health = {
+    health: dict[str, object] = {
         "schema_version": "1.0",
         "status": "degraded" if total_working == 0 else "ok",
         "generated_at": generated_at,
@@ -841,7 +906,7 @@ def write_pages_contract(root: Path) -> None:
             }
         )
 
-    manifest = {
+    manifest: dict[str, object] = {
         "schema_version": "1.0",
         "generated_at": generated_at,
         "artifact_generated_at": generated_at,
@@ -850,7 +915,7 @@ def write_pages_contract(root: Path) -> None:
         "run_id": os.environ.get("GITHUB_RUN_ID", ""),
         "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
         "file_count": len(files),
-        "total_size_bytes": sum(int(item["size_bytes"]) for item in files),
+        "total_size_bytes": sum(cast(int, item["size_bytes"]) for item in files),
         "files": files,
     }
     (root / "artifact_manifest.json").write_text(
@@ -990,6 +1055,14 @@ def main() -> int:
             "available. Missing binaries are treated as a skip."
         ),
     )
+    parser.add_argument(
+        "--native-report-file",
+        type=Path,
+        help=(
+            "Write structured native client check evidence. Missing binaries are "
+            "recorded as skipped checks."
+        ),
+    )
     parser.add_argument("artifact_dir", type=Path, help="Prepared Pages output dir")
     args = parser.parse_args()
 
@@ -999,6 +1072,8 @@ def main() -> int:
     errors = validate_pages_artifact(
         args.artifact_dir, native_client_check=args.native_client_check
     )
+    if args.native_report_file:
+        write_native_client_report(args.artifact_dir, args.native_report_file)
     if errors:
         print("ERROR: Pages artifact validation failed")
         for error in errors:

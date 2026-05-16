@@ -43,39 +43,69 @@ def _contains_git_push(path: Path) -> bool:
         return False
 
 
-def _main_has_durable_pipeline_output(path: Path) -> bool:
+def _iter_steps(data: dict[Any, Any]) -> list[dict[Any, Any]]:
+    jobs = data.get("jobs", {})
+    if not isinstance(jobs, dict):
+        return []
+
+    steps: list[dict[Any, Any]] = []
+    for job in jobs.values():
+        if not isinstance(job, dict):
+            continue
+        job_steps = job.get("steps", [])
+        if not isinstance(job_steps, list):
+            continue
+        steps.extend(step for step in job_steps if isinstance(step, dict))
+    return steps
+
+
+def _step_uses(step: dict[Any, Any], action: str) -> bool:
+    uses = step.get("uses")
+    return isinstance(uses, str) and uses.startswith(action)
+
+
+def _step_with(step: dict[Any, Any]) -> dict[Any, Any]:
+    with_block = step.get("with", {})
+    return with_block if isinstance(with_block, dict) else {}
+
+
+def _retention_days(step: dict[Any, Any]) -> int | None:
+    value = _step_with(step).get("retention-days")
     try:
-        content = path.read_text(encoding="utf-8")
-    except OSError:
-        return False
-    return (
-        "name: pipeline-output" in content
-        and "retention-days: 30" in content
-    )
+        return int(str(value))
+    except (TypeError, ValueError):
+        return None
 
 
+def _has_durable_named_artifact(
+    data: dict[Any, Any],
+    *,
+    action: str,
+    artifact_name: str,
+) -> bool:
+    for step in _iter_steps(data):
+        with_block = _step_with(step)
+        retention_days = _retention_days(step)
+        if (
+            _step_uses(step, action)
+            and with_block.get("name") == artifact_name
+            and retention_days is not None
+            and retention_days >= 30
+        ):
+            return True
+    return False
 
 
-def _deploy_pages_has_durable_pipeline_output(path: Path) -> bool:
-    try:
-        content = path.read_text(encoding="utf-8")
-    except OSError:
-        return False
-    return (
-        "uses: actions/upload-pages-artifact@v3" in content
-        and "retention-days: 30" in content
-    )
-
-
-def _retest_has_durable_pipeline_output(path: Path) -> bool:
-    try:
-        content = path.read_text(encoding="utf-8")
-    except OSError:
-        return False
-    return (
-        "name: pipeline-output" in content
-        and "retention-days: 30" in content
-    )
+def _has_durable_pages_artifact(data: dict[Any, Any]) -> bool:
+    for step in _iter_steps(data):
+        retention_days = _retention_days(step)
+        if (
+            _step_uses(step, "actions/upload-pages-artifact@")
+            and retention_days is not None
+            and retention_days >= 30
+        ):
+            return True
+    return False
 
 
 def _main_publishes_reshard_recommendation(path: Path) -> bool:
@@ -96,10 +126,14 @@ def _main_release_assets_use_output_contract(path: Path) -> bool:
     except OSError:
         return False
     return (
-        "python scripts/validate_pages_artifact.py output" in content
+        "python scripts/validate_pages_artifact.py" in content
+        and "--native-client-check" in content
+        and "--native-report-file pipeline-evidence/native_client_check_report.json"
+        in content
+        and "output" in content
         and "Ensure release assets are non-empty" not in content
         and "test -s output/base64.txt" not in content
-        and "echo \"# FAILED GENERATION\"" not in content
+        and 'echo "# FAILED GENERATION"' not in content
     )
 
 
@@ -148,8 +182,45 @@ def _ci_has_required_frontend_browser_profile(path: Path) -> bool:
     return (
         "frontend-browser:" in content
         and "python -m playwright install --with-deps chromium" in content
+        and "npx playwright install chromium" in content
         and "npm run test:frontend:browser" in content
     )
+
+
+def _ci_frontend_smoke_installs_node_browser(path: Path) -> bool:
+    try:
+        content = path.read_text(encoding="utf-8")
+    except OSError:
+        return False
+    frontend_index = content.find("  frontend:")
+    browser_index = content.find("  frontend-browser:")
+    if frontend_index == -1 or browser_index == -1:
+        return False
+    frontend_job = content[frontend_index:browser_index]
+    return (
+        "npx playwright install chromium" in frontend_job
+        and "npm run test:frontend:no-network" in frontend_job
+    )
+
+
+def _has_contract_validators(path: Path) -> bool:
+    try:
+        content = path.read_text(encoding="utf-8")
+    except OSError:
+        return False
+    return (
+        "python scripts/validate_capability_registry.py" in content
+        and "python scripts/validate_core_compatibility.py" in content
+        and "python scripts/validate_module_ownership.py" in content
+    )
+
+
+def _uses_secret_context_in_if(path: Path) -> bool:
+    try:
+        content = path.read_text(encoding="utf-8")
+    except OSError:
+        return False
+    return "if: ${{ secrets." in content or "if:${{ secrets." in content
 
 
 def main() -> int:
@@ -185,6 +256,10 @@ def main() -> int:
             errors.append(f"{path}: missing 'on' trigger")
         if not isinstance(data.get("jobs"), dict) or not data["jobs"]:
             errors.append(f"{path}: missing non-empty 'jobs' mapping")
+        if _uses_secret_context_in_if(path):
+            errors.append(
+                f"{path}: secrets context must not be used directly in if expressions"
+            )
         if path.name in CONCURRENCY_REQUIRED and "concurrency" not in data:
             errors.append(f"{path}: missing top-level concurrency policy")
         if (
@@ -194,8 +269,9 @@ def main() -> int:
             errors.append(
                 f"{path}: missing frontend placeholder injection/validation guard"
             )
-        if path.name == "deploy-pages.yml" and not _deploy_pages_uses_canonical_raw_frontend(
-            path
+        if (
+            path.name == "deploy-pages.yml"
+            and not _deploy_pages_uses_canonical_raw_frontend(path)
         ):
             errors.append(
                 f"{path}: Pages deploy must use canonical raw static frontend"
@@ -208,37 +284,45 @@ def main() -> int:
             errors.append(
                 f"{path}: missing required frontend-browser Playwright profile"
             )
-        if path.name == "main.yml" and _contains_git_push(path):
-            errors.append(f"{path}: main data workflow must not push commits")
-        if path.name == "main.yml" and not _main_publishes_reshard_recommendation(
+        if path.name == "ci.yml" and not _ci_frontend_smoke_installs_node_browser(path):
+            errors.append(
+                f"{path}: frontend smoke job must install Node Playwright Chromium"
+            )
+        if path.name in {"ci.yml", "release.yml"} and not _has_contract_validators(
             path
         ):
+            errors.append(
+                f"{path}: missing capability/core/module ownership contract validators"
+            )
+        if path.name == "main.yml" and _contains_git_push(path):
+            errors.append(f"{path}: main data workflow must not push commits")
+        if path.name == "main.yml" and not _main_publishes_reshard_recommendation(path):
             errors.append(
                 f"{path}: dynamic resharding must publish an artifact recommendation"
             )
 
-        if path.name == "main.yml" and not _main_has_durable_pipeline_output(path):
-            errors.append(
-                f"{path}: pipeline-output artifact retention must be durable"
-            )
+        if path.name == "main.yml" and not _has_durable_named_artifact(
+            data,
+            action="actions/upload-artifact@",
+            artifact_name="pipeline-output",
+        ):
+            errors.append(f"{path}: pipeline-output artifact retention must be durable")
 
-        if path.name == "retest.yml" and not _retest_has_durable_pipeline_output(path):
-            errors.append(
-                f"{path}: pipeline-output artifact retention must be durable"
-            )
-        if path.name == "deploy-pages.yml" and not _deploy_pages_has_durable_pipeline_output(path):
-            errors.append(
-                f"{path}: Pages artifact retention must be durable"
-            )
+        if path.name == "retest.yml" and not _has_durable_named_artifact(
+            data,
+            action="actions/upload-artifact@",
+            artifact_name="pipeline-output",
+        ):
+            errors.append(f"{path}: pipeline-output artifact retention must be durable")
+        if path.name == "deploy-pages.yml" and not _has_durable_pages_artifact(data):
+            errors.append(f"{path}: Pages artifact retention must be durable")
         if path.name == "main.yml" and not _main_release_assets_use_output_contract(
             path
         ):
             errors.append(
                 f"{path}: data release assets must use the shared output contract"
             )
-        if path.name == "main.yml" and not _main_publishes_reshard_recommendation(
-            path
-        ):
+        if path.name == "main.yml" and not _main_publishes_reshard_recommendation(path):
             errors.append(
                 f"{path}: source resharding must publish recommendations "
                 "instead of pushing source mutations"

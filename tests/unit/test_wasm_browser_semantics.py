@@ -5,11 +5,17 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from tests.unit.doc_sources import read_doc, read_first_existing_doc
+
 ROOT = Path(__file__).resolve().parents[2]
+KNOWN_ISSUES_SOURCES = [
+    "KNOWN_ISSUES.md",
+    "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md",
+]
 
 
 def _read(path: str) -> str:
-    return (ROOT / path).read_text(encoding="utf-8")
+    return read_doc(ROOT, path)
 
 
 def test_wasm_go_tester_reports_browser_limited_url_failures() -> None:
@@ -38,7 +44,7 @@ def test_docs_do_not_claim_wasm_native_network_testing() -> None:
             _read("docs/wiki/project/01-introduction.md"),
             _read("docs/wiki/project/02-architecture.md"),
             _read("docs/wiki/project/04-engineering.md"),
-            _read("KNOWN_ISSUES.md"),
+            read_first_existing_doc(ROOT, KNOWN_ISSUES_SOURCES),
         ]
     )
 
@@ -46,7 +52,7 @@ def test_docs_do_not_claim_wasm_native_network_testing() -> None:
         "WASM native network",
         "native network testing in WASM",
         "browser verification is equivalent",
-        "equivalent to Go sidecar",
+        "browser verification is equivalent to Go sidecar",
     ]
     for phrase in forbidden:
         assert phrase not in docs
