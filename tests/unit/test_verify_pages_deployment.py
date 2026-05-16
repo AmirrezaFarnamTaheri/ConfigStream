@@ -128,9 +128,7 @@ def _serve(root: Path) -> tuple[ThreadingHTTPServer, str]:
     thread.start()
     host_value = server.server_address[0]
     host = (
-        host_value.decode("utf-8")
-        if isinstance(host_value, bytes)
-        else str(host_value)
+        host_value.decode("utf-8") if isinstance(host_value, bytes) else str(host_value)
     )
     port = int(server.server_address[1])
     return server, f"http://{host}:{port}/"
