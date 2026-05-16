@@ -157,8 +157,11 @@ async def test_chain_config(
                     loop.run_in_executor(None, sb_instance.stop),
                     timeout=5.0,
                 )
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug(
+                    "sing-box stop cleanup failed: %s",
+                    SecurityValidator.sanitize_log_message(str(e)),
+                )
 
         if latency is None:
             return {"success": False, "error": "Connection test failed"}
