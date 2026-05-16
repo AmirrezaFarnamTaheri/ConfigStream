@@ -9,6 +9,7 @@ import hashlib
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from typing import cast
 
 from scripts.verify_pages_deployment import verify_pages_deployment
 
@@ -89,7 +90,7 @@ def _write_site(root: Path, *, runtime_config: str | None = None) -> None:
     (root / "api").mkdir()
     (root / "api" / "stats").write_text(json.dumps(metadata), encoding="utf-8")
     (root / "api" / "proxies").write_text(json.dumps(proxies), encoding="utf-8")
-    files = []
+    files: list[dict[str, object]] = []
     for path in sorted(root.rglob("*")):
         if not path.is_file() or path.name == "artifact_manifest.json":
             continue
@@ -111,7 +112,7 @@ def _write_site(root: Path, *, runtime_config: str | None = None) -> None:
         "run_id": "12345",
         "run_attempt": "1",
         "file_count": len(files),
-        "total_size_bytes": sum(int(item["size_bytes"]) for item in files),
+        "total_size_bytes": sum(cast(int, item["size_bytes"]) for item in files),
         "files": files,
     }
     (root / "artifact_manifest.json").write_text(
@@ -125,7 +126,13 @@ def _serve(root: Path) -> tuple[ThreadingHTTPServer, str]:
     server = ThreadingHTTPServer(("127.0.0.1", 0), handler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
-    host, port = server.server_address
+    host_value = server.server_address[0]
+    host = (
+        host_value.decode("utf-8")
+        if isinstance(host_value, bytes)
+        else str(host_value)
+    )
+    port = int(server.server_address[1])
     return server, f"http://{host}:{port}/"
 
 

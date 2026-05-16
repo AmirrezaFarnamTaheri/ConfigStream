@@ -14,6 +14,7 @@ import os
 import re
 import sys
 from pathlib import Path
+from typing import Mapping
 
 PUBLIC_KEY_PLACEHOLDER_MARKERS = ("79e/79e/", "PLACEHOLDER_PUBLIC_KEY")
 STEGO_KEY_PLACEHOLDER = "PLACEHOLDER_KEY_INJECTED_BY_CI"
@@ -31,7 +32,7 @@ def _js_string(value: str) -> str:
     return json.dumps(value, ensure_ascii=False)
 
 
-def _runtime_config_content(env: dict[str, str]) -> str:
+def _runtime_config_content(env: Mapping[str, str]) -> str:
     public_key = env.get("CS_PUBLIC_KEY", "").strip()
     stego_key = (env.get("STEGO_KEY") or env.get("CONFIG_STREAM_KEY") or "").strip()
     ipns_key = env.get("CS_IPNS_KEY", "").strip()
@@ -50,7 +51,7 @@ def _runtime_config_content(env: dict[str, str]) -> str:
     )
 
 
-def inject_frontend_keys(root: Path, env: dict[str, str]) -> list[str]:
+def inject_frontend_keys(root: Path, env: Mapping[str, str]) -> list[str]:
     changes: list[str] = []
     runtime_config_path = root / "assets" / "js" / "runtime-config.js"
     runtime_config_path.parent.mkdir(parents=True, exist_ok=True)

@@ -6,6 +6,7 @@ import asyncio
 import httpx
 import sniffio
 from pathlib import Path
+from typing import Any, cast
 from starlette.responses import Response
 import pytest
 import configstream.server as server_module
@@ -34,8 +35,8 @@ def _snapshot_hash(payload):
 class FakeWebSocket:
     def __init__(self, fail_send: bool = False):
         self.accepted = False
-        self.closed_code = None
-        self.sent_messages = []
+        self.closed_code: int | None = None
+        self.sent_messages: list[dict[str, Any]] = []
         self.fail_send = fail_send
 
     async def accept(self):
@@ -405,8 +406,8 @@ async def test_websocket_manager_rejects_over_capacity() -> None:
     first = FakeWebSocket()
     second = FakeWebSocket()
 
-    assert await manager.connect(first) is True
-    assert await manager.connect(second) is False
+    assert await manager.connect(cast(Any, first)) is True
+    assert await manager.connect(cast(Any, second)) is False
 
     assert first.accepted is True
     assert second.closed_code == 1013
@@ -418,8 +419,8 @@ async def test_websocket_manager_broadcast_removes_failed_connection() -> None:
     manager = ConnectionManager(max_connections=2, send_timeout_seconds=0.1)
     healthy = FakeWebSocket()
     failing = FakeWebSocket(fail_send=True)
-    await manager.connect(healthy)
-    await manager.connect(failing)
+    await manager.connect(cast(Any, healthy))
+    await manager.connect(cast(Any, failing))
 
     await manager.broadcast({"type": "UPDATE_AVAILABLE"})
 

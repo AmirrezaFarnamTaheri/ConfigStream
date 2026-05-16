@@ -21,6 +21,7 @@
 - **Frontend smoke browser repair**: Installed Node Playwright Chromium in the `frontend` CI job before `npm run test:frontend:no-network`, and extended workflow validation to fail if that browser install is removed.
 - **Module ownership contract**: Implemented Part 2 section 1.2 with `docs/module_ownership.json`, `docs/MODULE_OWNERSHIP.md`, `scripts/validate_module_ownership.py`, CI/release workflow wiring, claim-ledger proof, capability-registry coverage, AGENTS guidance, and focused validator tests. Removed-module paths and imports are now guarded by a machine-validated ownership map instead of prose-only instructions.
 - **Module ownership verification**: Re-ran validators, formatter/lint checks for touched Python files, `npm run build`, same-origin frontend smoke, focused module-ownership/workflow/dependency tests, a Linux cp310 production requirements dry-run, and the full pytest suite. Full local pytest now reports 1042 passed / 1 skipped.
+- **Mypy contract cleanup**: Closed the reported mypy failures across validator scripts, artifact-contract helpers, stego unpacking, output metadata typing, merge-batch stats restoration, and focused deployment/frontend/server tests. `python -m mypy .` now passes cleanly without introducing broader compatibility shims or loosening production signatures.
 
 ## [3.1.0] - 2026-05-16
 

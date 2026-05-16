@@ -490,7 +490,7 @@ def merge_batches(batch_glob: str, output_dir: str) -> None:
         stats_payload.get("shielded_verified_count", 0) or 0
     )
     stats.smart_chain_count = int(stats_payload.get("smart_chain_count", 0) or 0)
-    stats.chain_outbounds_count = int(
+    stats.chain_obs_count = int(
         stats_payload.get("chain_outbounds_count", 0) or 0
     )
     stats.washer_success_count = int(stats_payload.get("washer_success_count", 0) or 0)

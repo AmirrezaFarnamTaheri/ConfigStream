@@ -115,7 +115,7 @@ def write_public_artifact_contract(output_dir: Path) -> Dict[str, Any]:
     )
     trace_id = str(metadata.get("trace_id") or "-")
 
-    health = {
+    health: Dict[str, Any] = {
         "schema_version": PUBLIC_CONTRACT_SCHEMA_VERSION,
         "status": (
             "degraded" if int(metadata.get("total_working", 0) or 0) == 0 else "ok"
@@ -1558,7 +1558,9 @@ def save_metadata(
         time_limited = bool(stats.get("time_limited", False))
         time_limit_seconds = int(stats.get("time_limit_seconds", 0) or 0)
         shielded_count = stats.get("shielded_count", 0)
-        shielded_candidate_count = stats.get("shielded_candidate_count", shielded_count)
+        shielded_candidate_count = int(
+            stats.get("shielded_candidate_count", shielded_count) or shielded_count
+        )
         shielded_verified_count = stats.get("shielded_verified_count", 0)
         evasion_utls_enabled = stats.get("evasion_utls_enabled", 0)
         evasion_alpn_enabled = stats.get("evasion_alpn_enabled", 0)
