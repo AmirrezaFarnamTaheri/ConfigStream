@@ -205,7 +205,7 @@
     },
     {
       "id": "claim.security.no_active_scanning",
-      "claim": "Pipeline automation forbids active scanning of third-party infrastructure. Scanner tools are strictly local, opt-in diagnostics.",
+      "claim": "Pipeline automation keeps active scanning out of CI/default runs. Scanner tools are strictly local, opt-in diagnostics.",
       "source": "README.md",
       "product_area": "security",
       "status": "complete",
@@ -220,7 +220,7 @@
         "docs/wiki/project/Configuration.md"
       ],
       "changelog": "CHANGELOG.md",
-      "cleanup_decision": "ALLOW_ACTIVE_SCANNING must be explicitly documented as local/opt-in only."
+      "cleanup_decision": "ALLOW_ACTIVE_SCANNING remains explicitly documented as local/opt-in only."
     },
     {
       "id": "claim.ops.durable_output_audit",
@@ -285,7 +285,7 @@
         "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md"
       ],
       "changelog": "CHANGELOG.md",
-      "cleanup_decision": "Keep native checks optional and evidence-only until pinned zero-budget binaries are available; do not add native reports to public output_matrix artifacts."
+      "cleanup_decision": "Keep native checks optional and evidence-only until pinned zero-budget binaries are available; native reports remain pipeline-evidence artifacts outside public output_matrix artifacts."
     }
   ]
 }

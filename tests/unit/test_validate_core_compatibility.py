@@ -28,7 +28,7 @@ def _valid_report() -> dict[str, object]:
                 "pipeline_outputs": [],
             },
         ],
-        "forbidden_pipeline_outputs_until_generated": ["xray.json"],
+        "planned_pipeline_outputs_requiring_implementation": ["xray.json"],
     }
 
 
@@ -76,7 +76,7 @@ def test_validate_core_compatibility_rejects_missing_output(
     assert any("references missing output: singbox.json" in error for error in errors)
 
 
-def test_validate_core_compatibility_rejects_forbidden_xray_output(
+def test_validate_core_compatibility_rejects_unimplemented_planned_xray_output(
     tmp_path: Path, monkeypatch
 ) -> None:
     report = _write_json(tmp_path / "core_compatibility_report.json", _valid_report())

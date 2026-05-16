@@ -20,6 +20,8 @@ Key milestones reached:
 - 📦 **Durable Evidence**: 30-day artifact retention enforced for pipeline and deployment evidence bundles.
 - 🧹 **Zero Drift**: `AGENTS.md`, `README.md`, and `SECURITY.md` fully reconciled with codebase and security policies.
 - 📚 **Addenda Review Applied**: `Main SOURCE OF TRUTH - PART 2.md`, `Main SOURCE OF TRUTH - PART 3.md`, and `Main SOURCE OF TRUTH - Ammendment.md` were read as actual files. The immediate Part 3 Sing-box/output-contract cleanup was implemented: dead legacy selector/urltest append logic was removed, `chains*.json` was documented as compatibility aliases for the `singbox-chains*.json` artifacts, and generated docs were refreshed from `docs/output_matrix.json`.
+- 🧾 **Roadmap Contract Wording Clarified**: Overly prohibitive roadmap wording around unimplemented Xray pipeline artifacts was replaced with a planned-output implementation gate. The validator still prevents docs/output_matrix overclaims until generator, validation, tests, docs, and native-check semantics exist, but the roadmap no longer frames future implementation as blocked.
+- 🔒 **CI Regression Batch Applied**: Production and dev dependency pins were updated for the reported `python-dotenv` and `urllib3` advisories, `npm run build` was restored as the documented Vite sanity-build entrypoint, and `deploy_mirror.yml` no longer uses invalid `secrets.*` expressions in step `if:` conditions.
 
 ## Closed Audit Items
 
@@ -29,7 +31,7 @@ Key milestones reached:
 - **P0-C**: Release assets dynamically selected from `docs/output_matrix.json`; `remaining_work` cleared.
 
 ### P1 Items
-- **P1-A**: `frontend/` established as the only canonical deploy path; Vite build is `build:sanity` only.
+- **P1-A**: `frontend/` established as the only canonical deploy path; `npm run build` / `build:sanity` remain local sanity checks and are not Pages deployment inputs.
 - **P1-B**: `ALLOW_PRIVATE_IPS` defaults to `false` in `AppSettings`, `.env.example`, and documentation.
 - **P1-C / P2 / P3**: Debt matrix reduced from 134 → 0 actionable markers. Expanded false-positive exclusion rules, added EXCLUDED_FILES set, fixed real ASSUMING/MOCK comments in frontend JS, replaced obfuscated WireGuard key fragment, updated security_validator.py docstring.
 - **P1-D**: `SecurityTransport` extended to cover HTTPS via validated-IP rewrite plus original SNI/Host preservation — closes the TOCTOU window for all source fetches.
@@ -43,7 +45,7 @@ Key milestones reached:
 Latest local validation performed on 2026-05-16:
 
 - `python scripts/generate_evidence_bundle.py --output-dir output --evidence-dir evidence`: passes without error.
-- `python -m pytest -q`: 1035 passed, 1 skipped (fresh full-suite validation after native client evidence reporting).
+- `python -m pytest -q`: 1036 passed, 1 skipped (fresh full-suite validation after native client evidence reporting).
 - `python scripts/verify_pages_deployment.py https://amirrezafarnamtaheri.github.io/ConfigStream/ --report-file output/pages_deployment_smoke.json`: fails against the live site because `analytics.html`, `proxies.json`, and `api/proxies` return HTTP 0/incomplete responses; the deployed artifact is missing `assets/js/runtime-config.js`, `health.json`, and `artifact_manifest.json`; deployed JavaScript still contains placeholder key markers; `metadata.json` is missing `proxies_snapshot_hash`; and public JSON is malformed/partial.
 - `SecurityTransport` covers both HTTP and HTTPS pre-connect validation.
 - `generate_pipeline_outputs` signature updated; `pipeline.py` passes `tester=tester`.
@@ -73,6 +75,10 @@ Material fixes completed during this pass:
 - `scripts/validate_pages_artifact.py`: added structured native client evidence generation via `--native-report-file`. Optional `sing-box` and `mihomo` checks now record passed/failed/skipped states in `native_client_check_report.json`; missing binaries remain explicit skips rather than silent absence.
 - `scripts/generate_evidence_bundle.py` and `.github/workflows/main.yml`: archive `pipeline-evidence/native_client_check_report.json` with the pipeline evidence bundle without adding it to public Pages outputs.
 - `docs/core_compatibility_report.json`, `docs/capability_registry.json`, and `docs/claim_ledger.json`: recorded native client compatibility evidence as stable evidence-only capability, while leaving pinned native binary validation as remaining future hardening.
+- `docs/core_compatibility_report.json`, `scripts/validate_core_compatibility.py`, `tests/unit/test_validate_core_compatibility.py`, `docs/capability_registry.json`, `docs/claim_ledger.json`, `README.md`, and `Main SOURCE OF TRUTH - PART 2.md`: replaced stale blockade/prohibition phrasing with implementation-gate language. Planned Xray output names are tracked as outputs requiring implementation, not forbidden artifacts; the validation behavior remains strict against overclaims.
+- `requirements-prod.txt` and `requirements.txt`: bumped `python-dotenv` from `1.2.1` to `1.2.2` and `urllib3` from `2.6.3` to `2.7.0` to address the reported production dependency audit findings.
+- `package.json` and `vite.config.mjs`: restored `npm run build` as an alias for `npm run build:sanity`, preserving the canonical raw-static Pages deployment while keeping the documented local build command and CI frontend job valid. The self-contained `frontend/lab-offline.html` remains a raw-static artifact and is excluded from the Vite bundle input because its inline single-file structure is not a deploy bundle dependency.
+- `.github/workflows/deploy_mirror.yml`, `scripts/validate_workflows.py`, and `tests/unit/test_validate_workflows.py`: removed invalid direct `secrets.*` step conditions from optional mirror deploy steps and added a workflow validator regression so future workflows cannot reintroduce that GitHub Actions parse error.
 
 Material review completed:
 - Pipeline source/consumer/fetcher/shutdown paths were inspected for bounded queues, executor offload, sanitized failure paths, anomaly detector closure, no ETag caching, manual redirect validation, DNS validation, and zero-working behavior.
@@ -82,17 +88,24 @@ Material review completed:
 
 Remaining items:
 - Public GitHub Pages is still stale/incomplete and must be redeployed, then `scripts/verify_pages_deployment.py` must pass against the live URL.
-- Several implementation/evidence files are untracked and must be intentionally staged or dropped before any release commit: `src/configstream/security/transport.py`, `tests/unit/security/test_transport.py`, `scripts/generate_evidence_bundle.py`, `scripts/prepare_release_assets.py`, `scripts/take_deployment_screenshots.py`, and `tests/unit/doc_sources.py`.
-- The newly supplied addenda files remain untracked working-tree inputs: `Main SOURCE OF TRUTH - PART 2.md`, `Main SOURCE OF TRUTH - PART 3.md`, and `Main SOURCE OF TRUTH - Ammendment.md`. Their actionable findings have begun flowing into this status and the master audit, but they need an explicit preserve/integrate/drop decision before a release commit.
+- No untracked release inputs remain in the current working tree after the previous audit-contract commit; current follow-up work is tracked-file cleanup only.
+- `Main SOURCE OF TRUTH - PART 2.md`, `Main SOURCE OF TRUTH - PART 3.md`, and `Main SOURCE OF TRUTH - Ammendment.md` remain live addenda ledgers. Their actionable findings continue to flow into `STATUS.md`, the master audit, capability registry, and machine validators item by item.
 - Part 2 roadmap expansion items remaining after this pass: durable latest-output evidence bundle, Lab project model/linter, confidence scoring, source quality v2, output transaction system, signed manifest browser verification, deploy screenshots, adaptive scheduling, and matrix-generated documentation expansion.
 - Part 3 remaining hardening items after this pass: pinned/reproducible native client binary validation and offline/lite Sing-box variants that avoid remote rule-set dependencies.
 - Frontend trusted/static `innerHTML` usage remains mostly controlled by local data and escaping, but further DOM-builder cleanup is still a reasonable hardening task for Lab/proxies/analytics.
 
 Latest focused verification for the addenda follow-up:
+- `pip-audit -r requirements-prod.txt --format json --no-deps`: passed with no known vulnerabilities for the patched direct pins. The exact dependency-resolving `pip-audit -r requirements-prod.txt --format json` could not complete in this Windows/Python 3.13 shell because pip could not resolve `orjson==3.11.6` for Python 3.13 after a PyPI read timeout; CI's Python 3.10-3.12 matrix remains the authoritative resolving audit environment.
+- `npm run build`: passed after restoring the `build` alias and normalizing Vite multi-page input paths.
+- `npm run test:frontend:no-network`: passed.
+- `python scripts/check_dependency_drift.py; python scripts/validate_workflows.py; python scripts/validate_core_compatibility.py; python scripts/validate_capability_registry.py; python scripts/validate_claim_ledger.py; python scripts/validate_status.py`: passed.
+- `python -m pytest tests/unit/test_validate_workflows.py tests/unit/test_validate_core_compatibility.py tests/unit/test_dependency_drift.py tests/unit/test_validate_status.py -q`: 30 passed.
+- `python -m pytest -q`: 1036 passed, 1 skipped.
+- `pre-commit run --all-files`: attempted after installing `pre-commit`, but the remote `gitleaks` hook could not initialize because GitHub HTTPS fetches failed from this environment. Local equivalents were run directly: flake8 passed, Black check passed, workflow/status/dependency validators passed, and full pytest passed. `python -m mypy .` still reports pre-existing repository typing debt outside this CI-remediation patch.
 - `pytest tests/unit/generators/test_singbox_comprehensive.py tests/unit/test_output.py tests/unit/test_release_scripts.py tests/unit/test_validate_output_matrix.py tests/unit/test_validate_status.py -q`: 25 passed.
 - `python scripts/validate_output_matrix.py`: passed.
 - `python scripts/generate_output_docs.py --check`: passed.
-- `python -m pytest -q`: 1035 passed, 1 skipped.
+- `python -m pytest -q`: 1036 passed, 1 skipped.
 - `pytest tests/unit/test_validate_output_matrix.py tests/unit/test_validate_core_compatibility.py tests/unit/test_validate_capability_registry.py tests/unit/test_validate_claim_ledger.py tests/unit/test_validate_workflows.py -q`: 40 passed.
 - `python scripts/validate_capability_registry.py; python scripts/validate_core_compatibility.py; python scripts/validate_output_matrix.py; python scripts/validate_claim_ledger.py; python scripts/validate_workflows.py`: passed.
 - `pytest tests/unit/test_validate_pages_artifact.py tests/unit/test_release_scripts.py tests/unit/test_validate_workflows.py -q`: 47 passed.

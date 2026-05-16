@@ -42,7 +42,6 @@ jobs:
           fi
 
       - name: Deploy to Vercel
-        if: ${{ secrets.VERCEL_TOKEN != '' }}
         env:
           FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -57,7 +56,6 @@ jobs:
           vercel deploy --prod --token=$VERCEL_TOKEN
 
       - name: Deploy to Netlify
-        if: ${{ secrets.NETLIFY_AUTH_TOKEN != '' }}
         env:
           FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
@@ -71,7 +69,6 @@ jobs:
           netlify deploy --prod --dir=output --site=$NETLIFY_SITE_ID --auth=$NETLIFY_AUTH_TOKEN
 
       - name: Deploy to IPFS
-        if: ${{ secrets.PINATA_JWT != '' }}
         env:
           FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
           PINATA_JWT: ${{ secrets.PINATA_JWT }}

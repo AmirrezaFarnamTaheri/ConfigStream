@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
+    "build": "npm run build:sanity",
     "build:sanity": "vite build",
     "preview": "vite preview --host",
     "test:frontend:no-network": "node scripts/frontend_same_origin_smoke.cjs",

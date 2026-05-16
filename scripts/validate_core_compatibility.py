@@ -96,15 +96,17 @@ def validate_core_compatibility(path: Path = REPORT_PATH) -> list[str]:
         if status == "stable" and not pipeline_outputs:
             errors.append(f"{prefix} stable core must list pipeline outputs")
 
-    forbidden = data.get("forbidden_pipeline_outputs_until_generated", [])
-    if not isinstance(forbidden, list):
-        errors.append("forbidden_pipeline_outputs_until_generated must be a list")
+    planned_outputs = data.get("planned_pipeline_outputs_requiring_implementation", [])
+    if not isinstance(planned_outputs, list):
+        errors.append(
+            "planned_pipeline_outputs_requiring_implementation must be a list"
+        )
     else:
-        for output in forbidden:
+        for output in planned_outputs:
             if isinstance(output, str) and output in outputs:
                 errors.append(
-                    "forbidden pipeline output appears in output_matrix before "
-                    f"implementation is complete: {output}"
+                    "planned pipeline output appears in output_matrix before "
+                    f"generator, validator, tests, and docs are complete: {output}"
                 )
 
     if "xray" not in seen_cores:

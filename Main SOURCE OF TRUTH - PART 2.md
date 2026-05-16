@@ -110,7 +110,7 @@ Each module entry should include:
 - Owner domain
 - Public APIs
 - Internal-only APIs
-- Forbidden imports
+- Disallowed duplicate or removed-module imports
 - Replacement for removed modules
 - Tests that cover it
 - Docs that describe it
@@ -122,7 +122,7 @@ Example:
   "src/configstream/output_logic.py": {
     "domain": "output-generation",
     "public_functions": ["generate_categorized_outputs", "write_public_artifact_contract"],
-    "forbidden_duplicates": ["artifact manifest writer in deploy shell"],
+    "disallowed_duplicates": ["artifact manifest writer in deploy shell"],
     "tests": ["tests/unit/test_output.py"],
     "docs": ["docs/output_matrix.json"]
   }
@@ -139,7 +139,7 @@ This helps prevent reintroducing removed modules or creating parallel implementa
 
 - Every major `src/configstream` area is mapped.
 - Removed modules are explicitly listed.
-- Validator fails on forbidden imports.
+- Validator fails on imports that reintroduce removed modules or duplicate canonical helpers.
 - Docs explain canonical module paths.
 - AGENTS/module docs match the map.
 
