@@ -301,7 +301,7 @@ class StegoPacker:
 
         positions = _build_carrier_positions(width, height, bpp)
         header = _extract_bytes_from_positions(
-            pixels, positions, LSB_HEADER_SIZE, self.key
+            bytes(pixels), positions, LSB_HEADER_SIZE, self.key
         )
         if header[:4] != LSB_MAGIC:
             raise ValueError("LSB stego marker not found")
@@ -310,7 +310,7 @@ class StegoPacker:
             raise ValueError(f"Unsupported stego payload version: {version}")
         token_len = struct.unpack(">H", header[6:8])[0]
         payload = _extract_bytes_from_positions(
-            pixels, positions, LSB_HEADER_SIZE + token_len, self.key
+            bytes(pixels), positions, LSB_HEADER_SIZE + token_len, self.key
         )
         token = payload[LSB_HEADER_SIZE:]
         compressed = self.cipher.decrypt(token)

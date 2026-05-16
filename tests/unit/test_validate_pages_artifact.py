@@ -8,6 +8,7 @@ import hashlib
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any, cast
 
 from scripts.validate_pages_artifact import (
     REQUIRED_EXISTS,
@@ -150,7 +151,7 @@ def _metadata_payload() -> dict:
 
 def _write_manifest(root: Path) -> None:
     now = datetime.now(timezone.utc).isoformat()
-    files = []
+    files: list[dict[str, object]] = []
     for path in sorted(root.rglob("*")):
         if not path.is_file() or path.name == "artifact_manifest.json":
             continue
@@ -172,7 +173,7 @@ def _write_manifest(root: Path) -> None:
         "run_id": "",
         "run_attempt": "",
         "file_count": len(files),
-        "total_size_bytes": sum(item["size_bytes"] for item in files),
+        "total_size_bytes": sum(cast(int, item["size_bytes"]) for item in files),
         "files": files,
     }
     _write_text(root / "artifact_manifest.json", json.dumps(manifest))
@@ -610,7 +611,7 @@ def test_validate_pages_artifact_native_check_skips_when_binaries_missing(
 
     assert errors == []
 
-    report = collect_native_client_report(tmp_path)
+    report = cast(dict[str, Any], collect_native_client_report(tmp_path))
     assert report["summary"]["skipped"] == 12
     assert report["summary"]["failed"] == 0
 
@@ -645,7 +646,7 @@ def test_validate_pages_artifact_native_check_reports_singbox_failure(
 
     report_path = tmp_path / "native_client_check_report.json"
     write_native_client_report(tmp_path, report_path)
-    report = json.loads(report_path.read_text(encoding="utf-8"))
+    report = cast(dict[str, Any], json.loads(report_path.read_text(encoding="utf-8")))
     assert report["summary"]["failed"] == 9
     assert report["tools"]["sing-box"]["available"] is True
 
@@ -702,7 +703,7 @@ def test_write_native_client_report_records_passed_checks(
 
     report_path = tmp_path / "evidence" / "native_client_check_report.json"
     write_native_client_report(tmp_path, report_path)
-    report = json.loads(report_path.read_text(encoding="utf-8"))
+    report = cast(dict[str, Any], json.loads(report_path.read_text(encoding="utf-8")))
 
     assert report["summary"] == {"passed": 12, "failed": 0, "skipped": 0}
     assert {check["core"] for check in report["checks"]} == {"sing-box", "clash"}

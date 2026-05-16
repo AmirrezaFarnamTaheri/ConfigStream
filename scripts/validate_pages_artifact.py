@@ -14,6 +14,7 @@ import sys
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import cast
 
 try:
     import yaml  # type: ignore
@@ -845,8 +846,8 @@ def _validate_zip_members(rel_path: str, archive: zipfile.ZipFile) -> list[str]:
         if name.endswith("/"):
             continue
         try:
-            with archive.open(name, "r") as member:
-                chunk = member.read(ZIP_SECRET_SCAN_MAX_BYTES + 1)
+            with archive.open(name, "r") as member_file:
+                chunk = member_file.read(ZIP_SECRET_SCAN_MAX_BYTES + 1)
         except (KeyError, OSError, RuntimeError, zipfile.BadZipFile) as exc:
             errors.append(f"{rel_path} could not read ZIP member {name}: {exc}")
             continue
@@ -872,7 +873,7 @@ def write_pages_contract(root: Path) -> None:
     total_working = int(metadata_obj.get("total_working", 0) or 0)
     total_tested = int(metadata_obj.get("total_tested", 0) or 0)
 
-    health = {
+    health: dict[str, object] = {
         "schema_version": "1.0",
         "status": "degraded" if total_working == 0 else "ok",
         "generated_at": generated_at,
@@ -905,7 +906,7 @@ def write_pages_contract(root: Path) -> None:
             }
         )
 
-    manifest = {
+    manifest: dict[str, object] = {
         "schema_version": "1.0",
         "generated_at": generated_at,
         "artifact_generated_at": generated_at,
@@ -914,7 +915,7 @@ def write_pages_contract(root: Path) -> None:
         "run_id": os.environ.get("GITHUB_RUN_ID", ""),
         "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
         "file_count": len(files),
-        "total_size_bytes": sum(int(item["size_bytes"]) for item in files),
+        "total_size_bytes": sum(cast(int, item["size_bytes"]) for item in files),
         "files": files,
     }
     (root / "artifact_manifest.json").write_text(

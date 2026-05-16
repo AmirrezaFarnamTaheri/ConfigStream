@@ -129,12 +129,17 @@ def validate_output_matrix(path: Path = MATRIX_PATH) -> list[str]:
         if not _is_nonempty_string(rel_path):
             errors.append(f"{prefix}.path must be a non-empty string")
             continue
-        if "\\" in rel_path or rel_path.startswith("/") or ".." in rel_path.split("/"):
+        rel_path_str = str(rel_path)
+        if (
+            "\\" in rel_path_str
+            or rel_path_str.startswith("/")
+            or ".." in rel_path_str.split("/")
+        ):
             errors.append(f"{prefix}.path must be a safe repo-relative POSIX path")
-        if rel_path in seen_paths:
-            errors.append(f"duplicate output path: {rel_path}")
-        seen_paths.add(str(rel_path))
-        matrix_paths.add(str(rel_path))
+        if rel_path_str in seen_paths:
+            errors.append(f"duplicate output path: {rel_path_str}")
+        seen_paths.add(rel_path_str)
+        matrix_paths.add(rel_path_str)
 
         if not _is_nonempty_string(item.get("family")):
             errors.append(f"{prefix}.family must be a non-empty string")

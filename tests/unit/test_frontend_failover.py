@@ -5,6 +5,7 @@ import json
 import shutil
 import subprocess
 from pathlib import Path
+from typing import cast
 
 import pytest
 
@@ -164,4 +165,5 @@ def test_failover_skips_placeholder_ipns_key(tmp_path: Path) -> None:
     assert result["attempted"] == "1"
     assert result["href"] == ""
     assert result["calls"] == []
-    assert any("IPNS_KEY not configured" in item for item in result["warnings"])
+    warnings = cast(list[str], result["warnings"])
+    assert any("IPNS_KEY not configured" in item for item in warnings)

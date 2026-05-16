@@ -5,11 +5,12 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 from scripts import validate_protocol_matrix
 
 
-def _write_json(path: Path, data: dict[str, object]) -> None:
+def _write_json(path: Path, data: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data), encoding="utf-8")
 

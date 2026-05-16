@@ -106,7 +106,7 @@ def validate_capability_registry(path: Path = REGISTRY_PATH) -> list[str]:
         elif capability_id in seen_ids:
             errors.append(f"duplicate capability id: {capability_id}")
         else:
-            seen_ids.add(capability_id)
+            seen_ids.add(str(capability_id))
 
         for field in ("title", "product_area", "owner", "cleanup_decision"):
             if not _is_nonempty_string(capability.get(field)):
