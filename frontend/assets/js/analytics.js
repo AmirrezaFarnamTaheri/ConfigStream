@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             initGlobe(stats);
         } else {
             logger.warn("No analytics data available");
-            // Show empty state or placeholder
+            // Show empty state when no data is available from the API
             showEmptyState();
         }
     } catch (e) {
@@ -158,7 +158,7 @@ function initGlobe(data) {
              else {
                  const missingLib = !window.THREE ? 'THREE.js' : 'Globe.gl';
                  logger.error(`${missingLib} library failed to load`);
-                 container.innerHTML = '<div class="error-placeholder">Visualization Unavailable (Network Error)</div>';
+                 container.innerHTML = '<div class="error-state">Visualization Unavailable (Network Error)</div>';
              }
         });
     }
@@ -773,7 +773,8 @@ function initCharts(data, evasionTrend = null) {
         allReasons.sort((a, b) => b[1] - a[1]);
 
         for (const [key, count] of allReasons) {
-            // Assuming all rejection reasons are worth showing if present
+            // All rejection reasons from the backend are surfaced to the user when present.
+    // The backend only emits reasons that are meaningful for diagnostics.
             if (count > 0) {
                 let label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
                 let color = categoryColors[key] || generateColor(key, 0);

@@ -91,7 +91,18 @@ EXTRA_SOURCES = [
 SOURCES_DIR = Path("sources")
 CONSOLIDATED_FILE = Path("consolidated_sources.txt")
 BATCH_PATTERN = "batch_*.txt"
-NUM_BATCHES = 14
+NUM_BATCHES = 17
+
+
+def _read_url_lines(path: Path) -> Set[str]:
+    urls: Set[str] = set()
+    if not path.exists():
+        return urls
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if line and not line.startswith("#"):
+            urls.add(line)
+    return urls
 
 
 def _project_key(url: str) -> str:
@@ -119,23 +130,14 @@ def get_domain(url: str) -> str:
 def main():
     print("Starting Source Deduplication & Restoration...")
 
-    # 1. Gather all existing sources from consolidated file (Source of Truth)
+    # 1. Gather all existing sources. Batch files are canonical; the
+    # consolidated file is a synchronized mirror used by reshard tooling.
     existing_urls: Set[str] = set()
+    if SOURCES_DIR.exists():
+        for f in SOURCES_DIR.glob(BATCH_PATTERN):
+            existing_urls.update(_read_url_lines(f))
     if CONSOLIDATED_FILE.exists():
-        content = CONSOLIDATED_FILE.read_text(encoding="utf-8").splitlines()
-        for line in content:
-            line = line.strip()
-            if line and not line.startswith("#"):
-                existing_urls.add(line)
-    else:
-        print("Warning: consolidated_sources.txt not found, falling back to batches.")
-        if SOURCES_DIR.exists():
-            for f in SOURCES_DIR.glob(BATCH_PATTERN):
-                content = f.read_text(encoding="utf-8").splitlines()
-                for line in content:
-                    line = line.strip()
-                    if line and not line.startswith("#"):
-                        existing_urls.add(line)
+        existing_urls.update(_read_url_lines(CONSOLIDATED_FILE))
 
     print(f"Loaded {len(existing_urls)} existing sources.")
 

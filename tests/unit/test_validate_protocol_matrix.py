@@ -5,11 +5,12 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 from scripts import validate_protocol_matrix
 
 
-def _write_json(path: Path, data: dict[str, object]) -> None:
+def _write_json(path: Path, data: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data), encoding="utf-8")
 
@@ -49,8 +50,12 @@ def test_validate_protocol_matrix_rejects_missing_schema_protocol(
         "OpenVPN HTTP SOCKS SSH Xray Snell Brook Juicity",
         encoding="utf-8",
     )
-    monkeypatch.setattr(validate_protocol_matrix, "SCHEMA_PATH", tmp_path / "schema.json")
-    monkeypatch.setattr(validate_protocol_matrix, "PARSERS_INIT", tmp_path / "parsers.py")
+    monkeypatch.setattr(
+        validate_protocol_matrix, "SCHEMA_PATH", tmp_path / "schema.json"
+    )
+    monkeypatch.setattr(
+        validate_protocol_matrix, "PARSERS_INIT", tmp_path / "parsers.py"
+    )
     monkeypatch.setattr(validate_protocol_matrix, "README_PATH", tmp_path / "README.md")
 
     errors = validate_protocol_matrix.validate_protocol_matrix(tmp_path / "matrix.json")
@@ -72,8 +77,12 @@ def test_validate_protocol_matrix_rejects_unknown_parser(
         "OpenVPN HTTP SOCKS SSH Xray Snell Brook Juicity",
         encoding="utf-8",
     )
-    monkeypatch.setattr(validate_protocol_matrix, "SCHEMA_PATH", tmp_path / "schema.json")
-    monkeypatch.setattr(validate_protocol_matrix, "PARSERS_INIT", tmp_path / "parsers.py")
+    monkeypatch.setattr(
+        validate_protocol_matrix, "SCHEMA_PATH", tmp_path / "schema.json"
+    )
+    monkeypatch.setattr(
+        validate_protocol_matrix, "PARSERS_INIT", tmp_path / "parsers.py"
+    )
     monkeypatch.setattr(validate_protocol_matrix, "README_PATH", tmp_path / "README.md")
 
     errors = validate_protocol_matrix.validate_protocol_matrix(tmp_path / "matrix.json")

@@ -7,6 +7,7 @@ import ast
 import logging
 import time
 from pathlib import Path
+from typing import Any, cast
 
 import pytest
 
@@ -190,7 +191,7 @@ async def test_dns_failure_log_masks_hostname_and_exception(caplog) -> None:
 
     resolver = object.__new__(BatchDNSResolver)
     resolver.timeout = 0.1
-    resolver.resolver = FailingResolver()
+    resolver.resolver = cast(Any, FailingResolver())
 
     with caplog.at_level(logging.DEBUG, logger="configstream.dns_batch_resolver"):
         result = await resolver._resolve_one("8.8.8.8.example?token=super-secret")
@@ -252,7 +253,7 @@ def test_test_cache_endpoint_logs_are_sanitized(caplog) -> None:
         port=443,
     )
     cache = object.__new__(TestResultCache)
-    cache.db_path = None
+    cast(Any, cache).db_path = None
     cache.ttl_seconds = 3600
     cache._cache = {
         cache._compute_hash(proxy.config): {

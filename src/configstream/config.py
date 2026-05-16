@@ -121,7 +121,7 @@ class AppSettings(BaseSettings):
     DNS_HARDENED_OUTPUTS: bool = True
     # Fail the pipeline (exit non-zero) when 0 working proxies were found.
     # Outputs are still generated before final status is returned.
-    FAIL_ON_ZERO_WORKING: bool = True
+    FAIL_ON_ZERO_WORKING: bool = False
     DNS_SAFE_RESOLVE_TIMEOUT: float = 4.0
     DNS_SAFE_RESOLVE_BATCH: int = 500
     DNS_SAFE_RESOLVE_LIMIT: int = 0
@@ -155,7 +155,7 @@ class AppSettings(BaseSettings):
     BATCH_NUMBER: str = ""
 
     # Security Validator
-    ALLOW_PRIVATE_IPS: bool = True
+    ALLOW_PRIVATE_IPS: bool = False
     INCLUDE_INSECURE_PROXIES: bool = True
 
     # Shuffle

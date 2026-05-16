@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import http.client
 import json
 import urllib.error
 import urllib.parse
@@ -66,17 +67,30 @@ def _fetch(url: str, *, timeout: float) -> Response:
     )
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:
+            try:
+                body = response.read()
+            except http.client.IncompleteRead as exc:
+                return Response(
+                    url=url,
+                    status=0,
+                    body=exc.partial,
+                    content_type=response.headers.get("content-type", ""),
+                )
             return Response(
                 url=url,
                 status=int(response.status),
-                body=response.read(),
+                body=body,
                 content_type=response.headers.get("content-type", ""),
             )
     except urllib.error.HTTPError as exc:
+        try:
+            body = exc.read()
+        except http.client.IncompleteRead as read_exc:
+            body = read_exc.partial
         return Response(
             url=url,
             status=int(exc.code),
-            body=exc.read(),
+            body=body,
             content_type=exc.headers.get("content-type", ""),
         )
 
@@ -158,7 +172,9 @@ def verify_pages_deployment(base_url: str, *, timeout: float = 20.0) -> list[str
             errors.append(f"{page} missing ConfigStream page identity")
         _assert_no_placeholders(page, text, errors)
 
-    runtime_config = _fetch(_join(base_url, "assets/js/runtime-config.js"), timeout=timeout)
+    runtime_config = _fetch(
+        _join(base_url, "assets/js/runtime-config.js"), timeout=timeout
+    )
     _assert_ok(runtime_config, errors)
     runtime_text = runtime_config.text
     _assert_no_placeholders("assets/js/runtime-config.js", runtime_text, errors)
@@ -236,7 +252,9 @@ def verify_pages_deployment(base_url: str, *, timeout: float = 20.0) -> list[str
             "api/proxies",
             "api/stats",
         ):
-            _assert_manifest_hash(rel_path, responses[rel_path], manifest_hashes, errors)
+            _assert_manifest_hash(
+                rel_path, responses[rel_path], manifest_hashes, errors
+            )
     except json.JSONDecodeError as exc:
         errors.append(f"artifact_manifest.json decode failed: {exc}")
 
@@ -247,9 +265,20 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("url", help="GitHub Pages deployment URL")
     parser.add_argument("--timeout", type=float, default=20.0)
+    parser.add_argument("--report-file", help="Path to save JSON report")
     args = parser.parse_args(argv)
 
     errors = verify_pages_deployment(args.url, timeout=args.timeout)
+
+    if args.report_file:
+        report = {
+            "url": args.url,
+            "status": "passed" if not errors else "failed",
+            "errors": errors,
+        }
+        with open(args.report_file, "w") as f:
+            json.dump(report, f, indent=2)
+
     if errors:
         print("ERROR: deployed Pages smoke failed")
         for error in errors:

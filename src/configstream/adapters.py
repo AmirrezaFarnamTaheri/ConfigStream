@@ -104,7 +104,9 @@ class SurgeAdapter(Adapter):
                                 lines.append(chain_line)
                                 chain_count += 1
                 except Exception as e:
-                    logger.debug(f"Failed to export chain to Surge: {_safe_log_text(e)}")
+                    logger.debug(
+                        f"Failed to export chain to Surge: {_safe_log_text(e)}"
+                    )
                     failed_count += 1
 
         logger.info(

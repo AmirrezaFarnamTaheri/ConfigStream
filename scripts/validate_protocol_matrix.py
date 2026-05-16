@@ -108,7 +108,9 @@ def validate_protocol_matrix(path: Path = MATRIX_PATH) -> list[str]:
 
         normalized_to = entry.get("normalized_to")
         if normalized_to is not None and normalized_to not in schema_protocols:
-            errors.append(f"{protocol_id} normalizes to unknown protocol: {normalized_to}")
+            errors.append(
+                f"{protocol_id} normalizes to unknown protocol: {normalized_to}"
+            )
 
         if entry.get("public") and entry.get("kind") == "canonical" and not parser:
             errors.append(f"{protocol_id} public canonical protocol must list parser")

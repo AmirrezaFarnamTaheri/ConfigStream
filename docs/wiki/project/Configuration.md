@@ -47,7 +47,7 @@ ConfigStream is configured via Environment Variables.
 | :--- | :--- | :--- |
 | `STRICT_SECURITY` | `false` | Enable honeypot probing + stricter tester checks. |
 | `STEGO_KEY` | *None* | Fernet key used for stego asset generation and frontend injection. |
-| `ALLOW_PRIVATE_IPS` | `true` | Allow private/loopback IPs through validation. |
+| `ALLOW_PRIVATE_IPS` | `false` | Allow private/loopback IPs through validation. |
 | `TLS_TESTS_ENABLED` | `true` | Require TLS-capable configs when TLS validation is enabled. |
 | `DEDUP_IGNORE_PROTOCOL` | `false` | Ignore protocol when endpoint-deduplicating (more aggressive). |
 | `ENABLE_ENDPOINT_FILTERING` | `true` | Enable endpoint-level deduplication after testing. |
@@ -62,7 +62,7 @@ GitHub Pages is the core zero-budget publication target. External mirrors are op
 | `VT_API_KEY` | *None* | VirusTotal API key for IP reputation checks. |
 | `TELEGRAM_BOT_TOKEN` | *None* | Optional bot token for Telegram result uploads. |
 | `TELEGRAM_CHAT_ID` | *None* | Optional chat ID for Telegram uploads. |
-| `ADMIN_API_KEY` | *None* | API key for admin endpoints (e.g., `POST /api/admin/notify-update`). |
+| `ADMIN_API_KEY` | *None* | API key for admin endpoints (e.g., `POST /api/admin/notify-update`). Required in production; production admin endpoints fail closed when it is unset. |
 
 ## Optional Native Validation
 

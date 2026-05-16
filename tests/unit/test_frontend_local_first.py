@@ -4,7 +4,6 @@ from __future__ import annotations
 from pathlib import Path
 import json
 
-
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FRONTEND_DIR = REPO_ROOT / "frontend"
 
@@ -99,9 +98,7 @@ def test_frontend_local_vendor_assets_are_present() -> None:
 
 
 def test_proxy_table_uses_local_flag_images_before_text_fallback() -> None:
-    proxies_js = (FRONTEND_DIR / "assets/js/proxies.js").read_text(
-        encoding="utf-8"
-    )
+    proxies_js = (FRONTEND_DIR / "assets/js/proxies.js").read_text(encoding="utf-8")
 
     assert "assets/images/flags/w20/" in proxies_js
     assert "country-flag-text" in proxies_js
@@ -109,9 +106,7 @@ def test_proxy_table_uses_local_flag_images_before_text_fallback() -> None:
 
 def test_vendor_manifest_tracks_local_runtime_assets() -> None:
     manifest = json.loads(
-        (FRONTEND_DIR / "assets/vendor-manifest.json").read_text(
-            encoding="utf-8"
-        )
+        (FRONTEND_DIR / "assets/vendor-manifest.json").read_text(encoding="utf-8")
     )
 
     assert "preserve the previous online runtime experience" in manifest["policy"]
@@ -120,9 +115,7 @@ def test_vendor_manifest_tracks_local_runtime_assets() -> None:
         assert local_path.is_file(), library
         assert local_path.stat().st_size > 0, library
 
-    fonts_css = (FRONTEND_DIR / "assets/css/fonts.css").read_text(
-        encoding="utf-8"
-    )
+    fonts_css = (FRONTEND_DIR / "assets/css/fonts.css").read_text(encoding="utf-8")
     for family in (
         "Be Vietnam Pro",
         "DM Serif Display",

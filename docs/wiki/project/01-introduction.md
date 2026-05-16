@@ -94,7 +94,7 @@ ConfigStream today is a fully autonomous platform that runs every 4 hours withou
 *   **3 Evasion Techniques**: uTLS fingerprinting, multiplexing with padding, ALPN rotation. (TLS fragmentation disabled — sing-box removed tls_fragment; use vwarp AtomicNoize for fragmentation-based evasion.)
 *   **3 DNS Profiles**: Standard, DNS-Safe (IP-only), DNS-Hardened (DoH/DoT/DoQ).
 *   **Proxy Washing & Shielding**: Resurrect dead proxies via WARP/Vwarp tunnels.
-*   **Chain Laboratory**: Browser-based 5-step chain builder with 6 strategies and 8 export formats.
+*   **Chain Laboratory**: Browser-based 5-step chain builder with 9 strategies and 8 export formats.
 *   **Offline Tools**: `tools/lab-scanner.py` (Python), `tools/lab-runner.sh` (Bash), `frontend/lab-offline.html` (self-contained HTML).
 *   **Full Client Support**: Sing-box, Clash, Surge, Loon, Quantumult X, Shadowrocket, SIP008, Base64, plain text.
 *   **800+ Tests**: Unit, E2E, fuzz testing with >96% coverage on critical paths.

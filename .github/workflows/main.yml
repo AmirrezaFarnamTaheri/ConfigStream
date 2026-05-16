@@ -434,18 +434,43 @@ jobs:
           pip install google-api-python-client google-auth
           python scripts/upload_gdrive.py --path output/ --folder-id $GDRIVE_FOLDER_ID
       - name: Validate data release output contract
-        run: python scripts/validate_pages_artifact.py output
+        run: |
+          mkdir -p pipeline-evidence
+          python scripts/validate_pages_artifact.py \
+            --native-client-check \
+            --native-report-file pipeline-evidence/native_client_check_report.json \
+            output
+
+      - name: Generate Pipeline Evidence Bundle
+        run: |
+          python scripts/generate_evidence_bundle.py \
+            --output-dir output \
+            --evidence-dir pipeline-evidence \
+            --native-report pipeline-evidence/native_client_check_report.json
+
+      - name: Upload Pipeline Evidence Bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-evidence-${{ github.run_id }}
+          path: pipeline-evidence/
+          retention-days: 30
+
+      - name: Prepare Release Assets
+        id: assets
+        run: |
+          ASSETS=$(python scripts/prepare_release_assets.py --output-dir output)
+          # Add the consolidated log as it's not in the matrix
+          if [ -f "output/consolidated_pipeline.log" ]; then
+            ASSETS="$ASSETS output/consolidated_pipeline.log"
+          fi
+          echo "files=$ASSETS" >> $GITHUB_OUTPUT
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
           name: ConfigStream ${{ steps.tag.outputs.tag }}
-          files: |
-             output/singbox.json
-             output/clash.yaml
-             output/singbox-vpn.json
-             output/base64.txt
-             output/consolidated_pipeline.log
+          files: ${{ steps.assets.outputs.files }}
           draft: false
           prerelease: false
         env:

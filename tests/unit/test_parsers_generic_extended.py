@@ -18,10 +18,13 @@ def test_parse_generic_http():
     assert proxy.remarks == "Remark"
 
 
-def test_parse_generic_invalid_hostname():
+def test_parse_generic_invalid_hostname(monkeypatch):
     assert parse_generic_url_scheme("http://garbage:8080") is None
     assert parse_generic_url_scheme("http://invalid:8080") is None
     # Hostname with no dot is allowed when private IPs are permitted
+    import configstream.parsers.generic as _generic_mod
+
+    monkeypatch.setattr(_generic_mod._SETTINGS_CACHE, "ALLOW_PRIVATE_IPS", True)
     assert parse_generic_url_scheme("http://nodot:8080") is not None
     assert parse_generic_url_scheme("http://localhost:8080") is not None
 

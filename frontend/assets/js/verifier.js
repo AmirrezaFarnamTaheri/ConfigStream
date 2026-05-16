@@ -58,15 +58,14 @@
             }
 
             try {
-                // Determine format of PUBLIC_KEY (Base64 SPKI or Raw Hex)
-                // Assuming Base64 SPKI from constants.js example
+                // PUBLIC_KEY is a Base64-encoded SPKI (SubjectPublicKeyInfo) for Ed25519.
+                // Keys shorter than 60 chars are treated as raw Base64 for compatibility.
                 let keyData;
                 let format = "spki";
 
                 if (PUBLIC_KEY.length > 60) { // Likely Base64 SPKI
                     keyData = this._base64ToArrayBuffer(PUBLIC_KEY);
-                } else { // Raw Hex or Raw Base64?
-                    // Fallback to assumption
+                } else { // Raw Base64 fallback
                     keyData = this._base64ToArrayBuffer(PUBLIC_KEY);
                 }
 

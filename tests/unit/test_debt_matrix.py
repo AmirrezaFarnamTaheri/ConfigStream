@@ -9,7 +9,9 @@ from pathlib import Path
 from scripts import generate_debt_matrix, validate_debt_matrix
 
 
-def test_generate_debt_matrix_uses_repo_relative_paths(tmp_path: Path, monkeypatch) -> None:
+def test_generate_debt_matrix_uses_repo_relative_paths(
+    tmp_path: Path, monkeypatch
+) -> None:
     root = tmp_path
     source = root / "src" / "configstream"
     source.mkdir(parents=True)
@@ -26,6 +28,7 @@ def test_generate_debt_matrix_uses_repo_relative_paths(tmp_path: Path, monkeypat
             "line": 1,
             "marker": "TODO",
             "category": "production",
+            "priority": "P0 - Critical",
             "text": "# TODO: tighten behavior",
         }
     ]
@@ -38,10 +41,15 @@ def test_generate_debt_matrix_excludes_generated_outputs() -> None:
 
 def test_generate_debt_matrix_classifies_test_mocks() -> None:
     assert generate_debt_matrix._classify_path("tests/unit/test_example.py") == "test"
-    assert generate_debt_matrix._classify_path("src/configstream/server.py") == "production"
+    assert (
+        generate_debt_matrix._classify_path("src/configstream/server.py")
+        == "production"
+    )
 
 
-def test_validate_debt_matrix_rejects_absolute_paths(tmp_path: Path, monkeypatch) -> None:
+def test_validate_debt_matrix_rejects_absolute_paths(
+    tmp_path: Path, monkeypatch
+) -> None:
     docs = tmp_path / "docs"
     docs.mkdir()
     (docs / "debt_matrix.json").write_text(

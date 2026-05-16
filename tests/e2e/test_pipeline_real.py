@@ -27,7 +27,7 @@ async def test_full_pipeline_with_local_source(tmp_path, monkeypatch):
         return None
 
     async def fake_generate_outputs(
-        optimized_proxies, output_path, stats, history, washer=None
+        optimized_proxies, output_path, stats, history, washer=None, tester=None
     ):
         # Write a minimal marker file so the pipeline has something to report
         marker = Path(output_path) / "pipeline_success.txt"

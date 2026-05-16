@@ -24,10 +24,19 @@ def _write_json(path: Path, data: dict[str, object]) -> None:
 def _minimal_valid_matrix() -> dict[str, object]:
     outputs = []
     for rel_path in REQUIRED_EXISTS:
+        family = "test"
+        if rel_path.startswith("singbox-vpn"):
+            family = "singbox-vpn"
+        elif rel_path.startswith("singbox"):
+            family = "singbox"
+        elif rel_path.startswith("chains"):
+            family = "chains"
+        elif rel_path.startswith("clash"):
+            family = "clash"
         outputs.append(
             {
                 "path": rel_path,
-                "family": "test",
+                "family": family,
                 "category": "control" if rel_path.endswith(".json") else "subscription",
                 "format": "json" if rel_path.endswith(".json") else "text",
                 "required": True,
@@ -41,6 +50,20 @@ def _minimal_valid_matrix() -> dict[str, object]:
                 },
                 "degraded_valid": True,
                 "notes": "test fixture",
+                **(
+                    {
+                        "core_format": (
+                            "clash" if rel_path.startswith("clash") else "sing-box"
+                        ),
+                        "artifact_type": (
+                            "full_config_alias"
+                            if rel_path.startswith("chains")
+                            else "full_config"
+                        ),
+                    }
+                    if rel_path.startswith(("singbox", "chains", "clash"))
+                    else {}
+                ),
                 **(
                     {"zip_required_members": list(REQUIRED_ZIP_MEMBERS[rel_path])}
                     if rel_path in REQUIRED_ZIP_MEMBERS
@@ -122,6 +145,25 @@ def test_validate_output_matrix_rejects_zip_member_drift(tmp_path: Path) -> None
     errors = validate_output_matrix.validate_output_matrix(tmp_path / "matrix.json")
 
     assert any("zip_required_members drift" in error for error in errors)
+
+
+def test_validate_output_matrix_requires_core_metadata_for_client_configs(
+    tmp_path: Path,
+) -> None:
+    matrix = _minimal_valid_matrix()
+    outputs = matrix["outputs"]
+    assert isinstance(outputs, list)
+    singbox = next(
+        item
+        for item in outputs
+        if isinstance(item, dict) and item["path"] == "singbox.json"
+    )
+    singbox.pop("core_format")
+    _write_json(tmp_path / "matrix.json", matrix)
+
+    errors = validate_output_matrix.validate_output_matrix(tmp_path / "matrix.json")
+
+    assert any("core_format is required" in error for error in errors)
 
 
 def test_validate_output_matrix_rejects_zip_optional_pattern_drift(

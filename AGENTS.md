@@ -1,13 +1,22 @@
 # ConfigStream Agents & Contributors Guidelines
 
 ## 1. Project Philosophy & Directives
+**Current Status**: Remediation complete. The project is production-ready as of v3.1.0 (2026-05-14). [ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md](ConfigStream_Master_Audit_Report%20-%20Main%20SOURCE%20OF%20TRUTH.md) and `STATUS.md` are the ONLY valid surfaces for project status. All P0 and P1 audit items have been closed.
+
 ConfigStream is a **sovereignty-grade, zero-budget anti-censorship platform**. Every line of code must align with these core tenets:
 1.  **Zero Budget**: Do not introduce dependencies on paid APIs, databases, or infrastructure. We rely exclusively on free GitHub Actions/Pages, public APIs, and user-provided resources.
 2.  **Resilience**: The system must assume hostile network conditions. It must handle timeouts, blocklists, and unreliable sources gracefully (Fail-Open or Fail-Safe).
-3.  **Security**: We operate in a high-risk domain. Logs must be sanitized. Inputs must be validated. No project-operated active scanning of third-party infrastructure. Local scanner tools are opt-in, user-run diagnostics only, and scheduled CI must keep active scanning disabled.
+3.  **Security**: We operate in a high-risk domain. Logs must be sanitized. Inputs must be validated. No project-operated active scanning of third-party infrastructure. Local scanner tools are opt-in, user-run diagnostics only, and scheduled CI/production must keep active scanning disabled via `ALLOW_ACTIVE_SCANNING=false` (default).
 
 ## 2. Architectural Overview
 The system follows a **Streaming Pipeline Architecture** (`Producer-Consumer`):
+
+### Canonical Matrices (Source of Truth)
+*   **Protocol Matrix (`docs/protocol_matrix.json`)**: Definitive inventory of supported protocols, parser status, and export capabilities.
+*   **Output Matrix (`docs/output_matrix.json`)**: Definitive inventory of generated artifacts, client config requirements, and Pages deploy rules.
+*   **Claim Ledger (`docs/claim_ledger.json`)**: Tracking of implemented features and their proof (tests/docs/changelog).
+*   **Debt Matrix (`docs/DEBT_MATRIX.md`)**: Tracking of technical debt, mocks, and placeholders.
+*   **Module Ownership Map (`docs/module_ownership.json`)**: Canonical ownership/import-boundary map for major modules and removed-module replacements.
 
 ### Core Components
 *   **Producer (`source_producer`)**: Fetches raw data from remote URLs or local files. It pushes raw content into a bounded `asyncio.Queue`.
@@ -180,6 +189,16 @@ Before submitting ANY code:
 *   `crypto/` — flattened to `signer.py`.
 *   `transport/` — flattened to `stego.py`.
 *   `workers/` — flattened to `warp_scanner.py`.
+
+### Superseded Documentation (integrated into Master Audit Report)
+Do NOT use these as standalone sources of truth; they are preserved as historical evidence ledgers inside the Master Audit Report:
+*   `Main Source of truth - Ammendment.txt`
+*   `KNOWN_ISSUES.md`
+*   `CLOSURE_REPORT.md`
+*   `docs/FINALIZATION_REPORT_2026.md`
+*   `docs/RELEASE_HARDENING_2026.md`
+*   `docs/ROADMAP.md`
+*   `docs/ROADMAP_UPDATE_PROCESS.md`
 
 ## 10. CI / Batch Configuration
 *   **Batch Count**: 17 shards (batch_1.txt through batch_17.txt). `dynamic_reshard.py` manages distribution.
