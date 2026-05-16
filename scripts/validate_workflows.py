@@ -187,7 +187,23 @@ def _ci_has_required_frontend_browser_profile(path: Path) -> bool:
     )
 
 
-def _has_capability_and_core_contract_validators(path: Path) -> bool:
+def _ci_frontend_smoke_installs_node_browser(path: Path) -> bool:
+    try:
+        content = path.read_text(encoding="utf-8")
+    except OSError:
+        return False
+    frontend_index = content.find("  frontend:")
+    browser_index = content.find("  frontend-browser:")
+    if frontend_index == -1 or browser_index == -1:
+        return False
+    frontend_job = content[frontend_index:browser_index]
+    return (
+        "npx playwright install chromium" in frontend_job
+        and "npm run test:frontend:no-network" in frontend_job
+    )
+
+
+def _has_contract_validators(path: Path) -> bool:
     try:
         content = path.read_text(encoding="utf-8")
     except OSError:
@@ -195,6 +211,7 @@ def _has_capability_and_core_contract_validators(path: Path) -> bool:
     return (
         "python scripts/validate_capability_registry.py" in content
         and "python scripts/validate_core_compatibility.py" in content
+        and "python scripts/validate_module_ownership.py" in content
     )
 
 
@@ -267,11 +284,15 @@ def main() -> int:
             errors.append(
                 f"{path}: missing required frontend-browser Playwright profile"
             )
-        if path.name in {"ci.yml", "release.yml"} and not (
-            _has_capability_and_core_contract_validators(path)
+        if path.name == "ci.yml" and not _ci_frontend_smoke_installs_node_browser(path):
+            errors.append(
+                f"{path}: frontend smoke job must install Node Playwright Chromium"
+            )
+        if path.name in {"ci.yml", "release.yml"} and not _has_contract_validators(
+            path
         ):
             errors.append(
-                f"{path}: missing capability/core compatibility contract validators"
+                f"{path}: missing capability/core/module ownership contract validators"
             )
         if path.name == "main.yml" and _contains_git_push(path):
             errors.append(f"{path}: main data workflow must not push commits")
