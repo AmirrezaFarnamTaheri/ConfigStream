@@ -239,6 +239,53 @@
       ],
       "changelog": "CHANGELOG.md",
       "cleanup_decision": "Data artifacts must have 30 day retention across standard and retest workflows."
+    },
+    {
+      "id": "claim.governance.capability_registry_contract",
+      "claim": "Stable capability claims are tracked in a capability registry and must have implementation, complete claim-ledger proof, tests, docs, limitations, and cleanup decisions.",
+      "source": "Main SOURCE OF TRUTH - PART 2.md",
+      "product_area": "governance",
+      "status": "complete",
+      "owner": "docs/capability_registry.json",
+      "tests": [
+        "scripts/validate_capability_registry.py",
+        "scripts/validate_core_compatibility.py",
+        "tests/unit/test_validate_capability_registry.py",
+        "tests/unit/test_validate_core_compatibility.py",
+        "tests/unit/test_validate_workflows.py"
+      ],
+      "frontend_surface": null,
+      "output_artifact": null,
+      "docs": [
+        "docs/capability_registry.json",
+        "docs/core_compatibility_report.json",
+        "STATUS.md",
+        "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md"
+      ],
+      "changelog": "CHANGELOG.md",
+      "cleanup_decision": "Keep stable capabilities machine-validated; downgrade or remove stale capability claims instead of preserving backward-compatible overclaims."
+    },
+    {
+      "id": "claim.outputs.native_client_check_report",
+      "claim": "Optional native Sing-box and Clash client checks produce structured evidence reports that are archived with pipeline evidence without polluting public output artifacts.",
+      "source": "Main SOURCE OF TRUTH - PART 3.md",
+      "product_area": "outputs",
+      "status": "complete",
+      "owner": "scripts/validate_pages_artifact.py",
+      "tests": [
+        "tests/unit/test_validate_pages_artifact.py",
+        "tests/unit/test_release_scripts.py",
+        "tests/unit/test_validate_workflows.py"
+      ],
+      "frontend_surface": null,
+      "output_artifact": "pipeline-evidence/native_client_check_report.json",
+      "docs": [
+        "docs/core_compatibility_report.json",
+        "STATUS.md",
+        "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md"
+      ],
+      "changelog": "CHANGELOG.md",
+      "cleanup_decision": "Keep native checks optional and evidence-only until pinned zero-budget binaries are available; do not add native reports to public output_matrix artifacts."
     }
   ]
 }

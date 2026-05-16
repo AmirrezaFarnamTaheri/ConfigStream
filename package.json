@@ -2,11 +2,11 @@
   "name": "configstream-frontend",
   "version": "1.0.0",
   "private": true,
-  "description": "ConfigStream frontend build and E2E tooling",
+  "description": "ConfigStream frontend sanity checks and E2E tooling",
   "type": "module",
   "scripts": {
     "dev": "vite --host",
-    "build": "vite build",
+    "build:sanity": "vite build",
     "preview": "vite preview --host",
     "test:frontend:no-network": "node scripts/frontend_same_origin_smoke.cjs",
     "test:frontend:degraded": "node scripts/frontend_same_origin_smoke.cjs --no-js-only",

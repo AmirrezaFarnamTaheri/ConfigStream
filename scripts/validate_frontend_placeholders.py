@@ -89,10 +89,14 @@ def validate_frontend_placeholders(root: Path, *, strict: bool = False) -> list[
 
     if strict:
         if not runtime_config_path.exists():
-            errors.append(f"Missing frontend runtime config file: {runtime_config_path}")
+            errors.append(
+                f"Missing frontend runtime config file: {runtime_config_path}"
+            )
         else:
             runtime_config = _read(runtime_config_path)
-            if any(marker in runtime_config for marker in PUBLIC_KEY_PLACEHOLDER_MARKERS):
+            if any(
+                marker in runtime_config for marker in PUBLIC_KEY_PLACEHOLDER_MARKERS
+            ):
                 errors.append(
                     "Frontend PUBLIC_KEY placeholder remains in assets/js/runtime-config.js"
                 )
@@ -101,9 +105,13 @@ def validate_frontend_placeholders(root: Path, *, strict: bool = False) -> list[
                     "Frontend STEGO_KEY placeholder remains in assets/js/runtime-config.js"
                 )
             if re.search(r'PUBLIC_KEY:\s*""', runtime_config):
-                errors.append("Frontend PUBLIC_KEY is missing in assets/js/runtime-config.js")
+                errors.append(
+                    "Frontend PUBLIC_KEY is missing in assets/js/runtime-config.js"
+                )
             if re.search(r'STEGO_KEY:\s*""', runtime_config):
-                errors.append("Frontend STEGO_KEY is missing in assets/js/runtime-config.js")
+                errors.append(
+                    "Frontend STEGO_KEY is missing in assets/js/runtime-config.js"
+                )
 
     return errors
 

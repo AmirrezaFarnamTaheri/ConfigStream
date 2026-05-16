@@ -11,7 +11,7 @@ from ..security_validator import SecurityValidator
 from .singbox_utils import add_transport_sb, apply_stealth_profile
 from ..utils.bool_parser import parse_bool, parse_tls_flag
 from ..tagging import get_flag_emoji
-from .chains import chain_outbounds_from_details
+from .chains import chain_obs_from_details
 
 logger = logging.getLogger(__name__)
 
@@ -398,15 +398,15 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             return None
 
     elif protocol == "revived":
-        chain_outbounds = chain_outbounds_from_details(proxy.details or {})
-        if not chain_outbounds:
+        chain_obs = chain_obs_from_details(proxy.details or {})
+        if not chain_obs:
             return None
 
         chain_head = next(
-            (o for o in chain_outbounds if o.get("type") == "wireguard"),
-            chain_outbounds[0],
+            (o for o in chain_obs if o.get("type") == "wireguard"),
+            chain_obs[0],
         )
-        extra_outbounds = [o for o in chain_outbounds if o is not chain_head]
+        extra_outbounds = [o for o in chain_obs if o is not chain_head]
         out = copy.deepcopy(chain_head)
         if proxy.remarks:
             out["tag"] = proxy.remarks

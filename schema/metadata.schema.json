@@ -38,6 +38,8 @@
     "vwarp_win_rate",
     "washing_enabled",
     "shielded_count",
+    "shielded_candidate_count",
+    "shielded_verified_count",
     "evasion_utls_enabled",
     "evasion_alpn_enabled",
     "evasion_fragmentation_enabled",
@@ -95,11 +97,17 @@
       ]
     },
     "start_time": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "format": "date-time"
     },
     "end_time": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "format": "date-time"
     },
     "update_interval_hours": {
@@ -291,7 +299,12 @@
     },
     "latency_distribution": {
       "type": "object",
-      "required": ["fast", "medium", "slow", "very_slow"],
+      "required": [
+        "fast",
+        "medium",
+        "slow",
+        "very_slow"
+      ],
       "properties": {
         "fast": {
           "type": "integer",
@@ -460,6 +473,10 @@
         }
       },
       "additionalProperties": false
+    },
+    "chain_obs_count": {
+      "type": "integer",
+      "description": "Alias for chain_outbounds_count; number of unique chain outbound tags."
     }
   },
   "additionalProperties": false

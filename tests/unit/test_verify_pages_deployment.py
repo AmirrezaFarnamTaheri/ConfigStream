@@ -29,7 +29,14 @@ class _StaticHandler(BaseHTTPRequestHandler):
             return
         body = target.read_bytes()
         self.send_response(200)
-        self.send_header("content-type", "application/json" if rel_path.endswith(".json") or rel_path.startswith("api/") else "text/html")
+        self.send_header(
+            "content-type",
+            (
+                "application/json"
+                if rel_path.endswith(".json") or rel_path.startswith("api/")
+                else "text/html"
+            ),
+        )
         self.send_header("content-length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
@@ -40,7 +47,13 @@ class _StaticHandler(BaseHTTPRequestHandler):
 
 def _write_site(root: Path, *, runtime_config: str | None = None) -> None:
     html = "<!doctype html><html><head><title>ConfigStream</title></head><body>ConfigStream</body></html>"
-    for page in ("index.html", "analytics.html", "proxies.html", "lab.html", "wiki.html"):
+    for page in (
+        "index.html",
+        "analytics.html",
+        "proxies.html",
+        "lab.html",
+        "wiki.html",
+    ):
         (root / page).write_text(html, encoding="utf-8")
     (root / "assets" / "js").mkdir(parents=True)
     (root / "assets" / "js" / "runtime-config.js").write_text(

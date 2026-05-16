@@ -12,8 +12,8 @@ from typing import AsyncIterator
 import httpx
 import sniffio
 
-from .dns_cache import DEFAULT_CACHE
 from .config import AppSettings
+from .security.transport import SecurityTransport
 
 # Check for HTTP/2 support
 try:
@@ -22,36 +22,6 @@ try:
     HTTP2_AVAILABLE = True
 except ModuleNotFoundError:
     HTTP2_AVAILABLE = False
-
-
-class CachedDNS_AsyncHTTPTransport(httpx.AsyncHTTPTransport):
-    """
-    Custom Transport that utilizes a centralized DNS cache.
-
-    NOTE: DNS caching is currently only applied to HTTP requests.
-    For HTTPS, we rely on the standard resolver to avoid SSL Hostname Mismatch errors.
-    Forcing an IP connection with HTTPS requires manual Host header manipulation
-    and a custom SSLContext that trusts the injected Host header, which adds
-    significant complexity and security risk (MITM).
-    """
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._settings = AppSettings()
-
-    async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
-        if self._settings.DNS_CACHE_ENABLED and request.url.scheme == "http":
-            host = request.url.host
-            cached_ip = await DEFAULT_CACHE.resolve(host)
-
-            if cached_ip:
-                # Rewrite the URL to use the IP address
-                # This works for HTTP because the Host header is preserved/set separately
-                request.url = request.url.copy_with(host=cached_ip)
-                if "Host" not in request.headers:
-                    request.headers["Host"] = host
-
-        return await super().handle_async_request(request)
 
 
 @asynccontextmanager
@@ -63,7 +33,7 @@ async def get_client(retries: int = 0) -> AsyncIterator[httpx.AsyncClient]:
     - HTTP/2 Support (if available)
     - Connection Pooling (configurable limits)
     - Automatic Redirect Following
-    - Custom Transport (DNS Caching)
+    - SecurityTransport (DNS Caching + Rebinding Protection)
     """
     app_settings = AppSettings()
 
@@ -79,13 +49,16 @@ async def get_client(retries: int = 0) -> AsyncIterator[httpx.AsyncClient]:
         keepalive_expiry=30.0,
     )
 
-    # Configure Transport
-    transport_cls = (
-        CachedDNS_AsyncHTTPTransport
-        if app_settings.DNS_CACHE_ENABLED
-        else httpx.AsyncHTTPTransport
+    # Configure Security Transport
+    # This replaces the old CachedDNS_AsyncHTTPTransport by consolidating
+    # DNS caching and DNS rebinding protection (IP pinning).
+    transport = SecurityTransport(
+        retries=retries,
+        limits=limits,
+        http2=HTTP2_AVAILABLE,
+        block_private_networks=bool(app_settings.FETCH_BLOCK_PRIVATE_NETWORKS),
+        dns_cache_enabled=bool(app_settings.DNS_CACHE_ENABLED),
     )
-    transport = transport_cls(retries=retries, limits=limits, http2=HTTP2_AVAILABLE)
 
     # Configure Client
     token = sniffio.current_async_library_cvar.set("asyncio")

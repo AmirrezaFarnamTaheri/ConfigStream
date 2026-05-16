@@ -1457,7 +1457,7 @@ command -v sing-box >/dev/null 2>&1 || {
     alias sing-box="$BINARY"
 }
 
-CFG=$(mktemp /tmp/cs-chain-XXXX.json)
+CFG=$(mktemp -t cs-chain.XXXXXX.json)
 echo "$CONFIG" > "$CFG"
 echo "[*] Starting chain proxy on 127.0.0.1:$LISTEN_PORT"
 echo "[*] Set your proxy to socks5://127.0.0.1:$LISTEN_PORT"${vwarpEcho}

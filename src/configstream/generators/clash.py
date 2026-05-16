@@ -9,7 +9,7 @@ except ImportError:
 
 from ..models import Proxy
 from ..converters import to_clash_proxy
-from ..converters.chains import chain_outbounds_from_details
+from ..converters.chains import chain_obs_from_details
 
 logger = logging.getLogger(__name__)
 
@@ -155,7 +155,7 @@ def _convert_revived(
     Convert revived chain proxies into Clash-compatible entries.
 
     Strategy:
-    - Prefer chain_outbounds and emit relay + warp proxies.
+    - Prefer chain_obs and emit relay + warp proxies.
     - Link warp via `dialer-proxy`, and also emit a `relay` group for Mihomo.
     - Fallback to origin proxy conversion when chain details are incomplete.
     """
@@ -164,7 +164,7 @@ def _convert_revived(
     selected_name: Optional[str] = None
     details = proxy.details or {}
 
-    chain = chain_outbounds_from_details(details)
+    chain = chain_obs_from_details(details)
     if chain:
         relay_ob: Optional[Dict[str, Any]] = None
         warp_ob: Optional[Dict[str, Any]] = None
@@ -256,7 +256,7 @@ def generate_clash_config(
 
     Added `extra_outbounds` argument to prevent crash when pipeline passes it.
     However, Clash/Mihomo generator currently only supports standard proxies.
-    Chains (WARP-wrapped, revived, shielded) are sing-box only — use
+    Chains (WARP-wrapped, revived, shielded) are sing-box only â€” use
     singbox.json or singbox-chains.json. Mihomo relay does not support
     WireGuard as a hop; use sing-box for chain profiles.
     """

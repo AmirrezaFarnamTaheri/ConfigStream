@@ -26,15 +26,16 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from scripts.validate_frontend_placeholders import (
+from scripts.validate_frontend_placeholders import (  # noqa: E402
     inject_frontend_keys,
     validate_frontend_placeholders,
 )
-from scripts.validate_pages_artifact import (
+from scripts.validate_pages_artifact import (  # noqa: E402
     REQUIRED_EXISTS,
     validate_pages_artifact,
     write_pages_contract,
 )
+
 
 def _write_text(path: Path, content: str = "x") -> None:
     path.parent.mkdir(parents=True, exist_ok=True)

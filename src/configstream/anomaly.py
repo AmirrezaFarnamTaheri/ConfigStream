@@ -88,7 +88,9 @@ CREATE TABLE IF NOT EXISTS history (
                     ).fetchall()
                 except (sqlite3.Error, AttributeError) as e:
                     # Attempt reconnection once
-                    logger.warning(f"Anomaly DB connection lost ({_safe_log_text(e)}), reconnecting...")
+                    logger.warning(
+                        f"Anomaly DB connection lost ({_safe_log_text(e)}), reconnecting..."
+                    )
                     try:
                         if self._conn:
                             self._conn.close()
@@ -327,7 +329,9 @@ CREATE TABLE IF NOT EXISTS history (
                     dst.commit()
                     logger.info(f"Merged anomaly stats from {other_db_path}")
         except Exception as e:  # pylint: disable=broad-exception-caught
-            logger.error(f"Failed to merge anomaly DB {other_db_path}: {_safe_log_text(e)}")
+            logger.error(
+                f"Failed to merge anomaly DB {other_db_path}: {_safe_log_text(e)}"
+            )
 
     def close(self) -> None:
         """Close the persistent SQLite connection."""

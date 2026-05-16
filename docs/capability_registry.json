@@ -1,0 +1,242 @@
+{
+  "schema_version": 1,
+  "generated": false,
+  "status_values": [
+    "stable",
+    "partial",
+    "experimental",
+    "planned",
+    "deprecated",
+    "removed"
+  ],
+  "capabilities": [
+    {
+      "id": "cap.frontend.local_first_runtime",
+      "title": "Local-first static frontend runtime",
+      "status": "stable",
+      "product_area": "frontend",
+      "owner": "frontend/",
+      "implementation": [
+        "frontend/index.html",
+        "frontend/proxies.html",
+        "frontend/analytics.html",
+        "frontend/lab.html",
+        "frontend/wiki.html",
+        "frontend/assets/js/"
+      ],
+      "claim_ids": [
+        "claim.frontend.local_first_runtime"
+      ],
+      "tests": [
+        "tests/unit/test_frontend_local_first.py",
+        "scripts/frontend_same_origin_smoke.cjs"
+      ],
+      "docs": [
+        "README.md",
+        "STATUS.md",
+        "docs/wiki/project/06-frontend.md"
+      ],
+      "outputs": [],
+      "limitations": [
+        "Optional user-initiated external links remain allowed; runtime dependencies must be same-origin or vendored."
+      ],
+      "cleanup_decision": "Keep this as a stable capability and fail validation if it loses tests, docs, or complete claim-ledger proof."
+    },
+    {
+      "id": "cap.outputs.public_artifact_contract",
+      "title": "Validated public output artifact contract",
+      "status": "stable",
+      "product_area": "outputs",
+      "owner": "scripts/validate_pages_artifact.py",
+      "implementation": [
+        "src/configstream/output_logic.py",
+        "scripts/validate_pages_artifact.py",
+        "docs/output_matrix.json",
+        "schema/artifact_manifest.schema.json",
+        "schema/health.schema.json",
+        "schema/metadata.schema.json"
+      ],
+      "claim_ids": [
+        "claim.outputs.artifact_manifest_complete"
+      ],
+      "tests": [
+        "tests/unit/test_output.py",
+        "tests/unit/test_validate_pages_artifact.py",
+        "tests/unit/test_validate_output_matrix.py",
+        "tests/unit/test_protocol_output_golden.py"
+      ],
+      "docs": [
+        "README.md",
+        "STATUS.md",
+        "docs/output_matrix.json",
+        "docs/wiki/project/08-api-reference.md"
+      ],
+      "outputs": [
+        "artifact_manifest.json",
+        "health.json",
+        "metadata.json",
+        "proxies.json"
+      ],
+      "limitations": [
+        "Live Pages readiness is separate from repository artifact validity and still requires deployed smoke evidence."
+      ],
+      "cleanup_decision": "Keep output claims generated from docs/output_matrix.json and avoid standalone stale output lists."
+    },
+    {
+      "id": "cap.protocols.matrix_backed_support",
+      "title": "Matrix-backed protocol parser and export support",
+      "status": "stable",
+      "product_area": "protocols",
+      "owner": "docs/protocol_matrix.json",
+      "implementation": [
+        "src/configstream/parsers/",
+        "src/configstream/converters/",
+        "src/configstream/generators/",
+        "docs/protocol_matrix.json"
+      ],
+      "claim_ids": [
+        "claim.protocols.complete_matrix"
+      ],
+      "tests": [
+        "tests/unit/test_protocol_output_golden.py",
+        "tests/unit/test_validate_protocol_matrix.py",
+        "scripts/frontend_same_origin_smoke.cjs"
+      ],
+      "docs": [
+        "README.md",
+        "STATUS.md",
+        "docs/protocol_matrix.json",
+        "docs/wiki/project/08-api-reference.md"
+      ],
+      "outputs": [
+        "proxies.json",
+        "singbox.json",
+        "clash.yaml"
+      ],
+      "limitations": [
+        "Some parsed protocols are intentionally parser/import-only and are not claimed as generated Sing-box or Clash exports."
+      ],
+      "cleanup_decision": "Keep protocol support claims tied to docs/protocol_matrix.json instead of prose-only protocol lists."
+    },
+    {
+      "id": "cap.security.fetch_dns_rebinding_guard",
+      "title": "HTTP and HTTPS source-fetch DNS rebinding guard",
+      "status": "stable",
+      "product_area": "security",
+      "owner": "src/configstream/security/transport.py",
+      "implementation": [
+        "src/configstream/security/transport.py",
+        "src/configstream/http_client.py",
+        "src/configstream/security_validator.py"
+      ],
+      "claim_ids": [
+        "claim.security.no_active_scanning"
+      ],
+      "tests": [
+        "tests/unit/security/test_transport.py",
+        "tests/unit/test_fetcher.py",
+        "tests/unit/test_security_validator.py"
+      ],
+      "docs": [
+        "README.md",
+        "SECURITY.md",
+        "STATUS.md"
+      ],
+      "outputs": [],
+      "limitations": [
+        "The guard protects project HTTP clients; user-provided local diagnostic tools remain opt-in."
+      ],
+      "cleanup_decision": "Keep validated-IP rewrite and original SNI/Host preservation as the canonical HTTPS path; do not reintroduce request-extension SSL pin shims."
+    },
+    {
+      "id": "cap.governance.audit_bookkeeping",
+      "title": "Machine-validated audit bookkeeping",
+      "status": "stable",
+      "product_area": "governance",
+      "owner": "docs/",
+      "implementation": [
+        "docs/claim_ledger.json",
+        "docs/capability_registry.json",
+        "docs/DEBT_MATRIX.md",
+        "docs/debt_matrix.json",
+        "scripts/validate_claim_ledger.py",
+        "scripts/validate_capability_registry.py",
+        "scripts/validate_debt_matrix.py",
+        "scripts/validate_status.py"
+      ],
+      "claim_ids": [
+        "claim.governance.debt_matrix_portable",
+        "claim.governance.capability_registry_contract"
+      ],
+      "tests": [
+        "tests/unit/test_validate_claim_ledger.py",
+        "tests/unit/test_validate_capability_registry.py",
+        "tests/unit/test_debt_matrix.py",
+        "tests/unit/test_validate_status.py"
+      ],
+      "docs": [
+        "README.md",
+        "STATUS.md",
+        "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md",
+        "docs/capability_registry.json"
+      ],
+      "outputs": [
+        "docs/debt_matrix.json"
+      ],
+      "limitations": [
+        "The registry proves repository claims; it does not prove the currently deployed public Pages artifact is fresh."
+      ],
+      "cleanup_decision": "Use the registry as the stable capability surface; remove or downgrade claims that lose implementation, tests, docs, or complete claim-ledger proof."
+    },
+    {
+      "id": "cap.core.xray_pipeline_export",
+      "title": "Pipeline-generated Xray JSON output",
+      "status": "planned",
+      "product_area": "outputs",
+      "owner": "future/xray-export",
+      "implementation": [],
+      "claim_ids": [],
+      "tests": [],
+      "docs": [
+        "docs/core_compatibility_report.json"
+      ],
+      "outputs": [],
+      "limitations": [
+        "Xray support is currently parser/import and Lab export surface only; no pipeline-generated xray.json artifact is claimed."
+      ],
+      "cleanup_decision": "Do not add Xray artifacts to docs/output_matrix.json until generator, validator, tests, docs, and native-check semantics exist."
+    },
+    {
+      "id": "cap.outputs.native_client_evidence",
+      "title": "Optional native client compatibility evidence",
+      "status": "stable",
+      "product_area": "outputs",
+      "owner": "scripts/validate_pages_artifact.py",
+      "implementation": [
+        "scripts/validate_pages_artifact.py",
+        "scripts/generate_evidence_bundle.py",
+        ".github/workflows/main.yml"
+      ],
+      "claim_ids": [
+        "claim.outputs.native_client_check_report"
+      ],
+      "tests": [
+        "tests/unit/test_validate_pages_artifact.py",
+        "tests/unit/test_release_scripts.py",
+        "tests/unit/test_validate_workflows.py"
+      ],
+      "docs": [
+        "docs/core_compatibility_report.json",
+        "STATUS.md",
+        "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md"
+      ],
+      "outputs": [
+        "pipeline-evidence/native_client_check_report.json"
+      ],
+      "limitations": [
+        "Native client checks are skipped when sing-box or mihomo binaries are absent; skipped checks are recorded as evidence, not counted as pass claims."
+      ],
+      "cleanup_decision": "Keep native compatibility evidence outside public output artifacts and do not claim pinned native validation until binaries are pinned in CI."
+    }
+  ]
+}

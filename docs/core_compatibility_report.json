@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "generated": false,
+  "core_formats": [
+    {
+      "core": "sing-box",
+      "status": "stable",
+      "artifact_type": "full_config",
+      "pipeline_outputs": [
+        "singbox.json",
+        "singbox-dns-safe.json",
+        "singbox-dns-hardened.json",
+        "singbox-vpn.json",
+        "singbox-vpn-dns-safe.json",
+        "singbox-vpn-dns-hardened.json",
+        "singbox-chains.json",
+        "singbox-chains-dns-safe.json",
+        "singbox-chains-dns-hardened.json",
+        "chains.json",
+        "chains-dns-safe.json",
+        "chains-dns-hardened.json"
+      ],
+      "structural_validator": "scripts/validate_pages_artifact.py",
+      "optional_native_validator": "sing-box check -c <artifact>",
+      "native_validation_status": "optional-local",
+      "notes": "All listed chain aliases are full Sing-box configs, not bare outbound fragments."
+    },
+    {
+      "core": "clash",
+      "status": "stable",
+      "artifact_type": "full_config",
+      "pipeline_outputs": [
+        "clash.yaml",
+        "clash-dns-safe.yaml",
+        "clash-dns-hardened.yaml"
+      ],
+      "structural_validator": "scripts/validate_pages_artifact.py",
+      "optional_native_validator": "mihomo -t -f <artifact>",
+      "native_validation_status": "optional-local",
+      "notes": "Clash-family YAML configs are structurally validated; native validation is optional when a local compatible binary is available."
+    },
+    {
+      "core": "xray",
+      "status": "planned",
+      "artifact_type": "not_pipeline_generated",
+      "pipeline_outputs": [],
+      "structural_validator": null,
+      "optional_native_validator": "xray run -test -config <artifact>",
+      "native_validation_status": "not-applicable",
+      "notes": "Xray is not a pipeline output contract today. Lab-only Xray export must not be advertised as docs/output_matrix.json output until generator and validation exist."
+    }
+  ],
+  "forbidden_pipeline_outputs_until_generated": [
+    "xray.json",
+    "xray-lite.json",
+    "xray-reality.json",
+    "xray-worker.json",
+    "xray-outbounds.json",
+    "xray-routing-fragments.json"
+  ],
+  "remaining_work": [
+    "Pin zero-budget native client binaries when available so optional checks can move from local/CI opportunistic evidence to reproducible pinned evidence.",
+    "Add offline/lite Sing-box variants only after output_matrix, generator, validator, docs, and tests are updated together."
+  ]
+}

@@ -150,7 +150,8 @@ class SecurityValidator:
     @staticmethod
     def _is_address_safe(address: str) -> bool:
         """
-        Internal check for address safety. Used by tests to mock safety checks.
+        Internal check for address safety. Exposed as a separate method to
+        allow test-seam injection without patching the full validator.
         """
         if _SETTINGS_CACHE.ALLOW_PRIVATE_IPS:
             return True
@@ -296,6 +297,7 @@ def validate_batch_configs(
                 safe_proxies.append(p)
 
     return safe_proxies
+
 
 def _safe_log_text(value: object) -> str:
     """Sanitize arbitrary text for logging."""

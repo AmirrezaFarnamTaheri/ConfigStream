@@ -71,3 +71,14 @@ def test_generate_singbox_config_extra_outbounds():
     urltest = next(o for o in outbounds if o["type"] == "urltest")
     assert "WARP" in urltest["outbounds"]
     assert "RELAY-123" not in urltest["outbounds"]
+
+
+def test_generate_singbox_config_has_no_dead_legacy_selector_outbounds():
+    """Only the returned final outbound list is authoritative."""
+    config = json.loads(generate_singbox_config([]))
+    tags = [outbound.get("tag") for outbound in config["outbounds"]]
+
+    assert "🌍 Proxy Select" in tags
+    assert "⚡ Best Latency" in tags
+    assert "🚀 Mode Selector" not in tags
+    assert "🛡️ Auto-Fallback" not in tags

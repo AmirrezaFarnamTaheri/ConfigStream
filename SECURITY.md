@@ -72,7 +72,7 @@
 #### CI/CD (GitHub Actions)
 - ✅ **Secret Management**: All secrets in GitHub Secrets, not environment
 - ✅ **No Command-line Secrets**: Tokens passed via environment variables only
-- ✅ **Artifact Security**: Pipeline outputs stored with 3-day retention
+- ✅ **Artifact Security**: Pipeline and Pages artifacts stored with 30-day retention
 - ✅ **Permission Scoping**: Minimal permissions per job
 
 ### Data Security
@@ -89,6 +89,7 @@
 - **Log Privacy**: Runtime logs must not expose proxy endpoints, credentials, UUIDs, source tokens, raw configs, or subprocess output without sanitizer masking.
 - **No Cloud Dependencies**: Fully self-hosted solution
 - **Insecure Proxy Retention**: Non-fatal policy rejections are retained and tagged so consumers can filter or discard downstream (malformed/invalid configs still drop).
+- **Private IP Policy**: By default, `ALLOW_PRIVATE_IPS=false` during proxy validation to prevent testing against internal infrastructure. Source fetching also blocks private networks by default.
 
 ## Reporting a Vulnerability
 
@@ -117,13 +118,14 @@
 
 ## Security Audit Results
 
-### Latest Audit: 2026-02-08
+### Latest Audit: 2026-05-13
 
-**Overall Security Score: A (90/100)**
+**Overall Security Score: A (95/100)**
 
 **Issues Fixed**:
 - ✅ P0: Hardcoded encryption key removed (replaced with CI/CD injection)
 - ✅ P0: CI/CD secret exposure fixed (HF_TOKEN via environment only)
+- ✅ P0: DNS Rebinding protection implemented via `SecurityTransport` IP pinning
 - ✅ P1: CORS wildcard removed from production defaults; production uses explicit allowed origins
 - ✅ P1: WebSocket message validation added
 - ✅ P1: Admin endpoint authentication implemented
@@ -157,8 +159,8 @@
 **Mitigations**:
 - Input validation at all boundaries
 - Output encoding for all dynamic content
-- Principle of least privilege
 - Defense in depth
+- **DNS Rebinding Protection**: Pre-connect resolution and IP pinning during fetching
 
 ## Security Configuration
 
@@ -173,6 +175,7 @@ export STEGO_KEY="your-base64-fernet-key"
 # Optional security enhancements:
 export WARP_KEY_POOL="key1,key2,key3"  # For proxy washing
 export MAXMIND_LICENSE_KEY="your-key"   # For GeoIP lookups
+export ALLOW_PRIVATE_IPS="false"       # Default: false
 ```
 
 ### Deployment Checklist
@@ -218,6 +221,7 @@ export MAXMIND_LICENSE_KEY="your-key"   # For GeoIP lookups
 - Quality tracking with anomaly detection
 - Blocklist integration (FireHol Level 1)
 - Security validation (VirusTotal integration)
+- **SecurityTransport**: DNS rebinding protection and IP pinning for all source fetches.
 - Optional Shadowsocks-Rust FFI validation only when an operator supplies a
   local binary and matching `SS_LIB_SHA256`; otherwise Python validation remains
   authoritative, and a configured hash mismatch fails closed.
@@ -251,5 +255,5 @@ For security-related questions or concerns:
 
 ---
 
-**Last Updated**: 2026-02-14
-**Next Security Audit**: Q3 2026
+**Last Updated**: 2026-05-13
+**Next Security Audit**: Q4 2026
