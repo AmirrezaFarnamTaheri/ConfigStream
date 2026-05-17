@@ -22,6 +22,7 @@
 - **Module ownership contract**: Implemented Part 2 section 1.2 with `docs/module_ownership.json`, `docs/MODULE_OWNERSHIP.md`, `scripts/validate_module_ownership.py`, CI/release workflow wiring, claim-ledger proof, capability-registry coverage, AGENTS guidance, and focused validator tests. Removed-module paths and imports are now guarded by a machine-validated ownership map instead of prose-only instructions.
 - **Module ownership verification**: Re-ran validators, formatter/lint checks for touched Python files, `npm run build`, same-origin frontend smoke, focused module-ownership/workflow/dependency tests, a Linux cp310 production requirements dry-run, and the full pytest suite. Full local pytest now reports 1042 passed / 1 skipped.
 - **Mypy contract cleanup**: Closed the reported mypy failures across validator scripts, artifact-contract helpers, stego unpacking, output metadata typing, merge-batch stats restoration, and focused deployment/frontend/server tests. `python -m mypy .` now passes cleanly without introducing broader compatibility shims or loosening production signatures.
+- **Data release artifact preparation**: Fixed the main workflow so data-release validation prepares the same public output shape that Pages validation expects before calling `validate_pages_artifact.py`. Added workflow validation coverage so `main.yml` cannot validate raw pipeline output without first staging frontend files, runtime config, API aliases, and refreshed contract files.
 
 ## [3.1.0] - 2026-05-16
 

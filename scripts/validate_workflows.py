@@ -137,6 +137,27 @@ def _main_release_assets_use_output_contract(path: Path) -> bool:
     )
 
 
+def _main_prepares_public_output_artifact(path: Path) -> bool:
+    try:
+        content = path.read_text(encoding="utf-8")
+    except OSError:
+        return False
+    prepare_index = content.find("Prepare public output artifact")
+    validate_index = content.find("Validate data release output contract")
+    if prepare_index == -1 or validate_index == -1 or prepare_index > validate_index:
+        return False
+    return (
+        "cp -R frontend/. output/" in content
+        and "python scripts/validate_frontend_placeholders.py --inject-env output"
+        in content
+        and "mkdir -p output/tools output/api" in content
+        and "cp output/proxies.json output/api/proxies" in content
+        and "cp output/metadata.json output/api/stats" in content
+        and "python scripts/validate_pages_artifact.py --refresh-contract output"
+        in content
+    )
+
+
 def _deploy_pages_has_frontend_placeholder_guard(path: Path) -> bool:
     try:
         content = path.read_text(encoding="utf-8")
@@ -321,6 +342,10 @@ def main() -> int:
         ):
             errors.append(
                 f"{path}: data release assets must use the shared output contract"
+            )
+        if path.name == "main.yml" and not _main_prepares_public_output_artifact(path):
+            errors.append(
+                f"{path}: data release validation must prepare the public output artifact"
             )
         if path.name == "main.yml" and not _main_publishes_reshard_recommendation(path):
             errors.append(
