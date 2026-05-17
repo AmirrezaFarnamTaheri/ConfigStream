@@ -296,7 +296,8 @@ jobs:
           name: pipeline-output
           path: output/
           retention-days: 3
-      - run: |
+      - name: Validate data release output contract
+        run: |
           python scripts/validate_pages_artifact.py \
             --native-client-check \
             --native-report-file pipeline-evidence/native_client_check_report.json \
@@ -336,7 +337,8 @@ jobs:
         with:
           name: pipeline-output
           path: output/
-      - run: |
+      - name: Validate data release output contract
+        run: |
           python scripts/validate_pages_artifact.py \
             --native-client-check \
             --native-report-file pipeline-evidence/native_client_check_report.json \
@@ -375,7 +377,16 @@ jobs:
           name: pipeline-output
           path: output/
           retention-days: "30"
-      - run: |
+      - name: Prepare public output artifact
+        run: |
+          cp -R frontend/. output/
+          mkdir -p output/tools output/api
+          python scripts/validate_frontend_placeholders.py --inject-env output
+          cp output/proxies.json output/api/proxies
+          cp output/metadata.json output/api/stats
+          python scripts/validate_pages_artifact.py --refresh-contract output
+      - name: Validate data release output contract
+        run: |
           python scripts/validate_pages_artifact.py \
             --native-client-check \
             --native-report-file pipeline-evidence/native_client_check_report.json \
@@ -386,6 +397,45 @@ jobs:
     monkeypatch.setattr(validate_workflows, "WORKFLOW_DIR", workflow_dir)
 
     assert validate_workflows.main() == 0
+
+
+def test_validate_workflows_requires_main_public_artifact_preparation(
+    tmp_path: Path, monkeypatch
+) -> None:
+    workflow_dir = tmp_path / ".github" / "workflows"
+    workflow_dir.mkdir(parents=True)
+    (workflow_dir / "main.yml").write_text(
+        """
+name: Main
+on:
+  workflow_dispatch:
+concurrency:
+  group: main
+jobs:
+  data:
+    runs-on: ubuntu-latest
+    steps:
+      - run: python scripts/dynamic_reshard.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: source-reshard-recommendation
+          path: sources/batch_*.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-output
+          path: output/
+          retention-days: "30"
+      - run: |
+          python scripts/validate_pages_artifact.py \
+            --native-client-check \
+            --native-report-file pipeline-evidence/native_client_check_report.json \
+            output
+""".lstrip(),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(validate_workflows, "WORKFLOW_DIR", workflow_dir)
+
+    assert validate_workflows.main() == 1
 
 
 def test_validate_workflows_requires_native_client_report_for_main_release(

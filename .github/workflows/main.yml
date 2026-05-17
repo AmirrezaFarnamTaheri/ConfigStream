@@ -391,6 +391,31 @@ jobs:
           name: source-reshard-recommendation
           path: sources/batch_*.txt
           retention-days: 30
+      - name: Prepare public output artifact
+        env:
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+          CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
+          CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
+          STEGO_KEY: ${{ secrets.STEGO_KEY }}
+        run: |
+          set -euxo pipefail
+
+          if [ -d "frontend" ]; then
+            cp -R frontend/. output/
+          fi
+
+          mkdir -p output/tools output/api
+          cp tools/lab-scanner.py output/tools/lab-scanner.py
+          cp tools/lab-runner.sh output/tools/lab-runner.sh
+
+          python scripts/validate_frontend_placeholders.py --inject-env output
+
+          cp output/proxies.json output/api/proxies
+          cp output/metadata.json output/api/stats
+          touch output/.nojekyll
+          rm -f output/data/test_cache.json
+
+          python scripts/validate_pages_artifact.py --refresh-contract output
       - name: Publish to IPFS (Unstoppable)
         if: env.PINATA_JWT != ''
         env:
