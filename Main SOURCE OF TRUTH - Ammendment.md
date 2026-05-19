@@ -1,6 +1,8 @@
 
 ## Evidence Ledger: `Main Source of truth - Ammendment.txt`
 
+**Supersession notice (2026-05-19):** This amendment is preserved as historical evidence and remediation context. Current operational status and release truth are defined by `STATUS.md`, `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md`, and canonical matrices. Any contradiction in this file should be treated as historical unless explicitly re-confirmed in those active surfaces.
+
 **Integration note:** Current amendment and expansion backlog; duplicate paragraphs are removed within this source.
 
 **Original count:** 4790 lines, 150592 characters, 150928 bytes.

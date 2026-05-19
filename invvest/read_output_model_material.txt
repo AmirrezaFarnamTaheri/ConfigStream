@@ -1,0 +1,3115 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+from typing import Dict, Any, List, Optional, Set
+import json
+import logging
+import asyncio
+import shutil
+from pathlib import Path
+
+from configstream.models import Proxy
+from configstream.history.tracker import ProxyHistoryTracker
+from configstream.output_logic import (
+    generate_categorized_outputs,
+    save_metadata,
+    write_public_artifact_contract,
+    _build_dns_safe_proxies,
+    _build_dns_hardened_proxies,
+)
+from configstream.output_transport import save_json, inject_stego_key_into_frontend
+from configstream.serialize import serialize_proxy, _build_chain_config
+from configstream.stego import generate_stego_assets
+from configstream.intelligence.washer.core import ProxyWasher
+from configstream.intelligence.chaining import generate_smart_chains
+from configstream.intelligence.vectors import generate_vectors
+from configstream.converters.chains import chain_obs_from_details
+from configstream.pipeline_stats import PipelineStats
+from configstream.tagging import ProxyTagger, format_proxy_name
+from configstream.config import AppSettings
+from configstream.dns_batch_resolver import BatchDNSResolver
+from configstream.geoip import GeoIPResolver
+from configstream.utils import AtomicFileWriter
+from configstream.utils.net import (
+    normalize_host as _normalize_host,
+    is_ip_literal as _is_ip_literal,
+)
+
+# SingBoxTester is imported lazily inside generate_pipeline_outputs to avoid
+# circular imports; the type hint uses TYPE_CHECKING to keep mypy happy.
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from configstream.testers.manager import SingBoxTester
+
+logger = logging.getLogger(__name__)
+
+
+def _is_revived(p: Proxy) -> bool:
+    """Check if a proxy was revived via WARP/Vwarp."""
+    details = p.details or {}
+    flag = details.get("is_revived")
+    is_revived_flag = False
+    if isinstance(flag, bool):
+        is_revived_flag = flag
+    elif isinstance(flag, int):
+        is_revived_flag = flag != 0
+    elif isinstance(flag, str):
+        is_revived_flag = flag.strip().lower() in ("1", "true", "yes", "y", "on")
+    return (
+        (p.process or "").startswith("revived")
+        or (p.protocol or "") == "revived"
+        or (p.config or "").startswith("revived://")
+        or is_revived_flag
+    )
+
+
+def _is_clean_ip(host: str) -> bool:
+    """Quick validation that a string looks like a real IPv4/IPv6 address."""
+    host = host.strip()
+    if not host:
+        return False
+    # IPv4: exactly 3 dots, all octets 0-255
+    if host[0].isdigit() and host.count(".") == 3:
+        return all(p.isdigit() and 0 <= int(p) <= 255 for p in host.split("."))
+    # IPv6: at least 2 colons, only hex/colon/dot chars
+    if host.count(":") >= 2 and all(c in "0123456789abcdefABCDEF:." for c in host):
+        return True
+    return False
+
+
+def _save_clean_ips(clean_ips: List[tuple[str, int]], path: Path) -> None:
+    """
+    Save washer clean IPs for the frontend lab.
+    Output shape matches frontend expectations: list of {ip, port}.
+    """
+    items: List[Dict[str, Any]] = []
+    seen: set[str] = set()
+    for entry in clean_ips:
+        try:
+            ip, port = entry
+        except Exception:  # nosec
+            continue
+        ip_s = str(ip).strip()
+        if not ip_s or not _is_clean_ip(ip_s):
+            continue
+        try:
+            port_i = int(port)
+        except Exception:  # nosec
+            port_i = 2408
+        key = f"{ip_s}:{port_i}"
+        if key in seen:
+            continue
+        seen.add(key)
+        items.append({"ip": ip_s, "port": port_i})
+        if len(items) >= 200:
+            break
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    AtomicFileWriter.write_text(path, json.dumps(items, indent=2, ensure_ascii=False))
+
+
+def _group_chain_obs(
+    outbounds: List[Dict[str, Any]],
+) -> List[List[Dict[str, Any]]]:
+    """Group flat outbound list into chains by following detour relationships."""
+    if not outbounds:
+        return []
+    by_tag: Dict[str, Dict[str, Any]] = {
+        ob["tag"]: ob for ob in outbounds if isinstance(ob, dict) and ob.get("tag")
+    }
+    detour_targets: set[str] = set()
+    for ob in outbounds:
+        dt = ob.get("detour")
+        if isinstance(dt, str) and dt:
+            detour_targets.add(dt)
+    # Entry points: outbounds whose tag is NOT a detour target of someone else
+    entry_points = [
+        ob
+        for ob in outbounds
+        if isinstance(ob, dict) and ob.get("tag") and ob["tag"] not in detour_targets
+    ]
+    chains: List[List[Dict[str, Any]]] = []
+    for entry in entry_points:
+        chain: List[Dict[str, Any]] = []
+        current: Optional[Dict[str, Any]] = entry
+        visited: set[str] = set()
+        while current:
+            tag = current.get("tag", "")
+            if tag in visited:
+                break
+            visited.add(tag)
+            chain.append(current)
+            dt = current.get("detour")
+            current = by_tag.get(dt) if dt else None
+        chain.reverse()  # inner hops first, entry point last
+        chains.append(chain)
+    return chains
+
+
+def _chain_to_proxy_entry(
+    chain: List[Dict[str, Any]],
+    process: str,
+    name_template: Optional[str] = None,
+    used_names: Optional[Set[str]] = None,
+    override_tag: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Convert a chain of outbound dicts to a proxy-like dict for proxies.json."""
+    entry = chain[-1]  # entry point is last element
+    mini_config = _build_chain_config(chain)
+    tag = override_tag if override_tag is not None else entry.get("tag", "Chain")
+    process_lower = str(process or "").lower()
+    is_shielded_candidate = process_lower == "shielded" or any(
+        bool(ob.get("_is_shielded")) for ob in chain if isinstance(ob, dict)
+    )
+    server = entry.get("server", "")
+    try:
+        port = int(entry.get("server_port", 0) or 0)
+    except Exception:  # nosec
+        port = 0
+    tags = ["chain"]
+    if any(ob.get("type") == "wireguard" for ob in chain):
+        tags.append("warp")
+    if is_shielded_candidate:
+        tags.extend(["shielded", "candidate"])
+    remarks = tag
+    # Enrich from chain metadata (washer adds _origin_country_code, _origin_latency)
+    origin_data: Dict[str, Any] = {}
+    for ob in chain:
+        if isinstance(ob, dict) and ob.get("_origin_country_code") is not None:
+            origin_data["country_code"] = ob.get("_origin_country_code") or ""
+            if ob.get("_origin_latency") is not None:
+                origin_data["latency"] = ob["_origin_latency"]
+            break
+    details: Dict[str, Any] = {"is_chain": True}
+    if origin_data:
+        details["origin_proxy"] = origin_data
+    if name_template:
+        try:
+            chain_proxy = Proxy(
+                config=mini_config,
+                protocol=entry.get("type", "chain"),
+                address=str(server or ""),
+                port=port,
+                remarks=tag,
+                is_working=not is_shielded_candidate,
+                process=process,
+                tags=tags.copy(),
+                details=details,
+            )
+            remarks = format_proxy_name(name_template, chain_proxy)
+        except Exception:  # nosec
+            remarks = tag
+    if used_names is not None:
+        base_name = remarks or tag
+        final_name = base_name
+        suffix = (tag or "chain")[:16]
+        idx = 1
+        while final_name in used_names:
+            idx += 1
+            final_name = f"{base_name}-{suffix}-{idx}"
+        used_names.add(final_name)
+        remarks = final_name
+    return {
+        "id": tag,
+        "protocol": entry.get("type", "chain"),
+        "address": str(server or ""),
+        "port": port,
+        "uuid": "",
+        "country": "",
+        "country_code": "",
+        "city": "",
+        "asn": "",
+        "org": "",
+        "latency": None,
+        "is_working": not is_shielded_candidate,
+        "tags": tags,
+        "last_checked": "",
+        "source": None,
+        "security": {},
+        "details": {
+            **details,
+            "chain_process": process,
+            "chain_depth": len(chain),
+            "shielded_candidate": is_shielded_candidate,
+            "shielded_verified": False,
+        },
+        "config": mini_config,
+        "remarks": remarks,
+        "process": process,
+    }
+
+
+def _chain_obs_to_entries(
+    washed_outbounds: Optional[List[Dict[str, Any]]],
+    smart_chains: Optional[Dict[str, List[List[Dict[str, Any]]]]],
+    name_template: Optional[str] = None,
+    used_names: Optional[Set[str]] = None,
+) -> List[Dict[str, Any]]:
+    """
+    Convert washed outbounds and smart chains into proxy-like dicts
+    so they appear in proxies.json for the frontend.
+    """
+    entries: List[Dict[str, Any]] = []
+    seen_tags: set[str] = set()
+
+    def _uniquify_entry_tag(tag: str) -> str:
+        """Ensure each chain entry has a unique tag for proxies.json."""
+        if not tag or tag not in seen_tags:
+            return tag
+        suffix = 0
+        while f"{tag}-{suffix}" in seen_tags:
+            suffix += 1
+        return f"{tag}-{suffix}"
+
+    def _is_proxy_like_entry(ob: Dict[str, Any]) -> bool:
+        server = ob.get("server")
+        if not isinstance(server, str) or not server.strip():
+            return False
+        try:
+            port = int(ob.get("server_port", 0) or 0)
+        except Exception:  # nosec
+            return False
+        return 1 <= port <= 65535
+
+    # Washed outbounds (flat list â†’ group into chains)
+    if washed_outbounds:
+        for chain in _group_chain_obs(washed_outbounds):
+            if not chain:
+                continue
+            if not _is_proxy_like_entry(chain[-1]):
+                continue
+            entry_tag = chain[-1].get("tag", "")
+            entry_tag = _uniquify_entry_tag(entry_tag)
+            seen_tags.add(entry_tag)
+            # Classify process type
+            process = "washed"
+            if any(
+                "GOLD" in (ob.get("tag") or "") or "SHIELD" in (ob.get("tag") or "")
+                for ob in chain
+            ):
+                process = "shielded"
+            entries.append(
+                _chain_to_proxy_entry(
+                    chain,
+                    process,
+                    name_template=name_template,
+                    used_names=used_names,
+                    override_tag=entry_tag,
+                )
+            )
+
+    # Smart chains (already grouped by category)
+    if smart_chains:
+        for _group, chain_list in smart_chains.items():
+            for chain in chain_list:
+                if not isinstance(chain, list) or not chain:
+                    continue
+                if not isinstance(chain[-1], dict) or not _is_proxy_like_entry(
+                    chain[-1]
+                ):
+                    continue
+                entry_tag = chain[-1].get("tag", "")
+                entry_tag = _uniquify_entry_tag(entry_tag)
+                seen_tags.add(entry_tag)
+                entries.append(
+                    _chain_to_proxy_entry(
+                        chain,
+                        "chain",
+                        name_template=name_template,
+                        used_names=used_names,
+                        override_tag=entry_tag,
+                    )
+                )
+
+    return entries
+
+
+def _save_proxies_with_chains(
+    proxies: List[Proxy],
+    path: Path,
+    washed_outbounds: Optional[List[Dict[str, Any]]] = None,
+    smart_chains: Optional[Dict[str, List[List[Dict[str, Any]]]]] = None,
+    name_template: Optional[str] = None,
+) -> None:
+    """
+    Save proxies.json with native proxies PLUS chain entries
+    so the frontend shows all output types.
+    """
+    history = ProxyHistoryTracker()
+    try:
+        data = [serialize_proxy(p, history.get_history(p.id)) for p in proxies]
+    finally:
+        history.close()
+
+    used_names: Set[str] = {
+        str(item.get("remarks"))
+        for item in data
+        if isinstance(item, dict) and item.get("remarks")
+    }
+    chain_entries = _chain_obs_to_entries(
+        washed_outbounds,
+        smart_chains,
+        name_template=name_template,
+        used_names=used_names,
+    )
+    if chain_entries:
+        data.extend(chain_entries)
+
+    # CRITICAL: proxies.json must be JSON array (list of proxies), never single object
+    if not isinstance(data, list):
+        data = [data] if data is not None else []
+    json_content = json.dumps(data, indent=2, ensure_ascii=False)
+    AtomicFileWriter.write_text(path, json_content)
+
+
+async def _populate_resolved_ips(proxies: List[Proxy], settings: AppSettings) -> None:
+    hostnames: List[str] = []
+    for proxy in proxies:
+        addr = (proxy.address or "").strip()
+        if not addr or _is_ip_literal(addr):
+            continue
+        hostnames.append(addr)
+
+    if not hostnames:
+        return
+
+    unique_hosts = list(dict.fromkeys(hostnames))
+    limit = int(getattr(settings, "DNS_SAFE_RESOLVE_LIMIT", 0) or 0)
+    if limit > 0:
+        unique_hosts = unique_hosts[:limit]
+
+    resolver = BatchDNSResolver(
+        timeout=float(getattr(settings, "DNS_SAFE_RESOLVE_TIMEOUT", 4.0))
+    )
+    if resolver.resolver is None:
+        logger.debug(
+            "DNS-safe outputs: batch resolver unavailable; skipping DNS resolution."
+        )
+        return
+
+    batch_size = int(getattr(settings, "DNS_SAFE_RESOLVE_BATCH", 500) or 500)
+    resolved: dict[str, str] = {}
+    for i in range(0, len(unique_hosts), batch_size):
+        batch = unique_hosts[i : i + batch_size]
+        batch_resolved = await resolver.resolve(batch)
+        for host, ip_value in batch_resolved.items():
+            resolved[_normalize_host(host)] = ip_value
+
+    if not resolved:
+        logger.info("DNS-safe outputs: no hostnames resolved.")
+        return
+
+    for proxy in proxies:
+        addr = (proxy.address or "").strip()
+        if not addr:
+            continue
+        key = _normalize_host(addr)
+        if key in resolved:
+            proxy.resolved_ip = resolved[key]
+
+    logger.info(
+        "DNS-safe outputs: resolved %d of %d unique hostnames.",
+        len(resolved),
+        len(unique_hosts),
+    )
+
+
+async def generate_pipeline_outputs(
+    optimized_proxies: List[Proxy],
+    output_path: Path,
+    stats: PipelineStats,
+    history: ProxyHistoryTracker,
+    washer: Optional[ProxyWasher] = None,
+    tester: Optional["SingBoxTester"] = None,
+):
+    """
+    Orchestrates the generation of all pipeline outputs.
+    Integrates Tagging, Washing, Smart Chaining, and File Generation.
+
+    Parameters
+    ----------
+    optimized_proxies:
+        Deduplicated, sorted proxy list from the pipeline.
+    output_path:
+        Root directory for all generated output files.
+    stats:
+        Mutable stats object; updated in-place with washing/shielding metrics.
+    history:
+        Proxy history tracker used for sparklines and trend data.
+    washer:
+        Optional pre-initialised ProxyWasher.  A new instance is created when
+        ``None`` is passed.
+    tester:
+        Optional SingBoxTester used to actively verify shielded chain
+        candidates (P1-E).  When provided, shielded proxies that pass
+        re-testing are appended to *optimized_proxies* and
+        ``stats.shielded_verified_count`` is incremented accordingly.
+        When ``None``, shielded candidates are still included in the output
+        with ``is_working=False`` so end-users can try them on their own
+        networks.
+    """
+    logger.info("Starting final output generation phase...")
+
+    # 0. Apply Tagging Strategy (Name formatting)
+    # This applies user-defined or default naming templates to proxy remarks.
+    # Must run BEFORE output generation so converters can use the formatted names.
+    settings = AppSettings()
+    rename_template = settings.RENAME_TEMPLATE
+    tagger = ProxyTagger(rename_template)
+    logger.info(f"Applying proxy tagging with template: {tagger.template}")
+    tagger.apply(optimized_proxies)
+
+    # 0b. DNS-safe resolution (optional)
+    # Cache results to avoid recomputing later during output generation
+    _cached_dns_safe = None
+    _cached_dns_hardened = None
+    if getattr(settings, "DNS_SAFE_OUTPUTS", True):
+        await _populate_resolved_ips(optimized_proxies, settings)
+        # Track DNS-safe count
+        _cached_dns_safe = _build_dns_safe_proxies(optimized_proxies)
+        stats.evasion_dns_safe_count = len(_cached_dns_safe[0])
+
+    # Track DNS-hardened count
+    if getattr(settings, "DNS_HARDENED_OUTPUTS", True):
+        _cached_dns_hardened = _build_dns_hardened_proxies(optimized_proxies)
+        stats.evasion_dns_hardened_count = len(_cached_dns_hardened[0])
+
+    # 0c. Log GeoIP enrichment statistics
+    geoip_resolver = GeoIPResolver()
+    geoip_resolver.log_enrichment_stats(optimized_proxies)
+
+    # 1. Initialize Washer & Scanner (The Intelligence Layer)
+    # We load keys from Env. If empty, washer degrades gracefully to no-op.
+    if washer is None:
+        washer = ProxyWasher(settings.WARP_KEY_POOL)
+        # Populate clean_ips in the washer (best-effort). This may involve network access
+        # (scraper/scanner/static lists). Output generation must never fail if this step
+        # is blocked by hostile network conditions.
+        try:
+            await washer.fetch_clean_ips()
+        except Exception:  # nosec
+            logger.debug("Failed to fetch clean IPs (fail-open).", exc_info=True)
+
+    # Export clean IPs for the frontend lab (best-effort, non-fatal).
+    try:
+        loop = asyncio.get_running_loop()
+        clean_ips = washer.clean_ips
+        if not clean_ips:
+            # Provide a deterministic fallback for static hosting / merge-stage runs.
+            from configstream.intelligence.washer.core import DEFAULT_CLEAN_IPS
+
+            clean_ips = [(ip, 2408) for ip in DEFAULT_CLEAN_IPS]
+        clean_ips_path = output_path / "data" / "clean_ips.json"
+        await loop.run_in_executor(None, _save_clean_ips, clean_ips, clean_ips_path)
+    except Exception:  # nosec
+        logger.debug("Failed to export clean_ips.json", exc_info=True)
+
+    # Update stats with scanner results
+    stats.scanner_ips_found = len(washer.clean_ips)
+
+    # 2. Wash Batch (The "Blanket" Wash)
+    # Generates standard WARP wraps for all working proxies
+    # Returns the list of outbound configs and the set of IDs that were washed.
+    # Pass stats object for metrics instrumentation
+    washed_outbounds, washed_ids, skip_reasons = washer.wash_batch(
+        optimized_proxies, stats=stats
+    )
+
+    # Update stats with washing results
+    stats.washer_success_count = len(washed_ids)
+
+    # 2b. The "Lazarus Pit" - Resurrect dead proxies with Shielding
+    # Capture failed proxies and attempt to shield them (Copper to Gold transformation)
+    failed_proxies = [p for p in optimized_proxies if not p.is_working]
+    shielded_outbounds: List[Dict[str, Any]] = []
+    shielded_ids: Set[str] = set()
+
+    if failed_proxies and washer:
+        logger.info(
+            f"âš°ï¸  Attempting to resurrect {len(failed_proxies)} dead proxies with Alchemy..."
+        )
+        try:
+            shielded_outbounds, shielded_ids = washer.shield_batch(
+                failed_proxies, stats=stats
+            )
+            if shielded_outbounds:
+                logger.info(
+                    f"âœ¨  Alchemy Success! Resurrected {len(shielded_outbounds)//2} candidates."
+                )
+
+                # P1-E: Truth in Metrics. Shielded chains are candidates until verified.
+                # Create Proxy models for these candidates so they can be tested.
+                shielded_proxies = []
+                for i in range(0, len(shielded_outbounds), 2):
+                    entry = shielded_outbounds[i]
+                    exit_p = shielded_outbounds[i + 1]
+                    # This helper builds a 'revived' proxy model from chain details
+                    p = washer.create_revived_proxy(entry, exit_p, "shielded")
+                    shielded_proxies.append(p)
+
+                # Active Verification — only runs when a tester was supplied.
+                # When tester is None the candidates are still included in the
+                # output with is_working=False so end-users can try them.
+                if tester is not None and shielded_proxies:
+                    logger.info(
+                        "🧪  Verifying %d shielded candidates...",
+                        len(shielded_proxies),
+                    )
+                    try:
+                        verified_results = await tester.test_batch(shielded_proxies)
+                        verified_count = sum(
+                            1 for p in verified_results if p.is_working
+                        )
+                        stats.shielded_verified_count = verified_count
+                        logger.info(
+                            "✅  Shielded Verification: %d/%d chains verified working.",
+                            verified_count,
+                            len(shielded_proxies),
+                        )
+                        # Only add verified chains to the working proxy pool so
+                        # they count toward total_working and appear in outputs.
+                        for p in verified_results:
+                            if p.is_working:
+                                optimized_proxies.append(p)
+                    except Exception as verify_exc:  # nosec
+                        logger.warning(
+                            "Shielded chain verification failed: %s",
+                            str(verify_exc),
+                            exc_info=True,
+                        )
+                else:
+                    if tester is None:
+                        logger.debug(
+                            "No tester supplied; shielded candidates kept with "
+                            "is_working=False for user-side testing."
+                        )
+
+                # Always track candidates and total created
+                stats.shielded_count = len(shielded_ids)
+                stats.shielded_candidate_count = len(shielded_ids)
+
+                # Add ALL shielded outbounds for the output generation (preserved for user testing)
+                washed_outbounds.extend(shielded_outbounds)
+                washed_ids.update(shielded_ids)
+            else:
+                logger.info(
+                    "No dead proxies could be resurrected (no WARP keys or clean IPs available)."
+                )
+        except Exception as e:
+            logger.warning(f"Shielding failed: {e}", exc_info=True)
+
+    # Track evasion metrics (count ALL TLS-capable proxies, not just working ones,
+    # since evasion features are applied during output generation to all proxies)
+    tls_proxies = [
+        p
+        for p in optimized_proxies
+        if p.protocol in ["vmess", "vless", "trojan", "hysteria2", "tuic"]
+    ]
+    stats.evasion_utls_enabled = len(tls_proxies)
+    stats.evasion_alpn_enabled = len(
+        [p for p in tls_proxies if p.protocol in ["vmess", "vless", "trojan"]]
+    )
+    stats.evasion_fragmentation_enabled = 0  # sing-box removed tls_fragment
+    stats.evasion_multiplexing_enabled = len(
+        [
+            p
+            for p in tls_proxies
+            if p.protocol in ["vmess", "vless", "trojan", "shadowsocks"]
+        ]
+    )
+
+    # Explicit logging if no chains were created despite having working proxies
+    if not washed_outbounds and optimized_proxies:
+        logger.info(
+            "WARP wrap skipped for all proxies (no valid WARP endpoints or keys found)."
+        )
+
+    # 3. Smart Chains (The Topology Router)
+    # Generates complex chains (Intranet, IPv6, Streamer).
+    # We pass the 'washer' instance so it can borrow the Clean IPs and Keys
+    # to create "Washed Smart Chains" (3-hop).
+    smart_chains = {}
+    if settings.ENABLE_SMART_CHAINING:
+        smart_chains = generate_smart_chains(optimized_proxies, washer=washer)
+    else:
+        logger.info("Smart chaining disabled by configuration.")
+
+    # Update stats with smart chain counts (total number of chains generated)
+    total_chains = sum(len(v) for v in smart_chains.values())
+    stats.smart_chain_count = total_chains
+
+    # 4. Generate Files (The Assembler)
+    # Writes everything to disk: Sing-box (with chains), Clash (raw), Subs, etc.
+
+    # Generate Master Proxies JSON with Rotation
+    proxies_path = output_path / "proxies.json"
+    old_proxies_path = output_path / "proxies.old.json"
+
+    if proxies_path.exists():
+        try:
+            # Perform rotation for differential updates
+            shutil.copy2(proxies_path, old_proxies_path)
+            logger.info("Rotated proxies.json -> proxies.old.json for diff generation")
+        except Exception as e:
+            logger.warning(f"Failed to rotate proxies.json: {e}")
+
+    # Run blocking file I/O in executor
+    loop = asyncio.get_running_loop()
+    # Include washed outbounds + smart chains in proxies.json
+    # so the frontend displays all output types (not just native proxies).
+    await loop.run_in_executor(
+        None,
+        _save_proxies_with_chains,
+        optimized_proxies,
+        proxies_path,
+        washed_outbounds,
+        smart_chains,
+        tagger.template,
+    )
+
+    # DNS-safe dataset (IP-only) - reuse cached results from stats phase
+    if _cached_dns_safe is not None:
+        dns_safe_proxies, _ = _cached_dns_safe
+    else:
+        dns_safe_proxies, _ = _build_dns_safe_proxies(optimized_proxies)
+    dns_safe_path: Path = output_path / "proxies-dns-safe.json"
+    await loop.run_in_executor(None, save_json, dns_safe_proxies, dns_safe_path)
+
+    # DNS-hardened dataset (prefer IP when available) - reuse cached results
+    if _cached_dns_hardened is not None:
+        dns_hardened_proxies, _ = _cached_dns_hardened
+    else:
+        dns_hardened_proxies, _ = _build_dns_hardened_proxies(optimized_proxies)
+    dns_hardened_path: Path = output_path / "proxies-dns-hardened.json"
+    await loop.run_in_executor(None, save_json, dns_hardened_proxies, dns_hardened_path)
+
+    revived_proxies = [p for p in optimized_proxies if _is_revived(p)]
+    # Always write revived datasets to avoid 404s and keep output contracts stable.
+    revived_path: Path = output_path / "revived.json"
+    await loop.run_in_executor(None, save_json, revived_proxies, revived_path)
+
+    revived_dns_safe = [p for p in dns_safe_proxies if _is_revived(p)]
+    revived_dns_path: Path = output_path / "revived-dns-safe.json"
+    await loop.run_in_executor(None, save_json, revived_dns_safe, revived_dns_path)
+
+    revived_dns_hardened = [p for p in dns_hardened_proxies if _is_revived(p)]
+    revived_hardened_path: Path = output_path / "revived-dns-hardened.json"
+    await loop.run_in_executor(
+        None, save_json, revived_dns_hardened, revived_hardened_path
+    )
+
+    generated_files = await loop.run_in_executor(
+        None,
+        lambda: generate_categorized_outputs(
+            optimized_proxies,
+            output_path,
+            washed_outbounds=washed_outbounds,
+            washed_ids=washed_ids,
+            smart_chains=smart_chains,
+            washer=washer,
+            dns_safe_cache=_cached_dns_safe,
+            dns_hardened_cache=_cached_dns_hardened,
+        ),
+    )
+    generated_files["revived"] = revived_path
+    generated_files["proxies_dns_safe"] = dns_safe_path
+    generated_files["proxies_dns_hardened"] = dns_hardened_path
+    generated_files["revived_dns_safe"] = revived_dns_path
+    generated_files["revived_dns_hardened"] = revived_hardened_path
+
+    # 5. Metadata & Stats
+    # Count unique chain outbound tags (revived + washed + smart chains)
+    # Uses lightweight tag counting instead of duplicating the full
+    # _append_chain collection logic from output_logic.py
+    def _collect_tags(outbounds: list) -> set[str]:
+        return {
+            str(ob.get("tag"))
+            for ob in outbounds
+            if isinstance(ob, dict) and ob.get("tag")
+        }
+
+    _chain_tags: set[str] = set()
+    for proxy in optimized_proxies:
+        chain = chain_obs_from_details(proxy.details or {})
+        if chain:
+            _chain_tags |= _collect_tags(chain)
+    if washed_outbounds:
+        _chain_tags |= _collect_tags(washed_outbounds)
+    if smart_chains:
+        for chain_list in smart_chains.values():
+            for chain in chain_list:
+                if isinstance(chain, list):
+                    _chain_tags |= _collect_tags(chain)
+    stats.chain_obs_count = len(_chain_tags)
+
+    stats_dict = stats.to_dict()
+
+    await loop.run_in_executor(
+        None, save_metadata, stats_dict, optimized_proxies, output_path
+    )
+
+    # 5b. Vector map for frontend similarity search (with history for stability/reliability)
+    await loop.run_in_executor(
+        None,
+        lambda: generate_vectors(optimized_proxies, output_path, history=history),
+    )
+
+    # 6. Stego Assets + Frontend Key Injection (optional)
+    secret_key = settings.STEGO_KEY or settings.CONFIG_STREAM_KEY
+    if isinstance(secret_key, str) and secret_key.strip() and len(secret_key) >= 20:
+        frontend_root = (
+            Path(settings.FRONTEND_DIR)
+            if settings.FRONTEND_DIR
+            else Path(__file__).resolve().parents[2] / "frontend"
+        )
+        if frontend_root.exists():
+            assets_dir = frontend_root / "assets" / "images"
+            stego_js_path = frontend_root / "assets" / "js" / "stego.js"
+            await loop.run_in_executor(
+                None, generate_stego_assets, output_path, assets_dir, secret_key
+            )
+            await loop.run_in_executor(
+                None,
+                inject_stego_key_into_frontend,
+                secret_key,
+                stego_js_path,
+            )
+        else:
+            logger.debug(
+                "Frontend directory not found; skipping stego asset generation."
+            )
+    else:
+        logger.debug("Stego generation skipped: STEGO_KEY not configured.")
+
+    # Export history visualization data
+    # Ensure the history visualization JSON is generated for the frontend
+    viz_path = output_path / "data" / "proxy_history_viz.json"
+    viz_path.parent.mkdir(parents=True, exist_ok=True)
+    await loop.run_in_executor(None, history.export_for_visualization, viz_path)
+
+    # Also export active trend for analytics chart
+    trend_path = output_path / "data" / "active_proxy_trend.json"
+    await loop.run_in_executor(None, history.export_active_proxy_trend, trend_path)
+
+    # Export evasion trend for time-series charts
+    evasion_trend_path = output_path / "data" / "evasion_trend.json"
+    await loop.run_in_executor(
+        None, history.export_evasion_trend, stats, evasion_trend_path
+    )
+
+    await loop.run_in_executor(None, write_public_artifact_contract, output_path)
+
+    logger.info(f"Output generation complete. Files created in {output_path}")
+    return generated_files
+
+# SPDX-License-Identifier: AGPL-3.0-or-later
+import json
+import logging
+import copy
+import hashlib
+import shutil
+import os
+import re
+import tempfile
+import zipfile
+from typing import List, Dict, Optional, Any, Tuple
+from pathlib import Path
+from datetime import datetime, timezone
+from importlib.metadata import version
+
+from .models import Proxy
+from .pipeline_stats import PipelineExecutionAudit
+from .converters.common import safe_int_conversion
+from .generators import (
+    generate_singbox_config,
+    generate_base64_subscription,
+    generate_clash_config,
+    generate_split_outputs,
+)
+from .adapters import get_adapter, ShadowrocketAdapter
+from .generators.plaintext import generate_plaintext_subscription
+from .intelligence.chaining import generate_smart_chains
+from .intelligence.washer.core import ProxyWasher
+from .converters.chains import chain_obs_from_details, update_chain_details
+from .utils import AtomicFileWriter
+from .config import AppSettings
+from .serialize import serialize_proxy
+from .constants import (
+    CHOSEN_TOP_PER_PROTOCOL,
+    CHOSEN_TOTAL_TARGET,
+    DropCategory,
+    canonical_protocol_name,
+    protocol_sort_key,
+    latency_bucket_for_ms,
+)
+from .dns_profiles import (
+    build_singbox_dns_profile,
+    build_clash_dns_profile,
+    build_resolver_sets,
+)
+from .utils.net import (
+    normalize_host as _normalize_host,
+    is_ip_literal as _is_ip_literal,
+    is_global_ip as _is_global_ip,
+)
+
+logger = logging.getLogger(__name__)
+
+# Pre-compiled pattern for filename sanitization
+_SAFE_FILENAME_RE = re.compile(r"[^A-Za-z0-9._-]+")
+
+PUBLIC_CONTRACT_SCHEMA_VERSION = "1.0"
+
+
+def _read_json_object(path: Path) -> Dict[str, Any]:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return payload if isinstance(payload, dict) else {}
+
+
+def _file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _json_snapshot_sha256(payload: Any) -> str:
+    canonical = json.dumps(
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    ).encode("utf-8")
+    return hashlib.sha256(canonical).hexdigest()
+
+
+def _artifact_category(rel_path: str) -> str:
+    if rel_path in {"metadata.json", "health.json", "artifact_manifest.json"}:
+        return "control"
+    if rel_path.startswith("api/"):
+        return "api"
+    if rel_path.startswith("assets/") or rel_path.endswith(".html"):
+        return "frontend"
+    if rel_path.startswith("docs/"):
+        return "docs"
+    if rel_path.startswith("data/"):
+        return "analytics"
+    if rel_path.endswith(".zip"):
+        return "side-product"
+    return "subscription"
+
+
+def write_public_artifact_contract(output_dir: Path) -> Dict[str, Any]:
+    """
+    Write health.json and artifact_manifest.json for the public output directory.
+
+    These files are intentionally generated from the final files on disk so deploy,
+    frontend, docs, and tests can share one artifact inventory instead of each
+    surface maintaining its own partial list.
+    """
+    output_dir.mkdir(parents=True, exist_ok=True)
+    metadata = _read_json_object(output_dir / "metadata.json")
+    now_iso = datetime.now(timezone.utc).isoformat()
+    generated_at = str(
+        metadata.get("generated_at") or metadata.get("last_updated_utc") or now_iso
+    )
+    trace_id = str(metadata.get("trace_id") or "-")
+
+    health: Dict[str, Any] = {
+        "schema_version": PUBLIC_CONTRACT_SCHEMA_VERSION,
+        "status": (
+            "degraded" if int(metadata.get("total_working", 0) or 0) == 0 else "ok"
+        ),
+        "generated_at": generated_at,
+        "trace_id": trace_id,
+        "source_commit": os.environ.get("GITHUB_SHA", ""),
+        "run_id": os.environ.get("GITHUB_RUN_ID", ""),
+        "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
+        "total_working": int(metadata.get("total_working", 0) or 0),
+        "total_tested": int(metadata.get("total_tested", 0) or 0),
+        "schema_validated": False,
+        "notes": [],
+    }
+    AtomicFileWriter.write_text(
+        output_dir / "health.json", json.dumps(health, indent=2, ensure_ascii=False)
+    )
+
+    files: List[Dict[str, Any]] = []
+    for path in sorted(output_dir.rglob("*")):
+        if not path.is_file():
+            continue
+        rel_path = path.relative_to(output_dir).as_posix()
+        if rel_path == "artifact_manifest.json" or rel_path.endswith(".tmp"):
+            continue
+        files.append(
+            {
+                "path": rel_path,
+                "size_bytes": path.stat().st_size,
+                "sha256": _file_sha256(path),
+                "category": _artifact_category(rel_path),
+            }
+        )
+
+    manifest = {
+        "schema_version": PUBLIC_CONTRACT_SCHEMA_VERSION,
+        "generated_at": now_iso,
+        "artifact_generated_at": generated_at,
+        "trace_id": trace_id,
+        "source_commit": os.environ.get("GITHUB_SHA", ""),
+        "run_id": os.environ.get("GITHUB_RUN_ID", ""),
+        "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
+        "file_count": len(files),
+        "total_size_bytes": sum(int(item["size_bytes"]) for item in files),
+        "files": files,
+    }
+    AtomicFileWriter.write_text(
+        output_dir / "artifact_manifest.json",
+        json.dumps(manifest, indent=2, ensure_ascii=False),
+    )
+    return manifest
+
+
+def _safe_filename(value: str, fallback: str) -> str:
+    if not value:
+        return fallback
+    clean = _SAFE_FILENAME_RE.sub("_", value).strip("._-")
+    return clean or fallback
+
+
+def _add_suffix(filename: str, suffix: str) -> str:
+    if not suffix:
+        return filename
+    base, ext = os.path.splitext(filename)
+    return f"{base}{suffix}{ext}"
+
+
+def _rewrite_openvpn_remote(config: str, original_host: str, ip_value: str) -> str:
+    if not config or not original_host or not ip_value:
+        return config
+    out_lines: List[str] = []
+    for line in config.splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#") or stripped.startswith(";"):
+            out_lines.append(line)
+            continue
+        if stripped.lower().startswith("remote "):
+            parts = stripped.split()
+            if len(parts) >= 2 and _normalize_host(parts[1]) == _normalize_host(
+                original_host
+            ):
+                parts[1] = ip_value
+                line = " ".join(parts)
+        out_lines.append(line)
+    return "\n".join(out_lines) + ("\n" if config.endswith("\n") else "")
+
+
+def _rewrite_chain_obs_for_dns(
+    details: Dict[str, Any], host_map: Dict[str, str]
+) -> None:
+    chain = chain_obs_from_details(details)
+    if not chain:
+        return
+    rewritten_chain: List[Dict[str, Any]] = []
+    changed = False
+    for outbound in chain:
+        if not isinstance(outbound, dict):
+            continue
+        item = copy.deepcopy(outbound)
+        server = item.get("server")
+        if isinstance(server, str) and server and not _is_ip_literal(server):
+            mapped = host_map.get(_normalize_host(server))
+            if mapped:
+                item["server"] = mapped
+                tls = item.get("tls")
+                if isinstance(tls, dict) and not tls.get("server_name"):
+                    tls = dict(tls)
+                    tls["server_name"] = server
+                    item["tls"] = tls
+                changed = True
+        rewritten_chain.append(item)
+    if changed and rewritten_chain:
+        update_chain_details(details, rewritten_chain)
+
+
+def _build_dns_safe_proxies(
+    proxies: List[Proxy],
+) -> Tuple[List[Proxy], Dict[str, str]]:
+    safe: List[Proxy] = []
+    host_map: Dict[str, str] = {}
+
+    for proxy in proxies:
+        addr = (proxy.address or "").strip()
+        if not addr:
+            continue
+
+        # If already IP, keep as-is (only global/public addresses).
+        if _is_ip_literal(addr):
+            if _is_global_ip(addr):
+                host_map[_normalize_host(addr)] = addr
+                clone = proxy.model_copy(deep=True)
+                details = dict(clone.details or {})
+                details["dns_safe"] = True
+                _rewrite_chain_obs_for_dns(details, host_map)
+                clone.details = details
+                safe.append(clone)
+            continue
+
+        resolved = (proxy.resolved_ip or "").strip()
+        if not resolved or not _is_ip_literal(resolved) or not _is_global_ip(resolved):
+            continue
+
+        host_map[_normalize_host(addr)] = resolved
+
+        clone = proxy.model_copy(deep=True)
+        clone.address = resolved
+        clone.resolved_ip = resolved
+
+        details = dict(clone.details or {})
+        details.setdefault("_origin_id", proxy.id)
+        details.setdefault("original_host", addr)
+        details["dns_safe"] = True
+        if not details.get("sni"):
+            details["sni"] = addr
+        if (
+            not details.get("host")
+            and not details.get("http_host")
+            and not details.get("ws_host")
+        ):
+            details["host"] = addr
+        if details.get("server_name") is None:
+            details["server_name"] = addr
+        _rewrite_chain_obs_for_dns(details, host_map)
+        clone.details = details
+
+        if isinstance(clone.config, str) and "://" in clone.config:
+            _adapter = ShadowrocketAdapter()
+            rebuilt = _adapter._reconstruct_uri(clone)
+            clone.config = rebuilt or ""
+
+        safe.append(clone)
+
+    return safe, host_map
+
+
+def _build_dns_hardened_proxies(
+    proxies: List[Proxy],
+) -> Tuple[List[Proxy], Dict[str, str]]:
+    """
+    DNS-hardened proxies prefer IPs when available but do not drop
+    entries that could not be resolved.
+    """
+    hardened: List[Proxy] = []
+    host_map: Dict[str, str] = {}
+    adapter = ShadowrocketAdapter()
+
+    for proxy in proxies:
+        addr = (proxy.address or "").strip()
+        if not addr:
+            continue
+
+        if _is_ip_literal(addr):
+            clone = proxy.model_copy(deep=True)
+            details = dict(clone.details or {})
+            details["dns_hardened"] = True
+            _rewrite_chain_obs_for_dns(details, host_map)
+            clone.details = details
+            hardened.append(clone)
+            continue
+
+        resolved = (proxy.resolved_ip or "").strip()
+        if resolved and _is_ip_literal(resolved) and _is_global_ip(resolved):
+            host_map[_normalize_host(addr)] = resolved
+
+            clone = proxy.model_copy(deep=True)
+            clone.address = resolved
+            clone.resolved_ip = resolved
+
+            details = dict(clone.details or {})
+            details.setdefault("_origin_id", proxy.id)
+            details.setdefault("original_host", addr)
+            details["dns_hardened"] = True
+            if not details.get("sni"):
+                details["sni"] = addr
+            if (
+                not details.get("host")
+                and not details.get("http_host")
+                and not details.get("ws_host")
+            ):
+                details["host"] = addr
+            if details.get("server_name") is None:
+                details["server_name"] = addr
+            _rewrite_chain_obs_for_dns(details, host_map)
+            clone.details = details
+
+            if isinstance(clone.config, str) and "://" in clone.config:
+                rebuilt = adapter._reconstruct_uri(clone)
+                clone.config = rebuilt or ""
+
+            hardened.append(clone)
+        else:
+            clone = proxy.model_copy(deep=True)
+            details = dict(clone.details or {})
+            details["dns_hardened"] = True
+            _rewrite_chain_obs_for_dns(details, host_map)
+            clone.details = details
+            hardened.append(clone)
+
+    return hardened, host_map
+
+
+def _rewrite_outbound_for_dns_safe(
+    outbound: Dict[str, Any], host_map: Dict[str, str]
+) -> Optional[Dict[str, Any]]:
+    server = outbound.get("server")
+    if isinstance(server, str) and server:
+        if _is_ip_literal(server):
+            if not _is_global_ip(server):
+                return None
+            return outbound
+        mapped = host_map.get(_normalize_host(server))
+        if not mapped:
+            return None
+        outbound["server"] = mapped
+        tls = outbound.get("tls")
+        if isinstance(tls, dict) and not tls.get("server_name"):
+            tls = dict(tls)
+            tls["server_name"] = server
+            outbound["tls"] = tls
+        # Do NOT set top-level 'sni' â€” sing-box uses tls.server_name.
+        # A top-level 'sni' causes: "unknown field" parse error in sing-box.
+    return outbound
+
+
+def _rewrite_outbound_for_dns_hardened(
+    outbound: Dict[str, Any], host_map: Dict[str, str]
+) -> Dict[str, Any]:
+    server = outbound.get("server")
+    if isinstance(server, str) and server:
+        if _is_ip_literal(server):
+            return outbound
+        mapped = host_map.get(_normalize_host(server))
+        if mapped:
+            outbound["server"] = mapped
+            tls = outbound.get("tls")
+            if isinstance(tls, dict) and not tls.get("server_name"):
+                tls = dict(tls)
+                tls["server_name"] = server
+                outbound["tls"] = tls
+            # Do NOT set top-level 'sni' â€” sing-box uses tls.server_name.
+            # A top-level 'sni' causes: "unknown field" parse error in sing-box.
+    return outbound
+
+
+def _prune_dangling_detours(cleaned: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Remove outbounds whose detour/outbound references no longer exist."""
+    changed = True
+    while changed:
+        changed = False
+        tags = {o.get("tag") for o in cleaned if o.get("tag")}
+        new_cleaned: List[Dict[str, Any]] = []
+        for outbound in cleaned:
+            detour = outbound.get("detour")
+            if detour and detour not in tags:
+                changed = True
+                continue
+            if isinstance(outbound.get("outbounds"), list):
+                filtered = [t for t in outbound["outbounds"] if t in tags]
+                if not filtered:
+                    changed = True
+                    continue
+                if filtered != outbound["outbounds"]:
+                    outbound = dict(outbound)
+                    outbound["outbounds"] = filtered
+            new_cleaned.append(outbound)
+        cleaned = new_cleaned
+    return cleaned
+
+
+def _filter_outbounds_for_dns_safe(
+    outbounds: List[Dict[str, Any]], host_map: Dict[str, str]
+) -> List[Dict[str, Any]]:
+    cleaned: List[Dict[str, Any]] = []
+    for outbound in outbounds:
+        if not isinstance(outbound, dict):
+            continue
+        candidate: Dict[str, Any] = copy.deepcopy(outbound)
+        if "server" in candidate:
+            rewritten = _rewrite_outbound_for_dns_safe(candidate, host_map)
+            if rewritten is None:
+                continue
+            candidate = rewritten
+        cleaned.append(candidate)
+    return _prune_dangling_detours(cleaned)
+
+
+def _filter_outbounds_for_dns_hardened(
+    outbounds: List[Dict[str, Any]], host_map: Dict[str, str]
+) -> List[Dict[str, Any]]:
+    cleaned: List[Dict[str, Any]] = []
+    for outbound in outbounds:
+        if not isinstance(outbound, dict):
+            continue
+        candidate = copy.deepcopy(outbound)
+        if "server" in candidate:
+            candidate = _rewrite_outbound_for_dns_hardened(candidate, host_map)
+        cleaned.append(candidate)
+    return _prune_dangling_detours(cleaned)
+
+
+def _dns_resolver_sets() -> Tuple[List[str], List[str]]:
+    primary, fallback = build_resolver_sets()
+    if not primary:
+        logger.warning("DNS-hardened outputs: resolver list is empty.")
+    return primary, fallback
+
+
+def _render_dns_comment_block(primary: List[str], fallback: List[str]) -> List[str]:
+    lines = ["# DNS resolvers (DoH/DoT/DoQ):"]
+    for resolver in primary:
+        lines.append(f"# - {resolver}")
+    if fallback:
+        lines.append("# DNS fallback order:")
+        for resolver in fallback:
+            lines.append(f"# - {resolver}")
+    return lines
+
+
+def _wrap_surge_or_loon_profile(
+    adapter_name: str,
+    proxies: List[Proxy],
+    washed_outbounds: Optional[List[Dict[str, Any]]],
+    primary: List[str],
+    fallback: List[str],
+) -> str:
+    adapter = get_adapter(adapter_name)
+    content = (
+        adapter.export(proxies, washed_outbounds=washed_outbounds)
+        if adapter_name in ("surge", "loon")
+        else adapter.export(proxies)
+    )
+    proxy_lines = content.splitlines()
+    if proxy_lines and proxy_lines[0].startswith("#"):
+        proxy_lines = proxy_lines[1:]
+    lines = [
+        f"# ConfigStream DNS-hardened profile ({adapter_name})",
+        "# Prefer IP when available; SNI/Host pinned for TLS.",
+        "[Proxy]",
+    ]
+    lines.extend(proxy_lines)
+    lines.extend(["", "[DNS]"])
+    if primary:
+        lines.append(f"dns-server = {', '.join(primary)}")
+    if fallback:
+        lines.append(f"fallback-dns-server = {', '.join(fallback)}")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def _wrap_quantumultx_profile(
+    proxies: List[Proxy],
+    primary: List[str],
+    fallback: List[str],
+) -> str:
+    adapter = get_adapter("quantumultx")
+    content = adapter.export(proxies)
+    proxy_lines = content.splitlines()
+    lines = [
+        "# ConfigStream DNS-hardened profile (quantumultx)",
+        "# Prefer IP when available; SNI/Host pinned for TLS.",
+        "[server_local]",
+    ]
+    lines.extend(proxy_lines)
+    lines.extend(["", "[dns]"])
+    for resolver in primary:
+        lines.append(f"server={resolver}")
+    for resolver in fallback:
+        lines.append(f"server={resolver}")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def _wrap_shadowrocket_profile(
+    proxies: List[Proxy],
+    primary: List[str],
+    fallback: List[str],
+) -> str:
+    adapter = get_adapter("shadowrocket")
+    content = adapter.export(proxies)
+    lines = [
+        "# ConfigStream DNS-hardened list (Shadowrocket)",
+        "# Prefer IP when available; SNI/Host pinned for TLS.",
+    ]
+    lines.extend(_render_dns_comment_block(primary, fallback))
+    if content:
+        lines.append("")
+        lines.append("# Proxy list")
+        lines.extend(content.splitlines())
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def _build_wireguard_config(proxy: Proxy) -> Optional[str]:
+    details = proxy.details or {}
+    private_key = details.get("private_key") or proxy.uuid or ""
+    peer_public_key = details.get("peer_public_key") or details.get("public_key") or ""
+
+    local_address = details.get("local_address") or details.get("private_ipv4")
+    addresses: List[str] = []
+    if isinstance(local_address, list):
+        addresses = [str(item) for item in local_address if item]
+    elif isinstance(local_address, str) and local_address:
+        addresses = [local_address]
+
+    if not private_key or not peer_public_key:
+        return None
+
+    allowed_ips = details.get("allowed_ips") or "0.0.0.0/0, ::/0"
+    endpoint = f"{proxy.address}:{proxy.port}"
+    keepalive = details.get("persistent_keepalive") or details.get("keepalive")
+    dns = details.get("dns")
+
+    mtu = details.get("mtu", 1280)
+    lines = [
+        "[Interface]",
+        f"PrivateKey = {private_key}",
+    ]
+    if addresses:
+        lines.append(f"Address = {', '.join(addresses)}")
+    lines.append(f"MTU = {mtu}")
+    if dns:
+        lines.append(f"DNS = {dns}")
+    lines.append("")
+    lines.extend(
+        [
+            "[Peer]",
+            f"PublicKey = {peer_public_key}",
+            f"AllowedIPs = {allowed_ips}",
+            f"Endpoint = {endpoint}",
+        ]
+    )
+    if keepalive:
+        lines.append(f"PersistentKeepalive = {keepalive}")
+
+    return "\n".join(lines) + "\n"
+
+
+def _get_export_pool(proxies: List[Proxy]) -> List[Proxy]:
+    """
+    Selects the pool of proxies to export in subscription files.
+    Prefers working proxies. If none are working, falls back to all non-revived proxies.
+    When that pool is empty (all proxies are revived), include revived proxies so users
+    get origin URIs to try in their own network (per AGENTS.md: revived kept with
+    is_working=False for user experimentation).
+    """
+    working = [p for p in proxies if p.is_working]
+    if working:
+        return working
+
+    non_revived = [
+        p
+        for p in proxies
+        if not (p.protocol == "revived" or (p.details or {}).get("is_revived"))
+    ]
+    # Include revived when no other options, so base64/proxies.txt get origin URIs
+    return non_revived if non_revived else proxies
+
+
+def _order_export_proxies(proxies: List[Proxy]) -> List[Proxy]:
+    """Deterministic user-facing ordering for URI/adapters/export artifacts."""
+    return sorted(
+        proxies,
+        key=lambda p: (
+            protocol_sort_key(p.protocol or "unknown"),
+            p.latency is None,
+            p.latency if p.latency is not None else 9e9,
+            (p.country_code or "ZZ").upper(),
+            p.id or "",
+        ),
+    )
+
+
+def _select_chosen_proxies(proxies: List[Proxy]) -> List[Proxy]:
+
+    if CHOSEN_TOP_PER_PROTOCOL <= 0 and CHOSEN_TOTAL_TARGET <= 0:
+        return []
+
+    # Prefer working proxies; fall back to ALL proxies when none are working
+    # so that chosen/ outputs are always populated for downstream consumers.
+    working = [p for p in proxies if p.is_working]
+    non_revived = [
+        p
+        for p in proxies
+        if not (p.protocol == "revived" or (p.details or {}).get("is_revived"))
+    ]
+    # Include revived when no other options (per AGENTS.md: revived kept for user try)
+    pool = working if working else (non_revived if non_revived else proxies)
+
+    by_protocol: Dict[str, List[Proxy]] = {}
+    for proxy in pool:
+        proto = canonical_protocol_name(proxy.protocol or "unknown")
+        by_protocol.setdefault(proto, []).append(proxy)
+
+    chosen: List[Proxy] = []
+    for proto in sorted(by_protocol.keys(), key=protocol_sort_key):
+        candidates = sorted(
+            by_protocol[proto],
+            key=lambda p: (p.latency is None, p.latency or 9e9),
+        )
+        if CHOSEN_TOP_PER_PROTOCOL > 0:
+            candidates = candidates[:CHOSEN_TOP_PER_PROTOCOL]
+        chosen.extend(candidates)
+
+    if CHOSEN_TOTAL_TARGET > 0 and len(chosen) > CHOSEN_TOTAL_TARGET:
+        chosen = sorted(chosen, key=lambda p: (p.latency is None, p.latency or 9e9))[
+            :CHOSEN_TOTAL_TARGET
+        ]
+
+    return _order_export_proxies(chosen)
+
+
+def generate_categorized_outputs(
+    proxies: List[Proxy],
+    output_dir: Path,
+    washed_outbounds: Optional[List[Dict[str, Any]]] = None,
+    washed_ids: Optional[set] = None,
+    smart_chains: Optional[Dict[str, List[List[Dict[str, Any]]]]] = None,
+    washer: Optional[ProxyWasher] = None,  # Pass existing washer instance
+    dns_safe_cache: Optional[Tuple[List[Proxy], Dict[str, str]]] = None,
+    dns_hardened_cache: Optional[Tuple[List[Proxy], Dict[str, str]]] = None,
+) -> Dict[str, Path]:
+    """
+    Generates all output files categorized by protocol, country, and type.
+    Now includes Smart Chains and Washed Proxies.
+    """
+    output_dir.mkdir(parents=True, exist_ok=True)
+    generated_files = {}
+    settings = AppSettings()
+
+    # Remove stale output artifacts from previous runs.
+    stale_files = ["raw.txt", "all.txt", "sub.txt", "vpn_subscription_base64.txt"]
+    for name in stale_files:
+        stale_path = output_dir / name
+        if stale_path.exists():
+            try:
+                stale_path.unlink()
+            except OSError:
+                pass
+
+    for stale_dir in ("by_country", "by_protocol"):
+        stale_path = output_dir / stale_dir
+        if stale_path.exists() and stale_path.is_dir():
+            try:
+                shutil.rmtree(stale_path)
+            except OSError:
+                pass
+
+    # Clean new directories to remove stale files from previous runs
+    for new_dir in ("countries", "protocols"):
+        dpath = output_dir / new_dir
+        if dpath.exists() and dpath.is_dir():
+            try:
+                shutil.rmtree(dpath)
+            except OSError:
+                pass
+    if washer is None:
+        washer = ProxyWasher(settings.WARP_KEY_POOL)
+
+    # 1. Generate Smart Chains if not provided
+    if smart_chains is None:
+        if settings.ENABLE_SMART_CHAINING:
+            smart_chains = generate_smart_chains(proxies, washer=washer)
+        else:
+            smart_chains = {}
+
+    # 2. Generate Split Outputs (The Tank & The Sniper & Clash)
+    # This restores singbox-vpn.json (Tank) and singbox.json (Sniper)
+    split_files = generate_split_outputs(
+        _get_export_pool(proxies),
+        output_dir,
+        washed_outbounds=washed_outbounds,
+        washed_ids=washed_ids,
+        smart_chains=smart_chains,
+    )
+    generated_files.update(split_files)
+
+    # Aliases consumed by tests and downstream code
+    if "singbox" in split_files:
+        generated_files["singbox_full"] = split_files["singbox"]
+        generated_files["master"] = split_files["singbox"]
+    if "singbox_vpn" in split_files:
+        generated_files["singbox_vpn"] = split_files["singbox_vpn"]
+    if "clash" in split_files:
+        generated_files["clash_full"] = split_files["clash"]
+
+    export_pool = _order_export_proxies(_get_export_pool(proxies))
+    all_ordered_proxies = _order_export_proxies(proxies)
+
+    # 3. Standard Subscription (Base64)
+    sub_content = generate_base64_subscription(export_pool)
+    raw_content = generate_plaintext_subscription(export_pool)
+    if not raw_content.strip() and all_ordered_proxies:
+        fallback_raw = generate_plaintext_subscription(all_ordered_proxies)
+        if fallback_raw.strip():
+            logger.info(
+                "Primary export pool produced empty URI list; falling back to all proxies for URI artifacts."
+            )
+            raw_content = fallback_raw
+            sub_content = generate_base64_subscription(all_ordered_proxies)
+
+    base64_path = output_dir / "base64.txt"
+    AtomicFileWriter.write_text(base64_path, sub_content)
+    generated_files["base64"] = base64_path
+
+    # 3b. Raw URI list (Plaintext) - single canonical file to avoid redundancy
+    proxies_txt_path = output_dir / "proxies.txt"
+    AtomicFileWriter.write_text(proxies_txt_path, raw_content)
+    generated_files["proxies_txt"] = proxies_txt_path
+
+    # 3c. Chosen subset (top per protocol)
+    # Always generate chosen/ outputs, even when empty, to avoid downstream 404s.
+    chosen_dir = output_dir / "chosen"
+    chosen_dir.mkdir(exist_ok=True)
+    for stale_name in (
+        "clash-dns-safe.yaml",
+        "clash-dns-hardened.yaml",
+        "proxies-dns-safe.txt",
+        "proxies-dns-hardened.txt",
+        "singbox-dns-safe.json",
+        "singbox-dns-hardened.json",
+    ):
+        stale_path = chosen_dir / stale_name
+        if stale_path.exists():
+            try:
+                stale_path.unlink()
+            except OSError:
+                pass
+    chosen = _select_chosen_proxies(proxies)
+
+    chosen_base64 = generate_base64_subscription(chosen)
+    chosen_base64_path = chosen_dir / "base64.txt"
+    AtomicFileWriter.write_text(chosen_base64_path, chosen_base64)
+    generated_files["chosen_base64"] = chosen_base64_path
+
+    chosen_plaintext = generate_plaintext_subscription(chosen)
+    chosen_txt_path = chosen_dir / "proxies.txt"
+    AtomicFileWriter.write_text(chosen_txt_path, chosen_plaintext)
+    generated_files["chosen_proxies_txt"] = chosen_txt_path
+
+    chosen_singbox = generate_singbox_config(chosen)
+    chosen_singbox_path = chosen_dir / "singbox.json"
+    AtomicFileWriter.write_text(chosen_singbox_path, chosen_singbox)
+    generated_files["chosen_singbox"] = chosen_singbox_path
+
+    chosen_clash = generate_clash_config(chosen, ignore_status=True)
+    chosen_clash_path = chosen_dir / "clash.yaml"
+    AtomicFileWriter.write_text(chosen_clash_path, chosen_clash)
+    generated_files["chosen_clash"] = chosen_clash_path
+
+    # 3d. Adapter-specific outputs (Shadowrocket, QuantumultX, Surge, Loon, SIP008)
+    adapter_specs = {
+        "shadowrocket": ("shadowrocket", "shadowrocket.txt"),
+        "quantumult": ("quantumultx", "quantumult.conf"),
+        "surge": ("surge", "surge.conf"),
+        "loon": ("loon", "loon.conf"),
+        "sip008": ("sip008", "sip008.json"),
+    }
+    for key, (adapter_name, filename) in adapter_specs.items():
+        try:
+            adapter = get_adapter(adapter_name)
+            if adapter_name in ("surge", "loon"):
+                content = adapter.export(export_pool, washed_outbounds=washed_outbounds)
+            else:
+                content = adapter.export(export_pool)
+            out_path = output_dir / filename
+            AtomicFileWriter.write_text(out_path, content)
+            generated_files[key] = out_path
+        except Exception as exc:
+            logger.warning("Failed to generate %s output: %s", adapter_name, str(exc))
+
+    # 3e. Side products pack (OpenVPN + WireGuard + plain URIs)
+    side_products_path = output_dir / "side_products.zip"
+    openvpn_candidates = [
+        p
+        for p in export_pool
+        if canonical_protocol_name(p.protocol or "") == "openvpn" and p.config
+    ]
+    wireguard_candidates = [
+        p
+        for p in export_pool
+        if canonical_protocol_name(p.protocol or "") == "wireguard"
+    ]
+    tmp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            dir=output_dir, prefix=".side_products.", suffix=".tmp", delete=False
+        ) as tmp:
+            tmp_path = tmp.name
+        with zipfile.ZipFile(tmp_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+            # Always include proxies.txt even when empty to avoid downstream 404s.
+            zf.writestr("proxies.txt", raw_content)
+            for proxy in openvpn_candidates:
+                name = _safe_filename(
+                    proxy.remarks or proxy.id, f"openvpn-{proxy.id[:8]}"
+                )
+                zf.writestr(f"openvpn/{name}.ovpn", proxy.config)
+            for proxy in wireguard_candidates:
+                wg_config = _build_wireguard_config(proxy)
+                if not wg_config:
+                    continue
+                name = _safe_filename(
+                    proxy.remarks or proxy.id, f"wireguard-{proxy.id[:8]}"
+                )
+                zf.writestr(f"wireguard/{name}.conf", wg_config)
+        os.replace(tmp_path, side_products_path)
+        generated_files["side_products"] = side_products_path
+    except Exception as exc:
+        logger.warning("Failed to generate side_products.zip: %s", str(exc))
+        if tmp_path and os.path.exists(tmp_path):
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
+
+    # 4. Categorized Sub-files (By Country & Protocol)
+    # Grouping â€” include ALL proxies so users in different networks can still
+    # use country/protocol subscriptions.  The is_working flag is preserved in
+    # the data for client-side filtering.
+    by_country: Dict[str, List[Proxy]] = {}
+    by_protocol: Dict[str, List[Proxy]] = {}
+
+    for p in proxies:
+        cc = (p.country_code or "XX").upper()
+        by_country.setdefault(cc, []).append(p)
+        by_protocol.setdefault(canonical_protocol_name(p.protocol or ""), []).append(p)
+
+    # Write Country files
+    country_dir = output_dir / "countries"
+    country_dir.mkdir(exist_ok=True)
+
+    for cc in sorted(by_country.keys()):
+        plist = by_country[cc]
+        # We generate files for all, including XX
+        cpath = country_dir / f"{cc}.json"
+        AtomicFileWriter.write_text(cpath, generate_singbox_config(plist))
+
+        # Generate list format for API â€” always JSON array, never single proxy object
+        lpath = country_dir / f"{cc}.list.json"
+        arr = (
+            [p.model_dump(mode="json") for p in plist]
+            if isinstance(plist, list)
+            else []
+        )
+        lcontent = json.dumps(arr, indent=2, ensure_ascii=False)
+        AtomicFileWriter.write_text(lpath, lcontent)
+
+        generated_files[f"country_{cc}"] = cpath
+
+    # Write Protocol files (JSON + plaintext URI subscriptions)
+    proto_dir = output_dir / "protocols"
+    proto_dir.mkdir(exist_ok=True)
+
+    for proto in sorted(by_protocol.keys(), key=protocol_sort_key):
+        plist = by_protocol[proto]
+        ppath = proto_dir / f"{proto}.json"
+        AtomicFileWriter.write_text(ppath, generate_singbox_config(plist))
+
+        # Generate list format for API â€” always JSON array, never single proxy object
+        lpath = proto_dir / f"{proto}.list.json"
+        arr = (
+            [p.model_dump(mode="json") for p in plist]
+            if isinstance(plist, list)
+            else []
+        )
+        lcontent = json.dumps(arr, indent=2, ensure_ascii=False)
+        AtomicFileWriter.write_text(lpath, lcontent)
+
+        generated_files[f"proto_{proto}"] = ppath
+
+        # Per-protocol URI list (for clients that accept subscription links)
+        proto_uris = generate_plaintext_subscription(plist)
+        if proto_uris.strip():
+            uri_path = proto_dir / f"{proto}.txt"
+            AtomicFileWriter.write_text(uri_path, proto_uris)
+            generated_files[f"proto_{proto}_txt"] = uri_path
+
+    # 5. Chain-only output (Washed + Revived + Smart Chains + Shielded)
+    # This includes ALL chain types: standard washed, revived (warp/vwarp), smart chains, and shielded (gold)
+    chain_obs: List[Dict[str, Any]] = []
+    seen_tags: set[str] = set()
+    tag_remap: Dict[str, str] = {}  # old_tag -> new_tag when uniquified
+
+    def _uniquify_tag(tag: str) -> str:
+        """Ensure tag is unique; append suffix if collision."""
+        if not tag or tag not in seen_tags:
+            return tag
+        suffix = 0
+        while f"{tag}-{suffix}" in seen_tags:
+            suffix += 1
+        return f"{tag}-{suffix}"
+
+    def _append_chain(outbounds: List[Dict[str, Any]]) -> None:
+        for outbound in outbounds:
+            if not isinstance(outbound, dict):
+                continue
+            outbound = copy.deepcopy(outbound)
+            # Resolve detour if target was uniquified
+            detour = outbound.get("detour")
+            if isinstance(detour, str) and detour in tag_remap:
+                outbound["detour"] = tag_remap[detour]
+            tag = outbound.get("tag")
+            if tag and tag in seen_tags:
+                # CRITICAL: Uniquify instead of skipping. Skipping collapsed thousands
+                # of chains into one "single proxy" when format_proxy_name produced
+                # identical tags (e.g. shielded chains with same geo/protocol/latency).
+                new_tag = _uniquify_tag(tag)
+                tag_remap[tag] = new_tag
+                tag = new_tag
+                outbound["tag"] = tag
+            chain_obs.append(outbound)
+            if tag:
+                seen_tags.add(tag)
+
+    # Include all chain types:
+    # 1. Proxy-level chains (from revived proxies)
+    for p in proxies:
+        # Guard against None details to prevent AttributeError
+        chain = chain_obs_from_details(p.details or {})
+        if chain:
+            chain_copy = copy.deepcopy(chain)
+            # Apply proxy.remarks to entry point (last outbound) for revived chains
+            # so user-formatted names appear in singbox-chains.json
+            is_revived = (p.details or {}).get("is_revived") or (
+                p.process or ""
+            ).startswith("revived")
+            if is_revived and p.remarks and p.remarks not in seen_tags:
+                chain_copy[-1]["tag"] = p.remarks
+            _append_chain(chain_copy)
+
+    # 2. Washed outbounds (includes standard washed + shielded/gold chains)
+    if washed_outbounds:
+        _append_chain(copy.deepcopy(washed_outbounds))
+
+    # 3. Smart chains
+    if smart_chains:
+        for chain_list in smart_chains.values():
+            for chain in chain_list:
+                if isinstance(chain, list) and chain:
+                    _append_chain(copy.deepcopy(chain))
+
+    # Always emit chain outputs to prevent frontend/client 404s even when no chains exist.
+    chains_config_content = generate_singbox_config([], extra_outbounds=chain_obs)
+
+    chains_path = output_dir / "singbox-chains.json"
+    AtomicFileWriter.write_text(chains_path, chains_config_content)
+    generated_files["singbox_chains"] = chains_path
+
+    # Convenience alias used by the frontend download selector.
+    chains_alias_path = output_dir / "chains.json"
+    AtomicFileWriter.write_text(chains_alias_path, chains_config_content)
+    generated_files["chains"] = chains_alias_path
+
+    # 5b. Separate outputs for different revival types (if needed for analytics)
+    # Extract shielded (gold) chains separately for visibility
+    shielded_chains: List[Dict[str, Any]] = []
+    washed_only_chains: List[Dict[str, Any]] = []
+    revived_only_chains: List[Dict[str, Any]] = []
+
+    if washed_outbounds:
+        for outbound in washed_outbounds:
+            if not isinstance(outbound, dict):
+                continue
+            tag = outbound.get("tag", "")
+            process = outbound.get("_process", "")
+
+            # Shielded chains (GOLD- prefix or shield_payload process)
+            if (
+                tag.startswith("GOLD-")
+                or process == "shield_payload"
+                or process == "shield_base"
+            ):
+                shielded_chains.append(copy.deepcopy(outbound))
+            # Standard washed chains (not shielded)
+            elif tag.startswith("ðŸ›¡ï¸") or process == "washed":
+                washed_only_chains.append(copy.deepcopy(outbound))
+
+    # Revived chains from proxy details
+    for p in proxies:
+        # Guard against None details to prevent AttributeError
+        _det = p.details or {}
+        if _det.get("is_revived") or (p.process or "").startswith("revived"):
+            chain = chain_obs_from_details(_det)
+            if chain:
+                revived_only_chains.extend(copy.deepcopy(chain))
+
+    # Generate separate outputs for analytics/debugging (optional, not user-facing)
+
+    # 6. DNS-safe outputs (IP-only / pre-resolved)
+    # Reuse cached DNS results from output_handler when available
+    if dns_safe_cache is not None:
+        dns_safe_proxies, host_map = dns_safe_cache
+    else:
+        dns_safe_proxies, host_map = _build_dns_safe_proxies(proxies)
+
+    # Always emit DNS-safe outputs, even when empty, to avoid frontend/client 404s.
+    dns_safe_washed = (
+        _filter_outbounds_for_dns_safe(washed_outbounds, host_map)
+        if washed_outbounds
+        else None
+    )
+    dns_safe_smart_chains: Dict[str, List[List[Dict[str, Any]]]] = {}
+    if smart_chains:
+        for group, chains in smart_chains.items():
+            filtered_chains: List[List[Dict[str, Any]]] = []
+            for chain in chains:
+                if not isinstance(chain, list):
+                    continue
+                filtered = _filter_outbounds_for_dns_safe(chain, host_map)
+                if filtered:
+                    filtered_chains.append(filtered)
+            if filtered_chains:
+                dns_safe_smart_chains[group] = filtered_chains
+
+    dns_split_files = generate_split_outputs(
+        _get_export_pool(dns_safe_proxies),
+        output_dir,
+        washed_outbounds=dns_safe_washed,
+        washed_ids=washed_ids,
+        smart_chains=dns_safe_smart_chains,
+        name_suffix="dns-safe",
+        key_suffix="dns_safe",
+    )
+    generated_files.update(dns_split_files)
+    dns_safe_export_pool = _order_export_proxies(_get_export_pool(dns_safe_proxies))
+
+    dns_chain_obs = (
+        _filter_outbounds_for_dns_safe(chain_obs, host_map) if chain_obs else []
+    )
+    dns_chains_content = generate_singbox_config([], extra_outbounds=dns_chain_obs)
+    dns_chains_path = output_dir / "singbox-chains-dns-safe.json"
+    AtomicFileWriter.write_text(dns_chains_path, dns_chains_content)
+    generated_files["singbox_chains_dns_safe"] = dns_chains_path
+
+    dns_chains_alias = output_dir / "chains-dns-safe.json"
+    AtomicFileWriter.write_text(dns_chains_alias, dns_chains_content)
+    generated_files["chains_dns_safe"] = dns_chains_alias
+
+    dns_safe_base64 = generate_base64_subscription(dns_safe_export_pool)
+    dns_raw_content = generate_plaintext_subscription(dns_safe_export_pool)
+    all_dns_safe_ordered = _order_export_proxies(dns_safe_proxies)
+    if not dns_raw_content.strip() and all_dns_safe_ordered:
+        fallback_dns_raw = generate_plaintext_subscription(all_dns_safe_ordered)
+        if fallback_dns_raw.strip():
+            logger.info(
+                "DNS-safe export pool produced empty URI list; falling back to all DNS-safe proxies for URI artifacts."
+            )
+            dns_raw_content = fallback_dns_raw
+            dns_safe_base64 = generate_base64_subscription(all_dns_safe_ordered)
+
+    dns_base64_path = output_dir / "base64-dns-safe.txt"
+    AtomicFileWriter.write_text(dns_base64_path, dns_safe_base64)
+    generated_files["base64_dns_safe"] = dns_base64_path
+
+    dns_proxies_txt_path = output_dir / "proxies-dns-safe.txt"
+    AtomicFileWriter.write_text(dns_proxies_txt_path, dns_raw_content)
+    generated_files["proxies_txt_dns_safe"] = dns_proxies_txt_path
+
+    dns_chosen = _select_chosen_proxies(dns_safe_proxies)
+    chosen_dns_base64 = generate_base64_subscription(dns_chosen)
+    chosen_dns_path = chosen_dir / "base64-dns-safe.txt"
+    AtomicFileWriter.write_text(chosen_dns_path, chosen_dns_base64)
+    generated_files["chosen_base64_dns_safe"] = chosen_dns_path
+
+    # Adapter-specific outputs (DNS-safe)
+    for key, (adapter_name, filename) in adapter_specs.items():
+        try:
+            adapter = get_adapter(adapter_name)
+            if adapter_name in ("surge", "loon"):
+                content = adapter.export(
+                    dns_safe_export_pool, washed_outbounds=dns_safe_washed
+                )
+            else:
+                content = adapter.export(dns_safe_export_pool)
+            dns_filename = _add_suffix(filename, "-dns-safe")
+            out_path = output_dir / dns_filename
+            AtomicFileWriter.write_text(out_path, content)
+            generated_files[f"{key}_dns_safe"] = out_path
+        except Exception as exc:
+            logger.warning(
+                "Failed to generate dns-safe %s output: %s",
+                adapter_name,
+                str(exc),
+            )
+
+    # Side products pack (DNS-safe)
+    side_dns_path = output_dir / "side_products-dns-safe.zip"
+    openvpn_candidates_dns = [
+        p
+        for p in dns_safe_export_pool
+        if canonical_protocol_name(p.protocol or "") == "openvpn" and p.config
+    ]
+    wireguard_candidates_dns = [
+        p
+        for p in dns_safe_export_pool
+        if canonical_protocol_name(p.protocol or "") == "wireguard"
+    ]
+    tmp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            dir=output_dir,
+            prefix=".side_products_dns.",
+            suffix=".tmp",
+            delete=False,
+        ) as tmp:
+            tmp_path = tmp.name
+        with zipfile.ZipFile(tmp_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+            zf.writestr("proxies.txt", dns_raw_content)
+            for proxy in openvpn_candidates_dns:
+                details = proxy.details or {}
+                original_host = details.get("original_host") or proxy.address
+                rewritten = _rewrite_openvpn_remote(
+                    proxy.config, original_host, proxy.address
+                )
+                name = _safe_filename(
+                    proxy.remarks or proxy.id, f"openvpn-{proxy.id[:8]}"
+                )
+                zf.writestr(f"openvpn/{name}.ovpn", rewritten)
+            for proxy in wireguard_candidates_dns:
+                wg_config = _build_wireguard_config(proxy)
+                if not wg_config:
+                    continue
+                name = _safe_filename(
+                    proxy.remarks or proxy.id, f"wireguard-{proxy.id[:8]}"
+                )
+                zf.writestr(f"wireguard/{name}.conf", wg_config)
+        os.replace(tmp_path, side_dns_path)
+        generated_files["side_products_dns_safe"] = side_dns_path
+    except Exception as exc:
+        logger.warning("Failed to generate side_products-dns-safe.zip: %s", str(exc))
+        if tmp_path and os.path.exists(tmp_path):
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
+
+    # 7. DNS-hardened outputs (prefer IP when available + DoH/DoT/DoQ)
+    if settings.DNS_HARDENED_OUTPUTS:
+        if dns_hardened_cache is not None:
+            dns_hardened_proxies, hardened_map = dns_hardened_cache
+        else:
+            dns_hardened_proxies, hardened_map = _build_dns_hardened_proxies(proxies)
+        # Always emit DNS-hardened outputs, even when empty, to avoid frontend/client 404s.
+        primary_resolvers, fallback_resolvers = _dns_resolver_sets()
+        hardened_washed = (
+            _filter_outbounds_for_dns_hardened(washed_outbounds, hardened_map)
+            if washed_outbounds
+            else None
+        )
+        hardened_smart_chains: Dict[str, List[List[Dict[str, Any]]]] = {}
+        if smart_chains:
+            for group, chains in smart_chains.items():
+                filtered_smart_chains: List[List[Dict[str, Any]]] = []
+                for chain in chains:
+                    if not isinstance(chain, list):
+                        continue
+                    filtered = _filter_outbounds_for_dns_hardened(chain, hardened_map)
+                    if filtered:
+                        filtered_smart_chains.append(filtered)
+                if filtered_smart_chains:
+                    hardened_smart_chains[group] = filtered_smart_chains
+
+        hardened_split_files = generate_split_outputs(
+            _get_export_pool(dns_hardened_proxies),
+            output_dir,
+            washed_outbounds=hardened_washed,
+            washed_ids=washed_ids,
+            smart_chains=hardened_smart_chains,
+            name_suffix="dns-hardened",
+            key_suffix="dns_hardened",
+            singbox_dns_profile=build_singbox_dns_profile(),
+            clash_dns_profile=build_clash_dns_profile(),
+        )
+        generated_files.update(hardened_split_files)
+        dns_hardened_export_pool = _order_export_proxies(
+            _get_export_pool(dns_hardened_proxies)
+        )
+
+        # Base64 + plaintext outputs (DNS-hardened prefer-IP)
+        dns_hardened_base64 = generate_base64_subscription(dns_hardened_export_pool)
+        dns_hardened_raw = generate_plaintext_subscription(dns_hardened_export_pool)
+        all_dns_hardened_ordered = _order_export_proxies(dns_hardened_proxies)
+        if not dns_hardened_raw.strip() and all_dns_hardened_ordered:
+            fallback_hardened_raw = generate_plaintext_subscription(
+                all_dns_hardened_ordered
+            )
+            if fallback_hardened_raw.strip():
+                logger.info(
+                    "DNS-hardened export pool produced empty URI list; falling back to all DNS-hardened proxies for URI artifacts."
+                )
+                dns_hardened_raw = fallback_hardened_raw
+                dns_hardened_base64 = generate_base64_subscription(
+                    all_dns_hardened_ordered
+                )
+
+        dns_hardened_base64_path = output_dir / "base64-dns-hardened.txt"
+        AtomicFileWriter.write_text(dns_hardened_base64_path, dns_hardened_base64)
+        generated_files["base64_dns_hardened"] = dns_hardened_base64_path
+
+        dns_hardened_txt_path = output_dir / "proxies-dns-hardened.txt"
+        AtomicFileWriter.write_text(dns_hardened_txt_path, dns_hardened_raw)
+        generated_files["proxies_txt_dns_hardened"] = dns_hardened_txt_path
+
+        dns_hardened_chosen = _select_chosen_proxies(dns_hardened_proxies)
+        chosen_hardened_base64 = generate_base64_subscription(dns_hardened_chosen)
+        chosen_hardened_path = chosen_dir / "base64-dns-hardened.txt"
+        AtomicFileWriter.write_text(chosen_hardened_path, chosen_hardened_base64)
+        generated_files["chosen_base64_dns_hardened"] = chosen_hardened_path
+
+        # Adapter-specific outputs (DNS-hardened)
+        try:
+            shadowrocket_hardened = _wrap_shadowrocket_profile(
+                dns_hardened_export_pool, primary_resolvers, fallback_resolvers
+            )
+            out_path = output_dir / "shadowrocket-dns-hardened.txt"
+            AtomicFileWriter.write_text(out_path, shadowrocket_hardened)
+            generated_files["shadowrocket_dns_hardened"] = out_path
+        except Exception as exc:
+            logger.warning("Failed to generate dns-hardened Shadowrocket: %s", exc)
+
+        try:
+            surge_hardened = _wrap_surge_or_loon_profile(
+                "surge",
+                dns_hardened_export_pool,
+                hardened_washed,
+                primary_resolvers,
+                fallback_resolvers,
+            )
+            out_path = output_dir / "surge-dns-hardened.conf"
+            AtomicFileWriter.write_text(out_path, surge_hardened)
+            generated_files["surge_dns_hardened"] = out_path
+        except Exception as exc:
+            logger.warning("Failed to generate dns-hardened Surge: %s", exc)
+
+        try:
+            loon_hardened = _wrap_surge_or_loon_profile(
+                "loon",
+                dns_hardened_export_pool,
+                hardened_washed,
+                primary_resolvers,
+                fallback_resolvers,
+            )
+            out_path = output_dir / "loon-dns-hardened.conf"
+            AtomicFileWriter.write_text(out_path, loon_hardened)
+            generated_files["loon_dns_hardened"] = out_path
+        except Exception as exc:
+            logger.warning("Failed to generate dns-hardened Loon: %s", exc)
+
+        try:
+            quantumult_hardened = _wrap_quantumultx_profile(
+                dns_hardened_export_pool, primary_resolvers, fallback_resolvers
+            )
+            out_path = output_dir / "quantumult-dns-hardened.conf"
+            AtomicFileWriter.write_text(out_path, quantumult_hardened)
+            generated_files["quantumult_dns_hardened"] = out_path
+        except Exception as exc:
+            logger.warning("Failed to generate dns-hardened Quantumult X: %s", exc)
+
+        try:
+            sip_adapter = get_adapter("sip008")
+            sip_content = sip_adapter.export(dns_hardened_export_pool)
+            sip_path = output_dir / "sip008-dns-hardened.json"
+            AtomicFileWriter.write_text(sip_path, sip_content)
+            generated_files["sip008_dns_hardened"] = sip_path
+        except Exception as exc:
+            logger.warning("Failed to generate dns-hardened SIP008: %s", exc)
+
+        # Side products pack (DNS-hardened)
+        side_hardened_path = output_dir / "side_products-dns-hardened.zip"
+        openvpn_hardened = [
+            p
+            for p in dns_hardened_export_pool
+            if canonical_protocol_name(p.protocol or "") == "openvpn" and p.config
+        ]
+        wireguard_hardened = [
+            p
+            for p in dns_hardened_export_pool
+            if canonical_protocol_name(p.protocol or "") == "wireguard"
+        ]
+        tmp_path = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                dir=output_dir,
+                prefix=".side_products_dns_hardened.",
+                suffix=".tmp",
+                delete=False,
+            ) as tmp:
+                tmp_path = tmp.name
+            with zipfile.ZipFile(tmp_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+                zf.writestr("proxies.txt", dns_hardened_raw)
+                for proxy in openvpn_hardened:
+                    details = proxy.details or {}
+                    original_host = details.get("original_host") or proxy.address
+                    rewritten = _rewrite_openvpn_remote(
+                        proxy.config, original_host, proxy.address
+                    )
+                    name = _safe_filename(
+                        proxy.remarks or proxy.id, f"openvpn-{proxy.id[:8]}"
+                    )
+                    zf.writestr(f"openvpn/{name}.ovpn", rewritten)
+                for proxy in wireguard_hardened:
+                    wg_config = _build_wireguard_config(proxy)
+                    if not wg_config:
+                        continue
+                    name = _safe_filename(
+                        proxy.remarks or proxy.id, f"wireguard-{proxy.id[:8]}"
+                    )
+                    zf.writestr(f"wireguard/{name}.conf", wg_config)
+            os.replace(tmp_path, side_hardened_path)
+            generated_files["side_products_dns_hardened"] = side_hardened_path
+        except Exception as exc:
+            logger.warning("Failed to generate side_products-dns-hardened.zip: %s", exc)
+            if tmp_path and os.path.exists(tmp_path):
+                try:
+                    os.unlink(tmp_path)
+                except OSError:
+                    pass
+
+        # DNS-hardened chains (includes all chain types: washed, revived, smart, shielded)
+        hardened_chain_obs = (
+            _filter_outbounds_for_dns_hardened(chain_obs, hardened_map)
+            if chain_obs
+            else []
+        )
+        hardened_chains_content = generate_singbox_config(
+            [], extra_outbounds=hardened_chain_obs
+        )
+        hardened_chains_path = output_dir / "singbox-chains-dns-hardened.json"
+        AtomicFileWriter.write_text(hardened_chains_path, hardened_chains_content)
+        generated_files["singbox_chains_dns_hardened"] = hardened_chains_path
+
+        hardened_chains_alias = output_dir / "chains-dns-hardened.json"
+        AtomicFileWriter.write_text(hardened_chains_alias, hardened_chains_content)
+        generated_files["chains_dns_hardened"] = hardened_chains_alias
+
+    # 8. Verify all expected output keys were generated
+    required_outputs = [
+        "base64",
+        "singbox",
+        "clash",
+        "shadowrocket",
+        "surge",
+        "loon",
+        "quantumult",
+        "sip008",
+    ]
+    for key in required_outputs:
+        if key not in generated_files:
+            logger.warning(
+                f"Required output '{key}' not generated - may break downstream consumers"
+            )
+
+    logger.info(
+        f"Generated {len(generated_files)} output files (including all variations)."
+    )
+    return generated_files
+
+
+def save_metadata(
+    stats: Any,
+    proxies: List[Proxy],
+    output_dir: Path,
+):
+    """
+    Saves metadata.json and other stats files.
+    """
+    meta_path = output_dir / "metadata.json"
+    _meta_settings = AppSettings()
+
+    # Single-pass loop to collect all stats at once (O(N) instead of O(4N))
+    total = len(proxies)
+    working = 0
+    lat_dist = {"fast": 0, "medium": 0, "slow": 0, "very_slow": 0}
+    protocols: Dict[str, int] = {}
+    countries: Dict[str, int] = {}
+    asns: Dict[str, int] = {}
+    latency_by_country_sum: Dict[str, float] = {}
+    latency_by_country_count: Dict[str, int] = {}
+    latency_by_protocol_sum: Dict[str, float] = {}
+    latency_by_protocol_count: Dict[str, int] = {}
+
+    for p in proxies:
+        if not p.is_working:
+            continue
+
+        working += 1
+
+        # Latency distribution
+        lat_dist[latency_bucket_for_ms(p.latency)] += 1
+
+        # Protocol count
+        protocols[p.protocol] = protocols.get(p.protocol, 0) + 1
+
+        # Country count
+        cc = p.country_code if p.country_code else "XX"
+        countries[cc] = countries.get(cc, 0) + 1
+
+        # Latency by country/protocol (avg)
+        if p.latency is not None:
+            latency_by_country_sum[cc] = latency_by_country_sum.get(cc, 0.0) + p.latency
+            latency_by_country_count[cc] = latency_by_country_count.get(cc, 0) + 1
+            proto_key = p.protocol or "unknown"
+            latency_by_protocol_sum[proto_key] = (
+                latency_by_protocol_sum.get(proto_key, 0.0) + p.latency
+            )
+            latency_by_protocol_count[proto_key] = (
+                latency_by_protocol_count.get(proto_key, 0) + 1
+            )
+
+        # ASN count
+        if p.asn:
+            asns[p.asn] = asns.get(p.asn, 0) + 1
+
+        # Note: Heuristic counts removed - use exact counts from PipelineStats instead
+        # (revived_warp, revived_vwarp, washer_success_count)
+
+    proxies_snapshot_hash = _json_snapshot_sha256([serialize_proxy(p) for p in proxies])
+    old_snapshot_hash = None
+    old_snapshot_path = output_dir / "proxies.old.json"
+    if old_snapshot_path.is_file():
+        try:
+            old_payload = json.loads(old_snapshot_path.read_text(encoding="utf-8"))
+            old_snapshot_hash = _json_snapshot_sha256(old_payload)
+        except (OSError, json.JSONDecodeError):
+            old_snapshot_hash = None
+
+    # Extract info from stats (dict or object)
+    total_sourced = total
+    parsed_count = total
+    tested_count = total
+    reasons: Dict[str, int] = {}
+    end_time_iso = datetime.now(timezone.utc).isoformat()
+    start_time_iso = None
+    washed_count = 0
+    smart_chain_count = 0
+    vwarp_win_rate = 0.0
+    scanner_ips_found = 0
+    fetched_sources = 0
+    total_configured_sources = 0  # Total sources from config for frontend display
+    # Additional stats that were missing from export
+    revived_warp = 0
+    revived_vwarp = 0
+    warp_attempts = 0
+    vwarp_attempts = 0
+    vwarp_success = 0
+    duration_seconds = 0.0
+    geo_resolved = 0
+    cache_misses = 0
+    final_count = 0
+    chain_obs_count = 0
+    time_limited = False
+    time_limit_seconds = 0
+    shielded_count = 0
+    shielded_candidate_count = 0
+    shielded_verified_count = 0
+    evasion_utls_enabled = 0
+    evasion_alpn_enabled = 0
+    evasion_fragmentation_enabled = 0
+    evasion_multiplexing_enabled = 0
+    evasion_dns_safe_count = 0
+    evasion_dns_hardened_count = 0
+    backpressure_drop = 0
+    trace_id = "-"
+    pipeline_execution_audit: Dict[str, Any] = {}
+
+    if isinstance(stats, dict):
+        # Stats is a dict (from merge script)
+        total_sourced = safe_int_conversion(
+            stats.get("fetched_lines") or stats.get("total_fetched") or total
+        )
+        parsed_count = stats.get("parsed", total)
+        tested_count = stats.get("tested", total)
+        # reasons might be in stats['rejection_reasons'] or stats['drop_reasons']
+        raw_reasons = stats.get("rejection_reasons") or stats.get("drop_reasons") or {}
+        if isinstance(raw_reasons, dict):
+            reasons = {
+                str(k): safe_int_conversion(v)
+                for k, v in raw_reasons.items()
+                if k is not None
+            }
+        washed_count = stats.get("washed_chains") or stats.get(
+            "washer_success_count", 0
+        )
+        smart_chain_count = stats.get("smart_chain_count", 0)
+        if not smart_chain_count and "smart_chains_breakdown" in stats:
+            smart_chain_count = sum(stats["smart_chains_breakdown"].values())
+        vwarp_win_rate = stats.get("vwarp_win_rate", 0.0)
+        scanner_ips_found = stats.get("scanner_ips_found", 0)
+        fetched_sources = stats.get("fetched_sources", 0)
+        total_configured_sources = (
+            stats.get("total_configured_sources", 0) or fetched_sources
+        )
+        # Extract additional stats from dict
+        revived_warp = stats.get("revived_warp", 0)
+        revived_vwarp = stats.get("revived_vwarp", 0)
+        warp_attempts = stats.get("warp_attempts", 0)
+        vwarp_attempts = stats.get("vwarp_attempts", 0)
+        vwarp_success = stats.get("vwarp_success", 0)
+        duration_seconds = stats.get("duration", 0.0)
+        geo_resolved = stats.get("geo_resolved", 0)
+        cache_misses = stats.get("cache_misses", 0)
+        final_count = stats.get("final_count", 0)
+        chain_obs_count = stats.get("chain_obs_count", 0)
+        time_limited = bool(stats.get("time_limited", False))
+        time_limit_seconds = int(stats.get("time_limit_seconds", 0) or 0)
+        shielded_count = stats.get("shielded_count", 0)
+        shielded_candidate_count = int(
+            stats.get("shielded_candidate_count", shielded_count) or shielded_count
+        )
+        shielded_verified_count = stats.get("shielded_verified_count", 0)
+        evasion_utls_enabled = stats.get("evasion_utls_enabled", 0)
+        evasion_alpn_enabled = stats.get("evasion_alpn_enabled", 0)
+        evasion_fragmentation_enabled = stats.get("evasion_fragmentation_enabled", 0)
+        evasion_multiplexing_enabled = stats.get("evasion_multiplexing_enabled", 0)
+        evasion_dns_safe_count = stats.get("evasion_dns_safe_count", 0)
+        evasion_dns_hardened_count = stats.get("evasion_dns_hardened_count", 0)
+        backpressure_drop = stats.get("backpressure_drop", 0)
+        trace_id = str(stats.get("trace_id") or "-")
+        audit_obj = stats.get("pipeline_execution_audit")
+        if isinstance(audit_obj, dict):
+            pipeline_execution_audit = dict(audit_obj)
+        start_time_iso = stats.get("start_time")
+        if stats.get("end_time"):
+            end_time_iso = str(stats.get("end_time") or "")
+    else:
+        # Stats is an object (PipelineStats)
+        if hasattr(stats, "fetched_lines"):
+            total_sourced = stats.fetched_lines
+        elif hasattr(stats, "total_sourced"):
+            total_sourced = stats.total_sourced
+        if hasattr(stats, "parsed"):
+            parsed_count = stats.parsed
+        if hasattr(stats, "tested"):
+            tested_count = stats.tested
+        if hasattr(stats, "drop_reasons"):
+            reasons = stats.drop_reasons
+        if hasattr(stats, "end_time") and stats.end_time:
+            end_time_iso = stats.end_time.isoformat()
+        if hasattr(stats, "washer_success_count"):
+            washed_count = stats.washer_success_count
+        if hasattr(stats, "smart_chain_count"):
+            smart_chain_count = stats.smart_chain_count
+        if hasattr(stats, "vwarp_win_rate"):
+            vwarp_win_rate = stats.vwarp_win_rate
+        if hasattr(stats, "scanner_ips_found"):
+            scanner_ips_found = stats.scanner_ips_found
+        if hasattr(stats, "fetched_sources"):
+            fetched_sources = stats.fetched_sources
+        # Extract total_configured_sources for frontend sources_count
+        if hasattr(stats, "total_configured_sources"):
+            total_configured_sources = stats.total_configured_sources or fetched_sources
+        # Extract additional stats from PipelineStats object
+        if hasattr(stats, "revived_warp"):
+            revived_warp = stats.revived_warp
+        if hasattr(stats, "revived_vwarp"):
+            revived_vwarp = stats.revived_vwarp
+        if hasattr(stats, "warp_attempts"):
+            warp_attempts = stats.warp_attempts
+        if hasattr(stats, "vwarp_attempts"):
+            vwarp_attempts = stats.vwarp_attempts
+        if hasattr(stats, "vwarp_success"):
+            vwarp_success = stats.vwarp_success
+        if hasattr(stats, "duration"):
+            duration_seconds = stats.duration
+        if hasattr(stats, "geo_resolved"):
+            geo_resolved = stats.geo_resolved
+        if hasattr(stats, "cache_misses"):
+            cache_misses = stats.cache_misses
+        if hasattr(stats, "final_count"):
+            final_count = stats.final_count
+        if hasattr(stats, "chain_obs_count"):
+            chain_obs_count = stats.chain_obs_count
+        if hasattr(stats, "time_limited"):
+            time_limited = bool(stats.time_limited)
+        if hasattr(stats, "time_limit_seconds"):
+            time_limit_seconds = int(stats.time_limit_seconds or 0)
+        if hasattr(stats, "shielded_count"):
+            shielded_count = stats.shielded_count
+        if hasattr(stats, "shielded_candidate_count"):
+            shielded_candidate_count = stats.shielded_candidate_count
+        if hasattr(stats, "shielded_verified_count"):
+            shielded_verified_count = stats.shielded_verified_count
+        if hasattr(stats, "evasion_utls_enabled"):
+            evasion_utls_enabled = stats.evasion_utls_enabled
+        if hasattr(stats, "evasion_alpn_enabled"):
+            evasion_alpn_enabled = stats.evasion_alpn_enabled
+        if hasattr(stats, "evasion_fragmentation_enabled"):
+            evasion_fragmentation_enabled = stats.evasion_fragmentation_enabled
+        if hasattr(stats, "evasion_multiplexing_enabled"):
+            evasion_multiplexing_enabled = stats.evasion_multiplexing_enabled
+        if hasattr(stats, "evasion_dns_safe_count"):
+            evasion_dns_safe_count = stats.evasion_dns_safe_count
+        if hasattr(stats, "evasion_dns_hardened_count"):
+            evasion_dns_hardened_count = stats.evasion_dns_hardened_count
+        if hasattr(stats, "backpressure_drop"):
+            backpressure_drop = stats.backpressure_drop
+        if hasattr(stats, "trace_id"):
+            trace_id = str(getattr(stats, "trace_id") or "-")
+        if hasattr(stats, "pipeline_execution_audit"):
+            audit_obj = getattr(stats, "pipeline_execution_audit")
+            if isinstance(audit_obj, dict):
+                pipeline_execution_audit = dict(audit_obj)
+        if not pipeline_execution_audit:
+            pipeline_execution_audit = PipelineExecutionAudit.from_stats(
+                stats
+            ).to_dict()
+        # Use stats.working as source of truth (more accurate than counting in loop)
+        # But only if it's non-zero (to avoid overriding correct loop count)
+        if hasattr(stats, "working") and stats.working > 0:
+            working = stats.working
+
+    # Use stats.working if available (more accurate than loop count)
+    # But only if it's non-zero (to avoid overriding correct loop count)
+    if isinstance(stats, dict):
+        stats_working = stats.get("working", 0)
+        if stats_working > 0:
+            working = stats_working
+
+    def _normalize_drop_reason(reason: str) -> str:
+        key = (reason or "").strip().lower()
+        if not key:
+            return DropCategory.UNKNOWN.value
+        if "duplicate" in key:
+            return DropCategory.DUPLICATE.value
+        if "invalid_protocol" in key:
+            return DropCategory.INVALID_PROTOCOL.value
+        if "invalid_port" in key:
+            return DropCategory.INVALID_PORT.value
+        if "missing_protocol_separator" in key:
+            return DropCategory.MISSING_PROTOCOL_SEPARATOR.value
+        if "implausible_format" in key:
+            return DropCategory.IMPLAUSIBLE_FORMAT.value
+        if "security" in key:
+            return DropCategory.SECURITY_VALIDATION.value
+        if "html" in key:
+            return DropCategory.HTML_CONTENT.value
+        if "hostile_payload" in key:
+            return DropCategory.HOSTILE_PAYLOAD.value
+        if "size_limit" in key:
+            return DropCategory.SIZE_LIMIT_EXCEEDED.value
+        if "backpressure" in key:
+            return DropCategory.BACKPRESSURE_DROP.value
+        if "tester_error" in key:
+            return DropCategory.TESTER_ERROR.value
+        if "fetch_error" in key:
+            return DropCategory.FETCH_ERROR.value
+        return key
+
+    normalized_reasons: Dict[str, int] = {}
+    for reason_key, reason_count in (reasons or {}).items():
+        category = _normalize_drop_reason(str(reason_key))
+        normalized_reasons[category] = normalized_reasons.get(category, 0) + int(
+            reason_count or 0
+        )
+    reasons = normalized_reasons
+
+    # Note: Removed heuristic fallbacks - use exact counts from PipelineStats
+    # If counts are 0, they should remain 0 (not estimated from tags)
+
+    # Separation of Smart Chains
+    smart_chains_breakdown = {}
+    if isinstance(stats, dict) and "smart_chains_breakdown" in stats:
+        smart_chains_breakdown = stats["smart_chains_breakdown"]
+
+    try:
+        pkg_version = version("configstream")
+    except Exception:
+        pkg_version = "unknown"
+
+    # Calculate update interval (default 6 hours for production)
+    update_interval_hours = _meta_settings.UPDATE_INTERVAL_HOURS
+
+    latency_by_country = {
+        cc: round(latency_by_country_sum[cc] / latency_by_country_count[cc])
+        for cc in latency_by_country_sum
+        if latency_by_country_count.get(cc)
+    }
+    latency_by_protocol = {
+        proto: round(latency_by_protocol_sum[proto] / latency_by_protocol_count[proto])
+        for proto in latency_by_protocol_sum
+        if latency_by_protocol_count.get(proto)
+    }
+
+    # Compute total_revived from exact counts (no heuristics)
+    # Use PipelineStats.total_revived property if available, otherwise calculate
+    if isinstance(stats, dict):
+        total_revived_count = stats.get("total_revived", revived_warp + revived_vwarp)
+    else:
+        if hasattr(stats, "total_revived"):
+            total_revived_count = stats.total_revived
+        else:
+            total_revived_count = revived_warp + revived_vwarp
+
+    # Washing Enabled Logic (Best effort inference for Shards)
+    washing_enabled = False
+    warp_pool_raw = _meta_settings.WARP_KEY_POOL
+    if isinstance(warp_pool_raw, str) and warp_pool_raw.strip():
+        try:
+            warp_pool = json.loads(warp_pool_raw)
+            washing_enabled = isinstance(warp_pool, list) and len(warp_pool) > 0
+        except json.JSONDecodeError:
+            # Non-JSON value treated as enabled if non-empty
+            washing_enabled = True
+    washing_enabled = washing_enabled or vwarp_attempts > 0
+
+    meta = {
+        "schema_version": "3.0.2",
+        "version": pkg_version,
+        "total_proxies": total + smart_chain_count,
+        "total_tested": tested_count,  # Number of proxies actually tested
+        "total_working": working,
+        "success_rate": (working / tested_count) if tested_count > 0 else 0,
+        "generated_at": end_time_iso,
+        "last_updated_utc": end_time_iso,
+        "trace_id": trace_id,
+        "proxies_snapshot_hash": proxies_snapshot_hash,
+        "previous_proxies_snapshot_hash": old_snapshot_hash,
+        "latency_distribution": lat_dist,
+        "protocols": protocols,
+        "country_stats": countries,
+        "countries": countries,  # Alias consumed by statistics.js
+        "rejection_reasons": reasons,
+        "drop_reasons": reasons,
+        "asns": asns,
+        "isp_stats": asns,  # Alias consumed by tests
+        "total_revived": total_revived_count,
+        "total_clean": max(0, working - total_revived_count),
+        "total_smart_chains": smart_chain_count,
+        "smart_chains_breakdown": smart_chains_breakdown,
+        "total_dirty": sum(
+            [
+                int(reasons.get("dirty_ip", 0) or 0),
+                int(reasons.get("DIRTY_IP", 0) or 0),
+                int(reasons.get("honeypot", 0) or 0),
+                int(reasons.get("HONEYPOT", 0) or 0),
+            ]
+        ),
+        # Intelligence Layer Stats (canonical keys used by frontend)
+        "vwarp_win_rate": vwarp_win_rate,
+        "scanner_ips_found": scanner_ips_found,
+        "washer_success_count": washed_count,
+        "smart_chain_count": smart_chain_count,
+        "chain_obs_count": chain_obs_count,
+        "chain_outbounds_count": chain_obs_count,  # schema-canonical alias
+        "backpressure_drop": backpressure_drop,
+        # Export all revive/vwarp stats for complete tracking
+        "revived_warp": revived_warp,
+        "revived_vwarp": revived_vwarp,
+        "warp_attempts": warp_attempts,
+        "vwarp_attempts": vwarp_attempts,
+        "vwarp_success": vwarp_success,
+        "washing_enabled": washing_enabled,
+        # Shielded & Evasion stats (consumed by frontend statistics.js)
+        "shielded_count": (
+            stats.shielded_count if hasattr(stats, "shielded_count") else shielded_count
+        ),
+        "shielded_candidate_count": shielded_candidate_count,
+        "shielded_verified_count": shielded_verified_count,
+        "evasion_utls_enabled": evasion_utls_enabled,
+        "evasion_alpn_enabled": evasion_alpn_enabled,
+        "evasion_fragmentation_enabled": evasion_fragmentation_enabled,
+        "evasion_multiplexing_enabled": evasion_multiplexing_enabled,
+        "evasion_dns_safe_count": evasion_dns_safe_count,
+        "evasion_dns_hardened_count": evasion_dns_hardened_count,
+        # Pipeline Timing
+        "start_time": start_time_iso,
+        "end_time": end_time_iso,
+        "duration": duration_seconds,
+        # Export pipeline performance metrics
+        "duration_seconds": duration_seconds,
+        "geo_resolved": geo_resolved,
+        "cache_misses": cache_misses,
+        "final_count": final_count or working,
+        "time_limited": time_limited,
+        "time_limit_seconds": time_limit_seconds,
+        # Canonical Keys (Consolidated)
+        "total_lines_sourced": total_sourced,
+        "total_unique_candidates": parsed_count,  # Parsed proxies (before testing)
+        "total_valid_proxies": working,
+        # Source counts - consolidated to avoid redundancy
+        # Primary field: total_configured_sources (total sources in config)
+        # Secondary field: fetched_sources (actual sources processed)
+        "total_configured_sources": total_configured_sources or fetched_sources,
+        "fetched_sources": fetched_sources,  # Actual sources processed
+        "sources_count": total_configured_sources
+        or fetched_sources,  # Consumed by main.js
+        "total_sources": total_configured_sources or fetched_sources,
+        "update_interval_hours": update_interval_hours,
+        "latency_by_country": latency_by_country,
+        "latency_by_protocol": latency_by_protocol,
+        # Pipeline stat fields consumed by CLI, tests, and merge scripts
+        "fetched_lines": total_sourced,
+        "parsed": parsed_count,
+        "tested": tested_count,
+        "working": working,
+        # chosen_subset_size: matches _select_chosen_proxies logic (prefer working, fall back to all)
+        "chosen_subset_size": min(
+            working if working > 0 else len(proxies),
+            (
+                CHOSEN_TOTAL_TARGET
+                if CHOSEN_TOTAL_TARGET > 0
+                else (working if working > 0 else len(proxies))
+            ),
+        ),
+        "pipeline_execution_audit": pipeline_execution_audit,
+    }
+
+    AtomicFileWriter.write_text(
+        meta_path, json.dumps(meta, indent=2, ensure_ascii=False)
+    )
+
+    # NOTE: statistics.json removed - metadata.json is now single source of truth
+    # All frontend code updated to use metadata.json directly
+
+# SPDX-License-Identifier: AGPL-3.0-or-later
+"""
+Output Transport Module.
+Handles serialization and file I/O for proxy data.
+"""
+
+import gzip
+import json
+import logging
+import os
+import re
+from pathlib import Path
+from typing import List, Optional
+from .models import Proxy
+from .history.tracker import ProxyHistoryTracker
+from .serialize import serialize_proxy
+from .utils import AtomicFileWriter
+
+logger = logging.getLogger(__name__)
+
+
+def save_json(
+    proxies: List[Proxy],
+    path: Path,
+    compress: bool = False,
+    history: Optional["ProxyHistoryTracker"] = None,
+) -> None:
+    """
+    Save list of proxies to JSON file atomically with fsync for durability.
+    Output is always a JSON array of proxy objects [{...}, {...}], never a single object.
+    """
+    # Ensure proxies is always a list (never a single Proxy object)
+    if not isinstance(proxies, list):
+        proxies = [proxies] if proxies is not None else []
+    if history is None:
+        history = ProxyHistoryTracker()
+        _owns_history = True
+    else:
+        _owns_history = False
+    try:
+        data = [serialize_proxy(p, history.get_history(p.id)) for p in proxies]
+    finally:
+        if _owns_history:
+            history.close()
+    # CRITICAL: Output must be a JSON array (set of proxies), never a single proxy object
+    if not isinstance(data, list):
+        data = [data]
+    json_content = json.dumps(data, indent=2, ensure_ascii=False)
+
+    AtomicFileWriter.write_text(path, json_content)
+
+    if compress:
+        gz_path = Path(str(path) + ".gz")
+        temp_gz_path = gz_path.with_suffix(gz_path.suffix + ".tmp")
+        try:
+            with gzip.open(temp_gz_path, "wt", encoding="utf-8") as f:
+                f.write(json_content)
+            os.replace(temp_gz_path, gz_path)
+        except Exception as e:
+            logger.error(f"Gzip compression failed for {path}: {e}")
+            if temp_gz_path.exists():
+                temp_gz_path.unlink()
+            raise
+
+
+def inject_stego_key_into_frontend(secret_key: str, js_file_path: Path) -> None:
+    """
+    Self-Healing Mechanism:
+    Opens the frontend JavaScript file and implants the dynamic secret key
+    so the browser can decrypt the latest steganography image.
+    """
+    if not js_file_path.exists():
+        logger.warning(
+            f"Frontend JS not found at {js_file_path}, skipping key injection."
+        )
+        return
+
+    try:
+        content = js_file_path.read_text(encoding="utf-8")
+
+        # Regex to find: const SECRET_KEY = "ANYTHING_HERE";
+        pattern = r'(const\s+SECRET_KEY\s*=\s*")([^"]*)(")'
+
+        # Escape the key for safe JavaScript string injection.
+        # This prevents issues if the key contains backslashes or quotes
+        escaped_key = json.dumps(secret_key)[1:-1]  # Remove outer quotes from JSON
+
+        # Use a replacement function to avoid regex interpretation of special chars
+        # in the secret_key (e.g., base64 Fernet keys can contain sequences like
+        # backslash+digits that would be interpreted as backreferences like \17)
+        def replacer(match):
+            return match.group(1) + escaped_key + match.group(3)
+
+        new_content = re.sub(pattern, replacer, content)
+
+        # Atomic write to prevent corruption
+        AtomicFileWriter.write_text(js_file_path, new_content)
+        logger.info(f"✅ Successfully injected new Stego Key into {js_file_path.name}")
+
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        logger.error(f"Failed to inject Stego Key: {e}")
+
+# SPDX-License-Identifier: AGPL-3.0-or-later
+"""
+Serialization Helpers.
+Converts Proxy objects to dictionary/JSON-safe formats.
+"""
+
+import json
+from typing import Dict, Any, List, Optional, Union
+
+from .models import Proxy
+from .converters.chains import chain_outbounds_from_details
+
+# Proxy object serialization.
+# Note: History data (latency points) is injected dynamically by the pipeline before serialization,
+# or passed explicitly to serialize_proxy to avoid carrying heavy history in the Proxy model constantly.
+
+try:
+    import orjson as json_lib
+except ImportError:
+    import json as json_lib  # type: ignore
+
+
+def serialize_proxy(
+    proxy: Proxy, history_points: Optional[List[float]] = None
+) -> Dict[str, Any]:
+    """
+    Convert Proxy object to dict.
+    Args:
+        proxy: The proxy object.
+        history_points: Optional list of recent latency points for sparklines.
+    """
+    # For revived/chain proxies, generate a mini sing-box JSON config
+    # that v2rayN / xray / nekoray / Hiddify can import directly.
+    config_value = proxy.config
+    details_value = proxy.details
+    if isinstance(details_value, dict) and isinstance(details_value.get("chain"), list):
+        serialized_chain: List[Dict[str, Any]] = []
+        for hop in details_value.get("chain", []):
+            if isinstance(hop, Proxy):
+                serialized_chain.append(hop.model_dump(mode="json"))
+            elif isinstance(hop, dict):
+                serialized_chain.append(hop)
+        details_value = dict(details_value)
+        details_value["chain"] = serialized_chain
+
+    if proxy.protocol == "revived" or (proxy.config or "").startswith("revived://"):
+        chain_obs = chain_outbounds_from_details(proxy.details or {})
+        if chain_obs:
+            config_value = _build_chain_config(chain_obs)
+        # Strip heavy origin_proxy blob from serialized details but
+        # preserve a compact origin_config for URI reconstruction in
+        # plaintext/base64 generators after merge deserialization.
+        if isinstance(details_value, dict) and "origin_proxy" in details_value:
+            origin_blob = details_value["origin_proxy"]
+            details_value = {
+                k: v for k, v in details_value.items() if k != "origin_proxy"
+            }
+            if isinstance(origin_blob, dict) and "origin_config" not in details_value:
+                details_value["origin_config"] = {
+                    "config": origin_blob.get("config", ""),
+                    "protocol": origin_blob.get("protocol", ""),
+                    "address": origin_blob.get("address", ""),
+                    "port": origin_blob.get("port", 0),
+                    "uuid": origin_blob.get("uuid", ""),
+                    "resolved_ip": origin_blob.get("resolved_ip", ""),
+                    "remarks": origin_blob.get("remarks", ""),
+                    "details": origin_blob.get("details") or {},
+                }
+
+    data = {
+        "id": proxy.id,  # Useful for vector mapping
+        "protocol": proxy.protocol,
+        "address": proxy.address,
+        "port": proxy.port,
+        "uuid": proxy.uuid,  # Critical for VLESS/Trojan/VMess reconstruction
+        "city": proxy.city,
+        "asn": proxy.asn,
+        "org": proxy.org,
+        "latency": proxy.latency,
+        "is_working": proxy.is_working,
+        "tags": proxy.tags,
+        "last_checked": proxy.tested_at,
+        # Guard against None details
+        "source": (proxy.details or {}).get("_source"),
+        "security": proxy.security_issues,
+        "details": details_value,
+        "config": config_value,
+        "remarks": proxy.remarks,
+        "process": proxy.process,
+    }
+
+    # Inject history if provided or attached
+    if history_points:
+        data["history"] = history_points
+    else:
+        hist = getattr(proxy, "history", None) or getattr(proxy, "history_points", None)
+        if hist:
+            data["history"] = hist
+
+    return data
+
+
+def _build_chain_config(chain_outbounds: List[Dict[str, Any]]) -> str:
+    """
+    Build a mini sing-box JSON config from chain outbounds.
+    Importable by v2rayN / xray / nekoray / Hiddify.
+    """
+    clean = []
+    for ob in chain_outbounds:
+        if not isinstance(ob, dict):
+            continue
+        # Strip internal metadata that sing-box rejects
+        cleaned = {k: v for k, v in ob.items() if not k.startswith("_")}
+        cleaned.pop("region", None)
+        cleaned.pop("origin_proxy", None)
+        clean.append(cleaned)
+    if not clean:
+        return ""
+    return json.dumps({"outbounds": clean}, ensure_ascii=False)
+
+
+def _json_default(obj: Any) -> Any:
+    """Custom JSON serializer for types not handled by default.
+
+    Handles set, tuple, datetime, and other common Python types
+    to prevent TypeError crashes during output generation (Zone 6).
+    """
+    if isinstance(obj, set):
+        return sorted(obj)  # Consistent ordering for sets
+    if isinstance(obj, tuple):
+        return list(obj)
+    if isinstance(obj, bytes):
+        return obj.decode("utf-8", errors="replace")
+    # datetime handling
+    if hasattr(obj, "isoformat"):
+        return obj.isoformat()
+    return str(obj)
+
+
+def to_json(data: Any) -> str:
+    """
+    Dump to JSON string.  Uses orjson if available, falling back to stdlib json.
+    """
+    try:
+        result: Union[str, bytes] = json_lib.dumps(data)
+    except TypeError:
+        # Fallback with custom default handler for non-serializable types
+        import json
+
+        result = json.dumps(data, indent=2, default=_json_default)
+    if isinstance(result, bytes):
+        return result.decode("utf-8")
+    return str(result)
+
+# SPDX-License-Identifier: AGPL-3.0-or-later
+"""
+ConfigStream Data Models.
+Defines the core Proxy object and Pydantic schemas.
+"""
+
+# pylint: disable=no-member
+
+import hashlib
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from .constants import (
+    PROCESS_TYPES,
+    VALID_PROTOCOLS,
+    canonical_protocol_name,
+    latency_bucket_for_ms,
+)
+
+
+class Proxy(BaseModel):
+    """
+    Represents a proxy with its configuration and test results.
+    Migrated to Pydantic for robust validation.
+    """
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    config: str
+    protocol: str
+    address: str
+    port: int = Field(ge=1, le=65535)
+    uuid: str = ""
+    remarks: str = ""
+    country: str = ""
+    country_code: str = ""
+    city: str = ""
+    asn: str = ""
+    isp: str = ""
+    org: str = ""
+    latency: Optional[float] = None
+    fetch_latency: Optional[float] = None
+    is_working: bool = False
+    is_secure: bool = True
+    tags: List[str] = Field(default_factory=list)
+    security_issues: Dict[str, List[str]] = Field(default_factory=dict)
+    tested_at: str = ""
+    details: Dict[str, Any] = Field(default_factory=dict)
+    throughput_kbps: Optional[int] = None
+    dns_over_https_ok: Optional[bool] = None
+    age_seconds: int = 0
+    stale: bool = False
+    scores: Dict[str, float] = Field(default_factory=dict)
+    resolved_ip: Optional[str] = None
+    batch_source: Optional[str] = None
+    source_line: Optional[int] = None
+    history: Optional[List[float]] = None
+    process: str = "native"
+
+    @field_validator("protocol", mode="before")
+    @classmethod
+    def _validate_protocol(cls, value: Any) -> str:
+        raw = (str(value or "")).strip().lower()
+        normalized = canonical_protocol_name(raw)
+        valid = set(VALID_PROTOCOLS) | {"openvpn", "revived", "unknown"}
+        if raw in valid:
+            return raw
+        if normalized in valid:
+            return normalized
+        if normalized not in valid and raw not in valid:
+            raise ValueError(f"Unsupported protocol: {value!r}")
+        return raw
+
+    @field_validator("process", mode="before")
+    @classmethod
+    def _validate_process(cls, value: Any) -> str:
+        normalized = (str(value or "native")).strip().lower()
+        if normalized not in set(PROCESS_TYPES):
+            raise ValueError(f"Unsupported process: {value!r}")
+        return normalized
+
+    @field_validator("latency")
+    @classmethod
+    def _validate_latency(cls, value: Optional[float]) -> Optional[float]:
+        if value is None:
+            return None
+        if value < 0:
+            raise ValueError("latency must be >= 0")
+        return value
+
+    @property
+    def latency_ms(self) -> Optional[float]:
+        """Get latency in milliseconds."""
+        return self.latency
+
+    @latency_ms.setter
+    def latency_ms(self, value: Optional[float]) -> None:
+        """Set latency in milliseconds."""
+        self.latency = value
+
+    @property
+    def id(self) -> str:
+        """
+        Stable identifier used for caching, history, and external tools.
+        Composite key: (protocol, host/address, port, uuid_or_key).
+        """
+        credential = (self.uuid or "").strip()
+        if credential:
+            # Keep legacy behavior for stable references used across outputs/tests.
+            return credential
+
+        if not credential:
+            for key in (
+                "uuid",
+                "password",
+                "private_key",
+                "public_key",
+                "peer_public_key",
+                "psk",
+                "key",
+                "token",
+            ):
+                candidate = self.details.get(key)
+                if isinstance(candidate, str) and candidate.strip():
+                    credential = candidate.strip()
+                    break
+
+        proto = canonical_protocol_name(self.protocol)
+        addr = (self.address or "").strip().lower()
+        port = str(self.port or "")
+        composite = f"{proto}|{addr}|{port}|{credential}"
+        key = composite if composite.strip(" |") else (self.config or "").strip()
+
+        if not key:
+            return ""
+
+        digest = hashlib.sha256(key.encode("utf-8")).hexdigest()
+        return digest[:16]
+
+    @property
+    def latency_bucket(self) -> str:
+        """Canonical latency bucket used by metadata and frontend charts."""
+        return latency_bucket_for_ms(self.latency)
+
+    @property
+    def scheme(self) -> str:
+        """Get proxy protocol scheme."""
+        return self.protocol
+
+    @property
+    def host(self) -> str:
+        """Get proxy host address."""
+        return self.address
+
+    @property
+    def user(self) -> str:
+        """Get proxy user/UUID."""
+        return self.uuid
+
+    @property
+    def sni(self) -> str:
+        """Get SNI from details."""
+        if not self.details:
+            return ""
+        value = self.details.get("sni")
+        return str(value) if value is not None else ""
+
+    @property
+    def alpn(self) -> List[str]:
+        """Get ALPN from details."""
+        if not self.details:
+            return []
+        value = self.details.get("alpn")
+        if isinstance(value, (list, tuple)):
+            return [str(item) for item in value]
+        if isinstance(value, str):
+            return [value]
+        return []
+
+    @property
+    def path(self) -> str:
+        """Get path from details."""
+        if not self.details:
+            return ""
+        value = self.details.get("path")
+        return str(value) if value is not None else ""
+

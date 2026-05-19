@@ -236,6 +236,43 @@ def _has_contract_validators(path: Path) -> bool:
     )
 
 
+def _main_frontend_wasm_download_has_build_dependency(
+    data: dict[Any, Any],
+) -> bool:
+    jobs = data.get("jobs", {})
+    if not isinstance(jobs, dict):
+        return False
+
+    merge_job = jobs.get("merge_results")
+    if not isinstance(merge_job, dict):
+        return True
+
+    steps = merge_job.get("steps", [])
+    if not isinstance(steps, list):
+        return False
+
+    downloads_frontend_wasm = False
+    for step in steps:
+        if not isinstance(step, dict):
+            continue
+        if not _step_uses(step, "actions/download-artifact@"):
+            continue
+        with_block = _step_with(step)
+        if with_block.get("name") == "frontend-wasm":
+            downloads_frontend_wasm = True
+            break
+
+    if not downloads_frontend_wasm:
+        return True
+
+    needs = merge_job.get("needs")
+    if isinstance(needs, str):
+        return needs == "build_wasm"
+    if isinstance(needs, list):
+        return "build_wasm" in [str(item) for item in needs]
+    return False
+
+
 def _uses_secret_context_in_if(path: Path) -> bool:
     try:
         content = path.read_text(encoding="utf-8")
@@ -346,6 +383,13 @@ def main() -> int:
         if path.name == "main.yml" and not _main_prepares_public_output_artifact(path):
             errors.append(
                 f"{path}: data release validation must prepare the public output artifact"
+            )
+        if (
+            path.name == "main.yml"
+            and not _main_frontend_wasm_download_has_build_dependency(data)
+        ):
+            errors.append(
+                f"{path}: merge_results must depend on build_wasm when downloading frontend-wasm"
             )
         if path.name == "main.yml" and not _main_publishes_reshard_recommendation(path):
             errors.append(

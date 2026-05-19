@@ -547,10 +547,9 @@ async def processing_consumer(
                         p.city = geo_data.city or ""
                         p.asn = geo_data.asn or ""
                         p.org = geo_data.org or ""
-                        if geo_data.lat:
-                            p.details["lat"] = geo_data.lat
-                        if geo_data.lng:
-                            p.details["lng"] = geo_data.lng
+                        # Keep GeoIP coordinates out of protocol `details`.
+                        # Public proxy schemas use protocol-specific `details`
+                        # with additionalProperties=false.
                         async with seen_lock:
                             stats.geo_resolved += 1
 

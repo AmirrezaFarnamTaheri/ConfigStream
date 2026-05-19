@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "status": "ok",
+  "generated_at": "2026-05-17T19:28:18.999560+00:00",
+  "trace_id": "-",
+  "source_commit": "",
+  "run_id": "",
+  "run_attempt": "",
+  "total_working": 614,
+  "total_tested": 52846,
+  "schema_validated": true,
+  "notes": []
+}

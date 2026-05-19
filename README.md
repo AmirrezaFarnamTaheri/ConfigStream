@@ -2,7 +2,7 @@
 
 ConfigStream is a sovereignty-grade, zero-budget anti-censorship platform. It continuously aggregates, validates, and distributes resilient proxy configurations under hostile network conditions.
 
-> **Production status:** ConfigStream's repository state is production-ready as of v3.1.0 (2026-05-16). The currently deployed GitHub Pages site requires a fresh deploy from this verified state before public Pages readiness can be claimed. The active source of truth is `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md`, with `STATUS.md` and the canonical matrices tracking current verification state.
+> **Production status:** ConfigStream is production-ready as of v3.1.0 (2026-05-16) at repository level, but current public release gates remain active until artifact contract checks and Pages deployment smoke stay green on scheduled runs. The active source of truth is `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md`, with `STATUS.md` and canonical matrices tracking current verification state.
 
 ## Principles
 - Zero budget: free GitHub Actions/Pages, public APIs, and user-provided resources only

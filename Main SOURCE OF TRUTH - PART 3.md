@@ -429,3 +429,5 @@ The most important rule: **never mix the two JSON dialects.** Sing-box JSON and 
 
 - [Introduction - sing-box](https://sing-box.sagernet.org/configuration/?utm_source=chatgpt.com)
 - [Configuration File | Project X](https://xtls.github.io/en/config/?utm_source=chatgpt.com)
+# Supersession Notice (2026-05-19)
+This document is retained as evidence and hardening context. Current release/operational truth is governed by `STATUS.md`, `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md`, and canonical matrices. If contradictions appear, treat this document as historical unless the active surfaces explicitly restate the same claim.

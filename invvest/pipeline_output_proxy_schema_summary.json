@@ -1,0 +1,166 @@
+{
+  "total": 8612,
+  "with_lat_lng": 2598,
+  "invalid_nonempty_uuid": 3694,
+  "by_protocol": {
+    "http": {
+      "count": 112,
+      "latlng": 112,
+      "bad_uuid": 0
+    },
+    "revived": {
+      "count": 3692,
+      "latlng": 1984,
+      "bad_uuid": 3692
+    },
+    "wireguard": {
+      "count": 4306,
+      "latlng": 0,
+      "bad_uuid": 0
+    },
+    "socks4": {
+      "count": 183,
+      "latlng": 183,
+      "bad_uuid": 0
+    },
+    "socks5": {
+      "count": 319,
+      "latlng": 319,
+      "bad_uuid": 2
+    }
+  },
+  "bad_uuid_samples": [
+    {
+      "index": 193,
+      "protocol": "socks5",
+      "process": "native",
+      "uuid": "Og==",
+      "keys": "password,_source,lat,lng"
+    },
+    {
+      "index": 201,
+      "protocol": "socks5",
+      "process": "native",
+      "uuid": "VDJjbE0wUWxNMFE2Og==",
+      "keys": "password,_source,lat,lng"
+    },
+    {
+      "index": 249,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-21150522",
+      "keys": "chain,is_revived,use_vwarp,vwarp_mode,origin_id,chain_outbounds,error,lat,lng,origin_config"
+    },
+    {
+      "index": 250,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-5daafb0f",
+      "keys": "chain,is_revived,use_vwarp,vwarp_mode,origin_id,chain_outbounds,error,lat,lng,origin_config"
+    },
+    {
+      "index": 251,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-b319db06",
+      "keys": "chain,is_revived,use_vwarp,vwarp_mode,origin_id,chain_outbounds,error,lat,lng,origin_config"
+    },
+    {
+      "index": 252,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-05e3342e",
+      "keys": "chain,is_revived,use_vwarp,vwarp_mode,origin_id,chain_outbounds,error,origin_config"
+    },
+    {
+      "index": 253,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-fb1a2a82",
+      "keys": "chain,is_revived,use_vwarp,vwarp_mode,origin_id,chain_outbounds,error,origin_config"
+    },
+    {
+      "index": 254,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-c1c13017",
+      "keys": "chain,is_revived,use_vwarp,vwarp_mode,origin_id,chain_outbounds,error,lat,lng,origin_config"
+    },
+    {
+      "index": 255,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-b685771b",
+      "keys": "chain,is_revived,use_vwarp,vwarp_mode,origin_id,chain_outbounds,error,origin_config"
+    },
+    {
+      "index": 256,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-f75f097d",
+      "keys": "chain,is_revived,use_vwarp,vwarp_mode,origin_id,chain_outbounds,error,lat,lng,origin_config"
+    }
+  ],
+  "latlng_samples": [
+    {
+      "index": 0,
+      "protocol": "http",
+      "process": "native",
+      "keys": "password,_source,lat,lng"
+    },
+    {
+      "index": 1,
+      "protocol": "http",
+      "process": "native",
+      "keys": "password,_source,lat,lng"
+    },
+    {
+      "index": 2,
+      "protocol": "socks5",
+      "process": "native",
+      "keys": "password,_source,lat,lng"
+    },
+    {
+      "index": 3,
+      "protocol": "http",
+      "process": "native",
+      "keys": "password,_source,lat,lng"
+    },
+    {
+      "index": 4,
+      "protocol": "http",
+      "process": "native",
+      "keys": "password,_source,lat,lng"
+    },
+    {
+      "index": 5,
+      "protocol": "socks4",
+      "process": "native",
+      "keys": "password,_source,lat,lng"
+    },
+    {
+      "index": 6,
+      "protocol": "socks4",
+      "process": "native",
+      "keys": "password,_source,lat,lng"
+    },
+    {
+      "index": 7,
+      "protocol": "http",
+      "process": "native",
+      "keys": "password,_source,lat,lng"
+    },
+    {
+      "index": 8,
+      "protocol": "socks4",
+      "process": "native",
+      "keys": "password,_source,lat,lng"
+    },
+    {
+      "index": 9,
+      "protocol": "socks4",
+      "process": "native",
+      "keys": "password,_source,lat,lng"
+    }
+  ]
+}

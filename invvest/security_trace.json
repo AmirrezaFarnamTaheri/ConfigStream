@@ -1,0 +1,977 @@
+[
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 3,
+    "Line": "import uuid"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 21,
+    "Line": "# Pre-compiled patterns for sanitize_log_message (called per log message - extremely hot)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 22,
+    "Line": "_LOG_UUID_RE = re.compile("
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 28,
+    "Line": "    r\"(?i)(token|access_token|api_key|apikey|license_key|key|secret|pass|password|uuid|id|auth|authorization)=([^&\\s]+)\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 37,
+    "Line": "# Pre-compiled pattern for sanitize_address (called per proxy)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 38,
+    "Line": "_SANITIZE_ADDR_RE = re.compile(r\"[^a-zA-Z0-9\\.\\-\\:\\[\\]]\")"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 44,
+    "Line": "    \"min_password_length\": 8,  # nosec"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 52,
+    "Line": "    \"min_password_length\": 1,  # nosec"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 75,
+    "Line": "LOCAL_IP_RANGES = ["
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 90,
+    "Line": "        if ip_lower == \"localhost\":"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 97,
+    "Line": "                ip_obj.is_private"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 106,
+    "Line": "    def is_valid_uuid(val: str) -> bool:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 110,
+    "Line": "            uuid.UUID(str(val))"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 116,
+    "Line": "    def sanitize_log_message(msg: str, mask_patterns: bool = True) -> str:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 117,
+    "Line": "        \"\"\"Sanitizes sensitive info like UUIDs or IPs from logs.\"\"\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 120,
+    "Line": "        # Mask UUIDs (common in VMess/VLESS configs)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 121,
+    "Line": "        msg = _LOG_UUID_RE.sub(\"[UUID]\", msg)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 122,
+    "Line": "        # Mask passwords in URLs (user:pass@host)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 124,
+    "Line": "        # Mask common query-style secrets (token, key, secret, password, uuid, id)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 128,
+    "Line": "        # Mask standalone Bearer tokens"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 140,
+    "Line": "    def sanitize_address(address: str) -> str:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 142,
+    "Line": "        Sanitizes an address (IP or domain) for safe output."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 148,
+    "Line": "        return _SANITIZE_ADDR_RE.sub(\"\", address)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 156,
+    "Line": "        if _SETTINGS_CACHE.ALLOW_PRIVATE_IPS:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 175,
+    "Line": "                host = result.hostname"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 176,
+    "Line": "                if not host:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 177,
+    "Line": "                    return False, \"invalid_host\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 180,
+    "Line": "                if not SecurityValidator._is_address_safe(host):"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 232,
+    "Line": "            uuid_val = proxy.details.get(\"uuid\") or getattr(proxy, \"uuid\", None)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 234,
+    "Line": "            if not uuid_val:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 235,
+    "Line": "                return False, \"missing_uuid\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 236,
+    "Line": "            if not SecurityValidator.is_valid_uuid(str(uuid_val)):"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 237,
+    "Line": "                return False, \"invalid_uuid_format\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 240,
+    "Line": "            password = proxy.details.get(\"password\") or getattr(proxy, \"uuid\", None)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 241,
+    "Line": "            if not password:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 242,
+    "Line": "                return False, \"missing_trojan_password\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 243,
+    "Line": "            if len(str(password)) < policy[\"min_password_length\"]:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 244,
+    "Line": "                return False, \"weak_trojan_password\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 265,
+    "Line": "        \"missing_uuid\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 266,
+    "Line": "        \"missing_trojan_password\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 285,
+    "Line": "            if settings.ALLOW_PRIVATE_IPS and SecurityValidator.is_local_ip(p.address):"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 303,
+    "Line": "    \"\"\"Sanitize arbitrary text for logging.\"\"\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 304,
+    "Line": "    return SecurityValidator.sanitize_log_message(str(value))"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 308,
+    "Line": "    \"\"\"Sanitize proxy endpoint reference for logging.\"\"\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 309,
+    "Line": "    protocol = SecurityValidator.sanitize_log_message("
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 316,
+    "Line": "    \"\"\"Sanitize proxy source URL for logging.\"\"\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security_validator.py",
+    "LineNumber": 317,
+    "Line": "    return SecurityValidator.sanitize_log_message("
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\blocklist.py",
+    "LineNumber": 32,
+    "Line": "    _instance_lock: threading.Lock = threading.Lock()"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\blocklist.py",
+    "LineNumber": 34,
+    "Line": "    def __new__(cls):"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\blocklist.py",
+    "LineNumber": 37,
+    "Line": "                cls._instance = super(BlocklistManager, cls).__new__(cls)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\blocklist.py",
+    "LineNumber": 191,
+    "Line": "DEFAULT_BLOCKLIST = BlocklistManager()"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\honeypot.py",
+    "LineNumber": 19,
+    "Line": "async def is_honeypot(host: str) -> bool:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\honeypot.py",
+    "LineNumber": 21,
+    "Line": "    Checks if the proxy host is a known honeypot or malicious IP."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\honeypot.py",
+    "LineNumber": 25,
+    "Line": "        report = await check_ip_reputation(host)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\honeypot.py",
+    "LineNumber": 26,
+    "Line": "        safe_host = SecurityValidator.sanitize_log_message(host)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\honeypot.py",
+    "LineNumber": 35,
+    "Line": "                \"Passive Intel: Host %s flagged as malicious by VirusTotal.\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\honeypot.py",
+    "LineNumber": 36,
+    "Line": "                safe_host,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\honeypot.py",
+    "LineNumber": 44,
+    "Line": "            SecurityValidator.sanitize_log_message(host),"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\honeypot.py",
+    "LineNumber": 45,
+    "Line": "            SecurityValidator.sanitize_log_message(str(e)),"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\rules.py",
+    "LineNumber": 22,
+    "Line": "    LOCAL_IP_RANGES as _SPECIAL_ADDRESS_PATTERNS_BASE,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\rules.py",
+    "LineNumber": 31,
+    "Line": "    \"ADDRESS_PRIVATE\": \"address_private_ip\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\rules.py",
+    "LineNumber": 38,
+    "Line": "    \"UUID_INVALID\": \"config_uuid_invalid\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\rules.py",
+    "LineNumber": 46,
+    "Line": "    re.compile(r\"^localhost$\"),"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\rules.py",
+    "LineNumber": 62,
+    "Line": "    return SecurityValidator.sanitize_log_message(str(value))"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\rules.py",
+    "LineNumber": 103,
+    "Line": "        if not _APP_SETTINGS_CACHE.ALLOW_PRIVATE_IPS:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\rules.py",
+    "LineNumber": 104,
+    "Line": "            if ip.is_private or ip.is_loopback or ip.is_link_local:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\rules.py",
+    "LineNumber": 105,
+    "Line": "                logger.warning(\"Private IP detected: %s\", _safe_log_text(address))"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\rules.py",
+    "LineNumber": 106,
+    "Line": "                issues[SECURITY_CATEGORIES[\"ADDRESS_PRIVATE\"]] = ("
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\rules.py",
+    "LineNumber": 107,
+    "Line": "                    f\"Private address: {address}\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\rules.py",
+    "LineNumber": 124,
+    "Line": "    # DNS rebinding / localhost evasion protection"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\rules.py",
+    "LineNumber": 125,
+    "Line": "    # 1) Hex or octal IPv4 notations that can map to localhost or private ranges."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\rules.py",
+    "LineNumber": 137,
+    "Line": "                    \"Non-standard IP notation (possible DNS rebinding): %s\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\rules.py",
+    "LineNumber": 146,
+    "Line": "                \"Non-standard IP notation (possible DNS rebinding): %s\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\rules.py",
+    "LineNumber": 155,
+    "Line": "        # not a hostname starting with digits (e.g. 026.worker.dev)."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\rules.py",
+    "LineNumber": 159,
+    "Line": "                \"Non-standard IP notation (possible DNS rebinding): %s\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\rules.py",
+    "LineNumber": 167,
+    "Line": "    # 2) URL-encoded localhost / 127.0.0.1 variants"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\rules.py",
+    "LineNumber": 172,
+    "Line": "            if decoded.startswith(\"127.\") or decoded in (\"localhost\", \"::1\"):"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\rules.py",
+    "LineNumber": 174,
+    "Line": "                    \"URL-encoded localhost/loopback detected: %s -> %s\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\rules.py",
+    "LineNumber": 178,
+    "Line": "                issues[SECURITY_CATEGORIES[\"ADDRESS_PRIVATE\"]] = ("
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\rules.py",
+    "LineNumber": 195,
+    "Line": "            \"Loopback IPv6 or IPv4-mapped localhost detected: %s\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\rules.py",
+    "LineNumber": 198,
+    "Line": "        issues[SECURITY_CATEGORIES[\"ADDRESS_PRIVATE\"]] = f\"Loopback address: {address}\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\rules.py",
+    "LineNumber": 201,
+    "Line": "    # Combined check for private, reserved, and special-use addresses"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\rules.py",
+    "LineNumber": 202,
+    "Line": "    if not _APP_SETTINGS_CACHE.ALLOW_PRIVATE_IPS:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\rules.py",
+    "LineNumber": 206,
+    "Line": "        is_localhost = address_lower == \"localhost\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\rules.py",
+    "LineNumber": 208,
+    "Line": "        if is_ip_match or is_localhost:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\rules.py",
+    "LineNumber": 212,
+    "Line": "                        \"Special or private address detected: %s\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\rules.py",
+    "LineNumber": 215,
+    "Line": "                    issues[SECURITY_CATEGORIES[\"ADDRESS_PRIVATE\"]] = ("
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 5,
+    "Line": "Implements DNS rebinding protection via pre-connect hostname resolution and"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 12,
+    "Line": "1. Resolves the target hostname to a set of IP addresses *before* opening"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 14,
+    "Line": "2. Rejects any resolved IP that is not globally routable (private, loopback,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 15,
+    "Line": "   link-local, etc.) when ``block_private_networks=True``."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 16,
+    "Line": "3. Pins the resolved IP set to the hostname on first contact.  Subsequent"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 17,
+    "Line": "   requests to the same hostname must resolve to an overlapping set; a"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 18,
+    "Line": "   disjoint resolution is treated as a DNS-rebinding attempt and rejected."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 19,
+    "Line": "4. For HTTP requests the URL is rewritten to the resolved IP so the OS"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 20,
+    "Line": "   cannot re-resolve between validation and connection.  The original"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 21,
+    "Line": "   ``Host`` header is preserved for virtual-host routing."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 22,
+    "Line": "5. For HTTPS requests the URL is also rewritten to the resolved IP, while"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 23,
+    "Line": "   the original hostname is preserved as both SNI and Host.  httpcore honors"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 24,
+    "Line": "   the per-request ``sni_hostname`` extension, so certificate validation"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 25,
+    "Line": "   still targets the original hostname and the TCP connection targets the"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 57,
+    "Line": "    Custom transport that pre-resolves hostnames and pins them to validated"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 58,
+    "Line": "    IP addresses to prevent DNS rebinding attacks."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 65,
+    "Line": "        block_private_networks: bool = True,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 71,
+    "Line": "        self._block_private_networks = block_private_networks"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 80,
+    "Line": "        host = request.url.host"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 81,
+    "Line": "        if not host:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 82,
+    "Line": "            raise httpx.ConnectError(\"Request URL is missing a host\", request=request)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 87,
+    "Line": "        resolved_ips = await self._resolve_and_cache(host, port, request)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 89,
+    "Line": "        # 2. Block private / non-global IPs"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 90,
+    "Line": "        if self._block_private_networks:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 91,
+    "Line": "            for raw_ip in resolved_ips:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 94,
+    "Line": "                        f\"Host {host!r} resolved to non-global IP {raw_ip!r}\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 98,
+    "Line": "        # 3. DNS-rebinding pin check"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 99,
+    "Line": "        if host in self._pinned_ips:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 100,
+    "Line": "            if not (resolved_ips & self._pinned_ips[host]):"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 102,
+    "Line": "                    \"DNS rebinding detected for %s: previous IPs %s, new IPs %s\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 103,
+    "Line": "                    host,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 104,
+    "Line": "                    self._pinned_ips[host],"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 105,
+    "Line": "                    resolved_ips,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 108,
+    "Line": "                    f\"DNS rebinding detected for {host!r}\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 113,
+    "Line": "            self._pinned_ips[host] = resolved_ips"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 117,
+    "Line": "        #    the original hostname for SNI/certificate validation."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 119,
+    "Line": "            request = self._rewrite_to_pinned_ip(request, resolved_ips)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 127,
+    "Line": "    async def _resolve_and_cache("
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 129,
+    "Line": "        host: str,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 134,
+    "Line": "        Resolve *host* to a set of IP strings."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 142,
+    "Line": "            cached_ip = await DEFAULT_CACHE.resolve(host)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 146,
+    "Line": "        return await self._resolve_host(host, port, request)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 148,
+    "Line": "    async def _resolve_host("
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 150,
+    "Line": "        host: str,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 158,
+    "Line": "                host,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 162,
+    "Line": "            resolved: Set[str] = {"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 167,
+    "Line": "            if not resolved:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 169,
+    "Line": "                    f\"No IP addresses found for {host!r}\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 172,
+    "Line": "            return resolved"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 175,
+    "Line": "                f\"DNS resolution failed for {host!r}: {exc}\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 186,
+    "Line": "        original_host = request.url.host"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 190,
+    "Line": "            extensions[\"sni_hostname\"] = original_host"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 193,
+    "Line": "        headers[\"Host\"] = original_host"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 196,
+    "Line": "            request.url.copy_with(host=target_ip),"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 5,
+    "Line": "Implements DNS rebinding protection via pre-connect hostname resolution and"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 12,
+    "Line": "1. Resolves the target hostname to a set of IP addresses *before* opening"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 14,
+    "Line": "2. Rejects any resolved IP that is not globally routable (private, loopback,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 15,
+    "Line": "   link-local, etc.) when ``block_private_networks=True``."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 16,
+    "Line": "3. Pins the resolved IP set to the hostname on first contact.  Subsequent"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 17,
+    "Line": "   requests to the same hostname must resolve to an overlapping set; a"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 18,
+    "Line": "   disjoint resolution is treated as a DNS-rebinding attempt and rejected."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 19,
+    "Line": "4. For HTTP requests the URL is rewritten to the resolved IP so the OS"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 20,
+    "Line": "   cannot re-resolve between validation and connection.  The original"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 21,
+    "Line": "   ``Host`` header is preserved for virtual-host routing."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 22,
+    "Line": "5. For HTTPS requests the URL is also rewritten to the resolved IP, while"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 23,
+    "Line": "   the original hostname is preserved as both SNI and Host.  httpcore honors"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 24,
+    "Line": "   the per-request ``sni_hostname`` extension, so certificate validation"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 25,
+    "Line": "   still targets the original hostname and the TCP connection targets the"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 57,
+    "Line": "    Custom transport that pre-resolves hostnames and pins them to validated"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 58,
+    "Line": "    IP addresses to prevent DNS rebinding attacks."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 65,
+    "Line": "        block_private_networks: bool = True,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 71,
+    "Line": "        self._block_private_networks = block_private_networks"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 80,
+    "Line": "        host = request.url.host"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 81,
+    "Line": "        if not host:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 82,
+    "Line": "            raise httpx.ConnectError(\"Request URL is missing a host\", request=request)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 87,
+    "Line": "        resolved_ips = await self._resolve_and_cache(host, port, request)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 89,
+    "Line": "        # 2. Block private / non-global IPs"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 90,
+    "Line": "        if self._block_private_networks:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 91,
+    "Line": "            for raw_ip in resolved_ips:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 94,
+    "Line": "                        f\"Host {host!r} resolved to non-global IP {raw_ip!r}\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 98,
+    "Line": "        # 3. DNS-rebinding pin check"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 99,
+    "Line": "        if host in self._pinned_ips:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 100,
+    "Line": "            if not (resolved_ips & self._pinned_ips[host]):"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 102,
+    "Line": "                    \"DNS rebinding detected for %s: previous IPs %s, new IPs %s\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 103,
+    "Line": "                    host,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 104,
+    "Line": "                    self._pinned_ips[host],"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 105,
+    "Line": "                    resolved_ips,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 108,
+    "Line": "                    f\"DNS rebinding detected for {host!r}\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 113,
+    "Line": "            self._pinned_ips[host] = resolved_ips"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 117,
+    "Line": "        #    the original hostname for SNI/certificate validation."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 119,
+    "Line": "            request = self._rewrite_to_pinned_ip(request, resolved_ips)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 127,
+    "Line": "    async def _resolve_and_cache("
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 129,
+    "Line": "        host: str,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 134,
+    "Line": "        Resolve *host* to a set of IP strings."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 142,
+    "Line": "            cached_ip = await DEFAULT_CACHE.resolve(host)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 146,
+    "Line": "        return await self._resolve_host(host, port, request)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 148,
+    "Line": "    async def _resolve_host("
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 150,
+    "Line": "        host: str,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 158,
+    "Line": "                host,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 162,
+    "Line": "            resolved: Set[str] = {"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 167,
+    "Line": "            if not resolved:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 169,
+    "Line": "                    f\"No IP addresses found for {host!r}\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 172,
+    "Line": "            return resolved"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 175,
+    "Line": "                f\"DNS resolution failed for {host!r}: {exc}\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 186,
+    "Line": "        original_host = request.url.host"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 190,
+    "Line": "            extensions[\"sni_hostname\"] = original_host"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 193,
+    "Line": "        headers[\"Host\"] = original_host"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\security\\transport.py",
+    "LineNumber": 196,
+    "Line": "            request.url.copy_with(host=target_ip),"
+  }
+]

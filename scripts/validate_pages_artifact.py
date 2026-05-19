@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import argparse
+import base64
+import binascii
 import hashlib
 import json
 import os
@@ -15,6 +17,9 @@ import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import cast
+from cryptography.hazmat.primitives.asymmetric import ed25519
+from cryptography.hazmat.primitives import serialization
+from cryptography.exceptions import InvalidSignature
 
 try:
     import yaml  # type: ignore
@@ -131,6 +136,9 @@ REQUIRED_ZIP_MEMBERS: dict[str, tuple[str, ...]] = {
     "side_products-dns-safe.zip": ("proxies.txt",),
     "side_products-dns-hardened.zip": ("proxies.txt",),
 }
+
+# Keep full-record validation for correctness while capping noisy output.
+MAX_PROXY_VALIDATION_ERRORS = 500
 ZIP_SECRET_SCAN_MAX_BYTES = 1024 * 1024
 ZIP_DEPLOY_SECRET_RE = re.compile(
     r"(?im)\b(?:"
@@ -146,6 +154,70 @@ ZIP_DEPLOY_SECRET_MARKERS = (
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_DIR = REPO_ROOT / "schema"
+_MANIFEST_PRIVATE_KEY_ENV = (
+    "CS_SIGNING_PRIVATE_KEY_HEX",
+    "CONFIGSTREAM_SIGNING_PRIVATE_KEY_HEX",
+)
+
+
+def _public_key_from_runtime_env() -> ed25519.Ed25519PublicKey | None:
+    value = (os.environ.get("CS_PUBLIC_KEY") or "").strip()
+    if not value:
+        return None
+    if "PLACEHOLDER" in value or "79e/79e/" in value:
+        return None
+    try:
+        key_bytes = base64.b64decode(value, validate=True)
+    except (ValueError, binascii.Error):  # type: ignore[name-defined]
+        key_bytes = b""
+
+    if key_bytes:
+        try:
+            parsed = serialization.load_der_public_key(key_bytes)
+            if isinstance(parsed, ed25519.Ed25519PublicKey):
+                return parsed
+        except (ValueError, TypeError):
+            pass
+        try:
+            return ed25519.Ed25519PublicKey.from_public_bytes(key_bytes)
+        except ValueError:
+            pass
+    try:
+        raw = bytes.fromhex(value)
+    except ValueError:
+        return None
+    try:
+        return ed25519.Ed25519PublicKey.from_public_bytes(raw)
+    except ValueError:
+        return None
+
+
+def _manifest_signer_from_env() -> ed25519.Ed25519PrivateKey | None:
+    key_hex = ""
+    for env_name in _MANIFEST_PRIVATE_KEY_ENV:
+        key_hex = (os.environ.get(env_name) or "").strip()
+        if key_hex:
+            break
+    if not key_hex:
+        return None
+    key_bytes = bytes.fromhex(key_hex)
+    if len(key_bytes) == 64:
+        key_bytes = key_bytes[:32]
+    if len(key_bytes) != 32:
+        raise ValueError("Manifest signing key must be 32 or 64 bytes (hex).")
+    return ed25519.Ed25519PrivateKey.from_private_bytes(key_bytes)
+
+
+def _canonical_manifest_payload(manifest: dict[str, object]) -> bytes:
+    payload = dict(manifest)
+    payload.pop("manifest_signature", None)
+    canonical = json.dumps(
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    )
+    return canonical.encode("utf-8")
 
 
 def _load_json(path: Path) -> tuple[object | None, str | None]:
@@ -599,6 +671,50 @@ def _validate_manifest(root: Path, manifest: object) -> list[str]:
     ):
         errors.append("artifact_manifest.json total_size_bytes does not match files")
 
+    errors.extend(_validate_manifest_signature(manifest))
+    return errors
+
+
+def _validate_manifest_signature(manifest: dict[str, object]) -> list[str]:
+    errors: list[str] = []
+    signature_obj = manifest.get("manifest_signature")
+    verifier_key = _public_key_from_runtime_env()
+
+    if signature_obj is None:
+        if verifier_key is not None:
+            errors.append(
+                "artifact_manifest.json missing manifest_signature while CS_PUBLIC_KEY is configured"
+            )
+        return errors
+
+    if not isinstance(signature_obj, dict):
+        errors.append("artifact_manifest.json manifest_signature must be an object")
+        return errors
+
+    algorithm = signature_obj.get("algorithm")
+    signature_hex = signature_obj.get("signature")
+    if algorithm != "ed25519":
+        errors.append(
+            "artifact_manifest.json manifest_signature.algorithm must be ed25519"
+        )
+        return errors
+    if not isinstance(signature_hex, str) or not re.fullmatch(
+        r"[a-f0-9]{128}", signature_hex
+    ):
+        errors.append(
+            "artifact_manifest.json manifest_signature.signature must be 128-char lowercase hex"
+        )
+        return errors
+
+    if verifier_key is None:
+        return errors
+
+    try:
+        verifier_key.verify(
+            bytes.fromhex(signature_hex), _canonical_manifest_payload(manifest)
+        )
+    except (InvalidSignature, ValueError):
+        errors.append("artifact_manifest.json manifest_signature verification failed")
     return errors
 
 
@@ -633,9 +749,14 @@ def _validate_proxies(payload: object, file_name: str) -> list[str]:
     if not isinstance(payload, list):
         return [f"{file_name} must be a JSON array"]
     errors: list[str] = []
-    for index, item in enumerate(payload[:50]):
+    for index, item in enumerate(payload):
         if not isinstance(item, dict):
             errors.append(f"{file_name}[{index}] must be an object")
+            if len(errors) >= MAX_PROXY_VALIDATION_ERRORS:
+                errors.append(
+                    f"{file_name} validation stopped after {MAX_PROXY_VALIDATION_ERRORS} errors"
+                )
+                break
             continue
         missing = _required_schema_keys("proxy.schema.json") - set(item.keys())
         if missing:
@@ -646,6 +767,11 @@ def _validate_proxies(payload: object, file_name: str) -> list[str]:
         errors.extend(
             _validate_schema_object(item, "proxy.schema.json", f"{file_name}[{index}]")
         )
+        if len(errors) >= MAX_PROXY_VALIDATION_ERRORS:
+            errors.append(
+                f"{file_name} validation stopped after {MAX_PROXY_VALIDATION_ERRORS} errors"
+            )
+            break
     return errors
 
 
@@ -918,6 +1044,20 @@ def write_pages_contract(root: Path) -> None:
         "total_size_bytes": sum(cast(int, item["size_bytes"]) for item in files),
         "files": files,
     }
+    signer = _manifest_signer_from_env()
+    if signer is not None:
+        payload = _canonical_manifest_payload(manifest)
+        signature = signer.sign(payload).hex()
+        public_key = signer.public_key().public_bytes(
+            encoding=serialization.Encoding.Raw,
+            format=serialization.PublicFormat.Raw,
+        )
+        key_id = hashlib.sha256(public_key).hexdigest()[:16]
+        manifest["manifest_signature"] = {
+            "algorithm": "ed25519",
+            "signature": signature,
+            "key_id": f"sha256:{key_id}",
+        }
     (root / "artifact_manifest.json").write_text(
         json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8"
     )

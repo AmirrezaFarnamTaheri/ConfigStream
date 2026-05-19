@@ -5,10 +5,13 @@ from __future__ import annotations
 
 import json
 import hashlib
+import base64
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, cast
+from cryptography.hazmat.primitives.asymmetric import ed25519
+from cryptography.hazmat.primitives import serialization
 
 from scripts.validate_pages_artifact import (
     REQUIRED_EXISTS,
@@ -237,6 +240,50 @@ def test_validate_pages_artifact_accepts_complete_artifact(tmp_path: Path) -> No
     _write_valid_artifact(tmp_path)
 
     assert validate_pages_artifact(tmp_path) == []
+
+
+def _signing_key_material() -> tuple[str, str]:
+    private_key = ed25519.Ed25519PrivateKey.generate()
+    private_hex = private_key.private_bytes(
+        encoding=serialization.Encoding.Raw,
+        format=serialization.PrivateFormat.Raw,
+        encryption_algorithm=serialization.NoEncryption(),
+    ).hex()
+    public_spki = private_key.public_key().public_bytes(
+        encoding=serialization.Encoding.DER,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo,
+    )
+    return private_hex, base64.b64encode(public_spki).decode("ascii")
+
+
+def test_validate_pages_artifact_accepts_valid_manifest_signature(
+    tmp_path: Path, monkeypatch
+) -> None:
+    _write_valid_artifact(tmp_path)
+    private_hex, public_spki_b64 = _signing_key_material()
+    monkeypatch.setenv("CS_SIGNING_PRIVATE_KEY_HEX", private_hex)
+    monkeypatch.setenv("CS_PUBLIC_KEY", public_spki_b64)
+    write_pages_contract(tmp_path)
+
+    assert validate_pages_artifact(tmp_path) == []
+
+
+def test_validate_pages_artifact_rejects_manifest_signature_mismatch(
+    tmp_path: Path, monkeypatch
+) -> None:
+    _write_valid_artifact(tmp_path)
+    private_hex, public_spki_b64 = _signing_key_material()
+    monkeypatch.setenv("CS_SIGNING_PRIVATE_KEY_HEX", private_hex)
+    monkeypatch.setenv("CS_PUBLIC_KEY", public_spki_b64)
+    write_pages_contract(tmp_path)
+    manifest = json.loads(
+        (tmp_path / "artifact_manifest.json").read_text(encoding="utf-8")
+    )
+    manifest["trace_id"] = "tampered-trace-id"
+    _write_text(tmp_path / "artifact_manifest.json", json.dumps(manifest))
+
+    errors = validate_pages_artifact(tmp_path)
+    assert any("manifest_signature verification failed" in error for error in errors)
 
 
 def test_validate_pages_artifact_reports_missing_and_empty_files(
