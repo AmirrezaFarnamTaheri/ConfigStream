@@ -5,19 +5,19 @@ from configstream.models import Proxy
 from configstream.serialize import serialize_proxy, to_json
 
 
-def test_serialize_proxy_includes_uuid():
-    """Test that UUID is included in serialized output"""
+def test_serialize_proxy_includes_uuid_when_valid_uuid():
+    """Top-level uuid should be preserved only when it matches UUID format."""
     proxy = Proxy(
         config="vless://test",
         protocol="vless",
         address="1.1.1.1",
         port=443,
-        uuid="my-unique-id",
+        uuid="123e4567-e89b-12d3-a456-426614174000",
         remarks="test",
     )
     data = serialize_proxy(proxy)
     assert "uuid" in data
-    assert data["uuid"] == "my-unique-id"
+    assert data["uuid"] == "123e4567-e89b-12d3-a456-426614174000"
 
 
 def test_serialize_proxy_includes_history():

@@ -12,6 +12,8 @@ from typing import List, Dict, Optional, Any, Tuple
 from pathlib import Path
 from datetime import datetime, timezone
 from importlib.metadata import version
+from cryptography.hazmat.primitives.asymmetric import ed25519
+from cryptography.hazmat.primitives import serialization
 
 from .models import Proxy
 from .pipeline_stats import PipelineExecutionAudit
@@ -55,6 +57,10 @@ logger = logging.getLogger(__name__)
 _SAFE_FILENAME_RE = re.compile(r"[^A-Za-z0-9._-]+")
 
 PUBLIC_CONTRACT_SCHEMA_VERSION = "1.0"
+_MANIFEST_PRIVATE_KEY_ENV = (
+    "CS_SIGNING_PRIVATE_KEY_HEX",
+    "CONFIGSTREAM_SIGNING_PRIVATE_KEY_HEX",
+)
 
 
 def _read_json_object(path: Path) -> Dict[str, Any]:
@@ -97,6 +103,52 @@ def _artifact_category(rel_path: str) -> str:
     if rel_path.endswith(".zip"):
         return "side-product"
     return "subscription"
+
+
+def _canonical_manifest_payload(manifest: Dict[str, Any]) -> bytes:
+    payload = dict(manifest)
+    payload.pop("manifest_signature", None)
+    canonical = json.dumps(
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    )
+    return canonical.encode("utf-8")
+
+
+def _manifest_signer_from_env() -> ed25519.Ed25519PrivateKey | None:
+    key_hex = ""
+    for env_name in _MANIFEST_PRIVATE_KEY_ENV:
+        key_hex = (os.environ.get(env_name) or "").strip()
+        if key_hex:
+            break
+    if not key_hex:
+        return None
+    key_bytes = bytes.fromhex(key_hex)
+    if len(key_bytes) == 64:
+        key_bytes = key_bytes[:32]
+    if len(key_bytes) != 32:
+        raise ValueError("Manifest signing key must be 32 or 64 bytes (hex).")
+    return ed25519.Ed25519PrivateKey.from_private_bytes(key_bytes)
+
+
+def _attach_manifest_signature(manifest: Dict[str, Any]) -> None:
+    signer = _manifest_signer_from_env()
+    if signer is None:
+        return
+    payload = _canonical_manifest_payload(manifest)
+    signature = signer.sign(payload).hex()
+    public_key = signer.public_key().public_bytes(
+        encoding=serialization.Encoding.Raw,
+        format=serialization.PublicFormat.Raw,
+    )
+    key_id = hashlib.sha256(public_key).hexdigest()[:16]
+    manifest["manifest_signature"] = {
+        "algorithm": "ed25519",
+        "signature": signature,
+        "key_id": f"sha256:{key_id}",
+    }
 
 
 def write_public_artifact_contract(output_dir: Path) -> Dict[str, Any]:
@@ -162,6 +214,7 @@ def write_public_artifact_contract(output_dir: Path) -> Dict[str, Any]:
         "total_size_bytes": sum(int(item["size_bytes"]) for item in files),
         "files": files,
     }
+    _attach_manifest_signature(manifest)
     AtomicFileWriter.write_text(
         output_dir / "artifact_manifest.json",
         json.dumps(manifest, indent=2, ensure_ascii=False),
@@ -1507,6 +1560,8 @@ def save_metadata(
     shielded_count = 0
     shielded_candidate_count = 0
     shielded_verified_count = 0
+    public_record_count = 0
+    public_working_count = 0
     evasion_utls_enabled = 0
     evasion_alpn_enabled = 0
     evasion_fragmentation_enabled = 0
@@ -1569,6 +1624,8 @@ def save_metadata(
         evasion_dns_safe_count = stats.get("evasion_dns_safe_count", 0)
         evasion_dns_hardened_count = stats.get("evasion_dns_hardened_count", 0)
         backpressure_drop = stats.get("backpressure_drop", 0)
+        public_record_count = int(stats.get("public_record_count", 0) or 0)
+        public_working_count = int(stats.get("public_working_count", 0) or 0)
         trace_id = str(stats.get("trace_id") or "-")
         audit_obj = stats.get("pipeline_execution_audit")
         if isinstance(audit_obj, dict):
@@ -1650,6 +1707,10 @@ def save_metadata(
             backpressure_drop = stats.backpressure_drop
         if hasattr(stats, "trace_id"):
             trace_id = str(getattr(stats, "trace_id") or "-")
+        if hasattr(stats, "public_record_count"):
+            public_record_count = int(getattr(stats, "public_record_count") or 0)
+        if hasattr(stats, "public_working_count"):
+            public_working_count = int(getattr(stats, "public_working_count") or 0)
         if hasattr(stats, "pipeline_execution_audit"):
             audit_obj = getattr(stats, "pipeline_execution_audit")
             if isinstance(audit_obj, dict):
@@ -1757,13 +1818,25 @@ def save_metadata(
             washing_enabled = True
     washing_enabled = washing_enabled or vwarp_attempts > 0
 
+    logical_total_proxies = total + smart_chain_count
+    exported_total_proxies = (
+        public_record_count if public_record_count > 0 else logical_total_proxies
+    )
+    exported_total_working = (
+        public_working_count if public_working_count > 0 else working
+    )
+
     meta = {
         "schema_version": "3.0.2",
         "version": pkg_version,
-        "total_proxies": total + smart_chain_count,
+        "total_proxies": exported_total_proxies,
+        "logical_total_proxies": logical_total_proxies,
         "total_tested": tested_count,  # Number of proxies actually tested
-        "total_working": working,
-        "success_rate": (working / tested_count) if tested_count > 0 else 0,
+        "total_working": exported_total_working,
+        "logical_total_working": working,
+        "success_rate": (
+            (exported_total_working / tested_count) if tested_count > 0 else 0
+        ),
         "generated_at": end_time_iso,
         "last_updated_utc": end_time_iso,
         "trace_id": trace_id,
@@ -1796,6 +1869,8 @@ def save_metadata(
         "smart_chain_count": smart_chain_count,
         "chain_obs_count": chain_obs_count,
         "chain_outbounds_count": chain_obs_count,  # schema-canonical alias
+        "public_record_count": exported_total_proxies,
+        "public_working_count": exported_total_working,
         "backpressure_drop": backpressure_drop,
         # Export all revive/vwarp stats for complete tracking
         "revived_warp": revived_warp,

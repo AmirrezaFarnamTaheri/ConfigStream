@@ -1,0 +1,79 @@
+{
+  "generated_at": "2026-05-19T14:57:20.107176+03:30",
+  "summary": {
+    "total": 8,
+    "markers": {
+      "TODO": 6,
+      "XXX": 2
+    },
+    "categories": {
+      "other": 8
+    }
+  },
+  "entries": [
+    {
+      "path": "Main SOURCE OF TRUTH - Ammendment.md",
+      "line": 63,
+      "marker": "TODO",
+      "category": "other",
+      "priority": "P3 - Maintenance",
+      "text": "The debt matrix is not cosmetic. It shows **1,402 tracked markers**, including 13 TODOs, 1 FIXME, 5 XXX, 126 PLACEHOLDER, 9 ASSUMING, and 1,248 MOCK markers. It separates categories and still lists production/frontend/tooling/docs debt, not only tests. `DEBT_MATRIX.md`"
+    },
+    {
+      "path": "Main SOURCE OF TRUTH - Ammendment.md",
+      "line": 72,
+      "marker": "XXX",
+      "category": "other",
+      "priority": "P2 - Routine",
+      "text": "- `frontend/assets/js/lab.js`: `XXX` in generated bash temp-file path."
+    },
+    {
+      "path": "Main SOURCE OF TRUTH - Ammendment.md",
+      "line": 74,
+      "marker": "TODO",
+      "category": "other",
+      "priority": "P3 - Maintenance",
+      "text": "- `src/configstream/tools/dns_scanner/bash/dnsScanner.sh`: several TODO markers."
+    },
+    {
+      "path": "Main SOURCE OF TRUTH - Ammendment.md",
+      "line": 75,
+      "marker": "TODO",
+      "category": "other",
+      "priority": "P3 - Maintenance",
+      "text": "- `scripts/generate_debt_matrix.py`: even the debt generator itself contains TODO/FIXME text. `DEBT_MATRIX.md`"
+    },
+    {
+      "path": "Main SOURCE OF TRUTH - Ammendment.md",
+      "line": 669,
+      "marker": "TODO",
+      "category": "other",
+      "priority": "P3 - Maintenance",
+      "text": "The debt matrix is not cosmetic. It shows **1,402 tracked markers**, including 13 TODOs, 1 FIXME, 5 XXX, 126 PLACEHOLDER, 9 ASSUMING, and 1,248 MOCK markers. It separates categories and still lists production/frontend/tooling/docs debt, not only tests."
+    },
+    {
+      "path": "Main SOURCE OF TRUTH - Ammendment.md",
+      "line": 676,
+      "marker": "XXX",
+      "category": "other",
+      "priority": "P2 - Routine",
+      "text": "* `frontend/assets/js/lab.js`: `XXX` in generated bash temp-file path."
+    },
+    {
+      "path": "Main SOURCE OF TRUTH - Ammendment.md",
+      "line": 678,
+      "marker": "TODO",
+      "category": "other",
+      "priority": "P3 - Maintenance",
+      "text": "* `src/configstream/tools/dns_scanner/bash/dnsScanner.sh`: several TODO markers."
+    },
+    {
+      "path": "Main SOURCE OF TRUTH - Ammendment.md",
+      "line": 679,
+      "marker": "TODO",
+      "category": "other",
+      "priority": "P3 - Maintenance",
+      "text": "* `scripts/generate_debt_matrix.py`: even the debt generator itself contains TODO/FIXME text."
+    }
+  ]
+}

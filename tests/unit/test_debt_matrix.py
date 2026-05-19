@@ -37,6 +37,11 @@ def test_generate_debt_matrix_uses_repo_relative_paths(
 def test_generate_debt_matrix_excludes_generated_outputs() -> None:
     assert not generate_debt_matrix._is_scannable("docs/DEBT_MATRIX.md")
     assert not generate_debt_matrix._is_scannable("docs/debt_matrix.json")
+    assert not generate_debt_matrix._is_scannable(
+        "Main SOURCE OF TRUTH - Ammendment.md"
+    )
+    assert not generate_debt_matrix._is_scannable("Main SOURCE OF TRUTH - PART 2.md")
+    assert not generate_debt_matrix._is_scannable("Main SOURCE OF TRUTH - PART 3.md")
 
 
 def test_generate_debt_matrix_classifies_test_mocks() -> None:

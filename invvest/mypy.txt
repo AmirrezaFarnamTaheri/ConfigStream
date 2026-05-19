@@ -1,0 +1,7 @@
+invvest\validation_copy_pipeline_output\tools\lab-scanner.py: error: Duplicate module named "lab-scanner" (also at ".\invvest\extracted\pipeline-output\tools\lab-scanner.py")
+invvest\validation_copy_pipeline_output\tools\lab-scanner.py: note: See https://mypy.readthedocs.io/en/stable/running_mypy.html#mapping-file-paths-to-modules for more info
+invvest\validation_copy_pipeline_output\tools\lab-scanner.py: note: Common resolutions include:
+invvest\validation_copy_pipeline_output\tools\lab-scanner.py: note:     a) using `--exclude` to avoid checking one of them,
+invvest\validation_copy_pipeline_output\tools\lab-scanner.py: note:     b) adding `__init__.py` somewhere,
+invvest\validation_copy_pipeline_output\tools\lab-scanner.py: note:     c) using `--explicit-package-bases` or adjusting `MYPYPATH`
+Found 1 error in 1 file (errors prevented further checking)

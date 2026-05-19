@@ -1,0 +1,992 @@
+[
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\requirements.txt",
+    "LineNumber": 47,
+    "Line": "python-dotenv==1.2.2"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\requirements.txt",
+    "LineNumber": 48,
+    "Line": "python-socks==2.8.0"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\requirements.txt",
+    "LineNumber": 49,
+    "Line": "python-telegram-bot==22.5"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\requirements-prod.txt",
+    "LineNumber": 47,
+    "Line": "python-dotenv==1.2.2"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\requirements-prod.txt",
+    "LineNumber": 48,
+    "Line": "python-socks==2.8.0"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\requirements-prod.txt",
+    "LineNumber": 49,
+    "Line": "python-telegram-bot==22.5"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\package.json",
+    "LineNumber": 12,
+    "Line": "    \"test:frontend:no-network\": \"node scripts/frontend_same_origin_smoke.cjs\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\package.json",
+    "LineNumber": 13,
+    "Line": "    \"test:frontend:degraded\": \"node scripts/frontend_same_origin_smoke.cjs --no-js-only\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\package.json",
+    "LineNumber": 14,
+    "Line": "    \"test:frontend:pages-artifact\": \"python scripts/deploy_artifact_smoke.py\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\package.json",
+    "LineNumber": 15,
+    "Line": "    \"test:frontend:browser\": \"python scripts/run_test_profile.py frontend-browser\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\Dockerfile",
+    "LineNumber": 6,
+    "Line": "# Leverage Docker cache for Go modules"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\Dockerfile",
+    "LineNumber": 15,
+    "Line": "# Stage 2: Python Runtime"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\Dockerfile",
+    "LineNumber": 16,
+    "Line": "FROM python:3.12-slim"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\Dockerfile",
+    "LineNumber": 20,
+    "Line": "# Without tini, the Python process runs as PID 1 and cannot properly"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\Dockerfile",
+    "LineNumber": 34,
+    "Line": "COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\Dockerfile",
+    "LineNumber": 42,
+    "Line": "# --- GO & VWARP INSTALLATION ---"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\Dockerfile",
+    "LineNumber": 46,
+    "Line": "# The requirement \"Update Dockerfile to install Go\" might be for the washer fallback compilation?"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\Dockerfile",
+    "LineNumber": 49,
+    "Line": "# BUT, we need VWARP."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\Dockerfile",
+    "LineNumber": 51,
+    "Line": "# 3. Install Vwarp"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\Dockerfile",
+    "LineNumber": 53,
+    "Line": "ARG VWARP_VERSION=v2.2.2"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\Dockerfile",
+    "LineNumber": 55,
+    "Line": "ARG VWARP_SHA256_AMD64=90619d5e8ceec07fe09b967904f490d5a45f812951f7fae4cb375b60207b6312"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\Dockerfile",
+    "LineNumber": 56,
+    "Line": "ARG VWARP_SHA256_ARM64=54adb472363f74dd83be93157b5491189d295bd1318de8637265db4f3b834168"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\Dockerfile",
+    "LineNumber": 61,
+    "Line": "      amd64) VWARP_ARCH=\"amd64\"; VWARP_SHA256=\"${VWARP_SHA256_AMD64}\" ;; \\"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\Dockerfile",
+    "LineNumber": 62,
+    "Line": "      arm64) VWARP_ARCH=\"arm64\"; VWARP_SHA256=\"${VWARP_SHA256_ARM64}\" ;; \\"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\Dockerfile",
+    "LineNumber": 65,
+    "Line": "    curl -fSsL --retry 3 --max-time 30 --proto =https -o /tmp/vwarp.zip \"https://github.com/voidr3aper-anon/Vwarp/releases/download/${VWARP_VERSION}/vwarp_linux-${VWARP_ARCH}.zip\" && \\"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\Dockerfile",
+    "LineNumber": 66,
+    "Line": "    echo \"${VWARP_SHA256}  /tmp/vwarp.zip\" | sha256sum -c - && \\"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\Dockerfile",
+    "LineNumber": 67,
+    "Line": "    unzip -tq /tmp/vwarp.zip && \\"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\Dockerfile",
+    "LineNumber": 68,
+    "Line": "    mkdir -p /tmp/vwarp-extract && \\"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\Dockerfile",
+    "LineNumber": 69,
+    "Line": "    unzip -Z1 /tmp/vwarp.zip > /tmp/vwarp-filelist && \\"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\Dockerfile",
+    "LineNumber": 70,
+    "Line": "    grep -Eq '^(|.*/)?vwarp$' /tmp/vwarp-filelist && \\"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\Dockerfile",
+    "LineNumber": 71,
+    "Line": "    ! grep -Eq '(^|/)\\.\\.(/|$)' /tmp/vwarp-filelist && \\"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\Dockerfile",
+    "LineNumber": 72,
+    "Line": "    VWARP_ENTRY=\"$(grep -E '^(|.*/)?vwarp$' /tmp/vwarp-filelist | head -n1)\" && \\"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\Dockerfile",
+    "LineNumber": 73,
+    "Line": "    unzip -j /tmp/vwarp.zip \"$VWARP_ENTRY\" -d /tmp/vwarp-extract && \\"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\Dockerfile",
+    "LineNumber": 74,
+    "Line": "    install -m 0755 /tmp/vwarp-extract/vwarp /usr/local/bin/vwarp && \\"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\Dockerfile",
+    "LineNumber": 75,
+    "Line": "    rm -rf /tmp/vwarp.zip /tmp/vwarp-extract /tmp/vwarp-filelist && \\"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\Dockerfile",
+    "LineNumber": 76,
+    "Line": "    (vwarp version || (echo \"Vwarp binary check failed\" >&2; exit 1))"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\Dockerfile",
+    "LineNumber": 78,
+    "Line": "# Install Python dependencies (Cached Layer)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\Dockerfile",
+    "LineNumber": 80,
+    "Line": "# Use system python environment, no venv needed in container"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\Dockerfile",
+    "LineNumber": 81,
+    "Line": "ENV UV_SYSTEM_PYTHON=1"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\Dockerfile",
+    "LineNumber": 94,
+    "Line": "ENV PYTHONPATH=\"/app/src\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\Dockerfile",
+    "LineNumber": 107,
+    "Line": "CMD [\"python\", \"-m\", \"configstream.cli\"]"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\docker-compose.yml",
+    "LineNumber": 20,
+    "Line": "    command: [\"python\", \"-m\", \"configstream.server\"]"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\docker-compose.yml",
+    "LineNumber": 51,
+    "Line": "      python -m configstream.cli update-databases;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 16,
+    "Line": "        python-version: ['3.10', '3.11', '3.12']"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 18,
+    "Line": "      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 19,
+    "Line": "      PYTHONPATH: src"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 21,
+    "Line": "      - uses: actions/checkout@v4"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 25,
+    "Line": "      - uses: actions/setup-python@v5"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 27,
+    "Line": "          python-version: ${{ matrix.python-version }}"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 31,
+    "Line": "        run: pip install bandit pip-audit"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 33,
+    "Line": "        run: pip-audit -r requirements-prod.txt --format json"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 37,
+    "Line": "        run: python scripts/validate_versions.py"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 39,
+    "Line": "        run: python scripts/validate_capability_registry.py"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 41,
+    "Line": "        run: python scripts/validate_core_compatibility.py"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 43,
+    "Line": "        run: python scripts/validate_module_ownership.py"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 45,
+    "Line": "        run: python scripts/check_license_headers.py"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 47,
+    "Line": "        run: python scripts/check_dependency_drift.py"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 52,
+    "Line": "        run: python scripts/validate_workflows.py"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 55,
+    "Line": "          python -m configstream.cli update-databases || echo \"Database update failed (non-fatal)\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 60,
+    "Line": "          key: playwright-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 62,
+    "Line": "            playwright-${{ runner.os }}-${{ matrix.python-version }}-"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 64,
+    "Line": "        run: python -m playwright install --with-deps"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 76,
+    "Line": "            python scripts/audit_pipeline_outputs.py \\"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 85,
+    "Line": "        uses: actions/upload-artifact@v4"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 87,
+    "Line": "          name: pipeline-audit-report-py${{ matrix.python-version }}"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 91,
+    "Line": "        run: python -m flake8 src/ tests/"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 93,
+    "Line": "        run: python -m mypy ."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 95,
+    "Line": "        run: python -m black --check ."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 100,
+    "Line": "      - uses: actions/checkout@v4"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 104,
+    "Line": "      - uses: actions/setup-node@v4"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 106,
+    "Line": "          node-version: '24'"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 110,
+    "Line": "      - name: Install Node Playwright browser"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 122,
+    "Line": "      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 123,
+    "Line": "      PYTHONPATH: src"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 126,
+    "Line": "      - uses: actions/checkout@v4"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 130,
+    "Line": "      - uses: actions/setup-python@v5"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 132,
+    "Line": "          python-version: '3.11'"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 135,
+    "Line": "      - uses: actions/setup-node@v4"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 137,
+    "Line": "          node-version: '24'"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 139,
+    "Line": "      - name: Install Python dependencies"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\ci.yml",
+    "LineNumber": 145,
+    "Line": "          python -m playwright install --with-deps chromium"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\deploy_mirror.yml",
+    "LineNumber": 20,
+    "Line": "        uses: actions/checkout@v4"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\deploy_mirror.yml",
+    "LineNumber": 27,
+    "Line": "          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\deploy_mirror.yml",
+    "LineNumber": 46,
+    "Line": "          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\deploy_mirror.yml",
+    "LineNumber": 60,
+    "Line": "          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\deploy_mirror.yml",
+    "LineNumber": 73,
+    "Line": "          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\deploy-pages.yml",
+    "LineNumber": 29,
+    "Line": "        uses: actions/checkout@v4"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\deploy-pages.yml",
+    "LineNumber": 42,
+    "Line": "          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\deploy-pages.yml",
+    "LineNumber": 72,
+    "Line": "          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\deploy-pages.yml",
+    "LineNumber": 107,
+    "Line": "      - name: Setup Python"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\deploy-pages.yml",
+    "LineNumber": 109,
+    "Line": "        uses: actions/setup-python@v5"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\deploy-pages.yml",
+    "LineNumber": 111,
+    "Line": "          python-version: '3.12'"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\deploy-pages.yml",
+    "LineNumber": 136,
+    "Line": "          python scripts/validate_frontend_placeholders.py --inject-env --strict output"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\deploy-pages.yml",
+    "LineNumber": 158,
+    "Line": "          # Required artifact validation is centralized in Python so the deploy"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\deploy-pages.yml",
+    "LineNumber": 162,
+    "Line": "          python scripts/validate_pages_artifact.py --refresh-contract output"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\deploy-pages.yml",
+    "LineNumber": 206,
+    "Line": "          python scripts/verify_pages_deployment.py \"${{ steps.deployment.outputs.page_url }}\" --report-file smoke-report.json"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\deploy-pages.yml",
+    "LineNumber": 217,
+    "Line": "          python scripts/take_deployment_screenshots.py \"${{ steps.deployment.outputs.page_url }}\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\deploy-pages.yml",
+    "LineNumber": 222,
+    "Line": "          python scripts/generate_evidence_bundle.py --output-dir output --evidence-dir evidence --smoke-report smoke-report.json"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\deploy-pages.yml",
+    "LineNumber": 226,
+    "Line": "        uses: actions/upload-artifact@v4"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 34,
+    "Line": "          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 91,
+    "Line": "        uses: actions/checkout@v4"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 96,
+    "Line": "      - name: Set up Docker Buildx"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 97,
+    "Line": "        uses: docker/setup-buildx-action@v3"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 100,
+    "Line": "        uses: docker/login-action@v3"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 102,
+    "Line": "          registry: ghcr.io"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 113,
+    "Line": "      - name: Build and Push Docker image"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 114,
+    "Line": "        uses: docker/build-push-action@v6"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 120,
+    "Line": "            ghcr.io/${{ env.REPO_LOWERCASE }}:latest"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 121,
+    "Line": "            ghcr.io/${{ env.REPO_LOWERCASE }}:${{ github.sha }}"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 134,
+    "Line": "        uses: actions/checkout@v4"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 138,
+    "Line": "      - name: Set up Python"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 139,
+    "Line": "        uses: actions/setup-python@v5"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 141,
+    "Line": "          python-version: \"3.11\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 160,
+    "Line": "          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 164,
+    "Line": "        run: python -m configstream.cli update-databases"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 172,
+    "Line": "      - uses: actions/checkout@v4"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 176,
+    "Line": "      - uses: actions/setup-go@v5"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 178,
+    "Line": "          go-version: '1.24'"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 189,
+    "Line": "        uses: actions/upload-artifact@v4"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 204,
+    "Line": "      - uses: actions/checkout@v4"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 228,
+    "Line": "      image: ghcr.io/${{ needs.build_container.outputs.repo_lowercase }}:latest"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 234,
+    "Line": "        FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 237,
+    "Line": "        PYTHONPATH: /app/src"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 240,
+    "Line": "        uses: actions/checkout@v4"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 260,
+    "Line": "          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 264,
+    "Line": "        run: python -m configstream.cli update-databases"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 267,
+    "Line": "          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 272,
+    "Line": "          WARP_KEY_POOL: ${{ secrets.WARP_KEY_POOL }}"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 278,
+    "Line": "          ALLOW_ACTIVE_SCANNING: \"false\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 283,
+    "Line": "          python -m configstream.cli merge \\"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 298,
+    "Line": "        uses: actions/upload-artifact@v4"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 315,
+    "Line": "      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 327,
+    "Line": "        uses: actions/checkout@v4"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 331,
+    "Line": "      - name: Set up Python"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 332,
+    "Line": "        uses: actions/setup-python@v5"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 334,
+    "Line": "          python-version: \"3.11\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 336,
+    "Line": "        uses: actions/setup-go@v5"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 338,
+    "Line": "          go-version: '1.24'"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 353,
+    "Line": "        uses: actions/download-artifact@v4"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 359,
+    "Line": "        uses: actions/download-artifact@v4"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 380,
+    "Line": "          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 383,
+    "Line": "          WARP_KEY_POOL: ${{ secrets.WARP_KEY_POOL }}"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 385,
+    "Line": "        run: python -m scripts.merge_batches"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 387,
+    "Line": "        run: python scripts/dynamic_reshard.py"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 389,
+    "Line": "        uses: actions/upload-artifact@v4"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 396,
+    "Line": "          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 411,
+    "Line": "          python scripts/validate_frontend_placeholders.py --inject-env output"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 418,
+    "Line": "          python scripts/validate_pages_artifact.py --refresh-contract output"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 422,
+    "Line": "          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 429,
+    "Line": "          python scripts/publish_ipfs.py \\"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 433,
+    "Line": "        uses: actions/upload-artifact@v4"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 446,
+    "Line": "        run: python scripts/upload_telegram.py"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 450,
+    "Line": "          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 455,
+    "Line": "        run: python scripts/upload_hf.py --path output/ --repo-id $HF_REPO_ID"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 459,
+    "Line": "          pip install google-api-python-client google-auth"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 460,
+    "Line": "          python scripts/upload_gdrive.py --path output/ --folder-id $GDRIVE_FOLDER_ID"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 464,
+    "Line": "          python scripts/validate_pages_artifact.py \\"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 471,
+    "Line": "          python scripts/generate_evidence_bundle.py \\"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 477,
+    "Line": "        uses: actions/upload-artifact@v4"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 486,
+    "Line": "          ASSETS=$(python scripts/prepare_release_assets.py --output-dir output)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\main.yml",
+    "LineNumber": 502,
+    "Line": "          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\release.yml",
+    "LineNumber": 12,
+    "Line": "  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\release.yml",
+    "LineNumber": 15,
+    "Line": "  build_python:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\release.yml",
+    "LineNumber": 16,
+    "Line": "    name: Build Python Distributions"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\release.yml",
+    "LineNumber": 23,
+    "Line": "      - uses: actions/checkout@v4"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\release.yml",
+    "LineNumber": 27,
+    "Line": "      - uses: actions/setup-python@v5"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\release.yml",
+    "LineNumber": 29,
+    "Line": "          python-version: \"3.11\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\release.yml",
+    "LineNumber": 36,
+    "Line": "        run: python scripts/validate_versions.py"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\release.yml",
+    "LineNumber": 38,
+    "Line": "        run: python scripts/validate_capability_registry.py"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\release.yml",
+    "LineNumber": 40,
+    "Line": "        run: python scripts/validate_core_compatibility.py"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\release.yml",
+    "LineNumber": 42,
+    "Line": "        run: python scripts/validate_module_ownership.py"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\release.yml",
+    "LineNumber": 46,
+    "Line": "        run: python -m build"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\release.yml",
+    "LineNumber": 47,
+    "Line": "      - name: Upload Python distribution artifacts"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\release.yml",
+    "LineNumber": 48,
+    "Line": "        uses: actions/upload-artifact@v4"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\release.yml",
+    "LineNumber": 50,
+    "Line": "          name: python-dist"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\release.yml",
+    "LineNumber": 52,
+    "Line": "      - name: Attest Python distributions"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\release.yml",
+    "LineNumber": 69,
+    "Line": "      - uses: actions/checkout@v4"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\release.yml",
+    "LineNumber": 73,
+    "Line": "      - uses: actions/setup-python@v5"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\release.yml",
+    "LineNumber": 75,
+    "Line": "          python-version: \"3.11\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\release.yml",
+    "LineNumber": 83,
+    "Line": "          python - <<'PY'"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\release.yml",
+    "LineNumber": 92,
+    "Line": "          python -m PyInstaller --onefile --name configstream build_entrypoint.py"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\release.yml",
+    "LineNumber": 144,
+    "Line": "        uses: actions/upload-artifact@v4"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\release.yml",
+    "LineNumber": 171,
+    "Line": "    needs: [build_python]"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\release.yml",
+    "LineNumber": 175,
+    "Line": "      - name: Download Python distribution artifacts"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\release.yml",
+    "LineNumber": 176,
+    "Line": "        uses: actions/download-artifact@v4"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\release.yml",
+    "LineNumber": 178,
+    "Line": "          name: python-dist"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\release.yml",
+    "LineNumber": 188,
+    "Line": "    needs: [build_python, build_native, publish_pypi]"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\release.yml",
+    "LineNumber": 192,
+    "Line": "      - uses: actions/download-artifact@v4"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\retest.yml",
+    "LineNumber": 34,
+    "Line": "          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\retest.yml",
+    "LineNumber": 105,
+    "Line": "      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\retest.yml",
+    "LineNumber": 106,
+    "Line": "      PYTHONPATH: src"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\retest.yml",
+    "LineNumber": 108,
+    "Line": "      - uses: actions/checkout@v4"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\retest.yml",
+    "LineNumber": 112,
+    "Line": "      - uses: actions/setup-python@v5"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\retest.yml",
+    "LineNumber": 114,
+    "Line": "          python-version: \"3.12\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\retest.yml",
+    "LineNumber": 123,
+    "Line": "          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\retest.yml",
+    "LineNumber": 171,
+    "Line": "          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\retest.yml",
+    "LineNumber": 200,
+    "Line": "        run: python -m configstream.cli retest --input output/proxies.json --output output --timeout 310 --max-workers 50 --leniency"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\.github\\workflows\\retest.yml",
+    "LineNumber": 220,
+    "Line": "        uses: actions/upload-artifact@v4"
+  }
+]

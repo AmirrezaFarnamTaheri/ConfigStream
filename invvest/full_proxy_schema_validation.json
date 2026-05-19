@@ -1,0 +1,1106 @@
+{
+  "total": 8612,
+  "invalid_records": 8000,
+  "invalid_by_protocol": {
+    "socks5": 2,
+    "revived": 3692,
+    "wireguard": 4306
+  },
+  "error_patterns": {
+    "proxies.json[].details missing required key: peer_public_key": 4306,
+    "proxies.json[].details missing required key: private_key": 4306,
+    "proxies.json[].details contains unknown schema key: chain_depth": 4306,
+    "proxies.json[].details contains unknown schema key: chain_process": 4306,
+    "proxies.json[].details contains unknown schema key: is_chain": 4306,
+    "proxies.json[].details contains unknown schema key: origin_proxy": 4306,
+    "proxies.json[].details contains unknown schema key: shielded_candidate": 4306,
+    "proxies.json[].details contains unknown schema key: shielded_verified": 4306,
+    "proxies.json[] uuid does not match required pattern": 3694,
+    "proxies.json[].details contains unknown schema key: lat": 1984,
+    "proxies.json[].details contains unknown schema key: lng": 1984
+  },
+  "samples": [
+    {
+      "index": 193,
+      "protocol": "socks5",
+      "process": "native",
+      "uuid": "Og==",
+      "errors": [
+        "proxies.json[193] uuid does not match required pattern"
+      ],
+      "details_keys": [
+        "_source",
+        "lat",
+        "lng",
+        "password"
+      ]
+    },
+    {
+      "index": 201,
+      "protocol": "socks5",
+      "process": "native",
+      "uuid": "VDJjbE0wUWxNMFE2Og==",
+      "errors": [
+        "proxies.json[201] uuid does not match required pattern"
+      ],
+      "details_keys": [
+        "_source",
+        "lat",
+        "lng",
+        "password"
+      ]
+    },
+    {
+      "index": 249,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-21150522",
+      "errors": [
+        "proxies.json[249] uuid does not match required pattern",
+        "proxies.json[249].details contains unknown schema key: lat",
+        "proxies.json[249].details contains unknown schema key: lng"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "lat",
+        "lng",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 250,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-5daafb0f",
+      "errors": [
+        "proxies.json[250] uuid does not match required pattern",
+        "proxies.json[250].details contains unknown schema key: lat",
+        "proxies.json[250].details contains unknown schema key: lng"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "lat",
+        "lng",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 251,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-b319db06",
+      "errors": [
+        "proxies.json[251] uuid does not match required pattern",
+        "proxies.json[251].details contains unknown schema key: lat",
+        "proxies.json[251].details contains unknown schema key: lng"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "lat",
+        "lng",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 252,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-05e3342e",
+      "errors": [
+        "proxies.json[252] uuid does not match required pattern"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 253,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-fb1a2a82",
+      "errors": [
+        "proxies.json[253] uuid does not match required pattern"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 254,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-c1c13017",
+      "errors": [
+        "proxies.json[254] uuid does not match required pattern",
+        "proxies.json[254].details contains unknown schema key: lat",
+        "proxies.json[254].details contains unknown schema key: lng"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "lat",
+        "lng",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 255,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-b685771b",
+      "errors": [
+        "proxies.json[255] uuid does not match required pattern"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 256,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-f75f097d",
+      "errors": [
+        "proxies.json[256] uuid does not match required pattern",
+        "proxies.json[256].details contains unknown schema key: lat",
+        "proxies.json[256].details contains unknown schema key: lng"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "lat",
+        "lng",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 257,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-ce05c3cf",
+      "errors": [
+        "proxies.json[257] uuid does not match required pattern",
+        "proxies.json[257].details contains unknown schema key: lat",
+        "proxies.json[257].details contains unknown schema key: lng"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "lat",
+        "lng",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 258,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-e23d2818",
+      "errors": [
+        "proxies.json[258] uuid does not match required pattern",
+        "proxies.json[258].details contains unknown schema key: lat",
+        "proxies.json[258].details contains unknown schema key: lng"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "lat",
+        "lng",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 259,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-24d0ef00",
+      "errors": [
+        "proxies.json[259] uuid does not match required pattern",
+        "proxies.json[259].details contains unknown schema key: lat",
+        "proxies.json[259].details contains unknown schema key: lng"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "lat",
+        "lng",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 260,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-37243333",
+      "errors": [
+        "proxies.json[260] uuid does not match required pattern"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 261,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-6040a753",
+      "errors": [
+        "proxies.json[261] uuid does not match required pattern"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 264,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-BJb2nsqR",
+      "errors": [
+        "proxies.json[264] uuid does not match required pattern",
+        "proxies.json[264].details contains unknown schema key: lat",
+        "proxies.json[264].details contains unknown schema key: lng"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "lat",
+        "lng",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 265,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-64617ed2",
+      "errors": [
+        "proxies.json[265] uuid does not match required pattern",
+        "proxies.json[265].details contains unknown schema key: lat",
+        "proxies.json[265].details contains unknown schema key: lng"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "lat",
+        "lng",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 266,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-28c05d48",
+      "errors": [
+        "proxies.json[266] uuid does not match required pattern",
+        "proxies.json[266].details contains unknown schema key: lat",
+        "proxies.json[266].details contains unknown schema key: lng"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "lat",
+        "lng",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 267,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-a6580107",
+      "errors": [
+        "proxies.json[267] uuid does not match required pattern",
+        "proxies.json[267].details contains unknown schema key: lat",
+        "proxies.json[267].details contains unknown schema key: lng"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "lat",
+        "lng",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 268,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-63b21d86",
+      "errors": [
+        "proxies.json[268] uuid does not match required pattern"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 269,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-5fd28b08",
+      "errors": [
+        "proxies.json[269] uuid does not match required pattern",
+        "proxies.json[269].details contains unknown schema key: lat",
+        "proxies.json[269].details contains unknown schema key: lng"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "lat",
+        "lng",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 270,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-f97c7512",
+      "errors": [
+        "proxies.json[270] uuid does not match required pattern",
+        "proxies.json[270].details contains unknown schema key: lat",
+        "proxies.json[270].details contains unknown schema key: lng"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "lat",
+        "lng",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 271,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-2015110f",
+      "errors": [
+        "proxies.json[271] uuid does not match required pattern",
+        "proxies.json[271].details contains unknown schema key: lat",
+        "proxies.json[271].details contains unknown schema key: lng"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "lat",
+        "lng",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 272,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-2a118b9d",
+      "errors": [
+        "proxies.json[272] uuid does not match required pattern",
+        "proxies.json[272].details contains unknown schema key: lat",
+        "proxies.json[272].details contains unknown schema key: lng"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "lat",
+        "lng",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 273,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-512c7385",
+      "errors": [
+        "proxies.json[273] uuid does not match required pattern"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 274,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-3775d133",
+      "errors": [
+        "proxies.json[274] uuid does not match required pattern",
+        "proxies.json[274].details contains unknown schema key: lat",
+        "proxies.json[274].details contains unknown schema key: lng"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "lat",
+        "lng",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 275,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-e67b1790",
+      "errors": [
+        "proxies.json[275] uuid does not match required pattern"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 276,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-0c6b96bc",
+      "errors": [
+        "proxies.json[276] uuid does not match required pattern",
+        "proxies.json[276].details contains unknown schema key: lat",
+        "proxies.json[276].details contains unknown schema key: lng"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "lat",
+        "lng",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 277,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-3a564bea",
+      "errors": [
+        "proxies.json[277] uuid does not match required pattern",
+        "proxies.json[277].details contains unknown schema key: lat",
+        "proxies.json[277].details contains unknown schema key: lng"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "lat",
+        "lng",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 278,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-16d7a04d",
+      "errors": [
+        "proxies.json[278] uuid does not match required pattern",
+        "proxies.json[278].details contains unknown schema key: lat",
+        "proxies.json[278].details contains unknown schema key: lng"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "lat",
+        "lng",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 279,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-7b00ee34",
+      "errors": [
+        "proxies.json[279] uuid does not match required pattern",
+        "proxies.json[279].details contains unknown schema key: lat",
+        "proxies.json[279].details contains unknown schema key: lng"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "lat",
+        "lng",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 280,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-d6b1327d",
+      "errors": [
+        "proxies.json[280] uuid does not match required pattern"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 281,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-4679f00e",
+      "errors": [
+        "proxies.json[281] uuid does not match required pattern",
+        "proxies.json[281].details contains unknown schema key: lat",
+        "proxies.json[281].details contains unknown schema key: lng"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "lat",
+        "lng",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 282,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-a6a37e04",
+      "errors": [
+        "proxies.json[282] uuid does not match required pattern",
+        "proxies.json[282].details contains unknown schema key: lat",
+        "proxies.json[282].details contains unknown schema key: lng"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "lat",
+        "lng",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 283,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-5cafd4a8",
+      "errors": [
+        "proxies.json[283] uuid does not match required pattern",
+        "proxies.json[283].details contains unknown schema key: lat",
+        "proxies.json[283].details contains unknown schema key: lng"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "lat",
+        "lng",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 284,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-0c36f366",
+      "errors": [
+        "proxies.json[284] uuid does not match required pattern",
+        "proxies.json[284].details contains unknown schema key: lat",
+        "proxies.json[284].details contains unknown schema key: lng"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "lat",
+        "lng",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 285,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-48ff2b70",
+      "errors": [
+        "proxies.json[285] uuid does not match required pattern",
+        "proxies.json[285].details contains unknown schema key: lat",
+        "proxies.json[285].details contains unknown schema key: lng"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "lat",
+        "lng",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 286,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-76d6910d",
+      "errors": [
+        "proxies.json[286] uuid does not match required pattern"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 287,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-b9f35b5e",
+      "errors": [
+        "proxies.json[287] uuid does not match required pattern",
+        "proxies.json[287].details contains unknown schema key: lat",
+        "proxies.json[287].details contains unknown schema key: lng"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "lat",
+        "lng",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 288,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-3df69e7e",
+      "errors": [
+        "proxies.json[288] uuid does not match required pattern"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 289,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-5CBqBh6M",
+      "errors": [
+        "proxies.json[289] uuid does not match required pattern"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 292,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-ed6661f6",
+      "errors": [
+        "proxies.json[292] uuid does not match required pattern",
+        "proxies.json[292].details contains unknown schema key: lat",
+        "proxies.json[292].details contains unknown schema key: lng"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "lat",
+        "lng",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 293,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-2c2338cb",
+      "errors": [
+        "proxies.json[293] uuid does not match required pattern",
+        "proxies.json[293].details contains unknown schema key: lat",
+        "proxies.json[293].details contains unknown schema key: lng"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "lat",
+        "lng",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 294,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-86343145",
+      "errors": [
+        "proxies.json[294] uuid does not match required pattern",
+        "proxies.json[294].details contains unknown schema key: lat",
+        "proxies.json[294].details contains unknown schema key: lng"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "lat",
+        "lng",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 295,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-31303220",
+      "errors": [
+        "proxies.json[295] uuid does not match required pattern"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 296,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-49746193",
+      "errors": [
+        "proxies.json[296] uuid does not match required pattern",
+        "proxies.json[296].details contains unknown schema key: lat",
+        "proxies.json[296].details contains unknown schema key: lng"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "lat",
+        "lng",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 297,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-f6920d8d",
+      "errors": [
+        "proxies.json[297] uuid does not match required pattern",
+        "proxies.json[297].details contains unknown schema key: lat",
+        "proxies.json[297].details contains unknown schema key: lng"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "lat",
+        "lng",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 298,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-8a33ed99",
+      "errors": [
+        "proxies.json[298] uuid does not match required pattern",
+        "proxies.json[298].details contains unknown schema key: lat",
+        "proxies.json[298].details contains unknown schema key: lng"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "lat",
+        "lng",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 299,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-ebd40bf0",
+      "errors": [
+        "proxies.json[299] uuid does not match required pattern",
+        "proxies.json[299].details contains unknown schema key: lat",
+        "proxies.json[299].details contains unknown schema key: lng"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "lat",
+        "lng",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    },
+    {
+      "index": 300,
+      "protocol": "revived",
+      "process": "revived-warp",
+      "uuid": "WARP-REVIVE-c4bfda4b",
+      "errors": [
+        "proxies.json[300] uuid does not match required pattern",
+        "proxies.json[300].details contains unknown schema key: lat",
+        "proxies.json[300].details contains unknown schema key: lng"
+      ],
+      "details_keys": [
+        "chain",
+        "chain_outbounds",
+        "error",
+        "is_revived",
+        "lat",
+        "lng",
+        "origin_config",
+        "origin_id",
+        "use_vwarp",
+        "vwarp_mode"
+      ]
+    }
+  ]
+}

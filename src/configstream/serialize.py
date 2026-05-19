@@ -5,6 +5,7 @@ Converts Proxy objects to dictionary/JSON-safe formats.
 """
 
 import json
+import re
 from typing import Dict, Any, List, Optional, Union
 
 from .models import Proxy
@@ -18,6 +19,21 @@ try:
     import orjson as json_lib
 except ImportError:
     import json as json_lib  # type: ignore
+
+
+_UUID_RE = re.compile(
+    r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-"
+    r"[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+)
+
+
+def _public_uuid_value(proxy: Proxy) -> str:
+    raw = (proxy.uuid or "").strip()
+    if not raw:
+        return ""
+    if _UUID_RE.match(raw):
+        return raw
+    return ""
 
 
 def serialize_proxy(
@@ -72,7 +88,7 @@ def serialize_proxy(
         "protocol": proxy.protocol,
         "address": proxy.address,
         "port": proxy.port,
-        "uuid": proxy.uuid,  # Critical for VLESS/Trojan/VMess reconstruction
+        "uuid": _public_uuid_value(proxy),
         "city": proxy.city,
         "asn": proxy.asn,
         "org": proxy.org,
