@@ -1,0 +1,2057 @@
+[
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\__init__.py",
+    "LineNumber": 6,
+    "Line": "from .base import extract_config_lines"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\__init__.py",
+    "LineNumber": 27,
+    "Line": "    \"extract_config_lines\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\base.py",
+    "LineNumber": 11,
+    "Line": "from .extraction import is_plausible_proxy_config, extract_config_lines"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\base.py",
+    "LineNumber": 18,
+    "Line": "    \"extract_config_lines\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\clash_json.py",
+    "LineNumber": 13,
+    "Line": "def parse_clash_json(config: str) -> Optional[Proxy]:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\clash_json.py",
+    "LineNumber": 19,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\clash_json.py",
+    "LineNumber": 23,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\clash_json.py",
+    "LineNumber": 27,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\clash_json.py",
+    "LineNumber": 34,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\clash_json.py",
+    "LineNumber": 35,
+    "Line": "        uuid = data.get(\"uuid\") or data.get(\"password\") or \"\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\clash_json.py",
+    "LineNumber": 39,
+    "Line": "            uuid = data.get(\"uuid\", \"\")"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\clash_json.py",
+    "LineNumber": 40,
+    "Line": "            if not uuid:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\clash_json.py",
+    "LineNumber": 41,
+    "Line": "                return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\clash_json.py",
+    "LineNumber": 43,
+    "Line": "            uuid = data.get(\"uuid\", \"\")"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\clash_json.py",
+    "LineNumber": 44,
+    "Line": "            if not uuid:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\clash_json.py",
+    "LineNumber": 45,
+    "Line": "                return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\clash_json.py",
+    "LineNumber": 47,
+    "Line": "            uuid = data.get(\"password\", \"\")"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\clash_json.py",
+    "LineNumber": 48,
+    "Line": "            if not uuid:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\clash_json.py",
+    "LineNumber": 49,
+    "Line": "                return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\clash_json.py",
+    "LineNumber": 52,
+    "Line": "            uuid = \"\"  # SS uses password in details"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\clash_json.py",
+    "LineNumber": 53,
+    "Line": "            password = data.get(\"password\", \"\")"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\clash_json.py",
+    "LineNumber": 54,
+    "Line": "            if not password:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\clash_json.py",
+    "LineNumber": 55,
+    "Line": "                # Reject Shadowsocks without password immediately"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\clash_json.py",
+    "LineNumber": 56,
+    "Line": "                return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\clash_json.py",
+    "LineNumber": 57,
+    "Line": "            data[\"password\"] = password"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\clash_json.py",
+    "LineNumber": 60,
+    "Line": "            invalid_methods = {"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\clash_json.py",
+    "LineNumber": 70,
+    "Line": "            if method in invalid_methods or len(method) < 2:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\clash_json.py",
+    "LineNumber": 71,
+    "Line": "                return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\clash_json.py",
+    "LineNumber": 82,
+    "Line": "                        \"Dropping WireGuard proxy missing private_key: %s\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\clash_json.py",
+    "LineNumber": 85,
+    "Line": "                    return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\clash_json.py",
+    "LineNumber": 88,
+    "Line": "                    \"Dropping WireGuard proxy missing private_key: %s\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\clash_json.py",
+    "LineNumber": 91,
+    "Line": "                return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\clash_json.py",
+    "LineNumber": 93,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\clash_json.py",
+    "LineNumber": 100,
+    "Line": "            uuid=uuid,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\clash_json.py",
+    "LineNumber": 111,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\decoders.py",
+    "LineNumber": 2,
+    "Line": "import base64"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\decoders.py",
+    "LineNumber": 29,
+    "Line": "    Validate base64 string before attempting decode."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\decoders.py",
+    "LineNumber": 33,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\decoders.py",
+    "LineNumber": 37,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\decoders.py",
+    "LineNumber": 41,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\decoders.py",
+    "LineNumber": 45,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\decoders.py",
+    "LineNumber": 47,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\decoders.py",
+    "LineNumber": 54,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\decoders.py",
+    "LineNumber": 56,
+    "Line": "    # Fix URL-encoded base64 (e.g., %3D, %2F)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\decoders.py",
+    "LineNumber": 68,
+    "Line": "    # We allow some noise but if it's too much we drop it."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\decoders.py",
+    "LineNumber": 73,
+    "Line": "    # Immediate rejection for structural markers that indicate NOT Base64"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\decoders.py",
+    "LineNumber": 75,
+    "Line": "        # Colon inside usually means method:password or something else"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\decoders.py",
+    "LineNumber": 76,
+    "Line": "        # BUT standard base64 doesn't have colons."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\decoders.py",
+    "LineNumber": 77,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\decoders.py",
+    "LineNumber": 79,
+    "Line": "    # Fast check for invalid chars"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\decoders.py",
+    "LineNumber": 80,
+    "Line": "    invalid_chars = [c for c in trimmed if c not in valid_chars]"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\decoders.py",
+    "LineNumber": 81,
+    "Line": "    if len(invalid_chars) > len(trimmed) * 0.05:  # >5% noise"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\decoders.py",
+    "LineNumber": 82,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\decoders.py",
+    "LineNumber": 93,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\decoders.py",
+    "LineNumber": 111,
+    "Line": "    Robustly decode Base64 strings, handling:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\decoders.py",
+    "LineNumber": 119,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\decoders.py",
+    "LineNumber": 121,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\decoders.py",
+    "LineNumber": 126,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\decoders.py",
+    "LineNumber": 130,
+    "Line": "        return base64.b64decode(cleaned, validate=True).decode(\"utf-8\", errors=\"ignore\")"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\decoders.py",
+    "LineNumber": 132,
+    "Line": "        # Fallback without validation if strict fails, but only if it looks plausible"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\decoders.py",
+    "LineNumber": 134,
+    "Line": "            return base64.b64decode(cleaned, validate=False).decode("
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\decoders.py",
+    "LineNumber": 138,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 34,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 43,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 50,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 55,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 92,
+    "Line": "                and not parsed.query"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 105,
+    "Line": "    # VLESS links can carry heavily encoded query strings, so allow a higher ratio."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 131,
+    "Line": "                _, query = rest.split(\"?\", 1)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 132,
+    "Line": "                if \"://\" in query and \"=\" not in query.split(\"://\")[0][-10:]:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 137,
+    "Line": "def extract_config_lines("
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 152,
+    "Line": "        and a dictionary of drop reasons (count by reason)."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 154,
+    "Line": "    drop_stats: Dict[str, int] = {}"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 163,
+    "Line": "            \"extract_config_lines: Payload exceeds %d bytes limit. Dropping to prevent OOM.\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 178,
+    "Line": "                    \"extract_config_lines: Binary payload decoded with errors ignored.\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 184,
+    "Line": "            \"extract_config_lines: Invalid payload type %s.\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 187,
+    "Line": "        return [], {\"invalid_type\": 1}"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 194,
+    "Line": "        logger.debug(\"Dropping payload with NULL bytes.\")"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 205,
+    "Line": "                \"Dropping high-entropy binary-like payload (ratio=%.2f).\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 223,
+    "Line": "                \"Dropping large HTML payload (%d bytes) with no proxy URIs\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 247,
+    "Line": "                # Not a list, maybe fallback"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 269,
+    "Line": "            return [payload_str], {}  # Let parser fail later if invalid"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 295,
+    "Line": "            drop_stats[\"missing_dependency_yaml\"] = 1"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 301,
+    "Line": "            drop_stats[\"yaml_parse_error\"] = 1"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 305,
+    "Line": "            # might be just text list. Fallback."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 308,
+    "Line": "            return [payload_str], drop_stats"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 320,
+    "Line": "        # Attempt Base64 decode for subscriptions"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 338,
+    "Line": "        drop_stats[\"truncated_lines\"] = original_count - max_lines"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 344,
+    "Line": "    dropped_samples: List[str] = []"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 356,
+    "Line": "    html_drops = 0"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 375,
+    "Line": "            html_drops += 1"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 391,
+    "Line": "                reason = \"invalid_protocol\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 411,
+    "Line": "                        reason = \"invalid_obfuscated_ip\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 417,
+    "Line": "                    reason = \"invalid_port\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 422,
+    "Line": "                        reason = \"invalid_port\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 454,
+    "Line": "                                    # Might be method:password"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 487,
+    "Line": "            drop_stats[reason] = drop_stats.get(reason, 0) + 1"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 488,
+    "Line": "            if len(dropped_samples) < 5:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 489,
+    "Line": "                sample = f\"[dropped_line] [{reason}]\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 490,
+    "Line": "                dropped_samples.append(SecurityValidator.sanitize_log_message(sample))"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 492,
+    "Line": "    if html_drops > 0:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 493,
+    "Line": "        drop_stats[\"html_content\"] = html_drops"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 495,
+    "Line": "    total_dropped = sum(drop_stats.values())"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 496,
+    "Line": "    if total_dropped > 0:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 497,
+    "Line": "        total_seen = total_dropped + len(configs)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 498,
+    "Line": "        drop_rate = (total_dropped / total_seen) if total_seen else 1.0"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 499,
+    "Line": "        # If > 90% drops are HTML, just say \"Source returned HTML content\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 500,
+    "Line": "        if html_drops > total_dropped * 0.9:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 507,
+    "Line": "                \"Source %s dropped %d lines of HTML content.\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 509,
+    "Line": "                html_drops,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 512,
+    "Line": "            log_method = logger.warning if drop_rate > 0.5 else logger.debug"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 515,
+    "Line": "                    \"Parsed %d configs. Dropped %d lines. Reasons: %s\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 517,
+    "Line": "                    total_dropped,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 518,
+    "Line": "                    drop_stats,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 524,
+    "Line": "                    drop_stats.get(\"missing_protocol_separator\", 0) == total_dropped"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 528,
+    "Line": "                    \"All lines dropped. Reasons: %s. Samples: %s\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 529,
+    "Line": "                    drop_stats,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 530,
+    "Line": "                    dropped_samples,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\extraction.py",
+    "LineNumber": 533,
+    "Line": "    return configs, drop_stats"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 33,
+    "Line": "def parse_generic_url_scheme(config: str) -> Optional[Proxy]:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 38,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 70,
+    "Line": "                        \"Naked IP:PORT rejected: invalid host format %s\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 73,
+    "Line": "                    return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 81,
+    "Line": "                    return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 97,
+    "Line": "                    uuid=\"\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 106,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 119,
+    "Line": "                return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 121,
+    "Line": "        # Block \"invalid\" or \"garbage\" as hostnames for testing hygiene"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 122,
+    "Line": "        if host.lower() in (\"garbage\", \"invalid\"):"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 123,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 129,
+    "Line": "                return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 155,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 157,
+    "Line": "        details: Dict[str, Any] = {\"password\": parsed.password or \"\"}"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 166,
+    "Line": "            uuid=parsed.username or \"\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 174,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 177,
+    "Line": "def parse_naive(config: str) -> Optional[Proxy]:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 182,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 186,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 187,
+    "Line": "        if not parsed.username or not parsed.password:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 188,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 191,
+    "Line": "        details: Dict[str, Any] = {\"password\": parsed.password or \"\"}"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 199,
+    "Line": "            uuid=parsed.username or \"\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 207,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 210,
+    "Line": "def parse_v2ray_json(config: str) -> Optional[Proxy]:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 214,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 217,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 221,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 228,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 232,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 316,
+    "Line": "    uuid = \"\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 322,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 325,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 332,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 338,
+    "Line": "            uuid = user_info.get(\"id\") or user_info.get(\"uuid\") or \"\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 350,
+    "Line": "        if not uuid:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 351,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 355,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 358,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 365,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 369,
+    "Line": "            uuid = server_info.get(\"password\", \"\")"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 370,
+    "Line": "            if not uuid:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 371,
+    "Line": "                return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 374,
+    "Line": "            details[\"password\"] = server_info.get(\"password\", \"\")"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 378,
+    "Line": "            if not details[\"password\"]:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 379,
+    "Line": "                return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 380,
+    "Line": "            invalid_methods = {"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 390,
+    "Line": "            if not method or method.lower() in invalid_methods or len(method) < 2:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 391,
+    "Line": "                return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 395,
+    "Line": "            uuid = user"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 396,
+    "Line": "            password = server_info.get(\"pass\") or server_info.get(\"password\")"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 397,
+    "Line": "            if password:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 398,
+    "Line": "                details[\"password\"] = password"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 401,
+    "Line": "            uuid = user"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 402,
+    "Line": "            password = server_info.get(\"pass\") or server_info.get(\"password\")"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 403,
+    "Line": "            if password:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 404,
+    "Line": "                details[\"password\"] = password"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 406,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 409,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 414,
+    "Line": "        logger.debug(\"Invalid port in v2ray config: %s\", _safe_log_text(port))"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 415,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 424,
+    "Line": "        uuid=uuid,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\openvpn.py",
+    "LineNumber": 14,
+    "Line": "_REMOTE_FALLBACK_RE = re.compile(r\"remote\\s+(\\S+)\\s+(\\d+)\")"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\openvpn.py",
+    "LineNumber": 23,
+    "Line": "def parse_openvpn(config: str) -> Optional[Proxy]:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\openvpn.py",
+    "LineNumber": 41,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\openvpn.py",
+    "LineNumber": 46,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\openvpn.py",
+    "LineNumber": 52,
+    "Line": "            remotes = _REMOTE_FALLBACK_RE.findall(config)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\openvpn.py",
+    "LineNumber": 55,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\openvpn.py",
+    "LineNumber": 66,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\openvpn.py",
+    "LineNumber": 72,
+    "Line": "                \"OpenVPN hostname rejected: invalid format %s\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\openvpn.py",
+    "LineNumber": 75,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\openvpn.py",
+    "LineNumber": 85,
+    "Line": "                return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\openvpn.py",
+    "LineNumber": 88,
+    "Line": "                \"Invalid port in openvpn config: %s\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\openvpn.py",
+    "LineNumber": 91,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\openvpn.py",
+    "LineNumber": 122,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\openvpn.py",
+    "LineNumber": 128,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\openvpn.py",
+    "LineNumber": 134,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 9,
+    "Line": "import base64"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 42,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 54,
+    "Line": "                # If scheme mismatches (e.g. hysteria2:// in a hysteria parser), return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 56,
+    "Line": "                return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 62,
+    "Line": "                # For now, we assume if urlparse failed to see scheme, it's invalid"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 63,
+    "Line": "                return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 66,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 69,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 72,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 74,
+    "Line": "        details = {k: v[0] for k, v in parse_qs(parsed.query).items()}"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 76,
+    "Line": "        # Capture password if present (standard URL parsing)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 77,
+    "Line": "        if parsed.password:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 78,
+    "Line": "            details[\"password\"] = parsed.password"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 80,
+    "Line": "        # Special handling for username as uuid or private_key"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 81,
+    "Line": "        uuid = parsed.username or \"\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 88,
+    "Line": "            uuid=uuid,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 100,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 103,
+    "Line": "def parse_hysteria(c: str) -> Optional[Proxy]:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 107,
+    "Line": "def parse_hysteria2(c: str) -> Optional[Proxy]:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 117,
+    "Line": "        # Map obfs_password / obfsPassword -> obfs-password"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 118,
+    "Line": "        if \"obfs-password\" not in proxy.details:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 120,
+    "Line": "            if \"obfs_password\" in proxy.details:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 121,
+    "Line": "                proxy.details[\"obfs-password\"] = proxy.details.pop(\"obfs_password\")"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 122,
+    "Line": "            elif \"obfsPassword\" in proxy.details:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 123,
+    "Line": "                proxy.details[\"obfs-password\"] = proxy.details.pop(\"obfsPassword\")"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 126,
+    "Line": "        # 'obfs' -> type (e.g., 'salamander'), 'obfs-password' -> password"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 135,
+    "Line": "            # Validate obfs-password presence if obfs is set"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 136,
+    "Line": "            if obfs_type == \"salamander\" and \"obfs-password\" not in proxy.details:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 138,
+    "Line": "                    \"Hysteria2 obfs=salamander requires obfs-password. Dropping invalid proxy.\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 140,
+    "Line": "                return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 149,
+    "Line": "                    \"Invalid port hopping format: %s\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 154,
+    "Line": "        if not proxy.uuid:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 156,
+    "Line": "            # If no password, Hysteria2 is only valid if the server allows anonymous access."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 158,
+    "Line": "                \"Hysteria2 config missing password (UUID field) - treating as anonymous auth.\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 164,
+    "Line": "def parse_tuic(c: str) -> Optional[Proxy]:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 168,
+    "Line": "        # TUIC often requires both UUID and Password."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 169,
+    "Line": "        # _parse_url_scheme puts user -> uuid, pass -> details['password']"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 170,
+    "Line": "        # If uuid is present but password is missing, some clients use uuid as password."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 171,
+    "Line": "        if proxy.uuid and \"password\" not in proxy.details:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 172,
+    "Line": "            # Use UUID as password if password is missing"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 173,
+    "Line": "            proxy.details[\"password\"] = proxy.uuid"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 175,
+    "Line": "        if not proxy.uuid or not proxy.details.get(\"password\"):"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 176,
+    "Line": "            logger.debug(\"TUIC config missing UUID or password.\")"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 177,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 185,
+    "Line": "def parse_wireguard(c: str) -> Optional[Proxy]:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 201,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 231,
+    "Line": "    # WireGuard specific: if private_key is not in details, try to use uuid (username)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 233,
+    "Line": "        if proxy.uuid:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 234,
+    "Line": "            proxy.details[\"private_key\"] = proxy.uuid"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 241,
+    "Line": "            logger.debug(\"Dropping WireGuard proxy missing private_key\")"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 242,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 247,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 251,
+    "Line": "    # Also \"failed to get peer by public key\" indicates invalid peer_public_key"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 278,
+    "Line": "                        \"WireGuard %s length invalid (%d).\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 284,
+    "Line": "            # Verify decoding if it looks like Base64"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 290,
+    "Line": "                decoded = base64.b64decode(key_clean, validate=False)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 301,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 306,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 310,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 316,
+    "Line": "            # Validate format [x, y, z] or base64"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 317,
+    "Line": "            # Support [1,2,3], 1,2,3 and base64"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 324,
+    "Line": "                    \"Invalid reserved bytes format for WireGuard: %s. Removing invalid field.\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 339,
+    "Line": "                    \"Invalid reserved bytes type for WireGuard: %s\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 347,
+    "Line": "def parse_xray(c: str) -> Optional[Proxy]:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 349,
+    "Line": "    if not proxy or not proxy.uuid:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 350,
+    "Line": "        logger.debug(\"XRay config missing UUID.\")"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 351,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 355,
+    "Line": "def parse_snell(c: str) -> Optional[Proxy]:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 358,
+    "Line": "    if proxy and not (proxy.uuid or proxy.details.get(\"password\")):"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 359,
+    "Line": "        logger.debug(\"Snell config missing password.\")"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 360,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 364,
+    "Line": "def parse_brook(c: str) -> Optional[Proxy]:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 367,
+    "Line": "    if proxy and not (proxy.uuid or proxy.details.get(\"password\")):"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 368,
+    "Line": "        logger.debug(\"Brook config missing password.\")"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 369,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 373,
+    "Line": "def parse_juicity(c: str) -> Optional[Proxy]:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 376,
+    "Line": "    if proxy and not proxy.uuid:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 377,
+    "Line": "        logger.debug(\"Juicity config missing UUID.\")"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 378,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 382,
+    "Line": "def parse_ssh(config: str) -> Optional[Proxy]:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 387,
+    "Line": "        if not proxy.uuid:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 389,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 394,
+    "Line": "                \"Invalid SSH hostname: %s\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 397,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 399,
+    "Line": "        # SSH Tunnels: Parse credentials"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 401,
+    "Line": "        if parsed.password:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 402,
+    "Line": "            proxy.details[\"password\"] = parsed.password"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 18,
+    "Line": "def parse_ss(config: str) -> Optional[Proxy]:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 23,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 26,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 28,
+    "Line": "        # Separate remark and query from the main part"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 29,
+    "Line": "        # Logic: query starts with '?' if present."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 30,
+    "Line": "        # But '?' can be part of remark too? Usually URI standard: #fragment? No, ?query#fragment."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 32,
+    "Line": "        # Often: ss://BASE64#remark"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 34,
+    "Line": "        # Handle '#' for remark (some providers append query params after fragment)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 42,
+    "Line": "            remark_str, sep, frag_query = frag.partition(\"?\")"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 44,
+    "Line": "            if sep and frag_query:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 45,
+    "Line": "                q_params = parse_qs(frag_query)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 48,
+    "Line": "        # Check for query parameters inside main_part (not standard but possible) or after?"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 49,
+    "Line": "        # Standard SIP002 doesn't use query params heavily except for plugins maybe?"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 52,
+    "Line": "        # The part before the @ is either plain text or base64 encoded"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 56,
+    "Line": "            # Optimization: If it contains ':', it's definitely not standard Base64"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 57,
+    "Line": "            # (which uses +/ or -_). Treat as plain method:password to avoid log warning."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 64,
+    "Line": "                    pass  # Not base64, proceed"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 66,
+    "Line": "            # SIP002: ss://<base64-encoded-part>"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 70,
+    "Line": "                # Fallback: maybe it's classic format without @?"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 71,
+    "Line": "                return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 76,
+    "Line": "                # Classic format: method:password:ip:port"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 81,
+    "Line": "                    password = parts_classic[-3]"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 83,
+    "Line": "                    user_info = f\"{method}:{password}\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 86,
+    "Line": "                    return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 92,
+    "Line": "        # Strip query params from host_info (SIP003 plugin params)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 95,
+    "Line": "                host_info, query = host_info.split(sep, 1)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 96,
+    "Line": "                details.update({k: v[0] for k, v in parse_qs(query).items() if v})"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 99,
+    "Line": "        # Parse user_info after host query params so empty-password links can recover"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 100,
+    "Line": "        # credentials from password/pass/psk/pwd fallbacks before being dropped."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 102,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 103,
+    "Line": "        method, password = user_info.split(\":\", 1)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 104,
+    "Line": "        if not password:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 105,
+    "Line": "            for key in (\"password\", \"psk\", \"pass\", \"pwd\"):"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 108,
+    "Line": "                    password = val.strip()"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 110,
+    "Line": "            # Drop proxy if password still missing after all fallback attempts"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 111,
+    "Line": "            if not password:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 113,
+    "Line": "                    \"Shadowsocks proxy dropped: no password after fallback check\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 115,
+    "Line": "                return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 118,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 125,
+    "Line": "                \"Invalid port in shadowsocks config: %s\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 128,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 130,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 133,
+    "Line": "        invalid_methods = {"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 144,
+    "Line": "        if method.lower() in invalid_methods or len(method) < 2:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 146,
+    "Line": "                \"Invalid Shadowsocks method detected: %s\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 149,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 151,
+    "Line": "        if not password:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 152,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 172,
+    "Line": "                \"password\": password,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 193,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 196,
+    "Line": "def parse_ss2022(config: str) -> Optional[Proxy]:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 201,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 204,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 218,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\ssr.py",
+    "LineNumber": 23,
+    "Line": "def parse_ssr(config: str) -> Optional[Proxy]:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\ssr.py",
+    "LineNumber": 27,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\ssr.py",
+    "LineNumber": 30,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\ssr.py",
+    "LineNumber": 34,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\ssr.py",
+    "LineNumber": 39,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\ssr.py",
+    "LineNumber": 48,
+    "Line": "                \"Invalid SSR payload: expected 6 colon-separated parts, got %d (%s)\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\ssr.py",
+    "LineNumber": 52,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\ssr.py",
+    "LineNumber": 56,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\ssr.py",
+    "LineNumber": 62,
+    "Line": "                \"Invalid port in shadowsocksr config: %s\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\ssr.py",
+    "LineNumber": 65,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\ssr.py",
+    "LineNumber": 67,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\ssr.py",
+    "LineNumber": 69,
+    "Line": "        # Password may be base64 (urlsafe, no pad); some generators also put it plain."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\ssr.py",
+    "LineNumber": 70,
+    "Line": "        password = safe_b64_decode(_b64_normalize(pwd_part))"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\ssr.py",
+    "LineNumber": 71,
+    "Line": "        # If base64 decode fails, fall back to raw value to avoid None/\"None\" corruption"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\ssr.py",
+    "LineNumber": 72,
+    "Line": "        if password is None:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\ssr.py",
+    "LineNumber": 73,
+    "Line": "            password = pwd_part"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\ssr.py",
+    "LineNumber": 93,
+    "Line": "            # If it wasn't valid base64, don't fail hard—keep original."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\ssr.py",
+    "LineNumber": 96,
+    "Line": "                    \"SSR param %s not valid base64: %s; leaving as-is.\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\ssr.py",
+    "LineNumber": 117,
+    "Line": "                \"password\": password,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\ssr.py",
+    "LineNumber": 125,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\trojan.py",
+    "LineNumber": 17,
+    "Line": "def parse_trojan(config: str) -> Optional[Proxy]:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\trojan.py",
+    "LineNumber": 21,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\trojan.py",
+    "LineNumber": 26,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\trojan.py",
+    "LineNumber": 29,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\trojan.py",
+    "LineNumber": 32,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\trojan.py",
+    "LineNumber": 33,
+    "Line": "        details = {k: v[0] for k, v in parse_qs(parsed.query).items()}"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\trojan.py",
+    "LineNumber": 35,
+    "Line": "        uuid = parsed.username or \"\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\trojan.py",
+    "LineNumber": 36,
+    "Line": "        # Fallback: check parsed.password, then query params for credentials"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\trojan.py",
+    "LineNumber": 37,
+    "Line": "        if not uuid and parsed.password:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\trojan.py",
+    "LineNumber": 38,
+    "Line": "            uuid = parsed.password"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\trojan.py",
+    "LineNumber": 39,
+    "Line": "        if not uuid:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\trojan.py",
+    "LineNumber": 40,
+    "Line": "            for key in (\"password\", \"pass\", \"pwd\", \"token\", \"uuid\", \"id\"):"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\trojan.py",
+    "LineNumber": 43,
+    "Line": "                    uuid = val.strip()"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\trojan.py",
+    "LineNumber": 46,
+    "Line": "        # Strict Trojan password (stored as username) requirement"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\trojan.py",
+    "LineNumber": 47,
+    "Line": "        if not uuid:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\trojan.py",
+    "LineNumber": 48,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\trojan.py",
+    "LineNumber": 54,
+    "Line": "            uuid=uuid,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\trojan.py",
+    "LineNumber": 62,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vless.py",
+    "LineNumber": 11,
+    "Line": "def parse_vless(url: str) -> Proxy | None:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vless.py",
+    "LineNumber": 15,
+    "Line": "    Format: vless://uuid@host:port?params#name"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vless.py",
+    "LineNumber": 19,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vless.py",
+    "LineNumber": 35,
+    "Line": "        # Split uuid@host:port (rsplit handles @ in uuid edge case)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vless.py",
+    "LineNumber": 37,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vless.py",
+    "LineNumber": 38,
+    "Line": "        uuid_val, host_port = main_part.rsplit(\"@\", 1)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vless.py",
+    "LineNumber": 48,
+    "Line": "                return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vless.py",
+    "LineNumber": 55,
+    "Line": "                    return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vless.py",
+    "LineNumber": 64,
+    "Line": "                    return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vless.py",
+    "LineNumber": 77,
+    "Line": "        uuid_val = uuid_val.strip()"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vless.py",
+    "LineNumber": 78,
+    "Line": "        if not uuid_val:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vless.py",
+    "LineNumber": 79,
+    "Line": "            for key in (\"uuid\", \"id\", \"user\", \"userid\", \"uid\"):"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vless.py",
+    "LineNumber": 82,
+    "Line": "                    uuid_val = val.strip()"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vless.py",
+    "LineNumber": 86,
+    "Line": "        if not host or not port or not uuid_val:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vless.py",
+    "LineNumber": 87,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vless.py",
+    "LineNumber": 92,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vless.py",
+    "LineNumber": 102,
+    "Line": "                \"uuid\": uuid_val,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vless.py",
+    "LineNumber": 111,
+    "Line": "        # Also set UUID on proxy object if model has it"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vless.py",
+    "LineNumber": 112,
+    "Line": "        if hasattr(proxy, \"uuid\"):"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vless.py",
+    "LineNumber": 113,
+    "Line": "            proxy.uuid = uuid_val"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vless.py",
+    "LineNumber": 161,
+    "Line": "        return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vmess.py",
+    "LineNumber": 18,
+    "Line": "def parse_vmess(config: str) -> Optional[Proxy]:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vmess.py",
+    "LineNumber": 21,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vmess.py",
+    "LineNumber": 27,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vmess.py",
+    "LineNumber": 31,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vmess.py",
+    "LineNumber": 35,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vmess.py",
+    "LineNumber": 40,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vmess.py",
+    "LineNumber": 45,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vmess.py",
+    "LineNumber": 48,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vmess.py",
+    "LineNumber": 52,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vmess.py",
+    "LineNumber": 54,
+    "Line": "        uuid = vmess_data[\"id\"]"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vmess.py",
+    "LineNumber": 55,
+    "Line": "        # Basic UUID length check (standard is 36, but some implementations use different IDs)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vmess.py",
+    "LineNumber": 56,
+    "Line": "        if not uuid or len(str(uuid)) > 100:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vmess.py",
+    "LineNumber": 57,
+    "Line": "            return None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vmess.py",
+    "LineNumber": 79,
+    "Line": "            uuid=str(uuid),"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vmess.py",
+    "LineNumber": 87,
+    "Line": "        return None"
+  }
+]

@@ -1,0 +1,3 @@
+Wrote docs\DEBT_MATRIX.md
+Wrote docs\debt_matrix.json
+Total markers: 8

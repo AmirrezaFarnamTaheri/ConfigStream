@@ -1,0 +1,4258 @@
+[
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\audit_pipeline_outputs_report.json",
+    "Length": 4206
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\audit_pipeline_outputs.txt",
+    "Length": 4208
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\claim_ledger_expanded.json",
+    "Length": 14703
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\consolidated_log_findings.json",
+    "Length": 6101604
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\consolidated_pipeline_log_findings.json",
+    "Length": 6109097
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\core_architecture_trace.json",
+    "Length": 35277
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\debt_matrix_current_expanded.json",
+    "Length": 2836
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\deep_inventory_analysis.json",
+    "Length": 1159464
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\deep_inventory_analysis.md",
+    "Length": 1590
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\dependency_drift.txt",
+    "Length": 32
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\docs_status_scan.json",
+    "Length": 277637
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\frontend-wasm\\js\\wasm_exec.js",
+    "Length": 16992
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\frontend-wasm\\wasm\\tester.wasm",
+    "Length": 2638799
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-evidence-25992023452\\artifact_manifest.json",
+    "Length": 99565
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-evidence-25992023452\\health.json",
+    "Length": 324
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-evidence-25992023452\\metadata.json",
+    "Length": 9633
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-evidence-25992023452\\native_client_check_report.json",
+    "Length": 2130
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-evidence-25992023452\\README.md",
+    "Length": 626
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-evidence-25992023452\\summary.json",
+    "Length": 2830
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\about.html",
+    "Length": 14036
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\analytics.html",
+    "Length": 21118
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\api\\proxies",
+    "Length": 31936228
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\api\\stats",
+    "Length": 9633
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\artifact_manifest.json",
+    "Length": 99565
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\css\\error-handler.css",
+    "Length": 910
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\css\\fonts.css",
+    "Length": 8854
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\css\\header-animation.css",
+    "Length": 2390
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\css\\health-score.css",
+    "Length": 1427
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\css\\loading.css",
+    "Length": 5630
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\css\\logo-animations.css",
+    "Length": 149
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\css\\proxy-history-chart.css",
+    "Length": 4429
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\css\\state-manager.css",
+    "Length": 2029
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\css\\style.css",
+    "Length": 104427
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\data\\countries.json",
+    "Length": 5467
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\data\\lab_strategies.json",
+    "Length": 2754
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\inter\\Inter-Bold.woff2",
+    "Length": 114840
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\inter\\Inter-Medium.woff2",
+    "Length": 114348
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\inter\\Inter-Regular.woff2",
+    "Length": 111268
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\inter\\Inter-SemiBold.woff2",
+    "Length": 114812
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\inter\\InterVariable-Italic.woff2",
+    "Length": 387976
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\inter\\InterVariable.woff2",
+    "Length": 352240
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\poppins\\poppins-v21-latin-500.woff2",
+    "Length": 7848
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\poppins\\poppins-v21-latin-600.woff2",
+    "Length": 7740
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\poppins\\poppins-v21-latin-700.woff2",
+    "Length": 7992
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\poppins\\poppins-v21-latin-800.woff2",
+    "Length": 7816
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\poppins\\poppins-v21-latin-regular.woff2",
+    "Length": 7992
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\vendor\\latin-display-486545d29518-QdVMSTAyLFyeg_IDWvOJmVES_HTEJm87Rb0bcw.woff2",
+    "Length": 13548
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\vendor\\latin-display-6e4e3d4422ed--nFnOHM81r4j6k0gjAW3mujVU2B2G_Bx0g.woff2",
+    "Length": 24744
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\vendor\\latin-display-8b6c7c9f87b1-QdVMSTAyLFyeg_IDWvOJmVES_HSMIG81Rb0.woff2",
+    "Length": 22152
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\vendor\\latin-display-8e1fda6739c1-QdVMSTAyLFyeg_IDWvOJmVES_HSQI287Rb0bcw.woff2",
+    "Length": 13752
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\vendor\\latin-display-b3cac1dad649-QdVPSTAyLFyeg_IDWvOJmVES_Hw3BXo.woff2",
+    "Length": 21168
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\vendor\\latin-display-b7519c08d2e4-QdVMSTAyLFyeg_IDWvOJmVES_HTEJm81Rb0.woff2",
+    "Length": 21892
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\vendor\\latin-display-ba57728a5d45-QdVMSTAyLFyeg_IDWvOJmVES_HSMIG86Rb0bcw.woff2",
+    "Length": 12468
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\vendor\\latin-display-c4570683dabb-QdVPSTAyLFyeg_IDWvOJmVES_Hw5BXoKZA.woff2",
+    "Length": 13056
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\vendor\\latin-display-d172a73235c7-QdVMSTAyLFyeg_IDWvOJmVES_HSMIG87Rb0bcw.woff2",
+    "Length": 13852
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\vendor\\latin-display-d6b61d19d4f4-QdVMSTAyLFyeg_IDWvOJmVES_HTEJm86Rb0bcw.woff2",
+    "Length": 12172
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\vendor\\latin-display-d75ec7940436--nFnOHM81r4j6k0gjAW3mujVU2B2G_5x0ujy.woff2",
+    "Length": 10804
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\vendor\\latin-display-d84b967150f4-QdVMSTAyLFyeg_IDWvOJmVES_HSQI281Rb0.woff2",
+    "Length": 22320
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\vendor\\latin-display-e58aff64c4e0-QdVMSTAyLFyeg_IDWvOJmVES_HSQI286Rb0bcw.woff2",
+    "Length": 12404
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\vendor\\latin-display-ebe222511bef-QdVPSTAyLFyeg_IDWvOJmVES_Hw4BXoKZA.woff2",
+    "Length": 11532
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\vendor\\mikhak-Mikhak-Bold.woff2",
+    "Length": 35436
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\vendor\\mikhak-Mikhak-ExtraBold.woff2",
+    "Length": 35572
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\vendor\\mikhak-Mikhak-Medium.woff2",
+    "Length": 35436
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\vendor\\mikhak-Mikhak-Regular.woff2",
+    "Length": 35544
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\vendor\\mikhak-Mikhak-SemiBold.woff2",
+    "Length": 35500
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\vendor\\vazirmatn-082b2a4f3fd4-Vazirmatn-ExtraLight.woff2",
+    "Length": 51268
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\vendor\\vazirmatn-13fc2a314a0e-Vazirmatn-ExtraBold.woff2",
+    "Length": 51120
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\vendor\\vazirmatn-1b42ee138d02-Vazirmatn-SemiBold.woff2",
+    "Length": 51032
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\vendor\\vazirmatn-29609e28b76d-Vazirmatn-Black.woff2",
+    "Length": 50568
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\vendor\\vazirmatn-78360f9dd784-Vazirmatn-Light.woff2",
+    "Length": 51180
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\vendor\\vazirmatn-a6cbf186fb4c-Vazirmatn-Medium.woff2",
+    "Length": 51128
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\vendor\\vazirmatn-b6338fc6d31a-Vazirmatn-Regular.woff2",
+    "Length": 50684
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\vendor\\vazirmatn-f61048315b19-Vazirmatn-Bold.woff2",
+    "Length": 51020
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\fonts\\vendor\\vazirmatn-fa1a95b0a67d-Vazirmatn-Thin.woff2",
+    "Length": 50796
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\apple-touch-icon-180x180.png",
+    "Length": 5239
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\apple-touch-icon.png",
+    "Length": 5239
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\background.png",
+    "Length": 289
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\favicon-16x16.png",
+    "Length": 391
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\favicon-32x32.png",
+    "Length": 829
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\favicon-48x48.png",
+    "Length": 1289
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\favicon.ico",
+    "Length": 414
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ad.png",
+    "Length": 222
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ae.png",
+    "Length": 115
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\af.png",
+    "Length": 343
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ag.png",
+    "Length": 280
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ai.png",
+    "Length": 230
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\al.png",
+    "Length": 198
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\am.png",
+    "Length": 110
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ao.png",
+    "Length": 220
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\aq.png",
+    "Length": 206
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ar.png",
+    "Length": 135
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\as.png",
+    "Length": 261
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\at.png",
+    "Length": 101
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\au.png",
+    "Length": 220
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\aw.png",
+    "Length": 140
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ax.png",
+    "Length": 146
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\az.png",
+    "Length": 143
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ba.png",
+    "Length": 173
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\bb.png",
+    "Length": 159
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\bd.png",
+    "Length": 126
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\be.png",
+    "Length": 114
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\bf.png",
+    "Length": 131
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\bg.png",
+    "Length": 97
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\bh.png",
+    "Length": 156
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\bi.png",
+    "Length": 296
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\bj.png",
+    "Length": 108
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\bl.png",
+    "Length": 375
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\bm.png",
+    "Length": 278
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\bn.png",
+    "Length": 338
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\bo.png",
+    "Length": 195
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\bq.png",
+    "Length": 341
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\br.png",
+    "Length": 260
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\bs.png",
+    "Length": 157
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\bt.png",
+    "Length": 326
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\bv.png",
+    "Length": 169
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\bw.png",
+    "Length": 108
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\by.png",
+    "Length": 144
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\bz.png",
+    "Length": 250
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ca.png",
+    "Length": 171
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\cc.png",
+    "Length": 205
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\cd.png",
+    "Length": 235
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\cf.png",
+    "Length": 213
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\cg.png",
+    "Length": 205
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ch.png",
+    "Length": 132
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ci.png",
+    "Length": 113
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ck.png",
+    "Length": 246
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\cl.png",
+    "Length": 153
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\cm.png",
+    "Length": 138
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\cn.png",
+    "Length": 144
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\co.png",
+    "Length": 112
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\cr.png",
+    "Length": 137
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\cu.png",
+    "Length": 164
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\cv.png",
+    "Length": 131
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\cw.png",
+    "Length": 141
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\cx.png",
+    "Length": 225
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\cy.png",
+    "Length": 229
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\cz.png",
+    "Length": 205
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\de.png",
+    "Length": 97
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\dj.png",
+    "Length": 260
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\dk.png",
+    "Length": 119
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\dm.png",
+    "Length": 210
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\do.png",
+    "Length": 165
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\dz.png",
+    "Length": 200
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ec.png",
+    "Length": 237
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ee.png",
+    "Length": 102
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\eg.png",
+    "Length": 155
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\eh.png",
+    "Length": 235
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\er.png",
+    "Length": 209
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\es.png",
+    "Length": 205
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\et.png",
+    "Length": 207
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\eu.png",
+    "Length": 190
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\fi.png",
+    "Length": 121
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\fj.png",
+    "Length": 261
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\fk.png",
+    "Length": 302
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\fm.png",
+    "Length": 129
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\fo.png",
+    "Length": 147
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\fr.png",
+    "Length": 109
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ga.png",
+    "Length": 97
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\gb.png",
+    "Length": 252
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\gd.png",
+    "Length": 250
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ge.png",
+    "Length": 162
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\gf.png",
+    "Length": 222
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\gg.png",
+    "Length": 157
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\gh.png",
+    "Length": 157
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\gi.png",
+    "Length": 238
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\gl.png",
+    "Length": 208
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\gm.png",
+    "Length": 129
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\gn.png",
+    "Length": 119
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\gp.png",
+    "Length": 334
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\gq.png",
+    "Length": 254
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\gr.png",
+    "Length": 170
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\gs.png",
+    "Length": 324
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\gt.png",
+    "Length": 164
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\gu.png",
+    "Length": 189
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\gw.png",
+    "Length": 143
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\gy.png",
+    "Length": 227
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\hk.png",
+    "Length": 221
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\hm.png",
+    "Length": 232
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\hn.png",
+    "Length": 138
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\hr.png",
+    "Length": 194
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ht.png",
+    "Length": 213
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\hu.png",
+    "Length": 110
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\id.png",
+    "Length": 97
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ie.png",
+    "Length": 105
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\il.png",
+    "Length": 171
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\im.png",
+    "Length": 179
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\in.png",
+    "Length": 169
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\io.png",
+    "Length": 421
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\iq.png",
+    "Length": 154
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ir.png",
+    "Length": 203
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\is.png",
+    "Length": 148
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\it.png",
+    "Length": 106
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\je.png",
+    "Length": 259
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\jm.png",
+    "Length": 169
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\jo.png",
+    "Length": 171
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\jp.png",
+    "Length": 143
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ke.png",
+    "Length": 239
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\kg.png",
+    "Length": 171
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\kh.png",
+    "Length": 211
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ki.png",
+    "Length": 281
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\km.png",
+    "Length": 257
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\kn.png",
+    "Length": 370
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\kp.png",
+    "Length": 163
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\kr.png",
+    "Length": 325
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\kw.png",
+    "Length": 157
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ky.png",
+    "Length": 264
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\kz.png",
+    "Length": 175
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\la.png",
+    "Length": 153
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\lb.png",
+    "Length": 199
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\lc.png",
+    "Length": 205
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\li.png",
+    "Length": 149
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\lk.png",
+    "Length": 265
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\lr.png",
+    "Length": 142
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ls.png",
+    "Length": 160
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\lt.png",
+    "Length": 98
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\lu.png",
+    "Length": 98
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\lv.png",
+    "Length": 92
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ly.png",
+    "Length": 130
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ma.png",
+    "Length": 132
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\mc.png",
+    "Length": 92
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\md.png",
+    "Length": 180
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\me.png",
+    "Length": 215
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\mf.png",
+    "Length": 109
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\mg.png",
+    "Length": 119
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\mh.png",
+    "Length": 336
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\mk.png",
+    "Length": 220
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ml.png",
+    "Length": 120
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\mm.png",
+    "Length": 218
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\mn.png",
+    "Length": 187
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\mo.png",
+    "Length": 200
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\mp.png",
+    "Length": 288
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\mq.png",
+    "Length": 182
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\mr.png",
+    "Length": 171
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ms.png",
+    "Length": 259
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\mt.png",
+    "Length": 122
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\mu.png",
+    "Length": 124
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\mv.png",
+    "Length": 147
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\mw.png",
+    "Length": 143
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\mx.png",
+    "Length": 182
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\my.png",
+    "Length": 200
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\mz.png",
+    "Length": 261
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\na.png",
+    "Length": 346
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\nc.png",
+    "Length": 245
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ne.png",
+    "Length": 159
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\nf.png",
+    "Length": 199
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ng.png",
+    "Length": 109
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ni.png",
+    "Length": 120
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\nl.png",
+    "Length": 122
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\no.png",
+    "Length": 169
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\np.png",
+    "Length": 473
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\nr.png",
+    "Length": 126
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\nu.png",
+    "Length": 186
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\nz.png",
+    "Length": 200
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\om.png",
+    "Length": 151
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\pa.png",
+    "Length": 178
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\pe.png",
+    "Length": 95
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\pf.png",
+    "Length": 206
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\pg.png",
+    "Length": 284
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ph.png",
+    "Length": 237
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\pk.png",
+    "Length": 204
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\pl.png",
+    "Length": 98
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\pm.png",
+    "Length": 685
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\pn.png",
+    "Length": 314
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\pr.png",
+    "Length": 216
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ps.png",
+    "Length": 181
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\pt.png",
+    "Length": 223
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\pw.png",
+    "Length": 170
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\py.png",
+    "Length": 134
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\qa.png",
+    "Length": 119
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\re.png",
+    "Length": 270
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ro.png",
+    "Length": 106
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\rs.png",
+    "Length": 279
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ru.png",
+    "Length": 121
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\rw.png",
+    "Length": 144
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\sa.png",
+    "Length": 180
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\sb.png",
+    "Length": 172
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\sc.png",
+    "Length": 266
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\sd.png",
+    "Length": 186
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\se.png",
+    "Length": 110
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\sg.png",
+    "Length": 162
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\sh.png",
+    "Length": 234
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\si.png",
+    "Length": 148
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\sj.png",
+    "Length": 169
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\sk.png",
+    "Length": 239
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\sl.png",
+    "Length": 111
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\sm.png",
+    "Length": 287
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\sn.png",
+    "Length": 146
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\so.png",
+    "Length": 145
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\sr.png",
+    "Length": 153
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ss.png",
+    "Length": 201
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\st.png",
+    "Length": 169
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\sv.png",
+    "Length": 134
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\sx.png",
+    "Length": 282
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\sy.png",
+    "Length": 158
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\sz.png",
+    "Length": 307
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\tc.png",
+    "Length": 236
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\td.png",
+    "Length": 114
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\tf.png",
+    "Length": 221
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\tg.png",
+    "Length": 188
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\th.png",
+    "Length": 119
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\tj.png",
+    "Length": 133
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\tk.png",
+    "Length": 248
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\tl.png",
+    "Length": 191
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\tm.png",
+    "Length": 279
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\tn.png",
+    "Length": 182
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\to.png",
+    "Length": 133
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\tr.png",
+    "Length": 181
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\tt.png",
+    "Length": 278
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\tv.png",
+    "Length": 263
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\tw.png",
+    "Length": 153
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\tz.png",
+    "Length": 278
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ua.png",
+    "Length": 97
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ug.png",
+    "Length": 224
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\um.png",
+    "Length": 175
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\un.png",
+    "Length": 170
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\us.png",
+    "Length": 175
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\uy.png",
+    "Length": 209
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\uz.png",
+    "Length": 141
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\va.png",
+    "Length": 298
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\vc.png",
+    "Length": 161
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ve.png",
+    "Length": 170
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\vg.png",
+    "Length": 289
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\vi.png",
+    "Length": 440
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\vn.png",
+    "Length": 164
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\vu.png",
+    "Length": 243
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\wf.png",
+    "Length": 193
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ws.png",
+    "Length": 129
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\xk.png",
+    "Length": 218
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\ye.png",
+    "Length": 111
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\yt.png",
+    "Length": 379
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\za.png",
+    "Length": 293
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\zm.png",
+    "Length": 153
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\flags\\w20\\zw.png",
+    "Length": 222
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\globe\\earth-blue-marble.jpg",
+    "Length": 1461877
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\globe\\earth-night.jpg",
+    "Length": 715000
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\globe\\earth-topology.png",
+    "Length": 378243
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\globe\\night-sky.png",
+    "Length": 904154
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\icon-192x192.png",
+    "Length": 5860
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\images\\icon-512x512.png",
+    "Length": 17138
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\analytics.js",
+    "Length": 46274
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\byow.js",
+    "Length": 6312
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\cache-config.js",
+    "Length": 1033
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\cache-manager.js",
+    "Length": 14111
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\charts.js",
+    "Length": 3962
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\common-ui.js",
+    "Length": 9845
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\constants.js",
+    "Length": 2418
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\dynamic-downloads.js",
+    "Length": 7273
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\error-handler.js",
+    "Length": 4295
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\failover.js",
+    "Length": 4352
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\health-score.js",
+    "Length": 2280
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\i18n.js",
+    "Length": 108830
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\incremental-loader.js",
+    "Length": 1163
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\init.js",
+    "Length": 25
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\inline-icons.js",
+    "Length": 15404
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\lab.js",
+    "Length": 76681
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\loading-controller.js",
+    "Length": 7238
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\logger.js",
+    "Length": 4030
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\logo-controller.js",
+    "Length": 3541
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\main.js",
+    "Length": 13219
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\plugin_loader.js",
+    "Length": 4183
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\proxies.js",
+    "Length": 26800
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\proxy-history-chart.js",
+    "Length": 11900
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\runtime-config.js",
+    "Length": 275
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\state-manager.js",
+    "Length": 14819
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\statistics.js",
+    "Length": 40780
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\stego_loader.js",
+    "Length": 789
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\stego.js",
+    "Length": 9291
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\sw-init.js",
+    "Length": 1018
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\update-detector.js",
+    "Length": 12924
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\utils.js",
+    "Length": 2424
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\utils\\dom.js",
+    "Length": 2557
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\utils\\format.js",
+    "Length": 1999
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\utils\\helpers.js",
+    "Length": 1826
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\utils\\logger.js",
+    "Length": 4365
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\utils\\network.js",
+    "Length": 8478
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\utils\\qrcode.js",
+    "Length": 28347
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\utils\\ui.js",
+    "Length": 3903
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\vanilla-tilt.min.js",
+    "Length": 8887
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\verifier.js",
+    "Length": 4923
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\washer_client.js",
+    "Length": 640
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\wasm_exec.js",
+    "Length": 16992
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\wasm_loader.js",
+    "Length": 5752
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\js\\wiki.js",
+    "Length": 9422
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\libs\\atom-one-dark.min.css",
+    "Length": 856
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\libs\\chart.min.js",
+    "Length": 205399
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\libs\\feather.min.js",
+    "Length": 75965
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\libs\\fernetBrowser.min.js",
+    "Length": 103440
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\libs\\globe.gl.min.js",
+    "Length": 1031887
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\libs\\highlight.min.js",
+    "Length": 121727
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\libs\\marked.min.js",
+    "Length": 39903
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\libs\\pako.min.js",
+    "Length": 46859
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\libs\\purify.min.js",
+    "Length": 20931
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\libs\\three.min.js",
+    "Length": 669884
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\plugins\\plugins.json",
+    "Length": 3
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\svg\\favicon.svg",
+    "Length": 3330
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\svg\\logo-header.svg",
+    "Length": 1070
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\svg\\logo-loading.svg",
+    "Length": 4580
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\vendor-manifest.json",
+    "Length": 3345
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\assets\\wasm\\tester.wasm",
+    "Length": 8883038
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\base64-dns-hardened.txt",
+    "Length": 84796
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\base64-dns-safe.txt",
+    "Length": 84796
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\base64.txt",
+    "Length": 84796
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\chains-dns-hardened.json",
+    "Length": 8112484
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\chains-dns-safe.json",
+    "Length": 7491862
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\chains.json",
+    "Length": 8112484
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\chosen\\base64-dns-hardened.txt",
+    "Length": 16396
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\chosen\\base64-dns-safe.txt",
+    "Length": 16396
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\chosen\\base64.txt",
+    "Length": 16396
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\chosen\\clash.yaml",
+    "Length": 10067
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\chosen\\proxies.txt",
+    "Length": 12295
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\chosen\\singbox.json",
+    "Length": 42001
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\clash-dns-hardened.yaml",
+    "Length": 78963
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\clash-dns-safe.yaml",
+    "Length": 78151
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\clash.yaml",
+    "Length": 78151
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\consolidated_pipeline.log",
+    "Length": 8345683
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\countries\\XX.json",
+    "Length": 3878248
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\countries\\XX.list.json",
+    "Length": 26336148
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\data\\active_proxy_trend.json",
+    "Length": 2
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\data\\clean_ips.json",
+    "Length": 773
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\data\\evasion_trend.json",
+    "Length": 411
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\data\\proxy_history_viz.json",
+    "Length": 2
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\docs\\wiki\\encyclopedia\\glossary\\networking_terms.md",
+    "Length": 13354
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\docs\\wiki\\encyclopedia\\glossary\\security_concepts.md",
+    "Length": 9879
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\docs\\wiki\\encyclopedia\\networking\\topology.md",
+    "Length": 8963
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\docs\\wiki\\encyclopedia\\networking\\warp.md",
+    "Length": 8604
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\docs\\wiki\\encyclopedia\\protocols\\hysteria2.md",
+    "Length": 8420
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\docs\\wiki\\encyclopedia\\protocols\\shadowsocks.md",
+    "Length": 7452
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\docs\\wiki\\encyclopedia\\protocols\\trojan.md",
+    "Length": 8248
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\docs\\wiki\\encyclopedia\\protocols\\vless.md",
+    "Length": 6601
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\docs\\wiki\\encyclopedia\\protocols\\vmess.md",
+    "Length": 6934
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\docs\\wiki\\encyclopedia\\protocols\\wireguard.md",
+    "Length": 7514
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\docs\\wiki\\encyclopedia\\security\\firewall_honeypot.md",
+    "Length": 11396
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\docs\\wiki\\encyclopedia\\tools\\singbox_configuration_guide.md",
+    "Length": 9664
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\docs\\wiki\\index.md",
+    "Length": 3406
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\docs\\wiki\\project\\01-introduction.md",
+    "Length": 8411
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\docs\\wiki\\project\\02-architecture.md",
+    "Length": 13484
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\docs\\wiki\\project\\03-protocols.md",
+    "Length": 8821
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\docs\\wiki\\project\\04-engineering.md",
+    "Length": 17845
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\docs\\wiki\\project\\05-devops.md",
+    "Length": 5222
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\docs\\wiki\\project\\06-frontend.md",
+    "Length": 14000
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\docs\\wiki\\project\\07-security.md",
+    "Length": 7982
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\docs\\wiki\\project\\08-api-reference.md",
+    "Length": 19513
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\docs\\wiki\\project\\09-contributing.md",
+    "Length": 4719
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\docs\\wiki\\project\\10-troubleshooting.md",
+    "Length": 7736
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\docs\\wiki\\project\\About_Page.md",
+    "Length": 2152
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\docs\\wiki\\project\\Analytics_Page.md",
+    "Length": 3910
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\docs\\wiki\\project\\Configuration.md",
+    "Length": 6149
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\docs\\wiki\\project\\getting_started.md",
+    "Length": 4233
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\docs\\wiki\\project\\Home_Page.md",
+    "Length": 4532
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\docs\\wiki\\project\\Home.md",
+    "Length": 6235
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\docs\\wiki\\project\\Lab_Page.md",
+    "Length": 4866
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\docs\\wiki\\project\\Proxies_Page.md",
+    "Length": 3164
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\health.json",
+    "Length": 324
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\index.html",
+    "Length": 44973
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\lab-offline.html",
+    "Length": 19085
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\lab.html",
+    "Length": 63558
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\loon-dns-hardened.conf",
+    "Length": 1762469
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\loon-dns-safe.conf",
+    "Length": 1761780
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\loon.conf",
+    "Length": 1761780
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\manifest.json",
+    "Length": 834
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\metadata.json",
+    "Length": 9633
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\protocols\\http.json",
+    "Length": 42436
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\protocols\\http.list.json",
+    "Length": 126509
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\protocols\\http.txt",
+    "Length": 11094
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\protocols\\revived.json",
+    "Length": 3685408
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\protocols\\revived.list.json",
+    "Length": 25640794
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\protocols\\revived.txt",
+    "Length": 768367
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\protocols\\socks4.json",
+    "Length": 55325
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\protocols\\socks4.list.json",
+    "Length": 206610
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\protocols\\socks4.txt",
+    "Length": 19002
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\protocols\\socks5.json",
+    "Length": 107544
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\protocols\\socks5.list.json",
+    "Length": 362241
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\protocols\\socks5.txt",
+    "Length": 33499
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\proxies-dns-hardened.json",
+    "Length": 25319248
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\proxies-dns-hardened.txt",
+    "Length": 63597
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\proxies-dns-safe.json",
+    "Length": 25302024
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\proxies-dns-safe.txt",
+    "Length": 63597
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\proxies.html",
+    "Length": 20596
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\proxies.json",
+    "Length": 31936228
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\proxies.txt",
+    "Length": 63597
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\quantumult-dns-hardened.conf",
+    "Length": 10578
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\quantumult-dns-safe.conf",
+    "Length": 9750
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\quantumult.conf",
+    "Length": 9750
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\revived-dns-hardened.json",
+    "Length": 24728810
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\revived-dns-safe.json",
+    "Length": 24714042
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\revived.json",
+    "Length": 24625434
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\service-worker.js",
+    "Length": 4174
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\shadowrocket-dns-hardened.txt",
+    "Length": 64399
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\shadowrocket-dns-safe.txt",
+    "Length": 63597
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\shadowrocket.txt",
+    "Length": 63597
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\side_products-dns-hardened.zip",
+    "Length": 7586
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\side_products-dns-safe.zip",
+    "Length": 7586
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\side_products.zip",
+    "Length": 7586
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\singbox-chains-dns-hardened.json",
+    "Length": 8112484
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\singbox-chains-dns-safe.json",
+    "Length": 7491862
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\singbox-chains.json",
+    "Length": 8112484
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\singbox-dns-hardened.json",
+    "Length": 5482761
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\singbox-dns-safe.json",
+    "Length": 5481513
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\singbox-vpn-dns-hardened.json",
+    "Length": 4619124
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\singbox-vpn-dns-safe.json",
+    "Length": 4617876
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\singbox-vpn.json",
+    "Length": 4617876
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\singbox.json",
+    "Length": 5481513
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\sip008-dns-hardened.json",
+    "Length": 78
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\sip008-dns-safe.json",
+    "Length": 78
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\sip008.json",
+    "Length": 78
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\surge-dns-hardened.conf",
+    "Length": 3573505
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\surge-dns-safe.conf",
+    "Length": 3572817
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\surge.conf",
+    "Length": 3572817
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\tools\\lab-runner.sh",
+    "Length": 10239
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\tools\\lab-scanner.py",
+    "Length": 96708
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\vectors.json",
+    "Length": 28236
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\pipeline-output\\wiki.html",
+    "Length": 15980
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\source-reshard-recommendation\\batch_1.txt",
+    "Length": 4955
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\source-reshard-recommendation\\batch_10.txt",
+    "Length": 3188
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\source-reshard-recommendation\\batch_11.txt",
+    "Length": 4827
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\source-reshard-recommendation\\batch_12.txt",
+    "Length": 4752
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\source-reshard-recommendation\\batch_13.txt",
+    "Length": 4628
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\source-reshard-recommendation\\batch_14.txt",
+    "Length": 4516
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\source-reshard-recommendation\\batch_15.txt",
+    "Length": 3186
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\source-reshard-recommendation\\batch_16.txt",
+    "Length": 6223
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\source-reshard-recommendation\\batch_17.txt",
+    "Length": 4330
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\source-reshard-recommendation\\batch_2.txt",
+    "Length": 4547
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\source-reshard-recommendation\\batch_3.txt",
+    "Length": 5679
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\source-reshard-recommendation\\batch_4.txt",
+    "Length": 4188
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\source-reshard-recommendation\\batch_5.txt",
+    "Length": 4484
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\source-reshard-recommendation\\batch_6.txt",
+    "Length": 2959
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\source-reshard-recommendation\\batch_7.txt",
+    "Length": 4064
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\source-reshard-recommendation\\batch_8.txt",
+    "Length": 4866
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\extracted\\source-reshard-recommendation\\batch_9.txt",
+    "Length": 5765
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\failure_trace_scan.json",
+    "Length": 517897
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\file_inventory.json",
+    "Length": 110385
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\focused_pytest.txt",
+    "Length": 1245
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\frontend_trace.json",
+    "Length": 67115
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\full_proxy_schema_validation.json",
+    "Length": 29224
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\generate_debt_matrix.txt",
+    "Length": 74
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\marker_scan.json",
+    "Length": 2473053
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\module_ownership_expanded.json",
+    "Length": 16088
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\mojibake_refs.json",
+    "Length": 6639
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\mypy_src_scripts_tests.txt",
+    "Length": 6470
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\mypy.txt",
+    "Length": 873
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\native_client_check_report_expanded.json",
+    "Length": 2237
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\npm_build.txt",
+    "Length": 20322
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\npm_frontend_no_network.txt",
+    "Length": 235
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\output_matrix_expanded.json",
+    "Length": 16337
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\parser_contract_trace.json",
+    "Length": 81966
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\parser_proxy_creation_scan.json",
+    "Length": 31712
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\pipeline_artifact_audit_pages.json",
+    "Length": 4206
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\pipeline_artifact_audit.json",
+    "Length": 818
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\pipeline_evidence_summary_expanded.json",
+    "Length": 2954
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\pipeline_health_expanded.json",
+    "Length": 337
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\pipeline_metadata_expanded.json",
+    "Length": 10123
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\pipeline_output_bad_proxies.json",
+    "Length": 1651825
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\pipeline_output_inventory.json",
+    "Length": 85043
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\pipeline_output_proxy_schema_summary.json",
+    "Length": 4228
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\protocol_matrix_expanded.json",
+    "Length": 12430
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\proxy_uuid_latlng_code_refs.json",
+    "Length": 24120
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\risk_pattern_scan.json",
+    "Length": 3640003
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\security_trace.json",
+    "Length": 41372
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\source_of_truth_claim_scan.json",
+    "Length": 670247
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\source_of_truth_counts.json",
+    "Length": 725
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\source_of_truth_fulltext_digest.txt",
+    "Length": 588868
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\source_of_truth_headings.json",
+    "Length": 37721
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validate_assets.txt",
+    "Length": 31
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validate_claim_ledger.txt",
+    "Length": 29
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validate_frontend_placeholders_frontend.txt",
+    "Length": 49
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validate_module_ownership.txt",
+    "Length": 37
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validate_output_matrix.txt",
+    "Length": 30
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validate_pipeline_output_stdout.txt",
+    "Length": 242
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validate_protocol_matrix.txt",
+    "Length": 32
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validate_status.txt",
+    "Length": 44
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validate_workflows.txt",
+    "Length": 32
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\about.html",
+    "Length": 14036
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\analytics.html",
+    "Length": 21118
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\api\\proxies",
+    "Length": 31936228
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\api\\stats",
+    "Length": 9633
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\artifact_manifest.json",
+    "Length": 102105
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\css\\error-handler.css",
+    "Length": 910
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\css\\fonts.css",
+    "Length": 8854
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\css\\header-animation.css",
+    "Length": 2390
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\css\\health-score.css",
+    "Length": 1427
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\css\\loading.css",
+    "Length": 5630
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\css\\logo-animations.css",
+    "Length": 149
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\css\\proxy-history-chart.css",
+    "Length": 4429
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\css\\state-manager.css",
+    "Length": 2029
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\css\\style.css",
+    "Length": 104427
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\data\\countries.json",
+    "Length": 5467
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\data\\lab_strategies.json",
+    "Length": 2754
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\inter\\Inter-Bold.woff2",
+    "Length": 114840
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\inter\\Inter-Medium.woff2",
+    "Length": 114348
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\inter\\Inter-Regular.woff2",
+    "Length": 111268
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\inter\\Inter-SemiBold.woff2",
+    "Length": 114812
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\inter\\InterVariable-Italic.woff2",
+    "Length": 387976
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\inter\\InterVariable.woff2",
+    "Length": 352240
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\poppins\\poppins-v21-latin-500.woff2",
+    "Length": 7848
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\poppins\\poppins-v21-latin-600.woff2",
+    "Length": 7740
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\poppins\\poppins-v21-latin-700.woff2",
+    "Length": 7992
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\poppins\\poppins-v21-latin-800.woff2",
+    "Length": 7816
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\poppins\\poppins-v21-latin-regular.woff2",
+    "Length": 7992
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\vendor\\latin-display-486545d29518-QdVMSTAyLFyeg_IDWvOJmVES_HTEJm87Rb0bcw.woff2",
+    "Length": 13548
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\vendor\\latin-display-6e4e3d4422ed--nFnOHM81r4j6k0gjAW3mujVU2B2G_Bx0g.woff2",
+    "Length": 24744
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\vendor\\latin-display-8b6c7c9f87b1-QdVMSTAyLFyeg_IDWvOJmVES_HSMIG81Rb0.woff2",
+    "Length": 22152
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\vendor\\latin-display-8e1fda6739c1-QdVMSTAyLFyeg_IDWvOJmVES_HSQI287Rb0bcw.woff2",
+    "Length": 13752
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\vendor\\latin-display-b3cac1dad649-QdVPSTAyLFyeg_IDWvOJmVES_Hw3BXo.woff2",
+    "Length": 21168
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\vendor\\latin-display-b7519c08d2e4-QdVMSTAyLFyeg_IDWvOJmVES_HTEJm81Rb0.woff2",
+    "Length": 21892
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\vendor\\latin-display-ba57728a5d45-QdVMSTAyLFyeg_IDWvOJmVES_HSMIG86Rb0bcw.woff2",
+    "Length": 12468
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\vendor\\latin-display-c4570683dabb-QdVPSTAyLFyeg_IDWvOJmVES_Hw5BXoKZA.woff2",
+    "Length": 13056
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\vendor\\latin-display-d172a73235c7-QdVMSTAyLFyeg_IDWvOJmVES_HSMIG87Rb0bcw.woff2",
+    "Length": 13852
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\vendor\\latin-display-d6b61d19d4f4-QdVMSTAyLFyeg_IDWvOJmVES_HTEJm86Rb0bcw.woff2",
+    "Length": 12172
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\vendor\\latin-display-d75ec7940436--nFnOHM81r4j6k0gjAW3mujVU2B2G_5x0ujy.woff2",
+    "Length": 10804
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\vendor\\latin-display-d84b967150f4-QdVMSTAyLFyeg_IDWvOJmVES_HSQI281Rb0.woff2",
+    "Length": 22320
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\vendor\\latin-display-e58aff64c4e0-QdVMSTAyLFyeg_IDWvOJmVES_HSQI286Rb0bcw.woff2",
+    "Length": 12404
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\vendor\\latin-display-ebe222511bef-QdVPSTAyLFyeg_IDWvOJmVES_Hw4BXoKZA.woff2",
+    "Length": 11532
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\vendor\\mikhak-Mikhak-Bold.woff2",
+    "Length": 35436
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\vendor\\mikhak-Mikhak-ExtraBold.woff2",
+    "Length": 35572
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\vendor\\mikhak-Mikhak-Medium.woff2",
+    "Length": 35436
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\vendor\\mikhak-Mikhak-Regular.woff2",
+    "Length": 35544
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\vendor\\mikhak-Mikhak-SemiBold.woff2",
+    "Length": 35500
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\vendor\\vazirmatn-082b2a4f3fd4-Vazirmatn-ExtraLight.woff2",
+    "Length": 51268
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\vendor\\vazirmatn-13fc2a314a0e-Vazirmatn-ExtraBold.woff2",
+    "Length": 51120
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\vendor\\vazirmatn-1b42ee138d02-Vazirmatn-SemiBold.woff2",
+    "Length": 51032
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\vendor\\vazirmatn-29609e28b76d-Vazirmatn-Black.woff2",
+    "Length": 50568
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\vendor\\vazirmatn-78360f9dd784-Vazirmatn-Light.woff2",
+    "Length": 51180
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\vendor\\vazirmatn-a6cbf186fb4c-Vazirmatn-Medium.woff2",
+    "Length": 51128
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\vendor\\vazirmatn-b6338fc6d31a-Vazirmatn-Regular.woff2",
+    "Length": 50684
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\vendor\\vazirmatn-f61048315b19-Vazirmatn-Bold.woff2",
+    "Length": 51020
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\fonts\\vendor\\vazirmatn-fa1a95b0a67d-Vazirmatn-Thin.woff2",
+    "Length": 50796
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\apple-touch-icon-180x180.png",
+    "Length": 5239
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\apple-touch-icon.png",
+    "Length": 5239
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\background.png",
+    "Length": 289
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\favicon-16x16.png",
+    "Length": 391
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\favicon-32x32.png",
+    "Length": 829
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\favicon-48x48.png",
+    "Length": 1289
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\favicon.ico",
+    "Length": 414
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ad.png",
+    "Length": 222
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ae.png",
+    "Length": 115
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\af.png",
+    "Length": 343
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ag.png",
+    "Length": 280
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ai.png",
+    "Length": 230
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\al.png",
+    "Length": 198
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\am.png",
+    "Length": 110
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ao.png",
+    "Length": 220
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\aq.png",
+    "Length": 206
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ar.png",
+    "Length": 135
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\as.png",
+    "Length": 261
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\at.png",
+    "Length": 101
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\au.png",
+    "Length": 220
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\aw.png",
+    "Length": 140
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ax.png",
+    "Length": 146
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\az.png",
+    "Length": 143
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ba.png",
+    "Length": 173
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\bb.png",
+    "Length": 159
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\bd.png",
+    "Length": 126
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\be.png",
+    "Length": 114
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\bf.png",
+    "Length": 131
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\bg.png",
+    "Length": 97
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\bh.png",
+    "Length": 156
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\bi.png",
+    "Length": 296
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\bj.png",
+    "Length": 108
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\bl.png",
+    "Length": 375
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\bm.png",
+    "Length": 278
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\bn.png",
+    "Length": 338
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\bo.png",
+    "Length": 195
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\bq.png",
+    "Length": 341
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\br.png",
+    "Length": 260
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\bs.png",
+    "Length": 157
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\bt.png",
+    "Length": 326
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\bv.png",
+    "Length": 169
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\bw.png",
+    "Length": 108
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\by.png",
+    "Length": 144
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\bz.png",
+    "Length": 250
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ca.png",
+    "Length": 171
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\cc.png",
+    "Length": 205
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\cd.png",
+    "Length": 235
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\cf.png",
+    "Length": 213
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\cg.png",
+    "Length": 205
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ch.png",
+    "Length": 132
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ci.png",
+    "Length": 113
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ck.png",
+    "Length": 246
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\cl.png",
+    "Length": 153
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\cm.png",
+    "Length": 138
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\cn.png",
+    "Length": 144
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\co.png",
+    "Length": 112
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\cr.png",
+    "Length": 137
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\cu.png",
+    "Length": 164
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\cv.png",
+    "Length": 131
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\cw.png",
+    "Length": 141
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\cx.png",
+    "Length": 225
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\cy.png",
+    "Length": 229
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\cz.png",
+    "Length": 205
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\de.png",
+    "Length": 97
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\dj.png",
+    "Length": 260
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\dk.png",
+    "Length": 119
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\dm.png",
+    "Length": 210
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\do.png",
+    "Length": 165
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\dz.png",
+    "Length": 200
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ec.png",
+    "Length": 237
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ee.png",
+    "Length": 102
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\eg.png",
+    "Length": 155
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\eh.png",
+    "Length": 235
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\er.png",
+    "Length": 209
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\es.png",
+    "Length": 205
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\et.png",
+    "Length": 207
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\eu.png",
+    "Length": 190
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\fi.png",
+    "Length": 121
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\fj.png",
+    "Length": 261
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\fk.png",
+    "Length": 302
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\fm.png",
+    "Length": 129
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\fo.png",
+    "Length": 147
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\fr.png",
+    "Length": 109
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ga.png",
+    "Length": 97
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\gb.png",
+    "Length": 252
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\gd.png",
+    "Length": 250
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ge.png",
+    "Length": 162
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\gf.png",
+    "Length": 222
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\gg.png",
+    "Length": 157
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\gh.png",
+    "Length": 157
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\gi.png",
+    "Length": 238
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\gl.png",
+    "Length": 208
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\gm.png",
+    "Length": 129
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\gn.png",
+    "Length": 119
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\gp.png",
+    "Length": 334
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\gq.png",
+    "Length": 254
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\gr.png",
+    "Length": 170
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\gs.png",
+    "Length": 324
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\gt.png",
+    "Length": 164
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\gu.png",
+    "Length": 189
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\gw.png",
+    "Length": 143
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\gy.png",
+    "Length": 227
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\hk.png",
+    "Length": 221
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\hm.png",
+    "Length": 232
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\hn.png",
+    "Length": 138
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\hr.png",
+    "Length": 194
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ht.png",
+    "Length": 213
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\hu.png",
+    "Length": 110
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\id.png",
+    "Length": 97
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ie.png",
+    "Length": 105
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\il.png",
+    "Length": 171
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\im.png",
+    "Length": 179
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\in.png",
+    "Length": 169
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\io.png",
+    "Length": 421
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\iq.png",
+    "Length": 154
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ir.png",
+    "Length": 203
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\is.png",
+    "Length": 148
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\it.png",
+    "Length": 106
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\je.png",
+    "Length": 259
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\jm.png",
+    "Length": 169
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\jo.png",
+    "Length": 171
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\jp.png",
+    "Length": 143
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ke.png",
+    "Length": 239
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\kg.png",
+    "Length": 171
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\kh.png",
+    "Length": 211
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ki.png",
+    "Length": 281
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\km.png",
+    "Length": 257
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\kn.png",
+    "Length": 370
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\kp.png",
+    "Length": 163
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\kr.png",
+    "Length": 325
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\kw.png",
+    "Length": 157
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ky.png",
+    "Length": 264
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\kz.png",
+    "Length": 175
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\la.png",
+    "Length": 153
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\lb.png",
+    "Length": 199
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\lc.png",
+    "Length": 205
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\li.png",
+    "Length": 149
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\lk.png",
+    "Length": 265
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\lr.png",
+    "Length": 142
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ls.png",
+    "Length": 160
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\lt.png",
+    "Length": 98
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\lu.png",
+    "Length": 98
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\lv.png",
+    "Length": 92
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ly.png",
+    "Length": 130
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ma.png",
+    "Length": 132
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\mc.png",
+    "Length": 92
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\md.png",
+    "Length": 180
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\me.png",
+    "Length": 215
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\mf.png",
+    "Length": 109
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\mg.png",
+    "Length": 119
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\mh.png",
+    "Length": 336
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\mk.png",
+    "Length": 220
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ml.png",
+    "Length": 120
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\mm.png",
+    "Length": 218
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\mn.png",
+    "Length": 187
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\mo.png",
+    "Length": 200
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\mp.png",
+    "Length": 288
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\mq.png",
+    "Length": 182
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\mr.png",
+    "Length": 171
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ms.png",
+    "Length": 259
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\mt.png",
+    "Length": 122
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\mu.png",
+    "Length": 124
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\mv.png",
+    "Length": 147
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\mw.png",
+    "Length": 143
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\mx.png",
+    "Length": 182
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\my.png",
+    "Length": 200
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\mz.png",
+    "Length": 261
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\na.png",
+    "Length": 346
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\nc.png",
+    "Length": 245
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ne.png",
+    "Length": 159
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\nf.png",
+    "Length": 199
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ng.png",
+    "Length": 109
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ni.png",
+    "Length": 120
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\nl.png",
+    "Length": 122
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\no.png",
+    "Length": 169
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\np.png",
+    "Length": 473
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\nr.png",
+    "Length": 126
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\nu.png",
+    "Length": 186
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\nz.png",
+    "Length": 200
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\om.png",
+    "Length": 151
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\pa.png",
+    "Length": 178
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\pe.png",
+    "Length": 95
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\pf.png",
+    "Length": 206
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\pg.png",
+    "Length": 284
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ph.png",
+    "Length": 237
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\pk.png",
+    "Length": 204
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\pl.png",
+    "Length": 98
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\pm.png",
+    "Length": 685
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\pn.png",
+    "Length": 314
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\pr.png",
+    "Length": 216
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ps.png",
+    "Length": 181
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\pt.png",
+    "Length": 223
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\pw.png",
+    "Length": 170
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\py.png",
+    "Length": 134
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\qa.png",
+    "Length": 119
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\re.png",
+    "Length": 270
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ro.png",
+    "Length": 106
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\rs.png",
+    "Length": 279
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ru.png",
+    "Length": 121
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\rw.png",
+    "Length": 144
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\sa.png",
+    "Length": 180
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\sb.png",
+    "Length": 172
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\sc.png",
+    "Length": 266
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\sd.png",
+    "Length": 186
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\se.png",
+    "Length": 110
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\sg.png",
+    "Length": 162
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\sh.png",
+    "Length": 234
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\si.png",
+    "Length": 148
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\sj.png",
+    "Length": 169
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\sk.png",
+    "Length": 239
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\sl.png",
+    "Length": 111
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\sm.png",
+    "Length": 287
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\sn.png",
+    "Length": 146
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\so.png",
+    "Length": 145
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\sr.png",
+    "Length": 153
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ss.png",
+    "Length": 201
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\st.png",
+    "Length": 169
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\sv.png",
+    "Length": 134
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\sx.png",
+    "Length": 282
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\sy.png",
+    "Length": 158
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\sz.png",
+    "Length": 307
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\tc.png",
+    "Length": 236
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\td.png",
+    "Length": 114
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\tf.png",
+    "Length": 221
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\tg.png",
+    "Length": 188
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\th.png",
+    "Length": 119
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\tj.png",
+    "Length": 133
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\tk.png",
+    "Length": 248
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\tl.png",
+    "Length": 191
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\tm.png",
+    "Length": 279
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\tn.png",
+    "Length": 182
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\to.png",
+    "Length": 133
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\tr.png",
+    "Length": 181
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\tt.png",
+    "Length": 278
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\tv.png",
+    "Length": 263
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\tw.png",
+    "Length": 153
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\tz.png",
+    "Length": 278
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ua.png",
+    "Length": 97
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ug.png",
+    "Length": 224
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\um.png",
+    "Length": 175
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\un.png",
+    "Length": 170
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\us.png",
+    "Length": 175
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\uy.png",
+    "Length": 209
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\uz.png",
+    "Length": 141
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\va.png",
+    "Length": 298
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\vc.png",
+    "Length": 161
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ve.png",
+    "Length": 170
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\vg.png",
+    "Length": 289
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\vi.png",
+    "Length": 440
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\vn.png",
+    "Length": 164
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\vu.png",
+    "Length": 243
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\wf.png",
+    "Length": 193
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ws.png",
+    "Length": 129
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\xk.png",
+    "Length": 218
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\ye.png",
+    "Length": 111
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\yt.png",
+    "Length": 379
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\za.png",
+    "Length": 293
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\zm.png",
+    "Length": 153
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\flags\\w20\\zw.png",
+    "Length": 222
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\globe\\earth-blue-marble.jpg",
+    "Length": 1461877
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\globe\\earth-night.jpg",
+    "Length": 715000
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\globe\\earth-topology.png",
+    "Length": 378243
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\globe\\night-sky.png",
+    "Length": 904154
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\icon-192x192.png",
+    "Length": 5860
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\images\\icon-512x512.png",
+    "Length": 17138
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\analytics.js",
+    "Length": 46274
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\byow.js",
+    "Length": 6312
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\cache-config.js",
+    "Length": 1033
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\cache-manager.js",
+    "Length": 14111
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\charts.js",
+    "Length": 3962
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\common-ui.js",
+    "Length": 9845
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\constants.js",
+    "Length": 2418
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\dynamic-downloads.js",
+    "Length": 7273
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\error-handler.js",
+    "Length": 4295
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\failover.js",
+    "Length": 4352
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\health-score.js",
+    "Length": 2280
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\i18n.js",
+    "Length": 108830
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\incremental-loader.js",
+    "Length": 1163
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\init.js",
+    "Length": 25
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\inline-icons.js",
+    "Length": 15404
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\lab.js",
+    "Length": 76681
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\loading-controller.js",
+    "Length": 7238
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\logger.js",
+    "Length": 4030
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\logo-controller.js",
+    "Length": 3541
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\main.js",
+    "Length": 13219
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\plugin_loader.js",
+    "Length": 4183
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\proxies.js",
+    "Length": 26800
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\proxy-history-chart.js",
+    "Length": 11900
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\runtime-config.js",
+    "Length": 275
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\state-manager.js",
+    "Length": 14819
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\statistics.js",
+    "Length": 40780
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\stego_loader.js",
+    "Length": 789
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\stego.js",
+    "Length": 9291
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\sw-init.js",
+    "Length": 1018
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\update-detector.js",
+    "Length": 12924
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\utils.js",
+    "Length": 2424
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\utils\\dom.js",
+    "Length": 2557
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\utils\\format.js",
+    "Length": 1999
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\utils\\helpers.js",
+    "Length": 1826
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\utils\\logger.js",
+    "Length": 4365
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\utils\\network.js",
+    "Length": 8478
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\utils\\qrcode.js",
+    "Length": 28347
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\utils\\ui.js",
+    "Length": 3903
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\vanilla-tilt.min.js",
+    "Length": 8887
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\verifier.js",
+    "Length": 4923
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\washer_client.js",
+    "Length": 640
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\wasm_exec.js",
+    "Length": 16992
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\wasm_loader.js",
+    "Length": 5752
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\js\\wiki.js",
+    "Length": 9422
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\libs\\atom-one-dark.min.css",
+    "Length": 856
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\libs\\chart.min.js",
+    "Length": 205399
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\libs\\feather.min.js",
+    "Length": 75965
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\libs\\fernetBrowser.min.js",
+    "Length": 103440
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\libs\\globe.gl.min.js",
+    "Length": 1031887
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\libs\\highlight.min.js",
+    "Length": 121727
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\libs\\marked.min.js",
+    "Length": 39903
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\libs\\pako.min.js",
+    "Length": 46859
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\libs\\purify.min.js",
+    "Length": 20931
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\libs\\three.min.js",
+    "Length": 669884
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\plugins\\plugins.json",
+    "Length": 3
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\svg\\favicon.svg",
+    "Length": 3330
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\svg\\logo-header.svg",
+    "Length": 1070
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\svg\\logo-loading.svg",
+    "Length": 4580
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\vendor-manifest.json",
+    "Length": 3345
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\assets\\wasm\\tester.wasm",
+    "Length": 8883038
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\base64-dns-hardened.txt",
+    "Length": 84796
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\base64-dns-safe.txt",
+    "Length": 84796
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\base64.txt",
+    "Length": 84796
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\chains-dns-hardened.json",
+    "Length": 8112484
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\chains-dns-safe.json",
+    "Length": 7491862
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\chains.json",
+    "Length": 8112484
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\chosen\\base64-dns-hardened.txt",
+    "Length": 16396
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\chosen\\base64-dns-safe.txt",
+    "Length": 16396
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\chosen\\base64.txt",
+    "Length": 16396
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\chosen\\clash.yaml",
+    "Length": 10067
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\chosen\\proxies.txt",
+    "Length": 12295
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\chosen\\singbox.json",
+    "Length": 42001
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\clash-dns-hardened.yaml",
+    "Length": 78963
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\clash-dns-safe.yaml",
+    "Length": 78151
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\clash.yaml",
+    "Length": 78151
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\consolidated_pipeline.log",
+    "Length": 8345683
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\countries\\XX.json",
+    "Length": 3878248
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\countries\\XX.list.json",
+    "Length": 26336148
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\data\\active_proxy_trend.json",
+    "Length": 2
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\data\\clean_ips.json",
+    "Length": 773
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\data\\evasion_trend.json",
+    "Length": 411
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\data\\proxy_history_viz.json",
+    "Length": 2
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\docs\\wiki\\encyclopedia\\glossary\\networking_terms.md",
+    "Length": 13354
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\docs\\wiki\\encyclopedia\\glossary\\security_concepts.md",
+    "Length": 9879
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\docs\\wiki\\encyclopedia\\networking\\topology.md",
+    "Length": 8963
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\docs\\wiki\\encyclopedia\\networking\\warp.md",
+    "Length": 8604
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\docs\\wiki\\encyclopedia\\protocols\\hysteria2.md",
+    "Length": 8420
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\docs\\wiki\\encyclopedia\\protocols\\shadowsocks.md",
+    "Length": 7452
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\docs\\wiki\\encyclopedia\\protocols\\trojan.md",
+    "Length": 8248
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\docs\\wiki\\encyclopedia\\protocols\\vless.md",
+    "Length": 6601
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\docs\\wiki\\encyclopedia\\protocols\\vmess.md",
+    "Length": 6934
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\docs\\wiki\\encyclopedia\\protocols\\wireguard.md",
+    "Length": 7514
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\docs\\wiki\\encyclopedia\\security\\firewall_honeypot.md",
+    "Length": 11396
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\docs\\wiki\\encyclopedia\\tools\\singbox_configuration_guide.md",
+    "Length": 9664
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\docs\\wiki\\index.md",
+    "Length": 3406
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\docs\\wiki\\project\\01-introduction.md",
+    "Length": 8411
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\docs\\wiki\\project\\02-architecture.md",
+    "Length": 13484
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\docs\\wiki\\project\\03-protocols.md",
+    "Length": 8821
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\docs\\wiki\\project\\04-engineering.md",
+    "Length": 17845
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\docs\\wiki\\project\\05-devops.md",
+    "Length": 5222
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\docs\\wiki\\project\\06-frontend.md",
+    "Length": 14000
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\docs\\wiki\\project\\07-security.md",
+    "Length": 7982
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\docs\\wiki\\project\\08-api-reference.md",
+    "Length": 19513
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\docs\\wiki\\project\\09-contributing.md",
+    "Length": 4719
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\docs\\wiki\\project\\10-troubleshooting.md",
+    "Length": 7736
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\docs\\wiki\\project\\About_Page.md",
+    "Length": 2152
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\docs\\wiki\\project\\Analytics_Page.md",
+    "Length": 3910
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\docs\\wiki\\project\\Configuration.md",
+    "Length": 6149
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\docs\\wiki\\project\\getting_started.md",
+    "Length": 4233
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\docs\\wiki\\project\\Home_Page.md",
+    "Length": 4532
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\docs\\wiki\\project\\Home.md",
+    "Length": 6235
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\docs\\wiki\\project\\Lab_Page.md",
+    "Length": 4866
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\docs\\wiki\\project\\Proxies_Page.md",
+    "Length": 3164
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\health.json",
+    "Length": 284
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\index.html",
+    "Length": 44973
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\lab-offline.html",
+    "Length": 19085
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\lab.html",
+    "Length": 63558
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\loon-dns-hardened.conf",
+    "Length": 1762469
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\loon-dns-safe.conf",
+    "Length": 1761780
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\loon.conf",
+    "Length": 1761780
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\manifest.json",
+    "Length": 834
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\metadata.json",
+    "Length": 9633
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\protocols\\http.json",
+    "Length": 42436
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\protocols\\http.list.json",
+    "Length": 126509
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\protocols\\http.txt",
+    "Length": 11094
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\protocols\\revived.json",
+    "Length": 3685408
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\protocols\\revived.list.json",
+    "Length": 25640794
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\protocols\\revived.txt",
+    "Length": 768367
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\protocols\\socks4.json",
+    "Length": 55325
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\protocols\\socks4.list.json",
+    "Length": 206610
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\protocols\\socks4.txt",
+    "Length": 19002
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\protocols\\socks5.json",
+    "Length": 107544
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\protocols\\socks5.list.json",
+    "Length": 362241
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\protocols\\socks5.txt",
+    "Length": 33499
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\proxies-dns-hardened.json",
+    "Length": 25319248
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\proxies-dns-hardened.txt",
+    "Length": 63597
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\proxies-dns-safe.json",
+    "Length": 25302024
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\proxies-dns-safe.txt",
+    "Length": 63597
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\proxies.html",
+    "Length": 20596
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\proxies.json",
+    "Length": 31936228
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\proxies.txt",
+    "Length": 63597
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\quantumult-dns-hardened.conf",
+    "Length": 10578
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\quantumult-dns-safe.conf",
+    "Length": 9750
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\quantumult.conf",
+    "Length": 9750
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\revived-dns-hardened.json",
+    "Length": 24728810
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\revived-dns-safe.json",
+    "Length": 24714042
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\revived.json",
+    "Length": 24625434
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\service-worker.js",
+    "Length": 4174
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\shadowrocket-dns-hardened.txt",
+    "Length": 64399
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\shadowrocket-dns-safe.txt",
+    "Length": 63597
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\shadowrocket.txt",
+    "Length": 63597
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\side_products-dns-hardened.zip",
+    "Length": 7586
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\side_products-dns-safe.zip",
+    "Length": 7586
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\side_products.zip",
+    "Length": 7586
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\singbox-chains-dns-hardened.json",
+    "Length": 8112484
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\singbox-chains-dns-safe.json",
+    "Length": 7491862
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\singbox-chains.json",
+    "Length": 8112484
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\singbox-dns-hardened.json",
+    "Length": 5482761
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\singbox-dns-safe.json",
+    "Length": 5481513
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\singbox-vpn-dns-hardened.json",
+    "Length": 4619124
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\singbox-vpn-dns-safe.json",
+    "Length": 4617876
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\singbox-vpn.json",
+    "Length": 4617876
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\singbox.json",
+    "Length": 5481513
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\sip008-dns-hardened.json",
+    "Length": 78
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\sip008-dns-safe.json",
+    "Length": 78
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\sip008.json",
+    "Length": 78
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\surge-dns-hardened.conf",
+    "Length": 3573505
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\surge-dns-safe.conf",
+    "Length": 3572817
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\surge.conf",
+    "Length": 3572817
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\tools\\lab-runner.sh",
+    "Length": 10239
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\tools\\lab-scanner.py",
+    "Length": 96708
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\vectors.json",
+    "Length": 28236
+  },
+  {
+    "FullName": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\invvest\\validation_copy_pipeline_output\\wiki.html",
+    "Length": 15980
+  }
+]

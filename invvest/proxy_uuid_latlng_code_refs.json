@@ -1,0 +1,607 @@
+[
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\adapters.py",
+    "LineNumber": 71,
+    "Line": "                line = self._format_proxy(p)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\adapters.py",
+    "LineNumber": 118,
+    "Line": "    def _format_proxy(self, p: Proxy) -> str:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\adapters.py",
+    "LineNumber": 195,
+    "Line": "                line = self._format_proxy(p)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\adapters.py",
+    "LineNumber": 236,
+    "Line": "    def _format_proxy(self, p: Proxy) -> str:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\adapters.py",
+    "LineNumber": 304,
+    "Line": "                line = self._format_proxy(p)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\adapters.py",
+    "LineNumber": 318,
+    "Line": "    def _format_proxy(self, p: Proxy) -> str:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\adapters.py",
+    "LineNumber": 341,
+    "Line": "            # QX VLESS format: vless=name: host, port, method=none, uuid=..."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\adapters.py",
+    "LineNumber": 345,
+    "Line": "            return f\"vless={name}: {p.address}, {p.port}, method=none, uuid={p.uuid}{sni_part}\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\adapters.py",
+    "LineNumber": 433,
+    "Line": "                origin_p = Proxy(**origin)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\adapters.py",
+    "LineNumber": 454,
+    "Line": "                origin_p = Proxy("
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\adapters.py",
+    "LineNumber": 459,
+    "Line": "                    uuid=str(origin_cfg.get(\"uuid\", \"\")),"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\cli.py",
+    "LineNumber": 384,
+    "Line": "            p = await generate_warp_proxy()"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\consumer.py",
+    "LineNumber": 550,
+    "Line": "                        if geo_data.lat:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\consumer.py",
+    "LineNumber": 551,
+    "Line": "                            p.details[\"lat\"] = geo_data.lat"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\consumer.py",
+    "LineNumber": 552,
+    "Line": "                        if geo_data.lng:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\consumer.py",
+    "LineNumber": 553,
+    "Line": "                            p.details[\"lng\"] = geo_data.lng"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\filtering.py",
+    "LineNumber": 16,
+    "Line": "def _is_better_proxy(candidate: Proxy, current: Proxy) -> bool:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\filtering.py",
+    "LineNumber": 26,
+    "Line": "    cur_lat = current.latency if current.latency is not None else float(\"inf\")"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\filtering.py",
+    "LineNumber": 27,
+    "Line": "    new_lat = candidate.latency if candidate.latency is not None else float(\"inf\")"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\filtering.py",
+    "LineNumber": 28,
+    "Line": "    return new_lat < cur_lat"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\filtering.py",
+    "LineNumber": 90,
+    "Line": "        if current is None or _is_better_proxy(proxy, current):"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\filtering.py",
+    "LineNumber": 154,
+    "Line": "        elif _is_better_proxy(p, existing):"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\filtering.py",
+    "LineNumber": 210,
+    "Line": "        if current is None or _is_better_proxy(proxy, current):"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\geoip.py",
+    "LineNumber": 29,
+    "Line": "    lat: Optional[float] = None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\geoip.py",
+    "LineNumber": 30,
+    "Line": "    lng: Optional[float] = None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\geoip.py",
+    "LineNumber": 190,
+    "Line": "                result.lat = response.location.latitude"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\geoip.py",
+    "LineNumber": 191,
+    "Line": "                result.lng = response.location.longitude"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\models.py",
+    "LineNumber": 22,
+    "Line": "class Proxy(BaseModel):"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\output_handler.py",
+    "LineNumber": 113,
+    "Line": "    \"\"\"Group flat outbound list into chains by following detour relationships.\"\"\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\output_handler.py",
+    "LineNumber": 187,
+    "Line": "            chain_proxy = Proxy("
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\output_handler.py",
+    "LineNumber": 273,
+    "Line": "    # Washed outbounds (flat list â†’ group into chains)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\output_handler.py",
+    "LineNumber": 339,
+    "Line": "        data = [serialize_proxy(p, history.get_history(p.id)) for p in proxies]"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\output_handler.py",
+    "LineNumber": 546,
+    "Line": "                    p = washer.create_revived_proxy(entry, exit_p, \"shielded\")"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\output_logic.py",
+    "LineNumber": 1471,
+    "Line": "    proxies_snapshot_hash = _json_snapshot_sha256([serialize_proxy(p) for p in proxies])"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\output_transport.py",
+    "LineNumber": 41,
+    "Line": "        data = [serialize_proxy(p, history.get_history(p.id)) for p in proxies]"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\producer.py",
+    "LineNumber": 218,
+    "Line": "    def _is_direct_proxy(candidate: str) -> bool:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\producer.py",
+    "LineNumber": 270,
+    "Line": "            if _is_direct_proxy(s):"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\serialize.py",
+    "LineNumber": 23,
+    "Line": "def serialize_proxy("
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\tagging.py",
+    "LineNumber": 166,
+    "Line": "        tags.append(f\"LAT:{int(proxy.latency)}MS\")"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\converters\\chains.py",
+    "LineNumber": 15,
+    "Line": "        return Proxy(**data)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\converters\\chains.py",
+    "LineNumber": 91,
+    "Line": "def _apply_outbound_to_proxy(hop: Proxy, outbound: Dict[str, Any]) -> Proxy:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\converters\\chains.py",
+    "LineNumber": 179,
+    "Line": "                rewritten_chain.append(_apply_outbound_to_proxy(hop, outbound))"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\converters\\clash.py",
+    "LineNumber": 150,
+    "Line": "def to_clash_proxy("
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\generators\\clash.py",
+    "LineNumber": 111,
+    "Line": "    return Proxy("
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\generators\\clash.py",
+    "LineNumber": 116,
+    "Line": "        uuid=uuid_value,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\generators\\clash.py",
+    "LineNumber": 129,
+    "Line": "            return Proxy(**origin_obj)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\generators\\clash.py",
+    "LineNumber": 136,
+    "Line": "            return Proxy("
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\generators\\clash.py",
+    "LineNumber": 141,
+    "Line": "                uuid=str(origin_cfg.get(\"uuid\", \"\")),"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\generators\\clash.py",
+    "LineNumber": 189,
+    "Line": "            to_clash_proxy(relay_proxy, ignore_status=True) if relay_proxy else None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\generators\\clash.py",
+    "LineNumber": 192,
+    "Line": "            to_clash_proxy(warp_proxy, ignore_status=True) if warp_proxy else None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\generators\\clash.py",
+    "LineNumber": 236,
+    "Line": "        converted = to_clash_proxy(origin_proxy, ignore_status=ignore_status)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\generators\\clash.py",
+    "LineNumber": 303,
+    "Line": "        clash_proxy = to_clash_proxy(p, ignore_status=ignore_status)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\generators\\plaintext.py",
+    "LineNumber": 125,
+    "Line": "    return Proxy("
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\generators\\plaintext.py",
+    "LineNumber": 130,
+    "Line": "        uuid=str(uuid_val),"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\generators\\plaintext.py",
+    "LineNumber": 182,
+    "Line": "                origin_proxy = Proxy(**origin)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\generators\\plaintext.py",
+    "LineNumber": 208,
+    "Line": "                origin_proxy = Proxy("
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\generators\\plaintext.py",
+    "LineNumber": 213,
+    "Line": "                    uuid=str(origin_cfg.get(\"uuid\", \"\")),"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\generators\\split.py",
+    "LineNumber": 58,
+    "Line": "    When add_all_non_relay=True (flat washed list), add every non-RELAY tag"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\generators\\split.py",
+    "LineNumber": 90,
+    "Line": "def _is_washed_proxy(proxy: Proxy, washed_ids: Optional[Set[str]]) -> bool:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\generators\\split.py",
+    "LineNumber": 131,
+    "Line": "        if _is_washed_proxy(p, washed_ids):"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\generators\\split.py",
+    "LineNumber": 149,
+    "Line": "        if _is_washed_proxy(p, washed_ids):"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\generators\\split.py",
+    "LineNumber": 214,
+    "Line": "    # Add washed outbounds (flat list; uniquify to prevent tag collisions)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\generators\\split.py",
+    "LineNumber": 314,
+    "Line": "        if _is_washed_proxy(p, washed_ids):"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\history\\tracker.py",
+    "LineNumber": 288,
+    "Line": "                        pid, ts, working, lat, cc, reason = row"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\history\\tracker.py",
+    "LineNumber": 304,
+    "Line": "                            \"latency\": lat,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\intelligence\\chaining.py",
+    "LineNumber": 40,
+    "Line": "        dlat = math.radians(lat2 - lat1)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\intelligence\\chaining.py",
+    "LineNumber": 43,
+    "Line": "            math.sin(dlat / 2) ** 2"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\intelligence\\chaining.py",
+    "LineNumber": 57,
+    "Line": "        self, country: str, lat: float, lon: float, protocol: str, latency: float = 0.0"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\intelligence\\chaining.py",
+    "LineNumber": 60,
+    "Line": "        self.lat = lat"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\intelligence\\chaining.py",
+    "LineNumber": 66,
+    "Line": "# Comprehensive country coordinates database (approximate center lat/lon)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\intelligence\\chaining.py",
+    "LineNumber": 327,
+    "Line": "        origin_coords: Origin coordinates (lat, lon)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\intelligence\\chaining.py",
+    "LineNumber": 328,
+    "Line": "        exit_coords: Exit coordinates (lat, lon)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\intelligence\\chaining.py",
+    "LineNumber": 338,
+    "Line": "    relay_coords = (relay.lat, relay.lon)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\intelligence\\chaining.py",
+    "LineNumber": 430,
+    "Line": "    exit_coords = (exit_node.lat, exit_node.lon)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\intelligence\\chaining.py",
+    "LineNumber": 566,
+    "Line": "            lat, lon = COUNTRIES[ep.country_code]"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\intelligence\\chaining.py",
+    "LineNumber": 567,
+    "Line": "            optimized_exits.append((ep, lat, lon))"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\intelligence\\chaining.py",
+    "LineNumber": 575,
+    "Line": "            relay_lat, relay_lon = COUNTRIES[relay.country_code]"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\intelligence\\chaining.py",
+    "LineNumber": 579,
+    "Line": "            for exit_p, exit_lat, exit_lon in optimized_exits:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\intelligence\\chaining.py",
+    "LineNumber": 580,
+    "Line": "                dist = haversine(relay_lat, relay_lon, exit_lat, exit_lon)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\intelligence\\chaining.py",
+    "LineNumber": 755,
+    "Line": "                    chain = create_chain(best_relay, exit_node, \"LOWLAT\")"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\intelligence\\vectors.py",
+    "LineNumber": 52,
+    "Line": "    lat = proxy.latency or 9999"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\intelligence\\vectors.py",
+    "LineNumber": 53,
+    "Line": "    if lat < 150:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\intelligence\\vectors.py",
+    "LineNumber": 54,
+    "Line": "        h_lat = 0"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\intelligence\\vectors.py",
+    "LineNumber": 55,
+    "Line": "    elif lat < 500:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\intelligence\\vectors.py",
+    "LineNumber": 56,
+    "Line": "        h_lat = 1"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\intelligence\\vectors.py",
+    "LineNumber": 58,
+    "Line": "        h_lat = 2"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\intelligence\\vectors.py",
+    "LineNumber": 97,
+    "Line": "        h_lat,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\clash_json.py",
+    "LineNumber": 95,
+    "Line": "        proxy = Proxy("
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\clash_json.py",
+    "LineNumber": 100,
+    "Line": "            uuid=uuid,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 92,
+    "Line": "                proxy = Proxy("
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 97,
+    "Line": "                    uuid=\"\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 161,
+    "Line": "        proxy = Proxy("
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 166,
+    "Line": "            uuid=parsed.username or \"\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 194,
+    "Line": "        proxy = Proxy("
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 199,
+    "Line": "            uuid=parsed.username or \"\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 419,
+    "Line": "    proxy = Proxy("
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\generic.py",
+    "LineNumber": 424,
+    "Line": "        uuid=uuid,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\openvpn.py",
+    "LineNumber": 105,
+    "Line": "        return Proxy("
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 83,
+    "Line": "        proxy = Proxy("
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\others.py",
+    "LineNumber": 88,
+    "Line": "            uuid=uuid,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\shadowsocks.py",
+    "LineNumber": 178,
+    "Line": "        proxy = Proxy("
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\ssr.py",
+    "LineNumber": 107,
+    "Line": "        proxy = Proxy("
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\trojan.py",
+    "LineNumber": 49,
+    "Line": "        proxy = Proxy("
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\trojan.py",
+    "LineNumber": 54,
+    "Line": "            uuid=uuid,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vless.py",
+    "LineNumber": 96,
+    "Line": "        proxy = Proxy("
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vmess.py",
+    "LineNumber": 74,
+    "Line": "        proxy = Proxy("
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\parsers\\vmess.py",
+    "LineNumber": 79,
+    "Line": "            uuid=str(uuid),"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\testers\\go.py",
+    "LineNumber": 152,
+    "Line": "            # p = Proxy("
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\testers\\go.py",
+    "LineNumber": 155,
+    "Line": "            #     uuid=\"self-test-uuid\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\testers\\go.py",
+    "LineNumber": 689,
+    "Line": "                lat = res_data.get(\"latency\")"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\testers\\go.py",
+    "LineNumber": 690,
+    "Line": "                if lat is not None:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\testers\\go.py",
+    "LineNumber": 691,
+    "Line": "                    target_proxy.latency = float(lat)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\testers\\go.py",
+    "LineNumber": 708,
+    "Line": "                    lat = res_data.get(\"latency\")"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\testers\\go.py",
+    "LineNumber": 709,
+    "Line": "                    if lat is not None:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\testers\\go.py",
+    "LineNumber": 710,
+    "Line": "                        target_proxy.latency = float(lat)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\testers\\lab_chain_tester.py",
+    "LineNumber": 97,
+    "Line": "                loop.run_in_executor(None, lambda: SingBoxProxy(config_path)),"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\tools\\warp.py",
+    "LineNumber": 89,
+    "Line": "async def generate_warp_proxy() -> Proxy:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\tools\\warp.py",
+    "LineNumber": 97,
+    "Line": "        return Proxy("
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\tools\\warp.py",
+    "LineNumber": 102,
+    "Line": "            uuid=\"WARP-Error\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\tools\\warp.py",
+    "LineNumber": 108,
+    "Line": "    return Proxy("
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\tools\\warp.py",
+    "LineNumber": 113,
+    "Line": "        uuid=f\"WARP-{account['id'][:8]}\","
+  }
+]

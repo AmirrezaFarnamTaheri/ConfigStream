@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ConfigStream Lab - Offline Chain Builder</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0f0f1a;--card:#1a1a2e;--border:#2a2a40;--text:#e0e0e0;--dim:#888;--brand:#6c5ce7;--brand2:#00cec9;--ok:#10b981;--err:#ef4444;--warn:#f59e0b;--info:#3b82f6}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;padding:1rem}
+h1{text-align:center;font-size:2rem;background:linear-gradient(135deg,var(--brand),var(--brand2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:1.5rem 0 0.5rem}
+.subtitle{text-align:center;color:var(--dim);margin-bottom:2rem}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin:0 auto 1.5rem;max-width:900px}
+.card h2{font-size:1.2rem;margin-bottom:0.5rem;color:var(--brand2)}
+.card p{color:var(--dim);font-size:0.9rem;margin-bottom:1rem}
+label{display:block;font-weight:600;margin-bottom:0.3rem;font-size:0.9rem}
+.hint{font-size:0.78rem;color:var(--dim);margin-top:0.2rem}
+input,select,textarea{width:100%;padding:0.6rem;border:1px solid var(--border);border-radius:8px;background:#12122a;color:var(--text);font-size:0.9rem;font-family:inherit;margin-bottom:0.75rem}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--brand)}
+textarea{min-height:80px;font-family:'Consolas','Monaco',monospace;font-size:0.85rem;resize:vertical}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:600px){.row{grid-template-columns:1fr}}
+button{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border:none;border-radius:8px;font-weight:600;font-size:0.85rem;cursor:pointer;transition:all 0.2s}
+.btn-p{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff}
+.btn-p:hover{opacity:0.9}
+.btn-s{background:var(--border);color:var(--text)}
+.btn-s:hover{background:#3a3a55}
+.btn-group{display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:1rem}
+.result{padding:0.75rem 1rem;border-radius:8px;font-size:0.88rem;margin-top:0.75rem;display:none}
+.result.ok{display:block;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:var(--ok)}
+.result.err{display:block;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:var(--err)}
+.result.info{display:block;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);color:var(--info)}
+.output{background:#12122a;color:#cdd6f4;padding:1rem;border-radius:8px;font-family:'Consolas',monospace;font-size:0.8rem;overflow-x:auto;white-space:pre-wrap;word-break:break-all;max-height:400px;overflow-y:auto;margin-top:0.75rem;position:relative}
+.output .copy{position:absolute;top:6px;right:6px;background:rgba(255,255,255,0.1);border:none;color:#cdd6f4;padding:0.2rem 0.5rem;border-radius:4px;cursor:pointer;font-size:0.7rem}
+.chain-vis{display:flex;align-items:center;gap:0.4rem;padding:1rem;background:#12122a;border-radius:8px;overflow-x:auto;margin:1rem 0}
+.node{display:flex;flex-direction:column;align-items:center;min-width:80px;padding:0.5rem;background:var(--card);border:2px solid var(--border);border-radius:10px;font-size:0.75rem;text-align:center}
+.node .icon{font-size:1.2rem}.node .lbl{font-weight:600}
+.arrow{color:var(--dim);font-size:1rem;flex-shrink:0}
+hr{border:none;border-top:1px solid var(--border);margin:1.5rem 0}
+.layers-container .layer-item{background:#12122a;border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:0.75rem;position:relative}
+.layers-container .layer-item .layer-num{position:absolute;top:-8px;left:12px;background:var(--brand);color:#fff;font-size:0.7rem;padding:0.1rem 0.5rem;border-radius:10px;font-weight:700}
+.rm-layer{position:absolute;top:8px;right:8px;background:var(--err);color:#fff;border:none;width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:0.8rem;display:flex;align-items:center;justify-content:center}
+</style>
+</head>
+<body>
+
+<h1>ConfigStream Chain Lab</h1>
+<p class="subtitle">Offline Multi-Layer Chain Builder &mdash; No internet required to use this page</p>
+
+<!-- Step 1: Layers -->
+<div class="card">
+  <h2>Build Your Chain (Layer by Layer)</h2>
+  <p>Add layers from bottom (closest to you) to top (reaches the internet). Each layer wraps the previous one.</p>
+
+  <div class="chain-vis" id="chainVis">
+    <div class="node"><div class="icon">&#128187;</div><div class="lbl">You</div></div>
+    <div class="arrow">&rarr;</div>
+    <div class="node" style="border-color:var(--dim);"><div class="icon">?</div><div class="lbl">Add layers</div></div>
+    <div class="arrow">&rarr;</div>
+    <div class="node" style="border-color:var(--ok);"><div class="icon">&#127760;</div><div class="lbl">Internet</div></div>
+  </div>
+
+  <div id="layersContainer" class="layers-container"></div>
+
+  <div class="btn-group">
+    <button class="btn-s" onclick="addLayer('socks5')">+ SOCKS5</button>
+    <button class="btn-s" onclick="addLayer('http')">+ HTTP Proxy</button>
+    <button class="btn-s" onclick="addLayer('warp')">+ WARP</button>
+    <button class="btn-s" onclick="addLayer('vless')">+ VLESS</button>
+    <button class="btn-s" onclick="addLayer('vmess')">+ VMess</button>
+    <button class="btn-s" onclick="addLayer('trojan')">+ Trojan</button>
+    <button class="btn-s" onclick="addLayer('ss')">+ Shadowsocks</button>
+    <button class="btn-s" onclick="addLayer('fragment')">+ TLS Fragment</button>
+  </div>
+</div>
+
+<!-- Advanced Options -->
+<div class="card">
+  <h2>Advanced Evasion</h2>
+  <div class="row">
+    <div><label for="fp">TLS Fingerprint</label><select id="fp"><option value="">Default</option><option value="chrome">Chrome</option><option value="firefox">Firefox</option><option value="safari">Safari</option><option value="random">Random</option><option value="randomized">Randomized</option></select></div>
+    <div><label for="alpn">ALPN</label><select id="alpn"><option value="">Default</option><option value="h2,http/1.1">h2, http/1.1</option><option value="h2">h2</option><option value="http/1.1">http/1.1</option></select></div>
+  </div>
+  <div class="row">
+    <div><label for="mux">Multiplex</label><select id="mux"><option value="">Disabled</option><option value="h2mux">h2mux</option><option value="smux">smux</option><option value="yamux">yamux</option></select></div>
+    <div><label for="muxpad">Mux Padding</label><select id="muxpad"><option value="true">Enabled</option><option value="false">Disabled</option></select></div>
+  </div>
+</div>
+
+<!-- Generate -->
+<div class="card">
+  <h2>Generate &amp; Export</h2>
+  <div class="row">
+    <div><label for="fmt">Format</label><select id="fmt"><option value="singbox">Sing-Box JSON</option><option value="clash">Clash YAML</option><option value="xray">Xray JSON</option></select></div>
+    <div><label for="port">Listen Port</label><input type="number" id="port" value="2080"></div>
+  </div>
+  <div class="btn-group">
+    <button class="btn-p" onclick="generate()">Generate Config</button>
+    <button class="btn-s" onclick="copyOutput()">Copy</button>
+    <button class="btn-s" onclick="downloadOutput()">Download</button>
+  </div>
+  <div id="result" class="result"></div>
+  <div id="output" class="output" style="display:none"><button class="copy" onclick="copyOutput()">Copy</button><code id="outputCode"></code></div>
+</div>
+
+<!-- Help -->
+<div class="card">
+  <h2>How This Works</h2>
+  <p><strong>No internet?</strong> Start with a local proxy (Psiphon, Lantern, V2RayN) as Layer 1. Then stack WARP or your destination proxy on top.</p>
+  <p><strong>Example 3-layer chain:</strong> You &rarr; SOCKS5 (local Psiphon) &rarr; WARP (clean IP) &rarr; VLESS (destination) &rarr; Internet</p>
+  <p><strong>To run:</strong> Save the config, then: <code>sing-box run -c config.json</code> and set proxy to <code>socks5://127.0.0.1:2080</code></p>
+  <hr>
+  <p><strong>Find clean IPs offline:</strong> <code>python lab-scanner.py --scan-ips</code></p>
+  <p><strong>Find local proxies:</strong> <code>python lab-scanner.py --scan-proxies</code></p>
+  <p><strong>Full diagnostic:</strong> <code>python lab-scanner.py</code></p>
+</div>
+
+<script>
+const WARP_PK='bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=';
+let layers=[];
+let lastConfig=null;
+
+function addLayer(type){
+  const id=Date.now();
+  let html='';
+  const fields={
+    socks5:'<div class="row"><div><label>Host</label><input data-f="host" value="127.0.0.1"></div><div><label>Port</label><input data-f="port" type="number" value="1080"></div></div>',
+    http:'<div class="row"><div><label>Host</label><input data-f="host" value="127.0.0.1"></div><div><label>Port</label><input data-f="port" type="number" value="8080"></div></div>',
+    warp:'<div class="row"><div><label>Clean IP</label><input data-f="ip" value="162.159.192.1"></div><div><label>Port</label><input data-f="port" type="number" value="2408"></div></div><div><label>WARP+ Key (optional)</label><input data-f="key" placeholder="Leave blank for free"></div>',
+    vless:'<div class="row"><div><label>Server</label><input data-f="host"></div><div><label>Port</label><input data-f="port" type="number" value="443"></div></div><div><label>UUID</label><input data-f="uuid"></div><div class="row"><div><label>SNI</label><input data-f="sni"></div><div><label>Transport</label><select data-f="net"><option value="tcp">TCP</option><option value="ws">WebSocket</option><option value="grpc">gRPC</option></select></div></div>',
+    vmess:'<div class="row"><div><label>Server</label><input data-f="host"></div><div><label>Port</label><input data-f="port" type="number" value="443"></div></div><div><label>UUID</label><input data-f="uuid"></div><div class="row"><div><label>SNI</label><input data-f="sni"></div><div><label>Transport</label><select data-f="net"><option value="tcp">TCP</option><option value="ws">WebSocket</option><option value="grpc">gRPC</option></select></div></div>',
+    trojan:'<div class="row"><div><label>Server</label><input data-f="host"></div><div><label>Port</label><input data-f="port" type="number" value="443"></div></div><div><label>Password</label><input data-f="uuid"></div><div><label>SNI</label><input data-f="sni"></div>',
+    ss:'<div class="row"><div><label>Server</label><input data-f="host"></div><div><label>Port</label><input data-f="port" type="number" value="443"></div></div><div class="row"><div><label>Method</label><select data-f="method"><option>aes-128-gcm</option><option>aes-256-gcm</option><option>chacha20-ietf-poly1305</option><option>2022-blake3-aes-128-gcm</option></select></div><div><label>Password</label><input data-f="uuid"></div></div>',
+    fragment:'<div class="row"><div><label>Fragment Size</label><input data-f="frag_size" value="10-30"></div><div><label>Fragment Delay (ms)</label><input data-f="frag_delay" value="5-10"></div></div><p class="hint">Applied to the layer above this one. No server needed.</p>',
+  };
+  html=`<div class="layer-item" data-id="${id}" data-type="${type}"><span class="layer-num">Layer ${layers.length+1}: ${type.toUpperCase()}</span><button class="rm-layer" onclick="removeLayer(${id})">&times;</button>${fields[type]||''}</div>`;
+  layers.push({id,type});
+  document.getElementById('layersContainer').insertAdjacentHTML('beforeend',html);
+  updateVis();
+}
+
+function removeLayer(id){
+  layers=layers.filter(l=>l.id!==id);
+  const el=document.querySelector(`[data-id="${id}"]`);
+  if(el)el.remove();
+  // Renumber
+  document.querySelectorAll('.layer-item').forEach((el,i)=>{
+    const num=el.querySelector('.layer-num');
+    if(num){const t=el.dataset.type;num.textContent=`Layer ${i+1}: ${t.toUpperCase()}`;}
+  });
+  updateVis();
+}
+
+function getLayerData(id){
+  const el=document.querySelector(`[data-id="${id}"]`);
+  if(!el)return{};
+  const d={type:el.dataset.type};
+  el.querySelectorAll('[data-f]').forEach(inp=>{d[inp.dataset.f]=inp.value;});
+  return d;
+}
+
+function updateVis(){
+  const vis=document.getElementById('chainVis');
+  let html='<div class="node"><div class="icon">&#128187;</div><div class="lbl">You</div></div>';
+  layers.forEach((l,i)=>{
+    const icons={socks5:'&#128268;',http:'&#128268;',warp:'&#9729;&#65039;',vless:'&#128274;',vmess:'&#128274;',trojan:'&#128274;',ss:'&#128274;',fragment:'&#9986;'};
+    html+=`<div class="arrow">&rarr;</div><div class="node" style="border-color:${l.type==='warp'?'var(--warn)':l.type==='fragment'?'var(--info)':'var(--brand)'}"><div class="icon">${icons[l.type]||'?'}</div><div class="lbl">L${i+1} ${l.type}</div></div>`;
+  });
+  html+='<div class="arrow">&rarr;</div><div class="node" style="border-color:var(--ok)"><div class="icon">&#127760;</div><div class="lbl">Internet</div></div>';
+  vis.innerHTML=html;
+}
+
+function generate(){
+  if(layers.length===0){showR('err','Add at least one layer.');return;}
+  const port=parseInt(document.getElementById('port').value)||2080;
+  const fmt=document.getElementById('fmt').value;
+  const fp=document.getElementById('fp').value;
+  const alpn=document.getElementById('alpn').value;
+  const mux=document.getElementById('mux').value;
+  const muxpad=document.getElementById('muxpad').value==='true';
+
+  const outbounds=[];
+  let prevTag=null;
+  let fragOpts=null;
+
+  // Process layers from bottom (Layer 1) to top
+  for(let i=0;i<layers.length;i++){
+    const d=getLayerData(layers[i].id);
+    const tag=`layer-${i+1}`;
+
+    if(d.type==='fragment'){
+      fragOpts=d;
+      continue;
+    }
+
+    const ob={tag};
+    if(d.type==='socks5'){ob.type='socks';ob.server=d.host||'127.0.0.1';ob.server_port=parseInt(d.port)||1080;ob.version='5';}
+    else if(d.type==='http'){ob.type='http';ob.server=d.host||'127.0.0.1';ob.server_port=parseInt(d.port)||8080;}
+    else if(d.type==='warp'){
+      ob.type='wireguard';ob.server=d.ip||'162.159.192.1';ob.server_port=parseInt(d.port)||2408;
+      ob.local_address=[`172.16.0.${i+2}/32`];ob.private_key='YNS+CEQE6JIQiVWcOUJd0K8FLFeCQBONJnXCdFnMRlQ=';
+      ob.peer_public_key=WARP_PK;ob.mtu=1280;
+      if(d.key)ob.reserved=[0,0,0];
+    }
+    else if(d.type==='vless'){
+      ob.type='vless';ob.server=d.host;ob.server_port=parseInt(d.port)||443;ob.uuid=d.uuid||'';ob.flow='';
+      ob.tls={enabled:true,server_name:d.sni||d.host};ob.packet_encoding='xudp';
+      if(d.net==='ws')ob.transport={type:'ws',path:'/'};
+      else if(d.net==='grpc')ob.transport={type:'grpc',service_name:'grpc'};
+    }
+    else if(d.type==='vmess'){
+      ob.type='vmess';ob.server=d.host;ob.server_port=parseInt(d.port)||443;ob.uuid=d.uuid||'';ob.security='auto';
+      ob.tls={enabled:true,server_name:d.sni||d.host};
+      if(d.net==='ws')ob.transport={type:'ws',path:'/'};
+      else if(d.net==='grpc')ob.transport={type:'grpc',service_name:'grpc'};
+    }
+    else if(d.type==='trojan'){
+      ob.type='trojan';ob.server=d.host;ob.server_port=parseInt(d.port)||443;ob.password=d.uuid||'';
+      ob.tls={enabled:true,server_name:d.sni||d.host};
+    }
+    else if(d.type==='ss'){
+      ob.type='shadowsocks';ob.server=d.host;ob.server_port=parseInt(d.port)||443;
+      ob.method=d.method||'aes-128-gcm';ob.password=d.uuid||'';
+    }
+
+    // Apply evasion to proxy-type layers
+    if(ob.tls&&typeof ob.tls==='object'){
+      if(fp)ob.tls.utls={enabled:true,fingerprint:fp};
+      if(alpn)ob.tls.alpn=alpn.split(',').map(s=>s.trim());
+      if(fragOpts){
+        const[ms,xs]=(fragOpts.frag_size||'10-30').split('-').map(Number);
+        const[md,xd]=(fragOpts.frag_delay||'5-10').split('-').map(Number);
+        ob.tls.fragment={enabled:true,size:(ms||10)+'-'+(xs||30),sleep:(md||5)+'-'+(xd||10)};
+        fragOpts=null;
+      }
+    }
+    if(mux)ob.multiplex={enabled:true,protocol:mux,max_connections:4,padding:muxpad};
+
+    if(prevTag)ob.detour=prevTag;
+    prevTag=tag;
+    outbounds.push(ob);
+  }
+
+  if(outbounds.length===0){showR('err','No valid layers. Fragment alone needs a proxy layer above it.');return;}
+
+  const primary=outbounds[outbounds.length-1].tag;
+
+  if(fmt==='singbox'){
+    lastConfig={
+      log:{level:'info'},
+      inbounds:[{type:'mixed',tag:'mixed-in',listen:'127.0.0.1',listen_port:port}],
+      outbounds:[...outbounds,{type:'direct',tag:'direct'},{type:'block',tag:'block'}],
+      route:{rules:[{inbound:['mixed-in'],outbound:primary}],final:primary}
+    };
+    showOutput(JSON.stringify(lastConfig,null,2),'json');
+  } else if(fmt==='clash'){
+    let y=`# ConfigStream Chain (Clash/Mihomo)\nmixed-port: ${port}\nallow-lan: false\n\nproxies:\n`;
+    outbounds.forEach(o=>{
+      y+=`  - name: "${o.tag}"\n    type: ${o.type==='socks'?'socks5':o.type}\n    server: ${o.server}\n    port: ${o.server_port}\n`;
+      if(o.uuid)y+=`    uuid: ${o.uuid}\n`;
+      if(o.password)y+=`    password: ${o.password}\n`;
+      if(o.detour)y+=`    dialer-proxy: "${o.detour}"\n`;
+      y+='\n';
+    });
+    y+=`proxy-groups:\n  - name: Chain\n    type: select\n    proxies:\n      - "${primary}"\n      - DIRECT\n\nrules:\n  - MATCH,Chain\n`;
+    lastConfig=y;
+    showOutput(y,'yaml');
+  } else if(fmt==='xray'){
+    const xray={log:{loglevel:'warning'},inbounds:[{tag:'socks',port:port,listen:'127.0.0.1',protocol:'socks',settings:{udp:true}}],outbounds:[]};
+    const last=outbounds[outbounds.length-1];
+    const xob={tag:'proxy',protocol:last.type==='socks'?'socks':last.type};
+    if(last.uuid)xob.settings={vnext:[{address:last.server,port:last.server_port,users:[{id:last.uuid}]}]};
+    else xob.settings={servers:[{address:last.server,port:last.server_port}]};
+    xray.outbounds.push(xob,{tag:'direct',protocol:'freedom'},{tag:'block',protocol:'blackhole'});
+    lastConfig=xray;
+    showOutput(JSON.stringify(xray,null,2),'json');
+  }
+  showR('ok','Config generated! Copy or download it.');
+}
+
+function showOutput(text,type){
+  const el=document.getElementById('output');
+  const code=document.getElementById('outputCode');
+  code.textContent=text;
+  el.style.display='block';
+}
+
+function showR(type,msg){
+  const el=document.getElementById('result');
+  el.className='result '+type;
+  el.innerHTML=msg;
+}
+
+function copyOutput(){
+  const code=document.getElementById('outputCode');
+  if(!code||!code.textContent)return;
+  navigator.clipboard.writeText(code.textContent).catch(()=>{
+    const r=document.createRange();r.selectNodeContents(code);
+    const s=window.getSelection();s.removeAllRanges();s.addRange(r);
+    document.execCommand('copy');
+  });
+  showR('ok','Copied to clipboard!');
+}
+
+function downloadOutput(){
+  const code=document.getElementById('outputCode');
+  if(!code||!code.textContent){showR('err','Generate first.');return;}
+  const fmt=document.getElementById('fmt').value;
+  const ext={singbox:'.json',clash:'.yaml',xray:'.json'}[fmt]||'.json';
+  const blob=new Blob([code.textContent],{type:'text/plain'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='configstream-chain'+ext;document.body.appendChild(a);a.click();
+  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(a.href);},100);
+}
+</script>
+</body>
+</html>

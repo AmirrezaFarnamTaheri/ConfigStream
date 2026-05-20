@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-17T23:00:00.899446+03:30",
+  "artifact_dir": "output",
+  "tools": {
+    "sing-box": {
+      "available": false,
+      "binary": null
+    },
+    "mihomo": {
+      "available": false,
+      "binary": null
+    }
+  },
+  "checks": [
+    {
+      "core": "sing-box",
+      "path": "singbox.json",
+      "status": "skipped",
+      "command": null,
+      "error": null
+    },
+    {
+      "core": "sing-box",
+      "path": "singbox-dns-safe.json",
+      "status": "skipped",
+      "command": null,
+      "error": null
+    },
+    {
+      "core": "sing-box",
+      "path": "singbox-dns-hardened.json",
+      "status": "skipped",
+      "command": null,
+      "error": null
+    },
+    {
+      "core": "sing-box",
+      "path": "singbox-vpn.json",
+      "status": "skipped",
+      "command": null,
+      "error": null
+    },
+    {
+      "core": "sing-box",
+      "path": "singbox-vpn-dns-safe.json",
+      "status": "skipped",
+      "command": null,
+      "error": null
+    },
+    {
+      "core": "sing-box",
+      "path": "singbox-vpn-dns-hardened.json",
+      "status": "skipped",
+      "command": null,
+      "error": null
+    },
+    {
+      "core": "sing-box",
+      "path": "singbox-chains.json",
+      "status": "skipped",
+      "command": null,
+      "error": null
+    },
+    {
+      "core": "sing-box",
+      "path": "singbox-chains-dns-safe.json",
+      "status": "skipped",
+      "command": null,
+      "error": null
+    },
+    {
+      "core": "sing-box",
+      "path": "singbox-chains-dns-hardened.json",
+      "status": "skipped",
+      "command": null,
+      "error": null
+    },
+    {
+      "core": "clash",
+      "path": "clash.yaml",
+      "status": "skipped",
+      "command": null,
+      "error": null
+    },
+    {
+      "core": "clash",
+      "path": "clash-dns-safe.yaml",
+      "status": "skipped",
+      "command": null,
+      "error": null
+    },
+    {
+      "core": "clash",
+      "path": "clash-dns-hardened.yaml",
+      "status": "skipped",
+      "command": null,
+      "error": null
+    }
+  ],
+  "summary": {
+    "passed": 0,
+    "failed": 0,
+    "skipped": 12
+  }
+}

@@ -1,0 +1,172 @@
+{
+  "inventory": {
+    "files_excluding_generated_heavy": 1065,
+    "bytes": 332971498
+  },
+  "areas": {
+    "src": {
+      "files": 138,
+      "bytes": 1313460
+    },
+    "scripts": {
+      "files": 48,
+      "bytes": 314337
+    },
+    "tools": {
+      "files": 15,
+      "bytes": 346744
+    },
+    "docs": {
+      "files": 59,
+      "bytes": 478792
+    },
+    "frontend": {
+      "files": 385,
+      "bytes": 17754123
+    },
+    "tests": {
+      "files": 181,
+      "bytes": 719065
+    },
+    ".github": {
+      "files": 7,
+      "bytes": 50137
+    },
+    "schema": {
+      "files": 4,
+      "bytes": 34618
+    },
+    "sources": {
+      "files": 34,
+      "bytes": 169249
+    }
+  },
+  "artifact": {
+    "proxy_count": 8612,
+    "metadata_total_proxies": 4306,
+    "metadata_total_working": 614,
+    "actual_is_working_count": 1228,
+    "native_count": 614,
+    "revived_count": 3692,
+    "chain_flag_count": 4306,
+    "protocol_counts": {
+      "http": 112,
+      "revived": 3692,
+      "socks4": 183,
+      "socks5": 319,
+      "wireguard": 4306
+    },
+    "invalid_uuid_count": 3694,
+    "invalid_uuid_samples": [
+      {
+        "idx": 193,
+        "uuid": "Og==",
+        "protocol": "socks5",
+        "process": "native"
+      },
+      {
+        "idx": 201,
+        "uuid": "VDJjbE0wUWxNMFE2Og==",
+        "protocol": "socks5",
+        "process": "native"
+      },
+      {
+        "idx": 249,
+        "uuid": "WARP-REVIVE-21150522",
+        "protocol": "revived",
+        "process": "revived-warp"
+      },
+      {
+        "idx": 250,
+        "uuid": "WARP-REVIVE-5daafb0f",
+        "protocol": "revived",
+        "process": "revived-warp"
+      },
+      {
+        "idx": 251,
+        "uuid": "WARP-REVIVE-b319db06",
+        "protocol": "revived",
+        "process": "revived-warp"
+      },
+      {
+        "idx": 252,
+        "uuid": "WARP-REVIVE-05e3342e",
+        "protocol": "revived",
+        "process": "revived-warp"
+      },
+      {
+        "idx": 253,
+        "uuid": "WARP-REVIVE-fb1a2a82",
+        "protocol": "revived",
+        "process": "revived-warp"
+      },
+      {
+        "idx": 254,
+        "uuid": "WARP-REVIVE-c1c13017",
+        "protocol": "revived",
+        "process": "revived-warp"
+      }
+    ],
+    "lat_lng_detail_count": 2598,
+    "lat_lng_samples": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "unknown_detail_key_counts": {
+      "lat": 2598,
+      "lng": 2598
+    },
+    "file_count": 493,
+    "has_nojekyll": false,
+    "has_build_config": false
+  },
+  "subscriptions": {
+    "proxies.txt": {
+      "lines": 614,
+      "plausible_uri_lines": 614,
+      "bytes": 63597
+    },
+    "proxies-dns-safe.txt": {
+      "lines": 614,
+      "plausible_uri_lines": 614,
+      "bytes": 63597
+    },
+    "proxies-dns-hardened.txt": {
+      "lines": 614,
+      "plausible_uri_lines": 614,
+      "bytes": 63597
+    },
+    "base64.txt": {
+      "lines": 1,
+      "plausible_uri_lines": 0,
+      "bytes": 84796
+    },
+    "chosen/proxies.txt": {
+      "lines": 120,
+      "plausible_uri_lines": 120,
+      "bytes": 12295
+    },
+    "chosen/base64.txt": {
+      "lines": 1,
+      "plausible_uri_lines": 0,
+      "bytes": 16396
+    }
+  },
+  "workflow": {
+    "merge_needs_pipeline_only": true,
+    "frontend_wasm_upload": true,
+    "download_frontend_wasm": true
+  },
+  "doc_claims": {
+    "production_ready_occurrences": 34,
+    "live_pages_failure_occurrences": 85
+  }
+}
