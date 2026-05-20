@@ -329,7 +329,7 @@ def _save_proxies_with_chains(
     washed_outbounds: Optional[List[Dict[str, Any]]] = None,
     smart_chains: Optional[Dict[str, List[List[Dict[str, Any]]]]] = None,
     name_template: Optional[str] = None,
-) -> None:
+) -> Dict[str, int]:
     """
     Save proxies.json with native proxies PLUS chain entries
     so the frontend shows all output types.
@@ -359,6 +359,14 @@ def _save_proxies_with_chains(
         data = [data] if data is not None else []
     json_content = json.dumps(data, indent=2, ensure_ascii=False)
     AtomicFileWriter.write_text(path, json_content)
+    return {
+        "public_record_count": len(data),
+        "public_working_count": sum(
+            1
+            for item in data
+            if isinstance(item, dict) and bool(item.get("is_working"))
+        ),
+    }
 
 
 async def _populate_resolved_ips(proxies: List[Proxy], settings: AppSettings) -> None:
@@ -656,7 +664,7 @@ async def generate_pipeline_outputs(
     loop = asyncio.get_running_loop()
     # Include washed outbounds + smart chains in proxies.json
     # so the frontend displays all output types (not just native proxies).
-    await loop.run_in_executor(
+    public_counts = await loop.run_in_executor(
         None,
         _save_proxies_with_chains,
         optimized_proxies,
@@ -742,6 +750,13 @@ async def generate_pipeline_outputs(
     stats.chain_obs_count = len(_chain_tags)
 
     stats_dict = stats.to_dict()
+    if isinstance(public_counts, dict):
+        stats_dict["public_record_count"] = int(
+            public_counts.get("public_record_count", len(optimized_proxies))
+        )
+        stats_dict["public_working_count"] = int(
+            public_counts.get("public_working_count", 0)
+        )
 
     await loop.run_in_executor(
         None, save_metadata, stats_dict, optimized_proxies, output_path

@@ -35,6 +35,25 @@
     "run_attempt": {
       "type": "string"
     },
+    "manifest_signature": {
+      "type": "object",
+      "required": ["algorithm", "signature", "key_id"],
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "const": "ed25519"
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{128}$"
+        },
+        "key_id": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{16}$"
+        }
+      },
+      "additionalProperties": false
+    },
     "file_count": {
       "type": "integer",
       "minimum": 0

@@ -23,6 +23,29 @@
             return bytes;
         },
 
+        _canonicalize: function(value) {
+            if (Array.isArray(value)) {
+                return value.map((item) => this._canonicalize(item));
+            }
+            if (value && typeof value === "object") {
+                const sorted = {};
+                Object.keys(value)
+                    .sort()
+                    .forEach((key) => {
+                        sorted[key] = this._canonicalize(value[key]);
+                    });
+                return sorted;
+            }
+            return value;
+        },
+
+        _canonicalManifestPayload: function(manifestObj) {
+            const clone = JSON.parse(JSON.stringify(manifestObj || {}));
+            delete clone.manifest_signature;
+            const canonical = this._canonicalize(clone);
+            return JSON.stringify(canonical);
+        },
+
         _isSignedObject: function(signedObj) {
             return !!(signedObj && typeof signedObj.signature === "string" && signedObj.signature.length > 0);
         },
@@ -98,6 +121,54 @@
                 // Fail CLOSED as per audit
                 throw e; // Propagate error, do not return content
             }
+        },
+
+        verifyManifestSignature: async function(manifestObj) {
+            if (!manifestObj || typeof manifestObj !== "object") {
+                throw new Error("Manifest verification failed: manifest must be an object.");
+            }
+
+            const sig = manifestObj.manifest_signature;
+            if (!sig) {
+                return { verified: false, reason: "unsigned" };
+            }
+            if (!this._isSignedObject({ content: "{}", signature: sig.signature })) {
+                throw new Error("Manifest verification failed: invalid signature object.");
+            }
+            if (sig.algorithm !== "ed25519") {
+                throw new Error("Manifest verification failed: unsupported algorithm.");
+            }
+
+            if (!window.crypto || !window.crypto.subtle) {
+                throw new Error("Manifest verification failed: Web Crypto API not supported.");
+            }
+
+            const PUBLIC_KEY = global.CS_CONSTANTS ? global.CS_CONSTANTS.PUBLIC_KEY : null;
+            if (!this._isConfiguredPublicKey(PUBLIC_KEY)) {
+                throw new Error("Manifest verification failed: Public Key not configured.");
+            }
+
+            let keyData;
+            keyData = this._base64ToArrayBuffer(PUBLIC_KEY);
+            const key = await window.crypto.subtle.importKey(
+                "spki",
+                keyData,
+                { name: "Ed25519" },
+                true,
+                ["verify"]
+            );
+            const payload = new TextEncoder().encode(this._canonicalManifestPayload(manifestObj));
+            const signature = this._hexToBytes(sig.signature);
+            const isValid = await window.crypto.subtle.verify(
+                { name: "Ed25519" },
+                key,
+                signature,
+                payload
+            );
+            if (!isValid) {
+                throw new Error("SECURITY ALERT: artifact_manifest signature mismatch!");
+            }
+            return { verified: true, reason: "verified" };
         },
 
         // Manual Trigger

@@ -1289,7 +1289,9 @@ class ProxyWasher:
                 protocol="revived",  # Special protocol
                 address=clean_endpoint,
                 port=clean_port,
-                uuid=chain_id,
+                # Top-level `uuid` in public artifact schema is UUID-typed.
+                # Keep chain identifiers inside revived details/tags.
+                uuid="",
                 remarks="",  # Set below via format_proxy_name
                 process=process_tag,
                 details=revived_details,

@@ -20,6 +20,9 @@ GENERATED_PATHS = {
     "docs/DEBT_MATRIX.md",
     "docs/debt_matrix.json",
     "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md",
+    "Main SOURCE OF TRUTH - Ammendment.md",
+    "Main SOURCE OF TRUTH - PART 2.md",
+    "Main SOURCE OF TRUTH - PART 3.md",
 }
 # Files that are excluded from scanning because they are either:
 # - The debt scanner itself (self-referential)

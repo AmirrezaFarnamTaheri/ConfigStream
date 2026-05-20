@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import pytest
 import json
+from cryptography.hazmat.primitives.asymmetric import ed25519
+from cryptography.hazmat.primitives import serialization
 from unittest.mock import MagicMock
 from configstream.output_transport import save_json
 from configstream.output_logic import (
@@ -133,6 +135,30 @@ def test_public_artifact_contract_generation(tmp_path, sample_proxies):
     assert "health.json" in paths
     assert "base64.txt" in paths
     assert all(entry["sha256"] for entry in saved_manifest["files"])
+
+
+def test_public_artifact_contract_includes_signature_when_key_configured(
+    tmp_path, sample_proxies, monkeypatch
+):
+    private_key = ed25519.Ed25519PrivateKey.generate()
+    private_hex = private_key.private_bytes(
+        encoding=serialization.Encoding.Raw,
+        format=serialization.PrivateFormat.Raw,
+        encryption_algorithm=serialization.NoEncryption(),
+    ).hex()
+    monkeypatch.setenv("CS_SIGNING_PRIVATE_KEY_HEX", private_hex)
+
+    stats = PipelineStats(fetched_lines=10)
+    save_metadata(stats, sample_proxies, tmp_path)
+    write_public_artifact_contract(tmp_path)
+
+    saved_manifest = json.loads(
+        (tmp_path / "artifact_manifest.json").read_text(encoding="utf-8")
+    )
+    signature = saved_manifest.get("manifest_signature")
+    assert isinstance(signature, dict)
+    assert signature.get("algorithm") == "ed25519"
+    assert isinstance(signature.get("signature"), str)
 
 
 def test_split_outputs_atomic(tmp_path, sample_proxies):
