@@ -1,0 +1,123 @@
+{
+  "run_id": "25992023452",
+  "run_attempt": "1",
+  "commit": "8f4ff30b5d79d4bee4f9f4b93f3d9befb9f0462c",
+  "event": "schedule",
+  "timestamp": "2026-05-17T23:00:00.968238+03:30",
+  "repository": "AmirrezaFarnamTaheri/ConfigStream",
+  "file_stats": {
+    "total_files": 495,
+    "total_size_bytes": 371221806,
+    "working_proxies": 614,
+    "total_proxies": 4306,
+    "shielded_count": 3681,
+    "shielded_verified_count": 0,
+    "base64_proxy_count": 614
+  },
+  "native_client_check": {
+    "schema_version": 1,
+    "generated_at": "2026-05-17T23:00:00.899446+03:30",
+    "artifact_dir": "output",
+    "tools": {
+      "sing-box": {
+        "available": false,
+        "binary": null
+      },
+      "mihomo": {
+        "available": false,
+        "binary": null
+      }
+    },
+    "checks": [
+      {
+        "core": "sing-box",
+        "path": "singbox.json",
+        "status": "skipped",
+        "command": null,
+        "error": null
+      },
+      {
+        "core": "sing-box",
+        "path": "singbox-dns-safe.json",
+        "status": "skipped",
+        "command": null,
+        "error": null
+      },
+      {
+        "core": "sing-box",
+        "path": "singbox-dns-hardened.json",
+        "status": "skipped",
+        "command": null,
+        "error": null
+      },
+      {
+        "core": "sing-box",
+        "path": "singbox-vpn.json",
+        "status": "skipped",
+        "command": null,
+        "error": null
+      },
+      {
+        "core": "sing-box",
+        "path": "singbox-vpn-dns-safe.json",
+        "status": "skipped",
+        "command": null,
+        "error": null
+      },
+      {
+        "core": "sing-box",
+        "path": "singbox-vpn-dns-hardened.json",
+        "status": "skipped",
+        "command": null,
+        "error": null
+      },
+      {
+        "core": "sing-box",
+        "path": "singbox-chains.json",
+        "status": "skipped",
+        "command": null,
+        "error": null
+      },
+      {
+        "core": "sing-box",
+        "path": "singbox-chains-dns-safe.json",
+        "status": "skipped",
+        "command": null,
+        "error": null
+      },
+      {
+        "core": "sing-box",
+        "path": "singbox-chains-dns-hardened.json",
+        "status": "skipped",
+        "command": null,
+        "error": null
+      },
+      {
+        "core": "clash",
+        "path": "clash.yaml",
+        "status": "skipped",
+        "command": null,
+        "error": null
+      },
+      {
+        "core": "clash",
+        "path": "clash-dns-safe.yaml",
+        "status": "skipped",
+        "command": null,
+        "error": null
+      },
+      {
+        "core": "clash",
+        "path": "clash-dns-hardened.yaml",
+        "status": "skipped",
+        "command": null,
+        "error": null
+      }
+    ],
+    "summary": {
+      "passed": 0,
+      "failed": 0,
+      "skipped": 12
+    }
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "policy": "Vendored assets preserve the previous online runtime experience. If an exact local equivalent is unavailable, keep any reduced offline fallback separate from the primary UI path.",
+  "libraries": [
+    {
+      "name": "feather-icons",
+      "version": "4.29.1",
+      "source": "https://unpkg.com/feather-icons@4.29.1/dist/feather.min.js",
+      "local": "assets/libs/feather.min.js"
+    },
+    {
+      "name": "three",
+      "version": "0.160.0",
+      "source": "https://unpkg.com/three@0.160.0/build/three.min.js",
+      "local": "assets/libs/three.min.js"
+    },
+    {
+      "name": "globe.gl",
+      "version": "2.30.0",
+      "source": "https://unpkg.com/globe.gl@2.30.0/dist/globe.gl.min.js",
+      "local": "assets/libs/globe.gl.min.js"
+    },
+    {
+      "name": "chart.js",
+      "version": "4.4.1",
+      "source": "https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js",
+      "local": "assets/libs/chart.min.js"
+    },
+    {
+      "name": "pako",
+      "version": "2.1.0",
+      "source": "https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js",
+      "local": "assets/libs/pako.min.js"
+    },
+    {
+      "name": "fernet",
+      "version": "0.4.0",
+      "source": "https://cdn.jsdelivr.net/npm/fernet@0.4.0/fernetBrowser.min.js",
+      "local": "assets/libs/fernetBrowser.min.js"
+    },
+    {
+      "name": "marked",
+      "version": "latest-at-vendor-time",
+      "source": "https://cdn.jsdelivr.net/npm/marked/marked.min.js",
+      "local": "assets/libs/marked.min.js"
+    },
+    {
+      "name": "dompurify",
+      "version": "3.0.6",
+      "source": "https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js",
+      "local": "assets/libs/purify.min.js"
+    },
+    {
+      "name": "highlight.js",
+      "version": "11.9.0",
+      "source": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js",
+      "local": "assets/libs/highlight.min.js"
+    },
+    {
+      "name": "highlight.js atom-one-dark theme",
+      "version": "11.9.0",
+      "source": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css",
+      "local": "assets/libs/atom-one-dark.min.css"
+    },
+    {
+      "name": "qrcode-svg",
+      "version": "0.9.1",
+      "source": "https://github.com/papnkukn/qrcode-svg",
+      "local": "assets/js/utils/qrcode.js"
+    }
+  ],
+  "fonts": [
+    {
+      "name": "Be Vietnam Pro and DM Serif Display",
+      "source": "https://fonts.googleapis.com/css2?family=Be%20Vietnam%20Pro:wght@400%3B500%3B700%3B800&family=DM%20Serif%20Display&display=swap",
+      "localDirectory": "assets/fonts/vendor/"
+    },
+    {
+      "name": "Vazirmatn",
+      "source": "https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css",
+      "localDirectory": "assets/fonts/vendor/"
+    },
+    {
+      "name": "Mikhak",
+      "source": "https://github.com/aminabedi68/Mikhak/tree/master/fonts/webfonts/statics",
+      "localDirectory": "assets/fonts/vendor/"
+    }
+  ],
+  "images": [
+    {
+      "name": "three-globe example textures",
+      "source": "https://unpkg.com/three-globe/example/img/",
+      "localDirectory": "assets/images/globe/"
+    },
+    {
+      "name": "FlagCDN 20px PNG flags",
+      "source": "https://flagcdn.com/w20/{country_code}.png",
+      "localDirectory": "assets/images/flags/w20/"
+    }
+  ]
+}

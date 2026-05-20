@@ -1,0 +1,157 @@
+[
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\tagging.py",
+    "LineNumber": 30,
+    "Line": "        return \"🌐\"  # Globe for unknown"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\tagging.py",
+    "LineNumber": 36,
+    "Line": "        return \"🌐\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\tagging.py",
+    "LineNumber": 186,
+    "Line": "def format_proxy_name(template: str, proxy: Proxy) -> str:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\tagging.py",
+    "LineNumber": 329,
+    "Line": "    # Default template when RENAME_TEMPLATE env var is not set"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\tagging.py",
+    "LineNumber": 330,
+    "Line": "    DEFAULT_TEMPLATE = \"{country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\tagging.py",
+    "LineNumber": 339,
+    "Line": "                           If None, uses DEFAULT_TEMPLATE."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\tagging.py",
+    "LineNumber": 341,
+    "Line": "        self.template = name_template or self.DEFAULT_TEMPLATE"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\tagging.py",
+    "LineNumber": 363,
+    "Line": "            new_name = format_proxy_name(self.template, proxy)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\config.py",
+    "LineNumber": 151,
+    "Line": "    RENAME_TEMPLATE: Optional[str] = None"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\output_handler.py",
+    "LineNumber": 26,
+    "Line": "from configstream.tagging import ProxyTagger, format_proxy_name"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\output_handler.py",
+    "LineNumber": 198,
+    "Line": "            remarks = format_proxy_name(name_template, chain_proxy)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\output_handler.py",
+    "LineNumber": 456,
+    "Line": "    rename_template = settings.RENAME_TEMPLATE"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\output_handler.py",
+    "LineNumber": 457,
+    "Line": "    tagger = ProxyTagger(rename_template)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\output_handler.py",
+    "LineNumber": 528,
+    "Line": "            f\"âš°ï¸  Attempting to resurrect {len(failed_proxies)} dead proxies with Alchemy...\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\output_handler.py",
+    "LineNumber": 536,
+    "Line": "                    f\"âœ¨  Alchemy Success! Resurrected {len(shielded_outbounds)//2} candidates.\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\output_logic.py",
+    "LineNumber": 959,
+    "Line": "                # of chains into one \"single proxy\" when format_proxy_name produced"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\output_logic.py",
+    "LineNumber": 1029,
+    "Line": "            elif tag.startswith(\"ðŸ›¡ï¸\") or process == \"washed\":"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\tagging.py",
+    "LineNumber": 30,
+    "Line": "        return \"🌐\"  # Globe for unknown"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\tagging.py",
+    "LineNumber": 36,
+    "Line": "        return \"🌐\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\tagging.py",
+    "LineNumber": 186,
+    "Line": "def format_proxy_name(template: str, proxy: Proxy) -> str:"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\tagging.py",
+    "LineNumber": 329,
+    "Line": "    # Default template when RENAME_TEMPLATE env var is not set"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\tagging.py",
+    "LineNumber": 330,
+    "Line": "    DEFAULT_TEMPLATE = \"{country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}\""
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\tagging.py",
+    "LineNumber": 339,
+    "Line": "                           If None, uses DEFAULT_TEMPLATE."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\tagging.py",
+    "LineNumber": 341,
+    "Line": "        self.template = name_template or self.DEFAULT_TEMPLATE"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\tagging.py",
+    "LineNumber": 363,
+    "Line": "            new_name = format_proxy_name(self.template, proxy)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\generators\\split.py",
+    "LineNumber": 253,
+    "Line": "        # Add \"🛡️ Auto-Fallback\" alias"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\generators\\split.py",
+    "LineNumber": 257,
+    "Line": "                \"tag\": \"🛡️ Auto-Fallback\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\generators\\split.py",
+    "LineNumber": 268,
+    "Line": "                \"outbounds\": [\"🚀 Auto\", \"🛡️ Auto-Fallback\"] + selector_tags,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\generators\\split.py",
+    "LineNumber": 375,
+    "Line": "                \"tag\": \"🛡️ Washed\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\src\\configstream\\generators\\split.py",
+    "LineNumber": 413,
+    "Line": "        main_options.append(\"🛡️ Washed\")"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxies.js",
+    "LineNumber": 270,
+    "Line": "             if (p.typeTag === 'secure') { tagClass = 'badge-success'; tagText = 'Secure'; icon = '🛡️'; }"
+  }
+]

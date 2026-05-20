@@ -1,0 +1,77 @@
+{
+  "schema_version": "1.1",
+  "strategies": [
+    {
+      "id": "warp",
+      "label": "WARP Tunnel (Standard)",
+      "status": "implemented",
+      "hint": "Traffic flows through Cloudflare WARP to hide the proxy from your ISP.",
+      "visual_label": "WARP",
+      "panels": ["warpOptions"]
+    },
+    {
+      "id": "vwarp-masque",
+      "label": "Vwarp (Masque Obfuscation)",
+      "status": "implemented",
+      "hint": "WARP chain with Vwarp MASQUE metadata for deployments that use vwarp obfuscation presets.",
+      "visual_label": "Vwarp MASQUE",
+      "panels": ["warpOptions"]
+    },
+    {
+      "id": "vwarp-atomic",
+      "label": "Vwarp (AtomicNoize)",
+      "status": "implemented",
+      "hint": "WARP chain with Vwarp AtomicNoize metadata for fragmentation-style evasion outside sing-box native outputs.",
+      "visual_label": "AtomicNoize",
+      "panels": ["warpOptions"]
+    },
+    {
+      "id": "warp-in-warp",
+      "label": "Double WARP (WARP-in-WARP)",
+      "status": "implemented",
+      "hint": "Double encapsulation: outer WARP wraps inner WARP wraps your proxy. Maximum obfuscation.",
+      "visual_label": "WARP x2",
+      "panels": ["warpOptions", "warpInWarpRow"]
+    },
+    {
+      "id": "warp-psiphon",
+      "label": "WARP + Psiphon (change exit location)",
+      "status": "implemented",
+      "hint": "WARP + Psiphon: uses vwarp's --cfon to change the WARP exit country. Requires the vwarp binary.",
+      "visual_label": "WARP+Psiphon",
+      "panels": ["warpOptions", "psiphonOptions"]
+    },
+    {
+      "id": "relay-chain",
+      "label": "Relay Chain (multi-hop, any protocol)",
+      "status": "implemented",
+      "hint": "Up to 4 intermediate hops of any protocol (SOCKS5, HTTP, VLESS, VMess, Trojan, SS, WARP). Use local proxies, LAN relays, or pipeline proxies.",
+      "visual_label": "Relay",
+      "panels": ["relayChainOptions"]
+    },
+    {
+      "id": "fragment",
+      "label": "TLS Fragment (legacy/manual)",
+      "status": "manual",
+      "hint": "Legacy/manual TLS fragmentation recipe. Native sing-box tls_fragment output is disabled; use Vwarp AtomicNoize when available.",
+      "visual_label": "Fragment",
+      "panels": ["fragmentOptions"]
+    },
+    {
+      "id": "worker",
+      "label": "CDN Worker Relay",
+      "status": "implemented",
+      "hint": "Routes traffic through your own Cloudflare Worker. This may improve availability on some networks.",
+      "visual_label": "Worker",
+      "panels": ["workerOptions"]
+    },
+    {
+      "id": "custom",
+      "label": "Custom Sing-box JSON",
+      "status": "implemented",
+      "hint": "Define your own outbound chain in raw Sing-box JSON format.",
+      "visual_label": "Custom",
+      "panels": ["customChainOptions"]
+    }
+  ]
+}

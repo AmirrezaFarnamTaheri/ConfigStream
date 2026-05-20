@@ -1,0 +1,1715 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+"""
+The Core Pipeline Orchestrator.
+Integrates fetching, parsing, testing, and output generation into a
+high-concurrency, memory-efficient streaming workflow.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import logging
+import multiprocessing
+import os
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import List, Optional, Dict
+from contextlib import suppress
+
+from rich.progress import Progress, TaskID
+
+from .models import Proxy
+from .testers import SingBoxTester
+from .test_cache import TestResultCache
+from .scheduler import SmartRetestScheduler
+from .concurrency_manager import ConcurrencyManager
+from .adaptive_timeout import AdaptiveTimeout
+from .geoip import GeoIPResolver
+from .source_quality import SourceQualityTracker
+from .anomaly import AnomalyDetector
+from .security.blocklist import DEFAULT_BLOCKLIST
+from .performance import PerformanceTracker
+from .history.tracker import ProxyHistoryTracker
+from .filtering import dedupe_and_shuffle, filter_unique_endpoints, dedupe_by_config
+from .constants import VWARP_SOCKS5_PORT, VWARP_BIND_ADDRESS
+from .utils.bloom import BloomFilter
+from .async_utils import safe_wait_for
+from .hard_stop import HardStopWatcher
+from .logging_config import set_trace_id, clear_trace_id
+
+from configstream.pipeline_stats import PipelineStats, PipelineResult
+from configstream.producer import source_producer
+from configstream.consumer import processing_consumer
+from configstream.sorter import sort_proxies_pareto
+import configstream.output_handler as output_handler
+from .event_stream import EventStream
+from configstream.intelligence.washer.core import ProxyWasher  # Import here
+from .config import AppSettings
+from configstream.security_validator import SecurityValidator
+
+logger = logging.getLogger(__name__)
+
+
+async def _cancel_all(
+    producer_task: asyncio.Task, consumer_tasks: List[asyncio.Task]
+) -> None:
+    """Cancel producer and all consumer tasks, waiting for them to finish."""
+    for t in consumer_tasks:
+        t.cancel()
+    producer_task.cancel()
+    await asyncio.gather(*consumer_tasks, return_exceptions=True)
+    with suppress(asyncio.CancelledError):
+        await producer_task
+
+
+async def run_full_pipeline(
+    sources: List[str],
+    output_dir: str,
+    max_workers: int = 0,  # 0 = Auto
+    timeout: int = 10,
+    country_filter: Optional[str] = None,
+    max_latency: Optional[int] = None,
+    leniency: bool = False,
+    strict_security: bool = False,
+    progress: Optional[Progress] = None,
+    proxies: Optional[List[Proxy]] = None,  # Pre-supplied proxies
+    dry_run: bool = False,
+    time_limit_seconds: Optional[int] = None,
+) -> PipelineResult:
+    """
+    Execute the streaming proxy aggregation pipeline.
+
+    Args:
+        sources: List of source URLs to fetch proxies from
+        output_dir: Output directory path for generated files
+        max_workers: Maximum concurrent workers (0 = auto-calculate)
+        timeout: Proxy test timeout in seconds
+        country_filter: ISO country code filter (e.g., "US", "GB")
+        max_latency: Maximum acceptable latency in milliseconds
+        leniency: Enable lenient testing mode
+        strict_security: Enable strict security checks
+        progress: Optional Rich progress bar instance
+        proxies: Pre-supplied proxy list (bypasses source fetching)
+        dry_run: Skip actual proxy testing (validation mode)
+        time_limit_seconds: Optional soft time limit for the batch (0 disables)
+
+    Returns:
+        PipelineResult with statistics and output file paths
+
+    Raises:
+        ValueError: If input parameters are invalid
+        RuntimeError: If pipeline execution fails
+    """
+    # Input validation - prevent invalid parameter combinations
+    if not sources and not proxies:
+        raise ValueError("Either 'sources' or 'proxies' must be provided")
+
+    if not output_dir or not output_dir.strip():
+        raise ValueError("'output_dir' must be a non-empty string")
+
+    if max_workers < 0:
+        raise ValueError(f"'max_workers' must be >= 0 (got {max_workers})")
+
+    settings = AppSettings()
+    if max_workers <= 0 and settings.MAX_WORKERS > 0:
+        max_workers = settings.MAX_WORKERS
+
+    if not strict_security and settings.STRICT_SECURITY:
+        strict_security = True
+
+    if timeout <= 0 or timeout > 300:
+        raise ValueError(f"'timeout' must be between 1 and 300 seconds (got {timeout})")
+
+    if max_latency is not None and max_latency <= 0:
+        raise ValueError(f"'max_latency' must be > 0 or None (got {max_latency})")
+
+    if country_filter:
+        # Validate ISO country code format (2 letters, uppercase)
+        if not country_filter.isalpha() or len(country_filter) != 2:
+            raise ValueError(
+                f"'country_filter' must be a 2-letter ISO code (got '{country_filter}')"
+            )
+        country_filter = country_filter.upper()
+
+    if time_limit_seconds is None:
+        time_limit_seconds = settings.BATCH_TIME_LIMIT_SECONDS
+    if time_limit_seconds is not None and time_limit_seconds < 0:
+        raise ValueError(
+            f"'time_limit_seconds' must be >= 0 (got {time_limit_seconds})"
+        )
+
+    start_time = datetime.now(timezone.utc)
+    tracker = PerformanceTracker()
+    trace_id = set_trace_id()
+
+    # 1. Initialization & Setup
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    # Auto-calc max_workers if not explicitly provided
+    if max_workers <= 0:
+        from .adaptive_workers import calculate_optimal_workers
+
+        max_workers = calculate_optimal_workers(0)
+
+    # Initialize Intelligence Stack
+    timeout_tracker = AdaptiveTimeout()
+    concurrency = ConcurrencyManager(
+        asyncio.get_running_loop(),
+        initial_limit=max_workers,
+        min_limit=1,
+        max_limit=max_workers,
+    )
+    test_cache = TestResultCache()
+    scheduler = SmartRetestScheduler(cache=test_cache)
+    history = ProxyHistoryTracker()
+
+    # Initialize Advanced Intelligence
+    quality_tracker = SourceQualityTracker()
+    anomaly_detector = AnomalyDetector()
+
+    # Initialize Blocklist - Await update to ensure security rules apply to first batch
+    logger.info("Initializing security blocklists...")
+    await DEFAULT_BLOCKLIST.update()
+
+    # Initialize GeoIP (Shared Singleton)
+    geoip = GeoIPResolver()
+
+    # Initialize Shared Washer Singleton
+    washer = ProxyWasher(settings.WARP_KEY_POOL)
+    if not dry_run:
+        await washer.fetch_clean_ips()  # Pre-fetch once
+
+    # Initialize Event Stream
+    event_stream = EventStream(output_path)
+
+    stats = PipelineStats()
+    stats.trace_id = trace_id
+    # Track total configured sources for frontend display
+    stats.total_configured_sources = len(sources) if sources else 0
+    if time_limit_seconds:
+        stats.time_limit_seconds = int(time_limit_seconds)
+    hard_stop_watcher = HardStopWatcher(
+        grace_seconds=float(getattr(settings, "SHUTDOWN_GRACE_SECONDS", 5.0)),
+        flush_timeout_seconds=float(
+            getattr(settings, "EVENT_STREAM_FLUSH_TIMEOUT_SECONDS", 2.0)
+        ),
+    )
+
+    stop_event = asyncio.Event()
+
+    # Validate App Settings
+    settings.validate_settings()
+
+    # --- Start Vwarp Tunnel if available ---
+    # Use VwarpTool implementation to respect CI rules and improved logging
+    from configstream.tools.vwarp import VwarpTool
+
+    vwarp_tool = VwarpTool()
+    # Tunnel lifecycle managed entirely by vwarp_tool.start_tunnel/stop_tunnel
+
+    if settings.USE_VWARP_TUNNEL:
+        if await vwarp_tool.is_available():
+            vwarp_config_override = {
+                "masque": {"enabled": settings.VWARP_MASQUE_ENABLED},
+                "psiphon": {
+                    "enabled": settings.PSIPHON_ENABLED,
+                    "country": settings.PSIPHON_COUNTRY,
+                },
+            }
+            if await vwarp_tool.start_tunnel(
+                bind_addr=VWARP_BIND_ADDRESS,
+                port=VWARP_SOCKS5_PORT,
+                config_override=vwarp_config_override,
+            ):
+                logger.info("✅ Vwarp Tunnel established.")
+                os.environ["USE_VWARP_TUNNEL"] = "true"
+            else:
+                logger.warning(
+                    "Vwarp tunnel failed to start or did not pass health check. Disabling Vwarp integration."
+                )
+                os.environ["USE_VWARP_TUNNEL"] = "false"
+        else:
+            logger.warning(
+                "Vwarp tunnel requested but vwarp binary is unavailable. Disabling Vwarp integration."
+            )
+            os.environ["USE_VWARP_TUNNEL"] = "false"
+    else:
+        logger.info("Vwarp tunnel disabled by configuration.")
+
+    # Dynamic Worker Calculation based on CPU
+    cpu_count = multiprocessing.cpu_count()
+    # Use 1.5x cores for I/O bound tasks, clamped between 4 and 32 for stability
+    optimal_consumers = max(4, min(int(cpu_count * 1.5), 32))
+
+    # Allow override if max_workers is very high, implying user wants aggressive parallelism
+    if max_workers > 200:
+        optimal_consumers = max(optimal_consumers, 16)
+
+    logger.info(
+        f"🚀 Auto-scaling to {optimal_consumers} consumers based on {cpu_count} cores."
+    )
+
+    # Optimized Queue Size: Increase buffer to prevent producer blocking
+    work_queue: asyncio.Queue = asyncio.Queue(maxsize=5000)
+
+    # Results Collection
+    final_proxies: List[Proxy] = []
+    # Use Dict for ordered tracking (Python 3.7+ dicts preserve insertion order)
+    seen_keys: Dict[tuple, None] = {}
+    seen_bloom = None
+    if settings.SEEN_BLOOM_ENABLED:
+        seen_bloom = BloomFilter(
+            expected_items=int(settings.SEEN_BLOOM_EXPECTED_ITEMS),
+            false_positive_rate=float(settings.SEEN_BLOOM_FALSE_POSITIVE_RATE),
+        )
+    seen_lock = asyncio.Lock()
+
+    # --- Progress Bar Setup ---
+    task_fetch: Optional[TaskID] = None
+    task_process: Optional[TaskID] = None
+    if progress:
+        task_fetch = progress.add_task(
+            "[cyan]Fetching sources...", total=len(sources) if sources else 1
+        )
+        task_process = progress.add_task("[green]Processing pipeline...", total=None)
+
+    # 2. Execute Pipeline
+    logger.info(
+        "Starting pipeline with %d initial workers (trace_id=%s)",
+        max_workers,
+        trace_id,
+    )
+
+    tester = SingBoxTester(
+        timeout=float(timeout),
+        cache=test_cache,
+        strict_security=strict_security,
+        dry_run=dry_run,
+        max_workers=max_workers,
+    )
+
+    # Log tester status once globally instead of per-consumer
+    if tester.go_tester.available:
+        logger.info("Using Go batch tester for proxy testing")
+    else:
+        logger.warning(
+            "Go tester unavailable - Falling back to Python tester. "
+            "Starting global concurrency tuner."
+        )
+        await concurrency.start_tuner()
+
+    # Explicitly start Go tester to enable heartbeat/self-test
+    if tester.go_tester.available:
+        try:
+            await tester.go_tester.start()
+        except Exception as e:
+            logger.warning(f"Failed to start Go tester daemon: {e}. Fallback enabled.")
+            tester.go_tester.available = False
+
+    logger.info(f"Starting pipeline with {optimal_consumers} parallel consumers")
+
+    # Run Producer and Consumers concurrently
+    time_limit_task: Optional[asyncio.Task] = None
+    if time_limit_seconds and time_limit_seconds > 0:
+        logger.info(
+            f"Batch time limit enabled: {time_limit_seconds}s (soft stop with partial output)."
+        )
+
+        async def _time_limit_watcher() -> None:
+            await asyncio.sleep(time_limit_seconds)
+            if not stop_event.is_set():
+                stats.time_limited = True
+                stop_event.set()
+                logger.warning(
+                    "Batch time limit reached. Stopping intake and finalizing partial output."
+                )
+
+        time_limit_task = asyncio.create_task(_time_limit_watcher())
+    producer_task = asyncio.create_task(
+        source_producer(
+            sources,
+            work_queue,
+            proxies,
+            quality_tracker,
+            anomaly_detector,
+            event_stream,
+            progress,
+            task_fetch,
+            num_consumers=optimal_consumers,
+            stop_event=stop_event,
+            stats=stats,
+        )
+    )
+
+    consumer_tasks = []
+    for i in range(optimal_consumers):
+        t = asyncio.create_task(
+            processing_consumer(
+                work_queue,
+                stats,
+                seen_keys,
+                final_proxies,
+                tester,
+                scheduler,
+                test_cache,
+                concurrency,
+                geoip,
+                tracker,
+                event_stream,
+                quality_tracker,
+                history,
+                progress,
+                task_process,
+                max_latency,
+                country_filter,
+                leniency,
+                consumer_id=i,
+                seen_lock=seen_lock,
+                washer=washer,  # Pass shared washer
+                stop_event=stop_event,
+                seen_bloom=seen_bloom,
+            )
+        )
+        consumer_tasks.append(t)
+
+    try:
+        try:
+            gather_task = asyncio.gather(producer_task, *consumer_tasks)
+            if time_limit_seconds and time_limit_seconds > 0:
+                grace_seconds = int(
+                    getattr(settings, "BATCH_TIME_LIMIT_GRACE_SECONDS", 0)
+                )
+                hard_timeout = time_limit_seconds + max(0, grace_seconds)
+                await safe_wait_for(gather_task, timeout=hard_timeout)
+            else:
+                await gather_task
+        except asyncio.TimeoutError:
+            # Hard stop to prevent CI timeouts when soft stop can't drain in time.
+            stats.time_limited = True
+            stop_event.set()
+            logger.warning(
+                "Hard batch time limit reached. Cancelling pipeline tasks to finalize output."
+            )
+            await _cancel_all(producer_task, consumer_tasks)
+        except (asyncio.CancelledError, KeyboardInterrupt, SystemExit) as e:
+            logger.info(f"Pipeline interrupted: {type(e).__name__}")
+            await _cancel_all(producer_task, consumer_tasks)
+            raise
+        except Exception as e:
+            logger.exception(f"Pipeline error: {e}")
+            await _cancel_all(producer_task, consumer_tasks)
+            raise
+
+        # 5. Final Cleanup & Output
+
+        # Log warning on 0 working proxies but ALWAYS proceed to output generation.
+        # Proxies that failed testing in THIS environment may work for end-users in
+        # different networks/regions.  Skipping output generation deprives them of
+        # subscription files, DNS-safe variants, categorized outputs, and chain configs.
+        # The is_working flag is preserved in the data so clients can filter if desired.
+        _zero_working = stats.tested > 0 and stats.working == 0
+        if _zero_working:
+            logger.warning(
+                f"All {stats.tested} proxy tests failed across all sources. "
+                "Output will still be generated with is_working=False so downstream "
+                "consumers can attempt their own connectivity checks."
+            )
+
+        # Deduplicate configs first, then drop duplicate tags/remarks, then endpoints (IP:Port).
+        optimized_proxies = dedupe_and_shuffle(final_proxies)
+        optimized_proxies = dedupe_by_config(optimized_proxies)
+        if settings.ENABLE_ENDPOINT_FILTERING:
+            optimized_proxies = filter_unique_endpoints(optimized_proxies)
+        else:
+            logger.info("Endpoint filtering disabled by configuration.")
+
+        # Pareto Sort (in-place)
+        sort_proxies_pareto(optimized_proxies, history)
+
+        stats.final_count = len(optimized_proxies)
+
+        # Generate Outputs
+        # Set end_time for proper tracking
+        stats.end_time = datetime.now(timezone.utc)
+        duration = (stats.end_time - start_time).total_seconds()
+        stats.duration = float(duration)
+
+        # [FEATURE] Log Top 5 Failing Sources
+        if quality_tracker:
+            failing_sources = quality_tracker.get_worst_sources(limit=5)
+            if failing_sources:
+                log_lines = []
+                for s_data in failing_sources:
+                    safe_url = SecurityValidator.sanitize_log_message(s_data["url"])
+                    log_lines.append(
+                        f"  - {safe_url}: score={s_data['score']:.1f}, reason={s_data.get('last_failure_reason', 'unknown')}"
+                    )
+                logger.info("⚠️ Top 5 Failing Sources:\n" + "\n".join(log_lines))
+
+        # Pass washer instance to reuse clean IPs and keys
+        generated_files = await output_handler.generate_pipeline_outputs(
+            optimized_proxies, output_path, stats, history, washer=washer, tester=tester
+        )
+
+        # Log scheduling and anomaly statistics for observability
+        sched_stats = scheduler.get_scheduling_statistics()
+        if sched_stats:
+            logger.info(f"Scheduler stats: {sched_stats}")
+        if anomaly_detector:
+            anomaly_detector.get_statistics()
+
+        # Save History & Cache
+        history.save()  # Persist history data - method exists at proxy_history.py:75-77
+
+        # Cleanup old history to prevent database bloat
+        try:
+            await asyncio.get_running_loop().run_in_executor(
+                None, lambda: history.cleanup_old_data(days=30)
+            )
+        except Exception as e:
+            logger.warning(f"History cleanup failed: {e}")
+
+        test_cache.save()
+        if timeout_tracker:
+            timeout_tracker.save()
+
+        # Trigger Server Update Notification
+        # If API server is running on localhost, we notify it
+        try:
+            import httpx
+
+            async with httpx.AsyncClient(timeout=1.0) as client:
+                await client.post(
+                    "http://127.0.0.1:8000/api/admin/notify-update",
+                    json={
+                        "timestamp": (
+                            stats.end_time.isoformat() if stats.end_time else duration
+                        )
+                    },
+                )
+        except Exception as e:
+            logger.debug(f"Server notification skipped: {e}")
+
+        should_fail = (
+            strict_security or bool(getattr(settings, "FAIL_ON_ZERO_WORKING", False))
+        ) and bool(_zero_working)
+        if should_fail:
+            logger.error(
+                "0 working proxies detected and strict mode is enabled; "
+                "marking pipeline result as failed."
+            )
+
+        return PipelineResult(
+            success=not should_fail,
+            stats=stats,
+            output_files=generated_files,
+            error="0 working proxies detected" if should_fail else None,
+        )
+    finally:
+        # Stop tuner if running
+        await concurrency.stop_tuner()
+        if time_limit_task:
+            time_limit_task.cancel()
+            with suppress(asyncio.CancelledError):
+                await time_limit_task
+
+        # Shutdown tester/processes with bounded grace and hard-stop fallback.
+        await hard_stop_watcher.stop_tester(tester)
+
+        # Shutdown Vwarp tunnel
+        await vwarp_tool.stop_tunnel()
+
+        # Close anomaly detector DB connection
+        anomaly_detector.close()
+
+        # Ensure event stream is always flushed/closed before process exit.
+        await hard_stop_watcher.flush_event_stream(event_stream)
+        clear_trace_id()
+
+# SPDX-License-Identifier: AGPL-3.0-or-later
+import asyncio
+import logging
+import json
+import random
+import time
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
+from rich.progress import Progress, TaskID
+from functools import partial
+from urllib.parse import urlparse
+
+from configstream.models import Proxy
+from configstream.config import AppSettings
+from configstream.fetcher import fetch_multiple_sources
+from configstream.circuit_breaker import CircuitBreakerManager
+from configstream.async_file_ops import read_multiple_files_async
+from configstream.parsers import extract_config_lines
+from configstream.source_quality import SourceQualityTracker
+from configstream.anomaly import AnomalyDetector
+from configstream.security_validator import SecurityValidator
+
+if TYPE_CHECKING:
+    from configstream.event_stream import EventStream
+    from configstream.pipeline_stats import PipelineStats
+
+logger = logging.getLogger(__name__)
+
+
+def _chunk_lines(lines: List[str], chunk_size: int) -> List[List[str]]:
+    """Split large source payloads into bounded chunks for fair queueing."""
+    if chunk_size <= 0 or len(lines) <= chunk_size:
+        return [lines]
+    return [lines[i : i + chunk_size] for i in range(0, len(lines), chunk_size)]
+
+
+async def _report_source_failure(
+    loop: asyncio.AbstractEventLoop,
+    quality_tracker: SourceQualityTracker,
+    settings: AppSettings,
+    source: str,
+    reason: str,
+    duration_ms: float = 0.0,
+    failure_modes: Optional[dict] = None,
+) -> None:
+    """Report a source failure to the quality tracker (best-effort)."""
+    try:
+        await loop.run_in_executor(None, quality_tracker.report_failure, source, reason)
+        batch_number = str(getattr(settings, "BATCH_NUMBER", "")).strip()
+        batch_source = f"batch_{batch_number}" if batch_number else "pipeline"
+        await loop.run_in_executor(
+            None,
+            quality_tracker.record_run,
+            source,
+            {
+                "timestamp": int(time.time()),
+                "duration_ms": duration_ms,
+                "fetched_count": 0,
+                "working_count": 0,
+                "geoip_json": "{}",
+                "failure_modes_json": json.dumps(failure_modes or {}),
+                "batch_source": batch_source,
+            },
+        )
+    except Exception:  # nosec
+        pass
+
+
+async def _report_source_backpressure(
+    loop: asyncio.AbstractEventLoop,
+    quality_tracker: SourceQualityTracker,
+    settings: AppSettings,
+    source: str,
+    dropped: int,
+    duration_ms: float = 0.0,
+) -> None:
+    """Record queue pressure without penalizing the source health score."""
+    try:
+        batch_number = str(getattr(settings, "BATCH_NUMBER", "")).strip()
+        batch_source = f"batch_{batch_number}" if batch_number else "pipeline"
+        await loop.run_in_executor(
+            None,
+            quality_tracker.record_run,
+            source,
+            {
+                "timestamp": int(time.time()),
+                "duration_ms": duration_ms,
+                "fetched_count": 0,
+                "working_count": 0,
+                "geoip_json": "{}",
+                "failure_modes_json": json.dumps({"backpressure_drop": dropped}),
+                "batch_source": batch_source,
+            },
+        )
+    except Exception:  # nosec
+        pass
+
+
+async def source_producer(
+    sources: List[str],
+    work_queue: asyncio.Queue,
+    proxies: Optional[List[Proxy]],
+    quality_tracker: SourceQualityTracker,
+    anomaly_detector: AnomalyDetector,
+    event_stream: Optional["EventStream"],
+    progress: Optional[Progress],
+    task_fetch: Optional[TaskID],
+    num_consumers: int = 1,
+    stop_event: Optional[asyncio.Event] = None,
+    stats: Optional["PipelineStats"] = None,
+):
+    settings = AppSettings()
+    if stop_event is None:
+        stop_event = asyncio.Event()
+    enable_anomaly_detection = settings.ENABLE_ANOMALY_DETECTION
+    loop = asyncio.get_running_loop()
+    queue_put_timeout = max(
+        0.05, float(getattr(settings, "QUEUE_PUT_TIMEOUT_SECONDS", 0.75))
+    )
+    ingest_chunk_size = max(1, int(getattr(settings, "INGEST_MICRO_CHUNK_LINES", 500)))
+    overload_threshold = float(getattr(settings, "QUEUE_OVERLOAD_THRESHOLD", 0.8))
+    keep_ratio = float(getattr(settings, "QUEUE_OVERLOAD_KEEP_RATIO", 0.6))
+    keep_ratio = min(1.0, max(0.05, keep_ratio))
+    breaker_manager = CircuitBreakerManager(
+        failure_threshold=max(1, int(getattr(settings, "CIRCUIT_TRIP_CONN_ERRORS", 5))),
+        recovery_timeout=max(1, int(getattr(settings, "CIRCUIT_OPEN_SEC", 120))),
+    )
+
+    def _queue_pressure() -> float:
+        maxsize = getattr(work_queue, "maxsize", 0) or 0
+        if maxsize <= 0:
+            return 0.0
+        return float(work_queue.qsize()) / float(maxsize)
+
+    def _record_backpressure_drop(
+        source: str, metadata: Dict[str, Any], dropped: int
+    ) -> None:
+        if dropped <= 0:
+            return
+        drop_stats = metadata.setdefault("drop_stats", {})
+        if isinstance(drop_stats, dict):
+            drop_stats["backpressure_drop"] = (
+                int(drop_stats.get("backpressure_drop", 0)) + dropped
+            )
+        if stats is not None:
+            stats.record_backpressure_drop(dropped)
+        safe_source = SecurityValidator.sanitize_log_message(source)
+        logger.warning(
+            "Backpressure drop: source=%s dropped=%d pressure=%.2f",
+            safe_source,
+            dropped,
+            _queue_pressure(),
+        )
+
+    def _drop_slowest_testing(lines: List[str]) -> tuple[List[str], int]:
+        """
+        Approximate slow-test candidates by URI length and drop them when queue
+        pressure exceeds threshold. Shorter URIs/configs are kept first.
+        """
+        if len(lines) <= 1:
+            return lines, 0
+        if _queue_pressure() < overload_threshold:
+            return lines, 0
+        keep_count = max(1, int(len(lines) * keep_ratio))
+        ranked = sorted(enumerate(lines), key=lambda item: len(item[1]))
+        keep_indexes = {idx for idx, _ in ranked[:keep_count]}
+        kept = [line for idx, line in enumerate(lines) if idx in keep_indexes]
+        return kept, max(0, len(lines) - len(kept))
+
+    async def _queue_payload(
+        source: str, lines: List[str], metadata: Optional[Dict[str, Any]] = None
+    ) -> int:
+        """
+        Enqueue payload with micro-chunking and bounded put timeout.
+        Returns number of chunks successfully queued.
+        """
+        base_meta: Dict[str, Any] = dict(metadata or {})
+        chunks = _chunk_lines(lines, ingest_chunk_size)
+        queued_chunks = 0
+
+        for idx, chunk in enumerate(chunks, start=1):
+            chunk_meta: Dict[str, Any] = dict(base_meta)
+            if idx > 1:
+                # Avoid double-counting parser drop stats on every chunk.
+                chunk_meta["drop_stats"] = {}
+            if len(chunks) > 1:
+                chunk_meta["chunk_index"] = idx
+                chunk_meta["chunk_total"] = len(chunks)
+
+            candidate_lines, dropped = _drop_slowest_testing(chunk)
+            if dropped:
+                _record_backpressure_drop(source, chunk_meta, dropped)
+            if not candidate_lines:
+                continue
+
+            try:
+                await asyncio.wait_for(
+                    work_queue.put((source, candidate_lines, chunk_meta)),
+                    timeout=queue_put_timeout,
+                )
+                queued_chunks += 1
+            except asyncio.TimeoutError:
+                _record_backpressure_drop(source, chunk_meta, len(candidate_lines))
+                safe_source = SecurityValidator.sanitize_log_message(source)
+                logger.warning(
+                    "Queue put timeout: dropping chunk from %s (size=%d, pressure=%.2f)",
+                    safe_source,
+                    len(candidate_lines),
+                    _queue_pressure(),
+                )
+                if event_stream:
+                    event_stream.emit(
+                        "warning",
+                        f"Backpressure dropped {len(candidate_lines)} lines from {safe_source}",
+                    )
+
+        return queued_chunks
+
+    def _is_direct_proxy(candidate: str) -> bool:
+        lower = candidate.lower()
+        if lower.startswith(
+            (
+                "ss://",
+                "vmess://",
+                "vless://",
+                "trojan://",
+                "hysteria://",
+                "hy2://",
+                "hysteria2://",
+                "tuic://",
+                "ssh://",
+                "wg://",
+                "wireguard://",
+                "naive://",
+                "naive+https://",
+                "naive+http://",
+                "socks://",
+                "socks4://",
+                "socks5://",
+            )
+        ):
+            return True
+        if lower.startswith(("http://", "https://")):
+            parsed = urlparse(candidate)
+            return (
+                parsed.hostname is not None
+                and parsed.port is not None
+                and parsed.path in ("", "/")
+                and not parsed.query
+                and not parsed.fragment
+            )
+        return False
+
+    try:
+        # A. Handle Pre-supplied Proxies
+        if proxies:
+            supplied_lines = [p.config for p in proxies if p.config]
+            if supplied_lines:
+                await _queue_payload("supplied-proxies", supplied_lines, {})
+
+        # B. Handle File Sources
+        local_files: List[str] = []
+        remote_urls: List[str] = []
+        for raw in sources:
+            if stop_event.is_set():
+                break
+            s = raw.strip()
+            if not s:
+                continue
+            lower = s.lower()
+            if _is_direct_proxy(s):
+                await _queue_payload("supplied-config", [s], {})
+            elif lower.startswith("ssconf://"):
+                remote_urls.append(s.replace("ssconf://", "https://", 1))
+            elif lower.startswith(("http://", "https://")):
+                remote_urls.append(s)
+            else:
+                local_files.append(s)
+
+        if local_files:
+            file_results = await read_multiple_files_async(local_files)
+            for fpath, content in file_results:
+                if stop_event.is_set():
+                    break
+                extract_func = partial(extract_config_lines, content, source_url=fpath)
+                file_lines, drop_stats = (
+                    await asyncio.get_running_loop().run_in_executor(None, extract_func)
+                )
+                if file_lines:
+                    metadata: dict[str, object] = {"drop_stats": drop_stats}
+                    queued = await _queue_payload(fpath, file_lines, metadata)
+                    if queued == 0:
+                        await _report_source_backpressure(
+                            loop,
+                            quality_tracker,
+                            settings,
+                            fpath,
+                            len(file_lines),
+                        )
+                else:
+                    await _report_source_failure(
+                        loop,
+                        quality_tracker,
+                        settings,
+                        fpath,
+                        "no_valid_lines",
+                        failure_modes=drop_stats,
+                    )
+                if progress and task_fetch:
+                    progress.advance(task_fetch)
+
+        # C. Handle Remote Sources
+        active_urls = []
+        blocked_urls = []
+
+        # Use dynamic semaphore limit from settings
+        sem_limit = getattr(settings, "PRODUCER_MAX_CONCURRENCY", 100)
+        sem_limit = max(1, int(sem_limit))
+        sem = asyncio.Semaphore(sem_limit)
+
+        async def _check_url(url):
+            async with sem:
+                should_fetch = await loop.run_in_executor(
+                    None, quality_tracker.should_fetch, url
+                )
+                return url, should_fetch
+
+        # Process in chunks to avoid creating too many tasks at once
+        chunk_size = 500
+        for i in range(0, len(remote_urls), chunk_size):
+            chunk = remote_urls[i : i + chunk_size]
+            tasks = [_check_url(url) for url in chunk]
+            check_results = await asyncio.gather(*tasks)
+
+            for url, should_fetch in check_results:
+                if should_fetch:
+                    active_urls.append(url)
+                else:
+                    blocked_urls.append(url)
+
+        # If every remote source is on cooldown or disabled, surface a clear error.
+        if blocked_urls and not active_urls:
+            logger.error(
+                "ALL %d remote sources are on cooldown/disabled - no proxies will be fetched!",
+                len(blocked_urls),
+            )
+            # Log all blocked sources in one summary to avoid spam
+            blocked_count = len(blocked_urls)
+            logger.info(
+                f"{blocked_count} source(s) were skipped due to cooldown/disabled status."
+            )
+            logger.debug(
+                "Blocked sources: %s",
+                [SecurityValidator.sanitize_log_message(u) for u in blocked_urls],
+            )
+
+        if active_urls and not stop_event.is_set():
+            logger.info(
+                f"Starting fetch for {len(active_urls)} active sources "
+                f"(Batch Size: 100, Concurrent Limit: {settings.PER_HOST_MAX_CONCURRENCY})"
+            )
+            batch_size = 100  # Increased from 50 to 100 for better throughput
+            for i in range(0, len(active_urls), batch_size):
+                if stop_event.is_set():
+                    break
+                # Add jitter to prevent overwhelming remote servers or rate limits
+                if i > 0:
+                    jitter = random.uniform(0.5, 2.0)  # nosec
+                    logger.debug(f"Batch jitter: sleeping {jitter:.2f}s")
+                    await asyncio.sleep(jitter)
+
+                batch = active_urls[i : i + batch_size]
+                logger.info(
+                    f"Fetching batch {i // batch_size + 1}: {len(batch)} sources"
+                )
+                results = await fetch_multiple_sources(
+                    batch,
+                    max_concurrent=settings.PER_HOST_MAX_CONCURRENCY,
+                    timeout=settings.FETCH_TIMEOUT,
+                    use_adaptive_timeout=True,
+                    quality_tracker=quality_tracker,
+                    breaker_manager=breaker_manager,
+                )
+
+                for source, res in results.items():
+                    if stop_event.is_set():
+                        break
+                    if res.success:
+                        # Offload parsing to executor and handle stats
+                        # Use partial to pass keyword argument to run_in_executor
+                        extract_func = partial(
+                            extract_config_lines, res.content, source_url=source
+                        )
+                        lines, drop_stats = await loop.run_in_executor(
+                            None, extract_func
+                        )
+
+                        count = len(lines)
+                        safe_source = SecurityValidator.sanitize_log_message(source)
+
+                        if count == 0:
+                            # Log that we got content but no proxies (useful for debugging invalid formats)
+                            # Reduced noise for expected empty sources
+                            log_method = (
+                                logger.debug
+                                if len(res.content) < 100
+                                else logger.warning
+                            )
+                            log_method(
+                                f"Source {safe_source} returned content (size={len(res.content) if res.content else 0}) but no valid config lines found. "
+                                f"Drop Stats: {drop_stats}"
+                            )
+                            await _report_source_failure(
+                                loop,
+                                quality_tracker,
+                                settings,
+                                source,
+                                "no_valid_lines",
+                                duration_ms=(res.response_time or 0.0) * 1000,
+                                failure_modes=drop_stats,
+                            )
+                            continue
+
+                        # Offload anomaly check to executor to avoid blocking on DB/ML
+                        if enable_anomaly_detection:
+                            is_safe, reason = await loop.run_in_executor(
+                                None, anomaly_detector.is_safe, source, count
+                            )
+                        else:
+                            is_safe, reason = True, "Anomaly detection disabled"
+
+                        if is_safe:
+                            if lines:
+                                logger.debug(
+                                    f"Anomaly check passed for {safe_source} (Count: {count})"
+                                )
+                                # Offload record to executor
+                                if enable_anomaly_detection:
+                                    await loop.run_in_executor(
+                                        None, anomaly_detector.record, source, count
+                                    )
+                                # Prepare metadata and fetch time
+                                fetch_time = (
+                                    f"{res.response_time:.2f}s"
+                                    if res.response_time is not None
+                                    else "N/A"
+                                )
+                                metadata = {
+                                    "fetch_duration": res.response_time or 0.0,
+                                    "drop_stats": drop_stats,  # Pass stats downstream
+                                }
+                                queued = await _queue_payload(source, lines, metadata)
+                                if queued == 0:
+                                    await _report_source_backpressure(
+                                        loop,
+                                        quality_tracker,
+                                        settings,
+                                        source,
+                                        len(lines),
+                                        duration_ms=(res.response_time or 0.0) * 1000,
+                                    )
+                                    continue
+
+                                # Single consolidated log via event stream (includes fetch metrics)
+                                if event_stream:
+                                    event_stream.emit(
+                                        "fetch_success",
+                                        f"Fetched {count} proxies from {safe_source} (Fetch: {fetch_time})",
+                                    )
+                        else:
+                            logger.warning(
+                                f"⚠️ BLOCKING {safe_source}: {reason} (count={count})"
+                            )
+                            try:
+                                await loop.run_in_executor(
+                                    None,
+                                    quality_tracker.report_failure,
+                                    source,
+                                    f"anomaly_blocked:{reason}",
+                                )
+                            except Exception:  # nosec
+                                pass
+                            if event_stream:
+                                event_stream.emit(
+                                    "fetch_blocked",
+                                    f"Blocked source {safe_source}: {reason}",
+                                )
+                    else:
+                        safe_source = SecurityValidator.sanitize_log_message(source)
+                        safe_error = (
+                            SecurityValidator.sanitize_log_message(str(res.error))
+                            if res.error
+                            else "unknown"
+                        )
+                        logger.warning(
+                            f"Failed to fetch {safe_source}: {safe_error} "
+                            f"(Status: {res.status_code})"
+                        )
+                        await _report_source_failure(
+                            loop,
+                            quality_tracker,
+                            settings,
+                            source,
+                            safe_error,
+                            duration_ms=(res.response_time or 0.0) * 1000,
+                            failure_modes={"fetch_error": safe_error},
+                        )
+    except Exception as e:
+        safe_error = SecurityValidator.sanitize_log_message(str(e))
+        logger.error(f"Producer failed: {safe_error}")
+    finally:
+        # If absolutely nothing was provided, log a clear warning – this would
+        # otherwise result in a silent zero-output run.
+        if not sources and not proxies:
+            logger.warning(
+                "No sources or pre-supplied proxies provided - pipeline will produce zero results"
+            )
+
+        # Signal all consumers to exit
+        for _ in range(num_consumers):
+            await work_queue.put(None)
+
+# SPDX-License-Identifier: AGPL-3.0-or-later
+import asyncio
+import logging
+import inspect
+import time
+import hashlib
+from pathlib import Path
+import orjson as json
+from typing import List, Optional, Any, TYPE_CHECKING
+
+from rich.progress import Progress, TaskID
+
+from configstream.models import Proxy
+from configstream.auto_detect import auto_detect_and_parse as parse_config
+from configstream.security_validator import (
+    validate_batch_configs,
+    STRICT_POLICY,
+    TEST_POLICY,
+    SecurityValidator,
+)
+from configstream.filtering import proxy_unique_key
+from configstream.testers import SingBoxTester
+from configstream.test_cache import TestResultCache
+from configstream.scheduler import SmartRetestScheduler
+from configstream.concurrency_manager import ConcurrencyManager
+from configstream.geoip import GeoIPResolver
+from configstream.source_quality import SourceQualityTracker, calculate_diversity_score
+from configstream.performance import PerformanceTracker
+from configstream.history.tracker import ProxyHistoryTracker
+from configstream.pipeline_stats import PipelineStats
+from configstream.intelligence.washer.core import ProxyWasher
+from configstream.config import AppSettings
+
+if TYPE_CHECKING:
+    from configstream.event_stream import EventStream
+    from configstream.utils.bloom import BloomFilter
+
+logger = logging.getLogger(__name__)
+
+
+async def processing_consumer(
+    work_queue: asyncio.Queue,
+    stats: PipelineStats,
+    seen_keys: Any,  # Expects Dict or Set
+    final_proxies: List[Proxy],
+    tester: SingBoxTester,
+    scheduler: SmartRetestScheduler,
+    test_cache: TestResultCache,
+    concurrency: ConcurrencyManager,
+    geoip: GeoIPResolver,
+    tracker: PerformanceTracker,
+    event_stream: Optional["EventStream"],
+    quality_tracker: SourceQualityTracker,
+    history: ProxyHistoryTracker,
+    progress: Optional[Progress],
+    task_process: Optional[TaskID],
+    max_latency: Optional[int],
+    country_filter: Optional[str],
+    leniency: bool,
+    consumer_id: int = 0,
+    seen_lock: Optional[asyncio.Lock] = None,
+    washer: Optional[ProxyWasher] = None,  # Receive shared washer
+    stop_event: Optional[asyncio.Event] = None,
+    seen_bloom: Optional["BloomFilter"] = None,
+):
+    settings = AppSettings()
+    policy = TEST_POLICY if leniency else STRICT_POLICY
+    policy = policy.copy()
+    policy["allow_local_ips"] = settings.ALLOW_PRIVATE_IPS
+    policy["require_tls_validation"] = settings.TLS_TESTS_ENABLED
+    enable_cache_warming = settings.ENABLE_CACHE_WARMING
+
+    if seen_lock is None:
+        seen_lock = asyncio.Lock()
+
+    if stop_event is None:
+        stop_event = asyncio.Event()
+
+    # Use passed shared washer or create default
+    if washer is None:
+        washer = ProxyWasher(AppSettings().WARP_KEY_POOL)
+    washer_ready = False
+
+    while True:
+        # The producer sends None as sentinel when done, which is the proper
+        # termination mechanism. A timeout could cause premature exit if sources
+        # are slow to fetch, leading to incomplete processing and lost data.
+        item = await work_queue.get()
+
+        if item is None:
+            work_queue.task_done()
+            break
+
+        if stop_event.is_set():
+            work_queue.task_done()
+            continue
+
+        if len(item) == 3:
+            source, raw_lines, metadata = item
+        else:
+            source, raw_lines = item
+            metadata = {}
+
+        async with seen_lock:
+            stats.fetched_sources += 1
+            stats.fetched_lines += len(raw_lines)
+            if "drop_stats" in metadata and isinstance(metadata["drop_stats"], dict):
+                for reason, count in metadata["drop_stats"].items():
+                    stats.drop_reasons[reason] = (
+                        stats.drop_reasons.get(reason, 0) + count
+                    )
+
+        fetch_meta_str = ""
+        if metadata:
+            fetch_dur = metadata.get("fetch_duration")
+            if fetch_dur:
+                fetch_meta_str = f" [Fetch: {fetch_dur * 1000:.0f}ms]"
+
+        safe_source = SecurityValidator.sanitize_log_message(str(source))
+        logger.debug(
+            f"Processing source {safe_source}: {len(raw_lines)} raw lines{fetch_meta_str}"
+        )
+
+        process_start_time = asyncio.get_running_loop().time()
+        loop = asyncio.get_running_loop()
+
+        def _parse_chunk(lines, src):
+            result = []
+            safe_src = SecurityValidator.sanitize_log_message(str(src))
+            for i, line in enumerate(lines):
+                try:
+                    p = parse_config(line)
+                    if p:
+                        p.details["_source"] = src
+                        result.append(p)
+                except Exception as e:
+                    safe_error = SecurityValidator.sanitize_log_message(str(e))
+                    logger.debug(
+                        f"Parse error for source {safe_src} (line {i}): {safe_error}"
+                    )
+            return result
+
+        parsed_batch = []
+        with tracker.phase("parse"):
+            parsed_batch = await loop.run_in_executor(
+                None, _parse_chunk, raw_lines, source
+            )
+
+        if not parsed_batch:
+            work_queue.task_done()
+            continue
+
+        # [FINGERPRINT] Save source fingerprint for similarity analysis
+        # Done in executor to avoid I/O blocking
+        def _save_fingerprint(batch, src_url):
+            try:
+                fingerprint_keys = []
+                for p in batch:
+                    k = proxy_unique_key(p)
+                    fingerprint_keys.append(k)
+
+                fingerprint_set = list(set(fingerprint_keys))
+
+                if fingerprint_set:
+                    src_hash = hashlib.sha256(
+                        src_url.encode("utf-8", errors="ignore")
+                    ).hexdigest()
+                    fp_dir = (
+                        Path(__file__).resolve().parents[2] / "data" / "fingerprints"
+                    )
+                    fp_dir.mkdir(parents=True, exist_ok=True)
+                    fp_file = fp_dir / f"{src_hash}.json"
+
+                    fp_data = {
+                        # Store a sanitized URL to avoid leaking tokens if this data is ever uploaded.
+                        "url": SecurityValidator.sanitize_log_message(str(src_url)),
+                        "proxies": fingerprint_set,
+                        "timestamp": int(time.time()),
+                    }
+
+                    tmp_fp = fp_file.with_suffix(".tmp")
+                    raw = json.dumps(fp_data)
+                    tmp_fp.write_bytes(
+                        raw if isinstance(raw, bytes) else raw.encode("utf-8")
+                    )
+                    tmp_fp.replace(fp_file)
+            except Exception as e:
+                logger.debug(f"Fingerprint save failed: {e}")
+
+        await loop.run_in_executor(None, _save_fingerprint, parsed_batch, source)
+
+        unique_batch = []
+        duplicates_count = 0
+
+        def _to_bloom_key(unique_key: Any) -> str:
+            if isinstance(unique_key, tuple):
+                return "|".join(str(part) for part in unique_key)
+            return str(unique_key)
+
+        async with seen_lock:
+            if seen_bloom is not None:
+                for p in parsed_batch:
+                    k = proxy_unique_key(p)
+                    bloom_key = _to_bloom_key(k)
+                    if bloom_key in seen_bloom:
+                        duplicates_count += 1
+                        continue
+                    seen_bloom.add(bloom_key)
+                    unique_batch.append(p)
+            else:
+                # Fallback exact dedupe with optional bounded memory.
+                max_seen = settings.MAX_SEEN_KEYS
+                for p in parsed_batch:
+                    k = proxy_unique_key(p)
+                    if k not in seen_keys:
+                        if max_seen > 0 and len(seen_keys) >= max_seen:
+                            eviction_count = max(1000, max_seen // 10)
+                            if isinstance(seen_keys, dict):
+                                keys_to_remove = []
+                                it = iter(seen_keys)
+                                try:
+                                    for _ in range(eviction_count):
+                                        keys_to_remove.append(next(it))
+                                except StopIteration:
+                                    pass
+                                for k_rm in keys_to_remove:
+                                    seen_keys.pop(k_rm, None)
+                            elif isinstance(seen_keys, set):
+                                for _ in range(eviction_count):
+                                    try:
+                                        seen_keys.pop()
+                                    except KeyError:
+                                        break
+
+                        if isinstance(seen_keys, dict):
+                            seen_keys[k] = None
+                        elif isinstance(seen_keys, set):
+                            seen_keys.add(k)
+                        unique_batch.append(p)
+                    else:
+                        duplicates_count += 1
+            stats.drop_reasons["duplicate"] = (
+                stats.drop_reasons.get("duplicate", 0) + duplicates_count
+            )
+            stats.parsed += len(unique_batch)
+
+        with tracker.phase("security_validation"):
+            if len(unique_batch) > 100:
+                safe_batch = await loop.run_in_executor(
+                    None, validate_batch_configs, unique_batch, policy
+                )
+            else:
+                safe_batch = validate_batch_configs(unique_batch, policy)
+
+        dropped_unsafe = len(unique_batch) - len(safe_batch)
+        if dropped_unsafe > 0:
+            async with seen_lock:
+                stats.drop_reasons["security_validation"] = (
+                    stats.drop_reasons.get("security_validation", 0) + dropped_unsafe
+                )
+
+        if enable_cache_warming and safe_batch:
+            try:
+                from configstream.cache_warming import warm_cache
+
+                safe_batch = warm_cache(test_cache, safe_batch)
+            except Exception as exc:
+                logger.debug(
+                    SecurityValidator.sanitize_log_message(
+                        f"Cache warming skipped due to error: {exc}"
+                    )
+                )
+
+        final_batch_for_this_source = []
+        proxies_to_actually_test = []
+
+        # Cache Check (batch lock acquisition instead of per-proxy)
+        _local_cache_misses = 0
+        for p in safe_batch:
+            cached = None
+            if not scheduler.should_retest(p):
+                cached = test_cache.get(p)
+
+            if cached:
+                final_batch_for_this_source.append(cached)
+            else:
+                _local_cache_misses += 1
+                proxies_to_actually_test.append(p)
+        if _local_cache_misses:
+            async with seen_lock:
+                stats.cache_misses += _local_cache_misses
+
+        # Testing
+        failed_proxies = []  # Candidates for revival
+
+        if proxies_to_actually_test:
+            if tester.go_tester.available:
+                # Clamp chunk size to avoid overwhelming Go tester
+                if settings.GO_TESTER_BATCH_SIZE <= 0:
+                    chunk_size = len(proxies_to_actually_test)
+                else:
+                    chunk_size = max(1, int(settings.GO_TESTER_BATCH_SIZE))
+
+                for i in range(0, len(proxies_to_actually_test), chunk_size):
+                    chunk = proxies_to_actually_test[i : i + chunk_size]
+                    try:
+                        await tester.test_batch(chunk)
+                    except Exception as e:
+                        logger.error(
+                            SecurityValidator.sanitize_log_message(
+                                f"Go batch tester failed for chunk: {e}. Fallback to Python tester."
+                            )
+                        )
+                        # Record batch error in stats so metadata reflects the failure
+                        async with seen_lock:
+                            stats.drop_reasons["tester_error"] = stats.drop_reasons.get(
+                                "tester_error", 0
+                            ) + len(chunk)
+
+                        # Fallback to Python tester for this chunk
+                        async def _fallback_test(p: Proxy):
+                            sem = concurrency.get_semaphore()
+                            async with sem:
+                                try:
+                                    return await tester.test(p)
+                                except asyncio.CancelledError:
+                                    raise
+                                except Exception as e:
+                                    logger.error(
+                                        SecurityValidator.sanitize_log_message(
+                                            f"Fallback test failed for proxy {p.id}: {e}"
+                                        )
+                                    )
+                                    p.is_working = False
+                                    p.details["error"] = "FALLBACK_TEST_FAILED"
+                                    return p
+
+                        results = await asyncio.gather(
+                            *[_fallback_test(x) for x in chunk],
+                            return_exceptions=True,
+                        )
+                        for idx, res in enumerate(results):
+                            if isinstance(res, Proxy):
+                                chunk[idx] = res
+                            else:
+                                # `res` is an Exception due to return_exceptions=True
+                                if isinstance(res, asyncio.CancelledError):
+                                    raise res
+
+                                p = chunk[idx]
+                                p.is_working = False
+                                p.details["error"] = "FALLBACK_TEST_EXCEPTION"
+                                logger.error(
+                                    SecurityValidator.sanitize_log_message(
+                                        f"Fallback test for proxy {p.id} raised an exception: {res}"
+                                    )
+                                )
+
+                    # Batch history update in executor to prevent blocking loop
+                    if chunk:
+                        await loop.run_in_executor(None, history.update_history, chunk)
+
+                    for res in chunk:
+                        if res.is_working:
+                            res.process = "native"  # Explicitly mark as native
+                            final_batch_for_this_source.append(res)
+                        else:
+                            # [REVIVAL] Collect failed proxies
+                            failed_proxies.append(res)
+
+                            failure_cat = res.details.get(
+                                "failure_category", "TEST_FAILED"
+                            )
+                            async with seen_lock:
+                                stats.drop_reasons[failure_cat] = (
+                                    stats.drop_reasons.get(failure_cat, 0) + 1
+                                )
+
+                    async with seen_lock:
+                        stats.tested += len(chunk)
+
+                    if progress and task_process:
+                        progress.update(task_process, completed=stats.tested)
+            else:
+                # Python fallback testing
+                if settings.PY_TESTER_BATCH_SIZE <= 0:
+                    chunk_size = len(proxies_to_actually_test)
+                else:
+                    chunk_size = max(1, int(settings.PY_TESTER_BATCH_SIZE))
+                for i in range(0, len(proxies_to_actually_test), chunk_size):
+                    chunk = proxies_to_actually_test[i : i + chunk_size]
+
+                    async def _test_wrap(p: Proxy):
+                        sem = concurrency.get_semaphore()
+                        async with sem:
+                            return await tester.test(p)
+
+                    results = await asyncio.gather(*[_test_wrap(x) for x in chunk])
+
+                    # Batch history update in executor
+                    if results:
+                        await loop.run_in_executor(
+                            None, history.update_history, list(results)
+                        )
+
+                    for res in results:
+                        if res.is_working:
+                            res.process = "native"
+                            await concurrency.record("default", res.latency or 0, True)
+                            final_batch_for_this_source.append(res)
+                        else:
+                            failed_proxies.append(res)  # Collect for revival
+                            error = res.details.get("error", "TEST_FAILED")
+                            async with seen_lock:
+                                stats.drop_reasons[error] = (
+                                    stats.drop_reasons.get(error, 0) + 1
+                                )
+                            # Record failure for concurrency tuning feedback
+                            await concurrency.record("default", res.latency or 0, False)
+
+                    async with seen_lock:
+                        stats.tested += len(chunk)
+                    if progress and task_process:
+                        progress.update(task_process, completed=stats.tested)
+
+        # --- REVIVAL LOOP ---
+        if failed_proxies:
+            if not tester.go_tester.available:
+                logger.info(
+                    "Skipping proxy revival (WARP) because Go tester is unavailable."
+                )
+            else:
+                if not washer_ready or not washer.clean_ips or not washer.warp_keys:
+                    fetch_clean = getattr(washer, "fetch_clean_ips", None)
+                    if callable(fetch_clean):
+                        result = fetch_clean()
+                        if inspect.isawaitable(result):
+                            await result
+                    washer_ready = True
+                # 1. Attempt Vwarp Revival (Priority)
+                vwarp_candidates: List[Proxy] = []
+                vwarp_available = False
+                _async_vwarp_check = getattr(washer, "is_vwarp_available_async", None)
+                if callable(_async_vwarp_check):
+                    _check_result = _async_vwarp_check()
+                    if inspect.isawaitable(_check_result):
+                        vwarp_available = bool(await _check_result)
+                    else:
+                        vwarp_available = bool(_check_result)
+                else:
+                    _sync_vwarp_check = getattr(washer, "is_vwarp_available", None)
+                    if callable(_sync_vwarp_check):
+                        vwarp_available = bool(_sync_vwarp_check())
+                # Only attempt Vwarp if enabled and keys exist
+                if settings.USE_VWARP_TUNNEL and washer.warp_keys and vwarp_available:
+                    vwarp_candidates, _ = washer.wash_failed(
+                        failed_proxies, stats=stats, use_vwarp=True
+                    )
+                vwarp_success_ids: set[str] = set()
+                if vwarp_candidates:
+                    # Test Vwarp Candidates
+                    try:
+                        await tester.test_batch(vwarp_candidates)
+                    except Exception as e:
+                        logger.error(
+                            SecurityValidator.sanitize_log_message(
+                                f"Vwarp batch test failed: {e}"
+                            )
+                        )
+                        async with seen_lock:
+                            stats.drop_reasons["tester_error"] = stats.drop_reasons.get(
+                                "tester_error", 0
+                            ) + len(vwarp_candidates)
+                        # Do NOT clear candidates — keep them as untested
+                        # revival chains so they appear in output for users to try.
+                    for p in vwarp_candidates:
+                        p.process = "revived-vwarp"
+                        if "revived-vwarp" not in p.tags:
+                            p.tags.append("revived-vwarp")
+                        # Recover origin info
+                        origin = p.details.get("origin_proxy")
+                        if origin:
+                            p.country_code = origin.get("country_code", "")
+                            p.country = origin.get("country", "")
+                        origin_id = p.details.get("origin_id")
+                        if not origin_id and isinstance(origin, dict):
+                            origin_id = origin.get("uuid") or origin.get("id")
+                        if origin_id and p.is_working:
+                            vwarp_success_ids.add(str(origin_id))
+                        final_batch_for_this_source.append(p)
+                        if p.is_working:
+                            async with seen_lock:
+                                stats.revived_vwarp += 1
+                                stats.vwarp_success += 1
+
+                # 2. Attempt Standard Warp Revival (Fallback)
+                # Only retry proxies that did NOT succeed via Vwarp.
+                remaining_failed = (
+                    [fp for fp in failed_proxies if str(fp.id) not in vwarp_success_ids]
+                    if vwarp_success_ids
+                    else list(failed_proxies)
+                )
+
+                if remaining_failed:
+                    warp_candidates, _ = washer.wash_failed(
+                        remaining_failed, stats=stats, use_vwarp=False
+                    )
+                    if warp_candidates:
+                        try:
+                            await tester.test_batch(warp_candidates)
+                        except Exception as e:
+                            logger.error(
+                                SecurityValidator.sanitize_log_message(
+                                    f"WARP batch test failed: {e}"
+                                )
+                            )
+                            async with seen_lock:
+                                stats.drop_reasons["tester_error"] = (
+                                    stats.drop_reasons.get("tester_error", 0)
+                                    + len(warp_candidates)
+                                )
+                            # Do NOT clear candidates — keep as untested chains.
+                        for p in warp_candidates:
+                            p.process = "revived-warp"
+                            if "revived-warp" not in p.tags:
+                                p.tags.append("revived-warp")
+                            origin = p.details.get("origin_proxy")
+                            if origin:
+                                p.country_code = origin.get("country_code", "")
+                                p.country = origin.get("country", "")
+                            final_batch_for_this_source.append(p)
+                            if p.is_working:
+                                async with seen_lock:
+                                    stats.revived_warp += 1
+
+        # Post-process final batch (GeoIP, Filter)
+        local_working_count = 0
+        for p in final_batch_for_this_source:
+            # GeoIP enrichment for all proxies (working and revived-not-working)
+            if not p.country_code:
+                with tracker.phase("geo"):
+                    geo_data = await geoip.lookup(p.resolved_ip or p.address)
+                    if geo_data and geo_data.country_code:
+                        cc = geo_data.country_code or ""
+                        p.country_code = cc
+                        p.country = geo_data.country_name or cc
+                        p.city = geo_data.city or ""
+                        p.asn = geo_data.asn or ""
+                        p.org = geo_data.org or ""
+                        if geo_data.lat:
+                            p.details["lat"] = geo_data.lat
+                        if geo_data.lng:
+                            p.details["lng"] = geo_data.lng
+                        async with seen_lock:
+                            stats.geo_resolved += 1
+
+            if not p.is_working:
+                # [FAIL-OPEN] Keep non-working proxies in the output dataset.
+                #
+                # Rationale:
+                # - CI runners can be in hostile networks (DNS blocking, rate limits, egress filtering).
+                # - A proxy that fails here may still work for end-users elsewhere.
+                # - Frontend and categorized outputs rely on having a complete dataset with `is_working`
+                #   preserved for client-side filtering.
+                #
+                # Note:
+                # - We do NOT increment stats.working here.
+                # - We still respect country filtering when explicitly requested.
+                if country_filter and p.country_code != country_filter.upper():
+                    continue
+                async with seen_lock:
+                    final_proxies.append(p)
+                continue
+
+            # Use explicit None check; 0.0 latency is valid, not missing
+            if (
+                max_latency
+                and (p.latency if p.latency is not None else 9999) > max_latency
+            ):
+                continue
+            if country_filter:
+                if p.country_code != country_filter.upper():
+                    continue
+            # Acquire lock before appending to prevent race conditions.
+            async with seen_lock:
+                final_proxies.append(p)
+                stats.working += 1
+                local_working_count += 1
+
+        working_count = local_working_count
+        fetched_count = len(parsed_batch)
+        diversity_score = calculate_diversity_score(final_batch_for_this_source)
+
+        process_end_time = asyncio.get_running_loop().time()
+        total_duration = (process_end_time - process_start_time) * 1000
+        fetch_duration = (metadata.get("fetch_duration") or 0.0) * 1000
+        full_duration_ms = total_duration + fetch_duration
+
+        # Aggregate Failure Modes & GeoIP for logging
+        failure_modes: dict = {}  # Already aggregated into stats, local dict for log
+        if metadata and isinstance(metadata.get("drop_stats"), dict):
+            failure_modes.update(metadata.get("drop_stats", {}))
+        geoip_stats: dict = {}
+        for p in final_batch_for_this_source:
+            if p.country_code:
+                geoip_stats[p.country_code] = geoip_stats.get(p.country_code, 0) + 1
+
+        summary_msg = (
+            f"Source Summary [{safe_source}]: "
+            f"Raw={len(raw_lines)} "
+            f"Parsed={len(parsed_batch)} "
+            f"Tested={len(proxies_to_actually_test)} "
+            f"Working={working_count} "
+            f"Dur={full_duration_ms:.0f}ms"
+        )
+
+        if working_count > 0:
+            logger.info(summary_msg)
+        else:
+            logger.warning("(No proxies passed) " + summary_msg)
+
+        if (
+            not source.startswith("supplied-proxies")
+            and not source.startswith("supplied-config")
+            and not source.startswith("sources/")
+        ):
+            try:
+                await loop.run_in_executor(
+                    None,
+                    quality_tracker.update,
+                    source,
+                    fetched_count,
+                    working_count,
+                    diversity_score,
+                    0.0,
+                )
+            except Exception:  # nosec
+                pass
+            try:
+                batch_number = str(getattr(settings, "BATCH_NUMBER", "")).strip()
+                batch_source = f"batch_{batch_number}" if batch_number else "pipeline"
+                await loop.run_in_executor(
+                    None,
+                    quality_tracker.record_run,
+                    source,
+                    {
+                        "timestamp": int(time.time()),
+                        "duration_ms": full_duration_ms,
+                        "fetched_count": fetched_count,
+                        "working_count": working_count,
+                        "geoip_json": json.dumps(geoip_stats).decode(),
+                        "failure_modes_json": json.dumps(failure_modes).decode(),
+                        "batch_source": batch_source,
+                    },
+                )
+            except Exception:  # nosec
+                pass
+
+        work_queue.task_done()
+
+    if consumer_id == 0 and stats.tested > 0 and stats.working == 0:
+        logger.error(
+            f"CRITICAL: All {stats.tested} proxy tests failed across all sources!"
+        )
+

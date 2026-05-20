@@ -1,0 +1,1537 @@
+[
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\analytics.js",
+    "LineNumber": 11,
+    "Line": "    // Try multiple data sources - metadata.json is single source of truth"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\analytics.js",
+    "LineNumber": 17,
+    "Line": "            // Fallback: Try direct fetch from metadata.json (unified stats file)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\analytics.js",
+    "LineNumber": 18,
+    "Line": "            const response = await fetch(root + 'metadata.json?cb=' + Date.now());"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\analytics.js",
+    "LineNumber": 26,
+    "Line": "            const evasionResponse = await fetch(root + 'data/evasion_trend.json?cb=' + Date.now());"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\analytics.js",
+    "LineNumber": 52,
+    "Line": "        container.innerHTML = '<div style=\"display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-secondary); font-size: 1.1rem;\">Loading analytics data...</div>';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\analytics.js",
+    "LineNumber": 72,
+    "Line": "            el.textContent = val;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\analytics.js",
+    "LineNumber": 149,
+    "Line": "    container.innerHTML = '<div style=\"display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-secondary); font-size: 1.1rem;\"><div class=\"spinner\" style=\"border: 3px solid var(--border); border-top-color: var(--primary-color); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-right: 10px;\"></div>Loading globe...</div>';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\analytics.js",
+    "LineNumber": 161,
+    "Line": "                 container.innerHTML = '<div class=\"error-state\">Visualization Unavailable (Network Error)</div>';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\analytics.js",
+    "LineNumber": 169,
+    "Line": "    container.innerHTML = '';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\analytics.js",
+    "LineNumber": 174,
+    "Line": "        container.innerHTML = '<div style=\"display: flex; align-items: center; justify-content: center; height: 100%; color: var(--danger-color);\">Globe visualization unavailable</div>';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\analytics.js",
+    "LineNumber": 179,
+    "Line": "        container.innerHTML = '<div style=\"display: flex; align-items: center; justify-content: center; height: 100%; color: var(--danger-color);\">3D rendering library unavailable</div>';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\analytics.js",
+    "LineNumber": 476,
+    "Line": "                size: Math.sqrt(count) / 5,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\analytics.js",
+    "LineNumber": 535,
+    "Line": "        container.innerHTML = '<div style=\"display: flex; align-items: center; justify-content: center; height: 100%; flex-direction: column; color: var(--text-secondary);\"><i data-feather=\"globe\" style=\"width: 48px; height: 48px; margin-bottom: 1rem; opacity: 0.5;\"></i><span>3D Visualization Unavailable</span><span style=\"font-size: 0.8rem; opacity: 0.7; margin-top: 0.5rem;\">WebGL is not supported in this environment</span></div>';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\byow.js",
+    "LineNumber": 31,
+    "Line": "        const originalText = button?.innerHTML;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\byow.js",
+    "LineNumber": 34,
+    "Line": "            button.innerHTML = '<i data-feather=\"loader\"></i> <span>Processing...</span>';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\byow.js",
+    "LineNumber": 41,
+    "Line": "        const response = await fetch(chainsUrl);"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\byow.js",
+    "LineNumber": 105,
+    "Line": "                button.innerHTML = originalText;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\byow.js",
+    "LineNumber": 131,
+    "Line": "            button.innerHTML = '<i data-feather=\"zap\"></i> <span>Upgrade to Platinum</span>';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\cache-manager.js",
+    "LineNumber": 265,
+    "Line": "      const response = await fetch(url, { signal: controller.signal, headers: { 'Cache-Control': 'no-cache' } });"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\cache-manager.js",
+    "LineNumber": 326,
+    "Line": "        (Array.isArray(data) && url.includes('api/proxies') ? window.CONFIGSTREAM_PROXY_SNAPSHOT_HASH : null) ||"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\charts.js",
+    "LineNumber": 81,
+    "Line": "        const response = await fetch(rootPath + 'data/active_proxy_trend.json');"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\constants.js",
+    "LineNumber": 8,
+    "Line": "        // Set by generated assets/js/runtime-config.js in production deploys."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\constants.js",
+    "LineNumber": 12,
+    "Line": "        // Set by generated assets/js/runtime-config.js when configured."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\constants.js",
+    "LineNumber": 43,
+    "Line": "            logError(\"   Generate assets/js/runtime-config.js during deploy.\");"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\constants.js",
+    "LineNumber": 48,
+    "Line": "            logError(\"   Generate assets/js/runtime-config.js during deploy.\");"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\dynamic-downloads.js",
+    "LineNumber": 143,
+    "Line": "            desc.textContent = window.i18n.t(client.descKey) || client.desc;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\dynamic-downloads.js",
+    "LineNumber": 145,
+    "Line": "            desc.textContent = client.desc;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\dynamic-downloads.js",
+    "LineNumber": 162,
+    "Line": "            iconContainer.innerHTML = `<i data-feather=\"${client.icon}\"></i>`;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\error-handler.js",
+    "LineNumber": 106,
+    "Line": "      main.innerHTML = `"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\failover.js",
+    "LineNumber": 35,
+    "Line": "                const resp = await fetch(probeUrl, { cache: 'no-store', signal: controller.signal });"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\failover.js",
+    "LineNumber": 74,
+    "Line": "                    fetch(altURL, { method: 'HEAD', mode: 'no-cors' }).then(() => {"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\i18n.js",
+    "LineNumber": 161,
+    "Line": "        \"verify.status\": \"Ready to verify via WASM\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\i18n.js",
+    "LineNumber": 385,
+    "Line": "        \"verify.status\": \"WASM 组件就绪\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\i18n.js",
+    "LineNumber": 605,
+    "Line": "        \"verify.status\": \"آماده تست با WASM\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\i18n.js",
+    "LineNumber": 825,
+    "Line": "        \"verify.status\": \"WASM готов к работе\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\i18n.js",
+    "LineNumber": 1044,
+    "Line": "        \"verify.local\": \"فحص محلي (WASM)\","
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\i18n.js",
+    "LineNumber": 1127,
+    "Line": "        this.currentLang = localStorage.getItem('lang') || 'en';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\i18n.js",
+    "LineNumber": 1137,
+    "Line": "        localStorage.setItem('lang', lang);"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\i18n.js",
+    "LineNumber": 1160,
+    "Line": "            currentLangLabel.textContent = langNames[lang] || lang.toUpperCase();"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\i18n.js",
+    "LineNumber": 1191,
+    "Line": "                 // Sanitize translation before injecting as HTML to prevent XSS"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\i18n.js",
+    "LineNumber": 1192,
+    "Line": "                 const sanitized = this.sanitize(translation);"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\i18n.js",
+    "LineNumber": 1193,
+    "Line": "                 el.innerHTML = sanitized;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\i18n.js",
+    "LineNumber": 1195,
+    "Line": "                 el.textContent = translation;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\i18n.js",
+    "LineNumber": 1200,
+    "Line": "    sanitize(input) {"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\i18n.js",
+    "LineNumber": 1201,
+    "Line": "        // Strict sanitizer: Whitelist-based approach"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\i18n.js",
+    "LineNumber": 1203,
+    "Line": "        tmp.innerHTML = input;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\i18n.js",
+    "LineNumber": 1231,
+    "Line": "        return tmp.innerHTML;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\inline-icons.js",
+    "LineNumber": 55,
+    "Line": "                el.innerHTML = icons[iconName];"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 114,
+    "Line": "        el.textContent = text;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 123,
+    "Line": "        el.innerHTML = html;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 195,
+    "Line": "        if (label) { label.textContent = pct + '%'; label.style.color = color; }"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 196,
+    "Line": "        if (caption) { caption.textContent = captionText; caption.style.color = color; }"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 197,
+    "Line": "        if (detail) detail.textContent = detailText;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 204,
+    "Line": "        container.innerHTML = '';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 218,
+    "Line": "            badge.innerHTML = `<span class=\"dot\"></span>${b.label}`;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 230,
+    "Line": "        tbody.innerHTML = '<tr><td colspan=\"3\">Running tests...</td></tr>';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 241,
+    "Line": "        tbody.innerHTML = '';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 247,
+    "Line": "                await fetch(t.url, { mode: 'no-cors', cache: 'no-store', signal: AbortSignal.timeout(6000) });"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 250,
+    "Line": "                tr.innerHTML = `<td>${t.name}</td><td>${lat}ms</td><td class=\"status-ok\">Reachable</td>`;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 253,
+    "Line": "                tr.innerHTML = `<td>${t.name}</td><td>-</td><td class=\"status-fail\">Blocked</td>`;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 348,
+    "Line": "            mode.innerHTML = '<strong>Manual test mode.</strong> Static hosting cannot run server-side proxy tests; use the sing-box instructions below, then continue to export when your local test succeeds.';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 350,
+    "Line": "            if (testBtn) testBtn.textContent = 'Show Manual Test';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 353,
+    "Line": "            mode.innerHTML = '<strong>Live test mode.</strong> This page can try the backend Lab endpoint; manual sing-box testing remains available if the endpoint is disabled or unreachable.';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 355,
+    "Line": "            if (testBtn) testBtn.textContent = 'Run Live Test';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 375,
+    "Line": "                    const resp = await fetch(joinBase(base, file), { cache: 'no-store', signal: AbortSignal.timeout(8000) });"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 412,
+    "Line": "        if (btn) btn.textContent = 'Loading...';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 414,
+    "Line": "        if (btn) btn.textContent = 'Load Pre-Tested Proxies';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 433,
+    "Line": "            select.innerHTML = '<option value=\"\">-- Select a pre-tested proxy (' + proxies.length + ' available) --</option>';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 442,
+    "Line": "                    opt.textContent = p.remark.substring(0, 60) + ' (' + p.address + ':' + p.port + ')';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 572,
+    "Line": "                const resp = await fetch((window.ROOT_PATH || '') + 'data/clean_ips.json?cb=' + Date.now());"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 639,
+    "Line": "        td.textContent = String(text);"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 665,
+    "Line": "        select.innerHTML = '';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 669,
+    "Line": "            opt.textContent = ip.ip + ':' + ip.port + (ip.latency ? ` (${ip.latency}ms)` : '');"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 684,
+    "Line": "        if (hint) hint.textContent = s.hint || '';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 695,
+    "Line": "        if (l1) l1.textContent = s.visual_label || s.label || 'WARP';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 758,
+    "Line": "            if (wd) wd.textContent = warpIp + ':' + (warpPort || 2408);"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 813,
+    "Line": "        if (pl) pl.textContent = parsedProxy.protocol.toUpperCase();"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 814,
+    "Line": "        if (pd) pd.textContent = parsedProxy.address;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 823,
+    "Line": "                code.textContent = JSON.stringify(chainConfig, null, 2);"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1030,
+    "Line": "            const resp = await fetch(joinBase(API_BASE, 'lab/test-chain'), {"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1109,
+    "Line": "            case 'qr':"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1110,
+    "Line": "                generateQR(parsedProxy ? parsedProxy.config : '');"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1111,
+    "Line": "                showResultText('step5Result', 'success', 'Offline QR payload ready. Copy it into a trusted local QR tool or VPN client.');"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1129,
+    "Line": "            codeEl.textContent = content;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1132,
+    "Line": "        $('#qrOutput').style.display = 'none';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1469,
+    "Line": "    function generateQR(text) {"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1470,
+    "Line": "        const qrDiv = $('#qrOutput');"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1471,
+    "Line": "        if (!qrDiv) return;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1472,
+    "Line": "        qrDiv.replaceChildren();"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1478,
+    "Line": "        title.textContent = 'Offline QR payload';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1480,
+    "Line": "        note.textContent = 'External QR services are disabled so proxy material never leaves your browser. Copy this payload or scan the offline QR code below.';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1482,
+    "Line": "        // QR Code SVG rendering"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1483,
+    "Line": "        const qrWrapper = document.createElement('div');"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1484,
+    "Line": "        qrWrapper.className = 'lab-qr-wrapper';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1485,
+    "Line": "        qrWrapper.style.background = '#fff';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1486,
+    "Line": "        qrWrapper.style.padding = '10px';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1487,
+    "Line": "        qrWrapper.style.display = 'inline-block';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1488,
+    "Line": "        qrWrapper.style.marginTop = '1rem';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1489,
+    "Line": "        qrWrapper.style.borderRadius = '5px';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1492,
+    "Line": "            if (typeof QRCode !== 'undefined') {"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1493,
+    "Line": "                const qr = new QRCode({"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1502,
+    "Line": "                qrWrapper.innerHTML = qr.svg();"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1504,
+    "Line": "                qrWrapper.textContent = 'QR renderer unavailable offline.';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1507,
+    "Line": "            console.error('QR rendering failed:', e);"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1508,
+    "Line": "            qrWrapper.textContent = 'Error rendering QR code.';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1515,
+    "Line": "        code.textContent = payload;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1520,
+    "Line": "        copyBtn.textContent = 'Copy Payload';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1523,
+    "Line": "                copyBtn.textContent = 'Copied';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1524,
+    "Line": "                setTimeout(() => { copyBtn.textContent = 'Copy Payload'; }, 1500);"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1532,
+    "Line": "                copyBtn.textContent = 'Copied';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1533,
+    "Line": "                setTimeout(() => { copyBtn.textContent = 'Copy Payload'; }, 1500);"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1537,
+    "Line": "        panel.append(title, note, qrWrapper, code, copyBtn);"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1538,
+    "Line": "        qrDiv.appendChild(panel);"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1539,
+    "Line": "        qrDiv.style.display = 'block';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1567,
+    "Line": "            navigator.clipboard.writeText(code.textContent).then(() => {"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1568,
+    "Line": "                btn.textContent = 'Copied!';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1569,
+    "Line": "                setTimeout(() => { btn.textContent = 'Copy'; }, 1500);"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1578,
+    "Line": "                btn.textContent = 'Copied!';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1579,
+    "Line": "                setTimeout(() => { btn.textContent = 'Copy'; }, 1500);"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1587,
+    "Line": "            const resp = await fetch((window.ROOT_PATH || '') + 'proxies.txt?cb=' + Date.now());"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1604,
+    "Line": "            const resp = await fetch((window.ROOT_PATH || '') + 'assets/data/lab_strategies.json?cb=' + Date.now());"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1608,
+    "Line": "                if (select) select.innerHTML = '';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1614,
+    "Line": "                        opt.textContent = s.label;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1668,
+    "Line": "                this.textContent = 'Loading...';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\lab.js",
+    "LineNumber": 1670,
+    "Line": "                this.textContent = '\\u{1F4E6} Pipeline';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\loading-controller.js",
+    "LineNumber": 50,
+    "Line": "        this.loadingAnnounce.textContent = 'Loading content, please wait';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\loading-controller.js",
+    "LineNumber": 60,
+    "Line": "      const response = await fetch(rootPath + 'metadata.json');"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\loading-controller.js",
+    "LineNumber": 70,
+    "Line": "        this.loadingText.textContent = 'Loading configurations...';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\loading-controller.js",
+    "LineNumber": 100,
+    "Line": "        this.loadingAnnounce.textContent = 'Content loaded successfully';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\loading-controller.js",
+    "LineNumber": 116,
+    "Line": "      this.loadingText.textContent = 'Failed to load data. Retrying...';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\logo-controller.js",
+    "LineNumber": 125,
+    "Line": "    style.textContent = css;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\logo-controller.js",
+    "LineNumber": 137,
+    "Line": "      const response = await fetch('assets/css/logo-animations.css', { cache: 'force-cache' });"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\main.js",
+    "LineNumber": 6,
+    "Line": "    const API_PROXIES_URL = `${root}api/proxies`;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\main.js",
+    "LineNumber": 89,
+    "Line": "            const response = await fetch(`${API_DIFF_PROXIES_URL}?base_version=${base}`);"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\main.js",
+    "LineNumber": 172,
+    "Line": "                 // Sanitize before innerHTML to prevent XSS if metadata is poisoned."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\main.js",
+    "LineNumber": 175,
+    "Line": "                if (window.DOMPurify) {"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\main.js",
+    "LineNumber": 176,
+    "Line": "                    heroSubtitle.innerHTML = window.DOMPurify.sanitize(text, {ALLOWED_TAGS: ['strong', 'em', 'b', 'i', 'span']});"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\main.js",
+    "LineNumber": 178,
+    "Line": "                    heroSubtitle.textContent = text.replace(/<[^>]*>/g, '');"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\main.js",
+    "LineNumber": 221,
+    "Line": "                // Single source of truth: metadata.json canonical fields (from output_logic.py)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\main.js",
+    "LineNumber": 272,
+    "Line": "                    infoSourceCountElem.textContent = formatNum(sourceCount);"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\main.js",
+    "LineNumber": 277,
+    "Line": "                    infoUpdateFreqElem.textContent = formatNum(updateFreq);"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\plugin_loader.js",
+    "LineNumber": 1,
+    "Line": "class WasmPlugin {"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\plugin_loader.js",
+    "LineNumber": 96,
+    "Line": "            const res = await fetch(pluginListUrl);"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\plugin_loader.js",
+    "LineNumber": 105,
+    "Line": "                    const wasmRes = await fetch(p.url);"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\plugin_loader.js",
+    "LineNumber": 106,
+    "Line": "                    const buf = await wasmRes.arrayBuffer();"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\plugin_loader.js",
+    "LineNumber": 108,
+    "Line": "                    this.plugins.push(new WasmPlugin(p.name, instance));"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxies.js",
+    "LineNumber": 110,
+    "Line": "    div.textContent = text;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxies.js",
+    "LineNumber": 111,
+    "Line": "    return div.innerHTML;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxies.js",
+    "LineNumber": 224,
+    "Line": "            footerDate.textContent = new Date().toLocaleString();"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxies.js",
+    "LineNumber": 230,
+    "Line": "        if(loadingEl) loadingEl.innerHTML = `<p style=\"color:var(--danger-color)\">Error loading proxies. Please check console.</p>`;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxies.js",
+    "LineNumber": 240,
+    "Line": "    tbody.innerHTML = '';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxies.js",
+    "LineNumber": 276,
+    "Line": "        protoCell.innerHTML = badgeHtml;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxies.js",
+    "LineNumber": 288,
+    "Line": "            ? `<img src=\"assets/images/flags/w20/${normalizedCountryCode}.png\" class=\"country-flag\" alt=\"${safeCountryCode}\" onerror=\"this.onerror=null;this.replaceWith(Object.assign(document.createElement('span'),{className:'country-flag country-flag-text',textContent:'${safeCountryCode}',ariaLabel:'${safeCountryCode}'}))\">`"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxies.js",
+    "LineNumber": 291,
+    "Line": "        locCell.innerHTML = `${flag} <span>${locText}</span>`;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxies.js",
+    "LineNumber": 306,
+    "Line": "        latSpan.textContent = latVal;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxies.js",
+    "LineNumber": 317,
+    "Line": "        statusBadge.textContent = p.statusText;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxies.js",
+    "LineNumber": 333,
+    "Line": "        processCell.innerHTML = `<span class=\"badge ${pBadge}\" style=\"font-size:0.75em\">${escapeHtml(processType.toUpperCase())}</span>`;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxies.js",
+    "LineNumber": 367,
+    "Line": "                trendCell.innerHTML = `"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxies.js",
+    "LineNumber": 375,
+    "Line": "                trendCell.innerHTML = '<span class=\"trend-no-data\">-</span>';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxies.js",
+    "LineNumber": 378,
+    "Line": "            trendCell.innerHTML = '<span class=\"trend-no-data\">-</span>';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxies.js",
+    "LineNumber": 387,
+    "Line": "        btn.innerHTML = `<i data-feather=\"copy\"></i>`;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxies.js",
+    "LineNumber": 409,
+    "Line": "        countrySel.innerHTML = '<option value=\"\">All Countries</option>';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxies.js",
+    "LineNumber": 415,
+    "Line": "                opt.textContent = `${name} (${cc})`;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxies.js",
+    "LineNumber": 416,
+    "Line": "            } catch(e) { opt.textContent = cc; }"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxies.js",
+    "LineNumber": 425,
+    "Line": "        protoSel.innerHTML = '<option value=\"\">All Protocols</option>';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxies.js",
+    "LineNumber": 429,
+    "Line": "            opt.textContent = p.toUpperCase();"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxies.js",
+    "LineNumber": 438,
+    "Line": "        citySel.innerHTML = '<option value=\"\">All Cities</option>';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxies.js",
+    "LineNumber": 442,
+    "Line": "            opt.textContent = c;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxies.js",
+    "LineNumber": 570,
+    "Line": "            countEl.textContent = `${filteredProxies.length}/${allProxies.length}`;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxies.js",
+    "LineNumber": 572,
+    "Line": "            countEl.textContent = `Showing ${Math.min(itemsPerPage, total)} of ${total} proxies`;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxies.js",
+    "LineNumber": 578,
+    "Line": "    container.innerHTML = '';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxies.js",
+    "LineNumber": 586,
+    "Line": "        // Use textContent instead of innerHTML to prevent XSS"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxies.js",
+    "LineNumber": 588,
+    "Line": "        b.textContent = text;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxies.js",
+    "LineNumber": 599,
+    "Line": "    span.textContent = `Page ${currentPage} of ${totalPages}`;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxy-history-chart.js",
+    "LineNumber": 21,
+    "Line": "            const response = await fetch(root + 'data/proxy_history_viz.json');"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxy-history-chart.js",
+    "LineNumber": 39,
+    "Line": "            this.container.innerHTML = '<p class=\"no-data\">No historical data available for this proxy</p>';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxy-history-chart.js",
+    "LineNumber": 47,
+    "Line": "        this.container.innerHTML = `"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxy-history-chart.js",
+    "LineNumber": 114,
+    "Line": "        svg.innerHTML = '';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxy-history-chart.js",
+    "LineNumber": 120,
+    "Line": "            svg.innerHTML = '<text x=\"50%\" y=\"50%\" text-anchor=\"middle\" fill=\"#666\">No data points available</text>';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxy-history-chart.js",
+    "LineNumber": 156,
+    "Line": "            text.textContent = `${latencyValue.toFixed(0)}`;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxy-history-chart.js",
+    "LineNumber": 211,
+    "Line": "            title.textContent = `${date}\\nLatency: ${latency}ms\\nStatus: ${status[i] === 1 ? 'Online' : 'Offline'}`;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxy-history-chart.js",
+    "LineNumber": 233,
+    "Line": "            text.textContent = label;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxy-history-chart.js",
+    "LineNumber": 245,
+    "Line": "        yLabel.textContent = 'Latency (ms)';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxy-history-chart.js",
+    "LineNumber": 262,
+    "Line": "            container.innerHTML = '<span class=\"mini-chart-no-data\">No trend data</span>';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\proxy-history-chart.js",
+    "LineNumber": 292,
+    "Line": "        container.innerHTML = '';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\state-manager.js",
+    "LineNumber": 367,
+    "Line": "    overlay.innerHTML = `"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\state-manager.js",
+    "LineNumber": 396,
+    "Line": "    notification.innerHTML = `"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\state-manager.js",
+    "LineNumber": 437,
+    "Line": "    notification.innerHTML = `"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\state-manager.js",
+    "LineNumber": 468,
+    "Line": "    div.textContent = text;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\state-manager.js",
+    "LineNumber": 469,
+    "Line": "    return div.innerHTML;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\statistics.js",
+    "LineNumber": 7,
+    "Line": "        const resp = await fetch(root + 'assets/data/countries.json');"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\statistics.js",
+    "LineNumber": 39,
+    "Line": "            const response = await fetch(url);"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\statistics.js",
+    "LineNumber": 55,
+    "Line": "            const response = await fetch(url);"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\statistics.js",
+    "LineNumber": 152,
+    "Line": "        // Use sanitize logic inside updateElement or manual sanitization."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\statistics.js",
+    "LineNumber": 153,
+    "Line": "        // Since updateElement uses DOMPurify by default unless trustedHTML is true,"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\statistics.js",
+    "LineNumber": 158,
+    "Line": "            updateElement('#avgLatency', `${metrics.avgLatency}<span class=\"metric-unit\">ms</span>`, { method: 'innerHTML', trustedHTML: true });"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\statistics.js",
+    "LineNumber": 163,
+    "Line": "            updateElement('#successRate', `${metrics.successRate}<span class=\"metric-unit\">%</span>`, { method: 'innerHTML', trustedHTML: true });"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\statistics.js",
+    "LineNumber": 221,
+    "Line": "            // Sanitized insertion: getCountryFlag returns an emoji string"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\statistics.js",
+    "LineNumber": 223,
+    "Line": "            // countryName comes from our internal mapping or stats key. If stats key is untrusted, we should sanitize."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\statistics.js",
+    "LineNumber": 224,
+    "Line": "            // DOMPurify is handled by updateElement by default."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\statistics.js",
+    "LineNumber": 226,
+    "Line": "            // updateElement with innerHTML sanitizes the whole string."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\statistics.js",
+    "LineNumber": 227,
+    "Line": "            updateElement('#topRegion', `${flag} ${countryName}`, { method: 'innerHTML' }); // Default sanitization applied"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\statistics.js",
+    "LineNumber": 727,
+    "Line": "            const chartTitle = chartHeader.querySelector('h3')?.textContent || 'Chart';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\statistics.js",
+    "LineNumber": 813,
+    "Line": "              btn.textContent = text;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\statistics.js",
+    "LineNumber": 913,
+    "Line": "            // Sanitize content before export (defense in depth)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\statistics.js",
+    "LineNumber": 948,
+    "Line": "style.textContent = `"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\stego.js",
+    "LineNumber": 261,
+    "Line": "    const response = await fetch(imageUrl, { cache: \"no-store\" });"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\sw-init.js",
+    "LineNumber": 20,
+    "Line": "        label.textContent = lang.toUpperCase();"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\sw-init.js",
+    "LineNumber": 27,
+    "Line": "        if(label && window.i18n) label.textContent = window.i18n.currentLang.toUpperCase();"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\update-detector.js",
+    "LineNumber": 25,
+    "Line": "        // Initialize from localStorage if available"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\update-detector.js",
+    "LineNumber": 35,
+    "Line": "            const storedVersion = localStorage.getItem('configstream_version');"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\update-detector.js",
+    "LineNumber": 41,
+    "Line": "                localStorage.removeItem('configstream_last_timestamps');"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\update-detector.js",
+    "LineNumber": 42,
+    "Line": "                localStorage.setItem('configstream_version', currentVersion);"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\update-detector.js",
+    "LineNumber": 54,
+    "Line": "     * Load last known timestamps from localStorage"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\update-detector.js",
+    "LineNumber": 58,
+    "Line": "            const stored = localStorage.getItem('configstream_last_timestamps');"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\update-detector.js",
+    "LineNumber": 68,
+    "Line": "     * Save timestamps to localStorage for persistence across sessions"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\update-detector.js",
+    "LineNumber": 72,
+    "Line": "            localStorage.setItem('configstream_last_timestamps', JSON.stringify(this.lastKnownTimestamps));"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\update-detector.js",
+    "LineNumber": 114,
+    "Line": "            const basePath = (window.ROOT_PATH || '') + 'metadata.json';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\update-detector.js",
+    "LineNumber": 115,
+    "Line": "            // Fetch metadata.json but only parse the timestamp"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\update-detector.js",
+    "LineNumber": 118,
+    "Line": "                response = await fetch(basePath, {"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\update-detector.js",
+    "LineNumber": 137,
+    "Line": "                // Fallback: fetch metadata.json and extract timestamp"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\update-detector.js",
+    "LineNumber": 140,
+    "Line": "                    dataResponse = await fetch(basePath, {"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\update-detector.js",
+    "LineNumber": 225,
+    "Line": "                        url = basePath + 'metadata.json';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\update-detector.js",
+    "LineNumber": 231,
+    "Line": "                        // [UNIFIED] statistics now uses metadata.json - single source of truth"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\update-detector.js",
+    "LineNumber": 232,
+    "Line": "                        url = basePath + 'metadata.json';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\update-detector.js",
+    "LineNumber": 240,
+    "Line": "                    response = await fetch(url, { cache: 'reload' });"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\verifier.js",
+    "LineNumber": 105,
+    "Line": "            const statusEl = document.getElementById('wasm-status');"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\verifier.js",
+    "LineNumber": 110,
+    "Line": "                    statusEl.textContent = \"⚠️ Verification unavailable (No Key)\";"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\verifier.js",
+    "LineNumber": 116,
+    "Line": "            if(statusEl) statusEl.textContent = \"Verifying integrity...\";"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\verifier.js",
+    "LineNumber": 118,
+    "Line": "            // Actual verification using WASM if available"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\verifier.js",
+    "LineNumber": 121,
+    "Line": "                    statusEl.textContent = \"✓ Turbo-Verify Complete\";"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_exec.js",
+    "LineNumber": 236,
+    "Line": "\t\t\t\t\t// func wasmExit(code int32)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_exec.js",
+    "LineNumber": 237,
+    "Line": "\t\t\t\t\t\"runtime.wasmExit\": (sp) => {"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_exec.js",
+    "LineNumber": 249,
+    "Line": "\t\t\t\t\t// func wasmWrite(fd uintptr, p unsafe.Pointer, n int32)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_exec.js",
+    "LineNumber": 250,
+    "Line": "\t\t\t\t\t\"runtime.wasmWrite\": (sp) => {"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_exec.js",
+    "LineNumber": 541,
+    "Line": "\t\t\t// The linker guarantees global data starts from at least wasmMinDataAddr."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_exec.js",
+    "LineNumber": 542,
+    "Line": "\t\t\t// Keep in sync with cmd/link/internal/ld/data.go:wasmMinDataAddr."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_exec.js",
+    "LineNumber": 543,
+    "Line": "\t\t\tconst wasmMinDataAddr = 4096 + 8192;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_exec.js",
+    "LineNumber": 544,
+    "Line": "\t\t\tif (offset >= wasmMinDataAddr) {"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_loader.js",
+    "LineNumber": 1,
+    "Line": "// frontend/assets/js/wasm_loader.js"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_loader.js",
+    "LineNumber": 3,
+    "Line": "// Guard against missing Go runtime (in case wasm_exec.js failed to load)"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_loader.js",
+    "LineNumber": 5,
+    "Line": "let wasmReady = false;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_loader.js",
+    "LineNumber": 6,
+    "Line": "let wasmError = null;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_loader.js",
+    "LineNumber": 7,
+    "Line": "const WASM_SCOPE_LABEL = 'Browser-limited reachability check';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_loader.js",
+    "LineNumber": 9,
+    "Line": "// 1. Initialize WASM"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_loader.js",
+    "LineNumber": 10,
+    "Line": "async function initWasm() {"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_loader.js",
+    "LineNumber": 14,
+    "Line": "            throw new Error('Go runtime (wasm_exec.js) not loaded');"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_loader.js",
+    "LineNumber": 28,
+    "Line": "        const wasmPath = (window.ROOT_PATH || './') + 'assets/wasm/tester.wasm';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_loader.js",
+    "LineNumber": 31,
+    "Line": "            fetch(wasmPath),"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_loader.js",
+    "LineNumber": 35,
+    "Line": "        wasmReady = true;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_loader.js",
+    "LineNumber": 37,
+    "Line": "        // Signal WASM is ready"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_loader.js",
+    "LineNumber": 38,
+    "Line": "        window.wasmReady = true;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_loader.js",
+    "LineNumber": 39,
+    "Line": "        document.dispatchEvent(new Event('wasm-ready'));"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_loader.js",
+    "LineNumber": 41,
+    "Line": "            window.ConfigStreamLogger.info(`${WASM_SCOPE_LABEL} loaded`);"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_loader.js",
+    "LineNumber": 45,
+    "Line": "            window.ConfigStreamLogger.error(`${WASM_SCOPE_LABEL} failed to load:`, err);"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_loader.js",
+    "LineNumber": 47,
+    "Line": "            console.error(`${WASM_SCOPE_LABEL} failed to load:`, err);"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_loader.js",
+    "LineNumber": 49,
+    "Line": "        wasmError = err;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_loader.js",
+    "LineNumber": 50,
+    "Line": "        // Set wasmReady to false explicitly and expose error"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_loader.js",
+    "LineNumber": 51,
+    "Line": "        window.wasmReady = false;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_loader.js",
+    "LineNumber": 52,
+    "Line": "        window.wasmError = err.message;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_loader.js",
+    "LineNumber": 54,
+    "Line": "        document.dispatchEvent(new Event('wasm-ready'));"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_loader.js",
+    "LineNumber": 60,
+    "Line": "    if (window.cleanupWasm) {"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_loader.js",
+    "LineNumber": 61,
+    "Line": "        window.cleanupWasm();"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_loader.js",
+    "LineNumber": 63,
+    "Line": "            window.ConfigStreamLogger.info(`${WASM_SCOPE_LABEL} cleaned up`);"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_loader.js",
+    "LineNumber": 71,
+    "Line": "    // Better error handling for WASM unavailability"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_loader.js",
+    "LineNumber": 72,
+    "Line": "    if (!wasmReady || !window.wasmReady) {"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_loader.js",
+    "LineNumber": 73,
+    "Line": "        if (window.ConfigStreamLogger) window.ConfigStreamLogger.warn(`${WASM_SCOPE_LABEL} not ready - keeping sidecar/Python results`);"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_loader.js",
+    "LineNumber": 77,
+    "Line": "    // Check if testProxyWasm function is available"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_loader.js",
+    "LineNumber": 78,
+    "Line": "    if (typeof window.testProxyWasm !== 'function') {"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_loader.js",
+    "LineNumber": 79,
+    "Line": "        if (window.ConfigStreamLogger) window.ConfigStreamLogger.warn(`${WASM_SCOPE_LABEL} function unavailable - keeping sidecar/Python results`);"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_loader.js",
+    "LineNumber": 121,
+    "Line": "                const res = await window.testProxyWasm(targetUrl);"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_loader.js",
+    "LineNumber": 139,
+    "Line": "                console.warn(`WASM Test Error for ${p.address}:`, e);"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wasm_loader.js",
+    "LineNumber": 156,
+    "Line": "initWasm();"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wiki.js",
+    "LineNumber": 48,
+    "Line": "    sidebar.innerHTML = '';"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wiki.js",
+    "LineNumber": 94,
+    "Line": "    container.innerHTML = `"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wiki.js",
+    "LineNumber": 124,
+    "Line": "                const response = await fetch(url, { cache: 'no-cache' }); // Avoid stale content"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wiki.js",
+    "LineNumber": 155,
+    "Line": "            // Sanitize with strengthened fallback"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wiki.js",
+    "LineNumber": 156,
+    "Line": "            let sanitized;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wiki.js",
+    "LineNumber": 157,
+    "Line": "            if (window.DOMPurify) {"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wiki.js",
+    "LineNumber": 158,
+    "Line": "                sanitized = window.DOMPurify.sanitize(html, {"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wiki.js",
+    "LineNumber": 165,
+    "Line": "                container.innerHTML = sanitized;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wiki.js",
+    "LineNumber": 167,
+    "Line": "                // CRITICAL: If DOMPurify fails, render as plain text"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wiki.js",
+    "LineNumber": 168,
+    "Line": "                console.error(\"[Wiki] DOMPurify not loaded - rendering as plain text for security\");"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wiki.js",
+    "LineNumber": 169,
+    "Line": "                container.innerHTML = `"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wiki.js",
+    "LineNumber": 171,
+    "Line": "                        <strong>⚠️ Security Warning:</strong> DOMPurify library failed to load."
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wiki.js",
+    "LineNumber": 189,
+    "Line": "            container.innerHTML = `"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\assets\\js\\wiki.js",
+    "LineNumber": 206,
+    "Line": "        container.innerHTML = `"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\analytics.html",
+    "LineNumber": 350,
+    "Line": "             if(label && window.i18n) label.textContent = window.i18n.currentLang.toUpperCase();"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\analytics.html",
+    "LineNumber": 358,
+    "Line": "                label.textContent = lang.toUpperCase();"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\lab-offline.html",
+    "LineNumber": 138,
+    "Line": "  document.getElementById('layersContainer').insertAdjacentHTML('beforeend',html);"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\lab-offline.html",
+    "LineNumber": 149,
+    "Line": "    if(num){const t=el.dataset.type;num.textContent=`Layer ${i+1}: ${t.toUpperCase()}`;}"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\lab-offline.html",
+    "LineNumber": 170,
+    "Line": "  vis.innerHTML=html;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\lab-offline.html",
+    "LineNumber": 284,
+    "Line": "  code.textContent=text;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\lab-offline.html",
+    "LineNumber": 291,
+    "Line": "  el.innerHTML=msg;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\lab-offline.html",
+    "LineNumber": 296,
+    "Line": "  if(!code||!code.textContent)return;"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\lab-offline.html",
+    "LineNumber": 297,
+    "Line": "  navigator.clipboard.writeText(code.textContent).catch(()=>{"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\lab-offline.html",
+    "LineNumber": 307,
+    "Line": "  if(!code||!code.textContent){showR('err','Generate first.');return;}"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\lab-offline.html",
+    "LineNumber": 310,
+    "Line": "  const blob=new Blob([code.textContent],{type:'text/plain'});"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\lab.html",
+    "LineNumber": 1027,
+    "Line": "                        <option value=\"qr\">QR Code</option>"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\lab.html",
+    "LineNumber": 1038,
+    "Line": "                <div id=\"qrOutput\" style=\"display:none; text-align: center; margin-top: 1rem;\"></div>"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\lab.html",
+    "LineNumber": 1166,
+    "Line": "    <script src=\"assets/js/utils/qrcode.js\" defer></script>"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\proxies.html",
+    "LineNumber": 277,
+    "Line": "    <script src=\"assets/js/runtime-config.js\"></script>"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\proxies.html",
+    "LineNumber": 308,
+    "Line": "    <script src=\"assets/js/wasm_exec.js\" defer></script>"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\proxies.html",
+    "LineNumber": 309,
+    "Line": "    <script src=\"assets/js/wasm_loader.js\" defer></script>"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\proxies.html",
+    "LineNumber": 313,
+    "Line": "    <div class=\"wasm-control\" style=\"position: fixed; bottom: 20px; right: 20px; z-index: 1000; background: var(--bg-card); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: 0 4px 6px rgba(0,0,0,0.3);\">"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\proxies.html",
+    "LineNumber": 317,
+    "Line": "        <span id=\"wasm-status\" class=\"text-muted text-sm\" style=\"display: block; margin-top: 5px; font-size: 0.8rem;\" data-i18n=\"verify.status\">Ready to verify via WASM</span>"
+  },
+  {
+    "Path": "C:\\Users\\ACER\\Documents\\GitHub\\ConfigStream\\frontend\\wiki.html",
+    "LineNumber": 25,
+    "Line": "    <!-- DOMPurify for sanitization -->"
+  }
+]
