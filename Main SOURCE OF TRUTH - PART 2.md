@@ -1034,6 +1034,8 @@ JSON/YAML syntax validation is not enough. Client configs can be syntactically v
 
 Consumers need confidence that outputs are produced by the project and not tampered with.
 
+Status update (2026-05-19): Implemented in tracked code and validators, with optional signing in environments that provide signing key material.
+
 ##### What to sign
 
 - `artifact_manifest.json`
@@ -1044,12 +1046,18 @@ Consumers need confidence that outputs are produced by the project and not tampe
 - run ID
 - generated timestamp
 
-1. Add `artifact_manifest.sig`.
+1. Add `artifact_manifest.sig` equivalent.
+   - Implemented as embedded `manifest_signature` object inside `artifact_manifest.json` (Ed25519, signature hex, key_id).
 2. Add public key distribution.
+   - Implemented via existing runtime-config key injection path (`CS_PUBLIC_KEY` -> frontend runtime config constants path).
 3. Add frontend verification.
+   - Implemented in `frontend/assets/js/verifier.js` plus startup verification path in `frontend/assets/js/main.js`.
 4. Make missing key behavior explicit.
+   - Implemented: unsigned artifacts allowed in local/dev; validator enforces signature presence/verification when `CS_PUBLIC_KEY` is configured.
 5. Add offline verifier script.
+   - Partially implemented via Python validator path (`scripts/validate_pages_artifact.py`) that verifies signatures without browser.
 6. Add docs.
+   - Implemented in master-source status update and this section.
 
 - Signature covers manifest.
 - Frontend verifies manifest when key exists.
@@ -2465,3 +2473,5 @@ The most valuable improvements are:
 10. **Documentation generation from matrices** - prevents drift from returning.
 
 The guiding principle: **do not expand by adding isolated features; expand by adding capability contracts, proof, safety boundaries, and user-facing explanations with every feature.**
+# Supersession Notice (2026-05-19)
+This document is retained as a detailed evidence and expansion ledger. Active operational status and release truth are defined by `STATUS.md`, `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md`, and canonical matrices in `docs/`. Where this file conflicts with those active surfaces, treat this file as historical context unless re-confirmed.

@@ -13,7 +13,8 @@ def test_parse_generic_http():
     assert proxy.protocol == "http"
     assert proxy.address == "example.com"
     assert proxy.port == 8080
-    assert proxy.uuid == "user"
+    assert proxy.uuid == ""
+    assert proxy.details.get("username") == "user"
     assert proxy.details["password"] == "pass"
     assert proxy.remarks == "Remark"
 

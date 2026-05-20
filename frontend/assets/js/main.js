@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const root = window.ROOT_PATH || './';
     const API_PROXIES_URL = `${root}api/proxies`;
     const API_DIFF_PROXIES_URL = `${root}api/diff/proxies`;
+    const ARTIFACT_MANIFEST_URL = `${root}artifact_manifest.json`;
 
     // Note: Common UI (Theme, Header Scroll, Mobile Nav, Copy Buttons) is now handled by common-ui.js
 
@@ -185,6 +186,24 @@ document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('languageChanged', updateHeroSubtitle);
 
         try {
+            // Verify artifact manifest signature when available.
+            // If a signature is present, verification is fail-closed.
+            // Unsigned manifests remain allowed in local/dev environments.
+            try {
+                const manifestRes = await fetch(ARTIFACT_MANIFEST_URL, { cache: 'no-store' });
+                if (manifestRes.ok && window.Verifier && typeof window.Verifier.verifyManifestSignature === 'function') {
+                    const manifestPayload = await manifestRes.json();
+                    const verification = await window.Verifier.verifyManifestSignature(manifestPayload);
+                    if (verification && verification.verified === true) {
+                        logger.log('[Manifest] Signature verified');
+                    } else {
+                        logger.log('[Manifest] Unsigned artifact manifest (allowed)');
+                    }
+                }
+            } catch (manifestError) {
+                throw new Error(`Artifact manifest verification failed: ${manifestError.message || manifestError}`);
+            }
+
             // Fetch metadata and statistics in parallel
             const [metadata, stats] = await Promise.all([
                 fetchMetadata(),
