@@ -8,7 +8,7 @@ import base64
 import json
 import os
 import shutil
-import subprocess
+import subprocess  # nosec B404
 import tempfile
 from pathlib import Path
 from typing import Any
@@ -45,7 +45,7 @@ def _extract_artifact(artifact: Path, workdir: Path) -> Path:
                 check=True,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
-            )
+            )  # nosec B603
             return workdir
         if unrar:
             subprocess.run(
@@ -53,7 +53,7 @@ def _extract_artifact(artifact: Path, workdir: Path) -> Path:
                 check=True,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
-            )
+            )  # nosec B603
             return workdir
         raise RuntimeError("RAR extraction requires 7z or unrar in PATH")
 
@@ -78,7 +78,7 @@ def _validate_json(path: Path, sing_box_bin: str | None) -> dict[str, Any]:
             [sing_box_bin, "check", "-c", str(path)],
             text=True,
             capture_output=True,
-        )
+        )  # nosec B603
         result["sing_box_check"] = proc.returncode == 0
         if proc.returncode != 0:
             result["sing_box_error"] = (proc.stderr or proc.stdout).strip()[:2000]

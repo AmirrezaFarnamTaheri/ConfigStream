@@ -4,7 +4,8 @@
 from __future__ import annotations
 
 import re
-import subprocess
+import shutil
+import subprocess  # nosec B404
 import sys
 from pathlib import Path
 
@@ -69,13 +70,20 @@ def _repo_relative(path: Path) -> str:
 
 
 def _tracked_files() -> list[Path]:
+    git_bin = shutil.which("git")
+    if not git_bin:
+        return sorted(
+            path
+            for path in ROOT.rglob("*")
+            if path.is_file() and ".git" not in path.relative_to(ROOT).parts
+        )
     try:
         completed = subprocess.run(
-            ["git", "ls-files", "-z"],
+            [git_bin, "ls-files", "-z"],
             cwd=ROOT,
             check=True,
             capture_output=True,
-        )
+        )  # nosec B603
     except (FileNotFoundError, subprocess.CalledProcessError):
         return sorted(
             path

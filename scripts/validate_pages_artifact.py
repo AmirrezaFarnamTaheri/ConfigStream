@@ -11,7 +11,7 @@ import json
 import os
 import re
 import shutil
-import subprocess
+import subprocess  # nosec B404
 import sys
 import zipfile
 from datetime import datetime, timezone
@@ -264,7 +264,7 @@ def _run_native_check(command: list[str], rel_path: str) -> tuple[str, str | Non
             check=False,
             text=True,
             timeout=30,
-        )
+        )  # nosec B603
     except (OSError, subprocess.TimeoutExpired) as exc:
         return "failed", f"{rel_path} native client check could not run: {exc}"
     if proc.returncode == 0:
@@ -289,9 +289,10 @@ def collect_native_client_report(root: Path) -> dict[str, object]:
     tools = report["tools"]
     checks = report["checks"]
     summary = report["summary"]
-    assert isinstance(tools, dict)
-    assert isinstance(checks, list)
-    assert isinstance(summary, dict)
+    if not isinstance(tools, dict) or not isinstance(checks, list) or not isinstance(
+        summary, dict
+    ):
+        raise TypeError("native client report container type mismatch")
 
     sing_box = _first_available_binary(SING_BOX_BINARY_NAMES)
     tools["sing-box"] = {"available": bool(sing_box), "binary": sing_box}

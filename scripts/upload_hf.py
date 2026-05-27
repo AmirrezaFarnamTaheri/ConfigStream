@@ -8,7 +8,7 @@ import argparse
 import logging
 import os
 import shutil
-import subprocess
+import subprocess  # nosec B404
 import tempfile
 from pathlib import Path
 from typing import Iterable
@@ -40,7 +40,7 @@ def _run(cmd: list[str], cwd: Path | None = None) -> subprocess.CompletedProcess
         check=True,
         capture_output=True,
         text=True,
-    )
+    )  # nosec B603
 
 
 def _repo_http_url(repo_id: str, repo_type: str) -> str:

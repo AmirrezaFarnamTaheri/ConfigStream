@@ -48,7 +48,8 @@ def _sanitize_source(raw_source: Optional[str]) -> Optional[str]:
             # Return just the domain/host
             return parsed.netloc
     except Exception:
-        pass
+        # Fall through to deterministic hash fallback
+        return hashlib.sha256(raw_source.encode("utf-8")).hexdigest()[:12]
     # Fallback to a short hash if it's not a parsable URL
     return hashlib.sha256(raw_source.encode("utf-8")).hexdigest()[:12]
 

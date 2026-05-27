@@ -192,7 +192,7 @@ def parse_logs(
                                                 count_each,
                                                 duration,
                                             )
-                except Exception:
+                except Exception:  # nosec B112
                     continue
         except Exception as e:
             print(f"[WARN] Could not read {log_file}: {e}")
@@ -416,7 +416,7 @@ def analyze_similarity(observed_metrics: Dict[str, Tuple[int, float]]) -> Set[st
             if url and proxies:
                 fingerprints[url] = proxies
                 count += 1
-        except Exception:
+        except Exception:  # nosec B110
             pass
 
     print(f"[INFO] Loaded {count} source fingerprints.")

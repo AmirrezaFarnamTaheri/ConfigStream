@@ -15,7 +15,7 @@ import hashlib
 import json
 import os
 import shutil
-import subprocess
+import subprocess  # nosec B404
 import sys
 import tempfile
 import zipfile
@@ -204,7 +204,7 @@ def _runtime_env() -> dict[str, str]:
 
 def _run(command: list[str]) -> int:
     print("+ " + " ".join(command), flush=True)
-    return subprocess.run(command, cwd=REPO_ROOT, check=False).returncode
+    return subprocess.run(command, cwd=REPO_ROOT, check=False).returncode  # nosec B603
 
 
 def run_smoke(*, keep_artifact: bool = False) -> int:
