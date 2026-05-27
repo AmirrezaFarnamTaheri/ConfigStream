@@ -62,7 +62,7 @@ https://alienvpn402.github.io/AlienVPN402-subscribe-servers-sing-box/
 https://www.freeproxylist.net/
 https://freenode.openrunner.net/uploads/20240617-clash.yaml
 https://premproxy.com/list/ip-port/1.htm
-https://v2sub.purelife.org/api/v1/client/subscribe?token=4ff1f9623ea62a005102b1701f2fd56a
+https://v2sub.purelife.org/api/v1/client/subscribe
 https://scys.org/proxy
 /refs/heads/main/Reality
 https://raw.githubusercontent.com/Ai123999/2Tues/refs/heads/main/2Tues_Notorgamers

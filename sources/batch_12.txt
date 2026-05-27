@@ -1,7 +1,6 @@
 # ConfigStream Batch 12
 # Optimized based on fetch duration for equal execution times
 # Est. Fetch Time: 12708.6s
-
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub13.txt
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub14.txt
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub23.txt
@@ -52,7 +51,7 @@ https://github.com/AmirrezaFarnamTaheri/GATHEREX/blob/main/outputs_dev/proxies.t
 https://t.me/ProxyScanBot
 http://www.proxylists.net/
 https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/normal/hysteria2
-https://12o.ooo/link/JLisT80gOhRkiFnX?sub=1
+https://12o.ooo/link/JLisT80gOhRkiFnX
 https://raw.githubusercontent.com/Sage-77/V2ray-configs/main/hysteria2.txt
 https://www.bestfreeproxy.com/
 https://best-proxy.com

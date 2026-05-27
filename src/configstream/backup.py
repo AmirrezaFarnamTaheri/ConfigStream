@@ -15,6 +15,8 @@ from pathlib import Path
 from datetime import datetime, timedelta
 from typing import Dict, List, Tuple
 
+from .security_validator import _safe_log_text
+
 logger = logging.getLogger(__name__)
 
 
@@ -130,7 +132,7 @@ def backup_databases(
                     backup_path_final.unlink()
             except Exception:  # nosec
                 pass
-            logger.error(f"Failed to backup {db_file}: {e}")
+            logger.error(f"Failed to backup {db_file}: {_safe_log_text(e)}")
 
     # Cleanup old backups
     if retention_days > 0:
@@ -203,7 +205,7 @@ def cleanup_old_backups(backup_dir: Path, retention_days: int) -> int:
             by_db_date[key].append((mtime, backup_file))
 
         except Exception as e:
-            logger.warning(f"Failed to process backup {backup_file}: {e}")
+            logger.warning(f"Failed to process backup {backup_file}: {_safe_log_text(e)}")
 
     # Process thinning groups (keep only 1 per day per DB)
     for key, file_list in by_db_date.items():
@@ -264,7 +266,7 @@ def restore_database(backup_file: Path, target_file: Path) -> bool:
         return True
 
     except Exception as e:
-        logger.error(f"Failed to restore database: {e}")
+        logger.error(f"Failed to restore database: {_safe_log_text(e)}")
         return False
 
 
@@ -321,7 +323,7 @@ def list_backups(backup_dir: Path | str = Path("data/backups")) -> List[dict]:
                 }
             )
         except Exception as e:
-            logger.warning(f"Failed to get metadata for {backup_file}: {e}")
+            logger.warning(f"Failed to get metadata for {backup_file}: {_safe_log_text(e)}")
 
     # Always return newest-first by actual creation time
     backups = sorted(items, key=lambda b: b["created"], reverse=True)

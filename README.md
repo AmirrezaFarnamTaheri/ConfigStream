@@ -168,6 +168,8 @@ Stable capability claims are tracked in `docs/capability_registry.json`; core/cl
 | `metadata.json` | control | json | yes | schema, json | Canonical run metadata validated against metadata.schema.json. |
 | `api/proxies` | api-alias | json | yes | schema, json | API alias that must match proxies.json. |
 | `api/stats` | api-alias | json | yes | schema, json | API alias that must match metadata.json. |
+| `countries/*.list.json` | categorized-api | json | no | schema, json | Country-specific proxy list JSON; must match proxy.schema.json. |
+| `protocols/*.list.json` | categorized-api | json | no | schema, json | Protocol-specific proxy list JSON; must match proxy.schema.json. |
 | `data/active_proxy_trend.json` | analytics | json | yes | json | Active proxy trend data. |
 | `data/clean_ips.json` | analytics | json | yes | json | Clean IP data consumed by frontend tools. |
 | `data/evasion_trend.json` | analytics | json | yes | json | Evasion trend data. |

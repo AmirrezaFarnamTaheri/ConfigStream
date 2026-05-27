@@ -1,7 +1,6 @@
 # ConfigStream Batch 1
 # Optimized based on fetch duration for equal execution times
 # Est. Fetch Time: 12713.0s
-
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub17.txt
 https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-16.txt
 https://v2.alicivil.workers.dev/?count=2000&list=si&shuffle=true

@@ -82,7 +82,7 @@ https://www.my-proxy.com/free-proxy-list.html
 https://github.com/scraperapi/blog
 https://hidemyip.com/proxylist
 https://oneclash.githubrowcontent.com/2026/02/202602.txt
-https://qishuijc.top/api/v1/client/subscribe?token=391afb46752d77774f9848f1b0e30b14
+https://qishuijc.top/api/v1/client/subscribe
 https://raw.githubusercontent.com/SunBK201/MySCR/master/clash/SunBK201_conf.yaml
 https://raw.githubusercontent.com/sh3d0ww02f/sh3d0ww02f.github.io/main/ssr.config
 https://raw.githubusercontent.com/lcx12901/v2ray-/master/v2ray.txt

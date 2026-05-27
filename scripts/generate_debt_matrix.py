@@ -4,9 +4,11 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import re
 import subprocess
+import sys
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -52,6 +54,8 @@ EXCLUDED_PREFIXES = (
     "node_modules/",
     ".hypothesis/",
     ".venv/",
+    "invvest/",
+    "Latest Outputs to investigate/",
 )
 TEXT_SUFFIXES = {
     ".cfg",
@@ -236,6 +240,10 @@ def _is_false_positive(marker: str, text: str) -> bool:
         if "_assert_no_placeholders" in text_stripped:
             return True
         if "placeholder_errors" in text_stripped:
+            return True
+        if '"PLACEHOLDER" in value' in text_stripped:
+            return True
+        if '"79e/79e/" in value' in text_stripped:
             return True
         # SQL parameterised query placeholders: ",".join(["?"] * n)
         if re.search(r'placeholders\s*=\s*["\']?,\s*["\']?\.join', text_stripped):
@@ -465,7 +473,37 @@ def _write_outputs(entries: list[dict[str, str | int]]) -> None:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Check if the debt matrix is up to date without writing files.",
+    )
+    args = parser.parse_args()
+
     entries = _scan_files(_tracked_files())
+
+    if args.check:
+        if not OUT_JSON.exists():
+            print(f"Error: {OUT_JSON} does not exist.")
+            return 1
+
+        try:
+            existing = json.loads(OUT_JSON.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            print(f"Error: Could not read/parse {OUT_JSON}")
+            return 1
+
+        # Compare entries (excluding generated_at timestamp)
+        if existing.get("entries") == entries:
+            print("Debt matrix is up to date.")
+            return 0
+        else:
+            print("Error: Debt matrix is out of date. Run without --check to regenerate.")
+            print(f"Current actionable markers: {len(entries)}")
+            print(f"Existing actionable markers: {len(existing.get('entries', []))}")
+            return 1
+
     _write_outputs(entries)
     print(f"Wrote {OUT_MD.relative_to(ROOT)}")
     print(f"Wrote {OUT_JSON.relative_to(ROOT)}")
@@ -474,4 +512,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    sys.exit(main())

@@ -1,14 +1,59 @@
 # ConfigStream Project Status
 
-**Last updated:** 2026-05-16
+**Last updated:** 2026-05-27
 **Version:** v3.1.0
-**Status:** Repository production-ready. All P0, P1, and P2 audit items closed. Live Pages deployment currently fails smoke and requires a fresh deploy from this repository state.
+**Status:** Repository production-ready as code. Publish-ready repository gate is closed; all repository-side P0, P1, and P2 remediation items are closed. Live Pages deployment currently fails smoke and requires a fresh deploy from this repository state.
 
 The active source of truth is [ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md](ConfigStream_Master_Audit_Report%20-%20Main%20SOURCE%20OF%20TRUTH.md).
 
 ## Current Verdict
 
-ConfigStream is formally verified against a single, truthful repository production contract. All P0, P1, and P2 audit items from the remediation roadmap have been closed. The repository enforces strict parity between documentation, configuration, and implementation. The currently deployed GitHub Pages site is stale/incomplete and must be redeployed before public Pages readiness can be claimed.
+ConfigStream is formally verified against a single, truthful repository production contract. All repository-side P0, P1, and P2 audit items from the remediation roadmap are closed. The repository enforces strict parity between documentation, configuration, and implementation. The currently deployed GitHub Pages site is stale/incomplete and must be redeployed before public Pages readiness can be claimed.
+
+## Material Release Finalization - 2026-05-27
+
+This finalization pass reconciled remaining audit findings and release bookkeeping before publish:
+
+- **CSP hardening progressed**: removed `unsafe-eval` from all primary frontend pages; retained `unsafe-inline` until inline bootstrap/style refactor is completed.
+- **Lab runner hardening completed**: generated Python/Bash runners and standalone `tools/lab-runner.sh` no longer auto-download/install unverified binaries.
+- **Dependency audit closure**: production requirements now pin `fastapi==0.136.3`, `starlette==1.0.1`, and `wasmtime==45.0.0`; direct production audit (`pip-audit -r requirements-prod.txt --no-deps`) reports no known vulnerabilities.
+- **Mirror deploy parity**: Vercel mirror deploy now runs from `output/` (`vercel --cwd output deploy ...`) to match Netlify/Pages artifact shape.
+- **Security guardrails reinforced**: source token detection remains enforced in CI gitleaks rules without source-file allowlisting.
+- **Source/token hygiene preserved**: tracked source lists remain scrubbed of live subscription token query values.
+
+Verification highlights from this pass:
+- `py -3.13 scripts/generate_debt_matrix.py --check`: passed.
+- `py -3.13 scripts/validate_output_matrix.py`: passed.
+- `py -3.13 scripts/validate_workflows.py`: passed.
+- `py -3.13 -m pytest -q tests/unit/test_frontend_security_contract.py tests/unit/test_repo_hygiene.py tests/unit/test_release_scripts.py`: passed.
+- `py -3.13 -m pip_audit -r requirements-prod.txt --no-deps`: passed (no known vulnerabilities).
+- `npm run build:sanity` and same-origin frontend smoke: passed.
+- `python scripts/verify_pages_deployment.py https://amirrezafarnamtaheri.github.io/ConfigStream/ --timeout 120 --report-file output/pages_deployment_smoke.json`: **fails** (live site still stale/incomplete; runtime config/health/manifest missing, placeholder markers remain, metadata hash missing).
+
+Release gate interpretation:
+- **Repository gate**: closed (publish-ready).
+- **Live Pages gate**: open until a fresh deploy from this repository state is completed and live smoke passes.
+
+## Material Audit Progress - 2026-05-26
+
+This follow-up audit addressed the critical P0 and P1 findings from the 2026-05-26 comprehensive review. The tracked inventory was cleaned of stale generated artifacts, increasing the accuracy of debt and status reporting.
+
+Material fixes completed during this pass:
+- **Public Source Protection**: updated `serialize_proxy()` to sanitize the `source` field. Raw tokenized subscription URLs are no longer leaked into public JSON APIs; only the hostname or a short hash is published.
+- **Serialization Parity**: updated categorized JSON list generators (countries and protocols) to use the safe `serialize_proxy()` helper instead of raw `model_dump()`, ensuring schema parity and preventing internal field leaks.
+- **Source Scrubbing**: scrubbed tracked source lists (`consolidated_sources.txt`, `sources/*.txt`) of live subscription tokens.
+- **CI Security Hardening**: widened Bandit scan scope; added Gitleaks secret scanning as a mandatory CI step; removed source file allowlist in `.gitleaks.toml` and added custom token rules.
+- **Artifact Hygiene**: removed 1000+ tracked generated output files and ZIPs from version control (`invvest/`, `Latest Outputs to investigate/`).
+- **Debt Matrix Reproducibility**: implemented a real `--check` mode for CI and excluded generated artifact directories from the debt scan.
+- **Lab Export Hardening**: hardened generated Bash and Python scripts against shell injection and unsafe archive extraction; moved to base64 config transport.
+- **Frontend/CSP Refinements**: updated Lab CSP `connect-src` to permit legitimate external network diagnostic probes.
+- **Dependency Audit Fixes**: pinned patched runtime dependencies (`fastapi==0.136.3`, `starlette==1.0.1`, `wasmtime==45.0.0`) and refreshed frontend lockfile (`vite`, `postcss`, `picomatch`) to patched ranges.
+
+Latest focused verification for the 2026-05-26 batch:
+- `npm ls vite postcss picomatch`: patched versions resolved (`vite@8.0.14`, `postcss@8.5.15`, `picomatch@4.0.4`); direct `npm audit` in this local shell intermittently fails due npm advisory endpoint/network instability.
+- `py -m pytest tests/unit -q`: 1000 passed.
+- `py scripts/generate_debt_matrix.py --check`: passes (zero actionable markers after mirror exclusion).
+- `py scripts/validate_pages_artifact.py output`: (to be run after fresh generation).
 
 Key milestones reached:
 - 🛡️ **DNS Rebinding Hardened (HTTP + HTTPS)**: `SecurityTransport` now enforces pre-connect resolution and IP pinning for **all** source fetches — both HTTP and HTTPS. HTTP and HTTPS requests are rewritten to a pre-validated IP; HTTPS preserves the original hostname through SNI and the `Host` header so certificate validation and virtual-host routing stay intact while the connector cannot re-resolve after validation.

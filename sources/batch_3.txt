@@ -1,7 +1,6 @@
 # ConfigStream Batch 3
 # Optimized based on fetch duration for equal execution times
 # Est. Fetch Time: 12708.7s
-
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub24.txt
 https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/protocols/vl.txt
 https://v2.alicivil.workers.dev/?count=2000&list=qa&shuffle=true
@@ -33,7 +32,7 @@ https://sub.shadowproxy66.workers.dev/sub/be80a76c-6044-417c-9bff-e587f9380d05
 https://raw.githubusercontent.com/Jsnzkpg/Jsnzkpg/Jsnzkpg/Jsnzkpg
 https://raw.githubusercontent.com/Leon406/SubCrawler/main/sub/share/a11
 https://raw.githubusercontent.com/code3-dev/code3-dev/refs/heads/main/warp-in-vless#Warp-in-VLESS
-https://www.proxyscan.io/download?type=http,https,socks4,socks5
+https://www.proxyscan.io/download?type=http%2Chttps%2Csocks4%2Csocks5
 https://raw.githubusercontent.com/LonUp/NodeList/main/V2RAY/NodeList.txt
 https://raw.githubusercontent.com/awesome-vpn/awesome-vpn/master/all
 https://raw.githubusercontent.com/Jason05211211/Freerocket/main/freessr
@@ -46,10 +45,10 @@ https://raw.githubusercontent.com/MrMohebi/xray-proxy-grabber-telegram/refs/head
 https://raw.githubusercontent.com/Sage-77/V2ray-configs/main/vless.txt
 http://ultraproxies.com/
 https://check.torproject.org/torbulkexitlist
-https://api.dler.io/sub?target=v2ray&url=https://9527521.xyz/config/aHfRgDCFmXqsIKUJ&insert=false
+https://api.dler.io/sub?target=v2ray&url=https%3A%2F%2F9527521.xyz%2Fconfig%2FaHfRgDCFmXqsIKUJ&insert=false
 https://shz.al/~@FREE2CONFIG_T,H
 https://igdux.top/dnZR#vsoren.pnz4
-https://www.facebook.com/search/top?q=free%20proxy
+https://www.facebook.com/search/top?q=free+proxy
 https://raw.githubusercontent.com/RX4096/proxy-list/main/online/socks5.txt
 https://freevpnspy.raw.githubusercontent.com/2024/08/20240802_vless.yaml
 https://raw.githubusercontent.com/manuGMG/proxy-365/main/SOCKS4.txt
@@ -66,6 +65,6 @@ https://melomelo.xyz/V2rayapp/Mrvpn.php
 https://proxyspeedy.com/api/all
 https://tt.vg/freeclash
 https://raw.githubusercontent.com/gfpcom/free-proxy-list/main/dist/hysteria2.txt
-https://freeproxy.world/?type=&anonymity=&country=&speed=&port=&uptime=90
+https://freeproxy.world/?uptime=90
 https://freesub.zjde5.de5.net/sub
 https://raw.githubusercontent.com/Vauth/node/main/v2ray.txt

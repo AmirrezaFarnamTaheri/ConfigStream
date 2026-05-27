@@ -1,1 +1,0 @@
-OK: claim ledger validated.

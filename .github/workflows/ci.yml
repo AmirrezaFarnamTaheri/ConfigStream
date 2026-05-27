@@ -32,7 +32,12 @@ jobs:
       - name: Shift-left security scan (dependency audit)
         run: pip-audit -r requirements-prod.txt --format json
       - name: Shift-left security scan (bandit)
-        run: bandit -r src/configstream -q
+        run: bandit -r src/configstream scripts tools frontend/assets/js -q
+      - name: Shift-left security scan (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          config-path: .gitleaks.toml
+        continue-on-error: true # Keep non-fatal for now to avoid blocking until confirmed clean
       - name: Validate Versions
         run: python scripts/validate_versions.py
       - name: Validate capability registry

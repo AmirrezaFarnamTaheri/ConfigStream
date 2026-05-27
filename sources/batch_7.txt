@@ -1,7 +1,6 @@
 # ConfigStream Batch 7
 # Optimized based on fetch duration for equal execution times
 # Est. Fetch Time: 12709.7s
-
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub6.txt
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub8.txt
 https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-5.txt

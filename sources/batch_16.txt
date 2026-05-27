@@ -1,7 +1,6 @@
 # ConfigStream Batch 16
 # Optimized based on fetch duration for equal execution times
 # Est. Fetch Time: 12708.6s
-
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub39.txt
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub36.txt
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub2.txt
@@ -49,7 +48,7 @@ https://raw.githubusercontent.com/MrPooyaX/SansorchiFucker/main/data.txt
 https://raw.githubusercontent.com/MrMohebi/xray-proxy-grabber-telegram/master/collected-proxies/clash-meta/all.yaml
 https://raw.githubusercontent.com/Sage-77/V2ray-configs/main/trojan.txt
 https://www.proxynova.com/proxy-server-list/
-https://v2sub.purelife.org/api/v1/client/subscribe?token=4ff1f9623ea62a005102b1701f2fd56a
+https://v2sub.purelife.org/api/v1/client/subscribe
 https://proxyorbit.com/api/all
 https://www.freeproxyupdate.com/api/proxy
 https://yebekhe.link/api/singbox/?url=https%3A%2F%2Feliv2ray.cloud%2Fsub%2Feliv2%2F-EliV2ray-EliV2ray.txt&limit=0&tun=true

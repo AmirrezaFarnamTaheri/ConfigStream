@@ -1,7 +1,6 @@
 # ConfigStream Batch 4
 # Optimized based on fetch duration for equal execution times
 # Est. Fetch Time: 12708.6s
-
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub4.txt
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub15.txt
 https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-7.txt
@@ -26,7 +25,7 @@ https://raw.githubusercontent.com/NiREvil/vless/main/sub/nekobox-wg.txt
 https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/sub/nekobox-wg.txt
 https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/warp.json
 https://raw.githubusercontent.com/NiREvil/vless/main/warp.json
-https://api.proxyscrape.com/v2/?request=getproxies&protocol=http,socks4,socks5&timeout=10000&country=all
+https://api.proxyscrape.com/v2/?request=getproxies&protocol=http%2Csocks4%2Csocks5&timeout=10000&country=all
 https://raw.githubusercontent.com/coldwater-10/V2Hub1/main/Split/Base64/reality
 https://raw.githubusercontent.com/Huibq/TrojanLinks/master/links/vless
 https://raw.githubusercontent.com/Barabama/FreeNodes/main/nodes/nodefree.txt

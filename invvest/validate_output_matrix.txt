@@ -1,1 +1,0 @@
-OK: output matrix validated.

@@ -71,9 +71,9 @@ https://melomelo.xyz/V2rayapp/Mrvpn.php
 http://proxy-list.org/english/yourproxylists/sample.txt
 https://proxyrack.com/free-proxy-list
 https://arcane.victoriacross.workers.dev
-https://12o.ooo/link/JLisT80gOhRkiFnX?sub=1
+https://12o.ooo/link/JLisT80gOhRkiFnX
 https://aliveproxy.com/proxy-list/
-https://v2.fit/modules/servers/V2raySocks/osubscribe.php?sid=7063&token=lKJwbO2onxIr
+https://v2.fit/modules/servers/V2raySocks/osubscribe.php
 https://www.reddit.com/r/proxylist/
 https://dev.kuaidaili.com/api/freeproxy
 https://branch.blanku.me
