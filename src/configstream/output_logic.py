@@ -942,10 +942,10 @@ def generate_categorized_outputs(
         cpath = country_dir / f"{cc}.json"
         AtomicFileWriter.write_text(cpath, generate_singbox_config(plist))
 
-        # Generate list format for API â€” always JSON array, never single proxy object
+        # Generate list format for API — always JSON array, never single proxy object
         lpath = country_dir / f"{cc}.list.json"
         arr = (
-            [p.model_dump(mode="json") for p in plist]
+            [serialize_proxy(p) for p in plist]
             if isinstance(plist, list)
             else []
         )
@@ -963,10 +963,10 @@ def generate_categorized_outputs(
         ppath = proto_dir / f"{proto}.json"
         AtomicFileWriter.write_text(ppath, generate_singbox_config(plist))
 
-        # Generate list format for API â€” always JSON array, never single proxy object
+        # Generate list format for API — always JSON array, never single proxy object
         lpath = proto_dir / f"{proto}.list.json"
         arr = (
-            [p.model_dump(mode="json") for p in plist]
+            [serialize_proxy(p) for p in plist]
             if isinstance(plist, list)
             else []
         )

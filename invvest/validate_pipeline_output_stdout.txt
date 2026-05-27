@@ -1,4 +1,0 @@
-ERROR: Pages artifact validation failed
-  - artifact_manifest.json references missing file: .build-config.json
-  - artifact_manifest.json references missing file: .nojekyll
-  - artifact_manifest.json total_size_bytes does not match files

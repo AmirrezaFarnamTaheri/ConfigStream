@@ -1,18 +1,17 @@
 #!/usr/bin/env bash
 # ConfigStream Lab Runner - Run and test chain configs
-# Works on Linux and macOS. Zero dependencies beyond curl.
+# Works on Linux and macOS. Requires sing-box and curl.
 #
 # Usage:
 #   bash lab-runner.sh run config.json          # Run a chain config
 #   bash lab-runner.sh test config.json         # Test connectivity through the chain
 #   bash lab-runner.sh scan-ips                 # Quick clean IP scan
 #   bash lab-runner.sh scan-ips --through socks5://127.0.0.1:1080
-#   bash lab-runner.sh install                  # Download sing-box binary
+#   bash lab-runner.sh install                  # Show sing-box install guidance
 
 set -euo pipefail
 
 VERSION="1.0.0"
-SINGBOX_VERSION="1.11.0"
 LISTEN_PORT="${LISTEN_PORT:-2080}"
 
 # --- Colors ---
@@ -52,53 +51,18 @@ find_singbox() {
 }
 
 install_singbox() {
-    info "Downloading sing-box v${SINGBOX_VERSION}..."
-    local ARCH
-    ARCH=$(uname -m)
-    case "$ARCH" in
-        x86_64|amd64) ARCH="amd64" ;;
-        aarch64|arm64) ARCH="arm64" ;;
-        armv7*) ARCH="armv7" ;;
-        *) fail "Unsupported architecture: $ARCH"; exit 1 ;;
-    esac
-    local OS
-    OS=$(uname -s | tr '[:upper:]' '[:lower:]')
-    local NAME="sing-box-${SINGBOX_VERSION}-${OS}-${ARCH}"
-    local URL="https://github.com/SagerNet/sing-box/releases/download/v${SINGBOX_VERSION}/${NAME}.tar.gz"
-
-    local TMP
-    TMP=$(mktemp -d)
-    trap "rm -rf $TMP" EXIT
-
-    if command -v curl &>/dev/null; then
-        curl -sL "$URL" -o "$TMP/sb.tar.gz"
-    elif command -v wget &>/dev/null; then
-        wget -q "$URL" -O "$TMP/sb.tar.gz"
-    else
-        fail "Neither curl nor wget found. Install one first."
-        exit 1
-    fi
-
-    tar xzf "$TMP/sb.tar.gz" -C "$TMP"
-    local BIN="$TMP/${NAME}/sing-box"
-    if [[ ! -f "$BIN" ]]; then
-        fail "Binary not found in archive."
-        exit 1
-    fi
-    chmod +x "$BIN"
-
-    # Install to ~/.local/bin or current dir
-    local DEST="$HOME/.local/bin"
-    mkdir -p "$DEST" 2>/dev/null || DEST="."
-    cp "$BIN" "$DEST/sing-box"
-    chmod +x "$DEST/sing-box"
-    SINGBOX_BIN="$DEST/sing-box"
-    ok "Installed sing-box to $SINGBOX_BIN"
+    fail "Automatic sing-box download is disabled for security."
+    info "Install sing-box from the official release channel, verify checksums/signatures, then re-run."
+    info "Expected binary location: PATH, ./sing-box, or ~/.local/bin/sing-box"
+    exit 1
 }
 
 ensure_singbox() {
     if ! find_singbox; then
-        install_singbox
+        fail "sing-box not found."
+        info "Install sing-box from an official release and verify integrity first."
+        info "Expected binary location: PATH, ./sing-box, or ~/.local/bin/sing-box"
+        exit 1
     fi
 }
 
@@ -288,8 +252,9 @@ case "${1:-}" in
     test-layer) shift; cmd_test_layer "$@" ;;
     install)    install_singbox ;;
     install-vwarp)
-        info "Downloading Vwarp..."
-        curl -fsSL https://raw.githubusercontent.com/voidr3aper-anon/Vwarp/master/termux.sh | bash
+        fail "Automatic Vwarp install is disabled for security."
+        info "Install Vwarp manually from its official repository and verify integrity before use."
+        exit 1
         ;;
     *)
         echo "Usage: lab-runner.sh <command> [args]"
@@ -299,8 +264,8 @@ case "${1:-}" in
         echo "  test <config.json>             Start chain and test connectivity"
         echo "  scan-ips [--through proxy]     Scan for clean Cloudflare IPs"
         echo "  test-layer <type> <host:port>  Test a single layer (tcp/socks5/http/tls)"
-        echo "  install                        Download sing-box binary"
-        echo "  install-vwarp                  Download Vwarp binary"
+        echo "  install                        Show sing-box install guidance"
+        echo "  install-vwarp                  Show Vwarp install guidance"
         echo
         echo "Examples:"
         echo "  bash lab-runner.sh run chain.json"

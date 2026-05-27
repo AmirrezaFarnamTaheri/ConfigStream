@@ -1,7 +1,6 @@
 # ConfigStream Batch 14
 # Optimized based on fetch duration for equal execution times
 # Est. Fetch Time: 12708.6s
-
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/all_sub.txt
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub21.txt
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub5.txt
@@ -59,7 +58,7 @@ http://www.qihoo.com/
 https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/normal/shadowsocks
 https://raw.githubusercontent.com/Sage-77/V2ray-configs/main/config.txt
 https://raw.githubusercontent.com/hello-world-1989/cn-news/main/end-gfw-together
-https://v2.fit/modules/servers/V2raySocks/osubscribe.php?sid=7063&token=lKJwbO2onxIr
+https://v2.fit/modules/servers/V2raySocks/osubscribe.php
 https://danesh1118.github.io/Heoehoehdidhwj3978eheheodheoheofhrirh8e7eyhedohdkdheodhh9rehejrjfohrkeje/
 https://github.com/scraperapi/blog
 https://yebekhe.link/api/singbox/?url=https%3A%2F%2Foss.v2rayse.com%2Fproxies%2Fdata%2F2023-11-11%2FFqgjQs1.txt&limit=0&tun=true
@@ -77,7 +76,7 @@ https://raw.githubusercontent.com/a2470982985/getNode/main/clash.yaml
 https://apex.gaming-shop54.top/QXYR8Itk5Ll9oPHMixCwK/095f2d65-00b7-4760-9591-7599adc803d4/all.txt?name=apex.gaming-shop54.top-unknown&asn=unknown&mode=new
 https://raw.githubusercontent.com/peweza/SUB-PUBLIC/refs/heads/main/PewezaVPN
 https://raw.githubusercontent.com/rootjazz/proxylist/master/proxylist.txt
-https://v2y.xyz/api/v1/client/subscribe?token=2533ce3df935ebaf4143fcc3df068ebd
+https://v2y.xyz/api/v1/client/subscribe
 https://config.elaheniloofar.link
 https://raw.githubusercontent.com/wangyingbo/v2rayse_sub/refs/heads/main/wzdnzd_aggregator_sub/merged.txt
 https://dev.kuaidaili.com/api/freeproxy

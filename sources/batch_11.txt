@@ -1,7 +1,6 @@
 # ConfigStream Batch 11
 # Optimized based on fetch duration for equal execution times
 # Est. Fetch Time: 12710.9s
-
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/super-sub.txt
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/filtered/subs/vmess.txt
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub34.txt

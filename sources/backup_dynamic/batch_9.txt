@@ -45,7 +45,7 @@ https://raw.githubusercontent.com/HyperBeats/proxy-list/main/socks4.txt
 https://raw.githubusercontent.com/Lewis-1217/FreeNodes/main/bpjzx1
 https://raw.githubusercontent.com/MrBihal/Hddify/refs/heads/main/HDDIFY
 https://proxyhub.me/free-proxy-list
-https://v2y.xyz/api/v1/client/subscribe?token=2533ce3df935ebaf4143fcc3df068ebd
+https://v2y.xyz/api/v1/client/subscribe
 https://openproxylist.xyz/all.txt
 https://tinyurl.com/2acy7v9p
 https://www.cool-proxy.net/proxies.json

@@ -68,6 +68,10 @@ REQUIRED_FIELDS = {
     "degraded_valid",
     "notes",
 }
+ALLOWED_GLOB_OUTPUTS = {
+    "countries/*.list.json",
+    "protocols/*.list.json",
+}
 
 
 def _load_json(path: Path) -> dict[str, Any]:
@@ -202,7 +206,7 @@ def validate_output_matrix(path: Path = MATRIX_PATH) -> list[str]:
                             f"{pattern}"
                         )
 
-    required_paths = set(REQUIRED_EXISTS)
+    required_paths = set(REQUIRED_EXISTS) | ALLOWED_GLOB_OUTPUTS
     required_nonempty = set(REQUIRED_NONEMPTY)
     missing_from_matrix = required_paths - matrix_paths
     extra_required = matrix_paths - required_paths

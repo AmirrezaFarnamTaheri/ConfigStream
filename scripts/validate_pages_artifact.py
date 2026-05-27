@@ -950,6 +950,35 @@ def _validate_api_alias_parity(root: Path) -> list[str]:
     return errors
 
 
+def _validate_categorized_lists(root: Path) -> list[str]:
+    """Validate all country and protocol specific proxy list JSON files."""
+    errors: list[str] = []
+    # Countries
+    country_dir = root / "countries"
+    if country_dir.is_dir():
+        for path in country_dir.glob("*.list.json"):
+            payload, error = _load_json(path)
+            if error:
+                errors.append(error)
+            elif isinstance(payload, list):
+                errors.extend(_validate_proxies(payload, f"countries/{path.name}"))
+            else:
+                errors.append(f"countries/{path.name} must be a JSON array")
+
+    # Protocols
+    proto_dir = root / "protocols"
+    if proto_dir.is_dir():
+        for path in proto_dir.glob("*.list.json"):
+            payload, error = _load_json(path)
+            if error:
+                errors.append(error)
+            elif isinstance(payload, list):
+                errors.extend(_validate_proxies(payload, f"protocols/{path.name}"))
+            else:
+                errors.append(f"protocols/{path.name} must be a JSON array")
+    return errors
+
+
 def _validate_zip_members(rel_path: str, archive: zipfile.ZipFile) -> list[str]:
     errors: list[str] = []
     names = set(archive.namelist())
@@ -1173,6 +1202,7 @@ def validate_pages_artifact(
         if not error:
             errors.extend(_validate_proxies(api_proxies, "api/proxies"))
 
+    errors.extend(_validate_categorized_lists(root))
     errors.extend(_validate_api_alias_parity(root))
     if native_client_check:
         errors.extend(_validate_native_clients(root))

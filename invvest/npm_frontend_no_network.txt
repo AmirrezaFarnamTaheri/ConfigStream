@@ -1,8 +1,0 @@
-
-> configstream-frontend@1.0.0 test:frontend:no-network
-> node scripts/frontend_same_origin_smoke.cjs
-
-same-origin frontend smoke passed
-protocol render smoke passed
-lab xss smoke passed
-same-origin no-js frontend smoke passed

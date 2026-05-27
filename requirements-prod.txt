@@ -16,7 +16,7 @@ cffi==2.0.0
 charset-normalizer==3.4.4
 click==8.3.1
 cryptography==46.0.7
-fastapi==0.128.0
+fastapi==0.136.3
 frozenlist==1.8.0
 geopy==2.4.1
 geoip2==5.2.0
@@ -53,7 +53,7 @@ scikit-learn==1.7.2
 scipy==1.15.3
 singbox2proxy==0.2.7
 sniffio==1.3.1
-starlette==0.50.0
+starlette==1.0.1
 tenacity==9.1.4
 threadpoolctl==3.6.0
 types-cachetools==6.2.0.20251022
@@ -61,7 +61,7 @@ typing-inspection==0.4.2
 typing_extensions==4.15.0
 urllib3==2.7.0
 uvicorn==0.40.0
-wasmtime==40.0.0
+wasmtime==45.0.0
 yarl==1.22.0
 nest-asyncio==1.6.0
 slowapi==0.1.9

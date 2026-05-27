@@ -35,7 +35,7 @@ https://raw.githubusercontent.com/moneyfly1/sublist/main/clash.yml
 https://raw.githubusercontent.com/arshiacomplus/v2rayExtractor/main/mix/sub.html
 https://raw.githubusercontent.com/awesome-vpn/awesome-vpn/master/ss
 https://raw.githubusercontent.com/iboxz/free-v2ray-collector/main/main/mix
-https://ch.owokkvsxks.store/api/v1/client/subscribe?token=ad180e3b9514176a8cb26bf2962d5f1e
+https://ch.owokkvsxks.store/api/v1/client/subscribe
 http://free-proxy.cz/en/proxylist/main
 https://www.sslproxies.org/
 https://api.pubproxy.com/v1/proxy?limit=5&format=txt&type=http

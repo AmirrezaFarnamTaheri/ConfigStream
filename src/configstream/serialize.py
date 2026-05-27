@@ -6,6 +6,8 @@ Converts Proxy objects to dictionary/JSON-safe formats.
 
 import json
 import re
+import hashlib
+from urllib.parse import urlparse
 from typing import Dict, Any, List, Optional, Union
 
 from .models import Proxy
@@ -34,6 +36,21 @@ def _public_uuid_value(proxy: Proxy) -> str:
     if _UUID_RE.match(raw):
         return raw
     return ""
+
+
+def _sanitize_source(raw_source: Optional[str]) -> Optional[str]:
+    """Sanitize the source URL to prevent leaking subscription tokens."""
+    if not raw_source:
+        return None
+    try:
+        parsed = urlparse(raw_source)
+        if parsed.netloc:
+            # Return just the domain/host
+            return parsed.netloc
+    except Exception:
+        pass
+    # Fallback to a short hash if it's not a parsable URL
+    return hashlib.sha256(raw_source.encode("utf-8")).hexdigest()[:12]
 
 
 def serialize_proxy(
@@ -83,6 +100,8 @@ def serialize_proxy(
                     "details": origin_blob.get("details") or {},
                 }
 
+    raw_source = (proxy.details or {}).get("_source")
+
     data = {
         "id": proxy.id,  # Useful for vector mapping
         "protocol": proxy.protocol,
@@ -96,8 +115,8 @@ def serialize_proxy(
         "is_working": proxy.is_working,
         "tags": proxy.tags,
         "last_checked": proxy.tested_at,
-        # Guard against None details
-        "source": (proxy.details or {}).get("_source"),
+        # Guard against None details and sanitize source
+        "source": _sanitize_source(raw_source),
         "security": proxy.security_issues,
         "details": details_value,
         "config": config_value,

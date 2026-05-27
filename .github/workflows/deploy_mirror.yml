@@ -53,7 +53,7 @@ jobs:
             exit 0
           fi
           npm install -g vercel
-          vercel deploy --prod --token=$VERCEL_TOKEN
+          vercel --cwd output deploy --prod --token=$VERCEL_TOKEN
 
       - name: Deploy to Netlify
         env:

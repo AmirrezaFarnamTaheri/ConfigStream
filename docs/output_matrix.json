@@ -45,7 +45,9 @@
     {"path": "index.html", "family": "frontend", "category": "frontend", "format": "html", "required": true, "nonempty": true, "schema_validation": false, "degraded_valid": true, "notes": "Published frontend entry point."},
     {"path": "assets/js/runtime-config.js", "family": "frontend", "category": "frontend", "format": "text", "required": true, "nonempty": true, "schema_validation": false, "degraded_valid": true, "notes": "Generated deploy-time frontend runtime config carrying public verification and stego keys."},
     {"path": "api/proxies", "family": "api-alias", "category": "api", "format": "json", "required": true, "nonempty": true, "schema_validation": true, "degraded_valid": true, "notes": "API alias that must match proxies.json."},
-    {"path": "api/stats", "family": "api-alias", "category": "api", "format": "json", "required": true, "nonempty": true, "schema_validation": true, "degraded_valid": true, "notes": "API alias that must match metadata.json."}
+    {"path": "api/stats", "family": "api-alias", "category": "api", "format": "json", "required": true, "nonempty": true, "schema_validation": true, "degraded_valid": true, "notes": "API alias that must match metadata.json."},
+    {"path": "countries/*.list.json", "family": "categorized-api", "category": "api", "format": "json", "required": false, "nonempty": false, "schema_validation": true, "degraded_valid": true, "notes": "Country-specific proxy list JSON; must match proxy.schema.json."},
+    {"path": "protocols/*.list.json", "family": "categorized-api", "category": "api", "format": "json", "required": false, "nonempty": false, "schema_validation": true, "degraded_valid": true, "notes": "Protocol-specific proxy list JSON; must match proxy.schema.json."}
   ],
   "remaining_work": []
 }

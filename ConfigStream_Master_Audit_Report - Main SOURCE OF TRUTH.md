@@ -1,9 +1,9 @@
 # ConfigStream Master Audit Report - Unified Source Of Truth
 
 **Consolidation date:** 2026-05-12
-**Last updated:** 2026-05-16
+**Last updated:** 2026-05-27
 **Repository:** `C:\Users\ACER\Documents\GitHub\ConfigStream`
-**Current status:** Repository production-ready. All P0, P1, and P2 audit items closed as of 2026-05-16. Live Pages deployment currently fails smoke and requires a fresh deploy from this repository state.
+**Current status:** Repository publish-ready as code. Repository-side P0, P1, and P2 audit items are closed as of 2026-05-27. Live Pages deployment currently fails smoke and requires a fresh deploy from this repository state.
 **Purpose:** Serve as the single editorial and evidentiary source of truth for the project’s current remediation state. This document absorbs the previous master audit, amendment, known issues, status snapshot, changelog context, closure/finalization/release-hardening reports, debt matrix, roadmap, and roadmap update process. Superseded standalone amendment, known-issues, closure, finalization, release-hardening, and roadmap files have been integrated here and removed so the repository no longer carries competing status narratives. All P0/P1/P2 items closed 2026-05-16; see CHANGELOG.md for details.
 
 ---
@@ -97,6 +97,18 @@ The source documents were read as complete files and counted before consolidatio
   - Pages artifact validator now verifies signature integrity when `CS_PUBLIC_KEY` is configured and fails closed on signature mismatch.
   - Frontend verifier now supports canonical `artifact_manifest.json` signature verification and main page initialization performs manifest verification before metadata/stat reads (unsigned manifests allowed for local/dev).
   - Unit coverage added for signed-manifest generation, validator acceptance/rejection paths, and browser fail-closed behavior.
+
+**2026-05-26 Remediation Batch (P0/P1 fixes):**
+- **Public source leakage fixed**: `serialize_proxy()` now sanitizes the `source` field. Raw tokenized subscription URLs are no longer leaked into public JSON APIs; only the hostname or a short hash is published. Verified a tokenized URL serializes to just its netloc.
+- **Categorized JSON list serialization fixed**: Country and protocol list generators in `output_logic.py` now use the safe `serialize_proxy()` helper instead of raw `model_dump()`, ensuring schema parity and preventing internal field leaks.
+- **Tracked sources scrubbed**: `consolidated_sources.txt` and `sources/*.txt` have been scrubbed of live subscription tokens via an automated redaction script.
+- **CI security hardened**: Bandit scan scope widened to cover `scripts/`, `tools/`, and `frontend/assets/js/`; Gitleaks secret scanning added as a mandatory CI step; gitleaks allowlist removed for source files and custom token rules added.
+- **Artifact hygiene restored**: 1000+ stale generated output files and ZIPs removed from version control (`invvest/`, `Latest Outputs to investigate/`); whole artifact directories ignored in `.gitignore`.
+- **Debt matrix reproducibility fixed**: Added `--check` mode and mirror exclusion to `generate_debt_matrix.py`; docs claim zero actionable markers verified after mirror exclusion.
+- **Lab script export hardening**: Generated Bash and Python scripts now use base64-encoded config transport and require preinstalled `sing-box`; unsafe auto-download/extract behavior was removed. Standalone `tools/lab-runner.sh` now disables automatic remote install paths.
+- **Frontend/CSP refinements**: Updated Lab CSP `connect-src` to permit legitimate external network diagnostic probes and removed `unsafe-eval` from primary frontend CSP definitions.
+- **Requirements updated**: Runtime pins updated to `fastapi==0.136.3`, `starlette==1.0.1`, and `wasmtime==45.0.0`; direct `pip-audit -r requirements-prod.txt --no-deps` reports no known vulnerabilities in this pass.
+- **Output contract expanded**: `output_matrix.json` now includes `countries/*.list.json` and `protocols/*.list.json`; `validate_pages_artifact.py` now performs full schema validation on all categorized list JSON.
 
 **Historically closed but superseded unless revalidated:** February finalization claims, the full hardening closure snapshot, older roadmap completion language, and any older audit statements that assume invalid workflow YAML or stale Pages state without acknowledging newer remediation.
 

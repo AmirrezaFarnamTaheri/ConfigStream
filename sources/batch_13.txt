@@ -1,7 +1,6 @@
 # ConfigStream Batch 13
 # Optimized based on fetch duration for equal execution times
 # Est. Fetch Time: 12708.6s
-
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub31.txt
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub19.txt
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub9.txt
@@ -26,7 +25,7 @@ https://raw.githubusercontent.com/FNET00bot/FNET00/Config/Main
 https://raw.githubusercontent.com/rango-cfs/NewCollector/refs/heads/main/v2ray_links.txt
 https://raw.githubusercontent.com/itsyebekhe/PSG/main/lite/subscriptions/xray/base64/mix
 https://gist.github.com/saisad387
-https://trojanvmess.pages.dev/cmcm?b64#cmcm?b64
+https://trojanvmess.pages.dev/cmcm#cmcm?b64
 https://github.com/Epodonios/v2ray-configs/raw/main/Splitted-By-Protocol/vmess.txt
 https://raw.githubusercontent.com/mohamadfg-dev/telegram-v2ray-configs-collector/main/category/httpupgrade.txt
 https://raw.githubusercontent.com/Surfboardv2ray/Subs/main/Raw
