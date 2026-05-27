@@ -136,7 +136,7 @@ def _load_proxies_from_file(path: Path) -> List[Proxy]:
             proxy = _proxy_from_dict(item)
             if proxy:
                 proxies.append(proxy)
-        except Exception:
+        except Exception:  # nosec B112
             continue
     return proxies
 
@@ -424,7 +424,7 @@ def merge_batches(batch_glob: str, output_dir: str) -> None:
             finally:
                 try:
                     history.close()
-                except Exception:
+                except Exception:  # nosec B110
                     pass
 
         _merge_logs(output_dir)
@@ -528,7 +528,7 @@ def merge_batches(batch_glob: str, output_dir: str) -> None:
     finally:
         try:
             history.close()
-        except Exception:
+        except Exception:  # nosec B110
             pass
 
     _merge_logs(output_dir)

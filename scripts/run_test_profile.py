@@ -10,7 +10,7 @@ from __future__ import annotations
 import argparse
 import os
 import shutil
-import subprocess
+import subprocess  # nosec B404
 import sys
 from pathlib import Path
 
@@ -22,7 +22,7 @@ def _run(command: list[str], *, env: dict[str, str] | None = None) -> int:
     if env:
         merged_env.update(env)
     print("+ " + " ".join(command), flush=True)
-    completed = subprocess.run(command, cwd=REPO_ROOT, env=merged_env)
+    completed = subprocess.run(command, cwd=REPO_ROOT, env=merged_env)  # nosec B603
     return int(completed.returncode)
 
 

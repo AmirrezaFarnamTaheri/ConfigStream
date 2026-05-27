@@ -7,7 +7,8 @@ from __future__ import annotations
 import argparse
 import json
 import re
-import subprocess
+import shutil
+import subprocess  # nosec B404
 import sys
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -100,19 +101,21 @@ def _is_scannable(rel_path: str) -> bool:
 
 
 def _tracked_files() -> list[Path]:
-    proc = subprocess.run(
-        ["git", "ls-files"],
-        cwd=ROOT,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    if proc.returncode == 0:
-        return [
-            ROOT / line.strip()
-            for line in proc.stdout.splitlines()
-            if line.strip() and _is_scannable(line.strip().replace("\\", "/"))
-        ]
+    git_bin = shutil.which("git")
+    if git_bin:
+        proc = subprocess.run(
+            [git_bin, "ls-files"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )  # nosec B603
+        if proc.returncode == 0:
+            return [
+                ROOT / line.strip()
+                for line in proc.stdout.splitlines()
+                if line.strip() and _is_scannable(line.strip().replace("\\", "/"))
+            ]
     return [
         path
         for path in ROOT.rglob("*")

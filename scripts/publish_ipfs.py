@@ -113,18 +113,21 @@ def publish_ipns(cid: str, ipns_key: str) -> None:
     Publishes the new CID to IPNS.
     Requires a running IPFS node with the private key.
     """
-    import subprocess
+    import subprocess  # nosec B404
     import shutil
 
-    if not shutil.which("ipfs"):
+    ipfs_bin = shutil.which("ipfs")
+    if not ipfs_bin:
         print("Warning: 'ipfs' command not found. Skipping IPNS publish.")
         return
 
     print(f"Publishing {cid} to IPNS key {ipns_key}...")
     try:
         subprocess.run(
-            ["ipfs", "name", "publish", "--key", ipns_key, cid], check=True, timeout=300
-        )
+            [ipfs_bin, "name", "publish", "--key", ipns_key, cid],
+            check=True,
+            timeout=300,
+        )  # nosec B603
         print("IPNS publish successful.")
     except Exception as e:
         print(f"Failed to publish to IPNS: {e}")

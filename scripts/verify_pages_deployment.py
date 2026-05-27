@@ -58,6 +58,9 @@ def _join(base_url: str, rel_path: str) -> str:
 
 
 def _fetch(url: str, *, timeout: float) -> Response:
+    parsed = urllib.parse.urlparse(url)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        raise urllib.error.URLError(f"unsupported URL scheme/host: {url}")
     request = urllib.request.Request(
         url,
         headers={
@@ -66,7 +69,7 @@ def _fetch(url: str, *, timeout: float) -> Response:
         },
     )
     try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
+        with urllib.request.urlopen(request, timeout=timeout) as response:  # nosec B310
             try:
                 body = response.read()
             except http.client.IncompleteRead as exc:

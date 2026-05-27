@@ -648,16 +648,20 @@ def tls_handshake_detailed(
 
 def icmp_reachable(host: str) -> bool:
     """Best-effort ICMP ping using the system ping command (1 packet)."""
-    import subprocess
+    import shutil as _shutil
+    import subprocess  # nosec B404
 
     param = "-n" if sys.platform == "win32" else "-c"
+    ping_bin = _shutil.which("ping")
+    if not ping_bin:
+        return False
     try:
         result = subprocess.run(
-            ["ping", param, "1", "-W", "2", host],
+            [ping_bin, param, "1", "-W", "2", host],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             timeout=4,
-        )
+        )  # nosec B603
         return result.returncode == 0
     except Exception:
         return False
@@ -927,7 +931,7 @@ def scan_vwarp_endpoints(rtt_limit: str = "800ms") -> List[Dict[str, Any]]:
     if the binary is not found.
     """
     import shutil as _shutil
-    import subprocess as _subprocess
+    import subprocess as _subprocess  # nosec B404
 
     section("Vwarp Binary Scan")
     binary = _shutil.which("vwarp")
@@ -952,7 +956,9 @@ def scan_vwarp_endpoints(rtt_limit: str = "800ms") -> List[Dict[str, Any]]:
     info(f"Running: {' '.join(cmd)}")
 
     try:
-        result = _subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+        result = _subprocess.run(
+            cmd, capture_output=True, text=True, timeout=60
+        )  # nosec B603
     except _subprocess.TimeoutExpired:
         fail("vwarp scan timed out after 60 seconds.")
         return []

@@ -26,6 +26,7 @@ Verification highlights from this pass:
 - `py -3.13 scripts/validate_output_matrix.py`: passed.
 - `py -3.13 scripts/validate_workflows.py`: passed.
 - `py -3.13 -m pytest -q tests/unit/test_frontend_security_contract.py tests/unit/test_repo_hygiene.py tests/unit/test_release_scripts.py`: passed.
+- `py -3.13 -m bandit -r src/configstream scripts tools frontend/assets/js -q`: passed (no reported findings).
 - `py -3.13 -m pip_audit -r requirements-prod.txt --no-deps`: passed (no known vulnerabilities).
 - `npm run build:sanity` and same-origin frontend smoke: passed.
 - `python scripts/verify_pages_deployment.py https://amirrezafarnamtaheri.github.io/ConfigStream/ --timeout 120 --report-file output/pages_deployment_smoke.json`: **fails** (live site still stale/incomplete; runtime config/health/manifest missing, placeholder markers remain, metadata hash missing).

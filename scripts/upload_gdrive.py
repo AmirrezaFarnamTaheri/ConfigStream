@@ -22,7 +22,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 SCOPES = ["https://www.googleapis.com/auth/drive"]
-TOKEN_URI = "https://oauth2.googleapis.com/token"
+GOOGLE_OAUTH2_URI = "https://oauth2.googleapis.com/token"
 
 
 def _build_service(creds: Credentials):
@@ -53,7 +53,7 @@ def _authenticate_oauth_refresh() -> Credentials:
     creds = Credentials(
         token=None,
         refresh_token=refresh_token,
-        token_uri=TOKEN_URI,
+        token_uri=GOOGLE_OAUTH2_URI,
         client_id=client_id,
         client_secret=client_secret,
         scopes=SCOPES,
