@@ -289,8 +289,10 @@ def collect_native_client_report(root: Path) -> dict[str, object]:
     tools = report["tools"]
     checks = report["checks"]
     summary = report["summary"]
-    if not isinstance(tools, dict) or not isinstance(checks, list) or not isinstance(
-        summary, dict
+    if (
+        not isinstance(tools, dict)
+        or not isinstance(checks, list)
+        or not isinstance(summary, dict)
     ):
         raise TypeError("native client report container type mismatch")
 
