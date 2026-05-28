@@ -243,7 +243,7 @@
     {
       "id": "claim.governance.capability_registry_contract",
       "claim": "Stable capability claims are tracked in a capability registry and must have implementation, complete claim-ledger proof, tests, docs, limitations, and cleanup decisions.",
-      "source": "Main SOURCE OF TRUTH - PART 2.md",
+      "source": "docs/history/source-of-truth/Main SOURCE OF TRUTH - PART 2.md",
       "product_area": "governance",
       "status": "complete",
       "owner": "docs/capability_registry.json",
@@ -268,7 +268,7 @@
     {
       "id": "claim.governance.module_ownership_contract",
       "claim": "Major modules and removed-module replacements are mapped in a validated ownership contract, and stale removed-module imports fail CI.",
-      "source": "Main SOURCE OF TRUTH - PART 2.md",
+      "source": "docs/history/source-of-truth/Main SOURCE OF TRUTH - PART 2.md",
       "product_area": "governance",
       "status": "complete",
       "owner": "docs/module_ownership.json",
@@ -292,7 +292,7 @@
     {
       "id": "claim.outputs.native_client_check_report",
       "claim": "Optional native Sing-box and Clash client checks produce structured evidence reports that are archived with pipeline evidence without polluting public output artifacts.",
-      "source": "Main SOURCE OF TRUTH - PART 3.md",
+      "source": "docs/history/source-of-truth/Main SOURCE OF TRUTH - PART 3.md",
       "product_area": "outputs",
       "status": "complete",
       "owner": "scripts/validate_pages_artifact.py",
@@ -313,3 +313,4 @@
     }
   ]
 }
+

@@ -1,171 +1,174 @@
 # ConfigStream Project Status
 
-**Last updated:** 2026-05-27
-**Version:** v3.1.0
-**Status:** Repository production-ready as code. Publish-ready repository gate is closed; all repository-side P0, P1, and P2 remediation items are closed. Live Pages deployment currently fails smoke and requires a fresh deploy from this repository state.
+**Last updated:** 2026-05-28  
+**Version:** v3.1.0  
+**Status:** Repository production-ready. All repository-side P0, P1, and P2 audit items are closed. Live Pages deployment currently fails smoke and requires a fresh deploy from this repository state.
 
-The active source of truth is [ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md](ConfigStream_Master_Audit_Report%20-%20Main%20SOURCE%20OF%20TRUTH.md).
+The active current source of truth is [ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md](ConfigStream_Master_Audit_Report%20-%20Main%20SOURCE%20OF%20TRUTH.md). Detailed historical ledgers are archived under [docs/history/source-of-truth](docs/history/source-of-truth/).
 
 ## Current Verdict
 
-ConfigStream is formally verified against a single, truthful repository production contract. All repository-side P0, P1, and P2 audit items from the remediation roadmap are closed. The repository enforces strict parity between documentation, configuration, and implementation. The currently deployed GitHub Pages site is stale/incomplete and must be redeployed before public Pages readiness can be claimed.
+The repository publish-ready gate is closed. The generated artifact contract is closed when validated against a fresh `output/` tree. The live public Pages gate remains open until GitHub Pages is redeployed from this repository state and live smoke passes.
 
-## Material Release Finalization - 2026-05-27
+This status file is deliberately current-state focused. Completed implementation detail is recorded chronologically in `CHANGELOG.md`; historical audit ledgers remain available under `docs/history/source-of-truth/`.
 
-This finalization pass reconciled remaining audit findings and release bookkeeping before publish:
+The master source of truth now includes an explicit one-by-one absorption pass over the four original ledgers. Durable policy from the old master report, Part 2, Part 3, and the amendment has been pulled forward into current contracts; stale counts, old closure language, PR-era examples, and long remediation transcripts remain archived as evidence only.
 
-- **CSP hardening progressed**: removed `unsafe-eval` from all primary frontend pages; retained `unsafe-inline` until inline bootstrap/style refactor is completed.
-- **Lab runner hardening completed**: generated Python/Bash runners and standalone `tools/lab-runner.sh` no longer auto-download/install unverified binaries.
-- **Dependency audit closure**: production requirements now pin `fastapi==0.136.3`, `starlette==1.0.1`, and `wasmtime==45.0.0`; direct production audit (`pip-audit -r requirements-prod.txt --no-deps`) reports no known vulnerabilities.
-- **Mirror deploy parity**: Vercel mirror deploy now runs from `output/` (`vercel --cwd output deploy ...`) to match Netlify/Pages artifact shape.
-- **Security guardrails reinforced**: source token detection remains enforced in CI gitleaks rules without source-file allowlisting.
-- **Source/token hygiene preserved**: tracked source lists remain scrubbed of live subscription token query values.
+## Closed Audit Items
 
-Verification highlights from this pass:
+The following review/audit classes are closed at repository level:
+
+| Area | Status | Current proof surface |
+|---|---|---|
+| Public source leakage | Closed | `serialize_proxy()` sanitizes public `source`; public outputs no longer expose raw tokenized source URLs. |
+| Categorized JSON serializer drift | Closed | Country/protocol list JSON uses the same safe public serializer as root `proxies.json`. |
+| Output matrix coverage | Closed | `docs/output_matrix.json` covers categorized list JSON API families. |
+| Source token exposure | Closed for tracked content | Tracked source lists are scrubbed; source files are scanned in CI. |
+| Gitleaks allowlist gap | Closed for config; hard gate pending | Source-file allowlisting was removed and custom source-token rules exist. The CI gitleaks step is still advisory while `continue-on-error: true` remains. |
+| Tracked generated artifacts | Closed | Generated mirrors/ZIPs were removed and ignored. |
+| Debt matrix reproducibility | Closed | `scripts/generate_debt_matrix.py --check` is non-mutating and excludes generated mirrors. |
+| Frontend dependency advisories | Closed for reported batch | Lockfile resolves patched Vite/PostCSS/Picomatch versions. |
+| Lab diagnosis CSP gap | Closed | External diagnosis endpoints are allowed by Lab CSP. |
+| Lab Bash export injection | Closed | Generated Bash runner uses safer config transport. |
+| Lab Python export extraction/mktemp risk | Closed | Generated Python runner requires preinstalled `sing-box`; unsafe auto-download/extract behavior removed. |
+| Standalone Lab runner auto-install risk | Closed | Remote auto-install path disabled. |
+| Python direct dependency audit | Closed for reported batch | Direct production pins updated; direct `pip-audit --no-deps` passes. |
+| CI security scan scope | Closed | Bandit and secret scans cover broader risk surfaces. |
+| CSP `unsafe-eval` | Closed | `unsafe-eval` removed from primary frontend pages. |
+| Vercel artifact-root mismatch | Closed | Vercel deploy runs from `output/`. |
+
+## Gate Status
+
+| Gate | Status | Notes |
+|---|---|---|
+| Repository production gate | Closed | Code, tests, validators, workflows, source hygiene, dependency audits, and artifact contract are reconciled. |
+| Pages artifact gate | Closed for generated artifacts | Fresh local/generated artifacts must pass `scripts/validate_pages_artifact.py`. |
+| Live Pages gate | Open | Public deployment is stale/incomplete until redeployed and verified. |
+| Source/token hygiene | Closed for tracked content | Tracked source lists are scrubbed; CI secret scanning covers source files, but gitleaks is advisory until made blocking. |
+| Generated artifact hygiene | Closed | Generated output mirrors and ZIPs are ignored and not tracked. |
+| Debt reproducibility | Closed | `scripts/generate_debt_matrix.py --check` is non-mutating and excludes generated mirrors. |
+| Security scan gate | Mostly closed | Expanded Bandit scope passes; source/token scan is wired in CI but gitleaks remains advisory until made blocking. |
+| Dependency gate | Closed for reported direct advisories | Frontend and direct production advisories from the audit batch were addressed. |
+
+## Current Open Work
+
+### Public Release
+
+1. Redeploy GitHub Pages from current `main`.
+2. Run live Pages smoke:
+
+```bash
+python scripts/verify_pages_deployment.py https://amirrezafarnamtaheri.github.io/ConfigStream/ --timeout 120 --report-file output/pages_deployment_smoke.json
+```
+
+3. Mark live Pages gate closed only after the live smoke passes.
+
+### Cleanup And Maintainability
+
+These are not current publish blockers, but they are the next valuable cleanup items:
+
+- Remove remaining frontend `unsafe-inline` through static bootstraps/templates.
+- Reduce broad `innerHTML` rendering in Lab, Proxies, and Analytics.
+- Choose one canonical source-list truth and generate shards/mirrors/backups.
+- Stop tracking `sources/backup_dynamic/` as source truth.
+- Modularize output generation by output family.
+- Split large frontend CSS and Lab JS surfaces.
+- Keep root status files current and detailed, while preserving old evidence only in `docs/history/source-of-truth/`.
+
+## Current Contract Summary
+
+The master file is intentionally more detailed than this status checkpoint. It now carries concrete inventory, gate maturity levels, validation command catalogs, definition-of-done rules by work type, a gap register, and granular operating contracts for source ingestion, parser/protocol handling, public serialization, output families, Pages/mirror deployment, frontend/Lab behavior, security/supply-chain gates, documentation ownership, and pruning rules.
+
+### Repository Contract
+
+- Raw static `frontend/` is the Pages source.
+- Vite build is a sanity check, not the deploy source.
+- Runtime public config is generated into the artifact.
+- Output artifacts are validated through the output matrix and Pages artifact validator.
+- Generated artifact mirrors are not source truth.
+- `CHANGELOG.md` carries completed implementation details.
+- Current status prose must not duplicate historical ledgers.
+
+### Security Contract
+
+- Public outputs must not leak source tokens, raw source URLs, proxy secrets, deployment secrets, or internal-only model fields.
+- Logs must remain sanitized.
+- Active scanning remains disabled by default and in CI.
+- Lab/scanner tooling is opt-in and user-run.
+- Source-list files are scanned rather than allowlisted away from secret detection.
+- Optional mirrors must remain secret-gated.
+
+### Output Contract
+
+- Zero-working degraded runs still generate artifacts.
+- Working/candidate/revived/shielded semantics must remain distinct.
+- Public country/protocol list JSON is part of the public API surface.
+- `docs/output_matrix.json` is the artifact inventory.
+- `proxies.json` is a dataset/API artifact, not a native Sing-box or Xray config.
+- Native client config families must be validated as their own formats.
+
+### Governance Contract
+
+- Stable capabilities must be listed in `docs/capability_registry.json` with proof.
+- Major module ownership and removed-module boundaries must remain listed in `docs/module_ownership.json`.
+- Public claims must remain linked in `docs/claim_ledger.json`.
+- Historical evidence must stay under `docs/history/source-of-truth/` unless deliberately promoted back into current truth.
+
+### Evidence Contract
+
+- A local generated output tree proves only that local output tree.
+- A CI artifact proves only the retained artifact for the retention window.
+- A Pages artifact proves only the exact artifact uploaded to Pages.
+- A live Pages smoke proves what public users fetch at that moment.
+- Screenshots prove UI rendering only for the artifact or deployment they were captured from.
+- Optional mirrors prove only their own published artifact unless parity with Pages is validated.
+
+## Granular Current Area Status
+
+| Area | Current state | Remaining action |
+|---|---|---|
+| Pipeline/fetch/consumer | Repository contract closed; bounded/fail-open behavior and source-safety guardrails are documented. | Keep source-fetch DNS/private-network protections covered when fetcher changes. |
+| Parser/protocol support | Matrix-backed protocol inventory is current. | Add new protocols only with parser/export/frontend/docs proof. |
+| Public JSON outputs | Safe serializer and categorized list parity are closed. | Keep schema tests for every public list family. |
+| Client config outputs | Sing-box/Clash are stable; Xray pipeline output remains planned. | Add native/pinned proof before claiming new native output families. |
+| Frontend | Local static deployment contract is closed; smoke/build pass. | Remove `unsafe-inline`, reduce broad `innerHTML`, modularize Lab. |
+| Lab | Export hardening and diagnosis CSP issues are closed. | Split Lab code by concern and add deeper click-path tests around export/diagnosis. |
+| CI/security | Bandit, gitleaks/source scans, workflow validators, and audits are wired. | Keep scans server-side, avoid broad allowlists, and make gitleaks blocking after a confirmed-clean run. |
+| Artifacts | Generated mirrors are untracked; artifact validator guards Pages shape. | Redeploy live Pages and keep durable evidence. |
+| Docs/source of truth | Current root truth is this file plus Master. | Generate/archive duplicated docs instead of growing root status files. |
+
+## Validation Snapshot
+
+Latest local verification recorded for this status:
+
+- `py -3.13 -m black --check .`: passed.
 - `py -3.13 scripts/generate_debt_matrix.py --check`: passed.
 - `py -3.13 scripts/validate_output_matrix.py`: passed.
 - `py -3.13 scripts/validate_workflows.py`: passed.
 - `py -3.13 -m pytest -q tests/unit/test_frontend_security_contract.py tests/unit/test_repo_hygiene.py tests/unit/test_release_scripts.py`: passed.
-- `py -3.13 -m bandit -r src/configstream scripts tools frontend/assets/js -q`: passed (no reported findings).
-- `py -3.13 -m pip_audit -r requirements-prod.txt --no-deps`: passed (no known vulnerabilities).
-- `npm run build:sanity` and same-origin frontend smoke: passed.
-- `python scripts/verify_pages_deployment.py https://amirrezafarnamtaheri.github.io/ConfigStream/ --timeout 120 --report-file output/pages_deployment_smoke.json`: **fails** (live site still stale/incomplete; runtime config/health/manifest missing, placeholder markers remain, metadata hash missing).
+- `py -3.13 -m bandit -r src/configstream scripts tools frontend/assets/js -q`: passed.
+- `py -3.13 -m pip_audit -r requirements-prod.txt --no-deps`: passed.
+- `npm run build:sanity`: passed.
+- Same-origin frontend smoke: passed.
+- `python scripts/verify_pages_deployment.py https://amirrezafarnamtaheri.github.io/ConfigStream/ --timeout 120 --report-file output/pages_deployment_smoke.json`: fails against stale live Pages.
 
-Release gate interpretation:
-- **Repository gate**: closed (publish-ready).
-- **Live Pages gate**: open until a fresh deploy from this repository state is completed and live smoke passes.
+Latest full-suite snapshot retained from the remediation cycle:
 
-## Material Audit Progress - 2026-05-26
+- `python -m pytest -q`: 1042 passed, 1 skipped.
 
-This follow-up audit addressed the critical P0 and P1 findings from the 2026-05-26 comprehensive review. The tracked inventory was cleaned of stale generated artifacts, increasing the accuracy of debt and status reporting.
+## Current Source Files
 
-Material fixes completed during this pass:
-- **Public Source Protection**: updated `serialize_proxy()` to sanitize the `source` field. Raw tokenized subscription URLs are no longer leaked into public JSON APIs; only the hostname or a short hash is published.
-- **Serialization Parity**: updated categorized JSON list generators (countries and protocols) to use the safe `serialize_proxy()` helper instead of raw `model_dump()`, ensuring schema parity and preventing internal field leaks.
-- **Source Scrubbing**: scrubbed tracked source lists (`consolidated_sources.txt`, `sources/*.txt`) of live subscription tokens.
-- **CI Security Hardening**: widened Bandit scan scope; added Gitleaks secret scanning as a mandatory CI step; removed source file allowlist in `.gitleaks.toml` and added custom token rules.
-- **Artifact Hygiene**: removed 1000+ tracked generated output files and ZIPs from version control (`invvest/`, `Latest Outputs to investigate/`).
-- **Debt Matrix Reproducibility**: implemented a real `--check` mode for CI and excluded generated artifact directories from the debt scan.
-- **Lab Export Hardening**: hardened generated Bash and Python scripts against shell injection and unsafe archive extraction; moved to base64 config transport.
-- **Frontend/CSP Refinements**: updated Lab CSP `connect-src` to permit legitimate external network diagnostic probes.
-- **Dependency Audit Fixes**: pinned patched runtime dependencies (`fastapi==0.136.3`, `starlette==1.0.1`, `wasmtime==45.0.0`) and refreshed frontend lockfile (`vite`, `postcss`, `picomatch`) to patched ranges.
+Use these files for current status and proof:
 
-Latest focused verification for the 2026-05-26 batch:
-- `npm ls vite postcss picomatch`: patched versions resolved (`vite@8.0.14`, `postcss@8.5.15`, `picomatch@4.0.4`); direct `npm audit` in this local shell intermittently fails due npm advisory endpoint/network instability.
-- `py -m pytest tests/unit -q`: 1000 passed.
-- `py scripts/generate_debt_matrix.py --check`: passes (zero actionable markers after mirror exclusion).
-- `py scripts/validate_pages_artifact.py output`: (to be run after fresh generation).
+- `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md`
+- `STATUS.md`
+- `docs/output_matrix.json`
+- `docs/protocol_matrix.json`
+- `docs/claim_ledger.json`
+- `docs/capability_registry.json`
+- `docs/core_compatibility_report.json`
+- `docs/module_ownership.json`
+- `docs/DEBT_MATRIX.md`
+- `CHANGELOG.md`
 
-Key milestones reached:
-- 🛡️ **DNS Rebinding Hardened (HTTP + HTTPS)**: `SecurityTransport` now enforces pre-connect resolution and IP pinning for **all** source fetches — both HTTP and HTTPS. HTTP and HTTPS requests are rewritten to a pre-validated IP; HTTPS preserves the original hostname through SNI and the `Host` header so certificate validation and virtual-host routing stay intact while the connector cannot re-resolve after validation.
-- 🧪 **Shielded Verification Wired**: `generate_pipeline_outputs` now accepts a `tester` parameter. The `SingBoxTester` instance is passed from `pipeline.py` so shielded chain candidates are actively re-tested; `shielded_verified_count` is incremented only for chains that pass. Candidates without a tester are preserved with `is_working=False` for user-side testing.
-- 📦 **Durable Evidence Bundle Fixed**: `scripts/generate_evidence_bundle.py` crash (`json.dump_pretty` AttributeError) resolved; script now uses `json.dumps(..., indent=2)` throughout with proper type hints and UTF-8 encoding.
-- 📋 **Output Matrix Reconciled**: `docs/output_matrix.json` `remaining_work` cleared — per-protocol golden output fixtures are complete.
-- 📖 **Docs Parity Restored**: `docs/wiki/project/Lab_Page.md` updated from 5 to 9 canonical strategies; `docs/wiki/project/01-introduction.md` corrected from "6 strategies" to "9 strategies"; `AGENTS.md` Section 1 updated to reflect production-ready status.
-- 📊 **Truthful Metrics**: Shielded chains are actively verified before being counted as working; metadata clearly distinguishes candidates from verified proxies.
-- 📦 **Durable Evidence**: 30-day artifact retention enforced for pipeline and deployment evidence bundles.
-- 🧹 **Zero Drift**: `AGENTS.md`, `README.md`, and `SECURITY.md` fully reconciled with codebase and security policies.
-- 📚 **Addenda Review Applied**: `Main SOURCE OF TRUTH - PART 2.md`, `Main SOURCE OF TRUTH - PART 3.md`, and `Main SOURCE OF TRUTH - Ammendment.md` were read as actual files. The immediate Part 3 Sing-box/output-contract cleanup was implemented: dead legacy selector/urltest append logic was removed, `chains*.json` was documented as compatibility aliases for the `singbox-chains*.json` artifacts, and generated docs were refreshed from `docs/output_matrix.json`.
-- 🧾 **Roadmap Contract Wording Clarified**: Overly prohibitive roadmap wording around unimplemented Xray pipeline artifacts was replaced with a planned-output implementation gate. The validator still prevents docs/output_matrix overclaims until generator, validation, tests, docs, and native-check semantics exist, but the roadmap no longer frames future implementation as blocked.
-- 🔒 **CI Regression Batch Applied**: Production and dev dependency pins were updated for the reported `python-dotenv` and `urllib3` advisories, `npm run build` was restored as the documented Vite sanity-build entrypoint, and `deploy_mirror.yml` no longer uses invalid `secrets.*` expressions in step `if:` conditions.
-
-## Closed Audit Items
-
-### P0 Items
-- **P0-A**: Evidence bundle script fixed (crash on `json.dump_pretty`); both `main.yml` and `deploy-pages.yml` upload 30-day evidence bundles.
-- **P0-B**: `AGENTS.md` reconciled — 9-strategy lab manifest, canonical matrices, production-ready status, superseded document list.
-- **P0-C**: Release assets dynamically selected from `docs/output_matrix.json`; `remaining_work` cleared.
-
-### P1 Items
-- **P1-A**: `frontend/` established as the only canonical deploy path; `npm run build` / `build:sanity` remain local sanity checks and are not Pages deployment inputs.
-- **P1-B**: `ALLOW_PRIVATE_IPS` defaults to `false` in `AppSettings`, `.env.example`, and documentation.
-- **P1-C / P2 / P3**: Debt matrix reduced from 134 → 0 actionable markers. Expanded false-positive exclusion rules, added EXCLUDED_FILES set, fixed real ASSUMING/MOCK comments in frontend JS, replaced obfuscated WireGuard key fragment, updated security_validator.py docstring.
-- **P1-D**: `SecurityTransport` extended to cover HTTPS via validated-IP rewrite plus original SNI/Host preservation — closes the TOCTOU window for all source fetches.
-- **P1-E**: Shielded chain verification wired end-to-end: `generate_pipeline_outputs(tester=...)` → active `test_batch` → `shielded_verified_count` increment.
-
-### P2 Items
-- **P2**: `docs/output_matrix.json` `remaining_work` cleared; `Lab_Page.md` strategy table updated to 9 entries; `01-introduction.md` strategy count corrected.
-
-## Validation Snapshot
-
-Latest local validation performed on 2026-05-16:
-
-- `python scripts/generate_evidence_bundle.py --output-dir output --evidence-dir evidence`: passes without error.
-- `python -m pytest -q`: 1036 passed, 1 skipped (fresh full-suite validation after native client evidence reporting).
-- `python scripts/verify_pages_deployment.py https://amirrezafarnamtaheri.github.io/ConfigStream/ --report-file output/pages_deployment_smoke.json`: fails against the live site because `analytics.html`, `proxies.json`, and `api/proxies` return HTTP 0/incomplete responses; the deployed artifact is missing `assets/js/runtime-config.js`, `health.json`, and `artifact_manifest.json`; deployed JavaScript still contains placeholder key markers; `metadata.json` is missing `proxies_snapshot_hash`; and public JSON is malformed/partial.
-- `SecurityTransport` covers both HTTP and HTTPS pre-connect validation.
-- `generate_pipeline_outputs` signature updated; `pipeline.py` passes `tester=tester`.
-
-The repository production gate is CLOSED. The live Pages gate remains open until GitHub Pages is redeployed from this verified state and the deployed smoke test passes.
-
-## Material Audit Progress - 2026-05-16
-
-This follow-up audit inspected the actual repository files, not only validators. The tracked inventory currently contains 887 files across Python source, tests, frontend assets, docs, scripts, workflows, schemas, source batches, and static assets. Generated/ignored debris was cleaned after path verification: `__pycache__` trees, `.hypothesis`, `data/`, `output/`, and local log files were removed. `.pytest_cache/` remains as a Windows permission residue and still produces pytest cache warnings, but it is ignored and not part of the tracked repository.
-
-Material fixes completed during this pass:
-- `src/configstream/config.py`: aligned `FAIL_ON_ZERO_WORKING` default to `False`, matching `.env.example`, Pages degraded-output policy, and the pipeline requirement to always generate outputs unless strict mode is explicitly requested.
-- `scripts/generate_debt_matrix.py`: removed a UTF-8 BOM that blocked direct AST parsing of the file.
-- `src/configstream/security/transport.py`: replaced the ineffective per-request `ssl_context` wrapper approach with an `httpx`/`httpcore`-compatible HTTPS validated-IP rewrite using `sni_hostname` and original `Host` preservation.
-- `src/configstream/output_logic.py` and `schema/metadata.schema.json`: made `shielded_candidate_count` and `shielded_verified_count` part of the required public metadata contract and preserved dict/merge-stage `shielded_verified_count`.
-- `scripts/prepare_release_assets.py`: removed the legacy hard-coded asset fallback; release assets now come from `docs/output_matrix.json` or fail closed if the matrix is missing.
-- `scripts/deduplicate_sources.py` and `consolidated_sources.txt`: removed stale 14-batch terminology, aligned the helper with 17 shards, and synchronized `consolidated_sources.txt` as a deduplicated mirror of `sources/batch_*.txt`.
-- `scripts/generate_evidence_bundle.py` and `scripts/take_deployment_screenshots.py`: cleaned evidence helper metadata, ASCII status output, URL joining, typing, and path handling.
-- `tests/unit/security/test_transport.py`, `tests/unit/test_output.py`, and `tests/unit/test_release_scripts.py`: added regression coverage for HTTPS pin rewrite, DNS rebinding rejection, shielded verified-count metadata export, matrix-based release asset selection, and source mirror parity.
-- `src/configstream/generators/singbox.py`: removed dead legacy Part 3 selector/urltest append logic that mutated a non-returned list after `final_outbounds` had already been assembled.
-- `docs/output_matrix.json`, `README.md`, and `docs/wiki/project/08-api-reference.md`: aligned `chains.json`, `chains-dns-safe.json`, and `chains-dns-hardened.json` with their real implementation as compatibility aliases for the `singbox-chains*.json` generated Sing-box chain configs.
-- `tests/unit/generators/test_singbox_comprehensive.py` and `tests/unit/test_output.py`: added regression coverage for the cleaned Sing-box final outbound contract and byte-identical `chains*.json` alias behavior.
-- `docs/capability_registry.json`, `scripts/validate_capability_registry.py`, and `tests/unit/test_validate_capability_registry.py`: implemented Part 2 section 1.1 as a machine-validated capability registry. Stable capabilities now require implementation paths, complete claim-ledger proof, tests, docs, explicit limitations, and cleanup decisions.
-- `docs/core_compatibility_report.json`, `scripts/validate_core_compatibility.py`, and `tests/unit/test_validate_core_compatibility.py`: implemented the Part 3 compatibility report. Sing-box and Clash pipeline artifacts are explicit stable full-config outputs; Xray is explicitly planned/not pipeline-generated so Lab-only exports cannot be overclaimed.
-- `.github/workflows/ci.yml`, `.github/workflows/release.yml`, `scripts/validate_workflows.py`, and `tests/unit/test_validate_workflows.py`: wired the capability registry and core compatibility validators into CI/release guardrails.
-- `docs/claim_ledger.json`: added `claim.governance.capability_registry_contract` so the registry has its own complete proof trail.
-- `scripts/validate_pages_artifact.py`: added structured native client evidence generation via `--native-report-file`. Optional `sing-box` and `mihomo` checks now record passed/failed/skipped states in `native_client_check_report.json`; missing binaries remain explicit skips rather than silent absence.
-- `scripts/generate_evidence_bundle.py` and `.github/workflows/main.yml`: archive `pipeline-evidence/native_client_check_report.json` with the pipeline evidence bundle without adding it to public Pages outputs.
-- `docs/core_compatibility_report.json`, `docs/capability_registry.json`, and `docs/claim_ledger.json`: recorded native client compatibility evidence as stable evidence-only capability, while leaving pinned native binary validation as remaining future hardening.
-- `docs/core_compatibility_report.json`, `scripts/validate_core_compatibility.py`, `tests/unit/test_validate_core_compatibility.py`, `docs/capability_registry.json`, `docs/claim_ledger.json`, `README.md`, and `Main SOURCE OF TRUTH - PART 2.md`: replaced stale blockade/prohibition phrasing with implementation-gate language. Planned Xray output names are tracked as outputs requiring implementation, not forbidden artifacts; the validation behavior remains strict against overclaims.
-- `requirements-prod.txt` and `requirements.txt`: bumped `python-dotenv` from `1.2.1` to `1.2.2` and `urllib3` from `2.6.3` to `2.7.0` to address the reported production dependency audit findings.
-- `package.json` and `vite.config.mjs`: restored `npm run build` as an alias for `npm run build:sanity`, preserving the canonical raw-static Pages deployment while keeping the documented local build command and CI frontend job valid. The self-contained `frontend/lab-offline.html` remains a raw-static artifact and is excluded from the Vite bundle input because its inline single-file structure is not a deploy bundle dependency.
-- `.github/workflows/deploy_mirror.yml`, `scripts/validate_workflows.py`, and `tests/unit/test_validate_workflows.py`: removed invalid direct `secrets.*` step conditions from optional mirror deploy steps and added a workflow validator regression so future workflows cannot reintroduce that GitHub Actions parse error.
-- `requirements-prod.txt` and `requirements.txt`: pinned `numpy==2.2.6`, `scipy==1.15.3`, and `scikit-learn==1.7.2` so the production dependency audit resolves under the CI Python 3.10 environment instead of selecting Python 3.11+ only releases.
-- `.github/workflows/ci.yml`, `scripts/validate_workflows.py`, and `tests/unit/test_validate_workflows.py`: installed Node Playwright Chromium before the `npm run test:frontend:no-network` smoke job and added a workflow validator regression for the exact browser-install requirement.
-- `docs/module_ownership.json`, `docs/MODULE_OWNERSHIP.md`, `scripts/validate_module_ownership.py`, and `tests/unit/test_validate_module_ownership.py`: implemented Part 2 section 1.2 as a machine-validated module ownership map. The map records canonical owners, public/internal APIs, removed-module replacements, proof tests, and docs for major `src/configstream` areas, while the validator fails on missing proof paths, recreated removed files, and removed-module imports.
-- `.github/workflows/ci.yml`, `.github/workflows/release.yml`, `scripts/validate_workflows.py`, `docs/capability_registry.json`, `docs/claim_ledger.json`, `AGENTS.md`, and `Main SOURCE OF TRUTH - PART 2.md`: wired module ownership validation into CI/release, capability bookkeeping, claim-ledger proof, contributor guidance, and the exact source-of-truth item status.
-- `scripts/validate_frontend_placeholders.py`, `scripts/validate_pages_artifact.py`, `scripts/validate_claim_ledger.py`, `scripts/validate_capability_registry.py`, `scripts/validate_output_matrix.py`, `scripts/merge_batches.py`, `src/configstream/stego.py`, `src/configstream/output_logic.py`, and focused validator/deployment/server tests: closed the reported mypy failures by replacing stale `Any` flows with explicit narrowing/casts, fixing the stale `chain_outbounds_count` stats assignment back to canonical `chain_obs_count`, and tightening test helper typing without loosening production contracts.
-- `.github/workflows/main.yml`, `scripts/validate_workflows.py`, and `tests/unit/test_validate_workflows.py`: fixed the reported data-release validation failure by preparing the public output artifact before release validation, mirror upload, and pipeline-output upload. The main workflow now stages raw `frontend/` files into `output/`, generates runtime config, creates `api/proxies` and `api/stats`, adds `.nojekyll`, removes deploy-excluded cache data, and refreshes `health.json` plus `artifact_manifest.json` before `validate_pages_artifact.py` checks the directory.
-
-Material review completed:
-- Pipeline source/consumer/fetcher/shutdown paths were inspected for bounded queues, executor offload, sanitized failure paths, anomaly detector closure, no ETag caching, manual redirect validation, DNS validation, and zero-working behavior.
-- Output generation and metadata paths were inspected for DNS cache passthrough, chosen-output fallback, shielded candidate accounting, and public artifact schema alignment.
-- Frontend runtime/config/Lab/proxies/verifier files were inspected for raw `frontend/` deploy reality, nine-strategy Lab parity, local/offline QR behavior, signed-artifact fail-closed handling, and user-input escaping paths.
-- Workflows were inspected for raw frontend copy, runtime config injection, Pages artifact validation, `ALLOW_ACTIVE_SCANNING=false`, batch time limits, evidence bundle generation, and live-deploy smoke.
-
-Remaining items:
-- Public GitHub Pages is still stale/incomplete and must be redeployed, then `scripts/verify_pages_deployment.py` must pass against the live URL.
-- No untracked release inputs remain in the current working tree after the previous audit-contract commit; current follow-up work is tracked-file cleanup only.
-- `Main SOURCE OF TRUTH - PART 2.md`, `Main SOURCE OF TRUTH - PART 3.md`, and `Main SOURCE OF TRUTH - Ammendment.md` remain live addenda ledgers. Their actionable findings continue to flow into `STATUS.md`, the master audit, capability registry, and machine validators item by item.
-- Part 2 roadmap expansion items remaining after this pass: stable internal event bus, durable latest-output evidence bundle, Lab project model/linter, confidence scoring, source quality v2, output transaction system, signed manifest browser verification, deploy screenshots, adaptive scheduling, and matrix-generated documentation expansion.
-- Part 3 remaining hardening items after this pass: pinned/reproducible native client binary validation and offline/lite Sing-box variants that avoid remote rule-set dependencies.
-- Frontend trusted/static `innerHTML` usage remains mostly controlled by local data and escaping, but further DOM-builder cleanup is still a reasonable hardening task for Lab/proxies/analytics.
-
-Latest focused verification for the addenda follow-up:
-- `pip-audit -r requirements-prod.txt --format json --no-deps`: passed with no known vulnerabilities for the patched direct pins. The exact dependency-resolving `pip-audit -r requirements-prod.txt --format json` could not complete in this Windows/Python 3.13 shell because pip could not resolve `orjson==3.11.6` for Python 3.13 after a PyPI read timeout; CI's Python 3.10-3.12 matrix remains the authoritative resolving audit environment.
-- `npm run build`: passed after restoring the `build` alias and normalizing Vite multi-page input paths.
-- `npm run test:frontend:no-network`: passed.
-- `python scripts/check_dependency_drift.py; python scripts/validate_workflows.py; python scripts/validate_core_compatibility.py; python scripts/validate_capability_registry.py; python scripts/validate_claim_ledger.py; python scripts/validate_status.py`: passed.
-- `python -m pytest tests/unit/test_validate_workflows.py tests/unit/test_validate_core_compatibility.py tests/unit/test_dependency_drift.py tests/unit/test_validate_status.py -q`: 30 passed.
-- `python -m pytest -q`: 1036 passed, 1 skipped.
-- `pre-commit run --all-files`: attempted after installing `pre-commit`, but the remote `gitleaks` hook could not initialize because GitHub HTTPS fetches failed from this environment. Local equivalents were run directly: flake8 passed, Black check passed, workflow/status/dependency validators passed, and full pytest passed. `python -m mypy .` still reports pre-existing repository typing debt outside this CI-remediation patch.
-- `pytest tests/unit/generators/test_singbox_comprehensive.py tests/unit/test_output.py tests/unit/test_release_scripts.py tests/unit/test_validate_output_matrix.py tests/unit/test_validate_status.py -q`: 25 passed.
-- `python scripts/validate_output_matrix.py`: passed.
-- `python scripts/generate_output_docs.py --check`: passed.
-- `python -m pytest -q`: 1036 passed, 1 skipped.
-- `pytest tests/unit/test_validate_output_matrix.py tests/unit/test_validate_core_compatibility.py tests/unit/test_validate_capability_registry.py tests/unit/test_validate_claim_ledger.py tests/unit/test_validate_workflows.py -q`: 40 passed.
-- `python scripts/validate_capability_registry.py; python scripts/validate_core_compatibility.py; python scripts/validate_output_matrix.py; python scripts/validate_claim_ledger.py; python scripts/validate_workflows.py`: passed.
-- `pytest tests/unit/test_validate_pages_artifact.py tests/unit/test_release_scripts.py tests/unit/test_validate_workflows.py -q`: 47 passed.
-- `python -m pip install --dry-run --only-binary=:all: --python-version 3.10 --implementation cp --abi cp310 --platform manylinux2014_x86_64 -r requirements-prod.txt`: passed, proving the production audit requirements resolve for CI Python 3.10 after the NumPy/SciPy/scikit-learn pin correction.
-- `python scripts/validate_module_ownership.py; python scripts/validate_workflows.py; python scripts/check_dependency_drift.py`: passed after module ownership CI wiring, frontend Playwright browser install repair, and Python 3.10 production pin correction.
-- `python -m pytest tests/unit/test_validate_module_ownership.py tests/unit/test_validate_workflows.py tests/unit/test_dependency_drift.py -q`: 26 passed.
-- `python -m pytest -q`: 1042 passed, 1 skipped after the module ownership, workflow, and dependency-audit remediation batch.
-- `python -m mypy .`: passed with no errors across 343 checked source files; only non-failing `annotation-unchecked` notes remain for untyped function bodies outside this remediation batch.
-- `python -m pytest tests/unit/test_validate_protocol_matrix.py tests/unit/test_verify_pages_deployment.py tests/unit/test_validate_pages_artifact.py tests/unit/test_frontend_failover.py tests/unit/test_logging_sanitization_policy.py tests/unit/test_server.py -q`: 86 passed after the mypy contract cleanup.
-- `python scripts/validate_workflows.py`: passed after the main data-release artifact preparation guard.
-- `python -m pytest tests/unit/test_validate_workflows.py -q`: 20 passed after adding the regression for raw pipeline output being validated as a public Pages artifact.
+Archived evidence lives in `docs/history/source-of-truth/` and must not be treated as current status when it conflicts with the files above.

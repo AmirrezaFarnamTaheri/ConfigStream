@@ -37,6 +37,7 @@
     {"id": "ws", "public": false, "kind": "schema-only", "parser": null, "normalized_to": null, "schema": true, "frontend": true, "singbox_export": false, "clash_export": false, "notes": "Transport marker, not a standalone parser claim."},
     {"id": "test", "public": false, "kind": "internal", "parser": null, "normalized_to": null, "schema": true, "frontend": true, "singbox_export": false, "clash_export": false, "notes": "Internal test marker."},
     {"id": "openvpn", "public": true, "kind": "canonical", "parser": "parse_openvpn", "normalized_to": null, "schema": true, "frontend": true, "singbox_export": false, "clash_export": false, "notes": "OpenVPN config import and side-product support."},
+    {"id": "chain", "public": false, "kind": "internal", "parser": null, "normalized_to": null, "schema": true, "frontend": true, "singbox_export": false, "clash_export": false, "notes": "Synthetic public dataset row for generated chain/shielded candidate configs; process and tags carry user-facing chain state."},
     {"id": "revived", "public": false, "kind": "internal", "parser": null, "normalized_to": null, "schema": true, "frontend": true, "singbox_export": false, "clash_export": false, "notes": "Internal output classification for revived candidates."},
     {"id": "unknown", "public": false, "kind": "internal", "parser": null, "normalized_to": null, "schema": true, "frontend": true, "singbox_export": false, "clash_export": false, "notes": "Fallback marker for malformed or unclassified data; not a public support claim."}
   ]

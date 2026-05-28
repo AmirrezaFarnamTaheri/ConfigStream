@@ -57,6 +57,7 @@
         "ws",
         "test",
         "openvpn",
+        "chain",
         "revived",
         "unknown"
       ]
@@ -376,6 +377,25 @@
         "properties": {
           "details": {
             "$ref": "#/$defs/ssh_details"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "protocol": {
+            "const": "chain"
+          }
+        },
+        "required": [
+          "protocol"
+        ]
+      },
+      "then": {
+        "properties": {
+          "details": {
+            "$ref": "#/$defs/chain_details"
           }
         }
       }
@@ -1089,6 +1109,74 @@
           "type": "string"
         },
         "latency_is_estimate": {
+          "type": "boolean"
+        },
+        "detour": {
+          "type": "string"
+        },
+        "tag": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "chain_details": {
+      "type": "object",
+      "required": [
+        "is_chain",
+        "chain_process",
+        "chain_depth"
+      ],
+      "properties": {
+        "is_chain": {
+          "type": "boolean"
+        },
+        "chain_process": {
+          "type": "string",
+          "enum": [
+            "chain",
+            "shielded",
+            "revived-warp",
+            "revived-vwarp",
+            "warp",
+            "washed",
+            "multipath"
+          ]
+        },
+        "chain_depth": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "shielded_candidate": {
+          "type": "boolean"
+        },
+        "shielded_verified": {
+          "type": "boolean"
+        },
+        "origin_proxy": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "origin_config": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "chain": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "chain_outbounds": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "dns_safe": {
+          "type": "boolean"
+        },
+        "dns_hardened": {
           "type": "boolean"
         },
         "detour": {

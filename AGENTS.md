@@ -1,7 +1,7 @@
 # ConfigStream Agents & Contributors Guidelines
 
 ## 1. Project Philosophy & Directives
-**Current Status**: Remediation complete. The project is production-ready as of v3.1.0 (2026-05-14). [ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md](ConfigStream_Master_Audit_Report%20-%20Main%20SOURCE%20OF%20TRUTH.md) and `STATUS.md` are the ONLY valid surfaces for project status. All P0 and P1 audit items have been closed.
+**Current Status**: Remediation complete at repository level as of v3.1.0 (2026-05-28). [ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md](ConfigStream_Master_Audit_Report%20-%20Main%20SOURCE%20OF%20TRUTH.md) and `STATUS.md` are the active human-readable status surfaces, with canonical matrices under `docs/` providing machine-checkable contracts. Historical audit/source-of-truth ledgers live under `docs/history/source-of-truth/` and must not be used as current status. Public Pages readiness remains gated on a fresh validated artifact deploy plus `scripts/verify_pages_deployment.py` passing against the live URL.
 
 ConfigStream is a **sovereignty-grade, zero-budget anti-censorship platform**. Every line of code must align with these core tenets:
 1.  **Zero Budget**: Do not introduce dependencies on paid APIs, databases, or infrastructure. We rely exclusively on free GitHub Actions/Pages, public APIs, and user-provided resources.
@@ -190,9 +190,12 @@ Before submitting ANY code:
 *   `transport/` — flattened to `stego.py`.
 *   `workers/` — flattened to `warp_scanner.py`.
 
-### Superseded Documentation (integrated into Master Audit Report)
-Do NOT use these as standalone sources of truth; they are preserved as historical evidence ledgers inside the Master Audit Report:
-*   `Main Source of truth - Ammendment.txt`
+### Superseded Documentation (history/evidence only)
+Do NOT use these as standalone sources of truth; they are preserved as historical evidence ledgers and are superseded by the root Master Audit Report plus `STATUS.md`:
+*   `docs/history/source-of-truth/ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.full.md`
+*   `docs/history/source-of-truth/Main SOURCE OF TRUTH - Ammendment.md`
+*   `docs/history/source-of-truth/Main SOURCE OF TRUTH - PART 2.md`
+*   `docs/history/source-of-truth/Main SOURCE OF TRUTH - PART 3.md`
 *   `KNOWN_ISSUES.md`
 *   `CLOSURE_REPORT.md`
 *   `docs/FINALIZATION_REPORT_2026.md`
