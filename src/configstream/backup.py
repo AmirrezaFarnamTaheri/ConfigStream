@@ -205,7 +205,9 @@ def cleanup_old_backups(backup_dir: Path, retention_days: int) -> int:
             by_db_date[key].append((mtime, backup_file))
 
         except Exception as e:
-            logger.warning(f"Failed to process backup {backup_file}: {_safe_log_text(e)}")
+            logger.warning(
+                f"Failed to process backup {backup_file}: {_safe_log_text(e)}"
+            )
 
     # Process thinning groups (keep only 1 per day per DB)
     for key, file_list in by_db_date.items():
@@ -323,7 +325,9 @@ def list_backups(backup_dir: Path | str = Path("data/backups")) -> List[dict]:
                 }
             )
         except Exception as e:
-            logger.warning(f"Failed to get metadata for {backup_file}: {_safe_log_text(e)}")
+            logger.warning(
+                f"Failed to get metadata for {backup_file}: {_safe_log_text(e)}"
+            )
 
     # Always return newest-first by actual creation time
     backups = sorted(items, key=lambda b: b["created"], reverse=True)

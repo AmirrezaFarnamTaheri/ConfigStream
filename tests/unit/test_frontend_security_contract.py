@@ -44,7 +44,7 @@ def test_lab_generated_scripts_do_not_auto_download_binaries() -> None:
     lab_js = _read(FRONTEND_DIR / "assets" / "js" / "lab.js")
 
     # Bash export must not use inline remote install/extract.
-    assert "curl -sL \"$URL\" | tar xz" not in lab_js
+    assert 'curl -sL "$URL" | tar xz' not in lab_js
 
     # Python export must not auto-download archives.
     assert "urllib.request.urlretrieve" not in lab_js

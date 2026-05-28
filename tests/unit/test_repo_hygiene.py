@@ -37,10 +37,12 @@ def test_no_tracked_generated_artifacts() -> None:
     forbidden_tracked = [
         f for f in tracked if any(f.startswith(p) for p in forbidden_prefixes)
     ]
-    
+
     # Allow docs/ within these if they are legitimate, but usually they aren't
     # In this repo, these directories should be empty or ignored
-    assert not forbidden_tracked, f"Generated artifacts are being tracked: {forbidden_tracked[:10]}..."
+    assert (
+        not forbidden_tracked
+    ), f"Generated artifacts are being tracked: {forbidden_tracked[:10]}..."
 
 
 def test_no_tokens_in_tracked_sources() -> None:
@@ -54,7 +56,8 @@ def test_no_tokens_in_tracked_sources() -> None:
     token_pattern = re.compile(r"(?:token|key|secret|auth|sub|id)=[a-zA-Z0-9]{16,}")
 
     source_files = [
-        f for f in tracked 
+        f
+        for f in tracked
         if f.startswith("sources/") or f == "consolidated_sources.txt"
     ]
 
@@ -63,7 +66,7 @@ def test_no_tokens_in_tracked_sources() -> None:
         path = ROOT / rel_path
         if not path.is_file():
             continue
-        
+
         content = path.read_text(encoding="utf-8")
         for line_no, line in enumerate(content.splitlines(), 1):
             if token_pattern.search(line):

@@ -502,7 +502,9 @@ def main() -> int:
             print("Debt matrix is up to date.")
             return 0
         else:
-            print("Error: Debt matrix is out of date. Run without --check to regenerate.")
+            print(
+                "Error: Debt matrix is out of date. Run without --check to regenerate."
+            )
             print(f"Current actionable markers: {len(entries)}")
             print(f"Existing actionable markers: {len(existing.get('entries', []))}")
             return 1

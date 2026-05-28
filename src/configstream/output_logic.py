@@ -944,11 +944,7 @@ def generate_categorized_outputs(
 
         # Generate list format for API — always JSON array, never single proxy object
         lpath = country_dir / f"{cc}.list.json"
-        arr = (
-            [serialize_proxy(p) for p in plist]
-            if isinstance(plist, list)
-            else []
-        )
+        arr = [serialize_proxy(p) for p in plist] if isinstance(plist, list) else []
         lcontent = json.dumps(arr, indent=2, ensure_ascii=False)
         AtomicFileWriter.write_text(lpath, lcontent)
 
@@ -965,11 +961,7 @@ def generate_categorized_outputs(
 
         # Generate list format for API — always JSON array, never single proxy object
         lpath = proto_dir / f"{proto}.list.json"
-        arr = (
-            [serialize_proxy(p) for p in plist]
-            if isinstance(plist, list)
-            else []
-        )
+        arr = [serialize_proxy(p) for p in plist] if isinstance(plist, list) else []
         lcontent = json.dumps(arr, indent=2, ensure_ascii=False)
         AtomicFileWriter.write_text(lpath, lcontent)
 
