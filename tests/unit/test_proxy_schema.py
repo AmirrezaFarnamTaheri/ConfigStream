@@ -62,6 +62,7 @@ def test_protocol_detail_defs_are_strict() -> None:
         "hysteria2_details",
         "ssh_details",
         "revived_details",
+        "chain_details",
     ):
         assert defs[key]["additionalProperties"] is False
 
@@ -107,6 +108,34 @@ def test_wireguard_enforces_base64_keys() -> None:
 
     broken = deepcopy(payload)
     broken["details"]["private_key"] = "invalid-key"
+    with pytest.raises(jsonschema.exceptions.ValidationError):
+        validator.validate(broken)
+
+
+def test_chain_rows_use_chain_details_without_wireguard_keys() -> None:
+    validator = _validator()
+    payload = _base_proxy()
+    payload.update(
+        {
+            "protocol": "chain",
+            "config": '{"outbounds":[{"type":"wireguard","tag":"wg"}]}',
+            "address": "162.159.192.1",
+            "port": 2408,
+            "process": "shielded",
+            "details": {
+                "is_chain": True,
+                "chain_process": "shielded",
+                "chain_depth": 2,
+                "shielded_candidate": True,
+                "shielded_verified": False,
+                "origin_proxy": {"country_code": "IR"},
+            },
+        }
+    )
+    validator.validate(payload)
+
+    broken = deepcopy(payload)
+    broken["details"]["private_key"] = "should-not-be-here"
     with pytest.raises(jsonschema.exceptions.ValidationError):
         validator.validate(broken)
 

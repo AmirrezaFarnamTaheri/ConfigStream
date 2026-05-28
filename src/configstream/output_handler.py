@@ -210,7 +210,7 @@ def _chain_to_proxy_entry(
         remarks = final_name
     return {
         "id": tag,
-        "protocol": entry.get("type", "chain"),
+        "protocol": "chain",
         "address": str(server or ""),
         "port": port,
         "uuid": "",

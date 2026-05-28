@@ -2461,7 +2461,6 @@ A feature is complete only when all applicable boxes are checked:
 
 The most valuable improvements are:
 
-1. **Capability registry** - prevents future overclaims.
 2. **Durable latest-output evidence bundle** - makes every run auditable.
 3. **Lab project model + linter** - dramatically improves online/offline lab usefulness.
 4. **Confidence scoring** - improves user trust more than raw proxy counts.

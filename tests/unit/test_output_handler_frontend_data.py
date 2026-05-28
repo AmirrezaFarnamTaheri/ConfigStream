@@ -142,6 +142,7 @@ def test_shielded_chain_entries_are_candidates_not_working() -> None:
 
     row = _chain_to_proxy_entry(chain, process="shielded")
 
+    assert row["protocol"] == "chain"
     assert row["is_working"] is False
     assert row["process"] == "shielded"
     assert "candidate" in row["tags"]
