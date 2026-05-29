@@ -270,7 +270,7 @@ def _chain_obs_to_entries(
             return False
         return 1 <= port <= 65535
 
-    # Washed outbounds (flat list â†’ group into chains)
+    # Washed outbounds (flat list → group into chains)
     if washed_outbounds:
         for chain in _group_chain_obs(washed_outbounds):
             if not chain:
@@ -533,7 +533,7 @@ async def generate_pipeline_outputs(
 
     if failed_proxies and washer:
         logger.info(
-            f"âš°ï¸  Attempting to resurrect {len(failed_proxies)} dead proxies with Alchemy..."
+            f"⚰️  Attempting to resurrect {len(failed_proxies)} dead proxies with Alchemy..."
         )
         try:
             shielded_outbounds, shielded_ids = washer.shield_batch(
@@ -541,7 +541,7 @@ async def generate_pipeline_outputs(
             )
             if shielded_outbounds:
                 logger.info(
-                    f"âœ¨  Alchemy Success! Resurrected {len(shielded_outbounds)//2} candidates."
+                    f"✨  Alchemy Success! Resurrected {len(shielded_outbounds)//2} candidates."
                 )
 
                 # P1-E: Truth in Metrics. Shielded chains are candidates until verified.

@@ -428,7 +428,7 @@ def _rewrite_outbound_for_dns_safe(
             tls = dict(tls)
             tls["server_name"] = server
             outbound["tls"] = tls
-        # Do NOT set top-level 'sni' â€” sing-box uses tls.server_name.
+        # Do NOT set top-level 'sni' — sing-box uses tls.server_name.
         # A top-level 'sni' causes: "unknown field" parse error in sing-box.
     return outbound
 
@@ -448,7 +448,7 @@ def _rewrite_outbound_for_dns_hardened(
                 tls = dict(tls)
                 tls["server_name"] = server
                 outbound["tls"] = tls
-            # Do NOT set top-level 'sni' â€” sing-box uses tls.server_name.
+            # Do NOT set top-level 'sni' — sing-box uses tls.server_name.
             # A top-level 'sni' causes: "unknown field" parse error in sing-box.
     return outbound
 
@@ -921,7 +921,7 @@ def generate_categorized_outputs(
                 pass
 
     # 4. Categorized Sub-files (By Country & Protocol)
-    # Grouping â€” include ALL proxies so users in different networks can still
+    # Grouping — include ALL proxies so users in different networks can still
     # use country/protocol subscriptions.  The is_working flag is preserved in
     # the data for client-side filtering.
     by_country: Dict[str, List[Proxy]] = {}
@@ -1071,7 +1071,7 @@ def generate_categorized_outputs(
             ):
                 shielded_chains.append(copy.deepcopy(outbound))
             # Standard washed chains (not shielded)
-            elif tag.startswith("ðŸ›¡ï¸") or process == "washed":
+            elif tag.startswith("🛡️") or process == "washed":
                 washed_only_chains.append(copy.deepcopy(outbound))
 
     # Revived chains from proxy details
