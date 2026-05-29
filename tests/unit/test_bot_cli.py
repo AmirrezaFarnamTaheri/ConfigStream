@@ -5,6 +5,25 @@ from configstream.bot_cli import start, warp, mirror, main as bot_main
 from telegram import Update
 from telegram.ext import ContextTypes
 
+
+def _make_update(user_id: int = 42) -> MagicMock:
+    """Build a mock Update carrying an effective_user with the given id."""
+    update = MagicMock(spec=Update)
+    update.effective_chat = MagicMock()
+    update.effective_chat.id = 123
+    update.effective_user = MagicMock()
+    update.effective_user.id = user_id
+    return update
+
+
+@pytest.fixture(autouse=True)
+def _authorize_test_user():
+    """Authorize user id 42 for all command tests by default."""
+    with patch(
+        "configstream.bot_cli._load_allowed_users", return_value=({42}, False)
+    ):
+        yield
+
 # Mock register_warp_account globally for this module if possible,
 # or use sys.modules patch if it's imported inside the function.
 # Since it's imported inside 'warp', patching 'configstream.bot_cli.register_warp_account'
@@ -20,9 +39,7 @@ from telegram.ext import ContextTypes
 
 @pytest.mark.asyncio
 async def test_start_command():
-    update = MagicMock(spec=Update)
-    update.effective_chat = MagicMock()
-    update.effective_chat.id = 123
+    update = _make_update()
     context = MagicMock(spec=ContextTypes.DEFAULT_TYPE)
     context.bot.send_message = AsyncMock()
 
@@ -32,10 +49,19 @@ async def test_start_command():
 
 
 @pytest.mark.asyncio
+async def test_unauthorized_user_is_refused():
+    update = _make_update(user_id=999)
+    context = MagicMock(spec=ContextTypes.DEFAULT_TYPE)
+    context.bot.send_message = AsyncMock()
+
+    await start(update, context)
+    context.bot.send_message.assert_called_once()
+    assert "not authorized" in context.bot.send_message.call_args[1]["text"]
+
+
+@pytest.mark.asyncio
 async def test_warp_command():
-    update = MagicMock(spec=Update)
-    update.effective_chat = MagicMock()
-    update.effective_chat.id = 123
+    update = _make_update()
     context = MagicMock(spec=ContextTypes.DEFAULT_TYPE)
     context.bot.send_message = AsyncMock()
 
@@ -63,9 +89,7 @@ async def test_warp_command():
 
 @pytest.mark.asyncio
 async def test_warp_command_fail():
-    update = MagicMock(spec=Update)
-    update.effective_chat = MagicMock()
-    update.effective_chat.id = 123
+    update = _make_update()
     context = MagicMock(spec=ContextTypes.DEFAULT_TYPE)
     context.bot.send_message = AsyncMock()
 
@@ -82,9 +106,7 @@ async def test_warp_command_fail():
 
 @pytest.mark.asyncio
 async def test_mirror_command():
-    update = MagicMock(spec=Update)
-    update.effective_chat = MagicMock()
-    update.effective_chat.id = 123
+    update = _make_update()
     context = MagicMock(spec=ContextTypes.DEFAULT_TYPE)
     context.bot.send_message = AsyncMock()
 
