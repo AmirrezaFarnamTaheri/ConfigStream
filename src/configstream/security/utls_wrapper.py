@@ -4,9 +4,12 @@ Wrapper for the Go-based uTLS sidecar.
 """
 
 import asyncio
+import hashlib
 import logging
+import os
 import shutil
 from pathlib import Path
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -17,11 +20,68 @@ BINARY_PATH = Path(__file__).parent.parent.parent.parent / "bin" / "utls-client"
 _warned_missing = False
 
 
+def _compute_sha256(path: Path) -> str:
+    """Return the hex SHA-256 digest of the file at ``path``."""
+    h = hashlib.sha256()
+    with open(path, "rb") as fh:
+        for chunk in iter(lambda: fh.read(65536), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def _expected_checksum(path: Path) -> Optional[str]:
+    """
+    Resolve the expected SHA-256 pin for the binary, if one is configured.
+
+    Resolution order:
+      1. ``UTLS_CLIENT_SHA256`` environment variable (operator-supplied pin).
+      2. A sibling ``<binary>.sha256`` file (first whitespace-delimited token).
+
+    Returns ``None`` when no pin is configured, in which case verification is
+    skipped (the binary is trusted as built locally).
+    """
+    env_pin = os.environ.get("UTLS_CLIENT_SHA256", "").strip()
+    if env_pin:
+        return env_pin.lower()
+
+    sidecar = path.with_name(path.name + ".sha256")
+    if sidecar.is_file():
+        try:
+            token = sidecar.read_text(encoding="utf-8").strip().split()
+            if token:
+                return token[0].lower()
+        except OSError as exc:
+            logger.warning("Could not read checksum sidecar %s: %s", sidecar, exc)
+    return None
+
+
 def _verify_binary_checksum(path: Path) -> bool:
     """
-    Verify the SHA-256 checksum of the binary.
-    Currently a no-op until supply-chain security infrastructure is ready.
+    Verify the SHA-256 checksum of the binary against a configured pin.
+
+    Fails closed (returns ``False``) only when a pin is configured and the
+    computed digest does not match. When no pin is configured, the binary is
+    trusted (returns ``True``) so locally-built binaries keep working.
     """
+    if not path.is_file():
+        logger.error("uTLS binary not found for checksum verification: %s", path)
+        return False
+
+    expected = _expected_checksum(path)
+    if expected is None:
+        return True
+
+    try:
+        actual = _compute_sha256(path)
+    except OSError as exc:
+        logger.error("Failed to compute checksum for %s: %s", path, exc)
+        return False
+
+    if actual.lower() != expected:
+        logger.error(
+            "uTLS binary checksum mismatch: expected %s, got %s", expected, actual
+        )
+        return False
     return True
 
 

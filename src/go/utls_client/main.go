@@ -21,7 +21,7 @@ func main() {
 	targetURL := flag.String("url", "https://www.google.com", "Target URL to fetch")
 	_ = flag.String("proxy", "", "Proxy address (host:port) - reserved for future use")
 	fingerprint := flag.String("fp", "chrome", "Fingerprint ID (chrome, firefox, ios, random)")
-	// InsecureSkipVerinow fy is now a CLI flag defaulting to false.
+	// InsecureSkipVerify is now a CLI flag defaulting to false.
 	// Previously hardcoded to true, which disabled TLS cert validation entirely,
 	// allowing MITM attacks -- especially dangerous for anti-censorship use.
 	skipVerify := flag.Bool("skip-verify", false, "Skip TLS certificate verification (UNSAFE)")

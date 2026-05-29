@@ -32,7 +32,9 @@ def warm_cache(cache: TestResultCache, proxies: List[Proxy]) -> List[Proxy]:
     uncached = []
 
     for proxy in proxies:
-        if cache.get(proxy):
+        # Use contains() (pure membership check) rather than get(), which would
+        # mutate the proxy with cached test results as a side effect.
+        if cache.contains(proxy):
             cached.append((proxy, cache.get_health_score(proxy)))
         else:
             uncached.append(proxy)
