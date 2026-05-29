@@ -46,6 +46,24 @@ def _is_valid_ip(host: str) -> bool:
     return False
 
 
+def _parse_version(version: str) -> Tuple[int, ...]:
+    """Parse a version string like ``v2.2.1`` into a numeric tuple ``(2, 2, 1)``.
+
+    Compares versions numerically rather than lexicographically (string
+    comparison wrongly orders e.g. ``v2.10.0`` before ``v2.9.0``). Non-numeric
+    or malformed components are treated as ``0`` so parsing never raises.
+    """
+    if not version:
+        return (0,)
+    cleaned = version.strip().lstrip("vV")
+    parts = re.split(r"[.\-+]", cleaned)
+    numbers: List[int] = []
+    for part in parts:
+        match = re.match(r"\d+", part)
+        numbers.append(int(match.group()) if match else 0)
+    return tuple(numbers) if numbers else (0,)
+
+
 def _sanitize_process_output(value: object, limit: int = 2048) -> str:
     """Decode, sanitize, and bound subprocess output before logging/storing it."""
     if isinstance(value, bytes):
@@ -241,6 +259,10 @@ class VwarpTool:
         self._config_owned: bool = False
         self._last_failure_reason: Optional[str] = None
         self._last_failure_details: Optional[str] = None
+        # Strong references to background stream-consumer tasks. Without holding
+        # these, the event loop may garbage-collect a still-running task (RUF006),
+        # which would stop draining the subprocess pipes and could deadlock it.
+        self._stream_tasks: "set[asyncio.Task[Any]]" = set()
 
     @staticmethod
     def validate_warp_key(key: str) -> bool:
@@ -850,7 +872,7 @@ class VwarpTool:
 
         # v2.2.1+ supports full config; v2.1.x rejects JunkInterval, masque.enabled/preferred
         version = os.environ.get("VWARP_VERSION", VWARP_VERSION)
-        if version < "v2.2.1":
+        if _parse_version(version) < _parse_version("v2.2.1"):
             write_config = self._sanitize_config_for_binary(write_config)
 
         # Flatten Masque if needed
@@ -1304,10 +1326,13 @@ class VwarpTool:
                         safe_line = _sanitize_process_output(line).strip()
                         logger.log(level, "Vwarp: %s", safe_line)
 
-            asyncio.create_task(consume_stream(self._tunnel_proc.stdout, logging.DEBUG))
-            asyncio.create_task(
-                consume_stream(self._tunnel_proc.stderr, logging.WARNING)
-            )
+            for stream, level in (
+                (self._tunnel_proc.stdout, logging.DEBUG),
+                (self._tunnel_proc.stderr, logging.WARNING),
+            ):
+                task = asyncio.create_task(consume_stream(stream, level))
+                self._stream_tasks.add(task)
+                task.add_done_callback(self._stream_tasks.discard)
 
             elapsed = time.time() - tunnel_start
             logger.info(
@@ -1361,6 +1386,10 @@ class VwarpTool:
                 )
             finally:
                 self._tunnel_proc = None
+        # Cancel any still-running stream consumers (the pipes are gone now).
+        for task in list(self._stream_tasks):
+            task.cancel()
+        self._stream_tasks.clear()
         self._cleanup_config_file()
 
     def _cleanup_config_file(self) -> None:

@@ -1,6 +1,6 @@
 # ConfigStream Project Status
 
-**Last updated:** 2026-05-28  
+**Last updated:** 2026-05-29  
 **Version:** v3.1.0  
 **Status:** Repository production-ready. All repository-side P0, P1, and P2 audit items are closed. Live Pages deployment currently fails smoke and requires a fresh deploy from this repository state.
 
@@ -36,6 +36,7 @@ The following review/audit classes are closed at repository level:
 | CI security scan scope | Closed | Bandit and secret scans cover broader risk surfaces. |
 | CSP `unsafe-eval` | Closed | `unsafe-eval` removed from primary frontend pages. |
 | Vercel artifact-root mismatch | Closed | Vercel deploy runs from `output/`. |
+| Code-quality audit (f1-f12 + frontend review) | Closed | Non-security code-quality findings remediated: Loon relay format, fail-closed uTLS checksum, dead-code removal, named permanent-failure sentinel, bounded WARP scan timeout, numeric Vwarp version compare + RUF006 task GC, non-mutating cache `contains()`, atomic `adaptive_timeout`/`stego` writes, mojibake repair, optional per-user Telegram authorization, idempotent trace-id factory, real manifest verification in `verifier.js`, and a bounded Chart.js load poll. See `CHANGELOG.md` Unreleased. |
 
 ## Gate Status
 
@@ -141,20 +142,23 @@ The master file is intentionally more detailed than this status checkpoint. It n
 
 Latest local verification recorded for this status:
 
-- `py -3.13 -m black --check .`: passed.
-- `py -3.13 scripts/generate_debt_matrix.py --check`: passed.
-- `py -3.13 scripts/validate_output_matrix.py`: passed.
-- `py -3.13 scripts/validate_workflows.py`: passed.
-- `python -m pytest -q tests/unit/test_frontend_security_contract.py tests/unit/test_repo_hygiene.py tests/unit/test_release_scripts.py`: passed.
-- `py -3.13 -m bandit -r src/configstream scripts tools frontend/assets/js -q`: passed.
-- `py -3.13 -m pip_audit -r requirements-prod.txt --no-deps`: passed.
+- `ruff check src/`: passed (after the code-quality audit remediation).
+- `python -m mypy .`: passed for the audited modules.
+- `scripts/generate_debt_matrix.py --check`: passed.
+- `scripts/validate_output_matrix.py`: passed.
+- `scripts/validate_workflows.py`: passed.
+- `scripts/validate_changelog.py`: passed.
+- `scripts/validate_status.py`: passed.
+- `python -m pytest -q tests/unit/test_frontend_security_contract.py tests/unit/test_repo_hygiene.py tests/unit/test_release_scripts.py tests/unit/test_bot_cli.py tests/unit/test_cache_warming.py`: passed.
+- `bandit -r src/configstream scripts tools frontend/assets/js -q`: passed.
+- `pip_audit -r requirements-prod.txt --no-deps`: passed.
 - `npm run build:sanity`: passed.
 - Same-origin frontend smoke: passed.
 - `python scripts/verify_pages_deployment.py https://amirrezafarnamtaheri.github.io/ConfigStream/ --timeout 120 --report-file output/pages_deployment_smoke.json`: fails against stale live Pages.
 
 Latest full-suite snapshot:
 
-- `python -m pytest -q`: 1057 passed, 4 skipped.
+- `python -m pytest -q`: 1054 passed, 4 skipped.
 
 ## Current Source Files
 

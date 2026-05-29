@@ -111,13 +111,23 @@ async function loadHistoryData() {
 
 // Initialize
 document.addEventListener("DOMContentLoaded", async () => {
-    // Wait for Chart.js to load if CDN is slow
+    // Wait for Chart.js to load if CDN is slow, but bound the wait so a blocked
+    // CDN cannot leave a 100ms interval polling forever.
+    const POLL_INTERVAL_MS = 100;
+    const MAX_WAIT_MS = 10000; // give up after 10s
+    let waited = 0;
     const checkChartJs = setInterval(async () => {
         if (typeof Chart !== 'undefined') {
             clearInterval(checkChartJs);
             const chartWidget = new HistoryChart("historyChartCanvas"); // ID changed in index.html
             const data = await loadHistoryData();
             chartWidget.render(data);
+            return;
         }
-    }, 100);
+        waited += POLL_INTERVAL_MS;
+        if (waited >= MAX_WAIT_MS) {
+            clearInterval(checkChartJs);
+            console.warn("Chart.js failed to load within timeout; history chart skipped.");
+        }
+    }, POLL_INTERVAL_MS);
 });
