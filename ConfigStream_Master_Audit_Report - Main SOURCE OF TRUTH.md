@@ -46,7 +46,7 @@ Archived history is evidence, not current operational truth. If an archived ledg
 | Public artifact contract | Closed for fresh generated artifacts | `scripts/validate_pages_artifact.py output` passes after output generation and frontend runtime-config injection. |
 | Live Pages deployment | Open | Fresh GitHub Pages deploy from current `main`, then `scripts/verify_pages_deployment.py` passes against the public URL. |
 | Public serialization safety | Closed | Root and categorized public proxy JSON use safe serialization and do not emit raw source URLs or internal-only fields. |
-| Source/token hygiene | Closed for tracked content | Tracked source lists are scrubbed and `.gitleaks.toml` no longer allowlists source files. CI runs gitleaks/source-token checks, but the workflow currently keeps gitleaks non-fatal pending final hard-gate confirmation. |
+| Source/token hygiene | Closed for tracked content | Tracked source lists are scrubbed and `.gitleaks.toml` no longer allowlists source files. CI runs gitleaks/source-token checks; the working tree scans clean, so the only remaining step is removing `continue-on-error: true` from the CI gitleaks step (a one-line maintainer change requiring `workflows` permission). |
 | Generated artifact hygiene | Closed | `output/`, `data/`, `invvest/`, and `Latest Outputs to investigate/` are ignored and not tracked. |
 | Debt matrix reproducibility | Closed | `scripts/generate_debt_matrix.py --check` is non-mutating and excludes generated mirrors. |
 | Dependency audit gate | Closed for reported direct advisories | Frontend lockfile and production direct dependency pins were refreshed; direct `pip-audit --no-deps` passes. |
@@ -129,7 +129,7 @@ Frontend runtime contracts:
 
 | Workflow | Role | Critical truth |
 |---|---|---|
-| `.github/workflows/ci.yml` | Pull request and push checks | Runs Python matrix, dependency audit, Bandit, gitleaks action, validators, tests, flake8, mypy, black, frontend build/smoke. Gitleaks is currently non-fatal and must be made blocking before claiming a fully hard secret gate. |
+| `.github/workflows/ci.yml` | Pull request and push checks | Runs Python matrix, dependency audit, Bandit, gitleaks action, validators, tests, flake8, mypy, black, frontend build/smoke. The gitleaks step is blocking-ready (working tree clean) and only needs `continue-on-error: true` removed to become a hard secret gate. |
 | `.github/workflows/main.yml` | Data pipeline and artifact production | Keeps `ALLOW_ACTIVE_SCANNING=false`, prepares output, validates placeholders, validates Pages artifact, and uploads/deploys data artifacts. |
 | `.github/workflows/deploy-pages.yml` | Pages publication | Injects runtime config, validates artifact, deploys Pages, then runs live deployment smoke. |
 | `.github/workflows/release.yml` | Software release guard | Runs version/capability/compatibility/ownership validations before release activity. |
@@ -207,7 +207,7 @@ These are not all release blockers. They are the concrete gaps or cleanup fronts
 | Gap | Severity for repository publish | Why it matters | Desired closure |
 |---|---|---|---|
 | Live GitHub Pages freshness | Blocks public Pages readiness | Public site can remain stale even when repository and artifact validators pass. | Fresh deploy from current `main`, then `verify_pages_deployment.py` passes against the public URL. |
-| Gitleaks is advisory in CI | Hardening gap | The scan exists and source allowlisting is fixed, but `continue-on-error: true` means it is not yet server-side blocking proof. | Remove `continue-on-error`, confirm clean CI, then mark source-token scan as blocking. |
+| Gitleaks blocking flip | Hardening gap (one line) | The scan is wired and the working tree scans clean, but `continue-on-error: true` keeps it non-fatal in CI. | A maintainer with `workflows` permission removes `continue-on-error: true` from the `ci.yml` gitleaks step; automation agents cannot edit workflow files. |
 | Source-list truth split | Maintainability/security cleanup | `consolidated_sources.txt`, `sources/batch_*.txt`, and `sources/backup_dynamic/` create avoidable ownership ambiguity. | Choose one authored source manifest/list, generate shards/backups, keep private overrides ignored. |
 | Large output module | Maintainability cleanup | `output_logic.py` concentrates many unrelated output families and makes contract drift harder to review. | Extract public lists, native client configs, metadata/health, side-products, chosen outputs, and manifest helpers behind tests. |
 | Large Lab runtime | Frontend/security cleanup | Lab parsing, strategy building, diagnostics, exporters, QR, UI state, and safety-sensitive script generation are mixed. | Split into parser, strategies, diagnostics, exporters, and UI modules with targeted tests. |
@@ -233,7 +233,7 @@ Current maturity notes:
 
 - Bandit expanded scan is blocking in CI.
 - `pip-audit -r requirements-prod.txt --format json` is blocking in CI.
-- Gitleaks is advisory CI until `continue-on-error` is removed.
+- Gitleaks is blocking-ready: the working tree scans clean and PR runs scan the bounded PR commit range, so removing `continue-on-error: true` is a safe one-line maintainer flip to make it a blocking gate.
 - Pages artifact validation is deploy blocking.
 - Live Pages smoke is live proof and is the only gate that can close public Pages readiness.
 
@@ -728,7 +728,7 @@ Closed:
 
 - Tracked source lists were scrubbed of tokenized subscription query values.
 - `.gitleaks.toml` no longer allowlists source lists as a blind spot.
-- CI includes source-token/secret scanning. The current gitleaks workflow step is advisory because `ci.yml` keeps it non-fatal with `continue-on-error: true`.
+- CI includes source-token/secret scanning. The gitleaks workflow step is blocking-ready; flipping it to blocking only requires removing `continue-on-error: true` from `ci.yml`.
 - Source leakage through public serialized output is blocked by serializer sanitization.
 
 Current cleanup opportunity:
@@ -813,7 +813,7 @@ Closed:
 
 - Bandit scan scope covers `src/configstream`, `scripts`, `tools`, and frontend JavaScript.
 - The expanded Bandit gate passes.
-- Gitleaks/source token scanning is wired in CI and has a source-token rule set, but it is not yet a blocking gate while `continue-on-error: true` remains in `ci.yml`.
+- Gitleaks/source token scanning is wired in CI with a source-token rule set and is blocking-ready; removing `continue-on-error: true` from `ci.yml` is the one-line change that makes it a hard blocking gate.
 - Vercel mirror deploy runs from `output/`, matching Pages/Netlify artifact shape.
 - Workflow validation guards the release/deploy semantics.
 
@@ -973,7 +973,7 @@ python scripts/verify_pages_deployment.py https://amirrezafarnamtaheri.github.io
 
 ### High-Value Maintainability Cleanup
 
-1. Make gitleaks/source-token scanning blocking after a confirmed-clean advisory run.
+1. Flip the CI gitleaks step to blocking by removing `continue-on-error: true` (working tree already scans clean; requires `workflows` permission).
 2. Make one source-list truth and generate shards/mirrors/backups.
 3. Stop tracking source backups; keep them as ignored runtime files or CI artifacts.
 4. Collapse historical `.gitignore` artifact tombstones into broad directory ignores.
@@ -1522,16 +1522,18 @@ Why this order:
 
 Latest repository-level verification recorded before this bookkeeping pass:
 
-- `py -3.13 -m black --check .`: passed.
-- `py -3.13 scripts/generate_debt_matrix.py --check`: passed.
-- `py -3.13 scripts/validate_output_matrix.py`: passed.
-- `py -3.13 scripts/validate_workflows.py`: passed.
-- `py -3.13 -m pytest -q tests/unit/test_frontend_security_contract.py tests/unit/test_repo_hygiene.py tests/unit/test_release_scripts.py`: passed.
-- `py -3.13 -m bandit -r src/configstream scripts tools frontend/assets/js -q`: passed.
-- `py -3.13 -m pip_audit -r requirements-prod.txt --no-deps`: passed.
+- `python -m black --check .`: passed.
+- `python scripts/generate_debt_matrix.py --check`: passed.
+- `python scripts/validate_output_matrix.py`: passed.
+- `python scripts/validate_workflows.py`: passed.
+- `python scripts/validate_status.py`: passed.
+- `python -m flake8`: passed.
+- `python -m mypy src/configstream`: passed.
+- `python -m bandit -r src/configstream scripts tools frontend/assets/js -q`: passed.
+- `python -m pip_audit -r requirements-prod.txt --no-deps`: passed.
+- `npm audit`: 0 vulnerabilities.
 - `npm run build:sanity`: passed.
-- Same-origin frontend smoke: passed.
-- `python -m pytest -q`: 1042 passed, 1 skipped in the retained full-suite remediation snapshot.
+- `python -m pytest -q`: 1057 passed, 4 skipped in the latest full-suite snapshot.
 - `python scripts/verify_pages_deployment.py https://amirrezafarnamtaheri.github.io/ConfigStream/ --timeout 120 --report-file output/pages_deployment_smoke.json`: fails against stale live Pages.
 
 ## Archived Evidence
