@@ -216,6 +216,7 @@ These are not all release blockers. They are the concrete gaps or cleanup fronts
 | Release gate duplication | CI maintainability cleanup | Multiple workflows repeat similar validator sequences with slightly different semantics. | Centralize release/page/data gate orchestration in a small script or reusable action. |
 | Native-core proof depth | Evidence hardening | Static validators prove structure but not full native runtime acceptance under every client. | Add pinned native dry-run/check jobs for Sing-box and any future first-class native output. |
 | Full dependency audit sensitivity | Environment caution | Direct `pip-audit --no-deps` can pass while full resolution depends on supported Python matrix and resolver state. | Keep full audit in CI matrix and document any accepted transitive advisories with expiry. |
+| Mirror uploader token logging hygiene | Logging cleanup (not a publish blocker) | `scripts/upload_telegram.py` and `scripts/upload_hf.py` embed secrets in request URLs / git remotes where a broad `except` could surface them in CI logs. | Move tokens to headers/credential env handling and narrow exception logging so token-bearing URLs cannot reach CI output; no token rotation required. |
 
 ### Blocking Gate Maturity Levels
 
@@ -618,6 +619,29 @@ What changed in this bookkeeping pass:
 Why this matters:
 
 The old documents were useful but mixed current truth, historical evidence, resolved findings, future roadmap items, and stale warnings. Keeping all of that at root made it too easy to re-open closed issues mentally or accidentally cite old status as current. The new layout keeps depth available while making the operational truth unambiguous.
+
+### Code-Quality Audit Pass (f1-f12 + Frontend Review)
+
+Current shape:
+
+- A full non-security code-quality audit was completed across the Python backend, the Go uTLS sidecar, and the frontend JavaScript. It produced no new release blockers and opened no new gap-register entries.
+- Per-finding implementation detail is recorded in `CHANGELOG.md` under `## [Unreleased]`; this section records only that the class is closed and why it does not change the gate matrix.
+
+What was remediated:
+
+- **Backend correctness/robustness:** Loon adapter relay format (`relay_line` defaults to `None`, no Surge fallback); fail-closed uTLS binary checksum verification (`UTLS_CLIENT_SHA256` env pin or `.sha256` sidecar with SHA-256 recomputation); removal of orphaned `fetch_single_source` dead code with its unused imports; a named `PERMANENT_FAILURE_SENTINEL` constant replacing a magic threshold; a bounded `asyncio.wait_for` deadline around the WARP scanner subprocess; numeric Vwarp version comparison plus strong-referenced fire-and-forget task GC (RUF006); a non-mutating `TestCache.contains()` membership check used by cache warming; atomic `adaptive_timeout`/`stego` persistence via `AtomicFileWriter`; and UTF-8-as-cp1252 mojibake repair in comments/log strings.
+- **Operability/auth:** optional per-user Telegram bot authorization (`TELEGRAM_ALLOWED_USERS` plus a `require_authorization` decorator and startup warnings) and an idempotent trace-id `LogRecordFactory` installed from `setup_logging` rather than at import time.
+- **Go sidecar:** corrected a mangled `InsecureSkipVerify` source comment.
+- **Frontend:** removed a dead verification branch and wired `runLocalVerification` to fetch and Ed25519-verify `artifact_manifest.json`; bounded the Chart.js load-poll `setInterval` to give up after 10s.
+
+Triage review (no further behavioral change required):
+
+- The larger frontend UI scripts (`i18n.js`, `lab.js`, `analytics.js`, `statistics.js`, `utils/dom.js`) were reviewed and found acceptable (static-string sanitization, `textContent` usage, numeric-only trusted HTML, cleared timers).
+- The auxiliary `scripts/` uploaders/validators were reviewed; `scripts/upload_telegram.py` and `scripts/upload_hf.py` were flagged for embedding tokens in request URLs/git remotes where a broad `except` could surface them in CI logs. This is tracked as a logging-hygiene cleanup, not a new release blocker, and does not require token rotation.
+
+Why this does not change the gate matrix:
+
+These findings were correctness, robustness, hygiene, and optional-hardening items rather than public-surface security or contract changes. Public serialization, output semantics, CI security scope, and deployment contracts were unaffected, so the repository production gate and artifact gate remain as previously recorded. Verification after remediation: `ruff check src/` clean, `mypy` clean on the audited modules, and `python -m pytest -q`: 1054 passed, 4 skipped.
 
 ### Completion Doctrine
 
@@ -1533,7 +1557,7 @@ Latest repository-level verification recorded before this bookkeeping pass:
 - `python -m pip_audit -r requirements-prod.txt --no-deps`: passed.
 - `npm audit`: 0 vulnerabilities.
 - `npm run build:sanity`: passed.
-- `python -m pytest -q`: 1057 passed, 4 skipped in the latest full-suite snapshot.
+- `python -m pytest -q`: 1054 passed, 4 skipped in the latest full-suite snapshot (after the code-quality audit remediation pass).
 - `python scripts/verify_pages_deployment.py https://amirrezafarnamtaheri.github.io/ConfigStream/ --timeout 120 --report-file output/pages_deployment_smoke.json`: fails against stale live Pages.
 
 ## Archived Evidence
