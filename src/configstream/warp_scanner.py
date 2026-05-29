@@ -162,10 +162,26 @@ class WarpScannerWorker:
                 *str_cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
             )
 
-            # Wait for the process to finish and capture output
-            # Note: For massive scans, we might want to iterate stdout line-by-line
-            # while running, but for <1000 items, communicate() is safe and simpler.
-            stdout, stderr = await proc.communicate()
+            # Wait for the process to finish and capture output, bounded by an
+            # overall deadline so a hung/zombie scanner binary cannot block the
+            # pipeline indefinitely. The per-handshake timeout is enforced by the
+            # binary; this is a defensive outer bound derived from it.
+            scan_deadline = min(300, max(30, timeout * 4 + 30))
+            try:
+                stdout, stderr = await asyncio.wait_for(
+                    proc.communicate(), timeout=scan_deadline
+                )
+            except asyncio.TimeoutError:
+                logger.error(
+                    "WARP scan exceeded overall deadline of %ss; killing scanner.",
+                    scan_deadline,
+                )
+                try:
+                    proc.kill()
+                    await proc.wait()
+                except ProcessLookupError:
+                    pass
+                return []
 
             if proc.returncode != 0:
                 logger.error(f"Scanner binary exited with error code {proc.returncode}")
