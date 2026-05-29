@@ -974,7 +974,7 @@ class ProxyWasher:
                 port = 2408
 
                 if host.startswith("[") and "]" in host:
-                    # Bracketed IPv6: [addr]:port â€” strip brackets
+                    # Bracketed IPv6: [addr]:port — strip brackets
                     end = host.find("]")
                     ip = host[1:end]
                     rest = host[end + 1 :].lstrip()
@@ -1267,7 +1267,7 @@ class ProxyWasher:
                     vwarp_mode = "MASQUE"
 
             # Sing-box requires detour targets before referrers. Vwarp: relay detours to warp
-            # â†’ warp first. Standard WARP: warp detours to relay â†’ relay first.
+            # → warp first. Standard WARP: warp detours to relay → relay first.
             chain_order = [warp_out, relay_out] if use_vwarp else [relay_out, warp_out]
             chain_proxies = (
                 [warp_chain, relay_chain] if use_vwarp else [relay_chain, warp_chain]
@@ -1396,7 +1396,7 @@ class ProxyWasher:
             flag = get_flag_emoji(relay.country_code or "XX")
             lat_str = f"{int(relay.latency)}ms" if relay.latency else "N/A"
             stack = build_proxy_stack(relay)
-            tier = "ðŸ›¡ï¸ OPTIMAL" if is_optimal else "ðŸ›¡ï¸ SECURE"
+            tier = "🛡️ OPTIMAL" if is_optimal else "🛡️ SECURE"
 
             # Unified scheme: geo | tech/protocol stack | latency | etc (like naive proxies)
             exit_tag = f"{flag} | {stack} | {tier} | WARP | {lat_str}"

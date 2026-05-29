@@ -256,7 +256,7 @@ def generate_clash_config(
 
     Added `extra_outbounds` argument to prevent crash when pipeline passes it.
     However, Clash/Mihomo generator currently only supports standard proxies.
-    Chains (WARP-wrapped, revived, shielded) are sing-box only â€” use
+    Chains (WARP-wrapped, revived, shielded) are sing-box only — use
     singbox.json or singbox-chains.json. Mihomo relay does not support
     WireGuard as a hop; use sing-box for chain profiles.
     """
