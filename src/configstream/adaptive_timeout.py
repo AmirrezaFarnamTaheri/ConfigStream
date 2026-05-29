@@ -12,6 +12,7 @@ from pathlib import Path
 from collections import defaultdict
 
 from .security_validator import SecurityValidator
+from .utils import AtomicFileWriter
 
 logger = logging.getLogger(__name__)
 
@@ -150,11 +151,16 @@ class AdaptiveTimeout:
             logger.debug(f"Not enough data for timeout stats: {e}")
 
     def save(self):
-        """Persist state."""
+        """Persist state atomically (temp file + atomic rename + fsync).
+
+        Using a plain ``write_text`` here risked leaving a truncated/corrupt
+        JSON file if the process crashed or two runs raced, which would then
+        break the loader on startup.
+        """
         try:
-            self.history_file.parent.mkdir(parents=True, exist_ok=True)
-            self.history_file.write_text(
-                json.dumps({"last_timeout": self.current_timeout})
+            AtomicFileWriter.write_text(
+                self.history_file,
+                json.dumps({"last_timeout": self.current_timeout}),
             )
         except Exception as e:
             logger.warning(f"Failed to save timeout history: {e}")
