@@ -82,18 +82,10 @@
 
             try {
                 // PUBLIC_KEY is a Base64-encoded SPKI (SubjectPublicKeyInfo) for Ed25519.
-                // Keys shorter than 60 chars are treated as raw Base64 for compatibility.
-                let keyData;
-                let format = "spki";
-
-                if (PUBLIC_KEY.length > 60) { // Likely Base64 SPKI
-                    keyData = this._base64ToArrayBuffer(PUBLIC_KEY);
-                } else { // Raw Base64 fallback
-                    keyData = this._base64ToArrayBuffer(PUBLIC_KEY);
-                }
+                const keyData = this._base64ToArrayBuffer(PUBLIC_KEY);
 
                 const key = await window.crypto.subtle.importKey(
-                    format,
+                    "spki",
                     keyData,
                     { name: "Ed25519" },
                     true,
@@ -171,28 +163,46 @@
             return { verified: true, reason: "verified" };
         },
 
-        // Manual Trigger
+        // Manual Trigger: fetch the artifact manifest and verify its Ed25519
+        // signature for real (previously this was a fake setTimeout that always
+        // reported success without verifying anything).
         runLocalVerification: async function() {
             const statusEl = document.getElementById('wasm-status');
             const PUBLIC_KEY = global.CS_CONSTANTS ? global.CS_CONSTANTS.PUBLIC_KEY : null;
 
-            if (!this._isConfiguredPublicKey(PUBLIC_KEY)) {
-                if(statusEl) {
-                    statusEl.textContent = "⚠️ Verification unavailable (No Key)";
-                    statusEl.style.color = "var(--text-secondary)";
+            const setStatus = (text, color) => {
+                if (statusEl) {
+                    statusEl.textContent = text;
+                    if (color) statusEl.style.color = color;
                 }
-                return;
+            };
+
+            if (!this._isConfiguredPublicKey(PUBLIC_KEY)) {
+                setStatus("\u26A0\uFE0F Verification unavailable (No Key)", "var(--text-secondary)");
+                return { verified: false, reason: "no-key" };
             }
 
-            if(statusEl) statusEl.textContent = "Verifying integrity...";
+            setStatus("Verifying integrity...");
 
-            // Actual verification using WASM if available
-            setTimeout(() => {
-                if(statusEl) {
-                    statusEl.textContent = "✓ Turbo-Verify Complete";
-                    statusEl.style.color = "var(--success-color)";
+            try {
+                const root = global.ROOT_PATH || "./";
+                const response = await fetch(`${root}artifact_manifest.json`, { cache: "no-store" });
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
                 }
-            }, 1000);
+                const manifest = await response.json();
+                const result = await this.verifyManifestSignature(manifest);
+                if (result.verified) {
+                    setStatus("\u2713 Manifest signature verified", "var(--success-color)");
+                } else {
+                    setStatus("\u26A0\uFE0F Manifest is unsigned", "var(--text-secondary)");
+                }
+                return result;
+            } catch (e) {
+                console.error("Local verification failed:", e);
+                setStatus("\u2717 Verification failed", "var(--error-color, red)");
+                return { verified: false, reason: "error", error: e.message };
+            }
         }
     };
 

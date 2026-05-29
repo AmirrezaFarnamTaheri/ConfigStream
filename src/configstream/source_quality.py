@@ -20,7 +20,31 @@ logger = logging.getLogger(__name__)
 # Cache settings to avoid repeated pydantic_settings instantiation in hot-path methods
 _SETTINGS_CACHE = AppSettings()
 
-__all__ = ["SourceQualityTracker", "calculate_diversity_score"]
+# A consecutive-failure count at or above this value is treated as a *permanent*
+# failure sentinel (e.g. HTTP 404/410, malformed URL). Such sources are never
+# resurrected. We use a large, clearly out-of-band value so an ordinary run of
+# transient failures can never accidentally reach it.
+PERMANENT_FAILURE_SENTINEL = 100
+
+# Substrings in a failure reason that indicate the source is gone for good.
+_PERMANENT_FAILURE_SIGNALS = (
+    "Permanent Error: 404",
+    "Permanent Error: 410",
+    "Malformed GitHub URL",
+)
+
+__all__ = [
+    "SourceQualityTracker",
+    "calculate_diversity_score",
+    "PERMANENT_FAILURE_SENTINEL",
+]
+
+
+def _is_permanent_failure(reason: Optional[str]) -> bool:
+    """Return True if ``reason`` indicates a permanent (non-retryable) failure."""
+    if not reason:
+        return False
+    return any(signal in reason for signal in _PERMANENT_FAILURE_SIGNALS)
 
 
 @dataclass
@@ -47,14 +71,8 @@ class SourceQualityTracker(QualityStorage):
             probation_threshold + 1, int(settings.SOURCE_DEAD_FAILURES)
         )
 
-        if reason:
-            permanent_signals = (
-                "Permanent Error: 404",
-                "Permanent Error: 410",
-                "Malformed GitHub URL",
-            )
-            if any(signal in reason for signal in permanent_signals):
-                return "dead"
+        if _is_permanent_failure(reason):
+            return "dead"
 
         if consecutive_failures >= dead_threshold:
             return "dead"
@@ -144,7 +162,7 @@ class SourceQualityTracker(QualityStorage):
             # unless the source had a permanent error (consecutive_failures >= 100
             # is used as a sentinel for permanent 404/410 errors)
             consecutive_failures = state[2] if len(state) > 2 else 0
-            if consecutive_failures >= 100:
+            if consecutive_failures >= PERMANENT_FAILURE_SENTINEL:
                 # Truly permanent failure (404/410) - never retry
                 return False
             resurrection_hours = getattr(
@@ -208,6 +226,11 @@ class SourceQualityTracker(QualityStorage):
             current_failures = state[2] if len(state) > 2 else 0
 
         new_failures = current_failures + 1
+        # Permanent failures (404/410/malformed) jump straight to the sentinel so
+        # should_fetch() will never resurrect them, regardless of the resurrection
+        # window.
+        if _is_permanent_failure(reason):
+            new_failures = max(new_failures, PERMANENT_FAILURE_SENTINEL)
         status = self._derive_status(new_failures, reason, settings)
         stats = {
             "consecutive_failures": new_failures,

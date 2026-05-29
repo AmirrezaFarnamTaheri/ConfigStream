@@ -14,6 +14,8 @@ from typing import Optional
 
 from cryptography.fernet import Fernet
 
+from .utils import AtomicFileWriter
+
 logger = logging.getLogger(__name__)
 
 # Legacy marker kept for backward-compatible extraction of old artifacts.
@@ -282,7 +284,9 @@ class StegoPacker:
 
             payload_blob = self._build_payload_blob(payload_data)
             final_bytes = self._pack_lsb_png(cover_image_path, payload_blob)
-            output_path.write_bytes(final_bytes)
+            # Atomic write (temp + fsync + rename) so a crash mid-write can't
+            # leave a truncated/corrupt PNG at the output path.
+            AtomicFileWriter.write_bytes(output_path, final_bytes)
             logger.info(
                 "Stego image created at %s (%d bytes, LSB mode)",
                 output_path,

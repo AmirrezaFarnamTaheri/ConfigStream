@@ -163,6 +163,11 @@ class AppSettings(BaseSettings):
 
     # Secrets (Optional)
     TELEGRAM_BOT_TOKEN: Optional[str] = None
+    # Comma-separated list of authorized Telegram user IDs allowed to invoke bot
+    # commands. Empty/unset means the bot is locked down (no users authorized) so
+    # an unconfigured bot cannot be abused to consume WARP-account quota. Set to
+    # "*" to explicitly allow all users (NOT recommended for public bots).
+    TELEGRAM_ALLOWED_USERS: str = ""
     VT_API_KEY: Optional[str] = None
     ADMIN_API_KEY: Optional[str] = None
     STEGO_KEY: Optional[str] = None

@@ -131,7 +131,10 @@ def format_singbox_chain_for_loon(
         return None
 
     lines = []
-    relay_line = convert_singbox_outbound_to_surge_string(relay)
+    # Loon uses a distinct relay syntax from Surge; only emit a line for relay
+    # types we can format for Loon. Do NOT fall back to the Surge-format string
+    # (that would produce an invalid Loon line for unhandled relay types).
+    relay_line: Optional[str] = None
 
     o_type = relay.get("type")
     if o_type == "shadowsocks":

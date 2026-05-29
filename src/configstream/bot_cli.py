@@ -6,15 +6,21 @@ Command line interface for the Telegram Bot.
 
 from __future__ import annotations
 
+import functools
 import sys
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Awaitable, Callable, Optional, Set, Tuple, TypeVar
 
 # Configure logging
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 logger = logging.getLogger(__name__)
+
+_HandlerT = TypeVar(
+    "_HandlerT",
+    bound=Callable[["Update", "ContextTypes.DEFAULT_TYPE"], Awaitable[None]],
+)
 
 if TYPE_CHECKING:
     from telegram import Update
@@ -39,6 +45,72 @@ except ImportError:
     CommandHandler = None  # type: ignore
 
 
+def _load_allowed_users() -> Tuple[Set[int], bool]:
+    """
+    Resolve the set of authorized Telegram user IDs from settings.
+
+    Returns ``(allowed_ids, allow_all)``. ``allow_all`` is True only when the
+    operator explicitly configured ``*``. An empty/unset value yields an empty
+    set with ``allow_all=False`` so the bot is locked down by default.
+    """
+    from configstream.config import AppSettings
+
+    raw = (AppSettings().TELEGRAM_ALLOWED_USERS or "").strip()
+    if raw == "*":
+        return set(), True
+
+    allowed: Set[int] = set()
+    for token in raw.split(","):
+        token = token.strip()
+        if not token:
+            continue
+        try:
+            allowed.add(int(token))
+        except ValueError:
+            logger.warning("Ignoring invalid Telegram user ID in allowlist: %r", token)
+    return allowed, False
+
+
+def _is_authorized(user_id: Optional[int]) -> bool:
+    """Return True if ``user_id`` is permitted to invoke bot commands."""
+    allowed, allow_all = _load_allowed_users()
+    if allow_all:
+        return True
+    if user_id is None:
+        return False
+    return user_id in allowed
+
+
+def require_authorization(handler: _HandlerT) -> _HandlerT:
+    """
+    Decorator enforcing per-user authorization before running a command handler.
+
+    Unauthorized users get a short refusal message and the handler body never
+    runs, preventing an unconfigured/public bot from being abused to consume
+    WARP-account quota or leak release info.
+    """
+
+    @functools.wraps(handler)
+    async def wrapper(
+        update: "Update", context: "ContextTypes.DEFAULT_TYPE"
+    ) -> None:
+        user = getattr(update, "effective_user", None)
+        user_id = getattr(user, "id", None)
+        if not _is_authorized(user_id):
+            logger.warning("Refused unauthorized bot command from user_id=%s", user_id)
+            chat = getattr(update, "effective_chat", None)
+            if chat is not None:
+                await context.bot.send_message(
+                    chat_id=chat.id,
+                    text="You are not authorized to use this bot.",
+                )
+            return
+        await handler(update, context)
+
+    return wrapper  # type: ignore[return-value]
+
+
+@require_authorization
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat:
         await context.bot.send_message(
@@ -47,6 +119,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
+@require_authorization
 async def warp(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.effective_chat:
         return
@@ -84,6 +157,7 @@ async def warp(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
+@require_authorization
 async def mirror(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.effective_chat:
         return
@@ -114,6 +188,19 @@ def main():
 def run_bot(token: str):
     if ApplicationBuilder is None:
         raise ImportError("python-telegram-bot is not installed")
+
+    allowed, allow_all = _load_allowed_users()
+    if allow_all:
+        logger.warning(
+            "TELEGRAM_ALLOWED_USERS='*' — the bot will accept commands from ANY "
+            "user. This is NOT recommended for public bots."
+        )
+    elif not allowed:
+        logger.warning(
+            "TELEGRAM_ALLOWED_USERS is empty — the bot is locked down and will "
+            "refuse all commands. Set TELEGRAM_ALLOWED_USERS to a comma-separated "
+            "list of authorized user IDs to enable it."
+        )
 
     application = ApplicationBuilder().token(token).build()
 

@@ -172,6 +172,24 @@ class TestResultCache:
         )
         return proxy
 
+    def contains(self, proxy: Proxy) -> bool:
+        """
+        Return True if a non-expired cache entry exists for the proxy.
+
+        Unlike :meth:`get`, this performs a pure membership/TTL check and does
+        NOT mutate the passed proxy (``get`` copies cached results onto it as a
+        side effect). Use this when you only need existence, e.g. cache warming.
+        """
+        if not proxy.config:
+            return False
+
+        entry = self._cache.get(self._compute_hash(proxy.config))
+        if not entry:
+            return False
+
+        tested_at = entry.get("tested_at", 0.0)
+        return tested_at >= (time.time() - self.ttl_seconds)
+
     def set(self, proxy: Proxy) -> None:
         """
         Store test result in cache.
