@@ -17,19 +17,37 @@ from .security_validator import SecurityValidator
 trace_id_var: ContextVar[str] = ContextVar("trace_id", default="")
 
 
-# Use LogRecordFactory to ensure trace_id is ALWAYS present
-_original_record_factory = logging.getLogRecordFactory()
+# Attribute used to mark a factory we installed, so install_trace_id_factory()
+# is idempotent and never wraps our own factory repeatedly (which would grow an
+# unbounded chain on repeated setup_logging calls).
+_FACTORY_INSTALLED_ATTR = "_configstream_trace_id_factory"
 
 
-def _record_factory(*args, **kwargs):
-    record = _original_record_factory(*args, **kwargs)
-    # Ensure trace_id is always present
-    trace_id = trace_id_var.get()
-    record.trace_id = trace_id if trace_id else "-"
-    return record
+def _make_record_factory(original_factory):
+    """Build a LogRecordFactory that always attaches a ``trace_id`` attribute."""
+
+    def _record_factory(*args, **kwargs):
+        record = original_factory(*args, **kwargs)
+        trace_id = trace_id_var.get()
+        record.trace_id = trace_id if trace_id else "-"
+        return record
+
+    setattr(_record_factory, _FACTORY_INSTALLED_ATTR, True)
+    return _record_factory
 
 
-logging.setLogRecordFactory(_record_factory)
+def install_trace_id_factory() -> None:
+    """
+    Install the trace-id LogRecordFactory (idempotent).
+
+    Done lazily from :func:`setup_logging` rather than at import time so that
+    importing this module has no global side effect on the logging subsystem;
+    repeated calls are safe and will not chain factories.
+    """
+    current = logging.getLogRecordFactory()
+    if getattr(current, _FACTORY_INSTALLED_ATTR, False):
+        return
+    logging.setLogRecordFactory(_make_record_factory(current))
 
 
 class SensitiveDataFilter(logging.Filter):
@@ -162,6 +180,9 @@ def setup_logging(
     """
     effective_level = log_level or level
     log_level_value = _resolve_level(effective_level)
+
+    if enable_trace_ids:
+        install_trace_id_factory()
 
     if format_style == "detailed":
         if enable_trace_ids:
