@@ -24,7 +24,7 @@ The following review/audit classes are closed at repository level:
 | Categorized JSON serializer drift | Closed | Country/protocol list JSON uses the same safe public serializer as root `proxies.json`. |
 | Output matrix coverage | Closed | `docs/output_matrix.json` covers categorized list JSON API families. |
 | Source token exposure | Closed for tracked content | Tracked source lists are scrubbed; source files are scanned in CI. |
-| Gitleaks allowlist gap | Closed for config; hard gate pending | Source-file allowlisting was removed and custom source-token rules exist. The CI gitleaks step is still advisory while `continue-on-error: true` remains. |
+| Gitleaks allowlist gap | Closed for config; one-line CI flip pending | Source-file allowlisting was removed and custom source-token rules exist. The working tree scans clean; the only remaining step is removing `continue-on-error: true` from the CI gitleaks step (must be applied by a maintainer with `workflows` permission). |
 | Tracked generated artifacts | Closed | Generated mirrors/ZIPs were removed and ignored. |
 | Debt matrix reproducibility | Closed | `scripts/generate_debt_matrix.py --check` is non-mutating and excludes generated mirrors. |
 | Frontend dependency advisories | Closed for reported batch | Lockfile resolves patched Vite/PostCSS/Picomatch versions. |
@@ -44,10 +44,10 @@ The following review/audit classes are closed at repository level:
 | Repository production gate | Closed | Code, tests, validators, workflows, source hygiene, dependency audits, and artifact contract are reconciled. |
 | Pages artifact gate | Closed for generated artifacts | Fresh local/generated artifacts must pass `scripts/validate_pages_artifact.py`. |
 | Live Pages gate | Open | Public deployment is stale/incomplete until redeployed and verified. |
-| Source/token hygiene | Closed for tracked content | Tracked source lists are scrubbed; CI secret scanning covers source files, but gitleaks is advisory until made blocking. |
+| Source/token hygiene | Closed for tracked content | Tracked source lists are scrubbed; CI secret scanning covers source files. Working-tree gitleaks scan is clean; flipping the CI step to blocking is a pending one-line maintainer change. |
 | Generated artifact hygiene | Closed | Generated output mirrors and ZIPs are ignored and not tracked. |
 | Debt reproducibility | Closed | `scripts/generate_debt_matrix.py --check` is non-mutating and excludes generated mirrors. |
-| Security scan gate | Mostly closed | Expanded Bandit scope passes; source/token scan is wired in CI but gitleaks remains advisory until made blocking. |
+| Security scan gate | Mostly closed | Expanded Bandit scope passes; source/token scan is wired in CI. Gitleaks is blocking-ready (working tree clean) and only needs the `continue-on-error` line removed by a maintainer with `workflows` permission. |
 | Dependency gate | Closed for reported direct advisories | Frontend and direct production advisories from the audit batch were addressed. |
 
 ## Current Open Work
@@ -133,7 +133,7 @@ The master file is intentionally more detailed than this status checkpoint. It n
 | Client config outputs | Sing-box/Clash are stable; Xray pipeline output remains planned. | Add native/pinned proof before claiming new native output families. |
 | Frontend | Local static deployment contract is closed; smoke/build pass. | Remove `unsafe-inline`, reduce broad `innerHTML`, modularize Lab. |
 | Lab | Export hardening and diagnosis CSP issues are closed. | Split Lab code by concern and add deeper click-path tests around export/diagnosis. |
-| CI/security | Bandit, gitleaks/source scans, workflow validators, and audits are wired. | Keep scans server-side, avoid broad allowlists, and make gitleaks blocking after a confirmed-clean run. |
+| CI/security | Bandit, gitleaks/source scans, workflow validators, and audits are wired. | Flip the gitleaks step to blocking (remove `continue-on-error`); keep scans server-side and avoid broad allowlists. |
 | Artifacts | Generated mirrors are untracked; artifact validator guards Pages shape. | Redeploy live Pages and keep durable evidence. |
 | Docs/source of truth | Current root truth is this file plus Master. | Generate/archive duplicated docs instead of growing root status files. |
 
@@ -145,16 +145,16 @@ Latest local verification recorded for this status:
 - `py -3.13 scripts/generate_debt_matrix.py --check`: passed.
 - `py -3.13 scripts/validate_output_matrix.py`: passed.
 - `py -3.13 scripts/validate_workflows.py`: passed.
-- `py -3.13 -m pytest -q tests/unit/test_frontend_security_contract.py tests/unit/test_repo_hygiene.py tests/unit/test_release_scripts.py`: passed.
+- `python -m pytest -q tests/unit/test_frontend_security_contract.py tests/unit/test_repo_hygiene.py tests/unit/test_release_scripts.py`: passed.
 - `py -3.13 -m bandit -r src/configstream scripts tools frontend/assets/js -q`: passed.
 - `py -3.13 -m pip_audit -r requirements-prod.txt --no-deps`: passed.
 - `npm run build:sanity`: passed.
 - Same-origin frontend smoke: passed.
 - `python scripts/verify_pages_deployment.py https://amirrezafarnamtaheri.github.io/ConfigStream/ --timeout 120 --report-file output/pages_deployment_smoke.json`: fails against stale live Pages.
 
-Latest full-suite snapshot retained from the remediation cycle:
+Latest full-suite snapshot:
 
-- `python -m pytest -q`: 1042 passed, 1 skipped.
+- `python -m pytest -q`: 1057 passed, 4 skipped.
 
 ## Current Source Files
 
