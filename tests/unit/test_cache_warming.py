@@ -8,8 +8,9 @@ from configstream.models import Proxy
 @pytest.fixture
 def mock_cache():
     cache = MagicMock()
-    # Mock get method to return True for some proxies, False for others
-    cache.get = MagicMock()
+    # warm_cache uses contains() (pure membership check) rather than get(),
+    # which would mutate the proxy as a side effect.
+    cache.contains = MagicMock()
     cache.get_health_score = MagicMock()
     return cache
 
@@ -30,7 +31,7 @@ def test_warm_cache(mock_cache):
     proxies = [p1, p2, p3, p4]
 
     # Setup cache behavior
-    mock_cache.get.side_effect = lambda p: p.id in ["p1", "p3", "p4"]
+    mock_cache.contains.side_effect = lambda p: p.id in ["p1", "p3", "p4"]
 
     # health scores
     def health_score(p):
@@ -61,7 +62,7 @@ def test_warm_cache_all_uncached(mock_cache):
     p1 = create_proxy("p1")
     p2 = create_proxy("p2")
     proxies = [p1, p2]
-    mock_cache.get.return_value = False
+    mock_cache.contains.return_value = False
 
     result = warm_cache(mock_cache, proxies)
     assert len(result) == 2
