@@ -363,13 +363,22 @@ class UIStateManager {
       document.body.appendChild(overlay);
     }
     
-    // Escape message to prevent XSS
-    overlay.innerHTML = `
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>${this.escapeHtml(message)}</p>
-      </div>
-    `;
+    // Clear existing content
+    overlay.textContent = '';
+    
+    const spinnerContainer = document.createElement('div');
+    spinnerContainer.className = 'loading-spinner';
+    
+    const spinner = document.createElement('div');
+    spinner.className = 'spinner';
+    
+    const text = document.createElement('p');
+    text.textContent = message;
+    
+    spinnerContainer.appendChild(spinner);
+    spinnerContainer.appendChild(text);
+    overlay.appendChild(spinnerContainer);
+    
     overlay.style.display = 'flex';
   }
   
@@ -393,23 +402,46 @@ class UIStateManager {
     const notification = document.createElement('div');
     notification.id = 'error-notification';
     notification.className = 'notification notification-error';
-    notification.innerHTML = `
-      <div class="notification-content">
-        <i data-feather="alert-circle" class="notification-icon"></i>
-        <div class="notification-text">
-          <h4>Error</h4>
-          <p>${this.escapeHtml(message)}</p>
-        </div>
-        <button class="notification-close" onclick="document.getElementById('error-notification').remove()">
-          <i data-feather="x"></i>
-        </button>
-      </div>
-    `;
+    
+    const content = document.createElement('div');
+    content.className = 'notification-content';
+    
+    const icon = document.createElement('i');
+    icon.setAttribute('data-feather', 'alert-circle');
+    icon.className = 'notification-icon';
+    
+    const textContainer = document.createElement('div');
+    textContainer.className = 'notification-text';
+    
+    const title = document.createElement('h4');
+    title.textContent = 'Error';
+    
+    const body = document.createElement('p');
+    body.textContent = message;
+    
+    textContainer.appendChild(title);
+    textContainer.appendChild(body);
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'notification-close';
+    closeBtn.addEventListener('click', () => notification.remove());
+    
+    const closeIcon = document.createElement('i');
+    closeIcon.setAttribute('data-feather', 'x');
+    
+    closeBtn.appendChild(closeIcon);
+    
+    content.appendChild(icon);
+    content.appendChild(textContainer);
+    content.appendChild(closeBtn);
+    notification.appendChild(content);
     
     document.body.appendChild(notification);
     
     if (window.inlineIcons) {
       window.inlineIcons.replace();
+    } else if (window.feather) {
+      window.feather.replace();
     }
 
     // Auto-remove after 8 seconds
@@ -434,22 +466,42 @@ class UIStateManager {
     const notification = document.createElement('div');
     notification.id = 'success-notification';
     notification.className = 'notification notification-success';
-    notification.innerHTML = `
-      <div class="notification-content">
-        <i data-feather="check-circle" class="notification-icon"></i>
-        <div class="notification-text">
-          <p>${this.escapeHtml(message)}</p>
-        </div>
-        <button class="notification-close" onclick="document.getElementById('success-notification').remove()">
-          <i data-feather="x"></i>
-        </button>
-      </div>
-    `;
+    
+    const content = document.createElement('div');
+    content.className = 'notification-content';
+    
+    const icon = document.createElement('i');
+    icon.setAttribute('data-feather', 'check-circle');
+    icon.className = 'notification-icon';
+    
+    const textContainer = document.createElement('div');
+    textContainer.className = 'notification-text';
+    
+    const body = document.createElement('p');
+    body.textContent = message;
+    
+    textContainer.appendChild(body);
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'notification-close';
+    closeBtn.addEventListener('click', () => notification.remove());
+    
+    const closeIcon = document.createElement('i');
+    closeIcon.setAttribute('data-feather', 'x');
+    
+    closeBtn.appendChild(closeIcon);
+    
+    content.appendChild(icon);
+    content.appendChild(textContainer);
+    content.appendChild(closeBtn);
+    notification.appendChild(content);
     
     document.body.appendChild(notification);
 
     if (window.inlineIcons) {
       window.inlineIcons.replace();
+    } else if (window.feather) {
+      window.feather.replace();
     }
   }
 
@@ -464,9 +516,13 @@ class UIStateManager {
    * Escape HTML to prevent XSS
    */
   escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+    if (!text) return '';
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
   }
   
   /**

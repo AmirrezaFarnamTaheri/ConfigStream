@@ -4,6 +4,13 @@
  * Allows users to inject their own Cloudflare Worker URL into Gold configs
  */
 
+document.addEventListener('DOMContentLoaded', () => {
+    const upgradeBtn = document.getElementById('upgradePlatinumBtn');
+    if (upgradeBtn) {
+        upgradeBtn.addEventListener('click', applyUserWorker);
+    }
+});
+
 /**
  * Apply user's Worker URL to Gold/Shielded configs
  * Fetches singbox-chains.json, modifies VLESS/VMess outbounds to use user's worker, and downloads
@@ -25,13 +32,24 @@ async function applyUserWorker() {
         }
     }
 
+    const button = document.getElementById('upgradePlatinumBtn');
+    
     try {
         // Show loading state
-        const button = document.querySelector('button[onclick="applyUserWorker()"]');
-        const originalText = button?.innerHTML;
         if (button) {
             button.disabled = true;
-            button.innerHTML = '<i data-feather="loader"></i> <span>Processing...</span>';
+            button.replaceChildren();
+            
+            const icon = document.createElement('i');
+            icon.setAttribute('data-feather', 'loader');
+            
+            const span = document.createElement('span');
+            span.textContent = 'Processing...';
+            
+            button.appendChild(icon);
+            button.appendChild(document.createTextNode(' '));
+            button.appendChild(span);
+            
             if (window.feather) window.feather.replace();
         }
 
@@ -102,7 +120,18 @@ async function applyUserWorker() {
             alert("⚠️ No VLESS/VMess WebSocket outbounds found in the config.\n\nMake sure you're using the Gold/Shielded chains config (singbox-chains.json).");
             if (button) {
                 button.disabled = false;
-                button.innerHTML = originalText;
+                button.replaceChildren();
+                
+                const icon = document.createElement('i');
+                icon.setAttribute('data-feather', 'zap');
+                
+                const span = document.createElement('span');
+                span.textContent = 'Upgrade to Platinum';
+                
+                button.appendChild(icon);
+                button.appendChild(document.createTextNode(' '));
+                button.appendChild(span);
+                
                 if (window.feather) window.feather.replace();
             }
             return;
@@ -125,10 +154,20 @@ async function applyUserWorker() {
         alert(`❌ Failed to upgrade config: ${error.message}\n\nPlease check:\n- Your Worker URL is correct\n- The singbox-chains.json file is accessible\n- Your browser console for details`);
     } finally {
         // Restore button state
-        const button = document.querySelector('button[onclick="applyUserWorker()"]');
         if (button) {
             button.disabled = false;
-            button.innerHTML = '<i data-feather="zap"></i> <span>Upgrade to Platinum</span>';
+            button.replaceChildren();
+            
+            const icon = document.createElement('i');
+            icon.setAttribute('data-feather', 'zap');
+            
+            const span = document.createElement('span');
+            span.textContent = 'Upgrade to Platinum';
+            
+            button.appendChild(icon);
+            button.appendChild(document.createTextNode(' '));
+            button.appendChild(span);
+            
             if (window.feather) window.feather.replace();
         }
     }

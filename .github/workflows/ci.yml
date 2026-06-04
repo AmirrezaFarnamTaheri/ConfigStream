@@ -37,7 +37,7 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         with:
           config-path: .gitleaks.toml
-        continue-on-error: true # Keep non-fatal for now to avoid blocking until confirmed clean
+        # continue-on-error: true # Removed to make security scan blocking
       - name: Validate Versions
         run: python scripts/validate_versions.py
       - name: Validate capability registry

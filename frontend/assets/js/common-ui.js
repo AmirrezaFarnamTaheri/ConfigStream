@@ -32,6 +32,9 @@ document.addEventListener('DOMContentLoaded', () => {
         window.api.initMobileNav();
     }
 
+    // Initialize language selector
+    initLanguageSelector();
+
     // Initialize accordion (Home page specific)
     initAccordion();
 
@@ -46,6 +49,19 @@ document.addEventListener('DOMContentLoaded', () => {
         window.feather.replace();
     }
 });
+
+function initLanguageSelector() {
+    const langMenu = document.getElementById('lang-menu');
+    if (!langMenu) return;
+
+    langMenu.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-lang]');
+        if (btn && window.i18n) {
+            const lang = btn.dataset.lang;
+            window.i18n.setLanguage(lang);
+        }
+    });
+}
 
 function initHeaderScroll() {
     const header = document.querySelector('.header');

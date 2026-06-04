@@ -35,63 +35,94 @@ class ProxyHistoryChart {
      * Render history chart for a specific proxy
      */
     renderChart(proxyConfig) {
+        if (!this.container) return;
+        this.container.replaceChildren();
+
         if (!this.historyData || !this.historyData[proxyConfig]) {
-            this.container.innerHTML = '<p class="no-data">No historical data available for this proxy</p>';
+            const noData = document.createElement('p');
+            noData.className = 'no-data';
+            noData.textContent = 'No historical data available for this proxy';
+            this.container.appendChild(noData);
             return;
         }
 
         const data = this.historyData[proxyConfig];
         this.selectedProxy = data;
 
-        // Create chart HTML
-        this.container.innerHTML = `
-            <div class="history-chart-container">
-                <div class="chart-header">
-                    <h3>Reliability Trend</h3>
-                    <div class="proxy-info">
-                        <span>${data.protocol}://${data.address}:${data.port}</span>
-                    </div>
-                </div>
+        const chartContainer = document.createElement('div');
+        chartContainer.className = 'history-chart-container';
 
-                <div class="chart-stats">
-                    <div class="stat-card">
-                        <div class="stat-label">Success Rate</div>
-                        <div class="stat-value">${(data.stats.success_rate * 100).toFixed(1)}%</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Avg Latency</div>
-                        <div class="stat-value">${data.stats.avg_latency.toFixed(0)}ms</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Uptime</div>
-                        <div class="stat-value">${data.stats.uptime_percentage.toFixed(1)}%</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Total Tests</div>
-                        <div class="stat-value">${data.stats.total_tests}</div>
-                    </div>
-                </div>
+        // Header
+        const header = document.createElement('div');
+        header.className = 'chart-header';
+        const h3 = document.createElement('h3');
+        h3.textContent = 'Reliability Trend';
+        const proxyInfo = document.createElement('div');
+        proxyInfo.className = 'proxy-info';
+        const proxySpan = document.createElement('span');
+        proxySpan.textContent = `${data.protocol}://${data.address}:${data.port}`;
+        proxyInfo.appendChild(proxySpan);
+        header.appendChild(h3);
+        header.appendChild(proxyInfo);
+        chartContainer.appendChild(header);
 
-                <div class="chart-area">
-                    <svg id="history-svg" width="100%" height="300"></svg>
-                </div>
+        // Stats
+        const statsGrid = document.createElement('div');
+        statsGrid.className = 'chart-stats';
+        
+        const createStatCard = (label, value) => {
+            const card = document.createElement('div');
+            card.className = 'stat-card';
+            const lbl = document.createElement('div');
+            lbl.className = 'stat-label';
+            lbl.textContent = label;
+            const val = document.createElement('div');
+            val.className = 'stat-value';
+            val.textContent = value;
+            card.appendChild(lbl);
+            card.appendChild(val);
+            return card;
+        };
 
-                <div class="chart-legend">
-                    <div class="legend-item">
-                        <span class="legend-color" style="background: #10b981;"></span>
-                        <span>Online</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-color" style="background: #ef4444;"></span>
-                        <span>Offline</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-color" style="background: #3b82f6;"></span>
-                        <span>Latency (ms)</span>
-                    </div>
-                </div>
-            </div>
-        `;
+        statsGrid.appendChild(createStatCard('Success Rate', `${(data.stats.success_rate * 100).toFixed(1)}%`));
+        statsGrid.appendChild(createStatCard('Avg Latency', `${data.stats.avg_latency.toFixed(0)}ms`));
+        statsGrid.appendChild(createStatCard('Uptime', `${data.stats.uptime_percentage.toFixed(1)}%`));
+        statsGrid.appendChild(createStatCard('Total Tests', data.stats.total_tests));
+        chartContainer.appendChild(statsGrid);
+
+        // Chart Area
+        const chartArea = document.createElement('div');
+        chartArea.className = 'chart-area';
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.id = 'history-svg';
+        svg.setAttribute('width', '100%');
+        svg.setAttribute('height', '300');
+        chartArea.appendChild(svg);
+        chartContainer.appendChild(chartArea);
+
+        // Legend
+        const legend = document.createElement('div');
+        legend.className = 'chart-legend';
+        
+        const createLegendItem = (color, label) => {
+            const item = document.createElement('div');
+            item.className = 'legend-item';
+            const colorBox = document.createElement('span');
+            colorBox.className = 'legend-color';
+            colorBox.style.background = color;
+            const lbl = document.createElement('span');
+            lbl.textContent = label;
+            item.appendChild(colorBox);
+            item.appendChild(lbl);
+            return item;
+        };
+
+        legend.appendChild(createLegendItem('#10b981', 'Online'));
+        legend.appendChild(createLegendItem('#ef4444', 'Offline'));
+        legend.appendChild(createLegendItem('#3b82f6', 'Latency (ms)'));
+        chartContainer.appendChild(legend);
+
+        this.container.appendChild(chartContainer);
 
         // Draw the chart
         this.drawSVGChart(data.trend);
@@ -111,13 +142,19 @@ class ProxyHistoryChart {
         const chartHeight = height - padding.top - padding.bottom;
 
         // Clear existing content
-        svg.innerHTML = '';
+        svg.replaceChildren();
         svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
 
         const { timestamps, latencies, status } = trendData;
 
         if (timestamps.length === 0) {
-            svg.innerHTML = '<text x="50%" y="50%" text-anchor="middle" fill="#666">No data points available</text>';
+            const noData = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            noData.setAttribute('x', '50%');
+            noData.setAttribute('y', '50%');
+            noData.setAttribute('text-anchor', 'middle');
+            noData.setAttribute('fill', '#666');
+            noData.textContent = 'No data points available';
+            svg.appendChild(noData);
             return;
         }
 
@@ -258,8 +295,13 @@ class ProxyHistoryChart {
         const data = this.historyData[proxyConfig];
         const { timestamps, latencies, status } = data.trend;
 
+        container.replaceChildren();
+
         if (timestamps.length < 2) {
-            container.innerHTML = '<span class="mini-chart-no-data">No trend data</span>';
+            const noData = document.createElement('span');
+            noData.className = 'mini-chart-no-data';
+            noData.textContent = 'No trend data';
+            container.appendChild(noData);
             return;
         }
 
@@ -289,7 +331,6 @@ class ProxyHistoryChart {
         path.setAttribute('stroke-width', '2');
         svg.appendChild(path);
 
-        container.innerHTML = '';
         container.appendChild(svg);
     }
 

@@ -18,6 +18,7 @@ Welcome to the comprehensive documentation for ConfigStream — a "Zero to Hero"
 8.  **[API Reference](project/08-api-reference.md)** — CLI commands, REST endpoints, data formats
 9.  **[Contributing](project/09-contributing.md)** — Dev setup, coding standards, project structure, PR workflow
 10. **[Troubleshooting & FAQ](project/10-troubleshooting.md)** — Client issues, Lab Scanner, pipeline errors
+11. **[Output File Variations](project/11-outputs.md)** — Comprehensive list of all generated artifacts
 
 ### Quick References
 

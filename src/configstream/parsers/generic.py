@@ -163,12 +163,12 @@ def parse_generic_url_scheme(config: str) -> Optional[Proxy]:
             protocol=protocol,
             address=host,
             port=port,
-            uuid="",
+            uuid="",  # UUID must be empty for non-UUID protocols to pass schema validation
             details=details,
             remarks=unquote(parsed.fragment or ""),
         )
         if parsed.username:
-            proxy.details["username"] = parsed.username
+            proxy.details["username"] = unquote(parsed.username)
         normalize_proxy_details(proxy)
         return proxy
     except (ValueError, IndexError) as e:
@@ -203,7 +203,7 @@ def parse_naive(config: str) -> Optional[Proxy]:
             remarks=unquote(parsed.fragment or ""),
         )
         if parsed.username:
-            proxy.details["username"] = parsed.username
+            proxy.details["username"] = unquote(parsed.username)
         normalize_proxy_details(proxy)
         return proxy
     except (ValueError, IndexError) as e:

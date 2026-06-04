@@ -49,7 +49,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 function showEmptyState() {
     const container = document.getElementById('globe-viz');
     if (container) {
-        container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-secondary); font-size: 1.1rem;">Loading analytics data...</div>';
+        container.replaceChildren();
+        const msg = document.createElement('div');
+        msg.style.display = 'flex';
+        msg.style.alignItems = 'center';
+        msg.style.justifyContent = 'center';
+        msg.style.height = '100%';
+        msg.style.color = 'var(--text-secondary)';
+        msg.style.fontSize = '1.1rem';
+        msg.textContent = 'Loading analytics data...';
+        container.appendChild(msg);
     }
 }
 
@@ -146,7 +155,28 @@ function initGlobe(data) {
     if (!container) return;
 
     // Show loading indicator
-    container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-secondary); font-size: 1.1rem;"><div class="spinner" style="border: 3px solid var(--border); border-top-color: var(--primary-color); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-right: 10px;"></div>Loading globe...</div>';
+    container.replaceChildren();
+    const loadingDiv = document.createElement('div');
+    loadingDiv.style.display = 'flex';
+    loadingDiv.style.alignItems = 'center';
+    loadingDiv.style.justifyContent = 'center';
+    loadingDiv.style.height = '100%';
+    loadingDiv.style.color = 'var(--text-secondary)';
+    loadingDiv.style.fontSize = '1.1rem';
+
+    const spinner = document.createElement('div');
+    spinner.className = 'spinner';
+    spinner.style.border = '3px solid var(--border)';
+    spinner.style.borderTopColor = 'var(--primary-color)';
+    spinner.style.borderRadius = '50%';
+    spinner.style.width = '40px';
+    spinner.style.height = '40px';
+    spinner.style.animation = 'spin 1s linear infinite';
+    spinner.style.marginRight = '10px';
+    
+    loadingDiv.appendChild(spinner);
+    loadingDiv.appendChild(document.createTextNode('Loading globe...'));
+    container.appendChild(loadingDiv);
 
     // Wait for Globe.gl and THREE.js libraries to be available (retry mechanism)
     // Removed polling loop. Rely on standard load event.
@@ -158,7 +188,11 @@ function initGlobe(data) {
              else {
                  const missingLib = !window.THREE ? 'THREE.js' : 'Globe.gl';
                  logger.error(`${missingLib} library failed to load`);
-                 container.innerHTML = '<div class="error-state">Visualization Unavailable (Network Error)</div>';
+                 container.replaceChildren();
+                 const errDiv = document.createElement('div');
+                 errDiv.className = 'error-state';
+                 errDiv.textContent = 'Visualization Unavailable (Network Error)';
+                 container.appendChild(errDiv);
              }
         });
     }
@@ -166,17 +200,31 @@ function initGlobe(data) {
 
 function _initGlobeInternal(data, container) {
     // Clear loading indicator
-    container.innerHTML = '';
+    container.replaceChildren();
 
     // Check if Globe and THREE libraries are loaded
     if (!window.Globe || typeof window.Globe !== 'function') {
         logger.error('Globe.gl library not loaded');
-        container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--danger-color);">Globe visualization unavailable</div>';
+        const errDiv = document.createElement('div');
+        errDiv.style.display = 'flex';
+        errDiv.style.alignItems = 'center';
+        errDiv.style.justifyContent = 'center';
+        errDiv.style.height = '100%';
+        errDiv.style.color = 'var(--danger-color)';
+        errDiv.textContent = 'Globe visualization unavailable';
+        container.appendChild(errDiv);
         return;
     }
     if (!window.THREE) {
         logger.error('THREE.js library not loaded');
-        container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--danger-color);">3D rendering library unavailable</div>';
+        const errDiv = document.createElement('div');
+        errDiv.style.display = 'flex';
+        errDiv.style.alignItems = 'center';
+        errDiv.style.justifyContent = 'center';
+        errDiv.style.height = '100%';
+        errDiv.style.color = 'var(--danger-color)';
+        errDiv.textContent = '3D rendering library unavailable';
+        container.appendChild(errDiv);
         return;
     }
 
@@ -532,7 +580,36 @@ function _initGlobeInternal(data, container) {
         }
     } catch (e) {
         logger.error("Failed to initialize Globe:", e);
-        container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; flex-direction: column; color: var(--text-secondary);"><i data-feather="globe" style="width: 48px; height: 48px; margin-bottom: 1rem; opacity: 0.5;"></i><span>3D Visualization Unavailable</span><span style="font-size: 0.8rem; opacity: 0.7; margin-top: 0.5rem;">WebGL is not supported in this environment</span></div>';
+        container.replaceChildren();
+        const errDiv = document.createElement('div');
+        errDiv.style.display = 'flex';
+        errDiv.style.alignItems = 'center';
+        errDiv.style.justifyContent = 'center';
+        errDiv.style.height = '100%';
+        errDiv.style.flexDirection = 'column';
+        errDiv.style.color = 'var(--text-secondary)';
+
+        const globeIcon = document.createElement('i');
+        globeIcon.dataset.feather = 'globe';
+        globeIcon.style.width = '48px';
+        globeIcon.style.height = '48px';
+        globeIcon.style.marginBottom = '1rem';
+        globeIcon.style.opacity = '0.5';
+        
+        const span1 = document.createElement('span');
+        span1.textContent = '3D Visualization Unavailable';
+        
+        const span2 = document.createElement('span');
+        span2.style.fontSize = '0.8rem';
+        span2.style.opacity = '0.7';
+        span2.style.marginTop = '0.5rem';
+        span2.textContent = 'WebGL is not supported in this environment';
+
+        errDiv.appendChild(globeIcon);
+        errDiv.appendChild(span1);
+        errDiv.appendChild(span2);
+        container.appendChild(errDiv);
+
         if (window.feather) window.feather.replace();
         return;
     }

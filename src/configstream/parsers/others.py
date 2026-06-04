@@ -78,17 +78,22 @@ def _parse_url_scheme(config: str, protocol: str, default_port: int) -> Optional
             details["password"] = parsed.password
 
         # Special handling for username as uuid or private_key
-        uuid = parsed.username or ""
+        cred = parsed.username or ""
 
         proxy = Proxy(
             config=config,
             protocol=protocol,
             address=parsed.hostname,
             port=port,
-            uuid=uuid,
+            uuid="",
             remarks=unquote(parsed.fragment or "")[:200],
             details=details,
         )
+        if cred:
+            # Different protocols expect credentials in different fields
+            # We'll put it in both places and let the converter sort it out
+            proxy.details["password"] = cred
+            proxy.details["username"] = cred
         normalize_proxy_details(proxy)
         return proxy
     except (ValueError, IndexError) as e:

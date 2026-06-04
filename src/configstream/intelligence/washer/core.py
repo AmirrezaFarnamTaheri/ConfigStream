@@ -32,6 +32,13 @@ from configstream.tagging import (
     format_proxy_name,
     ProxyTagger,
 )
+from .constants import (
+    DEFAULT_WARP_SERVER_KEY,
+    DEFAULT_CLEAN_IPS,
+    FALLBACK_CLEAN_IPS,
+    CLEAN_IP_SOURCES,
+    OPTIMIZED_RESERVED,
+)
 
 logger = logging.getLogger(__name__)
 

@@ -159,7 +159,10 @@ function initDynamicDownloads() {
 
         // Update main icon container
         if (iconContainer) {
-            iconContainer.innerHTML = `<i data-feather="${client.icon}"></i>`;
+            iconContainer.textContent = '';
+            const icon = document.createElement('i');
+            icon.setAttribute('data-feather', client.icon);
+            iconContainer.appendChild(icon);
         }
 
         // Re-render feather icons

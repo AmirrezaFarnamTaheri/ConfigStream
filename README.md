@@ -2,27 +2,38 @@
 
 ConfigStream is a sovereignty-grade, zero-budget anti-censorship platform. It continuously aggregates, validates, and distributes resilient proxy configurations under hostile network conditions.
 
-> **Production status:** ConfigStream is production-ready as of v3.1.0 (2026-05-28) at repository level, but public Pages readiness remains gated on a fresh validated artifact deploy plus live Pages smoke. The active source of truth is `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md`, with `STATUS.md` and canonical matrices tracking current verification state.
+> **Production status:** ConfigStream is production-ready as of v3.1.0 (2026-05-28) at repository level. The active source of truth is [docs/history/source-of-truth/ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md](docs/history/source-of-truth/ConfigStream_Master_Audit_Report%20-%20Main%20SOURCE%20OF%20TRUTH.md), with `STATUS.md` and canonical matrices tracking current verification state.
 
-## Principles
-- Zero budget: free GitHub Actions/Pages, public APIs, and user-provided resources only
-- Resilience: fail-open or fail-safe handling for timeouts, blocklists, and unreliable sources
-- Security: strict validation and sanitized logging
+## Getting Started
 
-## What It Does
-- Ingests sources (remote URLs or local files) and extracts proxy configs across 20+ protocols
-- Tests and ranks proxies using a dual engine (Go sidecar + Python fallback)
-- Revives failed proxies by wrapping them in WARP or Vwarp chains when possible
-- Builds smart chains for resilient routing
-- Publishes multiple subscription formats and a metadata-rich JSON dataset
+### Prerequisites
+- **Python 3.10+**
+- **Docker** (Recommended for production)
+- **Node.js 20+** (Optional, for frontend development)
+- **Go 1.21+** (Optional, for high-performance tester builds)
 
-## Who It Is For
-- End users who want stable, frequently updated subscriptions
-- Operators who need a free, resilient pipeline with zero paid infrastructure
-- Developers who want structured datasets for analytics or custom tooling
+### 🚀 Quick Start (Docker)
+```bash
+docker compose up --build
+```
+Access the dashboard at `http://localhost:8000`.
 
-## Operating Model
-Runs on a strict zero-budget design: GitHub Actions executes the pipeline every 4 hours, and GitHub Pages hosts the outputs. The pipeline is stateless between runs, uses adaptive timeouts, and prioritizes safe failure modes under hostile network conditions.
+### 🐍 Local Pipeline (Development)
+```bash
+# Install dependencies
+pip install -e ".[dev]"
+
+# Run the aggregation pipeline
+configstream merge --sources sources/batch_1.txt --output output/
+
+# Run tests
+pytest
+```
+
+### 🛠 CLI Tools
+- **WARP Configs**: `configstream generate-warp --count 3`
+- **DB Update**: `configstream update-databases`
+- **Backups**: `configstream backup`
 
 ## Architecture Overview
 ConfigStream uses a streaming producer-consumer pipeline.
@@ -255,111 +266,11 @@ metadata.json (simplified example):
 revived.json uses the proxy array shape and contains only revived proxies.
 singbox-chains.json contains chain-only outbounds for sing-box.
 
-## Prerequisites
-
-Before running the pipeline, ensure you have the following installed if you plan to use specific features:
-
-*   **Python 3.10+**: Required for the core pipeline.
-*   **Cloudflare WARP**: Required if `USE_VWARP_TUNNEL=true`. The `vwarp` binary must be available in your PATH or configured via environment variables.
-*   **ConfigStream Tester (Go)**: Required for high-performance testing. The binary `configstream-tester` must be available in your PATH or configured via `CONFIGSTREAM_TESTER_BIN`.
-
-## Quickstart
-
-Docker (recommended for production):
-```bash
-docker compose up --build
-```
-
-Local (development):
-```bash
-pip install -e ".[dev]"
-configstream merge --sources sources/batch_1.txt --output output
-pytest
-```
-
-Named validation profiles:
-```bash
-python scripts/run_test_profile.py unit
-python scripts/run_test_profile.py integration
-python scripts/run_test_profile.py frontend-browser
-python scripts/run_test_profile.py production-smoke
-```
-
-`frontend-browser` requires installed Python Playwright browsers and fails
-loudly when `CONFIGSTREAM_REQUIRE_PLAYWRIGHT=1` is set. For local same-origin
-frontend smoke coverage without relying on the Python browser bundle:
-```bash
-npm run test:frontend:no-network
-npm run test:frontend:degraded
-```
-
-Frontend build (optional, Vite):
-```bash
-npm install
-npm run build
-```
-
-GitHub Pages deploys the raw static `frontend/` tree merged into `output/`.
-The Vite build is a local/CI sanity check, not the production Pages artifact.
-During Pages deploy, `assets/js/runtime-config.js` is generated from
-`CS_PUBLIC_KEY` and `STEGO_KEY` secrets after the raw frontend copy, so source
-JavaScript keeps local/offline empty defaults while the uploaded artifact gets
-production runtime keys.
-
-## Environment Variables
-Core:
-- PYTHONPATH=/path/to/ConfigStream/src
-
-Optional (enhanced features):
-- WARP_KEY_POOL=[{"private_key":"...","reserved":[0,0,0],"peer_public_key":"..."}]
-- USE_VWARP_TUNNEL=true (default: true)
-- MAXMIND_LICENSE_KEY=your-key
-- VT_API_KEY=your-virustotal-key
-- CANARY_URL=https://example.com/health
-- SS_LIB_SHA256=64-character-sha256-of-local-ss-checker-binary
-
-Optional (Vwarp tuning):
-- VWARP_TEST_URL=http://1.1.1.1/cdn-cgi/trace
-- VWARP_DNS=1.1.1.1
-- VWARP_ENDPOINT=162.159.192.1:2408
-- VWARP_CONFIG_PATH=/path/to/vwarp.json
-- VWARP_CONFIG_JSON={"version":"1.0","bind":"127.0.0.1:10808"}
-- VWARP_FORCE_MASQUE=true
-
-Optional (production hardening):
-- ADMIN_API_KEY=your-secret-key
-- ALLOWED_ORIGINS=https://yourdomain.com
-- STEGO_KEY=your-base64-fernet-key (rotate every 6 hours)
-- DNS_SAFE_OUTPUTS=true
-- DNS_HARDENED_OUTPUTS=true
-- DNS_SAFE_RESOLVE_TIMEOUT=4
-- DNS_SAFE_RESOLVE_BATCH=500
-- DNS_SAFE_RESOLVE_LIMIT=0
-- EVASION_MODE=aggressive (options: standard, stealth, aggressive)
-
-Optional Shadowsocks-Rust FFI validation is disabled unless both a local
-`bin/ss_checker` library and matching `SS_LIB_SHA256` are configured. Without
-that hash, ConfigStream skips the Rust FFI path and continues with the Python
-validation path; a mismatched configured hash fails closed.
-
 ## Deployment
-The reference deployment uses GitHub Actions to run the pipeline every 4 hours and GitHub Pages to host outputs. This keeps infrastructure free and globally accessible.
-
-For local deployment, Docker Compose is the simplest path. For CI, see docs/DEPLOYMENT.md.
-
-## Quality Controls
-- Adaptive timeouts and circuit breakers to prevent stalls
-- Strict validation and blocklist enforcement on untrusted inputs
-- Test-result caching to avoid redundant checks
-- Atomic output writes to prevent partial datasets
+ConfigStream uses GitHub Actions to run the pipeline every 4 hours and GitHub Pages to host outputs. This keeps infrastructure free and globally accessible. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for setup.
 
 ## Security
-Security is mandatory, not optional.
-- Logs are sanitized and sensitive tokens are masked
-- Inputs are validated and blocklisted hosts are filtered
-- No active scanning of third-party infrastructure
-
-See SECURITY.md for policies, threat model, and disclosure process.
+Security is mandatory. Logs are sanitized, inputs validated, and active scanning disabled by default. See [SECURITY.md](SECURITY.md) for details.
 
 ## Operational FAQ
 1. Outputs look empty or very small: check source availability, blocklists, and tester binary presence in logs.
