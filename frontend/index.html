@@ -127,9 +127,9 @@
             <section class="hero text-center">
                 <h1 style="--delay: 0.1s;" data-i18n="hero.title">Unlock the Internet</h1>
                 <p class="subtitle" style="--delay: 0.2s;">
-                    <span id="heroSubtitle" data-i18n-html="true">Access the open web with our free, auto-updating VPN configurations. We aggregate fresh proxies from <strong class="highlight-text">{sources}</strong> sources every <strong class="highlight-text">{hours}</strong> hours, ensuring you always have a reliable connection.</span>
+                    <span id="heroSubtitle">Access the open web with our free, auto-updating VPN configurations.</span>
                     <br>
-                    <span data-i18n="hero.subtitle.powered" data-i18n-html="true">Powered by the <strong>Resilient Core</strong> hybrid engine with <strong>Smart Chain</strong> and <strong>Vwarp</strong> anti-censorship technology.</span>
+                    <span id="heroSubtitlePowered">Powered by the Resilient Core hybrid engine.</span>
                 </p>
                 <div class="hero-actions" style="--delay: 0.3s;">
                     <a href="proxies.html" class="btn btn-primary">
@@ -514,7 +514,7 @@
                                        id="userWorkerUrl" 
                                        placeholder="your-worker.username.workers.dev" 
                                        style="flex: 1; padding: 0.75rem; border: 1px solid #667eea; border-radius: var(--radius-md); background: var(--bg-secondary); color: var(--text-primary); font-family: monospace; font-size: 0.9rem;">
-                                <button onclick="applyUserWorker()" 
+                                <button id="upgradePlatinumBtn" 
                                         class="btn btn-primary" 
                                         style="background: #667eea; color: white; font-weight: 600; white-space: nowrap;">
                                     <i data-feather="zap"></i>

@@ -91,11 +91,18 @@ async function renderPage(filename) {
     const container = document.getElementById('wikiRenderer');
     if (!container) return;
 
-    container.innerHTML = `
-        <div class="loading-spinner">
-            <div class="spinner"></div>
-            <p style="margin-left: 10px;">Loading content...</p>
-        </div>`;
+    // Loading state
+    container.replaceChildren();
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'loading-spinner';
+    const spinner = document.createElement('div');
+    spinner.className = 'spinner';
+    const loadingText = document.createElement('p');
+    loadingText.style.marginLeft = '10px';
+    loadingText.textContent = 'Loading content...';
+    loadingDiv.appendChild(spinner);
+    loadingDiv.appendChild(loadingText);
+    container.appendChild(loadingDiv);
 
     try {
         // Strategy:
@@ -156,24 +163,39 @@ async function renderPage(filename) {
             let sanitized;
             if (window.DOMPurify) {
                 sanitized = window.DOMPurify.sanitize(html, {
-                     // DO NOT allow iframes - XSS vector
-                     // ADD_TAGS: ['iframe'], // REMOVED - dangerous
                      ADD_ATTR: ['target', 'rel'],
                      FORBID_TAGS: ['script', 'object', 'embed', 'applet', 'iframe', 'form'],
                      FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover']
                 });
-                container.innerHTML = sanitized;
+                container.innerHTML = sanitized; // Sanitized by DOMPurify
             } else {
                 // CRITICAL: If DOMPurify fails, render as plain text
                 console.error("[Wiki] DOMPurify not loaded - rendering as plain text for security");
-                container.innerHTML = `
-                    <div class="warning-state" style="padding: 20px; background: #fff3cd; color: #856404; border-radius: 8px; margin-bottom: 20px;">
-                        <strong>⚠️ Security Warning:</strong> DOMPurify library failed to load.
-                        Content is displayed as plain text to prevent XSS vulnerabilities.
-                    </div>
-                    <pre style="white-space: pre-wrap; background: #f5f5f5; padding: 15px; border-radius: 4px;">${content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
-                `;
-                return; // Exit early - do not process further
+                container.replaceChildren();
+                
+                const warnDiv = document.createElement('div');
+                warnDiv.className = 'warning-state';
+                warnDiv.style.padding = '20px';
+                warnDiv.style.background = '#fff3cd';
+                warnDiv.style.color = '#856404';
+                warnDiv.style.borderRadius = '8px';
+                warnDiv.style.marginBottom = '20px';
+                
+                const warnStrong = document.createElement('strong');
+                warnStrong.textContent = '⚠️ Security Warning: ';
+                warnDiv.appendChild(warnStrong);
+                warnDiv.appendChild(document.createTextNode('DOMPurify library failed to load. Content is displayed as plain text to prevent XSS vulnerabilities.'));
+                
+                const pre = document.createElement('pre');
+                pre.style.whiteSpace = 'pre-wrap';
+                pre.style.background = '#f5f5f5';
+                pre.style.padding = '15px';
+                pre.style.borderRadius = '4px';
+                pre.textContent = content;
+                
+                container.appendChild(warnDiv);
+                container.appendChild(pre);
+                return; 
             }
 
             // Post-processing: Make links open in new tab if external
@@ -186,12 +208,25 @@ async function renderPage(filename) {
 
         } else {
             // Fallback if marked is missing (e.g., CDN blocked)
-            container.innerHTML = `
-                <div class="warning-state" style="padding: 20px; background: #fff3cd; color: #856404; border-radius: 8px;">
-                    <strong>Markdown Parser Missing:</strong> The content below is raw Markdown.
-                </div>
-                <pre style="white-space: pre-wrap;">${content}</pre>
-            `;
+            container.replaceChildren();
+            const warnDiv = document.createElement('div');
+            warnDiv.className = 'warning-state';
+            warnDiv.style.padding = '20px';
+            warnDiv.style.background = '#fff3cd';
+            warnDiv.style.color = '#856404';
+            warnDiv.style.borderRadius = '8px';
+            
+            const warnStrong = document.createElement('strong');
+            warnStrong.textContent = 'Markdown Parser Missing: ';
+            warnDiv.appendChild(warnStrong);
+            warnDiv.appendChild(document.createTextNode('The content below is raw Markdown.'));
+            
+            const pre = document.createElement('pre');
+            pre.style.whiteSpace = 'pre-wrap';
+            pre.textContent = content;
+            
+            container.appendChild(warnDiv);
+            container.appendChild(pre);
             console.warn("marked library not loaded");
         }
 
@@ -203,14 +238,32 @@ async function renderPage(filename) {
         }
 
     } catch (error) {
-        container.innerHTML = `
-            <div class="error-state">
-                <h3>Error Loading Documentation</h3>
-                <p>Could not fetch ${filename}.</p>
-                <p class="error-detail">${error.message}</p>
-                <button onclick="location.reload()" class="btn btn-secondary" style="margin-top: 10px;">Retry</button>
-            </div>
-        `;
+        container.replaceChildren();
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-state';
+        
+        const h3 = document.createElement('h3');
+        h3.textContent = 'Error Loading Documentation';
+        
+        const p1 = document.createElement('p');
+        p1.textContent = `Could not fetch ${filename}.`;
+        
+        const p2 = document.createElement('p');
+        p2.className = 'error-detail';
+        p2.textContent = error.message;
+        
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-secondary';
+        btn.style.marginTop = '10px';
+        btn.textContent = 'Retry';
+        btn.onclick = () => location.reload();
+        
+        errorDiv.appendChild(h3);
+        errorDiv.appendChild(p1);
+        errorDiv.appendChild(p2);
+        errorDiv.appendChild(btn);
+        
+        container.appendChild(errorDiv);
         console.error("Wiki load error:", error);
     }
 }

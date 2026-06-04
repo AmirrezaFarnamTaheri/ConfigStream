@@ -98,12 +98,14 @@ The system follows a **Streaming Pipeline Architecture** (`Producer-Consumer`):
 *   **`net.py`**: Shared network helpers (`normalize_host`, `is_ip_literal`, `is_global_ip`). Used by `output_logic.py` and `output_handler.py`. Do NOT duplicate these — always import from `utils.net`.
 *   **`__init__.py`**: `AtomicFileWriter`, `BoundedConcurrencyManager`, `_FileLock`.
 
-### Output Generation (`src/configstream/output_logic.py`, `src/configstream/output_handler.py`)
-*   **DNS Cache Passthrough**: `output_handler.py` pre-computes `_build_dns_safe_proxies` and `_build_dns_hardened_proxies` results and passes them via `dns_safe_cache` / `dns_hardened_cache` params to `generate_categorized_outputs`. Do NOT recompute these inside `generate_categorized_outputs` when caches are provided.
-*   **Chosen Outputs**: `generate_categorized_outputs` generates `chosen/{base64.txt, proxies.txt, singbox.json, clash.yaml}` for the top-N proxy subset. When no proxies are working, `_select_chosen_proxies` falls back to selecting from ALL proxies.
-*   **Categorized Outputs**: Country and protocol sub-files include **ALL** proxies (not just working ones). The `is_working` flag is preserved for client-side filtering.
-*   **Always Generate**: The pipeline **never** exits early on zero working proxies. Outputs are always produced so users in different networks can use the subscription files.
-*   **No Duplicate Helpers**: Chain outbound counting in `output_handler.py` uses `_collect_tags()` helper with `set[str]`. The full `_append_chain` collection logic lives only in `output_logic.py`. Revived-proxy filtering uses `_is_revived()` helper — do NOT inline the condition.
+### Output Generation (`src/configstream/output/`)
+*   **Modular Architecture**: Logic is split across specialized modules in the `src/configstream/output/` package. `output_logic.py` acts as a thin orchestrator.
+    *   `metadata.py`: Handles `metadata.json`, `health.json`, and artifact manifest generation.
+    *   `public_lists.py`: Generates protocol and country-specific URI lists.
+    *   `native_configs.py`: Builds profiles for Sing-box, Clash, and third-party adapters (Shadowrocket, QuantumultX, Surge, Loon).
+    *   `subscriptions.py`: Manages Base64/plaintext formatting and `side_products.zip` packaging.
+*   **DNS Cache Passthrough**: `output_handler.py` pre-computes `_build_dns_safe_proxies` and `_build_dns_hardened_proxies` results and passes them via `dns_safe_cache` / `dns_hardened_cache` params.
+*   **Always Generate**: The pipeline **never** exits early on zero working proxies. Outputs are always produced to prevent frontend/client 404s.
 
 ### Split Generator (`src/configstream/generators/split.py`)
 *   **Outbound Cache**: `to_singbox_outbound()` is called **once** per proxy and cached in `_base_outbound_cache`. Both Sniper (with evasion) and Tank (clean) use `copy.deepcopy()` of the cached result. Do NOT call `to_singbox_outbound()` twice per proxy.
@@ -128,17 +130,14 @@ The system follows a **Streaming Pipeline Architecture** (`Producer-Consumer`):
     *   `total_proxies` in metadata includes Native + Revived + Smart Chains.
     *   **Shielded Accounting**: Untested shielded chains are candidates, not working proxies. They must be exposed with `is_working=False`, candidate tags/details, and must not inflate `total_working`. Only retested chains may count toward `shielded_verified_count`.
     *   **Metadata Completeness**: `save_metadata` in `output_logic.py` **MUST** export every field that `PipelineStats.to_dict()` produces and that the frontend reads. Key fields: `shielded_count`, `shielded_candidate_count`, `shielded_verified_count`, `evasion_utls_enabled`, `evasion_alpn_enabled`, `evasion_fragmentation_enabled`, `evasion_multiplexing_enabled`, `evasion_dns_safe_count`, `evasion_dns_hardened_count`.
-*   **Frontend**:
-    *   Analytics dashboard displays split stats for Revived proxies (Warp vs Vwarp).
-    *   **Laboratory page** (`frontend/lab.html` + `assets/js/lab.js`) provides a 5-step chain builder walkthrough for end users:
-        1. Parse proxy URI (VLESS, VMess, Trojan, SS, Hysteria2, TUIC, WireGuard)
-        2. Discover clean Cloudflare IPs (auto, manual, local scan)
-        3. Build chain — the canonical 9 strategies live in `frontend/assets/data/lab_strategies.json`: **WARP**, **Vwarp MASQUE**, **Vwarp AtomicNoize**, **Double WARP**, **WARP + Psiphon**, **Relay Chain**, **TLS Fragment**, **CDN Worker**, **Custom Sing-box JSON**
-           - Advanced evasion: uTLS fingerprint, ALPN, multiplex (h2mux/smux/yamux), padding
-        4. Test chain (live API or manual fallback with sing-box CLI instructions)
-        5. Export: Sing-Box JSON, Clash YAML, Xray JSON, Nekobox link, URI, QR, **Python script**, **Bash script**
-    *   **Frontend Deploy Reality**: GitHub Pages deploys the raw static `frontend/.` tree copied into `output/`, then injects `assets/js/runtime-config.js`, API aliases, and refreshed `health.json` / `artifact_manifest.json`. `frontend-dist/` is a local/Vite build artifact and must not become the Pages source unless the output contract is deliberately changed.
-    *   **Public Output Contract**: Pages and data-release workflows must share `scripts/validate_pages_artifact.py` / `docs/output_matrix.json` semantics. Empty text/base64 subscription files can be valid in degraded zero-working runs, but control JSON, client configs, API aliases, and manifest/health files must remain valid and hash-tracked.
+### Frontend & Laboratory (`frontend/assets/js/lab/`)
+*   **Modular Lab**: The Laboratory logic is a modern ES6 package in `assets/js/lab/`.
+    *   `state.js`: Centralized state management for the chain builder.
+    *   `ui.js`: Programmatic DOM construction. **Strictly forbidden to use `innerHTML`**; use `textContent` and `appendChild`.
+    *   `exporters.js`: Export format builders (Clash YAML, Xray JSON, etc.).
+    *   `index.js`: Main entry point and event wiring.
+*   **Security Mandate**: All frontend components must avoid `innerHTML` where variable data or metadata is involved. Use the `ui.js` helper `showResultHTML` only for trusted internal strings.
+*   **Frontend Deploy Reality**: GitHub Pages deploys the raw static `frontend/.` tree copied into `output/`. `frontend-dist/` is a local build artifact.
 
 ## 6. Git & Version Control
 *   **Diffs**: When generating patches, ensure context is accurate.
@@ -178,7 +177,22 @@ Before submitting ANY code:
 *   **Converters**: Public API in `converters/__init__.py` with `__all__`.
 
 ### Removed Files (do NOT recreate)
+*   `output_logic.py` — internals decomposed into `src/configstream/output/` package; root file remains as a thin re-export shim.
+*   `lab.js` — fully modularized into `frontend/assets/js/lab/` ES6 package.
 *   `pipeline_stages.py` — consolidated into `producer.py` and `consumer.py`.
+
+### Source & Ingestion Contract
+*   **Canonical Source**: `consolidated_sources.txt` is the single canonical source of truth.
+*   **Token Safety**: Tracked source lists MUST NOT contain live-looking user tokens, subscription credentials, or private query strings.
+*   **Fetch Safety**: Remote source fetches must defend against SSRF and private-network abuse (enforced in `fetcher.py`).
+
+### Completion Doctrine
+A feature is NOT complete because code exists. It is complete only when:
+1.  Implementation is modular and documented.
+2.  Tests (unit/scenario) pass.
+3.  Schemas and machine-readable matrices (`docs/*.json`) are updated.
+4.  Generated artifacts validate against the `output_matrix.json`.
+5.  CI/Deploy workflows are updated and green.
 *   `dns_prewarm.py` — consolidated into `dns_cache.py`.
 *   `quality/geo.py` — duplicate of `intelligence/chaining.py`; deleted.
 *   `intelligence/washer.py` — consolidated into `intelligence/washer/core.py`.

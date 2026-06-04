@@ -227,7 +227,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     } catch (e) {
         logger.error("Failed to load proxies:", e);
-        if(loadingEl) loadingEl.innerHTML = `<p style="color:var(--danger-color)">Error loading proxies. Please check console.</p>`;
+        if(loadingEl) {
+            loadingEl.replaceChildren();
+            const errorP = document.createElement('p');
+            errorP.style.color = 'var(--danger-color)';
+            errorP.textContent = 'Error loading proxies. Please check console.';
+            loadingEl.appendChild(errorP);
+        }
     }
 });
 
@@ -237,7 +243,7 @@ function renderTable() {
     const emptyState = document.getElementById('emptyState');
     if(!tbody) return;
 
-    tbody.innerHTML = '';
+    tbody.replaceChildren();
 
     if (filteredProxies.length === 0) {
         if(emptyState) emptyState.classList.remove('hidden');
@@ -261,34 +267,61 @@ function renderTable() {
         // Protocol
         const protoCell = document.createElement('td');
         protoCell.setAttribute('data-label', 'Protocol');
-        let badgeHtml = `<span class="badge badge-protocol">${escapeHtml(p.protocol.toUpperCase())}</span>`;
+        const protoBadge = document.createElement('span');
+        protoBadge.className = 'badge badge-protocol';
+        protoBadge.textContent = p.protocol.toUpperCase();
+        protoCell.appendChild(protoBadge);
 
         if (p.typeTag) {
-             let tagClass = 'badge-info';
-             let tagText = 'Smart';
-             let icon = '';
-             if (p.typeTag === 'secure') { tagClass = 'badge-success'; tagText = 'Secure'; icon = '🛡️'; }
-             if (p.typeTag === 'optimal') { tagClass = 'badge-warning'; tagText = 'Optimal'; icon = '⚡'; }
-             if (p.typeTag === 'intranet') { tagClass = 'badge-primary'; tagText = 'Intranet'; icon = '🏢'; }
-             // Use margin-inline-start for RTL support (auto-adjusts based on text direction)
-             badgeHtml += ` <span class="badge ${tagClass}" style="font-size: 0.7em; margin-inline-start: 5px;">${icon} ${tagText}</span>`;
+            let tagClass = 'badge-info';
+            let tagText = 'Smart';
+            let icon = '';
+            if (p.typeTag === 'secure') { tagClass = 'badge-success'; tagText = 'Secure'; icon = '🛡️'; }
+            if (p.typeTag === 'optimal') { tagClass = 'badge-warning'; tagText = 'Optimal'; icon = '⚡'; }
+            if (p.typeTag === 'intranet') { tagClass = 'badge-primary'; tagText = 'Intranet'; icon = '🏢'; }
+            
+            const tagBadge = document.createElement('span');
+            tagBadge.className = `badge ${tagClass}`;
+            tagBadge.style.fontSize = '0.7em';
+            tagBadge.style.marginInlineStart = '5px';
+            tagBadge.textContent = `${icon} ${tagText}`;
+            protoCell.appendChild(document.createTextNode(' '));
+            protoCell.appendChild(tagBadge);
         }
-        protoCell.innerHTML = badgeHtml;
         row.appendChild(protoCell);
 
         // Location
         const locCell = document.createElement('td');
         locCell.setAttribute('data-label', 'Location');
         locCell.className = 'location-cell';
-        // Escape country code to prevent XSS
-        const safeCountryCode = escapeHtml(p.country_code || 'Unknown');
+        const safeCountryCode = p.country_code || 'Unknown';
         const normalizedCountryCode = typeof p.country_code === 'string' ? p.country_code.trim().toLowerCase() : '';
         const hasLocalFlag = /^[a-z]{2}$/.test(normalizedCountryCode) && normalizedCountryCode !== 'xx';
-        const flag = hasLocalFlag
-            ? `<img src="assets/images/flags/w20/${normalizedCountryCode}.png" class="country-flag" alt="${safeCountryCode}" onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('span'),{className:'country-flag country-flag-text',textContent:'${safeCountryCode}',ariaLabel:'${safeCountryCode}'}))">`
-            : `<i data-feather="globe" class="country-flag-icon"></i>`;
-        const locText = p.city ? `${escapeHtml(p.city)}, ${safeCountryCode}` : safeCountryCode;
-        locCell.innerHTML = `${flag} <span>${locText}</span>`;
+        
+        if (hasLocalFlag) {
+            const flag = document.createElement('img');
+            flag.src = `assets/images/flags/w20/${normalizedCountryCode}.png`;
+            flag.className = 'country-flag';
+            flag.alt = safeCountryCode;
+            flag.onerror = () => {
+                const span = document.createElement('span');
+                span.className = 'country-flag country-flag-text';
+                span.textContent = safeCountryCode;
+                span.ariaLabel = safeCountryCode;
+                flag.replaceWith(span);
+            };
+            locCell.appendChild(flag);
+        } else {
+            const flagIcon = document.createElement('i');
+            flagIcon.dataset.feather = 'globe';
+            flagIcon.className = 'country-flag-icon';
+            locCell.appendChild(flagIcon);
+        }
+        
+        const locTextSpan = document.createElement('span');
+        locTextSpan.textContent = p.city ? `${p.city}, ${safeCountryCode}` : safeCountryCode;
+        locCell.appendChild(document.createTextNode(' '));
+        locCell.appendChild(locTextSpan);
         row.appendChild(locCell);
 
         // Latency
@@ -330,7 +363,11 @@ function renderTable() {
         if (processType === 'chain') pBadge = 'badge-info';
         if (processType === 'smart') pBadge = 'badge-primary';
 
-        processCell.innerHTML = `<span class="badge ${pBadge}" style="font-size:0.75em">${escapeHtml(processType.toUpperCase())}</span>`;
+        const pBadgeSpan = document.createElement('span');
+        pBadgeSpan.className = `badge ${pBadge}`;
+        pBadgeSpan.style.fontSize = '0.75em';
+        pBadgeSpan.textContent = processType.toUpperCase();
+        processCell.appendChild(pBadgeSpan);
         row.appendChild(processCell);
 
         // Trend (Latency History Sparkline)
@@ -364,18 +401,44 @@ function renderTable() {
                 const trendColor = lastVal < firstVal ? '#ef4444' : (lastVal > firstVal ? '#10b981' : '#6366f1');
                 const trendIcon = lastVal < firstVal ? '↓' : (lastVal > firstVal ? '↑' : '→');
 
-                trendCell.innerHTML = `
-                    <div class="trend-sparkline" title="Latency trend: ${history.length} data points">
-                        <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-                            <path d="${points}" fill="none" stroke="${trendColor}" stroke-width="2" stroke-linecap="round"/>
-                        </svg>
-                        <span style="color:${trendColor};font-size:0.8em;margin-left:4px">${trendIcon}</span>
-                    </div>`;
+                const trendWrapper = document.createElement('div');
+                trendWrapper.className = 'trend-sparkline';
+                trendWrapper.title = `Latency trend: ${history.length} data points`;
+
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.setAttribute('width', width);
+                svg.setAttribute('height', height);
+                svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', points);
+                path.setAttribute('fill', 'none');
+                path.setAttribute('stroke', trendColor);
+                path.setAttribute('stroke-width', '2');
+                path.setAttribute('stroke-linecap', 'round');
+                
+                svg.appendChild(path);
+                trendWrapper.appendChild(svg);
+
+                const iconSpan = document.createElement('span');
+                iconSpan.style.color = trendColor;
+                iconSpan.style.fontSize = '0.8em';
+                iconSpan.style.marginLeft = '4px';
+                iconSpan.textContent = trendIcon;
+                trendWrapper.appendChild(iconSpan);
+
+                trendCell.appendChild(trendWrapper);
             } else {
-                trendCell.innerHTML = '<span class="trend-no-data">-</span>';
+                const noDataSpan = document.createElement('span');
+                noDataSpan.className = 'trend-no-data';
+                noDataSpan.textContent = '-';
+                trendCell.appendChild(noDataSpan);
             }
         } else {
-            trendCell.innerHTML = '<span class="trend-no-data">-</span>';
+            const noDataSpan = document.createElement('span');
+            noDataSpan.className = 'trend-no-data';
+            noDataSpan.textContent = '-';
+            trendCell.appendChild(noDataSpan);
         }
         row.appendChild(trendCell);
 
@@ -384,7 +447,11 @@ function renderTable() {
         actionCell.setAttribute('data-label', 'Action');
         const btn = document.createElement('button');
         btn.className = 'btn btn-secondary copy-btn';
-        btn.innerHTML = `<i data-feather="copy"></i>`;
+        
+        const copyIcon = document.createElement('i');
+        copyIcon.dataset.feather = 'copy';
+        btn.appendChild(copyIcon);
+        
         // We use data-config attribute or just pass it
         // p.config might be the full URL/URI
         const configStr = p.config || '';
@@ -406,7 +473,12 @@ function populateDropdowns(proxies) {
     const countries = new Set(proxies.map(p => p.country_code).filter(c => c && c !== 'XX'));
     const countrySel = document.getElementById('filterCountry');
     if(countrySel) {
-        countrySel.innerHTML = '<option value="">All Countries</option>';
+        countrySel.replaceChildren();
+        const defaultOpt = document.createElement('option');
+        defaultOpt.value = '';
+        defaultOpt.textContent = 'All Countries';
+        countrySel.appendChild(defaultOpt);
+
         [...countries].sort().forEach(cc => {
             const opt = document.createElement('option');
             opt.value = cc;
@@ -422,7 +494,12 @@ function populateDropdowns(proxies) {
     const protocols = new Set(proxies.map(p => p.protocol));
     const protoSel = document.getElementById('filterProtocol');
     if(protoSel) {
-        protoSel.innerHTML = '<option value="">All Protocols</option>';
+        protoSel.replaceChildren();
+        const defaultOpt = document.createElement('option');
+        defaultOpt.value = '';
+        defaultOpt.textContent = 'All Protocols';
+        protoSel.appendChild(defaultOpt);
+
         [...protocols].sort().forEach(p => {
             const opt = document.createElement('option');
             opt.value = p;
@@ -435,7 +512,12 @@ function populateDropdowns(proxies) {
     const cities = new Set(proxies.map(p => p.city).filter(c => c));
     const citySel = document.getElementById('filterCity');
     if(citySel) {
-        citySel.innerHTML = '<option value="">All Cities</option>';
+        citySel.replaceChildren();
+        const defaultOpt = document.createElement('option');
+        defaultOpt.value = '';
+        defaultOpt.textContent = 'All Cities';
+        citySel.appendChild(defaultOpt);
+
         [...cities].sort().forEach(c => {
             const opt = document.createElement('option');
             opt.value = c;
@@ -575,7 +657,7 @@ function updatePaginationInfo() {
 
     const container = document.getElementById('pagination-container');
     if(!container) return;
-    container.innerHTML = '';
+    container.replaceChildren();
 
     const totalPages = Math.ceil(total / itemsPerPage);
     if (totalPages <= 1) return;
@@ -583,11 +665,13 @@ function updatePaginationInfo() {
     const createBtn = (text, page, disabled) => {
         const b = document.createElement('button');
         b.className = 'pagination-btn';
-        // Use textContent instead of innerHTML to prevent XSS
-        // Unicode arrows instead of HTML entities for security
         b.textContent = text;
         b.disabled = disabled;
-        b.onclick = () => { currentPage = page; renderTable(); updatePaginationInfo(); };
+        b.addEventListener('click', () => { 
+            currentPage = page; 
+            renderTable(); 
+            updatePaginationInfo(); 
+        });
         return b;
     };
 

@@ -154,13 +154,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         // we should avoid trustedHTML=true unless strictly necessary.
         // Here we are injecting simple HTML (<span>), so we construct it carefully.
         if (metrics.avgLatency !== undefined) {
-             // Safe: metrics.avgLatency is a number
-            updateElement('#avgLatency', `${metrics.avgLatency}<span class="metric-unit">ms</span>`, { method: 'innerHTML', trustedHTML: true });
+            const el = document.querySelector('#avgLatency');
+            if (el) {
+                el.replaceChildren();
+                el.appendChild(document.createTextNode(metrics.avgLatency));
+                const unit = document.createElement('span');
+                unit.className = 'metric-unit';
+                unit.textContent = 'ms';
+                el.appendChild(unit);
+                el.classList.remove('loading');
+            }
         }
 
         if (metrics.successRate !== undefined) {
-             // Safe: metrics.successRate is a number/string from toFixed
-            updateElement('#successRate', `${metrics.successRate}<span class="metric-unit">%</span>`, { method: 'innerHTML', trustedHTML: true });
+            const el = document.querySelector('#successRate');
+            if (el) {
+                el.replaceChildren();
+                el.appendChild(document.createTextNode(metrics.successRate));
+                const unit = document.createElement('span');
+                unit.className = 'metric-unit';
+                unit.textContent = '%';
+                el.appendChild(unit);
+                el.classList.remove('loading');
+            }
         }
 
         // Update last updated time
@@ -220,11 +236,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Sanitized insertion: getCountryFlag returns an emoji string
             const flag = countryCode ? getCountryFlag(countryCode) : '🌍';
-            // countryName comes from our internal mapping or stats key. If stats key is untrusted, we should sanitize.
-            // DOMPurify is handled by updateElement by default.
-            // We use trustedHTML: false (default) and construct string safely?
-            // updateElement with innerHTML sanitizes the whole string.
-            updateElement('#topRegion', `${flag} ${countryName}`, { method: 'innerHTML' }); // Default sanitization applied
+            updateElement('#topRegion', `${flag} ${countryName}`);
             updateElement('#topRegionDesc', `${topCountry[1]} proxies available in this region`);
         }
 

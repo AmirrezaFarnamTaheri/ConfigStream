@@ -161,13 +161,63 @@ function getLayerData(id){
 
 function updateVis(){
   const vis=document.getElementById('chainVis');
-  let html='<div class="node"><div class="icon">&#128187;</div><div class="lbl">You</div></div>';
+  if(!vis) return;
+  vis.replaceChildren();
+
+  const youNode = document.createElement('div');
+  youNode.className = 'node';
+  const youIcon = document.createElement('div');
+  youIcon.className = 'icon';
+  youIcon.innerHTML = '&#128187;';
+  const youLbl = document.createElement('div');
+  youLbl.className = 'lbl';
+  youLbl.textContent = 'You';
+  youNode.appendChild(youIcon);
+  youNode.appendChild(youLbl);
+  vis.appendChild(youNode);
+
   layers.forEach((l,i)=>{
     const icons={socks5:'&#128268;',http:'&#128268;',warp:'&#9729;&#65039;',vless:'&#128274;',vmess:'&#128274;',trojan:'&#128274;',ss:'&#128274;',fragment:'&#9986;'};
-    html+=`<div class="arrow">&rarr;</div><div class="node" style="border-color:${l.type==='warp'?'var(--warn)':l.type==='fragment'?'var(--info)':'var(--brand)'}"><div class="icon">${icons[l.type]||'?'}</div><div class="lbl">L${i+1} ${l.type}</div></div>`;
+    
+    const arrow = document.createElement('div');
+    arrow.className = 'arrow';
+    arrow.innerHTML = '&rarr;';
+    vis.appendChild(arrow);
+
+    const node = document.createElement('div');
+    node.className = 'node';
+    node.style.borderColor = l.type==='warp'?'var(--warn)':l.type==='fragment'?'var(--info)':'var(--brand)';
+    
+    const icon = document.createElement('div');
+    icon.className = 'icon';
+    icon.innerHTML = icons[l.type]||'?';
+    
+    const lbl = document.createElement('div');
+    lbl.className = 'lbl';
+    lbl.textContent = `L${i+1} ${l.type}`;
+    
+    node.appendChild(icon);
+    node.appendChild(lbl);
+    vis.appendChild(node);
   });
-  html+='<div class="arrow">&rarr;</div><div class="node" style="border-color:var(--ok)"><div class="icon">&#127760;</div><div class="lbl">Internet</div></div>';
-  vis.innerHTML=html;
+
+  const arrowEnd = document.createElement('div');
+  arrowEnd.className = 'arrow';
+  arrowEnd.innerHTML = '&rarr;';
+  vis.appendChild(arrowEnd);
+
+  const netNode = document.createElement('div');
+  netNode.className = 'node';
+  netNode.style.borderColor = 'var(--ok)';
+  const netIcon = document.createElement('div');
+  netIcon.className = 'icon';
+  netIcon.innerHTML = '&#127760;';
+  const netLbl = document.createElement('div');
+  netLbl.className = 'lbl';
+  netLbl.textContent = 'Internet';
+  netNode.appendChild(netIcon);
+  netNode.appendChild(netLbl);
+  vis.appendChild(netNode);
 }
 
 function generate(){
@@ -287,8 +337,9 @@ function showOutput(text,type){
 
 function showR(type,msg){
   const el=document.getElementById('result');
+  if(!el) return;
   el.className='result '+type;
-  el.innerHTML=msg;
+  el.textContent=msg;
 }
 
 function copyOutput(){

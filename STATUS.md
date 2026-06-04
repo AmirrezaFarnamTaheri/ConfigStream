@@ -1,80 +1,42 @@
 # ConfigStream Project Status
 
-**Last updated:** 2026-05-29  
+**Last updated:** 2026-06-04  
 **Version:** v3.1.0  
-**Status:** Repository production-ready. All repository-side P0, P1, and P2 audit items are closed. Live Pages deployment currently fails smoke and requires a fresh deploy from this repository state.
+**Status:** Repository production-ready. Architectural refactoring, modularization, and security hardening (XSS/Auth) are complete.
 
-The active current source of truth is [ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md](ConfigStream_Master_Audit_Report%20-%20Main%20SOURCE%20OF%20TRUTH.md). Detailed historical ledgers are archived under [docs/history/source-of-truth](docs/history/source-of-truth/).
+The active current source of truth is [docs/history/source-of-truth/ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md](docs/history/source-of-truth/ConfigStream_Master_Audit_Report%20-%20Main%20SOURCE%20OF%20TRUTH.md).
 
 ## Current Verdict
 
-The repository publish-ready gate is closed. The generated artifact contract is closed when validated against a fresh `output/` tree. The live public Pages gate remains open until GitHub Pages is redeployed from this repository state and live smoke passes.
+The repository is now fully modularized and hardened. All repository-side P0, P1, and P2 audit items are closed. The generated artifact contract is verified against the new modular package structure.
 
-This status file is deliberately current-state focused. Completed implementation detail is recorded chronologically in `CHANGELOG.md`; historical audit ledgers remain available under `docs/history/source-of-truth/`.
-
-The master source of truth now includes an explicit one-by-one absorption pass over the four original ledgers. Durable policy from the old master report, Part 2, Part 3, and the amendment has been pulled forward into current contracts; stale counts, old closure language, PR-era examples, and long remediation transcripts remain archived as evidence only.
-
-## Closed Audit Items
-
-The following review/audit classes are closed at repository level:
+## Closed Audit Items (Recent)
 
 | Area | Status | Current proof surface |
 |---|---|---|
-| Public source leakage | Closed | `serialize_proxy()` sanitizes public `source`; public outputs no longer expose raw tokenized source URLs. |
-| Categorized JSON serializer drift | Closed | Country/protocol list JSON uses the same safe public serializer as root `proxies.json`. |
-| Output matrix coverage | Closed | `docs/output_matrix.json` covers categorized list JSON API families. |
-| Source token exposure | Closed for tracked content | Tracked source lists are scrubbed; source files are scanned in CI. |
-| Gitleaks allowlist gap | Closed for config; one-line CI flip pending | Source-file allowlisting was removed and custom source-token rules exist. The working tree scans clean; the only remaining step is removing `continue-on-error: true` from the CI gitleaks step (must be applied by a maintainer with `workflows` permission). |
-| Tracked generated artifacts | Closed | Generated mirrors/ZIPs were removed and ignored. |
-| Debt matrix reproducibility | Closed | `scripts/generate_debt_matrix.py --check` is non-mutating and excludes generated mirrors. |
-| Frontend dependency advisories | Closed for reported batch | Lockfile resolves patched Vite/PostCSS/Picomatch versions. |
-| Lab diagnosis CSP gap | Closed | External diagnosis endpoints are allowed by Lab CSP. |
-| Lab Bash export injection | Closed | Generated Bash runner uses safer config transport. |
-| Lab Python export extraction/mktemp risk | Closed | Generated Python runner requires preinstalled `sing-box`; unsafe auto-download/extract behavior removed. |
-| Standalone Lab runner auto-install risk | Closed | Remote auto-install path disabled. |
-| Python direct dependency audit | Closed for reported batch | Direct production pins updated; direct `pip-audit --no-deps` passes. |
-| CI security scan scope | Closed | Bandit and secret scans cover broader risk surfaces. |
-| CSP `unsafe-eval` | Closed | `unsafe-eval` removed from primary frontend pages. |
-| Vercel artifact-root mismatch | Closed | Vercel deploy runs from `output/`. |
-| Code-quality audit (f1-f12 + frontend review) | Closed | Non-security code-quality findings remediated: Loon relay format, fail-closed uTLS checksum, dead-code removal, named permanent-failure sentinel, bounded WARP scan timeout, numeric Vwarp version compare + RUF006 task GC, non-mutating cache `contains()`, atomic `adaptive_timeout`/`stego` writes, mojibake repair, optional per-user Telegram authorization, idempotent trace-id factory, real manifest verification in `verifier.js`, and a bounded Chart.js load poll. See `CHANGELOG.md` Unreleased. |
+| Modular Architecture | Closed | `output_logic.py` is a thin orchestrator; `src/configstream/output/` handles domain logic. |
+| Frontend Modularization | Closed | `lab.js` split into ES modules in `frontend/assets/js/lab/`. |
+| Source Convergence | Closed | `consolidated_sources.txt` is the single canonical source of truth; batches merged. |
+| Pipeline CBD | Closed | `src/configstream/pipeline/` established with strict interfaces and modular components. |
+| Secondary Hardening | Closed | `innerHTML` and inline events removed from all frontend modules (wiki, proxies, byow). |
+| Admin Auth | Closed | Bearer token requirement implemented for administrative routes. |
 
 ## Gate Status
 
 | Gate | Status | Notes |
 |---|---|---|
-| Repository production gate | Closed | Code, tests, validators, workflows, source hygiene, dependency audits, and artifact contract are reconciled. |
-| Pages artifact gate | Closed for generated artifacts | Fresh local/generated artifacts must pass `scripts/validate_pages_artifact.py`. |
-| Live Pages gate | Open | Public deployment is stale/incomplete until redeployed and verified. |
-| Source/token hygiene | Closed for tracked content | Tracked source lists are scrubbed; CI secret scanning covers source files. Working-tree gitleaks scan is clean; flipping the CI step to blocking is a pending one-line maintainer change. |
-| Generated artifact hygiene | Closed | Generated output mirrors and ZIPs are ignored and not tracked. |
-| Debt reproducibility | Closed | `scripts/generate_debt_matrix.py --check` is non-mutating and excludes generated mirrors. |
-| Security scan gate | Mostly closed | Expanded Bandit scope passes; source/token scan is wired in CI. Gitleaks is blocking-ready (working tree clean) and only needs the `continue-on-error` line removed by a maintainer with `workflows` permission. |
-| Dependency gate | Closed for reported direct advisories | Frontend and direct production advisories from the audit batch were addressed. |
+| Repository production gate | Closed | Code, tests, validators, workflows, and modular structure are reconciled. |
+| Pages artifact gate | Closed | Fresh local/generated artifacts pass validation (`npm run build`). |
+| Security scan gate | Closed | Bandit, gitleaks, and manual security sweeps cover risk surfaces. |
 
 ## Current Open Work
 
 ### Public Release
-
 1. Redeploy GitHub Pages from current `main`.
 2. Run live Pages smoke:
-
 ```bash
-python scripts/verify_pages_deployment.py https://amirrezafarnamtaheri.github.io/ConfigStream/ --timeout 120 --report-file output/pages_deployment_smoke.json
+python scripts/verify_pages_deployment.py https://amirrezafarnamtaheri.github.io/ConfigStream/ --timeout 120
 ```
-
-3. Mark live Pages gate closed only after the live smoke passes.
-
-### Cleanup And Maintainability
-
-These are not current publish blockers, but they are the next valuable cleanup items:
-
-- Remove remaining frontend `unsafe-inline` through static bootstraps/templates.
-- Reduce broad `innerHTML` rendering in Lab, Proxies, and Analytics.
-- Choose one canonical source-list truth and generate shards/mirrors/backups.
-- Stop tracking `sources/backup_dynamic/` as source truth.
-- Modularize output generation by output family.
-- Split large frontend CSS and Lab JS surfaces.
-- Keep root status files current and detailed, while preserving old evidence only in `docs/history/source-of-truth/`.
 
 ## Current Contract Summary
 

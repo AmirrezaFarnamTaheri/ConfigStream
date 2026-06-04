@@ -97,11 +97,11 @@
                         <i data-feather="globe"></i> <span id="current-lang-label"></span>
                     </button>
                     <div class="lang-menu" id="lang-menu">
-                        <button onclick="window.i18n.setLanguage('en')">English</button>
-                        <button onclick="window.i18n.setLanguage('zh')">中文</button>
-                        <button onclick="window.i18n.setLanguage('ru')">Русский</button>
-                        <button onclick="window.i18n.setLanguage('fa')">فارسی</button>
-                        <button onclick="window.i18n.setLanguage('ar')">العربية</button>
+                        <button class="lang-select-btn" data-lang="en">English</button>
+                        <button class="lang-select-btn" data-lang="zh">中文</button>
+                        <button class="lang-select-btn" data-lang="ru">Русский</button>
+                        <button class="lang-select-btn" data-lang="fa">فارسی</button>
+                        <button class="lang-select-btn" data-lang="ar">العربية</button>
                     </div>
                 </div>
 
@@ -139,7 +139,7 @@
                     <div class="byow-actions">
                         <input type="text" id="worker-url" data-i18n="byow.url.placeholder" placeholder="Paste Worker URL..." class="input-modern">
                         <input type="text" id="worker-uuid" data-i18n="byow.uuid.placeholder" placeholder="UUID (Optional)" class="input-modern input-short">
-                        <button id="apply-byow" onclick="applyBYOW()" class="btn btn-primary" data-i18n="byow.apply">Apply</button>
+                        <button id="apply-byow-btn" class="btn btn-primary" data-i18n="byow.apply">Apply</button>
                     </div>
                     <div id="byow-links" style="width: 100%; text-align: right; display:none; margin-top: 10px;">
                         <a id="btn-singbox-byow" class="btn btn-success" data-i18n="byow.download">Download Turbo Config</a>
