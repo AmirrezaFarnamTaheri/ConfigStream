@@ -86,7 +86,7 @@ class StandardPipeline(IPipeline):
         output_path = Path(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
 
-        from configstream.tools.vwarp import VwarpTool
+        from configstream.tools.vwarp.manager import VwarpTool
         vwarp_tool = VwarpTool()
 
         if settings.USE_VWARP_TUNNEL:
@@ -360,7 +360,7 @@ class StandardPipeline(IPipeline):
             if self.context.hard_stop_watcher and self.context.tester:
                 await self.context.hard_stop_watcher.stop_tester(self.context.tester)
                 
-            from configstream.tools.vwarp import VwarpTool
+            from configstream.tools.vwarp.manager import VwarpTool
             await VwarpTool().stop_tunnel()
             
             if self.context.anomaly_detector:
