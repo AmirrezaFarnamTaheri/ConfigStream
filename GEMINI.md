@@ -20,11 +20,11 @@ ConfigStream operates in a high-risk environment. Dynamic rendering of untrusted
 *   **Canonical Source**: `consolidated_sources.txt` is the single canonical source of truth for proxy subscription URLs.
 *   **Deprecated**: Never use or recreate `sources/backup_dynamic/`.
 
-## 6. Readiness States & Verification
-Passing a local test does not imply production readiness.
-*   **Repository Ready**: Tests, linting, and security scans pass.
-*   **Artifact Ready**: `npm run build` succeeds and output files match `docs/output_matrix.json`.
-*   **Public Ready**: `scripts/verify_pages_deployment.py` passes against the live URL.
+## 5. Legacy Pipeline Retirement
+The repository has completed the migration from legacy monolithic pipeline orchestrators (`pipeline.py`, `fetcher.py`, `producer.py`, `consumer.py`) to a domain-driven `StandardPipeline` within the `src/configstream/pipeline/` package.
+*   **Mandate**: All new pipeline development MUST utilize `StandardPipeline`, `StreamingProducer`, and `WorkerConsumer` within the `src/configstream/pipeline/` package.
+*   **Deletion**: Legacy files `pipeline.py`, `fetcher.py`, `producer.py`, `consumer.py` have been removed. Do not reintroduce them.
+
 
 ## 7. Truth Hierarchy
 When status surfaces disagree, use this hierarchy:
