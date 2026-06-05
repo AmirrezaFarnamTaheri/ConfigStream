@@ -2,7 +2,7 @@
 import pytest
 import asyncio
 from unittest.mock import MagicMock, patch, AsyncMock
-from configstream.consumer import processing_consumer
+from configstream.pipeline.consumer import processing_consumer
 from configstream.pipeline_stats import PipelineStats
 from configstream.models import Proxy
 

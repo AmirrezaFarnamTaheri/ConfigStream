@@ -2,7 +2,7 @@
 import pytest
 import respx
 import httpx
-from configstream.fetcher import fetch_from_source
+from configstream.pipeline.fetcher import fetch_from_source
 
 
 @pytest.mark.asyncio
