@@ -10,7 +10,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from configstream.config import AppSettings
-from configstream.producer import _report_source_backpressure
+from configstream.pipeline.producer import _report_source_backpressure
 
 
 @pytest.mark.asyncio

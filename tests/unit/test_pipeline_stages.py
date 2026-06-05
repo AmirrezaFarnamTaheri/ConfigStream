@@ -2,8 +2,8 @@
 import pytest
 import asyncio
 from unittest.mock import MagicMock, patch, AsyncMock
-from configstream.producer import source_producer
-from configstream.consumer import processing_consumer
+from configstream.pipeline.producer import source_producer
+from configstream.pipeline.consumer import processing_consumer
 from configstream.pipeline_stats import PipelineStats, PipelineResult
 from configstream.models import Proxy
 from configstream.fetcher_worker import FetchResult

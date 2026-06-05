@@ -16,7 +16,7 @@ from datetime import datetime
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from configstream.pipeline import run_full_pipeline  # noqa: E402
+from configstream.pipeline.core import StandardPipeline  # noqa: E402
 
 
 async def main():

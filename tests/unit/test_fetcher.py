@@ -4,8 +4,8 @@ import pytest
 import httpx
 from datetime import datetime, timezone, timedelta
 from unittest.mock import patch, MagicMock, AsyncMock
-from configstream.fetcher import fetch_from_source
-from configstream.fetcher import fetch_multiple_sources
+from configstream.pipeline.fetcher import fetch_from_source
+from configstream.pipeline.fetcher import fetch_multiple_sources
 from configstream.fetcher_worker import FetchResult
 from configstream.fetcher_worker import parse_retry_after as _parse_retry_after
 

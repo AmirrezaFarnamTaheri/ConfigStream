@@ -2,7 +2,7 @@
 import pytest
 from unittest.mock import MagicMock
 import httpx
-from configstream.fetcher import fetch_from_source
+from configstream.pipeline.fetcher import fetch_from_source
 from configstream.config import AppSettings
 
 # We need to test that MAX_RESPONSE_SIZE is picked up from the environment

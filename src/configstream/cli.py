@@ -18,7 +18,9 @@ from rich.progress import (
     TaskProgressColumn,
 )
 
-from .pipeline import run_full_pipeline
+from .pipeline.core import StandardPipeline
+from .pipeline.producer import StreamingProducer
+from .pipeline.consumer import WorkerConsumer
 from .geoip import DEFAULT_RESOLVER
 from .tools.warp import generate_warp_proxy
 
@@ -113,9 +115,11 @@ def merge(
             console=console,
         ) as progress:
 
-            result = await run_full_pipeline(
+            pipeline = await StandardPipeline.create_and_init(
                 sources=valid_sources,
                 output_dir=output,
+                producer_factory=StreamingProducer,
+                consumer_factory=WorkerConsumer,
                 max_workers=max_workers,
                 timeout=timeout,
                 country_filter=country,
@@ -124,6 +128,7 @@ def merge(
                 progress=progress,
                 dry_run=dry_run,
             )
+            result = await pipeline.run()
 
             return result
 
