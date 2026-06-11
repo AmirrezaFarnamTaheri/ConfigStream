@@ -4,6 +4,7 @@ import copy
 import shutil
 from typing import List, Dict, Optional, Any, Tuple
 from pathlib import Path
+from importlib.metadata import version
 
 from .models import Proxy
 from .intelligence.washer.core import ProxyWasher
@@ -96,6 +97,8 @@ def generate_categorized_outputs(
     if "singbox" in split_files:
         generated_files["singbox_full"] = split_files["singbox"]
         generated_files["master"] = split_files["singbox"]
+    if "clash" in split_files:
+        generated_files["clash_full"] = split_files["clash"]
     
     ordered_pool = _order_export_proxies(export_pool)
     
@@ -117,15 +120,14 @@ def generate_categorized_outputs(
     chosen = _select_chosen_proxies(proxies, CHOSEN_TOP_PER_PROTOCOL, CHOSEN_TOTAL_TARGET)
     
     chosen_paths = {
-        "base64.txt": generate_base64_subscription(chosen),
-        "proxies.txt": generate_plaintext_subscription(chosen),
-        "singbox.json": generate_singbox_config(chosen),
-        "clash.yaml": generate_clash_config(chosen, ignore_status=True),
+        "base64.txt": (generate_base64_subscription(chosen), "chosen_base64"),
+        "proxies.txt": (generate_plaintext_subscription(chosen), "chosen_proxies_txt"),
+        "singbox.json": (generate_singbox_config(chosen), "chosen_singbox"),
+        "clash.yaml": (generate_clash_config(chosen, ignore_status=True), "chosen_clash"),
     }
-    for name, content in chosen_paths.items():
+    for name, (content, key) in chosen_paths.items():
         path = chosen_dir / name
         AtomicFileWriter.write_text(path, content)
-        key = f"chosen_{name.replace('.', '_')}"
         generated_files[key] = path
 
     # 3c. Adapters
@@ -252,6 +254,16 @@ def _gen_dns_variation(
     )
     generated_files.update(split_files)
 
+    # Generate chains configs for DNS variations
+    chain_obs = _collect_all_chains(proxies, filtered_washed, filtered_smart)
+    chains_content = generate_singbox_config([], extra_outbounds=chain_obs)
+    for prefix in ["singbox-chains", "chains"]:
+        name = f"{prefix}-{suffix}.json"
+        path = output_dir / name
+        AtomicFileWriter.write_text(path, chains_content)
+        key = name.replace("-", "_").replace(".json", "")
+        generated_files[key] = path
+
     # Subscriptions
     ordered = _order_export_proxies(_get_export_pool(proxies))
     raw = generate_plaintext_subscription(ordered)
@@ -272,6 +284,15 @@ def _gen_dns_variation(
     zip_path = output_dir / f"side_products-{suffix}.zip"
     if generate_side_products_pack(ordered, zip_path, raw, output_dir):
         generated_files[f"side_products_{suffix_key}"] = zip_path
+
+    # Chosen subset for variation
+    chosen_dir = output_dir / "chosen"
+    chosen_dir.mkdir(exist_ok=True)
+    chosen_var = _select_chosen_proxies(proxies, CHOSEN_TOP_PER_PROTOCOL, CHOSEN_TOTAL_TARGET)
+    chosen_base64 = generate_base64_subscription(chosen_var)
+    chosen_path = chosen_dir / f"base64-{suffix}.txt"
+    AtomicFileWriter.write_text(chosen_path, chosen_base64)
+    generated_files[f"chosen_base64_{suffix_key}"] = chosen_path
 
     # Third party profiles if hardened
     if is_hardened:

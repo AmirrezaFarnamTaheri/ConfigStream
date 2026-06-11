@@ -175,7 +175,7 @@ class TestSurgeAdapter:
         ]
 
         with patch(
-            "configstream.adapters.format_singbox_chain_for_surge"
+            "configstream.adapters.surge.format_singbox_chain_for_surge"
         ) as mock_format:
             mock_format.return_value = "WireGuard chain config"
             result = adapter.export([proxy], washed_outbounds)

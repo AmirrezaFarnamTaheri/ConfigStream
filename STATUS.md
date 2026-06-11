@@ -116,7 +116,7 @@ Latest local verification recorded for this status:
 - `pip_audit -r requirements-prod.txt --no-deps`: passed.
 - `npm run build:sanity`: passed.
 - Same-origin frontend smoke: passed.
-- `python scripts/verify_pages_deployment.py https://amirrezafarnamtaheri.github.io/ConfigStream/ --timeout 120 --report-file output/pages_deployment_smoke.json`: fails against stale live Pages.
+- `python scripts/verify_pages_deployment.py https://amirrezafarnamtaheri.github.io/ConfigStream/ --timeout 120 --report-file output/pages_deployment_smoke.json`: fails against stale live Pages (Live Pages deployment currently fails smoke).
 
 Latest full-suite snapshot:
 

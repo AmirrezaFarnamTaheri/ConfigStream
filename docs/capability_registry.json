@@ -183,7 +183,7 @@
       "docs": [
         "README.md",
         "STATUS.md",
-        "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md",
+        "docs/history/source-of-truth/ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md",
         "docs/capability_registry.json",
         "docs/module_ownership.json",
         "docs/MODULE_OWNERSHIP.md"
@@ -237,7 +237,7 @@
       "docs": [
         "docs/core_compatibility_report.json",
         "STATUS.md",
-        "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md"
+        "docs/history/source-of-truth/ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md"
       ],
       "outputs": [
         "pipeline-evidence/native_client_check_report.json"

@@ -7,7 +7,7 @@ from configstream.pipeline_stats import PipelineResult
 @pytest.mark.asyncio
 async def test_run_full_pipeline_dry_run(tmp_path):
     # Import here to avoid stale module reference if other tests reload modules
-    from configstream.pipeline.core import StandardPipeline
+    from configstream.pipeline import StandardPipeline, run_full_pipeline
 
     with (
         patch(
@@ -52,7 +52,7 @@ async def test_run_full_pipeline_dry_run(tmp_path):
 @pytest.mark.asyncio
 async def test_pipeline_auto_scaling(tmp_path):
     # Import here to avoid stale module reference if other tests reload modules
-    from configstream.pipeline.core import StandardPipeline
+    from configstream.pipeline import StandardPipeline, run_full_pipeline
 
     with (
         patch("configstream.pipeline.source_producer", new_callable=AsyncMock),

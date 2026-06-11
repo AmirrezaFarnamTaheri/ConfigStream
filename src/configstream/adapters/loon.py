@@ -19,7 +19,7 @@ class LoonAdapter(Adapter):
         proxies: List[Proxy],
         washed_outbounds: Optional[List[Dict[str, Any]]] = None,
     ) -> str:
-        lines = ["[Proxy]"]
+        lines = ["# Loon Proxy Export", "[Proxy]"]
         failed_count = 0
         chain_count = 0
 
@@ -57,7 +57,8 @@ class LoonAdapter(Adapter):
 
     def _format_proxy(self, p: Proxy) -> str:
         name = p.remarks if p.remarks else f"{p.protocol}_{p.address}"
-        name = name.replace("=", "").replace(",", "").strip()
+        name = name.replace("=", "_").replace(",", "_").replace("\n", " ").strip()
+        name = "".join(c for c in name if c.isalnum() or c in " -_[]().")
 
         if p.protocol in ("shadowsocks", "ss"):
             method = p.details.get("method", "chacha20-ietf-poly1305")

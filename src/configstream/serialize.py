@@ -67,15 +67,20 @@ def serialize_proxy(
     # that v2rayN / xray / nekoray / Hiddify can import directly.
     config_value = proxy.config
     details_value = proxy.details
-    if isinstance(details_value, dict) and isinstance(details_value.get("chain"), list):
-        serialized_chain: List[Dict[str, Any]] = []
-        for hop in details_value.get("chain", []):
-            if isinstance(hop, Proxy):
-                serialized_chain.append(hop.model_dump(mode="json"))
-            elif isinstance(hop, dict):
-                serialized_chain.append(hop)
-        details_value = dict(details_value)
-        details_value["chain"] = serialized_chain
+    if isinstance(details_value, dict):
+        details_value = {
+            k: v for k, v in details_value.items()
+            if not k.startswith("has_")
+        }
+        if isinstance(details_value.get("chain"), list):
+            serialized_chain: List[Dict[str, Any]] = []
+            for hop in details_value.get("chain", []):
+                if isinstance(hop, Proxy):
+                    serialized_chain.append(hop.model_dump(mode="json"))
+                elif isinstance(hop, dict):
+                    serialized_chain.append(hop)
+            details_value = dict(details_value)
+            details_value["chain"] = serialized_chain
 
     if proxy.protocol == "revived" or (proxy.config or "").startswith("revived://"):
         chain_obs = chain_outbounds_from_details(proxy.details or {})

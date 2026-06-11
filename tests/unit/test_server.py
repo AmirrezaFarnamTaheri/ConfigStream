@@ -87,7 +87,7 @@ async def async_client(monkeypatch):
 
 
 @pytest.fixture
-def mock_output_dir(tmp_path):
+def mock_output_dir(tmp_path, monkeypatch):
     """Mock the output directory and create dummy files."""
     output_dir = tmp_path / "output"
     output_dir.mkdir()
@@ -119,17 +119,19 @@ def mock_output_dir(tmp_path):
     # Create subscription files
     (output_dir / "clash.yaml").write_text("proxies: []")
 
+    monkeypatch.setenv("OUTPUT_DIR", str(output_dir))
     return output_dir
 
 
 @pytest.fixture
-def mock_frontend_dir(tmp_path):
+def mock_frontend_dir(tmp_path, monkeypatch):
     """Mock the frontend directory."""
     frontend_dir = tmp_path / "frontend"
     frontend_dir.mkdir()
     (frontend_dir / "index.html").write_text("<html>Index</html>")
     (frontend_dir / "about.html").write_text("<html>About</html>")
     (frontend_dir / "assets").mkdir()
+    monkeypatch.setenv("FRONTEND_DIR", str(frontend_dir))
     return frontend_dir
 
 
@@ -156,31 +158,34 @@ async def test_get_stats(mock_output_dir, async_client):
 async def test_get_stats_reads_metadata_off_event_loop(
     mock_output_dir, async_client, monkeypatch
 ):
+    import configstream.server.utils as server_utils
     calls = []
-    original_to_thread = server_module.asyncio.to_thread
+    original_to_thread = server_utils.asyncio.to_thread
 
     async def recording_to_thread(func, *args, **kwargs):
         calls.append((func, args))
         return await original_to_thread(func, *args, **kwargs)
 
-    monkeypatch.setattr(server_module.asyncio, "to_thread", recording_to_thread)
+    monkeypatch.setattr(server_utils.asyncio, "to_thread", recording_to_thread)
 
     with patch("configstream.server.OUTPUT_DIR", mock_output_dir):
         response = await async_client.get("/api/stats")
 
     assert response.status_code == 200
     assert any(
-        func is server_module._read_json_file
+        func is server_utils._read_json_file
         and args
         and args[0].name == "metadata.json"
         for func, args in calls
     )
 
 
+
 @pytest.mark.asyncio
 async def test_get_proxy_diff_reads_proxy_files_off_event_loop(
     mock_output_dir, async_client, monkeypatch
 ):
+    import configstream.server.utils as server_utils
     old_payload = [{"id": "old", "protocol": "vless"}]
     (mock_output_dir / "proxies.old.json").write_text(
         json.dumps(old_payload), encoding="utf-8"
@@ -190,13 +195,13 @@ async def test_get_proxy_diff_reads_proxy_files_off_event_loop(
         encoding="utf-8",
     )
     calls = []
-    original_to_thread = server_module.asyncio.to_thread
+    original_to_thread = server_utils.asyncio.to_thread
 
     async def recording_to_thread(func, *args, **kwargs):
         calls.append((func, args))
         return await original_to_thread(func, *args, **kwargs)
 
-    monkeypatch.setattr(server_module.asyncio, "to_thread", recording_to_thread)
+    monkeypatch.setattr(server_utils.asyncio, "to_thread", recording_to_thread)
 
     with patch("configstream.server.OUTPUT_DIR", mock_output_dir):
         response = await async_client.get(
@@ -208,7 +213,7 @@ async def test_get_proxy_diff_reads_proxy_files_off_event_loop(
     read_names = [
         args[0].name
         for func, args in calls
-        if func is server_module._read_json_file and args
+        if func is server_utils._read_json_file and args
     ]
     assert "proxies.json" in read_names
     assert "proxies.old.json" in read_names
@@ -295,7 +300,7 @@ async def test_admin_notify_requires_configured_key_in_production(
     response = await async_client.post("/api/admin/notify-update", json={})
 
     assert response.status_code == 403
-    assert "ADMIN_API_KEY must be configured" in response.text
+    assert "ADMIN_API_KEY not configured" in response.text
 
 
 @pytest.mark.asyncio
@@ -307,8 +312,8 @@ async def test_admin_notify_rejects_missing_key_when_configured_in_production(
 
     response = await async_client.post("/api/admin/notify-update", json={})
 
-    assert response.status_code == 403
-    assert "API key required" in response.text
+    assert response.status_code == 401
+    assert "Bearer token required" in response.text
 
 
 @pytest.mark.asyncio
@@ -317,7 +322,9 @@ async def test_admin_notify_accepts_valid_key_in_production(async_client, monkey
     monkeypatch.setenv("ENVIRONMENT", "production")
 
     response = await async_client.post(
-        "/api/admin/notify-update", json={"api_key": "secret"}
+        "/api/admin/notify-update",
+        json={},
+        headers={"Authorization": "Bearer secret"}
     )
 
     assert response.status_code == 200
@@ -336,7 +343,7 @@ async def test_admin_notify_allows_unkeyed_development(async_client, monkeypatch
 
 
 def test_admin_notify_is_rate_limited() -> None:
-    assert "configstream.server.notify_update" in limiter._route_limits
+    assert "configstream.server.routes.admin.notify_update" in limiter._route_limits
 
 
 def test_startup_security_rejects_production_without_admin_key() -> None:
@@ -540,7 +547,7 @@ async def test_lab_test_chain_requires_admin_key_when_enabled_in_production(
     )
 
     assert response.status_code == 403
-    assert "API key required" in response.text
+    assert "Invalid API key" in response.text
 
 
 @pytest.mark.asyncio
@@ -650,4 +657,4 @@ async def test_lab_test_chain_rejects_internal_hostname(async_client, monkeypatc
 
 
 def test_lab_test_chain_is_rate_limited() -> None:
-    assert "configstream.server.lab_test_chain" in limiter._route_limits
+    assert "configstream.server.routes.lab.lab_test_chain" in limiter._route_limits

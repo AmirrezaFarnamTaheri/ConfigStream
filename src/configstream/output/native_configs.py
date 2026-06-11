@@ -398,3 +398,18 @@ def build_wireguard_config(proxy: Proxy) -> Optional[str]:
         lines.append(f"PersistentKeepalive = {keepalive}")
 
     return "\n".join(lines) + "\n"
+
+def generate_quantumultx_profile(
+    proxies: List[Proxy],
+    primary: List[str],
+    fallback: List[str],
+) -> str:
+    return wrap_quantumultx_profile(proxies, primary, fallback)
+
+def generate_surge_profile(
+    proxies: List[Proxy],
+    washed_outbounds: Optional[List[Dict[str, Any]]],
+    primary: List[str],
+    fallback: List[str],
+) -> str:
+    return wrap_surge_or_loon_profile("surge", proxies, washed_outbounds, primary, fallback)

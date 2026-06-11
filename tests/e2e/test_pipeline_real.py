@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from configstream.pipeline.core import StandardPipeline
+from configstream.pipeline import run_full_pipeline
 
 
 @pytest.mark.asyncio

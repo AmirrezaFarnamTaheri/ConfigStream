@@ -3,7 +3,7 @@
   "generated": false,
   "modules": [
     {
-      "path": "src/configstream/producer.py",
+      "path": "src/configstream/pipeline/producer.py",
       "domain": "pipeline-source-production",
       "owner": "pipeline",
       "public_apis": ["source_producer"],
@@ -11,10 +11,10 @@
       "disallowed_duplicates": ["pipeline_stages.py", "fetcher_core/"],
       "replacement_for_removed_modules": ["pipeline_stages.py", "fetcher_core/"],
       "tests": ["tests/unit/test_pipeline_stages.py", "tests/unit/test_fetcher.py"],
-      "docs": ["AGENTS.md", "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md"]
+      "docs": ["AGENTS.md", "docs/history/source-of-truth/ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md"]
     },
     {
-      "path": "src/configstream/consumer.py",
+      "path": "src/configstream/pipeline/consumer.py",
       "domain": "pipeline-processing-consumption",
       "owner": "pipeline",
       "public_apis": ["processing_consumer"],
@@ -22,7 +22,7 @@
       "disallowed_duplicates": ["pipeline_stages.py", "pipeline_core/"],
       "replacement_for_removed_modules": ["pipeline_stages.py", "pipeline_core/"],
       "tests": ["tests/unit/test_consumer.py", "tests/unit/test_pipeline_stages.py"],
-      "docs": ["AGENTS.md", "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md"]
+      "docs": ["AGENTS.md", "docs/history/source-of-truth/ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md"]
     },
     {
       "path": "src/configstream/pipeline_stats.py",
@@ -36,7 +36,7 @@
       "docs": ["AGENTS.md", "schema/metadata.schema.json"]
     },
     {
-      "path": "src/configstream/fetcher.py",
+      "path": "src/configstream/pipeline/fetcher.py",
       "domain": "source-fetching",
       "owner": "fetching",
       "public_apis": ["fetch_from_source", "fetch_multiple_sources"],
@@ -168,7 +168,7 @@
       "docs": ["AGENTS.md", "docs/CENSORSHIP_EVASION.md"]
     },
     {
-      "path": "src/configstream/tools/vwarp.py",
+      "path": "src/configstream/tools/vwarp/__init__.py",
       "domain": "vwarp-tooling",
       "owner": "washer",
       "public_apis": ["VwarpTool", "validate_warp_key", "build_vwarp_config"],
@@ -176,7 +176,7 @@
       "disallowed_duplicates": ["tools/vwarp_tool.py"],
       "replacement_for_removed_modules": ["tools/vwarp_tool.py"],
       "tests": ["tests/unit/tools/test_vwarp_tool.py", "tests/unit/tools/test_vwarp_sanitize.py"],
-      "docs": ["AGENTS.md", "docs/VWARP_OBFUSCATION_GUIDE.md"]
+      "docs": ["AGENTS.md", "docs/CONFIG_FORGE.md"]
     },
     {
       "path": "src/configstream/signer.py",
@@ -245,7 +245,7 @@
       "docs": ["AGENTS.md"]
     },
     {
-      "path": "src/configstream/server.py",
+      "path": "src/configstream/server/__init__.py",
       "domain": "api-server",
       "owner": "api",
       "public_apis": ["app", "ConnectionManager"],
@@ -264,7 +264,7 @@
     {"path": "src/configstream/tools/vwarp_tool.py", "import_names": ["configstream.tools.vwarp_tool"], "replacement": "src/configstream/tools/vwarp.py"},
     {"path": "src/configstream/fetcher_core", "import_names": ["configstream.fetcher_core"], "replacement": "src/configstream/fetcher.py and src/configstream/fetcher_worker.py"},
     {"path": "src/configstream/pipeline_core", "import_names": ["configstream.pipeline_core"], "replacement": "src/configstream/producer.py, src/configstream/consumer.py, src/configstream/pipeline_stats.py, src/configstream/output_handler.py"},
-    {"path": "src/configstream/output.py", "import_names": ["configstream.output"], "replacement": "src/configstream/output_logic.py and src/configstream/output_transport.py"},
+    {"path": "src/configstream/output.py", "import_names": [], "replacement": "src/configstream/output_logic.py and src/configstream/output_transport.py"},
     {"path": "src/configstream/crypto", "import_names": ["configstream.crypto"], "replacement": "src/configstream/signer.py"},
     {"path": "src/configstream/transport", "import_names": ["configstream.transport"], "replacement": "src/configstream/stego.py"},
     {"path": "src/configstream/workers", "import_names": ["configstream.workers"], "replacement": "src/configstream/warp_scanner.py"}

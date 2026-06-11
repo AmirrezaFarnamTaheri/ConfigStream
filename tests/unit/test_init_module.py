@@ -58,7 +58,7 @@ class TestLazyLoading:
         assert callable(run_full_pipeline)
 
         # Verify it's the correct function
-        from configstream.pipeline.core import StandardPipeline as DirectPipeline
+        from configstream.pipeline.core import run_full_pipeline as DirectPipeline
 
         assert run_full_pipeline is DirectPipeline
 

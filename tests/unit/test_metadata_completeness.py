@@ -9,7 +9,7 @@ from pathlib import Path
 from configstream.pipeline_stats import PipelineStats
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-OUTPUT_LOGIC_PATH = REPO_ROOT / "src" / "configstream" / "output_logic.py"
+OUTPUT_LOGIC_PATH = REPO_ROOT / "src" / "configstream" / "output" / "metadata.py"
 
 
 def _extract_save_metadata_meta_keys() -> set[str]:

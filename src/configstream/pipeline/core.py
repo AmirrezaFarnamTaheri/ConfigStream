@@ -57,6 +57,7 @@ class StandardPipeline(IPipeline):
         self.consumer_factory = consumer_factory
         self.context = context
         self.num_consumers = num_consumers
+        self.context.num_consumers = num_consumers
         self.time_limit_seconds = time_limit_seconds
 
     @classmethod
@@ -133,6 +134,7 @@ class StandardPipeline(IPipeline):
             await washer.fetch_clean_ips()
 
         event_stream = EventStream(output_path)
+        trace_id = set_trace_id()
         stats = PipelineStats()
         stats.trace_id = trace_id
         stats.total_configured_sources = len(sources) if sources else 0
@@ -199,6 +201,7 @@ class StandardPipeline(IPipeline):
         )
 
     async def run(self) -> PipelineResult:
+        start_time = datetime.now(timezone.utc)
         logger.info(f"Starting pipeline with {self.num_consumers} parallel consumers")
 
         if self.context.tester and self.context.tester.go_tester.available:
@@ -371,3 +374,40 @@ class StandardPipeline(IPipeline):
             
             from configstream.logging_config import clear_trace_id
             clear_trace_id()
+
+
+async def run_full_pipeline(
+    sources: List[str],
+    output_dir: str,
+    max_workers: int = 0,
+    timeout: int = 10,
+    country_filter: Optional[str] = None,
+    max_latency: Optional[int] = None,
+    leniency: bool = False,
+    strict_security: bool = False,
+    progress: Optional[Any] = None,
+    dry_run: bool = False,
+    time_limit_seconds: Optional[int] = None,
+    proxies: Optional[List[Any]] = None,
+) -> PipelineResult:
+    from configstream.pipeline.producer import StreamingProducer
+    from configstream.pipeline.consumer import WorkerConsumer
+
+    pipeline = await StandardPipeline.create_and_init(
+        sources=sources,
+        output_dir=output_dir,
+        producer_factory=StreamingProducer,
+        consumer_factory=WorkerConsumer,
+        max_workers=max_workers,
+        timeout=timeout,
+        country_filter=country_filter,
+        max_latency=max_latency,
+        leniency=leniency,
+        strict_security=strict_security,
+        progress=progress,
+        dry_run=dry_run,
+        time_limit_seconds=time_limit_seconds,
+    )
+    if proxies:
+        pipeline.context.final_proxies.extend(proxies)
+    return await pipeline.run()

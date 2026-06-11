@@ -328,6 +328,9 @@ function handleStep3Next() {
             showResultText('step3Result', 'error', 'Invalid JSON: ' + escapeHtml(e.message));
             return;
         }
+    } else {
+        showResultText('step3Result', 'error', 'Unsupported chain strategy: ' + escapeHtml(chainType));
+        return;
     }
 
     if (localType && localAddr && state.chainConfig && state.chainConfig.outbounds) {
@@ -397,7 +400,7 @@ async function handleStep4Test() {
         if (resp.ok) {
             const result = await resp.json();
             if (result.success) {
-                showResultHTML('step4Result', 'success', `<strong>Chain is working!</strong> Latency: ${escapeHtml(result.latency || 'N/A')}ms`);
+                showResultHTML('step4Result', 'success', `<strong>Chain is working!</strong> Latency: ${escapeHtml(result.latency || 'N/A')}ms` + (result.exit_ip ? ` | Exit IP: ${escapeHtml(result.exit_ip)}` : ''));
                 const nextBtn = $('#step4Next');
                 if (nextBtn) nextBtn.disabled = false;
             } else {
@@ -431,6 +434,13 @@ function handleStep5Export() {
         return;
     }
     const format = ($('#exportFormat') || {}).value || 'singbox';
+    
+    if (format === 'qr') {
+        generateQR(state.parsedProxy ? state.parsedProxy.config : '');
+        showResultText('step5Result', 'success', 'Offline QR payload ready. Copy it into a trusted local QR tool or VPN client.');
+        return;
+    }
+
     let content = '';
     let filename = 'configstream-chain';
 
@@ -496,6 +506,80 @@ async function handleLoadFromSub() {
     } catch {
         showResultText('step1Result', 'error', 'Could not load subscription.');
     }
+}
+
+function generateQR(text) {
+    const qrDiv = $('#qrOutput');
+    if (!qrDiv) return;
+    qrDiv.replaceChildren();
+    const payload = text || '';
+    const panel = document.createElement('div');
+    panel.className = 'lab-result info';
+
+    const title = document.createElement('strong');
+    title.textContent = 'Offline QR payload';
+    const note = document.createElement('p');
+    note.textContent = 'External QR services are disabled so proxy material never leaves your browser. Copy this payload or scan the offline QR code below.';
+
+    // QR Code SVG rendering
+    const qrWrapper = document.createElement('div');
+    qrWrapper.className = 'lab-qr-wrapper';
+    qrWrapper.style.background = '#fff';
+    qrWrapper.style.padding = '10px';
+    qrWrapper.style.display = 'inline-block';
+    qrWrapper.style.marginTop = '1rem';
+    qrWrapper.style.borderRadius = '5px';
+
+    try {
+        if (typeof QRCode !== 'undefined') {
+            const qr = new QRCode({
+                content: payload,
+                padding: 2,
+                width: 256,
+                height: 256,
+                color: '#000000',
+                background: '#ffffff',
+                ecl: 'M'
+            });
+            qrWrapper.innerHTML = qr.svg();
+        } else {
+            qrWrapper.textContent = 'QR renderer unavailable offline.';
+        }
+    } catch (e) {
+        console.error('QR rendering failed:', e);
+        qrWrapper.textContent = 'Error rendering QR code.';
+    }
+
+    const code = document.createElement('pre');
+    code.className = 'lab-code';
+    code.style.whiteSpace = 'pre-wrap';
+    code.style.wordBreak = 'break-all';
+    code.textContent = payload;
+
+    const copyBtn = document.createElement('button');
+    copyBtn.type = 'button';
+    copyBtn.className = 'lab-btn lab-btn-secondary';
+    copyBtn.textContent = 'Copy Payload';
+    copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(payload).then(() => {
+            copyBtn.textContent = 'Copied';
+            setTimeout(() => { copyBtn.textContent = 'Copy Payload'; }, 1500);
+        }).catch(() => {
+            const range = document.createRange();
+            range.selectNodeContents(code);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+            document.execCommand('copy');
+            copyBtn.textContent = 'Copied';
+            setTimeout(() => { copyBtn.textContent = 'Copy Payload'; }, 1500);
+        });
+    });
+
+    panel.append(title, note, qrWrapper, code, copyBtn);
+    qrDiv.appendChild(panel);
+    qrDiv.style.display = 'block';
+    $('#exportOutput').style.display = 'none';
 }
 
 // Initialization

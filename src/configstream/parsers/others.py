@@ -85,7 +85,7 @@ def _parse_url_scheme(config: str, protocol: str, default_port: int) -> Optional
             protocol=protocol,
             address=parsed.hostname,
             port=port,
-            uuid="",
+            uuid=cred,
             remarks=unquote(parsed.fragment or "")[:200],
             details=details,
         )

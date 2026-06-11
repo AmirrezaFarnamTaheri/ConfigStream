@@ -3,7 +3,7 @@ import asyncio
 import logging
 import re
 import time
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 from configstream.async_utils import safe_wait_for
 from configstream.config import AppSettings

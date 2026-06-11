@@ -148,6 +148,55 @@ def add_multiplexing(
     return outbound
 
 
+# Fragmentation presets from cfray
+FRAG_PRESETS = {
+    "none": [None],
+    "light": [
+        {"packets": "tlshello", "length": "100-200", "interval": "10-20"},
+    ],
+    "medium": [
+        {"packets": "tlshello", "length": "50-100", "interval": "10-20"},
+        {"packets": "tlshello", "length": "100-200", "interval": "20-40"},
+    ],
+    "heavy": [
+        {"packets": "tlshello", "length": "10-50", "interval": "5-10"},
+        {"packets": "tlshello", "length": "50-100", "interval": "10-30"},
+        {"packets": "tlshello", "length": "100-300", "interval": "20-50"},
+    ],
+    "all": [
+        None,
+        {"packets": "tlshello", "length": "100-200", "interval": "10-20"},
+        {"packets": "tlshello", "length": "50-100", "interval": "10-30"},
+        {"packets": "tlshello", "length": "10-50", "interval": "5-10"},
+    ],
+}
+
+
+def get_fragment_config(
+    proxy_id: str,
+    enabled: bool = True,
+    preset: str = "medium",
+) -> Optional[Dict[str, Any]]:
+    """
+    Select a fragmentation configuration from presets deterministically based on proxy ID.
+    """
+    if not enabled or preset == "none":
+        return None
+
+    choices = FRAG_PRESETS.get(preset)
+    if not choices:
+        choices = FRAG_PRESETS.get("medium")  # Fallback
+
+    valid_choices = [c for c in choices if c is not None]
+    if not valid_choices:
+        return None
+
+    # Deterministic selection based on proxy ID
+    hash_val = int(hashlib.sha256(proxy_id.encode()).hexdigest(), 16)
+    selected = valid_choices[hash_val % len(valid_choices)]
+    return selected.copy()
+
+
 def enrich_outbound_with_evasion(
     outbound: Dict[str, Any],
     proxy_id: str,
@@ -157,6 +206,7 @@ def enrich_outbound_with_evasion(
     enable_multiplexing: bool = True,
     tls_fingerprint: Optional[str] = None,
     alpn_list: Optional[List[str]] = None,
+    fragment_preset: str = "medium",
 ) -> Dict[str, Any]:
     """
     Enrich an outbound config with evasion features.
@@ -170,6 +220,7 @@ def enrich_outbound_with_evasion(
         enable_multiplexing: Enable multiplexing with padding
         tls_fingerprint: Specific fingerprint to use (optional)
         alpn_list: Specific ALPN list to use (optional)
+        fragment_preset: Specific fragmentation preset to use (optional, defaults to "medium")
 
     Returns:
         Enriched outbound config
@@ -191,6 +242,27 @@ def enrich_outbound_with_evasion(
             alpn_protocols = rotate_alpn(proxy_id, enabled=True, alpn=alpn_list)
             if alpn_protocols:
                 outbound["tls"]["alpn"] = alpn_protocols
+
+    # Apply TLS fragmentation
+    if enable_fragmentation and protocol in ["vmess", "vless", "trojan"]:
+        # Do not fragment XTLS-Vision or Reality
+        is_reality = False
+        if "tls" in outbound and isinstance(outbound["tls"], dict):
+            if outbound["tls"].get("reality", {}).get("enabled"):
+                is_reality = True
+        is_vision = outbound.get("flow", "").startswith("xtls-rprx-vision")
+
+        if not is_reality and not is_vision:
+            frag_cfg = get_fragment_config(proxy_id, enabled=True, preset=fragment_preset)
+            if frag_cfg:
+                dial = outbound.get("dial", {})
+                if not isinstance(dial, dict):
+                    dial = {}
+                dial["fragment"] = {
+                    "enabled": True,
+                    **frag_cfg
+                }
+                outbound["dial"] = dial
 
     # Apply multiplexing with padding
     if enable_multiplexing:

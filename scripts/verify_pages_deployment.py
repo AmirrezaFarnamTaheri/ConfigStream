@@ -69,7 +69,8 @@ def _fetch(url: str, *, timeout: float) -> Response:
         },
     )
     try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:  # nosec B310
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+        with opener.open(request, timeout=timeout) as response:  # nosec B310
             try:
                 body = response.read()
             except http.client.IncompleteRead as exc:

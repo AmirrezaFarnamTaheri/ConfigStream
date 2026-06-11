@@ -195,7 +195,7 @@ def generate_split_outputs(
         if not p.details:
             p.details = {}
         p.details["has_utls"] = evasion_mode in ("aggressive", "stealth")
-        # has_fragmentation removed: sing-box dropped tls_fragment; always False
+        p.details["has_fragmentation"] = evasion_mode in ("aggressive", "stealth")
         p.details["has_multiplexing"] = evasion_mode == "aggressive"
         p.details["has_alpn_rotation"] = evasion_mode == "aggressive"
         if tag and tag in seen_tags:

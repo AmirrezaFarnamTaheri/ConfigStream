@@ -51,7 +51,7 @@ def parse_trojan(config: str) -> Optional[Proxy]:
             protocol="trojan",
             address=parsed.hostname,
             port=port,
-            uuid="",
+            uuid=uuid,
             remarks=unquote(parsed.fragment or "")[:200],
             details=details,
         )

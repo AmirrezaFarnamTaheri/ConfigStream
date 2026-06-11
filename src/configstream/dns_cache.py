@@ -10,8 +10,53 @@ import logging
 from dataclasses import dataclass
 from time import monotonic
 from typing import Dict, Optional
+import random
+import httpx
+
+try:
+    import aiodns
+except ImportError:
+    aiodns = None
 
 logger = logging.getLogger(__name__)
+
+# List of DoH providers for load balancing and failover
+DOH_PROVIDERS = [
+    {"name": "Cloudflare", "url": "https://cloudflare-dns.com/dns-query", "weight": 20},
+    {"name": "Google", "url": "https://dns.google/dns-query", "weight": 15},
+    {"name": "Quad9", "url": "https://dns.quad9.net/dns-query", "weight": 15},
+    {"name": "OpenDNS", "url": "https://doh.opendns.com/dns-query", "weight": 10},
+    {"name": "AdGuard", "url": "https://dns.adguard.com/dns-query", "weight": 10},
+    {"name": "ControlD", "url": "https://freedns.controld.com/p2", "weight": 10},
+    {"name": "Mullvad", "url": "https://adblock.dns.mullvad.net/dns-query", "weight": 10},
+    {"name": "NextDNS", "url": "https://dns.nextdns.io/dns-query", "weight": 10},
+]
+
+def select_doh_provider() -> dict:
+    total_weight = sum(p["weight"] for p in DOH_PROVIDERS)
+    r = random.uniform(0, total_weight)
+    for p in DOH_PROVIDERS:
+        if r < p["weight"]:
+            return p
+        r -= p["weight"]
+    return DOH_PROVIDERS[0]
+
+async def resolve_doh_json(host: str) -> Optional[str]:
+    provider = select_doh_provider()
+    headers = {"accept": "application/dns-json"}
+    params = {"name": host, "type": "A"}
+    try:
+        async with httpx.AsyncClient(timeout=3.0) as client:
+            response = await client.get(provider["url"], params=params, headers=headers)
+            if response.status_code == 200:
+                data = response.json()
+                answers = data.get("Answer", [])
+                for ans in answers:
+                    if ans.get("type") == 1:  # A record
+                        return str(ans.get("data"))
+    except Exception as e:
+        logger.debug("DoH resolution via %s failed for %s: %s", provider["name"], host, e)
+    return None
 
 
 def _is_bogon_ip(address: str) -> bool:
@@ -63,6 +108,7 @@ class DNSCache:
         self._cache: Dict[str, CachedDNS] = {}
         self._lock = asyncio.Lock()
         self._cleanup_counter = 0  # Track operations for periodic cleanup
+        self._resolver = None
 
     async def resolve(self, host: str) -> str | None:
         now = monotonic()
@@ -75,18 +121,33 @@ class DNSCache:
             if cached:
                 del self._cache[host]
 
-        loop = asyncio.get_running_loop()
-        try:
-            info = await loop.getaddrinfo(
-                host, None, family=socket.AF_UNSPEC, type=socket.SOCK_STREAM
-            )
-        except socket.gaierror:
-            return None
+        address = None
+        if aiodns is not None:
+            try:
+                if self._resolver is None:
+                    self._resolver = aiodns.DNSResolver()
+                records = await self._resolver.query(host, "A")
+                if records:
+                    address = records[0].host
+            except Exception as e:
+                logger.debug("aiodns query failed for %s: %s", host, e)
 
-        if not info:
-            return None
+        if address is None:
+            address = await resolve_doh_json(host)
 
-        address = info[0][4][0]
+        if address is None:
+            loop = asyncio.get_running_loop()
+            try:
+                info = await loop.getaddrinfo(
+                    host, None, family=socket.AF_UNSPEC, type=socket.SOCK_STREAM
+                )
+                if info:
+                    address = info[0][4][0]
+            except socket.gaierror:
+                return None
+
+        if not address:
+            return None
 
         # Reject bogon IPs to prevent SSRF attacks
         if _is_bogon_ip(address):

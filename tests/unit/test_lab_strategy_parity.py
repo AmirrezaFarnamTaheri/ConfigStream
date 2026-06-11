@@ -11,7 +11,16 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
 def _read(rel_path: str) -> str:
-    return (REPO_ROOT / rel_path).read_text(encoding="utf-8")
+    path = REPO_ROOT / rel_path
+    if rel_path == "frontend/assets/js/lab.js" or path.name == "lab.js":
+        # Concatenate all files in the modular lab directory to simulate monolithic lab.js
+        lab_dir = REPO_ROOT / "frontend" / "assets" / "js" / "lab"
+        contents = []
+        # Sort files to ensure deterministic order
+        for f in sorted(lab_dir.glob("*.js")):
+            contents.append(f.read_text(encoding="utf-8"))
+        return "\n\n".join(contents)
+    return path.read_text(encoding="utf-8")
 
 
 def _strategy_ids() -> list[str]:
@@ -28,7 +37,7 @@ def test_lab_strategy_dynamically_loaded() -> None:
 
     assert "fetch(" in lab_js
     assert "lab_strategies.json" in lab_js
-    assert "STRATEGY_MANIFEST[s.id] = s" in lab_js
+    assert "state.strategyManifest[s.id] = s" in lab_js
 
 
 def test_lab_strategy_static_fallback_matches_manifest() -> None:
@@ -88,9 +97,9 @@ def test_lab_manual_clean_ip_table_uses_text_nodes() -> None:
     )[0]
 
     assert "tbody.replaceChildren()" in render_table
-    assert "appendTableCell(tr, ip.ip + ':' + ip.port)" in render_table
-    assert "td.textContent = String(text)" in render_table
-    assert "tr.innerHTML" not in render_table
+    assert "ip.ip + ':' + ip.port" in render_table
+    assert "textContent =" in render_table
+    assert "innerHTML" not in render_table
     assert "parseManualCleanIpLine" in lab_js
     assert "No valid clean IP entries found" in lab_js
 
@@ -113,8 +122,8 @@ def test_lab_show_result_dynamic_values_are_escaped() -> None:
     step1 = lab_js.split("function handleStep1Next()", 1)[1].split(
         "// --- Step 2: Clean IP Discovery ---", 1
     )[0]
-    assert "escapeHtml(parsedProxy.address)" in step1
-    assert "escapeHtml(parsedProxy.remark)" in step1
+    assert "escapeHtml(state.parsedProxy.address)" in step1
+    assert "escapeHtml(state.parsedProxy.remark)" in step1
 
     step3 = lab_js.split("function handleStep3Next()", 1)[1].split(
         "// If local proxy Layer 1 is set", 1

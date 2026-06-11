@@ -16,15 +16,12 @@ from ..constants import (
 
 logger = logging.getLogger(__name__)
 
+from configstream.generators.plaintext import generate_plaintext_subscription
+
 def generate_base64_subscription(proxies: List[Proxy]) -> str:
     """Generates a Base64-encoded subscription string."""
-    lines = [p.config for p in proxies if p.config]
-    content = "\n".join(lines)
+    content = generate_plaintext_subscription(proxies)
     return base64.b64encode(content.encode("utf-8")).decode("utf-8")
-
-def generate_plaintext_subscription(proxies: List[Proxy]) -> str:
-    """Generates a newline-separated URI list."""
-    return "\n".join([p.config for p in proxies if p.config])
 
 def get_export_pool(proxies: List[Proxy]) -> List[Proxy]:
     """
@@ -32,7 +29,22 @@ def get_export_pool(proxies: List[Proxy]) -> List[Proxy]:
     """
     working = [p for p in proxies if p.is_working]
     if working:
-        return working
+        from configstream.adapters.shadowrocket import ShadowrocketAdapter
+        from configstream.generators.plaintext import _extract_uri
+        adapter = ShadowrocketAdapter()
+        has_valid_uri = False
+        for p in working:
+            try:
+                uri = _extract_uri(p, adapter)
+                if uri and uri.strip():
+                    has_valid_uri = True
+                    break
+            except Exception:
+                pass
+        if has_valid_uri:
+            return working
+        else:
+            return proxies
 
     non_revived = [
         p
@@ -62,13 +74,7 @@ def select_chosen_proxies(
     if top_per_protocol <= 0 and total_target <= 0:
         return []
 
-    working = [p for p in proxies if p.is_working]
-    non_revived = [
-        p
-        for p in proxies
-        if not (p.protocol == "revived" or (p.details or {}).get("is_revived"))
-    ]
-    pool = working if working else (non_revived if non_revived else proxies)
+    pool = get_export_pool(proxies)
 
     by_protocol: Dict[str, List[Proxy]] = {}
     for proxy in pool:
@@ -150,3 +156,7 @@ def generate_side_products_pack(
             try: os.unlink(tmp_path)
             except OSError: pass
     return None
+
+def generate_clash_subscription(proxies: List[Proxy]) -> str:
+    from ..generators.clash import generate_clash_config
+    return generate_clash_config(proxies)
