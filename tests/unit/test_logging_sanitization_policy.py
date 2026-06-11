@@ -29,7 +29,7 @@ HIGH_RISK_LOGGING_PATHS = [
     REPO_ROOT / "src/configstream/security/honeypot.py",
     REPO_ROOT / "src/configstream/security/rules.py",
     REPO_ROOT / "src/configstream/test_cache.py",
-    REPO_ROOT / "src/configstream/tools/vwarp.py",
+    *sorted((REPO_ROOT / "src/configstream/tools/vwarp").glob("*.py")),
     *sorted((REPO_ROOT / "src/configstream/converters").glob("*.py")),
     *sorted((REPO_ROOT / "src/configstream/parsers").glob("*.py")),
 ]

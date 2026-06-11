@@ -7,8 +7,7 @@ from unittest.mock import patch
 import pytest
 from httpx import AsyncClient, ASGITransport
 
-from configstream import server
-from configstream.server import app, _json_cache
+from configstream.server import app, _json_cache, utils
 
 LARGE_JSON_PAYLOAD = {
     "status": "ok",
@@ -24,14 +23,14 @@ def metadata_artifact(tmp_path: Path) -> Path:
 
 
 @pytest.mark.asyncio
-async def test_stats_json_cache_hits_and_invalidates(metadata_artifact: Path) -> None:
+async def test_stats_json_cache_hits_and_invalidates(metadata_artifact: Path, monkeypatch) -> None:
     _json_cache.clear()
+    monkeypatch.setenv("OUTPUT_DIR", str(metadata_artifact.parent))
 
     with (
-        patch("configstream.server.OUTPUT_DIR", metadata_artifact.parent),
         patch(
-            "configstream.server._read_json_file",
-            wraps=server._read_json_file,
+            "configstream.server.utils._read_json_file",
+            wraps=utils._read_json_file,
         ) as read_json,
     ):
         async with AsyncClient(

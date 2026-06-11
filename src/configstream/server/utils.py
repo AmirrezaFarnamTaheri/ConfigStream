@@ -28,9 +28,29 @@ setup_logging(
 )
 logger = logging.getLogger(__name__)
 
-OUTPUT_DIR = Path(os.environ.get("OUTPUT_DIR", "output"))
+class DynamicPathProxy:
+    def __init__(self, resolver):
+        self._resolver = resolver
+
+    @property
+    def _path(self) -> Path:
+        return Path(self._resolver())
+
+    def __truediv__(self, other):
+        return self._path / other
+
+    def __str__(self):
+        return str(self._path)
+
+    def __fspath__(self):
+        return os.fspath(self._path)
+
+    def __getattr__(self, name):
+        return getattr(self._path, name)
+
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
-FRONTEND_DIR = Path(str(settings.FRONTEND_DIR or (BASE_DIR / "frontend")))
+OUTPUT_DIR = DynamicPathProxy(lambda: os.environ.get("OUTPUT_DIR", "output"))
+FRONTEND_DIR = DynamicPathProxy(lambda: str(settings.FRONTEND_DIR or (BASE_DIR / "frontend")))
 
 _json_cache: dict[Path, tuple[float, Any]] = {}
 
@@ -162,3 +182,24 @@ def _require_admin_auth(request: Request, api_key: Optional[str], is_nonproducti
     provided_key = auth_header.split(" ")[1]
     if not secrets.compare_digest(provided_key, api_key):
         raise HTTPException(403, "Forbidden: Invalid API key")
+
+
+def _validate_admin_startup_security(current_settings: AppSettings) -> None:
+    if (
+        not _is_nonproduction_environment(current_settings.ENVIRONMENT)
+        and not current_settings.ADMIN_API_KEY
+    ):
+        raise RuntimeError(
+            "ADMIN_API_KEY must be configured when ENVIRONMENT is production."
+        )
+
+
+def _validate_cors_startup_security(current_settings: AppSettings) -> None:
+    if (
+        not _is_nonproduction_environment(current_settings.ENVIRONMENT)
+        and current_settings.ALLOWED_ORIGIN_REGEX.strip()
+    ):
+        raise RuntimeError(
+            "ALLOWED_ORIGIN_REGEX is not allowed in production; "
+            "use explicit ALLOWED_ORIGINS instead."
+        )

@@ -218,3 +218,21 @@ async def ensure_installed() -> Optional[str]:
     except Exception as e:
         logger.error("Failed to install Vwarp: %s", SecurityValidator.sanitize_log_message(str(e)))
         return None
+
+def _parse_version(version: str) -> Tuple[int, ...]:
+    """Parse a version string like ``v2.2.1`` into a numeric tuple ``(2, 2, 1)``.
+
+    Compares versions numerically rather than lexicographically (string
+    comparison wrongly orders e.g. ``v2.10.0`` before ``v2.9.0``). Non-numeric
+    or malformed components are treated as ``0`` so parsing never raises.
+    """
+    import re
+    if not version:
+        return (0,)
+    cleaned = version.strip().lstrip("vV")
+    parts = re.split(r"[.\-+]", cleaned)
+    numbers: list[int] = []
+    for part in parts:
+        match = re.match(r"\d+", part)
+        numbers.append(int(match.group()) if match else 0)
+    return tuple(numbers)

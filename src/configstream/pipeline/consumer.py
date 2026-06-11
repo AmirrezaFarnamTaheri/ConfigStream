@@ -11,9 +11,8 @@ from typing import List, Optional, Any, TYPE_CHECKING
 from rich.progress import Progress, TaskID
 
 from configstream.models import Proxy
-from configstream.auto_detect import auto_detect_and_parse as parse_config
+import configstream.consumer as consumer_mod
 from configstream.security_validator import (
-    validate_batch_configs,
     STRICT_POLICY,
     TEST_POLICY,
     SecurityValidator,
@@ -45,7 +44,8 @@ class WorkerConsumer(IConsumer):
         self.worker_id = worker_id
 
     async def consume(self) -> None:
-        await processing_consumer(
+        import configstream.pipeline
+        await configstream.pipeline.processing_consumer(
             self.context.work_queue,
             self.context.stats,
             self.context.seen_keys,
@@ -162,7 +162,7 @@ async def processing_consumer(
             safe_src = SecurityValidator.sanitize_log_message(str(src))
             for i, line in enumerate(lines):
                 try:
-                    p = parse_config(line)
+                    p = consumer_mod.parse_config(line)
                     if p:
                         p.details["_source"] = src
                         result.append(p)
@@ -280,10 +280,10 @@ async def processing_consumer(
         with tracker.phase("security_validation"):
             if len(unique_batch) > 100:
                 safe_batch = await loop.run_in_executor(
-                    None, validate_batch_configs, unique_batch, policy
+                    None, consumer_mod.validate_batch_configs, unique_batch, policy
                 )
             else:
-                safe_batch = validate_batch_configs(unique_batch, policy)
+                safe_batch = consumer_mod.validate_batch_configs(unique_batch, policy)
 
         dropped_unsafe = len(unique_batch) - len(safe_batch)
         if dropped_unsafe > 0:

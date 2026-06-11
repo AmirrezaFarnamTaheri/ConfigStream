@@ -3,8 +3,20 @@ from .interfaces import IFetcher, IProducer, IConsumer, IPipeline, FetchResult
 from .models import WorkItem, PipelineContext
 from .fetcher import HttpFetcher
 from .producer import StreamingProducer
-from .consumer import ValidatorConsumer
-from .core import StandardPipeline
+from .consumer import WorkerConsumer
+from .core import StandardPipeline, run_full_pipeline
+
+# Support legacy test patching on configstream.pipeline
+from configstream.testers import SingBoxTester
+from configstream.source_quality import SourceQualityTracker
+from configstream.anomaly import AnomalyDetector
+from configstream.event_stream import EventStream
+from configstream.geoip import GeoIPResolver
+from configstream.security.blocklist import DEFAULT_BLOCKLIST
+from configstream.filtering import filter_unique_endpoints
+from configstream.history.tracker import ProxyHistoryTracker
+from .producer import source_producer
+from .consumer import processing_consumer
 
 __all__ = [
     "IFetcher",
@@ -16,6 +28,17 @@ __all__ = [
     "PipelineContext",
     "HttpFetcher",
     "StreamingProducer",
-    "ValidatorConsumer",
+    "WorkerConsumer",
     "StandardPipeline",
+    "run_full_pipeline",
+    "SingBoxTester",
+    "SourceQualityTracker",
+    "AnomalyDetector",
+    "EventStream",
+    "GeoIPResolver",
+    "DEFAULT_BLOCKLIST",
+    "filter_unique_endpoints",
+    "ProxyHistoryTracker",
+    "source_producer",
+    "processing_consumer",
 ]

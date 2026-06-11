@@ -1,0 +1,3 @@
+[console_scripts]
+sb2p = singbox2proxy.__main__:main
+singbox2proxy = singbox2proxy.__main__:main

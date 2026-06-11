@@ -11,9 +11,8 @@ from urllib.parse import urlparse
 
 from configstream.models import Proxy
 from configstream.config import AppSettings
-from configstream.pipeline.fetcher import fetch_multiple_sources
+import configstream.producer as producer_mod
 from configstream.circuit_breaker import CircuitBreakerManager
-from configstream.async_file_ops import read_multiple_files_async
 from configstream.parsers import extract_config_lines
 from configstream.source_quality import SourceQualityTracker
 from configstream.anomaly import AnomalyDetector
@@ -33,7 +32,8 @@ class StreamingProducer(IProducer):
         self.context = context
 
     async def produce(self) -> None:
-        await source_producer(
+        import configstream.pipeline
+        await configstream.pipeline.source_producer(
             self.sources,
             self.context.work_queue,
             self.context.final_proxies, # We use final_proxies to carry initial pre-supplied proxies if any? No, context.final_proxies is for results. Let's pass empty list.
@@ -42,7 +42,7 @@ class StreamingProducer(IProducer):
             self.context.event_stream,
             self.context.progress,
             self.context.task_fetch,
-            num_consumers=4, # Not used in source_producer directly
+            num_consumers=getattr(self.context, "num_consumers", 4),
             stop_event=self.context.stop_event,
             stats=self.context.stats,
             # We'll pass context to source_producer for now and rename things later.
@@ -301,7 +301,7 @@ async def source_producer(
                 local_files.append(s)
 
         if local_files:
-            file_results = await read_multiple_files_async(local_files)
+            file_results = await producer_mod.read_multiple_files_async(local_files)
             for fpath, content in file_results:
                 if stop_event.is_set():
                     break
@@ -396,7 +396,7 @@ async def source_producer(
                 logger.info(
                     f"Fetching batch {i // batch_size + 1}: {len(batch)} sources"
                 )
-                results = await fetch_multiple_sources(
+                results = await producer_mod.fetch_multiple_sources(
                     batch,
                     max_concurrent=settings.PER_HOST_MAX_CONCURRENCY,
                     timeout=settings.FETCH_TIMEOUT,

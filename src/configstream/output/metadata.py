@@ -279,8 +279,17 @@ def save_metadata(
     if isinstance(stats, dict) and "smart_chains_breakdown" in stats:
         smart_chains_breakdown = stats["smart_chains_breakdown"]
 
-    try: pkg_version = version("configstream")
-    except Exception: pkg_version = "unknown"
+    try:
+        import sys
+        if "configstream.output_logic" in sys.modules and hasattr(sys.modules["configstream.output_logic"], "version"):
+            pkg_version = sys.modules["configstream.output_logic"].version("configstream")
+        else:
+            pkg_version = version("configstream")
+    except Exception:
+        try:
+            pkg_version = version("configstream")
+        except Exception:
+            pkg_version = "unknown"
 
     update_interval_hours = _meta_settings.UPDATE_INTERVAL_HOURS
 
@@ -388,6 +397,34 @@ def save_metadata(
 
     AtomicFileWriter.write_text(meta_path, json.dumps(meta, indent=2, ensure_ascii=False))
 
+def _attach_manifest_signature(manifest: Dict[str, Any]) -> None:
+    private_key_hex = os.environ.get("CS_SIGNING_PRIVATE_KEY_HEX")
+    if not private_key_hex:
+        return
+
+    from ..signer import Signer
+    try:
+        signer = Signer(private_key_hex)
+        payload = dict(manifest)
+        payload.pop("manifest_signature", None)
+        canonical = json.dumps(
+            payload,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+        )
+        sig_info = signer.sign_subscription(canonical)
+        public_key_bytes = bytes.fromhex(signer.get_public_key_hex())
+        key_id = hashlib.sha256(public_key_bytes).hexdigest()[:16]
+        
+        manifest["manifest_signature"] = {
+            "algorithm": "ed25519",
+            "signature": sig_info["signature"],
+            "key_id": f"sha256:{key_id}",
+        }
+    except Exception as exc:
+        logger.error(f"Failed to sign manifest: {exc}")
+
 def write_public_artifact_contract(output_dir: Path) -> Dict[str, Any]:
     """
     Write health.json and artifact_manifest.json for the public output directory.
@@ -428,9 +465,16 @@ def write_public_artifact_contract(output_dir: Path) -> Dict[str, Any]:
     manifest = {
         "schema_version": PUBLIC_CONTRACT_SCHEMA_VERSION,
         "generated_at": generated_at,
+        "artifact_generated_at": generated_at,
         "trace_id": trace_id,
+        "source_commit": os.environ.get("GITHUB_SHA", ""),
+        "run_id": os.environ.get("GITHUB_RUN_ID", ""),
+        "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
+        "file_count": len(files),
+        "total_size_bytes": sum(item["size_bytes"] for item in files),
         "files": files,
     }
+    _attach_manifest_signature(manifest)
     AtomicFileWriter.write_text(output_dir / "artifact_manifest.json", json.dumps(manifest, indent=2, ensure_ascii=False))
     return manifest
 

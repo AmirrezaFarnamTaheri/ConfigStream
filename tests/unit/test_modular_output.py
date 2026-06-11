@@ -13,8 +13,8 @@ def temp_output_dir(tmp_path):
 
 def test_generate_metadata_json_basic(temp_output_dir):
     proxies = [
-        Proxy(protocol="vless", address="1.1.1.1", port=443, is_working=True, latency=100),
-        Proxy(protocol="vmess", address="2.2.2.2", port=443, is_working=False),
+        Proxy(config="vless://1.1.1.1:443", protocol="vless", address="1.1.1.1", port=443, is_working=True, latency=100),
+        Proxy(config="vmess://2.2.2.2:443", protocol="vmess", address="2.2.2.2", port=443, is_working=False),
     ]
     stats = {"fetched_lines": 10, "parsed": 5, "tested": 5}
     

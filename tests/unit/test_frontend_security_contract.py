@@ -41,7 +41,7 @@ def test_lab_csp_allows_network_diagnosis_endpoints() -> None:
 
 
 def test_lab_generated_scripts_do_not_auto_download_binaries() -> None:
-    lab_js = _read(FRONTEND_DIR / "assets" / "js" / "lab.js")
+    lab_js = _read(FRONTEND_DIR / "assets" / "js" / "lab" / "exporters.js")
 
     # Bash export must not use inline remote install/extract.
     assert 'curl -sL "$URL" | tar xz' not in lab_js

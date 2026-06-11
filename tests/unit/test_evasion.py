@@ -95,12 +95,15 @@ class TestEnrichOutbound:
             "tls": {"enabled": True},
         }
         result = enrich_outbound_with_evasion(
-            outbound, "test_proxy", enable_utls=True, enable_alpn=True
+            outbound, "test_proxy", enable_utls=True, enable_alpn=True, enable_fragmentation=True
         )
         assert "utls" in result["tls"]
         assert "alpn" in result["tls"]
-        # Fragmentation is disabled/no-op
+        # Fragmentation is disabled/no-op on TLS object, but added on dial
         assert "tls_fragment" not in result["tls"]
+        assert "dial" in result
+        assert result["dial"]["fragment"]["enabled"] is True
+        assert "length" in result["dial"]["fragment"]
         assert "multiplex" in result
 
     def test_enrich_vless_outbound(self):
@@ -131,6 +134,40 @@ class TestEnrichOutbound:
             outbound, "test_proxy", tls_fingerprint="randomized"
         )
         assert result["tls"]["utls"]["fingerprint"] == "randomized"
+
+    def test_enrich_fragmentation_presets(self):
+        """Test fragmentation presets selection and disable capability."""
+        # 1. Test disabled
+        outbound = {
+            "type": "vless",
+            "tls": {"enabled": True},
+        }
+        res_disabled = enrich_outbound_with_evasion(
+            outbound, "test_proxy", enable_fragmentation=False
+        )
+        assert "dial" not in res_disabled or "fragment" not in res_disabled.get("dial", {})
+
+        # 2. Test specific preset (light)
+        res_light = enrich_outbound_with_evasion(
+            outbound, "test_proxy", enable_fragmentation=True, fragment_preset="light"
+        )
+        assert res_light["dial"]["fragment"]["enabled"] is True
+        assert res_light["dial"]["fragment"]["packets"] == "tlshello"
+        assert res_light["dial"]["fragment"]["length"] == "100-200"
+        assert res_light["dial"]["fragment"]["interval"] == "10-20"
+
+        # 3. Test Reality is skipped
+        outbound_reality = {
+            "type": "vless",
+            "tls": {
+                "enabled": True,
+                "reality": {"enabled": True, "public_key": "some_key"}
+            }
+        }
+        res_reality = enrich_outbound_with_evasion(
+            outbound_reality, "test_proxy", enable_fragmentation=True
+        )
+        assert "dial" not in res_reality or "fragment" not in res_reality.get("dial", {})
 
 
 class TestSNIPreservation:

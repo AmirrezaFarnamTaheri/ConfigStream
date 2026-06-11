@@ -63,3 +63,4 @@ class PipelineContext:
     leniency: bool = False
     strict_security: bool = False
     dry_run: bool = False
+    num_consumers: int = 4

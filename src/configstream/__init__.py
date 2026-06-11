@@ -47,7 +47,13 @@ def __getattr__(name: str) -> Any:
         from .config import AppSettings
 
         return AppSettings
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    if not name or name.startswith("."):
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    import importlib
+    try:
+        return importlib.import_module(f".{name}", __name__)
+    except (ImportError, ModuleNotFoundError):
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 if sys.platform == "win32":

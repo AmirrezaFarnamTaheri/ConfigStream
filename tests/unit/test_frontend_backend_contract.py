@@ -10,23 +10,26 @@ from pathlib import Path
 from configstream.constants import OUTPUT_PROTOCOL_ORDER
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-SERVER_PATH = REPO_ROOT / "src" / "configstream" / "server.py"
-OUTPUT_LOGIC_PATH = REPO_ROOT / "src" / "configstream" / "output_logic.py"
+SERVER_UTILS_PATH = REPO_ROOT / "src" / "configstream" / "server" / "utils.py"
+SERVER_PROXIES_PATH = (
+    REPO_ROOT / "src" / "configstream" / "server" / "routes" / "proxies.py"
+)
+OUTPUT_LOGIC_PATH = REPO_ROOT / "src" / "configstream" / "output" / "public_lists.py"
 COMMON_UI_PATH = REPO_ROOT / "frontend" / "assets" / "js" / "common-ui.js"
 DYNAMIC_DOWNLOADS_PATH = (
     REPO_ROOT / "frontend" / "assets" / "js" / "dynamic-downloads.js"
 )
-LAB_JS_PATH = REPO_ROOT / "frontend" / "assets" / "js" / "lab.js"
+LAB_JS_PATH = REPO_ROOT / "frontend" / "assets" / "js" / "lab" / "state.js"
 
 
 def _load_server_maps() -> tuple[dict[str, str], dict[str, str]]:
-    source = SERVER_PATH.read_text(encoding="utf-8")
-    tree = ast.parse(source)
+    source_utils = SERVER_UTILS_PATH.read_text(encoding="utf-8")
+    tree_utils = ast.parse(source_utils)
 
     root_output_files: dict[str, str] = {}
     subscribe_file_map: dict[str, str] = {}
 
-    for node in tree.body:
+    for node in tree_utils.body:
         if isinstance(node, ast.Assign):
             for target in node.targets:
                 if isinstance(target, ast.Name) and target.id == "ROOT_OUTPUT_FILES":
@@ -38,6 +41,10 @@ def _load_server_maps() -> tuple[dict[str, str], dict[str, str]]:
                             if isinstance(k, str)
                         }
 
+    source_proxies = SERVER_PROXIES_PATH.read_text(encoding="utf-8")
+    tree_proxies = ast.parse(source_proxies)
+
+    for node in tree_proxies.body:
         if (
             isinstance(node, ast.AsyncFunctionDef)
             and node.name == "download_subscription"
@@ -55,8 +62,8 @@ def _load_server_maps() -> tuple[dict[str, str], dict[str, str]]:
                                 }
                             break
 
-    assert root_output_files, "Failed to parse ROOT_OUTPUT_FILES from server.py"
-    assert subscribe_file_map, "Failed to parse subscribe file_map from server.py"
+    assert root_output_files, "Failed to parse ROOT_OUTPUT_FILES from utils.py"
+    assert subscribe_file_map, "Failed to parse subscribe file_map from proxies.py"
     return root_output_files, subscribe_file_map
 
 
@@ -78,8 +85,8 @@ def _parse_dynamic_download_files() -> set[str]:
 
 def _parse_lab_protocol_priority() -> list[str]:
     source = LAB_JS_PATH.read_text(encoding="utf-8")
-    match = re.search(r"const PROTOCOL_PRIORITY = \[(.*?)\];", source, re.DOTALL)
-    assert match, "PROTOCOL_PRIORITY array not found in lab.js"
+    match = re.search(r"export const PROTOCOL_PRIORITY = \[(.*?)\];", source, re.DOTALL)
+    assert match, "PROTOCOL_PRIORITY array not found in state.js"
     body = match.group(1)
     return re.findall(r"'([^']+)'", body)
 
@@ -119,7 +126,7 @@ def test_lab_protocol_priority_matches_backend_order() -> None:
 
 
 def test_country_protocol_api_contract_uses_list_json_files() -> None:
-    server_source = SERVER_PATH.read_text(encoding="utf-8")
+    server_source = SERVER_PROXIES_PATH.read_text(encoding="utf-8")
     output_logic_source = OUTPUT_LOGIC_PATH.read_text(encoding="utf-8")
 
     assert ".list.json" in server_source

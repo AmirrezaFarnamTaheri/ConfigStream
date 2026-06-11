@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import pytest
-from configstream.pipeline.core import StandardPipeline
+from configstream.pipeline import run_full_pipeline
 from configstream.anomaly import AnomalyDetector
 
 
@@ -80,7 +80,7 @@ async def test_failure_mode_anomaly_db_crash(tmp_path, monkeypatch):
             )
         }
 
-    monkeypatch.setattr("configstream.fetcher.fetch_multiple_sources", fake_fetch)
+    monkeypatch.setattr("configstream.producer.fetch_multiple_sources", fake_fetch)
 
     # Mock Blocklist
     async def fake_update():
@@ -142,7 +142,7 @@ async def test_failure_mode_vt_missing(tmp_path, monkeypatch):
             )
         }
 
-    monkeypatch.setattr("configstream.fetcher.fetch_multiple_sources", fake_fetch)
+    monkeypatch.setattr("configstream.producer.fetch_multiple_sources", fake_fetch)
     from configstream.geoip import GeoData
 
     # Use async mock for GeoIP lookup and keyword arguments for GeoData

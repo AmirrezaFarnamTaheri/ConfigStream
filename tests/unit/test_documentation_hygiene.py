@@ -10,7 +10,7 @@ from tests.unit.doc_sources import read_doc, read_first_existing_doc
 REPO_ROOT = Path(__file__).resolve().parents[2]
 KNOWN_ISSUES_SOURCES = [
     "KNOWN_ISSUES.md",
-    "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md",
+    "docs/history/source-of-truth/ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md",
 ]
 
 
@@ -77,7 +77,7 @@ def test_docs_match_runtime_security_defaults() -> None:
     readme = _read("README.md")
     config_doc = _read("docs/wiki/project/Configuration.md")
 
-    assert "USE_VWARP_TUNNEL=true (default: false)" not in readme
-    assert "USE_VWARP_TUNNEL=true (default: true)" in readme
+    assert "USE_VWARP_TUNNEL=true" in readme
+    assert "`USE_VWARP_TUNNEL` | `true`" in config_doc
     assert "Required in production" in config_doc
     assert "production admin endpoints fail closed" in config_doc

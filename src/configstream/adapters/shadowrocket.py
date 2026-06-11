@@ -78,7 +78,7 @@ class ShadowrocketAdapter(Adapter):
             if chain_uri:
                 return chain_uri
 
-        origin = details.get("origin_proxy")
+        origin = details.get("origin_proxy") or details.get("origin_config")
         if origin and isinstance(origin, dict):
             try:
                 origin_p = Proxy(**origin)
