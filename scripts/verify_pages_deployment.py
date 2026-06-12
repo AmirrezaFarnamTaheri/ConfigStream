@@ -70,7 +70,7 @@ def _fetch(url: str, *, timeout: float) -> Response:
     )
     try:
         opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
-        with opener.open(request, timeout=timeout) as response:  # nosec B310
+        with opener.open(request, timeout=timeout) as response:
             try:
                 body = response.read()
             except http.client.IncompleteRead as exc:

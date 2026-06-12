@@ -130,8 +130,12 @@ def backup_databases(
                     backup_path_temp.unlink()
                 if backup_path_final.exists():
                     backup_path_final.unlink()
-            except Exception:  # nosec
-                pass
+            except Exception as cleanup_exc:
+                logger.debug(
+                    "Failed to remove partial backup files for %s: %s",
+                    db_file.name,
+                    _safe_log_text(cleanup_exc),
+                )
             logger.error(f"Failed to backup {db_file}: {_safe_log_text(e)}")
 
     # Cleanup old backups
@@ -219,8 +223,12 @@ def cleanup_old_backups(backup_dir: Path, retention_days: int) -> int:
             try:
                 fpath.unlink()
                 deleted += 1
-            except Exception:  # nosec
-                pass
+            except Exception as cleanup_exc:
+                logger.debug(
+                    "Failed to delete old backup %s: %s",
+                    fpath.name,
+                    _safe_log_text(cleanup_exc),
+                )
 
     if deleted > 0:
         logger.info(f"Cleaned up {deleted} old backup files (smart retention)")

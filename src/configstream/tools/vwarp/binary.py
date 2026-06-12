@@ -7,6 +7,7 @@ import platform
 import shutil
 import stat
 import sys
+import tempfile
 import zipfile
 from io import BytesIO
 from pathlib import Path
@@ -153,7 +154,7 @@ async def ensure_installed() -> Optional[str]:
         target_path = install_dir / "vwarp"
 
         if not os.access(install_dir, os.W_OK):
-            install_dir = Path("/tmp/configstream-bin")  # nosec
+            install_dir = Path(tempfile.gettempdir()) / "configstream-bin"
             install_dir.mkdir(parents=True, exist_ok=True)
             target_path = install_dir / "vwarp"
             logger.warning(f"Cannot write to ~/.local/bin, installing to {target_path}")

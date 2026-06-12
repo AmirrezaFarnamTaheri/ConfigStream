@@ -2,8 +2,8 @@
 import asyncio
 import ipaddress
 import logging
-import random
 import socket
+from secrets import choice as secure_choice
 from urllib.parse import urlparse, urljoin
 from typing import Any, Dict, Optional, Tuple, List
 import httpx
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 # Use AppSettings if available, otherwise default
 try:
     MAX_RESPONSE_SIZE = AppSettings().MAX_RESPONSE_SIZE
-except Exception:  # nosec
+except Exception:
     MAX_RESPONSE_SIZE = 10 * 1024 * 1024
 
 USER_AGENTS = [
@@ -187,7 +187,7 @@ async def fetch_from_source(
             parsed = urlparse(source)
             host = parsed.netloc
             key = host
-        except Exception:  # nosec
+        except Exception:
             key = source
 
         breaker = await breaker_manager.get_breaker(key)
@@ -225,7 +225,7 @@ async def fetch_from_source(
             if wait_time > 0:
                 await asyncio.sleep(wait_time)
 
-    headers = {"User-Agent": random.choice(USER_AGENTS)}  # nosec
+    headers = {"User-Agent": secure_choice(USER_AGENTS)}
     attempt = 0
     last_error = None
 
@@ -505,13 +505,21 @@ async def fetch_from_source(
                     await timeout_tracker.record_attempt(
                         source, loop.time() - start_ts, success=False
                     )
-                except Exception:  # nosec
-                    pass
+                except Exception as tracker_exc:
+                    logger.debug(
+                        "Timeout tracker failure for %s: %s",
+                        safe_source,
+                        SecurityValidator.sanitize_log_message(str(tracker_exc)),
+                    )
             if breaker:
                 try:
                     await breaker.record_failure()
-                except Exception:  # nosec
-                    pass
+                except Exception as breaker_exc:
+                    logger.debug(
+                        "Circuit breaker failure accounting failed for %s: %s",
+                        safe_source,
+                        SecurityValidator.sanitize_log_message(str(breaker_exc)),
+                    )
             attempt += 1
             await asyncio.sleep(retry_delay)
 

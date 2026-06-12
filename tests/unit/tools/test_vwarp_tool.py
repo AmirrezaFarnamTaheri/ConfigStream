@@ -5,6 +5,7 @@ from configstream.tools.vwarp import (
     ATOMICNOIZE_PRESETS,
     DEFAULT_WARP_ENDPOINT,
 )
+from configstream.tools.vwarp.tunnel import VwarpTunnel
 
 
 def test_key_validation():
@@ -25,6 +26,14 @@ def test_build_vwarp_config_defaults():
     assert config["psiphon"]["enabled"] is False
     assert "key" not in config
     assert "proxy" not in config
+
+
+def test_tunnel_probe_host_maps_unspecified_binds_to_loopback():
+    assert VwarpTunnel._probe_host_for_bind("") == "127.0.0.1"
+    assert VwarpTunnel._probe_host_for_bind("0.0.0.0") == "127.0.0.1"
+    assert VwarpTunnel._probe_host_for_bind("::") == "127.0.0.1"
+    assert VwarpTunnel._probe_host_for_bind("localhost") == "localhost"
+    assert VwarpTunnel._probe_host_for_bind("192.0.2.10") == "192.0.2.10"
 
 
 def test_build_vwarp_config_masque_preset():

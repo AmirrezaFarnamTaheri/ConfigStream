@@ -86,14 +86,14 @@ def _save_clean_ips(clean_ips: List[tuple[str, int]], path: Path) -> None:
     for entry in clean_ips:
         try:
             ip, port = entry
-        except Exception:  # nosec
+        except Exception:  # nosec B112
             continue
         ip_s = str(ip).strip()
         if not ip_s or not _is_clean_ip(ip_s):
             continue
         try:
             port_i = int(port)
-        except Exception:  # nosec
+        except Exception:
             port_i = 2408
         key = f"{ip_s}:{port_i}"
         if key in seen:
@@ -163,7 +163,7 @@ def _chain_to_proxy_entry(
     server = entry.get("server", "")
     try:
         port = int(entry.get("server_port", 0) or 0)
-    except Exception:  # nosec
+    except Exception:
         port = 0
     tags = ["chain"]
     if any(ob.get("type") == "wireguard" for ob in chain):
@@ -196,7 +196,7 @@ def _chain_to_proxy_entry(
                 details=details,
             )
             remarks = format_proxy_name(name_template, chain_proxy)
-        except Exception:  # nosec
+        except Exception:
             remarks = tag
     if used_names is not None:
         base_name = remarks or tag
@@ -266,7 +266,7 @@ def _chain_obs_to_entries(
             return False
         try:
             port = int(ob.get("server_port", 0) or 0)
-        except Exception:  # nosec
+        except Exception:
             return False
         return 1 <= port <= 65535
 
@@ -494,7 +494,7 @@ async def generate_pipeline_outputs(
         # is blocked by hostile network conditions.
         try:
             await washer.fetch_clean_ips()
-        except Exception:  # nosec
+        except Exception:
             logger.debug("Failed to fetch clean IPs (fail-open).", exc_info=True)
 
     # Export clean IPs for the frontend lab (best-effort, non-fatal).
@@ -508,7 +508,7 @@ async def generate_pipeline_outputs(
             clean_ips = [(ip, 2408) for ip in DEFAULT_CLEAN_IPS]
         clean_ips_path = output_path / "data" / "clean_ips.json"
         await loop.run_in_executor(None, _save_clean_ips, clean_ips, clean_ips_path)
-    except Exception:  # nosec
+    except Exception:
         logger.debug("Failed to export clean_ips.json", exc_info=True)
 
     # Update stats with scanner results
@@ -578,7 +578,7 @@ async def generate_pipeline_outputs(
                         for p in verified_results:
                             if p.is_working:
                                 optimized_proxies.append(p)
-                    except Exception as verify_exc:  # nosec
+                    except Exception as verify_exc:
                         logger.warning(
                             "Shielded chain verification failed: %s",
                             str(verify_exc),

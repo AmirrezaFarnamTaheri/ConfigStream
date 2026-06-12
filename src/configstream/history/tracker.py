@@ -339,7 +339,7 @@ class ProxyHistoryTracker:
                 if cursor:
                     try:
                         cursor.close()
-                    except Exception:  # nosec
+                    except Exception:  # nosec B110
                         pass
 
         except Exception as e:
@@ -384,7 +384,7 @@ class ProxyHistoryTracker:
         if hasattr(stats, "to_dict") and callable(stats.to_dict):
             try:
                 stats_dict = stats.to_dict()
-            except Exception:  # nosec
+            except Exception:
                 logger.warning("Failed to convert stats to dict, using empty dict")
                 stats_dict = {}
         elif isinstance(stats, dict):

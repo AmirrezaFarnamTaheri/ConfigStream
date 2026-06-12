@@ -31,7 +31,7 @@ class HardStopWatcher:
                 "Tester shutdown exceeded %.1fs grace period; applying hard stop.",
                 self.grace_seconds,
             )
-        except Exception as exc:  # nosec
+        except Exception as exc:
             logger.warning("Tester shutdown failed: %s", exc)
             return
 
@@ -44,7 +44,7 @@ class HardStopWatcher:
             if proc.returncode is None:
                 proc.kill()
                 await asyncio.wait_for(proc.wait(), timeout=1.0)
-        except Exception as exc:  # nosec
+        except Exception as exc:
             logger.warning("Hard stop failed to terminate Go tester process: %s", exc)
         finally:
             if go_tester is not None:
@@ -65,7 +65,7 @@ class HardStopWatcher:
                 "Event stream flush exceeded %.1fs timeout; continuing shutdown.",
                 self.flush_timeout_seconds,
             )
-        except Exception as exc:  # nosec
+        except Exception as exc:
             logger.warning("Error closing EventStream: %s", exc)
 
     async def shutdown(self, tester: Any, event_stream: Any) -> None:

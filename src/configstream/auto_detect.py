@@ -59,7 +59,7 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
             result = parse_openvpn(config)
             if result:
                 return result
-        except Exception:  # nosec
+        except Exception:  # nosec B110
             pass
 
     # Try Naked IP:PORT

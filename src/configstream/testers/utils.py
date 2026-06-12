@@ -19,7 +19,7 @@ def _cleanup_temp_files():
         try:
             if os.path.exists(path):
                 os.unlink(path)
-        except Exception:  # nosec
+        except Exception:  # nosec B110
             pass
 
 

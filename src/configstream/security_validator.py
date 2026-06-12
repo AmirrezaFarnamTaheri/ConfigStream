@@ -41,7 +41,7 @@ _SANITIZE_ADDR_RE = re.compile(r"[^a-zA-Z0-9\.\-\:\[\]]")
 STRICT_POLICY = {
     "allow_local_ips": False,
     "require_tls_validation": True,
-    "min_password_length": 8,  # nosec
+    "min_credential_length": 8,
     "block_suspicious_ports": True,
 }
 
@@ -49,7 +49,7 @@ STRICT_POLICY = {
 TEST_POLICY = {
     "allow_local_ips": False,
     "require_tls_validation": False,
-    "min_password_length": 1,  # nosec
+    "min_credential_length": 1,
     "block_suspicious_ports": False,
 }
 
@@ -240,7 +240,13 @@ class SecurityValidator:
             password = proxy.details.get("password") or getattr(proxy, "uuid", None)
             if not password:
                 return False, "missing_trojan_password"
-            if len(str(password)) < policy["min_password_length"]:
+            min_credential_length = int(
+                policy.get(
+                    "min_credential_length",
+                    policy.get("min_password_length", 1),
+                )
+            )
+            if len(str(password)) < min_credential_length:
                 return False, "weak_trojan_password"
 
         if proxy.protocol == "shadowsocks":

@@ -48,7 +48,7 @@ def get_file_stats(output_dir: str) -> Dict[str, Any]:
             stats["shielded_verified_count"] = metadata.get(
                 "shielded_verified_count", 0
             )
-        except Exception:  # nosec
+        except Exception:  # nosec B110
             pass
 
     # Count decoded subscription lines from base64.txt
@@ -61,7 +61,7 @@ def get_file_stats(output_dir: str) -> Dict[str, Any]:
                 stats["base64_proxy_count"] = len(
                     [line for line in decoded.splitlines() if line.strip()]
                 )
-        except Exception:  # nosec
+        except Exception:  # nosec B110
             pass
 
     return stats
@@ -100,7 +100,7 @@ def generate_evidence_bundle(
             bundle_meta["smoke_test"] = json.loads(
                 Path(smoke_report).read_text(encoding="utf-8")
             )
-        except Exception:  # nosec
+        except Exception:
             bundle_meta["smoke_test"] = {"error": "Failed to read smoke report"}
 
     native_report_path = Path(native_report) if native_report else None
@@ -112,7 +112,7 @@ def generate_evidence_bundle(
             )
             if native_report_path.resolve() != default_native_report.resolve():
                 shutil.copy2(native_report_path, default_native_report)
-        except Exception:  # nosec
+        except Exception:
             bundle_meta["native_client_check"] = {
                 "error": "Failed to read native client check report"
             }
@@ -121,7 +121,7 @@ def generate_evidence_bundle(
             bundle_meta["native_client_check"] = json.loads(
                 default_native_report.read_text(encoding="utf-8")
             )
-        except Exception:  # nosec
+        except Exception:
             bundle_meta["native_client_check"] = {
                 "error": "Failed to read native client check report"
             }

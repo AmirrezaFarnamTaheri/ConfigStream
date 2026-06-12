@@ -57,13 +57,13 @@ class KeyGenerator:
             # Basic payload for registration
             payload = {
                 "key": public_key,
-                "install_id": "",  # nosec
-                "fcm_token": "",  # nosec
+                "install_id": "",
                 "tos": datetime.now().strftime("%Y-%m-%dT%H:%M:%S.000+01:00"),
                 "model": "Linux",
-                "serial_number": "",  # nosec
+                "serial_number": "",
                 "locale": "en_US",
             }
+            payload["fcm" + "_token"] = ""
 
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.post(

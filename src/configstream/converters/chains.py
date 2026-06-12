@@ -13,7 +13,7 @@ def _proxy_from_dict(data: Dict[str, Any]) -> Optional[Proxy]:
     """Best-effort Proxy reconstruction from dictionary payload."""
     try:
         return Proxy(**data)
-    except Exception:  # nosec
+    except Exception:
         return None
 
 

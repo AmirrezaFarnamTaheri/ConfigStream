@@ -8,9 +8,9 @@ import ipaddress
 import socket
 import logging
 from dataclasses import dataclass
+from secrets import randbelow
 from time import monotonic
 from typing import Any, Dict, List, Optional
-import random
 import httpx
 
 try:
@@ -37,13 +37,16 @@ DOH_PROVIDERS: List[Dict[str, Any]] = [
 ]
 
 
-def select_doh_provider() -> dict:
-    total_weight = sum(p["weight"] for p in DOH_PROVIDERS)
-    r = random.uniform(0, total_weight)
+def select_doh_provider() -> Dict[str, Any]:
+    total_weight = sum(int(p["weight"]) for p in DOH_PROVIDERS)
+    if total_weight <= 0:
+        return DOH_PROVIDERS[0]
+    r = randbelow(total_weight)
     for p in DOH_PROVIDERS:
-        if r < p["weight"]:
+        weight = int(p["weight"])
+        if r < weight:
             return p
-        r -= p["weight"]
+        r -= weight
     return DOH_PROVIDERS[0]
 
 

@@ -104,13 +104,13 @@ def _is_scannable(rel_path: str) -> bool:
 def _tracked_files() -> list[Path]:
     git_bin = shutil.which("git")
     if git_bin:
-        proc = subprocess.run(
+        proc = subprocess.run(  # nosec B603
             [git_bin, "ls-files"],
             cwd=ROOT,
             capture_output=True,
             text=True,
             check=False,
-        )  # nosec B603
+        )
         if proc.returncode == 0:
             return [
                 ROOT / line.strip()

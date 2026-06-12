@@ -224,6 +224,16 @@ def _ci_frontend_smoke_installs_node_browser(path: Path) -> bool:
     )
 
 
+def _ci_has_bandit_suppression_guard(path: Path) -> bool:
+    try:
+        content = path.read_text(encoding="utf-8")
+    except OSError:
+        return False
+    bandit_index = content.find("bandit -r src/configstream scripts tools")
+    guard_index = content.find("python scripts/validate_bandit_suppressions.py")
+    return bandit_index != -1 and guard_index != -1 and bandit_index < guard_index
+
+
 def _has_contract_validators(path: Path) -> bool:
     try:
         content = path.read_text(encoding="utf-8")
@@ -346,6 +356,8 @@ def main() -> int:
             errors.append(
                 f"{path}: frontend smoke job must install Node Playwright Chromium"
             )
+        if path.name == "ci.yml" and not _ci_has_bandit_suppression_guard(path):
+            errors.append(f"{path}: missing Bandit suppression hygiene guard")
         if path.name in {"ci.yml", "release.yml"} and not _has_contract_validators(
             path
         ):

@@ -34,13 +34,13 @@ DEFAULT_LFS_PATTERNS = (
 
 
 def _run(cmd: list[str], cwd: Path | None = None) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
+    return subprocess.run(  # nosec B603
         cmd,
         cwd=str(cwd) if cwd else None,
         check=True,
         capture_output=True,
         text=True,
-    )  # nosec B603
+    )
 
 
 def _repo_http_url(repo_id: str, repo_type: str) -> str:

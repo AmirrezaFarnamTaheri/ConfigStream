@@ -656,12 +656,12 @@ def icmp_reachable(host: str) -> bool:
     if not ping_bin:
         return False
     try:
-        result = subprocess.run(
+        result = subprocess.run(  # nosec B603
             [ping_bin, param, "1", "-W", "2", host],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             timeout=4,
-        )  # nosec B603
+        )
         return result.returncode == 0
     except Exception:
         return False
@@ -956,9 +956,9 @@ def scan_vwarp_endpoints(rtt_limit: str = "800ms") -> List[Dict[str, Any]]:
     info(f"Running: {' '.join(cmd)}")
 
     try:
-        result = _subprocess.run(
+        result = _subprocess.run(  # nosec B603
             cmd, capture_output=True, text=True, timeout=60
-        )  # nosec B603
+        )
     except _subprocess.TimeoutExpired:
         fail("vwarp scan timed out after 60 seconds.")
         return []

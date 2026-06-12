@@ -127,7 +127,7 @@ def _origin_proxy_from_revived(proxy: Proxy) -> Optional[Proxy]:
     if isinstance(origin_obj, dict):
         try:
             return Proxy(**origin_obj)
-        except Exception:  # nosec
+        except Exception:  # nosec B110
             pass
 
     origin_cfg = details.get("origin_config")
@@ -143,7 +143,7 @@ def _origin_proxy_from_revived(proxy: Proxy) -> Optional[Proxy]:
                 details=origin_cfg.get("details") or {},
                 is_working=True,
             )
-        except Exception:  # nosec
+        except Exception:
             return None
     return None
 

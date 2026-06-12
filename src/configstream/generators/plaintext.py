@@ -198,7 +198,7 @@ def _extract_uri(proxy: Proxy, adapter: ShadowrocketAdapter) -> Optional[str]:
                     # Force field-based URI reconstruction with overridden address.
                     origin_proxy.config = ""
                 return _extract_uri(origin_proxy, adapter)
-            except Exception:  # nosec
+            except Exception:  # nosec B110
                 pass
 
         # Strategy 2: compact origin_config (preserved after serialization)
@@ -229,7 +229,7 @@ def _extract_uri(proxy: Proxy, adapter: ShadowrocketAdapter) -> Optional[str]:
                     # Force field-based URI reconstruction with overridden address.
                     origin_proxy.config = ""
                 return _extract_uri(origin_proxy, adapter)
-            except Exception:  # nosec
+            except Exception:  # nosec B110
                 pass
 
         # Strategy 3: extract relay outbound from chain_outbounds
