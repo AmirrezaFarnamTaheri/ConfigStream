@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import logging
 from datetime import datetime, timezone
-from typing import List
+from typing import Awaitable, Callable, List
 
 from fastapi import (
     FastAPI,
@@ -100,7 +100,10 @@ def create_app() -> FastAPI:
     # CSP is delivered via <meta> tags in the frontend HTML; the headers below
     # cover protections that can only be enforced at the HTTP layer.
     @app.middleware("http")
-    async def add_security_headers(request: Request, call_next):
+    async def add_security_headers(
+        request: Request,
+        call_next: Callable[[Request], Awaitable[Response]],
+    ) -> Response:
         response = await call_next(request)
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
         response.headers.setdefault("X-Frame-Options", "DENY")
