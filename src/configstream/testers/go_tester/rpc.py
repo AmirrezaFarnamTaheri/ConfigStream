@@ -24,9 +24,15 @@ class GoTesterIPC:
         async with self._lock:
             self._pending_futures[request_id] = future
             
+        stdin = self._proc.stdin
+        if stdin is None:
+            async with self._lock:
+                self._pending_futures.pop(request_id, None)
+            raise RuntimeError("Go tester process has no stdin pipe")
+
         message = {"id": request_id, "cmd": cmd, **payload}
-        self._proc.stdin.write(self._json_str(message).encode() + b"\n")
-        await self._proc.stdin.drain()
+        stdin.write(self._json_str(message).encode() + b"\n")
+        await stdin.drain()
         
         return await asyncio.wait_for(future, timeout=30.0)
     

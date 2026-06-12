@@ -149,7 +149,7 @@ def add_multiplexing(
 
 
 # Fragmentation presets from cfray
-FRAG_PRESETS = {
+FRAG_PRESETS: Dict[str, List[Optional[Dict[str, str]]]] = {
     "none": [None],
     "light": [
         {"packets": "tlshello", "length": "100-200", "interval": "10-20"},
@@ -185,7 +185,7 @@ def get_fragment_config(
 
     choices = FRAG_PRESETS.get(preset)
     if not choices:
-        choices = FRAG_PRESETS.get("medium")  # Fallback
+        choices = FRAG_PRESETS["medium"]  # Fallback
 
     valid_choices = [c for c in choices if c is not None]
     if not valid_choices:

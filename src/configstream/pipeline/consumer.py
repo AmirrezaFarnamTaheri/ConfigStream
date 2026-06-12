@@ -45,30 +45,58 @@ class WorkerConsumer(IConsumer):
 
     async def consume(self) -> None:
         import configstream.pipeline
+
+        # Contract: the pipeline core always provides these collaborators.
+        ctx = self.context
+        required = {
+            "tester": ctx.tester,
+            "scheduler": ctx.scheduler,
+            "test_cache": ctx.test_cache,
+            "concurrency": ctx.concurrency,
+            "geoip": ctx.geoip,
+            "tracker": ctx.tracker,
+            "quality_tracker": ctx.quality_tracker,
+            "history": ctx.history,
+        }
+        missing = [name for name, value in required.items() if value is None]
+        if missing:
+            raise RuntimeError(
+                "PipelineContext is missing required collaborators for "
+                f"WorkerConsumer: {', '.join(missing)}"
+            )
+        assert ctx.tester is not None
+        assert ctx.scheduler is not None
+        assert ctx.test_cache is not None
+        assert ctx.concurrency is not None
+        assert ctx.geoip is not None
+        assert ctx.tracker is not None
+        assert ctx.quality_tracker is not None
+        assert ctx.history is not None
+
         await configstream.pipeline.processing_consumer(
-            self.context.work_queue,
-            self.context.stats,
-            self.context.seen_keys,
-            self.context.final_proxies,
-            self.context.tester,
-            self.context.scheduler,
-            self.context.test_cache,
-            self.context.concurrency,
-            self.context.geoip,
-            self.context.tracker,
-            self.context.event_stream,
-            self.context.quality_tracker,
-            self.context.history,
-            self.context.progress,
-            self.context.task_process,
-            self.context.max_latency,
-            self.context.country_filter,
-            self.context.leniency,
+            ctx.work_queue,
+            ctx.stats,
+            ctx.seen_keys,
+            ctx.final_proxies,
+            ctx.tester,
+            ctx.scheduler,
+            ctx.test_cache,
+            ctx.concurrency,
+            ctx.geoip,
+            ctx.tracker,
+            ctx.event_stream,
+            ctx.quality_tracker,
+            ctx.history,
+            ctx.progress,
+            ctx.task_process,
+            ctx.max_latency,
+            ctx.country_filter,
+            ctx.leniency,
             consumer_id=self.worker_id,
-            seen_lock=self.context.seen_lock,
-            washer=self.context.washer,
-            stop_event=self.context.stop_event,
-            seen_bloom=self.context.seen_bloom,
+            seen_lock=ctx.seen_lock,
+            washer=ctx.washer,
+            stop_event=ctx.stop_event,
+            seen_bloom=ctx.seen_bloom,
         )
 
 async def processing_consumer(
