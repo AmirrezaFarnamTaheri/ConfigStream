@@ -38,11 +38,7 @@ def _iter_source_files(scan_roots: tuple[str, ...]) -> list[Path]:
 
 
 def _rule_tokens(body: str) -> list[str]:
-    return [
-        token.strip()
-        for token in body.replace(",", " ").split()
-        if token.strip()
-    ]
+    return [token.strip() for token in body.replace(",", " ").split() if token.strip()]
 
 
 def validate_bandit_suppressions(
@@ -77,9 +73,7 @@ def validate_bandit_suppressions(
                     f"{', '.join(invalid)}"
                 )
 
-            duplicates = sorted(
-                {token for token in tokens if tokens.count(token) > 1}
-            )
+            duplicates = sorted({token for token in tokens if tokens.count(token) > 1})
             if duplicates:
                 errors.append(
                     f"{rel_path}:{line_no}: duplicate nosec rule token(s): "

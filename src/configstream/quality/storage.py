@@ -41,9 +41,7 @@ def _insert_sql(table: str, columns: List[str]) -> str:
 def _insert_values_sql(table: str, column_count: int) -> str:
     quoted_table = _quote_sql_identifier(table)
     placeholders = ",".join(["?"] * column_count)
-    return " ".join(
-        ["INSERT", "INTO", quoted_table, "VALUES", f"({placeholders})"]
-    )
+    return " ".join(["INSERT", "INTO", quoted_table, "VALUES", f"({placeholders})"])
 
 
 class QualityStorage:
@@ -377,9 +375,7 @@ class QualityStorage:
                     columns = [d[0] for d in cursor.description]
                     dst_columns = {
                         info[1]
-                        for info in dst.execute(
-                            "PRAGMA table_info(source_stats)"
-                        )
+                        for info in dst.execute("PRAGMA table_info(source_stats)")
                     }
                     columns_to_use = [c for c in columns if c in dst_columns]
                     if not columns_to_use:

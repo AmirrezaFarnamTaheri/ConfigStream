@@ -396,9 +396,15 @@ class StandardPipeline(IPipeline):
                 logger.debug(f"Server notification skipped: {e}")
 
             should_fail = (
-                self.context.strict_security
-                or bool(getattr(self.context.settings, "FAIL_ON_ZERO_WORKING", False))
-            ) and bool(_zero_working) and not stats.time_limited
+                (
+                    self.context.strict_security
+                    or bool(
+                        getattr(self.context.settings, "FAIL_ON_ZERO_WORKING", False)
+                    )
+                )
+                and bool(_zero_working)
+                and not stats.time_limited
+            )
 
             if should_fail:
                 logger.error(

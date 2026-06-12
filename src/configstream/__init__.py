@@ -54,9 +54,7 @@ def __getattr__(name: str) -> Any:
     try:
         return importlib.import_module(f".{name}", __name__)
     except (ImportError, ModuleNotFoundError):
-        raise AttributeError(
-            f"module {__name__!r} has no attribute {name!r}"
-        ) from None
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}") from None
 
 
 if sys.platform == "win32":

@@ -93,7 +93,9 @@ async def test_pipeline_time_limit_zero_working(tmp_path):
         patch("configstream.pipeline.SingBoxTester") as mock_tester_cls,
         patch("configstream.pipeline.GeoIPResolver"),
         patch("configstream.pipeline.EventStream") as mock_event_stream,
-        patch("configstream.pipeline.core.safe_wait_for", side_effect=asyncio.TimeoutError),
+        patch(
+            "configstream.pipeline.core.safe_wait_for", side_effect=asyncio.TimeoutError
+        ),
     ):
         mock_tester = mock_tester_cls.return_value
         mock_tester.go_tester = MagicMock()
