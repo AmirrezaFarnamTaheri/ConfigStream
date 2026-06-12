@@ -4,19 +4,17 @@ import base64
 import os
 import tempfile
 import zipfile
-from typing import List, Dict, Optional, Any
+from typing import List, Dict, Optional
 from pathlib import Path
 
 from ..models import Proxy
-from ..utils import AtomicFileWriter
 from ..constants import (
     protocol_sort_key,
     canonical_protocol_name,
 )
+from ..generators.plaintext import generate_plaintext_subscription
 
 logger = logging.getLogger(__name__)
-
-from configstream.generators.plaintext import generate_plaintext_subscription
 
 def generate_base64_subscription(proxies: List[Proxy]) -> str:
     """Generates a Base64-encoded subscription string."""

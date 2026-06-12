@@ -5,7 +5,7 @@ import json
 import urllib.parse
 from typing import List, Optional, Dict, Any
 from ..models import Proxy
-from ..security_validator import _safe_log_text, _safe_proxy_ref
+from ..security_validator import _safe_proxy_ref
 from .common import Adapter
 from ..utils.bool_parser import parse_tls_flag
 from ..utils.net import is_ip_literal as _is_ip_literal

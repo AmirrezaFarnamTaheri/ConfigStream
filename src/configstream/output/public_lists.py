@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import json
 import logging
-from typing import List, Dict, Optional, Any
+from typing import List, Dict
 from pathlib import Path
 
 from ..models import Proxy

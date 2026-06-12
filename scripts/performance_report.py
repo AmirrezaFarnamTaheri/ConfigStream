@@ -16,7 +16,7 @@ from datetime import datetime
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from configstream.pipeline.core import StandardPipeline  # noqa: E402
+from configstream.pipeline.core import run_full_pipeline  # noqa: E402
 
 
 async def main():
@@ -99,7 +99,7 @@ async def main():
         f"🚀 Throughput: {report['performance']['proxies_per_second']:.1f} proxies/sec"
     )
     print("=" * 60)
-    print(f"\\n📄 Full report saved to: {report_file}")
+    print(f"\n📄 Full report saved to: {report_file}")
 
     return 0
 

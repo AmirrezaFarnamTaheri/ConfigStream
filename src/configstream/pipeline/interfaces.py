@@ -1,8 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from abc import ABC, abstractmethod
-from typing import List, Optional, Dict, Any, Tuple
-import asyncio
-from configstream.models import Proxy
+from typing import Optional, Dict, Any
 
 class FetchResult:
     def __init__(

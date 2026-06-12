@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import asyncio
-import logging
 from typing import List
 from fastapi import WebSocket, WebSocketDisconnect
 from .utils import settings, logger

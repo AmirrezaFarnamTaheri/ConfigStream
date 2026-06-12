@@ -18,7 +18,7 @@ from configstream.source_quality import SourceQualityTracker
 from configstream.anomaly import AnomalyDetector
 from configstream.security_validator import SecurityValidator
 from configstream.pipeline.interfaces import IProducer
-from configstream.pipeline.models import PipelineContext, WorkItem
+from configstream.pipeline.models import PipelineContext
 
 if TYPE_CHECKING:
     from configstream.event_stream import EventStream

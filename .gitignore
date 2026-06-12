@@ -18,6 +18,8 @@ htmlcov/
 # Virtualenvs
 /.venv/
 /venv/
+/.venv-win/
+/.venv*/
 
 # Logs
 *.log

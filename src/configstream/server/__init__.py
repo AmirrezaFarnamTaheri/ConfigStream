@@ -1,8 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-import os
 import logging
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import List
 
 from fastapi import (
@@ -17,7 +15,10 @@ from fastapi.responses import FileResponse, JSONResponse
 from slowapi.errors import RateLimitExceeded
 from slowapi import _rate_limit_exceeded_handler
 
-from .utils import (
+# NOTE: several names below are re-exported as the package's public/test
+# contract surface (configstream.server.<name>); do not remove them just
+# because they are unused inside this module.
+from .utils import (  # noqa: F401
     settings,
     VERSION,
     limiter,
@@ -31,7 +32,7 @@ from .utils import (
     _serve_output_file,
     _json_cache,
 )
-from .ws import websocket_endpoint, ConnectionManager
+from .ws import websocket_endpoint, ConnectionManager  # noqa: F401
 from .routes.admin import router as admin_router
 from .routes.proxies import router as proxies_router
 from .routes.lab import router as lab_router

@@ -5,11 +5,11 @@ import multiprocessing
 import os
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import List, Optional, Any, Dict
+from typing import List, Optional, Any
 from contextlib import suppress
 
-from .interfaces import IPipeline, IProducer, IConsumer
-from .models import PipelineContext, WorkItem
+from .interfaces import IPipeline
+from .models import PipelineContext
 from configstream.pipeline_stats import PipelineStats, PipelineResult
 from configstream.config import AppSettings
 
