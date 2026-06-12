@@ -65,7 +65,7 @@ class KeyGenerator:
             }
             payload["fcm" + "_token"] = ""
 
-            async with httpx.AsyncClient(timeout=10.0) as client:
+            async with httpx.AsyncClient(timeout=10.0, trust_env=False) as client:
                 response = await client.post(
                     self.API_URL, json=payload, headers=headers
                 )
