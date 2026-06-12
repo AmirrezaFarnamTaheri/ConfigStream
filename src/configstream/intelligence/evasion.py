@@ -253,15 +253,14 @@ def enrich_outbound_with_evasion(
         is_vision = outbound.get("flow", "").startswith("xtls-rprx-vision")
 
         if not is_reality and not is_vision:
-            frag_cfg = get_fragment_config(proxy_id, enabled=True, preset=fragment_preset)
+            frag_cfg = get_fragment_config(
+                proxy_id, enabled=True, preset=fragment_preset
+            )
             if frag_cfg:
                 dial = outbound.get("dial", {})
                 if not isinstance(dial, dict):
                     dial = {}
-                dial["fragment"] = {
-                    "enabled": True,
-                    **frag_cfg
-                }
+                dial["fragment"] = {"enabled": True, **frag_cfg}
                 outbound["dial"] = dial
 
     # Apply multiplexing with padding

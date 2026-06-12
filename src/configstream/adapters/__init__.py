@@ -17,6 +17,7 @@ _ADAPTER_MAP: Dict[str, Callable[[], Adapter]] = {
     "shadowrocket": ShadowrocketAdapter,
 }
 
+
 def get_adapter(format_name: str) -> Adapter:
     cls = _ADAPTER_MAP.get(format_name.lower())
     if cls is None:

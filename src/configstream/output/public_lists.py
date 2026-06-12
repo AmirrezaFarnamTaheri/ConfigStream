@@ -16,6 +16,7 @@ from ..constants import (
 
 logger = logging.getLogger(__name__)
 
+
 def generate_categorized_lists(
     proxies: List[Proxy],
     output_dir: Path,

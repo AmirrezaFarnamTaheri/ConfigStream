@@ -91,9 +91,7 @@ def require_authorization(handler: _HandlerT) -> _HandlerT:
     """
 
     @functools.wraps(handler)
-    async def wrapper(
-        update: "Update", context: "ContextTypes.DEFAULT_TYPE"
-    ) -> None:
+    async def wrapper(update: "Update", context: "ContextTypes.DEFAULT_TYPE") -> None:
         user = getattr(update, "effective_user", None)
         user_id = getattr(user, "id", None)
         if not _is_authorized(user_id):

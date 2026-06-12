@@ -39,8 +39,10 @@ from .routes.lab import router as lab_router
 
 logger = logging.getLogger(__name__)
 
+
 def _split_allowed_origins(value: str) -> List[str]:
     return [origin.strip() for origin in value.split(",") if origin.strip()]
+
 
 def create_app() -> FastAPI:
     app = FastAPI(
@@ -84,7 +86,9 @@ def create_app() -> FastAPI:
             try:
                 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
             except OSError as e:
-                logger.warning(f"Warning: Could not create output directory {OUTPUT_DIR}: {e}")
+                logger.warning(
+                    f"Warning: Could not create output directory {OUTPUT_DIR}: {e}"
+                )
 
     # Register Routes
     app.include_router(admin_router)
@@ -99,6 +103,7 @@ def create_app() -> FastAPI:
     def _make_output_handler(rel_path: str, media_type: str):
         async def _handler():
             return _serve_output_file(rel_path, media_type)
+
         return _handler
 
     for rel_path, media_type in ROOT_OUTPUT_FILES.items():
@@ -119,12 +124,17 @@ def create_app() -> FastAPI:
         )
     except Exception as e:
         logger.warning(f"Warning: Failed to mount /output static files: {e}")
+
         @app.get("/output/{path:path}")
         async def output_fallback(path: str):
             raise HTTPException(status_code=503, detail="Output directory unavailable")
 
     if FRONTEND_DIR.exists():
-        app.mount("/assets", StaticFiles(directory=str(FRONTEND_DIR / "assets")), name="assets")
+        app.mount(
+            "/assets",
+            StaticFiles(directory=str(FRONTEND_DIR / "assets")),
+            name="assets",
+        )
     else:
         logger.warning(f"Frontend directory not found at {FRONTEND_DIR}")
 
@@ -135,7 +145,10 @@ def create_app() -> FastAPI:
         if index_path.exists():
             return FileResponse(index_path)
         return JSONResponse(
-            {"status": "ok", "message": "ConfigStream API is running (Frontend not found)"}
+            {
+                "status": "ok",
+                "message": "ConfigStream API is running (Frontend not found)",
+            }
         )
 
     @app.get("/health")
@@ -166,7 +179,10 @@ def create_app() -> FastAPI:
 
         try:
             # Simple path traversal protection
-            if FRONTEND_DIR.resolve() in page_path.resolve().parents and page_path.exists():
+            if (
+                FRONTEND_DIR.resolve() in page_path.resolve().parents
+                and page_path.exists()
+            ):
                 return FileResponse(page_path)
         except (ValueError, OSError):
             pass
@@ -174,5 +190,6 @@ def create_app() -> FastAPI:
         return await read_index()
 
     return app
+
 
 app = create_app()

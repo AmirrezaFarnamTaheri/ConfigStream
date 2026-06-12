@@ -18,6 +18,7 @@ from .constants import (
 
 logger = logging.getLogger(__name__)
 
+
 def build_vwarp_config(
     bind: str = "127.0.0.1:8086",
     endpoint: str = DEFAULT_WARP_ENDPOINT,
@@ -77,9 +78,11 @@ def build_vwarp_config(
 
     return config
 
+
 def generate_masque_config(preset: str = "gfw") -> Dict[str, Any]:
     """Generates a vwarp MASQUE configuration dict for the given preset."""
     return build_vwarp_config(masque_preset=preset)
+
 
 def get_config_extra_flags(config: Dict[str, Any]) -> List[str]:
     """Determine any extra CLI flags required by the config."""
@@ -94,6 +97,7 @@ def get_config_extra_flags(config: Dict[str, Any]) -> List[str]:
     if isinstance(masque_cfg, dict) and masque_cfg.get("enabled") is True:
         return ["--masque"]
     return []
+
 
 def sanitize_config_for_binary(config: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -118,9 +122,8 @@ def sanitize_config_for_binary(config: Dict[str, Any]) -> Dict[str, Any]:
         out["masque"] = masque
     return out
 
-def write_temp_config(
-    config: Dict[str, Any]
-) -> Tuple[Optional[Path], List[str]]:
+
+def write_temp_config(config: Dict[str, Any]) -> Tuple[Optional[Path], List[str]]:
     """Writes config to temp file and returns (path, extra_flags)."""
     tmp_dir = Path(tempfile.gettempdir())
     tmp_dir.mkdir(parents=True, exist_ok=True)
@@ -140,6 +143,7 @@ def write_temp_config(
     # For now we use the latest version default from constants
     version = os.environ.get("VWARP_VERSION", VWARP_VERSION)
     from .binary import _parse_version
+
     if _parse_version(version) < _parse_version("v2.2.1"):
         write_config = sanitize_config_for_binary(write_config)
 

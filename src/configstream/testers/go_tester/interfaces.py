@@ -2,6 +2,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any
 
+
 class ITester(ABC):
     @abstractmethod
     async def start(self) -> None:

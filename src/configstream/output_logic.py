@@ -53,6 +53,7 @@ from .output.subscriptions import (
 
 logger = logging.getLogger(__name__)
 
+
 def generate_categorized_outputs(
     proxies: List[Proxy],
     output_dir: Path,
@@ -83,7 +84,11 @@ def generate_categorized_outputs(
 
     # 1. Smart Chains
     if smart_chains is None:
-        smart_chains = generate_smart_chains(proxies, washer=washer) if settings.ENABLE_SMART_CHAINING else {}
+        smart_chains = (
+            generate_smart_chains(proxies, washer=washer)
+            if settings.ENABLE_SMART_CHAINING
+            else {}
+        )
 
     # 2. Main Configs (Sing-box & Clash)
     export_pool = _get_export_pool(proxies)
@@ -100,17 +105,17 @@ def generate_categorized_outputs(
         generated_files["master"] = split_files["singbox"]
     if "clash" in split_files:
         generated_files["clash_full"] = split_files["clash"]
-    
+
     ordered_pool = _order_export_proxies(export_pool)
-    
+
     # 3. Subscriptions
     raw_content = generate_plaintext_subscription(ordered_pool)
     base64_content = generate_base64_subscription(ordered_pool)
-    
+
     proxies_txt_path = output_dir / "proxies.txt"
     AtomicFileWriter.write_text(proxies_txt_path, raw_content)
     generated_files["proxies_txt"] = proxies_txt_path
-    
+
     base64_path = output_dir / "base64.txt"
     AtomicFileWriter.write_text(base64_path, base64_content)
     generated_files["base64"] = base64_path
@@ -118,13 +123,18 @@ def generate_categorized_outputs(
     # 3b. Chosen subset
     chosen_dir = output_dir / "chosen"
     chosen_dir.mkdir(exist_ok=True)
-    chosen = _select_chosen_proxies(proxies, CHOSEN_TOP_PER_PROTOCOL, CHOSEN_TOTAL_TARGET)
-    
+    chosen = _select_chosen_proxies(
+        proxies, CHOSEN_TOP_PER_PROTOCOL, CHOSEN_TOTAL_TARGET
+    )
+
     chosen_paths = {
         "base64.txt": (generate_base64_subscription(chosen), "chosen_base64"),
         "proxies.txt": (generate_plaintext_subscription(chosen), "chosen_proxies_txt"),
         "singbox.json": (generate_singbox_config(chosen), "chosen_singbox"),
-        "clash.yaml": (generate_clash_config(chosen, ignore_status=True), "chosen_clash"),
+        "clash.yaml": (
+            generate_clash_config(chosen, ignore_status=True),
+            "chosen_clash",
+        ),
     }
     for name, (content, key) in chosen_paths.items():
         path = chosen_dir / name
@@ -133,6 +143,7 @@ def generate_categorized_outputs(
 
     # 3c. Adapters
     from .adapters import get_adapter
+
     adapter_specs = {
         "shadowrocket": ("shadowrocket", "shadowrocket.txt"),
         "quantumult": ("quantumultx", "quantumult.conf"),
@@ -143,7 +154,11 @@ def generate_categorized_outputs(
     for key, (adapter_name, filename) in adapter_specs.items():
         try:
             adapter = get_adapter(adapter_name)
-            content = adapter.export(ordered_pool, washed_outbounds=washed_outbounds) if adapter_name in ("surge", "loon") else adapter.export(ordered_pool)
+            content = (
+                adapter.export(ordered_pool, washed_outbounds=washed_outbounds)
+                if adapter_name in ("surge", "loon")
+                else adapter.export(ordered_pool)
+            )
             out_path = output_dir / filename
             AtomicFileWriter.write_text(out_path, content)
             generated_files[key] = out_path
@@ -171,10 +186,16 @@ def generate_categorized_outputs(
         safe_proxies, host_map = dns_safe_cache
     else:
         safe_proxies, host_map = _build_dns_safe_proxies(proxies)
-    
+
     _gen_dns_variation(
-        safe_proxies, host_map, output_dir, "dns-safe", 
-        washed_outbounds, smart_chains, washed_ids, generated_files
+        safe_proxies,
+        host_map,
+        output_dir,
+        "dns-safe",
+        washed_outbounds,
+        smart_chains,
+        washed_ids,
+        generated_files,
     )
 
     # 7. DNS-hardened variations
@@ -183,19 +204,28 @@ def generate_categorized_outputs(
             hardened_proxies, hardened_map = dns_hardened_cache
         else:
             hardened_proxies, hardened_map = _build_dns_hardened_proxies(proxies)
-        
+
         _gen_dns_variation(
-            hardened_proxies, hardened_map, output_dir, "dns-hardened",
-            washed_outbounds, smart_chains, washed_ids, generated_files,
-            is_hardened=True
+            hardened_proxies,
+            hardened_map,
+            output_dir,
+            "dns-hardened",
+            washed_outbounds,
+            smart_chains,
+            washed_ids,
+            generated_files,
+            is_hardened=True,
         )
 
     return generated_files
 
-def _collect_all_chains(proxies, washed_outbounds, smart_chains) -> List[Dict[str, Any]]:
+
+def _collect_all_chains(
+    proxies, washed_outbounds, smart_chains
+) -> List[Dict[str, Any]]:
     chain_obs = []
     seen_tags = set()
-    
+
     def _append(outbounds):
         for o in copy.deepcopy(outbounds or []):
             tag = o.get("tag")
@@ -215,7 +245,7 @@ def _collect_all_chains(proxies, washed_outbounds, smart_chains) -> List[Dict[st
             if (p.details or {}).get("is_revived") and p.remarks:
                 chain[-1]["tag"] = p.remarks
             _append(chain)
-    
+
     _append(washed_outbounds)
     if smart_chains:
         for group in smart_chains.values():
@@ -223,17 +253,30 @@ def _collect_all_chains(proxies, washed_outbounds, smart_chains) -> List[Dict[st
                 _append(chain)
     return chain_obs
 
+
 def _gen_dns_variation(
-    proxies, host_map, output_dir, suffix, 
-    washed_outbounds, smart_chains, washed_ids, generated_files,
-    is_hardened=False
+    proxies,
+    host_map,
+    output_dir,
+    suffix,
+    washed_outbounds,
+    smart_chains,
+    washed_ids,
+    generated_files,
+    is_hardened=False,
 ):
     suffix_key = suffix.replace("-", "_")
-    
+
     # Filter outbounds
-    filter_fn = _filter_outbounds_for_dns_hardened if is_hardened else _filter_outbounds_for_dns_safe
-    filtered_washed = filter_fn(washed_outbounds, host_map) if washed_outbounds else None
-    
+    filter_fn = (
+        _filter_outbounds_for_dns_hardened
+        if is_hardened
+        else _filter_outbounds_for_dns_safe
+    )
+    filtered_washed = (
+        filter_fn(washed_outbounds, host_map) if washed_outbounds else None
+    )
+
     filtered_smart = {}
     if smart_chains:
         for group, chains in smart_chains.items():
@@ -272,7 +315,7 @@ def _gen_dns_variation(
     txt_path = output_dir / f"proxies-{suffix}.txt"
     AtomicFileWriter.write_text(txt_path, raw)
     generated_files[f"proxies_txt_{suffix_key}"] = txt_path
-    
+
     base64_path = output_dir / f"base64-{suffix}.txt"
     AtomicFileWriter.write_text(base64_path, base64)
     generated_files[f"base64_{suffix_key}"] = base64_path
@@ -285,7 +328,9 @@ def _gen_dns_variation(
     # Chosen subset for variation
     chosen_dir = output_dir / "chosen"
     chosen_dir.mkdir(exist_ok=True)
-    chosen_var = _select_chosen_proxies(proxies, CHOSEN_TOP_PER_PROTOCOL, CHOSEN_TOTAL_TARGET)
+    chosen_var = _select_chosen_proxies(
+        proxies, CHOSEN_TOP_PER_PROTOCOL, CHOSEN_TOTAL_TARGET
+    )
     chosen_base64 = generate_base64_subscription(chosen_var)
     chosen_path = chosen_dir / f"base64-{suffix}.txt"
     AtomicFileWriter.write_text(chosen_path, chosen_base64)
@@ -331,9 +376,7 @@ def _gen_hardened_third_party_profiles(
             )
             generated_files[f"{adapter_name}_dns_hardened"] = out_path
         except Exception as exc:
-            logger.warning(
-                "Failed to generate dns-hardened %s: %s", adapter_name, exc
-            )
+            logger.warning("Failed to generate dns-hardened %s: %s", adapter_name, exc)
 
     try:
         out_path = output_dir / "quantumult-dns-hardened.conf"

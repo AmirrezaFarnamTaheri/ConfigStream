@@ -25,9 +25,11 @@ from .constants import (
 
 logger = logging.getLogger(__name__)
 
+
 def _is_supported_platform() -> bool:
     """Vwarp binary is currently only available for Linux."""
     return sys.platform.startswith("linux")
+
 
 def _platform_asset() -> Tuple[str, Optional[str]]:
     """
@@ -42,6 +44,7 @@ def _platform_asset() -> Tuple[str, Optional[str]]:
         return VWARP_ASSET_ARM64, None
     # Default to amd64 asset for unknown Linux machines.
     return VWARP_ASSET_AMD64, VWARP_SHA256_AMD64
+
 
 def _get_download_spec() -> Tuple[str, Optional[str], str]:
     """
@@ -64,6 +67,7 @@ def _get_download_spec() -> Tuple[str, Optional[str], str]:
     checksum = env_sha or default_sha
     return url, checksum or None, version
 
+
 def find_binary() -> Optional[str]:
     """Locates the vwarp binary in PATH or common locations."""
     # 1. Check PATH
@@ -84,6 +88,7 @@ def find_binary() -> Optional[str]:
             return p
 
     return None
+
 
 async def verify_binary(binary_path: str) -> bool:
     """Verify the existing binary executes properly."""
@@ -115,6 +120,7 @@ async def verify_binary(binary_path: str) -> bool:
         )
         return False
 
+
 async def ensure_installed() -> Optional[str]:
     """
     Ensures Vwarp is installed. Downloads if missing.
@@ -132,7 +138,7 @@ async def ensure_installed() -> Optional[str]:
             platform_hint,
         )
         return None
-    
+
     binary = find_binary()
     if binary and Path(binary).exists():
         return binary
@@ -150,18 +156,14 @@ async def ensure_installed() -> Optional[str]:
             install_dir = Path("/tmp/configstream-bin")  # nosec
             install_dir.mkdir(parents=True, exist_ok=True)
             target_path = install_dir / "vwarp"
-            logger.warning(
-                f"Cannot write to ~/.local/bin, installing to {target_path}"
-            )
+            logger.warning(f"Cannot write to ~/.local/bin, installing to {target_path}")
 
         logger.info(
             "Downloading Vwarp from %s",
             SecurityValidator.sanitize_log_message(url),
         )
 
-        async with httpx.AsyncClient(
-            follow_redirects=True, timeout=60.0
-        ) as client:
+        async with httpx.AsyncClient(follow_redirects=True, timeout=60.0) as client:
             resp = await client.get(url)
             resp.raise_for_status()
             content = resp.content
@@ -184,7 +186,7 @@ async def ensure_installed() -> Optional[str]:
                         digest,
                     )
                     return None
-        
+
         with zipfile.ZipFile(BytesIO(content)) as zf:
             vwarp_member_info = None
             for member_info in zf.infolist():
@@ -216,8 +218,12 @@ async def ensure_installed() -> Optional[str]:
             return None
 
     except Exception as e:
-        logger.error("Failed to install Vwarp: %s", SecurityValidator.sanitize_log_message(str(e)))
+        logger.error(
+            "Failed to install Vwarp: %s",
+            SecurityValidator.sanitize_log_message(str(e)),
+        )
         return None
+
 
 def _parse_version(version: str) -> Tuple[int, ...]:
     """Parse a version string like ``v2.2.1`` into a numeric tuple ``(2, 2, 1)``.
@@ -227,6 +233,7 @@ def _parse_version(version: str) -> Tuple[int, ...]:
     or malformed components are treated as ``0`` so parsing never raises.
     """
     import re
+
     if not version:
         return (0,)
     cleaned = version.strip().lstrip("vV")

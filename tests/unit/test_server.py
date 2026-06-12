@@ -159,6 +159,7 @@ async def test_get_stats_reads_metadata_off_event_loop(
     mock_output_dir, async_client, monkeypatch
 ):
     import configstream.server.utils as server_utils
+
     calls = []
     original_to_thread = server_utils.asyncio.to_thread
 
@@ -180,12 +181,12 @@ async def test_get_stats_reads_metadata_off_event_loop(
     )
 
 
-
 @pytest.mark.asyncio
 async def test_get_proxy_diff_reads_proxy_files_off_event_loop(
     mock_output_dir, async_client, monkeypatch
 ):
     import configstream.server.utils as server_utils
+
     old_payload = [{"id": "old", "protocol": "vless"}]
     (mock_output_dir / "proxies.old.json").write_text(
         json.dumps(old_payload), encoding="utf-8"
@@ -322,9 +323,7 @@ async def test_admin_notify_accepts_valid_key_in_production(async_client, monkey
     monkeypatch.setenv("ENVIRONMENT", "production")
 
     response = await async_client.post(
-        "/api/admin/notify-update",
-        json={},
-        headers={"Authorization": "Bearer secret"}
+        "/api/admin/notify-update", json={}, headers={"Authorization": "Bearer secret"}
     )
 
     assert response.status_code == 200
