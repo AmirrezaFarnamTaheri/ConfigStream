@@ -18,7 +18,7 @@ from slowapi import _rate_limit_exceeded_handler
 # NOTE: several names below are re-exported as the package's public/test
 # contract surface (configstream.server.<name>); do not remove them just
 # because they are unused inside this module.
-from .utils import (  # noqa: F401
+from .utils import (
     settings,
     VERSION,
     limiter,
@@ -32,7 +32,7 @@ from .utils import (  # noqa: F401
     _serve_output_file,
     _json_cache,
 )
-from .ws import websocket_endpoint, ConnectionManager  # noqa: F401
+from .ws import websocket_endpoint, ConnectionManager
 from .routes.admin import router as admin_router
 from .routes.proxies import router as proxies_router
 from .routes.lab import router as lab_router

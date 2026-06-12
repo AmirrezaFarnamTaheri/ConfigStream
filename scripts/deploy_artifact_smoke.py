@@ -26,11 +26,11 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from scripts.validate_frontend_placeholders import (  # noqa: E402
+from scripts.validate_frontend_placeholders import (
     inject_frontend_keys,
     validate_frontend_placeholders,
 )
-from scripts.validate_pages_artifact import (  # noqa: E402
+from scripts.validate_pages_artifact import (
     REQUIRED_EXISTS,
     validate_pages_artifact,
     write_pages_contract,

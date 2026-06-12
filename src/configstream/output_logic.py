@@ -28,7 +28,7 @@ from .converters.chains import chain_obs_from_details
 
 # Re-exports for backward compatibility (consumed by output_handler, scripts,
 # and the unit-test contract surface).
-from .output.metadata import (  # noqa: F401
+from .output.metadata import (
     save_metadata,
     write_public_artifact_contract,
 )

@@ -27,14 +27,14 @@ if TYPE_CHECKING:
     from telegram.ext import ContextTypes
 
 try:
-    from telegram import Update  # noqa: F811
+    from telegram import Update
     from telegram.ext import (
         ApplicationBuilder,
         CommandHandler,
     )
 
     if not TYPE_CHECKING:
-        from telegram.ext import ContextTypes  # noqa: F811
+        from telegram.ext import ContextTypes
 except ImportError:
     logger.warning(
         "python-telegram-bot is not installed. Bot features will be disabled."
