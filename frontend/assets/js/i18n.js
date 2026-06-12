@@ -31,6 +31,10 @@ class I18n {
             
             // Re-apply language settings (RTL, attributes)
             this.applyLanguageSettings(this.currentLang);
+
+            // Notify listeners that translations are ready so any text rendered
+            // before init completed (e.g. the hero subtitle) can re-render.
+            window.dispatchEvent(new CustomEvent('languageChanged', { detail: { lang: this.currentLang } }));
         })();
         
         return this.initPromise;

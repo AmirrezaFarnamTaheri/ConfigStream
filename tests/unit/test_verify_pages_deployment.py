@@ -17,7 +17,7 @@ from scripts.verify_pages_deployment import verify_pages_deployment
 class _StaticHandler(BaseHTTPRequestHandler):
     root: Path
 
-    def do_GET(self) -> None:  # noqa: N802 - stdlib handler API
+    def do_GET(self) -> None:
         rel_path = self.path.split("?", 1)[0].lstrip("/") or "index.html"
         target = (self.root / rel_path).resolve()
         if self.root not in target.parents and target != self.root:

@@ -210,7 +210,7 @@ def cleanup_old_backups(backup_dir: Path, retention_days: int) -> int:
             )
 
     # Process thinning groups (keep only 1 per day per DB)
-    for key, file_list in by_db_date.items():
+    for _key, file_list in by_db_date.items():
         # Sort by mtime descending (newest first)
         file_list.sort(key=lambda x: x[0], reverse=True)
 

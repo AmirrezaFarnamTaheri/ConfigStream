@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import MagicMock, patch
 from configstream.testers.python import PythonTester
 from configstream.models import Proxy
 

@@ -218,7 +218,7 @@ def create_chain(
     flag_relay = get_flag_emoji(relay.country_code or "XX")
     flag_exit = get_flag_emoji(exit_node.country_code or "XX")
 
-    # Standardized Tag: 🇮🇷➔🇺🇸 | STRATEGY | RELAY-PROTO | EXIT-PROTO
+    # Standardized Tag: 🇮🇷➔🇺��� | STRATEGY | RELAY-PROTO | EXIT-PROTO
     strategy = tag_prefix.upper()
     relay_proto = (relay.protocol or "").upper()
     exit_proto = (exit_node.protocol or "").upper()
@@ -676,11 +676,14 @@ def generate_smart_chains(
 
         # Sort nearby stealth relays by approximate distance first
         # This acts as a heuristic to limit the detailed check to top 50 candidates
-        def heuristic_dist(r):
+        def heuristic_dist(r, _oc=origin_coords):
+            # Bind origin_coords at definition time: closures over loop
+            # variables are a latent bug if the function ever outlives the
+            # iteration (ruff B023).
             rc = COUNTRIES.get(r.country_code)
             if not rc:
                 return 99999
-            return abs(rc[0] - origin_coords[0]) + abs(rc[1] - origin_coords[1])
+            return abs(rc[0] - _oc[0]) + abs(rc[1] - _oc[1])
 
         nearby_stealth.sort(key=heuristic_dist)
 

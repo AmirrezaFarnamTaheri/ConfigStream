@@ -9,7 +9,6 @@ from pathlib import Path
 from typing import Any, cast
 from starlette.responses import Response
 import pytest
-import configstream.server as server_module
 from configstream.config import AppSettings
 from configstream.server import (
     ConnectionManager,

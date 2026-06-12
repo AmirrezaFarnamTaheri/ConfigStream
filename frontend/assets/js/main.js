@@ -184,6 +184,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // Initialize immediately with defaults to avoid "--" flash before data loads
         updateHeroSubtitle();
         window.addEventListener('languageChanged', updateHeroSubtitle);
+        // i18n may finish loading translations before this module evaluates
+        // (module scripts can execute after DOMContentLoaded). Await init to
+        // guarantee the subtitle re-renders with real translations.
+        if (window.i18n && typeof window.i18n.init === 'function') {
+            window.i18n.init().then(updateHeroSubtitle).catch(() => {});
+        }
 
         try {
             // Verify artifact manifest signature when available.

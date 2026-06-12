@@ -86,6 +86,7 @@ class StandardPipeline(IPipeline):
         time_limit_seconds: Optional[int] = None,
     ) -> "StandardPipeline":
         settings = AppSettings()
+        settings.validate_settings()
         if max_workers <= 0 and settings.MAX_WORKERS > 0:
             max_workers = settings.MAX_WORKERS
 

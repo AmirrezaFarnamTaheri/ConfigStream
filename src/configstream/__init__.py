@@ -54,7 +54,9 @@ def __getattr__(name: str) -> Any:
     try:
         return importlib.import_module(f".{name}", __name__)
     except (ImportError, ModuleNotFoundError):
-        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+        raise AttributeError(
+            f"module {__name__!r} has no attribute {name!r}"
+        ) from None
 
 
 if sys.platform == "win32":
@@ -88,7 +90,9 @@ def _patch_sniffio_for_asyncio() -> None:
             try:
                 asyncio.get_running_loop()
             except RuntimeError:
-                raise sniffio.AsyncLibraryNotFoundError("No running event loop")
+                raise sniffio.AsyncLibraryNotFoundError(
+                    "No running event loop"
+                ) from None
             return "asyncio"
 
     sniffio.current_async_library = _patched_async_library  # type: ignore[assignment]

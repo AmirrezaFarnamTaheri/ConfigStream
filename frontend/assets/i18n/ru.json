@@ -4,6 +4,7 @@
     "nav.analytics": "Аналитика",
     "nav.wiki": "Вики",
     "nav.about": "О проекте",
+    "nav.lab": "Лаборатория",
     "wiki.nav.home": "Главная вики",
     "wiki.nav.intro": "Введение",
     "wiki.nav.arch": "Архитектура",
@@ -207,6 +208,10 @@
     "analytics.charts.asns": "Топ провайдеры",
     "analytics.charts.latency_by_country": "Задержка по странам",
     "analytics.charts.latency_by_protocol": "Задержка по протоколам",
+    "downloads.evasion_mode.label": "Уровень обхода",
+    "downloads.evasion_mode.standard": "Стандартный — без дополнительного обхода",
+    "downloads.evasion_mode.stealth": "Скрытный — фрагментация TLS + отпечаток uTLS",
+    "downloads.evasion_mode.aggressive": "Максимальный — все техники обхода включены",
     "proxies.hero.title": "Список прокси онлайн",
     "proxies.hero.subtitle": "Изучите наш полный список проверенных прокси. Ищите, сортируйте и находите идеальное соединение для ваших нужд."
 }
