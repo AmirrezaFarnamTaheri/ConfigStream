@@ -13,6 +13,7 @@ from ..converters.chains import chain_outbounds_from_details
 
 logger = logging.getLogger(__name__)
 
+
 class ShadowrocketAdapter(Adapter):
     """Export to Shadowrocket format."""
 
@@ -22,7 +23,9 @@ class ShadowrocketAdapter(Adapter):
             return base
         return f"{base}#{safe_name}"
 
-    def _rewrite_vmess_name(self, raw: str, raw_name: str, safe_name: str) -> Optional[str]:
+    def _rewrite_vmess_name(
+        self, raw: str, raw_name: str, safe_name: str
+    ) -> Optional[str]:
         if not raw_name:
             return raw
         try:
@@ -49,12 +52,15 @@ class ShadowrocketAdapter(Adapter):
     def _extract_revived_uri(self, p: Proxy) -> Optional[str]:
         details = p.details or {}
         tag = "Revived" if not details.get("use_vwarp") else "Revived-VWARP"
-        prefer_chain_first = bool(details.get("dns_safe") or details.get("dns_hardened"))
+        prefer_chain_first = bool(
+            details.get("dns_safe") or details.get("dns_hardened")
+        )
 
         def _extract_from_chain() -> Optional[str]:
             chain_obs = chain_outbounds_from_details(details)
             if chain_obs:
                 from ..generators.plaintext import _proxy_from_outbound
+
                 for ob in chain_obs:
                     if not isinstance(ob, dict) or ob.get("type") == "wireguard":
                         continue
@@ -108,7 +114,9 @@ class ShadowrocketAdapter(Adapter):
         lines = []
         reconstructed_count = 0
         for p in proxies:
-            if p.protocol == "revived" or str(p.config).lower().startswith("revived://"):
+            if p.protocol == "revived" or str(p.config).lower().startswith(
+                "revived://"
+            ):
                 uri = self._extract_revived_uri(p)
                 if uri:
                     lines.append(uri)
@@ -122,10 +130,13 @@ class ShadowrocketAdapter(Adapter):
                     outbounds = cfg.get("outbounds", [])
                     if isinstance(outbounds, list):
                         from ..generators.plaintext import _proxy_from_outbound
+
                         for ob in outbounds:
                             if not isinstance(ob, dict):
                                 continue
-                            ob_proxy = _proxy_from_outbound(ob, remark_prefix="[Chain] ")
+                            ob_proxy = _proxy_from_outbound(
+                                ob, remark_prefix="[Chain] "
+                            )
                             if ob_proxy:
                                 uri = self._reconstruct_uri(ob_proxy)
                                 if uri:
@@ -142,8 +153,14 @@ class ShadowrocketAdapter(Adapter):
                 raw_fragment = ""
                 if "#" in raw:
                     raw_fragment = raw.split("#", 1)[1]
-                raw_name = p.remarks or urllib.parse.unquote(raw_fragment) or "ConfigStream"
-                safe_name = urllib.parse.quote(raw_name) if p.remarks or not raw_fragment else raw_fragment
+                raw_name = (
+                    p.remarks or urllib.parse.unquote(raw_fragment) or "ConfigStream"
+                )
+                safe_name = (
+                    urllib.parse.quote(raw_name)
+                    if p.remarks or not raw_fragment
+                    else raw_fragment
+                )
 
                 if scheme == "socks":
                     uri = self._reconstruct_uri(p, name_override=raw_name)
@@ -169,11 +186,14 @@ class ShadowrocketAdapter(Adapter):
             except Exception as e:
                 logger.debug(f"Failed to reconstruct URI for {_safe_proxy_ref(p)}: {e}")
 
-        logger.info(f"Shadowrocket export summary: {len(lines)} links (Reconstructed: {reconstructed_count})")
+        logger.info(
+            f"Shadowrocket export summary: {len(lines)} links (Reconstructed: {reconstructed_count})"
+        )
         return "\n".join(lines)
 
     def _reconstruct_uri(self, p: Proxy, name_override: Optional[str] = None) -> str:
         name = urllib.parse.quote(name_override or p.remarks or "ConfigStream")
+
         def _join_list(value: Any) -> str:
             if isinstance(value, (list, tuple)):
                 return ",".join(str(item) for item in value if item)
@@ -202,13 +222,19 @@ class ShadowrocketAdapter(Adapter):
             net = p.details.get("net") or p.details.get("type")
             if net:
                 params["type"] = net
-            path = p.details.get("path") or p.details.get("ws_path") or p.details.get("http_path")
+            path = (
+                p.details.get("path")
+                or p.details.get("ws_path")
+                or p.details.get("http_path")
+            )
             if path:
                 params["path"] = path
             host = p.details.get("host") or p.details.get("http_host")
             if host:
                 params["host"] = host
-            service_name = p.details.get("serviceName") or p.details.get("grpc_service_name")
+            service_name = p.details.get("serviceName") or p.details.get(
+                "grpc_service_name"
+            )
             if service_name:
                 params["serviceName"] = service_name
             query = urllib.parse.urlencode(params, safe=",") if params else ""
@@ -216,21 +242,34 @@ class ShadowrocketAdapter(Adapter):
             return f"trojan://{p.uuid}@{p.address}:{p.port}{query_part}#{name}"
 
         elif p.protocol == "vmess":
-            tls_enabled = parse_tls_flag(p.details.get("tls")) or p.details.get("security") in ("tls", "reality")
+            tls_enabled = parse_tls_flag(p.details.get("tls")) or p.details.get(
+                "security"
+            ) in ("tls", "reality")
             net = p.details.get("net") or p.details.get("type") or "tcp"
             v_obj = {
-                "v": "2", "ps": p.remarks or "ConfigStream", "add": p.address, "port": str(p.port),
-                "id": p.uuid, "aid": "0", "net": net, "type": "none",
-                "host": p.details.get("host", ""), "tls": "tls" if tls_enabled else ""
+                "v": "2",
+                "ps": p.remarks or "ConfigStream",
+                "add": p.address,
+                "port": str(p.port),
+                "id": p.uuid,
+                "aid": "0",
+                "net": net,
+                "type": "none",
+                "host": p.details.get("host", ""),
+                "tls": "tls" if tls_enabled else "",
             }
             path = p.details.get("path") or p.details.get("ws_path")
-            if path: v_obj["path"] = path
+            if path:
+                v_obj["path"] = path
             sni = p.details.get("sni")
-            if sni: v_obj["sni"] = sni
+            if sni:
+                v_obj["sni"] = sni
             alpn = p.details.get("alpn")
-            if alpn: v_obj["alpn"] = _join_list(alpn)
+            if alpn:
+                v_obj["alpn"] = _join_list(alpn)
             fp = p.details.get("fp") or p.details.get("fingerprint")
-            if fp: v_obj["fp"] = fp
+            if fp:
+                v_obj["fp"] = fp
             return "vmess://" + base64.b64encode(json.dumps(v_obj).encode()).decode()
 
         elif p.protocol == "vless":
@@ -238,29 +277,55 @@ class ShadowrocketAdapter(Adapter):
             security = p.details.get("security")
             if not security:
                 security = "tls" if parse_tls_flag(p.details.get("tls")) else "none"
-            if security: params["security"] = security
+            if security:
+                params["security"] = security
             sni = p.details.get("sni", "")
-            if sni: params["sni"] = sni
+            if sni:
+                params["sni"] = sni
             net = p.details.get("net") or p.details.get("type") or "tcp"
-            if net: params["type"] = net
+            if net:
+                params["type"] = net
             flow = p.details.get("flow")
-            if flow: params["flow"] = flow
+            if flow:
+                params["flow"] = flow
             encryption = p.details.get("encryption")
-            if encryption: params["encryption"] = encryption
+            if encryption:
+                params["encryption"] = encryption
             host = p.details.get("host") or p.details.get("http_host")
-            if host: params["host"] = host
-            path = p.details.get("path") or p.details.get("ws_path") or p.details.get("http_path")
-            if path: params["path"] = path
-            service_name = p.details.get("serviceName") or p.details.get("grpc_service_name")
-            if service_name: params["serviceName"] = service_name
-            pbk = p.details.get("pbk") or p.details.get("publicKey") or p.details.get("public_key")
-            if pbk: params["pbk"] = pbk
-            sid = p.details.get("sid") or p.details.get("shortId") or p.details.get("short_id")
-            if sid: params["sid"] = sid
+            if host:
+                params["host"] = host
+            path = (
+                p.details.get("path")
+                or p.details.get("ws_path")
+                or p.details.get("http_path")
+            )
+            if path:
+                params["path"] = path
+            service_name = p.details.get("serviceName") or p.details.get(
+                "grpc_service_name"
+            )
+            if service_name:
+                params["serviceName"] = service_name
+            pbk = (
+                p.details.get("pbk")
+                or p.details.get("publicKey")
+                or p.details.get("public_key")
+            )
+            if pbk:
+                params["pbk"] = pbk
+            sid = (
+                p.details.get("sid")
+                or p.details.get("shortId")
+                or p.details.get("short_id")
+            )
+            if sid:
+                params["sid"] = sid
             fp = p.details.get("fp") or p.details.get("fingerprint")
-            if fp: params["fp"] = fp
+            if fp:
+                params["fp"] = fp
             alpn = p.details.get("alpn")
-            if alpn: params["alpn"] = _join_list(alpn)
+            if alpn:
+                params["alpn"] = _join_list(alpn)
             query = urllib.parse.urlencode(params, safe=",") if params else ""
             query_part = f"?{query}" if query else ""
             return f"vless://{p.uuid}@{p.address}:{p.port}{query_part}#{name}"
@@ -268,9 +333,11 @@ class ShadowrocketAdapter(Adapter):
         elif p.protocol in ("hysteria2", "hy2"):
             sni = p.details.get("sni", "")
             params = {}
-            if sni: params["sni"] = sni
+            if sni:
+                params["sni"] = sni
             alpn = p.details.get("alpn")
-            if alpn: params["alpn"] = _join_list(alpn)
+            if alpn:
+                params["alpn"] = _join_list(alpn)
             query = urllib.parse.urlencode(params, safe=",") if params else ""
             query_part = f"?{query}" if query else ""
             return f"hysteria2://{p.uuid}@{p.address}:{p.port}{query_part}#{name}"
@@ -300,7 +367,8 @@ class ShadowrocketAdapter(Adapter):
         elif p.protocol == "wireguard":
             priv = p.details.get("private_key", "")
             pub = p.details.get("peer_public_key", "")
-            if not priv or not pub: return ""
+            if not priv or not pub:
+                return ""
             wg_params: Dict[str, str] = {"publickey": pub}
             local_addr = p.details.get("local_address")
             if isinstance(local_addr, list) and local_addr:
@@ -311,7 +379,8 @@ class ShadowrocketAdapter(Adapter):
             if isinstance(reserved, list) and reserved:
                 wg_params["reserved"] = ",".join(str(r) for r in reserved)
             mtu = p.details.get("mtu")
-            if mtu: wg_params["mtu"] = str(mtu)
+            if mtu:
+                wg_params["mtu"] = str(mtu)
             query = urllib.parse.urlencode(wg_params) if wg_params else ""
             query_part = f"?{query}" if query else ""
             encoded_key = urllib.parse.quote(priv, safe="")

@@ -2,6 +2,7 @@
 """
 Backward-compatible forwarder for legacy consumer attributes.
 """
+
 from configstream.auto_detect import auto_detect_and_parse as parse_config
 from configstream.security_validator import validate_batch_configs
 

@@ -11,6 +11,7 @@ from .common import Adapter, _extract_sni
 
 logger = logging.getLogger(__name__)
 
+
 class SurgeAdapter(Adapter):
     """Export to Surge 4/5 format."""
 

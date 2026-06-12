@@ -16,6 +16,7 @@ from .config import write_temp_config
 
 logger = logging.getLogger(__name__)
 
+
 class VwarpTunnel:
     def __init__(self, binary_path: Optional[str]):
         self.binary_path = binary_path
@@ -40,7 +41,7 @@ class VwarpTunnel:
         success = await self._start_attempt(bind_addr, port, config_override)
         if success:
             return True
-            
+
         # Fallback logic would go here, currently simplified to keep this module focused.
         return False
 
@@ -51,13 +52,13 @@ class VwarpTunnel:
         config_override: Optional[Dict[str, Any]] = None,
     ) -> bool:
         self._cleanup_config_file()
-        
+
         cmd = await self._build_tunnel_command(bind_addr, port, config_override)
         if not cmd:
             logger.error("Vwarp tunnel command could not be constructed.")
             self._cleanup_config_file()
             return False
-            
+
         try:
             logger.info("🚀 Starting Vwarp SOCKS5 Tunnel on %s:%d...", bind_addr, port)
             self._proc = await asyncio.create_subprocess_exec(
@@ -69,7 +70,12 @@ class VwarpTunnel:
             await asyncio.sleep(0.5)
             if self._proc.returncode is not None:
                 stdout, stderr = await self._proc.communicate()
-                logger.error("Vwarp failed: %s", SecurityValidator.sanitize_log_message((stdout or b"").decode() + (stderr or b"").decode()))
+                logger.error(
+                    "Vwarp failed: %s",
+                    SecurityValidator.sanitize_log_message(
+                        (stdout or b"").decode() + (stderr or b"").decode()
+                    ),
+                )
                 self._cleanup_config_file()
                 return False
 
@@ -82,7 +88,9 @@ class VwarpTunnel:
                 while stream and not stream.at_eof():
                     line = await stream.readline()
                     if line:
-                        safe_line = SecurityValidator.sanitize_log_message(line.decode(errors="ignore")).strip()
+                        safe_line = SecurityValidator.sanitize_log_message(
+                            line.decode(errors="ignore")
+                        ).strip()
                         logger.log(level, "Vwarp: %s", safe_line)
 
             for stream, level in (
@@ -95,7 +103,10 @@ class VwarpTunnel:
 
             return True
         except Exception as e:
-            logger.error("Failed to start Vwarp tunnel: %s", SecurityValidator.sanitize_log_message(str(e)))
+            logger.error(
+                "Failed to start Vwarp tunnel: %s",
+                SecurityValidator.sanitize_log_message(str(e)),
+            )
             await self.stop()
             return False
 
@@ -110,7 +121,7 @@ class VwarpTunnel:
                 pass
             finally:
                 self._proc = None
-                
+
         for task in list(self._stream_tasks):
             task.cancel()
         self._stream_tasks.clear()
@@ -124,7 +135,9 @@ class VwarpTunnel:
             if self._proc and self._proc.returncode is not None:
                 return False
             try:
-                reader, writer = await safe_wait_for(asyncio.open_connection(probe_host, port), timeout=1)
+                reader, writer = await safe_wait_for(
+                    asyncio.open_connection(probe_host, port), timeout=1
+                )
                 writer.close()
                 await writer.wait_closed()
                 return True
@@ -145,7 +158,9 @@ class VwarpTunnel:
         bind_value = f"{bind_addr}:{port}"
         env_args = os.environ.get("VWARP_TUNNEL_ARGS", "").strip()
         if env_args:
-            return [self.binary_path] + shlex.split(env_args.replace("{bind}", bind_value))
+            return [self.binary_path] + shlex.split(
+                env_args.replace("{bind}", bind_value)
+            )
 
         # write_temp_config performs blocking file I/O; offload to a thread
         # to keep the event loop responsive.
@@ -162,8 +177,11 @@ class VwarpTunnel:
 
         return [self.binary_path, "--bind", bind_value]
 
-    def _build_initial_config(self, bind_addr: str, port: int, override: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    def _build_initial_config(
+        self, bind_addr: str, port: int, override: Optional[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         from .config import build_vwarp_config
+
         cfg = build_vwarp_config(bind=f"{bind_addr}:{port}")
         if override:
             cfg.update(override)

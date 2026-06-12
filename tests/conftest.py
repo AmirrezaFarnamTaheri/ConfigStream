@@ -13,18 +13,23 @@ from configstream.config import AppSettings
 # Apply global patch to AppSettings to dynamically update settings when environment changes in tests
 original_getattribute = AppSettings.__getattribute__
 
+
 class GetAttrGuard:
     def __init__(self):
         self.local = threading.local()
+
     def is_active(self):
-        return getattr(self.local, 'active', False)
+        return getattr(self.local, "active", False)
+
     def set_active(self, val):
         self.local.active = val
+
 
 guard = GetAttrGuard()
 
 _cached_settings = None
 _cached_env = None
+
 
 def get_fresh_settings():
     global _cached_settings, _cached_env
@@ -34,9 +39,10 @@ def get_fresh_settings():
         _cached_env = current_env
     return _cached_settings
 
+
 def test_getattribute(self, name):
     try:
-        is_dynamic = original_getattribute(self, '__dict__').get('_dynamic_env', False)
+        is_dynamic = original_getattribute(self, "__dict__").get("_dynamic_env", False)
     except AttributeError:
         is_dynamic = False
 
@@ -49,31 +55,37 @@ def test_getattribute(self, name):
             guard.set_active(False)
     return original_getattribute(self, name)
 
+
 AppSettings.__getattribute__ = test_getattribute
 
 # Mark global settings instances in the codebase as dynamically env-aware
 try:
     import configstream.server.utils as server_utils
+
     object.__setattr__(server_utils.settings, "_dynamic_env", True)
 except (ImportError, AttributeError):
     pass
 try:
     import configstream.generators.split as split_mod
+
     object.__setattr__(split_mod._split_settings, "_dynamic_env", True)
 except (ImportError, AttributeError):
     pass
 try:
     import configstream.output.metadata as meta_mod
+
     object.__setattr__(meta_mod._meta_settings, "_dynamic_env", True)
 except (ImportError, AttributeError):
     pass
 try:
     import configstream.pipeline.consumer as consumer_mod
+
     object.__setattr__(consumer_mod.settings, "_dynamic_env", True)
 except (ImportError, AttributeError):
     pass
 try:
     import configstream.pipeline.core as core_mod
+
     object.__setattr__(core_mod.settings, "_dynamic_env", True)
 except (ImportError, AttributeError):
     pass

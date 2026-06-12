@@ -618,7 +618,9 @@ async def fetch_multiple_sources(
 class HttpFetcher(IFetcher):
     """IFetcher adapter over the module-level fetch_from_source pipeline."""
 
-    def __init__(self, client=None, settings=None, breaker_manager=None, timeout_tracker=None):
+    def __init__(
+        self, client=None, settings=None, breaker_manager=None, timeout_tracker=None
+    ):
         self.client = client
         self.settings = settings
         self.breaker_manager = breaker_manager

@@ -38,6 +38,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class WorkerConsumer(IConsumer):
     def __init__(self, context: PipelineContext, worker_id: int):
         self.context = context
@@ -98,6 +99,7 @@ class WorkerConsumer(IConsumer):
             stop_event=ctx.stop_event,
             seen_bloom=ctx.seen_bloom,
         )
+
 
 async def processing_consumer(
     work_queue: asyncio.Queue,

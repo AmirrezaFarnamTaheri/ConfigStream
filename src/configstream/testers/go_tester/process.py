@@ -9,6 +9,7 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
+
 class ProcessManager:
     def __init__(self, binary_name: str = "configstream-tester"):
         self.binary_path = self._resolve_binary(binary_name)
@@ -21,11 +22,11 @@ class ProcessManager:
             return env_path
         if os.path.isabs(binary_name) and os.path.exists(binary_name):
             return binary_name
-        
+
         resolved = shutil.which(binary_name)
         if resolved:
             return resolved
-            
+
         # Fallback to known locations
         common_locations = [
             Path.cwd() / "configstream-tester",

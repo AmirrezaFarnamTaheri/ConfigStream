@@ -28,9 +28,14 @@ DOH_PROVIDERS: List[Dict[str, Any]] = [
     {"name": "OpenDNS", "url": "https://doh.opendns.com/dns-query", "weight": 10},
     {"name": "AdGuard", "url": "https://dns.adguard.com/dns-query", "weight": 10},
     {"name": "ControlD", "url": "https://freedns.controld.com/p2", "weight": 10},
-    {"name": "Mullvad", "url": "https://adblock.dns.mullvad.net/dns-query", "weight": 10},
+    {
+        "name": "Mullvad",
+        "url": "https://adblock.dns.mullvad.net/dns-query",
+        "weight": 10,
+    },
     {"name": "NextDNS", "url": "https://dns.nextdns.io/dns-query", "weight": 10},
 ]
+
 
 def select_doh_provider() -> dict:
     total_weight = sum(p["weight"] for p in DOH_PROVIDERS)
@@ -40,6 +45,7 @@ def select_doh_provider() -> dict:
             return p
         r -= p["weight"]
     return DOH_PROVIDERS[0]
+
 
 async def resolve_doh_json(host: str) -> Optional[str]:
     provider = select_doh_provider()
@@ -55,7 +61,9 @@ async def resolve_doh_json(host: str) -> Optional[str]:
                     if ans.get("type") == 1:  # A record
                         return str(ans.get("data"))
     except Exception as e:
-        logger.debug("DoH resolution via %s failed for %s: %s", provider["name"], host, e)
+        logger.debug(
+            "DoH resolution via %s failed for %s: %s", provider["name"], host, e
+        )
     return None
 
 

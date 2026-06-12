@@ -26,6 +26,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class StreamingProducer(IProducer):
     def __init__(self, sources: List[str], context: PipelineContext):
         self.sources = sources
@@ -35,7 +36,10 @@ class StreamingProducer(IProducer):
         import configstream.pipeline
 
         # Contract: the pipeline core always provides these trackers.
-        if self.context.quality_tracker is None or self.context.anomaly_detector is None:
+        if (
+            self.context.quality_tracker is None
+            or self.context.anomaly_detector is None
+        ):
             raise RuntimeError(
                 "PipelineContext is missing quality_tracker/anomaly_detector; "
                 "StreamingProducer requires a fully initialised context"
@@ -54,7 +58,6 @@ class StreamingProducer(IProducer):
             stop_event=self.context.stop_event,
             stats=self.context.stats,
         )
-
 
 
 def _chunk_lines(lines: List[str], chunk_size: int) -> List[List[str]]:

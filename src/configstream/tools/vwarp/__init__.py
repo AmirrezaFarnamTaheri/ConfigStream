@@ -8,6 +8,7 @@ from .constants import (
 )
 from configstream.security_validator import SecurityValidator
 
+
 def _sanitize_process_output(value: object, limit: int = 2048) -> str:
     """Decode, sanitize, and bound subprocess output before logging/storing it."""
     if isinstance(value, bytes):
@@ -18,6 +19,7 @@ def _sanitize_process_output(value: object, limit: int = 2048) -> str:
     if len(text) > limit:
         return f"{text[:limit]}...[truncated]"
     return text
+
 
 __all__ = [
     "VwarpTool",
