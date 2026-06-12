@@ -40,20 +40,20 @@ def _extract_artifact(artifact: Path, workdir: Path) -> Path:
         seven_zip = shutil.which("7z") or shutil.which("7z.exe")
         unrar = shutil.which("unrar")
         if seven_zip:
-            subprocess.run(
+            subprocess.run(  # nosec B603
                 [seven_zip, "x", "-y", str(artifact), f"-o{workdir}"],
                 check=True,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
-            )  # nosec B603
+            )
             return workdir
         if unrar:
-            subprocess.run(
+            subprocess.run(  # nosec B603
                 [unrar, "x", "-y", str(artifact), str(workdir)],
                 check=True,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
-            )  # nosec B603
+            )
             return workdir
         raise RuntimeError("RAR extraction requires 7z or unrar in PATH")
 
@@ -74,11 +74,11 @@ def _validate_json(path: Path, sing_box_bin: str | None) -> dict[str, Any]:
         return result
 
     if sing_box_bin:
-        proc = subprocess.run(
+        proc = subprocess.run(  # nosec B603
             [sing_box_bin, "check", "-c", str(path)],
             text=True,
             capture_output=True,
-        )  # nosec B603
+        )
         result["sing_box_check"] = proc.returncode == 0
         if proc.returncode != 0:
             result["sing_box_error"] = (proc.stderr or proc.stdout).strip()[:2000]

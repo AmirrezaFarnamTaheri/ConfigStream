@@ -8,7 +8,7 @@ under different censorship conditions (DNS poisoning, IP blocking, UDP drops, et
 
 import asyncio
 import logging
-import random
+from secrets import choice as secure_choice
 from typing import List, Any, Optional, Callable
 from enum import Enum
 
@@ -56,7 +56,7 @@ class PoisonedDNSResolver:
             logger.debug(f"[PoisonedDNS] Slow reply for {hostname}")
 
         # Return poisoned IP
-        return random.choice(self.poison_ips)  # nosec
+        return secure_choice(self.poison_ips)
 
 
 class IPBlocklist:

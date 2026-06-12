@@ -11,7 +11,7 @@ import mmap
 import platform
 import secrets
 import stat
-import subprocess  # nosec
+import subprocess  # nosec B404
 import sys
 import time
 from collections import deque
@@ -286,7 +286,7 @@ class SlipstreamManager:
                 else:
                     # Max retries reached, keep partial file for next attempt
                     return False
-            except Exception:  # nosec
+            except Exception:
                 # Unexpected error - clean up partial download
                 if temp_path.exists():
                     temp_path.unlink()
@@ -431,7 +431,7 @@ class SlipstreamManager:
                 else:
                     # Max retries reached, keep partial file for next attempt
                     return False
-            except Exception as e:  # nosec
+            except Exception as e:
                 log_widget.write(
                     f"[red]Unexpected error: {type(e).__name__}: {e}[/red]"
                 )
@@ -808,7 +808,7 @@ class DNSScannerTUI(App):
         try:
             self.query_one("#pause-btn", Button).display = False
             self.query_one("#resume-btn", Button).display = False
-        except Exception:  # nosec
+        except Exception:  # nosec B110
             pass
 
     def action_quit(self) -> None:
@@ -817,20 +817,20 @@ class DNSScannerTUI(App):
         for process in self.slipstream_processes:
             try:
                 process.kill()
-            except Exception:  # nosec
+            except Exception:  # nosec B110
                 pass
 
         # Cancel all active tasks
         for task in self.active_scan_tasks:
             try:
                 task.cancel()
-            except Exception:  # nosec
+            except Exception:  # nosec B110
                 pass
 
         for task in self.slipstream_tasks:
             try:
                 task.cancel()
-            except Exception:  # nosec
+            except Exception:  # nosec B110
                 pass
 
         # Clear task lists
@@ -884,7 +884,7 @@ class DNSScannerTUI(App):
         try:
             self.query_one("#pause-btn", Button).display = False
             self.query_one("#resume-btn", Button).display = True
-        except Exception:  # nosec
+        except Exception:  # nosec B110
             pass
 
     def _resume_scan(self) -> None:
@@ -901,7 +901,7 @@ class DNSScannerTUI(App):
         try:
             self.query_one("#pause-btn", Button).display = True
             self.query_one("#resume-btn", Button).display = False
-        except Exception:  # nosec
+        except Exception:  # nosec B110
             pass
 
     def _start_scan_from_form(self) -> None:
@@ -955,7 +955,7 @@ class DNSScannerTUI(App):
         try:
             self.query_one("#pause-btn", Button).display = True
             self.query_one("#resume-btn", Button).display = False
-        except Exception:  # nosec
+        except Exception:  # nosec B110
             pass
 
         # Setup log display
@@ -1089,7 +1089,7 @@ class DNSScannerTUI(App):
             stats.total = estimated_ips
             progress_bar = self.query_one("#progress-bar", CustomProgressBar)
             progress_bar.update_progress(0, estimated_ips)
-        except Exception:  # nosec
+        except Exception:  # nosec B110
             pass
 
         logger.info(f"Starting chunked scan with concurrency {self.concurrency}")
@@ -1151,7 +1151,7 @@ class DNSScannerTUI(App):
                         await self._process_result(result)
                     except asyncio.CancelledError:
                         pass  # Task was cancelled during shutdown
-                    except Exception as e:  # nosec
+                    except Exception as e:
                         logger.error(f"Task error: {e}")
 
                 active_tasks = list(active_tasks)
@@ -1177,7 +1177,7 @@ class DNSScannerTUI(App):
                     await self._process_result(result)
                 except asyncio.CancelledError:
                     pass  # Task was cancelled
-                except Exception as e:  # nosec
+                except Exception as e:
                     logger.error(f"Task error: {e}")
 
         self._log(
@@ -1201,7 +1201,7 @@ class DNSScannerTUI(App):
             progress_bar.update_progress(
                 self.current_scanned, self.current_scanned
             )  # Force 100%
-        except Exception:  # nosec
+        except Exception:  # nosec B110
             pass
 
         # Final table rebuild
@@ -1239,7 +1239,7 @@ class DNSScannerTUI(App):
                     line_str = line.strip()
                     if line_str and not line_str.startswith(b"#"):
                         count += 1
-        except Exception:  # nosec
+        except Exception:  # nosec B110
             pass
         return count
 
@@ -1258,7 +1258,7 @@ class DNSScannerTUI(App):
                                 subnets.append(
                                     ipaddress.IPv4Network(line_str, strict=False)
                                 )
-                        except Exception as e:  # nosec
+                        except Exception as e:
                             logger.warning(
                                 f"Failed to parse line: {line_str[:50]} - {e}"
                             )
@@ -1275,12 +1275,12 @@ class DNSScannerTUI(App):
                                 subnets.append(
                                     ipaddress.IPv4Network(line_clean, strict=False)
                                 )
-                            except Exception as e:  # nosec
+                            except Exception as e:
                                 logger.warning(
                                     f"Failed to parse line: {line_clean[:50]} - {e}"
                                 )
                                 pass
-            except Exception as e:  # nosec
+            except Exception as e:
                 logger.error(f"Failed to read subnet file: {e}")
 
         logger.info(f"Loaded {len(subnets)} subnets")
@@ -1305,9 +1305,9 @@ class DNSScannerTUI(App):
                             try:
                                 subnet = ipaddress.IPv4Network(line, strict=False)
                                 subnets.append(subnet)
-                            except Exception:  # nosec
+                            except Exception:  # nosec B110
                                 pass
-            except Exception as e:  # nosec
+            except Exception as e:
                 logger.error(f"Failed to read file: {e}")
             return subnets
 
@@ -1388,7 +1388,7 @@ class DNSScannerTUI(App):
 
                     progress_bar = self.query_one("#progress-bar", CustomProgressBar)
                     progress_bar.update_progress(self.current_scanned, stats.total)
-                except Exception:  # nosec
+                except Exception:  # nosec B110
                     pass
 
     def _collect_ips(self, subnets: list[ipaddress.IPv4Network]) -> list[str]:
@@ -1483,7 +1483,7 @@ class DNSScannerTUI(App):
 
             except asyncio.TimeoutError:
                 return (ip, False, 0)
-            except Exception:  # nosec
+            except Exception:
                 return (ip, False, 0)
 
     def _add_result(self, ip: str, response_time: float) -> None:
@@ -1522,7 +1522,7 @@ class DNSScannerTUI(App):
                 "[green]Active[/green]",
                 proxy_str,
             )
-        except Exception:  # nosec
+        except Exception:  # nosec B110
             pass
 
         # Mark table for periodic resort
@@ -1576,7 +1576,7 @@ class DNSScannerTUI(App):
                 )
 
             self.table_needs_rebuild = False
-        except Exception:  # nosec
+        except Exception:  # nosec B110
             pass  # Ignore errors during rebuild
 
     async def _queue_slipstream_test(self, dns_ip: str) -> None:
@@ -1814,7 +1814,7 @@ class DNSScannerTUI(App):
             logger.info(f"[{dns_ip}] Final result: {final_result}")
             return final_result
 
-        except Exception as e:  # nosec
+        except Exception as e:
             logger.error(
                 f"[{dns_ip}] Slipstream error: {type(e).__name__}: {str(e)}",
                 exc_info=True,
@@ -1830,7 +1830,7 @@ class DNSScannerTUI(App):
                     # Remove from tracking list
                     if process in self.slipstream_processes:
                         self.slipstream_processes.remove(process)
-                except Exception:  # nosec
+                except Exception:  # nosec B110
                     pass
 
     def _log(self, message: str) -> None:
@@ -1838,7 +1838,7 @@ class DNSScannerTUI(App):
         try:
             log_widget = self.query_one("#log-display", RichLog)
             log_widget.write(message)
-        except Exception:  # nosec
+        except Exception:  # nosec B110
             pass  # Widget might not be ready yet
 
     def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
@@ -1852,7 +1852,7 @@ class DNSScannerTUI(App):
             try:
                 pyperclip.copy(ip)
                 self.notify(f"{ip} copied!", severity="information", timeout=2)
-            except Exception as e:  # nosec
+            except Exception as e:
                 self.notify(f"Copy failed: {str(e)[:30]}", severity="warning")
 
     def _auto_save_results(self) -> None:
@@ -2002,7 +2002,7 @@ def main():
     except KeyboardInterrupt:
         logger.info("Interrupted by user")
         sys.exit(130)
-    except Exception as e:  # nosec
+    except Exception as e:
         logger.exception(f"Fatal error: {e}")
         sys.exit(1)
 

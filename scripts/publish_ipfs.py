@@ -123,11 +123,11 @@ def publish_ipns(cid: str, ipns_key: str) -> None:
 
     print(f"Publishing {cid} to IPNS key {ipns_key}...")
     try:
-        subprocess.run(
+        subprocess.run(  # nosec B603
             [ipfs_bin, "name", "publish", "--key", ipns_key, cid],
             check=True,
             timeout=300,
-        )  # nosec B603
+        )
         print("IPNS publish successful.")
     except Exception as e:
         print(f"Failed to publish to IPNS: {e}")

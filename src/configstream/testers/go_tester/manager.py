@@ -7,6 +7,7 @@ import uuid
 import time
 import os
 import re
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Dict, Any, Optional, cast, Set
@@ -41,7 +42,7 @@ class GoBatchTester:
         # Normalize workers to a positive integer
         try:
             w = int(workers)
-        except Exception:  # nosec
+        except Exception:
             w = 20
         self.workers = max(1, w)
         self.timeout = timeout
@@ -245,7 +246,7 @@ class GoBatchTester:
         if self._restart_task and not self._restart_task.done():
             try:
                 await safe_wait_for(self._restart_task, timeout=15.0)
-            except Exception:  # nosec
+            except Exception:  # nosec B110
                 pass
             self._restart_task = None
 
@@ -285,7 +286,7 @@ class GoBatchTester:
                 env = os.environ.copy()
                 env["GOLOG_LOG_LEVEL"] = "error"
                 # Ensure temp dir is accessible
-                env["TMPDIR"] = os.environ.get("TMPDIR", "/tmp")  # nosec
+                env["TMPDIR"] = os.environ.get("TMPDIR") or tempfile.gettempdir()
                 env["PATH"] = os.environ.get("PATH", "/usr/bin:/bin")
                 # Use modern WireGuard outbound only (no deprecated compatibility flags).
 
@@ -348,7 +349,7 @@ class GoBatchTester:
                 f.cancel()
         try:
             await asyncio.gather(*futures, return_exceptions=True)
-        except Exception:  # nosec
+        except Exception:  # nosec B110
             # Swallow any unexpected errors during cleanup
             pass
 
@@ -460,7 +461,7 @@ class GoBatchTester:
                             logger.warning(f"Go Tester: {text}")
         except asyncio.CancelledError:
             pass
-        except Exception:  # nosec
+        except Exception:  # nosec B110
             pass
 
     async def test_batch(

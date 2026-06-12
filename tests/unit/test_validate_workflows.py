@@ -169,6 +169,47 @@ jobs:
     assert validate_workflows.main() == 1
 
 
+def test_validate_workflows_requires_ci_bandit_suppression_guard(
+    tmp_path: Path, monkeypatch
+) -> None:
+    workflow_dir = tmp_path / ".github" / "workflows"
+    workflow_dir.mkdir(parents=True)
+    (workflow_dir / "ci.yml").write_text(
+        """
+name: CI
+on:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: bandit -r src/configstream scripts tools frontend/assets/js -q
+      - run: |
+          python scripts/validate_capability_registry.py
+          python scripts/validate_core_compatibility.py
+          python scripts/validate_module_ownership.py
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          npm ci
+          npx playwright install chromium
+          npm run test:frontend:no-network
+  frontend-browser:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          python -m playwright install --with-deps chromium
+          npx playwright install chromium
+          npm run test:frontend:browser
+""".lstrip(),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(validate_workflows, "WORKFLOW_DIR", workflow_dir)
+
+    assert validate_workflows.main() == 1
+
+
 def test_validate_workflows_requires_ci_capability_contract_validators(
     tmp_path: Path, monkeypatch
 ) -> None:

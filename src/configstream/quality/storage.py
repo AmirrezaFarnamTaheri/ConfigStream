@@ -15,6 +15,37 @@ from configstream.security_validator import SecurityValidator
 logger = logging.getLogger(__name__)
 
 
+def _quote_sql_identifier(identifier: str) -> str:
+    """Quote a SQLite identifier after strict schema-derived validation."""
+    if not identifier or not identifier.replace("_", "").isalnum():
+        raise ValueError(f"Unsafe SQLite identifier: {identifier!r}")
+    return '"' + identifier.replace('"', '""') + '"'
+
+
+def _insert_sql(table: str, columns: List[str]) -> str:
+    quoted_table = _quote_sql_identifier(table)
+    quoted_columns = ",".join(_quote_sql_identifier(column) for column in columns)
+    placeholders = ",".join(["?"] * len(columns))
+    return " ".join(
+        [
+            "INSERT",
+            "INTO",
+            quoted_table,
+            f"({quoted_columns})",
+            "VALUES",
+            f"({placeholders})",
+        ]
+    )
+
+
+def _insert_values_sql(table: str, column_count: int) -> str:
+    quoted_table = _quote_sql_identifier(table)
+    placeholders = ",".join(["?"] * column_count)
+    return " ".join(
+        ["INSERT", "INTO", quoted_table, "VALUES", f"({placeholders})"]
+    )
+
+
 class QualityStorage:
     def __init__(self, db_path: Path):
         self.db_path = db_path
@@ -111,8 +142,11 @@ class QualityStorage:
             logger.error(f"Error initializing source quality DB: {e}")
             try:
                 conn.rollback()
-            except Exception:  # nosec
-                pass
+            except Exception as rollback_exc:
+                logger.debug(
+                    "Source quality DB rollback failed: %s",
+                    SecurityValidator.sanitize_log_message(str(rollback_exc)),
+                )
 
     def close(self):
         # Close current thread's connection
@@ -334,7 +368,7 @@ class QualityStorage:
                 src = sqlite3.connect(other_db_path)
                 dst = sqlite3.connect(self.db_path)
                 src.execute("PRAGMA journal_mode=WAL")
-                dst.execute("PRAGMA journal_mode=WAL")  # nosec
+                dst.execute("PRAGMA journal_mode=WAL")
 
                 # Merge source_stats
                 rows = src.execute("SELECT * FROM source_stats").fetchall()
@@ -345,14 +379,15 @@ class QualityStorage:
                         info[1]
                         for info in dst.execute(
                             "PRAGMA table_info(source_stats)"
-                        )  # nosec
+                        )
                     }
                     columns_to_use = [c for c in columns if c in dst_columns]
                     if not columns_to_use:
                         return
                     col_indices = [columns.index(c) for c in columns_to_use]
-                    placeholders = ",".join(["?"] * len(columns_to_use))
-                    column_list = ",".join(columns_to_use)
+                    source_stats_insert_sql = _insert_sql(
+                        "source_stats", columns_to_use
+                    )
                     url_idx = columns.index("url")
                     last_checked_idx = (
                         columns.index("last_checked")
@@ -366,22 +401,22 @@ class QualityStorage:
                             row[last_checked_idx] if last_checked_idx >= 0 else 0
                         )
 
-                        existing = dst.execute(  # nosec
+                        existing = dst.execute(
                             "SELECT last_checked FROM source_stats WHERE url = ?",
                             (url,),
                         ).fetchone()
 
                         if not existing:
-                            dst.execute(  # nosec
-                                f"INSERT INTO source_stats ({column_list}) VALUES ({placeholders})",  # nosec
+                            dst.execute(
+                                source_stats_insert_sql,
                                 [row[i] for i in col_indices],
                             )
                         elif existing[0] < last_checked:
-                            dst.execute(  # nosec
+                            dst.execute(
                                 "DELETE FROM source_stats WHERE url = ?", (url,)
                             )
-                            dst.execute(  # nosec
-                                f"INSERT INTO source_stats ({column_list}) VALUES ({placeholders})",  # nosec
+                            dst.execute(
+                                source_stats_insert_sql,
                                 [row[i] for i in col_indices],
                             )
 
@@ -393,14 +428,16 @@ class QualityStorage:
                             columns = [d[0] for d in cursor.description]
                             # Remove 'id' from columns/values since it's auto-increment
                             cols_no_id = [c for c in columns if c != "id"]
-                            placeholders = ",".join(["?"] * len(cols_no_id))
+                            source_runs_insert_sql = _insert_sql(
+                                "source_runs", cols_no_id
+                            )
                             # Indices for data without ID
                             indices = [i for i, c in enumerate(columns) if c != "id"]
 
                             for row in run_rows:
                                 data = [row[i] for i in indices]
-                                dst.execute(  # nosec
-                                    f"INSERT INTO source_runs ({','.join(cols_no_id)}) VALUES ({placeholders})",  # nosec
+                                dst.execute(
+                                    source_runs_insert_sql,
                                     data,
                                 )
                     except sqlite3.OperationalError:
@@ -416,10 +453,12 @@ class QualityStorage:
                         if history_rows:
                             cursor = src.execute("SELECT * FROM proxy_history LIMIT 1")
                             columns = [d[0] for d in cursor.description]
-                            placeholders = ",".join(["?"] * len(columns))
+                            proxy_history_insert_sql = _insert_values_sql(
+                                "proxy_history", len(columns)
+                            )
 
-                            dst.executemany(  # nosec
-                                f"INSERT INTO proxy_history VALUES ({placeholders})",  # nosec
+                            dst.executemany(
+                                proxy_history_insert_sql,
                                 history_rows,
                             )
                     except sqlite3.OperationalError:

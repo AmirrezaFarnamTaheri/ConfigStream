@@ -6,7 +6,7 @@ import time
 import hashlib
 from pathlib import Path
 import orjson as json
-from typing import List, Optional, Any, TYPE_CHECKING
+from typing import List, Optional, Any, TYPE_CHECKING, cast
 
 from rich.progress import Progress, TaskID
 
@@ -65,29 +65,30 @@ class WorkerConsumer(IConsumer):
                 "PipelineContext is missing required collaborators for "
                 f"WorkerConsumer: {', '.join(missing)}"
             )
-        assert ctx.tester is not None
-        assert ctx.scheduler is not None
-        assert ctx.test_cache is not None
-        assert ctx.concurrency is not None
-        assert ctx.geoip is not None
-        assert ctx.tracker is not None
-        assert ctx.quality_tracker is not None
-        assert ctx.history is not None
+
+        tester = cast(SingBoxTester, ctx.tester)
+        scheduler = cast(SmartRetestScheduler, ctx.scheduler)
+        test_cache = cast(TestResultCache, ctx.test_cache)
+        concurrency = cast(ConcurrencyManager, ctx.concurrency)
+        geoip = cast(GeoIPResolver, ctx.geoip)
+        tracker = cast(PerformanceTracker, ctx.tracker)
+        quality_tracker = cast(SourceQualityTracker, ctx.quality_tracker)
+        history = cast(ProxyHistoryTracker, ctx.history)
 
         await configstream.pipeline.processing_consumer(
             ctx.work_queue,
             ctx.stats,
             ctx.seen_keys,
             ctx.final_proxies,
-            ctx.tester,
-            ctx.scheduler,
-            ctx.test_cache,
-            ctx.concurrency,
-            ctx.geoip,
-            ctx.tracker,
+            tester,
+            scheduler,
+            test_cache,
+            concurrency,
+            geoip,
+            tracker,
             ctx.event_stream,
-            ctx.quality_tracker,
-            ctx.history,
+            quality_tracker,
+            history,
             ctx.progress,
             ctx.task_process,
             ctx.max_latency,
@@ -701,7 +702,7 @@ async def processing_consumer(
                     diversity_score,
                     0.0,
                 )
-            except Exception:  # nosec
+            except Exception:  # nosec B110
                 pass
             try:
                 batch_number = str(getattr(settings, "BATCH_NUMBER", "")).strip()
@@ -720,7 +721,7 @@ async def processing_consumer(
                         "batch_source": batch_source,
                     },
                 )
-            except Exception:  # nosec
+            except Exception:  # nosec B110
                 pass
 
         work_queue.task_done()

@@ -78,12 +78,12 @@ def _tracked_files() -> list[Path]:
             if path.is_file() and ".git" not in path.relative_to(ROOT).parts
         )
     try:
-        completed = subprocess.run(
+        completed = subprocess.run(  # nosec B603
             [git_bin, "ls-files", "-z"],
             cwd=ROOT,
             check=True,
             capture_output=True,
-        )  # nosec B603
+        )
     except (FileNotFoundError, subprocess.CalledProcessError):
         return sorted(
             path

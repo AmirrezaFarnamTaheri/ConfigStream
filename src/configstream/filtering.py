@@ -100,7 +100,7 @@ def dedupe_and_shuffle(proxies: List[Proxy]) -> List[Proxy]:
         except ValueError:
             rng_seed = seed_env
 
-    rng = random.Random(rng_seed)  # nosec
+    rng = random.Random(rng_seed)  # nosec B311
     rng.shuffle(unique)
 
     # Log deduplication statistics

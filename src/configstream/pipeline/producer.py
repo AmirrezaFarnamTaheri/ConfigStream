@@ -95,7 +95,7 @@ async def _report_source_failure(
                 "batch_source": batch_source,
             },
         )
-    except Exception:  # nosec
+    except Exception:  # nosec B110
         pass
 
 
@@ -125,7 +125,7 @@ async def _report_source_backpressure(
                 "batch_source": batch_source,
             },
         )
-    except Exception:  # nosec
+    except Exception:  # nosec B110
         pass
 
 
@@ -398,7 +398,7 @@ async def source_producer(
                     break
                 # Add jitter to prevent overwhelming remote servers or rate limits
                 if i > 0:
-                    jitter = random.uniform(0.5, 2.0)  # nosec
+                    jitter = random.uniform(0.5, 2.0)  # nosec B311
                     logger.debug(f"Batch jitter: sleeping {jitter:.2f}s")
                     await asyncio.sleep(jitter)
 
@@ -511,7 +511,7 @@ async def source_producer(
                                     source,
                                     f"anomaly_blocked:{reason}",
                                 )
-                            except Exception:  # nosec
+                            except Exception:  # nosec B110
                                 pass
                             if event_stream:
                                 event_stream.emit(

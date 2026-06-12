@@ -13,6 +13,7 @@ from ..constants import (
     canonical_protocol_name,
 )
 from ..generators.plaintext import generate_plaintext_subscription
+from ..security_validator import _safe_proxy_ref
 
 logger = logging.getLogger(__name__)
 
@@ -37,11 +38,16 @@ def get_export_pool(proxies: List[Proxy]) -> List[Proxy]:
         for p in working:
             try:
                 uri = _extract_uri(p, adapter)
-                if uri and uri.strip():
-                    has_valid_uri = True
-                    break
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.debug(
+                    "Skipped export URI probe for %s after %s",
+                    _safe_proxy_ref(p),
+                    exc.__class__.__name__,
+                )
+                uri = None
+            if uri and uri.strip():
+                has_valid_uri = True
+                break
         if has_valid_uri:
             return working
         else:

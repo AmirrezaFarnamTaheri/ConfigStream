@@ -258,13 +258,13 @@ def _first_available_binary(names: tuple[str, ...]) -> str | None:
 
 def _run_native_check(command: list[str], rel_path: str) -> tuple[str, str | None]:
     try:
-        proc = subprocess.run(
+        proc = subprocess.run(  # nosec B603
             command,
             capture_output=True,
             check=False,
             text=True,
             timeout=30,
-        )  # nosec B603
+        )
     except (OSError, subprocess.TimeoutExpired) as exc:
         return "failed", f"{rel_path} native client check could not run: {exc}"
     if proc.returncode == 0:

@@ -266,7 +266,7 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
                     from urllib.parse import unquote
 
                     key = unquote(key)
-                except Exception:  # nosec
+                except Exception:  # nosec B110
                     pass
 
             key_clean = key.strip().replace(" ", "+")

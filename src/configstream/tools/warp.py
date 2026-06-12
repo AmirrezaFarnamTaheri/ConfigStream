@@ -8,9 +8,9 @@ Key generation is delegated to the canonical KeyGenerator in
 """
 
 import logging
-import random
 import datetime
 import asyncio
+from secrets import choice as secure_choice
 from typing import Optional, Dict, Any
 
 import httpx
@@ -34,7 +34,7 @@ async def register_warp_account() -> Optional[Dict[str, Any]]:
 
     try:
         # 1. Generate Instance ID
-        inst_id = "".join(random.choices("0123456789ABCDEF", k=22))  # nosec
+        inst_id = "".join(secure_choice("0123456789ABCDEF") for _ in range(22))
 
         # 2. Generate Keys (delegated to canonical KeyGenerator)
         try:

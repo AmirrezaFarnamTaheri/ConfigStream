@@ -94,8 +94,11 @@ CREATE TABLE IF NOT EXISTS history (
                     try:
                         if self._conn:
                             self._conn.close()
-                    except Exception:  # nosec
-                        pass
+                    except Exception as close_exc:
+                        logger.debug(
+                            "Failed to close anomaly DB before reconnect: %s",
+                            _safe_log_text(close_exc),
+                        )
                     self._init_db()
                     if self._conn:
                         rows = self._conn.execute(
@@ -339,6 +342,9 @@ CREATE TABLE IF NOT EXISTS history (
             if self._conn:
                 try:
                     self._conn.close()
-                except Exception:  # nosec
-                    pass
+                except Exception as close_exc:
+                    logger.debug(
+                        "Failed to close anomaly DB connection: %s",
+                        _safe_log_text(close_exc),
+                    )
                 self._conn = None

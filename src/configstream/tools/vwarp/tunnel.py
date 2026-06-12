@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import asyncio
+import ipaddress
 import logging
 import os
 import shlex
@@ -129,11 +130,7 @@ class VwarpTunnel:
 
     async def _wait_for_port(self, host: str, port: int, timeout: int = 45) -> bool:
         """Polls the given host:port until it accepts connections."""
-        # Wildcard binds are probed via loopback; this is a client-side probe,
-        # not a listener bind (B104 false positive).
-        probe_host = (
-            host if host not in ("0.0.0.0", "::", "") else "127.0.0.1"  # nosec B104
-        )
+        probe_host = self._probe_host_for_bind(host)
         start = time.time()
         while time.time() - start < timeout:
             if self._proc and self._proc.returncode is not None:
@@ -148,6 +145,18 @@ class VwarpTunnel:
             except (OSError, asyncio.TimeoutError, ConnectionRefusedError):
                 await asyncio.sleep(1.0)
         return False
+
+    @staticmethod
+    def _probe_host_for_bind(host: str) -> str:
+        """Return the client address to use when probing a listener bind."""
+        candidate = (host or "").strip()
+        if not candidate:
+            return "127.0.0.1"
+        try:
+            bind_ip = ipaddress.ip_address(candidate)
+        except ValueError:
+            return candidate
+        return "127.0.0.1" if bind_ip.is_unspecified else candidate
 
     async def _build_tunnel_command(
         self,

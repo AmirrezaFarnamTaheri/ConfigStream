@@ -455,6 +455,22 @@ class TestShadowrocketAdapter:
 
         assert "vmess://" in result
 
+    def test_malformed_original_vmess_is_preserved_with_safe_name(self):
+        """Malformed original VMess payloads should not abort export."""
+        adapter = ShadowrocketAdapter()
+        proxy = Proxy(
+            config="vmess://not-json#unsafe name",
+            protocol="vmess",
+            address="example.com",
+            port=443,
+            uuid="test-uuid",
+            remarks="Safe Name",
+        )
+
+        result = adapter.export([proxy])
+
+        assert result == "vmess://not-json#Safe%20Name"
+
     def test_use_original_config_if_available(self):
         """Test that original config is used if it contains ://."""
         adapter = ShadowrocketAdapter()

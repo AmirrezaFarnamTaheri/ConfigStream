@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import logging
 import base64
+import binascii
 import json
 import urllib.parse
 from typing import List, Optional, Dict, Any
@@ -35,18 +36,19 @@ class ShadowrocketAdapter(Adapter):
 
         padded = payload + "=" * (-len(payload) % 4)
         for decoder in (base64.b64decode, base64.urlsafe_b64decode):
+            data: Any
             try:
                 decoded = decoder(padded.encode())
                 data = json.loads(decoded)
-                if not isinstance(data, dict):
-                    continue
-                data["ps"] = raw_name
-                encoded = base64.b64encode(
-                    json.dumps(data, ensure_ascii=False).encode()
-                ).decode()
-                return f"vmess://{encoded}#{safe_name}"
-            except Exception:
+            except (binascii.Error, json.JSONDecodeError, TypeError, UnicodeError):
+                data = None
+            if not isinstance(data, dict):
                 continue
+            data["ps"] = raw_name
+            encoded = base64.b64encode(
+                json.dumps(data, ensure_ascii=False).encode()
+            ).decode()
+            return f"vmess://{encoded}#{safe_name}"
         return None
 
     def _extract_revived_uri(self, p: Proxy) -> Optional[str]:
@@ -101,8 +103,12 @@ class ShadowrocketAdapter(Adapter):
                 uri = self._reconstruct_uri(origin_p)
                 if uri:
                     return uri
-            except Exception:
-                pass
+            except (TypeError, ValueError) as exc:
+                logger.debug(
+                    "Skipped revived origin reconstruction for %s after %s",
+                    _safe_proxy_ref(p),
+                    exc.__class__.__name__,
+                )
 
         return _extract_from_chain()
 

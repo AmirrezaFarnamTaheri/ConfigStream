@@ -267,7 +267,7 @@ class PythonTester:
                     ) as resp:
                         if 200 <= resp.status < 300:
                             latencies.append((time.monotonic() - start) * 1000)
-                except Exception:  # nosec
+                except Exception:  # nosec B110
                     pass
             if not latencies:
                 return None
