@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import logging
 from datetime import datetime, timezone
-from typing import List
+from typing import Awaitable, Callable, List
 
 from fastapi import (
     FastAPI,
@@ -36,6 +36,25 @@ from .ws import websocket_endpoint, ConnectionManager as ConnectionManager
 from .routes.admin import router as admin_router
 from .routes.proxies import router as proxies_router
 from .routes.lab import router as lab_router
+
+__all__ = [
+    "app",
+    "create_app",
+    "settings",
+    "VERSION",
+    "limiter",
+    "FRONTEND_DIR",
+    "OUTPUT_DIR",
+    "ROOT_OUTPUT_FILES",
+    "SAFE_PATH_PATTERN",
+    "_is_nonproduction_environment",
+    "_validate_admin_startup_security",
+    "_validate_cors_startup_security",
+    "_serve_output_file",
+    "_json_cache",
+    "websocket_endpoint",
+    "ConnectionManager",
+]
 
 logger = logging.getLogger(__name__)
 
@@ -76,6 +95,25 @@ def create_app() -> FastAPI:
         allow_methods=["GET", "POST", "OPTIONS"],
         allow_headers=["Content-Type", "Authorization"],
     )
+
+    # Security Headers
+    # CSP is delivered via <meta> tags in the frontend HTML; the headers below
+    # cover protections that can only be enforced at the HTTP layer.
+    @app.middleware("http")
+    async def add_security_headers(
+        request: Request,
+        call_next: Callable[[Request], Awaitable[Response]],
+    ) -> Response:
+        response = await call_next(request)
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault(
+            "Referrer-Policy", "strict-origin-when-cross-origin"
+        )
+        response.headers.setdefault(
+            "Permissions-Policy", "camera=(), microphone=(), geolocation=()"
+        )
+        return response
 
     # Startup Validation
     @app.on_event("startup")

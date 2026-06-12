@@ -364,5 +364,3 @@ document.addEventListener('visibilitychange', () => {
         window.updateDetector.startPolling();
     }
 });
-
-// console.log('✅ UpdateDetector loaded successfully');
