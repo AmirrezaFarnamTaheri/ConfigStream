@@ -4,7 +4,23 @@ Analytics module for Proxy History.
 Calculates stats, trends, and reliability scores.
 """
 
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
+
+
+def _parse_entry_timestamp(value: Any) -> Optional[datetime]:
+    """Parse an entry timestamp (ISO string or epoch) into an aware datetime."""
+    if value is None:
+        return None
+    try:
+        if isinstance(value, (int, float)):
+            return datetime.fromtimestamp(value, tz=timezone.utc)
+        parsed = datetime.fromisoformat(str(value))
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        return parsed
+    except (ValueError, OverflowError, OSError):
+        return None
 
 
 class HistoryAnalytics:
@@ -16,17 +32,29 @@ class HistoryAnalytics:
     ) -> float:
         """
         Calculate reliability score based on recent history.
+
+        Only entries within the ``lookback_days`` window are considered.
+        Entries without a parseable timestamp are included for backward
+        compatibility with legacy history records.
         """
         if not history or "entries" not in history or not history["entries"]:
             return 0.5  # Neutral for unknown
 
         entries = history["entries"]
-        # In a real implementation, we would filter by lookback_days here
-        # For now, we use all entries as per original implementation logic
-        # (original didn't actually use lookback_days for filtering in the simplified version)
+        if lookback_days > 0:
+            cutoff = datetime.now(timezone.utc) - timedelta(days=lookback_days)
+            recent = []
+            for e in entries:
+                ts = _parse_entry_timestamp(e.get("timestamp"))
+                if ts is None or ts >= cutoff:
+                    recent.append(e)
+            entries = recent
+
+        if not entries:
+            return 0.5  # Neutral when no recent data
 
         working_count = sum(1 for e in entries if e["is_working"])
-        return working_count / len(entries) if entries else 0.5
+        return working_count / len(entries)
 
     @staticmethod
     def get_trend_data(

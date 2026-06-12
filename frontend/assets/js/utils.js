@@ -41,10 +41,4 @@ if (typeof window !== 'undefined') {
     if (typeof initMobileNav === 'function') window.api.initMobileNav = initMobileNav;
     if (typeof initTheme === 'function') window.api.initTheme = initTheme;
     if (typeof updateFreshnessColor === 'function') window.api.updateFreshnessColor = updateFreshnessColor;
-
-    // [AUDIT] Use production-safe logger or remove
-    // console.log('✅ window.api initialized:', Object.keys(window.api));
 }
-
-// [AUDIT] Removed direct console log
-// console.log('✅ Enhanced utils.js (Facade) loaded');

@@ -147,8 +147,13 @@ class I18n {
                     node.removeAttribute(attr.name);
                     return;
                 }
-                if ((name === 'href' || name === 'src') && value.trim().toLowerCase().startsWith('javascript:')) {
-                    node.removeAttribute(attr.name);
+                if (name === 'href' || name === 'src') {
+                    // Block all dangerous URI schemes, including obfuscated
+                    // variants with embedded whitespace/control characters.
+                    const normalized = value.replace(/[\u0000-\u0020]/g, '').toLowerCase();
+                    if (/^(javascript|data|vbscript):/.test(normalized)) {
+                        node.removeAttribute(attr.name);
+                    }
                 }
             });
         }
