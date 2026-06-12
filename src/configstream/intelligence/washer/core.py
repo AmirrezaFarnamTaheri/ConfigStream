@@ -273,7 +273,7 @@ class ProxyWasher:
                 logger.info("Starting static list fetch sequence...")
                 for source_url in CLEAN_IP_SOURCES:
                     try:
-                        async with httpx.AsyncClient(timeout=10) as client:
+                        async with httpx.AsyncClient(timeout=10, trust_env=False) as client:
                             resp = await client.get(source_url)
                             if resp.status_code == 200:
                                 lines = [

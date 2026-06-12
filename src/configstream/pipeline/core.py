@@ -381,7 +381,7 @@ class StandardPipeline(IPipeline):
             try:
                 import httpx
 
-                async with httpx.AsyncClient(timeout=1.0) as client:
+                async with httpx.AsyncClient(timeout=1.0, trust_env=False) as client:
                     await client.post(
                         "http://127.0.0.1:8000/api/admin/notify-update",
                         json={

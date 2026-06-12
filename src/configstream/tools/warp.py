@@ -30,7 +30,7 @@ async def register_warp_account() -> Optional[Dict[str, Any]]:
     """
     Register a new WARP account and return credentials.
     """
-    client = httpx.AsyncClient(headers=HEADERS, timeout=15.0)
+    client = httpx.AsyncClient(headers=HEADERS, timeout=15.0, trust_env=False)
 
     try:
         # 1. Generate Instance ID

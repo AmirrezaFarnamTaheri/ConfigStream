@@ -56,7 +56,7 @@ class BlocklistManager:
         CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
 
         try:
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(trust_env=False) as client:
                 resp = await client.get(BLOCKLIST_URL, timeout=30)
                 resp.raise_for_status()
                 content = resp.content

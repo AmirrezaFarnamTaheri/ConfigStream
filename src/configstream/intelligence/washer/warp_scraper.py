@@ -131,7 +131,7 @@ class WarpScraper:
 
             try:
                 async with httpx.AsyncClient(
-                    timeout=self._timeout, follow_redirects=True
+                    timeout=self._timeout, follow_redirects=True, trust_env=False
                 ) as client:
                     resp = await client.get(url)
                     resp.raise_for_status()

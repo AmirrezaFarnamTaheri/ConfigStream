@@ -67,6 +67,7 @@ async def get_client(retries: int = 0) -> AsyncIterator[httpx.AsyncClient]:
             },
             follow_redirects=True,
             transport=transport,
+            trust_env=False,
         ) as client:
             yield client
     finally:
