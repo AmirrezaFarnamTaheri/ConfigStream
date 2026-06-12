@@ -228,9 +228,12 @@ async def processing_consumer(
                     src_hash = hashlib.sha256(
                         src_url.encode("utf-8", errors="ignore")
                     ).hexdigest()
-                    fp_dir = (
-                        Path(__file__).resolve().parents[2] / "data" / "fingerprints"
-                    )
+                    # CWD-relative, matching every other runtime data store
+                    # (history.db, anomaly.db, source_quality.db) and the
+                    # reader in scripts/dynamic_reshard.py. The previous
+                    # package-relative path wrote into src/data/, polluting
+                    # the source tree and hiding fingerprints from the resharder.
+                    fp_dir = Path("data") / "fingerprints"
                     fp_dir.mkdir(parents=True, exist_ok=True)
                     fp_file = fp_dir / f"{src_hash}.json"
 
