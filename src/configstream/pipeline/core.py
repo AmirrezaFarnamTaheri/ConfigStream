@@ -42,8 +42,12 @@ async def _cancel_all(
         t.cancel()
     producer_task.cancel()
     await asyncio.gather(*consumer_tasks, return_exceptions=True)
-    with suppress(asyncio.CancelledError):
+    try:
         await producer_task
+    except asyncio.CancelledError:
+        pass
+    except BaseException as e:
+        logger.debug(f"Producer task ended with exception during cancellation: {e}")
 
 
 class StandardPipeline(IPipeline):
@@ -215,6 +219,9 @@ class StandardPipeline(IPipeline):
     async def run(self) -> PipelineResult:
         start_time = datetime.now(timezone.utc)
         logger.info(f"Starting pipeline with {self.num_consumers} parallel consumers")
+
+        if self.time_limit_seconds:
+            self.context.stats.time_limit_seconds = self.time_limit_seconds
 
         if self.context.tester and self.context.tester.go_tester.available:
             try:
@@ -390,7 +397,7 @@ class StandardPipeline(IPipeline):
             should_fail = (
                 self.context.strict_security
                 or bool(getattr(self.context.settings, "FAIL_ON_ZERO_WORKING", False))
-            ) and bool(_zero_working)
+            ) and bool(_zero_working) and not stats.time_limited
 
             if should_fail:
                 logger.error(

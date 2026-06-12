@@ -123,6 +123,7 @@ def merge(
                 leniency=leniency,
                 progress=progress,
                 dry_run=dry_run,
+                time_limit_seconds=settings.BATCH_TIME_LIMIT_SECONDS,
             )
 
             return result
@@ -184,11 +185,11 @@ def merge(
                 console.print(
                     "\n[bold red]CRITICAL: Pipeline finished with 0 working proxies![/bold red]"
                 )
-                if strict or getattr(settings, "FAIL_ON_ZERO_WORKING", False):
+                if (strict or getattr(settings, "FAIL_ON_ZERO_WORKING", False)) and not time_limited:
                     sys.exit(1)
                 else:
                     console.print(
-                        "[yellow]Continuing despite 0 working proxies (strict=False)[/yellow]"
+                        "[yellow]Continuing despite 0 working proxies (strict=False or time_limited=True)[/yellow]"
                     )
 
         else:

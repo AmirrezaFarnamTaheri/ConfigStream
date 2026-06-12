@@ -218,6 +218,7 @@ jobs:
   pipeline:
     name: Run Batch Shard (${{ matrix.batch_number }})
     runs-on: ubuntu-latest
+    timeout-minutes: 360
     needs: [build_container, setup_data, setup_matrix]
     if: github.event_name != 'pull_request'
     strategy:

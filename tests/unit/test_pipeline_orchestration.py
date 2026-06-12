@@ -75,3 +75,41 @@ async def test_pipeline_auto_scaling(tmp_path):
         mock_event_stream.return_value.aclose = AsyncMock()
 
         await run_full_pipeline(["s1"], str(tmp_path / "out"), max_workers=0)
+
+
+@pytest.mark.asyncio
+async def test_pipeline_time_limit_zero_working(tmp_path):
+    import asyncio
+    from configstream.pipeline import run_full_pipeline
+
+    with (
+        patch("configstream.pipeline.source_producer", new_callable=AsyncMock),
+        patch("configstream.pipeline.processing_consumer", new_callable=AsyncMock),
+        patch(
+            "configstream.output_handler.generate_pipeline_outputs",
+            new_callable=AsyncMock,
+        ) as mock_gen,
+        patch("configstream.pipeline.DEFAULT_BLOCKLIST.update", new_callable=AsyncMock),
+        patch("configstream.pipeline.SingBoxTester") as mock_tester_cls,
+        patch("configstream.pipeline.GeoIPResolver"),
+        patch("configstream.pipeline.EventStream") as mock_event_stream,
+        patch("configstream.pipeline.core.safe_wait_for", side_effect=asyncio.TimeoutError),
+    ):
+        mock_tester = mock_tester_cls.return_value
+        mock_tester.go_tester = MagicMock()
+        mock_tester.go_tester.available = False
+        mock_tester.close = AsyncMock()
+        mock_event_stream.return_value.aclose = AsyncMock()
+
+        res = await run_full_pipeline(
+            sources=["s1"],
+            output_dir=str(tmp_path / "out"),
+            max_workers=5,
+            time_limit_seconds=1,
+        )
+
+        assert res.success
+        assert res.stats.time_limited
+        assert res.stats.working == 0
+        assert mock_gen.called
+
