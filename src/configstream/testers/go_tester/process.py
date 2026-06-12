@@ -3,6 +3,7 @@ import asyncio
 import logging
 import os
 import shutil
+from contextlib import suppress
 from pathlib import Path
 from typing import Optional
 
@@ -50,9 +51,17 @@ class ProcessManager:
         return self._proc
 
     async def stop(self) -> None:
-        if self._proc:
-            try:
-                self._proc.terminate()
-                await asyncio.wait_for(self._proc.wait(), timeout=5.0)
-            except:
+        if not self._proc:
+            return
+        try:
+            self._proc.terminate()
+            await asyncio.wait_for(self._proc.wait(), timeout=5.0)
+        except ProcessLookupError:
+            pass  # Process already exited
+        except asyncio.TimeoutError:
+            with suppress(ProcessLookupError):
                 self._proc.kill()
+            with suppress(Exception):
+                await self._proc.wait()
+        finally:
+            self._proc = None

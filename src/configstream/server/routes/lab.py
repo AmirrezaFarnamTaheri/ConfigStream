@@ -10,7 +10,6 @@ from ..utils import (
     settings,
     limiter,
     _is_nonproduction_environment,
-    logger
 )
 
 router = APIRouter(prefix="/api/lab", tags=["lab"])

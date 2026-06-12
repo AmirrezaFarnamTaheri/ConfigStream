@@ -4,7 +4,6 @@ import copy
 import shutil
 from typing import List, Dict, Optional, Any, Tuple
 from pathlib import Path
-from importlib.metadata import version
 
 from .models import Proxy
 from .intelligence.washer.core import ProxyWasher
@@ -24,12 +23,15 @@ from .config import AppSettings
 from .constants import (
     CHOSEN_TOTAL_TARGET,
     CHOSEN_TOP_PER_PROTOCOL,
-    canonical_protocol_name,
 )
 from .converters.chains import chain_obs_from_details
 
-# Re-exports for backward compatibility
-from .output.metadata import save_metadata, write_public_artifact_contract
+# Re-exports for backward compatibility (consumed by output_handler, scripts,
+# and the unit-test contract surface).
+from .output.metadata import (  # noqa: F401
+    save_metadata,
+    write_public_artifact_contract,
+)
 from .output.public_lists import generate_categorized_lists
 from .output.native_configs import (
     build_dns_safe_proxies as _build_dns_safe_proxies,
@@ -39,7 +41,6 @@ from .output.native_configs import (
     wrap_surge_or_loon_profile as _wrap_surge_or_loon_profile,
     wrap_quantumultx_profile as _wrap_quantumultx_profile,
     wrap_shadowrocket_profile as _wrap_shadowrocket_profile,
-    build_wireguard_config as _build_wireguard_config,
 )
 from .output.subscriptions import (
     generate_base64_subscription,
@@ -236,11 +237,10 @@ def _gen_dns_variation(
     filtered_smart = {}
     if smart_chains:
         for group, chains in smart_chains.items():
-            l = [filter_fn(c, host_map) for c in chains]
-            filtered_smart[group] = [c for c in l if c]
+            filtered = [filter_fn(c, host_map) for c in chains]
+            filtered_smart[group] = [c for c in filtered if c]
 
     # Split configs
-    from .dns_profiles import build_singbox_dns_profile, build_clash_dns_profile
     split_files = generate_split_outputs(
         _get_export_pool(proxies),
         output_dir,
@@ -268,10 +268,7 @@ def _gen_dns_variation(
     ordered = _order_export_proxies(_get_export_pool(proxies))
     raw = generate_plaintext_subscription(ordered)
     base64 = generate_base64_subscription(ordered)
-    
-    for ext, content in [("txt", raw), ("txt", base64)]: # Wait, this is wrong in my draft but I'll fix it
-        pass
-    
+
     txt_path = output_dir / f"proxies-{suffix}.txt"
     AtomicFileWriter.write_text(txt_path, raw)
     generated_files[f"proxies_txt_{suffix_key}"] = txt_path
@@ -294,12 +291,64 @@ def _gen_dns_variation(
     AtomicFileWriter.write_text(chosen_path, chosen_base64)
     generated_files[f"chosen_base64_{suffix_key}"] = chosen_path
 
-    # Third party profiles if hardened
+    # Third-party client profiles (DNS-hardened only)
     if is_hardened:
-        primary, fallback = build_resolver_sets()
+        _gen_hardened_third_party_profiles(
+            ordered, filtered_washed, output_dir, generated_files
+        )
+
+
+def _gen_hardened_third_party_profiles(
+    ordered: List[Proxy],
+    filtered_washed: Optional[List[Dict[str, Any]]],
+    output_dir: Path,
+    generated_files: Dict[str, Path],
+) -> None:
+    """Generate DNS-hardened profiles for third-party clients.
+
+    Each profile is generated independently; a failure in one client format
+    must not block the others (fail-open per artifact).
+    """
+    primary, fallback = build_resolver_sets()
+
+    try:
+        out_path = output_dir / "shadowrocket-dns-hardened.txt"
+        AtomicFileWriter.write_text(
+            out_path, _wrap_shadowrocket_profile(ordered, primary, fallback)
+        )
+        generated_files["shadowrocket_dns_hardened"] = out_path
+    except Exception as exc:
+        logger.warning("Failed to generate dns-hardened Shadowrocket: %s", exc)
+
+    for adapter_name in ("surge", "loon"):
         try:
-            AtomicFileWriter.write_text(output_dir / "shadowrocket-dns-hardened.txt", 
-                _wrap_shadowrocket_profile(ordered, primary, fallback))
-            generated_files["shadowrocket_dns_hardened"] = output_dir / "shadowrocket-dns-hardened.txt"
-        except: pass
-        # ... other third party wraps would go here
+            out_path = output_dir / f"{adapter_name}-dns-hardened.conf"
+            AtomicFileWriter.write_text(
+                out_path,
+                _wrap_surge_or_loon_profile(
+                    adapter_name, ordered, filtered_washed, primary, fallback
+                ),
+            )
+            generated_files[f"{adapter_name}_dns_hardened"] = out_path
+        except Exception as exc:
+            logger.warning(
+                "Failed to generate dns-hardened %s: %s", adapter_name, exc
+            )
+
+    try:
+        out_path = output_dir / "quantumult-dns-hardened.conf"
+        AtomicFileWriter.write_text(
+            out_path, _wrap_quantumultx_profile(ordered, primary, fallback)
+        )
+        generated_files["quantumult_dns_hardened"] = out_path
+    except Exception as exc:
+        logger.warning("Failed to generate dns-hardened Quantumult X: %s", exc)
+
+    try:
+        from .adapters import get_adapter
+
+        out_path = output_dir / "sip008-dns-hardened.json"
+        AtomicFileWriter.write_text(out_path, get_adapter("sip008").export(ordered))
+        generated_files["sip008_dns_hardened"] = out_path
+    except Exception as exc:
+        logger.warning("Failed to generate dns-hardened SIP008: %s", exc)

@@ -9,7 +9,7 @@ import mimetypes
 import secrets
 import importlib.metadata
 from pathlib import Path
-from typing import Any, Optional, List
+from typing import Any, Optional
 from fastapi import HTTPException, Request
 from fastapi.responses import FileResponse
 from slowapi import Limiter

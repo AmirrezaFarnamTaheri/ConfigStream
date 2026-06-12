@@ -2,18 +2,9 @@
 import logging
 import copy
 from typing import List, Dict, Optional, Any, Tuple
-from pathlib import Path
 
 from ..models import Proxy
-from ..utils import AtomicFileWriter
 from ..adapters import get_adapter, ShadowrocketAdapter
-from ..generators import (
-    generate_singbox_config,
-    generate_clash_config,
-)
-from ..constants import (
-    canonical_protocol_name,
-)
 from ..utils.net import (
     normalize_host as _normalize_host,
     is_ip_literal as _is_ip_literal,

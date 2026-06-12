@@ -1,5 +1,4 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-import asyncio
 import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple

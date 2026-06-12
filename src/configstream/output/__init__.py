@@ -9,8 +9,6 @@ from .public_lists import (
     generate_categorized_lists,
 )
 from .native_configs import (
-    generate_singbox_config,
-    generate_clash_config,
     generate_quantumultx_profile,
     generate_surge_profile,
 )
@@ -18,6 +16,13 @@ from .subscriptions import (
     generate_clash_subscription,
     generate_base64_subscription,
     generate_plaintext_subscription,
+)
+
+# Canonical full-config generators live in configstream.generators; re-export
+# here so the output package exposes one cohesive surface.
+from ..generators import (
+    generate_singbox_config,
+    generate_clash_config,
 )
 
 __all__ = [

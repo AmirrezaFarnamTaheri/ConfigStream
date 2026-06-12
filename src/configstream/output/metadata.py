@@ -5,7 +5,7 @@ import hashlib
 import os
 from pathlib import Path
 from datetime import datetime, timezone
-from typing import List, Dict, Optional, Any
+from typing import List, Dict, Any
 from importlib.metadata import version
 
 from ..models import Proxy
@@ -280,16 +280,9 @@ def save_metadata(
         smart_chains_breakdown = stats["smart_chains_breakdown"]
 
     try:
-        import sys
-        if "configstream.output_logic" in sys.modules and hasattr(sys.modules["configstream.output_logic"], "version"):
-            pkg_version = sys.modules["configstream.output_logic"].version("configstream")
-        else:
-            pkg_version = version("configstream")
+        pkg_version = version("configstream")
     except Exception:
-        try:
-            pkg_version = version("configstream")
-        except Exception:
-            pkg_version = "unknown"
+        pkg_version = "unknown"
 
     update_interval_hours = _meta_settings.UPDATE_INTERVAL_HOURS
 

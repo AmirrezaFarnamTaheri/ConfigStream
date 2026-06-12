@@ -6,7 +6,7 @@ import shlex
 import time
 from contextlib import suppress
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 from configstream.async_utils import safe_wait_for
 from configstream.constants import VWARP_SOCKS5_PORT, VWARP_BIND_ADDRESS
@@ -147,16 +147,19 @@ class VwarpTunnel:
         if env_args:
             return [self.binary_path] + shlex.split(env_args.replace("{bind}", bind_value))
 
-        config_path, extra_flags = await write_temp_config(
-            self._build_initial_config(bind_addr, port, config_override)
+        # write_temp_config performs blocking file I/O; offload to a thread
+        # to keep the event loop responsive.
+        config_path, extra_flags = await asyncio.to_thread(
+            write_temp_config,
+            self._build_initial_config(bind_addr, port, config_override),
         )
-        
+
         self._config_path = config_path
-        self._config_owned = True
-        
+        self._config_owned = config_path is not None
+
         if config_path:
             return [self.binary_path, "--config", str(config_path)] + extra_flags
-        
+
         return [self.binary_path, "--bind", bind_value]
 
     def _build_initial_config(self, bind_addr: str, port: int, override: Optional[Dict[str, Any]]) -> Dict[str, Any]:

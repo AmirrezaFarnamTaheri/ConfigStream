@@ -1,2 +1,0 @@
-[pytest11]
-base_url = pytest_base_url.plugin

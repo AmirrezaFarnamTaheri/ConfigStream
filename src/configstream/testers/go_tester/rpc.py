@@ -3,7 +3,7 @@ import asyncio
 import logging
 import orjson as json
 import time
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
 

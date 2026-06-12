@@ -6,14 +6,13 @@ from pathlib import Path
 from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
 from ..utils import (
-    settings,
     limiter,
     OUTPUT_DIR,
     _read_json_file_async,
     _json_snapshot_sha256,
     SAFE_PATH_PATTERN,
     _serve_output_subpath,
-    logger
+    logger,
 )
 
 router = APIRouter(tags=["proxies"])
