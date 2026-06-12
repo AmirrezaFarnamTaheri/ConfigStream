@@ -9,19 +9,19 @@ import socket
 import logging
 from dataclasses import dataclass
 from time import monotonic
-from typing import Dict, Optional
+from typing import Any, Dict, List, Optional
 import random
 import httpx
 
 try:
     import aiodns
 except ImportError:
-    aiodns = None
+    aiodns = None  # type: ignore[assignment]
 
 logger = logging.getLogger(__name__)
 
 # List of DoH providers for load balancing and failover
-DOH_PROVIDERS = [
+DOH_PROVIDERS: List[Dict[str, Any]] = [
     {"name": "Cloudflare", "url": "https://cloudflare-dns.com/dns-query", "weight": 20},
     {"name": "Google", "url": "https://dns.google/dns-query", "weight": 15},
     {"name": "Quad9", "url": "https://dns.quad9.net/dns-query", "weight": 15},
@@ -108,7 +108,7 @@ class DNSCache:
         self._cache: Dict[str, CachedDNS] = {}
         self._lock = asyncio.Lock()
         self._cleanup_counter = 0  # Track operations for periodic cleanup
-        self._resolver = None
+        self._resolver: Optional[Any] = None
 
     async def resolve(self, host: str) -> str | None:
         now = monotonic()

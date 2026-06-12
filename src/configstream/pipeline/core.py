@@ -300,8 +300,19 @@ class StandardPipeline(IPipeline):
             if self.context.event_stream and hasattr(self.context.event_stream, 'output_dir'):
                  output_path = self.context.event_stream.output_dir
 
+            history = self.context.history
+            if history is None:
+                raise RuntimeError(
+                    "PipelineContext.history is required to generate outputs"
+                )
+
             generated_files = await output_handler.generate_pipeline_outputs(
-                optimized_proxies, output_path, stats, self.context.history, washer=self.context.washer, tester=self.context.tester
+                optimized_proxies,
+                output_path,
+                stats,
+                history,
+                washer=self.context.washer,
+                tester=self.context.tester,
             )
 
             if self.context.scheduler:
@@ -311,14 +322,13 @@ class StandardPipeline(IPipeline):
             if self.context.anomaly_detector:
                 self.context.anomaly_detector.get_statistics()
 
-            if self.context.history:
-                self.context.history.save()
-                try:
-                    await asyncio.get_running_loop().run_in_executor(
-                        None, lambda: self.context.history.cleanup_old_data(days=30)
-                    )
-                except Exception as e:
-                    logger.warning(f"History cleanup failed: {e}")
+            history.save()
+            try:
+                await asyncio.get_running_loop().run_in_executor(
+                    None, lambda: history.cleanup_old_data(days=30)
+                )
+            except Exception as e:
+                logger.warning(f"History cleanup failed: {e}")
 
             if self.context.test_cache:
                 self.context.test_cache.save()

@@ -43,10 +43,17 @@ class LoonAdapter(Adapter):
                             lines.append(chain_line)
                             chain_count += 1
                     if out.get("_is_shielded") and out.get("detour"):
-                        chain_line = format_shielded_chain_for_loon(out, washed_outbounds)
-                        if chain_line:
-                            lines.append(chain_line)
-                            chain_count += 1
+                        # This is the Relay; its detour points at the Shield node.
+                        shield_tag = out.get("detour")
+                        shield = next(
+                            (o for o in washed_outbounds if o.get("tag") == shield_tag),
+                            None,
+                        )
+                        if shield:
+                            chain_line = format_shielded_chain_for_loon(out, shield)
+                            if chain_line:
+                                lines.append(chain_line)
+                                chain_count += 1
                 except Exception as e:
                     logger.debug(f"Failed to export chain {out.get('tag')} to Loon: {e}")
 

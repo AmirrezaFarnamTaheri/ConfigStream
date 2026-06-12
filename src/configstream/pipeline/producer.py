@@ -33,10 +33,18 @@ class StreamingProducer(IProducer):
 
     async def produce(self) -> None:
         import configstream.pipeline
+
+        # Contract: the pipeline core always provides these trackers.
+        if self.context.quality_tracker is None or self.context.anomaly_detector is None:
+            raise RuntimeError(
+                "PipelineContext is missing quality_tracker/anomaly_detector; "
+                "StreamingProducer requires a fully initialised context"
+            )
+
         await configstream.pipeline.source_producer(
             self.sources,
             self.context.work_queue,
-            self.context.final_proxies, # We use final_proxies to carry initial pre-supplied proxies if any? No, context.final_proxies is for results. Let's pass empty list.
+            None,  # Pre-supplied proxies are queued separately, not via results list.
             self.context.quality_tracker,
             self.context.anomaly_detector,
             self.context.event_stream,
@@ -45,7 +53,6 @@ class StreamingProducer(IProducer):
             num_consumers=getattr(self.context, "num_consumers", 4),
             stop_event=self.context.stop_event,
             stats=self.context.stats,
-            # We'll pass context to source_producer for now and rename things later.
         )
 
 

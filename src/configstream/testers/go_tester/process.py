@@ -41,7 +41,13 @@ class ProcessManager:
     async def ensure_running(self) -> asyncio.subprocess.Process:
         if self._proc and self._proc.returncode is None:
             return self._proc
-        
+
+        if not self.binary_path:
+            raise FileNotFoundError(
+                "configstream-tester binary not found; set CONFIGSTREAM_TESTER_BIN "
+                "or install it on PATH"
+            )
+
         self._proc = await asyncio.create_subprocess_exec(
             self.binary_path,
             stdin=asyncio.subprocess.PIPE,

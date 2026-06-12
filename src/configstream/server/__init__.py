@@ -110,7 +110,13 @@ def create_app() -> FastAPI:
 
     # Static Files
     try:
-        app.mount("/output", StaticFiles(directory=str(OUTPUT_DIR)), name="output")
+        # check_dir=False keeps the mount resilient: the output directory is
+        # created on startup, but may not exist yet at import time.
+        app.mount(
+            "/output",
+            StaticFiles(directory=str(OUTPUT_DIR), check_dir=False),
+            name="output",
+        )
     except Exception as e:
         logger.warning(f"Warning: Failed to mount /output static files: {e}")
         @app.get("/output/{path:path}")
