@@ -48,7 +48,7 @@ class HardStopWatcher:
             logger.warning("Hard stop failed to terminate Go tester process: %s", exc)
         finally:
             if go_tester is not None:
-                setattr(go_tester, "_proc", None)
+                go_tester._proc = None
 
     async def flush_event_stream(self, event_stream: Any) -> None:
         """Flush and close event stream with bounded timeout."""

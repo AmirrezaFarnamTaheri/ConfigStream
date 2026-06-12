@@ -1,4 +1,3 @@
-import pytest
 from configstream.tools.vwarp import (
     VwarpTool,
     PSIPHON_COUNTRY_CODES,

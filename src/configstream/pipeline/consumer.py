@@ -409,9 +409,11 @@ async def processing_consumer(
                             if isinstance(res, Proxy):
                                 chunk[idx] = res
                             else:
-                                # `res` is an Exception due to return_exceptions=True
+                                # `res` is an Exception due to return_exceptions=True.
+                                # Deliberately re-raise cancellation so shutdown
+                                # propagates; not an exception-translation site.
                                 if isinstance(res, asyncio.CancelledError):
-                                    raise res
+                                    raise res  # noqa: B904
 
                                 p = chunk[idx]
                                 p.is_working = False

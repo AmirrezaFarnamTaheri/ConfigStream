@@ -32,7 +32,9 @@ def test_parser_does_not_crash(config_str):
         # These are the ONLY acceptable exceptions (if any).
         # Ideally, parse_config catches everything and returns None.
         # If this block is reached, we found a bug.
-        raise AssertionError(f"Parser crashed on input: {config_str!r} with error: {e}")
+        raise AssertionError(
+            f"Parser crashed on input: {config_str!r} with error: {e}"
+        ) from e
 
 
 @settings(max_examples=500)
@@ -48,4 +50,4 @@ def test_extractor_resilience(raw_content):
     except Exception as e:
         raise AssertionError(
             f"Extractor crashed on input: {raw_content!r} with error: {e}"
-        )
+        ) from e

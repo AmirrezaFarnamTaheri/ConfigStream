@@ -29,8 +29,8 @@ from .converters.chains import chain_obs_from_details
 # Re-exports for backward compatibility (consumed by output_handler, scripts,
 # and the unit-test contract surface).
 from .output.metadata import (
-    save_metadata,
-    write_public_artifact_contract,
+    save_metadata as save_metadata,
+    write_public_artifact_contract as write_public_artifact_contract,
 )
 from .output.public_lists import generate_categorized_lists
 from .output.native_configs import (

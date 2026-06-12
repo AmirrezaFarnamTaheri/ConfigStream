@@ -144,7 +144,7 @@ class TestWindowsEventLoopPolicy:
     def test_windows_platform_sets_policy(self):
         """Test that Windows platform sets selector event loop policy."""
         with patch("sys.platform", "win32"):
-            with patch("asyncio.set_event_loop_policy"):  # noqa: F841
+            with patch("asyncio.set_event_loop_policy"):
                 # Re-import to trigger the platform check
                 import importlib
                 import configstream
