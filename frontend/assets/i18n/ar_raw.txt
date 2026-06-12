@@ -139,7 +139,7 @@
         "table.trend": "الاتجاه",
         "table.history": "التاريخ",
         "table.copy": "نسخ",
-        "verify.local": "فحص محلي (WASM)",
+        "verify.local": "��حص محلي (WASM)",
         "verify.status": "جاهز للفحص",
 
         /* About Page */
@@ -165,11 +165,11 @@
         "about.pillar3.text": "مفتوح المصدر منذ اليوم الأول. كل سطر كود وكل مؤشر وكل إعداد متاح للمجتمع وقابل للمراجعة.",
         "about.tech.title": "ما تحت الغطاء",
         "about.protocols.title": "البروتوكولات والعملاء المدعومون",
-        "about.join.title": "انضم إلى الحركة",
+        "about.join.title": "انضم إلى الح��كة",
         "about.join.text": "تم بناء ConfigStream بواسطة المجتمع ولأجله.",
         "about.join.btn": "ساهم على GitHub",
         "about.architecture.title": "الهندسة الأساسية",
-        "about.architecture.text": "تعمل المنصة وفق فلسفة «ميزانية صفر»، باستخدام GitHub Actions للحوسبة وGitHub Pages للتوزيع. يجمع المحرك الهجين مرونة Python مع أداء Go.",
+        "about.architecture.text": "تعمل المنصة وفق فلسفة «ميزانية صفر»، باستخدام GitHub Actions للحوسبة وGitHub Pages للتوزيع. يجمع المحرك الهجين مرونة Python مع أ��اء Go.",
         "about.tech.hybrid_engine": "المحرك الهجين",
         "about.tech.hybrid_engine_desc": "Python تنسق المنطق، بينما يتولى ثنائي Go مخصص المسح الشبكي والاختبار عالي التوازي.",
         "about.tech.washer": "الغسّال (إحياء البروكسي)",
@@ -218,4 +218,3 @@
         "proxies.hero.title": "قائمة الخوادم الحية",
         "proxies.hero.subtitle": "استكشف قائمتنا الكاملة من الخوادم التي تم فحصها. ابحث، ورتب، واعثر على الاتصال المثالي لاحتياجاتك."
     }
-}
