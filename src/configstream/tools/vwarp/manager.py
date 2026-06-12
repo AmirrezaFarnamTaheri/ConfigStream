@@ -1,5 +1,4 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-import asyncio
 import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -11,6 +10,7 @@ from .scanner import scan_endpoints
 from .tunnel import VwarpTunnel
 
 logger = logging.getLogger(__name__)
+
 
 class VwarpTool:
     """
@@ -84,6 +84,7 @@ class VwarpTool:
     @staticmethod
     def _write_temp_config(config: Dict[str, Any]) -> Tuple[Optional[Path], List[str]]:
         from .config import write_temp_config
+
         return write_temp_config(config)
 
     @staticmethod
@@ -92,6 +93,7 @@ class VwarpTool:
         if not key:
             return False
         import re
+
         if not re.match(r"^[a-zA-Z0-9+/=_-]{40,}$", key):
             logger.warning("Invalid WARP key format")
             return False

@@ -5,11 +5,11 @@ import multiprocessing
 import os
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import List, Optional, Any, Dict
+from typing import List, Optional, Any
 from contextlib import suppress
 
-from .interfaces import IPipeline, IProducer, IConsumer
-from .models import PipelineContext, WorkItem
+from .interfaces import IPipeline
+from .models import PipelineContext
 from configstream.pipeline_stats import PipelineStats, PipelineResult
 from configstream.config import AppSettings
 
@@ -34,13 +34,17 @@ from configstream.adaptive_workers import calculate_optimal_workers
 
 logger = logging.getLogger(__name__)
 
-async def _cancel_all(producer_task: asyncio.Task, consumer_tasks: List[asyncio.Task]) -> None:
+
+async def _cancel_all(
+    producer_task: asyncio.Task, consumer_tasks: List[asyncio.Task]
+) -> None:
     for t in consumer_tasks:
         t.cancel()
     producer_task.cancel()
     await asyncio.gather(*consumer_tasks, return_exceptions=True)
     with suppress(asyncio.CancelledError):
         await producer_task
+
 
 class StandardPipeline(IPipeline):
     def __init__(
@@ -50,7 +54,7 @@ class StandardPipeline(IPipeline):
         consumer_factory: Any,
         context: PipelineContext,
         num_consumers: int = 4,
-        time_limit_seconds: Optional[int] = None
+        time_limit_seconds: Optional[int] = None,
     ):
         self.sources = sources
         self.producer_factory = producer_factory
@@ -76,7 +80,7 @@ class StandardPipeline(IPipeline):
         progress: Optional[Any] = None,
         dry_run: bool = False,
         time_limit_seconds: Optional[int] = None,
-    ) -> 'StandardPipeline':
+    ) -> "StandardPipeline":
         settings = AppSettings()
         if max_workers <= 0 and settings.MAX_WORKERS > 0:
             max_workers = settings.MAX_WORKERS
@@ -88,6 +92,7 @@ class StandardPipeline(IPipeline):
         output_path.mkdir(parents=True, exist_ok=True)
 
         from configstream.tools.vwarp.manager import VwarpTool
+
         vwarp_tool = VwarpTool()
 
         if settings.USE_VWARP_TUNNEL:
@@ -100,6 +105,7 @@ class StandardPipeline(IPipeline):
                     },
                 }
                 from configstream.constants import VWARP_BIND_ADDRESS, VWARP_SOCKS5_PORT
+
                 if await vwarp_tool.start_tunnel(
                     bind_addr=VWARP_BIND_ADDRESS,
                     port=VWARP_SOCKS5_PORT,
@@ -108,10 +114,14 @@ class StandardPipeline(IPipeline):
                     logger.info("✅ Vwarp Tunnel established.")
                     os.environ["USE_VWARP_TUNNEL"] = "true"
                 else:
-                    logger.warning("Vwarp tunnel failed to start. Disabling Vwarp integration.")
+                    logger.warning(
+                        "Vwarp tunnel failed to start. Disabling Vwarp integration."
+                    )
                     os.environ["USE_VWARP_TUNNEL"] = "false"
             else:
-                logger.warning("Vwarp tunnel requested but vwarp binary is unavailable. Disabling Vwarp integration.")
+                logger.warning(
+                    "Vwarp tunnel requested but vwarp binary is unavailable. Disabling Vwarp integration."
+                )
                 os.environ["USE_VWARP_TUNNEL"] = "false"
         else:
             logger.info("Vwarp tunnel disabled by configuration.")
@@ -176,14 +186,16 @@ class StandardPipeline(IPipeline):
             seen_bloom=seen_bloom,
             hard_stop_watcher=HardStopWatcher(
                 grace_seconds=float(getattr(settings, "SHUTDOWN_GRACE_SECONDS", 5.0)),
-                flush_timeout_seconds=float(getattr(settings, "EVENT_STREAM_FLUSH_TIMEOUT_SECONDS", 2.0))
+                flush_timeout_seconds=float(
+                    getattr(settings, "EVENT_STREAM_FLUSH_TIMEOUT_SECONDS", 2.0)
+                ),
             ),
             progress=progress,
             max_latency=max_latency,
             country_filter=country_filter,
             leniency=leniency,
             strict_security=strict_security,
-            dry_run=dry_run
+            dry_run=dry_run,
         )
 
         cpu_count = multiprocessing.cpu_count()
@@ -197,7 +209,7 @@ class StandardPipeline(IPipeline):
             consumer_factory=consumer_factory,
             context=context,
             num_consumers=optimal_consumers,
-            time_limit_seconds=time_limit_seconds
+            time_limit_seconds=time_limit_seconds,
         )
 
     async def run(self) -> PipelineResult:
@@ -208,25 +220,31 @@ class StandardPipeline(IPipeline):
             try:
                 await self.context.tester.go_tester.start()
             except Exception as e:
-                logger.warning(f"Failed to start Go tester daemon: {e}. Fallback enabled.")
+                logger.warning(
+                    f"Failed to start Go tester daemon: {e}. Fallback enabled."
+                )
                 self.context.tester.go_tester.available = False
-        
+
         if self.context.tester and not self.context.tester.go_tester.available:
             if self.context.concurrency:
                 await self.context.concurrency.start_tuner()
 
         producer = self.producer_factory(self.sources, self.context)
-        consumers = [self.consumer_factory(self.context, i) for i in range(self.num_consumers)]
+        consumers = [
+            self.consumer_factory(self.context, i) for i in range(self.num_consumers)
+        ]
 
         time_limit_task: Optional[asyncio.Task] = None
         if self.time_limit_seconds and self.time_limit_seconds > 0:
             logger.info(f"Batch time limit enabled: {self.time_limit_seconds}s")
+
             async def _time_limit_watcher():
                 await asyncio.sleep(self.time_limit_seconds)
                 if not self.context.stop_event.is_set():
                     self.context.stats.time_limited = True
                     self.context.stop_event.set()
                     logger.warning("Batch time limit reached. Stopping intake.")
+
             time_limit_task = asyncio.create_task(_time_limit_watcher())
 
         producer_task = asyncio.create_task(producer.produce())
@@ -236,14 +254,23 @@ class StandardPipeline(IPipeline):
             try:
                 gather_task = asyncio.gather(producer_task, *consumer_tasks)
                 if self.time_limit_seconds and self.time_limit_seconds > 0:
-                    grace_seconds = int(getattr(self.context.settings, "BATCH_TIME_LIMIT_GRACE_SECONDS", 0))
-                    await safe_wait_for(gather_task, timeout=self.time_limit_seconds + max(0, grace_seconds))
+                    grace_seconds = int(
+                        getattr(
+                            self.context.settings, "BATCH_TIME_LIMIT_GRACE_SECONDS", 0
+                        )
+                    )
+                    await safe_wait_for(
+                        gather_task,
+                        timeout=self.time_limit_seconds + max(0, grace_seconds),
+                    )
                 else:
                     await gather_task
             except asyncio.TimeoutError:
                 self.context.stats.time_limited = True
                 self.context.stop_event.set()
-                logger.warning("Hard batch time limit reached. Cancelling pipeline tasks.")
+                logger.warning(
+                    "Hard batch time limit reached. Cancelling pipeline tasks."
+                )
                 await _cancel_all(producer_task, consumer_tasks)
             except (asyncio.CancelledError, KeyboardInterrupt, SystemExit) as e:
                 logger.info(f"Pipeline interrupted: {type(e).__name__}")
@@ -264,7 +291,11 @@ class StandardPipeline(IPipeline):
                     "consumers can attempt their own connectivity checks."
                 )
 
-            from configstream.filtering import dedupe_and_shuffle, filter_unique_endpoints, dedupe_by_config
+            from configstream.filtering import (
+                dedupe_and_shuffle,
+                filter_unique_endpoints,
+                dedupe_by_config,
+            )
             from configstream.sorter import sort_proxies_pareto
             import configstream.output_handler as output_handler
 
@@ -284,9 +315,12 @@ class StandardPipeline(IPipeline):
             stats.duration = float(duration)
 
             if self.context.quality_tracker:
-                failing_sources = self.context.quality_tracker.get_worst_sources(limit=5)
+                failing_sources = self.context.quality_tracker.get_worst_sources(
+                    limit=5
+                )
                 if failing_sources:
                     from configstream.security_validator import SecurityValidator
+
                     log_lines = []
                     for s_data in failing_sources:
                         safe_url = SecurityValidator.sanitize_log_message(s_data["url"])
@@ -297,11 +331,24 @@ class StandardPipeline(IPipeline):
 
             # Needs output_dir, which we didn't save in context, we can derive it from event stream
             output_path = Path("output")
-            if self.context.event_stream and hasattr(self.context.event_stream, 'output_dir'):
-                 output_path = self.context.event_stream.output_dir
+            if self.context.event_stream and hasattr(
+                self.context.event_stream, "output_dir"
+            ):
+                output_path = self.context.event_stream.output_dir
+
+            history = self.context.history
+            if history is None:
+                raise RuntimeError(
+                    "PipelineContext.history is required to generate outputs"
+                )
 
             generated_files = await output_handler.generate_pipeline_outputs(
-                optimized_proxies, output_path, stats, self.context.history, washer=self.context.washer, tester=self.context.tester
+                optimized_proxies,
+                output_path,
+                stats,
+                history,
+                washer=self.context.washer,
+                tester=self.context.tester,
             )
 
             if self.context.scheduler:
@@ -311,14 +358,13 @@ class StandardPipeline(IPipeline):
             if self.context.anomaly_detector:
                 self.context.anomaly_detector.get_statistics()
 
-            if self.context.history:
-                self.context.history.save()
-                try:
-                    await asyncio.get_running_loop().run_in_executor(
-                        None, lambda: self.context.history.cleanup_old_data(days=30)
-                    )
-                except Exception as e:
-                    logger.warning(f"History cleanup failed: {e}")
+            history.save()
+            try:
+                await asyncio.get_running_loop().run_in_executor(
+                    None, lambda: history.cleanup_old_data(days=30)
+                )
+            except Exception as e:
+                logger.warning(f"History cleanup failed: {e}")
 
             if self.context.test_cache:
                 self.context.test_cache.save()
@@ -326,22 +372,30 @@ class StandardPipeline(IPipeline):
             # Server notify
             try:
                 import httpx
+
                 async with httpx.AsyncClient(timeout=1.0) as client:
                     await client.post(
                         "http://127.0.0.1:8000/api/admin/notify-update",
                         json={
-                            "timestamp": (stats.end_time.isoformat() if stats.end_time else duration)
+                            "timestamp": (
+                                stats.end_time.isoformat()
+                                if stats.end_time
+                                else duration
+                            )
                         },
                     )
             except Exception as e:
                 logger.debug(f"Server notification skipped: {e}")
 
             should_fail = (
-                self.context.strict_security or bool(getattr(self.context.settings, "FAIL_ON_ZERO_WORKING", False))
+                self.context.strict_security
+                or bool(getattr(self.context.settings, "FAIL_ON_ZERO_WORKING", False))
             ) and bool(_zero_working)
 
             if should_fail:
-                logger.error("0 working proxies detected and strict mode is enabled; marking pipeline result as failed.")
+                logger.error(
+                    "0 working proxies detected and strict mode is enabled; marking pipeline result as failed."
+                )
 
             logger.info("Pipeline execution completed")
             return PipelineResult(
@@ -356,23 +410,27 @@ class StandardPipeline(IPipeline):
                 time_limit_task.cancel()
                 with suppress(asyncio.CancelledError):
                     await time_limit_task
-            
+
             if self.context.concurrency:
                 await self.context.concurrency.stop_tuner()
-            
+
             if self.context.hard_stop_watcher and self.context.tester:
                 await self.context.hard_stop_watcher.stop_tester(self.context.tester)
-                
+
             from configstream.tools.vwarp.manager import VwarpTool
+
             await VwarpTool().stop_tunnel()
-            
+
             if self.context.anomaly_detector:
                 self.context.anomaly_detector.close()
-                
+
             if self.context.hard_stop_watcher and self.context.event_stream:
-                await self.context.hard_stop_watcher.flush_event_stream(self.context.event_stream)
-            
+                await self.context.hard_stop_watcher.flush_event_stream(
+                    self.context.event_stream
+                )
+
             from configstream.logging_config import clear_trace_id
+
             clear_trace_id()
 
 

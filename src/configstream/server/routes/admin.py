@@ -1,9 +1,16 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from fastapi import APIRouter, Request
-from ..utils import settings, limiter, _require_admin_auth, _is_nonproduction_environment, VERSION
+from ..utils import (
+    settings,
+    limiter,
+    _require_admin_auth,
+    _is_nonproduction_environment,
+    VERSION,
+)
 from ..ws import manager
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
+
 
 @router.post("/notify-update")
 @limiter.limit("10/minute")

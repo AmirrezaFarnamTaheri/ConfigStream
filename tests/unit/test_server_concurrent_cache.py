@@ -23,7 +23,9 @@ def metadata_artifact(tmp_path: Path) -> Path:
 
 
 @pytest.mark.asyncio
-async def test_stats_json_cache_hits_and_invalidates(metadata_artifact: Path, monkeypatch) -> None:
+async def test_stats_json_cache_hits_and_invalidates(
+    metadata_artifact: Path, monkeypatch
+) -> None:
     _json_cache.clear()
     monkeypatch.setenv("OUTPUT_DIR", str(metadata_artifact.parent))
 

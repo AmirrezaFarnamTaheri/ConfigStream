@@ -17,6 +17,7 @@ _IPV4_RE = re.compile(
     r"^(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)$"
 )
 
+
 def is_valid_ip(host: str) -> bool:
     """Check if a string looks like a valid IPv4 or IPv6 address."""
     host = host.strip()
@@ -30,7 +31,10 @@ def is_valid_ip(host: str) -> bool:
         return True
     return False
 
-async def scan_endpoints(binary_path: Optional[str], rtt_limit: str = "800ms") -> List[Tuple[str, int]]:
+
+async def scan_endpoints(
+    binary_path: Optional[str], rtt_limit: str = "800ms"
+) -> List[Tuple[str, int]]:
     """
     Runs 'vwarp --scan' to harvest unblocked Cloudflare IPs.
     Returns a list of (host, port) tuples.
@@ -58,7 +62,7 @@ async def scan_endpoints(binary_path: Optional[str], rtt_limit: str = "800ms") -
         proc = await asyncio.create_subprocess_exec(
             *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
         )
-        
+
         try:
             if asyncio.current_task() is None:
                 stdout, _ = await proc.communicate()

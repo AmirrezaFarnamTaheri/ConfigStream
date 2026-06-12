@@ -21,11 +21,13 @@ from configstream.utils.bloom import BloomFilter
 from configstream.hard_stop import HardStopWatcher
 from configstream.config import AppSettings
 
+
 @dataclass
 class WorkItem:
     source: str
     lines: List[str]
     metadata: Dict[str, Any] = field(default_factory=dict)
+
 
 @dataclass
 class PipelineContext:
@@ -36,7 +38,7 @@ class PipelineContext:
     seen_keys: Dict[Tuple[Any, ...], None]
     seen_lock: asyncio.Lock
     settings: AppSettings
-    
+
     # Trackers & Singletons
     tester: Optional[SingBoxTester] = None
     scheduler: Optional[SmartRetestScheduler] = None
@@ -51,12 +53,12 @@ class PipelineContext:
     washer: Optional[ProxyWasher] = None
     seen_bloom: Optional[BloomFilter] = None
     hard_stop_watcher: Optional[HardStopWatcher] = None
-    
+
     # UI / Flow control
     progress: Optional[Any] = None
     task_process: Optional[Any] = None
     task_fetch: Optional[Any] = None
-    
+
     # Filter config
     max_latency: Optional[int] = None
     country_filter: Optional[str] = None

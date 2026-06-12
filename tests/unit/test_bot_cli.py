@@ -19,10 +19,9 @@ def _make_update(user_id: int = 42) -> MagicMock:
 @pytest.fixture(autouse=True)
 def _authorize_test_user():
     """Authorize user id 42 for all command tests by default."""
-    with patch(
-        "configstream.bot_cli._load_allowed_users", return_value=({42}, False)
-    ):
+    with patch("configstream.bot_cli._load_allowed_users", return_value=({42}, False)):
         yield
+
 
 # Mock register_warp_account globally for this module if possible,
 # or use sys.modules patch if it's imported inside the function.

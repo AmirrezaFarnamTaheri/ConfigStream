@@ -7,6 +7,7 @@ from .common import Adapter, _extract_sni
 
 logger = logging.getLogger(__name__)
 
+
 class QuantumultXAdapter(Adapter):
     """Export to Quantumult X format."""
 

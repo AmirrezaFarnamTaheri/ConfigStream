@@ -4,24 +4,24 @@ import base64
 import os
 import tempfile
 import zipfile
-from typing import List, Dict, Optional, Any
+from typing import List, Dict, Optional
 from pathlib import Path
 
 from ..models import Proxy
-from ..utils import AtomicFileWriter
 from ..constants import (
     protocol_sort_key,
     canonical_protocol_name,
 )
+from ..generators.plaintext import generate_plaintext_subscription
 
 logger = logging.getLogger(__name__)
 
-from configstream.generators.plaintext import generate_plaintext_subscription
 
 def generate_base64_subscription(proxies: List[Proxy]) -> str:
     """Generates a Base64-encoded subscription string."""
     content = generate_plaintext_subscription(proxies)
     return base64.b64encode(content.encode("utf-8")).decode("utf-8")
+
 
 def get_export_pool(proxies: List[Proxy]) -> List[Proxy]:
     """
@@ -31,6 +31,7 @@ def get_export_pool(proxies: List[Proxy]) -> List[Proxy]:
     if working:
         from configstream.adapters.shadowrocket import ShadowrocketAdapter
         from configstream.generators.plaintext import _extract_uri
+
         adapter = ShadowrocketAdapter()
         has_valid_uri = False
         for p in working:
@@ -53,6 +54,7 @@ def get_export_pool(proxies: List[Proxy]) -> List[Proxy]:
     ]
     return non_revived if non_revived else proxies
 
+
 def order_export_proxies(proxies: List[Proxy]) -> List[Proxy]:
     """Deterministic user-facing ordering for URI/adapters/export artifacts."""
     return sorted(
@@ -65,6 +67,7 @@ def order_export_proxies(proxies: List[Proxy]) -> List[Proxy]:
             p.id or "",
         ),
     )
+
 
 def select_chosen_proxies(
     proxies: List[Proxy],
@@ -98,6 +101,7 @@ def select_chosen_proxies(
 
     return order_export_proxies(chosen)
 
+
 def generate_side_products_pack(
     proxies: List[Proxy],
     output_path: Path,
@@ -105,23 +109,24 @@ def generate_side_products_pack(
     output_dir: Path,
 ) -> Optional[Path]:
     from .native_configs import build_wireguard_config, _rewrite_openvpn_remote
-    
+
     openvpn_candidates = [
         p
         for p in proxies
         if canonical_protocol_name(p.protocol or "") == "openvpn" and p.config
     ]
     wireguard_candidates = [
-        p
-        for p in proxies
-        if canonical_protocol_name(p.protocol or "") == "wireguard"
+        p for p in proxies if canonical_protocol_name(p.protocol or "") == "wireguard"
     ]
-    
+
     # Simple name sanitization helper
     import re
+
     safe_re = re.compile(r"[^A-Za-z0-9._-]+")
+
     def safe_name(val, fallback):
-        if not val: return fallback
+        if not val:
+            return fallback
         clean = safe_re.sub("_", val).strip("._-")
         return clean or fallback
 
@@ -138,7 +143,9 @@ def generate_side_products_pack(
                 # Check if we need to rewrite for DNS safe/hardened (if address is IP and we have original host)
                 details = proxy.details or {}
                 if details.get("original_host"):
-                    config = _rewrite_openvpn_remote(proxy.config, details["original_host"], proxy.address)
+                    config = _rewrite_openvpn_remote(
+                        proxy.config, details["original_host"], proxy.address
+                    )
                 else:
                     config = proxy.config
                 zf.writestr(f"openvpn/{name}.ovpn", config)
@@ -153,10 +160,14 @@ def generate_side_products_pack(
     except Exception as exc:
         logger.warning("Failed to generate zip: %s", str(exc))
         if tmp_path and os.path.exists(tmp_path):
-            try: os.unlink(tmp_path)
-            except OSError: pass
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
     return None
+
 
 def generate_clash_subscription(proxies: List[Proxy]) -> str:
     from ..generators.clash import generate_clash_config
+
     return generate_clash_config(proxies)
