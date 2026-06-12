@@ -4,6 +4,7 @@
         "nav.analytics": "الإحصائيات",
         "nav.wiki": "الموسوعة",
         "nav.about": "عن المشروع",
+        "nav.lab": "المختبر",
 
         "wiki.nav.home": "الصفحة الرئيسية للموسوعة",
         "wiki.nav.intro": "مقدمة",
@@ -139,7 +140,7 @@
         "table.trend": "الاتجاه",
         "table.history": "التاريخ",
         "table.copy": "نسخ",
-        "verify.local": "��حص محلي (WASM)",
+        "verify.local": "فحص محلي (WASM)",
         "verify.status": "جاهز للفحص",
 
         /* About Page */
@@ -165,11 +166,11 @@
         "about.pillar3.text": "مفتوح المصدر منذ اليوم الأول. كل سطر كود وكل مؤشر وكل إعداد متاح للمجتمع وقابل للمراجعة.",
         "about.tech.title": "ما تحت الغطاء",
         "about.protocols.title": "البروتوكولات والعملاء المدعومون",
-        "about.join.title": "انضم إلى الح��كة",
+        "about.join.title": "انضم إلى الحركة",
         "about.join.text": "تم بناء ConfigStream بواسطة المجتمع ولأجله.",
         "about.join.btn": "ساهم على GitHub",
         "about.architecture.title": "الهندسة الأساسية",
-        "about.architecture.text": "تعمل المنصة وفق فلسفة «ميزانية صفر»، باستخدام GitHub Actions للحوسبة وGitHub Pages للتوزيع. يجمع المحرك الهجين مرونة Python مع أ��اء Go.",
+        "about.architecture.text": "تعمل المنصة وفق فلسفة «ميزانية صفر»، باستخدام GitHub Actions للحوسبة وGitHub Pages للتوزيع. يجمع المحرك الهجين مرونة Python مع أداء Go.",
         "about.tech.hybrid_engine": "المحرك الهجين",
         "about.tech.hybrid_engine_desc": "Python تنسق المنطق، بينما يتولى ثنائي Go مخصص المسح الشبكي والاختبار عالي التوازي.",
         "about.tech.washer": "الغسّال (إحياء البروكسي)",
@@ -215,6 +216,10 @@
         "analytics.charts.latency_by_protocol": "سرعة الاستجابة حسب البروتوكول",
 
         /* Proxies Page */
+        "downloads.evasion_mode.label": "مستوى التهرب",
+        "downloads.evasion_mode.standard": "قياسي — بدون تهرب إضافي",
+        "downloads.evasion_mode.stealth": "متخفٍ — تجزئة TLS + بصمة uTLS",
+        "downloads.evasion_mode.aggressive": "أقصى — تفعيل جميع تقنيات التهرب",
         "proxies.hero.title": "قائمة الخوادم الحية",
         "proxies.hero.subtitle": "استكشف قائمتنا الكاملة من الخوادم التي تم فحصها. ابحث، ورتب، واعثر على الاتصال المثالي لاحتياجاتك."
     }

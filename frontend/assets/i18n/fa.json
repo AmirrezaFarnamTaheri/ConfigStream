@@ -4,6 +4,7 @@
     "nav.analytics": "آمار",
     "nav.wiki": "دانشنامه",
     "nav.about": "درباره ما",
+    "nav.lab": "آزمایشگاه",
     "wiki.nav.home": "صفحه اصلی دانشنامه",
     "wiki.nav.intro": "مقدمه",
     "wiki.nav.arch": "معماری سیستم",
@@ -207,6 +208,10 @@
     "analytics.charts.asns": "ارائه‌دهندگان اینترنت برتر",
     "analytics.charts.latency_by_country": "تاخیر بر اساس کشور",
     "analytics.charts.latency_by_protocol": "تاخیر بر اساس پروتکل",
+    "downloads.evasion_mode.label": "سطح فرار از سانسور",
+    "downloads.evasion_mode.standard": "استاندارد — بدون فرار اضافی",
+    "downloads.evasion_mode.stealth": "مخفی — قطعه‌بندی TLS + اثر انگشت uTLS",
+    "downloads.evasion_mode.aggressive": "حداکثر — همه تکنیک‌های فرار فعال",
     "proxies.hero.title": "لیست زنده پروکسی‌ها",
     "proxies.hero.subtitle": "لیست کامل پروکسی‌های تایید شده ما را کاوش کنید. جستجو کنید، مرتب کنید و اتصال مناسب نیاز خود را پیدا کنید."
 }
