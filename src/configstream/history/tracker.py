@@ -8,6 +8,7 @@ from ..models import Proxy
 from ..quality.storage import QualityStorage
 from .export import HistoryExporter
 from .analytics import HistoryAnalytics
+from ..security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
 
@@ -186,10 +187,12 @@ class ProxyHistoryTracker:
                 row = cursor.fetchone()
                 if row is not None and row[0] is not None:
                     return float(row[0])
-                return 0.0
+                # No rows in window — fall through to all-time fallback below
             except Exception as e:
                 logger.error(
-                    f"Windowed reliability query failed for {proxy_id}: {e}"
+                    SecurityValidator.sanitize_log_message(
+                        f"Windowed reliability query failed for {proxy_id}: {e}"
+                    )
                 )
 
         stats = self.get_summary_stats(proxy_id)

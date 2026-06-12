@@ -15,7 +15,11 @@ def _parse_entry_timestamp(value: Any) -> Optional[datetime]:
     try:
         if isinstance(value, (int, float)):
             return datetime.fromtimestamp(value, tz=timezone.utc)
-        parsed = datetime.fromisoformat(str(value))
+        # Normalize the "Z" UTC suffix: Python < 3.11 fromisoformat rejects it.
+        s = str(value)
+        if s.endswith("Z") or s.endswith("z"):
+            s = s[:-1] + "+00:00"
+        parsed = datetime.fromisoformat(s)
         if parsed.tzinfo is None:
             parsed = parsed.replace(tzinfo=timezone.utc)
         return parsed

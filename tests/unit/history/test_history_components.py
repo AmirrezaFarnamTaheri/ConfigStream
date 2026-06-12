@@ -78,7 +78,7 @@ def test_analytics_reliability():
     assert HistoryAnalytics.get_reliability_score(history) == 0.75
 
 
-def test_analytics_reliability_lookback_window():
+def test_analytics_reliability_lookback_window() -> None:
     from datetime import datetime, timedelta, timezone
 
     now = datetime.now(timezone.utc)
