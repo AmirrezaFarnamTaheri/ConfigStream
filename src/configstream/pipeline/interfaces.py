@@ -4,7 +4,7 @@ from typing import Any
 
 # Canonical FetchResult lives in fetcher_worker; re-exported here so the
 # pipeline package exposes a single, consistent result type.
-from configstream.fetcher_worker import FetchResult  # noqa: F401
+from configstream.fetcher_worker import FetchResult
 
 
 class IFetcher(ABC):

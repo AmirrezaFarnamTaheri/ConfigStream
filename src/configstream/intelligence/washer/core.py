@@ -1,6 +1,5 @@
-import shutil
-
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import shutil
 import asyncio
 import base64
 import binascii
@@ -732,7 +731,7 @@ class ProxyWasher:
         target_exit = ProxyStub("US", 37.09, -95.71, "wireguard")
         origin_country = _SETTINGS_CACHE.OPTIMAL_RELAY_ORIGIN
 
-        for i, relay in enumerate(candidates):
+        for relay in candidates:
             exit_key = self._get_consistent_exit(relay.id, keys)
             if not exit_key:
                 skip_reasons["invalid_warp_key"] = (

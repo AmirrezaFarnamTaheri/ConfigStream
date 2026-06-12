@@ -17,7 +17,7 @@ from .security.transport import SecurityTransport
 
 # Check for HTTP/2 support
 try:
-    import h2  # pylint: disable=unused-import # noqa: F401
+    import h2  # pylint: disable=unused-import
 
     HTTP2_AVAILABLE = True
 except ModuleNotFoundError:

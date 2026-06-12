@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.validate_pages_artifact import (  # noqa: E402
+from scripts.validate_pages_artifact import (
     REQUIRED_EXISTS,
     REQUIRED_NONEMPTY,
     REQUIRED_ZIP_MEMBERS,

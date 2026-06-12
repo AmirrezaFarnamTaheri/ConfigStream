@@ -117,7 +117,10 @@ class GoBatchTester:
                 logger.error(
                     "Go Tester failed startup self-test. Switching to Python fallback."
                 )
-                await self._restart_daemon()
+                # Shut the daemon down completely; restarting it here would
+                # leak an orphan process that is never used (available=False)
+                # and never closed.
+                await self.close()
                 self.available = False
                 return
 
@@ -145,23 +148,8 @@ class GoBatchTester:
         }
 
         try:
-            # We construct a synthetic Proxy object wrapper or just send raw if test_custom_configs supported it better.
-            # But test_batch expects Proxy objects. Let's create a dummy Proxy.
-            # from ...models import Proxy
-            #
-            # p = Proxy(
-            #     protocol="vless",
-            #     config="vless://...",
-            #     uuid="self-test-uuid",
-            #     address="1.1.1.1",
-            #     port=443,
-            #     id="selftest",
-            # )
-            # The outbound converter needs real data to produce valid JSON
-            # Ideally we bypass conversion and test raw IPC if possible,
-            # but test_batch logic is tied to Proxy objects.
-            # Let's try test_custom_configs which takes raw dicts.
-
+            # test_custom_configs accepts raw outbound dicts, which lets us
+            # validate the JSON IPC path without constructing a Proxy object.
             payload = {"id": "selftest-check", "outbounds": [dummy_config]}
 
             # Use short timeout
@@ -301,7 +289,7 @@ class GoBatchTester:
                 env["PATH"] = os.environ.get("PATH", "/usr/bin:/bin")
                 # Use modern WireGuard outbound only (no deprecated compatibility flags).
 
-                # ðŸš€ FORCE TRAFFIC THROUGH VWARP TUNNEL IF AVAILABLE
+                # Force traffic through the Vwarp tunnel if available.
                 # Check environment directly as it might be set dynamically by pipeline.py
                 # or fallback to AppSettings if set globally
                 # Respect explicit disable via environment variable
@@ -673,10 +661,6 @@ class GoBatchTester:
             # res is the JSON dict
             res_data = cast(Dict[str, Any], res)
             req_id = str(res_data.get("id"))
-            # Rename to avoid shadowing the variable 'proxy_obj' from the cleanup loop (if it leaked)
-            # although python loop variables leak, but 'proxy_obj' in cleanup was inside the loop scope
-            # and this is outside. But to be safe and satisfy linter:
-            # Explicitly type cast the result of get()
             tp = req_id_map.get(req_id)
             if tp is None:
                 continue
