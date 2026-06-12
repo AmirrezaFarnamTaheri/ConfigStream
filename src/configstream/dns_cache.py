@@ -39,7 +39,7 @@ DOH_PROVIDERS: List[Dict[str, Any]] = [
 
 def select_doh_provider() -> dict:
     total_weight = sum(p["weight"] for p in DOH_PROVIDERS)
-    r = random.uniform(0, total_weight)
+    r = random.uniform(0, total_weight)  # nosec B311 - non-crypto weighted load balancing
     for p in DOH_PROVIDERS:
         if r < p["weight"]:
             return p

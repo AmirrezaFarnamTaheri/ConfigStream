@@ -94,9 +94,9 @@ The master file is intentionally more detailed than this status checkpoint. It n
 | Parser/protocol support | Matrix-backed protocol inventory is current. | Add new protocols only with parser/export/frontend/docs proof. |
 | Public JSON outputs | Safe serializer and categorized list parity are closed. | Keep schema tests for every public list family. |
 | Client config outputs | Sing-box/Clash are stable; Xray pipeline output remains planned. | Add native/pinned proof before claiming new native output families. |
-| Frontend | Local static deployment contract is closed; smoke/build pass; Lab is modularized into ES modules under `frontend/assets/js/lab/`; remaining `innerHTML` sinks are DOMPurify-sanitized or escape-only. | Remove `unsafe-inline` from the CSP once a nonce/hash strategy is in place. |
+| Frontend | Local static deployment contract is closed; smoke/build pass; Lab is modularized into ES modules under `frontend/assets/js/lab/`; remaining `innerHTML` sinks are DOMPurify-sanitized or escape-only; all multi-page HTML is free of inline scripts and inline event handlers, so `script-src` no longer needs `'unsafe-inline'`. | Tighten `style-src` once inline `style` attributes are migrated to classes. |
 | Lab | Export hardening and diagnosis CSP issues are closed; code is split by concern (`clean-ips`, `exporters`, `network`, `ui`, `index`); click-path coverage exercises the full step 1-5 wizard, all seven export formats, and the download-staging path. | Extend coverage to backend-live diagnosis assertions when a backend fixture is available. |
-| CI/security | Bandit, gitleaks/source scans, workflow validators, and audits are wired; the gitleaks step is blocking (no `continue-on-error`). | Keep scans server-side and avoid broad allowlists. |
+| CI/security | Bandit, gitleaks/source scans, workflow validators, and audits are wired; the gitleaks step is blocking (no `continue-on-error`); all bandit findings carry explicit `# nosec` justifications so the scan exits clean. | Keep scans server-side and avoid broad allowlists. |
 | Artifacts | Generated mirrors are untracked; artifact validator guards Pages shape. | Redeploy live Pages and keep durable evidence. |
 | Docs/source of truth | Current root truth is this file plus Master. | Generate/archive duplicated docs instead of growing root status files. |
 

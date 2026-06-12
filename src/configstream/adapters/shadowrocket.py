@@ -45,7 +45,7 @@ class ShadowrocketAdapter(Adapter):
                     json.dumps(data, ensure_ascii=False).encode()
                 ).decode()
                 return f"vmess://{encoded}#{safe_name}"
-            except Exception:
+            except Exception:  # nosec B112 - best-effort encoding; skip malformed entries
                 continue
         return None
 
@@ -101,7 +101,7 @@ class ShadowrocketAdapter(Adapter):
                 uri = self._reconstruct_uri(origin_p)
                 if uri:
                     return uri
-            except Exception:
+            except Exception:  # nosec B110 - best-effort reconstruction; fall back to chain
                 pass
 
         return _extract_from_chain()

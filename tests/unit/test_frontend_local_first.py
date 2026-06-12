@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import json
+import re
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FRONTEND_DIR = REPO_ROOT / "frontend"
@@ -72,6 +73,28 @@ def test_primary_pages_use_local_csp() -> None:
         assert "img-src 'self' data: blob:" in html, page_name
         for host in FORBIDDEN_RUNTIME_HOSTS:
             assert host not in html, f"{page_name} still references {host}"
+
+
+def test_primary_pages_csp_forbids_inline_scripts() -> None:
+    """The primary pages carry no inline scripts/handlers, so the CSP must not
+    re-enable script-src 'unsafe-inline'. This guards the hardened contract."""
+    inline_script = re.compile(r"<script(?![^>]*\bsrc=)[^>]*>", re.IGNORECASE)
+    inline_handler = re.compile(r"\son[a-z]+\s*=", re.IGNORECASE)
+    for page_name in PRIMARY_PAGES:
+        html = (FRONTEND_DIR / page_name).read_text(encoding="utf-8")
+        csp_match = re.search(
+            r"script-src([^;]*);", html, re.IGNORECASE
+        )
+        assert csp_match is not None, f"{page_name} has no script-src directive"
+        assert "'unsafe-inline'" not in csp_match.group(1), (
+            f"{page_name} re-enabled script-src 'unsafe-inline'"
+        )
+        assert not inline_script.search(html), (
+            f"{page_name} reintroduced an inline <script> block"
+        )
+        assert not inline_handler.search(html), (
+            f"{page_name} reintroduced an inline event handler"
+        )
 
 
 def test_frontend_runtime_sources_do_not_reference_remote_cdns() -> None:

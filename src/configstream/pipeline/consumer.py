@@ -65,14 +65,15 @@ class WorkerConsumer(IConsumer):
                 "PipelineContext is missing required collaborators for "
                 f"WorkerConsumer: {', '.join(missing)}"
             )
-        assert ctx.tester is not None
-        assert ctx.scheduler is not None
-        assert ctx.test_cache is not None
-        assert ctx.concurrency is not None
-        assert ctx.geoip is not None
-        assert ctx.tracker is not None
-        assert ctx.quality_tracker is not None
-        assert ctx.history is not None
+        # Type-narrowing for mypy; runtime safety is enforced by the guard above.
+        assert ctx.tester is not None  # nosec B101
+        assert ctx.scheduler is not None  # nosec B101
+        assert ctx.test_cache is not None  # nosec B101
+        assert ctx.concurrency is not None  # nosec B101
+        assert ctx.geoip is not None  # nosec B101
+        assert ctx.tracker is not None  # nosec B101
+        assert ctx.quality_tracker is not None  # nosec B101
+        assert ctx.history is not None  # nosec B101
 
         await configstream.pipeline.processing_consumer(
             ctx.work_queue,

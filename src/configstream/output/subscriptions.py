@@ -40,7 +40,7 @@ def get_export_pool(proxies: List[Proxy]) -> List[Proxy]:
                 if uri and uri.strip():
                     has_valid_uri = True
                     break
-            except Exception:
+            except Exception:  # nosec B110 - best-effort URI probe; treat as no valid URI
                 pass
         if has_valid_uri:
             return working
