@@ -78,6 +78,34 @@ def test_analytics_reliability():
     assert HistoryAnalytics.get_reliability_score(history) == 0.75
 
 
+def test_analytics_reliability_lookback_window():
+    from datetime import datetime, timedelta, timezone
+
+    now = datetime.now(timezone.utc)
+    recent_ts = now.isoformat()
+    old_ts = (now - timedelta(days=30)).isoformat()
+
+    history = {
+        "entries": [
+            # Old failures outside the 7-day window must be excluded
+            {"timestamp": old_ts, "is_working": False},
+            {"timestamp": old_ts, "is_working": False},
+            # Recent entries inside the window
+            {"timestamp": recent_ts, "is_working": True},
+            {"timestamp": recent_ts, "is_working": True},
+        ]
+    }
+    assert HistoryAnalytics.get_reliability_score(history, lookback_days=7) == 1.0
+    # Wider window includes the old failures
+    assert HistoryAnalytics.get_reliability_score(history, lookback_days=60) == 0.5
+    # Only old entries within a short window -> neutral
+    old_only = {"entries": [{"timestamp": old_ts, "is_working": False}]}
+    assert HistoryAnalytics.get_reliability_score(old_only, lookback_days=7) == 0.5
+    # Entries without timestamps stay included (legacy compatibility)
+    legacy = {"entries": [{"is_working": True}, {"is_working": False}]}
+    assert HistoryAnalytics.get_reliability_score(legacy, lookback_days=7) == 0.5
+
+
 def test_analytics_trend():
     history = {
         "entries": [

@@ -165,7 +165,33 @@ class ProxyHistoryTracker:
         }
 
     def get_reliability_score(self, proxy_id: str, lookback_days: int = 7) -> float:
-        """Calculate reliability score."""
+        """
+        Calculate reliability score from entries within the lookback window.
+
+        Falls back to the all-time success rate if the windowed query fails.
+        """
+        if self.storage and lookback_days > 0:
+            try:
+                cutoff = int(
+                    (
+                        datetime.now(timezone.utc) - timedelta(days=lookback_days)
+                    ).timestamp()
+                )
+                conn = self.storage.get_connection()
+                cursor = conn.execute(
+                    "SELECT AVG(is_working) FROM proxy_history "
+                    "WHERE proxy_id = ? AND timestamp >= ?",
+                    (proxy_id, cutoff),
+                )
+                row = cursor.fetchone()
+                if row is not None and row[0] is not None:
+                    return float(row[0])
+                return 0.0
+            except Exception as e:
+                logger.error(
+                    f"Windowed reliability query failed for {proxy_id}: {e}"
+                )
+
         stats = self.get_summary_stats(proxy_id)
         return float(stats.get("success_rate", 0.0))
 

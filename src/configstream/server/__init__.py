@@ -96,6 +96,22 @@ def create_app() -> FastAPI:
         allow_headers=["Content-Type", "Authorization"],
     )
 
+    # Security Headers
+    # CSP is delivered via <meta> tags in the frontend HTML; the headers below
+    # cover protections that can only be enforced at the HTTP layer.
+    @app.middleware("http")
+    async def add_security_headers(request: Request, call_next):
+        response = await call_next(request)
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault(
+            "Referrer-Policy", "strict-origin-when-cross-origin"
+        )
+        response.headers.setdefault(
+            "Permissions-Policy", "camera=(), microphone=(), geolocation=()"
+        )
+        return response
+
     # Startup Validation
     @app.on_event("startup")
     async def validate_startup_security() -> None:
