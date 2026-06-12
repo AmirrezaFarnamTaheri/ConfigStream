@@ -185,7 +185,9 @@ def merge(
                 console.print(
                     "\n[bold red]CRITICAL: Pipeline finished with 0 working proxies![/bold red]"
                 )
-                if (strict or getattr(settings, "FAIL_ON_ZERO_WORKING", False)) and not time_limited:
+                if (
+                    strict or getattr(settings, "FAIL_ON_ZERO_WORKING", False)
+                ) and not time_limited:
                     sys.exit(1)
                 else:
                     console.print(
