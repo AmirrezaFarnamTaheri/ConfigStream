@@ -56,37 +56,15 @@ def test_getattribute(self, name):
     return original_getattribute(self, name)
 
 
-AppSettings.__getattribute__ = test_getattribute
+AppSettings.__getattribute__ = test_getattribute  # type: ignore[method-assign]
 
-# Mark global settings instances in the codebase as dynamically env-aware
+# Mark global settings instances in the codebase as dynamically env-aware.
+# Only configstream.server.utils still holds a module-level AppSettings
+# instance; other modules construct settings locally per call.
 try:
     import configstream.server.utils as server_utils
 
     object.__setattr__(server_utils.settings, "_dynamic_env", True)
-except (ImportError, AttributeError):
-    pass
-try:
-    import configstream.generators.split as split_mod
-
-    object.__setattr__(split_mod._split_settings, "_dynamic_env", True)
-except (ImportError, AttributeError):
-    pass
-try:
-    import configstream.output.metadata as meta_mod
-
-    object.__setattr__(meta_mod._meta_settings, "_dynamic_env", True)
-except (ImportError, AttributeError):
-    pass
-try:
-    import configstream.pipeline.consumer as consumer_mod
-
-    object.__setattr__(consumer_mod.settings, "_dynamic_env", True)
-except (ImportError, AttributeError):
-    pass
-try:
-    import configstream.pipeline.core as core_mod
-
-    object.__setattr__(core_mod.settings, "_dynamic_env", True)
 except (ImportError, AttributeError):
     pass
 

@@ -129,7 +129,11 @@ class VwarpTunnel:
 
     async def _wait_for_port(self, host: str, port: int, timeout: int = 45) -> bool:
         """Polls the given host:port until it accepts connections."""
-        probe_host = host if host not in ("0.0.0.0", "::", "") else "127.0.0.1"
+        # Wildcard binds are probed via loopback; this is a client-side probe,
+        # not a listener bind (B104 false positive).
+        probe_host = (
+            host if host not in ("0.0.0.0", "::", "") else "127.0.0.1"  # nosec B104
+        )
         start = time.time()
         while time.time() - start < timeout:
             if self._proc and self._proc.returncode is not None:
