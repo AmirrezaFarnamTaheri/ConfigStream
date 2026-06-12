@@ -4,6 +4,7 @@
     "nav.analytics": "الإحصائيات",
     "nav.wiki": "الموسوعة",
     "nav.about": "عن المشروع",
+    "nav.lab": "المختبر",
     "wiki.nav.home": "الصفحة الرئيسية للموسوعة",
     "wiki.nav.intro": "مقدمة",
     "wiki.nav.arch": "البنية المعمارية",
@@ -207,6 +208,10 @@
     "analytics.charts.asns": "أفضل مزودي الإنترنت",
     "analytics.charts.latency_by_country": "سرعة الاستجابة حسب البلد",
     "analytics.charts.latency_by_protocol": "سرعة الاستجابة حسب البروتوكول",
+    "downloads.evasion_mode.label": "مستوى التهرب",
+    "downloads.evasion_mode.standard": "قياسي — بدون تهرب إضافي",
+    "downloads.evasion_mode.stealth": "متخفٍ — تجزئة TLS + بصمة uTLS",
+    "downloads.evasion_mode.aggressive": "أقصى — تفعيل جميع تقنيات التهرب",
     "proxies.hero.title": "قائمة الخوادم الحية",
     "proxies.hero.subtitle": "استكشف قائمتنا الكاملة من الخوادم التي تم فحصها. ابحث، ورتب، واعثر على الاتصال المثالي لاحتياجاتك."
 }
