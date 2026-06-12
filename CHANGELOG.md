@@ -1,6 +1,10 @@
 
 ## [Unreleased]
 
+- **i18n toolchain repair and bundle parity**: Rewrote `scripts/extract_i18n.py` to remove a hardcoded developer-machine source path, portably parse the `frontend/assets/i18n/*_raw.txt` sources (trailing-comma tolerant), deterministically regenerate all `frontend/assets/i18n/*.json` bundles, and support a `--check` drift mode. Wiring `python scripts/extract_i18n.py --check` into the CI test job (after the "Check dependency drift" step in `ci.yml`) requires a maintainer with `workflows` permission, since automation agents cannot modify `.github/workflows/`. Repaired `frontend/assets/i18n/ar_raw.txt` (stray trailing brace that broke parsing, plus three mojibake-corrupted strings restored from the committed `ar.json`) and added the missing `nav.lab` and `downloads.evasion_mode.*` keys to the fa/ru/zh/ar bundles so all five languages have full key parity with English (215 keys each).
+- **Frontend i18n race fix**: The homepage hero subtitle could render its raw translation-key fallback when module evaluation finished after `i18n.init()` resolved. `main.js` now awaits `window.i18n.init()` and re-renders the subtitle, and `i18n.js` dispatches a `languageChanged` event when initialization completes so any listener bound late still receives translated text. Verified in-browser across en and fa (RTL) locales.
+- **Deprecated asyncio API cleanup**: Replaced two `asyncio.get_event_loop()` calls with `asyncio.get_running_loop()` inside async contexts in `src/configstream/tools/dns_scanner/python/dnsscanner_tui.py`.
+
 - **Pipeline Timeout Shard Robustness and CI Remediation**: 
   - Passed `settings.BATCH_TIME_LIMIT_SECONDS` to the `run_full_pipeline` call in `cli.py` and updated `StandardPipeline.run` to not mark the pipeline result as failed on timeout (`stats.time_limited` is True) even if zero working proxies are found. Similarly updated `cli.py` to skip exiting with code 1 under the same condition, ensuring timed-out shards complete successfully and produce whatever artifacts were processed up to that point.
   - Added unit test `test_pipeline_time_limit_zero_working` in `test_pipeline_orchestration.py` to cover this behavior.

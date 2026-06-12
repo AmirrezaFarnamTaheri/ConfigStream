@@ -112,4 +112,3 @@ async def test_pipeline_time_limit_zero_working(tmp_path):
         assert res.stats.time_limited
         assert res.stats.working == 0
         assert mock_gen.called
-
