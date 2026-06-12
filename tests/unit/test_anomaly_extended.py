@@ -41,7 +41,7 @@ def test_record_and_safe(detector):
 
     # To trigger Z-Score or IF, we need history.
     # 10 records of 100
-    for i in range(10):
+    for _ in range(10):
         detector.record(url, 100)
 
     # Check if records exist

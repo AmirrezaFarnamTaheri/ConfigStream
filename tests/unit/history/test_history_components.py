@@ -185,6 +185,4 @@ def test_export_active_trend_empty(tmp_path):
     assert json.loads(output.read_text()) == []
 
 
-# noqa: E402
-# noqa: E402
 from datetime import datetime, timezone

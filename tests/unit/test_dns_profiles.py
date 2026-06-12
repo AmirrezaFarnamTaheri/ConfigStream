@@ -1,4 +1,3 @@
-import pytest
 from configstream.dns_profiles import (
     build_singbox_dns_profile,
     build_clash_dns_profile,

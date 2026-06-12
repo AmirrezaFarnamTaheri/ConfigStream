@@ -1,4 +1,3 @@
-import pytest
 from configstream.intelligence.washer.utils import make_entry
 
 

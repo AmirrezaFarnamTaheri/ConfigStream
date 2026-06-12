@@ -6,6 +6,7 @@ Provides a centralized, optimized AsyncClient with connection pooling and HTTP/2
 
 from __future__ import annotations
 
+import importlib.util
 from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
@@ -15,13 +16,8 @@ import sniffio
 from .config import AppSettings
 from .security.transport import SecurityTransport
 
-# Check for HTTP/2 support
-try:
-    import h2  # pylint: disable=unused-import
-
-    HTTP2_AVAILABLE = True
-except ModuleNotFoundError:
-    HTTP2_AVAILABLE = False
+# Check for HTTP/2 support without importing the module
+HTTP2_AVAILABLE = importlib.util.find_spec("h2") is not None
 
 
 @asynccontextmanager

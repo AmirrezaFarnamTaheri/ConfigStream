@@ -1908,7 +1908,7 @@ class DNSScannerTUI(App):
                 f.write("# Slipstream Test: ENABLED (only passed servers)\n")
             f.write(f"# Total Saved: {len(servers_to_save)}\n")
             f.write("#" + "=" * 50 + "\n\n")
-            for server_ip, server_time in sorted_servers:
+            for server_ip, _server_time in sorted_servers:
                 f.write(f"{server_ip}\n")
 
         self._log(f"[green]✓ Results auto-saved to: {txt_file}[/green]")
