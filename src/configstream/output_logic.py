@@ -4,7 +4,6 @@ import copy
 import shutil
 from typing import List, Dict, Optional, Any, Tuple
 from pathlib import Path
-from importlib.metadata import version
 
 from .models import Proxy
 from .intelligence.washer.core import ProxyWasher
@@ -24,12 +23,15 @@ from .config import AppSettings
 from .constants import (
     CHOSEN_TOTAL_TARGET,
     CHOSEN_TOP_PER_PROTOCOL,
-    canonical_protocol_name,
 )
 from .converters.chains import chain_obs_from_details
 
-# Re-exports for backward compatibility
-from .output.metadata import save_metadata, write_public_artifact_contract
+# Re-exports for backward compatibility (consumed by output_handler, scripts,
+# and the unit-test contract surface).
+from .output.metadata import (  # noqa: F401
+    save_metadata,
+    write_public_artifact_contract,
+)
 from .output.public_lists import generate_categorized_lists
 from .output.native_configs import (
     build_dns_safe_proxies as _build_dns_safe_proxies,
@@ -39,7 +41,6 @@ from .output.native_configs import (
     wrap_surge_or_loon_profile as _wrap_surge_or_loon_profile,
     wrap_quantumultx_profile as _wrap_quantumultx_profile,
     wrap_shadowrocket_profile as _wrap_shadowrocket_profile,
-    build_wireguard_config as _build_wireguard_config,
 )
 from .output.subscriptions import (
     generate_base64_subscription,
@@ -51,6 +52,7 @@ from .output.subscriptions import (
 )
 
 logger = logging.getLogger(__name__)
+
 
 def generate_categorized_outputs(
     proxies: List[Proxy],
@@ -82,7 +84,11 @@ def generate_categorized_outputs(
 
     # 1. Smart Chains
     if smart_chains is None:
-        smart_chains = generate_smart_chains(proxies, washer=washer) if settings.ENABLE_SMART_CHAINING else {}
+        smart_chains = (
+            generate_smart_chains(proxies, washer=washer)
+            if settings.ENABLE_SMART_CHAINING
+            else {}
+        )
 
     # 2. Main Configs (Sing-box & Clash)
     export_pool = _get_export_pool(proxies)
@@ -99,17 +105,17 @@ def generate_categorized_outputs(
         generated_files["master"] = split_files["singbox"]
     if "clash" in split_files:
         generated_files["clash_full"] = split_files["clash"]
-    
+
     ordered_pool = _order_export_proxies(export_pool)
-    
+
     # 3. Subscriptions
     raw_content = generate_plaintext_subscription(ordered_pool)
     base64_content = generate_base64_subscription(ordered_pool)
-    
+
     proxies_txt_path = output_dir / "proxies.txt"
     AtomicFileWriter.write_text(proxies_txt_path, raw_content)
     generated_files["proxies_txt"] = proxies_txt_path
-    
+
     base64_path = output_dir / "base64.txt"
     AtomicFileWriter.write_text(base64_path, base64_content)
     generated_files["base64"] = base64_path
@@ -117,13 +123,18 @@ def generate_categorized_outputs(
     # 3b. Chosen subset
     chosen_dir = output_dir / "chosen"
     chosen_dir.mkdir(exist_ok=True)
-    chosen = _select_chosen_proxies(proxies, CHOSEN_TOP_PER_PROTOCOL, CHOSEN_TOTAL_TARGET)
-    
+    chosen = _select_chosen_proxies(
+        proxies, CHOSEN_TOP_PER_PROTOCOL, CHOSEN_TOTAL_TARGET
+    )
+
     chosen_paths = {
         "base64.txt": (generate_base64_subscription(chosen), "chosen_base64"),
         "proxies.txt": (generate_plaintext_subscription(chosen), "chosen_proxies_txt"),
         "singbox.json": (generate_singbox_config(chosen), "chosen_singbox"),
-        "clash.yaml": (generate_clash_config(chosen, ignore_status=True), "chosen_clash"),
+        "clash.yaml": (
+            generate_clash_config(chosen, ignore_status=True),
+            "chosen_clash",
+        ),
     }
     for name, (content, key) in chosen_paths.items():
         path = chosen_dir / name
@@ -132,6 +143,7 @@ def generate_categorized_outputs(
 
     # 3c. Adapters
     from .adapters import get_adapter
+
     adapter_specs = {
         "shadowrocket": ("shadowrocket", "shadowrocket.txt"),
         "quantumult": ("quantumultx", "quantumult.conf"),
@@ -142,7 +154,11 @@ def generate_categorized_outputs(
     for key, (adapter_name, filename) in adapter_specs.items():
         try:
             adapter = get_adapter(adapter_name)
-            content = adapter.export(ordered_pool, washed_outbounds=washed_outbounds) if adapter_name in ("surge", "loon") else adapter.export(ordered_pool)
+            content = (
+                adapter.export(ordered_pool, washed_outbounds=washed_outbounds)
+                if adapter_name in ("surge", "loon")
+                else adapter.export(ordered_pool)
+            )
             out_path = output_dir / filename
             AtomicFileWriter.write_text(out_path, content)
             generated_files[key] = out_path
@@ -170,10 +186,16 @@ def generate_categorized_outputs(
         safe_proxies, host_map = dns_safe_cache
     else:
         safe_proxies, host_map = _build_dns_safe_proxies(proxies)
-    
+
     _gen_dns_variation(
-        safe_proxies, host_map, output_dir, "dns-safe", 
-        washed_outbounds, smart_chains, washed_ids, generated_files
+        safe_proxies,
+        host_map,
+        output_dir,
+        "dns-safe",
+        washed_outbounds,
+        smart_chains,
+        washed_ids,
+        generated_files,
     )
 
     # 7. DNS-hardened variations
@@ -182,19 +204,28 @@ def generate_categorized_outputs(
             hardened_proxies, hardened_map = dns_hardened_cache
         else:
             hardened_proxies, hardened_map = _build_dns_hardened_proxies(proxies)
-        
+
         _gen_dns_variation(
-            hardened_proxies, hardened_map, output_dir, "dns-hardened",
-            washed_outbounds, smart_chains, washed_ids, generated_files,
-            is_hardened=True
+            hardened_proxies,
+            hardened_map,
+            output_dir,
+            "dns-hardened",
+            washed_outbounds,
+            smart_chains,
+            washed_ids,
+            generated_files,
+            is_hardened=True,
         )
 
     return generated_files
 
-def _collect_all_chains(proxies, washed_outbounds, smart_chains) -> List[Dict[str, Any]]:
+
+def _collect_all_chains(
+    proxies, washed_outbounds, smart_chains
+) -> List[Dict[str, Any]]:
     chain_obs = []
     seen_tags = set()
-    
+
     def _append(outbounds):
         for o in copy.deepcopy(outbounds or []):
             tag = o.get("tag")
@@ -214,7 +245,7 @@ def _collect_all_chains(proxies, washed_outbounds, smart_chains) -> List[Dict[st
             if (p.details or {}).get("is_revived") and p.remarks:
                 chain[-1]["tag"] = p.remarks
             _append(chain)
-    
+
     _append(washed_outbounds)
     if smart_chains:
         for group in smart_chains.values():
@@ -222,25 +253,37 @@ def _collect_all_chains(proxies, washed_outbounds, smart_chains) -> List[Dict[st
                 _append(chain)
     return chain_obs
 
+
 def _gen_dns_variation(
-    proxies, host_map, output_dir, suffix, 
-    washed_outbounds, smart_chains, washed_ids, generated_files,
-    is_hardened=False
+    proxies,
+    host_map,
+    output_dir,
+    suffix,
+    washed_outbounds,
+    smart_chains,
+    washed_ids,
+    generated_files,
+    is_hardened=False,
 ):
     suffix_key = suffix.replace("-", "_")
-    
+
     # Filter outbounds
-    filter_fn = _filter_outbounds_for_dns_hardened if is_hardened else _filter_outbounds_for_dns_safe
-    filtered_washed = filter_fn(washed_outbounds, host_map) if washed_outbounds else None
-    
+    filter_fn = (
+        _filter_outbounds_for_dns_hardened
+        if is_hardened
+        else _filter_outbounds_for_dns_safe
+    )
+    filtered_washed = (
+        filter_fn(washed_outbounds, host_map) if washed_outbounds else None
+    )
+
     filtered_smart = {}
     if smart_chains:
         for group, chains in smart_chains.items():
-            l = [filter_fn(c, host_map) for c in chains]
-            filtered_smart[group] = [c for c in l if c]
+            filtered = [filter_fn(c, host_map) for c in chains]
+            filtered_smart[group] = [c for c in filtered if c]
 
     # Split configs
-    from .dns_profiles import build_singbox_dns_profile, build_clash_dns_profile
     split_files = generate_split_outputs(
         _get_export_pool(proxies),
         output_dir,
@@ -268,14 +311,11 @@ def _gen_dns_variation(
     ordered = _order_export_proxies(_get_export_pool(proxies))
     raw = generate_plaintext_subscription(ordered)
     base64 = generate_base64_subscription(ordered)
-    
-    for ext, content in [("txt", raw), ("txt", base64)]: # Wait, this is wrong in my draft but I'll fix it
-        pass
-    
+
     txt_path = output_dir / f"proxies-{suffix}.txt"
     AtomicFileWriter.write_text(txt_path, raw)
     generated_files[f"proxies_txt_{suffix_key}"] = txt_path
-    
+
     base64_path = output_dir / f"base64-{suffix}.txt"
     AtomicFileWriter.write_text(base64_path, base64)
     generated_files[f"base64_{suffix_key}"] = base64_path
@@ -288,18 +328,70 @@ def _gen_dns_variation(
     # Chosen subset for variation
     chosen_dir = output_dir / "chosen"
     chosen_dir.mkdir(exist_ok=True)
-    chosen_var = _select_chosen_proxies(proxies, CHOSEN_TOP_PER_PROTOCOL, CHOSEN_TOTAL_TARGET)
+    chosen_var = _select_chosen_proxies(
+        proxies, CHOSEN_TOP_PER_PROTOCOL, CHOSEN_TOTAL_TARGET
+    )
     chosen_base64 = generate_base64_subscription(chosen_var)
     chosen_path = chosen_dir / f"base64-{suffix}.txt"
     AtomicFileWriter.write_text(chosen_path, chosen_base64)
     generated_files[f"chosen_base64_{suffix_key}"] = chosen_path
 
-    # Third party profiles if hardened
+    # Third-party client profiles (DNS-hardened only)
     if is_hardened:
-        primary, fallback = build_resolver_sets()
+        _gen_hardened_third_party_profiles(
+            ordered, filtered_washed, output_dir, generated_files
+        )
+
+
+def _gen_hardened_third_party_profiles(
+    ordered: List[Proxy],
+    filtered_washed: Optional[List[Dict[str, Any]]],
+    output_dir: Path,
+    generated_files: Dict[str, Path],
+) -> None:
+    """Generate DNS-hardened profiles for third-party clients.
+
+    Each profile is generated independently; a failure in one client format
+    must not block the others (fail-open per artifact).
+    """
+    primary, fallback = build_resolver_sets()
+
+    try:
+        out_path = output_dir / "shadowrocket-dns-hardened.txt"
+        AtomicFileWriter.write_text(
+            out_path, _wrap_shadowrocket_profile(ordered, primary, fallback)
+        )
+        generated_files["shadowrocket_dns_hardened"] = out_path
+    except Exception as exc:
+        logger.warning("Failed to generate dns-hardened Shadowrocket: %s", exc)
+
+    for adapter_name in ("surge", "loon"):
         try:
-            AtomicFileWriter.write_text(output_dir / "shadowrocket-dns-hardened.txt", 
-                _wrap_shadowrocket_profile(ordered, primary, fallback))
-            generated_files["shadowrocket_dns_hardened"] = output_dir / "shadowrocket-dns-hardened.txt"
-        except: pass
-        # ... other third party wraps would go here
+            out_path = output_dir / f"{adapter_name}-dns-hardened.conf"
+            AtomicFileWriter.write_text(
+                out_path,
+                _wrap_surge_or_loon_profile(
+                    adapter_name, ordered, filtered_washed, primary, fallback
+                ),
+            )
+            generated_files[f"{adapter_name}_dns_hardened"] = out_path
+        except Exception as exc:
+            logger.warning("Failed to generate dns-hardened %s: %s", adapter_name, exc)
+
+    try:
+        out_path = output_dir / "quantumult-dns-hardened.conf"
+        AtomicFileWriter.write_text(
+            out_path, _wrap_quantumultx_profile(ordered, primary, fallback)
+        )
+        generated_files["quantumult_dns_hardened"] = out_path
+    except Exception as exc:
+        logger.warning("Failed to generate dns-hardened Quantumult X: %s", exc)
+
+    try:
+        from .adapters import get_adapter
+
+        out_path = output_dir / "sip008-dns-hardened.json"
+        AtomicFileWriter.write_text(out_path, get_adapter("sip008").export(ordered))
+        generated_files["sip008_dns_hardened"] = out_path
+    except Exception as exc:
+        logger.warning("Failed to generate dns-hardened SIP008: %s", exc)

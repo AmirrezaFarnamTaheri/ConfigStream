@@ -10,7 +10,6 @@ from ..utils import (
     settings,
     limiter,
     _is_nonproduction_environment,
-    logger
 )
 
 router = APIRouter(prefix="/api/lab", tags=["lab"])
@@ -35,6 +34,7 @@ LAB_ALLOWED_OUTBOUND_TYPES = {
 
 LAB_DESTINATION_KEYS = {"server", "address"}
 LAB_INTERNAL_HOST_SUFFIXES = (".local", ".localhost", ".lan", ".internal")
+
 
 def _validate_lab_destination(host: object, path: str) -> None:
     if not isinstance(host, str) or not host.strip():
@@ -61,6 +61,7 @@ def _validate_lab_destination(host: object, path: str) -> None:
             status_code=400,
             detail=f"{path} must not target private or non-global addresses",
         )
+
 
 def _validate_lab_config(config: object) -> None:
     if not isinstance(config, dict):
@@ -91,6 +92,7 @@ def _validate_lab_config(config: object) -> None:
             if key in outbound:
                 _validate_lab_destination(outbound[key], f"{path}.{key}")
 
+
 def _require_payload_api_key(payload: dict, api_key: Optional[str]) -> None:
     """Helper to validate API key in payload for production lab tests."""
     if not api_key:
@@ -98,6 +100,7 @@ def _require_payload_api_key(payload: dict, api_key: Optional[str]) -> None:
     provided_key = payload.get("api_key")
     if not provided_key or not secrets.compare_digest(provided_key, api_key):
         raise HTTPException(status_code=403, detail="Forbidden: Invalid API key")
+
 
 @router.post("/test-chain")
 @limiter.limit("30/minute")
@@ -136,12 +139,10 @@ async def lab_test_chain(request: Request, payload: dict):
             detail="Live chain testing is not available. Use manual testing: save config to file and run 'sing-box run -c chain.json'.",
         ) from None
 
-    result = await test_chain_config(
-        config, timeout=settings.LAB_TEST_TIMEOUT_SECONDS
-    )
+    result = await test_chain_config(config, timeout=settings.LAB_TEST_TIMEOUT_SECONDS)
     if result["success"]:
         return JSONResponse(content=result)
-    
+
     if "singbox2proxy not installed" in result.get("error", ""):
         raise HTTPException(
             status_code=503,

@@ -9,7 +9,7 @@ import mimetypes
 import secrets
 import importlib.metadata
 from pathlib import Path
-from typing import Any, Optional, List
+from typing import Any, Optional
 from fastapi import HTTPException, Request
 from fastapi.responses import FileResponse
 from slowapi import Limiter
@@ -27,6 +27,7 @@ setup_logging(
     mask_sensitive=settings.MASK_SENSITIVE_DATA,
 )
 logger = logging.getLogger(__name__)
+
 
 class DynamicPathProxy:
     def __init__(self, resolver):
@@ -48,11 +49,15 @@ class DynamicPathProxy:
     def __getattr__(self, name):
         return getattr(self._path, name)
 
+
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 OUTPUT_DIR = DynamicPathProxy(lambda: os.environ.get("OUTPUT_DIR", "output"))
-FRONTEND_DIR = DynamicPathProxy(lambda: str(settings.FRONTEND_DIR or (BASE_DIR / "frontend")))
+FRONTEND_DIR = DynamicPathProxy(
+    lambda: str(settings.FRONTEND_DIR or (BASE_DIR / "frontend"))
+)
 
 _json_cache: dict[Path, tuple[float, Any]] = {}
+
 
 def _json_snapshot_sha256(payload: Any) -> str:
     canonical = json.dumps(
@@ -63,9 +68,11 @@ def _json_snapshot_sha256(payload: Any) -> str:
     ).encode("utf-8")
     return hashlib.sha256(canonical).hexdigest()
 
+
 def _read_json_file(path: Path) -> Any:
     """Read and parse a JSON file from a worker thread."""
     return json.loads(path.read_text(encoding="utf-8"))
+
 
 async def _read_json_file_async(path: Path) -> Any:
     try:
@@ -82,6 +89,7 @@ async def _read_json_file_async(path: Path) -> Any:
     data = await asyncio.to_thread(_read_json_file, path)
     _json_cache[path] = (current_mtime, data)
     return data
+
 
 try:
     VERSION = importlib.metadata.version("configstream")
@@ -141,6 +149,7 @@ ROOT_OUTPUT_FILES = {
     "side_products-dns-hardened.zip": "application/zip",
 }
 
+
 def _resolve_output_path(rel_path: str) -> Path:
     base = OUTPUT_DIR.resolve()
     target = (OUTPUT_DIR / rel_path).resolve()
@@ -150,11 +159,13 @@ def _resolve_output_path(rel_path: str) -> Path:
         raise HTTPException(400, "Invalid path") from exc
     return target
 
+
 def _serve_output_file(rel_path: str, media_type: Optional[str] = None) -> FileResponse:
     target = _resolve_output_path(rel_path)
     if not target.exists():
         raise HTTPException(404, "File not generated yet")
     return FileResponse(target, media_type=media_type)
+
 
 def _serve_output_subpath(prefix: str, path: str) -> FileResponse:
     if not path or ".." in path:
@@ -165,14 +176,20 @@ def _serve_output_subpath(prefix: str, path: str) -> FileResponse:
         raise HTTPException(404, "File not generated yet")
     return FileResponse(target)
 
+
 def _is_nonproduction_environment(environment: str) -> bool:
     return environment.strip().lower() in {"development", "ci", "test"}
 
-def _require_admin_auth(request: Request, api_key: Optional[str], is_nonproduction: bool) -> None:
+
+def _require_admin_auth(
+    request: Request, api_key: Optional[str], is_nonproduction: bool
+) -> None:
     auth_header = request.headers.get("Authorization")
     if not api_key:
         if is_nonproduction:
-            logger.warning("Admin auth bypassed: ADMIN_API_KEY not configured in non-production.")
+            logger.warning(
+                "Admin auth bypassed: ADMIN_API_KEY not configured in non-production."
+            )
             return
         raise HTTPException(403, "Forbidden: ADMIN_API_KEY not configured.")
 

@@ -5,7 +5,7 @@ import hashlib
 import os
 from pathlib import Path
 from datetime import datetime, timezone
-from typing import List, Dict, Optional, Any
+from typing import List, Dict, Any
 from importlib.metadata import version
 
 from ..models import Proxy
@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 PUBLIC_CONTRACT_SCHEMA_VERSION = "1.0"
 
+
 def _json_snapshot_sha256(payload: Any) -> str:
     canonical = json.dumps(
         payload,
@@ -33,12 +34,14 @@ def _json_snapshot_sha256(payload: Any) -> str:
     ).encode("utf-8")
     return hashlib.sha256(canonical).hexdigest()
 
+
 def _file_sha256(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
 
 def _artifact_category(rel_path: str) -> str:
     if rel_path in {"metadata.json", "health.json", "artifact_manifest.json"}:
@@ -55,12 +58,14 @@ def _artifact_category(rel_path: str) -> str:
         return "side-product"
     return "subscription"
 
+
 def _read_json_object(path: Path) -> Dict[str, Any]:
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         return {}
     return payload if isinstance(payload, dict) else {}
+
 
 def save_metadata(
     stats: Any,
@@ -160,20 +165,30 @@ def save_metadata(
     pipeline_execution_audit: Dict[str, Any] = {}
 
     if isinstance(stats, dict):
-        total_sourced = safe_int_conversion(stats.get("fetched_lines") or stats.get("total_fetched") or total)
+        total_sourced = safe_int_conversion(
+            stats.get("fetched_lines") or stats.get("total_fetched") or total
+        )
         parsed_count = stats.get("parsed", total)
         tested_count = stats.get("tested", total)
         raw_reasons = stats.get("rejection_reasons") or stats.get("drop_reasons") or {}
         if isinstance(raw_reasons, dict):
-            reasons = {str(k): safe_int_conversion(v) for k, v in raw_reasons.items() if k is not None}
-        washed_count = stats.get("washed_chains") or stats.get("washer_success_count", 0)
+            reasons = {
+                str(k): safe_int_conversion(v)
+                for k, v in raw_reasons.items()
+                if k is not None
+            }
+        washed_count = stats.get("washed_chains") or stats.get(
+            "washer_success_count", 0
+        )
         smart_chain_count = stats.get("smart_chain_count", 0)
         if not smart_chain_count and "smart_chains_breakdown" in stats:
             smart_chain_count = sum(stats["smart_chains_breakdown"].values())
         vwarp_win_rate = stats.get("vwarp_win_rate", 0.0)
         scanner_ips_found = stats.get("scanner_ips_found", 0)
         fetched_sources = stats.get("fetched_sources", 0)
-        total_configured_sources = stats.get("total_configured_sources", 0) or fetched_sources
+        total_configured_sources = (
+            stats.get("total_configured_sources", 0) or fetched_sources
+        )
         revived_warp = stats.get("revived_warp", 0)
         revived_vwarp = stats.get("revived_vwarp", 0)
         warp_attempts = stats.get("warp_attempts", 0)
@@ -187,7 +202,9 @@ def save_metadata(
         time_limited = bool(stats.get("time_limited", False))
         time_limit_seconds = int(stats.get("time_limit_seconds", 0) or 0)
         shielded_count = stats.get("shielded_count", 0)
-        shielded_candidate_count = int(stats.get("shielded_candidate_count", shielded_count) or shielded_count)
+        shielded_candidate_count = int(
+            stats.get("shielded_candidate_count", shielded_count) or shielded_count
+        )
         shielded_verified_count = stats.get("shielded_verified_count", 0)
         evasion_utls_enabled = stats.get("evasion_utls_enabled", 0)
         evasion_alpn_enabled = stats.get("evasion_alpn_enabled", 0)
@@ -207,7 +224,9 @@ def save_metadata(
             end_time_iso = str(stats.get("end_time") or "")
     else:
         # PipelineStats object
-        total_sourced = getattr(stats, "fetched_lines", getattr(stats, "total_sourced", total))
+        total_sourced = getattr(
+            stats, "fetched_lines", getattr(stats, "total_sourced", total)
+        )
         parsed_count = getattr(stats, "parsed", total)
         tested_count = getattr(stats, "tested", total)
         reasons = getattr(stats, "drop_reasons", {})
@@ -218,7 +237,9 @@ def save_metadata(
         vwarp_win_rate = getattr(stats, "vwarp_win_rate", 0.0)
         scanner_ips_found = getattr(stats, "scanner_ips_found", 0)
         fetched_sources = getattr(stats, "fetched_sources", 0)
-        total_configured_sources = getattr(stats, "total_configured_sources", 0) or fetched_sources
+        total_configured_sources = (
+            getattr(stats, "total_configured_sources", 0) or fetched_sources
+        )
         revived_warp = getattr(stats, "revived_warp", 0)
         revived_vwarp = getattr(stats, "revived_vwarp", 0)
         warp_attempts = getattr(stats, "warp_attempts", 0)
@@ -232,11 +253,15 @@ def save_metadata(
         time_limited = bool(getattr(stats, "time_limited", False))
         time_limit_seconds = int(getattr(stats, "time_limit_seconds", 0) or 0)
         shielded_count = getattr(stats, "shielded_count", 0)
-        shielded_candidate_count = getattr(stats, "shielded_candidate_count", shielded_count)
+        shielded_candidate_count = getattr(
+            stats, "shielded_candidate_count", shielded_count
+        )
         shielded_verified_count = getattr(stats, "shielded_verified_count", 0)
         evasion_utls_enabled = getattr(stats, "evasion_utls_enabled", 0)
         evasion_alpn_enabled = getattr(stats, "evasion_alpn_enabled", 0)
-        evasion_fragmentation_enabled = getattr(stats, "evasion_fragmentation_enabled", 0)
+        evasion_fragmentation_enabled = getattr(
+            stats, "evasion_fragmentation_enabled", 0
+        )
         evasion_multiplexing_enabled = getattr(stats, "evasion_multiplexing_enabled", 0)
         evasion_dns_safe_count = getattr(stats, "evasion_dns_safe_count", 0)
         evasion_dns_hardened_count = getattr(stats, "evasion_dns_hardened_count", 0)
@@ -248,31 +273,48 @@ def save_metadata(
         if isinstance(audit_obj, dict):
             pipeline_execution_audit = dict(audit_obj)
         if not pipeline_execution_audit:
-            pipeline_execution_audit = PipelineExecutionAudit.from_stats(stats).to_dict()
+            pipeline_execution_audit = PipelineExecutionAudit.from_stats(
+                stats
+            ).to_dict()
         if hasattr(stats, "working") and stats.working > 0:
             working = stats.working
 
     def _normalize_drop_reason(reason: str) -> str:
         key = (reason or "").strip().lower()
-        if not key: return DropCategory.UNKNOWN.value
-        if "duplicate" in key: return DropCategory.DUPLICATE.value
-        if "invalid_protocol" in key: return DropCategory.INVALID_PROTOCOL.value
-        if "invalid_port" in key: return DropCategory.INVALID_PORT.value
-        if "missing_protocol_separator" in key: return DropCategory.MISSING_PROTOCOL_SEPARATOR.value
-        if "implausible_format" in key: return DropCategory.IMPLAUSIBLE_FORMAT.value
-        if "security" in key: return DropCategory.SECURITY_VALIDATION.value
-        if "html" in key: return DropCategory.HTML_CONTENT.value
-        if "hostile_payload" in key: return DropCategory.HOSTILE_PAYLOAD.value
-        if "size_limit" in key: return DropCategory.SIZE_LIMIT_EXCEEDED.value
-        if "backpressure" in key: return DropCategory.BACKPRESSURE_DROP.value
-        if "tester_error" in key: return DropCategory.TESTER_ERROR.value
-        if "fetch_error" in key: return DropCategory.FETCH_ERROR.value
+        if not key:
+            return DropCategory.UNKNOWN.value
+        if "duplicate" in key:
+            return DropCategory.DUPLICATE.value
+        if "invalid_protocol" in key:
+            return DropCategory.INVALID_PROTOCOL.value
+        if "invalid_port" in key:
+            return DropCategory.INVALID_PORT.value
+        if "missing_protocol_separator" in key:
+            return DropCategory.MISSING_PROTOCOL_SEPARATOR.value
+        if "implausible_format" in key:
+            return DropCategory.IMPLAUSIBLE_FORMAT.value
+        if "security" in key:
+            return DropCategory.SECURITY_VALIDATION.value
+        if "html" in key:
+            return DropCategory.HTML_CONTENT.value
+        if "hostile_payload" in key:
+            return DropCategory.HOSTILE_PAYLOAD.value
+        if "size_limit" in key:
+            return DropCategory.SIZE_LIMIT_EXCEEDED.value
+        if "backpressure" in key:
+            return DropCategory.BACKPRESSURE_DROP.value
+        if "tester_error" in key:
+            return DropCategory.TESTER_ERROR.value
+        if "fetch_error" in key:
+            return DropCategory.FETCH_ERROR.value
         return key
 
     normalized_reasons: Dict[str, int] = {}
     for reason_key, reason_count in (reasons or {}).items():
         category = _normalize_drop_reason(str(reason_key))
-        normalized_reasons[category] = normalized_reasons.get(category, 0) + int(reason_count or 0)
+        normalized_reasons[category] = normalized_reasons.get(category, 0) + int(
+            reason_count or 0
+        )
     reasons = normalized_reasons
 
     smart_chains_breakdown = {}
@@ -280,26 +322,28 @@ def save_metadata(
         smart_chains_breakdown = stats["smart_chains_breakdown"]
 
     try:
-        import sys
-        if "configstream.output_logic" in sys.modules and hasattr(sys.modules["configstream.output_logic"], "version"):
-            pkg_version = sys.modules["configstream.output_logic"].version("configstream")
-        else:
-            pkg_version = version("configstream")
+        pkg_version = version("configstream")
     except Exception:
-        try:
-            pkg_version = version("configstream")
-        except Exception:
-            pkg_version = "unknown"
+        pkg_version = "unknown"
 
     update_interval_hours = _meta_settings.UPDATE_INTERVAL_HOURS
 
-    latency_by_country = {cc: round(latency_by_country_sum[cc] / latency_by_country_count[cc])
-                          for cc in latency_by_country_sum if latency_by_country_count.get(cc)}
-    latency_by_protocol = {proto: round(latency_by_protocol_sum[proto] / latency_by_protocol_count[proto])
-                           for proto in latency_by_protocol_sum if latency_by_protocol_count.get(proto)}
+    latency_by_country = {
+        cc: round(latency_by_country_sum[cc] / latency_by_country_count[cc])
+        for cc in latency_by_country_sum
+        if latency_by_country_count.get(cc)
+    }
+    latency_by_protocol = {
+        proto: round(latency_by_protocol_sum[proto] / latency_by_protocol_count[proto])
+        for proto in latency_by_protocol_sum
+        if latency_by_protocol_count.get(proto)
+    }
 
-    total_revived_count = stats.get("total_revived", revived_warp + revived_vwarp) if isinstance(stats, dict) else \
-                          getattr(stats, "total_revived", revived_warp + revived_vwarp)
+    total_revived_count = (
+        stats.get("total_revived", revived_warp + revived_vwarp)
+        if isinstance(stats, dict)
+        else getattr(stats, "total_revived", revived_warp + revived_vwarp)
+    )
 
     washing_enabled = False
     warp_pool_raw = _meta_settings.WARP_KEY_POOL
@@ -307,12 +351,17 @@ def save_metadata(
         try:
             warp_pool = json.loads(warp_pool_raw)
             washing_enabled = isinstance(warp_pool, list) and len(warp_pool) > 0
-        except json.JSONDecodeError: washing_enabled = True
+        except json.JSONDecodeError:
+            washing_enabled = True
     washing_enabled = washing_enabled or vwarp_attempts > 0
 
     logical_total_proxies = total + smart_chain_count
-    exported_total_proxies = public_record_count if public_record_count > 0 else logical_total_proxies
-    exported_total_working = public_working_count if public_working_count > 0 else working
+    exported_total_proxies = (
+        public_record_count if public_record_count > 0 else logical_total_proxies
+    )
+    exported_total_working = (
+        public_working_count if public_working_count > 0 else working
+    )
 
     meta = {
         "schema_version": "3.0.2",
@@ -322,7 +371,9 @@ def save_metadata(
         "total_tested": tested_count,
         "total_working": exported_total_working,
         "logical_total_working": working,
-        "success_rate": ((exported_total_working / tested_count) if tested_count > 0 else 0),
+        "success_rate": (
+            (exported_total_working / tested_count) if tested_count > 0 else 0
+        ),
         "generated_at": end_time_iso,
         "last_updated_utc": end_time_iso,
         "trace_id": trace_id,
@@ -340,8 +391,14 @@ def save_metadata(
         "total_clean": max(0, working - total_revived_count),
         "total_smart_chains": smart_chain_count,
         "smart_chains_breakdown": smart_chains_breakdown,
-        "total_dirty": sum([int(reasons.get("dirty_ip", 0) or 0), int(reasons.get("DIRTY_IP", 0) or 0),
-                            int(reasons.get("honeypot", 0) or 0), int(reasons.get("HONEYPOT", 0) or 0)]),
+        "total_dirty": sum(
+            [
+                int(reasons.get("dirty_ip", 0) or 0),
+                int(reasons.get("DIRTY_IP", 0) or 0),
+                int(reasons.get("honeypot", 0) or 0),
+                int(reasons.get("HONEYPOT", 0) or 0),
+            ]
+        ),
         "vwarp_win_rate": vwarp_win_rate,
         "scanner_ips_found": scanner_ips_found,
         "washer_success_count": washed_count,
@@ -389,13 +446,21 @@ def save_metadata(
         "parsed": parsed_count,
         "tested": tested_count,
         "working": working,
-        "chosen_subset_size": min(working if working > 0 else len(proxies), 
-                                 (CHOSEN_TOTAL_TARGET if CHOSEN_TOTAL_TARGET > 0 
-                                  else (working if working > 0 else len(proxies)))),
+        "chosen_subset_size": min(
+            working if working > 0 else len(proxies),
+            (
+                CHOSEN_TOTAL_TARGET
+                if CHOSEN_TOTAL_TARGET > 0
+                else (working if working > 0 else len(proxies))
+            ),
+        ),
         "pipeline_execution_audit": pipeline_execution_audit,
     }
 
-    AtomicFileWriter.write_text(meta_path, json.dumps(meta, indent=2, ensure_ascii=False))
+    AtomicFileWriter.write_text(
+        meta_path, json.dumps(meta, indent=2, ensure_ascii=False)
+    )
+
 
 def _attach_manifest_signature(manifest: Dict[str, Any]) -> None:
     private_key_hex = os.environ.get("CS_SIGNING_PRIVATE_KEY_HEX")
@@ -403,6 +468,7 @@ def _attach_manifest_signature(manifest: Dict[str, Any]) -> None:
         return
 
     from ..signer import Signer
+
     try:
         signer = Signer(private_key_hex)
         payload = dict(manifest)
@@ -416,7 +482,7 @@ def _attach_manifest_signature(manifest: Dict[str, Any]) -> None:
         sig_info = signer.sign_subscription(canonical)
         public_key_bytes = bytes.fromhex(signer.get_public_key_hex())
         key_id = hashlib.sha256(public_key_bytes).hexdigest()[:16]
-        
+
         manifest["manifest_signature"] = {
             "algorithm": "ed25519",
             "signature": sig_info["signature"],
@@ -425,6 +491,7 @@ def _attach_manifest_signature(manifest: Dict[str, Any]) -> None:
     except Exception as exc:
         logger.error(f"Failed to sign manifest: {exc}")
 
+
 def write_public_artifact_contract(output_dir: Path) -> Dict[str, Any]:
     """
     Write health.json and artifact_manifest.json for the public output directory.
@@ -432,12 +499,16 @@ def write_public_artifact_contract(output_dir: Path) -> Dict[str, Any]:
     output_dir.mkdir(parents=True, exist_ok=True)
     metadata = _read_json_object(output_dir / "metadata.json")
     now_iso = datetime.now(timezone.utc).isoformat()
-    generated_at = str(metadata.get("generated_at") or metadata.get("last_updated_utc") or now_iso)
+    generated_at = str(
+        metadata.get("generated_at") or metadata.get("last_updated_utc") or now_iso
+    )
     trace_id = str(metadata.get("trace_id") or "-")
 
     health: Dict[str, Any] = {
         "schema_version": PUBLIC_CONTRACT_SCHEMA_VERSION,
-        "status": ("degraded" if int(metadata.get("total_working", 0) or 0) == 0 else "ok"),
+        "status": (
+            "degraded" if int(metadata.get("total_working", 0) or 0) == 0 else "ok"
+        ),
         "generated_at": generated_at,
         "trace_id": trace_id,
         "source_commit": os.environ.get("GITHUB_SHA", ""),
@@ -448,19 +519,25 @@ def write_public_artifact_contract(output_dir: Path) -> Dict[str, Any]:
         "schema_validated": False,
         "notes": [],
     }
-    AtomicFileWriter.write_text(output_dir / "health.json", json.dumps(health, indent=2, ensure_ascii=False))
+    AtomicFileWriter.write_text(
+        output_dir / "health.json", json.dumps(health, indent=2, ensure_ascii=False)
+    )
 
     files: List[Dict[str, Any]] = []
     for path in sorted(output_dir.rglob("*")):
-        if not path.is_file(): continue
+        if not path.is_file():
+            continue
         rel_path = path.relative_to(output_dir).as_posix()
-        if rel_path == "artifact_manifest.json" or rel_path.endswith(".tmp"): continue
-        files.append({
-            "path": rel_path,
-            "size_bytes": path.stat().st_size,
-            "sha256": _file_sha256(path),
-            "category": _artifact_category(rel_path),
-        })
+        if rel_path == "artifact_manifest.json" or rel_path.endswith(".tmp"):
+            continue
+        files.append(
+            {
+                "path": rel_path,
+                "size_bytes": path.stat().st_size,
+                "sha256": _file_sha256(path),
+                "category": _artifact_category(rel_path),
+            }
+        )
 
     manifest = {
         "schema_version": PUBLIC_CONTRACT_SCHEMA_VERSION,
@@ -475,11 +552,16 @@ def write_public_artifact_contract(output_dir: Path) -> Dict[str, Any]:
         "files": files,
     }
     _attach_manifest_signature(manifest)
-    AtomicFileWriter.write_text(output_dir / "artifact_manifest.json", json.dumps(manifest, indent=2, ensure_ascii=False))
+    AtomicFileWriter.write_text(
+        output_dir / "artifact_manifest.json",
+        json.dumps(manifest, indent=2, ensure_ascii=False),
+    )
     return manifest
+
 
 def generate_metadata_json(stats: Any, proxies: List[Proxy], output_dir: Path):
     save_metadata(stats, proxies, output_dir)
+
 
 def generate_health_json(output_dir: Path):
     write_public_artifact_contract(output_dir)

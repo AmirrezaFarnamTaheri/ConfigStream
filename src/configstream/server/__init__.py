@@ -1,8 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-import os
 import logging
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import List
 
 from fastapi import (
@@ -17,7 +15,10 @@ from fastapi.responses import FileResponse, JSONResponse
 from slowapi.errors import RateLimitExceeded
 from slowapi import _rate_limit_exceeded_handler
 
-from .utils import (
+# NOTE: several names below are re-exported as the package's public/test
+# contract surface (configstream.server.<name>); do not remove them just
+# because they are unused inside this module.
+from .utils import (  # noqa: F401
     settings,
     VERSION,
     limiter,
@@ -31,15 +32,17 @@ from .utils import (
     _serve_output_file,
     _json_cache,
 )
-from .ws import websocket_endpoint, ConnectionManager
+from .ws import websocket_endpoint, ConnectionManager  # noqa: F401
 from .routes.admin import router as admin_router
 from .routes.proxies import router as proxies_router
 from .routes.lab import router as lab_router
 
 logger = logging.getLogger(__name__)
 
+
 def _split_allowed_origins(value: str) -> List[str]:
     return [origin.strip() for origin in value.split(",") if origin.strip()]
+
 
 def create_app() -> FastAPI:
     app = FastAPI(
@@ -83,7 +86,9 @@ def create_app() -> FastAPI:
             try:
                 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
             except OSError as e:
-                logger.warning(f"Warning: Could not create output directory {OUTPUT_DIR}: {e}")
+                logger.warning(
+                    f"Warning: Could not create output directory {OUTPUT_DIR}: {e}"
+                )
 
     # Register Routes
     app.include_router(admin_router)
@@ -98,6 +103,7 @@ def create_app() -> FastAPI:
     def _make_output_handler(rel_path: str, media_type: str):
         async def _handler():
             return _serve_output_file(rel_path, media_type)
+
         return _handler
 
     for rel_path, media_type in ROOT_OUTPUT_FILES.items():
@@ -109,15 +115,26 @@ def create_app() -> FastAPI:
 
     # Static Files
     try:
-        app.mount("/output", StaticFiles(directory=str(OUTPUT_DIR)), name="output")
+        # check_dir=False keeps the mount resilient: the output directory is
+        # created on startup, but may not exist yet at import time.
+        app.mount(
+            "/output",
+            StaticFiles(directory=str(OUTPUT_DIR), check_dir=False),
+            name="output",
+        )
     except Exception as e:
         logger.warning(f"Warning: Failed to mount /output static files: {e}")
+
         @app.get("/output/{path:path}")
         async def output_fallback(path: str):
             raise HTTPException(status_code=503, detail="Output directory unavailable")
 
     if FRONTEND_DIR.exists():
-        app.mount("/assets", StaticFiles(directory=str(FRONTEND_DIR / "assets")), name="assets")
+        app.mount(
+            "/assets",
+            StaticFiles(directory=str(FRONTEND_DIR / "assets")),
+            name="assets",
+        )
     else:
         logger.warning(f"Frontend directory not found at {FRONTEND_DIR}")
 
@@ -128,7 +145,10 @@ def create_app() -> FastAPI:
         if index_path.exists():
             return FileResponse(index_path)
         return JSONResponse(
-            {"status": "ok", "message": "ConfigStream API is running (Frontend not found)"}
+            {
+                "status": "ok",
+                "message": "ConfigStream API is running (Frontend not found)",
+            }
         )
 
     @app.get("/health")
@@ -159,7 +179,10 @@ def create_app() -> FastAPI:
 
         try:
             # Simple path traversal protection
-            if FRONTEND_DIR.resolve() in page_path.resolve().parents and page_path.exists():
+            if (
+                FRONTEND_DIR.resolve() in page_path.resolve().parents
+                and page_path.exists()
+            ):
                 return FileResponse(page_path)
         except (ValueError, OSError):
             pass
@@ -167,5 +190,6 @@ def create_app() -> FastAPI:
         return await read_index()
 
     return app
+
 
 app = create_app()

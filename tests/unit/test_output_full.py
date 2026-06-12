@@ -78,7 +78,7 @@ def test_save_json_compress(proxies, output_dir):
 def test_save_metadata(proxies, output_dir):
     stats = {"working": 1, "fetched_lines": 10, "duration": 5.0}
 
-    with patch("configstream.output_logic.version", return_value="1.0.0"):
+    with patch("configstream.output.metadata.version", return_value="1.0.0"):
         save_metadata(stats, proxies, output_dir)
 
     path = output_dir / "metadata.json"

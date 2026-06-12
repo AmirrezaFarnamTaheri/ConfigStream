@@ -2,18 +2,9 @@
 import logging
 import copy
 from typing import List, Dict, Optional, Any, Tuple
-from pathlib import Path
 
 from ..models import Proxy
-from ..utils import AtomicFileWriter
 from ..adapters import get_adapter, ShadowrocketAdapter
-from ..generators import (
-    generate_singbox_config,
-    generate_clash_config,
-)
-from ..constants import (
-    canonical_protocol_name,
-)
 from ..utils.net import (
     normalize_host as _normalize_host,
     is_ip_literal as _is_ip_literal,
@@ -22,6 +13,7 @@ from ..utils.net import (
 from ..converters.chains import chain_obs_from_details, update_chain_details
 
 logger = logging.getLogger(__name__)
+
 
 def _rewrite_openvpn_remote(config: str, original_host: str, ip_value: str) -> str:
     if not config or not original_host or not ip_value:
@@ -41,6 +33,7 @@ def _rewrite_openvpn_remote(config: str, original_host: str, ip_value: str) -> s
                 line = " ".join(parts)
         out_lines.append(line)
     return "\n".join(out_lines) + ("\n" if config.endswith("\n") else "")
+
 
 def _rewrite_chain_obs_for_dns(
     details: Dict[str, Any], host_map: Dict[str, str]
@@ -68,6 +61,7 @@ def _rewrite_chain_obs_for_dns(
         rewritten_chain.append(item)
     if changed and rewritten_chain:
         update_chain_details(details, rewritten_chain)
+
 
 def build_dns_safe_proxies(
     proxies: List[Proxy],
@@ -126,6 +120,7 @@ def build_dns_safe_proxies(
         safe.append(clone)
 
     return safe, host_map
+
 
 def build_dns_hardened_proxies(
     proxies: List[Proxy],
@@ -188,6 +183,7 @@ def build_dns_hardened_proxies(
 
     return hardened, host_map
 
+
 def _rewrite_outbound_for_dns_safe(
     outbound: Dict[str, Any], host_map: Dict[str, str]
 ) -> Optional[Dict[str, Any]]:
@@ -208,6 +204,7 @@ def _rewrite_outbound_for_dns_safe(
             outbound["tls"] = tls
     return outbound
 
+
 def _rewrite_outbound_for_dns_hardened(
     outbound: Dict[str, Any], host_map: Dict[str, str]
 ) -> Dict[str, Any]:
@@ -224,6 +221,7 @@ def _rewrite_outbound_for_dns_hardened(
                 tls["server_name"] = server
                 outbound["tls"] = tls
     return outbound
+
 
 def _prune_dangling_detours(cleaned: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     changed = True
@@ -248,6 +246,7 @@ def _prune_dangling_detours(cleaned: List[Dict[str, Any]]) -> List[Dict[str, Any
         cleaned = new_cleaned
     return cleaned
 
+
 def filter_outbounds_for_dns_safe(
     outbounds: List[Dict[str, Any]], host_map: Dict[str, str]
 ) -> List[Dict[str, Any]]:
@@ -264,6 +263,7 @@ def filter_outbounds_for_dns_safe(
         cleaned.append(candidate)
     return _prune_dangling_detours(cleaned)
 
+
 def filter_outbounds_for_dns_hardened(
     outbounds: List[Dict[str, Any]], host_map: Dict[str, str]
 ) -> List[Dict[str, Any]]:
@@ -277,6 +277,7 @@ def filter_outbounds_for_dns_hardened(
         cleaned.append(candidate)
     return _prune_dangling_detours(cleaned)
 
+
 def _render_dns_comment_block(primary: List[str], fallback: List[str]) -> List[str]:
     lines = ["# DNS resolvers (DoH/DoT/DoQ):"]
     for resolver in primary:
@@ -286,6 +287,7 @@ def _render_dns_comment_block(primary: List[str], fallback: List[str]) -> List[s
         for resolver in fallback:
             lines.append(f"# - {resolver}")
     return lines
+
 
 def wrap_surge_or_loon_profile(
     adapter_name: str,
@@ -316,6 +318,7 @@ def wrap_surge_or_loon_profile(
         lines.append(f"fallback-dns-server = {', '.join(fallback)}")
     return "\n".join(lines).rstrip() + "\n"
 
+
 def wrap_quantumultx_profile(
     proxies: List[Proxy],
     primary: List[str],
@@ -337,6 +340,7 @@ def wrap_quantumultx_profile(
         lines.append(f"server={resolver}")
     return "\n".join(lines).rstrip() + "\n"
 
+
 def wrap_shadowrocket_profile(
     proxies: List[Proxy],
     primary: List[str],
@@ -354,6 +358,7 @@ def wrap_shadowrocket_profile(
         lines.append("# Proxy list")
         lines.extend(content.splitlines())
     return "\n".join(lines).rstrip() + "\n"
+
 
 def build_wireguard_config(proxy: Proxy) -> Optional[str]:
     details = proxy.details or {}
@@ -399,6 +404,7 @@ def build_wireguard_config(proxy: Proxy) -> Optional[str]:
 
     return "\n".join(lines) + "\n"
 
+
 def generate_quantumultx_profile(
     proxies: List[Proxy],
     primary: List[str],
@@ -406,10 +412,13 @@ def generate_quantumultx_profile(
 ) -> str:
     return wrap_quantumultx_profile(proxies, primary, fallback)
 
+
 def generate_surge_profile(
     proxies: List[Proxy],
     washed_outbounds: Optional[List[Dict[str, Any]]],
     primary: List[str],
     fallback: List[str],
 ) -> str:
-    return wrap_surge_or_loon_profile("surge", proxies, washed_outbounds, primary, fallback)
+    return wrap_surge_or_loon_profile(
+        "surge", proxies, washed_outbounds, primary, fallback
+    )

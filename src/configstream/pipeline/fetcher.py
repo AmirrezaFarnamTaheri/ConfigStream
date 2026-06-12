@@ -18,6 +18,8 @@ from configstream.source_quality import SourceQualityTracker
 from configstream.security_validator import SecurityValidator
 from configstream.fetcher_worker import FetchResult
 
+from .interfaces import IFetcher
+
 logger = logging.getLogger(__name__)
 
 # Use AppSettings if available, otherwise default
@@ -612,12 +614,23 @@ async def fetch_multiple_sources(
 
     return results
 
-from .interfaces import IFetcher
+
 class HttpFetcher(IFetcher):
-    def __init__(self, client=None, settings=None, breaker_manager=None, timeout_tracker=None):
+    """IFetcher adapter over the module-level fetch_from_source pipeline."""
+
+    def __init__(
+        self, client=None, settings=None, breaker_manager=None, timeout_tracker=None
+    ):
         self.client = client
         self.settings = settings
         self.breaker_manager = breaker_manager
         self.timeout_tracker = timeout_tracker
+
     async def fetch(self, source: str) -> FetchResult:
-        return await fetch_from_source(self.client, source, app_settings=self.settings, breaker_manager=self.breaker_manager, timeout_tracker=self.timeout_tracker)
+        return await fetch_from_source(
+            self.client,
+            source,
+            app_settings=self.settings,
+            breaker_manager=self.breaker_manager,
+            timeout_tracker=self.timeout_tracker,
+        )

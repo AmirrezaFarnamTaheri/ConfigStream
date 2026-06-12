@@ -6,17 +6,17 @@ from pathlib import Path
 from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
 from ..utils import (
-    settings,
     limiter,
     OUTPUT_DIR,
     _read_json_file_async,
     _json_snapshot_sha256,
     SAFE_PATH_PATTERN,
     _serve_output_subpath,
-    logger
+    logger,
 )
 
 router = APIRouter(tags=["proxies"])
+
 
 @router.get("/api/diff/proxies")
 @limiter.limit("5/minute")
@@ -76,6 +76,7 @@ async def get_proxy_diff(request: Request, base_version: str):
     # Fallback: Tell client to fetch full
     return {"type": "full_reload_required"}
 
+
 @router.get("/api/stats")
 async def get_stats():
     """Return the latest pipeline metadata and statistics."""
@@ -96,6 +97,7 @@ async def get_stats():
     except Exception as e:
         logger.error(f"Failed to read metadata.json: {e}")
         return FileResponse(metadata_path)
+
 
 @router.get("/api/proxies")
 @limiter.limit("10/minute")
@@ -153,6 +155,7 @@ async def get_proxies(
         raise HTTPException(503, "Proxies data not available yet")
 
     return FileResponse(master_path, media_type="application/json")
+
 
 @router.get("/subscribe/{fmt}")
 @limiter.limit("5/minute")
@@ -216,21 +219,26 @@ async def download_subscription(request: Request, fmt: str):
 
     return FileResponse(target, filename=file_map[fmt])
 
+
 @router.get("/data/{path:path}")
 async def output_data(path: str):
     return _serve_output_subpath("data", path)
+
 
 @router.get("/countries/{path:path}")
 async def output_countries(path: str):
     return _serve_output_subpath("countries", path)
 
+
 @router.get("/protocols/{path:path}")
 async def output_protocols(path: str):
     return _serve_output_subpath("protocols", path)
 
+
 @router.get("/chosen/{path:path}")
 async def output_chosen(path: str):
     return _serve_output_subpath("chosen", path)
+
 
 @router.get("/docs/{path:path}")
 async def output_docs(path: str):

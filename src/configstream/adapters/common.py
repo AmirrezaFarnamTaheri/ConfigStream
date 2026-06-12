@@ -6,6 +6,7 @@ from ..models import Proxy
 
 logger = logging.getLogger(__name__)
 
+
 def _extract_sni(details: Dict[str, Any]) -> str:
     for key in (
         "sni",
@@ -19,6 +20,7 @@ def _extract_sni(details: Dict[str, Any]) -> str:
         if value:
             return str(value)
     return ""
+
 
 class Adapter(abc.ABC):
     """Base class for proxy adapters."""

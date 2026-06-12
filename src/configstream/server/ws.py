@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import asyncio
-import logging
 from typing import List
 from fastapi import WebSocket, WebSocketDisconnect
 from .utils import settings, logger
+
 
 class ConnectionManager:
     def __init__(
@@ -68,10 +68,12 @@ class ConnectionManager:
             "dropped_connections": self.dropped_connections,
         }
 
+
 manager = ConnectionManager(
     max_connections=settings.WS_MAX_CONNECTIONS,
     send_timeout_seconds=settings.WS_SEND_TIMEOUT_SECONDS,
 )
+
 
 async def websocket_endpoint(websocket: WebSocket):
     if not await manager.connect(websocket):

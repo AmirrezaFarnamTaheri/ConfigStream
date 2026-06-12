@@ -7,6 +7,7 @@ from .common import Adapter
 
 logger = logging.getLogger(__name__)
 
+
 class SIP008Adapter(Adapter):
     """Export to SIP008 JSON format."""
 
