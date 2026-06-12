@@ -51,6 +51,18 @@ from .output.subscriptions import (
     generate_side_products_pack,
 )
 
+# Public/test contract surface re-exported from this orchestrator module.
+__all__ = [
+    "save_metadata",
+    "write_public_artifact_contract",
+    "generate_categorized_lists",
+    "generate_base64_subscription",
+    "generate_plaintext_subscription",
+    "generate_side_products_pack",
+    "generate_split_outputs",
+    "generate_categorized_outputs",
+]
+
 logger = logging.getLogger(__name__)
 
 

@@ -24,25 +24,27 @@ _HandlerT = TypeVar(
 
 if TYPE_CHECKING:
     from telegram import Update
-    from telegram.ext import ContextTypes
-
-try:
-    from telegram import Update
     from telegram.ext import (
         ApplicationBuilder,
         CommandHandler,
+        ContextTypes,
     )
-
-    if not TYPE_CHECKING:
-        from telegram.ext import ContextTypes
-except ImportError:
-    logger.warning(
-        "python-telegram-bot is not installed. Bot features will be disabled."
-    )
-    Update = None  # type: ignore
-    ApplicationBuilder = None  # type: ignore
-    ContextTypes = None  # type: ignore
-    CommandHandler = None  # type: ignore
+else:
+    try:
+        from telegram import Update
+        from telegram.ext import (
+            ApplicationBuilder,
+            CommandHandler,
+            ContextTypes,
+        )
+    except ImportError:
+        logger.warning(
+            "python-telegram-bot is not installed. Bot features will be disabled."
+        )
+        Update = None  # type: ignore
+        ApplicationBuilder = None  # type: ignore
+        ContextTypes = None  # type: ignore
+        CommandHandler = None  # type: ignore
 
 
 def _load_allowed_users() -> Tuple[Set[int], bool]:
