@@ -7,9 +7,7 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' ws: wss: data: https://cp.cloudflare.com https://connectivitycheck.gstatic.com https://1.1.1.1 https://api.github.com https://en.wikipedia.org https://cloudflare-dns.com; worker-src 'self' blob:; object-src 'self'; base-uri 'self'; form-action 'self';">
     <title>Laboratory - ConfigStream</title>
 
-    <script>
-        window.ROOT_PATH = './';
-    </script>
+    <script src="assets/js/root-path.js"></script>
     <link rel="icon" type="image/svg+xml" href="assets/svg/favicon.svg">
     <link rel="alternate icon" href="assets/images/favicon.ico">
     <link rel="icon" type="image/png" sizes="16x16" href="assets/images/favicon-16x16.png">
@@ -463,11 +461,11 @@
                         <i data-feather="globe"></i> <span id="current-lang-label"></span>
                     </button>
                     <div class="lang-menu" id="lang-menu">
-                        <button onclick="window.i18n && window.i18n.setLanguage('en')">English</button>
-                        <button onclick="window.i18n && window.i18n.setLanguage('zh')">中文</button>
-                        <button onclick="window.i18n && window.i18n.setLanguage('ru')">Русский</button>
-                        <button onclick="window.i18n && window.i18n.setLanguage('fa')">فارسی</button>
-                        <button onclick="window.i18n && window.i18n.setLanguage('ar')">العربية</button>
+                        <button class="lang-select-btn" data-lang="en">English</button>
+                        <button class="lang-select-btn" data-lang="zh">中文</button>
+                        <button class="lang-select-btn" data-lang="ru">Русский</button>
+                        <button class="lang-select-btn" data-lang="fa">فارسی</button>
+                        <button class="lang-select-btn" data-lang="ar">العربية</button>
                     </div>
                 </div>
 

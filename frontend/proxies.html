@@ -7,9 +7,7 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' ws: wss: data: https://cp.cloudflare.com https://connectivitycheck.gstatic.com https://1.1.1.1 https://api.github.com https://en.wikipedia.org https://cloudflare-dns.com; worker-src 'self' blob:; object-src 'self'; base-uri 'self'; form-action 'self';">
     <title>Proxy List - ConfigStream</title>
 
-    <script>
-        window.ROOT_PATH = './';
-    </script>
+    <script src="assets/js/root-path.js"></script>
     <link rel="icon" type="image/svg+xml" href="assets/svg/favicon.svg">
     <link rel="alternate icon" href="assets/images/favicon.ico">
     <link rel="icon" type="image/png" sizes="16x16" href="assets/images/favicon-16x16.png">
@@ -309,14 +307,7 @@
     <script src="assets/js/wasm_loader.js" defer></script>
     <script src="assets/js/plugin_loader.js" defer></script>
 
-    <!--
-    <div class="wasm-control" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000; background: var(--bg-card); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
-        <button id="btn-verify-local" class="btn btn-outline-success" onclick="runLocalVerification()">
-            <i data-feather="cpu"></i> <span data-i18n="verify.local">Turbo-Verify (Local)</span>
-        </button>
-        <span id="wasm-status" class="text-muted text-sm" style="display: block; margin-top: 5px; font-size: 0.8rem;" data-i18n="verify.status">Ready to verify via WASM</span>
-    </div>
-    -->
+
     <script src="assets/js/byow.js" defer></script>
     <script src="assets/js/common-ui.js" defer></script>
     <script type="module" src="assets/js/main.js" defer></script>
