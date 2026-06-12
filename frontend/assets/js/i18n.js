@@ -2,7 +2,7 @@
 
 /**
  * I18n Manager for ConfigStream
- * 
+ *
  * Performance: Dictionaries are loaded on-demand from assets/i18n/[lang].json
  * to keep the main bundle light.
  */
@@ -18,7 +18,7 @@ class I18n {
 
     async init() {
         if (this.initPromise) return this.initPromise;
-        
+
         this.initPromise = (async () => {
             // Load English as fallback and the current selected language
             const loads = [this.loadLanguage('en')];
@@ -28,7 +28,7 @@ class I18n {
             await Promise.all(loads);
             this.initialized = true;
             this.updatePage();
-            
+
             // Re-apply language settings (RTL, attributes)
             this.applyLanguageSettings(this.currentLang);
 
@@ -36,7 +36,7 @@ class I18n {
             // before init completed (e.g. the hero subtitle) can re-render.
             window.dispatchEvent(new CustomEvent('languageChanged', { detail: { lang: this.currentLang } }));
         })();
-        
+
         return this.initPromise;
     }
 
@@ -59,13 +59,13 @@ class I18n {
             console.warn(`[I18n] Language ${lang} not supported or load failed`);
             return;
         }
-        
+
         this.currentLang = lang;
         localStorage.setItem('lang', lang);
-        
+
         this.applyLanguageSettings(lang);
         this.updatePage();
-        
+
         // Dispatch event for other components
         window.dispatchEvent(new CustomEvent('languageChanged', { detail: { lang } }));
     }
@@ -106,8 +106,8 @@ class I18n {
     }
 
     t(key) {
-        return (this.translations[this.currentLang] && this.translations[this.currentLang][key]) || 
-               (this.translations['en'] && this.translations['en'][key]) || 
+        return (this.translations[this.currentLang] && this.translations[this.currentLang][key]) ||
+               (this.translations['en'] && this.translations['en'][key]) ||
                key;
     }
 
@@ -159,7 +159,7 @@ class I18n {
     formatNumber(num) {
         if (!num && num !== 0) return '';
         const number = typeof num === 'string' ? parseFloat(num.replace(/,/g, '')) : num;
-        
+
         try {
             const locales = {
                 'fa': 'fa-IR',

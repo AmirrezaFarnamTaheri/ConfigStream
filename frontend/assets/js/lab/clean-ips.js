@@ -34,7 +34,7 @@ export function renderCleanIpTable() {
         const tr = document.createElement('tr');
         const statusCls = ip.status === 'ok' ? 'status-ok' : (ip.status === 'fail' ? 'status-fail' : '');
         const statusText = ip.status === 'ok' ? 'OK' : ip.status === 'fail' ? 'Failed' : 'Untested';
-        
+
         const tdIp = document.createElement('td');
         tdIp.textContent = ip.ip + ':' + ip.port;
         const tdLat = document.createElement('td');
@@ -42,7 +42,7 @@ export function renderCleanIpTable() {
         const tdStatus = document.createElement('td');
         if (statusCls) tdStatus.className = statusCls;
         tdStatus.textContent = statusText;
-        
+
         tr.append(tdIp, tdLat, tdStatus);
         tbody.appendChild(tr);
     });

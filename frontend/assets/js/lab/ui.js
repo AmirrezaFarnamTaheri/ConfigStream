@@ -42,7 +42,7 @@ export function showResultHTML(elId, type, html) {
     const el = document.getElementById(elId);
     if (!el) return;
     el.className = 'lab-test-result ' + type;
-    
+
     // Simple parser for <strong> and <code> and <br>
     el.replaceChildren();
     const parts = html.split(/(<[^>]+>[^<]+<\/[^>]+>|<br>)/);
@@ -136,12 +136,12 @@ export function renderHealthBadges(results) {
         const cls = results[b.key] ? 'ok' : 'fail';
         const badge = document.createElement('span');
         badge.className = 'chain-health-badge ' + cls;
-        
+
         const dot = document.createElement('span');
         dot.className = 'dot';
         badge.appendChild(dot);
         badge.appendChild(document.createTextNode(b.label));
-        
+
         container.appendChild(badge);
     }
 }

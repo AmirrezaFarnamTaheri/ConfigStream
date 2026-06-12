@@ -454,6 +454,147 @@ async function exerciseLabXss(browser) {
   }
 }
 
+async function exerciseLabExportFormats(browser) {
+  // Walks the full Lab chain wizard (steps 1-5) with a benign proxy and
+  // verifies every non-QR export format renders well-formed, non-empty output
+  // entirely client-side. Complements exerciseLabXss (which covers QR + XSS).
+  let labTestCalls = 0;
+  const server = createServer({
+    "/api/lab/test-chain": (_request, response) => {
+      labTestCalls += 1;
+      const body =
+        labTestCalls === 1
+          ? { success: false, error: "probe failed" }
+          : { success: true, latency: 42, exit_ip: "203.0.113.7" };
+      response.writeHead(200, {
+        "content-type": "application/json; charset=utf-8",
+      });
+      response.end(JSON.stringify(body));
+    },
+  });
+  const port = await listen(server);
+  const baseUrl = `http://127.0.0.1:${port}`;
+  const allowedHost = new URL(baseUrl).host;
+  const blockedUrls = [];
+  const context = await browser.newContext();
+  const page = await context.newPage();
+
+  await page.route("**/*", (route) => {
+    const requestUrl = route.request().url();
+    const parsed = new URL(requestUrl);
+    if (
+      (parsed.protocol === "http:" || parsed.protocol === "https:") &&
+      parsed.host !== allowedHost
+    ) {
+      blockedUrls.push(requestUrl);
+      return route.abort();
+    }
+    return route.continue();
+  });
+
+  // Each format maps to the substring(s) that must appear in the rendered
+  // export code block, asserting the exporter actually ran for that format.
+  const formatExpectations = {
+    singbox: ['"outbounds"'],
+    clash: ["proxies:", "proxy-groups:"],
+    xray: ['"inbounds"', '"outbounds"'],
+    nekobox: ["nekobox://import-singbox?config="],
+    uri: ["vless://"],
+    "script-python": ["#!/usr/bin/env python3", "sing-box"],
+    "script-bash": ["#!/usr/bin/env bash", "sing-box"],
+  };
+
+  try {
+    await page.goto(`${baseUrl}/lab.html`, {
+      waitUntil: "domcontentloaded",
+      timeout: 10000,
+    });
+    await page.locator("#proxyUri").waitFor({ state: "visible", timeout: 10000 });
+
+    // Step 1: parse a benign, well-formed VLESS proxy.
+    const proxyUri =
+      "vless://11111111-1111-4111-8111-111111111111@example.com:443?security=tls&sni=example.com#ExportFixture";
+    await page.fill("#proxyUri", proxyUri);
+    await page.click("#step1Next");
+    await page
+      .locator("#step-2.active")
+      .waitFor({ state: "visible", timeout: 10000 });
+
+    // Step 2: accept defaults.
+    await page.click("#step2Next");
+    await page
+      .locator("#step-3.active")
+      .waitFor({ state: "visible", timeout: 10000 });
+
+    // Step 3: a simple fragment strategy yields a deterministic chain config.
+    await page.selectOption("#chainType", "fragment");
+    await page.click("#step3Next");
+    await page
+      .locator("#step-4.active")
+      .waitFor({ state: "visible", timeout: 10000 });
+
+    // Step 4: first probe fails, second succeeds and unlocks Next.
+    await page.click("#step4Test");
+    await page.locator("#step4Result").waitFor({ state: "visible", timeout: 10000 });
+    await page.click("#step4Test");
+    await page.locator("#step4Next:not([disabled])").waitFor({
+      state: "visible",
+      timeout: 10000,
+    });
+    await page.click("#step4Next");
+    await page
+      .locator("#step-5.active")
+      .waitFor({ state: "visible", timeout: 10000 });
+
+    // Step 5: exercise every non-QR export format.
+    for (const [format, needles] of Object.entries(formatExpectations)) {
+      await page.selectOption("#exportFormat", format);
+      await page.click("#step5Export");
+      await page
+        .locator("#exportOutput")
+        .waitFor({ state: "visible", timeout: 10000 });
+      const content = await page.locator("#exportCode").innerText();
+      if (!content || content.trim().length === 0) {
+        throw new Error(`Lab export format "${format}" produced empty output`);
+      }
+      for (const needle of needles) {
+        if (!content.includes(needle)) {
+          throw new Error(
+            `Lab export format "${format}" missing expected content: ${needle}`,
+          );
+        }
+      }
+      // The rendered export must stay inert text, never live DOM nodes.
+      const injectedNodes = await page
+        .locator("#exportCode")
+        .locator("img,script,iframe,svg")
+        .count();
+      if (injectedNodes > 0) {
+        throw new Error(
+          `Lab export format "${format}" rendered live DOM nodes in the code block`,
+        );
+      }
+    }
+
+    // The download path must stage a valid in-memory blob without navigating.
+    await page.selectOption("#exportFormat", "singbox");
+    await page.click("#step5Export");
+    const stagedDownload = await page.evaluate(() =>
+      Boolean(window._labExportContent && window._labExportFilename),
+    );
+    if (!stagedDownload) {
+      throw new Error("Lab export did not stage downloadable content/filename");
+    }
+
+    if (blockedUrls.length > 0) {
+      throw new Error(`External requests blocked: ${blockedUrls.join(", ")}`);
+    }
+  } finally {
+    await context.close();
+    await closeServer(server);
+  }
+}
+
 async function assertLabStrategies(page) {
   const expectedStrategies = labStrategyIds();
   const renderedStrategies = await page
@@ -515,6 +656,8 @@ async function main() {
       console.log("protocol render smoke passed");
       await exerciseLabXss(browser);
       console.log("lab xss smoke passed");
+      await exerciseLabExportFormats(browser);
+      console.log("lab export formats smoke passed");
     }
 
     await exercisePages(browser, baseUrl, allowedHost, {

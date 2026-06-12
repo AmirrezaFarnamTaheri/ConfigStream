@@ -114,7 +114,7 @@ function initDynamicDownloads() {
     };
 
     const evasionModeSelector = document.getElementById('evasion-mode-selector');
-    
+
     const dnsProfile = () => {
         if (window.getDnsProfile) {
             return window.getDnsProfile();
@@ -124,7 +124,7 @@ function initDynamicDownloads() {
         }
         return dnsToggle && dnsToggle.checked ? 'dns-safe' : 'standard';
     };
-    
+
     const evasionMode = () => {
         if (evasionModeSelector && evasionModeSelector.value) {
             return evasionModeSelector.value;

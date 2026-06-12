@@ -256,7 +256,7 @@ def main():
     with tempfile.NamedTemporaryFile(suffix=".json", mode="w", delete=False) as f:
         json.dump(CONFIG, f)
         cfg_path = f.name
-    
+
     print(f"[*] Starting chain proxy on 127.0.0.1:2080")
     print(f"[*] Set your browser/system proxy to socks5://127.0.0.1:2080")${vwarpPrint}
     try:

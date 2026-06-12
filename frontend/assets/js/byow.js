@@ -33,23 +33,23 @@ async function applyUserWorker() {
     }
 
     const button = document.getElementById('upgradePlatinumBtn');
-    
+
     try {
         // Show loading state
         if (button) {
             button.disabled = true;
             button.replaceChildren();
-            
+
             const icon = document.createElement('i');
             icon.setAttribute('data-feather', 'loader');
-            
+
             const span = document.createElement('span');
             span.textContent = 'Processing...';
-            
+
             button.appendChild(icon);
             button.appendChild(document.createTextNode(' '));
             button.appendChild(span);
-            
+
             if (window.feather) window.feather.replace();
         }
 
@@ -72,18 +72,18 @@ async function applyUserWorker() {
         if (modifiedConfig.outbounds && Array.isArray(modifiedConfig.outbounds)) {
             modifiedConfig.outbounds.forEach(outbound => {
                 // Look for VLESS/VMess outbounds with WebSocket transport (these are the bridges)
-                if ((outbound.type === "vless" || outbound.type === "vmess") && 
-                    outbound.transport && 
+                if ((outbound.type === "vless" || outbound.type === "vmess") &&
+                    outbound.transport &&
                     outbound.transport.type === "ws") {
-                    
+
                     // Update the server to point to user's worker
                     // Keep the IP as a clean Cloudflare IP (or use worker hostname)
                     // The key is updating TLS server_name and WebSocket Host header
-                    
+
                     // Option 1: Use worker hostname directly (if Cloudflare allows)
                     // outbound.server = workerHost;
                     // outbound.server_port = 443;
-                    
+
                     // Option 2: Use a clean Cloudflare IP and set SNI/Host to worker domain
                     // This is more reliable as it avoids DNS resolution issues
                     if (!outbound.server || outbound.server === '127.0.0.1') {
@@ -91,26 +91,26 @@ async function applyUserWorker() {
                         outbound.server = "104.16.20.10"; // Clean Cloudflare IP
                     }
                     outbound.server_port = 443;
-                    
+
                     // CRITICAL: Set TLS server_name to worker domain
                     if (outbound.tls) {
                         outbound.tls.server_name = workerHost;
                     } else {
                         outbound.tls = { server_name: workerHost };
                     }
-                    
+
                     // CRITICAL: Set WebSocket Host header to worker domain
                     if (outbound.transport.headers) {
                         outbound.transport.headers.Host = workerHost;
                     } else {
                         outbound.transport.headers = { Host: workerHost };
                     }
-                    
+
                     // Update WebSocket path if needed (ensure it matches worker's PROXY_PATH)
                     if (!outbound.transport.path || !outbound.transport.path.includes('/my-secret-tunnel')) {
                         outbound.transport.path = '/my-secret-tunnel';
                     }
-                    
+
                     modifiedCount++;
                 }
             });
@@ -121,17 +121,17 @@ async function applyUserWorker() {
             if (button) {
                 button.disabled = false;
                 button.replaceChildren();
-                
+
                 const icon = document.createElement('i');
                 icon.setAttribute('data-feather', 'zap');
-                
+
                 const span = document.createElement('span');
                 span.textContent = 'Upgrade to Platinum';
-                
+
                 button.appendChild(icon);
                 button.appendChild(document.createTextNode(' '));
                 button.appendChild(span);
-                
+
                 if (window.feather) window.feather.replace();
             }
             return;
@@ -157,17 +157,17 @@ async function applyUserWorker() {
         if (button) {
             button.disabled = false;
             button.replaceChildren();
-            
+
             const icon = document.createElement('i');
             icon.setAttribute('data-feather', 'zap');
-            
+
             const span = document.createElement('span');
             span.textContent = 'Upgrade to Platinum';
-            
+
             button.appendChild(icon);
             button.appendChild(document.createTextNode(' '));
             button.appendChild(span);
-            
+
             if (window.feather) window.feather.replace();
         }
     }

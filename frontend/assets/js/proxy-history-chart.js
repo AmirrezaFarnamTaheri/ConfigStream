@@ -69,7 +69,7 @@ class ProxyHistoryChart {
         // Stats
         const statsGrid = document.createElement('div');
         statsGrid.className = 'chart-stats';
-        
+
         const createStatCard = (label, value) => {
             const card = document.createElement('div');
             card.className = 'stat-card';
@@ -103,7 +103,7 @@ class ProxyHistoryChart {
         // Legend
         const legend = document.createElement('div');
         legend.className = 'chart-legend';
-        
+
         const createLegendItem = (color, label) => {
             const item = document.createElement('div');
             item.className = 'legend-item';

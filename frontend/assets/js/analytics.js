@@ -173,7 +173,7 @@ function initGlobe(data) {
     spinner.style.height = '40px';
     spinner.style.animation = 'spin 1s linear infinite';
     spinner.style.marginRight = '10px';
-    
+
     loadingDiv.appendChild(spinner);
     loadingDiv.appendChild(document.createTextNode('Loading globe...'));
     container.appendChild(loadingDiv);
@@ -595,10 +595,10 @@ function _initGlobeInternal(data, container) {
         globeIcon.style.height = '48px';
         globeIcon.style.marginBottom = '1rem';
         globeIcon.style.opacity = '0.5';
-        
+
         const span1 = document.createElement('span');
         span1.textContent = '3D Visualization Unavailable';
-        
+
         const span2 = document.createElement('span');
         span2.style.fontSize = '0.8rem';
         span2.style.opacity = '0.7';

@@ -10,7 +10,7 @@ export async function runDiagnosis() {
     const advice = $('#diagAdvice');
     if (!tbody || !container) return;
     container.style.display = 'block';
-    
+
     tbody.replaceChildren();
     const loadingRow = document.createElement('tr');
     const loadingCell = document.createElement('td');
@@ -37,7 +37,7 @@ export async function runDiagnosis() {
             await fetch(t.url, { mode: 'no-cors', cache: 'no-store', signal: AbortSignal.timeout(6000) });
             const lat = Math.round(performance.now() - start);
             results[t.key] = true;
-            
+
             const tdName = document.createElement('td');
             tdName.textContent = t.name;
             const tdLat = document.createElement('td');
@@ -45,7 +45,7 @@ export async function runDiagnosis() {
             const tdStatus = document.createElement('td');
             tdStatus.className = 'status-ok';
             tdStatus.textContent = 'Reachable';
-            
+
             tr.append(tdName, tdLat, tdStatus);
         } catch {
             results[t.key] = false;
@@ -56,7 +56,7 @@ export async function runDiagnosis() {
             const tdStatus = document.createElement('td');
             tdStatus.className = 'status-fail';
             tdStatus.textContent = 'Blocked';
-            
+
             tr.append(tdName, tdLat, tdStatus);
         }
         tbody.appendChild(tr);

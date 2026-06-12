@@ -279,7 +279,7 @@ function renderTable() {
             if (p.typeTag === 'secure') { tagClass = 'badge-success'; tagText = 'Secure'; icon = '🛡️'; }
             if (p.typeTag === 'optimal') { tagClass = 'badge-warning'; tagText = 'Optimal'; icon = '⚡'; }
             if (p.typeTag === 'intranet') { tagClass = 'badge-primary'; tagText = 'Intranet'; icon = '🏢'; }
-            
+
             const tagBadge = document.createElement('span');
             tagBadge.className = `badge ${tagClass}`;
             tagBadge.style.fontSize = '0.7em';
@@ -297,7 +297,7 @@ function renderTable() {
         const safeCountryCode = p.country_code || 'Unknown';
         const normalizedCountryCode = typeof p.country_code === 'string' ? p.country_code.trim().toLowerCase() : '';
         const hasLocalFlag = /^[a-z]{2}$/.test(normalizedCountryCode) && normalizedCountryCode !== 'xx';
-        
+
         if (hasLocalFlag) {
             const flag = document.createElement('img');
             flag.src = `assets/images/flags/w20/${normalizedCountryCode}.png`;
@@ -317,7 +317,7 @@ function renderTable() {
             flagIcon.className = 'country-flag-icon';
             locCell.appendChild(flagIcon);
         }
-        
+
         const locTextSpan = document.createElement('span');
         locTextSpan.textContent = p.city ? `${p.city}, ${safeCountryCode}` : safeCountryCode;
         locCell.appendChild(document.createTextNode(' '));
@@ -416,7 +416,7 @@ function renderTable() {
                 path.setAttribute('stroke', trendColor);
                 path.setAttribute('stroke-width', '2');
                 path.setAttribute('stroke-linecap', 'round');
-                
+
                 svg.appendChild(path);
                 trendWrapper.appendChild(svg);
 
@@ -447,11 +447,11 @@ function renderTable() {
         actionCell.setAttribute('data-label', 'Action');
         const btn = document.createElement('button');
         btn.className = 'btn btn-secondary copy-btn';
-        
+
         const copyIcon = document.createElement('i');
         copyIcon.dataset.feather = 'copy';
         btn.appendChild(copyIcon);
-        
+
         // We use data-config attribute or just pass it
         // p.config might be the full URL/URI
         const configStr = p.config || '';
@@ -667,10 +667,10 @@ function updatePaginationInfo() {
         b.className = 'pagination-btn';
         b.textContent = text;
         b.disabled = disabled;
-        b.addEventListener('click', () => { 
-            currentPage = page; 
-            renderTable(); 
-            updatePaginationInfo(); 
+        b.addEventListener('click', () => {
+            currentPage = page;
+            renderTable();
+            updatePaginationInfo();
         });
         return b;
     };

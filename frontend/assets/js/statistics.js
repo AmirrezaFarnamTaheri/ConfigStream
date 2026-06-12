@@ -127,17 +127,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const vwarpWinRate = (metadata && metadata.vwarp_win_rate) || 0;
         updateElement('#vwarpWinRate', (vwarpWinRate !== undefined) ? Math.round(vwarpWinRate) + '%' : '0%');
-        
+
         // Evasion metrics
         const shielded = (metadata && metadata.shielded_count) || 0;
         updateElement('#shieldedCount', shielded.toLocaleString());
-        
+
         const evasionUtls = (metadata && metadata.evasion_utls_enabled) || 0;
         updateElement('#evasionUtls', evasionUtls.toLocaleString());
-        
+
         const evasionDnsSafe = (metadata && metadata.evasion_dns_safe_count) || 0;
         updateElement('#evasionDnsSafe', evasionDnsSafe.toLocaleString());
-        
+
         const evasionDnsHardened = (metadata && metadata.evasion_dns_hardened_count) || 0;
         updateElement('#evasionDnsHardened', evasionDnsHardened.toLocaleString());
 

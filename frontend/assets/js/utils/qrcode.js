@@ -22,7 +22,7 @@
 // Licensed under the MIT license:
 //   http://www.opensource.org/licenses/mit-license.php
 //
-// The word "QR Code" is registered trademark of 
+// The word "QR Code" is registered trademark of
 // DENSO WAVE INCORPORATED
 //   http://www.denso-wave.com/qrcode/faqpatent-e.html
 //
@@ -156,72 +156,72 @@ this.length++;}};var QRCodeLimitLength=[[17,14,11,7],[32,26,20,14],[53,42,32,24]
 /** Constructor */
 function QRCode(options) {
   var instance = this;
-  
+
   //Default options
   this.options = {
     padding: 4,
-    width: 256, 
+    width: 256,
     height: 256,
     typeNumber: 4,
     color: "#000000",
     background: "#ffffff",
     ecl: "M"
   };
-  
+
   //In case the options is string
   if (typeof options === 'string') {
     options = {
       content: options
     };
   }
-  
+
   //Merge options
   if (options) {
     for (var i in options) {
       this.options[i] = options[i];
     }
   }
-  
+
   if (typeof this.options.content !== 'string') {
     throw new Error("Expected 'content' as string!");
   }
-  
+
   if (this.options.content.length === 0 /* || this.options.content.length > 7089 */) {
     throw new Error("Expected 'content' to be non-empty!");
   }
-  
+
   if (!(this.options.padding >= 0)) {
     throw new Error("Expected 'padding' value to be non-negative!");
   }
-  
+
   if (!(this.options.width > 0) || !(this.options.height > 0)) {
     throw new Error("Expected 'width' or 'height' value to be higher than zero!");
   }
-  
+
   //Gets the error correction level
   function _getErrorCorrectLevel(ecl) {
     switch (ecl) {
         case "L":
           return QRErrorCorrectLevel.L;
-          
+
         case "M":
           return QRErrorCorrectLevel.M;
-          
+
         case "Q":
           return QRErrorCorrectLevel.Q;
-          
+
         case "H":
           return QRErrorCorrectLevel.H;
-          
+
         default:
           throw new Error("Unknwon error correction level: " + ecl);
       }
   }
-  
+
   //Get type number
-  function _getTypeNumber(content, ecl) {      
+  function _getTypeNumber(content, ecl) {
     var length = _getUTF8Length(content);
-    
+
     var type = 1;
     var limit = 0;
     for (var i = 0, len = QRCodeLimitLength.length; i <= len; i++) {
@@ -229,39 +229,39 @@ function QRCode(options) {
       if (!table) {
         throw new Error("Content too long: expected " + limit + " but got " + length);
       }
-      
+
       switch (ecl) {
         case "L":
           limit = table[0];
           break;
-          
+
         case "M":
           limit = table[1];
           break;
-          
+
         case "Q":
           limit = table[2];
           break;
-          
+
         case "H":
           limit = table[3];
           break;
-          
+
         default:
           throw new Error("Unknwon error correction level: " + ecl);
       }
-      
+
       if (length <= limit) {
         break;
       }
-      
+
       type++;
     }
-    
+
     if (type > QRCodeLimitLength.length) {
       throw new Error("Content too long");
     }
-    
+
     return type;
   }
 
@@ -270,7 +270,7 @@ function QRCode(options) {
     var result = encodeURI(content).toString().replace(/\%[0-9a-fA-F]{2}/g, 'a');
     return result.length + (result.length != content ? 3 : 0);
   }
-  
+
   //Generate QR Code matrix
   var content = this.options.content;
   var type = _getTypeNumber(content, this.options.ecl);
@@ -284,14 +284,14 @@ function QRCode(options) {
 QRCode.prototype.svg = function(opt) {
   var options = this.options || { };
   var modules = this.qrcode.modules;
-  
+
   if (typeof opt == "undefined") {
     opt = { container: options.container || "svg" };
   }
-  
+
   //Apply new lines and indents in SVG?
   var pretty = typeof options.pretty != "undefined" ? !!options.pretty : true;
-  
+
   var indent = pretty ? '  ' : '';
   var EOL = pretty ? '\r\n' : '';
   var width = options.width;
@@ -299,23 +299,23 @@ QRCode.prototype.svg = function(opt) {
   var length = modules.length;
   var xsize = width / (length + 2 * options.padding);
   var ysize = height / (length + 2 * options.padding);
-  
+
   //Join (union, merge) rectangles into one shape?
   var join = typeof options.join != "undefined" ? !!options.join : false;
-  
+
   //Swap the X and Y modules, pull request #2
   var swap = typeof options.swap != "undefined" ? !!options.swap : false;
-  
+
   //Apply <?xml...?> declaration in SVG?
   var xmlDeclaration = typeof options.xmlDeclaration != "undefined" ? !!options.xmlDeclaration : true;
-  
+
   //Populate with predefined shape instead of "rect" elements, thanks to @kkocdko
   var predefined = typeof options.predefined != "undefined" ? !!options.predefined : false;
   var defs = predefined ? indent + '<defs><path id="qrmodule" d="M0 0 h' + ysize + ' v' + xsize + ' H0 z" style="fill:' + options.color + ';shape-rendering:crispEdges;" /></defs>' + EOL : '';
-  
+
   //Background rectangle
   var bgrect = indent + '<rect x="0" y="0" width="' + width + '" height="' + height + '" style="fill:' + options.background + ';shape-rendering:crispEdges;"/>' + EOL;
-  
+
   //Rectangles representing modules
   var modrect = '';
   var pathdata = '';
@@ -324,17 +324,17 @@ QRCode.prototype.svg = function(opt) {
     for (var x = 0; x < length; x++) {
       var module = modules[x][y];
       if (module) {
-        
+
         var px = (x * xsize + options.padding * xsize);
         var py = (y * ysize + options.padding * ysize);
-        
+
         //Some users have had issues with the QR Code, thanks to @danioso for the solution
         if (swap) {
           var t = px;
           px = py;
           py = t;
         }
-        
+
         if (join) {
           //Module as a part of svg path data, thanks to @danioso
           var w = xsize + px
@@ -358,7 +358,7 @@ QRCode.prototype.svg = function(opt) {
       }
     }
   }
-  
+
   if (join) {
     modrect = indent + '<path x="0" y="0" style="fill:' + options.color + ';shape-rendering:crispEdges;" d="' + pathdata + '" />';
   }
@@ -374,7 +374,7 @@ QRCode.prototype.svg = function(opt) {
       svg += defs + bgrect + modrect;
       svg += '</svg>';
       break;
-      
+
     //Viewbox for responsive use in a browser, thanks to @danioso
     case "svg-viewbox":
       if (xmlDeclaration) {
@@ -384,21 +384,21 @@ QRCode.prototype.svg = function(opt) {
       svg += defs + bgrect + modrect;
       svg += '</svg>';
       break;
-      
-    
-    //Wrapped in group element    
+
+
+    //Wrapped in group element
     case "g":
       svg += '<g width="' + width + '" height="' + height + '">' + EOL;
       svg += defs + bgrect + modrect;
       svg += '</g>';
       break;
-      
+
     //Without a container
     default:
       svg += (defs + bgrect + modrect).replace(/^\s+/, ""); //Clear indents on each line
       break;
   }
-  
+
   return svg;
 };
 

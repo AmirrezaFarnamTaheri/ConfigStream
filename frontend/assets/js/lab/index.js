@@ -2,31 +2,31 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { state, PIPELINE_URLS } from './state.js';
-import { 
-    $, $$, 
-    normalizeProtocolName, 
-    compareProtocols, 
-    comparePipelineProxy, 
-    escapeHtml, 
-    isStaticHosting, 
-    joinBase 
+import {
+    $, $$,
+    normalizeProtocolName,
+    compareProtocols,
+    comparePipelineProxy,
+    escapeHtml,
+    isStaticHosting,
+    joinBase
 } from './utils.js';
-import { 
-    goToStep, 
-    showResultText, 
-    showResultHTML, 
+import {
+    goToStep,
+    showResultText,
+    showResultHTML,
     hideResult,
     renderGauge,
     renderHealthBadges
 } from './ui.js';
 import { parseProxyUri } from './parser.js';
 import { handleStep2Next, handleCleanIpMethodChange } from './clean-ips.js';
-import { 
-    buildSingboxChain, 
-    buildDoubleWarpChain, 
-    buildFragmentChain, 
-    buildWorkerChain, 
-    buildRelayChain, 
+import {
+    buildSingboxChain,
+    buildDoubleWarpChain,
+    buildFragmentChain,
+    buildWorkerChain,
+    buildRelayChain,
     buildCustomChain,
     buildProxyOutbound,
     makeWarpOutbound
@@ -40,7 +40,7 @@ async function testLocalProxy() {
     const addrEl = $('#localProxyAddr');
     const type = typeEl ? typeEl.value : '';
     const addr = addrEl ? addrEl.value : '';
-    
+
     if (!type || !addr) {
         showResultText('localProxyResult', 'error', 'Select a proxy type and enter the address.');
         return;
@@ -49,7 +49,7 @@ async function testLocalProxy() {
     const safeTypeLabel = escapeHtml(String(type).toUpperCase());
     const safeAddr = escapeHtml(addr);
     showResultText('localProxyResult', 'pending', `Testing ${safeType}://${safeAddr}...`);
-    
+
     showResultHTML('localProxyResult', 'info',
         `<strong>Browser cannot test ${safeTypeLabel} proxies directly.</strong><br>` +
         `To verify, run in terminal:<br>` +
@@ -130,11 +130,11 @@ async function handleLoadPipelineProxies() {
 
     if (select) {
         select.replaceChildren();
-        const placeholder = document.createElement('option');
-        placeholder.value = '';
-        placeholder.textContent = `-- Select a pre-tested proxy (${proxies.length} available) --`;
-        select.appendChild(placeholder);
-        
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = `-- Select a pre-tested proxy (${proxies.length} available) --`;
+        select.appendChild(defaultOption);
+
         const orderedProtocols = Object.keys(grouped).sort(compareProtocols);
         for (const proto of orderedProtocols) {
             const list = grouped[proto].slice().sort(comparePipelineProxy);
@@ -434,7 +434,7 @@ function handleStep5Export() {
         return;
     }
     const format = ($('#exportFormat') || {}).value || 'singbox';
-    
+
     if (format === 'qr') {
         generateQR(state.parsedProxy ? state.parsedProxy.config : '');
         showResultText('step5Result', 'success', 'Offline QR payload ready. Copy it into a trusted local QR tool or VPN client.');
@@ -630,7 +630,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     $('#step5Download')?.addEventListener('click', handleStep5Download);
     setupCopyButton('copyChainConfig', 'chainConfigCode');
     setupCopyButton('copyExport', 'exportCode');
-    
+
     // Relay layer pipeline picker
     document.querySelectorAll('.relay-pipeline-btn').forEach(btn => {
         btn.addEventListener('click', async function () {

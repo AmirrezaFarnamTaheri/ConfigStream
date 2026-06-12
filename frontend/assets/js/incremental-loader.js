@@ -15,13 +15,13 @@ class IncrementalLoader {
         const start = this.currentChunk * this.chunkSize;
         const end = start + this.chunkSize;
         const chunk = this.allProxies.slice(start, end);
-        
+
         if (chunk.length > 0) {
             this.loadedProxies.push(...chunk);
             this.currentChunk++;
             return chunk;
         }
-        
+
         return null;
     }
 

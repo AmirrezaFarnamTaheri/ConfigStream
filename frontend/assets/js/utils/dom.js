@@ -89,12 +89,12 @@ async function copyToClipboard(text, button) {
 
     // Save original content as nodes
     const originalContent = Array.from(button.childNodes);
-    
+
     // Create check icon
     const icon = document.createElement('i');
     icon.setAttribute('data-feather', 'check');
     button.replaceChildren(icon);
-    
+
     if (window.inlineIcons) window.inlineIcons.replace();
     button.classList.add('copied');
 
