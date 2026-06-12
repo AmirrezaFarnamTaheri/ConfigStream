@@ -1,4 +1,3 @@
-import pytest
 import json
 from configstream.parsers.clash_json import parse_clash_json
 

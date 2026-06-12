@@ -48,7 +48,10 @@ def patch_runner_run():
 
         original_run = RunnerClass.run
 
-        def patched_run(self, coro, *, context=None):
+        # Bind original_run per-iteration: a plain closure would make every
+        # patched_run delegate to the LAST runner's original implementation
+        # when more than one Runner class is patched.
+        def patched_run(self, coro, *, context=None, original_run=original_run):
             try:
                 # Check if ANY loop is running
                 asyncio.get_running_loop()

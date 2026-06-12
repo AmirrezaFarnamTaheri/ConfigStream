@@ -53,7 +53,9 @@ def _validate_lab_destination(host: object, path: str) -> None:
         ip = ipaddress.ip_address(cleaned)
     except ValueError:
         if not re.fullmatch(r"[a-z0-9.-]+", cleaned):
-            raise HTTPException(status_code=400, detail=f"{path} is not a valid host")
+            raise HTTPException(
+                status_code=400, detail=f"{path} is not a valid host"
+            ) from None
         return
 
     if not ip.is_global:

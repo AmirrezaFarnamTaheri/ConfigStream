@@ -341,7 +341,15 @@ async def fetch_from_source(
                     if breaker:
                         await breaker.record_failure()
                     retry_after = response.headers.get("Retry-After")
-                    wait = float(retry_after) if retry_after else 2.0
+                    # Retry-After may be delta-seconds or an HTTP-date; only
+                    # honor numeric values and clamp to a sane ceiling so a
+                    # hostile/buggy server cannot stall the pipeline.
+                    wait = 2.0
+                    if retry_after:
+                        try:
+                            wait = min(max(float(retry_after), 0.0), 30.0)
+                        except (TypeError, ValueError):
+                            wait = 2.0
                     await asyncio.sleep(wait)
                     attempt += 1
                     last_error = "Rate limited"

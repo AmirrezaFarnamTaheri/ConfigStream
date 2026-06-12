@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import json
-from pathlib import Path
-from typing import List
 import pytest
 
 from configstream.models import Proxy

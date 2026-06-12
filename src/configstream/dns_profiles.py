@@ -8,9 +8,9 @@ from __future__ import annotations
 
 from typing import Dict, Any, List
 
-from .intelligence.dns_lists import (  # noqa: F401
-    CLOUDFLARE_OPTIMIZED_IPS,
-    IRAN_INFRASTRUCTURE_DNS,
+from .intelligence.dns_lists import (
+    CLOUDFLARE_OPTIMIZED_IPS as CLOUDFLARE_OPTIMIZED_IPS,
+    IRAN_INFRASTRUCTURE_DNS as IRAN_INFRASTRUCTURE_DNS,
 )
 
 

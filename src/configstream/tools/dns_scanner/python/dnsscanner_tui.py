@@ -1068,7 +1068,7 @@ class DNSScannerTUI(App):
         await asyncio.sleep(0)
 
         # Fast count of lines to estimate total
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         line_count = await loop.run_in_executor(
             None, self._count_file_lines, self.subnet_file
         )
@@ -1292,7 +1292,7 @@ class DNSScannerTUI(App):
         chunk_size = 500  # Yield 500 IPs at a time
         rng = secrets.SystemRandom()
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
 
         def read_and_process():
             """Blocking function to read file and yield subnet chunks."""
@@ -1908,7 +1908,7 @@ class DNSScannerTUI(App):
                 f.write("# Slipstream Test: ENABLED (only passed servers)\n")
             f.write(f"# Total Saved: {len(servers_to_save)}\n")
             f.write("#" + "=" * 50 + "\n\n")
-            for server_ip, server_time in sorted_servers:
+            for server_ip, _server_time in sorted_servers:
                 f.write(f"{server_ip}\n")
 
         self._log(f"[green]✓ Results auto-saved to: {txt_file}[/green]")

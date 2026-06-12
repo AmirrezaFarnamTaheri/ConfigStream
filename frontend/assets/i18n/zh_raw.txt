@@ -4,6 +4,7 @@
         "nav.analytics": "数据分析",
         "nav.wiki": "百科",
         "nav.about": "关于我们",
+        "nav.lab": "实验室",
         "wiki.nav.home": "百科首页",
         "wiki.nav.intro": "简介",
         "wiki.nav.arch": "架构设计",
@@ -213,6 +214,10 @@
         "analytics.charts.latency_by_protocol": "按协议延迟",
 
         /* Proxies Page */
+        "downloads.evasion_mode.label": "规避级别",
+        "downloads.evasion_mode.standard": "标准 — 无额外规避",
+        "downloads.evasion_mode.stealth": "隐身 — TLS 分片 + uTLS 指纹",
+        "downloads.evasion_mode.aggressive": "最大 — 启用所有规避技术",
         "proxies.hero.title": "实时节点列表",
         "proxies.hero.subtitle": "探索我们完整的经过验证的代理列表。搜索、排序并找到最适合您的连接。"
     }

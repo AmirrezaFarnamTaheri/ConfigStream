@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT / "src") not in sys.path:
     sys.path.insert(0, str(ROOT / "src"))
 
-from configstream import pipeline  # noqa: E402
+from configstream import pipeline
 
 
 def _run_coroutine(coro_factory: Callable[[], Coroutine[Any, Any, Any]]) -> Any:
