@@ -176,9 +176,12 @@ jobs:
             echo "No successful pipeline run found; skipping retest."
             exit 0
           fi
-          gh run download "$LATEST_RUN" \
+          if ! gh run download "$LATEST_RUN" \
             --name pipeline-output \
-            --dir output
+            --dir output; then
+            echo "⚠️ Failed to download pipeline-output artifact; skipping retest."
+            exit 0
+          fi
 
           if [ ! -d "output" ] || [ -z "$(ls -A output)" ]; then
             echo "No output directory found after download; skipping retest."
