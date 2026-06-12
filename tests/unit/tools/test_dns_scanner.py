@@ -8,7 +8,7 @@ sys.path.append(str(Path.cwd() / "tools"))
 
 def test_dns_scanner_import():
     try:
-        import dns_scanner
+        import dns_scanner  # noqa: F401
     except ImportError:
         pytest.fail("Failed to import dns_scanner tool")
 
