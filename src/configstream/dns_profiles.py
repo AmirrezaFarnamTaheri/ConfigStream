@@ -13,6 +13,15 @@ from .intelligence.dns_lists import (
     IRAN_INFRASTRUCTURE_DNS as IRAN_INFRASTRUCTURE_DNS,
 )
 
+__all__ = [
+    "CLOUDFLARE_OPTIMIZED_IPS",
+    "IRAN_INFRASTRUCTURE_DNS",
+    "DEFAULT_DOH",
+    "build_singbox_dns_profile",
+    "build_clash_dns_profile",
+    "build_resolver_sets",
+]
+
 
 def _dedupe(items: List[str]) -> List[str]:
     seen: set[str] = set()

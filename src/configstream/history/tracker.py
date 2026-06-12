@@ -8,6 +8,7 @@ from ..models import Proxy
 from ..quality.storage import QualityStorage
 from .export import HistoryExporter
 from .analytics import HistoryAnalytics
+from ..security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
 
@@ -165,7 +166,35 @@ class ProxyHistoryTracker:
         }
 
     def get_reliability_score(self, proxy_id: str, lookback_days: int = 7) -> float:
-        """Calculate reliability score."""
+        """
+        Calculate reliability score from entries within the lookback window.
+
+        Falls back to the all-time success rate if the windowed query fails.
+        """
+        if self.storage and lookback_days > 0:
+            try:
+                cutoff = int(
+                    (
+                        datetime.now(timezone.utc) - timedelta(days=lookback_days)
+                    ).timestamp()
+                )
+                conn = self.storage.get_connection()
+                cursor = conn.execute(
+                    "SELECT AVG(is_working) FROM proxy_history "
+                    "WHERE proxy_id = ? AND timestamp >= ?",
+                    (proxy_id, cutoff),
+                )
+                row = cursor.fetchone()
+                if row is not None and row[0] is not None:
+                    return float(row[0])
+                # No rows in window — fall through to all-time fallback below
+            except Exception as e:
+                logger.error(
+                    SecurityValidator.sanitize_log_message(
+                        f"Windowed reliability query failed for {proxy_id}: {e}"
+                    )
+                )
+
         stats = self.get_summary_stats(proxy_id)
         return float(stats.get("success_rate", 0.0))
 
