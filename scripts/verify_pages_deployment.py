@@ -11,6 +11,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from dataclasses import dataclass
+from datetime import datetime
 
 PLACEHOLDER_MARKERS = (
     "79e/79e/",
@@ -28,6 +29,7 @@ REQUIRED_PUBLIC_FILES = (
     "health.json",
     "metadata.json",
     "artifact_manifest.json",
+    "pipeline_events.jsonl",
     "base64.txt",
     "chosen/base64.txt",
     "proxies.json",
@@ -38,6 +40,13 @@ EMPTY_VALID_PUBLIC_FILES = {
     "base64.txt",
     "chosen/base64.txt",
 }
+TELEMETRY_FORBIDDEN_MARKERS = PLACEHOLDER_MARKERS + (
+    "Authorization:",
+    "Bearer ",
+    "access_token=",
+    "api_key=",
+    "password=",
+)
 
 
 @dataclass(frozen=True)
@@ -160,6 +169,47 @@ def _assert_manifest_hash(
         errors.append(f"artifact_manifest.json sha256 mismatch: {rel_path}")
 
 
+def _validate_pipeline_events(response: Response, errors: list[str]) -> None:
+    if response.status < 200 or response.status >= 300 or not response.body:
+        return
+
+    lines = response.text.splitlines()
+    if not lines:
+        errors.append("pipeline_events.jsonl is empty")
+        return
+
+    for index, line in enumerate(lines, start=1):
+        if not line.strip():
+            errors.append(f"pipeline_events.jsonl line {index} is blank")
+            continue
+        if any(marker in line for marker in TELEMETRY_FORBIDDEN_MARKERS):
+            errors.append(
+                f"pipeline_events.jsonl line {index} contains forbidden marker"
+            )
+            continue
+        try:
+            record = json.loads(line)
+        except json.JSONDecodeError as exc:
+            errors.append(f"pipeline_events.jsonl line {index} invalid JSON: {exc}")
+            continue
+        if not isinstance(record, dict):
+            errors.append(f"pipeline_events.jsonl line {index} must be an object")
+            continue
+        for key in ("timestamp", "event_type", "message"):
+            if not isinstance(record.get(key), str) or not record[key].strip():
+                errors.append(
+                    f"pipeline_events.jsonl line {index} missing string {key}"
+                )
+        timestamp = record.get("timestamp")
+        if isinstance(timestamp, str) and timestamp.strip():
+            try:
+                datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+            except ValueError:
+                errors.append(
+                    f"pipeline_events.jsonl line {index} has invalid timestamp"
+                )
+
+
 def verify_pages_deployment(base_url: str, *, timeout: float = 20.0) -> list[str]:
     errors: list[str] = []
     parsed = urllib.parse.urlparse(base_url)
@@ -232,35 +282,42 @@ def verify_pages_deployment(base_url: str, *, timeout: float = 20.0) -> list[str
     except json.JSONDecodeError as exc:
         errors.append(f"proxy JSON decode failed: {exc}")
 
-    try:
-        health_json = _json(responses["health.json"])
-        if not isinstance(health_json, dict) or health_json.get("status") not in {
-            "ok",
-            "degraded",
-        }:
-            errors.append("health.json status must be ok or degraded")
-        elif not health_json.get("run_id") or not health_json.get("source_commit"):
-            errors.append("health.json missing run_id or source_commit")
-    except json.JSONDecodeError as exc:
-        errors.append(f"health.json decode failed: {exc}")
+    health_response = responses["health.json"]
+    if 200 <= health_response.status < 300 and health_response.body:
+        try:
+            health_json = _json(health_response)
+            if not isinstance(health_json, dict) or health_json.get("status") not in {
+                "ok",
+                "degraded",
+            }:
+                errors.append("health.json status must be ok or degraded")
+            elif not health_json.get("run_id") or not health_json.get("source_commit"):
+                errors.append("health.json missing run_id or source_commit")
+        except json.JSONDecodeError as exc:
+            errors.append(f"health.json decode failed: {exc}")
 
-    try:
-        manifest = _json(responses["artifact_manifest.json"])
-        manifest_hashes = _manifest_hashes(manifest, errors)
-        for rel_path in (
-            "health.json",
-            "metadata.json",
-            "proxies.json",
-            "base64.txt",
-            "chosen/base64.txt",
-            "api/proxies",
-            "api/stats",
-        ):
-            _assert_manifest_hash(
-                rel_path, responses[rel_path], manifest_hashes, errors
-            )
-    except json.JSONDecodeError as exc:
-        errors.append(f"artifact_manifest.json decode failed: {exc}")
+    _validate_pipeline_events(responses["pipeline_events.jsonl"], errors)
+
+    manifest_response = responses["artifact_manifest.json"]
+    if 200 <= manifest_response.status < 300 and manifest_response.body:
+        try:
+            manifest = _json(manifest_response)
+            manifest_hashes = _manifest_hashes(manifest, errors)
+            for rel_path in (
+                "health.json",
+                "metadata.json",
+                "pipeline_events.jsonl",
+                "proxies.json",
+                "base64.txt",
+                "chosen/base64.txt",
+                "api/proxies",
+                "api/stats",
+            ):
+                _assert_manifest_hash(
+                    rel_path, responses[rel_path], manifest_hashes, errors
+                )
+        except json.JSONDecodeError as exc:
+            errors.append(f"artifact_manifest.json decode failed: {exc}")
 
     return errors
 

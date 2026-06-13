@@ -33,6 +33,7 @@ VALID_FORMATS = {
     "base64",
     "html",
     "json",
+    "jsonl",
     "markdown",
     "text",
     "yaml",

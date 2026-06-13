@@ -95,33 +95,49 @@ class ErrorBoundary {
   showErrorPage(error) {
     const main = document.querySelector('main');
     if (main) {
-      // Escape dynamic content
-      const escape = (str) => String(str).replace(/[&<>"']/g, function(m) {
-        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
-      });
+      const page = document.createElement('div');
+      page.className = 'error-page';
 
-      const safeMessage = escape(error.message || 'Unknown Error');
-      const safeStack = escape(error.stack || '');
+      const content = document.createElement('div');
+      content.className = 'error-page-content';
 
-      main.innerHTML = `
-        <div class="error-page">
-          <div class="error-page-content">
-            <i data-feather="alert-triangle" class="error-icon"></i>
-            <h1>Oops! Something went wrong</h1>
-            <p>The page encountered an error and needs to be reloaded.</p>
-            <details class="error-details">
-              <summary>Error Details</summary>
-              <pre>${safeMessage}\n\n${safeStack}</pre>
-            </details>
-            <button onclick="window.location.reload()" class="btn btn-primary">
-              <i data-feather="refresh-cw"></i> Reload Page
-            </button>
-            <button onclick="window.history.back()" class="btn btn-secondary">
-              <i data-feather="arrow-left"></i> Go Back
-            </button>
-          </div>
-        </div>
-      `;
+      const icon = document.createElement('i');
+      icon.dataset.feather = 'alert-triangle';
+      icon.className = 'error-icon';
+
+      const title = document.createElement('h1');
+      title.textContent = 'Oops! Something went wrong';
+
+      const message = document.createElement('p');
+      message.textContent = 'The page encountered an error and needs to be reloaded.';
+
+      const details = document.createElement('details');
+      details.className = 'error-details';
+      const summary = document.createElement('summary');
+      summary.textContent = 'Error Details';
+      const pre = document.createElement('pre');
+      pre.textContent = `${error.message || 'Unknown Error'}\n\n${error.stack || ''}`;
+      details.append(summary, pre);
+
+      const reloadButton = document.createElement('button');
+      reloadButton.type = 'button';
+      reloadButton.className = 'btn btn-primary';
+      const reloadIcon = document.createElement('i');
+      reloadIcon.dataset.feather = 'refresh-cw';
+      reloadButton.append(reloadIcon, document.createTextNode(' Reload Page'));
+      reloadButton.addEventListener('click', () => window.location.reload());
+
+      const backButton = document.createElement('button');
+      backButton.type = 'button';
+      backButton.className = 'btn btn-secondary';
+      const backIcon = document.createElement('i');
+      backIcon.dataset.feather = 'arrow-left';
+      backButton.append(backIcon, document.createTextNode(' Go Back'));
+      backButton.addEventListener('click', () => window.history.back());
+
+      content.append(icon, title, message, details, reloadButton, backButton);
+      page.appendChild(content);
+      main.replaceChildren(page);
 
       if (window.inlineIcons) {
         window.inlineIcons.replace();

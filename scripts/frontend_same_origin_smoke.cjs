@@ -9,6 +9,7 @@ const { chromium } = require("playwright");
 const repoRoot = path.resolve(__dirname, "..");
 function parseArgs(argv) {
   const options = {
+    browserExecutable: null,
     noJsOnly: false,
     requireRuntimeConfig: false,
     root: path.join(repoRoot, "frontend"),
@@ -19,6 +20,16 @@ function parseArgs(argv) {
       options.noJsOnly = true;
     } else if (arg === "--require-runtime-config") {
       options.requireRuntimeConfig = true;
+    } else if (arg === "--browser-executable") {
+      index += 1;
+      if (index >= argv.length) {
+        throw new Error("--browser-executable requires a file path");
+      }
+      options.browserExecutable = path.resolve(argv[index]);
+    } else if (arg.startsWith("--browser-executable=")) {
+      options.browserExecutable = path.resolve(
+        arg.slice("--browser-executable=".length),
+      );
     } else if (arg === "--root") {
       index += 1;
       if (index >= argv.length) {
@@ -45,6 +56,28 @@ const pages = [
   "wiki.html",
 ];
 
+const systemChromiumCandidates =
+  process.platform === "win32"
+    ? [
+        "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+        "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+        "C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe",
+        "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+      ]
+    : process.platform === "darwin"
+      ? [
+          "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+          "/Applications/Chromium.app/Contents/MacOS/Chromium",
+          "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+        ]
+      : [
+          "/usr/bin/google-chrome",
+          "/usr/bin/google-chrome-stable",
+          "/usr/bin/chromium",
+          "/usr/bin/chromium-browser",
+          "/usr/bin/microsoft-edge",
+        ];
+
 const mimeTypes = new Map([
   [".html", "text/html; charset=utf-8"],
   [".css", "text/css; charset=utf-8"],
@@ -59,6 +92,54 @@ const mimeTypes = new Map([
 
 function labStrategiesPath() {
   return path.join(frontendRoot, "assets", "data", "lab_strategies.json");
+}
+
+function browserExecutableFromEnvironment(options) {
+  const executable =
+    options.browserExecutable ||
+    process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE ||
+    process.env.CHROME_BIN ||
+    process.env.CHROMIUM_BIN;
+  if (!executable) {
+    return null;
+  }
+  const resolved = path.resolve(executable);
+  if (!fs.existsSync(resolved)) {
+    throw new Error(`Configured browser executable does not exist: ${resolved}`);
+  }
+  return resolved;
+}
+
+function systemChromiumExecutable() {
+  return systemChromiumCandidates.find((candidate) => fs.existsSync(candidate)) || null;
+}
+
+function isMissingManagedBrowserError(error) {
+  return (
+    error &&
+    typeof error.message === "string" &&
+    error.message.includes("Executable doesn't exist")
+  );
+}
+
+async function launchChromium(options) {
+  const configuredExecutable = browserExecutableFromEnvironment(options);
+  if (configuredExecutable) {
+    return chromium.launch({ executablePath: configuredExecutable });
+  }
+
+  try {
+    return await chromium.launch();
+  } catch (error) {
+    const fallbackExecutable = systemChromiumExecutable();
+    if (!fallbackExecutable || !isMissingManagedBrowserError(error)) {
+      throw error;
+    }
+    console.warn(
+      `Managed Playwright Chromium is unavailable; using ${fallbackExecutable}`,
+    );
+    return chromium.launch({ executablePath: fallbackExecutable });
+  }
 }
 
 function createServer(overrides = {}) {
@@ -507,7 +588,7 @@ async function main() {
   let browser;
 
   try {
-    browser = await chromium.launch();
+    browser = await launchChromium(options);
     if (!options.noJsOnly) {
       await exercisePages(browser, baseUrl, allowedHost);
       console.log("same-origin frontend smoke passed");

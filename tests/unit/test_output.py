@@ -286,6 +286,17 @@ def test_generated_public_artifact_fixture_matches_pages_contract(tmp_path):
         "window.CS_RUNTIME_CONFIG = { PUBLIC_KEY: 'x', STEGO_KEY: 'x' };",
         encoding="utf-8",
     )
+    (tmp_path / "pipeline_events.jsonl").write_text(
+        json.dumps(
+            {
+                "timestamp": "2026-06-13T00:00:00+00:00",
+                "event_type": "pipeline_complete",
+                "message": "Generated public artifact fixture.",
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
 
     write_public_artifact_contract(tmp_path)
 

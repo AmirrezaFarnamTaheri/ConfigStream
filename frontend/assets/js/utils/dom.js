@@ -12,6 +12,53 @@ function sanitizeHTML(text) {
       .replace(/'/g, '&#039;');
 }
 
+function stripUnsafeHTML(fragment) {
+  fragment.querySelectorAll('script, object, embed, applet, iframe, form').forEach(
+      node => node.remove()
+  );
+  fragment.querySelectorAll('*').forEach(node => {
+    [...node.attributes].forEach(attr => {
+      const name = attr.name.toLowerCase();
+      const value = attr.value || '';
+      if (name.startsWith('on')) {
+        node.removeAttribute(attr.name);
+        return;
+      }
+      if ((name === 'href' || name === 'src') && /^(javascript|data|vbscript):/i.test(value.replace(/[\u0000-\u0020]/g, ''))) {
+        node.removeAttribute(attr.name);
+      }
+    });
+  });
+}
+
+function htmlToFragment(html) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(String(html), 'text/html');
+  const fragment = document.createDocumentFragment();
+  Array.from(doc.body.childNodes).forEach(node => {
+    fragment.appendChild(document.importNode(node, true));
+  });
+  stripUnsafeHTML(fragment);
+  return fragment;
+}
+
+function sanitizeHTMLToFragment(html) {
+  if (window.DOMPurify) {
+    const sanitized = window.DOMPurify.sanitize(String(html), {
+      RETURN_DOM_FRAGMENT: true
+    });
+    if (sanitized && typeof sanitized.nodeType === 'number') {
+      stripUnsafeHTML(sanitized);
+      return sanitized;
+    }
+    return htmlToFragment(sanitized || '');
+  }
+
+  const fragment = document.createDocumentFragment();
+  fragment.appendChild(document.createTextNode(String(html)));
+  return fragment;
+}
+
 /**
  * Safely updates an element's content.
  * @param {string} selector - CSS selector
@@ -39,17 +86,11 @@ function updateElement(selector, content, options = {}) {
   try {
     if (method === 'innerHTML') {
       if (content instanceof Node) {
-        element.appendChild(content);
+        element.replaceChildren(content);
       } else if (trustedHTML) {
-        element.innerHTML = String(content);
+        element.replaceChildren(htmlToFragment(content));
       } else {
-        let sanitized;
-        if (window.DOMPurify) {
-          sanitized = window.DOMPurify.sanitize(String(content));
-          element.innerHTML = sanitized;
-        } else {
-          element.textContent = String(content);
-        }
+        element.replaceChildren(sanitizeHTMLToFragment(content));
       }
     } else if (content instanceof Node) {
       element.replaceChildren(content);
@@ -112,4 +153,7 @@ async function copyToClipboard(text, button) {
 }
 
 // Export to window for global access
+window.sanitizeHTML = sanitizeHTML;
+window.htmlToSafeFragment = htmlToFragment;
+window.updateElement = updateElement;
 window.copyToClipboard = copyToClipboard;

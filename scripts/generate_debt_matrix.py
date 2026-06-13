@@ -23,10 +23,6 @@ GENERATED_PATHS = {
     "docs/DEBT_MATRIX.md",
     "docs/debt_matrix.json",
     "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md",
-    "docs/history/source-of-truth/ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.full.md",
-    "docs/history/source-of-truth/Main SOURCE OF TRUTH - Ammendment.md",
-    "docs/history/source-of-truth/Main SOURCE OF TRUTH - PART 2.md",
-    "docs/history/source-of-truth/Main SOURCE OF TRUTH - PART 3.md",
 }
 # Files that are excluded from scanning because they are either:
 # - The debt scanner itself (self-referential)
@@ -301,6 +297,8 @@ def _is_false_positive(marker: str, text: str) -> bool:
             "setAttribute('placeholder'" in text_stripped
             or 'setAttribute("placeholder"' in text_stripped
         ):
+            return True
+        if re.search(r"\.placeholder\s*=", text_stripped):
             return True
         # constants.py comment about test fixtures using "ws" transport placeholder
         if "test fixtures" in text_lower and "transport" in text_lower:

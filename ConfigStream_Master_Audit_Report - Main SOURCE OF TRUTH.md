@@ -1,11 +1,11 @@
 # ConfigStream Master Source Of Truth
 
-**Last updated:** 2026-05-28  
+**Last updated:** 2026-06-13  
 **Version:** v3.1.0  
 **Scope:** Current project truth, release gates, current evidence, and non-negotiable contracts.  
 **Repository state:** Production-ready as code. Repository publish gate is closed. Live GitHub Pages gate remains open until a fresh deploy passes live smoke.
 
-This file and `STATUS.md` are the two current human-readable source-of-truth files. Detailed historical ledgers were moved to `docs/history/source-of-truth/` so they remain auditable without competing with current status.
+This file and `STATUS.md` are the two current human-readable source-of-truth files. The detailed historical source-of-truth ledgers were read end-to-end, absorbed here, and removed from the working tree so stale evidence cannot compete with current operational truth.
 
 ## Executive Verdict
 
@@ -34,7 +34,7 @@ Use this hierarchy whenever status surfaces disagree:
    - `docs/module_ownership.json`
    - `docs/DEBT_MATRIX.md`
 4. `CHANGELOG.md` for chronological implementation history.
-5. `docs/history/source-of-truth/` for archived audit/evidence ledgers.
+5. `CHANGELOG.md`, git history, and retained CI/release artifacts for chronological implementation evidence.
 
 Archived history is evidence, not current operational truth. If an archived ledger conflicts with this file, `STATUS.md`, or canonical matrices, the current files win.
 
@@ -46,7 +46,7 @@ Archived history is evidence, not current operational truth. If an archived ledg
 | Public artifact contract | Closed for fresh generated artifacts | `scripts/validate_pages_artifact.py output` passes after output generation and frontend runtime-config injection. |
 | Live Pages deployment | Open | Fresh GitHub Pages deploy from current `main`, then `scripts/verify_pages_deployment.py` passes against the public URL. |
 | Public serialization safety | Closed | Root and categorized public proxy JSON use safe serialization and do not emit raw source URLs or internal-only fields. |
-| Source/token hygiene | Closed for tracked content | Tracked source lists are scrubbed and `.gitleaks.toml` no longer allowlists source files. CI runs gitleaks/source-token checks; the working tree scans clean, so the only remaining step is removing `continue-on-error: true` from the CI gitleaks step (a one-line maintainer change requiring `workflows` permission). |
+| Source/token hygiene | Closed for tracked content | Tracked source lists are scrubbed and `.gitleaks.toml` no longer allowlists source files. CI runs gitleaks/source-token checks as a blocking gate. |
 | Generated artifact hygiene | Closed | `output/`, `data/`, `invvest/`, and `Latest Outputs to investigate/` are ignored and not tracked. |
 | Debt matrix reproducibility | Closed | `scripts/generate_debt_matrix.py --check` is non-mutating and excludes generated mirrors. |
 | Dependency audit gate | Closed for reported direct advisories | Frontend lockfile and production direct dependency pins were refreshed; direct `pip-audit --no-deps` passes. |
@@ -55,7 +55,7 @@ Archived history is evidence, not current operational truth. If an archived ledg
 
 ## Concrete Project Map
 
-This snapshot grounds the source of truth in the current repository shape as of 2026-05-28. Counts are descriptive, not eternal policy; if they drift, update this section or replace it with generated inventory.
+This snapshot grounds the source of truth in the current repository shape as of the v3.1.0 repository finalization baseline and the 2026-06-13 hardening refresh. Counts are descriptive, not eternal policy; if they drift, update this section or replace it with generated inventory.
 
 ### Repository Inventory
 
@@ -66,7 +66,7 @@ Current tracked inventory:
 | `frontend/` | 385 | Raw static Pages application, frontend runtime, assets, service worker, Lab, analytics, public UI. |
 | `tests/` | 183 | Unit, scenario, E2E, fuzz, and fixture coverage. |
 | `src/` | 138 | Python package, pipeline, fetcher, parsers, output generation, server, security, washer, testing engines. |
-| `docs/` | 59 | Machine-readable matrices, generated docs, historical ledgers, governance evidence. |
+| `docs/` | 58 | Machine-readable matrices, generated docs, and governance evidence. |
 | `scripts/` | 48 | Validators, release gates, artifact checks, frontend smoke, source maintenance, mirror helpers. |
 | `sources/` | 34 | Current tracked public source shards plus source documentation and backup state slated for cleanup. |
 | `tools/` | 15 | Local/operator tooling, Lab helpers, worker examples, diagnostics. |
@@ -84,7 +84,7 @@ Current total tracked files: 909.
 | Output generation | `output_logic.py`, `output_handler.py`, `output_transport.py`, `generators/`, `serialize.py` | Public output must use safe serialization, atomic writes, manifest/hash tracking, degraded-valid semantics, and schema/client validators. |
 | Testing engines and revival | `testers/`, `test_cache.py`, `intelligence/washer/core.py`, `tools/vwarp.py`, `warp_scanner.py` | Native sidecar/Python checks are authoritative; browser checks are hints; revived/shielded candidates must be counted honestly. |
 | Public API/server | `server.py` | Serves public static/API/filter surfaces; API semantics must stay aligned with output matrix and public schemas. |
-| Trust and publication | `signer.py`, `stego.py`, `scripts/validate_pages_artifact.py`, `scripts/verify_pages_deployment.py` | Public artifacts need freshness, hash, manifest, runtime-config, placeholder, and live-smoke proof. |
+| Trust and publication | `signer.py`, `stego.py`, `event_stream.py`, `scripts/validate_pages_artifact.py`, `scripts/verify_pages_deployment.py` | Public artifacts need freshness, hash, manifest, runtime-config, sanitized event telemetry, placeholder absence, and live-smoke proof. |
 | Governance | `docs/*.json`, `docs/DEBT_MATRIX.md`, `STATUS.md`, this file | Human-readable truth and machine-checkable matrices must agree. |
 
 Large modules that remain maintainability targets:
@@ -98,9 +98,9 @@ Large modules that remain maintainability targets:
 | Contract | Current shape | Required upkeep |
 |---|---|---|
 | Protocol matrix | 38 entries: 21 canonical, 8 aliases, 5 schema-only, 4 internal. 29 public parser paths. 22 Sing-box export paths. 13 Clash export paths. | Any parser/export/frontend/schema change must update `docs/protocol_matrix.json` and relevant tests. |
-| Output matrix | 42 output entries across universal, control, Sing-box, Clash, chains, chosen, side-products, frontend, API aliases, categorized API, analytics, docs, DNS-safe, DNS-hardened, and VPN families. | Any generated artifact addition/removal/semantic change must update `docs/output_matrix.json` and artifact validation. |
+| Output matrix | 43 output entries across universal, control, Sing-box, Clash, chains, chosen, side-products, frontend, API aliases, categorized API, analytics, docs, DNS-safe, DNS-hardened, VPN, and telemetry families. | Any generated artifact addition/removal/semantic change must update `docs/output_matrix.json` and artifact validation. |
 | Capability registry | 7 entries: 6 stable, 1 planned. | A stable capability requires owner, proof, docs, and tests. Planned entries must not be marketed as shipped. |
-| Module ownership | 23 ownership rows. | New major modules, removed replacements, or import-boundary changes must update `docs/module_ownership.json`. |
+| Module ownership | 24 ownership rows. | New major modules, removed replacements, or import-boundary changes must update `docs/module_ownership.json`. |
 | Schemas | `proxy`, `metadata`, `health`, and `artifact_manifest`. | Public JSON behavior must validate against schema or have an explicit validator family. |
 
 ### Frontend Surface Map
@@ -123,13 +123,13 @@ Frontend runtime contracts:
 2. Each HTML entry point must work with same-origin static data and explicit degraded states.
 3. Large optional features such as globe, charts, analytics, Lab exporters, QR, and strategy data should be lazy or page-scoped when practical.
 4. CSP tightening is a continuing objective. `unsafe-eval` is removed; remaining inline requirements should be retired through static bootstraps/templates.
-5. `innerHTML` usage is allowed only where content is static, sanitized, or tightly controlled. New UI should prefer DOM builders or safe templating helpers.
+5. Project-owned runtime JavaScript must avoid raw `innerHTML` assignment. Rich content must flow through DOM builders, `textContent`, `replaceChildren`, DOMPurify DOM fragments, or narrowly reviewed trusted helpers; vendor bundles and inert test shims are the only excluded classes.
 
 ### Workflow And Gate Map
 
 | Workflow | Role | Critical truth |
 |---|---|---|
-| `.github/workflows/ci.yml` | Pull request and push checks | Runs Python matrix, dependency audit, Bandit, gitleaks action, validators, tests, flake8, mypy, black, frontend build/smoke. The gitleaks step is blocking-ready (working tree clean) and only needs `continue-on-error: true` removed to become a hard secret gate. |
+| `.github/workflows/ci.yml` | Pull request and push checks | Runs Python matrix, dependency audit, Bandit, Bandit suppression hygiene, gitleaks action, pytest skip governance, validators, tests, flake8, mypy, black, frontend build/smoke. Security and governance checks are blocking gates unless explicitly documented as optional evidence. |
 | `.github/workflows/main.yml` | Data pipeline and artifact production | Keeps `ALLOW_ACTIVE_SCANNING=false`, prepares output, validates placeholders, validates Pages artifact, and uploads/deploys data artifacts. |
 | `.github/workflows/deploy-pages.yml` | Pages publication | Injects runtime config, validates artifact, deploys Pages, then runs live deployment smoke. |
 | `.github/workflows/release.yml` | Software release guard | Runs version/capability/compatibility/ownership validations before release activity. |
@@ -194,7 +194,7 @@ Use this table to keep future changes from creating hidden documentation or cont
 | Output artifact change | `docs/output_matrix.json`, `scripts/validate_pages_artifact.py`, docs/wiki/README if user-facing, release workflow if deployed. | Artifact exists or is explicitly optional, degraded behavior is valid, manifest/hash entries are correct, aliases match canonical files. |
 | Frontend page/runtime change | Raw `frontend/` files, frontend smoke tests, CSP if scripts/styles/network behavior change, runtime-config/placeholder validator if deploy-time data changes. | `npm run build:sanity`, same-origin smoke, degraded/no-JS smoke where relevant, no placeholder leaks, no unexpected external network calls. |
 | Lab import/export/diagnostic change | `frontend/assets/js/lab.js` or future Lab modules, Lab strategy data, CSP, export tests, safety docs. | User-clicked diagnostics only, no silent active scanning, no unverified binary install, safe script interpolation, QR/export secrets handled locally. |
-| Pipeline/fetch/tester change | Unit/scenario tests, timeout/concurrency tests, logs, stats/metadata if counters change. | No event-loop blocking in async paths, bounded queue behavior, graceful timeout/degraded outputs, sanitized logs, cache/daemon lifecycle correctness. |
+| Pipeline/fetch/tester change | Unit/scenario tests, timeout/concurrency tests, logs, telemetry, stats/metadata if counters change. | No event-loop blocking in async paths, bounded queue behavior, graceful timeout/degraded outputs, sanitized logs and JSONL event records, cache/daemon lifecycle correctness. |
 | Security policy change | `.gitleaks.toml`, Bandit/pip/npm audit config, CI workflow, `SECURITY.md` or docs if operator-facing. | Scan passes locally or CI evidence exists, allowlists are narrow, advisory vs blocking status is declared honestly. |
 | Release/deploy workflow change | Workflow validator, output matrix if artifact shape changes, status/master if gates change. | Fresh artifact validation, optional mirror parity, Pages deploy smoke for public readiness, no conflation of data and software releases. |
 | Documentation/source-truth change | This file, `STATUS.md`, changelog if completed work moved there, historical archive links if files move. | `validate_status`, debt check, claim ledger validation, documentation hygiene tests. |
@@ -207,7 +207,7 @@ These are not all release blockers. They are the concrete gaps or cleanup fronts
 | Gap | Severity for repository publish | Why it matters | Desired closure |
 |---|---|---|---|
 | Live GitHub Pages freshness | Blocks public Pages readiness | Public site can remain stale even when repository and artifact validators pass. | Fresh deploy from current `main`, then `verify_pages_deployment.py` passes against the public URL. |
-| Gitleaks blocking flip | Hardening gap (one line) | The scan is wired and the working tree scans clean, but `continue-on-error: true` keeps it non-fatal in CI. | A maintainer with `workflows` permission removes `continue-on-error: true` from the `ci.yml` gitleaks step; automation agents cannot edit workflow files. |
+| Governance drift regression | Hardening gap | Security and governance gates can silently weaken if future workflow edits drop Bandit suppression checks, pytest skip governance, gitleaks, matrix validators, or artifact validators. | Keep `scripts/validate_workflows.py`, `scripts/validate_bandit_suppressions.py --require-active`, and `scripts/validate_test_skips.py` blocking in CI/release workflows; update tests whenever gate names or semantics change. |
 | Source-list truth split | Maintainability/security cleanup | `consolidated_sources.txt`, `sources/batch_*.txt`, and `sources/backup_dynamic/` create avoidable ownership ambiguity. | Choose one authored source manifest/list, generate shards/backups, keep private overrides ignored. |
 | Large output module | Maintainability cleanup | `output_logic.py` concentrates many unrelated output families and makes contract drift harder to review. | Extract public lists, native client configs, metadata/health, side-products, chosen outputs, and manifest helpers behind tests. |
 | Large Lab runtime | Frontend/security cleanup | Lab parsing, strategy building, diagnostics, exporters, QR, UI state, and safety-sensitive script generation are mixed. | Split into parser, strategies, diagnostics, exporters, and UI modules with targeted tests. |
@@ -233,8 +233,10 @@ Every validator/check should be assigned one of these maturity levels in docs an
 Current maturity notes:
 
 - Bandit expanded scan is blocking in CI.
+- Bandit suppressions are checked with `scripts/validate_bandit_suppressions.py --require-active`, so stale or broad `# nosec` markers cannot hide active findings.
+- Pytest skip governance is blocking in CI; permanent, vague, or always-true skips are rejected unless they are explicit environment/tool/sample gates.
 - `pip-audit -r requirements-prod.txt --format json` is blocking in CI.
-- Gitleaks is blocking-ready: the working tree scans clean and PR runs scan the bounded PR commit range, so removing `continue-on-error: true` is a safe one-line maintainer flip to make it a blocking gate.
+- Gitleaks/source token scanning is blocking in CI.
 - Pages artifact validation is deploy blocking.
 - Live Pages smoke is live proof and is the only gate that can close public Pages readiness.
 
@@ -242,7 +244,7 @@ Current maturity notes:
 
 ### Release And Deployment
 
-1. Public Pages readiness requires live proof for `health.json`, `metadata.json`, `artifact_manifest.json`, `base64.txt`, `chosen/base64.txt`, `proxies.json`, `api/proxies`, `api/stats`, frontend rendering, placeholder absence, manifest/hash parity, and deployment freshness.
+1. Public Pages readiness requires live proof for `health.json`, `metadata.json`, `artifact_manifest.json`, `pipeline_events.jsonl`, `base64.txt`, `chosen/base64.txt`, `proxies.json`, `api/proxies`, `api/stats`, frontend rendering, placeholder absence, manifest/hash parity, sanitized telemetry, and deployment freshness.
 2. Raw local `output/`, generated Pages artifacts, live Pages, software releases, and data releases are different states. Passing one does not imply the others pass.
 3. Raw static `frontend/` is the canonical Pages input. Vite remains a local build/sanity check unless the output contract is deliberately changed.
 4. Runtime frontend secrets/config are generated during artifact preparation; placeholder keys must not ship.
@@ -275,13 +277,48 @@ Current maturity notes:
 
 ## Absorbed Source Ledgers
 
-This section is the explicit absorption pass over the four original source-of-truth files. It records what survives as current policy and what stays archived as historical detail.
+This section is the explicit absorption pass over the superseded source-of-truth files. It records what survives as current policy and what was intentionally removed as stale standalone detail.
+
+### 2026-06-13 Archive Value Refresh
+
+This refresh re-read every superseded source-of-truth history file end-to-end, including the historical known-issues, closure, finalization, release-hardening, roadmap, roadmap-process, client-config, amendment, full master, compact master, and folder README ledgers. Their durable value is absorbed below without promoting stale counts or old readiness claims. The historical files were then removed from the repository working tree.
+
+Full-read absorption record:
+
+| Historical file read before removal | Lines | Bytes | SHA-256 |
+|---|---:|---:|---|
+| `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.full.md` | 6454 | 479050 | `cfd03b7349e8984543e08e991f5764b318b8c7ed6a5c7c037603fe9a5024a5ce` |
+| `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md` | 1572 | 91747 | `7c70ebaf08a3b8cc758f9f9169926848227cdb69f3fbad22813fe2683ad0e008` |
+| `Main SOURCE OF TRUTH - Ammendment.md` | 791 | 50315 | `f9d1bdc34cd00cf71a89b2c2b4d93c1e7a93057b780079e1162d2de75edd56de` |
+| `Main SOURCE OF TRUTH - PART 2.md` | 2477 | 67747 | `206cc7cda553e3c363ba989f75cefe3b6cbd10758243b5a5b772b8c2ca10b0b8` |
+| `Main SOURCE OF TRUTH - PART 3.md` | 433 | 15797 | `8e9360615df4d590a6d78b6d83f80f6b3fc15f093265fa448a4597a624ef638e` |
+| `README.md` | 12 | 692 | `44b8dd711d9b95330fc318945899481c6909d6e3e9901981a9695162a2432651` |
+
+Current value promoted into active policy:
+
+1. **Known issues become contracts, not root clutter.** Resolved items such as WASM browser networking limits, local-first frontend assets, WireGuard MTU defaults, transport parity, revived subscription inclusion, WASM MIME handling, and trust-state rendering are retained as contracts or tests; they should not reappear as active known-issue files unless a current regression is proven.
+2. **Closure/finalization reports are evidence snapshots.** Their phase language is useful only after validation against current workflows and matrices. Current claims must cite present gates, not old `826`, `829`, `974`, or `1054` pass-count snapshots.
+3. **Release hardening is current where workflows prove it.** OIDC PyPI trusted publishing, build provenance attestations, native release artifacts, Docker SBOM/provenance, architecture-specific Vwarp checksums, and 30-day artifact/evidence retention are current workflow-backed release facts.
+4. **Artifact evidence is multi-stage.** A raw pipeline `output/` tree, the Pages-mutated artifact, the live Pages deployment, optional mirrors, screenshots, and retained evidence bundles are separate proof objects. A claim about one does not prove the others.
+5. **Latest output is not source truth.** Generated output, screenshots, smoke reports, and evidence bundles belong in ignored artifacts or retained CI artifacts. Repository truth describes how to prove them, not their transient contents.
+6. **Roadmap governance is completion governance.** Roadmap items are done only when implementation, tests, docs, security/operational notes, matrices/claim ledger where relevant, and release evidence agree.
+7. **Debt is triaged, not hand-waved.** Production debt, accepted test mocks, user-facing placeholder copy, generated-doc matches, and scanner false positives are different classes. The debt matrix remains valuable only when regenerated and interpreted through those classes.
+8. **Core dialect separation is non-negotiable.** Sing-box, Clash, Xray, dataset JSON, API aliases, and chain metadata are distinct output dialects. They need separate matrix rows, validators, docs, and native/client proof appropriate to their format.
+9. **UI trust language follows metadata state.** Failed, stale, degraded, unsigned, candidate, revived, shielded, verified, and working states must be visually and semantically distinct.
+10. **Future work must be registered before being marketed.** Planned capabilities such as first-class Xray pipeline outputs, offline/lite native configs, personal routing intelligence, decentralized mirrors, or adaptive ML routing remain future work until capability registry, output/protocol matrices, validators, tests, docs, and release gates exist.
+11. **Architecture backlog survives as contracts.** Event streams, source provider abstraction, parser result enrichment, provenance/lineage, output transactions, stale-known-good fallback, operator debug bundles, schema evolution, native-client proof, and performance benchmarks are retained below as active governance targets rather than as scattered historical notes.
+
+Current value deliberately not promoted:
+
+1. Old root `KNOWN_ISSUES.md`, `CLOSURE_REPORT.md`, `docs/FINALIZATION_REPORT_2026.md`, `docs/RELEASE_HARDENING_2026.md`, `docs/ROADMAP.md`, and `docs/ROADMAP_UPDATE_PROCESS.md` standalone surfaces are not restored. Their useful content is absorbed here; their stale status claims remain historical provenance recoverable from git history.
+2. Old screenshots, partial manual output folders, branch/PR references, and transient local dirty-tree notes are not current truth.
+3. Old absolute-bypass, blanket-verification, "all closed," or "production-final" wording is not reused unless current evidence and trust-state semantics justify it.
 
 ### Original Master Audit Report
 
 Archived file:
 
-- `docs/history/source-of-truth/ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.full.md`
+- `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.full.md`
 
 Durable value absorbed:
 
@@ -296,14 +333,14 @@ Durable value absorbed:
 
 Archived only:
 
-- Old inventory counts, old pass counts, old closure dates, stale live Pages observations, and old "all closed" phrasing where those details conflict with the current 2026-05-28 status.
+- Old inventory counts, old pass counts, old closure dates, stale live Pages observations, and old "all closed" phrasing where those details conflict with the current 2026-06-13 status.
 - Long item-by-item remediation transcripts that are now implementation history rather than current operating policy.
 
 ### Part 2 Expansion Ledger
 
 Archived file:
 
-- `docs/history/source-of-truth/Main SOURCE OF TRUTH - PART 2.md`
+- `Main SOURCE OF TRUTH - PART 2.md`
 
 Durable value absorbed:
 
@@ -325,6 +362,28 @@ Durable value absorbed:
 16. **Release/data-release split.** Software releases and data releases have different contracts. A tag or package release does not prove the current data artifact, and a data artifact does not prove the software release.
 17. **Testing profiles.** Unit, parser, output-contract, frontend, security, release, live-smoke, native-core, visual, and full gates should remain named profiles rather than one vague "tests passed" claim.
 18. **Future roadmap shaping.** High-value future work should be grouped into contracts, pipeline correctness, quality/intelligence, Lab, outputs, performance/robustness, security/release maturity, and docs/governance.
+19. **Event stream and operator debug bundle.** Future observability work should converge source fetches, parser drops, validator decisions, tester failures, revival outcomes, output degradation, manifest identity, and deploy checks into a sanitized event stream plus an operator-exportable debug bundle with secrets redacted.
+20. **Provenance and lineage.** Source-level lineage should identify which authored source, generated shard, scheduler decision, parser path, validator rule, and output artifact produced a public item without exposing source credentials or private operator data.
+21. **Parser result v2.** Parser evolution should preserve the simple public parser API while adding structured drop reasons, strict/compat modes, fuzz corpus coverage, and source-quality feedback hooks for high-volume diagnostics.
+22. **Output transaction and stale-known-good policy.** Output generation should remain atomic and manifest-backed; any stale-known-good fallback must label freshness, degradation reason, source identity, and trust state rather than silently publishing old data as fresh.
+23. **Versioned API and schema evolution.** Public JSON families should maintain additive compatibility where feasible, expose schema/version metadata, document breaking migrations, and keep compatibility aliases validated until they are deliberately deprecated.
+24. **Native-client proof ladder.** Sing-box, Clash, and any future Xray/native family need separate static validation, semantic validation, pinned-client validation where practical, remote rule-set caveats, offline/lite variants where valuable, and matrix rows describing the exact proof level.
+25. **Performance and lifecycle evidence.** Large-source parsing, output generation, cache reads/writes, source resharding, tester batching, and frontend cache hydration should gain benchmark or profile evidence before major algorithmic changes are marketed as improvements.
+26. **Threat-model and ADR hygiene.** High-blast-radius changes need explicit threat-model updates and short architectural decision records covering alternatives, rollback, residual risk, and affected contracts.
+27. **Community and operator contributions.** Any community source flow, plugin system, recommendation engine, or personal profile generator must include probation states, abuse controls, privacy boundaries, signed/versioned artifacts where applicable, and clear opt-in behavior.
+28. **Source content classifier.** Source ingestion should classify subscription text, HTML/error pages, binary junk, compressed payloads, oversized content, mixed encodings, and likely credential-bearing data before parser dispatch so source quality and abuse controls receive accurate signals.
+29. **Retest queue and stale cache policy.** Test cache use must distinguish fresh success, stale success, stale failure, engine/profile mismatch, queued retest, and forced retest. Cache hits should not suppress required validation when tester profile, target probe, client engine, or chain shape changes.
+30. **Smart-chain planning and simulation.** Future chain planning should model latency budget, country/ASN distance, DNS safety, WARP/Vwarp health, relay compatibility, and failure domains before expensive testing. Simulated candidates remain candidates until retested.
+31. **Safe censorship diagnostics.** Diagnostic tooling should prefer passive or user-provided checks, bounded local probes, sanitized reports, and explicit opt-in. It must not become scheduled or project-operated active scanning of third-party infrastructure.
+32. **Frontend health, source health, and download guidance.** The public UI should eventually guide users through artifact health, source freshness, protocol/client compatibility, trust state, and safest download choice without implying stale or candidate data is verified working capacity.
+33. **Streaming parser and adaptive concurrency.** High-volume parsing and fetch/test scheduling should move toward stream processing, backpressure-aware concurrency, bounded queues, and measured CPU/I/O budgets rather than whole-buffer assumptions.
+34. **Output generation optimization.** Output builders should reuse normalized proxy/client representations where safe, avoid duplicate conversion hot paths, preserve deterministic ordering, and keep atomic write/manifest generation as the correctness boundary.
+35. **Chaos and degraded-mode testing.** Validation should cover empty sources, hostile encodings, source fetch policy blocks, tester outage, cache corruption, artifact write failures, stale deployment, missing optional binaries, and zero-working runs.
+36. **Threat model and Lab abuse controls.** The threat model must explicitly cover malicious source content, SSRF, XSS, credential leakage, unverified binary downloads, dependency compromise, public artifact tampering, replay/stale deploy, Lab misuse, and operator error.
+37. **Visual regression and golden outputs.** Frontend and output-contract changes should use stable golden fixtures and visual/browser snapshots where layout, trust labels, download affordances, or generated artifact shape can regress silently.
+38. **Subsystem health, admin API, and WebSocket event stream.** Server observability should expose bounded, authenticated, sanitized subsystem health and event streams without turning admin/status endpoints into unauthenticated resource-heavy paths.
+39. **Internal model and storage retention.** Proxy model normalization, historical quality storage, cache retention, artifact retention, and privacy-preserving cleanup policies should be explicit so old evidence and local caches do not become accidental source truth.
+40. **Benchmark and memory profiling.** Benchmark coverage should include fetch fan-out, parser throughput, validator throughput, tester batching, output generation, frontend cache hydration, and peak memory on large source sets before performance claims are made.
 
 Archived only:
 
@@ -335,7 +394,7 @@ Archived only:
 
 Archived file:
 
-- `docs/history/source-of-truth/Main SOURCE OF TRUTH - PART 3.md`
+- `Main SOURCE OF TRUTH - PART 3.md`
 
 Durable value absorbed:
 
@@ -357,7 +416,7 @@ Archived only:
 
 Archived file:
 
-- `docs/history/source-of-truth/Main SOURCE OF TRUTH - Ammendment.md`
+- `Main SOURCE OF TRUTH - Ammendment.md`
 
 Durable value absorbed:
 
@@ -511,6 +570,28 @@ Mirror rules:
 - Optional mirrors are not readiness blockers unless they are advertised as current public surfaces.
 - Mirror workflows must not publish the repository root by accident.
 
+### Release Provenance And Evidence Contract
+
+Software releases, pipeline artifacts, Pages artifacts, and mirror deployments are different evidence families.
+
+Current release posture:
+
+1. PyPI publishing uses trusted OIDC publishing, not a long-lived API token.
+2. Python distributions and native release artifacts emit GitHub build-provenance attestations in the release workflow.
+3. Docker image builds emit SBOM and provenance metadata in the pipeline workflow.
+4. Native artifacts are built as Windows executable, macOS DMG, and Linux AppImage release outputs.
+5. The Docker image pins architecture-specific Vwarp checksums and fails unsupported architectures rather than silently accepting an unverified binary.
+6. Pipeline and Pages artifacts use 30-day retention for evidence review.
+7. Pages deploy records a smoke report, screenshots, and an evidence bundle tied to the workflow run.
+
+Evidence rules:
+
+- A package release proves packaged source/native binaries only for that tag and workflow run.
+- A pipeline artifact proves generated data only for that retained artifact.
+- A Pages artifact proves the post-frontend/API/runtime-config mutation state only after `validate_pages_artifact.py` refreshes the contract.
+- A live smoke proves public serving state only at the smoke time and URL.
+- Evidence bundles should carry source commit, workflow run ID, manifest hashes, health/metadata summaries, smoke report, and screenshots when available.
+
 ### Frontend And Lab Contract
 
 Frontend current contract:
@@ -518,7 +599,7 @@ Frontend current contract:
 1. The public site is a raw-static app. It must not require a server-rendered framework to load.
 2. Vite build sanity can catch frontend regressions, but Vite output is not the Pages source.
 3. CSP should move toward no `unsafe-inline`; any temporary inline allowance must stay deliberate and tested.
-4. `innerHTML` use must be treated as high-review code, even when content is controlled.
+4. Raw runtime `innerHTML` assignment is forbidden in project-owned frontend modules. Use safe DOM construction, text nodes, sanitized DOM fragments, or a reviewed trusted helper for fixed internal markup.
 5. Trust and freshness labels must not imply live verification when data is stale, degraded, unsigned, candidate-only, or locally loaded.
 
 Lab current contract:
@@ -560,13 +641,13 @@ The documentation set has distinct jobs:
 3. `CHANGELOG.md`: completed implementation history.
 4. Matrices: machine-readable claims and artifact/protocol/capability truth.
 5. Wiki/docs: user/operator guidance and architecture explanation.
-6. `docs/history/source-of-truth/`: archived evidence only.
+6. Removed historical source-of-truth ledgers: provenance only, recoverable through git history and represented by the absorption record in this file.
 
 Rules:
 
 - Do not put long remediation transcripts back into root truth files.
-- Do not delete archived evidence just because it is stale; label it and keep it out of current status.
-- Do not cite archived claims as current unless they are restated in active files.
+- Do not recreate standalone archived evidence ledgers just because a new audit was long; absorb durable policy into active files and put completed implementation detail in `CHANGELOG.md`.
+- Do not cite removed historical claims as current unless they are restated in active files.
 - When source truth changes, update `AGENTS.md` and `README.md` if their status banners would otherwise drift.
 - Completed work should move to `CHANGELOG.md`; open gates should stay in Master/STATUS.
 
@@ -584,7 +665,7 @@ Priority pruning targets:
 6. large shared CSS without clear design layers,
 7. repeated CSP/script lists across HTML pages,
 8. inline bootstraps that force `unsafe-inline`,
-9. broad `innerHTML` render patterns,
+9. raw HTML sink regression risk,
 10. test files organized by historical incident rather than enduring contract.
 
 Pruning rules:
@@ -593,7 +674,7 @@ Pruning rules:
 - keep behavior-preserving changes separate from contract changes,
 - add or update validators when deleting a class of artifact/drift,
 - prefer generated artifacts over duplicated hand-maintained mirrors,
-- keep archived historical evidence but exclude it from scanners that measure current debt.
+- keep historical provenance out of current debt scans unless it has been promoted into active source or documentation.
 
 ## Current Remediation State By Area
 
@@ -602,23 +683,20 @@ Pruning rules:
 Current shape:
 
 - Root current truth is limited to this file and `STATUS.md`.
-- Long historical ledgers are preserved under `docs/history/source-of-truth/`.
+- Long historical ledgers were read completely, absorbed into this file and `STATUS.md`, and removed from the working tree.
 - Completed implementation details belong in `CHANGELOG.md`.
 - Machine-verifiable claims belong in matrices and ledgers under `docs/`.
 
 What changed in this bookkeeping pass:
 
-- The previous root addenda files were moved out of the project root:
-  - `docs/history/source-of-truth/Main SOURCE OF TRUTH - PART 2.md`
-  - `docs/history/source-of-truth/Main SOURCE OF TRUTH - PART 3.md`
-  - `docs/history/source-of-truth/Main SOURCE OF TRUTH - Ammendment.md`
-- The previous long-form master report was archived as:
-  - `docs/history/source-of-truth/ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.full.md`
-- The new root master keeps current truth, release gates, proof expectations, closed/open classes, and next cleanup work.
+- The previous addenda, full master transcript, compact historical master, amendment, and folder README were read in full.
+- Durable current policy was promoted into this master, `STATUS.md`, contributor guidance, validation scripts, and tests.
+- The superseded standalone files were removed so the repository has one active truth chain.
+- The root master keeps current truth, release gates, proof expectations, closed/open classes, and next cleanup work.
 
 Why this matters:
 
-The old documents were useful but mixed current truth, historical evidence, resolved findings, future roadmap items, and stale warnings. Keeping all of that at root made it too easy to re-open closed issues mentally or accidentally cite old status as current. The new layout keeps depth available while making the operational truth unambiguous.
+The old documents were useful but mixed current truth, historical evidence, resolved findings, future roadmap items, and stale warnings. Keeping that material as parallel files made it too easy to re-open closed issues mentally or accidentally cite old status as current. The active layout keeps the durable depth in this report while making the operational truth unambiguous.
 
 ### Code-Quality Audit Pass (f1-f12 + Frontend Review)
 
@@ -641,7 +719,7 @@ Triage review (no further behavioral change required):
 
 Why this does not change the gate matrix:
 
-These findings were correctness, robustness, hygiene, and optional-hardening items rather than public-surface security or contract changes. Public serialization, output semantics, CI security scope, and deployment contracts were unaffected, so the repository production gate and artifact gate remain as previously recorded. Verification after remediation: `ruff check src/` clean, `mypy` clean on the audited modules, and `python -m pytest -q`: 1054 passed, 4 skipped.
+These findings were correctness, robustness, hygiene, and optional-hardening items rather than public-surface security or contract changes. Public serialization, output semantics, CI security scope, and deployment contracts were unaffected, so the repository production gate and artifact gate remained closed for that pass. Its historical verification snapshot is retained in `CHANGELOG.md`; current validation evidence is recorded in the Validation Snapshot section below and must be refreshed after each hardening pass.
 
 ### Completion Doctrine
 
@@ -752,7 +830,7 @@ Closed:
 
 - Tracked source lists were scrubbed of tokenized subscription query values.
 - `.gitleaks.toml` no longer allowlists source lists as a blind spot.
-- CI includes source-token/secret scanning. The gitleaks workflow step is blocking-ready; flipping it to blocking only requires removing `continue-on-error: true` from `ci.yml`.
+- CI includes source-token/secret scanning as a blocking gate.
 - Source leakage through public serialized output is blocked by serializer sanitization.
 
 Current cleanup opportunity:
@@ -819,7 +897,8 @@ Closed:
 Still open:
 
 - `unsafe-inline` remains and should be removed through static bootstraps/templates.
-- Broad `innerHTML` usage remains in Lab, Proxies, Analytics, and shared UI code. Most usage is controlled/static or sanitized, but the review burden is high.
+- Project-owned runtime `innerHTML` assignment has been removed from frontend modules. Lab, Proxies, Wiki, i18n, error handling, and hero subtitle rendering now use DOM construction or sanitized DOM fragments, with regression tests blocking reintroduction.
+- DOMPurify is vendored with version and sha256 provenance in `frontend/assets/vendor-manifest.json`; rich translated/trusted content should be inserted as DOM fragments, not raw strings.
 - The Lab is still a large single feature surface and should be modularized into parser, strategy, diagnostics, export, and UI modules.
 - Large frontend assets should be lazy-loaded or reduced for constrained networks.
 
@@ -837,7 +916,7 @@ Closed:
 
 - Bandit scan scope covers `src/configstream`, `scripts`, `tools`, and frontend JavaScript.
 - The expanded Bandit gate passes.
-- Gitleaks/source token scanning is wired in CI with a source-token rule set and is blocking-ready; removing `continue-on-error: true` from `ci.yml` is the one-line change that makes it a hard blocking gate.
+- Gitleaks/source token scanning is wired in CI with a source-token rule set and runs as a hard blocking gate.
 - Vercel mirror deploy runs from `output/`, matching Pages/Netlify artifact shape.
 - Workflow validation guards the release/deploy semantics.
 
@@ -879,7 +958,7 @@ The full resolving audit remains CI-environment-sensitive and should continue ru
 Closed in this bookkeeping pass:
 
 - Root source-of-truth surface is reduced to two current files: this file and `STATUS.md`.
-- Historical long-form ledgers are archived under `docs/history/source-of-truth/`.
+- Historical long-form ledgers were fully absorbed into this file and removed from active repository documentation.
 - Current truth no longer depends on the old root addenda files.
 
 Current cleanup opportunity:
@@ -939,10 +1018,12 @@ Still alive:
 16. **Release split.** A software release, data release, Pages deploy, mirror deploy, package publish, and native/browser sidecar artifact are separate release products. Status must not let one imply another.
 17. **Named test profiles.** Keep separate profiles for fast unit, parser golden, output contract, frontend static smoke, frontend browser smoke, security, dependency audit, chaos/degraded mode, native-core proof, release gate, and live deployment smoke.
 18. **Roadmap intake.** Future expansion ideas are not current truth until registered in capability/matrix/docs/tests. The right path is contract first, then implementation, then proof.
+19. **Second-pass detailed absorption coverage.** The 2026-06-13 double-check reread all deleted history files from `HEAD`, inspected 674 headings and 2,800 obligation/caveat/action lines, and promoted the remaining durable categories into the active contract: async filesystem safety, test-budget enforcement, source content classification, stale-cache retest policy, smart-chain planning, safe censorship diagnostics, dashboard/source-health/download guidance, streaming parser/adaptive concurrency, output-generation optimization, chaos testing, Lab-abuse threat modeling, visual regression/golden outputs, subsystem health/admin/WebSocket eventing, model/storage retention, and benchmark/memory profiling.
+20. **Async and resource-budget enforcement.** Async routes and pipeline workers must avoid blocking filesystem or network work on the event loop, and any concurrency/test-budget semaphore must be used by the path it is meant to govern.
 
 Archived-only details:
 
-- Broad expansion ideas such as plugin ecosystems, community source portals, recommendation engines, personal profile generators, and advanced analytics remain roadmap candidates only when separately scoped and registered.
+- Broad expansion ideas such as plugin ecosystems, community source portals, recommendation engines, personal profile generators, event-stream dashboards, operator debug bundles, and advanced analytics remain roadmap candidates only when separately scoped and registered.
 
 ### Part 3: Native Client Semantics And Output Namespaces
 
@@ -997,7 +1078,7 @@ python scripts/verify_pages_deployment.py https://amirrezafarnamtaheri.github.io
 
 ### High-Value Maintainability Cleanup
 
-1. Flip the CI gitleaks step to blocking by removing `continue-on-error: true` (working tree already scans clean; requires `workflows` permission).
+1. Keep CI gitleaks, Bandit, Bandit suppression hygiene, pytest skip governance, workflow validators, and artifact validators blocking as workflows evolve.
 2. Make one source-list truth and generate shards/mirrors/backups.
 3. Stop tracking source backups; keep them as ignored runtime files or CI artifacts.
 4. Collapse historical `.gitignore` artifact tombstones into broad directory ignores.
@@ -1137,17 +1218,18 @@ This roadmap is adopted from the deeper pruning review. These items are not curr
 
    Risk: low-medium. Verify publishing expectations before deleting mirrors.
 
-9. **Keep historical truth docs under `docs/history/`**
+9. **Keep one active truth chain**
 
    Current state:
 
-   - Done for the four long source-of-truth ledgers.
+   - Done for the long source-of-truth ledgers: they were read completely, absorbed, fingerprinted in this file, and removed from active documentation.
 
    Maintenance rule:
 
    - Do not move historical ledgers back to root.
-   - Add new historical audit transcripts under `docs/history/source-of-truth/` or another clearly named history folder.
+   - Do not create parallel historical source-of-truth ledgers for future audits.
    - Promote only distilled current policy into the root master/status files.
+   - Put completed implementation detail in `CHANGELOG.md` and durable machine contracts in the relevant `docs/*.json` files.
 
 10. **Keep the Master Report as current truth plus appendices**
 
@@ -1240,18 +1322,18 @@ This roadmap is adopted from the deeper pruning review. These items are not curr
 
    Risk: low-medium. Needs fallback handling.
 
-16. **Reduce broad `innerHTML` usage**
+16. **Keep raw frontend HTML insertion blocked**
 
    Current concern:
 
-   - `proxies.js`, `analytics.js`, and `lab.js` still contain many HTML sinks.
-   - Even controlled/static markup increases XSS/CSP review cost.
+   - Project-owned runtime JavaScript no longer assigns raw `innerHTML`, but future frontend work can reintroduce risky sinks unless guarded.
+   - Sanitized and trusted HTML fragments still need explicit provenance so CSP and XSS review stays cheap.
 
    Desired state:
 
-   - Add small DOM-builder/render helpers.
-   - Use `textContent` by default.
-   - Reserve sanitized `innerHTML` for explicit reviewed cases.
+   - Keep static tests that reject project-owned raw `innerHTML` assignment.
+   - Use DOM builders, `textContent`, `replaceChildren`, and DOMPurify DOM fragments by default.
+   - Reserve trusted internal HTML helpers for fixed strings with clear call-site review.
 
    Risk: medium. UI output changes must be tested.
 
@@ -1425,15 +1507,16 @@ This roadmap is adopted from the deeper pruning review. These items are not curr
 
    Risk: low if imports are updated carefully.
 
-29. **Make Bandit policy explicit**
+29. **Keep Bandit policy explicit**
 
    Current concern:
 
-   - Expanded Bandit scans can produce low-value subprocess/import noise unless reviewed policy is encoded.
+   - Expanded Bandit scans can produce low-value subprocess/import noise unless reviewed policy and suppression hygiene stay encoded.
 
    Desired state:
 
-   - Use an explicit reviewed Bandit config.
+   - Keep suppressions pinned to explicit Bandit rule IDs.
+   - Require `scripts/validate_bandit_suppressions.py --require-active` in CI so stale suppressions are detected.
    - Keep true positives visible.
    - Avoid broad blanket exclusions.
    - Add comments or helper wrappers for known-safe subprocess patterns.
@@ -1544,29 +1627,44 @@ Why this order:
 
 ## Validation Snapshot
 
-Latest repository-level verification recorded before this bookkeeping pass:
+Latest repository-level verification recorded for the 2026-06-13 hardening refresh:
 
 - `python -m black --check .`: passed.
+- `python -m flake8 src/ tests/ scripts tools`: passed.
+- `python -m mypy .`: passed.
+- `python -m pytest -q -p no:cacheprovider`: 1094 passed, 5 skipped.
 - `python scripts/generate_debt_matrix.py --check`: passed.
+- `python scripts/generate_output_docs.py --check`: passed.
 - `python scripts/validate_output_matrix.py`: passed.
 - `python scripts/validate_workflows.py`: passed.
 - `python scripts/validate_status.py`: passed.
-- `python -m flake8`: passed.
-- `python -m mypy src/configstream`: passed.
+- `python scripts/validate_changelog.py`: passed.
+- `python scripts/validate_claim_ledger.py`: passed.
+- `python scripts/validate_capability_registry.py`: passed.
+- `python scripts/validate_module_ownership.py`: passed.
+- `python scripts/validate_bandit_suppressions.py --require-active`: passed.
+- `python scripts/validate_test_skips.py`: passed.
+- `python scripts/validate_versions.py`: passed.
+- `python scripts/validate_optional_mirrors.py`: passed.
+- `python scripts/validate_core_compatibility.py`: passed.
 - `python -m bandit -r src/configstream scripts tools frontend/assets/js -q`: passed.
 - `python -m pip_audit -r requirements-prod.txt --no-deps`: passed.
+- `python scripts/check_dependency_drift.py`: passed.
 - `npm audit`: 0 vulnerabilities.
 - `npm run build:sanity`: passed.
-- `python -m pytest -q`: 1054 passed, 4 skipped in the latest full-suite snapshot (after the code-quality audit remediation pass).
-- `python scripts/verify_pages_deployment.py https://amirrezafarnamtaheri.github.io/ConfigStream/ --timeout 120 --report-file output/pages_deployment_smoke.json`: fails against stale live Pages.
+- `python scripts/deploy_artifact_smoke.py`: passed using system Chrome fallback when managed Playwright Chromium was unavailable locally.
+- `gitleaks dir . --config .gitleaks.toml --no-banner --redact`: no leaks found in the working tree; full gitleaks history/action coverage remains a CI responsibility.
+- `python scripts/verify_pages_deployment.py https://amirrezafarnamtaheri.github.io/ConfigStream/ --timeout 120 --report-file <temp-report>`: fails against stale live Pages because runtime config, `health.json`, `artifact_manifest.json`, and `pipeline_events.jsonl` are missing from the deployed site, static JS still contains placeholder markers, and live metadata lacks `proxies_snapshot_hash`.
 
-## Archived Evidence
+## Absorbed Historical Evidence
 
-Archived long-form ledgers:
+Removed long-form ledgers read before removal:
 
-- `docs/history/source-of-truth/ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.full.md`
-- `docs/history/source-of-truth/Main SOURCE OF TRUTH - PART 2.md`
-- `docs/history/source-of-truth/Main SOURCE OF TRUTH - PART 3.md`
-- `docs/history/source-of-truth/Main SOURCE OF TRUTH - Ammendment.md`
+- `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.full.md`
+- `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md`
+- `Main SOURCE OF TRUTH - PART 2.md`
+- `Main SOURCE OF TRUTH - PART 3.md`
+- `Main SOURCE OF TRUTH - Ammendment.md`
+- `README.md`
 
-These files preserve detail for audit history. They are not current status surfaces.
+Their durable content is now represented in the absorption table, governance rules, area contracts, open-work sections, and validation surfaces above. Raw historical text is provenance only and can be recovered from git history when needed; it is not an active status surface.

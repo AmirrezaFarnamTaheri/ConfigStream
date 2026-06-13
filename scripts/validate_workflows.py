@@ -230,8 +230,20 @@ def _ci_has_bandit_suppression_guard(path: Path) -> bool:
     except OSError:
         return False
     bandit_index = content.find("bandit -r src/configstream scripts tools")
-    guard_index = content.find("python scripts/validate_bandit_suppressions.py")
+    guard_index = content.find(
+        "python scripts/validate_bandit_suppressions.py --require-active"
+    )
     return bandit_index != -1 and guard_index != -1 and bandit_index < guard_index
+
+
+def _ci_has_test_skip_guard(path: Path) -> bool:
+    try:
+        content = path.read_text(encoding="utf-8")
+    except OSError:
+        return False
+    guard_index = content.find("python scripts/validate_test_skips.py")
+    test_index = content.find("pytest -q")
+    return guard_index != -1 and test_index != -1 and guard_index < test_index
 
 
 def _has_contract_validators(path: Path) -> bool:
@@ -358,6 +370,8 @@ def main() -> int:
             )
         if path.name == "ci.yml" and not _ci_has_bandit_suppression_guard(path):
             errors.append(f"{path}: missing Bandit suppression hygiene guard")
+        if path.name == "ci.yml" and not _ci_has_test_skip_guard(path):
+            errors.append(f"{path}: missing pytest skip governance guard")
         if path.name in {"ci.yml", "release.yml"} and not _has_contract_validators(
             path
         ):

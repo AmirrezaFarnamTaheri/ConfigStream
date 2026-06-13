@@ -26,6 +26,24 @@ def test_validate_bandit_suppressions_accepts_explicit_rules(
     assert errors == []
 
 
+def test_validate_bandit_suppressions_accepts_active_explicit_rules(
+    tmp_path: Path, monkeypatch
+) -> None:
+    monkeypatch.setattr(validator, "ROOT", tmp_path)
+    _write(
+        tmp_path / "src/configstream/example.py",
+        "import subprocess  # nosec B404\n",
+    )
+    rel_path = str(Path("src/configstream/example.py"))
+
+    errors = validator.validate_bandit_suppressions(
+        ("src/configstream",),
+        active_findings={(rel_path, 1): {"B404"}},
+    )
+
+    assert errors == []
+
+
 def test_validate_bandit_suppressions_rejects_bare_nosec(
     tmp_path: Path, monkeypatch
 ) -> None:
@@ -69,3 +87,39 @@ def test_validate_bandit_suppressions_rejects_duplicates(
 
     assert len(errors) == 1
     assert "duplicate nosec rule token" in errors[0]
+
+
+def test_validate_bandit_suppressions_rejects_stale_or_misplaced_rules(
+    tmp_path: Path, monkeypatch
+) -> None:
+    monkeypatch.setattr(validator, "ROOT", tmp_path)
+    _write(
+        tmp_path / "src/configstream/example.py",
+        "import subprocess  # nosec B404\n",
+    )
+
+    errors = validator.validate_bandit_suppressions(
+        ("src/configstream",),
+        active_findings={},
+    )
+
+    assert len(errors) == 1
+    assert "stale or misplaced nosec rule token" in errors[0]
+
+
+def test_main_require_active_uses_active_bandit_findings(
+    tmp_path: Path, monkeypatch
+) -> None:
+    monkeypatch.setattr(validator, "ROOT", tmp_path)
+    _write(
+        tmp_path / "scripts/example.py",
+        "import subprocess  # nosec B404\n",
+    )
+    rel_path = str(Path("scripts/example.py"))
+    monkeypatch.setattr(
+        validator,
+        "_collect_active_bandit_findings",
+        lambda scan_roots: {(rel_path, 1): {"B404"}},
+    )
+
+    assert validator.main(["--require-active", "scripts"]) == 0

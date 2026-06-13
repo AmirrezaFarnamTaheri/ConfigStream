@@ -23,7 +23,10 @@ _LOG_UUID_RE = re.compile(
     r"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}",
     re.IGNORECASE,
 )
-_LOG_USERINFO_RE = re.compile(r":([^:@]+)@")
+_LOG_USERINFO_RE = re.compile(r"(?P<prefix>://[^/?#\s:@]+):([^/?#\s:@]+)@")
+_LOG_INLINE_SECRET_USERINFO_RE = re.compile(
+    r"(?i)\b(pass|password|token|secret|auth):([^@\s]+)@"
+)
 _LOG_QUERY_SECRET_RE = re.compile(
     r"(?i)(token|access_token|api_key|apikey|license_key|key|secret|pass|password|uuid|id|auth|authorization)=([^&\s]+)"
 )
@@ -120,7 +123,9 @@ class SecurityValidator:
         # Mask UUIDs (common in VMess/VLESS configs)
         msg = _LOG_UUID_RE.sub("[UUID]", msg)
         # Mask passwords in URLs (user:pass@host)
-        msg = _LOG_USERINFO_RE.sub(":[MASKED]@", msg)
+        msg = _LOG_USERINFO_RE.sub(r"\g<prefix>:[MASKED]@", msg)
+        # Mask inline credential-shaped snippets without treating prose like "Error: ..." as userinfo.
+        msg = _LOG_INLINE_SECRET_USERINFO_RE.sub(r"\1:[MASKED]@", msg)
         # Mask common query-style secrets (token, key, secret, password, uuid, id)
         msg = _LOG_QUERY_SECRET_RE.sub(r"\1=[MASKED]", msg)
         # Mask Authorization headers or inline auth blobs (e.g., "Authorization: Bearer ...")
@@ -196,6 +201,16 @@ class SecurityValidator:
         if not proxy.address or not proxy.port:
             return False, "missing_address_or_port"
 
+        address = str(proxy.address).strip()
+        if (
+            address != str(proxy.address)
+            or "://" in address
+            or "/" in address
+            or "\\" in address
+            or SecurityValidator.sanitize_address(address) != address
+        ):
+            return False, "invalid_address_format"
+
         try:
             port = int(proxy.port)
             if not (0 < port < 65536):
@@ -266,6 +281,7 @@ def _should_include_insecure(reason: str) -> bool:
         return False
     fatal_reasons = {
         "missing_address_or_port",
+        "invalid_address_format",
         "invalid_port_range",
         "invalid_port_type",
         "missing_uuid",

@@ -133,6 +133,7 @@ Capability status is tracked in `docs/capability_registry.json`, and client-core
 | `artifact_manifest.json` | control | json | yes | schema, json | Generated file inventory with size and sha256 checks. |
 | `health.json` | control | json | yes | schema, json | Freshness and degraded-state control artifact. |
 | `metadata.json` | control | json | yes | schema, json | Canonical run metadata validated against metadata.schema.json. |
+| `pipeline_events.jsonl` | control | jsonl | yes | jsonl | Sanitized append-only pipeline event telemetry; JSONL structure and secret-marker absence are validated. |
 | `api/proxies` | api-alias | json | yes | schema, json | API alias that must match proxies.json. |
 | `api/stats` | api-alias | json | yes | schema, json | API alias that must match metadata.json. |
 | `countries/*.list.json` | categorized-api | json | no | schema, json | Country-specific proxy list JSON; must match proxy.schema.json. |

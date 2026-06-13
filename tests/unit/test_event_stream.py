@@ -4,6 +4,7 @@ Comprehensive tests for event_stream.py module.
 Tests the EventStream class for real-time event emission.
 """
 
+import json
 from unittest.mock import patch
 from configstream.event_stream import EventStream
 
@@ -116,7 +117,8 @@ class TestEventStream:
         )
         stream.emit("error", special_message)
 
-        mock_logger.error.assert_called_once_with(f"[error] {special_message}")
+        expected = special_message.replace("192.168.1.1", "[IP]")
+        mock_logger.error.assert_called_once_with(f"[error] {expected}")
 
     @patch("configstream.event_stream.logger")
     def test_emit_message_with_unicode(self, mock_logger, tmp_path):
@@ -149,7 +151,8 @@ class TestEventStream:
 
         mock_logger.info.assert_called_once()
         call_args = mock_logger.info.call_args[0][0]
-        assert long_message in call_args
+        assert "[BASE64]" in call_args
+        assert long_message not in call_args
 
     @patch("configstream.event_stream.logger")
     def test_emit_with_format_strings(self, mock_logger, tmp_path):
@@ -284,3 +287,32 @@ class TestEventStream:
         stream.emit("info", url_message)
 
         mock_logger.info.assert_called_once_with(f"[info] {url_message}")
+
+    def test_emit_persists_sanitized_jsonl(self, tmp_path):
+        """EventStream persists sanitized JSONL event records."""
+        stream = EventStream(tmp_path)
+        stream.emit(
+            "info",
+            "Fetching https://example.com/sub?token=secret&id=123 from 203.0.113.8",
+        )
+
+        records = (
+            (tmp_path / "pipeline_events.jsonl")
+            .read_text(encoding="utf-8")
+            .splitlines()
+        )
+        assert len(records) == 1
+        record = json.loads(records[0])
+        assert record["event_type"] == "info"
+        assert "secret" not in record["message"]
+        assert "203.0.113.8" not in record["message"]
+        assert "token=[MASKED]" in record["message"]
+        assert "[IP]" in record["message"]
+        assert record["timestamp"].endswith("+00:00")
+
+    def test_emit_can_disable_jsonl_persistence(self, tmp_path):
+        """Persistence can be disabled for tests or embedding contexts."""
+        stream = EventStream(tmp_path, persist=False)
+        stream.emit("info", "No file")
+
+        assert not (tmp_path / "pipeline_events.jsonl").exists()

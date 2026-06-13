@@ -11,19 +11,12 @@ import hashlib
 import json
 import logging
 import time
-import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-# Windows Compatibility for file locking
-if sys.platform != "win32":
-    import fcntl
-else:
-    fcntl = None  # type: ignore
-
 from .models import Proxy
-from .utils import AtomicFileWriter
+from .utils import AtomicFileWriter, _FileLock
 from .config import AppSettings
 from .security_validator import SecurityValidator
 
@@ -84,21 +77,8 @@ class TestResultCache:
         """Save the current in-memory cache to the JSON file with locking."""
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         try:
-            # Use a lock file alongside the cache file
             lock_path = self.db_path.with_suffix(".lock")
-
-            # Handle Windows locking
-            if fcntl:
-                with open(lock_path, "w") as lock_file:
-                    # Acquire an exclusive lock (blocking to ensure safety)
-                    fcntl.flock(lock_file, fcntl.LOCK_EX)
-                    try:
-                        self._merge_and_write()
-                    finally:
-                        fcntl.flock(lock_file, fcntl.LOCK_UN)
-            else:
-                # Fallback for Windows (no atomic locking easily available without deps)
-                # Just write directly for now or could implement msvcrt locking if needed
+            with _FileLock(lock_path):
                 self._merge_and_write()
 
         except IOError as e:

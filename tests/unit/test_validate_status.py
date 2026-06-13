@@ -24,11 +24,14 @@ def _valid_status() -> str:
 **Version:** v3.1.0
 
 ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md
+Historical source-of-truth ledgers were fully absorbed into the master report and removed
+
+## Absorbed Archive Value
 
 ## Closed Audit Items
 
 ## Validation Snapshot
-- `python -m pytest -q`: 1035 passed
+- `python -m pytest -q`: 1094 passed, 5 skipped
 """
 
 
@@ -46,7 +49,7 @@ def test_validate_status_accepts_current_production_contract(
 def test_validate_status_rejects_stale_full_pytest_count(
     tmp_path: Path, monkeypatch
 ) -> None:
-    _write_repo(tmp_path, _valid_status().replace("1035 passed", "899 passed"))
+    _write_repo(tmp_path, _valid_status().replace("1094 passed", "899 passed"))
     monkeypatch.setattr(validate_status, "STATUS_PATH", tmp_path / "STATUS.md")
     monkeypatch.setattr(validate_status, "PYPROJECT_PATH", tmp_path / "pyproject.toml")
 
@@ -58,7 +61,7 @@ def test_validate_status_rejects_stale_full_pytest_count(
 def test_validate_status_rejects_previous_full_pytest_count(
     tmp_path: Path, monkeypatch
 ) -> None:
-    _write_repo(tmp_path, _valid_status().replace("1035 passed", "1032 passed"))
+    _write_repo(tmp_path, _valid_status().replace("1094 passed", "1032 passed"))
     monkeypatch.setattr(validate_status, "STATUS_PATH", tmp_path / "STATUS.md")
     monkeypatch.setattr(validate_status, "PYPROJECT_PATH", tmp_path / "pyproject.toml")
 
@@ -79,3 +82,35 @@ def test_validate_status_rejects_beta_classifier(tmp_path: Path, monkeypatch) ->
     errors = validate_status.validate_status()
 
     assert any("Production/Stable" in error for error in errors)
+
+
+def test_validate_status_rejects_pending_full_suite(
+    tmp_path: Path, monkeypatch
+) -> None:
+    status = _valid_status().replace(
+        "- `python -m pytest -q`: 1094 passed, 5 skipped",
+        "- `python -m pytest -q`: pending after the 2026-06-13 frontend/governance refresh.",
+    )
+    _write_repo(tmp_path, status)
+    monkeypatch.setattr(validate_status, "STATUS_PATH", tmp_path / "STATUS.md")
+    monkeypatch.setattr(validate_status, "PYPROJECT_PATH", tmp_path / "pyproject.toml")
+
+    errors = validate_status.validate_status()
+
+    assert any("pending after" in error for error in errors)
+
+
+def test_validate_status_rejects_active_truth_from_history(
+    tmp_path: Path, monkeypatch
+) -> None:
+    status = _valid_status().replace(
+        "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md",
+        "The active current source of truth is [docs/history/source-of-truth/ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md]",
+    )
+    _write_repo(tmp_path, status)
+    monkeypatch.setattr(validate_status, "STATUS_PATH", tmp_path / "STATUS.md")
+    monkeypatch.setattr(validate_status, "PYPROJECT_PATH", tmp_path / "pyproject.toml")
+
+    errors = validate_status.validate_status()
+
+    assert any("docs/history/source-of-truth" in error for error in errors)

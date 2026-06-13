@@ -169,7 +169,7 @@ def main():
 
     # Check file exists
     if not changelog_path.exists():
-        print("❌ ERROR: CHANGELOG.md not found")
+        print("ERROR: CHANGELOG.md not found")
         print(f"   Expected location: {changelog_path}")
         return 1
 
@@ -180,11 +180,11 @@ def main():
     entries = extract_dates_from_changelog(content)
 
     if not entries:
-        print("⚠️  WARNING: No dated changelog entries found")
+        print("WARNING: No dated changelog entries found")
         print("   Expected format: ## [0.4.0] - 2025-01-15")
         return 0  # Not an error, just a warning
 
-    print(f"📋 Found {len(entries)} dated entries in CHANGELOG")
+    print(f"Found {len(entries)} dated entries in CHANGELOG")
 
     # Validate each date
     errors = []
@@ -200,12 +200,12 @@ def main():
 
     # Report results
     if errors:
-        print("\\n❌ CHANGELOG VALIDATION FAILED:")
+        print("\\nCHANGELOG VALIDATION FAILED:")
         for error in errors:
             print(f"   - {error}")
         return 1
 
-    print("✅ All CHANGELOG validations passed")
+    print("All CHANGELOG validations passed")
     print(f"   Validated {len(entries)} version entries")
     print(f"   Date range: {entries[-1][1]} to {entries[0][1]}")
     return 0

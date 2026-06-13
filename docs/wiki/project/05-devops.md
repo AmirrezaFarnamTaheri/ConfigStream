@@ -1,6 +1,6 @@
 # 05. DevOps & Infrastructure
 
-ConfigStream is in remediation. The workflow files are the executable contract, and the master audit is the planning contract. This page describes the current intended automation model after the first remediation pass; if it conflicts with workflow YAML, tests, or the master audit, treat the executable files and audit report as authoritative.
+ConfigStream is repository production-ready at v3.1.0. Workflow files are the executable contract, and the root master report plus `STATUS.md` are the active human-readable status surfaces. If this page conflicts with workflow YAML, validators, the master report, `STATUS.md`, or canonical matrices, treat those active surfaces as authoritative.
 
 GitHub Pages is the core zero-budget publication target. External mirrors are optional and secret-gated; their absence must not fail the core pipeline or Pages deployment.
 
@@ -50,15 +50,16 @@ The deploy workflow must consume exactly one `pipeline-output` artifact from exa
 python scripts/validate_pages_artifact.py output
 ```
 
-That validator is the current deploy-side artifact gate. It checks required files, non-empty files, JSON parseability, ZIP integrity, path containment, `artifact_manifest.json` inventory coverage, and `health.json` status.
+That validator is the current deploy-side artifact gate. It checks required files, non-empty files, JSON parseability, JSONL pipeline telemetry shape, ZIP integrity, path containment, `artifact_manifest.json` inventory coverage, and `health.json` status.
 
 The public output contract now includes:
 
 - `metadata.json`: pipeline metrics and frontend analytics source.
 - `health.json`: compact public status, generated time, run identity fields, and degraded/ok state.
 - `artifact_manifest.json`: file inventory with relative paths, sizes, SHA-256 hashes, categories, and run identity fields.
+- `pipeline_events.jsonl`: sanitized append-only pipeline event telemetry; each line is a timestamped JSON object and must be covered by the manifest.
 
-The longer-term roadmap still requires full JSON Schema validation in CI/deploy, stronger run identity propagation, and deployed-site smoke tests.
+The current contract includes schema-backed artifact validation, API alias parity, refreshed manifests, deployed-site smoke, screenshots, and evidence-bundle retention. Future workflow changes must preserve those gates or update the master/status files and validators in the same change.
 
 ## 5. Local Validation
 
@@ -70,7 +71,7 @@ python scripts/validate_versions.py
 pytest -q tests/unit/test_validate_workflows.py tests/unit/test_validate_pages_artifact.py tests/unit/test_validate_versions.py
 ```
 
-The full production gate is broader and remains tracked in the master audit: Python tests, linting, typing, frontend build, artifact schema checks, browser smoke tests, security checks, and deployed artifact verification.
+The repository production gate remains broader than this quick checklist: Python tests, linting, typing, frontend build, artifact schema checks, browser smoke tests, security checks, workflow validators, suppression/skip governance, and deployed artifact verification are tracked in the master report and `STATUS.md`.
 
 ## 6. Cleanup Rule
 

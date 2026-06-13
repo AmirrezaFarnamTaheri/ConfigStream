@@ -48,7 +48,7 @@ def _validation_summary(item: dict[str, Any]) -> str:
     checks: list[str] = []
     if item.get("schema_validation") is True:
         checks.append("schema")
-    if item.get("format") in {"json", "yaml", "zip"}:
+    if item.get("format") in {"json", "jsonl", "yaml", "zip"}:
         checks.append(str(item["format"]))
     if item.get("path") in {
         "singbox.json",

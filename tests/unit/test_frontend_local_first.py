@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import hashlib
 import json
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -114,6 +115,9 @@ def test_vendor_manifest_tracks_local_runtime_assets() -> None:
         local_path = FRONTEND_DIR / library["local"]
         assert local_path.is_file(), library
         assert local_path.stat().st_size > 0, library
+        if "sha256" in library:
+            digest = hashlib.sha256(local_path.read_bytes()).hexdigest()
+            assert digest == library["sha256"], library
 
     fonts_css = (FRONTEND_DIR / "assets/css/fonts.css").read_text(encoding="utf-8")
     for family in (
@@ -123,3 +127,17 @@ def test_vendor_manifest_tracks_local_runtime_assets() -> None:
         "Mikhak",
     ):
         assert family in fonts_css
+
+
+def test_dompurify_vendor_manifest_matches_bundled_asset() -> None:
+    manifest = json.loads(
+        (FRONTEND_DIR / "assets/vendor-manifest.json").read_text(encoding="utf-8")
+    )
+    dompurify = next(
+        library for library in manifest["libraries"] if library["name"] == "dompurify"
+    )
+    purify_js = (FRONTEND_DIR / dompurify["local"]).read_text(encoding="utf-8")
+
+    assert dompurify["version"] == "3.4.10"
+    assert f"DOMPurify {dompurify['version']}" in purify_js.splitlines()[0]
+    assert f"dompurify@{dompurify['version']}" in dompurify["source"]

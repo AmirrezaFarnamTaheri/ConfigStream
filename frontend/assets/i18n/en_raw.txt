@@ -239,5 +239,5 @@
 
         /* Proxies Page */
         "proxies.hero.title": "Live Proxy List",
-        "proxies.hero.subtitle": "Explore our complete list of vetted proxies. Search, sort, and find the perfect connection for your needs."
+        "proxies.hero.subtitle": "Explore generated proxy candidates. Search, sort, and choose a connection that fits your network."
     }

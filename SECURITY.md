@@ -136,7 +136,7 @@
 - ✅ Subprocess command injection: **0 vulnerable calls** (6 audited, all safe)
 - ✅ SQL injection: **0 vulnerabilities** (parameterized queries only)
 - ✅ Path traversal: **Robust protection** (SAFE_PATH_PATTERN + os.path.commonpath)
-- ✅ XSS: **DOMPurify integrated** (80+ innerHTML usages sanitized)
+- ✅ XSS: **DOMPurify integrated** with project-owned runtime `innerHTML` assignments removed from frontend modules; rich content flows through safe DOM construction or sanitized DOM fragments.
 
 **Known Considerations**:
 - ⚠️ console.log in production: Stripped via build process (.build-config.json)

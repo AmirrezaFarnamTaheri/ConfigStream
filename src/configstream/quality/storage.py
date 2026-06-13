@@ -25,7 +25,7 @@ def _quote_sql_identifier(identifier: str) -> str:
 def _insert_sql(table: str, columns: List[str]) -> str:
     quoted_table = _quote_sql_identifier(table)
     quoted_columns = ",".join(_quote_sql_identifier(column) for column in columns)
-    placeholders = ",".join(["?"] * len(columns))
+    bind_markers = ",".join(["?"] * len(columns))
     return " ".join(
         [
             "INSERT",
@@ -33,15 +33,15 @@ def _insert_sql(table: str, columns: List[str]) -> str:
             quoted_table,
             f"({quoted_columns})",
             "VALUES",
-            f"({placeholders})",
+            f"({bind_markers})",
         ]
     )
 
 
 def _insert_values_sql(table: str, column_count: int) -> str:
     quoted_table = _quote_sql_identifier(table)
-    placeholders = ",".join(["?"] * column_count)
-    return " ".join(["INSERT", "INTO", quoted_table, "VALUES", f"({placeholders})"])
+    bind_markers = ",".join(["?"] * column_count)
+    return " ".join(["INSERT", "INTO", quoted_table, "VALUES", f"({bind_markers})"])
 
 
 class QualityStorage:

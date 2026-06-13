@@ -8,6 +8,7 @@ from collections import OrderedDict
 
 from configstream.constants import VIRUSTOTAL_CACHE_SIZE
 from configstream.config import AppSettings
+from configstream.security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
 
@@ -78,21 +79,21 @@ async def scan_url(url: str) -> dict[str, int]:
 
                     return result
                 elif resp.status == 404:
-                    # URL not found, could submit it but for now just return clean
-                    # Submitting requires POST to /urls
-                    # We can cache the "not found" as clean to avoid repeated 404 lookups
+                    # Zero-budget safety: do not submit third-party URLs for active
+                    # scanning; cache report misses as fail-open clean lookups.
                     result = {"malicious": 0}
                     async with _CACHE_LOCK:
                         _URL_CACHE[url] = (result, now)
 
                     return result
                 else:
-                    logger.error(f"VirusTotal API error scanning URL: {resp.status}")
+                    logger.error("VirusTotal API error scanning URL: %s", resp.status)
                     return {"malicious": 0}
     except Exception as e:
-        logger.error(f"VirusTotal scan failed: {e}")
+        safe_error = SecurityValidator.sanitize_log_message(str(e))
+        logger.error("VirusTotal scan failed: %s", safe_error)
         # Retaining "scan failed" keyword for test matching
-        logger.warning(f"Scan failed details: {e}")
+        logger.warning("Scan failed details: %s", safe_error)
         return {"malicious": 0}
 
 

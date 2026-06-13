@@ -84,6 +84,17 @@ def _write_site(root: Path, *, runtime_config: str | None = None) -> None:
         ),
         encoding="utf-8",
     )
+    (root / "pipeline_events.jsonl").write_text(
+        json.dumps(
+            {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "event_type": "pipeline_complete",
+                "message": "Generated degraded artifact set.",
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
     (root / "base64.txt").write_text("", encoding="utf-8")
     (root / "chosen").mkdir()
     (root / "chosen" / "base64.txt").write_text("", encoding="utf-8")
@@ -206,3 +217,25 @@ def test_verify_pages_deployment_requires_health_run_identity(
         server.server_close()
 
     assert "health.json missing run_id or source_commit" in errors
+
+
+def test_verify_pages_deployment_rejects_invalid_pipeline_events(
+    tmp_path: Path,
+) -> None:
+    _write_site(tmp_path)
+    (tmp_path / "pipeline_events.jsonl").write_text(
+        '{"timestamp":"not-a-date","event_type":"error","message":"Bearer secret"}\n',
+        encoding="utf-8",
+    )
+    server, url = _serve(tmp_path)
+    try:
+        errors = verify_pages_deployment(url, timeout=5.0)
+    finally:
+        server.shutdown()
+        server.server_close()
+
+    assert any(
+        "pipeline_events.jsonl line 1 contains forbidden marker" in error
+        for error in errors
+    )
+    assert "artifact_manifest.json sha256 mismatch: pipeline_events.jsonl" in errors

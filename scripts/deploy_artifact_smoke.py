@@ -181,6 +181,19 @@ def _write_output_fixture(root: Path) -> None:
             _write_zip(target)
         elif rel_path == "metadata.json" or rel_path == "api/stats":
             _write_text(target, json.dumps(metadata, ensure_ascii=False))
+        elif rel_path == "pipeline_events.jsonl":
+            _write_text(
+                target,
+                json.dumps(
+                    {
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "event_type": "stream_close",
+                        "message": "Event stream closing.",
+                    },
+                    separators=(",", ":"),
+                )
+                + "\n",
+            )
         elif rel_path == "proxies.json" or rel_path == "api/proxies":
             _write_text(target, "[]")
         elif rel_path.startswith("singbox") and rel_path.endswith(".json"):

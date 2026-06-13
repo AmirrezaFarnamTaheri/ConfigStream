@@ -21,7 +21,11 @@ from configstream.intelligence.washer.key_generator import (
 )  # Import the new key generator
 from configstream.tools.vwarp.manager import VwarpTool
 from pathlib import Path
-from configstream.intelligence.chaining import find_optimal_relay, ProxyStub, COUNTRIES
+from configstream.intelligence.chaining import (
+    find_optimal_relay,
+    RelayCandidate,
+    COUNTRIES,
+)
 from configstream.pipeline_stats import PipelineStats
 from configstream.config import AppSettings
 from configstream.constants import VWARP_SOCKS5_PORT, VWARP_BIND_ADDRESS
@@ -273,7 +277,9 @@ class ProxyWasher:
                 logger.info("Starting static list fetch sequence...")
                 for source_url in CLEAN_IP_SOURCES:
                     try:
-                        async with httpx.AsyncClient(timeout=10, trust_env=False) as client:
+                        async with httpx.AsyncClient(
+                            timeout=10, trust_env=False
+                        ) as client:
                             resp = await client.get(source_url)
                             if resp.status_code == 200:
                                 lines = [
@@ -728,7 +734,7 @@ class ProxyWasher:
 
         candidates = [p for p in proxies if p.is_working]
 
-        target_exit = ProxyStub("US", 37.09, -95.71, "wireguard")
+        target_exit = RelayCandidate("US", 37.09, -95.71, "wireguard")
         origin_country = _SETTINGS_CACHE.OPTIMAL_RELAY_ORIGIN
 
         for relay in candidates:
@@ -771,15 +777,19 @@ class ProxyWasher:
             try:
                 if relay.country_code and relay.country_code in COUNTRIES:
                     # Pass measured latency for better optimization
-                    relay_stub = ProxyStub(
+                    relay_candidate = RelayCandidate(
                         relay.country_code,
                         0.0,
                         0.0,
                         relay.protocol,
                         latency=relay.latency or 0.0,
                     )
-                    relay_stub.lat, relay_stub.lon = COUNTRIES[relay.country_code]
-                    res = find_optimal_relay(origin_country, target_exit, [relay_stub])
+                    relay_candidate.lat, relay_candidate.lon = COUNTRIES[
+                        relay.country_code
+                    ]
+                    res = find_optimal_relay(
+                        origin_country, target_exit, [relay_candidate]
+                    )
                     if isinstance(res, dict) and "relay" in res:
                         if float(res.get("total_distance", 99999)) < 15000:
                             is_optimal = True

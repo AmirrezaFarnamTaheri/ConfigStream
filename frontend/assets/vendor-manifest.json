@@ -45,9 +45,10 @@
     },
     {
       "name": "dompurify",
-      "version": "3.0.6",
-      "source": "https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js",
-      "local": "assets/libs/purify.min.js"
+      "version": "3.4.10",
+      "source": "https://cdn.jsdelivr.net/npm/dompurify@3.4.10/dist/purify.min.js",
+      "local": "assets/libs/purify.min.js",
+      "sha256": "9aca84b86a0c35926d47994f354b37116044aab0aac9874f35a44322a5c96565"
     },
     {
       "name": "highlight.js",

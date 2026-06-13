@@ -45,7 +45,7 @@ function initSidebar() {
     // Preserve active state if rebuilding
     const currentHash = window.location.hash.substring(1) || 'Home';
 
-    sidebar.innerHTML = '';
+    sidebar.replaceChildren();
 
     WIKI_PAGES.forEach(page => {
         const link = document.createElement('a');
@@ -60,7 +60,7 @@ function initSidebar() {
             }
         }
 
-        link.innerText = displayTitle;
+        link.textContent = displayTitle;
         link.href = `#${page.id}`;
         link.id = `nav-${page.id}`;
         if (page.id === currentHash) {
@@ -160,14 +160,18 @@ async function renderPage(filename) {
             const html = marked.parse(content);
 
             // Sanitize with strengthened fallback
-            let sanitized;
             if (window.DOMPurify) {
-                sanitized = window.DOMPurify.sanitize(html, {
+                const sanitized = window.DOMPurify.sanitize(html, {
                      ADD_ATTR: ['target', 'rel'],
                      FORBID_TAGS: ['script', 'object', 'embed', 'applet', 'iframe', 'form'],
-                     FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover']
+                     FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover'],
+                     RETURN_DOM_FRAGMENT: true
                 });
-                container.innerHTML = sanitized; // Sanitized by DOMPurify
+                if (sanitized && typeof sanitized.nodeType === 'number') {
+                    container.replaceChildren(sanitized);
+                } else {
+                    container.textContent = String(sanitized || '');
+                }
             } else {
                 // CRITICAL: If DOMPurify fails, render as plain text
                 console.error("[Wiki] DOMPurify not loaded - rendering as plain text for security");
@@ -256,7 +260,7 @@ async function renderPage(filename) {
         btn.className = 'btn btn-secondary';
         btn.style.marginTop = '10px';
         btn.textContent = 'Retry';
-        btn.onclick = () => location.reload();
+        btn.addEventListener('click', () => location.reload());
         
         errorDiv.appendChild(h3);
         errorDiv.appendChild(p1);

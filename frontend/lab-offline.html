@@ -63,14 +63,14 @@ hr{border:none;border-top:1px solid var(--border);margin:1.5rem 0}
   <div id="layersContainer" class="layers-container"></div>
 
   <div class="btn-group">
-    <button class="btn-s" onclick="addLayer('socks5')">+ SOCKS5</button>
-    <button class="btn-s" onclick="addLayer('http')">+ HTTP Proxy</button>
-    <button class="btn-s" onclick="addLayer('warp')">+ WARP</button>
-    <button class="btn-s" onclick="addLayer('vless')">+ VLESS</button>
-    <button class="btn-s" onclick="addLayer('vmess')">+ VMess</button>
-    <button class="btn-s" onclick="addLayer('trojan')">+ Trojan</button>
-    <button class="btn-s" onclick="addLayer('ss')">+ Shadowsocks</button>
-    <button class="btn-s" onclick="addLayer('fragment')">+ TLS Fragment</button>
+    <button class="btn-s" data-add-layer="socks5">+ SOCKS5</button>
+    <button class="btn-s" data-add-layer="http">+ HTTP Proxy</button>
+    <button class="btn-s" data-add-layer="warp">+ WARP</button>
+    <button class="btn-s" data-add-layer="vless">+ VLESS</button>
+    <button class="btn-s" data-add-layer="vmess">+ VMess</button>
+    <button class="btn-s" data-add-layer="trojan">+ Trojan</button>
+    <button class="btn-s" data-add-layer="ss">+ Shadowsocks</button>
+    <button class="btn-s" data-add-layer="fragment">+ TLS Fragment</button>
   </div>
 </div>
 
@@ -95,12 +95,12 @@ hr{border:none;border-top:1px solid var(--border);margin:1.5rem 0}
     <div><label for="port">Listen Port</label><input type="number" id="port" value="2080"></div>
   </div>
   <div class="btn-group">
-    <button class="btn-p" onclick="generate()">Generate Config</button>
-    <button class="btn-s" onclick="copyOutput()">Copy</button>
-    <button class="btn-s" onclick="downloadOutput()">Download</button>
+    <button class="btn-p" data-action="generate">Generate Config</button>
+    <button class="btn-s" data-action="copy-output">Copy</button>
+    <button class="btn-s" data-action="download-output">Download</button>
   </div>
   <div id="result" class="result"></div>
-  <div id="output" class="output" style="display:none"><button class="copy" onclick="copyOutput()">Copy</button><code id="outputCode"></code></div>
+  <div id="output" class="output" style="display:none"><button class="copy" data-action="copy-output">Copy</button><code id="outputCode"></code></div>
 </div>
 
 <!-- Help -->
@@ -120,22 +120,89 @@ const WARP_PK='bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=';
 let layers=[];
 let lastConfig=null;
 
+function field(label, name, attrs={}){
+  const wrap=document.createElement('div');
+  const labelEl=document.createElement('label');
+  labelEl.textContent=label;
+  wrap.appendChild(labelEl);
+
+  let control;
+  if(attrs.options){
+    control=document.createElement('select');
+    attrs.options.forEach(optionValue=>{
+      const option=document.createElement('option');
+      option.value=optionValue;
+      option.textContent=optionValue;
+      control.appendChild(option);
+    });
+  }else{
+    control=document.createElement('input');
+    if(attrs.type)control.type=attrs.type;
+  }
+  control.dataset.f=name;
+  if(attrs.value!==undefined)control.value=attrs.value;
+  if(attrs.hint)control.placeholder=attrs.hint;
+  wrap.appendChild(control);
+  return wrap;
+}
+
+function row(...children){
+  const el=document.createElement('div');
+  el.className='row';
+  children.forEach(child=>el.appendChild(child));
+  return el;
+}
+
+function appendLayerFields(container,type){
+  if(type==='socks5'){
+    container.appendChild(row(field('Host','host',{value:'127.0.0.1'}),field('Port','port',{type:'number',value:'1080'})));
+  }else if(type==='http'){
+    container.appendChild(row(field('Host','host',{value:'127.0.0.1'}),field('Port','port',{type:'number',value:'8080'})));
+  }else if(type==='warp'){
+    container.appendChild(row(field('Clean IP','ip',{value:'162.159.192.1'}),field('Port','port',{type:'number',value:'2408'})));
+    container.appendChild(field('WARP+ Key (optional)','key',{hint:'Leave blank for free'}));
+  }else if(type==='vless'||type==='vmess'){
+    container.appendChild(row(field('Server','host'),field('Port','port',{type:'number',value:'443'})));
+    container.appendChild(field('UUID','uuid'));
+    container.appendChild(row(field('SNI','sni'),field('Transport','net',{options:['tcp','ws','grpc']})));
+  }else if(type==='trojan'){
+    container.appendChild(row(field('Server','host'),field('Port','port',{type:'number',value:'443'})));
+    container.appendChild(field('Password','uuid'));
+    container.appendChild(field('SNI','sni'));
+  }else if(type==='ss'){
+    container.appendChild(row(field('Server','host'),field('Port','port',{type:'number',value:'443'})));
+    container.appendChild(row(field('Method','method',{options:['aes-128-gcm','aes-256-gcm','chacha20-ietf-poly1305','2022-blake3-aes-128-gcm']}),field('Password','uuid')));
+  }else if(type==='fragment'){
+    container.appendChild(row(field('Fragment Size','frag_size',{value:'10-30'}),field('Fragment Delay (ms)','frag_delay',{value:'5-10'})));
+    const hint=document.createElement('p');
+    hint.className='hint';
+    hint.textContent='Applied to the layer above this one. No server needed.';
+    container.appendChild(hint);
+  }
+}
+
 function addLayer(type){
   const id=Date.now();
-  let html='';
-  const fields={
-    socks5:'<div class="row"><div><label>Host</label><input data-f="host" value="127.0.0.1"></div><div><label>Port</label><input data-f="port" type="number" value="1080"></div></div>',
-    http:'<div class="row"><div><label>Host</label><input data-f="host" value="127.0.0.1"></div><div><label>Port</label><input data-f="port" type="number" value="8080"></div></div>',
-    warp:'<div class="row"><div><label>Clean IP</label><input data-f="ip" value="162.159.192.1"></div><div><label>Port</label><input data-f="port" type="number" value="2408"></div></div><div><label>WARP+ Key (optional)</label><input data-f="key" placeholder="Leave blank for free"></div>',
-    vless:'<div class="row"><div><label>Server</label><input data-f="host"></div><div><label>Port</label><input data-f="port" type="number" value="443"></div></div><div><label>UUID</label><input data-f="uuid"></div><div class="row"><div><label>SNI</label><input data-f="sni"></div><div><label>Transport</label><select data-f="net"><option value="tcp">TCP</option><option value="ws">WebSocket</option><option value="grpc">gRPC</option></select></div></div>',
-    vmess:'<div class="row"><div><label>Server</label><input data-f="host"></div><div><label>Port</label><input data-f="port" type="number" value="443"></div></div><div><label>UUID</label><input data-f="uuid"></div><div class="row"><div><label>SNI</label><input data-f="sni"></div><div><label>Transport</label><select data-f="net"><option value="tcp">TCP</option><option value="ws">WebSocket</option><option value="grpc">gRPC</option></select></div></div>',
-    trojan:'<div class="row"><div><label>Server</label><input data-f="host"></div><div><label>Port</label><input data-f="port" type="number" value="443"></div></div><div><label>Password</label><input data-f="uuid"></div><div><label>SNI</label><input data-f="sni"></div>',
-    ss:'<div class="row"><div><label>Server</label><input data-f="host"></div><div><label>Port</label><input data-f="port" type="number" value="443"></div></div><div class="row"><div><label>Method</label><select data-f="method"><option>aes-128-gcm</option><option>aes-256-gcm</option><option>chacha20-ietf-poly1305</option><option>2022-blake3-aes-128-gcm</option></select></div><div><label>Password</label><input data-f="uuid"></div></div>',
-    fragment:'<div class="row"><div><label>Fragment Size</label><input data-f="frag_size" value="10-30"></div><div><label>Fragment Delay (ms)</label><input data-f="frag_delay" value="5-10"></div></div><p class="hint">Applied to the layer above this one. No server needed.</p>',
-  };
-  html=`<div class="layer-item" data-id="${id}" data-type="${type}"><span class="layer-num">Layer ${layers.length+1}: ${type.toUpperCase()}</span><button class="rm-layer" onclick="removeLayer(${id})">&times;</button>${fields[type]||''}</div>`;
+  const allowedTypes=new Set(['socks5','http','warp','vless','vmess','trojan','ss','fragment']);
+  if(!allowedTypes.has(type))return;
+
+  const item=document.createElement('div');
+  item.className='layer-item';
+  item.dataset.id=String(id);
+  item.dataset.type=type;
+  const label=document.createElement('span');
+  label.className='layer-num';
+  label.textContent=`Layer ${layers.length+1}: ${type.toUpperCase()}`;
+  const remove=document.createElement('button');
+  remove.className='rm-layer';
+  remove.dataset.removeLayer=String(id);
+  remove.setAttribute('aria-label','Remove layer');
+  remove.textContent='×';
+  item.appendChild(label);
+  item.appendChild(remove);
+  appendLayerFields(item,type);
   layers.push({id,type});
-  document.getElementById('layersContainer').insertAdjacentHTML('beforeend',html);
+  document.getElementById('layersContainer').appendChild(item);
   updateVis();
 }
 
@@ -168,7 +235,7 @@ function updateVis(){
   youNode.className = 'node';
   const youIcon = document.createElement('div');
   youIcon.className = 'icon';
-  youIcon.innerHTML = '&#128187;';
+  youIcon.textContent = '💻';
   const youLbl = document.createElement('div');
   youLbl.className = 'lbl';
   youLbl.textContent = 'You';
@@ -177,11 +244,11 @@ function updateVis(){
   vis.appendChild(youNode);
 
   layers.forEach((l,i)=>{
-    const icons={socks5:'&#128268;',http:'&#128268;',warp:'&#9729;&#65039;',vless:'&#128274;',vmess:'&#128274;',trojan:'&#128274;',ss:'&#128274;',fragment:'&#9986;'};
+    const icons={socks5:'🔌',http:'🔌',warp:'☁️',vless:'🔒',vmess:'🔒',trojan:'🔒',ss:'🔒',fragment:'✂'};
     
     const arrow = document.createElement('div');
     arrow.className = 'arrow';
-    arrow.innerHTML = '&rarr;';
+    arrow.textContent = '→';
     vis.appendChild(arrow);
 
     const node = document.createElement('div');
@@ -190,7 +257,7 @@ function updateVis(){
     
     const icon = document.createElement('div');
     icon.className = 'icon';
-    icon.innerHTML = icons[l.type]||'?';
+    icon.textContent = icons[l.type]||'?';
     
     const lbl = document.createElement('div');
     lbl.className = 'lbl';
@@ -203,7 +270,7 @@ function updateVis(){
 
   const arrowEnd = document.createElement('div');
   arrowEnd.className = 'arrow';
-  arrowEnd.innerHTML = '&rarr;';
+  arrowEnd.textContent = '→';
   vis.appendChild(arrowEnd);
 
   const netNode = document.createElement('div');
@@ -211,7 +278,7 @@ function updateVis(){
   netNode.style.borderColor = 'var(--ok)';
   const netIcon = document.createElement('div');
   netIcon.className = 'icon';
-  netIcon.innerHTML = '&#127760;';
+  netIcon.textContent = '🌐';
   const netLbl = document.createElement('div');
   netLbl.className = 'lbl';
   netLbl.textContent = 'Internet';
@@ -363,6 +430,26 @@ function downloadOutput(){
   a.download='configstream-chain'+ext;document.body.appendChild(a);a.click();
   setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(a.href);},100);
 }
+
+document.addEventListener('click', (event) => {
+  const addButton = event.target.closest('[data-add-layer]');
+  if(addButton){
+    addLayer(addButton.dataset.addLayer);
+    return;
+  }
+
+  const removeButton = event.target.closest('[data-remove-layer]');
+  if(removeButton){
+    removeLayer(Number(removeButton.dataset.removeLayer));
+    return;
+  }
+
+  const actionButton = event.target.closest('[data-action]');
+  if(!actionButton)return;
+  if(actionButton.dataset.action==='generate')generate();
+  else if(actionButton.dataset.action==='copy-output')copyOutput();
+  else if(actionButton.dataset.action==='download-output')downloadOutput();
+});
 </script>
 </body>
 </html>

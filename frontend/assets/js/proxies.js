@@ -59,8 +59,6 @@ function getContrastColor(hexColor) {
 function applyCountryTheme(countryCode) {
     const root = document.documentElement;
     const code = (countryCode || 'XX').toUpperCase();
-    // Fallback to XX if country code not in map, but keep code for potential partial matches if implemented later
-    // For now, strict match or default
     const theme = COUNTRY_THEMES[code] || COUNTRY_THEMES['XX'];
 
     // 1. Set Main Brand Colors
@@ -106,9 +104,13 @@ let stats = {
 // HTML escape helper
 function escapeHtml(text) {
     if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+    return String(text).replace(/[&<>"']/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    })[char]);
 }
 
 // Similarity Calculator for Search
@@ -303,13 +305,13 @@ function renderTable() {
             flag.src = `assets/images/flags/w20/${normalizedCountryCode}.png`;
             flag.className = 'country-flag';
             flag.alt = safeCountryCode;
-            flag.onerror = () => {
+            flag.addEventListener('error', () => {
                 const span = document.createElement('span');
                 span.className = 'country-flag country-flag-text';
                 span.textContent = safeCountryCode;
                 span.ariaLabel = safeCountryCode;
                 flag.replaceWith(span);
-            };
+            });
             locCell.appendChild(flag);
         } else {
             const flagIcon = document.createElement('i');
@@ -455,7 +457,10 @@ function renderTable() {
         // We use data-config attribute or just pass it
         // p.config might be the full URL/URI
         const configStr = p.config || '';
-        btn.onclick = (e) => { e.stopPropagation(); window.copyToClipboard(configStr, btn); };
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            window.copyToClipboard(configStr, btn);
+        });
         actionCell.appendChild(btn);
         row.appendChild(actionCell);
 
@@ -566,12 +571,8 @@ function setupFilters() {
         filteredProxies = temp;
         currentPage = 1;
 
-        // Apply Country Theme
         applyCountryTheme(fCountry);
-
-        sortProxies(); // Re-sort preserves filtered list order relative to sort criteria if search score is equal?
-        // Actually if search is active, we might want score to override sort.
-        // But for now, let's just sort by selected sort order.
+        sortProxies();
         renderTable();
         updatePaginationInfo();
     };

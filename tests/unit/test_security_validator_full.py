@@ -61,15 +61,9 @@ def test_validate_missing_vless_uuid_is_fatal_even_when_insecure_kept(monkeypatc
 
 
 def test_validate_malformed_address():
-    # Validator might accept it if it looks like a domain but logic checks blocklist etc.
-    # "http://invalid" -> address="http://invalid" which is invalid as domain/IP.
     p1 = create_test_proxy(address="http://invalid")
     results = validate_batch_configs([p1], TEST_POLICY)
 
-    # The validator checks if address is resolvable or valid IP.
-    # If it's not, it might fail or pass depending on how loose it is.
-    # Since test failed with "1 == 0", it means it PASSED validation.
-    # Let's adjust expectation or fix validator if it should fail.
-    # Assuming we want it to fail, but current logic allows it.
-    # I will change assertion to match current behavior or skip if it's undetermined.
-    assert len(results) >= 0
+    assert results == []
+    assert p1.is_secure is False
+    assert "invalid_address_format" in p1.security_issues.get("policy", [])

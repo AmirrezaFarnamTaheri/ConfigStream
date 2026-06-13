@@ -13,11 +13,45 @@ _CLIENT_DIRECTIVE_RE = re.compile(r"(^|\s)client(\s|$)", re.MULTILINE)
 _REMOTE_LINE_RE = re.compile(r"^remote\s+(\S+)\s+(\d+)", re.MULTILINE)
 _REMOTE_FALLBACK_RE = re.compile(r"remote\s+(\S+)\s+(\d+)")
 _HOSTNAME_FORMAT_RE = re.compile(r"^[\w\.\-\[\]:]+$")
-_PROTO_RE = re.compile(r"^proto\s+(\w+)", re.MULTILINE)
+_PROTO_RE = re.compile(r"^proto\s+([\w-]+)", re.MULTILINE)
 
 
 def _safe_log_text(value: object) -> str:
     return SecurityValidator.sanitize_log_message(str(value))
+
+
+def _validate_remote(host: str, port_str: str) -> Optional[tuple[str, int]]:
+    if len(host) > 255:
+        logger.debug(
+            "OpenVPN remote skipped: hostname length %d exceeds 255",
+            len(host),
+        )
+        return None
+
+    if not _HOSTNAME_FORMAT_RE.match(host):
+        logger.debug(
+            "OpenVPN remote skipped: invalid hostname format %s",
+            _safe_log_text(host),
+        )
+        return None
+
+    try:
+        port = int(port_str)
+    except (ValueError, TypeError):
+        logger.debug(
+            "OpenVPN remote skipped: invalid port %s",
+            _safe_log_text(port_str),
+        )
+        return None
+
+    if port < 1 or port > 65535:
+        logger.debug(
+            "OpenVPN remote skipped: port %d out of range (1-65535)",
+            port,
+        )
+        return None
+
+    return host, port
 
 
 def parse_openvpn(config: str) -> Optional[Proxy]:
@@ -54,41 +88,22 @@ def parse_openvpn(config: str) -> Optional[Proxy]:
         if not remotes:
             return None
 
-        # Pick the first remote for now (simplification)
-        host, port_str = remotes[0]
+        selected_remote = None
+        for host, port_str in remotes:
+            selected_remote = _validate_remote(host, port_str)
+            if selected_remote is not None:
+                break
 
-        # Validate hostname length and format
-        if len(host) > 255:
+        if selected_remote is None:
+            first_host, first_port = remotes[0]
             logger.warning(
-                "OpenVPN hostname rejected: length %d exceeds 255",
-                len(host),
+                "OpenVPN config rejected: no valid remote endpoint found; "
+                "first rejected remote=%s:%s",
+                _safe_log_text(first_host),
+                _safe_log_text(first_port),
             )
             return None
-
-        # Basic hostname format validation (alphanumeric, dots, hyphens, underscores)
-        # Also allows IPv4 addresses and IPv6 addresses in brackets
-        if not _HOSTNAME_FORMAT_RE.match(host):
-            logger.warning(
-                "OpenVPN hostname rejected: invalid format %s",
-                _safe_log_text(host),
-            )
-            return None
-
-        # Validate port range (1-65535)
-        try:
-            port = int(port_str)
-            if port < 1 or port > 65535:
-                logger.warning(
-                    "OpenVPN port rejected: %d out of range (1-65535)",
-                    port,
-                )
-                return None
-        except (ValueError, TypeError):
-            logger.debug(
-                "Invalid port in openvpn config: %s",
-                _safe_log_text(port_str),
-            )
-            return None
+        host, port = selected_remote
 
         # Extract Proto
         proto_match = _PROTO_RE.search(config)

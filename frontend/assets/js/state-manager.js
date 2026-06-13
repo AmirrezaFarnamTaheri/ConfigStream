@@ -103,10 +103,8 @@ class UIStateManager {
     }
     
     const listeners = this.listeners.get(key);
-    // Audit: Prevent memory leaks
     if (listeners.size >= 50) {
         this.log.warn(`Too many listeners for ${key} (${listeners.size}). Possible leak.`);
-        // Optional: Force clear or reject? Just warn for now.
     }
 
     // Add callback to set

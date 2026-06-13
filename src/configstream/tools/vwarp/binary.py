@@ -164,7 +164,9 @@ async def ensure_installed() -> Optional[str]:
             SecurityValidator.sanitize_log_message(url),
         )
 
-        async with httpx.AsyncClient(follow_redirects=True, timeout=60.0, trust_env=False) as client:
+        async with httpx.AsyncClient(
+            follow_redirects=True, timeout=60.0, trust_env=False
+        ) as client:
             resp = await client.get(url)
             resp.raise_for_status()
             content = resp.content

@@ -131,13 +131,12 @@ class GoBatchTester:
 
     async def self_test(self) -> bool:
         """
-        Quick health check: sends a dummy (valid) config to verify JSON IPC.
+        Quick health check: sends a valid synthetic config to verify JSON IPC.
         """
         if not self._proc:
             return False
 
-        # Minimal dummy VLESS config
-        dummy_config = {
+        selftest_config = {
             "type": "vless",
             "tag": "selftest",
             "server": "1.1.1.1",
@@ -151,7 +150,7 @@ class GoBatchTester:
         try:
             # test_custom_configs accepts raw outbound dicts, which lets us
             # validate the JSON IPC path without constructing a Proxy object.
-            payload = {"id": "selftest-check", "outbounds": [dummy_config]}
+            payload = {"id": "selftest-check", "outbounds": [selftest_config]}
 
             # Use short timeout
             result = await safe_wait_for(

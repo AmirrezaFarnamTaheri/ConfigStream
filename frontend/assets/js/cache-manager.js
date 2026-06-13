@@ -227,6 +227,56 @@ class CacheManager {
     window.dispatchEvent(new CustomEvent('sw-update-ready'));
   }
 
+  getVersionProbeUrl(url) {
+    try {
+      const absoluteUrl = new URL(url, document.baseURI);
+      if (absoluteUrl.pathname.endsWith('/api/proxies')) {
+        absoluteUrl.pathname = absoluteUrl.pathname.replace(/\/api\/proxies$/, '/metadata.json');
+      } else {
+        absoluteUrl.pathname = absoluteUrl.pathname.replace(/[^/]*$/, 'metadata.json');
+      }
+      absoluteUrl.search = '';
+      absoluteUrl.hash = '';
+      return absoluteUrl.toString();
+    } catch (error) {
+      this.log.warn(`Unable to build version probe URL for ${url}: ${error.message}`);
+      return null;
+    }
+  }
+
+  async fetchRemoteVersion(url, options = {}) {
+    if (typeof options.versionProbe === 'function') {
+      return options.versionProbe(url);
+    }
+
+    const probeUrl = options.versionUrl || this.getVersionProbeUrl(url);
+    if (!probeUrl) return null;
+
+    const controller = new AbortController();
+    const timeoutMs = Math.min(options.versionTimeout || this.config.networkTimeout || 5000, 5000);
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      const response = await fetch(probeUrl, {
+        signal: controller.signal,
+        cache: 'no-store',
+        headers: { 'Accept': 'application/json', 'Cache-Control': 'no-cache' }
+      });
+      if (!response.ok) return null;
+      const metadata = await response.json();
+      return metadata.proxies_snapshot_hash ||
+        metadata.version ||
+        metadata.generated_at ||
+        metadata.last_updated_utc ||
+        null;
+    } catch (error) {
+      this.log.warn(`Version probe failed for ${probeUrl}: ${error.message}`);
+      return null;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
   async fetchWithCache(url, options = {}) {
     if (options.bypassCache) return this.fetchFresh(url);
 
@@ -237,10 +287,12 @@ class CacheManager {
       if (cachedData && !this.isExpired(cachedData, expiryMs)) {
         this.log.info(`Using cached data for ${url}`);
 
-        // Differential update check logic stub
         if (options.differentialUpdate && cachedData.version) {
-             // Logic: Check HEAD or version file, if newer, fetch diff or fresh
-             // For now, we rely on stale-while-revalidate for simpler updates
+          const remoteVersion = await this.fetchRemoteVersion(url, options);
+          if (remoteVersion && String(remoteVersion) !== String(cachedData.version)) {
+            this.log.info(`Cached data changed for ${url}; refreshing.`);
+            return this.fetchFresh(url);
+          }
         }
 
         if (this.config.staleWhileRevalidate && this.isStale(cachedData, expiryMs)) {
