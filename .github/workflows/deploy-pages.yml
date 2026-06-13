@@ -26,7 +26,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: main
           fetch-depth: 1
@@ -106,7 +106,7 @@ jobs:
 
       - name: Setup Python
         if: env.HAS_OUTPUT == 'true'
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@f67e24a430187b32086e1643ad3e03d6861f5b15 # v5.3.0
         with:
           python-version: '3.12'
 
@@ -175,7 +175,7 @@ jobs:
 
       - name: Upload pages artifact
         if: env.HAS_OUTPUT == 'true'
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda9c69ecc6b # v3.0.1
         with:
           path: output
           retention-days: 30
@@ -183,7 +183,7 @@ jobs:
       - name: Deploy to GitHub Pages
         if: env.HAS_OUTPUT == 'true'
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@d6db90164db5ed868d4d441e8835172955749614 # v4.0.5
         timeout-minutes: 10
 
       - name: Verify deployment
@@ -223,7 +223,7 @@ jobs:
 
       - name: Upload Evidence Bundle
         if: env.HAS_OUTPUT == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
           name: deploy-evidence-${{ github.run_id }}
           path: evidence/
