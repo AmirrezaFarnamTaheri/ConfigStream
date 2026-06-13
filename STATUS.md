@@ -122,7 +122,7 @@ Latest local verification recorded for this status:
 - `python -m black --check .`: passed.
 - `python -m flake8 src/ tests/ scripts tools`: passed.
 - `python -m mypy .`: passed.
-- `python -m pytest -q`: 1105 passed, 6 skipped (run locally with `-p no:cacheprovider` to avoid cache writes).
+- `python -m pytest -q`: 1106 passed, 6 skipped (run locally with `-p no:cacheprovider` to avoid cache writes).
 - `python scripts/validate_status.py`, `python scripts/validate_changelog.py`, `python scripts/validate_workflows.py`, `python scripts/validate_output_matrix.py`, `python scripts/generate_output_docs.py --check`, `python scripts/generate_debt_matrix.py --check`, `python scripts/validate_claim_ledger.py`, `python scripts/validate_capability_registry.py`, `python scripts/validate_module_ownership.py`, `python scripts/validate_bandit_suppressions.py --require-active`, `python scripts/validate_test_skips.py`, `python scripts/validate_versions.py`, `python scripts/validate_optional_mirrors.py`, and `python scripts/validate_core_compatibility.py`: passed.
 - `python -m bandit -r src/configstream scripts tools frontend/assets/js -q`: passed.
 - `python -m pip_audit -r requirements-prod.txt --no-deps`: passed.
@@ -135,7 +135,7 @@ Latest local verification recorded for this status:
 
 Latest full-suite snapshot:
 
-- `python -m pytest -q`: 1105 passed, 6 skipped (run locally with `-p no:cacheprovider` to avoid cache writes).
+- `python -m pytest -q`: 1106 passed, 6 skipped (run locally with `-p no:cacheprovider` to avoid cache writes).
 
 ## Current Source Files
 

@@ -92,4 +92,5 @@ def test_validate_protocol_matrix_rejects_unknown_parser(
 
 def test_generated_protocol_docs_are_current() -> None:
     from scripts.generate_protocol_docs import generate
+
     assert generate(check=True) == []

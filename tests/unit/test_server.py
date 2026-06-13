@@ -653,6 +653,7 @@ async def test_lab_test_chain_rejects_internal_hostname(async_client, monkeypatc
     assert response.status_code == 400
     assert "internal hostnames" in response.text
 
+
 @pytest.mark.asyncio
 async def test_lab_test_chain_rejects_resolving_private_destination(
     async_client, monkeypatch
@@ -660,6 +661,7 @@ async def test_lab_test_chain_rejects_resolving_private_destination(
     monkeypatch.setenv("ENVIRONMENT", "test")
 
     import socket
+
     orig_getaddrinfo = socket.getaddrinfo
 
     def mock_getaddrinfo(host, port, *args, **kwargs):

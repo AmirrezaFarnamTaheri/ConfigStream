@@ -5,6 +5,7 @@ Tests the EventStream class for real-time event emission.
 """
 
 import json
+import pytest
 from unittest.mock import patch
 from configstream.event_stream import EventStream
 
@@ -295,6 +296,7 @@ class TestEventStream:
             "info",
             "Fetching https://example.com/sub?token=secret&id=123 from 203.0.113.8",
         )
+        stream.queue.join()  # Wait for the background thread to write
 
         records = (
             (tmp_path / "pipeline_events.jsonl")
@@ -316,3 +318,30 @@ class TestEventStream:
         stream.emit("info", "No file")
 
         assert not (tmp_path / "pipeline_events.jsonl").exists()
+
+    @pytest.mark.asyncio
+    async def test_aclose_flushes_and_stops_writer_thread(self, tmp_path):
+        """aclose() flushes event stream, writes a close event, and joins the writer thread."""
+        import pytest
+
+        stream = EventStream(tmp_path)
+        stream.emit("info", "Before close")
+        await stream.aclose()
+
+        # Check that the thread is not alive anymore
+        assert not stream._writer_thread.is_alive()
+
+        # Check the file contents
+        records = (
+            (tmp_path / "pipeline_events.jsonl")
+            .read_text(encoding="utf-8")
+            .splitlines()
+        )
+        assert len(records) == 2
+        record_first = json.loads(records[0])
+        record_close = json.loads(records[1])
+
+        assert record_first["event_type"] == "info"
+        assert record_first["message"] == "Before close"
+        assert record_close["event_type"] == "stream_close"
+        assert record_close["message"] == "Event stream closing."

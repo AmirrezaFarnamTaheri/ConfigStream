@@ -95,9 +95,7 @@ def generate(check: bool = False) -> list[str]:
                 f"{path.relative_to(ROOT).as_posix()} protocol table is stale"
             )
         elif current != original:
-            errors.append(
-                f"{path.relative_to(ROOT).as_posix()} changed during check"
-            )
+            errors.append(f"{path.relative_to(ROOT).as_posix()} changed during check")
     return errors
 
 

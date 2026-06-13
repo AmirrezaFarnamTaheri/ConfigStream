@@ -98,4 +98,3 @@ async def test_security_transport_allows_all_global_ips_dual_stack(monkeypatch):
     response = await transport.handle_async_request(request)
     assert response.status_code == 200
     assert captured["request"].url.host in {"1.1.1.1", "2606:4700:4700::1111"}
-

@@ -6,7 +6,7 @@ import time
 import hashlib
 from pathlib import Path
 import orjson as json
-from typing import List, Optional, Any, TYPE_CHECKING, cast, Dict, Tuple, Set
+from typing import List, Optional, Any, TYPE_CHECKING, cast, Dict
 
 from rich.progress import Progress, TaskID
 
@@ -272,19 +272,21 @@ async def processing_consumer(
                 )
 
         # 3. Candidate Testing Stage
-        final_batch_for_this_source, failed_proxies, tested_count = await _test_candidates(
-            safe_batch,
-            tester,
-            scheduler,
-            test_cache,
-            concurrency,
-            history,
-            stats,
-            seen_lock,
-            loop,
-            progress,
-            task_process,
-            settings,
+        final_batch_for_this_source, failed_proxies, tested_count = (
+            await _test_candidates(
+                safe_batch,
+                tester,
+                scheduler,
+                test_cache,
+                concurrency,
+                history,
+                stats,
+                seen_lock,
+                loop,
+                progress,
+                task_process,
+                settings,
+            )
         )
 
         # 4. Proxy Revival Loop
@@ -602,9 +604,7 @@ async def _test_candidates(
                         final_batch_for_this_source.append(res)
                     else:
                         failed_proxies.append(res)
-                        failure_cat = res.details.get(
-                            "failure_category", "TEST_FAILED"
-                        )
+                        failure_cat = res.details.get("failure_category", "TEST_FAILED")
                         async with seen_lock:
                             stats.drop_reasons[failure_cat] = (
                                 stats.drop_reasons.get(failure_cat, 0) + 1
@@ -696,9 +696,7 @@ async def _revive_failed_proxies(
             await tester.test_batch(vwarp_candidates)
         except Exception as e:
             logger.error(
-                SecurityValidator.sanitize_log_message(
-                    f"Vwarp batch test failed: {e}"
-                )
+                SecurityValidator.sanitize_log_message(f"Vwarp batch test failed: {e}")
             )
             async with seen_lock:
                 stats.drop_reasons["tester_error"] = stats.drop_reasons.get(
@@ -745,10 +743,9 @@ async def _revive_failed_proxies(
                     )
                 )
                 async with seen_lock:
-                    stats.drop_reasons["tester_error"] = (
-                        stats.drop_reasons.get("tester_error", 0)
-                        + len(warp_candidates)
-                    )
+                    stats.drop_reasons["tester_error"] = stats.drop_reasons.get(
+                        "tester_error", 0
+                    ) + len(warp_candidates)
             for p in warp_candidates:
                 p.process = "revived-warp"
                 if "revived-warp" not in p.tags:
@@ -797,10 +794,7 @@ async def _enrich_geoip_and_filter(
                 final_proxies.append(p)
             continue
 
-        if (
-            max_latency
-            and (p.latency if p.latency is not None else 9999) > max_latency
-        ):
+        if max_latency and (p.latency if p.latency is not None else 9999) > max_latency:
             continue
         if country_filter:
             if p.country_code != country_filter.upper():
@@ -812,4 +806,3 @@ async def _enrich_geoip_and_filter(
             local_working_count += 1
 
     return local_working_count
-

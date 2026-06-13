@@ -188,6 +188,7 @@ class TestMagicMarker:
 class TestStegoKeyDerivationKAT:
     def test_derive_offsets_known_answer_vector_coprime(self) -> None:
         from configstream.stego import _derive_offsets
+
         key = b"dummy_key_material_for_stego_kat"
         start, stride = _derive_offsets(key, 1000)
         assert start == 246
@@ -195,8 +196,8 @@ class TestStegoKeyDerivationKAT:
 
     def test_derive_offsets_known_answer_vector_with_conflict_resolution(self) -> None:
         from configstream.stego import _derive_offsets
+
         key = b"key_1"
         start, stride = _derive_offsets(key, 1000)
         assert start == 316
         assert stride == 187
-

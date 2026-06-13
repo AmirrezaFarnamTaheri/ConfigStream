@@ -189,7 +189,16 @@ def main() -> int:
         logger.info("Google Drive sync complete.")
         return 0
     except Exception as exc:
-        logger.error("Critical error: %s", exc)
+        err_msg = str(exc)
+        secrets = [
+            os.environ.get("GDRIVE_REFRESH_TOKEN"),
+            os.environ.get("GDRIVE_CLIENT_SECRET"),
+            os.environ.get("GDRIVE_SA_JSON"),
+        ]
+        for s in secrets:
+            if s and s.strip() and s.strip() in err_msg:
+                err_msg = err_msg.replace(s.strip(), "[REDACTED]")
+        logger.error("Critical error: %s", err_msg)
         return 1
 
 
