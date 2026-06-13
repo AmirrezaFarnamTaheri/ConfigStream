@@ -88,16 +88,16 @@ jobs:
       repo_lowercase: ${{ steps.repo_name.outputs.repo_lowercase }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 1
           persist-credentials: false
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@b167a82b8f5039d57a2e041d08e59653a1a9e710 # v3.8.0
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -111,7 +111,7 @@ jobs:
           echo "repo_lowercase=$REPO_LOWERCASE" >> $GITHUB_OUTPUT
 
       - name: Build and Push Docker image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@471d19853a5250da73d4d382db29e5b02da898a3 # v6.15.0
         with:
           context: .
           push: true
@@ -131,19 +131,19 @@ jobs:
     if: "!needs.schedule_gate.outputs.proceed || needs.schedule_gate.outputs.proceed == 'true'"
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 1
           persist-credentials: false
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@f67e24a430187b32086e1643ad3e03d6861f5b15 # v5.3.0
         with:
           python-version: "3.11"
           cache: pip
       - name: Install dependencies
         run: pip install -e .
       - name: Cache Data
-        uses: actions/cache@v4
+        uses: actions/cache@0c907a75c2df011682e883a1779590213020689b # v4.2.1
         with:
           path: |
             data/source_quality.db
@@ -169,11 +169,11 @@ jobs:
     needs: [schedule_gate]
     if: "!needs.schedule_gate.outputs.proceed || needs.schedule_gate.outputs.proceed == 'true'"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 1
           persist-credentials: false
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@f111f3307d8850f5010000d3170f7d54b8f037b5 # v5.3.0
         with:
           go-version: '1.24'
           cache-dependency-path: src/go/tester/go.sum
@@ -186,7 +186,7 @@ jobs:
           chmod +x scripts/build_wasm.sh
           ./scripts/build_wasm.sh
       - name: Upload WASM Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
           name: frontend-wasm
           path: |
@@ -238,12 +238,12 @@ jobs:
         PYTHONPATH: /app/src
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 1
           persist-credentials: false
       - name: Restore Cache (Adaptive Logic)
-        uses: actions/cache@v4
+        uses: actions/cache@0c907a75c2df011682e883a1779590213020689b # v4.2.1
         with:
           path: |
             data/source_quality.db
@@ -296,7 +296,7 @@ jobs:
           exit $PIPELINE_EXIT
       - name: Upload shard artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
           name: shard-run-${{ github.sha }}-${{ matrix.batch_number }}
           path: |
@@ -325,16 +325,16 @@ jobs:
       PINATA_JWT: ${{ secrets.PINATA_JWT }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 1
           persist-credentials: true
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@f67e24a430187b32086e1643ad3e03d6861f5b15 # v5.3.0
         with:
           python-version: "3.11"
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@f111f3307d8850f5010000d3170f7d54b8f037b5 # v5.3.0
         with:
           go-version: '1.24'
           cache-dependency-path: src/go/tester/go.sum
@@ -351,13 +351,13 @@ jobs:
           git lfs install --system
           pip install -e .[dev] huggingface_hub
       - name: Download shard artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:
           pattern: shard-run-${{ github.sha }}-*
           path: artifacts
           merge-multiple: true
       - name: Download WASM for Deployment
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:
           name: frontend-wasm
           path: .
@@ -387,7 +387,7 @@ jobs:
       - name: Generate source reshard recommendation
         run: python scripts/dynamic_reshard.py
       - name: Upload source reshard recommendation
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
           name: source-reshard-recommendation
           path: sources/batch_*.txt
@@ -431,7 +431,7 @@ jobs:
             --file output/ \
             --domain fallback.example.com
       - name: Upload Pipeline Output
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
           name: pipeline-output
           path: output/
@@ -476,7 +476,7 @@ jobs:
             --native-report pipeline-evidence/native_client_check_report.json
 
       - name: Upload Pipeline Evidence Bundle
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
           name: pipeline-evidence-${{ github.run_id }}
           path: pipeline-evidence/
@@ -493,7 +493,7 @@ jobs:
           echo "files=$ASSETS" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda # v2.2.1
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
           name: ConfigStream ${{ steps.tag.outputs.tag }}
