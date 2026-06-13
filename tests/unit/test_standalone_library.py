@@ -21,6 +21,7 @@ def test_library_exports() -> None:
     assert hasattr(configstream_revival, "enrich_outbound_with_evasion")
     assert hasattr(configstream_revival, "StegoPacker")
     assert hasattr(configstream_revival, "generate_stego_assets")
+    assert configstream_revival.__version__ == "3.1.0"
 
 
 def test_proxy_model_usage() -> None:
