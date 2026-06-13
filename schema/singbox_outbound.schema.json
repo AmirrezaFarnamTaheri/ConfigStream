@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Sing-box Outbound Configuration Schema",
+  "type": "object",
+  "required": [
+    "type",
+    "tag"
+  ],
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "direct",
+        "dns",
+        "block",
+        "selector",
+        "urltest",
+        "vless",
+        "vmess",
+        "trojan",
+        "shadowsocks",
+        "hysteria2",
+        "tuic",
+        "wireguard",
+        "http",
+        "socks"
+      ]
+    },
+    "tag": {
+      "type": "string"
+    },
+    "server": {
+      "type": "string"
+    },
+    "server_port": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 65535
+    },
+    "uuid": {
+      "type": "string"
+    },
+    "flow": {
+      "type": "string"
+    },
+    "password": {
+      "type": "string"
+    },
+    "method": {
+      "type": "string"
+    },
+    "private_key": {
+      "type": "string"
+    },
+    "peer_public_key": {
+      "type": "string"
+    },
+    "local_address": {
+      "type": "string"
+    },
+    "local_address_v6": {
+      "type": "string"
+    },
+    "pre_shared_key": {
+      "type": "string"
+    },
+    "mtu": {
+      "type": "integer"
+    },
+    "reserved": {
+      "type": "array",
+      "items": {
+        "type": "integer"
+      }
+    },
+    "tls": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "server_name": {
+          "type": "string"
+        },
+        "insecure": {
+          "type": "boolean"
+        },
+        "alpn": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "utls": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "fingerprint": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "transport": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
