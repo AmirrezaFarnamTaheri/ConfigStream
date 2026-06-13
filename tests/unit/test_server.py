@@ -653,6 +653,35 @@ async def test_lab_test_chain_rejects_internal_hostname(async_client, monkeypatc
     assert response.status_code == 400
     assert "internal hostnames" in response.text
 
+@pytest.mark.asyncio
+async def test_lab_test_chain_rejects_resolving_private_destination(
+    async_client, monkeypatch
+):
+    monkeypatch.setenv("ENVIRONMENT", "test")
+
+    import socket
+    orig_getaddrinfo = socket.getaddrinfo
+
+    def mock_getaddrinfo(host, port, *args, **kwargs):
+        if host == "malicious.com":
+            return [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("127.0.0.1", 0))]
+        return orig_getaddrinfo(host, port, *args, **kwargs)
+
+    with patch("socket.getaddrinfo", side_effect=mock_getaddrinfo):
+        response = await async_client.post(
+            "/api/lab/test-chain",
+            json={
+                "config": {
+                    "outbounds": [
+                        {"type": "vless", "tag": "malicious", "server": "malicious.com"}
+                    ]
+                }
+            },
+        )
+
+    assert response.status_code == 400
+    assert "resolves to private" in response.text
+
 
 def test_lab_test_chain_is_rate_limited() -> None:
     assert "configstream.server.routes.lab.lab_test_chain" in limiter._route_limits

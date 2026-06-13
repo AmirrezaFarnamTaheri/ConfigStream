@@ -51,18 +51,39 @@ def _validate_lab_destination(host: object, path: str) -> None:
 
     try:
         ip = ipaddress.ip_address(cleaned)
+        is_ip = True
     except ValueError:
+        is_ip = False
         if not re.fullmatch(r"[a-z0-9.-]+", cleaned):
             raise HTTPException(
                 status_code=400, detail=f"{path} is not a valid host"
             ) from None
-        return
 
-    if not ip.is_global:
-        raise HTTPException(
-            status_code=400,
-            detail=f"{path} must not target private or non-global addresses",
-        )
+    if is_ip:
+        if not ip.is_global:
+            raise HTTPException(
+                status_code=400,
+                detail=f"{path} must not target private or non-global addresses",
+            )
+    else:
+        # Resolve hostname to check for private IPs (SSRF DNS rebinding protection)
+        import socket
+        try:
+            addr_infos = socket.getaddrinfo(cleaned, None)
+            for family, socktype, proto, canonname, sockaddr in addr_infos:
+                ip_str = sockaddr[0]
+                try:
+                    resolved_ip = ipaddress.ip_address(ip_str)
+                    if not resolved_ip.is_global:
+                        raise HTTPException(
+                            status_code=400,
+                            detail=f"{path} resolves to private or non-global address: {ip_str}",
+                        )
+                except ValueError:
+                    pass
+        except socket.gaierror:
+            # Allow unresolved hosts to fail at connection test time
+            pass
 
 
 def _validate_lab_config(config: object) -> None:

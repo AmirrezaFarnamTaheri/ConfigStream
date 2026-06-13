@@ -1632,7 +1632,7 @@ Latest repository-level verification recorded for the 2026-06-13 hardening refre
 - `python -m black --check .`: passed.
 - `python -m flake8 src/ tests/ scripts tools`: passed.
 - `python -m mypy .`: passed.
-- `python -m pytest -q -p no:cacheprovider`: 1098 passed, 6 skipped.
+- `python -m pytest -q -p no:cacheprovider`: 1099 passed, 6 skipped.
 - `python scripts/generate_debt_matrix.py --check`: passed.
 - `python scripts/generate_output_docs.py --check`: passed.
 - `python scripts/validate_output_matrix.py`: passed.
