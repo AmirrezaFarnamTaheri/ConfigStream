@@ -36,6 +36,7 @@ FORBIDDEN_PHRASES = [
     "1016 passed",
     "1018 passed",
     "1032 passed",
+    "1102 passed",
     "dns_prewarm.py, fetcher.py, output.py",
     "Development Status :: 4 - Beta",
     "The active current source of truth is [docs/history/source-of-truth/",
