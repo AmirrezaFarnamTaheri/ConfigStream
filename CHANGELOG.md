@@ -5,6 +5,7 @@
   - Decomposed the monolithic `processing_consumer` function in `src/configstream/pipeline/consumer.py` into five specialized helper functions (`_deduplicate_batch`, `_validate_and_warm_cache`, `_test_candidates`, `_revive_failed_proxies`, `_enrich_geoip_and_filter`) to reduce cyclomatic complexity and improve modular testability.
   - Created a formal JSON schema for generated sing-box outbounds in `schema/singbox_outbound.schema.json` and added automated conformance tests in `tests/unit/converters/test_singbox_converters.py` to validate outbound configuration structure for VLESS, VMess, Trojan, Shadowsocks, Hysteria2, Tuic, and WireGuard.
   - Added targeted dual-stack tests for `SecurityTransport` in `tests/unit/security/test_transport.py` to verify proper IP routing checks and robust private address blocklisting for dual-stack IPv4/IPv6 networks.
+  - Explicitly configured Pydantic's `ConfigDict` to ignore extra fields (`extra="ignore"`) on the core `Proxy` model in `models.py`, preventing untrusted or malicious extra keys in input configurations from propagating to downstream serialization.
 
 - **CSP script hardening, configurable notification, and startup warning**:
   - Hardened Content Security Policy (CSP) by removing `unsafe-inline` from the `script-src` directive across all main HTML files (`about.html`, `analytics.html`, `index.html`, `lab.html`, `proxies.html`, `wiki.html`). Replaced the inline `window.ROOT_PATH` script with a reference to the external `init.js` script, and consolidated/deleted redundant inline event listeners.
