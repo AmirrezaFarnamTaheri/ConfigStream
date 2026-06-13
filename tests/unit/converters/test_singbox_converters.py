@@ -238,3 +238,38 @@ def test_wireguard_pre_shared_key():
     assert out is not None
     assert out["pre_shared_key"] == "psk_key_value"
     assert out["mtu"] == 1400
+
+
+def test_singbox_outbounds_validate_against_schema():
+    """Verify that generated sing-box outbounds match our schema draft."""
+    import pytest
+    jsonschema = pytest.importorskip("jsonschema")
+    import json
+    from pathlib import Path
+
+    schema_path = Path(__file__).resolve().parent.parent.parent.parent / "schema" / "singbox_outbound.schema.json"
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    validator = jsonschema.Draft202012Validator(schema)
+
+    proxies = [
+        # VLESS
+        Proxy(config="vless://88888888-4444-4444-4444-121212121212@example.com:443", protocol="vless", address="example.com", port=443, uuid="88888888-4444-4444-4444-121212121212", details={"tls": "tls"}),
+        # VMess
+        Proxy(config="vmess://88888888-4444-4444-4444-121212121212@example.com:443", protocol="vmess", address="example.com", port=443, uuid="88888888-4444-4444-4444-121212121212"),
+        # Trojan
+        Proxy(config="trojan://pass@example.com:443", protocol="trojan", address="example.com", port=443, uuid="pass"),
+        # Shadowsocks
+        Proxy(config="ss://aes-256-gcm:pass@example.com:443", protocol="shadowsocks", address="example.com", port=443, uuid="aes-256-gcm:pass"),
+        # Hysteria2
+        Proxy(config="hysteria2://pass@example.com:443", protocol="hysteria2", address="example.com", port=443, uuid="pass"),
+        # Tuic
+        Proxy(config="tuic://uuid:pass@example.com:443", protocol="tuic", address="example.com", port=443, uuid="uuid", details={"password": "pass"}),
+        # WireGuard
+        Proxy(config="wg://example.com:51820", protocol="wireguard", address="example.com", port=51820, details={"private_key": "privatekey==", "peer_public_key": "pubkey=="})
+    ]
+
+    for p in proxies:
+        out = to_singbox_outbound(p)
+        assert out is not None, f"Conversion failed for {p.protocol}"
+        validator.validate(out)
+
