@@ -29,6 +29,7 @@ GENERATED_PATHS = {
 # - Guard/validator scripts that must reference the marker strings they check for
 # - Test fixtures that must contain marker words to exercise the scanner
 EXCLUDED_FILES = {
+    "CHANGELOG.md",
     "scripts/generate_debt_matrix.py",
     "scripts/validate_debt_matrix.py",
     "scripts/validate_frontend_placeholders.py",
@@ -37,7 +38,9 @@ EXCLUDED_FILES = {
     "scripts/frontend_same_origin_smoke.cjs",
     "scripts/deploy_artifact_smoke.py",
     "scripts/run_test_profile.py",
+    "scripts/validate_test_skips.py",
     "tests/unit/test_debt_matrix.py",
+    "tests/unit/test_validate_test_skips.py",
 }
 EXCLUDED_PREFIXES = (
     ".git/",

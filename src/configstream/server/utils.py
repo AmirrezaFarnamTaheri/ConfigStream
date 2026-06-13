@@ -210,6 +210,34 @@ def _validate_admin_startup_security(current_settings: AppSettings) -> None:
             "ADMIN_API_KEY must be configured when ENVIRONMENT is production."
         )
 
+    if (
+        _is_nonproduction_environment(current_settings.ENVIRONMENT)
+        and not current_settings.ADMIN_API_KEY
+    ):
+        import sys
+        host = None
+        for i, arg in enumerate(sys.argv):
+            if arg == "--host" and i + 1 < len(sys.argv):
+                host = sys.argv[i + 1]
+                break
+            elif arg.startswith("--host="):
+                host = arg.split("=", 1)[1]
+                break
+
+        if host:
+            is_loopback = host.strip() in {"127.0.0.1", "localhost", "::1", "[::1]"}
+            if not is_loopback:
+                logger.warning(
+                    "\n"
+                    "========================================================================\n"
+                    "⚠️  SECURITY WARNING: ADMIN AUTHENTICATION IS BYPASSED ⚠️\n"
+                    f"The server is running in a non-production environment ({current_settings.ENVIRONMENT})\n"
+                    "without ADMIN_API_KEY set, and is bound to a non-loopback interface:\n"
+                    f"  Host: {host}\n"
+                    "This exposes administrative and Lab endpoints to the network!\n"
+                    "========================================================================"
+                )
+
 
 def _validate_cors_startup_security(current_settings: AppSettings) -> None:
     if (

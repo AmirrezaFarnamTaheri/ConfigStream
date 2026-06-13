@@ -378,22 +378,24 @@ class StandardPipeline(IPipeline):
                 self.context.test_cache.save()
 
             # Server notify
-            try:
-                import httpx
+            notify_url = self.context.settings.NOTIFY_UPDATE_URL
+            if notify_url:
+                try:
+                    import httpx
 
-                async with httpx.AsyncClient(timeout=1.0, trust_env=False) as client:
-                    await client.post(
-                        "http://127.0.0.1:8000/api/admin/notify-update",
-                        json={
-                            "timestamp": (
-                                stats.end_time.isoformat()
-                                if stats.end_time
-                                else duration
-                            )
-                        },
-                    )
-            except Exception as e:
-                logger.debug(f"Server notification skipped: {e}")
+                    async with httpx.AsyncClient(timeout=1.0, trust_env=False) as client:
+                        await client.post(
+                            notify_url,
+                            json={
+                                "timestamp": (
+                                    stats.end_time.isoformat()
+                                    if stats.end_time
+                                    else duration
+                                )
+                            },
+                        )
+                except Exception as e:
+                    logger.debug(f"Server notification skipped: {e}")
 
             should_fail = (
                 (

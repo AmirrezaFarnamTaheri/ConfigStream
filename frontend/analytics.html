@@ -4,12 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="ConfigStream Analytics: Real-time data on proxy performance, distribution, and reliability.">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' ws: wss: data: https://cp.cloudflare.com https://connectivitycheck.gstatic.com https://1.1.1.1 https://api.github.com https://en.wikipedia.org https://cloudflare-dns.com; worker-src 'self' blob:; object-src 'self'; base-uri 'self'; form-action 'self';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' ws: wss: data: https://cp.cloudflare.com https://connectivitycheck.gstatic.com https://1.1.1.1 https://api.github.com https://en.wikipedia.org https://cloudflare-dns.com; worker-src 'self' blob:; object-src 'self'; base-uri 'self'; form-action 'self';">
     <title>Analytics - ConfigStream</title>
 
-    <script>
-        window.ROOT_PATH = './';
-    </script>
+    <script src="assets/js/init.js"></script>
     <link rel="icon" type="image/svg+xml" href="assets/svg/favicon.svg">
     <link rel="alternate icon" href="assets/images/favicon.ico">
     <link rel="icon" type="image/png" sizes="16x16" href="assets/images/favicon-16x16.png">
@@ -339,26 +337,6 @@
     <script src="assets/js/inline-icons.js" defer></script>
     <script src="assets/js/common-ui.js" defer></script>
     <script src="assets/libs/feather.min.js" defer></script>
-    <script>
-        // Feather replace handled by common-ui.js or inline-icons.js if present
-        // but if not, let's keep it safe
-        document.addEventListener('DOMContentLoaded', () => {
-             if (window.feather) feather.replace();
-
-             // Initial set label
-             const label = document.getElementById('current-lang-label');
-             if(label && window.i18n) label.textContent = window.i18n.currentLang.toUpperCase();
-        });
-
-        // Listen for language changes to update UI label
-        window.addEventListener('languageChanged', (e) => {
-             const lang = e.detail?.lang;
-             const label = document.getElementById('current-lang-label');
-             if(label && lang) {
-                label.textContent = lang.toUpperCase();
-             }
-        });
-    </script>
     <script type="module" src="assets/js/analytics.js" defer></script>
 </body>
 </html>
