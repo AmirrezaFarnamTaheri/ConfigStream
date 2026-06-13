@@ -25,7 +25,7 @@ class Proxy(BaseModel):
     Migrated to Pydantic for robust validation.
     """
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="ignore")
 
     config: str
     protocol: str
