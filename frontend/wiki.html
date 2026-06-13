@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="ConfigStream Wiki - Documentation and Guides">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' ws: wss: data: https://cp.cloudflare.com https://connectivitycheck.gstatic.com https://1.1.1.1 https://api.github.com https://en.wikipedia.org https://cloudflare-dns.com; worker-src 'self' blob:; object-src 'self'; base-uri 'self'; form-action 'self';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' ws: wss: data: https://cp.cloudflare.com https://connectivitycheck.gstatic.com https://1.1.1.1 https://api.github.com https://en.wikipedia.org https://cloudflare-dns.com; worker-src 'self' blob:; object-src 'self'; base-uri 'self'; form-action 'self';">
     <title>ConfigStream Wiki - Documentation</title>
     <link rel="icon" type="image/svg+xml" href="assets/svg/favicon.svg">
     <link rel="alternate icon" href="assets/images/favicon.ico">
@@ -353,10 +353,7 @@
     </footer>
 
     <!-- Scripts -->
-    <script>
-        // Set root path for scripts
-        window.ROOT_PATH = './';
-    </script>
+    <script src="assets/js/init.js"></script>
     <script src="assets/js/i18n.js" defer></script>
     <script src="assets/js/error-handler.js" defer></script>
     <script src="assets/js/state-manager.js" defer></script>
@@ -370,13 +367,5 @@
     <script src="assets/js/wiki.js" defer></script>
     <script src="assets/js/common-ui.js" defer></script>
     <script src="assets/js/inline-icons.js"></script>
-    <script>
-        // Init Feather Icons if inline-icons.js doesn't catch it or if we need it immediately
-        // Actually inline-icons.js handles replacement.
-
-        document.addEventListener('DOMContentLoaded', () => {
-            // Note: Common UI (Theme, Mobile Nav) is handled by common-ui.js
-        });
-    </script>
 </body>
 </html>

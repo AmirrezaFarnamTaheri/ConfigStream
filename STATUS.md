@@ -109,7 +109,7 @@ Promoted current rules:
 | Parser/protocol support | Matrix-backed protocol inventory is current. | Add new protocols only with parser/export/frontend/docs proof. |
 | Public JSON outputs | Safe serializer and categorized list parity are closed. | Keep schema tests for every public list family. |
 | Client config outputs | Sing-box/Clash are stable; Xray pipeline output remains planned. | Add native/pinned proof before claiming new native output families. |
-| Frontend | Local static deployment contract is closed; smoke/build pass; raw project-owned runtime `innerHTML` assignments are blocked by regression tests; IndexedDB cache can probe metadata snapshot identity before serving cached proxy data. | Remove `unsafe-inline` when the remaining static inline bootstraps are replaced with nonce/hash-safe assets. |
+| Frontend | Local static deployment contract is closed; smoke/build pass; raw project-owned runtime `innerHTML` assignments are blocked by regression tests; IndexedDB cache can probe metadata snapshot identity before serving cached proxy data; `unsafe-inline` removed from script-src CSP. | Keep assets/js/init.js synchronicity. |
 | Lab | Export hardening and diagnosis CSP issues are closed. | Split Lab code by concern and add deeper click-path tests around export/diagnosis. |
 | CI/security | Bandit, gitleaks/source scans, Bandit suppression hygiene, pytest skip governance, workflow validators, and audits are wired as blocking repository gates. | Keep scans server-side and avoid broad allowlists. |
 | Artifacts | Generated mirrors are untracked; artifact validator guards Pages shape, manifest/hash parity, runtime config, and sanitized pipeline event telemetry. | Redeploy live Pages and keep durable evidence. |
