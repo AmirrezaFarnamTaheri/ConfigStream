@@ -2,7 +2,7 @@
 
 ConfigStream is a sovereignty-grade, zero-budget anti-censorship platform. It continuously aggregates, validates, and distributes resilient proxy configurations under hostile network conditions.
 
-> **Production status:** ConfigStream is production-ready as of v3.1.0 (2026-05-28) at repository level. The active source of truth is [docs/history/source-of-truth/ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md](docs/history/source-of-truth/ConfigStream_Master_Audit_Report%20-%20Main%20SOURCE%20OF%20TRUTH.md), with `STATUS.md` and canonical matrices tracking current verification state.
+> **Production status:** ConfigStream is production-ready as of v3.1.0 (2026-05-28) at repository level. The active source of truth is [ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md](ConfigStream_Master_Audit_Report%20-%20Main%20SOURCE%20OF%20TRUTH.md), with `STATUS.md` and canonical matrices tracking current verification state. Historical source-of-truth ledgers were absorbed into the master report and removed from active repository documentation.
 
 ## Getting Started
 
@@ -72,7 +72,7 @@ ConfigStream includes advanced censorship evasion capabilities:
 - **DNS Hardening**: DoH/DoT/DoQ resolvers with prefer-IP strategy
 - **Shielding (Copper to Gold)**: Wraps blocked proxies in WARP tunnels
 - **Revival**: Resurrects failed proxies using WARP or Vwarp chains
-- **BYOW (Bring Your Own Worker)**: Users deploy their own Cloudflare Workers for unlimited, private, unblockable connections
+- **BYOW (Bring Your Own Worker)**: Users can deploy their own Cloudflare Worker bridge to avoid shared quota pressure and improve availability without adding project-operated infrastructure.
 
 See `docs/CENSORSHIP_EVASION.md` for technical details, evasion modes, DNS profiles, and user instructions.
 
@@ -177,6 +177,7 @@ Stable capability claims are tracked in `docs/capability_registry.json`; core/cl
 | `artifact_manifest.json` | control | json | yes | schema, json | Generated file inventory with size and sha256 checks. |
 | `health.json` | control | json | yes | schema, json | Freshness and degraded-state control artifact. |
 | `metadata.json` | control | json | yes | schema, json | Canonical run metadata validated against metadata.schema.json. |
+| `pipeline_events.jsonl` | control | jsonl | yes | jsonl | Sanitized append-only pipeline event telemetry; JSONL structure and secret-marker absence are validated. |
 | `api/proxies` | api-alias | json | yes | schema, json | API alias that must match proxies.json. |
 | `api/stats` | api-alias | json | yes | schema, json | API alias that must match metadata.json. |
 | `countries/*.list.json` | categorized-api | json | no | schema, json | Country-specific proxy list JSON; must match proxy.schema.json. |

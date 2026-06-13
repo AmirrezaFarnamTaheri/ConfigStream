@@ -4,8 +4,11 @@
 from __future__ import annotations
 
 import argparse
+import json
 import re
+import subprocess  # nosec B404
 import sys
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -18,6 +21,7 @@ DEFAULT_SCAN_ROOTS = (
 SOURCE_SUFFIXES = {".py", ".js"}
 NOSEC_RE = re.compile(r"#\s*nosec(?P<body>[^\r\n]*)")
 RULE_RE = re.compile(r"^B\d{3}$")
+FindingMap = dict[tuple[str, int], set[str]]
 
 
 def _iter_source_files(scan_roots: tuple[str, ...]) -> list[Path]:
@@ -41,12 +45,67 @@ def _rule_tokens(body: str) -> list[str]:
     return [token.strip() for token in body.replace(",", " ").split() if token.strip()]
 
 
+def _repo_relative(path_value: str | Path) -> str:
+    path = Path(path_value)
+    try:
+        if path.is_absolute():
+            return str(path.resolve().relative_to(ROOT.resolve()))
+    except ValueError:
+        pass
+    return str(path)
+
+
+def _collect_active_bandit_findings(scan_roots: tuple[str, ...]) -> FindingMap:
+    with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as handle:
+        report_path = Path(handle.name)
+
+    command = [
+        sys.executable,
+        "-m",
+        "bandit",
+        "-r",
+        *scan_roots,
+        "-q",
+        "--ignore-nosec",
+        "-f",
+        "json",
+        "-o",
+        str(report_path),
+    ]
+    try:
+        completed = subprocess.run(  # nosec B603
+            command,
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        if completed.returncode not in {0, 1}:
+            raise RuntimeError(
+                "Bandit active-finding scan failed with exit code "
+                f"{completed.returncode}: {completed.stderr.strip()}"
+            )
+        report = json.loads(report_path.read_text(encoding="utf-8"))
+    finally:
+        report_path.unlink(missing_ok=True)
+
+    findings: FindingMap = {}
+    for result in report.get("results", []):
+        filename = _repo_relative(str(result.get("filename", "")))
+        line_number = int(result.get("line_number", 0) or 0)
+        test_id = str(result.get("test_id", "")).strip()
+        if filename and line_number > 0 and RULE_RE.fullmatch(test_id):
+            findings.setdefault((filename, line_number), set()).add(test_id)
+    return findings
+
+
 def validate_bandit_suppressions(
     scan_roots: tuple[str, ...] = DEFAULT_SCAN_ROOTS,
+    active_findings: FindingMap | None = None,
 ) -> list[str]:
     errors: list[str] = []
     for path in _iter_source_files(scan_roots):
-        rel_path = path.relative_to(ROOT)
+        rel_path = str(path.relative_to(ROOT))
         try:
             lines = path.read_text(encoding="utf-8").splitlines()
         except UnicodeDecodeError as exc:
@@ -79,6 +138,19 @@ def validate_bandit_suppressions(
                     f"{rel_path}:{line_no}: duplicate nosec rule token(s): "
                     f"{', '.join(duplicates)}"
                 )
+
+            if active_findings is not None:
+                active_tokens = active_findings.get((rel_path, line_no), set())
+                stale_tokens = [
+                    token
+                    for token in tokens
+                    if RULE_RE.fullmatch(token) and token not in active_tokens
+                ]
+                if stale_tokens:
+                    errors.append(
+                        f"{rel_path}:{line_no}: stale or misplaced nosec rule "
+                        f"token(s): {', '.join(stale_tokens)}"
+                    )
     return errors
 
 
@@ -89,16 +161,28 @@ def main(argv: list[str] | None = None) -> int:
         nargs="*",
         help="Optional repository-relative files or directories to scan.",
     )
+    parser.add_argument(
+        "--require-active",
+        action="store_true",
+        help=(
+            "Also run Bandit with --ignore-nosec and require every pinned "
+            "suppression to match an active finding on the same line."
+        ),
+    )
     args = parser.parse_args(argv)
 
     scan_roots = tuple(args.paths) if args.paths else DEFAULT_SCAN_ROOTS
-    errors = validate_bandit_suppressions(scan_roots)
+    active_findings = (
+        _collect_active_bandit_findings(scan_roots) if args.require_active else None
+    )
+    errors = validate_bandit_suppressions(scan_roots, active_findings)
     if errors:
         for error in errors:
             print(error)
         return 1
 
-    print("OK: Bandit suppressions are pinned to explicit rule IDs.")
+    suffix = " and active Bandit findings" if args.require_active else ""
+    print(f"OK: Bandit suppressions are pinned to explicit rule IDs{suffix}.")
     return 0
 
 

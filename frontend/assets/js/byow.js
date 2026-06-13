@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 /**
- * BYOW (Bring Your Own Worker) - Platinum Upgrade
+ * BYOW (Bring Your Own Worker) - Private Bridge generator
  * Allows users to inject their own Cloudflare Worker URL into Gold configs
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    const upgradeBtn = document.getElementById('upgradePlatinumBtn');
+    const upgradeBtn = document.getElementById('generatePrivateBridgeBtn');
     if (upgradeBtn) {
         upgradeBtn.addEventListener('click', applyUserWorker);
     }
@@ -32,7 +32,7 @@ async function applyUserWorker() {
         }
     }
 
-    const button = document.getElementById('upgradePlatinumBtn');
+    const button = document.getElementById('generatePrivateBridgeBtn');
     
     try {
         // Show loading state
@@ -126,7 +126,7 @@ async function applyUserWorker() {
                 icon.setAttribute('data-feather', 'zap');
                 
                 const span = document.createElement('span');
-                span.textContent = 'Upgrade to Platinum';
+                span.textContent = 'Generate Private Bridge';
                 
                 button.appendChild(icon);
                 button.appendChild(document.createTextNode(' '));
@@ -141,13 +141,13 @@ async function applyUserWorker() {
         const blob = new Blob([JSON.stringify(modifiedConfig, null, 2)], {type: "application/json"});
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = "platinum-configstream.json";
+        link.download = "private-bridge-configstream.json";
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(link.href);
 
-        alert(`✨ Successfully upgraded ${modifiedCount} connection(s) to your Private Bridge!\n\n📥 The config has been downloaded as "platinum-configstream.json".\n\n📋 Next steps:\n1. Import it as a Subscription in Nekobox/Sing-box\n2. Select a GOLD- prefixed proxy\n3. Enjoy your private, unlimited connection!`);
+        alert(`Successfully generated ${modifiedCount} Private Bridge connection(s).\n\nThe config has been downloaded as "private-bridge-configstream.json".\n\nNext steps:\n1. Import it as a subscription in Nekobox/Sing-box\n2. Select a GOLD-prefixed proxy\n3. Test from your own network before relying on it`);
 
     } catch (error) {
         console.error('BYOW upgrade failed:', error);
@@ -162,7 +162,7 @@ async function applyUserWorker() {
             icon.setAttribute('data-feather', 'zap');
             
             const span = document.createElement('span');
-            span.textContent = 'Upgrade to Platinum';
+            span.textContent = 'Generate Private Bridge';
             
             button.appendChild(icon);
             button.appendChild(document.createTextNode(' '));

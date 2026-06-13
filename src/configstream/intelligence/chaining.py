@@ -23,15 +23,13 @@ except ImportError:
     )
     GEOPY_AVAILABLE = False
 
-    # Fallback haversine distance calculation
-    # Define a stub class to mimic geopy's Distance object
-    class DistanceStub:
+    class DistanceResult:
         def __init__(self, km: float):
             self.km = km
 
     def geodesic(
         coord1: Tuple[float, float], coord2: Tuple[float, float]
-    ) -> DistanceStub:
+    ) -> DistanceResult:
         """Fallback distance calculation using haversine formula."""
         lat1, lon1 = coord1
         lat2, lon2 = coord2
@@ -48,11 +46,10 @@ except ImportError:
         # Clamp to prevent domain error on near-antipodal coordinates
         a = min(1.0, max(0.0, a))
         c = 2 * math.asin(math.sqrt(a))
-        return DistanceStub(R * c)
+        return DistanceResult(R * c)
 
 
-# Minimal Proxy definition for typing
-class ProxyStub:
+class RelayCandidate:
     def __init__(
         self, country: str, lat: float, lon: float, protocol: str, latency: float = 0.0
     ):
@@ -309,9 +306,9 @@ CENSORSHIP_LEVELS = {
 
 
 def calculate_relay_score(
-    relay: ProxyStub,
+    relay: RelayCandidate,
     origin_cc: str,
-    exit_node: ProxyStub,
+    exit_node: RelayCandidate,
     origin_coords: Tuple[float, float],
     exit_coords: Tuple[float, float],
     direct_dist: float,
@@ -407,8 +404,8 @@ def calculate_relay_score(
 
 def find_optimal_relay(
     origin_cc: str,
-    exit_node: ProxyStub,
-    candidates: List[ProxyStub],
+    exit_node: RelayCandidate,
+    candidates: List[RelayCandidate],
     optimization_mode: str = "balanced",
 ) -> Dict[str, Any]:
     """
@@ -429,7 +426,7 @@ def find_optimal_relay(
     origin_coords = COUNTRIES[origin_cc]
     exit_coords = (exit_node.lat, exit_node.lon)
 
-    best_relay: Optional[ProxyStub] = None
+    best_relay: Optional[RelayCandidate] = None
     min_score = float("inf")
 
     # Direct distance for comparison
@@ -716,7 +713,7 @@ def generate_smart_chains(
         if exit_node.country_code in COUNTRIES:
             exit_coords = COUNTRIES[exit_node.country_code]
             # Use strict type casting for float arguments
-            exit_stub = ProxyStub(
+            exit_candidate = RelayCandidate(
                 exit_node.country_code,
                 exit_coords[0],
                 exit_coords[1],
@@ -724,13 +721,12 @@ def generate_smart_chains(
                 latency=float(exit_node.latency or 0.0),
             )
 
-            # Build candidate stubs from fast relays
-            relay_stubs = []
+            relay_candidates = []
             for relay in relays_fast[:30]:
                 if relay.country_code in COUNTRIES:
                     coords = COUNTRIES[relay.country_code]
-                    relay_stubs.append(
-                        ProxyStub(
+                    relay_candidates.append(
+                        RelayCandidate(
                             relay.country_code,
                             coords[0],
                             coords[1],
@@ -741,7 +737,7 @@ def generate_smart_chains(
 
             origin_cc = "IR"  # Default origin
             result = find_optimal_relay(
-                origin_cc, exit_stub, relay_stubs, optimization_mode="speed"
+                origin_cc, exit_candidate, relay_candidates, optimization_mode="speed"
             )
 
             if "relay" in result:

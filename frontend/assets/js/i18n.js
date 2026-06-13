@@ -96,7 +96,7 @@ class I18n {
         // Update active state in language menu
         const langButtons = document.querySelectorAll('.lang-menu button, .lang-select-btn');
         langButtons.forEach(btn => {
-            const btnLang = btn.getAttribute('data-lang') || btn.getAttribute('onclick')?.match(/'([a-z]{2})'/)?.[1];
+            const btnLang = btn.getAttribute('data-lang');
             if (btnLang === lang) {
                 btn.classList.add('active');
             } else {
@@ -119,26 +119,24 @@ class I18n {
             if (el.tagName === 'INPUT' && el.getAttribute('placeholder')) {
                  el.setAttribute('placeholder', translation);
             } else if (el.dataset.i18nHtml === 'true') {
-                 el.innerHTML = this.sanitize(translation);
+                 el.replaceChildren(this.sanitizeToFragment(translation));
             } else {
                  el.textContent = translation;
             }
         });
     }
 
-    sanitize(input) {
-        const tmp = document.createElement('div');
-        tmp.innerHTML = input;
-        const walker = document.createTreeWalker(tmp, NodeFilter.SHOW_ELEMENT, null);
+    sanitizeToFragment(input) {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(String(input || ''), 'text/html');
         const allowedTags = new Set(['STRONG', 'EM', 'B', 'I', 'U', 'BR', 'P', 'SPAN', 'DIV', 'A', 'UL', 'LI']);
         const allowedAttrs = new Set(['href', 'title', 'alt', 'class', 'id', 'target', 'role', 'aria-label', 'aria-hidden']);
-
         const toRemove = [];
-        while (walker.nextNode()) {
-            const node = walker.currentNode;
+
+        doc.body.querySelectorAll('*').forEach(node => {
             if (!allowedTags.has(node.tagName)) {
                 toRemove.push(node);
-                continue;
+                return;
             }
             [...node.attributes].forEach(attr => {
                 const name = attr.name.toLowerCase();
@@ -147,18 +145,29 @@ class I18n {
                     node.removeAttribute(attr.name);
                     return;
                 }
+                if (name.startsWith('on')) {
+                    node.removeAttribute(attr.name);
+                    return;
+                }
                 if (name === 'href' || name === 'src') {
-                    // Block all dangerous URI schemes, including obfuscated
-                    // variants with embedded whitespace/control characters.
                     const normalized = value.replace(/[\u0000-\u0020]/g, '').toLowerCase();
                     if (/^(javascript|data|vbscript):/.test(normalized)) {
                         node.removeAttribute(attr.name);
                     }
                 }
             });
-        }
-        toRemove.forEach(n => n.remove());
-        return tmp.innerHTML;
+        });
+        toRemove.forEach(node => node.remove());
+
+        const fragment = document.createDocumentFragment();
+        Array.from(doc.body.childNodes).forEach(node => {
+            fragment.appendChild(document.importNode(node, true));
+        });
+        return fragment;
+    }
+
+    sanitize(input) {
+        return this.sanitizeToFragment(input).textContent || '';
     }
 
     formatNumber(num) {

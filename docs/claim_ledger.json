@@ -142,11 +142,13 @@
       "tests": [
         "scripts/validate_output_matrix.py",
         "scripts/generate_output_docs.py",
+        "tests/unit/test_event_stream.py",
         "tests/unit/test_output.py",
         "tests/unit/test_protocol_output_golden.py",
         "scripts/frontend_same_origin_smoke.cjs",
         "tests/unit/test_validate_output_matrix.py",
-        "tests/unit/test_validate_pages_artifact.py"
+        "tests/unit/test_validate_pages_artifact.py",
+        "tests/unit/test_verify_pages_deployment.py"
       ],
       "frontend_surface": null,
       "output_artifact": "artifact_manifest.json",
@@ -157,7 +159,7 @@
         "README.md"
       ],
       "changelog": "CHANGELOG.md",
-      "cleanup_decision": "Required public outputs are now inventoried in docs/output_matrix.json, checked against the Pages validator, optionally checked with local sing-box/mihomo binaries, rendered into README/API tables by scripts/generate_output_docs.py, covered by a deterministic generated-artifact fixture, checked against per-protocol generator/export plus parser-to-frontend normalizer fixtures, and exercised through browser-rendered Proxies page protocol badges/filter options."
+      "cleanup_decision": "Required public outputs are now inventoried in docs/output_matrix.json, checked against the Pages validator, optionally checked with local sing-box/mihomo binaries, rendered into README/API tables by scripts/generate_output_docs.py, covered by a deterministic generated-artifact fixture, checked against sanitized JSONL pipeline event telemetry, checked against per-protocol generator/export plus parser-to-frontend normalizer fixtures, and exercised through browser-rendered Proxies page protocol badges/filter options."
     },
     {
       "id": "claim.protocols.complete_matrix",
@@ -243,7 +245,7 @@
     {
       "id": "claim.governance.capability_registry_contract",
       "claim": "Stable capability claims are tracked in a capability registry and must have implementation, complete claim-ledger proof, tests, docs, limitations, and cleanup decisions.",
-      "source": "docs/history/source-of-truth/Main SOURCE OF TRUTH - PART 2.md",
+      "source": "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md",
       "product_area": "governance",
       "status": "complete",
       "owner": "docs/capability_registry.json",
@@ -268,7 +270,7 @@
     {
       "id": "claim.governance.module_ownership_contract",
       "claim": "Major modules and removed-module replacements are mapped in a validated ownership contract, and stale removed-module imports fail CI.",
-      "source": "docs/history/source-of-truth/Main SOURCE OF TRUTH - PART 2.md",
+      "source": "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md",
       "product_area": "governance",
       "status": "complete",
       "owner": "docs/module_ownership.json",
@@ -292,7 +294,7 @@
     {
       "id": "claim.outputs.native_client_check_report",
       "claim": "Optional native Sing-box and Clash client checks produce structured evidence reports that are archived with pipeline evidence without polluting public output artifacts.",
-      "source": "docs/history/source-of-truth/Main SOURCE OF TRUTH - PART 3.md",
+      "source": "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md",
       "product_area": "outputs",
       "status": "complete",
       "owner": "scripts/validate_pages_artifact.py",

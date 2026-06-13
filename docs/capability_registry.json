@@ -49,8 +49,10 @@
       "product_area": "outputs",
       "owner": "scripts/validate_pages_artifact.py",
       "implementation": [
+        "src/configstream/event_stream.py",
         "src/configstream/output_logic.py",
         "scripts/validate_pages_artifact.py",
+        "scripts/verify_pages_deployment.py",
         "docs/output_matrix.json",
         "schema/artifact_manifest.schema.json",
         "schema/health.schema.json",
@@ -60,8 +62,10 @@
         "claim.outputs.artifact_manifest_complete"
       ],
       "tests": [
+        "tests/unit/test_event_stream.py",
         "tests/unit/test_output.py",
         "tests/unit/test_validate_pages_artifact.py",
+        "tests/unit/test_verify_pages_deployment.py",
         "tests/unit/test_validate_output_matrix.py",
         "tests/unit/test_protocol_output_golden.py"
       ],
@@ -75,6 +79,7 @@
         "artifact_manifest.json",
         "health.json",
         "metadata.json",
+        "pipeline_events.jsonl",
         "proxies.json"
       ],
       "limitations": [
@@ -183,7 +188,7 @@
       "docs": [
         "README.md",
         "STATUS.md",
-        "docs/history/source-of-truth/ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md",
+        "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md",
         "docs/capability_registry.json",
         "docs/module_ownership.json",
         "docs/MODULE_OWNERSHIP.md"
@@ -237,7 +242,7 @@
       "docs": [
         "docs/core_compatibility_report.json",
         "STATUS.md",
-        "docs/history/source-of-truth/ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md"
+        "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md"
       ],
       "outputs": [
         "pipeline-evidence/native_client_check_report.json"

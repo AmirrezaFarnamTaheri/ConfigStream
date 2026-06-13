@@ -3,7 +3,7 @@ from unittest.mock import patch
 from configstream.intelligence.chaining import (
     find_optimal_relay,
     generate_smart_chains,
-    ProxyStub,
+    RelayCandidate,
     haversine,
     create_chain,
     is_likely_ipv4,
@@ -22,11 +22,11 @@ def test_haversine():
 
 def test_find_optimal_relay():
     origin = "IR"
-    exit_node = ProxyStub("US", 37.09, -95.71, "wireguard")
+    exit_node = RelayCandidate("US", 37.09, -95.71, "wireguard")
 
     # Candidates
-    relay_tr = ProxyStub("TR", 38.96, 35.24, "hysteria2")  # Turkey (Good)
-    relay_cn = ProxyStub("CN", 35.86, 104.19, "vmess")  # China (Bad protocol penalty)
+    relay_tr = RelayCandidate("TR", 38.96, 35.24, "hysteria2")
+    relay_cn = RelayCandidate("CN", 35.86, 104.19, "vmess")
 
     candidates = [relay_tr, relay_cn]
 
@@ -39,7 +39,7 @@ def test_find_optimal_relay():
 
 def test_find_optimal_relay_no_candidates():
     origin = "IR"
-    exit_node = ProxyStub("US", 37.09, -95.71, "wireguard")
+    exit_node = RelayCandidate("US", 37.09, -95.71, "wireguard")
     candidates = []
 
     result = find_optimal_relay(origin, exit_node, candidates)

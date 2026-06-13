@@ -35,7 +35,9 @@ class CensorshipLab:
         target_sites = sites or self.SENSITIVE_SITES
         results: Dict[str, Any] = {}
 
-        async with httpx.AsyncClient(timeout=5.0, follow_redirects=True, trust_env=False) as client:
+        async with httpx.AsyncClient(
+            timeout=5.0, follow_redirects=True, trust_env=False
+        ) as client:
             for site in target_sites:
                 try:
                     start_time = time.monotonic()

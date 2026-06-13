@@ -1,4 +1,4 @@
-// tools/worker.js - The "Platinum" Bridge
+// tools/worker.js - BYOW private bridge
 // ConfigStream BYOW Relay v2.0
 // Deploy this to Cloudflare Workers (Free Tier)
 // Enhanced with masquerading (fake website) and dynamic routing

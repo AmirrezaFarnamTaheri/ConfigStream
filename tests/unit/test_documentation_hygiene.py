@@ -10,7 +10,7 @@ from tests.unit.doc_sources import read_doc, read_first_existing_doc
 REPO_ROOT = Path(__file__).resolve().parents[2]
 KNOWN_ISSUES_SOURCES = [
     "KNOWN_ISSUES.md",
-    "docs/history/source-of-truth/ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md",
+    "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md",
 ]
 
 
@@ -62,6 +62,81 @@ def test_public_claims_reflect_closed_production_gate() -> None:
     assert "older production-ready claims are superseded" not in readme
     assert "TLS Fragmentation**: Splits TLS packets" not in readme
     assert "TLS Fragmentation**: Disabled" in readme
+    assert "docs/history/source-of-truth/ConfigStream_Master_Audit_Report" not in readme
+    assert (
+        "Historical source-of-truth ledgers were absorbed into the master report and removed"
+        in readme
+    )
+    assert "unblockable" not in readme.lower()
+    assert "Upgrade to Platinum" not in readme
+
+
+def test_active_docs_do_not_use_archived_ledgers_as_current_sources() -> None:
+    active_paths = [
+        "README.md",
+        "STATUS.md",
+        "AGENTS.md",
+        "GEMINI.md",
+        "docs/capability_registry.json",
+        "docs/claim_ledger.json",
+        "docs/module_ownership.json",
+    ]
+    forbidden = [
+        "docs/history/source-of-truth/",
+        "Historical audit ledgers under",
+        "Historical ledgers under",
+    ]
+    for rel_path in active_paths:
+        text = _read(rel_path)
+        for phrase in forbidden:
+            assert (
+                phrase not in text
+            ), f"{rel_path} still cites removed historical source {phrase}"
+
+
+def test_master_records_second_pass_history_absorption() -> None:
+    master = _read("ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md")
+
+    required = [
+        "Second-pass detailed absorption coverage",
+        "674 headings and 2,800 obligation/caveat/action lines",
+        "source content classification",
+        "stale-cache retest policy",
+        "smart-chain planning",
+        "safe censorship diagnostics",
+        "streaming parser/adaptive concurrency",
+        "chaos testing",
+        "Lab-abuse threat modeling",
+        "visual regression/golden outputs",
+        "subsystem health/admin/WebSocket eventing",
+        "benchmark/memory profiling",
+    ]
+    for phrase in required:
+        assert phrase in master
+
+
+def test_active_docs_avoid_overclaiming_trust_language() -> None:
+    active_paths = [
+        "README.md",
+        "docs/CENSORSHIP_EVASION.md",
+        "docs/wiki/project/02-architecture.md",
+        "docs/wiki/project/05-devops.md",
+        "docs/wiki/project/06-frontend.md",
+        "SECURITY.md",
+    ]
+    forbidden = [
+        "Upgrade to Platinum",
+        "Platinum Tier",
+        "unblockable",
+        "complete list of vetted proxies",
+        "80+ innerHTML usages sanitized",
+        "ConfigStream is in remediation",
+        "full production gate remains open",
+    ]
+    for rel_path in active_paths:
+        text = _read(rel_path)
+        for phrase in forbidden:
+            assert phrase not in text, f"{rel_path} contains stale phrase {phrase!r}"
 
 
 def test_readme_describes_proxies_json_as_array_not_metadata_envelope() -> None:

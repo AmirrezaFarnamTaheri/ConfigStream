@@ -212,6 +212,19 @@ def _write_valid_artifact(root: Path) -> None:
             )
         elif rel_path == "metadata.json" or rel_path == "api/stats":
             _write_text(path, json.dumps(metadata_payload))
+        elif rel_path == "pipeline_events.jsonl":
+            _write_text(
+                path,
+                json.dumps(
+                    {
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "event_type": "stream_close",
+                        "message": "Event stream closing.",
+                    },
+                    separators=(",", ":"),
+                )
+                + "\n",
+            )
         elif rel_path.endswith("proxies.json") or rel_path == "api/proxies":
             _write_text(path, "[]")
         elif rel_path.startswith("singbox") and rel_path.endswith(".json"):
@@ -308,6 +321,24 @@ def test_validate_pages_artifact_reports_invalid_json(tmp_path: Path) -> None:
     errors = validate_pages_artifact(tmp_path)
 
     assert any("invalid JSON in metadata.json" in error for error in errors)
+
+
+def test_validate_pages_artifact_rejects_invalid_pipeline_events_jsonl(
+    tmp_path: Path,
+) -> None:
+    _write_valid_artifact(tmp_path)
+    _write_text(
+        tmp_path / "pipeline_events.jsonl",
+        '{"timestamp":"2026-06-13T00:00:00+00:00","event_type":"info","message":"ok"}\n'
+        '{"timestamp":"2026-06-13T00:00:01+00:00","event_type":"info","message":"Bearer leak"}\n',
+    )
+
+    errors = validate_pages_artifact(tmp_path)
+
+    assert any(
+        "pipeline_events.jsonl line 2 contains forbidden marker" in error
+        for error in errors
+    )
 
 
 def test_validate_pages_artifact_reports_invalid_zip(tmp_path: Path) -> None:

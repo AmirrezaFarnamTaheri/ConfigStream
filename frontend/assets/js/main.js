@@ -170,11 +170,19 @@ document.addEventListener('DOMContentLoaded', () => {
                  let text = window.i18n.t('hero.subtitle.main');
                  text = text.replace('{sources}', formatNum(sourceCount));
                  text = text.replace('{hours}', formatNum(updateFreq));
-                 // Sanitize before innerHTML to prevent XSS if metadata is poisoned.
+                 // Sanitize before DOM insertion to prevent XSS if metadata is poisoned.
                 // The text template comes from i18n (trusted) and values are numbers,
                 // but defense-in-depth requires sanitization.
                 if (window.DOMPurify) {
-                    heroSubtitle.innerHTML = window.DOMPurify.sanitize(text, {ALLOWED_TAGS: ['strong', 'em', 'b', 'i', 'span']});
+                    const fragment = window.DOMPurify.sanitize(text, {
+                        ALLOWED_TAGS: ['strong', 'em', 'b', 'i', 'span'],
+                        RETURN_DOM_FRAGMENT: true
+                    });
+                    if (fragment && typeof fragment.nodeType === 'number') {
+                        heroSubtitle.replaceChildren(fragment);
+                    } else {
+                        heroSubtitle.textContent = String(fragment || '').replace(/<[^>]*>/g, '');
+                    }
                 } else {
                     heroSubtitle.textContent = text.replace(/<[^>]*>/g, '');
                 }

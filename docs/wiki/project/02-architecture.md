@@ -173,10 +173,10 @@ This architecture allows ConfigStream to scale linearly. To double capacity, we 
 *   **Implementation:** Ed25519 signatures are attached to subscription files during output generation.
 *   **Verification:** Clients can verify the signature against a hardcoded public key before loading configs, ensuring the pipeline output has not been modified in transit.
 
-### "Bring Your Own Worker" (BYOW) — Platinum Tier
+### "Bring Your Own Worker" (BYOW) — Private Bridge
 *   **Objective:** Decentralize exit-node infrastructure using a "Hydra Strategy."
 *   **Mechanism:** Users deploy their own Cloudflare Worker (VLESS-over-WebSocket) and link it in the dashboard. The frontend injects the user's Worker URL into Gold/Shielded configs.
-*   **Benefits:** Clean IP reputation, zero cost for the platform, unblockable (censors cannot block thousands of unique `*.workers.dev` domains).
+*   **Benefits:** Clean IP reputation, zero cost for the platform, user-controlled quota, and deployment diversity through many independent `*.workers.dev` domains. No bridge is claimed to be guaranteed against blocking.
 *   **Files:** `tools/worker.js` (Worker code), `tools/wrangler.toml` (deployment config), `frontend/assets/js/byow.js` (frontend injection).
 
 ## 6. Vwarp Integration

@@ -18,9 +18,10 @@ REQUIRED_PHRASES = [
     "v3.1.0",
     "Live Pages deployment currently fails smoke",
     "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md",
+    "Historical source-of-truth ledgers were fully absorbed into the master report and removed",
+    "Absorbed Archive Value",
     "Closed Audit Items",
     "Validation Snapshot",
-    "`python -m pytest -q`",
 ]
 
 FORBIDDEN_PHRASES = [
@@ -37,6 +38,12 @@ FORBIDDEN_PHRASES = [
     "1032 passed",
     "dns_prewarm.py, fetcher.py, output.py",
     "Development Status :: 4 - Beta",
+    "The active current source of truth is [docs/history/source-of-truth/",
+    "Historical ledgers under `docs/history/source-of-truth/` are archived evidence only",
+    "Flip the gitleaks step to blocking",
+    "remove `continue-on-error`",
+    "105" "4 passed" ", 4 skipped",
+    "pending after the 2026-06-13 " "frontend/governance refresh",
 ]
 
 
@@ -72,7 +79,7 @@ def validate_status() -> list[str]:
     full_count = _latest_full_pytest_count(status)
     if full_count is None:
         errors.append("STATUS.md missing full pytest validation snapshot")
-    elif full_count < 1000:
+    elif full_count is not None and full_count < 1000:
         errors.append("STATUS.md full pytest count is stale or unexpectedly low")
 
     return errors

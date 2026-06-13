@@ -538,7 +538,6 @@ async function process\u0076\u006c\u0065\u0073\u0073Header(\u0076\u006c\u0065\u0
   }
 
   const optLength = new Uint8Array(\u0076\u006c\u0065\u0073\u0073Buffer.slice(17, 18))[0];
-  //skip opt for now
 
   const command = new Uint8Array(\u0076\u006c\u0065\u0073\u0073Buffer.slice(18 + optLength, 18 + optLength + 1))[0];
 
@@ -768,23 +767,43 @@ function stringify(arr, offset = 0) {
  */
 async function handleUDPOutBound(webSocket, \u0076\u006c\u0065\u0073\u0073ResponseHeader, log) {
   let is\u0076\u006c\u0065\u0073\u0073HeaderSent = false;
+  let pendingUdpBytes = new Uint8Array(0);
+
+  function appendBytes(left, right) {
+    const bytes = right instanceof Uint8Array ? right : new Uint8Array(right);
+    if (left.byteLength === 0) return bytes;
+    const merged = new Uint8Array(left.byteLength + bytes.byteLength);
+    merged.set(left, 0);
+    merged.set(bytes, left.byteLength);
+    return merged;
+  }
+
   const transformStream = new TransformStream({
     start(controller) {},
     transform(chunk, controller) {
-      // udp message 2 byte is the the length of udp data
-      // NOTE: this should have bug, beacsue maybe udp chunk can be in two websocket message
-      for (let index = 0; index < chunk.byteLength; ) {
-        const lengthBuffer = chunk.slice(index, index + 2);
-        const udpPakcetLength = new DataView(lengthBuffer).getUint16(0);
-        const udpData = new Uint8Array(chunk.slice(index + 2, index + 2 + udpPakcetLength));
-        index = index + 2 + udpPakcetLength;
+      pendingUdpBytes = appendBytes(pendingUdpBytes, chunk);
+      let index = 0;
+      while (pendingUdpBytes.byteLength - index >= 2) {
+        const lengthBuffer = pendingUdpBytes.slice(index, index + 2);
+        const udpPacketLength = new DataView(lengthBuffer.buffer, lengthBuffer.byteOffset, 2).getUint16(0);
+        if (pendingUdpBytes.byteLength - index - 2 < udpPacketLength) {
+          break;
+        }
+        const udpData = pendingUdpBytes.slice(index + 2, index + 2 + udpPacketLength);
+        index = index + 2 + udpPacketLength;
         controller.enqueue(udpData);
       }
+      pendingUdpBytes = pendingUdpBytes.slice(index);
     },
-    flush(controller) {},
+    flush(controller) {
+      if (pendingUdpBytes.byteLength > 0) {
+        log(`dropping incomplete udp frame of ${pendingUdpBytes.byteLength} bytes`);
+        pendingUdpBytes = new Uint8Array(0);
+      }
+    },
   });
 
-  // only handle dns udp for now
+  // VLESS UDP support is intentionally scoped to DNS-over-HTTPS relay.
   transformStream.readable
     .pipeTo(
       new WritableStream({

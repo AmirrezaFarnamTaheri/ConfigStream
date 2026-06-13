@@ -18,3 +18,6 @@ def test_proxy_array_cache_uses_metadata_snapshot_hash() -> None:
     assert "metadata?.proxies_snapshot_hash" in main_js
     assert "Array.isArray(data) && url.includes('api/proxies')" in cache_manager_js
     assert "window.CONFIGSTREAM_PROXY_SNAPSHOT_HASH" in cache_manager_js
+    assert "async fetchRemoteVersion" in cache_manager_js
+    assert "options.differentialUpdate && cachedData.version" in cache_manager_js
+    assert "Differential update check logic stub" not in cache_manager_js

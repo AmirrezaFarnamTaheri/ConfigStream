@@ -32,4 +32,4 @@ When status surfaces disagree, use this hierarchy:
 2.  Machine-readable contracts (`docs/*.json`, `docs/DEBT_MATRIX.md`)
 3.  `AGENTS.md` (Contributor constraints)
 4.  `CHANGELOG.md` (Implementation history)
-5.  `docs/history/source-of-truth/` (Historical evidence)
+5.  Removed historical source-of-truth ledgers (git-history provenance only; durable value is absorbed into the active master/status chain)

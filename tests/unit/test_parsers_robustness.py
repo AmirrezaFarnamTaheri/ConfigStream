@@ -204,6 +204,21 @@ proto udp
         result = parse_openvpn(config)
         assert result is None
 
+    def test_parse_openvpn_skips_invalid_remote_before_valid_remote(self):
+        """OpenVPN parser recovers when an earlier remote endpoint is malformed."""
+        config = """
+client
+dev tun
+remote bad!host 1194
+remote vpn.example.com 443
+proto tcp-client
+"""
+        result = parse_openvpn(config)
+        assert result is not None
+        assert result.address == "vpn.example.com"
+        assert result.port == 443
+        assert result.details["transport"] == "tcp-client"
+
 
 class TestConfigLineExtraction:
     """Test configuration line extraction."""

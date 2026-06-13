@@ -11,7 +11,7 @@
       "disallowed_duplicates": ["pipeline_stages.py", "fetcher_core/"],
       "replacement_for_removed_modules": ["pipeline_stages.py", "fetcher_core/"],
       "tests": ["tests/unit/test_pipeline_stages.py", "tests/unit/test_fetcher.py"],
-      "docs": ["AGENTS.md", "docs/history/source-of-truth/ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md"]
+      "docs": ["AGENTS.md", "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md"]
     },
     {
       "path": "src/configstream/pipeline/consumer.py",
@@ -22,7 +22,7 @@
       "disallowed_duplicates": ["pipeline_stages.py", "pipeline_core/"],
       "replacement_for_removed_modules": ["pipeline_stages.py", "pipeline_core/"],
       "tests": ["tests/unit/test_consumer.py", "tests/unit/test_pipeline_stages.py"],
-      "docs": ["AGENTS.md", "docs/history/source-of-truth/ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md"]
+      "docs": ["AGENTS.md", "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md"]
     },
     {
       "path": "src/configstream/pipeline_stats.py",
@@ -34,6 +34,17 @@
       "replacement_for_removed_modules": ["pipeline_core/"],
       "tests": ["tests/unit/test_metadata_completeness.py", "tests/unit/test_output.py"],
       "docs": ["AGENTS.md", "schema/metadata.schema.json"]
+    },
+    {
+      "path": "src/configstream/event_stream.py",
+      "domain": "pipeline-telemetry",
+      "owner": "pipeline",
+      "public_apis": ["EventStream"],
+      "internal_only_apis": ["EVENT_LOG_FILENAME"],
+      "disallowed_duplicates": ["ad hoc pipeline event JSONL writers", "raw unsanitized event logs"],
+      "replacement_for_removed_modules": [],
+      "tests": ["tests/unit/test_event_stream.py", "tests/unit/test_validate_pages_artifact.py"],
+      "docs": ["STATUS.md", "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md"]
     },
     {
       "path": "src/configstream/pipeline/fetcher.py",

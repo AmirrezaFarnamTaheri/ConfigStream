@@ -31,6 +31,7 @@ REQUIRED_EXISTS: tuple[str, ...] = (
     "metadata.json",
     "artifact_manifest.json",
     "health.json",
+    "pipeline_events.jsonl",
     "base64.txt",
     "base64-dns-safe.txt",
     "base64-dns-hardened.txt",
@@ -74,6 +75,7 @@ REQUIRED_NONEMPTY: tuple[str, ...] = (
     "metadata.json",
     "artifact_manifest.json",
     "health.json",
+    "pipeline_events.jsonl",
     "singbox.json",
     "singbox-dns-safe.json",
     "singbox-dns-hardened.json",
@@ -150,6 +152,13 @@ ZIP_DEPLOY_SECRET_RE = re.compile(
 ZIP_DEPLOY_SECRET_MARKERS = (
     "PLACEHOLDER_KEY_INJECTED_BY_CI",
     "PLACEHOLDER_PUBLIC_KEY",
+)
+TELEMETRY_FORBIDDEN_MARKERS = ZIP_DEPLOY_SECRET_MARKERS + (
+    "Authorization:",
+    "Bearer ",
+    "access_token=",
+    "api_key=",
+    "password=",
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -357,6 +366,54 @@ def _validate_native_clients(root: Path) -> list[str]:
     ]
 
 
+def _validate_pipeline_events(root: Path) -> list[str]:
+    path = root / "pipeline_events.jsonl"
+    if not path.is_file():
+        return []
+
+    errors: list[str] = []
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except OSError as exc:
+        return [f"could not read pipeline_events.jsonl: {exc}"]
+
+    if not lines:
+        return ["pipeline_events.jsonl is empty"]
+
+    for index, line in enumerate(lines, start=1):
+        if not line.strip():
+            errors.append(f"pipeline_events.jsonl line {index} is blank")
+            continue
+        if any(marker in line for marker in TELEMETRY_FORBIDDEN_MARKERS):
+            errors.append(
+                f"pipeline_events.jsonl line {index} contains forbidden marker"
+            )
+        try:
+            record = json.loads(line)
+        except json.JSONDecodeError as exc:
+            errors.append(f"pipeline_events.jsonl line {index} invalid JSON: {exc}")
+            continue
+        if not isinstance(record, dict):
+            errors.append(f"pipeline_events.jsonl line {index} must be an object")
+            continue
+        for key in ("timestamp", "event_type", "message"):
+            value = record.get(key)
+            if not isinstance(value, str) or not value:
+                errors.append(
+                    f"pipeline_events.jsonl line {index} missing string {key}"
+                )
+        timestamp = record.get("timestamp")
+        if isinstance(timestamp, str):
+            try:
+                datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+            except ValueError:
+                errors.append(
+                    f"pipeline_events.jsonl line {index} has invalid timestamp"
+                )
+
+    return errors
+
+
 def write_native_client_report(root: Path, report_path: Path) -> None:
     """Write optional native client check evidence to *report_path*."""
     report_path.parent.mkdir(parents=True, exist_ok=True)
@@ -367,7 +424,12 @@ def write_native_client_report(root: Path, report_path: Path) -> None:
 
 
 def _artifact_category(rel_path: str) -> str:
-    if rel_path in {"metadata.json", "health.json", "artifact_manifest.json"}:
+    if rel_path in {
+        "metadata.json",
+        "health.json",
+        "artifact_manifest.json",
+        "pipeline_events.jsonl",
+    }:
         return "control"
     if rel_path.startswith("api/"):
         return "api"
@@ -1192,6 +1254,8 @@ def validate_pages_artifact(
         metadata, error = _load_json(metadata_path)
         if not error:
             errors.extend(_validate_metadata(metadata))
+
+    errors.extend(_validate_pipeline_events(root))
 
     proxies_path = root / "proxies.json"
     if proxies_path.is_file():

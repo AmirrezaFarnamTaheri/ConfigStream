@@ -110,7 +110,7 @@ def _patch_anyio_current_task() -> None:
         return
 
     _orig_current_task = anyio_asyncio.current_task
-    _dummy_tasks: (
+    _sentinel_tasks: (
         "weakref.WeakKeyDictionary[asyncio.AbstractEventLoop, asyncio.Task]"
     ) = weakref.WeakKeyDictionary()
 
@@ -127,11 +127,11 @@ def _patch_anyio_current_task() -> None:
             running_loop = loop or asyncio.get_running_loop()
         except RuntimeError:
             return task
-        dummy = _dummy_tasks.get(running_loop)
-        if dummy is None or dummy.done():
-            dummy = running_loop.create_task(_keepalive())
-            _dummy_tasks[running_loop] = dummy
-        return dummy
+        sentinel = _sentinel_tasks.get(running_loop)
+        if sentinel is None or sentinel.done():
+            sentinel = running_loop.create_task(_keepalive())
+            _sentinel_tasks[running_loop] = sentinel
+        return sentinel
 
     anyio_asyncio.current_task = _safe_current_task
 

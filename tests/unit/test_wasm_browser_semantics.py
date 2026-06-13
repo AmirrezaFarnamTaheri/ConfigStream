@@ -10,7 +10,7 @@ from tests.unit.doc_sources import read_doc, read_first_existing_doc
 ROOT = Path(__file__).resolve().parents[2]
 KNOWN_ISSUES_SOURCES = [
     "KNOWN_ISSUES.md",
-    "docs/history/source-of-truth/ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md",
+    "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md",
 ]
 
 

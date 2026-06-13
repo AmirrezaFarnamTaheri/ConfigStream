@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parents[2]
 FRONTEND_DIR = ROOT / "frontend"
@@ -52,3 +53,38 @@ def test_lab_generated_scripts_do_not_auto_download_binaries() -> None:
 
     # Generated scripts should require a preinstalled sing-box binary.
     assert "sing-box not found in PATH" in lab_js
+
+
+def test_project_frontend_avoids_raw_inner_html_assignment() -> None:
+    offenders: list[str] = []
+    assignment_re = re.compile(r"\.\s*innerHTML\s*=")
+    paths = list((FRONTEND_DIR / "assets/js").rglob("*.js"))
+    paths.extend(FRONTEND_DIR.glob("*.html"))
+    for path in paths:
+        rel = path.relative_to(ROOT).as_posix()
+        if "/utils/qrcode.js" in rel:
+            continue
+        if "/assets/libs/" in rel:
+            continue
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        for line_no, line in enumerate(text.splitlines(), 1):
+            if assignment_re.search(line):
+                offenders.append(f"{rel}:{line_no}")
+
+    assert offenders == []
+
+
+def test_frontend_html_avoids_inline_event_handlers() -> None:
+    offenders: list[str] = []
+    inline_handler_re = re.compile(
+        r"\bon(?:click|change|submit|input|keydown|keyup|load|error)\s*=",
+        re.IGNORECASE,
+    )
+    for path in FRONTEND_DIR.glob("*.html"):
+        rel = path.relative_to(ROOT).as_posix()
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        for line_no, line in enumerate(text.splitlines(), 1):
+            if inline_handler_re.search(line):
+                offenders.append(f"{rel}:{line_no}")
+
+    assert offenders == []

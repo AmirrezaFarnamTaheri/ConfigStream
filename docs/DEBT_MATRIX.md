@@ -1,6 +1,6 @@
 # Debt Matrix (Triage Filtered)
 
-Generated: `2026-05-26T23:12:36.119684+00:00`
+Generated: `2026-06-13T00:11:03.823500+00:00`
 
 ## Executive Summary
 This matrix represents **actionable** technical debt. Noise from test mocks, documentation placeholders, and historical reports has been filtered out.

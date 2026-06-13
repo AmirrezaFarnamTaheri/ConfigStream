@@ -20,18 +20,16 @@ We use a custom Service Worker (`service-worker.js`) to make the site censorship
 
 When making changes to the frontend, you **must** adhere to these security practices to prevent XSS (Cross-Site Scripting) and other client-side attacks.
 
-### 1. No Unsafe `innerHTML`
-*   **Never** assign user-controlled data directly to `innerHTML`.
-*   **Use** `textContent` for text updates.
-*   **Use** `updateElement(selector, content, { method: 'textContent' })` helper.
-*   **If you MUST use HTML**:
-    *   Sanitize it first using `DOMPurify.sanitize()`.
-    *   Use `updateElement(selector, content, { method: 'innerHTML' })`, which handles sanitization automatically (unless `trustedHTML: true` is set).
+### 1. No Raw Runtime `innerHTML`
+*   **Never** assign variable, metadata, translation, subscription, or user-provided data to `innerHTML`.
+*   **Use** `textContent`, `appendChild`, `replaceChildren`, and small DOM builders for text and UI updates.
+*   **If rich markup is required**, sanitize it first and insert the returned DOM node or fragment. Do not pass sanitized strings back into a raw HTML sink.
+*   Trusted internal HTML helpers must stay narrowly scoped to fixed project-owned strings and remain covered by frontend security tests.
 
 ### 2. DOMPurify
-*   We load `DOMPurify` (vendored in `assets/libs/purify.min.js`).
+*   We load `DOMPurify` (vendored in `assets/libs/purify.min.js` and pinned in `assets/vendor-manifest.json` with version and SHA-256 provenance).
 *   Ensure it is included in your HTML file before your scripts run.
-*   Any large block of HTML constructed from data (e.g., Markdown rendering, Proxy Tables) must be passed through `DOMPurify.sanitize()`.
+*   Any large block of HTML constructed from data (e.g., Markdown rendering, Proxy Tables) must be passed through `DOMPurify.sanitize()` and inserted as a DOM node/fragment rather than assigned as raw markup.
 
 ### 3. URL Handling
 *   Validate all URLs before setting them as `href` or `src`.
@@ -47,7 +45,7 @@ When making changes to the frontend, you **must** adhere to these security pract
 
 ### 5. Content Security Policy (CSP)
 *   Primary pages enforce a local-first CSP via meta tag.
-*   Baseline policy: `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' ws: wss: data:; worker-src 'self' blob:; object-src 'self'; base-uri 'self'; form-action 'self';`
+*   Baseline policy: `default-src 'self'; script-src 'self' 'unsafe-inline' blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' ws: wss: data:; worker-src 'self' blob:; object-src 'self'; base-uri 'self'; form-action 'self';`
 *   Do not add remote CDN hosts to CSP for production runtime assets.
 
 ## Visualization Components
@@ -178,6 +176,8 @@ The `UpdateDetector` polls every 4 minutes using lightweight HTTP `HEAD` request
 ### IndexedDB Storage (`cache-manager.js`)
 
 Large datasets (the full proxy list can be 5,000+ items) are stored in **IndexedDB** rather than LocalStorage to avoid quota limits and main-thread blocking. The `IDBHelper` class wraps IndexedDB operations with Promises for clean async usage.
+
+For proxy lists, cached records carry snapshot identity from `metadata.json` (`proxies_snapshot_hash` where available). When differential update mode is enabled, `CacheManager` probes the sibling metadata endpoint before serving a cached record and fetches fresh data if the published snapshot hash changed.
 
 ### Data Flow
 

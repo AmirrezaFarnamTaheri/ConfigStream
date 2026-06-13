@@ -176,21 +176,21 @@ A Cloudflare Worker that looks like a harmless website to censors:
 - **Secret path** (`/my-secret-tunnel`) activates the proxy tunnel
 - **Active probers** see a normal website, not a proxy
 
-### BYOW (Bring Your Own Worker) — "Platinum" Tier
+### BYOW (Bring Your Own Worker) — Private Bridge
 
 The "Hydra Strategy": instead of one shared worker that censors can block, each user deploys their own.
 
 **Benefits**:
-- **No Request Limits**: Your own 100k/day Cloudflare quota (not shared)
-- **Private**: Your own infrastructure, your own traffic
-- **Unblockable**: Censors cannot block thousands of unique `*.workers.dev` domains
+- **Quota Isolation**: Your own 100k/day Cloudflare quota is not shared with public users
+- **Operator Control**: Your own Worker domain and deployment lifecycle
+- **Availability Diversity**: Many user-operated domains are harder to exhaust than one shared endpoint, though no bridge should be described as guaranteed against blocking
 - **Zero Cost**: Cloudflare's free tier is sufficient
 
 **How to deploy**:
 1. Click "Deploy to Cloudflare Workers" on the ConfigStream frontend.
 2. Log in to Cloudflare (free account) and authorize.
 3. Copy your Worker URL (e.g., `your-worker.username.workers.dev`).
-4. Paste the URL in the frontend and click "Upgrade to Platinum."
+4. Paste the URL in the frontend and click "Generate Private Bridge."
 5. Download your personalized config and import it into Nekobox/Sing-box.
 6. Select a `GOLD-` prefixed proxy — traffic now routes through *your* Worker.
 

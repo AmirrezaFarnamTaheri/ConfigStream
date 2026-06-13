@@ -130,10 +130,10 @@ async function handleLoadPipelineProxies() {
 
     if (select) {
         select.replaceChildren();
-        const placeholder = document.createElement('option');
-        placeholder.value = '';
-        placeholder.textContent = `-- Select a pre-tested proxy (${proxies.length} available) --`;
-        select.appendChild(placeholder);
+        const emptyOption = document.createElement('option');
+        emptyOption.value = '';
+        emptyOption.textContent = `-- Select a pre-tested proxy (${proxies.length} available) --`;
+        select.appendChild(emptyOption);
         
         const orderedProtocols = Object.keys(grouped).sort(compareProtocols);
         for (const proto of orderedProtocols) {
@@ -149,12 +149,12 @@ async function handleLoadPipelineProxies() {
             select.appendChild(optgroup);
         }
         select.style.display = '';
-        select.onchange = function () {
+        select.addEventListener('change', function () {
             if (this.value) {
                 const input = $('#proxyUri');
                 if (input) input.value = this.value;
             }
-        };
+        });
     }
     container.style.display = '';
     showResultHTML('step1Result', 'success',
@@ -541,7 +541,7 @@ function generateQR(text) {
                 background: '#ffffff',
                 ecl: 'M'
             });
-            qrWrapper.innerHTML = qr.svg();
+            appendSafeSvg(qrWrapper, qr.svg());
         } else {
             qrWrapper.textContent = 'QR renderer unavailable offline.';
         }
@@ -580,6 +580,35 @@ function generateQR(text) {
     qrDiv.appendChild(panel);
     qrDiv.style.display = 'block';
     $('#exportOutput').style.display = 'none';
+}
+
+function appendSafeSvg(container, svgMarkup) {
+    const parsed = new DOMParser().parseFromString(String(svgMarkup || ''), 'image/svg+xml');
+    if (parsed.querySelector('parsererror')) {
+        throw new Error('QR SVG parser rejected generated markup.');
+    }
+
+    const svg = parsed.documentElement;
+    if (!svg || svg.localName !== 'svg') {
+        throw new Error('QR renderer returned a non-SVG payload.');
+    }
+
+    svg.querySelectorAll('script, foreignObject, iframe, object, embed').forEach(node => node.remove());
+    svg.querySelectorAll('*').forEach(node => {
+        [...node.attributes].forEach(attr => {
+            const name = attr.name.toLowerCase();
+            const value = attr.value || '';
+            if (name.startsWith('on')) {
+                node.removeAttribute(attr.name);
+                return;
+            }
+            if ((name === 'href' || name.endsWith(':href')) && /^(javascript|data|vbscript):/i.test(value.replace(/[\u0000-\u0020]/g, ''))) {
+                node.removeAttribute(attr.name);
+            }
+        });
+    });
+
+    container.appendChild(document.importNode(svg, true));
 }
 
 // Initialization

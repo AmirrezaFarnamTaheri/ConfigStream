@@ -218,15 +218,8 @@ class ProxyHistoryTracker:
             removed = 0
 
             if hasattr(self.storage, "execute_write"):
-                # Assumes execute_write is modified to return rowcount if supported
-                # For now, it returns None or result, so we default to 0 if not supported
                 res = self.storage.execute_write(sql, (cutoff,))
-                if isinstance(res, int):
-                    removed = res
-                else:
-                    # If underlying storage doesn't return count, we can't report it easily
-                    # but we prefer returning 0 over -1 to match type signature if strict
-                    removed = 0
+                removed = res if isinstance(res, int) else 0
             else:
                 conn = self.storage.get_connection()
                 cursor = conn.execute(sql, (cutoff,))
@@ -351,23 +344,17 @@ class ProxyHistoryTracker:
         """
         Export history data for visualization.
 
-        [OPTIMIZED] Uses _load_all_history for now but ensures output_path is Path.
-        For massive scale, HistoryExporter should be updated to accept a generator/cursor.
-        Given current constraints, we stick to memory load but wrapped safely.
+        Uses the bounded history loader, which batches database reads and caps
+        total exported rows to protect CI and Pages artifact generation.
         """
-        # Ensure path is Path object
         if not isinstance(output_path, Path):
             output_path = Path(output_path)
 
-        # If file is too large, skip or truncate?
-        # Ideally we refactor HistoryExporter, but that's outside current scope.
-        # We rely on _load_all_history MAX_ROWS limit to prevent crash.
         data = self._load_all_history()
         HistoryExporter.export_for_visualization(data, output_path)
 
     def export_active_proxy_trend(self, output_path: Any) -> None:
         """Export active proxy trend."""
-        # Ensure path is Path object
         if not isinstance(output_path, Path):
             output_path = Path(output_path)
 
