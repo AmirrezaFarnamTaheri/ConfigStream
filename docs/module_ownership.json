@@ -265,6 +265,29 @@
       "replacement_for_removed_modules": [],
       "tests": ["tests/unit/test_server.py", "tests/test_server_ratelimit.py"],
       "docs": ["SECURITY.md", "docs/wiki/project/08-api-reference.md"]
+    },
+    {
+      "path": "src/configstream_revival/__init__.py",
+      "domain": "revival-tester-standalone-library",
+      "owner": "washer",
+      "public_apis": [
+        "Proxy",
+        "ProxyWasher",
+        "generate_smart_chains",
+        "PythonTester",
+        "GoBatchTester",
+        "test_chain_config",
+        "to_singbox_outbound",
+        "to_clash_proxy",
+        "enrich_outbound_with_evasion",
+        "StegoPacker",
+        "generate_stego_assets"
+      ],
+      "internal_only_apis": [],
+      "disallowed_duplicates": [],
+      "replacement_for_removed_modules": [],
+      "tests": ["tests/unit/test_standalone_library.py"],
+      "docs": ["README.md"]
     }
   ],
   "removed_modules": [
