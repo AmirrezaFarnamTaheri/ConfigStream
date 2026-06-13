@@ -5,9 +5,12 @@ Batch DNS resolver for concurrently resolving multiple hostnames.
 
 import asyncio
 import logging
-from typing import Dict, List, Optional, cast
+from typing import Any, Dict, List, Optional, cast
 
-import aiodns
+try:
+    import aiodns
+except ImportError:
+    aiodns = None  # type: ignore[assignment]
 
 from .async_utils import safe_wait_for
 from .security_validator import SecurityValidator
@@ -18,7 +21,7 @@ logger = logging.getLogger(__name__)
 class BatchDNSResolver:
     """A resolver for concurrently resolving a batch of hostnames."""
 
-    resolver: Optional[aiodns.DNSResolver]
+    resolver: Optional[Any]
 
     def __init__(self, timeout: float = 5.0):
         """
@@ -27,9 +30,13 @@ class BatchDNSResolver:
             timeout: DNS query timeout in seconds.
         """
         self.timeout = timeout
+        if aiodns is None:
+            logger.warning("aiodns is not installed. Batch DNS will be disabled.")
+            self.resolver = None
+            return
         try:
             self.resolver = aiodns.DNSResolver()
-        except aiodns.error.DNSError:
+        except Exception:
             logger.warning(
                 "Could not initialize aiodns resolver. Batch DNS will be disabled."
             )

@@ -31,13 +31,16 @@ async def test_go_and_python_tester_verdict_parity():
     py_tester = PythonTester(settings)
 
     # Mock ClientSession and ProxyConnector for PythonTester
-    with patch("configstream.testers.python.ProxyConnector.from_url") as mock_from_url, \
-         patch("aiohttp.ClientSession") as MockSession:
+    with (
+        patch("configstream.testers.python.ProxyConnector.from_url") as mock_from_url,
+        patch("aiohttp.ClientSession") as MockSession,
+    ):
 
         def make_mock_connector(url):
             connector = MagicMock()
             connector._proxy_url = url
             return connector
+
         mock_from_url.side_effect = make_mock_connector
 
         def session_factory(*args, **kwargs):
@@ -94,6 +97,7 @@ async def test_go_and_python_tester_verdict_parity():
 
     def side_effect_write(data):
         import json
+
         lines = data.decode().strip().split("\n")
         for line in lines:
             if not line.strip():
@@ -106,7 +110,7 @@ async def test_go_and_python_tester_verdict_parity():
                 "id": req_id,
                 "is_working": is_working,
                 "latency": 150 if is_working else 0,
-                "error": None if is_working else "connection refused"
+                "error": None if is_working else "connection refused",
             }
             responses_queue.put_nowait(json.dumps(resp).encode() + b"\n")
 

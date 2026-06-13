@@ -68,6 +68,7 @@ def _validate_lab_destination(host: object, path: str) -> None:
     else:
         # Resolve hostname to check for private IPs (SSRF DNS rebinding protection)
         import socket
+
         try:
             addr_infos = socket.getaddrinfo(cleaned, None)
             for family, socktype, proto, canonname, sockaddr in addr_infos:

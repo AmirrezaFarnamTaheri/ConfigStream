@@ -90,6 +90,12 @@ def _git_lfs_available() -> bool:
         return False
 
 
+def _sanitize(text: str, token: str) -> str:
+    if not token:
+        return text
+    return text.replace(token, "[REDACTED]")
+
+
 def _sync_with_git_lfs(
     local_dir: Path,
     repo_id: str,
@@ -104,34 +110,43 @@ def _sync_with_git_lfs(
         clone_url = _repo_auth_url(repo_id, repo_type, token)
 
         logger.info("Cloning %s", _repo_http_url(repo_id, repo_type))
-        _run(["git", "clone", "--depth", "1", clone_url, str(repo_dir)])
-        _run(["git", "lfs", "install", "--local"], cwd=repo_dir)
-        for pattern in lfs_patterns:
-            _run(["git", "lfs", "track", pattern], cwd=repo_dir)
+        try:
+            _run(["git", "clone", "--depth", "1", clone_url, str(repo_dir)])
+            _run(["git", "lfs", "install", "--local"], cwd=repo_dir)
+            for pattern in lfs_patterns:
+                _run(["git", "lfs", "track", pattern], cwd=repo_dir)
 
-        _clean_repo_root(repo_dir)
-        _copy_tree(local_dir, repo_dir)
+            _clean_repo_root(repo_dir)
+            _copy_tree(local_dir, repo_dir)
 
-        _run(["git", "add", "-A"], cwd=repo_dir)
-        status = _run(["git", "status", "--porcelain"], cwd=repo_dir).stdout.strip()
-        if not status:
-            logger.info("No changes detected for Hugging Face mirror.")
-            return _repo_http_url(repo_id, repo_type)
+            _run(["git", "add", "-A"], cwd=repo_dir)
+            status = _run(["git", "status", "--porcelain"], cwd=repo_dir).stdout.strip()
+            if not status:
+                logger.info("No changes detected for Hugging Face mirror.")
+                return _repo_http_url(repo_id, repo_type)
 
-        _run(
-            [
-                "git",
-                "-c",
-                "user.name=configstream-bot",
-                "-c",
-                "user.email=configstream@users.noreply.github.com",
-                "commit",
-                "-m",
-                commit_message,
-            ],
-            cwd=repo_dir,
-        )
-        _run(["git", "push", "origin", "HEAD"], cwd=repo_dir)
+            _run(
+                [
+                    "git",
+                    "-c",
+                    "user.name=configstream-bot",
+                    "-c",
+                    "user.email=configstream@users.noreply.github.com",
+                    "commit",
+                    "-m",
+                    commit_message,
+                ],
+                cwd=repo_dir,
+            )
+            _run(["git", "push", "origin", "HEAD"], cwd=repo_dir)
+        except subprocess.CalledProcessError as err:
+            sanitized_cmd = [cmd.replace(token, "[REDACTED]") for cmd in err.cmd]
+            sanitized_stdout = _sanitize(err.stdout, token) if err.stdout else None
+            sanitized_stderr = _sanitize(err.stderr, token) if err.stderr else None
+            raise RuntimeError(
+                f"Command '{sanitized_cmd}' returned non-zero exit status {err.returncode}.\n"
+                f"Stdout: {sanitized_stdout}\nStderr: {sanitized_stderr}"
+            ) from None
         return _repo_http_url(repo_id, repo_type)
 
 
@@ -202,13 +217,20 @@ def main() -> int:
         logger.error("No Hugging Face token provided. Set HF_TOKEN or pass --token.")
         return 1
 
-    upload_to_hf(
-        local_dir=args.path,
-        repo_id=args.repo_id,
-        token=token,
-        repo_type=args.repo_type,
-        use_git_lfs=not args.no_git_lfs,
-    )
+    try:
+        upload_to_hf(
+            local_dir=args.path,
+            repo_id=args.repo_id,
+            token=token,
+            repo_type=args.repo_type,
+            use_git_lfs=not args.no_git_lfs,
+        )
+    except Exception as exc:
+        err_msg = str(exc)
+        if token:
+            err_msg = err_msg.replace(token, "[REDACTED]")
+        logger.error("Upload failed: %s", err_msg)
+        return 1
     return 0
 
 

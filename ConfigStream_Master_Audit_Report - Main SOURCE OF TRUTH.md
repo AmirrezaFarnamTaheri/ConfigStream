@@ -216,7 +216,7 @@ These are not all release blockers. They are the concrete gaps or cleanup fronts
 | Release gate duplication | CI maintainability cleanup | Multiple workflows repeat similar validator sequences with slightly different semantics. | Centralize release/page/data gate orchestration in a small script or reusable action. |
 | Native-core proof depth | Evidence hardening | Static validators prove structure but not full native runtime acceptance under every client. | Add pinned native dry-run/check jobs for Sing-box and any future first-class native output. |
 | Full dependency audit sensitivity | Environment caution | Direct `pip-audit --no-deps` can pass while full resolution depends on supported Python matrix and resolver state. | Keep full audit in CI matrix and document any accepted transitive advisories with expiry. |
-| Mirror uploader token logging hygiene | Logging cleanup (not a publish blocker) | `scripts/upload_telegram.py` and `scripts/upload_hf.py` embed secrets in request URLs / git remotes where a broad `except` could surface them in CI logs. | Move tokens to headers/credential env handling and narrow exception logging so token-bearing URLs cannot reach CI output; no token rotation required. |
+| Mirror uploader token logging hygiene | Closed | scripts/upload_telegram.py, scripts/upload_hf.py, scripts/upload_gdrive.py, and scripts/publish_ipfs.py embedded secrets / tokens in exception-prone logs or commands. | Closed: Token redaction and exception-sanitization implemented across all uploaders. |
 
 ### Blocking Gate Maturity Levels
 

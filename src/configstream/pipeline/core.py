@@ -383,7 +383,9 @@ class StandardPipeline(IPipeline):
                 try:
                     import httpx
 
-                    async with httpx.AsyncClient(timeout=1.0, trust_env=False) as client:
+                    async with httpx.AsyncClient(
+                        timeout=1.0, trust_env=False
+                    ) as client:
                         await client.post(
                             notify_url,
                             json={

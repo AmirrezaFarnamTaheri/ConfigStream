@@ -57,9 +57,6 @@ class GeoIPResolver:
         # Track if C extension (MMAP) mode is used - readers are thread-safe in this mode
         self._uses_c_extension: bool = False
 
-        # Fallback services for critical failures (optional integration point)
-        self.fallback_services = ["https://ipinfo.io/json", "https://ipapi.co/json"]
-
         # Load synchronously
         self._load_databases()
         self._initialized = True

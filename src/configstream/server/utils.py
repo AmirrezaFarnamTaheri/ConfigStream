@@ -215,6 +215,7 @@ def _validate_admin_startup_security(current_settings: AppSettings) -> None:
         and not current_settings.ADMIN_API_KEY
     ):
         import sys
+
         host = None
         for i, arg in enumerate(sys.argv):
             if arg == "--host" and i + 1 < len(sys.argv):

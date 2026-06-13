@@ -264,7 +264,12 @@ def main():
             update_dnslink(cid, args.domain, args.cf_token, args.cf_zone)
 
     except Exception as e:
-        print(f"Error: {e}")
+        err_msg = str(e)
+        secrets = [args.pinata_jwt, args.cf_token]
+        for s in secrets:
+            if s and s.strip() and s.strip() in err_msg:
+                err_msg = err_msg.replace(s.strip(), "[REDACTED]")
+        print(f"Error: {err_msg}")
 
 
 if __name__ == "__main__":

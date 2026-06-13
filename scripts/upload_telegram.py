@@ -19,7 +19,10 @@ def upload_to_telegram(token, chat_id, file_path, caption=""):
             response.raise_for_status()
             print(f"Successfully uploaded {file_path.name}")
     except Exception as e:
-        print(f"Failed to upload {file_path.name}: {e}")
+        err_msg = str(e)
+        if token:
+            err_msg = err_msg.replace(token, "[REDACTED]")
+        print(f"Failed to upload {file_path.name}: {err_msg}")
 
 
 def main():

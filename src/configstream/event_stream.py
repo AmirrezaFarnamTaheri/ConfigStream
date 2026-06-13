@@ -1,6 +1,9 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import json
 import logging
+import queue
+import threading
+import asyncio
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict
@@ -32,6 +35,37 @@ class EventStream:
         self.persist = persist
         self.max_message_chars = max(256, int(max_message_chars))
         self.event_log_path = self.output_dir / EVENT_LOG_FILENAME
+        self.queue: queue.Queue[Any] = queue.Queue()
+        self._shutdown_sentinel = object()
+        self._writer_thread = None
+        if self.persist:
+            self._writer_thread = threading.Thread(
+                target=self._write_loop,
+                name="EventStreamWriter",
+                daemon=True,
+            )
+            self._writer_thread.start()
+
+    def _write_loop(self) -> None:
+        while True:
+            record = self.queue.get()
+            if record is self._shutdown_sentinel:
+                self.queue.task_done()
+                break
+            try:
+                self.output_dir.mkdir(parents=True, exist_ok=True)
+                lock_path = self.output_dir / f".{EVENT_LOG_FILENAME}.lock"
+                line = json.dumps(record, ensure_ascii=False, separators=(",", ":"))
+                with _FileLock(lock_path):
+                    with self.event_log_path.open("a", encoding="utf-8") as handle:
+                        handle.write(line + "\n")
+            except OSError as exc:
+                logger.debug(
+                    "Failed to append pipeline event: %s",
+                    SecurityValidator.sanitize_log_message(str(exc)),
+                )
+            finally:
+                self.queue.task_done()
 
     def _sanitize_message(self, message: Any) -> str:
         safe = SecurityValidator.sanitize_log_message(str(message))
@@ -49,18 +83,7 @@ class EventStream:
     def _append_event_record(self, record: Dict[str, str]) -> None:
         if not self.persist:
             return
-        try:
-            self.output_dir.mkdir(parents=True, exist_ok=True)
-            lock_path = self.output_dir / f".{EVENT_LOG_FILENAME}.lock"
-            line = json.dumps(record, ensure_ascii=False, separators=(",", ":"))
-            with _FileLock(lock_path):
-                with self.event_log_path.open("a", encoding="utf-8") as handle:
-                    handle.write(line + "\n")
-        except OSError as exc:
-            logger.debug(
-                "Failed to append pipeline event: %s",
-                SecurityValidator.sanitize_log_message(str(exc)),
-            )
+        self.queue.put(record)
 
     def emit(self, event_type: str, message: Any) -> None:
         """
@@ -83,3 +106,10 @@ class EventStream:
         Asynchronously close the event stream and flush any buffered events.
         """
         self.emit("stream_close", "Event stream closing.")
+        if self.persist and self._writer_thread:
+            self.queue.put(self._shutdown_sentinel)
+            try:
+                loop = asyncio.get_running_loop()
+                await loop.run_in_executor(None, self._writer_thread.join)
+            except RuntimeError:
+                self._writer_thread.join()
