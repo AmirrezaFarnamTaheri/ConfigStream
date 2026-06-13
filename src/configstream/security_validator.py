@@ -28,7 +28,7 @@ _LOG_INLINE_SECRET_USERINFO_RE = re.compile(
     r"(?i)\b(pass|password|token|secret|auth):([^@\s]+)@"
 )
 _LOG_QUERY_SECRET_RE = re.compile(
-    r"(?i)(token|access_token|api_key|apikey|license_key|key|secret|pass|password|uuid|id|auth|authorization)=([^&\s]+)"
+    r"(?i)(token|access_token|api_key|apikey|license_key|stego_key|config_stream_key|key|secret|pass|password|uuid|id|auth|authorization)=([^&\s]+)"
 )
 _LOG_AUTH_HEADER_RE = re.compile(
     r"(?i)(authorization|auth)\s*[:=]\s*(bearer|basic)?\s*([A-Za-z0-9\-._~+/]+=*)"

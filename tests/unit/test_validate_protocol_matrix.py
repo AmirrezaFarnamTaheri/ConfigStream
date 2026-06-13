@@ -88,3 +88,8 @@ def test_validate_protocol_matrix_rejects_unknown_parser(
     errors = validate_protocol_matrix.validate_protocol_matrix(tmp_path / "matrix.json")
 
     assert any("unknown parser export: parse_missing" in error for error in errors)
+
+
+def test_generated_protocol_docs_are_current() -> None:
+    from scripts.generate_protocol_docs import generate
+    assert generate(check=True) == []
