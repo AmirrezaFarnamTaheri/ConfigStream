@@ -305,6 +305,22 @@
                          <canvas id="evasionTrendChart"></canvas>
                     </div>
                 </div>
+
+                <!-- Source-Health Observability Dashboard -->
+                <div class="chart-container" style="grid-column: 1 / -1;">
+                    <h3>Source-Health & Event Observability</h3>
+                    <div class="source-health-wrapper" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; min-height: 300px; width: 100%;">
+                        <div style="position: relative; min-height: 300px; flex: 1;">
+                            <canvas id="sourceHealthChart"></canvas>
+                        </div>
+                        <div id="eventLogContainer" style="overflow-y: auto; max-height: 320px; padding: 1rem; background: rgba(0,0,0,0.05); border-radius: 12px; border: 1px solid var(--border-color); flex: 1;">
+                            <h4 style="margin-top: 0; margin-bottom: 1rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">Recent Pipeline Events</h4>
+                            <ul id="eventLogList" style="list-style: none; padding: 0; margin: 0; font-family: monospace; font-size: 0.85rem; line-height: 1.5; color: var(--text-secondary);">
+                                <li>Loading pipeline events stream...</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </main>

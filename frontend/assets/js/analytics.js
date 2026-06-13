@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             updateStats(stats);
             initCharts(stats, evasionTrend);
             initGlobe(stats);
+            initSourceHealthDashboard();
         } else {
             logger.warn("No analytics data available");
             // Show empty state when no data is available from the API
@@ -1132,4 +1133,146 @@ function getScoreColor(score) {
     if (score > 0.8) return '#00ff00';
     if (score > 0.5) return '#ffff00';
     return '#ff0000';
+}
+
+async function initSourceHealthDashboard() {
+    const root = window.ROOT_PATH || '';
+    const listEl = document.getElementById('eventLogList');
+    const chartEl = document.getElementById('sourceHealthChart');
+    if (!listEl) return;
+
+    try {
+        const response = await fetch(root + 'pipeline_events.jsonl?cb=' + Date.now());
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status} fetching events`);
+        }
+        const text = await response.text();
+        const lines = text.split('\n');
+        const events = [];
+        const typeCounts = {};
+
+        for (const line of lines) {
+            if (!line.trim()) continue;
+            try {
+                const ev = JSON.parse(line);
+                if (ev && ev.event_type) {
+                    events.push(ev);
+                    typeCounts[ev.event_type] = (typeCounts[ev.event_type] || 0) + 1;
+                }
+            } catch (err) {
+                // Ignore malformed lines
+            }
+        }
+
+        if (events.length === 0) {
+            listEl.replaceChildren();
+            const li = document.createElement('li');
+            li.textContent = 'No pipeline events recorded.';
+            listEl.appendChild(li);
+            return;
+        }
+
+        // 1. Populate Event Log List (latest first)
+        listEl.replaceChildren();
+        const displayEvents = events.slice(-30).reverse();
+        for (const ev of displayEvents) {
+            const li = document.createElement('li');
+            li.style.marginBottom = '0.5rem';
+            li.style.borderBottom = '1px dashed rgba(0,0,0,0.05)';
+            li.style.paddingBottom = '0.3rem';
+
+            const timeSpan = document.createElement('span');
+            timeSpan.style.color = 'var(--text-muted, #999)';
+            timeSpan.style.marginRight = '0.5rem';
+            try {
+                timeSpan.textContent = new Date(ev.timestamp).toLocaleTimeString();
+            } catch (e) {
+                timeSpan.textContent = ev.timestamp;
+            }
+
+            const typeSpan = document.createElement('span');
+            typeSpan.style.fontWeight = 'bold';
+            typeSpan.style.padding = '1px 6px';
+            typeSpan.style.borderRadius = '4px';
+            typeSpan.style.marginRight = '0.5rem';
+            typeSpan.style.fontSize = '0.75rem';
+            typeSpan.style.textTransform = 'uppercase';
+
+            // Styling based on event type
+            if (ev.event_type === 'error' || ev.event_type === 'critical') {
+                typeSpan.style.background = 'rgba(231, 76, 60, 0.1)';
+                typeSpan.style.color = '#e74c3c';
+            } else if (ev.event_type === 'warning') {
+                typeSpan.style.background = 'rgba(241, 196, 15, 0.1)';
+                typeSpan.style.color = '#f1c40f';
+            } else if (ev.event_type === 'fetch_success' || ev.event_type === 'test_success') {
+                typeSpan.style.background = 'rgba(46, 204, 113, 0.1)';
+                typeSpan.style.color = '#2ecc71';
+            } else {
+                typeSpan.style.background = 'rgba(52, 152, 219, 0.1)';
+                typeSpan.style.color = '#3498db';
+            }
+            typeSpan.textContent = ev.event_type;
+
+            const msgSpan = document.createElement('span');
+            msgSpan.textContent = ev.message;
+            msgSpan.style.color = 'var(--text-primary)';
+
+            li.appendChild(timeSpan);
+            li.appendChild(typeSpan);
+            li.appendChild(msgSpan);
+            listEl.appendChild(li);
+        }
+
+        // 2. Render Source Health Chart (Chart.js)
+        if (chartEl && window.Chart) {
+            const ctx = chartEl.getContext('2d');
+            const labels = Object.keys(typeCounts);
+            const dataValues = Object.values(typeCounts);
+            const backgroundColors = labels.map(label => {
+                if (label === 'error' || label === 'critical') return '#e74c3c';
+                if (label === 'warning') return '#f1c40f';
+                if (label === 'fetch_success' || label === 'test_success') return '#2ecc71';
+                return '#3498db';
+            });
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels.map(l => l.replace('_', ' ').toUpperCase()),
+                    datasets: [{
+                        label: 'Event Count',
+                        data: dataValues,
+                        backgroundColor: backgroundColors,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: 'Pipeline Telemetry Event Frequency'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { precision: 0 }
+                        }
+                    }
+                }
+            });
+        }
+
+    } catch (err) {
+        logger.error("Failed to load source health observability data:", err);
+        listEl.replaceChildren();
+        const li = document.createElement('li');
+        li.textContent = 'Observability metrics temporarily unavailable.';
+        li.style.color = 'var(--danger-color)';
+        listEl.appendChild(li);
+    }
 }
