@@ -162,6 +162,20 @@
 - Defense in depth
 - **DNS Rebinding Protection**: Pre-connect resolution and IP pinning during fetching
 
+### Vwarp Dependency Threat Model
+
+ConfigStream uses the `vwarp` binary (enhanced Cloudflare WARP client) to revive failed proxies by wrapping them in WARP/Vwarp outbound chains. Because the binary comes from an anonymous release (`voidr3aper-anon`) and terminates user proxy traffic, it represents a high-value supply-chain surface.
+
+**Assumed Risks**:
+- Malicious modifications or backdoors in the anonymous binary.
+- Potential compromise of host system or interception/decryption of proxy traffic routed through the vwarp tunnel.
+
+**Mitigations & Defense-in-Depth**:
+- **Immutability Pinned**: The `Dockerfile` pins `vwarp` downloads to explicit release versions and SHA-256 hashes per architecture (`amd64`/`arm64`). Every build validates these checksums.
+- **Strict Sandbox Execution**: The container runtime runs under a non-root `runner` user (UID 1000). The `vwarp` binary does not run with elevated permissions.
+- **Opt-in Artifact Tagging**: Revived configs wrapped in `vwarp` are explicitly tagged as `VWARP-REVIVE-*`. Operator clients can filter out or reject these proxies if they do not trust the third-party binary.
+- **No Active Scanning by Default**: Scheduled CI runs do not perform active scanning of external WARP endpoints (`ALLOW_ACTIVE_SCANNING=false`).
+
 ## Security Configuration
 
 ### Required Environment Variables
