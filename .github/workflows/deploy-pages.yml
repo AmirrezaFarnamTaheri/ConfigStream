@@ -26,7 +26,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@v6
         with:
           ref: main
           fetch-depth: 1
@@ -106,7 +106,7 @@ jobs:
 
       - name: Setup Python
         if: env.HAS_OUTPUT == 'true'
-        uses: actions/setup-python@f67e24a430187b32086e1643ad3e03d6861f5b15 # v5.3.0
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
@@ -146,6 +146,9 @@ jobs:
 
           # Exclude test_cache.json from deploy (audit: ~18 MB, not needed for static site)
           rm -f output/data/test_cache.json
+          if [ ! -s output/pipeline_events.jsonl ]; then
+            printf '{"timestamp":"%s","stage":"artifact_prepare","level":"info","message":"pipeline event telemetry initialized during Pages artifact preparation"}\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > output/pipeline_events.jsonl
+          fi
 
           # Update cache version
           ts=$(date +%Y%m%d%H%M%S)
@@ -175,7 +178,7 @@ jobs:
 
       - name: Upload pages artifact
         if: env.HAS_OUTPUT == 'true'
-        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda9c69ecc6b # v3.0.1
+        uses: actions/upload-pages-artifact@v5
         with:
           path: output
           retention-days: 30
@@ -183,7 +186,7 @@ jobs:
       - name: Deploy to GitHub Pages
         if: env.HAS_OUTPUT == 'true'
         id: deployment
-        uses: actions/deploy-pages@d6db90164db5ed868d4d441e8835172955749614 # v4.0.5
+        uses: actions/deploy-pages@v5
         timeout-minutes: 10
 
       - name: Verify deployment
@@ -223,7 +226,7 @@ jobs:
 
       - name: Upload Evidence Bundle
         if: env.HAS_OUTPUT == 'true'
-        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        uses: actions/upload-artifact@v7
         with:
           name: deploy-evidence-${{ github.run_id }}
           path: evidence/
@@ -235,3 +238,4 @@ jobs:
           # Add cache-busting hint for browsers
           echo "NOTE: If you don't see updates immediately, clear your browser cache or use Ctrl+F5"
           echo "The deployment URL includes a cache version timestamp to force refreshes"
+

@@ -17,6 +17,16 @@ CONCURRENCY_REQUIRED = {
     "deploy-pages.yml",
     "deploy_mirror.yml",
 }
+UNRESOLVABLE_ACTION_REFS = {
+    "actions/cache@0c907a75c2df011682e883a1779590213020689b",
+    "actions/deploy-pages@d6db90164db5ed868d4d441e8835172955749614",
+    "actions/setup-go@f111f3307d8850f5010000d3170f7d54b8f037b5",
+    "actions/setup-python@f67e24a430187b32086e1643ad3e03d6861f5b15",
+    "actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda9c69ecc6b",
+    "docker/build-push-action@471d19853a5250da73d4d382db29e5b02da898a3",
+    "docker/setup-buildx-action@b167a82b8f5039d57a2e041d08e59653a1a9e710",
+    "gitleaks/gitleaks-action@f0ab97193b0400b14c330f2fb1640520608fa20e",
+}
 
 
 def _trigger_block(data: dict[Any, Any]) -> Any:
@@ -153,9 +163,32 @@ def _main_prepares_public_output_artifact(path: Path) -> bool:
         and "mkdir -p output/tools output/api" in content
         and "cp output/proxies.json output/api/proxies" in content
         and "cp output/metadata.json output/api/stats" in content
+        and "output/pipeline_events.jsonl" in content
+        and "artifact_prepare" in content
         and "python scripts/validate_pages_artifact.py --refresh-contract output"
         in content
     )
+
+
+def _deploy_pages_prepares_pipeline_events(path: Path) -> bool:
+    try:
+        content = path.read_text(encoding="utf-8")
+    except OSError:
+        return False
+    return (
+        "output/pipeline_events.jsonl" in content
+        and "artifact_prepare" in content
+        and "python scripts/validate_pages_artifact.py --refresh-contract output"
+        in content
+    )
+
+
+def _find_unresolvable_action_refs(path: Path) -> list[str]:
+    try:
+        content = path.read_text(encoding="utf-8")
+    except OSError:
+        return []
+    return sorted(ref for ref in UNRESOLVABLE_ACTION_REFS if ref in content)
 
 
 def _deploy_pages_has_frontend_placeholder_guard(path: Path) -> bool:
@@ -342,6 +375,8 @@ def main() -> int:
             )
         if path.name in CONCURRENCY_REQUIRED and "concurrency" not in data:
             errors.append(f"{path}: missing top-level concurrency policy")
+        for action_ref in _find_unresolvable_action_refs(path):
+            errors.append(f"{path}: unresolvable action reference: {action_ref}")
         if (
             path.name == "deploy-pages.yml"
             and not _deploy_pages_has_frontend_placeholder_guard(path)
@@ -358,6 +393,13 @@ def main() -> int:
             )
         if path.name == "deploy-pages.yml" and not _deploy_pages_has_public_smoke(path):
             errors.append(f"{path}: missing deployed Pages URL smoke")
+        if (
+            path.name == "deploy-pages.yml"
+            and not _deploy_pages_prepares_pipeline_events(path)
+        ):
+            errors.append(
+                f"{path}: Pages artifact preparation must initialize pipeline_events.jsonl"
+            )
         if path.name == "ci.yml" and not _ci_has_required_frontend_browser_profile(
             path
         ):
