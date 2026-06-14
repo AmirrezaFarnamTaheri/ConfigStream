@@ -468,6 +468,7 @@ jobs:
           python scripts/validate_frontend_placeholders.py --inject-env output
           cp output/proxies.json output/api/proxies
           cp output/metadata.json output/api/stats
+          echo '{"stage":"artifact_prepare"}' > output/pipeline_events.jsonl
           python scripts/validate_pages_artifact.py --refresh-contract output
       - name: Validate data release output contract
         run: |
@@ -514,6 +515,29 @@ jobs:
             --native-client-check \
             --native-report-file pipeline-evidence/native_client_check_report.json \
             output
+""".lstrip(),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(validate_workflows, "WORKFLOW_DIR", workflow_dir)
+
+    assert validate_workflows.main() == 1
+
+
+def test_validate_workflows_rejects_known_unresolvable_action_refs(
+    tmp_path: Path, monkeypatch
+) -> None:
+    workflow_dir = tmp_path / ".github" / "workflows"
+    workflow_dir.mkdir(parents=True)
+    (workflow_dir / "ci.yml").write_text(
+        """
+name: CI
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@f67e24a430187b32086e1643ad3e03d6861f5b15
 """.lstrip(),
         encoding="utf-8",
     )
@@ -621,6 +645,7 @@ jobs:
           python scripts/validate_frontend_placeholders.py --inject-env output
           cp output/proxies.json output/api/proxies
           cp output/metadata.json output/api/stats
+          echo '{"stage":"artifact_prepare"}' > output/pipeline_events.jsonl
           python scripts/validate_pages_artifact.py --refresh-contract output
       - name: Validate data release output contract
         run: |
@@ -680,6 +705,7 @@ jobs:
           python scripts/validate_frontend_placeholders.py --inject-env output
           cp output/proxies.json output/api/proxies
           cp output/metadata.json output/api/stats
+          echo '{"stage":"artifact_prepare"}' > output/pipeline_events.jsonl
           python scripts/validate_pages_artifact.py --refresh-contract output
       - name: Validate data release output contract
         run: |
