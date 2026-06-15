@@ -416,7 +416,7 @@ jobs:
           touch output/.nojekyll
           rm -f output/data/test_cache.json
           if [ ! -s output/pipeline_events.jsonl ]; then
-            printf '{"timestamp":"%s","stage":"artifact_prepare","level":"info","message":"pipeline event telemetry initialized during public artifact preparation"}\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > output/pipeline_events.jsonl
+            printf '{"timestamp":"%s","stage":"artifact_prepare","level":"info","event_type":"artifact_prepare","message":"pipeline event telemetry initialized during public artifact preparation"}\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > output/pipeline_events.jsonl
           fi
 
           python scripts/validate_pages_artifact.py --refresh-contract output

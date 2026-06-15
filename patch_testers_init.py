@@ -1,8 +1,10 @@
-# SPDX-License-Identifier: AGPL-3.0-or-later
-"""
+import sys
+
+content = """# SPDX-License-Identifier: AGPL-3.0-or-later
+\"\"\"
 Tester package.
 Exposes testers via lazy imports to avoid heavy startup costs.
-"""
+\"\"\"
 
 from typing import TYPE_CHECKING
 
@@ -36,3 +38,7 @@ def __getattr__(name: str):
 
         return _lab_chain_tester
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+"""
+
+with open("src/configstream/testers/__init__.py", "w") as f:
+    f.write(content)
