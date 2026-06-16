@@ -1,4 +1,4 @@
-import sys
+from pathlib import Path
 
 content = """# SPDX-License-Identifier: AGPL-3.0-or-later
 \"\"\"
@@ -40,5 +40,5 @@ def __getattr__(name: str):
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 """
 
-with open("src/configstream/testers/__init__.py", "w") as f:
-    f.write(content)
+target = Path(__file__).resolve().parent / "src" / "configstream" / "testers" / "__init__.py"
+target.write_text(content, encoding="utf-8")
