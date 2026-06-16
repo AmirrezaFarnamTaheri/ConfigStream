@@ -81,6 +81,7 @@ async def test_pipeline_auto_scaling(tmp_path):
 async def test_pipeline_time_limit_zero_working(tmp_path):
     import asyncio
     from configstream.pipeline import run_full_pipeline
+    import configstream.pipeline.core
 
     with (
         patch("configstream.pipeline.source_producer", new_callable=AsyncMock),
