@@ -207,6 +207,10 @@ def enrich_outbound_with_evasion(
     tls_fingerprint: Optional[str] = None,
     alpn_list: Optional[List[str]] = None,
     fragment_preset: str = "medium",
+    enable_tfo: bool = False,
+    enable_mptcp: bool = False,
+    enable_padding: bool = False,
+    ech_config: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Enrich an outbound config with evasion features.
@@ -221,6 +225,10 @@ def enrich_outbound_with_evasion(
         tls_fingerprint: Specific fingerprint to use (optional)
         alpn_list: Specific ALPN list to use (optional)
         fragment_preset: Specific fragmentation preset to use (optional, defaults to "medium")
+        enable_tfo: Enable TCP Fast Open (optional, defaults to False)
+        enable_mptcp: Enable Multipath TCP (optional, defaults to False)
+        enable_padding: Enable TLS padding (optional, defaults to False)
+        ech_config: Encrypted Client Hello config string (optional)
 
     Returns:
         Enriched outbound config
@@ -243,6 +251,16 @@ def enrich_outbound_with_evasion(
             if alpn_protocols:
                 outbound["tls"]["alpn"] = alpn_protocols
 
+    # Apply TLS padding
+    if enable_padding and protocol in ["vmess", "vless", "trojan", "hysteria2", "tuic"]:
+        if "tls" in outbound and isinstance(outbound["tls"], dict):
+            outbound["tls"]["padding"] = True
+
+    # Apply ECH (Encrypted Client Hello)
+    if ech_config and protocol in ["vmess", "vless", "trojan", "hysteria2", "tuic"]:
+        if "tls" in outbound and isinstance(outbound["tls"], dict):
+            outbound["tls"]["ech"] = {"enabled": True, "config": ech_config}
+
     # Apply TLS fragmentation
     if enable_fragmentation and protocol in ["vmess", "vless", "trojan"]:
         # Do not fragment XTLS-Vision or Reality
@@ -262,6 +280,26 @@ def enrich_outbound_with_evasion(
                     dial = {}
                 dial["fragment"] = {"enabled": True, **frag_cfg}
                 outbound["dial"] = dial
+
+    # Apply TCP Fast Open and Multipath TCP
+    if (enable_tfo or enable_mptcp) and protocol in [
+        "vmess",
+        "vless",
+        "trojan",
+        "shadowsocks",
+        "socks",
+        "http",
+        "hysteria2",
+        "tuic",
+    ]:
+        dial = outbound.get("dial", {})
+        if not isinstance(dial, dict):
+            dial = {}
+        if enable_tfo:
+            dial["tcp_fast_open"] = True
+        if enable_mptcp:
+            dial["tcp_multi_path"] = True
+        outbound["dial"] = dial
 
     # Apply multiplexing with padding
     if enable_multiplexing:

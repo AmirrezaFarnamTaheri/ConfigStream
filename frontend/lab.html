@@ -894,8 +894,21 @@
 
                 <!-- Advanced Evasion Options (collapsible) -->
                 <details style="margin-top:1.5rem;">
-                    <summary style="cursor:pointer;font-weight:600;color:var(--text-primary);font-size:0.95rem;">Advanced Evasion Options</summary>
+                    <summary style="cursor:pointer;font-weight:600;color:var(--text-primary);font-size:0.95rem;">Advanced Evasion Options & Presets</summary>
                     <div style="padding:1rem 0 0;">
+                        <div class="lab-form-group" style="margin-bottom: 1.25rem;">
+                            <label for="evasionPreset" style="font-weight: 600; color: var(--brand-primary); display: flex; align-items: center; gap: 0.5rem;">
+                                <span>⚡ Evasion Strategy Preset</span>
+                            </label>
+                            <select class="lab-select" id="evasionPreset" style="border: 1px solid var(--brand-primary); background: rgba(147, 141, 255, 0.05);">
+                                <option value="custom">Custom (Manual Configuration)</option>
+                                <option value="default">Default Bypass (uTLS Chrome only)</option>
+                                <option value="hardened">Hardened Firewall (Maximum Obfuscation)</option>
+                                <option value="latency">Minimal Latency (TFO + Multiplexing)</option>
+                                <option value="strict">Strict SNI Obfuscation (uTLS + ALPN + ECH)</option>
+                            </select>
+                            <div class="hint">Selecting a preset will automatically configure the advanced parameters below.</div>
+                        </div>
                         <div class="lab-row">
                             <div class="lab-form-group">
                                 <label for="tlsFingerprint">TLS Fingerprint (uTLS)</label>
@@ -937,6 +950,35 @@
                                     <option value="true">Enabled</option>
                                     <option value="false">Disabled</option>
                                 </select>
+                            </div>
+                        </div>
+                        <div class="lab-row">
+                            <div class="lab-form-group">
+                                <label for="tcpFastOpen">TCP Fast Open (TFO)</label>
+                                <select class="lab-select" id="tcpFastOpen">
+                                    <option value="false">Disabled</option>
+                                    <option value="true">Enabled</option>
+                                </select>
+                            </div>
+                            <div class="lab-form-group">
+                                <label for="mptcp">Multipath TCP (MPTCP)</label>
+                                <select class="lab-select" id="mptcp">
+                                    <option value="false">Disabled</option>
+                                    <option value="true">Enabled</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="lab-row">
+                            <div class="lab-form-group">
+                                <label for="tlsPadding">TLS Padding</label>
+                                <select class="lab-select" id="tlsPadding">
+                                    <option value="false">Disabled</option>
+                                    <option value="true">Enabled</option>
+                                </select>
+                            </div>
+                            <div class="lab-form-group">
+                                <label for="echConfig">Encrypted Client Hello (ECH) Config</label>
+                                <input type="text" class="lab-input" id="echConfig" placeholder="Base64 ECH public key (optional)">
                             </div>
                         </div>
                     </div>

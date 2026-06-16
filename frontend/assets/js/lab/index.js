@@ -216,8 +216,77 @@ function getEvasionOptions() {
         fingerprint: ($('#tlsFingerprint') || {}).value || '',
         alpn: ($('#alpnProtocol') || {}).value || '',
         mux: ($('#muxProtocol') || {}).value || '',
-        muxPadding: ($('#muxPadding') || {}).value === 'true'
+        muxPadding: ($('#muxPadding') || {}).value === 'true',
+        tfo: ($('#tcpFastOpen') || {}).value === 'true',
+        mptcp: ($('#mptcp') || {}).value === 'true',
+        tlsPadding: ($('#tlsPadding') || {}).value === 'true',
+        ech: (($('#echConfig') || {}).value || '').trim()
     };
+}
+
+function handleEvasionPresetChange() {
+    const preset = ($('#evasionPreset') || {}).value || 'custom';
+    if (preset === 'custom') return;
+
+    const fp = $('#tlsFingerprint');
+    const alpn = $('#alpnProtocol');
+    const mux = $('#muxProtocol');
+    const muxPad = $('#muxPadding');
+    const tfo = $('#tcpFastOpen');
+    const mptcp = $('#mptcp');
+    const padding = $('#tlsPadding');
+    const ech = $('#echConfig');
+
+    if (preset === 'default') {
+        if (fp) fp.value = 'chrome';
+        if (alpn) alpn.value = '';
+        if (mux) mux.value = '';
+        if (muxPad) muxPad.value = 'false';
+        if (tfo) tfo.value = 'false';
+        if (mptcp) mptcp.value = 'false';
+        if (padding) padding.value = 'false';
+        if (ech) ech.value = '';
+    } else if (preset === 'hardened') {
+        if (fp) fp.value = 'randomized';
+        if (alpn) alpn.value = 'h2,http/1.1';
+        if (mux) mux.value = 'h2mux';
+        if (muxPad) muxPad.value = 'true';
+        if (tfo) tfo.value = 'true';
+        if (mptcp) mptcp.value = 'true';
+        if (padding) padding.value = 'true';
+        if (ech) ech.value = '';
+    } else if (preset === 'latency') {
+        if (fp) fp.value = 'chrome';
+        if (alpn) alpn.value = 'h2';
+        if (mux) mux.value = 'yamux';
+        if (muxPad) muxPad.value = 'true';
+        if (tfo) tfo.value = 'true';
+        if (mptcp) mptcp.value = 'true';
+        if (padding) padding.value = 'false';
+        if (ech) ech.value = '';
+    } else if (preset === 'strict') {
+        if (fp) fp.value = 'random';
+        if (alpn) alpn.value = 'h2';
+        if (mux) mux.value = '';
+        if (muxPad) muxPad.value = 'false';
+        if (tfo) tfo.value = 'true';
+        if (mptcp) mptcp.value = 'false';
+        if (padding) padding.value = 'true';
+        if (ech) ech.value = 'QH46SgAhBgAQA2VjaC1wYXRjaC1zYW1wbGUAAAEAAQABAQAA';
+    }
+}
+
+function setupPresetResetListeners() {
+    const selectors = [
+        '#tlsFingerprint', '#alpnProtocol', '#muxProtocol', 
+        '#muxPadding', '#tcpFastOpen', '#mptcp', '#tlsPadding', '#echConfig'
+    ];
+    selectors.forEach(sel => {
+        $(sel)?.addEventListener('change', () => {
+            const preset = $('#evasionPreset');
+            if (preset) preset.value = 'custom';
+        });
+    });
 }
 
 function collectRelayLayers() {
@@ -659,6 +728,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     $('#step5Download')?.addEventListener('click', handleStep5Download);
     setupCopyButton('copyChainConfig', 'chainConfigCode');
     setupCopyButton('copyExport', 'exportCode');
+    
+    // Evasion Presets Setup
+    $('#evasionPreset')?.addEventListener('change', handleEvasionPresetChange);
+    setupPresetResetListeners();
     
     // Relay layer pipeline picker
     document.querySelectorAll('.relay-pipeline-btn').forEach(btn => {

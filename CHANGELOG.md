@@ -1,6 +1,13 @@
 
 ## [Unreleased]
 
+- **Bypass Evasion Hardening, ECH support, and Laboratory Presets GUI**:
+  - Implemented new censorship evasion capabilities in the intelligence layer (`src/configstream/intelligence/evasion.py`), adding support for TCP Fast Open (TFO), Multipath TCP (MPTCP), TLS Padding, and Encrypted Client Hello (ECH) configurations.
+  - Updated configuration generators (`src/configstream/generators/split.py`) to automatically apply TFO, Multipath TCP, and TLS padding to outbounds when running in aggressive/stealth evasion modes.
+  - Added new test cases covering TFO, Multipath TCP, TLS Padding, and ECH in the evasion unit tests (`tests/unit/test_evasion.py`).
+  - Redesigned the Laboratory interface (`frontend/lab.html` and `frontend/assets/js/lab/`) to expose a new "Evasion Strategy Presets" dropdown, enabling instant one-click configuration loading (Default Bypass, Hardened Firewall, Minimal Latency, Strict SNI Obfuscation) and exposing manual inputs/dropdowns for TCP Fast Open, Multipath TCP, TLS Padding, and ECH.
+  - Updated `builder.js` and `index.js` to process and serialize the new evasion options to Sing-box client configs, with automatic preset sync and custom manual overrides.
+
 - **Consumer decomposition, sing-box schema validation, and security transport hardening**:
   - Decomposed the monolithic `processing_consumer` function in `src/configstream/pipeline/consumer.py` into five specialized helper functions (`_deduplicate_batch`, `_validate_and_warm_cache`, `_test_candidates`, `_revive_failed_proxies`, `_enrich_geoip_and_filter`) to reduce cyclomatic complexity and improve modular testability.
   - Created a formal JSON schema for generated sing-box outbounds in `schema/singbox_outbound.schema.json` and added automated conformance tests in `tests/unit/converters/test_singbox_converters.py` to validate outbound configuration structure for VLESS, VMess, Trojan, Shadowsocks, Hysteria2, Tuic, and WireGuard.

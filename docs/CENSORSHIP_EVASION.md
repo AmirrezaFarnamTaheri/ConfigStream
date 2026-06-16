@@ -148,13 +148,44 @@ ConfigStream rotates ALPN values deterministically per proxy: `h2`, `http/1.1`, 
 
 ---
 
-## 4. Traffic Obfuscation
+## 4. Traffic Obfuscation & Hardening
 
-### TLS Fragmentation ("DPI Shredder") — Disabled
+### TCP Fast Open (TFO)
 
-Sing-box removed `tls_fragment` from its schema. ConfigStream no longer applies TLS fragmentation.
+Reduces connection handshake latency by sending data payload in the initial TCP SYN packet. This eliminates one round-trip time (RTT) during connection establishment and bypasses simple SYN-packet content scanners.
 
-**Previously**: The ClientHello was split into fragments so stateless DPI could not read the SNI. For fragmentation-based evasion, use vwarp's AtomicNoize presets (`light`, `moderate`, `heavy`, `gfw`) or other tools that support packet fragmentation.
+- **Benefit**: Faster connections and evasion of stateful handshake blockers.
+- **Applied to**: VMess, VLESS, Trojan, Shadowsocks, HTTP, SOCKS5, Hysteria2, TUIC.
+
+### Multipath TCP (MPTCP)
+
+Enables a single TCP connection to split traffic across multiple network interfaces (e.g., Wi-Fi and mobile cellular data simultaneously). 
+
+- **Benefit**: Ensures uninterrupted connectivity if one path is blocked or degraded, and spreads packet patterns across distinct routes to confuse DPI observers.
+- **Applied to**: VMess, VLESS, Trojan, Shadowsocks, HTTP, SOCKS5, Hysteria2, TUIC.
+
+### TLS Padding
+
+Appends random padding lengths to the TLS ClientHello handshake packet. Many DPI classifiers target the characteristic length signature of proxy handshakes.
+
+- **Benefit**: Obfuscates the packet size footprint of the initial handshake to look like arbitrary HTTPS traffic.
+- **Applied to**: VMess, VLESS, Trojan, Hysteria2, TUIC.
+
+### Encrypted Client Hello (ECH)
+
+Encrypts the sensitive parameters of the TLS ClientHello (most importantly the Server Name Indication, or SNI) using a public key published by the destination server.
+
+- **Benefit**: Prevents intermediate network censors from reading the target server name during connection negotiation, rendering SNI blocklists ineffective.
+- **Applied to**: VMess, VLESS, Trojan, Hysteria2, TUIC.
+
+### Evasion Strategy Presets
+
+To simplify client-side setup, the Laboratory interface includes high-level strategy templates:
+
+- **Default Bypass**: Applies standard browser mimicry with uTLS Chrome fingerprint rotation.
+- **Hardened Firewall**: Configures maximum obfuscation, enabling uTLS fingerprint rotation, ALPN protocol rotation, multiplexing with random padding, TCP Fast Open, Multipath TCP, and TLS padding.
+- **Minimal Latency**: Prioritizes raw throughput and low latency by pairing TCP Fast Open, Multipath TCP, and Yamux multiplexing.
+- **Strict SNI Obfuscation**: Focuses on bypassing SNI-level blocklists using randomized uTLS fingerprints, strict HTTP/2 ALPN, TLS padding, and ECH.
 
 ### Multiplexing with Padding
 
