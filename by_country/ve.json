@@ -1,0 +1,44 @@
+[
+  {
+    "config": "ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpRQ1hEeHVEbFRUTUQ3anRnSFVqSW9q@45.158.171.146:8080#All-@V2rayAlpha--1",
+    "protocol": "shadowsocks",
+    "address": "45.158.171.146",
+    "port": 8080,
+    "latency": 283.89,
+    "country": "Venezuela",
+    "country_code": "VE",
+    "city": "Valencia",
+    "remarks": "All-@V2rayAlpha--1",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T05:36:54.576306+00:00"
+  },
+  {
+    "config": "ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpjdklJODVUclc2bjBPR3lmcEhWUzF1@45.158.171.146:8080#@awlix_ir",
+    "protocol": "shadowsocks",
+    "address": "45.158.171.146",
+    "port": 8080,
+    "latency": 523.16,
+    "country": "Venezuela",
+    "country_code": "VE",
+    "city": "Valencia",
+    "remarks": "@awlix_ir",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T05:39:22.944470+00:00"
+  },
+  {
+    "config": "ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpRQ1hEeHVEbFRUTUQ3anRnSFVqSW9q@45.158.171.146:8080#%F0%9F%87%B1%F0%9F%87%B9LT-45.158.171.146-0207",
+    "protocol": "shadowsocks",
+    "address": "45.158.171.146",
+    "port": 8080,
+    "latency": 267.16,
+    "country": "Venezuela",
+    "country_code": "VE",
+    "city": "Valencia",
+    "remarks": "\ud83c\uddf1\ud83c\uddf9LT-45.158.171.146-0207",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T05:49:21.151277+00:00"
+  }
+]

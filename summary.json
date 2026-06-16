@@ -1,0 +1,51 @@
+{
+  "version": "2.0.5",
+  "last_updated_utc": "2026-06-16T22:56:08.494077+00:00",
+  "total_proxies": 0,
+  "total_working": 0,
+  "total_fetched": 0,
+  "duration_seconds": 0.0,
+  "protocols": {},
+  "countries": {},
+  "country_stats": {},
+  "isp_stats": {},
+  "city_stats": {},
+  "latency_distribution": {
+    "fast": 0,
+    "medium": 0,
+    "slow": 0,
+    "very_slow": 0
+  },
+  "security_distribution": {
+    "reality": 0,
+    "tls": 0,
+    "none": 0,
+    "other": 0
+  },
+  "transport_distribution": {},
+  "working_by_protocol": {},
+  "quality_metrics": {
+    "success_rate": 0,
+    "avg_latency": 0
+  },
+  "protocol_colors": {
+    "vmess": "#FF6B6B",
+    "vless": "#4ECDC4",
+    "shadowsocks": "#45B7D1",
+    "ss": "#45B7D1",
+    "trojan": "#96CEB4",
+    "hysteria": "#FFEAA7",
+    "hysteria2": "#DFE6E9",
+    "hy2": "#DFE6E9",
+    "tuic": "#A29BFE",
+    "wireguard": "#74B9FF",
+    "wg": "#74B9FF",
+    "naive": "#FD79A8",
+    "http": "#FDCB6E",
+    "https": "#6C5CE7",
+    "socks": "#00B894",
+    "socks4": "#00B894",
+    "socks5": "#00B894",
+    "openvpn": "#E84393"
+  }
+}
