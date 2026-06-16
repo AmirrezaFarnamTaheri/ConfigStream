@@ -6,9 +6,9 @@ from configstream.pipeline_stats import PipelineResult
 
 @pytest.mark.asyncio
 async def test_run_full_pipeline_dry_run(tmp_path):
+    import configstream.pipeline.core  # Fix AttributeError on core missing
     # Import here to avoid stale module reference if other tests reload modules
     from configstream.pipeline import run_full_pipeline
-    import configstream.pipeline.core  # Fix AttributeError on core missing
 
     with (
         patch(
@@ -52,9 +52,9 @@ async def test_run_full_pipeline_dry_run(tmp_path):
 
 @pytest.mark.asyncio
 async def test_pipeline_auto_scaling(tmp_path):
+    import configstream.pipeline.core  # Fix AttributeError on core missing
     # Import here to avoid stale module reference if other tests reload modules
     from configstream.pipeline import run_full_pipeline
-    import configstream.pipeline.core  # Fix AttributeError on core missing
 
     with (
         patch("configstream.pipeline.source_producer", new_callable=AsyncMock),
@@ -82,8 +82,8 @@ async def test_pipeline_auto_scaling(tmp_path):
 @pytest.mark.asyncio
 async def test_pipeline_time_limit_zero_working(tmp_path):
     import asyncio
-    from configstream.pipeline import run_full_pipeline
     import configstream.pipeline.core  # Fix AttributeError on core missing
+    from configstream.pipeline import run_full_pipeline
 
     with (
         patch("configstream.pipeline.source_producer", new_callable=AsyncMock),
