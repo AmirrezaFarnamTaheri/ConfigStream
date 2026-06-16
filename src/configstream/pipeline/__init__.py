@@ -5,7 +5,7 @@ from .fetcher import HttpFetcher
 from .producer import StreamingProducer
 from .consumer import WorkerConsumer
 from .core import StandardPipeline, run_full_pipeline
-from . import core
+from . import core  # noqa: F401
 
 # Support legacy test patching on configstream.pipeline
 from configstream.testers import SingBoxTester
