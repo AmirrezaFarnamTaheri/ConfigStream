@@ -34,11 +34,13 @@ def __getattr__(name: str):
 
         return _SecureConfigContext
     if name == "lab_chain_tester":
-        from . import lab_chain_tester as _lab_chain_tester
+        import importlib
 
-        return _lab_chain_tester
+        return importlib.import_module(".lab_chain_tester", package=__name__)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 """
 
-target = Path(__file__).resolve().parent / "src" / "configstream" / "testers" / "__init__.py"
+target = (
+    Path(__file__).resolve().parent / "src" / "configstream" / "testers" / "__init__.py"
+)
 target.write_text(content, encoding="utf-8")
