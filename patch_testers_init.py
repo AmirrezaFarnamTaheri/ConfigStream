@@ -1,8 +1,10 @@
-# SPDX-License-Identifier: AGPL-3.0-or-later
-"""
+from pathlib import Path
+
+content = """# SPDX-License-Identifier: AGPL-3.0-or-later
+\"\"\"
 Tester package.
 Exposes testers via lazy imports to avoid heavy startup costs.
-"""
+\"\"\"
 
 from typing import TYPE_CHECKING
 
@@ -36,3 +38,9 @@ def __getattr__(name: str):
 
         return importlib.import_module(".lab_chain_tester", package=__name__)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+"""
+
+target = (
+    Path(__file__).resolve().parent / "src" / "configstream" / "testers" / "__init__.py"
+)
+target.write_text(content, encoding="utf-8")
