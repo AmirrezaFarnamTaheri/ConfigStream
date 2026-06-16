@@ -20,7 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          fetch-depth: 1
+          fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-python@v6
         with:
@@ -37,6 +37,8 @@ jobs:
         run: python scripts/validate_bandit_suppressions.py --require-active
       - name: Shift-left security scan (gitleaks)
         uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           config-path: .gitleaks.toml
       - name: Validate Versions
