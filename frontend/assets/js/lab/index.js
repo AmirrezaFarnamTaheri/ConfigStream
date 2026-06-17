@@ -278,7 +278,7 @@ function handleEvasionPresetChange() {
 
 function setupPresetResetListeners() {
     const selectors = [
-        '#tlsFingerprint', '#alpnProtocol', '#muxProtocol', 
+        '#tlsFingerprint', '#alpnProtocol', '#muxProtocol',
         '#muxPadding', '#tcpFastOpen', '#mptcp', '#tlsPadding', '#echConfig'
     ];
     selectors.forEach(sel => {
@@ -732,7 +732,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Evasion Presets Setup
     $('#evasionPreset')?.addEventListener('change', handleEvasionPresetChange);
     setupPresetResetListeners();
-    
+
     // Relay layer pipeline picker
     document.querySelectorAll('.relay-pipeline-btn').forEach(btn => {
         btn.addEventListener('click', async function () {

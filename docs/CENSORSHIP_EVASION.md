@@ -159,7 +159,8 @@ Reduces connection handshake latency by sending data payload in the initial TCP 
 
 ### Multipath TCP (MPTCP)
 
-Enables a single TCP connection to split traffic across multiple network interfaces (e.g., Wi-Fi and mobile cellular data simultaneously). 
+Enables a single TCP connection to split traffic across multiple network interfaces (e.g., Wi-Fi and mobile cellular data simultaneously).
+
 
 - **Benefit**: Ensures uninterrupted connectivity if one path is blocked or degraded, and spreads packet patterns across distinct routes to confuse DPI observers.
 - **Applied to**: VMess, VLESS, Trojan, Shadowsocks, HTTP, SOCKS5, Hysteria2, TUIC.
