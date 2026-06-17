@@ -176,6 +176,41 @@ class TestEnrichOutbound:
             "dial", {}
         )
 
+    def test_enrich_tfo_and_mptcp(self):
+        """Test enabling TCP Fast Open and Multipath TCP."""
+        outbound = {"type": "vmess"}
+        result = enrich_outbound_with_evasion(
+            outbound, "test_proxy", enable_tfo=True, enable_mptcp=True
+        )
+        assert "dial" in result
+        assert result["dial"]["tcp_fast_open"] is True
+        assert result["dial"]["tcp_multi_path"] is True
+
+    def test_enrich_padding(self):
+        """Test enabling TLS padding."""
+        outbound = {
+            "type": "vmess",
+            "tls": {"enabled": True},
+        }
+        result = enrich_outbound_with_evasion(
+            outbound, "test_proxy", enable_padding=True
+        )
+        assert "tls" in result
+        assert result["tls"]["padding"] is True
+
+    def test_enrich_ech(self):
+        """Test enabling ECH."""
+        outbound = {
+            "type": "vless",
+            "tls": {"enabled": True},
+        }
+        result = enrich_outbound_with_evasion(
+            outbound, "test_proxy", ech_config="test_ech_config"
+        )
+        assert "tls" in result
+        assert result["tls"]["ech"]["enabled"] is True
+        assert result["tls"]["ech"]["config"] == "test_ech_config"
+
 
 class TestSNIPreservation:
     def test_preserve_sni_with_hostname(self):

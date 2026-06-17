@@ -172,6 +172,9 @@ def generate_split_outputs(
                 enable_alpn=True,
                 enable_fragmentation=True,
                 enable_multiplexing=True,
+                enable_tfo=True,
+                enable_mptcp=True,
+                enable_padding=True,
             )
         elif evasion_mode == "stealth":
             sb_proxy = enrich_outbound_with_evasion(
@@ -181,6 +184,9 @@ def generate_split_outputs(
                 enable_alpn=False,
                 enable_fragmentation=True,
                 enable_multiplexing=False,
+                enable_tfo=True,
+                enable_mptcp=False,
+                enable_padding=False,
             )
         else:  # standard - no evasion (compatibility mode)
             sb_proxy = enrich_outbound_with_evasion(
@@ -190,6 +196,9 @@ def generate_split_outputs(
                 enable_alpn=False,
                 enable_fragmentation=False,
                 enable_multiplexing=False,
+                enable_tfo=False,
+                enable_mptcp=False,
+                enable_padding=False,
             )
         # Mark evasion features based on actual mode, not unconditionally True
         if not p.details:
@@ -198,6 +207,9 @@ def generate_split_outputs(
         p.details["has_fragmentation"] = evasion_mode in ("aggressive", "stealth")
         p.details["has_multiplexing"] = evasion_mode == "aggressive"
         p.details["has_alpn_rotation"] = evasion_mode == "aggressive"
+        p.details["has_tfo"] = evasion_mode in ("aggressive", "stealth")
+        p.details["has_mptcp"] = evasion_mode == "aggressive"
+        p.details["has_padding"] = evasion_mode == "aggressive"
         if tag and tag in seen_tags:
             tag_suffix = 0
             while f"{tag}-{tag_suffix}" in seen_tags:

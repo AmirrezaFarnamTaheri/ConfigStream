@@ -29,9 +29,17 @@ export function applyEvasion(outbound, evasion) {
     if (outbound.tls && typeof outbound.tls === 'object') {
         if (evasion.fingerprint) outbound.tls.utls = { enabled: true, fingerprint: evasion.fingerprint };
         if (evasion.alpn) outbound.tls.alpn = evasion.alpn.split(',').map(s => s.trim());
+        if (evasion.tlsPadding) outbound.tls.padding = true;
+        if (evasion.ech) outbound.tls.ech = { enabled: true, config: evasion.ech };
     }
     if (evasion.mux) {
         outbound.multiplex = { enabled: true, protocol: evasion.mux, max_connections: 4, padding: evasion.muxPadding };
+    }
+    if (evasion.tfo || evasion.mptcp) {
+        const dial = outbound.dial || {};
+        if (evasion.tfo) dial.tcp_fast_open = true;
+        if (evasion.mptcp) dial.tcp_multi_path = true;
+        outbound.dial = dial;
     }
     return outbound;
 }
