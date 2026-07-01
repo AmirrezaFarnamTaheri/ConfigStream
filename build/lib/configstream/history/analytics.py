@@ -1,0 +1,123 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+"""
+Analytics module for Proxy History.
+Calculates stats, trends, and reliability scores.
+"""
+
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional
+
+
+def _parse_entry_timestamp(value: Any) -> Optional[datetime]:
+    """Parse an entry timestamp (ISO string or epoch) into an aware datetime."""
+    if value is None:
+        return None
+    try:
+        if isinstance(value, (int, float)):
+            return datetime.fromtimestamp(value, tz=timezone.utc)
+        # Normalize the "Z" UTC suffix: Python < 3.11 fromisoformat rejects it.
+        s = str(value)
+        if s.endswith("Z") or s.endswith("z"):
+            s = s[:-1] + "+00:00"
+        parsed = datetime.fromisoformat(s)
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        return parsed
+    except (ValueError, OverflowError, OSError):
+        return None
+
+
+class HistoryAnalytics:
+    """Calculates statistics and metrics from history data."""
+
+    @staticmethod
+    def get_reliability_score(
+        history: Optional[Dict[str, Any]], lookback_days: int = 7
+    ) -> float:
+        """
+        Calculate reliability score based on recent history.
+
+        Only entries within the ``lookback_days`` window are considered.
+        Entries without a parseable timestamp are included for backward
+        compatibility with legacy history records.
+        """
+        if not history or "entries" not in history or not history["entries"]:
+            return 0.5  # Neutral for unknown
+
+        entries = history["entries"]
+        if lookback_days > 0:
+            cutoff = datetime.now(timezone.utc) - timedelta(days=lookback_days)
+            recent = []
+            for e in entries:
+                ts = _parse_entry_timestamp(e.get("timestamp"))
+                if ts is None or ts >= cutoff:
+                    recent.append(e)
+            entries = recent
+
+        if not entries:
+            return 0.5  # Neutral when no recent data
+
+        working_count = sum(1 for e in entries if e["is_working"])
+        return working_count / len(entries)
+
+    @staticmethod
+    def get_trend_data(
+        history: Optional[Dict[str, Any]], points: int = 30
+    ) -> Dict[str, Any]:
+        """Get trend data for charting."""
+        if not history or "entries" not in history or not history["entries"]:
+            return {"timestamps": [], "latencies": [], "status": []}
+
+        entries = history["entries"][-points:]
+
+        return {
+            "timestamps": [e["timestamp"] for e in entries],
+            "latencies": [e["latency"] if e["latency"] else 0 for e in entries],
+            "status": [1 if e["is_working"] else 0 for e in entries],
+        }
+
+    @staticmethod
+    def get_history_points(history: Optional[Dict[str, Any]]) -> List[float]:
+        """
+        Get simplified history (last 10 data points).
+        Returns a list of latencies. None/Failures are 9999.
+        """
+        if not history or "entries" not in history:
+            return []
+
+        entries = history["entries"][-10:]
+        points = []
+        for e in entries:
+            if e["is_working"] and e["latency"] is not None:
+                points.append(float(e["latency"]))
+            else:
+                points.append(9999.0)
+        return points
+
+    @staticmethod
+    def get_summary_stats(history: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+        """Get summary statistics for a proxy."""
+        if not history or "entries" not in history or not history["entries"]:
+            return {
+                "total_tests": 0,
+                "success_rate": 0.0,
+                "avg_latency": 0,
+                "min_latency": 0,
+                "max_latency": 0,
+                "uptime_percentage": 0.0,
+            }
+
+        entries = history["entries"]
+        latencies = [e["latency"] for e in entries if e["latency"] is not None]
+        working = [e for e in entries if e["is_working"]]
+
+        return {
+            "total_tests": len(entries),
+            "success_rate": len(working) / len(entries) if entries else 0.0,
+            "avg_latency": sum(latencies) / len(latencies) if latencies else 0,
+            "min_latency": min(latencies) if latencies else 0,
+            "max_latency": max(latencies) if latencies else 0,
+            "uptime_percentage": (
+                (len(working) / len(entries) * 100) if entries else 0.0
+            ),
+        }
