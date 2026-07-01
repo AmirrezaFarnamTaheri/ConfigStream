@@ -1,3 +1,10 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# Production-pinned dependencies — this file MUST be kept in sync with
+# requirements-prod.txt (the canonical production lockfile used by Docker).
+# Run the following to regenerate both from pyproject.toml:
+#   pip freeze > requirements-prod.txt && cp requirements-prod.txt requirements.txt
+
 aiodns==3.6.1
 aiofiles==25.1.0
 aiohappyeyeballs==2.6.1

@@ -1,4 +1,6 @@
 # Multi-stage build for ConfigStream
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 # Stage 1: Build Go Tester
 FROM golang:1.24-alpine AS builder
 
@@ -14,6 +16,15 @@ RUN CGO_ENABLED=0 go build -ldflags="-s -w" -tags "with_quic,with_dhcp,with_wire
 
 # Stage 2: Python Runtime
 FROM python:3.12-slim
+
+# OCI image annotations for traceability
+LABEL org.opencontainers.image.title="ConfigStream"
+LABEL org.opencontainers.image.description="Sovereignty-grade, zero-budget anti-censorship platform — aggregates, validates, and distributes resilient proxy configurations."
+LABEL org.opencontainers.image.url="https://github.com/AmirrezaFarnamTaheri/ConfigStream"
+LABEL org.opencontainers.image.source="https://github.com/AmirrezaFarnamTaheri/ConfigStream"
+LABEL org.opencontainers.image.licenses="AGPL-3.0-or-later"
+LABEL org.opencontainers.image.vendor="ConfigStream Contributors"
+LABEL org.opencontainers.image.version="3.1.0"
 
 # Install system dependencies
 # Added tini for proper PID 1 signal handling and zombie reaping.

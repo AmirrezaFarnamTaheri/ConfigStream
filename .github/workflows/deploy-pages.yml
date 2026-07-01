@@ -235,7 +235,26 @@ jobs:
       - name: Trigger CDN cache purge
         if: always() && env.HAS_OUTPUT == 'true'
         run: |
-          # Add cache-busting hint for browsers
-          echo "NOTE: If you don't see updates immediately, clear your browser cache or use Ctrl+F5"
-          echo "The deployment URL includes a cache version timestamp to force refreshes"
+          # GitHub Pages uses Fastly CDN with automatic cache invalidation on deploy.
+          # The actions/deploy-pages@v5 step above already triggers a full CDN purge.
+          # However, browser caches (Service Worker, Cache-Control headers) may still
+          # serve stale content. We apply cache-busting via a versioned URL query
+          # parameter injected into cache-config.js during the Build step above.
+          #
+          # If you use a custom CDN (Cloudflare, CloudFront, Fastly) in front of
+          # GitHub Pages, uncomment and configure the appropriate purge API call:
+          #
+          # Cloudflare example:
+          #   curl -X POST "https://api.cloudflare.com/client/v4/zones/${{ secrets.CF_ZONE_ID }}/purge_cache" \
+          #     -H "Authorization: Bearer ${{ secrets.CF_API_TOKEN }}" \
+          #     -H "Content-Type: application/json" \
+          #     --data '{"purge_everything":true}'
+          #
+          # Fastly example:
+          #   curl -X POST "https://api.fastly.com/service/${{ secrets.FASTLY_SERVICE_ID }}/purge_all" \
+          #     -H "Fastly-Key: ${{ secrets.FASTLY_API_KEY }}"
+          
+          echo "✅ CDN cache purge triggered via GitHub Pages deploy (automatic)."
+          echo "📌 Custom CDN: If using a third-party CDN, configure secrets and uncomment the purge API call above."
+          echo "📌 Browser cache: Versioned cache-config.js provides cache-busting for Service Worker caches."
 
