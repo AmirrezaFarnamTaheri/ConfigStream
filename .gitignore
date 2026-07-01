@@ -43,3 +43,5 @@ frontend-dist/
 # Local investigation scratch areas (never committed)
 Latest Outputs to investigate/
 invvest/
+
+.env.local
