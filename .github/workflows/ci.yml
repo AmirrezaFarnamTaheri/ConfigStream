@@ -58,6 +58,8 @@ jobs:
           pip install -e .[dev]
       - name: Validate workflow syntax
         run: python scripts/validate_workflows.py
+      - name: Validate action version pinning
+        run: python scripts/validate_action_pins.py
       - name: Validate pytest skip governance
         run: python scripts/validate_test_skips.py
       - name: Update routing databases
