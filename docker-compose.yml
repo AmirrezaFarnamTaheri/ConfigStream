@@ -1,14 +1,4 @@
 services:
-  redis:
-    image: redis:7-alpine
-    container_name: configstream_redis
-    restart: unless-stopped
-    command: ["redis-server", "--save", "", "--appendonly", "no"]
-    deploy:
-      replicas: 1
-    networks:
-      - confignet
-
   # 1. Web Dashboard (Always Running)
   web:
     build: .
@@ -23,7 +13,6 @@ services:
       - ./frontend:/app/frontend # Dev mode: hot reload frontend changes
     environment:
       - OUTPUT_DIR=/app/output
-      - REDIS_URL=redis://redis:6379/0
     deploy:
       replicas: 2
       resources:
@@ -54,8 +43,6 @@ services:
         echo '✅ Run Complete. Sleeping for 6 hours...';
         sleep 21600;
       done"
-    environment:
-      - REDIS_URL=redis://redis:6379/0
     deploy:
       replicas: 1
       resources:
