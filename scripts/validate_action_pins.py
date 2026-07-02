@@ -173,12 +173,13 @@ def main() -> int:
         1 for infos in all_actions.values() for info in infos if info["sha_pinned"]
     )
     tag_count = sum(
-        1 for infos in all_actions.values() for info in infos
+        1
+        for infos in all_actions.values()
+        for info in infos
         if not info["sha_pinned"] and info["tag_pinned"]
     )
     branch_count = sum(
-        1 for infos in all_actions.values() for info in infos
-        if info["branch_pinned"]
+        1 for infos in all_actions.values() for info in infos if info["branch_pinned"]
     )
     total = sha_count + tag_count + branch_count
 
@@ -198,7 +199,6 @@ def main() -> int:
         print(f"\n  {name}")
         for ref in unique_refs:
             sha = _is_sha_pinned(ref)
-            tag = _is_tag_ref(ref)
             branch = _is_branch_ref(ref)
             status = "✅ SHA" if sha else ("❌ Branch" if branch else "⚠️  Tag")
             print(f"    {status}  {ref}")

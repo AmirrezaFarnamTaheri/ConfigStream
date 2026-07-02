@@ -287,14 +287,23 @@ document.addEventListener('DOMContentLoaded', () => {
             // Copy button
             const copyBtn = document.createElement('button');
             copyBtn.className = 'proxy-result-copy';
-            copyBtn.innerHTML = '<i data-feather="copy"></i> Copy';
+            const copyIcon = document.createElement('i');
+            copyIcon.setAttribute('data-feather', 'copy');
+            copyBtn.appendChild(copyIcon);
+            copyBtn.appendChild(document.createTextNode(' Copy'));
             copyBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const config = p.config || '';
                 navigator.clipboard.writeText(config).then(() => {
-                    const orig = copyBtn.textContent;
                     copyBtn.textContent = 'Copied!';
-                    setTimeout(() => { copyBtn.innerHTML = '<i data-feather="copy"></i> Copy'; }, 1500);
+                    setTimeout(() => {
+                        copyBtn.textContent = '';
+                        const newIcon = document.createElement('i');
+                        newIcon.setAttribute('data-feather', 'copy');
+                        copyBtn.appendChild(newIcon);
+                        copyBtn.appendChild(document.createTextNode(' Copy'));
+                        if (window.inlineIcons) window.inlineIcons.replace();
+                    }, 2000);
                 }).catch(() => {});
             });
             item.appendChild(copyBtn);
