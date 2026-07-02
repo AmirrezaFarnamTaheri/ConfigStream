@@ -69,6 +69,6 @@ typing_extensions==4.15.0
 urllib3==2.7.0
 uvicorn==0.40.0
 wasmtime==45.0.0
-yarl==1.22.0
+yarl==1.24.2
 nest-asyncio==1.6.0
 slowapi==0.1.10
