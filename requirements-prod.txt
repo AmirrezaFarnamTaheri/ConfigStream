@@ -64,4 +64,4 @@ uvicorn==0.40.0
 wasmtime==45.0.0
 yarl==1.22.0
 nest-asyncio==1.6.0
-slowapi==0.1.9
+slowapi==0.1.10
