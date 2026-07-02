@@ -139,6 +139,55 @@ document.addEventListener('DOMContentLoaded', () => {
         connectWebSocket();
     }
 
+    // --- FRESHNESS INDICATOR ---
+    function updateFreshnessIndicator(date) {
+        const dot = document.getElementById('freshnessDot');
+        const text = document.getElementById('freshnessText');
+        const badge = document.getElementById('footerFreshnessBadge');
+        if (!dot || !text) return;
+
+        const now = Date.now();
+        const ageMs = now - date.getTime();
+        const ageHours = ageMs / (1000 * 60 * 60);
+
+        // Remove existing classes
+        dot.classList.remove('fresh', 'aging', 'stale', 'checking');
+        if (badge) badge.classList.remove('fresh', 'aging', 'stale');
+
+        let state, label;
+        if (ageHours < 2) {
+            state = 'fresh';
+            label = 'Data is fresh — updated less than 2 hours ago';
+        } else if (ageHours < 6) {
+            state = 'aging';
+            label = `Data is ${Math.round(ageHours)} hours old — next update expected soon`;
+        } else {
+            state = 'stale';
+            label = `Data is ${Math.round(ageHours)} hours old — may be stale`;
+        }
+
+        dot.classList.add(state);
+        text.textContent = label;
+        dot.setAttribute('aria-label', label);
+
+        if (badge) {
+            badge.classList.add(state);
+            badge.textContent = state === 'fresh' ? '● Fresh' : state === 'aging' ? '◐ Aging' : '○ Stale';
+        }
+    }
+
+    // Initialize freshness indicator in checking state
+    const freshnessDot = document.getElementById('freshnessDot');
+    if (freshnessDot) freshnessDot.classList.add('checking');
+
+    // Re-check freshness every 60 seconds using the cached date from metadata
+    setInterval(() => {
+        if (window._freshnessDate) {
+            updateFreshnessIndicator(window._freshnessDate);
+        }
+    }, 60000);
+
+
 
     // --- DATA FETCHING & INITIALIZATION ---
     (async () => {
@@ -240,6 +289,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (window.api && window.api.updateFreshnessColor) {
                     window.api.updateFreshnessColor(date);
                 }
+
+                // Update freshness indicator
+                window._freshnessDate = date;
+                updateFreshnessIndicator(date);
             }
 
             // Update stats card

@@ -143,6 +143,12 @@
                 </div>
             </section>
 
+            <!-- Data Freshness Indicator -->
+            <div id="freshnessIndicator" class="freshness-indicator" style="--delay: 0.3s;" role="status" aria-live="polite">
+                <span class="freshness-dot" id="freshnessDot"></span>
+                <span class="freshness-text" id="freshnessText">Checking data freshness...</span>
+            </div>
+
             <!-- Unified Stats Card — hero row + compact row -->
             <section class="stats-card stats-unified" style="--delay: 0.35s;">
                 <!-- Row 1: 4 primary hero metrics -->
@@ -538,7 +544,11 @@
                 <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream/issues" target="_blank" rel="noopener noreferrer" aria-label="Report an issue"><i data-feather="alert-circle"></i></a>
             </div>
             <p data-i18n="footer.love">Built for freedom. Powered by ConfigStream. ✨</p>
-            <p class="last-updated"><span data-i18n="footer.lastupdated">Last updated:</span> <span id="footerUpdate" class="loading" data-i18n="footer.checking">checking...</span></p>
+            <p class="last-updated">
+                <span data-i18n="footer.lastupdated">Last updated:</span>
+                <span id="footerUpdate" class="loading" data-i18n="footer.checking">checking...</span>
+                <span class="freshness-badge" id="footerFreshnessBadge"></span>
+            </p>
         </div>
     </footer>
 

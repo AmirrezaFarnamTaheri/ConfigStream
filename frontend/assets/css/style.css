@@ -2609,6 +2609,90 @@ body.dark .stat-label {
     75% { transform: translate(-10%, 8%) scale(1.05); }
 }
 
+/* Freshness Indicator */
+.freshness-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: calc(var(--space-unit) * 1);
+    padding: calc(var(--space-unit) * 1) calc(var(--space-unit) * 2);
+    margin-bottom: calc(var(--space-unit) * 1);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--bg-secondary) 70%, transparent);
+    border: 1px solid var(--border);
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    transition: all var(--transition-fast);
+}
+
+.freshness-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+    transition: background-color var(--transition-fast);
+}
+
+.freshness-dot.fresh {
+    background-color: var(--success-color);
+    box-shadow: 0 0 6px color-mix(in srgb, var(--success-color) 60%, transparent);
+}
+
+.freshness-dot.aging {
+    background-color: #f59e0b;
+    box-shadow: 0 0 6px rgba(245, 158, 11, 0.4);
+    animation: pulse-dot 2s ease-in-out infinite;
+}
+
+.freshness-dot.stale {
+    background-color: var(--danger-color);
+    box-shadow: 0 0 6px color-mix(in srgb, var(--danger-color) 60%, transparent);
+    animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+.freshness-dot.checking {
+    background-color: var(--text-secondary);
+    opacity: 0.5;
+    animation: pulse-dot 1s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(0.8); }
+}
+
+.freshness-text {
+    font-weight: 500;
+}
+
+.freshness-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+.freshness-badge.fresh {
+    background: color-mix(in srgb, var(--success-color) 15%, transparent);
+    color: var(--success-color);
+}
+
+.freshness-badge.aging {
+    background: color-mix(in srgb, #f59e0b 15%, transparent);
+    color: #f59e0b;
+}
+
+.freshness-badge.stale {
+    background: color-mix(in srgb, var(--danger-color) 15%, transparent);
+    color: var(--danger-color);
+}
+
 /* Preloader */
 #preloader {
     position: fixed;
