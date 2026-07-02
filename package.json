@@ -27,7 +27,7 @@
   "homepage": "https://github.com/AmirrezaFarnamTaheri/ConfigStream#readme",
   "devDependencies": {
     "picomatch": "^4.0.4",
-    "playwright": "^1.56.1",
+    "playwright": "^1.61.1",
     "postcss": "^8.5.15",
     "vite": "^8.0.14"
   }
