@@ -39,7 +39,7 @@ propcache==0.4.1
 psutil==7.2.1
 pycares==4.11.0
 pycparser==2.23
-pydantic==2.12.5
+pydantic==2.13.4
 pydantic-settings==2.12.0
 pydantic_core==2.41.5
 pyee==13.0.0
