@@ -48,7 +48,7 @@ pycares==4.11.0
 pycparser==2.23
 pydantic==2.12.5
 pydantic-settings==2.12.0
-pydantic_core==2.41.5
+pydantic_core==2.47.0
 pyee==13.0.0
 Pygments==2.20.0
 python-dotenv==1.2.2
