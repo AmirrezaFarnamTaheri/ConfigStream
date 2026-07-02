@@ -80,15 +80,8 @@ class TestGenericURLScheme:
         assert parse_generic_url_scheme("not_valid_host_!@#$:8080") is None
 
     def test_invalid_port_range(self):
-        """Port out of range should return None or use defaults.
-        The generic parser uses urlparse which returns None for out-of-range
-        ports, so it falls through to the default port (80 for http).
-        Port 0 is falsy so it also defaults to 80.
-        """
-        # Port 65536 is out of range for urlparse, so it falls back to default
-        proxy = parse_generic_url_scheme("http://1.2.3.4:65536")
-        assert proxy is not None
-        assert proxy.port == 80  # Falls back to default HTTP port
+        """Port outside 0-65535 raises ValueError in urlparse and parser returns None."""
+        assert parse_generic_url_scheme("http://1.2.3.4:65536") is None
 
     def test_garbage_hostname_rejected(self):
         """'garbage' as hostname should be rejected."""
