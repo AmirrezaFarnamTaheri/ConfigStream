@@ -12,7 +12,6 @@ attrs==25.4.0
 beautifulsoup4==4.15
 cachetools==7.1.4
 certifi==2025.11.12
-cffi==2.0.0
 charset-normalizer==3.4.4
 click==8.3.1
 cryptography==49.0.0
@@ -37,7 +36,6 @@ orjson==3.11.6
 packaging==25.0
 propcache==0.4.1
 psutil==7.2.1
-pycares==4.11.0
 pycparser==2.23
 pydantic==2.13.4
 pydantic-settings==2.12.0
