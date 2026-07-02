@@ -187,7 +187,189 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 60000);
 
+    // --- LANDING PAGE PROXY SEARCH ---
+    let _allProxiesCache = [];
+    let _searchDebounce = null;
 
+    async function fetchProxyData() {
+        const root = window.ROOT_PATH || './';
+        try {
+            const res = await fetch(`${root}api/proxies`);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return await res.json();
+        } catch (e) {
+            logger.warn('Landing proxy search: failed to fetch proxies', e);
+            return [];
+        }
+    }
+
+    function renderLandingResults(proxies, searchTerm) {
+        const container = document.getElementById('landingProxyResults');
+        if (!container) return;
+
+        // Tokenize search
+        const tokens = searchTerm.toLowerCase().split(/\s+/).filter(Boolean);
+
+        let filtered = proxies;
+        if (tokens.length > 0) {
+            filtered = proxies.filter(p => {
+                const proto = (p.protocol || '').toLowerCase();
+                const country = (p.country_code || '').toLowerCase();
+                const city = (p.city || '').toLowerCase();
+                const text = `${proto} ${country} ${city}`;
+                return tokens.every(t => text.includes(t));
+            });
+        }
+
+        // Sort: working first, then by latency
+        filtered.sort((a, b) => {
+            if (a.is_working !== b.is_working) return a.is_working ? -1 : 1;
+            return (a.latency || 9999) - (b.latency || 9999);
+        });
+
+        // Take top 20
+        const top = filtered.slice(0, 20);
+
+        container.replaceChildren();
+
+        if (top.length === 0 && tokens.length > 0) {
+            const empty = document.createElement('div');
+            empty.className = 'proxy-results-empty';
+            empty.textContent = 'No proxies match your search. Try different terms.';
+            container.appendChild(empty);
+            return;
+        }
+
+        if (top.length === 0 && tokens.length === 0) {
+            const msg = document.createElement('div');
+            msg.className = 'proxy-results-loading';
+            msg.textContent = 'Type to search proxies by protocol, country, or city...';
+            container.appendChild(msg);
+            return;
+        }
+
+        top.forEach(p => {
+            const item = document.createElement('div');
+            item.className = 'proxy-result-item';
+
+            // Protocol badge
+            const proto = document.createElement('span');
+            proto.className = 'proxy-result-proto';
+            proto.textContent = (p.protocol || '?').toUpperCase();
+            item.appendChild(proto);
+
+            // Location
+            const loc = document.createElement('span');
+            loc.className = 'proxy-result-loc';
+            const cc = p.country_code || 'XX';
+            loc.textContent = p.city ? `${p.city}, ${cc}` : cc;
+            item.appendChild(loc);
+
+            // Latency
+            const lat = document.createElement('span');
+            lat.className = 'proxy-result-lat';
+            const latVal = p.latency;
+            if (latVal && latVal < 9999) {
+                lat.textContent = `${latVal}ms`;
+                lat.style.color = latVal < 200 ? 'var(--success-color)' : latVal < 500 ? '#f59e0b' : 'var(--danger-color)';
+            } else {
+                lat.textContent = '—';
+                lat.style.color = 'var(--text-secondary)';
+            }
+            item.appendChild(lat);
+
+            // Status
+            const status = document.createElement('span');
+            status.className = `proxy-result-status ${p.is_working ? 'online' : 'offline'}`;
+            status.textContent = p.is_working ? 'Online' : 'Offline';
+            item.appendChild(status);
+
+            // Copy button
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'proxy-result-copy';
+            copyBtn.innerHTML = '<i data-feather="copy"></i> Copy';
+            copyBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const config = p.config || '';
+                navigator.clipboard.writeText(config).then(() => {
+                    const orig = copyBtn.textContent;
+                    copyBtn.textContent = 'Copied!';
+                    setTimeout(() => { copyBtn.innerHTML = '<i data-feather="copy"></i> Copy'; }, 1500);
+                }).catch(() => {});
+            });
+            item.appendChild(copyBtn);
+
+            container.appendChild(item);
+        });
+
+        // Show link to full list if there are more results
+        if (filtered.length > 20) {
+            const link = document.createElement('a');
+            link.className = 'proxy-results-link';
+            link.href = 'proxies.html';
+            link.textContent = `View all ${filtered.length} matching proxies →`;
+            container.appendChild(link);
+        }
+
+        // Re-render Feather icons
+        if (window.inlineIcons) window.inlineIcons.replace();
+    }
+
+    function setupLandingProxySearch() {
+        const searchInput = document.getElementById('landingSearch');
+        const protoSelect = document.getElementById('landingProtocol');
+        const countrySelect = document.getElementById('landingCountry');
+        if (!searchInput) return;
+
+        // Fetch proxy data on first interaction
+        const doSearch = () => {
+            if (_searchDebounce) clearTimeout(_searchDebounce);
+            _searchDebounce = setTimeout(() => {
+                const searchVal = searchInput.value;
+                const protoVal = protoSelect ? protoSelect.value : '';
+                const countryVal = countrySelect ? countrySelect.value : '';
+
+                let filtered = _allProxiesCache;
+                if (protoVal) filtered = filtered.filter(p => p.protocol === protoVal);
+                if (countryVal) filtered = filtered.filter(p => p.country_code === countryVal);
+
+                renderLandingResults(filtered, searchVal);
+            }, 250);
+        };
+
+        searchInput.addEventListener('input', doSearch);
+        if (protoSelect) protoSelect.addEventListener('change', doSearch);
+        if (countrySelect) countrySelect.addEventListener('change', doSearch);
+
+        // Load data on focus or after stats load
+        fetchProxyData().then(proxies => {
+            _allProxiesCache = proxies;
+
+            // Populate filter dropdowns
+            if (protoSelect) {
+                const protos = [...new Set(proxies.map(p => p.protocol).filter(Boolean))].sort();
+                protos.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p;
+                    opt.textContent = p.toUpperCase();
+                    protoSelect.appendChild(opt);
+                });
+            }
+            if (countrySelect) {
+                const countries = [...new Set(proxies.map(p => p.country_code).filter(c => c && c !== 'XX'))].sort();
+                countries.forEach(cc => {
+                    const opt = document.createElement('option');
+                    opt.value = cc;
+                    let name = cc;
+                    try { name = new Intl.DisplayNames(['en'], { type: 'region' }).of(cc); } catch(e) {}
+                    opt.textContent = `${name} (${cc})`;
+                    countrySelect.appendChild(opt);
+                });
+            }
+        });
+    }
+
+    setupLandingProxySearch();
 
     // --- DATA FETCHING & INITIALIZATION ---
     (async () => {

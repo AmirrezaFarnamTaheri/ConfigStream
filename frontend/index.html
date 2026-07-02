@@ -252,6 +252,30 @@
                 </div>
             </section>
 
+            <!-- Compact Proxy Search & Filter -->
+            <section class="proxy-quick-search" style="--delay: 0.4s;">
+                <div class="proxy-search-header">
+                    <h3><i data-feather="search"></i> Quick Proxy Search</h3>
+                    <a href="proxies.html" class="btn btn-secondary btn-sm">
+                        <span>Full Proxy List</span>
+                        <i data-feather="arrow-right"></i>
+                    </a>
+                </div>
+                <div class="proxy-search-bar">
+                    <i data-feather="search" class="search-icon"></i>
+                    <input type="text" id="landingSearch" placeholder="Search by protocol, country, city... e.g. vless US" aria-label="Search proxies">
+                    <select id="landingProtocol" aria-label="Filter by protocol">
+                        <option value="">All Protocols</option>
+                    </select>
+                    <select id="landingCountry" aria-label="Filter by country">
+                        <option value="">All Countries</option>
+                    </select>
+                </div>
+                <div id="landingProxyResults" class="proxy-results">
+                    <div class="proxy-results-loading">Type to search proxies...</div>
+                </div>
+            </section>
+
             <!-- Quick Access: Chosen + Gold — side by side on desktop -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1rem; --delay: 0.45s;" class="promo-pair">
                 <!-- Chosen Top Proxies -->
