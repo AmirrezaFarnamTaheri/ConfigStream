@@ -88,7 +88,7 @@ jobs:
       repo_lowercase: ${{ steps.repo_name.outputs.repo_lowercase }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
           persist-credentials: false
@@ -97,7 +97,7 @@ jobs:
         uses: docker/setup-buildx-action@v4
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -131,7 +131,7 @@ jobs:
     if: "!needs.schedule_gate.outputs.proceed || needs.schedule_gate.outputs.proceed == 'true'"
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
           persist-credentials: false
@@ -143,7 +143,7 @@ jobs:
       - name: Install dependencies
         run: pip install -e .
       - name: Cache Data
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             data/source_quality.db
@@ -169,7 +169,7 @@ jobs:
     needs: [schedule_gate]
     if: "!needs.schedule_gate.outputs.proceed || needs.schedule_gate.outputs.proceed == 'true'"
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 1
           persist-credentials: false
@@ -201,7 +201,7 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 1
           persist-credentials: false
@@ -238,12 +238,12 @@ jobs:
         PYTHONPATH: /app/src
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
           persist-credentials: false
       - name: Restore Cache (Adaptive Logic)
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             data/source_quality.db
@@ -325,7 +325,7 @@ jobs:
       PINATA_JWT: ${{ secrets.PINATA_JWT }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
           persist-credentials: true
