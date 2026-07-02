@@ -45,7 +45,7 @@ pydantic_core==2.41.5
 pyee==13.0.0
 Pygments==2.20.0
 python-dotenv==1.2.2
-python-socks==2.8.0
+python-socks==2.8.2
 python-telegram-bot==22.5
 PyYAML==6.0.3
 rich==14.2.0
