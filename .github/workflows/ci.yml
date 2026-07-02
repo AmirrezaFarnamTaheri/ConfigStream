@@ -66,7 +66,7 @@ jobs:
         run: |
           python -m configstream.cli update-databases || echo "Database update failed (non-fatal)"
       - name: Cache Playwright browsers
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
