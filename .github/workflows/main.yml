@@ -15,11 +15,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
+# Default: minimum read-only access. Individual jobs override only what they need.
 permissions:
-  contents: write
-  packages: write
-  pages: write
-  id-token: write
+  contents: read
 
 jobs:
   schedule_gate:
@@ -84,6 +82,9 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request' && (!needs.schedule_gate.outputs.proceed || needs.schedule_gate.outputs.proceed == 'true')
     needs: [schedule_gate]
+    permissions:
+      contents: read
+      packages: write
     outputs:
       repo_lowercase: ${{ steps.repo_name.outputs.repo_lowercase }}
     steps:
@@ -230,7 +231,6 @@ jobs:
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
-      options: --user root
       env:
         FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
         CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
@@ -310,8 +310,10 @@ jobs:
     needs: [pipeline, build_wasm]
     if: always() && github.event_name != 'pull_request'
     permissions:
-        contents: write
-        id-token: write
+      contents: write
+      id-token: write
+      pages: write
+      packages: read
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}

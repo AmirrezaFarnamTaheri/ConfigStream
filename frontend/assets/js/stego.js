@@ -16,15 +16,20 @@ function _isPlaceholderSecretKey(secretKey) {
   return secretKey === "PLACEHOLDER_" + "KEY_INJECTED_BY_CI";
 }
 
+// A valid Fernet key is 32 bytes encoded as URL-safe base64 = 44 characters
+// (no padding).  Accept anything ≥ 40 to be tolerant of minor encoding
+// variants while still rejecting clearly wrong values.
+const MIN_VALID_KEY_LENGTH = 40;
+
 function _ensureConfiguredKey() {
   const secretKey = _configuredSecretKey();
   if (
     _isPlaceholderSecretKey(secretKey) ||
     typeof secretKey !== "string" ||
-    secretKey.length < 20
+    secretKey.length < MIN_VALID_KEY_LENGTH
   ) {
     throw new Error(
-      "Stego key not configured. This deployment did not inject STEGO_KEY."
+      "Stego key not configured or too short. This deployment did not inject a valid STEGO_KEY."
     );
   }
   return secretKey;
@@ -196,11 +201,15 @@ async function _extractLsbPayload(buffer, secretKey) {
   );
   const { tokenLen } = _parseLsbHeader(header);
 
-  const maxSize = window.CS_CONSTANTS
-    ? window.CS_CONSTANTS.STEGO_MAX_PAYLOAD_SIZE
-    : 2_000_000;
-  if (tokenLen <= 0 || tokenLen > maxSize) {
-    throw new Error("Invalid stego token length");
+  // Guard against NaN/undefined from CS_CONSTANTS: fall back to the hard-coded
+  // default if the value is not a positive finite number.
+  const rawMaxSize =
+    window.CS_CONSTANTS && typeof window.CS_CONSTANTS.STEGO_MAX_PAYLOAD_SIZE === "number"
+      ? window.CS_CONSTANTS.STEGO_MAX_PAYLOAD_SIZE
+      : NaN;
+  const maxSize = Number.isFinite(rawMaxSize) && rawMaxSize > 0 ? rawMaxSize : 2_000_000;
+  if (tokenLen <= 0 || !Number.isInteger(tokenLen) || tokenLen > maxSize) {
+    throw new Error(`Invalid stego token length: ${tokenLen}`);
   }
 
   const fullPayload = _extractPayloadBytes(
@@ -285,8 +294,14 @@ function loadAndApplyStego(url) {
     const a = document.createElement("a");
     a.href = dlUrl;
     a.download = "singbox-stealth.json";
+    // Append → click → schedule revoke. Revoking synchronously before the
+    // browser has dispatched the download causes a race where some browsers
+    // (especially Firefox) cancel the download before it starts.  A short
+    // setTimeout gives the UA time to initiate the download.
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(dlUrl);
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(dlUrl), 5000);
   });
 }
 

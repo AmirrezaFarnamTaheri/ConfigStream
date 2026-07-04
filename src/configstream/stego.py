@@ -370,13 +370,23 @@ def generate_stego_assets(
         try:
             key = secret_key.encode()
             Fernet(key)  # validate key shape
-        except Exception:
-            logger.warning("Invalid STEGO_KEY provided, generating ephemeral key.")
-            key = Fernet.generate_key()
+        except Exception as exc:
+            # An invalid STEGO_KEY produces stego artifacts that can never be
+            # decrypted by clients holding the correct key.  Silently falling
+            # back to an ephemeral key would produce unverifiable output that
+            # looks valid but is useless — fail loudly instead.
+            raise ValueError(
+                f"STEGO_KEY is set but is not a valid Fernet key: {exc}. "
+                "Generate a valid key with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\""
+            ) from exc
     else:
-        key = Fernet.generate_key()
-        logger.warning(
-            "No STEGO_KEY/CONFIG_STREAM_KEY set; using random key for this build."
+        # No key at all — refuse to proceed so that the CI run fails
+        # visibly rather than producing artifacts encrypted under a random key
+        # that cannot be reproduced or verified by any client.
+        raise ValueError(
+            "STEGO_KEY / CONFIG_STREAM_KEY is not set. "
+            "Steganography requires a stable key so that clients can decrypt the payload. "
+            "Set the STEGO_KEY environment variable (or secret) before running this step."
         )
 
     packer = StegoPacker(key)

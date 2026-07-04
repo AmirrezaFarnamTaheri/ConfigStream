@@ -94,6 +94,10 @@ def _is_bogon_ip(address: str) -> bool:
 class CachedDNS:
     address: str
     expires_at: float
+    # Monotonic timestamp of the most recent cache hit.  Used for true LRU
+    # eviction: when the cache is full we remove the least-recently-accessed
+    # entry, not the one that will expire soonest.
+    last_accessed: float = 0.0
 
 
 class DNSCache:
@@ -126,6 +130,8 @@ class DNSCache:
         async with self._lock:
             cached = self._cache.get(host)
             if cached and cached.expires_at > now:
+                # Update the LRU timestamp on every cache hit.
+                cached.last_accessed = now
                 return cached.address
 
             # Entry expired or missing - remove if expired
@@ -173,7 +179,11 @@ class DNSCache:
             # Enforce size limit before adding new entry
             await self._enforce_size_limit_locked()
 
-            self._cache[host] = CachedDNS(address=address, expires_at=now + self._ttl)
+            self._cache[host] = CachedDNS(
+                address=address,
+                expires_at=now + self._ttl,
+                last_accessed=now,
+            )
 
             # Periodic cleanup every 100 operations
             self._cleanup_counter += 1
@@ -184,15 +194,22 @@ class DNSCache:
         return address
 
     async def _enforce_size_limit_locked(self) -> None:
-        """Remove oldest entries if cache exceeds size limit. Must be called with lock held."""
+        """Remove least-recently-accessed entries when the cache is full.
+
+        Previously sorted by ``expires_at`` (soonest-to-expire first), which is
+        not a true LRU policy: a freshly added entry with a short TTL would be
+        evicted before a stale entry that was accessed only once a long time ago.
+        We now sort by ``last_accessed`` (oldest access first) so the least
+        recently used entries are removed first.  Must be called with lock held.
+        """
         if len(self._cache) < self._max_size:
             return
 
         # Calculate how many to remove (10% of max size)
         remove_count = max(1, self._max_size // 10)
 
-        # Sort by expiration time and remove oldest
-        sorted_entries = sorted(self._cache.items(), key=lambda x: x[1].expires_at)
+        # Sort by last access time ascending → least-recently-used entries first.
+        sorted_entries = sorted(self._cache.items(), key=lambda x: x[1].last_accessed)
 
         for host, _ in sorted_entries[:remove_count]:
             del self._cache[host]

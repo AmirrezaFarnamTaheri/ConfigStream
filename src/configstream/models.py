@@ -25,7 +25,13 @@ class Proxy(BaseModel):
     Migrated to Pydantic for robust validation.
     """
 
-    model_config = ConfigDict(arbitrary_types_allowed=True, extra="ignore")
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True,
+        extra="ignore",
+        # Required so that field validators (e.g. _validate_latency) also fire
+        # on post-construction attribute assignment (e.g. proxy.latency = -1).
+        validate_assignment=True,
+    )
 
     config: str
     protocol: str
@@ -96,20 +102,30 @@ class Proxy(BaseModel):
 
     @latency_ms.setter
     def latency_ms(self, value: Optional[float]) -> None:
-        """Set latency in milliseconds."""
+        """Set latency in milliseconds.
+
+        Explicit guard so that the setter rejects negative values even when
+        called before Pydantic's validate_assignment machinery fires (e.g.
+        during __init__ before the model is fully constructed).
+        """
+        if value is not None and value < 0:
+            raise ValueError("latency must be >= 0")
         self.latency = value
 
     @property
     def id(self) -> str:
-        """
-        Stable identifier used for caching, history, and external tools.
-        Composite key: (protocol, host/address, port, uuid_or_key).
-        """
-        credential = (self.uuid or "").strip()
-        if credential:
-            # Keep legacy behavior for stable references used across outputs/tests.
-            return credential
+        """Stable 16-char hex identifier used for caching, history, and external tools.
 
+        All proxies go through the same SHA-256 hash path so the ID format is
+        consistent (always 16 hex chars) regardless of whether the proxy has a
+        UUID field.  Previously, proxies with a non-empty ``uuid`` returned the
+        raw UUID string (up to 36 chars), which broke deduplication and keying
+        against hash-based IDs produced for other proxy types.
+
+        Composite key: (protocol, host/address, port, credential).
+        """
+        # Collect the best available credential in priority order.
+        credential = (self.uuid or "").strip()
         if not credential:
             for key in (
                 "uuid",

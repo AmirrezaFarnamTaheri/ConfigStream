@@ -209,7 +209,11 @@ class AppSettings(BaseSettings):
     LAB_TEST_TIMEOUT_SECONDS: float = 15.0
     LAB_MAX_CONFIG_BYTES: int = 65536
     ENVIRONMENT: str = "production"
-    NOTIFY_UPDATE_URL: Optional[str] = "http://127.0.0.1:8000/api/admin/notify-update"
+    # Default is None so deployments that do not explicitly set this env var do
+    # NOT send internal notifications over plain-HTTP to a hardcoded localhost
+    # address. Set to a valid HTTPS URL (e.g. via the NOTIFY_UPDATE_URL env var)
+    # to enable the feature.
+    NOTIFY_UPDATE_URL: Optional[str] = None
 
     # Fetcher
     MAX_RESPONSE_SIZE: int = 0

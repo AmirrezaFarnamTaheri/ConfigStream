@@ -6,6 +6,7 @@ cache poisoning and spam attacks.
 Uses Isolation Forest for robust outlier detection when sufficient data exists.
 """
 
+import ipaddress
 import logging
 import sqlite3
 import statistics
@@ -203,21 +204,40 @@ CREATE TABLE IF NOT EXISTS history (
             return True, "DB Error (Fail Open)"
 
     def check_subnet_flood(self, proxies: list[dict]) -> bool:
-        """
-        Detect if a source is flooding with proxies from the same subnet.
+        """Detect if a source is flooding with proxies from the same subnet.
+
         Returns True if flooding is detected (unsafe), False otherwise.
-        Criteria: > 90% from same /24 subnet if count > 50.
+        Criteria: > 90% from the same subnet if count > 50.
+
+        Both IPv4 (/24) and IPv6 (/48) subnets are checked so that a source
+        flooding from a single IPv6 block is not invisible to this detector.
+        Previously only IPv4 addresses were inspected; IPv6 addresses were
+        silently discarded, making the check bypassable.
         """
         if len(proxies) < 50:
             return False
 
         subnets = []
         for p in proxies:
-            ip = p.get("server") or p.get("ip") or "127.0.0.1"
-            if ip.count(".") == 3:
-                # Extract /24 subnet
-                subnet = ".".join(ip.split(".")[:3])
-                subnets.append(subnet)
+            ip_str = p.get("server") or p.get("ip") or ""
+            if not ip_str:
+                continue
+            # Strip IPv6 brackets if present (e.g. "[::1]").
+            ip_str = ip_str.strip().strip("[]")
+            try:
+                addr = ipaddress.ip_address(ip_str)
+            except ValueError:
+                continue
+
+            if addr.version == 4:
+                # /24 subnet: first three octets.
+                subnet = ".".join(ip_str.split(".")[:3]) + ".0/24"
+            else:
+                # /48 subnet: first 48 bits of the IPv6 address.
+                network = ipaddress.IPv6Network(f"{addr}/48", strict=False)
+                subnet = str(network)
+
+            subnets.append(subnet)
 
         if not subnets:
             return False
@@ -225,13 +245,14 @@ CREATE TABLE IF NOT EXISTS history (
         from collections import Counter  # pylint: disable=import-outside-toplevel
 
         counts = Counter(subnets)
-        most_common = counts.most_common(1)[0]
+        most_common_subnet, most_common_count = counts.most_common(1)[0]
 
-        # Add zero-length check to prevent division by zero
-        # If one subnet accounts for > 90% of proxies
-        if len(proxies) > 0 and most_common[1] / len(proxies) > 0.9:
+        if most_common_count / len(proxies) > 0.9:
             logger.warning(
-                f"Subnet Flood detected: {most_common[0]}.0/24 accounts for {most_common[1]}/{len(proxies)} proxies."
+                "Subnet Flood detected: %s accounts for %d/%d proxies.",
+                most_common_subnet,
+                most_common_count,
+                len(proxies),
             )
             return True
 
@@ -260,9 +281,20 @@ CREATE TABLE IF NOT EXISTS history (
             logger.warning(f"Failed to record anomaly stats: {_safe_log_text(e)}")
 
     def get_statistics(self) -> Dict[str, Any]:
-        """Get anomaly detection statistics for monitoring."""
+        """Get anomaly detection statistics for monitoring.
+
+        Uses the shared persistent connection (self._conn) so that this method
+        participates in the same WAL-mode session as all other operations.
+        Previously, a *new* sqlite3.connect() call was made here which created a
+        second independent connection, bypassing WAL coordination and introducing
+        an unnecessary file-open on every stats query.
+        """
         try:
-            with self._lock, sqlite3.connect(self.db_path) as conn:
+            with self._lock:
+                conn = self._conn
+                if conn is None:
+                    return {}
+
                 total_sources = conn.execute(
                     "SELECT COUNT(DISTINCT url) FROM history"
                 ).fetchone()[0]
