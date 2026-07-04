@@ -3,6 +3,8 @@ import logging
 from datetime import datetime, timezone
 from typing import Awaitable, Callable, List
 
+from contextlib import asynccontextmanager
+
 from fastapi import (
     FastAPI,
     Request,
@@ -64,12 +66,33 @@ def _split_allowed_origins(value: str) -> List[str]:
 
 
 def create_app() -> FastAPI:
+    # Gate the interactive Swagger UI behind non-production so the API
+    # explorer is not reachable on live deployments (P3 / Swagger gating).
+    _is_nonprod = _is_nonproduction_environment(settings.ENVIRONMENT)
+    _docs_url = "/api/docs" if _is_nonprod else None
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        # Replaces the deprecated @app.on_event("startup") pattern (P3 /
+        # FastAPI lifespan migration).
+        _validate_admin_startup_security(settings)
+        _validate_cors_startup_security(settings)
+        if not OUTPUT_DIR.exists():
+            try:
+                OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+            except OSError as e:
+                logger.warning(
+                    "Warning: Could not create output directory %s: %s", OUTPUT_DIR, e
+                )
+        yield
+
     app = FastAPI(
         title="ConfigStream",
         description="High-Performance VPN Aggregator API",
         version=VERSION,
-        docs_url="/api/docs",
+        docs_url=_docs_url,
         redoc_url=None,
+        lifespan=lifespan,
     )
 
     # Rate Limiting
@@ -114,19 +137,6 @@ def create_app() -> FastAPI:
             "Permissions-Policy", "camera=(), microphone=(), geolocation=()"
         )
         return response
-
-    # Startup Validation
-    @app.on_event("startup")
-    async def validate_startup_security() -> None:
-        _validate_admin_startup_security(settings)
-        _validate_cors_startup_security(settings)
-        if not OUTPUT_DIR.exists():
-            try:
-                OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-            except OSError as e:
-                logger.warning(
-                    f"Warning: Could not create output directory {OUTPUT_DIR}: {e}"
-                )
 
     # Register Routes
     app.include_router(admin_router)
