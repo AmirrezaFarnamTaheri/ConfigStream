@@ -79,8 +79,12 @@ def test_create_chain():
     ):
         chain = create_chain(relay, exit_node, "TEST")
         assert len(chain) == 2
-        # Relay tag format: RELAY-{id[:6]}-{strategy}
-        assert chain[0]["tag"] == "RELAY-u1-TEST"
+        # Relay tag format: RELAY-{id[:6]}-{strategy}.
+        # Since Proxy.id now always produces a 16-char SHA-256 hash (P1-5 fix)
+        # we derive the expected prefix from the relay object rather than
+        # hard-coding the old UUID short-circuit value.
+        expected_relay_tag = f"RELAY-{relay.id[:6]}-TEST"
+        assert chain[0]["tag"] == expected_relay_tag
         # Chain tag format contains strategy and flags
         assert "| TEST |" in chain[1]["tag"]
         assert chain[1]["detour"] == chain[0]["tag"]

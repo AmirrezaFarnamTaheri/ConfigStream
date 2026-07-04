@@ -38,7 +38,7 @@ LAB_DESTINATION_KEYS = {"server", "address"}
 LAB_INTERNAL_HOST_SUFFIXES = (".local", ".localhost", ".lan", ".internal")
 
 
-def _validate_lab_destination(host: object, path: str) -> None:
+async def _validate_lab_destination(host: object, path: str) -> None:
     if not isinstance(host, str) or not host.strip():
         raise HTTPException(status_code=400, detail=f"{path} must be a non-empty host")
 
@@ -98,7 +98,7 @@ def _validate_lab_destination(host: object, path: str) -> None:
             pass
 
 
-def _validate_lab_config(config: object) -> None:
+async def _validate_lab_config(config: object) -> None:
     if not isinstance(config, dict):
         raise HTTPException(status_code=400, detail="Config must be JSON object")
 
@@ -125,7 +125,7 @@ def _validate_lab_config(config: object) -> None:
 
         for key in LAB_DESTINATION_KEYS:
             if key in outbound:
-                _validate_lab_destination(outbound[key], f"{path}.{key}")
+                await _validate_lab_destination(outbound[key], f"{path}.{key}")
 
 
 def _require_payload_api_key(payload: dict, api_key: Optional[str]) -> None:
@@ -164,7 +164,7 @@ async def lab_test_chain(request: Request, payload: dict):
         raise HTTPException(
             status_code=413, detail="Config exceeds lab test size limit"
         )
-    _validate_lab_config(config)
+    await _validate_lab_config(config)
 
     try:
         from configstream.testers.lab_chain_tester import test_chain_config
