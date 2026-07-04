@@ -247,12 +247,16 @@ CREATE TABLE IF NOT EXISTS history (
         counts = Counter(subnets)
         most_common_subnet, most_common_count = counts.most_common(1)[0]
 
-        if most_common_count / len(proxies) > 0.9:
+        # Divide by len(subnets) — the count of *valid, parseable* IPs — rather
+        # than len(proxies).  Dividing by the raw proxy count lets an attacker
+        # pad the list with invalid entries to dilute the ratio and evade the
+        # 90 % flood threshold (ratio-bypass fix from code-review).
+        if most_common_count / len(subnets) > 0.9:
             logger.warning(
-                "Subnet Flood detected: %s accounts for %d/%d proxies.",
+                "Subnet Flood detected: %s accounts for %d/%d valid proxies.",
                 most_common_subnet,
                 most_common_count,
-                len(proxies),
+                len(subnets),
             )
             return True
 

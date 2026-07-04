@@ -10,6 +10,12 @@ from cryptography.exceptions import InvalidSignature
 # window are rejected regardless of cryptographic validity, preventing replays.
 SIGNATURE_MAX_AGE_SECONDS: int = 300  # 5 minutes
 
+# Tolerance for NTP clock drift between signer and verifier hosts. A signature
+# whose timestamp is at most this many seconds *in the future* (negative age)
+# is still accepted.  30 s covers normal NTP drift; the test_future_timestamp
+# case uses +3 600 s which still exceeds this tolerance and is correctly rejected.
+CLOCK_SKEW_TOLERANCE_SECONDS: int = 30
+
 
 def _build_signed_payload(content_bytes: bytes, timestamp_int: int) -> bytes:
     """Return the canonical byte string that is actually signed/verified.
@@ -108,7 +114,10 @@ class Signer:
             # --- Replay / freshness check ----------------------------------------
             if timestamp is not None:
                 age = int(time.time()) - int(timestamp)
-                if age < 0 or age > max_age_seconds:
+                # Allow up to CLOCK_SKEW_TOLERANCE_SECONDS of negative age to
+                # tolerate normal NTP drift between signer and verifier hosts.
+                # Clearly future timestamps (beyond tolerance) are still rejected.
+                if age < -CLOCK_SKEW_TOLERANCE_SECONDS or age > max_age_seconds:
                     return False
 
             # --- Cryptographic verification --------------------------------------

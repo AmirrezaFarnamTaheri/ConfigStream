@@ -41,11 +41,18 @@ def mock_dependencies():
     concurrency.get_semaphore.return_value = sem
 
     geoip = MagicMock()
-    geoip.lookup = AsyncMock(
-        return_value=MagicMock(
-            country_code="US", city="TestCity", asn="123", org="TestOrg"
-        )
-    )
+    # Return a plain object with string attributes — not a bare MagicMock —
+    # so that Pydantic's validate_assignment does not reject MagicMock values
+    # when the consumer assigns p.country / p.city / p.asn / p.org (P1-4 fix).
+    _geo_result = MagicMock(spec=[
+        "country_code", "country_name", "city", "asn", "org",
+    ])
+    _geo_result.country_code = "US"
+    _geo_result.country_name = "United States"
+    _geo_result.city = "TestCity"
+    _geo_result.asn = "123"
+    _geo_result.org = "TestOrg"
+    geoip.lookup = AsyncMock(return_value=_geo_result)
 
     tracker = MagicMock()
     tracker.phase.return_value = MagicMock()
@@ -480,9 +487,13 @@ async def test_processing_consumer_country_filter(mock_dependencies):
     mock_dependencies["tester"].test.return_value = res
 
     # GeoIP returns US
-    mock_dependencies["geoip"].lookup = AsyncMock(
-        return_value=MagicMock(country_code="US", city="", asn="", org="")
-    )
+    _geo_cn = MagicMock(spec=["country_code", "country_name", "city", "asn", "org"])
+    _geo_cn.country_code = "US"
+    _geo_cn.country_name = "United States"
+    _geo_cn.city = ""
+    _geo_cn.asn = ""
+    _geo_cn.org = ""
+    mock_dependencies["geoip"].lookup = AsyncMock(return_value=_geo_cn)
 
     with patch("configstream.consumer.parse_config", return_value=p):
         with patch(

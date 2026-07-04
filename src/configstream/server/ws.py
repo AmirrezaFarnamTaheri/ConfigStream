@@ -3,6 +3,7 @@ import asyncio
 from typing import List, Optional
 from fastapi import WebSocket, WebSocketDisconnect
 from .utils import settings, logger
+from configstream.security_validator import SecurityValidator
 
 
 def _is_allowed_origin(origin: Optional[str]) -> bool:
@@ -118,8 +119,11 @@ async def websocket_endpoint(websocket: WebSocket):
     # from a victim's browser.
     origin: Optional[str] = websocket.headers.get("origin")
     if not _is_allowed_origin(origin):
+        # Sanitize the attacker-controlled Origin value before passing it to
+        # the logger so log-injection / UUID/IP disclosure is prevented.
+        safe_origin = SecurityValidator.sanitize_log_message(origin or "")
         logger.warning(
-            "WebSocket connection rejected: disallowed origin %r", origin
+            "WebSocket connection rejected: disallowed origin %r", safe_origin
         )
         await websocket.close(code=4003)
         return

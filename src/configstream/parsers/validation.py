@@ -74,10 +74,13 @@ def log_rejection_summary() -> None:
         return
     total = sum(stats.values())
     top = sorted(stats.items(), key=lambda kv: kv[1], reverse=True)[:10]
+    # Build the summary string first so the logger receives a pre-rendered
+    # plain string rather than a raw `key` reference (log-sanitization policy).
+    summary = ", ".join(f"{reason}={count}" for reason, count in top)
     logger.info(
         "Parser telemetry: %d configs rejected. Top reasons: %s",
         total,
-        ", ".join(f"{key}={count}" for key, count in top),
+        summary,
     )
 
 

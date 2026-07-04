@@ -315,10 +315,12 @@ jobs:
     needs: [pipeline, build_wasm]
     if: always() && github.event_name != 'pull_request'
     permissions:
+      # contents:write — push merged config to the repo branch
       contents: write
+      # id-token:write — OIDC token for IPFS/cloud publish steps
       id-token: write
-      pages: write
-      packages: read
+      # pages:write and packages:read are not used by this job; omitted
+      # to keep the token on least-privilege.
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}

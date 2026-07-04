@@ -107,9 +107,18 @@ class Proxy(BaseModel):
         Explicit guard so that the setter rejects negative values even when
         called before Pydantic's validate_assignment machinery fires (e.g.
         during __init__ before the model is fully constructed).
+
+        Non-numeric values (e.g. strings) raise ``TypeError`` at the
+        ``isinstance`` check so the error message is clear rather than
+        propagating as a cryptic comparison failure.
         """
-        if value is not None and value < 0:
-            raise ValueError("latency must be >= 0")
+        if value is not None:
+            if not isinstance(value, (int, float)):
+                raise TypeError(
+                    f"latency_ms must be a number or None, got {type(value).__name__!r}"
+                )
+            if value < 0:
+                raise ValueError("latency must be >= 0")
         self.latency = value
 
     @property

@@ -98,7 +98,9 @@ def test_save_metadata(proxies, output_dir):
 
 def test_generate_split_outputs(proxies, output_dir):
     washed = [{"tag": "🛡️ Secure Washed", "type": "urltest"}]
-    washed_ids = {"u2"}
+    # Proxy.id is now always the 16-char SHA-256 hash (P1-5 fix), so the
+    # washed_ids set must use the computed id rather than the raw UUID string.
+    washed_ids = {proxies[1].id}  # p2 — the "washed" proxy
     smart_chains = {"intranet": [], "ipv6": [], "streamer": []}
 
     with (
