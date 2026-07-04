@@ -13,8 +13,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
+# Least-privilege: retest never pushes commits — it only reads the repo,
+# queries workflow runs, and downloads/uploads artifacts.
 permissions:
-  contents: write
+  contents: read
+  actions: read
 
 jobs:
   # --- Schedule Gate ---

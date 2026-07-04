@@ -16,8 +16,10 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 # Default: minimum read-only access. Individual jobs override only what they need.
+# actions: read is required by schedule_gate's `gh api .../actions/workflows/...` query.
 permissions:
   contents: read
+  actions: read
 
 jobs:
   schedule_gate:
@@ -222,6 +224,9 @@ jobs:
     timeout-minutes: 360
     needs: [build_container, setup_data, setup_matrix]
     if: github.event_name != 'pull_request'
+    permissions:
+      contents: read
+      packages: read # required to pull the ghcr.io container image with GITHUB_TOKEN
     strategy:
       matrix:
         batch_number: ${{ fromJson(needs.setup_matrix.outputs.matrix) }}

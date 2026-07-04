@@ -12,6 +12,12 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Least-privilege: mirror only reads repo contents and downloads run
+# artifacts (actions: read is required by `gh run download`).
+permissions:
+  contents: read
+  actions: read
+
 jobs:
   mirror:
     runs-on: ubuntu-latest
