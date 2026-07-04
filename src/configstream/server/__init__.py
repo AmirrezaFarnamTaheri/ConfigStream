@@ -70,6 +70,7 @@ def create_app() -> FastAPI:
     # explorer is not reachable on live deployments (P3 / Swagger gating).
     _is_nonprod = _is_nonproduction_environment(settings.ENVIRONMENT)
     _docs_url = "/api/docs" if _is_nonprod else None
+    _openapi_url = "/api/openapi.json" if _is_nonprod else None
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -91,6 +92,7 @@ def create_app() -> FastAPI:
         description="High-Performance VPN Aggregator API",
         version=VERSION,
         docs_url=_docs_url,
+        openapi_url=_openapi_url,
         redoc_url=None,
         lifespan=lifespan,
     )

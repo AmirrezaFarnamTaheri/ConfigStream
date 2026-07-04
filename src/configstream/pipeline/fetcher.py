@@ -5,7 +5,7 @@ import logging
 import socket
 from secrets import choice as secure_choice
 from urllib.parse import urlparse, urljoin
-from typing import Any, Dict, Optional, Tuple, List
+from typing import Any, Dict, Optional, Tuple, List, Union
 import httpx
 
 from configstream.concurrency_manager import ConcurrencyManager
@@ -218,12 +218,16 @@ async def fetch_from_source(
                 status_code=0,
             )
 
-    # Rate Limiter Pre-check
+    # Rate Limiter Pre-check: retry until a token is available.
+    # Ensures the limiter enforces the per-source cap even under concurrent load.
     if rate_limiter:
-        if not await rate_limiter.is_allowed(source):
+        while not await rate_limiter.is_allowed(source):
             wait_time = await rate_limiter.get_wait_time(source)
             if wait_time > 0:
                 await asyncio.sleep(wait_time)
+            else:
+                # Avoid busy-spinning if get_wait_time returns 0.
+                await asyncio.sleep(0.01)
 
     headers = {"User-Agent": secure_choice(USER_AGENTS)}
     attempt = 0
@@ -543,26 +547,26 @@ class _SimpleRateLimiter:
     def __init__(self, rate_per_second: float = 2.0, burst: int = 5):
         self._rate = rate_per_second
         self._burst = burst
-        # Map source -> (tokens, last_refill_time)
-        self._buckets: Dict[str, list] = {}
+        # Map source -> (tokens, last_refill_time) tuple
+        self._buckets: Dict[str, Tuple[float, float]] = {}
         self._lock = asyncio.Lock()
 
     async def is_allowed(self, source: str) -> bool:
         async with self._lock:
             now = asyncio.get_event_loop().time()
-            tokens, last = self._buckets.get(source, [float(self._burst), now])
+            tokens, last = self._buckets.get(source, (float(self._burst), now))
             elapsed = now - last
             tokens = min(self._burst, tokens + elapsed * self._rate)
             if tokens >= 1.0:
-                self._buckets[source] = [tokens - 1.0, now]
+                self._buckets[source] = (tokens - 1.0, now)
                 return True
-            self._buckets[source] = [tokens, now]
+            self._buckets[source] = (tokens, now)
             return False
 
     async def get_wait_time(self, source: str) -> float:
         async with self._lock:
             now = asyncio.get_event_loop().time()
-            tokens, _ = self._buckets.get(source, [float(self._burst), now])
+            tokens, _ = self._buckets.get(source, (float(self._burst), now))
             if tokens >= 1.0:
                 return 0.0
             return (1.0 - tokens) / self._rate

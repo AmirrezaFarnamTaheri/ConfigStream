@@ -19,7 +19,7 @@ import logging
 import re
 import threading
 from collections import Counter
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ _HOSTNAME_RE = re.compile(
 # S-3: Rejection telemetry
 # ---------------------------------------------------------------------------
 
-_rejections: Counter = Counter()
+_rejections: Counter[Tuple[str, str]] = Counter()
 _rejections_lock = threading.Lock()
 
 

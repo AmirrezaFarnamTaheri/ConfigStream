@@ -22,6 +22,11 @@ def _is_allowed_origin(origin: Optional[str]) -> bool:
     import re  # inline to avoid module-level startup cost
 
     allowed = [o.strip() for o in settings.ALLOWED_ORIGINS.split(",") if o.strip()]
+    
+    # Check for wildcard to allow all origins
+    if "*" in allowed:
+        return True
+    
     if origin in allowed:
         return True
 

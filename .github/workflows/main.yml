@@ -315,6 +315,8 @@ jobs:
     needs: [pipeline, build_wasm]
     if: always() && github.event_name != 'pull_request'
     permissions:
+      # actions:read — download shard/WASM artifacts
+      actions: read
       # contents:write — push merged config to the repo branch
       contents: write
       # id-token:write — OIDC token for IPFS/cloud publish steps

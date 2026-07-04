@@ -118,6 +118,9 @@
             // Maximum acceptable age of a signed payload in seconds (must match
             // SIGNATURE_MAX_AGE_SECONDS in signer.py).
             const MAX_SIGNATURE_AGE_SECONDS = 300;
+            // Tolerance for NTP clock drift between signer and verifier hosts (must
+            // match CLOCK_SKEW_TOLERANCE_SECONDS in signer.py).
+            const CLOCK_SKEW_TOLERANCE_SECONDS = 30;
 
             if (!this._isSignedObject(signedObj)) {
                 return JSON.parse(signedObj.content);
@@ -137,9 +140,12 @@
             const timestamp = signedObj.timestamp != null ? Number(signedObj.timestamp) : null;
             if (timestamp != null) {
                 const age = Math.floor(Date.now() / 1000) - timestamp;
-                if (age < 0 || age > MAX_SIGNATURE_AGE_SECONDS) {
+                // Allow up to CLOCK_SKEW_TOLERANCE_SECONDS of negative age to tolerate
+                // normal NTP drift between signer and verifier hosts. Clearly future
+                // timestamps (beyond tolerance) are still rejected.
+                if (age < -CLOCK_SKEW_TOLERANCE_SECONDS || age > MAX_SIGNATURE_AGE_SECONDS) {
                     throw new Error(
-                        `SECURITY ALERT: Signature age ${age}s exceeds maximum ${MAX_SIGNATURE_AGE_SECONDS}s — possible replay attack.`
+                        `SECURITY ALERT: Signature age ${age}s exceeds tolerance (${-CLOCK_SKEW_TOLERANCE_SECONDS}s to ${MAX_SIGNATURE_AGE_SECONDS}s) — possible replay attack.`
                     );
                 }
             }
