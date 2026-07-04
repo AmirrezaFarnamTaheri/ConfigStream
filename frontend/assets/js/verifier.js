@@ -51,21 +51,74 @@
         },
 
         _isConfiguredPublicKey: function(publicKey) {
+            // An Ed25519 public key in SPKI/Base64 form is ~68 characters.
+            // The raw hex form is exactly 64 characters (32 bytes).
+            // The previous minimum of 20 was far too low and would accept
+            // garbage values. Require at least 60 to reject clearly wrong keys
+            // while remaining tolerant of minor encoding variants.
             return !!(
                 publicKey &&
                 typeof publicKey === "string" &&
-                publicKey.length >= 20 &&
+                publicKey.length >= 60 &&
                 !publicKey.includes("PLACEHOLDER") &&
                 !publicKey.includes("79e/79e/")
             );
         },
 
         /**
+         * Build the canonical signed payload used by the Python signer.
+         *
+         * Layout: big-endian uint64 timestamp (8 bytes) || UTF-8 content bytes.
+         * When no timestamp is present (legacy unsigned responses) we fall back
+         * to verifying over the raw content bytes only.
+         *
+         * @param {string} content - The content string.
+         * @param {number|null} timestamp - Integer seconds (UTC), or null for legacy.
+         * @returns {Uint8Array}
+         */
+        _buildSignedPayload: function(content, timestamp) {
+            const contentBytes = new TextEncoder().encode(content);
+            if (timestamp == null) {
+                return contentBytes;
+            }
+            // Pack timestamp as big-endian uint64 into 8 bytes.
+            // JavaScript numbers are IEEE-754 doubles; timestamps fit in 53-bit
+            // safe integer range for decades to come.
+            const tsBytes = new Uint8Array(8);
+            const ts = Math.floor(timestamp);
+            // Write high 32 bits then low 32 bits (big-endian uint64).
+            const hi = Math.floor(ts / 0x100000000);
+            const lo = ts >>> 0;
+            tsBytes[0] = (hi >>> 24) & 0xff;
+            tsBytes[1] = (hi >>> 16) & 0xff;
+            tsBytes[2] = (hi >>> 8) & 0xff;
+            tsBytes[3] = hi & 0xff;
+            tsBytes[4] = (lo >>> 24) & 0xff;
+            tsBytes[5] = (lo >>> 16) & 0xff;
+            tsBytes[6] = (lo >>> 8) & 0xff;
+            tsBytes[7] = lo & 0xff;
+            const payload = new Uint8Array(8 + contentBytes.length);
+            payload.set(tsBytes, 0);
+            payload.set(contentBytes, 8);
+            return payload;
+        },
+
+        /**
          * Verifies the signature of the configuration object using Web Crypto API.
-         * @param {Object} signedObj - The object containing { content, signature }
+         *
+         * Replay protection: if the signed object carries a `timestamp` field the
+         * verifier reconstructs the same payload the Python signer used
+         * (big-endian uint64 ts || content) and additionally checks that the
+         * signature is not older than MAX_SIGNATURE_AGE_SECONDS.
+         *
+         * @param {Object} signedObj - The object containing { content, signature, timestamp? }
          * @returns {Promise<Object>} - The parsed JSON content if verification succeeds.
          */
         verifyConfig: async function(signedObj) {
+            // Maximum acceptable age of a signed payload in seconds (must match
+            // SIGNATURE_MAX_AGE_SECONDS in signer.py).
+            const MAX_SIGNATURE_AGE_SECONDS = 300;
+
             if (!this._isSignedObject(signedObj)) {
                 return JSON.parse(signedObj.content);
             }
@@ -78,6 +131,17 @@
 
             if (!this._isConfiguredPublicKey(PUBLIC_KEY)) {
                 throw new Error("Signature verification unavailable: Public Key not configured.");
+            }
+
+            // Replay-protection age check (only when timestamp is present).
+            const timestamp = signedObj.timestamp != null ? Number(signedObj.timestamp) : null;
+            if (timestamp != null) {
+                const age = Math.floor(Date.now() / 1000) - timestamp;
+                if (age < 0 || age > MAX_SIGNATURE_AGE_SECONDS) {
+                    throw new Error(
+                        `SECURITY ALERT: Signature age ${age}s exceeds maximum ${MAX_SIGNATURE_AGE_SECONDS}s — possible replay attack.`
+                    );
+                }
             }
 
             try {
@@ -93,13 +157,14 @@
                 );
 
                 const signature = this._hexToBytes(signedObj.signature);
-                const data = new TextEncoder().encode(signedObj.content);
+                // Reconstruct the exact payload the Python signer produced.
+                const payload = this._buildSignedPayload(signedObj.content, timestamp);
 
                 const isValid = await window.crypto.subtle.verify(
                     { name: "Ed25519" },
                     key,
                     signature,
-                    data
+                    payload
                 );
 
                 if (!isValid) {
@@ -110,8 +175,8 @@
 
             } catch (e) {
                 console.error("Verification failed:", e);
-                // Fail CLOSED as per audit
-                throw e; // Propagate error, do not return content
+                // Fail CLOSED — propagate error, do not return content.
+                throw e;
             }
         },
 
