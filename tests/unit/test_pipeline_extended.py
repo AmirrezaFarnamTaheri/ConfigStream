@@ -63,7 +63,6 @@ async def test_pipeline_dry_run(tmp_path, mock_proxies):
             return_value={},
         ),
     ):
-
         # Configure mocked tester to be awaitable on close
         MockTester.return_value.close = AsyncMock()
         MockTester.return_value.go_tester.available = False

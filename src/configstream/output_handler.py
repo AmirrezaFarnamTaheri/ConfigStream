@@ -541,7 +541,7 @@ async def generate_pipeline_outputs(
             )
             if shielded_outbounds:
                 logger.info(
-                    f"✨  Alchemy Success! Resurrected {len(shielded_outbounds)//2} candidates."
+                    f"✨  Alchemy Success! Resurrected {len(shielded_outbounds) // 2} candidates."
                 )
 
                 # P1-E: Truth in Metrics. Shielded chains are candidates until verified.

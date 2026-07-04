@@ -79,9 +79,7 @@ async def _validate_lab_destination(host: object, path: str) -> None:
         # hostname, or the tester must re-validate the resolved address at connect
         # time — documented as a known residual risk for hostname-based configs.
         try:
-            addr_infos = await asyncio.to_thread(
-                socket.getaddrinfo, cleaned, None
-            )
+            addr_infos = await asyncio.to_thread(socket.getaddrinfo, cleaned, None)
             for _family, _socktype, _proto, _canonname, sockaddr in addr_infos:
                 ip_str = sockaddr[0]
                 try:

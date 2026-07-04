@@ -316,9 +316,10 @@ async def source_producer(
                 if stop_event.is_set():
                     break
                 extract_func = partial(extract_config_lines, content, source_url=fpath)
-                file_lines, drop_stats = (
-                    await asyncio.get_running_loop().run_in_executor(None, extract_func)
-                )
+                (
+                    file_lines,
+                    drop_stats,
+                ) = await asyncio.get_running_loop().run_in_executor(None, extract_func)
                 if file_lines:
                     metadata: dict[str, object] = {"drop_stats": drop_stats}
                     queued = await _queue_payload(fpath, file_lines, metadata)

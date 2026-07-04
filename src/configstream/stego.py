@@ -377,7 +377,7 @@ def generate_stego_assets(
             # looks valid but is useless — fail loudly instead.
             raise ValueError(
                 f"STEGO_KEY is set but is not a valid Fernet key: {exc}. "
-                "Generate a valid key with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\""
+                'Generate a valid key with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"'
             ) from exc
     else:
         # No key at all — refuse to proceed so that the CI run fails

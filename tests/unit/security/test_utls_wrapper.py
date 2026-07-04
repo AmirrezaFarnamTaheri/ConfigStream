@@ -46,7 +46,6 @@ async def test_verify_tls_fingerprint_success():
         ),
         patch("asyncio.create_subprocess_exec") as mock_exec,
     ):
-
         mock_proc = MagicMock()
         mock_proc.communicate = AsyncMock(return_value=(b"Success", b""))
         mock_proc.returncode = 0
@@ -70,7 +69,6 @@ async def test_verify_tls_fingerprint_fail():
         ),
         patch("asyncio.create_subprocess_exec") as mock_exec,
     ):
-
         mock_proc = MagicMock()
         mock_proc.communicate = AsyncMock(return_value=(b"", b"Error"))
         mock_proc.returncode = 1

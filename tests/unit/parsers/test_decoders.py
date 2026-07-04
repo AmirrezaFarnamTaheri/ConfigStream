@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Tests for decoder utilities (safe_b64_decode, validate_b64_input)."""
 
-import pytest
 from configstream.parsers.decoders import validate_b64_input, safe_b64_decode
 
 
@@ -96,6 +95,7 @@ class TestSafeB64Decode:
     def test_decode_urlsafe(self):
         """URL-safe base64 decode with - and _."""
         import base64
+
         encoded = base64.urlsafe_b64encode(b"hello world").decode().rstrip("=")
         result = safe_b64_decode(encoded)
         assert result == "hello world"
@@ -120,6 +120,7 @@ class TestSafeB64Decode:
     def test_decode_very_long_input(self):
         """Very long input should still be decoded when MAX_B64_INPUT_SIZE is 0 (unlimited)."""
         import base64
+
         # Create a genuinely long valid base64 string (10KB of 'a's)
         original = b"a" * 10000
         long_b64 = base64.b64encode(original).decode()
@@ -141,6 +142,7 @@ class TestSafeB64Decode:
     def test_decode_utf8_content(self):
         """Base64 encoded UTF-8 content."""
         import base64
+
         encoded = base64.b64encode("héllo wörld".encode()).decode()
         result = safe_b64_decode(encoded)
         assert result is not None
@@ -149,6 +151,7 @@ class TestSafeB64Decode:
     def test_decode_vmess_payload_style(self):
         """VMess-style JSON-in-base64 payload."""
         import base64
+
         payload = '{"add":"1.2.3.4","port":443,"id":"uuid","ps":"remark"}'
         encoded = base64.b64encode(payload.encode()).decode()
         result = safe_b64_decode(encoded)

@@ -74,6 +74,7 @@ try:
 except (ImportError, AttributeError):
     pass
 
+
 @pytest.fixture(scope="function")
 def event_loop():
     """Create a fresh event loop for each test and apply nest_asyncio to it.

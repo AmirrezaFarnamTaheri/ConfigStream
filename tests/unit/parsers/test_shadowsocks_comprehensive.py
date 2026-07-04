@@ -2,7 +2,6 @@
 """Comprehensive tests for Shadowsocks parser beyond basic decoding."""
 
 import base64
-import pytest
 from configstream.parsers.shadowsocks import parse_ss, parse_ss2022
 
 
@@ -26,7 +25,9 @@ class TestSSPluginSupport:
     def test_ss_with_v2ray_plugin(self):
         """SS with v2ray-plugin."""
         encoded = _ss_encode("chacha20-ietf-poly1305:pass")
-        config = f"ss://{encoded}@host:443?plugin=v2ray-plugin;tls;host=example.com;path=/ws"
+        config = (
+            f"ss://{encoded}@host:443?plugin=v2ray-plugin;tls;host=example.com;path=/ws"
+        )
         proxy = parse_ss(config)
         assert proxy is not None
         assert "v2ray-plugin" in proxy.details.get("plugin", "")
@@ -93,7 +94,10 @@ class TestSSClassicFormat:
     def test_classic_format(self):
         """Classic format: base64(method:password:host:port)."""
         import base64
-        payload = base64.b64encode(b"aes-256-gcm:password:1.2.3.4:8388").decode().rstrip("=")
+
+        payload = (
+            base64.b64encode(b"aes-256-gcm:password:1.2.3.4:8388").decode().rstrip("=")
+        )
         config = f"ss://{payload}#test"
         proxy = parse_ss(config)
         assert proxy is not None
@@ -103,6 +107,7 @@ class TestSSClassicFormat:
     def test_classic_format_too_few_parts(self):
         """Classic format with only 3 parts should fail."""
         import base64
+
         payload = base64.b64encode(b"method:pass:host").decode().rstrip("=")
         config = f"ss://{payload}"
         assert parse_ss(config) is None

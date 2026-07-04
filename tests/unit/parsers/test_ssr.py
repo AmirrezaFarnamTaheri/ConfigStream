@@ -2,7 +2,6 @@
 """Comprehensive tests for SSR (ShadowsocksR) parser."""
 
 import base64
-import pytest
 from configstream.parsers.ssr import parse_ssr
 
 
@@ -15,7 +14,9 @@ class TestSSRBasic:
 
     def test_valid_ssr(self):
         """Standard SSR config with all 6 colon-separated fields."""
-        payload = "1.2.3.4:1234:auth_aes128_md5:aes-256-cfb:tls1.2_ticket_auth:Y2hhbGxlbmdl"
+        payload = (
+            "1.2.3.4:1234:auth_aes128_md5:aes-256-cfb:tls1.2_ticket_auth:Y2hhbGxlbmdl"
+        )
         config = f"ssr://{_b64(payload)}"
         proxy = parse_ssr(config)
         assert proxy is not None
@@ -90,7 +91,7 @@ class TestSSREdgeCases:
 
     def test_ssr_long_server_name(self):
         """Server name > 255 chars should be rejected."""
-        payload = _b64(f"{'a'*256}:443:origin:none:plain:password")
+        payload = _b64(f"{'a' * 256}:443:origin:none:plain:password")
         config = f"ssr://{payload}"
         assert parse_ssr(config) is None
 
@@ -131,13 +132,12 @@ class TestSSRRealWorld:
     def test_ssr_typical_subscription_format(self):
         """Typical SSR subscription entry format."""
         params = (
-            "remarks=SGVsbG8="
-            "&group=VGVzdA=="
-            "&obfsparam=d3d3Lmdvb2dsZS5jb20="
-            "&protoparam="
+            "remarks=SGVsbG8=&group=VGVzdA==&obfsparam=d3d3Lmdvb2dsZS5jb20=&protoparam="
         )
         pw = _b64("secret123")
-        payload = f"sg.example.com:12345:auth_aes128_sha1:aes-256-cfb:http:{pw}/?{params}"
+        payload = (
+            f"sg.example.com:12345:auth_aes128_sha1:aes-256-cfb:http:{pw}/?{params}"
+        )
         config = f"ssr://{_b64(payload)}"
         proxy = parse_ssr(config)
         assert proxy is not None

@@ -107,7 +107,6 @@ def test_generate_split_outputs(proxies, output_dir):
         patch("configstream.generators.singbox.to_singbox_outbound") as mock_conv,
         patch("configstream.generators.generate_clash_config", return_value="clash"),
     ):
-
         mock_conv.return_value = {"type": "vless", "tag": "vless-out"}
 
         files = generate_split_outputs(
@@ -141,7 +140,6 @@ async def test_generate_categorized_outputs(proxies, output_dir):
         ),
         patch("configstream.output_transport.ProxyHistoryTracker") as MockHistory,
     ):  # Mock history to return serializable data
-
         # Configure mock history to return empty list (serializable)
         history_instance = MockHistory.return_value
         history_instance.get_history.return_value = []

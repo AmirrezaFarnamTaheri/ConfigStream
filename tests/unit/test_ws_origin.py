@@ -15,7 +15,9 @@ from configstream.server.ws import _is_allowed_origin
 class _MockSettings:
     """Minimal settings stub used in tests."""
 
-    def __init__(self, allowed_origins: str = "", allowed_origin_regex: str = "") -> None:
+    def __init__(
+        self, allowed_origins: str = "", allowed_origin_regex: str = ""
+    ) -> None:
         self.ALLOWED_ORIGINS = allowed_origins
         self.ALLOWED_ORIGIN_REGEX = allowed_origin_regex
 
@@ -112,7 +114,9 @@ def test_proxy_id_always_16_chars() -> None:
     )
     id_val = p_with_uuid.id
     # Previously returned the raw UUID (36 chars); now must be 16 hex chars.
-    assert len(id_val) == 16, f"Expected 16-char hex id, got {len(id_val)!r}: {id_val!r}"
+    assert len(id_val) == 16, (
+        f"Expected 16-char hex id, got {len(id_val)!r}: {id_val!r}"
+    )
     # Must be valid hex
     int(id_val, 16)
 

@@ -68,8 +68,7 @@ def build_vwarp_config(
         country = psiphon_country.upper()
         if country not in PSIPHON_COUNTRY_CODES:
             logger.warning(
-                "Psiphon country '%s' not in known supported list; "
-                "proceeding anyway.",
+                "Psiphon country '%s' not in known supported list; proceeding anyway.",
                 country,
             )
         config["psiphon"] = {"enabled": True, "country": country}

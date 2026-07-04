@@ -85,7 +85,6 @@ async def test_processing_consumer_revival_crash(mock_dependencies_fix):
             "configstream.consumer.validate_batch_configs",
             return_value=[original_proxy],
         ):
-
             # 2. Make initial test fail
             # tester.test_batch updates in place.
             async def fail_initial_batch(batch):

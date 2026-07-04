@@ -4,7 +4,6 @@ from configstream.auto_detect import auto_detect_and_parse
 
 
 class TestAutoDetect(unittest.TestCase):
-
     def test_detect_vmess(self):
         # Valid VMess (simplified b64)
         # {"add":"1.1.1.1","port":443,"id":"uuid","ps":"remark"} -> eyJhZGQiOiIxLjEuMS4xIiwicG9ydCI6NDQzLCJpZCI6InV1aWQiLCJwcyI6InJlbWFyayJ9

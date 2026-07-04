@@ -286,7 +286,7 @@ class ProxyFilter:
 
     def sort_by_country(self) -> "ProxyFilter":
         return ProxyFilter(
-            sorted(self._proxies, key=lambda proxy: (proxy.country_code or ""))
+            sorted(self._proxies, key=lambda proxy: proxy.country_code or "")
         )
 
     def chain(

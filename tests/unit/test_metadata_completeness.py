@@ -43,5 +43,5 @@ def test_save_metadata_contains_all_pipeline_stats_fields() -> None:
     pipeline_stats_keys = set(PipelineStats().to_dict().keys())
     missing = pipeline_stats_keys.difference(meta_keys)
     assert not missing, (
-        "save_metadata meta dict is missing PipelineStats fields: " f"{sorted(missing)}"
+        f"save_metadata meta dict is missing PipelineStats fields: {sorted(missing)}"
     )

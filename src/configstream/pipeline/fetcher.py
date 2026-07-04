@@ -286,7 +286,6 @@ async def fetch_from_source(
                 timeout=effective_timeout,
                 follow_redirects=False,
             ) as response:
-
                 if response.status_code in {301, 302, 303, 307, 308}:
                     if redirects_followed >= max_redirects:
                         response_time = loop.time() - start_ts

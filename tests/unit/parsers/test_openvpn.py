@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Comprehensive tests for OpenVPN parser."""
 
-import pytest
 from configstream.parsers.openvpn import parse_openvpn
 
 
@@ -123,7 +122,7 @@ remote host 65535
         """Hostname > 255 chars should be rejected."""
         config = f"""client
 dev tun
-remote {'a' * 256} 1194
+remote {"a" * 256} 1194
 """
         assert parse_openvpn(config) is None
 
@@ -139,7 +138,7 @@ remote {'a' * 256} 1194
         config = "client\ndev tun\nremote 1.2.3.4 1194\n"
         proxy = parse_openvpn(config)
         assert proxy is not None
-        
+
         # 'client' mid-comment should NOT match
         config2 = "# this is just a comment\ndev tun\nremote 1.2.3.4 1194\n"
         assert parse_openvpn(config2) is None

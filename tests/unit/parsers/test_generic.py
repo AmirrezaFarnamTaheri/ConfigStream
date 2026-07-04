@@ -2,9 +2,11 @@
 """Comprehensive tests for generic parser (parse_generic_url_scheme, parse_naive, parse_v2ray_json)."""
 
 import json
-import pytest
-from configstream.parsers.generic import parse_generic_url_scheme, parse_naive, parse_v2ray_json
-from configstream.models import Proxy
+from configstream.parsers.generic import (
+    parse_generic_url_scheme,
+    parse_naive,
+    parse_v2ray_json,
+)
 
 
 class TestGenericURLScheme:
@@ -122,7 +124,9 @@ class TestNaiveParser:
 
     def test_naive_https(self):
         """Standard Naive HTTPS config."""
-        proxy = parse_naive("naive+https://user:pass@example.com:443?padding=true#MyNaive")
+        proxy = parse_naive(
+            "naive+https://user:pass@example.com:443?padding=true#MyNaive"
+        )
         assert proxy is not None
         assert proxy.protocol == "naive"
         assert proxy.address == "example.com"
@@ -148,7 +152,9 @@ class TestNaiveParser:
 
     def test_naive_html_escaped(self):
         """Naive config with HTML entities should be unescaped."""
-        proxy = parse_naive("naive+https://user:pass@example.com?padding=true#My&amp;Server")
+        proxy = parse_naive(
+            "naive+https://user:pass@example.com?padding=true#My&amp;Server"
+        )
         assert proxy is not None
         assert "&" in proxy.remarks  # &amp; should be unescaped to &
 
@@ -156,19 +162,21 @@ class TestNaiveParser:
 class TestV2RayJsonParser:
     """Tests for parse_v2ray_json."""
 
-    def make_vmess_v2ray(self, address="1.2.3.4", port=443, uuid="550e8400-e29b-41d4-a716-446655440000"):
-        return json.dumps({
-            "outbound": {
-                "protocol": "vmess",
-                "settings": {
-                    "vnext": [{
-                        "address": address,
-                        "port": port,
-                        "users": [{"id": uuid}]
-                    }]
+    def make_vmess_v2ray(
+        self, address="1.2.3.4", port=443, uuid="550e8400-e29b-41d4-a716-446655440000"
+    ):
+        return json.dumps(
+            {
+                "outbound": {
+                    "protocol": "vmess",
+                    "settings": {
+                        "vnext": [
+                            {"address": address, "port": port, "users": [{"id": uuid}]}
+                        ]
+                    },
                 }
             }
-        })
+        )
 
     def test_v2ray_vmess_basic(self):
         """Basic VMess v2ray JSON config."""
@@ -182,18 +190,22 @@ class TestV2RayJsonParser:
 
     def test_v2ray_vless(self):
         """VLESS v2ray JSON config."""
-        config = json.dumps({
-            "outbound": {
-                "protocol": "vless",
-                "settings": {
-                    "vnext": [{
-                        "address": "example.com",
-                        "port": 443,
-                        "users": [{"id": "uuid1234", "encryption": "none"}]
-                    }]
+        config = json.dumps(
+            {
+                "outbound": {
+                    "protocol": "vless",
+                    "settings": {
+                        "vnext": [
+                            {
+                                "address": "example.com",
+                                "port": 443,
+                                "users": [{"id": "uuid1234", "encryption": "none"}],
+                            }
+                        ]
+                    },
                 }
             }
-        })
+        )
         proxy = parse_v2ray_json(config)
         assert proxy is not None
         assert proxy.protocol == "vless"
@@ -202,14 +214,22 @@ class TestV2RayJsonParser:
 
     def test_v2ray_trojan(self):
         """Trojan v2ray JSON config."""
-        config = json.dumps({
-            "outbound": {
-                "protocol": "trojan",
-                "settings": {
-                    "servers": [{"address": "trojan.example.com", "port": 443, "password": "secretpw"}]
+        config = json.dumps(
+            {
+                "outbound": {
+                    "protocol": "trojan",
+                    "settings": {
+                        "servers": [
+                            {
+                                "address": "trojan.example.com",
+                                "port": 443,
+                                "password": "secretpw",
+                            }
+                        ]
+                    },
                 }
             }
-        })
+        )
         proxy = parse_v2ray_json(config)
         assert proxy is not None
         assert proxy.protocol == "trojan"
@@ -217,14 +237,23 @@ class TestV2RayJsonParser:
 
     def test_v2ray_shadowsocks(self):
         """Shadowsocks v2ray JSON config."""
-        config = json.dumps({
-            "outbound": {
-                "protocol": "shadowsocks",
-                "settings": {
-                    "servers": [{"address": "ss.example.com", "port": 8388, "password": "mypass", "method": "aes-256-gcm"}]
+        config = json.dumps(
+            {
+                "outbound": {
+                    "protocol": "shadowsocks",
+                    "settings": {
+                        "servers": [
+                            {
+                                "address": "ss.example.com",
+                                "port": 8388,
+                                "password": "mypass",
+                                "method": "aes-256-gcm",
+                            }
+                        ]
+                    },
                 }
             }
-        })
+        )
         proxy = parse_v2ray_json(config)
         assert proxy is not None
         assert proxy.protocol == "shadowsocks"
@@ -233,28 +262,39 @@ class TestV2RayJsonParser:
 
     def test_v2ray_ss_alias(self):
         """ss protocol alias should normalize to shadowsocks."""
-        config = json.dumps({
-            "outbound": {
-                "protocol": "ss",
-                "settings": {
-                    "servers": [{"address": "ss.example.com", "port": 8388, "password": "pw", "method": "chacha20-ietf-poly1305"}]
+        config = json.dumps(
+            {
+                "outbound": {
+                    "protocol": "ss",
+                    "settings": {
+                        "servers": [
+                            {
+                                "address": "ss.example.com",
+                                "port": 8388,
+                                "password": "pw",
+                                "method": "chacha20-ietf-poly1305",
+                            }
+                        ]
+                    },
                 }
             }
-        })
+        )
         proxy = parse_v2ray_json(config)
         assert proxy is not None
         assert proxy.protocol == "shadowsocks"
 
     def test_v2ray_socks(self):
         """SOCKS v2ray JSON config."""
-        config = json.dumps({
-            "outbound": {
-                "protocol": "socks",
-                "settings": {
-                    "servers": [{"address": "socks.example.com", "port": 1080}]
+        config = json.dumps(
+            {
+                "outbound": {
+                    "protocol": "socks",
+                    "settings": {
+                        "servers": [{"address": "socks.example.com", "port": 1080}]
+                    },
                 }
             }
-        })
+        )
         proxy = parse_v2ray_json(config)
         assert proxy is not None
         assert proxy.protocol == "socks5"
@@ -262,14 +302,16 @@ class TestV2RayJsonParser:
 
     def test_v2ray_http(self):
         """HTTP v2ray JSON config."""
-        config = json.dumps({
-            "outbound": {
-                "protocol": "http",
-                "settings": {
-                    "servers": [{"address": "http.example.com", "port": 3128}]
+        config = json.dumps(
+            {
+                "outbound": {
+                    "protocol": "http",
+                    "settings": {
+                        "servers": [{"address": "http.example.com", "port": 3128}]
+                    },
                 }
             }
-        })
+        )
         proxy = parse_v2ray_json(config)
         assert proxy is not None
         assert proxy.protocol == "http"
@@ -292,54 +334,64 @@ class TestV2RayJsonParser:
 
     def test_v2ray_unknown_protocol(self):
         """Unknown protocol should return None."""
-        assert parse_v2ray_json('{"outbound": {"protocol": "unknown", "settings": {}}}') is None
+        assert (
+            parse_v2ray_json('{"outbound": {"protocol": "unknown", "settings": {}}}')
+            is None
+        )
 
     def test_v2ray_vmess_missing_uuid(self):
         """VMess without UUID should return None."""
-        config = json.dumps({
-            "outbound": {
-                "protocol": "vmess",
-                "settings": {
-                    "vnext": [{"address": "1.2.3.4", "port": 443, "users": [{}]}]
+        config = json.dumps(
+            {
+                "outbound": {
+                    "protocol": "vmess",
+                    "settings": {
+                        "vnext": [{"address": "1.2.3.4", "port": 443, "users": [{}]}]
+                    },
                 }
             }
-        })
+        )
         assert parse_v2ray_json(config) is None
 
     def test_v2ray_trojan_missing_password(self):
         """Trojan without password should return None."""
-        config = json.dumps({
-            "outbound": {
-                "protocol": "trojan",
-                "settings": {
-                    "servers": [{"address": "host", "port": 443}]
+        config = json.dumps(
+            {
+                "outbound": {
+                    "protocol": "trojan",
+                    "settings": {"servers": [{"address": "host", "port": 443}]},
                 }
             }
-        })
+        )
         assert parse_v2ray_json(config) is None
 
     def test_v2ray_stream_settings_ws(self):
         """VMess with WebSocket stream settings."""
-        config = json.dumps({
-            "outbound": {
-                "protocol": "vmess",
-                "settings": {
-                    "vnext": [{
-                        "address": "example.com", "port": 443,
-                        "users": [{"id": "uuid1234"}]
-                    }]
-                },
-                "streamSettings": {
-                    "network": "ws",
-                    "security": "tls",
-                    "wsSettings": {
-                        "path": "/ws",
-                        "headers": {"Host": "example.com"}
+        config = json.dumps(
+            {
+                "outbound": {
+                    "protocol": "vmess",
+                    "settings": {
+                        "vnext": [
+                            {
+                                "address": "example.com",
+                                "port": 443,
+                                "users": [{"id": "uuid1234"}],
+                            }
+                        ]
                     },
-                    "tlsSettings": {"serverName": "example.com"}
+                    "streamSettings": {
+                        "network": "ws",
+                        "security": "tls",
+                        "wsSettings": {
+                            "path": "/ws",
+                            "headers": {"Host": "example.com"},
+                        },
+                        "tlsSettings": {"serverName": "example.com"},
+                    },
                 }
             }
-        })
+        )
         proxy = parse_v2ray_json(config)
         assert proxy is not None
         assert proxy.details.get("net") == "ws"
@@ -350,48 +402,64 @@ class TestV2RayJsonParser:
 
     def test_v2ray_stream_settings_grpc(self):
         """VMess with gRPC stream settings."""
-        config = json.dumps({
-            "outbound": {
-                "protocol": "vmess",
-                "settings": {
-                    "vnext": [{
-                        "address": "example.com", "port": 443,
-                        "users": [{"id": "uuid1234"}]
-                    }]
-                },
-                "streamSettings": {
-                    "network": "grpc",
-                    "grpcSettings": {"serviceName": "mygrpc"}
+        config = json.dumps(
+            {
+                "outbound": {
+                    "protocol": "vmess",
+                    "settings": {
+                        "vnext": [
+                            {
+                                "address": "example.com",
+                                "port": 443,
+                                "users": [{"id": "uuid1234"}],
+                            }
+                        ]
+                    },
+                    "streamSettings": {
+                        "network": "grpc",
+                        "grpcSettings": {"serviceName": "mygrpc"},
+                    },
                 }
             }
-        })
+        )
         proxy = parse_v2ray_json(config)
         assert proxy is not None
         assert proxy.details.get("serviceName") == "mygrpc"
 
     def test_v2ray_reality_settings(self):
         """VLESS with Reality settings."""
-        config = json.dumps({
-            "outbound": {
-                "protocol": "vless",
-                "settings": {
-                    "vnext": [{
-                        "address": "example.com", "port": 443,
-                        "users": [{"id": "uuid1234", "flow": "xtls-rprx-vision", "encryption": "none"}]
-                    }]
-                },
-                "streamSettings": {
-                    "network": "tcp",
-                    "security": "reality",
-                    "realitySettings": {
-                        "serverName": "example.com",
-                        "publicKey": "abc123publickey",
-                        "shortId": "1234",
-                        "fingerprint": "chrome"
-                    }
+        config = json.dumps(
+            {
+                "outbound": {
+                    "protocol": "vless",
+                    "settings": {
+                        "vnext": [
+                            {
+                                "address": "example.com",
+                                "port": 443,
+                                "users": [
+                                    {
+                                        "id": "uuid1234",
+                                        "flow": "xtls-rprx-vision",
+                                        "encryption": "none",
+                                    }
+                                ],
+                            }
+                        ]
+                    },
+                    "streamSettings": {
+                        "network": "tcp",
+                        "security": "reality",
+                        "realitySettings": {
+                            "serverName": "example.com",
+                            "publicKey": "abc123publickey",
+                            "shortId": "1234",
+                            "fingerprint": "chrome",
+                        },
+                    },
                 }
             }
-        })
+        )
         proxy = parse_v2ray_json(config)
         assert proxy is not None
         assert proxy.details.get("security") == "reality"
@@ -407,14 +475,24 @@ class TestV2RayJsonParser:
 
     def test_v2ray_outbounds_list(self):
         """Config with outbounds array should use first entry."""
-        config = json.dumps({
-            "outbounds": [{
-                "protocol": "vmess",
-                "settings": {
-                    "vnext": [{"address": "10.0.0.1", "port": 8443, "users": [{"id": "test-uuid"}]}]
-                }
-            }]
-        })
+        config = json.dumps(
+            {
+                "outbounds": [
+                    {
+                        "protocol": "vmess",
+                        "settings": {
+                            "vnext": [
+                                {
+                                    "address": "10.0.0.1",
+                                    "port": 8443,
+                                    "users": [{"id": "test-uuid"}],
+                                }
+                            ]
+                        },
+                    }
+                ]
+            }
+        )
         proxy = parse_v2ray_json(config)
         assert proxy is not None
         assert proxy.address == "10.0.0.1"
@@ -422,50 +500,77 @@ class TestV2RayJsonParser:
 
     def test_v2ray_shadowsocks_missing_password(self):
         """Shadowsocks without password should return None."""
-        config = json.dumps({
-            "outbound": {
-                "protocol": "shadowsocks",
-                "settings": {
-                    "servers": [{"address": "host", "port": 443, "method": "aes-256-gcm"}]
+        config = json.dumps(
+            {
+                "outbound": {
+                    "protocol": "shadowsocks",
+                    "settings": {
+                        "servers": [
+                            {"address": "host", "port": 443, "method": "aes-256-gcm"}
+                        ]
+                    },
                 }
             }
-        })
+        )
         assert parse_v2ray_json(config) is None
 
     def test_v2ray_shadowsocks_invalid_method(self):
         """Shadowsocks with invalid method should return None."""
-        config = json.dumps({
-            "outbound": {
-                "protocol": "shadowsocks",
-                "settings": {
-                    "servers": [{"address": "host", "port": 443, "password": "pw", "method": "aes"}]
+        config = json.dumps(
+            {
+                "outbound": {
+                    "protocol": "shadowsocks",
+                    "settings": {
+                        "servers": [
+                            {
+                                "address": "host",
+                                "port": 443,
+                                "password": "pw",
+                                "method": "aes",
+                            }
+                        ]
+                    },
                 }
             }
-        })
+        )
         assert parse_v2ray_json(config) is None
 
     def test_v2ray_vmess_alter_id(self):
         """VMess with alterId."""
-        config = json.dumps({
-            "outbound": {
-                "protocol": "vmess",
-                "settings": {
-                    "vnext": [{
-                        "address": "1.2.3.4", "port": 443,
-                        "users": [{"id": "uuid1234", "alterId": 64}]
-                    }]
+        config = json.dumps(
+            {
+                "outbound": {
+                    "protocol": "vmess",
+                    "settings": {
+                        "vnext": [
+                            {
+                                "address": "1.2.3.4",
+                                "port": 443,
+                                "users": [{"id": "uuid1234", "alterId": 64}],
+                            }
+                        ]
+                    },
                 }
             }
-        })
+        )
         proxy = parse_v2ray_json(config)
         assert proxy is not None
         assert proxy.details.get("aid") == 64
 
     def test_v2ray_no_address(self):
         """Config missing address should return None."""
-        assert parse_v2ray_json(json.dumps({
-            "outbound": {
-                "protocol": "vmess",
-                "settings": {"vnext": [{"port": 443, "users": [{"id": "uuid"}]}]}
-            }
-        })) is None
+        assert (
+            parse_v2ray_json(
+                json.dumps(
+                    {
+                        "outbound": {
+                            "protocol": "vmess",
+                            "settings": {
+                                "vnext": [{"port": 443, "users": [{"id": "uuid"}]}]
+                            },
+                        }
+                    }
+                )
+            )
+            is None
+        )

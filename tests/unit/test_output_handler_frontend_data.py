@@ -108,7 +108,9 @@ async def test_generate_pipeline_outputs_preserves_revived_process_and_dns_flags
     # Proxy.id is now always the 16-char SHA-256 hash (P1-5 fix), not the raw
     # uuid string.  Look up by the computed id instead of the literal "revived-test".
     revived_computed_id = revived.id
-    revived_in_proxies = [row for row in proxies if row.get("id") == revived_computed_id]
+    revived_in_proxies = [
+        row for row in proxies if row.get("id") == revived_computed_id
+    ]
     assert revived_in_proxies, (
         f"Expected proxy with id={revived_computed_id!r} in proxies.json; "
         f"found ids: {[row.get('id') for row in proxies]}"

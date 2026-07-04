@@ -108,9 +108,9 @@ class TestPipelineStatsSync:
     def test_to_dict_is_not_async(self):
         """to_dict must be a regular function, not a coroutine."""
         stats = PipelineStats()
-        assert not inspect.iscoroutinefunction(
-            stats.to_dict
-        ), "to_dict must be synchronous (not async) to avoid coroutine-without-await bugs"
+        assert not inspect.iscoroutinefunction(stats.to_dict), (
+            "to_dict must be synchronous (not async) to avoid coroutine-without-await bugs"
+        )
 
     def test_to_dict_returns_dict_directly(self):
         """to_dict should return a dict, not a coroutine object."""

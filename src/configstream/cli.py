@@ -112,7 +112,6 @@ def merge(
             TaskProgressColumn(),
             console=console,
         ) as progress:
-
             result = await run_full_pipeline(
                 sources=valid_sources,
                 output_dir=output,
@@ -385,7 +384,7 @@ def generate_warp(count):
     async def _gen():
         for i in range(count):
             p = await generate_warp_proxy()
-            console.print(f"\n[bold green]Config #{i+1}:[/bold green]")
+            console.print(f"\n[bold green]Config #{i + 1}:[/bold green]")
             console.print(f"Protocol: {p.protocol}")
             console.print(f"Details: {p.details}")
             console.print(f"[dim]{p.config}[/dim]")

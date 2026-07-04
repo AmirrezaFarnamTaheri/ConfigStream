@@ -53,7 +53,9 @@ def record_rejection(protocol: str, reason: str) -> None:
 def get_rejection_stats() -> Dict[str, int]:
     """Return aggregated rejection counts keyed as 'protocol:reason'."""
     with _rejections_lock:
-        return {f"{proto}:{reason}": count for (proto, reason), count in _rejections.items()}
+        return {
+            f"{proto}:{reason}": count for (proto, reason), count in _rejections.items()
+        }
 
 
 def reset_rejection_stats() -> None:

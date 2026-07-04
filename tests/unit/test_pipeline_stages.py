@@ -44,9 +44,15 @@ def mock_dependencies():
     # Return a plain object with string attributes — not a bare MagicMock —
     # so that Pydantic's validate_assignment does not reject MagicMock values
     # when the consumer assigns p.country / p.city / p.asn / p.org (P1-4 fix).
-    _geo_result = MagicMock(spec=[
-        "country_code", "country_name", "city", "asn", "org",
-    ])
+    _geo_result = MagicMock(
+        spec=[
+            "country_code",
+            "country_name",
+            "city",
+            "asn",
+            "org",
+        ]
+    )
     _geo_result.country_code = "US"
     _geo_result.country_name = "United States"
     _geo_result.city = "TestCity"
