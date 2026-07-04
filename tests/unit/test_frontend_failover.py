@@ -136,7 +136,7 @@ def test_failover_preserves_leaf_page_and_prevents_session_loop(
 
     assert result["attempted"] == "1"
     assert result["firstHref"] == (
-        "https://dweb.link/ipns/k51qzi5uqu5d-real-key/" "proxies.html?country=US#row-1"
+        "https://dweb.link/ipns/k51qzi5uqu5d-real-key/proxies.html?country=US#row-1"
     )
     assert result["href"] == result["firstHref"]
     assert result["calls"] == [

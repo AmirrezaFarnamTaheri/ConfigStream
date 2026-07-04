@@ -110,9 +110,7 @@ def _patch_anyio_current_task() -> None:
         return
 
     _orig_current_task = anyio_asyncio.current_task
-    _sentinel_tasks: (
-        "weakref.WeakKeyDictionary[asyncio.AbstractEventLoop, asyncio.Task]"
-    ) = weakref.WeakKeyDictionary()
+    _sentinel_tasks: "weakref.WeakKeyDictionary[asyncio.AbstractEventLoop, asyncio.Task]" = weakref.WeakKeyDictionary()
 
     async def _keepalive() -> None:
         await asyncio.Event().wait()
@@ -136,5 +134,28 @@ def _patch_anyio_current_task() -> None:
     anyio_asyncio.current_task = _safe_current_task
 
 
-_patch_sniffio_for_asyncio()
-_patch_anyio_current_task()
+def _apply_compat_patches() -> None:
+    """Apply sniffio/anyio compatibility patches.
+
+    These patches work around detection failures in specific
+    Python/asyncio version combinations (P3 / nest_asyncio elimination
+    strategic item).  They are applied only when
+    ``CONFIGSTREAM_COMPAT_PATCHES=1`` is set in the environment so that
+    clean production deployments on supported runtimes do not carry
+    unnecessary monkeypatches.  The test suite sets this variable via
+    ``conftest.py`` for environments that still need it.
+
+    Set ``CONFIGSTREAM_COMPAT_PATCHES=1`` to opt in.
+    """
+    import os
+
+    if os.environ.get("CONFIGSTREAM_COMPAT_PATCHES", "").lower() in (
+        "1",
+        "true",
+        "yes",
+    ):
+        _patch_sniffio_for_asyncio()
+        _patch_anyio_current_task()
+
+
+_apply_compat_patches()

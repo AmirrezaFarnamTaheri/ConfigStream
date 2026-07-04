@@ -228,7 +228,10 @@ def setup_logging(
         # Use RotatingFileHandler to prevent log files from growing too large
         # Max size: 10MB, keep 5 backup files
         file_handler = RotatingFileHandler(
-            log_path, maxBytes=10 * 1024 * 1024, backupCount=5, encoding="utf-8"  # 10MB
+            log_path,
+            maxBytes=10 * 1024 * 1024,
+            backupCount=5,
+            encoding="utf-8",  # 10MB
         )
         file_handler.setLevel(log_level_value)
         file_handler.setFormatter(logging.Formatter(fmt))

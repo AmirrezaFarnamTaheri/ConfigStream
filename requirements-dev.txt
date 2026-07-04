@@ -1,0 +1,63 @@
+# Development, testing, ML, and audit dependencies.
+# These must NOT be installed in the production Docker image.
+# Install with: pip install -r requirements-dev.txt
+-r requirements-prod.txt
+
+# Linting and type-checking
+black==26.5.1
+flake8==7.3.0
+mypy==2.1.0
+mypy_extensions==1.1.0
+mccabe==0.7.0
+pycodestyle==2.14.0
+pyflakes==3.4.0
+types-PyYAML==6.0.12.20260518
+types-aiofiles==25.1.0.20260518
+types-cachetools==6.2.0.20251022
+types-orjson==3.6.2
+types-psutil==7.2.2.20260518
+typing-inspection==0.4.2
+wrapt==2.2.2
+
+# Testing
+backports.asyncio.runner==1.0.0; python_version < "3.11"
+coverage==7.14.3
+hypothesis==6.155.7
+iniconfig==2.3.0
+playwright==1.61.0
+pluggy==1.6.0
+pyfakefs==6.2.0
+pyee==13.0.0
+pytest==9.1.1
+pytest-aiohttp==1.1.1
+pytest-asyncio==1.4.0
+pytest-base-url==2.1.0
+pytest-cov==7.1.0
+pytest-playwright==0.8.0
+respx==0.23.1
+sortedcontainers==2.4.0
+tomli_w==1.2.0
+
+# ML / data-science (used only in experimental scoring; not required for production pipeline)
+numpy==2.2.6
+scikit-learn==1.7.2
+scipy==1.15.3
+joblib==1.5.3
+threadpoolctl==3.6.0
+greenlet==3.2.4
+
+# Security audit tools
+pip_audit==2.10.1
+cyclonedx-python-lib==11.11.0
+annotated-doc==0.0.4
+ast_serialize==0.6.0
+boolean.py==5.0
+license-expression==30.4.4
+packageurl-python==0.17.6
+pip-api==0.0.34
+pip-requirements-parser==32.0.1
+py-serializable==2.1.0
+pytokens==0.4.1
+
+# WASM build tooling (used by build_wasm.sh; not at runtime)
+wasmtime==45.0.0

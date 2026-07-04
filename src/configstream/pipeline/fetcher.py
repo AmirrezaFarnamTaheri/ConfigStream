@@ -5,7 +5,7 @@ import logging
 import socket
 from secrets import choice as secure_choice
 from urllib.parse import urlparse, urljoin
-from typing import Any, Dict, Optional, Tuple, List
+from typing import Any, Dict, Optional, Tuple, List, Union
 import httpx
 
 from configstream.concurrency_manager import ConcurrencyManager
@@ -218,12 +218,16 @@ async def fetch_from_source(
                 status_code=0,
             )
 
-    # Rate Limiter Pre-check
+    # Rate Limiter Pre-check: retry until a token is available.
+    # Ensures the limiter enforces the per-source cap even under concurrent load.
     if rate_limiter:
-        if not await rate_limiter.is_allowed(source):
+        while not await rate_limiter.is_allowed(source):
             wait_time = await rate_limiter.get_wait_time(source)
             if wait_time > 0:
                 await asyncio.sleep(wait_time)
+            else:
+                # Avoid busy-spinning if get_wait_time returns 0.
+                await asyncio.sleep(0.01)
 
     headers = {"User-Agent": secure_choice(USER_AGENTS)}
     attempt = 0
@@ -286,7 +290,6 @@ async def fetch_from_source(
                 timeout=effective_timeout,
                 follow_redirects=False,
             ) as response:
-
                 if response.status_code in {301, 302, 303, 307, 308}:
                     if redirects_followed >= max_redirects:
                         response_time = loop.time() - start_ts
@@ -532,6 +535,43 @@ async def fetch_from_source(
     )
 
 
+class _SimpleRateLimiter:
+    """Minimal per-source token-bucket rate limiter.
+
+    Replaces the ``rate_limiter = None`` dead-code assignment in
+    ``fetch_multiple_sources`` (P1-7 fix).  Each source URL gets its own
+    token bucket that replenishes at ``rate_per_second`` tokens per second
+    and bursts up to ``burst`` tokens.
+    """
+
+    def __init__(self, rate_per_second: float = 2.0, burst: int = 5):
+        self._rate = rate_per_second
+        self._burst = burst
+        # Map source -> (tokens, last_refill_time) tuple
+        self._buckets: Dict[str, Tuple[float, float]] = {}
+        self._lock = asyncio.Lock()
+
+    async def is_allowed(self, source: str) -> bool:
+        async with self._lock:
+            now = asyncio.get_event_loop().time()
+            tokens, last = self._buckets.get(source, (float(self._burst), now))
+            elapsed = now - last
+            tokens = min(self._burst, tokens + elapsed * self._rate)
+            if tokens >= 1.0:
+                self._buckets[source] = (tokens - 1.0, now)
+                return True
+            self._buckets[source] = (tokens, now)
+            return False
+
+    async def get_wait_time(self, source: str) -> float:
+        async with self._lock:
+            now = asyncio.get_event_loop().time()
+            tokens, _ = self._buckets.get(source, (float(self._burst), now))
+            if tokens >= 1.0:
+                return 0.0
+            return (1.0 - tokens) / self._rate
+
+
 async def fetch_multiple_sources(
     sources: List[str],
     max_concurrent: int = 10,
@@ -542,8 +582,8 @@ async def fetch_multiple_sources(
     quality_tracker: Optional[SourceQualityTracker] = None,
     breaker_manager: Optional[CircuitBreakerManager] = None,
 ) -> Dict[str, FetchResult]:
-    """
-    High-level entry point for batch fetching.
+    """High-level entry point for batch fetching.
+
     Orchestrates rate limits, DNS pre-warming, and concurrency.
     """
     results: Dict[str, FetchResult] = {}
@@ -551,7 +591,14 @@ async def fetch_multiple_sources(
 
     # Initialize Components
     timeout_tracker = AdaptiveTimeout() if use_adaptive_timeout else None
-    rate_limiter = None
+    # Wire a real per-source rate limiter (was dead ``rate_limiter = None``,
+    # P1-7 fix).  Uses a simple token-bucket so that no single source can be
+    # hammered on retries even if the circuit breaker has not opened yet.
+    rate_limiter: Optional[_SimpleRateLimiter] = _SimpleRateLimiter(
+        rate_per_second=app_settings.FETCH_RATE_LIMIT_RPS
+        if hasattr(app_settings, "FETCH_RATE_LIMIT_RPS")
+        else 2.0
+    )
     if breaker_manager is None:
         breaker_manager = CircuitBreakerManager(
             failure_threshold=app_settings.CIRCUIT_TRIP_CONN_ERRORS,

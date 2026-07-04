@@ -333,6 +333,10 @@ async def test_admin_notify_accepts_valid_key_in_production(async_client, monkey
 async def test_admin_notify_allows_unkeyed_development(async_client, monkeypatch):
     monkeypatch.delenv("ADMIN_API_KEY", raising=False)
     monkeypatch.setenv("ENVIRONMENT", "development")
+    # P1-8 fix: the non-production bypass now also requires
+    # ALLOW_UNAUTHENTICATED_ADMIN=true to prevent misuse of the ENVIRONMENT
+    # label as an implicit auth bypass.
+    monkeypatch.setenv("ALLOW_UNAUTHENTICATED_ADMIN", "true")
 
     response = await async_client.post("/api/admin/notify-update", json={})
 

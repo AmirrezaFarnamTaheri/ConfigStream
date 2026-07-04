@@ -322,7 +322,6 @@ class TestEventStream:
     @pytest.mark.asyncio
     async def test_aclose_flushes_and_stops_writer_thread(self, tmp_path):
         """aclose() flushes event stream, writes a close event, and joins the writer thread."""
-        import pytest
 
         stream = EventStream(tmp_path)
         stream.emit("info", "Before close")

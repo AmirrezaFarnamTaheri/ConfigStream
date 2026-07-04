@@ -43,23 +43,27 @@ class GeoIPResolver:
         return cls._instance
 
     def __init__(self):
-        if getattr(self, "_initialized", False):
-            return
+        # Guard under the class-level lock so that a second thread cannot
+        # slip past the _initialized check between __new__ releasing the lock
+        # and __init__ setting _initialized = True.
+        with self.__class__._lock:
+            if getattr(self, "_initialized", False):
+                return
 
-        self.settings = AppSettings()
-        self.reader_city: Optional[geoip2.database.Reader] = None
-        self.reader_asn: Optional[geoip2.database.Reader] = None
+            self.settings = AppSettings()
+            self.reader_city: Optional[geoip2.database.Reader] = None
+            self.reader_asn: Optional[geoip2.database.Reader] = None
 
-        # Use threading.Lock for sync context - asyncio.Lock created lazily
-        self._lookup_lock: Optional[asyncio.Lock] = None
-        self._last_mtime: float = 0.0
+            # Use threading.Lock for sync context - asyncio.Lock created lazily
+            self._lookup_lock: Optional[asyncio.Lock] = None
+            self._last_mtime: float = 0.0
 
-        # Track if C extension (MMAP) mode is used - readers are thread-safe in this mode
-        self._uses_c_extension: bool = False
+            # Track if C extension (MMAP) mode is used - readers are thread-safe in this mode
+            self._uses_c_extension: bool = False
 
-        # Load synchronously
-        self._load_databases()
-        self._initialized = True
+            # Load synchronously
+            self._load_databases()
+            self._initialized = True
 
     def _load_databases(self) -> None:
         """Load MMDB files if available."""
@@ -133,15 +137,25 @@ class GeoIPResolver:
         return self._lookup_lock
 
     def _check_reload_needed(self):
-        """Check if DB file has changed on disk."""
+        """Check if DB file has changed on disk (thread-safe double-checked reload)."""
         try:
             p = Path(self.settings.GEOIP_CITY_DB_PATH)
-            if p.exists():
+            if not p.exists():
+                return
+            mtime = p.stat().st_mtime
+            # Fast path: no change detected without the lock.
+            if mtime <= self._last_mtime:
+                return
+            # Slow path: acquire the class lock so only one thread performs
+            # the reload even if multiple threads detected the mtime change.
+            with self.__class__._lock:
+                # Re-read mtime inside the lock (double-checked locking).
                 mtime = p.stat().st_mtime
-                if mtime > self._last_mtime:
-                    logger.info("GeoIP database changed. Reloading...")
-                    self.close()
-                    self._load_databases()
+                if mtime <= self._last_mtime:
+                    return
+                logger.info("GeoIP database changed. Reloading...")
+                self.close()
+                self._load_databases()
         except Exception:  # nosec B110
             pass
 
@@ -215,11 +229,18 @@ class GeoIPResolver:
         return result
 
     def close(self) -> None:
-        """Close GeoIP database readers and release resources."""
+        """Close GeoIP database readers and release resources.
+
+        After closing, the reader attributes are set to None so that any
+        concurrent _do_lookup call racing against a reload cannot call
+        .city()/.asn() on a closed reader.
+        """
         if self.reader_city:
             self.reader_city.close()
+            self.reader_city = None
         if self.reader_asn:
             self.reader_asn.close()
+            self.reader_asn = None
 
     def log_enrichment_stats(self, proxies: List[Any]) -> Dict[str, int]:
         """Log and return GeoIP enrichment statistics.

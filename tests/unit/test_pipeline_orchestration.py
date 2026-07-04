@@ -6,7 +6,6 @@ from configstream.pipeline_stats import PipelineResult
 
 @pytest.mark.asyncio
 async def test_run_full_pipeline_dry_run(tmp_path):
-    import configstream.pipeline.core  # Fix AttributeError on core missing
 
     # Import here to avoid stale module reference if other tests reload modules
     from configstream.pipeline import run_full_pipeline
@@ -27,7 +26,6 @@ async def test_run_full_pipeline_dry_run(tmp_path):
         patch("configstream.pipeline.GeoIPResolver"),
         patch("configstream.pipeline.EventStream") as mock_event_stream,
     ):
-
         mock_tester = mock_tester_cls.return_value
         mock_tester.go_tester = MagicMock()
         mock_tester.go_tester.available = False
@@ -53,7 +51,6 @@ async def test_run_full_pipeline_dry_run(tmp_path):
 
 @pytest.mark.asyncio
 async def test_pipeline_auto_scaling(tmp_path):
-    import configstream.pipeline.core  # Fix AttributeError on core missing
 
     # Import here to avoid stale module reference if other tests reload modules
     from configstream.pipeline import run_full_pipeline
@@ -71,7 +68,6 @@ async def test_pipeline_auto_scaling(tmp_path):
         patch("multiprocessing.cpu_count", return_value=8),
         patch("configstream.pipeline.EventStream") as mock_event_stream,
     ):
-
         mock_tester = mock_tester_cls.return_value
         mock_tester.go_tester = MagicMock()
         mock_tester.go_tester.available = False
@@ -84,7 +80,6 @@ async def test_pipeline_auto_scaling(tmp_path):
 @pytest.mark.asyncio
 async def test_pipeline_time_limit_zero_working(tmp_path):
     import asyncio
-    import configstream.pipeline.core  # Fix AttributeError on core missing
     from configstream.pipeline import run_full_pipeline
 
     with (

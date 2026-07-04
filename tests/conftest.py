@@ -8,6 +8,12 @@ import time
 import httpx
 import os
 from pathlib import Path
+
+# Opt into the configstream sniffio/anyio compat patches for the test
+# environment (they are now gated behind this var instead of running
+# unconditionally at import time — see P3 / __init__.py fix).
+os.environ.setdefault("CONFIGSTREAM_COMPAT_PATCHES", "1")
+
 from configstream.config import AppSettings
 
 # Apply global patch to AppSettings to dynamically update settings when environment changes in tests
@@ -68,16 +74,14 @@ try:
 except (ImportError, AttributeError):
     pass
 
-# Apply nest_asyncio globally
-nest_asyncio.apply()
-
 
 @pytest.fixture(scope="function")
 def event_loop():
-    """
-    Create an instance of the default event loop for each test.
-    Explicitly sets the loop as current to prevent 'Runner.run' conflicts
-    and applies nest_asyncio for reentrancy support.
+    """Create a fresh event loop for each test and apply nest_asyncio to it.
+
+    nest_asyncio is applied per-loop rather than globally (previous behaviour
+    called ``nest_asyncio.apply()`` at module level which patched the global
+    loop selector and could leak state between test sessions).
     """
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
@@ -89,10 +93,7 @@ def event_loop():
 
 @pytest.fixture(scope="function")
 def isolate_asyncio():
-    """
-    Fixture to isolate asyncio loop for a test.
-    Useful if a test modifies loop state significantly.
-    """
+    """Isolate asyncio loop for tests that modify loop state significantly."""
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     nest_asyncio.apply(loop)

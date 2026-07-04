@@ -130,6 +130,10 @@ class TestStegoPacker:
 
 
 class TestGenerateStegoAssets:
+    # A valid Fernet key for tests that do not supply one explicitly.
+    # generate_stego_assets now requires STEGO_KEY to be set (P2-17 fix).
+    _TEST_KEY: str = Fernet.generate_key().decode("utf-8")
+
     def test_generate_with_existing_config(self, tmp_path: Path) -> None:
         config_dir = tmp_path / "configs"
         assets_dir = tmp_path / "assets"
@@ -140,7 +144,7 @@ class TestGenerateStegoAssets:
         _make_valid_png(assets_dir / "cover1.png")
         _make_valid_png(assets_dir / "cover2.png", rgba=False)
 
-        generate_stego_assets(config_dir, assets_dir)
+        generate_stego_assets(config_dir, assets_dir, self._TEST_KEY)
         assert (config_dir / "stealth_cover1.png").exists()
         assert (config_dir / "stealth_cover2.png").exists()
 
@@ -175,7 +179,9 @@ class TestGenerateStegoAssets:
         config_dir.mkdir()
         assets_dir.mkdir()
         (config_dir / "singbox.json").write_text('{"test":"data"}', encoding="utf-8")
-        generate_stego_assets(config_dir, assets_dir)
+        # Supply a valid key so the P2-17 hard-fail is not triggered before
+        # the "no cover images" log message is produced.
+        generate_stego_assets(config_dir, assets_dir, self._TEST_KEY)
         assert any("no cover images" in r.message.lower() for r in caplog.records)
 
 

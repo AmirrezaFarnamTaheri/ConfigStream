@@ -498,7 +498,10 @@ class TestShadowrocketAdapter:
         """Test that unsupported protocols are skipped."""
         adapter = ShadowrocketAdapter()
         proxy = Proxy(
-            config="unknown", protocol="unknown", address="test.com", port=443  # No ://
+            config="unknown",
+            protocol="unknown",
+            address="test.com",
+            port=443,  # No ://
         )
         result = adapter.export([proxy])
 

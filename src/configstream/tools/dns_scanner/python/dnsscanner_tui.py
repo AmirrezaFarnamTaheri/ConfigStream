@@ -205,7 +205,7 @@ class SlipstreamManager:
                         progress_callback(
                             downloaded,
                             0,
-                            f"Resuming from {downloaded / (1024*1024):.1f} MB...",
+                            f"Resuming from {downloaded / (1024 * 1024):.1f} MB...",
                         )
 
                 async with httpx.AsyncClient(
@@ -335,7 +335,7 @@ class SlipstreamManager:
                 if downloaded > 0:
                     headers["Range"] = f"bytes={downloaded}-"
                     log_widget.write(
-                        f"[cyan]Resuming from {downloaded / (1024*1024):.1f} MB...[/cyan]"
+                        f"[cyan]Resuming from {downloaded / (1024 * 1024):.1f} MB...[/cyan]"
                     )
 
                 async with httpx.AsyncClient(
@@ -367,7 +367,7 @@ class SlipstreamManager:
                             continue
 
                         log_widget.write(
-                            f"[cyan]Downloading...[/cyan] Total: {total / (1024*1024):.1f} MB"
+                            f"[cyan]Downloading...[/cyan] Total: {total / (1024 * 1024):.1f} MB"
                         )
 
                         with open(temp_path, mode) as f:
@@ -677,9 +677,9 @@ class DNSScannerTUI(App):
         self.slipstream_domain = ""
         self.found_servers: Set[str] = set()
         self.server_times: dict[str, float] = {}
-        self.proxy_results: dict[str, str] = (
-            {}
-        )  # IP -> "Success", "Failed", or "Testing"
+        self.proxy_results: dict[
+            str, str
+        ] = {}  # IP -> "Success", "Failed", or "Testing"
         self.start_time = 0.0
         self.last_update_time = 0.0
         self.last_table_update_time = 0.0
@@ -701,9 +701,7 @@ class DNSScannerTUI(App):
         self.slipstream_tasks: set = set()  # Track running slipstream tasks
         self.active_scan_tasks: list = []  # Track active DNS scan tasks for cleanup
         self._shutdown_event: asyncio.Event = None  # Signal for graceful shutdown
-        self.slipstream_processes: list = (
-            []
-        )  # Track all slipstream processes for cleanup
+        self.slipstream_processes: list = []  # Track all slipstream processes for cleanup
 
     def compose(self) -> ComposeResult:
         """Create child widgets."""
@@ -1364,7 +1362,7 @@ class DNSScannerTUI(App):
                 # Add to found servers and table immediately
                 self._add_result(ip, response_time)
                 self._log(
-                    f"[green]✓ Found DNS: {ip} ({response_time*1000:.0f}ms)[/green]"
+                    f"[green]✓ Found DNS: {ip} ({response_time * 1000:.0f}ms)[/green]"
                 )
 
                 # Queue slipstream test if enabled (non-blocking)
@@ -1448,12 +1446,12 @@ class DNSScannerTUI(App):
                     # If we got a result and it's under 2000ms, it's a valid DNS server
                     if result and elapsed < 2.0:
                         logger.debug(
-                            f"{ip}: DNS responded - {type(result)} in {elapsed*1000:.0f}ms"
+                            f"{ip}: DNS responded - {type(result)} in {elapsed * 1000:.0f}ms"
                         )
                         return (ip, True, elapsed)
                     elif result:
                         # Too slow, reject it
-                        logger.debug(f"{ip}: DNS too slow - {elapsed*1000:.0f}ms")
+                        logger.debug(f"{ip}: DNS too slow - {elapsed * 1000:.0f}ms")
                         return (ip, False, 0)
 
                     # No response
@@ -1471,7 +1469,7 @@ class DNSScannerTUI(App):
                     # 3 = NXRRSET (RR type doesn't exist - but DNS is working!)
                     if error_code in (1, 3, 4) and elapsed < 2.0:
                         logger.info(
-                            f"{ip}: DNS working with error code {error_code} in {elapsed*1000:.0f}ms"
+                            f"{ip}: DNS working with error code {error_code} in {elapsed * 1000:.0f}ms"
                         )
                         return (ip, True, elapsed)
                     elif error_code in (1, 3, 4):

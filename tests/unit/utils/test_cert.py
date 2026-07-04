@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 sys.modules["OpenSSL"] = MagicMock()
 sys.modules["OpenSSL.crypto"] = MagicMock()
 
-from configstream.utils.cert import generate_self_signed_cert
+from configstream.utils.cert import generate_self_signed_cert  # noqa: E402
 
 
 def test_cert_generation_mock():

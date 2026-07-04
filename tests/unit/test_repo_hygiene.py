@@ -40,9 +40,9 @@ def test_no_tracked_generated_artifacts() -> None:
 
     # Allow docs/ within these if they are legitimate, but usually they aren't
     # In this repo, these directories should be empty or ignored
-    assert (
-        not forbidden_tracked
-    ), f"Generated artifacts are being tracked: {forbidden_tracked[:10]}..."
+    assert not forbidden_tracked, (
+        f"Generated artifacts are being tracked: {forbidden_tracked[:10]}..."
+    )
 
 
 def test_no_tokens_in_tracked_sources() -> None:

@@ -63,9 +63,16 @@ async def test_processing_consumer_flow():
     from unittest.mock import AsyncMock
 
     mock_geoip = MagicMock()
-    mock_geoip.lookup = AsyncMock(
-        return_value=MagicMock(country_code="US", city="Test", asn="AS1", org="Org")
-    )
+    # Use spec-constrained mock with explicit string values so Pydantic's
+    # validate_assignment does not reject MagicMock objects when the consumer
+    # assigns p.country_name / p.city / p.asn / p.org (P1-4 fix).
+    _geo = MagicMock(spec=["country_code", "country_name", "city", "asn", "org"])
+    _geo.country_code = "US"
+    _geo.country_name = "United States"
+    _geo.city = "Test"
+    _geo.asn = "AS1"
+    _geo.org = "Org"
+    mock_geoip.lookup = AsyncMock(return_value=_geo)
 
     tracker = PerformanceTracker()
     mock_quality = MagicMock(spec=SourceQualityTracker)

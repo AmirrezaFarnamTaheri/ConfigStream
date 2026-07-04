@@ -112,7 +112,6 @@ def merge(
             TaskProgressColumn(),
             console=console,
         ) as progress:
-
             result = await run_full_pipeline(
                 sources=valid_sources,
                 output_dir=output,
@@ -385,7 +384,7 @@ def generate_warp(count):
     async def _gen():
         for i in range(count):
             p = await generate_warp_proxy()
-            console.print(f"\n[bold green]Config #{i+1}:[/bold green]")
+            console.print(f"\n[bold green]Config #{i + 1}:[/bold green]")
             console.print(f"Protocol: {p.protocol}")
             console.print(f"Details: {p.details}")
             console.print(f"[dim]{p.config}[/dim]")
@@ -436,26 +435,25 @@ def backup(days, dir):
         console.print(f"[green]Backed up {b.name}[/green]")
 
 
-@main.command()
+@main.command(
+    deprecated=True,
+    epilog=(
+        "This command is deprecated and will be removed in a future release. "
+        "Active DNS scanning was disabled to comply with the ConfigStream "
+        "no-third-party-scanning policy. See the wiki for alternatives."
+    ),
+)
 def scan_dns():
-    """Launch the interactive DNS Scanner TUI."""
-    import sys
-    from pathlib import Path
+    """[DEPRECATED] Launch the interactive DNS Scanner TUI.
 
-    scanner_script = (
-        Path(__file__).parent / "tools" / "dns_scanner" / "python" / "dnsscanner_tui.py"
-    )
-
-    if not scanner_script.exists():
-        console.print(
-            f"[bold red]Error: Scanner script not found at {scanner_script}[/bold red]"
-        )
-        sys.exit(1)
-
-    console.print("[green]Launching DNS Scanner TUI...[/green]")
+    This command no longer performs any scanning. It is retained only for
+    backwards-compatibility with existing scripts and will be removed in the
+    next major release (S-4 governance).
+    """
     console.print(
-        "[yellow]Notice: Active DNS scanning functionality has been disabled to comply "
-        "with the strict no-third-party-scanning policy for ConfigStream.[/yellow]"
+        "[bold yellow]scan_dns is deprecated and does nothing.[/bold yellow]\n"
+        "[yellow]Active DNS scanning has been disabled to comply with the "
+        "ConfigStream no-third-party-scanning policy.[/yellow]"
     )
 
 

@@ -272,21 +272,23 @@ async def processing_consumer(
                 )
 
         # 3. Candidate Testing Stage
-        final_batch_for_this_source, failed_proxies, tested_count = (
-            await _test_candidates(
-                safe_batch,
-                tester,
-                scheduler,
-                test_cache,
-                concurrency,
-                history,
-                stats,
-                seen_lock,
-                loop,
-                progress,
-                task_process,
-                settings,
-            )
+        (
+            final_batch_for_this_source,
+            failed_proxies,
+            tested_count,
+        ) = await _test_candidates(
+            safe_batch,
+            tester,
+            scheduler,
+            test_cache,
+            concurrency,
+            history,
+            stats,
+            seen_lock,
+            loop,
+            progress,
+            task_process,
+            settings,
         )
 
         # 4. Proxy Revival Loop

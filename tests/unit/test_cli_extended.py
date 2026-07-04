@@ -42,7 +42,6 @@ def test_merge_success(runner):
             "configstream.cli.run_full_pipeline", new_callable=AsyncMock
         ) as mock_pipeline,
     ):
-
         mock_result = MagicMock()
         mock_result.success = True
         mock_result.stats = {
@@ -69,7 +68,6 @@ def test_merge_failure(runner):
             "configstream.cli.run_full_pipeline", new_callable=AsyncMock
         ) as mock_pipeline,
     ):
-
         mock_result = MagicMock()
         mock_result.success = False
         mock_result.error = "Test Failure"

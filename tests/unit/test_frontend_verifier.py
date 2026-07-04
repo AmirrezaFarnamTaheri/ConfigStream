@@ -14,7 +14,7 @@ def test_signed_artifacts_fail_closed_without_key_or_webcrypto() -> None:
     script = textwrap.dedent(f"""
         const fs = require('fs');
         const vm = require('vm');
-        const verifierJs = fs.readFileSync({str(REPO_ROOT / 'frontend/assets/js/verifier.js')!r}, 'utf8');
+        const verifierJs = fs.readFileSync({str(REPO_ROOT / "frontend/assets/js/verifier.js")!r}, 'utf8');
 
         async function runCase(hasCrypto, publicKey, signedObj) {{
           const statusEl = {{ textContent: '', style: {{}} }};
@@ -77,7 +77,7 @@ def test_manifest_verification_fails_closed_on_signature_mismatch() -> None:
     script = textwrap.dedent(f"""
         const fs = require('fs');
         const vm = require('vm');
-        const verifierJs = fs.readFileSync({str(REPO_ROOT / 'frontend/assets/js/verifier.js')!r}, 'utf8');
+        const verifierJs = fs.readFileSync({str(REPO_ROOT / "frontend/assets/js/verifier.js")!r}, 'utf8');
 
         const subtle = {{
           importKey: async () => ({{}}),

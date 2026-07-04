@@ -2,6 +2,7 @@
 """Tests for history components."""
 
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import patch
 
@@ -211,6 +212,3 @@ def test_export_active_trend_empty(tmp_path):
     HistoryExporter.export_active_proxy_trend({}, output)
     assert output.exists()
     assert json.loads(output.read_text()) == []
-
-
-from datetime import datetime, timezone

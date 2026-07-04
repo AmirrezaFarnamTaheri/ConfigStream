@@ -8,6 +8,10 @@ on:
       - 'sources/backup_dynamic/**'
   pull_request:
 
+# Least-privilege: CI only reads the repository. No job needs write access.
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest

@@ -184,14 +184,36 @@ def _is_nonproduction_environment(environment: str) -> bool:
 def _require_admin_auth(
     request: Request, api_key: Optional[str], is_nonproduction: bool
 ) -> None:
+    """Enforce admin API key authentication.
+
+    Fail-closed policy (P1-8 / SEC-10):
+    - Production: always require a valid Bearer token; raise 403 if
+      ADMIN_API_KEY is not set (startup validation should have caught this).
+    - Non-production: bypass auth ONLY when
+      ``ALLOW_UNAUTHENTICATED_ADMIN=true`` is explicitly set in the
+      environment.  The previous behaviour unconditionally bypassed auth for
+      any non-production environment string, making it trivial to disable
+      admin auth by mis-labelling the environment.
+    """
     auth_header = request.headers.get("Authorization")
+
     if not api_key:
-        if is_nonproduction:
+        allow_unauthed = os.environ.get("ALLOW_UNAUTHENTICATED_ADMIN", "").lower() in (
+            "1",
+            "true",
+            "yes",
+        )
+        if is_nonproduction and allow_unauthed:
             logger.warning(
-                "Admin auth bypassed: ADMIN_API_KEY not configured in non-production."
+                "Admin auth bypassed: ADMIN_API_KEY not configured and "
+                "ALLOW_UNAUTHENTICATED_ADMIN=true (non-production only)."
             )
             return
-        raise HTTPException(403, "Forbidden: ADMIN_API_KEY not configured.")
+        raise HTTPException(
+            403,
+            "Forbidden: ADMIN_API_KEY not configured. "
+            "Set ALLOW_UNAUTHENTICATED_ADMIN=true to bypass in non-production.",
+        )
 
     if not auth_header or not auth_header.startswith("Bearer "):
         raise HTTPException(401, "Unauthorized: Bearer token required.")

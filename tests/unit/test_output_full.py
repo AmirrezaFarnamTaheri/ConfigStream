@@ -98,14 +98,15 @@ def test_save_metadata(proxies, output_dir):
 
 def test_generate_split_outputs(proxies, output_dir):
     washed = [{"tag": "🛡️ Secure Washed", "type": "urltest"}]
-    washed_ids = {"u2"}
+    # Proxy.id is now always the 16-char SHA-256 hash (P1-5 fix), so the
+    # washed_ids set must use the computed id rather than the raw UUID string.
+    washed_ids = {proxies[1].id}  # p2 — the "washed" proxy
     smart_chains = {"intranet": [], "ipv6": [], "streamer": []}
 
     with (
         patch("configstream.generators.singbox.to_singbox_outbound") as mock_conv,
         patch("configstream.generators.generate_clash_config", return_value="clash"),
     ):
-
         mock_conv.return_value = {"type": "vless", "tag": "vless-out"}
 
         files = generate_split_outputs(
@@ -139,7 +140,6 @@ async def test_generate_categorized_outputs(proxies, output_dir):
         ),
         patch("configstream.output_transport.ProxyHistoryTracker") as MockHistory,
     ):  # Mock history to return serializable data
-
         # Configure mock history to return empty list (serializable)
         history_instance = MockHistory.return_value
         history_instance.get_history.return_value = []

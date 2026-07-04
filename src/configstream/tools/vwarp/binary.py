@@ -184,11 +184,37 @@ async def ensure_installed() -> Optional[str]:
                     )
                 else:
                     logger.error(
-                        "Vwarp checksum mismatch! Expected %s, got %s.",
+                        "Vwarp checksum mismatch! Expected %s, got %s. "
+                        "Set VWARP_SKIP_CHECKSUM=true to bypass (not recommended).",
                         checksum,
                         digest,
                     )
                     return None
+        else:
+            # No checksum is available for this platform (e.g. ARM64 without an
+            # explicit VWARP_SHA256 env override).  Refuse to install an
+            # unverified binary unless the operator has explicitly opted out of
+            # integrity checks.
+            if os.environ.get("VWARP_SKIP_CHECKSUM", "").lower() in (
+                "1",
+                "true",
+                "yes",
+            ):
+                logger.warning(
+                    "No checksum available for this platform's vwarp binary (%s). "
+                    "VWARP_SKIP_CHECKSUM=true — installing without verification. "
+                    "Set VWARP_SHA256=<expected-sha256> to enforce integrity.",
+                    platform.machine(),
+                )
+            else:
+                logger.error(
+                    "No checksum available for vwarp on this platform (%s). "
+                    "Refusing to install an unverified binary. "
+                    "Provide VWARP_SHA256=<expected-sha256> or set "
+                    "VWARP_SKIP_CHECKSUM=true to bypass (not recommended).",
+                    platform.machine(),
+                )
+                return None
 
         with zipfile.ZipFile(BytesIO(content)) as zf:
             vwarp_member_info = None

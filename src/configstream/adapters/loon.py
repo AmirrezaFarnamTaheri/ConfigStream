@@ -63,7 +63,7 @@ class LoonAdapter(Adapter):
                     )
 
         logger.info(
-            f"Loon export summary: {len(lines)-1} proxies, {chain_count} chains (Failures: {failed_count})"
+            f"Loon export summary: {len(lines) - 1} proxies, {chain_count} chains (Failures: {failed_count})"
         )
         return "\n".join(lines)
 

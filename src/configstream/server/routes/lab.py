@@ -1,8 +1,10 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import asyncio
 import json
 import ipaddress
 import re
 import secrets
+import socket
 from typing import Optional
 from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import JSONResponse
@@ -36,7 +38,7 @@ LAB_DESTINATION_KEYS = {"server", "address"}
 LAB_INTERNAL_HOST_SUFFIXES = (".local", ".localhost", ".lan", ".internal")
 
 
-def _validate_lab_destination(host: object, path: str) -> None:
+async def _validate_lab_destination(host: object, path: str) -> None:
     if not isinstance(host, str) or not host.strip():
         raise HTTPException(status_code=400, detail=f"{path} must be a non-empty host")
 
@@ -66,12 +68,19 @@ def _validate_lab_destination(host: object, path: str) -> None:
                 detail=f"{path} must not target private or non-global addresses",
             )
     else:
-        # Resolve hostname to check for private IPs (SSRF DNS rebinding protection)
-        import socket
-
+        # Resolve the hostname asynchronously (asyncio.to_thread keeps the event
+        # loop unblocked) and validate every returned address.
+        #
+        # TOCTOU note: the resolved IP addresses are only used for the allow/deny
+        # check here.  The downstream connection test receives the *same* validated
+        # config object; the actual TCP connection will re-resolve the hostname, but
+        # that second resolution is outside our control.  To fully prevent
+        # DNS-rebinding the caller should pass the pinned IP directly rather than a
+        # hostname, or the tester must re-validate the resolved address at connect
+        # time — documented as a known residual risk for hostname-based configs.
         try:
-            addr_infos = socket.getaddrinfo(cleaned, None)
-            for family, socktype, proto, canonname, sockaddr in addr_infos:
+            addr_infos = await asyncio.to_thread(socket.getaddrinfo, cleaned, None)
+            for _family, _socktype, _proto, _canonname, sockaddr in addr_infos:
                 ip_str = sockaddr[0]
                 try:
                     resolved_ip = ipaddress.ip_address(ip_str)
@@ -83,11 +92,11 @@ def _validate_lab_destination(host: object, path: str) -> None:
                 except ValueError:
                     pass
         except socket.gaierror:
-            # Allow unresolved hosts to fail at connection test time
+            # Allow unresolved hosts to fail at connection test time.
             pass
 
 
-def _validate_lab_config(config: object) -> None:
+async def _validate_lab_config(config: object) -> None:
     if not isinstance(config, dict):
         raise HTTPException(status_code=400, detail="Config must be JSON object")
 
@@ -114,7 +123,7 @@ def _validate_lab_config(config: object) -> None:
 
         for key in LAB_DESTINATION_KEYS:
             if key in outbound:
-                _validate_lab_destination(outbound[key], f"{path}.{key}")
+                await _validate_lab_destination(outbound[key], f"{path}.{key}")
 
 
 def _require_payload_api_key(payload: dict, api_key: Optional[str]) -> None:
@@ -153,7 +162,7 @@ async def lab_test_chain(request: Request, payload: dict):
         raise HTTPException(
             status_code=413, detail="Config exceeds lab test size limit"
         )
-    _validate_lab_config(config)
+    await _validate_lab_config(config)
 
     try:
         from configstream.testers.lab_chain_tester import test_chain_config

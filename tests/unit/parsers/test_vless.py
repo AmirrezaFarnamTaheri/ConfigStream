@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Comprehensive tests for VLESS parser."""
 
-import pytest
 from configstream.parsers.vless import parse_vless
 
 
@@ -10,7 +9,9 @@ class TestVLESSBasic:
 
     def test_vless_basic(self):
         """Standard VLESS URL with TLS."""
-        proxy = parse_vless("vless://uuid@example.com:443?security=tls&type=tcp#MyServer")
+        proxy = parse_vless(
+            "vless://uuid@example.com:443?security=tls&type=tcp#MyServer"
+        )
         assert proxy is not None
         assert proxy.protocol == "vless"
         assert proxy.address == "example.com"
@@ -25,7 +26,9 @@ class TestVLESSBasic:
 
     def test_vless_with_ws(self):
         """VLESS with WebSocket transport."""
-        proxy = parse_vless("vless://uuid@example.com:443?type=ws&path=/ws&host=example.com&security=tls#WS")
+        proxy = parse_vless(
+            "vless://uuid@example.com:443?type=ws&path=/ws&host=example.com&security=tls#WS"
+        )
         assert proxy is not None
         assert proxy.details.get("type") == "ws"
         assert proxy.details.get("path") == "/ws"
@@ -33,14 +36,18 @@ class TestVLESSBasic:
 
     def test_vless_with_grpc(self):
         """VLESS with gRPC transport."""
-        proxy = parse_vless("vless://uuid@example.com:443?type=grpc&serviceName=mygrpc&security=tls#gRPC")
+        proxy = parse_vless(
+            "vless://uuid@example.com:443?type=grpc&serviceName=mygrpc&security=tls#gRPC"
+        )
         assert proxy is not None
         assert proxy.details.get("type") == "grpc"
         assert proxy.details.get("serviceName") == "mygrpc"
 
     def test_vless_reality(self):
         """VLESS with Reality."""
-        proxy = parse_vless("vless://uuid@example.com:443?security=reality&pbk=publickey&sid=1234&fp=chrome&type=tcp#Reality")
+        proxy = parse_vless(
+            "vless://uuid@example.com:443?security=reality&pbk=publickey&sid=1234&fp=chrome&type=tcp#Reality"
+        )
         assert proxy is not None
         assert proxy.details.get("security") == "reality"
         assert proxy.details.get("pbk") == "publickey"
