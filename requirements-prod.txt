@@ -51,7 +51,7 @@ psutil==7.2.1
 pycparser==2.23
 pydantic-settings==2.14.2
 pydantic==2.12.5
-pydantic_core==2.41.5
+pydantic_core==2.47.0
 pyparsing==3.3.2
 python-dotenv==1.2.2
 python-slugify==8.0.4
