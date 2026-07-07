@@ -9,7 +9,7 @@ import logging
 import statistics
 import json
 from pathlib import Path
-from collections import defaultdict
+from collections import defaultdict, deque
 
 from .security_validator import SecurityValidator
 from .utils import AtomicFileWriter
@@ -29,10 +29,10 @@ class AdaptiveTimeout:
         self.min_timeout = min_t
         self.max_timeout = max_t
         self.history_file = history_file or Path("data/timeout_history.json")
-        # Global latencies for base timeout calculation
-        self.latencies: list[float] = []
-        # Per-source latencies for jitter analysis
-        self.source_latencies: dict[str, list[float]] = defaultdict(list)
+        # Global latencies for base timeout calculation — use deque for O(1) popleft.
+        self.latencies: deque[float] = deque(maxlen=100)
+        # Per-source latencies for jitter analysis — use deque for O(1) popleft.
+        self.source_latencies: dict[str, deque[float]] = defaultdict(lambda: deque(maxlen=20))
         self._lock = asyncio.Lock()
         self._load_history()
 
@@ -75,8 +75,6 @@ class AdaptiveTimeout:
 
             # Update global list
             self.latencies.append(val)
-            if len(self.latencies) > 100:
-                self.latencies.pop(0)
 
             # Update per-source list with LRU eviction for DOS protection
             # Limit total unique sources to prevent unbounded memory growth
@@ -95,8 +93,6 @@ class AdaptiveTimeout:
 
             s_list = self.source_latencies[source]
             s_list.append(val)
-            if len(s_list) > 20:  # Keep window small for source jitter
-                s_list.pop(0)
 
             self.update()
 
@@ -124,7 +120,7 @@ class AdaptiveTimeout:
             if len(self.latencies) < 20:
                 return
 
-            ordered = sorted(self.latencies)
+            ordered = sorted(self.latencies)  # ~100 elements; O(n log n) is fine
             p95_index = int((len(ordered) - 1) * 0.95)
             p95 = ordered[max(0, min(len(ordered) - 1, p95_index))]
 

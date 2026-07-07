@@ -70,8 +70,10 @@ class ProxyWasher:
         self.seen_chains: LRUCache[str, bool] = LRUCache(maxsize=50000)
         self._seen_chains_lock = threading.Lock()
         self._state_lock = threading.Lock()
-        # Critical: Add asyncio lock for async operations to prevent race conditions
-        self._async_state_lock = asyncio.Lock()
+        # asyncio.Lock must NOT be created in __init__ when the class is
+        # instantiated from sync context (no running event loop).  Use a
+        # lazy-init pattern so the lock is created on first async use.
+        self._async_state_lock: Optional[asyncio.Lock] = None
         self._clean_ips: List[Tuple[str, int]] = []
 
         # Initialize defaults immediately if not provided
@@ -188,6 +190,8 @@ class ProxyWasher:
         Uses async lock for the ENTIRE method to prevent N consumers
         from triggering N redundant fetches (check-then-act race).
         """
+        if self._async_state_lock is None:
+            self._async_state_lock = asyncio.Lock()
         async with self._async_state_lock:
             # Early exit: already populated by a previous caller
             if self._warp_keys and self._clean_ips:

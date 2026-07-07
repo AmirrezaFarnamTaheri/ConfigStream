@@ -112,10 +112,18 @@ def _filter_none(raw_pixels: bytes, width: int, height: int, bpp: int) -> bytes:
     return bytes(out)
 
 
-def _derive_offsets(key_material: bytes, carrier_len: int) -> tuple[int, int]:
+def _derive_offsets(
+    key_material: bytes, carrier_len: int, *, _nonce: bytes = b""
+) -> tuple[int, int]:
     if carrier_len <= 0:
         raise ValueError("carrier_len must be positive")
-    digest = hashlib.sha256(key_material).digest()
+    # Mix key + carrier_len + optional nonce so that embedding positions are
+    # unique per carrier image even when the same key is reused.  Without
+    # carrier_len in the hash, every image with the same key would embed
+    # bits at identical pixel positions, which is a correlatable fingerprint.
+    digest = hashlib.sha256(
+        key_material + carrier_len.to_bytes(8, "big") + _nonce
+    ).digest()
     start = int.from_bytes(digest[:8], "big") % carrier_len
     stride = (int.from_bytes(digest[8:16], "big") % carrier_len) | 1
     stride = max(1, stride)

@@ -47,25 +47,59 @@ class EventStream:
             self._writer_thread.start()
 
     def _write_loop(self) -> None:
+        """Batch-writer: drains the queue into a buffer, then flushes to disk
+        periodically (every FLUSH_INTERVAL seconds) or when the buffer reaches
+        FLUSH_BATCH_SIZE lines.  This replaces the previous one-at-a-time lock+
+        open+write+close pattern that was O(n) I/O syscalls for n events.
+        """
+        FLUSH_INTERVAL: float = 2.0
+        FLUSH_BATCH_SIZE: int = 128
+        buffer: deque[str] = deque()
+        last_flush = threading.Event()
+
+        def _flush_buffer() -> None:
+            if not buffer:
+                return
+            try:
+                self.output_dir.mkdir(parents=True, exist_ok=True)
+                lock_path = self.output_dir / f".{EVENT_LOG_FILENAME}.lock"
+                batch = "\n".join(buffer) + "\n"
+                buffer.clear()
+                with _FileLock(lock_path):
+                    with self.event_log_path.open("a", encoding="utf-8") as handle:
+                        handle.write(batch)
+            except OSError as exc:
+                logger.debug(
+                    "Failed to append pipeline events: %s",
+                    SecurityValidator.sanitize_log_message(str(exc)),
+                )
+
         while True:
+            # Block until at least one record is available.
             record = self.queue.get()
             if record is self._shutdown_sentinel:
                 self.queue.task_done()
                 break
-            try:
-                self.output_dir.mkdir(parents=True, exist_ok=True)
-                lock_path = self.output_dir / f".{EVENT_LOG_FILENAME}.lock"
-                line = json.dumps(record, ensure_ascii=False, separators=(",", ":"))
-                with _FileLock(lock_path):
-                    with self.event_log_path.open("a", encoding="utf-8") as handle:
-                        handle.write(line + "\n")
-            except OSError as exc:
-                logger.debug(
-                    "Failed to append pipeline event: %s",
-                    SecurityValidator.sanitize_log_message(str(exc)),
-                )
-            finally:
-                self.queue.task_done()
+            line = json.dumps(record, ensure_ascii=False, separators=(',', ':'))
+            buffer.append(line)
+            self.queue.task_done()
+
+            # Drain additional records that arrived while we were processing.
+            while len(buffer) < FLUSH_BATCH_SIZE:
+                try:
+                    extra = self.queue.get_nowait()
+                    if extra is self._shutdown_sentinel:
+                        # Put sentinel back so the outer loop sees it.
+                        self.queue.put(extra)
+                        self.queue.task_done()
+                        break
+                    extra_line = json.dumps(extra, ensure_ascii=False, separators=(',', ':'))
+                    buffer.append(extra_line)
+                    self.queue.task_done()
+                except queue.Empty:
+                    break
+
+            _flush_buffer()
 
     def _sanitize_message(self, message: Any) -> str:
         safe = SecurityValidator.sanitize_log_message(str(message))

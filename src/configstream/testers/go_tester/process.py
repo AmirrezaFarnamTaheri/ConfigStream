@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import asyncio
+import hashlib
 import logging
 import os
 import shutil
@@ -39,6 +40,37 @@ class ProcessManager:
                 return str(loc)
         return None
 
+    @staticmethod
+    def _sha256_file(path: str) -> str:
+        """Return the hex SHA-256 digest of a file."""
+        h = hashlib.sha256()
+        with open(path, "rb") as f:
+            for chunk in iter(lambda: f.read(65536), b""):
+                h.update(chunk)
+        return h.hexdigest()
+
+    def verify_binary(self) -> bool:
+        """Verify the tester binary exists and is a regular file.
+
+        Optional environment variable ``CONFIGSTREAM_TESTER_SHA256`` can pin
+        an expected hash; if set the binary must match exactly or the daemon
+        will refuse to start.
+        """
+        if not self.binary_path or not os.path.isfile(self.binary_path):
+            return False
+        expected = os.environ.get("CONFIGSTREAM_TESTER_SHA256")
+        if expected:
+            actual = self._sha256_file(self.binary_path)
+            if actual != expected:
+                logger.error(
+                    "configstream-tester binary checksum mismatch: "
+                    "expected %s, got %s",
+                    expected,
+                    actual,
+                )
+                return False
+        return True
+
     async def ensure_running(self) -> asyncio.subprocess.Process:
         if self._proc and self._proc.returncode is None:
             return self._proc
@@ -47,6 +79,12 @@ class ProcessManager:
             raise FileNotFoundError(
                 "configstream-tester binary not found; set CONFIGSTREAM_TESTER_BIN "
                 "or install it on PATH"
+            )
+
+        if not self.verify_binary():
+            raise FileNotFoundError(
+                "configstream-tester binary verification failed; "
+                "check CONFIGSTREAM_TESTER_SHA256 or reinstall"
             )
 
         self._proc = await asyncio.create_subprocess_exec(

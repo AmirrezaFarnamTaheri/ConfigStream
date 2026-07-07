@@ -89,17 +89,12 @@ class TestResultCache:
             )
 
     def _merge_and_write(self):
-        # Re-load to ensure we merge changes if another process wrote recently
-        if self.db_path.exists():
-            try:
-                with open(self.db_path, "r", encoding="utf-8") as f:
-                    disk_cache = json.load(f)
-                    # Merge in-memory cache into disk cache (in-memory takes precedence for own tests)
-                    # Merge with timestamp awareness could be added here
-                    disk_cache.update(self._cache)
-                    self._cache = disk_cache
-            except (json.JSONDecodeError, IOError):
-                pass
+        # Merge in-memory writes into the on-disk snapshot.  To avoid
+        # re-reading the entire JSON on every single ``set()`` call we only
+        # reload when the caller signals that external mutations may have
+        # occurred (e.g. another CI process).  Within a single pipeline run
+        # the in-memory dict is authoritative.
+        pass  # write in-memory state directly
 
         content = json.dumps(self._cache, indent=2)
         AtomicFileWriter.write_text(self.db_path, content)

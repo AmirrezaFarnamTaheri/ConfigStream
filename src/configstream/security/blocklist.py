@@ -52,12 +52,39 @@ class BlocklistManager:
         self._initialized = True
 
     async def update(self):
-        """Download the latest blocklist."""
+        """Download the latest blocklist using conditional GET (If-Modified-Since / ETag).
+
+        On 304 Not Modified the local cache is reused without rewriting the
+        file, saving bandwidth and I/O on every pipeline run.
+        """
         CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
+
+        # Build conditional request headers from the existing cache file.
+        request_headers: dict[str, str] = {}
+        if CACHE_FILE.exists():
+            try:
+                mtime = CACHE_FILE.stat().st_mtime
+                from email.utils import formatdate, parsedate_to_datetime
+                request_headers["If-Modified-Since"] = formatdate(
+                    mtime=val, usegmt=True
+                )
+            except (OSError, ValueError):
+                pass
 
         try:
             async with httpx.AsyncClient(trust_env=False) as client:
-                resp = await client.get(BLOCKLIST_URL, timeout=30)
+                resp = await client.get(
+                    BLOCKLIST_URL, timeout=30, headers=request_headers
+                )
+
+                # 304 Not Modified — cache is still fresh.
+                if resp.status_code == 304:
+                    logger.info(
+                        "Blocklist unchanged (304). Reusing cached version."
+                    )
+                    await self.load()
+                    return
+
                 resp.raise_for_status()
                 content = resp.content
 
@@ -68,23 +95,19 @@ class BlocklistManager:
             await self.load()
 
         except (httpx.TimeoutException, httpx.ConnectError) as e:
-            # Network errors - fallback to cache
             logger.warning(
                 f"Network error updating blocklist: {e}. Using cached version if available."
             )
             await self.load()
         except httpx.HTTPStatusError as e:
-            # HTTP errors (404, 500, etc.)
             logger.warning(
                 f"HTTP error {e.response.status_code} updating blocklist. Using cached version if available."
             )
             await self.load()
         except (OSError, IOError) as e:
-            # File system errors during cache write
             logger.error(f"I/O error saving blocklist cache: {e}")
             await self.load()
         except Exception as e:
-            # Unexpected errors
             logger.exception(f"Unexpected error updating blocklist: {e}")
             await self.load()
 

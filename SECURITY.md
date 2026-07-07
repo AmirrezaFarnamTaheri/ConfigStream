@@ -95,7 +95,7 @@
 
 ### Process
 1. **DO NOT** open a public issue for security vulnerabilities
-2. Email security details to: [Repository Owner Email]
+2. Use [GitHub Security Advisories](https://github.com/AmirrezaFarnamTaheri/ConfigStream/security/advisories/new) to report vulnerabilities privately
 3. Include:
    - Description of the vulnerability
    - Steps to reproduce
@@ -263,8 +263,7 @@ export ALLOW_PRIVATE_IPS="false"       # Default: false
 ## Contact
 
 For security-related questions or concerns:
-- Email: [Security Contact]
-- PGP Key: [PGP Fingerprint]
+- Use [GitHub Security Advisories](https://github.com/AmirrezaFarnamTaheri/ConfigStream/security/advisories/new) for private vulnerability reports
 - Response Time: 48 hours maximum
 
 ---

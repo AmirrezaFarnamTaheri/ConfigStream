@@ -22,11 +22,17 @@ def _is_allowed_origin(origin: Optional[str]) -> bool:
     import re  # inline to avoid module-level startup cost
 
     allowed = [o.strip() for o in settings.ALLOWED_ORIGINS.split(",") if o.strip()]
-    
-    # Check for wildcard to allow all origins
+
+    # Reject wildcard '*' in production — it disables the origin check entirely
+    # and allows any website to open a WebSocket to this server.
     if "*" in allowed:
-        return True
-    
+        logger.warning(
+            "ALLOWED_ORIGINS contains wildcard '*' — rejecting origin %s. "
+            "Configure explicit allowed origins instead of using wildcard.",
+            SecurityValidator.sanitize_log_message(origin),
+        )
+        return False
+
     if origin in allowed:
         return True
 

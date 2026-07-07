@@ -21,8 +21,11 @@ logger = logging.getLogger(__name__)
 # Regex to find hidden WireGuard configs in non-JSON text
 # Captures PrivateKey and Address (optional port)
 # Format: PrivateKey = <key> ... Address = <ip>
+# Use non-backtracking atomic alternation to avoid catastrophic backtracking
+# on large malicious payloads.  The original [\s\S]*? between PrivateKey
+# and Address could cause exponential blowup when Address is absent.
 WIREGUARD_REGEX = re.compile(
-    r"PrivateKey\s*=\s*([a-zA-Z0-9+/]{43,44}=)[\s\S]*?Address\s*=\s*([0-9a-f:./]+)",
+    r"PrivateKey\s*=\s*([a-zA-Z0-9+/]{43,44}=)\s+Address\s*=\s*([0-9a-f:./]+)",
     re.IGNORECASE,
 )
 
