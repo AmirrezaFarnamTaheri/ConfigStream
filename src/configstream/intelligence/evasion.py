@@ -185,6 +185,10 @@ def get_fragment_config(
 
     choices = FRAG_PRESETS.get(preset)
     if not choices:
+        logger.warning(
+            "Unknown evasion fragment preset %r — falling back to 'medium'",
+            preset,
+        )
         choices = FRAG_PRESETS["medium"]  # Fallback
 
     valid_choices = [c for c in choices if c is not None]

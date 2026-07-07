@@ -659,7 +659,7 @@ class ProxyWasher:
                         "mtu": 1280,
                         "detour": relay_out["tag"],
                     },
-                    is_working=True,
+                    is_working=False,  # Not yet verified — must be re-tested
                     process=process_tag,
                 )
 
