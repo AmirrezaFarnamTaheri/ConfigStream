@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """Generate an interactive D3.js force-directed graph from repo-topology-out/graph.json."""
 import json
 from pathlib import Path
