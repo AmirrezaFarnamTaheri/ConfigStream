@@ -21,6 +21,21 @@ const ASSETS_TO_CACHE = config.PRECACHE_URLS || [
 
 console.log(`[ServiceWorker] Initializing v${VERSION} (${CACHE_NAME})`);
 
+function cacheSuccessfulResponse(request, response) {
+  if (!response || !response.ok) {
+    return Promise.resolve(false);
+  }
+
+  const responseClone = response.clone();
+  return caches.open(CACHE_NAME)
+    .then(cache => cache.put(request, responseClone))
+    .then(() => true);
+}
+
+function logBackgroundFetchError(request, error) {
+  console.warn('[ServiceWorker] Background fetch failed:', request.url, error);
+}
+
 // Install Event: Cache Core Assets
 self.addEventListener('install', (event) => {
   self.skipWaiting(); // Force activation
@@ -69,11 +84,10 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
-          // Clone response to cache it for offline usage
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseClone);
-          });
+          event.waitUntil(
+            cacheSuccessfulResponse(event.request, response)
+              .catch(error => logBackgroundFetchError(event.request, error))
+          );
           return response;
         })
         .catch(() => {
@@ -93,21 +107,21 @@ self.addEventListener('fetch', (event) => {
             // Return cached response immediately
             // Background update (Stale-While-Revalidate)
             if (config.CACHE_CONFIG && config.CACHE_CONFIG.staleWhileRevalidate) {
-                fetch(event.request).then(response => {
-                    if(response && response.status === 200) {
-                         caches.open(CACHE_NAME).then(cache => cache.put(event.request, response));
-                    }
-                }).catch(err => {}); // Eat errors for background fetch
+                event.waitUntil(
+                    fetch(event.request)
+                        .then(response => cacheSuccessfulResponse(event.request, response))
+                        .catch(error => logBackgroundFetchError(event.request, error))
+                );
             }
             return cachedResponse;
         }
         // Cache miss -> Network
         return fetch(event.request).then(response => {
              // Cache new static assets
-             if (response && response.status === 200) {
-                 const responseClone = response.clone();
-                 caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseClone));
-             }
+             event.waitUntil(
+                 cacheSuccessfulResponse(event.request, response)
+                     .catch(error => logBackgroundFetchError(event.request, error))
+             );
              return response;
         });
       })
