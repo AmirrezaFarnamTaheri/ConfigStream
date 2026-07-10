@@ -8,23 +8,23 @@ import ast
 import difflib
 import io
 import json
-import re
 import tokenize
 from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
 
-LOG_TEMPLATE = (
+LOG_STATEMENT = (
     'logging.getLogger(__name__).debug('
-    '"Suppressed broad exception in {path}:{line}", exc_info=True)'
+    '"Suppressed broad exception", exc_info=True)'
 )
 
 
 def _line_offsets(source: str) -> list[int]:
     offsets = [0]
-    for match in re.finditer("\n", source):
-        offsets.append(match.end())
+    for index, character in enumerate(source):
+        if character == "\n":
+            offsets.append(index + 1)
     return offsets
 
 
@@ -68,17 +68,27 @@ def _find_colon(source: str, handler: ast.ExceptHandler) -> tuple[int, int]:
 
 
 def _has_logging_import(tree: ast.Module) -> bool:
-    for node in tree.body:
-        if isinstance(node, ast.Import) and any(
-            alias.name == "logging" for alias in node.names
-        ):
-            return True
-    return False
+    return any(
+        isinstance(node, ast.Import)
+        and any(alias.name == "logging" for alias in node.names)
+        for node in tree.body
+    )
+
+
+def _leading_comment_line(source: str) -> int:
+    """Return the final line in a shebang/encoding/SPDX/comment preamble."""
+    last = 0
+    for line_number, line in enumerate(source.splitlines(), start=1):
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            last = line_number
+            continue
+        break
+    return last
 
 
 def _import_insertion_offset(source: str, tree: ast.Module, offsets: list[int]) -> int:
-    del source
-    line = 0
+    line = _leading_comment_line(source)
     body = tree.body
     index = 0
     if (
@@ -87,23 +97,20 @@ def _import_insertion_offset(source: str, tree: ast.Module, offsets: list[int]) 
         and isinstance(body[0].value, ast.Constant)
         and isinstance(body[0].value.value, str)
     ):
-        line = body[0].end_lineno or body[0].lineno
+        line = max(line, body[0].end_lineno or body[0].lineno)
         index = 1
     while index < len(body):
         node = body[index]
         if isinstance(node, ast.ImportFrom) and node.module == "__future__":
-            line = node.end_lineno or node.lineno
+            line = max(line, node.end_lineno or node.lineno)
             index += 1
             continue
         break
     return offsets[line]
 
 
-def _normalize_header(header: str) -> str:
-    normalized = re.sub(r"\bBaseException\b", "Exception", header)
-    if re.fullmatch(r"except\s*", normalized):
-        normalized = normalized.rstrip() + " Exception"
-    return normalized
+def _render_log(indent: str) -> str:
+    return indent + LOG_STATEMENT
 
 
 def transform_source(source: str, path: str, target_lines: set[int]) -> str:
@@ -116,34 +123,27 @@ def transform_source(source: str, path: str, target_lines: set[int]) -> str:
         if not handler.body:
             raise ValueError(f"Exception handler at {path}:{line} has no body")
         colon_line, colon_col = _find_colon(source, handler)
-        start = _offset(offsets, handler.lineno, handler.col_offset)
         colon = _offset(offsets, colon_line, colon_col)
-        header = source[start:colon]
-        normalized_header = _normalize_header(header)
-        if normalized_header != header:
-            edits.append((start, colon, normalized_header))
-
         first = handler.body[0]
-        log_line = LOG_TEMPLATE.format(path=path, line=line)
         if first.lineno > colon_line:
             insertion = offsets[first.lineno - 1]
             indent = " " * first.col_offset
-            edits.append((insertion, insertion, indent + log_line + "\n"))
+            edits.append((insertion, insertion, _render_log(indent) + "\n"))
         else:
             line_end = source.find("\n", colon)
             if line_end < 0:
                 line_end = len(source)
             body_text = source[colon + 1 : line_end].lstrip()
             indent = " " * (handler.col_offset + 4)
-            replacement = "\n" + indent + log_line
+            replacement = "\n" + _render_log(indent)
             if body_text:
                 replacement += "\n" + indent + body_text
             edits.append((colon + 1, line_end, replacement))
 
     if target_lines and not _has_logging_import(tree):
         insertion = _import_insertion_offset(source, tree, offsets)
-        prefix = "" if insertion == 0 else "\n"
-        edits.append((insertion, insertion, prefix + "import logging\n"))
+        suffix = "" if insertion == 0 or source[:insertion].endswith("\n") else "\n"
+        edits.append((insertion, insertion, suffix + "import logging\n"))
 
     for start, end, replacement in sorted(
         edits,
