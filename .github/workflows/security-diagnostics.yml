@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 jobs:
-  bandit-report:
+  reports:
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -27,6 +27,13 @@ jobs:
         run: |
           bandit -r src/configstream scripts tools frontend/assets/js \
             -f json -o bandit-report.json
+      - name: Audit broad exception handlers
+        id: exceptions
+        continue-on-error: true
+        run: |
+          python scripts/audit_exception_handlers.py \
+            --json exception-audit.json \
+            --fail-on-unlogged
       - name: Upload Bandit report
         if: always()
         uses: actions/upload-artifact@v7
@@ -35,6 +42,14 @@ jobs:
           path: bandit-report.json
           if-no-files-found: error
           retention-days: 14
-      - name: Enforce Bandit result
-        if: steps.bandit.outcome == 'failure'
+      - name: Upload exception audit
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: exception-audit-${{ github.run_id }}
+          path: exception-audit.json
+          if-no-files-found: error
+          retention-days: 14
+      - name: Enforce security diagnostics
+        if: steps.bandit.outcome == 'failure' || steps.exceptions.outcome == 'failure'
         run: exit 1
