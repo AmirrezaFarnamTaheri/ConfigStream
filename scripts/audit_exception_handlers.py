@@ -8,7 +8,7 @@ import ast
 import json
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Iterable, Sequence
+from typing import Callable, Iterable, Sequence
 
 
 LOG_METHODS = {"debug", "info", "warning", "error", "exception", "critical", "log"}
@@ -67,9 +67,18 @@ def _is_logging_call(call: ast.Call) -> bool:
     function = call.func
     if isinstance(function, ast.Attribute) and function.attr in LOG_METHODS:
         root = _root_name(function)
-        return root in {"logger", "logging", "log"} or bool(
+        if root in {"logger", "logging", "log"} or bool(
             root and root.endswith("logger")
-        )
+        ):
+            return True
+        receiver = function.value
+        if (
+            isinstance(receiver, ast.Call)
+            and isinstance(receiver.func, ast.Attribute)
+            and receiver.func.attr == "getLogger"
+            and _root_name(receiver.func) == "logging"
+        ):
+            return True
     if isinstance(function, ast.Attribute) and function.attr == "warn":
         return _root_name(function) == "warnings"
     return False
@@ -92,9 +101,12 @@ def _is_user_output_call(call: ast.Call) -> bool:
     return False
 
 
-def _contains_call(node: ast.ExceptHandler, predicate: object) -> bool:
+def _contains_call(
+    node: ast.ExceptHandler,
+    predicate: Callable[[ast.Call], bool],
+) -> bool:
     return any(
-        isinstance(child, ast.Call) and predicate(child)  # type: ignore[operator]
+        isinstance(child, ast.Call) and predicate(child)
         for child in ast.walk(node)
     )
 
