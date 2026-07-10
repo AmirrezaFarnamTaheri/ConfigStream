@@ -78,6 +78,7 @@ propcache==0.4.1
 psutil==7.2.1
 py-serializable==2.1.0
 pycodestyle==2.14.0
+pycares==4.11.0
 pycparser==2.23
 pydantic-settings==2.14.2
 pydantic==2.12.5

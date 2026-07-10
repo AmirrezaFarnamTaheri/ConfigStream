@@ -14,7 +14,10 @@ COPY src/go/tester/ .
 # Strip debug symbols (-s -w) and disable CGO for static binary
 RUN CGO_ENABLED=0 go build -ldflags="-s -w" -tags "with_quic,with_dhcp,with_wireguard,with_ech,with_utls,with_reality_server,with_clash_api,with_gvisor" -o tester main.go
 
-# Stage 2: Python Runtime
+# Stage 2: Node.js (only the binary needed for GitHub Actions JS actions)
+FROM node:22-slim AS node-runtime
+
+# Stage 3: Python Runtime
 FROM python:3.12-slim
 
 # OCI image annotations for traceability
@@ -39,11 +42,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tini \
     libmaxminddb0 \
     ca-certificates \
-    nodejs \
-    npm \
     && rm -rf /var/lib/apt/lists/*
 
-# Verify Node.js installation (required for GitHub Actions JS actions)
+# Copy Node.js from official node image (required for GitHub Actions JS actions)
+COPY --from=node-runtime /usr/local/bin/node /usr/local/bin/node
+COPY --from=node-runtime /usr/local/include/node /usr/local/include/node
+COPY --from=node-runtime /usr/local/lib/node_modules /usr/local/lib/node_modules
+RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm && \
+    ln -s /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
+
+# Verify Node.js installation
 RUN node --version
 
 WORKDIR /app

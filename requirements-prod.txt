@@ -75,4 +75,4 @@ watchfiles==1.2.0
 websockets==16.0
 yarl==1.22.0
 pycares==4.11.0
-wasmtime==4.11.0
+wasmtime==45.0.0
