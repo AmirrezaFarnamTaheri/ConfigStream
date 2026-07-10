@@ -10,7 +10,7 @@ import json
 import os
 import shutil
 import stat
-import subprocess  # nosec B404
+import subprocess
 import tempfile
 import zipfile
 import zlib
@@ -136,7 +136,7 @@ def _validate_json(path: Path, sing_box_bin: str | None) -> dict[str, Any]:
         return result
 
     if sing_box_bin:
-        proc = subprocess.run(  # nosec B603
+        proc = subprocess.run(
             [sing_box_bin, "check", "-c", str(path)],
             text=True,
             capture_output=True,
