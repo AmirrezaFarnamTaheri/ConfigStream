@@ -1,54 +1,14 @@
-name: Apply Exception Hardening
+name: Exception Hardening Maintenance
 
 on:
-  push:
-    branches:
-      - agent/comprehensive-hardening
-    paths:
-      - .github/workflows/apply-exception-hardening.yml
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  apply:
+  retired:
     runs-on: ubuntu-latest
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-        with:
-          ref: agent/comprehensive-hardening
-          fetch-depth: 0
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
-        with:
-          python-version: '3.12'
-      - name: Inventory silent broad handlers
-        run: |
-          python scripts/audit_exception_handlers.py \
-            --json exception-audit-before.json
-      - name: Apply conservative diagnostics
-        run: |
-          python scripts/harden_exception_handlers.py \
-            --report exception-audit-before.json \
-            --patch-file exception-hardening-applied.patch \
-            --apply
-      - name: Validate transformed source
-        run: |
-          python -m compileall -q src/configstream scripts tools
-          python scripts/check_license_headers.py
-          python scripts/audit_exception_handlers.py \
-            --json exception-audit-after.json \
-            --fail-on-unlogged
-          git diff --check
-      - name: Commit audited transformation
-        run: |
-          if git diff --quiet; then
-            echo "No silent broad handlers required changes."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/configstream scripts tools
-          git commit -m "fix: log previously silent broad exceptions"
-          git push origin HEAD:agent/comprehensive-hardening
+      - name: Retired one-time workflow
+        run: echo "The exception-hardening transformation has already been applied and validated."
