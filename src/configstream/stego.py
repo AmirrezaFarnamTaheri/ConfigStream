@@ -13,7 +13,7 @@ import zlib
 from pathlib import Path
 from typing import Optional
 
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet, InvalidToken
 
 from .utils import AtomicFileWriter
 
@@ -59,8 +59,12 @@ def _safe_decompress(data: bytes, expected: int) -> bytes:
         raise ValueError("Invalid PNG decompression size")
     decompressor = zlib.decompressobj()
     raw = decompressor.decompress(data, expected + 1)
-    raw += decompressor.flush()
-    if len(raw) != expected or not decompressor.eof or decompressor.unused_data:
+    if (
+        len(raw) != expected
+        or not decompressor.eof
+        or decompressor.unused_data
+        or decompressor.unconsumed_tail
+    ):
         raise ValueError("Invalid or oversized PNG scanline data")
     return raw
 
@@ -120,9 +124,20 @@ def _derive_offsets(
 ) -> tuple[int, int]:
     if carrier_len <= 0:
         raise ValueError("carrier_len must be positive")
-    digest = hashlib.sha256(
-        b"ConfigStream-LSB\0" + key_material + salt + struct.pack(">Q", carrier_len)
-    ).digest()
+    if salt:
+        if len(salt) != SALT_SIZE:
+            raise ValueError("Invalid LSB salt length")
+        derivation_input = (
+            b"ConfigStream-LSB-v2\0"
+            + key_material
+            + salt
+            + struct.pack(">Q", carrier_len)
+        )
+    else:
+        # Version 1 used this exact input. Keep it unchanged so existing images
+        # remain readable after upgrading to the salted version-2 format.
+        derivation_input = key_material + struct.pack(">Q", carrier_len)
+    digest = hashlib.sha256(derivation_input).digest()
     start = int.from_bytes(digest[:8], "big") % carrier_len
     stride = max(1, (int.from_bytes(digest[8:16], "big") % carrier_len) | 1)
     while math.gcd(stride, carrier_len) != 1:
@@ -187,8 +202,6 @@ def _read_png(
     if not saw_ihdr or not saw_iend or not idat_parts or bpp == 0:
         raise ValueError("Invalid PNG structure")
     if position != len(png_bytes):
-        # Appended data is not accepted in the LSB format. Legacy extraction has
-        # its own explicit marker parser.
         raise ValueError("Unexpected bytes after PNG IEND")
     return width, height, bpp, chunks, b"".join(idat_parts)
 
@@ -341,7 +354,9 @@ class StegoPacker:
         if prefix[:4] == LSB_MAGIC and prefix[4] == LSB_VERSION:
             header = _sequential_extract(bytes(pixels), positions, LSB_HEADER_SIZE)
             token_length = struct.unpack(">H", header[6:8])[0]
-            salt = header[8:8 + SALT_SIZE]
+            if token_length <= 0:
+                raise ValueError("Invalid LSB token length")
+            salt = header[8 : 8 + SALT_SIZE]
             bootstrap_bits = LSB_HEADER_SIZE * 8
             token = _extract_permuted(
                 bytes(pixels),
@@ -351,14 +366,14 @@ class StegoPacker:
                 salt,
             )
         else:
-            # Backward compatibility for version-1 images, whose entire header
-            # and token used the static key-derived permutation.
             legacy_header = _extract_permuted(
                 bytes(pixels), positions, LEGACY_HEADER_SIZE, self.key, b""
             )
             if legacy_header[:4] != LSB_MAGIC or legacy_header[4] != LEGACY_LSB_VERSION:
                 raise ValueError("LSB stego marker not found")
             token_length = struct.unpack(">H", legacy_header[6:8])[0]
+            if token_length <= 0:
+                raise ValueError("Invalid legacy LSB token length")
             legacy_payload = _extract_permuted(
                 bytes(pixels),
                 positions,
@@ -373,23 +388,24 @@ class StegoPacker:
 
     def _unpack_legacy_append(self, image_path: Path) -> str:
         data = image_path.read_bytes()
-        marker_position = data.find(MAGIC_MARKER)
+        marker_position = data.rfind(MAGIC_MARKER)
         if marker_position < 0:
             raise ValueError("Legacy marker not found")
-        encrypted = data[marker_position + len(MAGIC_MARKER):]
+        encrypted = data[marker_position + len(MAGIC_MARKER) :]
         blob = self.cipher.decrypt(encrypted)
         if len(blob) < 32:
             raise ValueError("Invalid legacy payload size")
         return zlib.decompress(blob[32:]).decode("utf-8")
 
     def unpack(self, stego_image_path: Path) -> Optional[str]:
+        expected_errors = (OSError, ValueError, zlib.error, InvalidToken, UnicodeDecodeError)
         try:
             return self._unpack_lsb_png(stego_image_path)
-        except Exception as lsb_error:
+        except expected_errors as lsb_error:
             logger.debug("LSB unpack failed (%s); trying legacy mode", type(lsb_error).__name__)
             try:
                 return self._unpack_legacy_append(stego_image_path)
-            except Exception as legacy_error:
+            except expected_errors as legacy_error:
                 logger.error("Stego unpack failed: %s", type(legacy_error).__name__)
                 return None
 
