@@ -1,35 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""
-Security-hardened HTTP/HTTPS transport for httpx.
+"""Security-hardened HTTP transport with DNS validation and connection pinning."""
 
-Implements DNS rebinding protection via pre-connect hostname resolution and
-strict IP pinning for *both* HTTP and HTTPS source fetches.
-
-Design
-------
-For every outgoing request the transport:
-
-1. Resolves the target hostname to a set of IP addresses *before* opening
-   the connection (pre-connect validation).
-2. Rejects any resolved IP that is not globally routable (private, loopback,
-   link-local, etc.) when ``block_private_networks=True``.
-3. Pins the resolved IP set to the hostname on first contact.  Subsequent
-   requests to the same hostname must resolve to an overlapping set; a
-   disjoint resolution is treated as a DNS-rebinding attempt and rejected.
-4. For HTTP requests the URL is rewritten to the resolved IP so the OS
-   cannot re-resolve between validation and connection.  The original
-   ``Host`` header is preserved for virtual-host routing.
-5. For HTTPS requests the URL is also rewritten to the resolved IP, while
-   the original hostname is preserved as both SNI and Host.  httpcore honors
-   the per-request ``sni_hostname`` extension, so certificate validation
-   still targets the original hostname and the TCP connection targets the
-   pre-validated IP.
-
-Thread / async safety
----------------------
-``_pinned_ips`` is mutated only inside ``handle_async_request``, which runs
-in a single asyncio event loop.  No additional locking is required.
-"""
+from __future__ import annotations
 
 import asyncio
 import ipaddress
@@ -44,20 +16,52 @@ from configstream.dns_cache import DEFAULT_CACHE
 logger = logging.getLogger(__name__)
 
 
-def _is_global(raw_ip: str) -> bool:
-    """Return True if *raw_ip* is a globally routable unicast address."""
+def _parse_ip(value: str) -> Optional[ipaddress.IPv4Address | ipaddress.IPv6Address]:
     try:
-        return ipaddress.ip_address(raw_ip).is_global
+        return ipaddress.ip_address(value.strip("[]"))
     except ValueError:
+        return None
+
+
+def _is_global(raw_ip: str) -> bool:
+    parsed = _parse_ip(raw_ip)
+    return bool(parsed and parsed.is_global)
+
+
+def _host_without_port(value: str) -> str:
+    raw = str(value or "").strip()
+    if raw.startswith("["):
+        end = raw.find("]")
+        return raw[1:end] if end > 0 else ""
+    if raw.count(":") == 1:
+        host, possible_port = raw.rsplit(":", 1)
+        if possible_port.isdigit():
+            return host
+    return raw
+
+
+def _valid_dns_hostname(value: str) -> bool:
+    host = value.rstrip(".").lower()
+    if not host or len(host) > 253 or _parse_ip(host) is not None:
         return False
+    labels = host.split(".")
+    return all(
+        label
+        and len(label) <= 63
+        and label[0].isalnum()
+        and label[-1].isalnum()
+        and all(char.isalnum() or char == "-" for char in label)
+        for label in labels
+    )
 
 
 class SecurityTransport(httpx.AsyncHTTPTransport):
-    """
-    Custom transport that pre-resolves hostnames and pins them to validated
-    IP addresses to prevent DNS rebinding attacks.
+    """Validate DNS answers and ensure the connector uses only validated IPs.
 
-    Works for both HTTP and HTTPS source fetches.
+    When an upstream caller has already rewritten a URL to a validated IP and
+    retained the original hostname in the Host header, this transport uses that
+    hostname for SNI/certificate verification. This closes the fetcher's
+    validate-then-re-resolve gap without breaking HTTPS virtual hosting.
     """
 
     def __init__(
@@ -68,61 +72,70 @@ class SecurityTransport(httpx.AsyncHTTPTransport):
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
-        self._block_private_networks = block_private_networks
+        self._block_private_networks = bool(block_private_networks)
         self._pinned_ips: Dict[str, Set[str]] = pinned_ips or {}
-        self._dns_cache_enabled = dns_cache_enabled
+        self._dns_cache_enabled = bool(dns_cache_enabled)
+        self._pin_lock: Optional[asyncio.Lock] = None
 
-    # ------------------------------------------------------------------
-    # Public interface
-    # ------------------------------------------------------------------
+    def _get_pin_lock(self) -> asyncio.Lock:
+        if self._pin_lock is None:
+            self._pin_lock = asyncio.Lock()
+        return self._pin_lock
+
+    @staticmethod
+    def _logical_host(request: httpx.Request) -> str:
+        connection_host = request.url.host
+        if not connection_host:
+            return ""
+        # Only honor Host as an SNI override when the actual URL target is an IP.
+        # For normal hostname URLs, the URL remains authoritative.
+        if _parse_ip(connection_host) is not None:
+            host_header = _host_without_port(request.headers.get("Host", ""))
+            if _valid_dns_hostname(host_header):
+                return host_header.rstrip(".").lower()
+        return connection_host.rstrip(".").lower()
 
     async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
-        host = request.url.host
-        if not host:
+        connection_host = request.url.host
+        if not connection_host:
             raise httpx.ConnectError("Request URL is missing a host", request=request)
+        logical_host = self._logical_host(request)
+        if not logical_host:
+            raise httpx.ConnectError("Request URL has an invalid host", request=request)
         port = request.url.port or (443 if request.url.scheme == "https" else 80)
-        scheme = request.url.scheme
 
-        # 1. Pre-connect DNS resolution
-        resolved_ips = await self._resolve_and_cache(host, port, request)
+        connection_ip = _parse_ip(connection_host)
+        if connection_ip is not None:
+            resolved_ips = {str(connection_ip)}
+        else:
+            resolved_ips = await self._resolve_and_cache(connection_host, port, request)
 
-        # 2. Block private / non-global IPs
         if self._block_private_networks:
-            for raw_ip in resolved_ips:
-                if not _is_global(raw_ip):
-                    raise httpx.ConnectError(
-                        f"Host {host!r} resolved to non-global IP {raw_ip!r}",
-                        request=request,
-                    )
-
-        # 3. DNS-rebinding pin check
-        if host in self._pinned_ips:
-            if not (resolved_ips & self._pinned_ips[host]):
-                logger.warning(
-                    "DNS rebinding detected for %s: previous IPs %s, new IPs %s",
-                    host,
-                    self._pinned_ips[host],
-                    resolved_ips,
-                )
+            non_global = [raw_ip for raw_ip in resolved_ips if not _is_global(raw_ip)]
+            if non_global:
                 raise httpx.ConnectError(
-                    f"DNS rebinding detected for {host!r}",
+                    f"Host resolved to a non-global address: {non_global[0]!r}",
                     request=request,
                 )
-        else:
-            # First contact — record the validated IP set as the pin.
-            self._pinned_ips[host] = resolved_ips
 
-        # 4. Rewrite the URL to a pre-validated IP so the connector cannot
-        #    perform a second DNS resolution after validation.  HTTPS keeps
-        #    the original hostname for SNI/certificate validation.
-        if scheme in {"http", "https"}:
-            request = self._rewrite_to_pinned_ip(request, resolved_ips)
+        async with self._get_pin_lock():
+            previous = self._pinned_ips.get(logical_host)
+            if previous is not None and not (resolved_ips & previous):
+                logger.warning("DNS rebinding detected for %s", logical_host)
+                raise httpx.ConnectError(
+                    f"DNS rebinding detected for {logical_host!r}",
+                    request=request,
+                )
+            if previous is None:
+                self._pinned_ips[logical_host] = set(resolved_ips)
 
+        if request.url.scheme in {"http", "https"}:
+            request = self._rewrite_to_pinned_ip(
+                request,
+                resolved_ips,
+                logical_host=logical_host,
+            )
         return await super().handle_async_request(request)
-
-    # ------------------------------------------------------------------
-    # Internal helpers
-    # ------------------------------------------------------------------
 
     async def _resolve_and_cache(
         self,
@@ -130,67 +143,67 @@ class SecurityTransport(httpx.AsyncHTTPTransport):
         port: int,
         request: httpx.Request,
     ) -> Set[str]:
-        """
-        Resolve *host* to a set of IP strings.
-
-        For HTTP requests the DNS cache is consulted first.  For HTTPS
-        requests we always perform a fresh resolution so the pin is based
-        on the actual address the OS would use, not a potentially stale
-        cache entry.
-        """
         if self._dns_cache_enabled and request.url.scheme == "http":
             cached_ip = await DEFAULT_CACHE.resolve(host)
             if cached_ip:
                 return {cached_ip}
-
         return await self._resolve_host(host, port, request)
 
+    @staticmethod
     async def _resolve_host(
-        self,
         host: str,
         port: int,
         request: httpx.Request,
     ) -> Set[str]:
-        """Perform a live DNS resolution and return the set of IP strings."""
         try:
-            loop = asyncio.get_running_loop()
-            infos = await loop.getaddrinfo(
+            infos = await asyncio.get_running_loop().getaddrinfo(
                 host,
                 port,
                 type=socket.SOCK_STREAM,
             )
-            resolved: Set[str] = {
-                sockaddr[0].strip("[]")
-                for *_prefix, sockaddr in infos
-                if sockaddr and sockaddr[0]
-            }
-            if not resolved:
-                raise httpx.ConnectError(
-                    f"No IP addresses found for {host!r}",
-                    request=request,
-                )
-            return resolved
-        except socket.gaierror as exc:
+        except (socket.gaierror, OSError) as exc:
             raise httpx.ConnectError(
-                f"DNS resolution failed for {host!r}: {exc}",
+                f"DNS resolution failed for {host!r}",
                 request=request,
             ) from exc
+
+        resolved = {
+            sockaddr[0].strip("[]")
+            for *_prefix, sockaddr in infos
+            if sockaddr and sockaddr[0]
+        }
+        if not resolved:
+            raise httpx.ConnectError(
+                f"No IP addresses found for {host!r}",
+                request=request,
+            )
+        return resolved
 
     @staticmethod
     def _rewrite_to_pinned_ip(
         request: httpx.Request,
         allowed_ips: Set[str],
+        *,
+        logical_host: Optional[str] = None,
     ) -> httpx.Request:
-        """Return a request copy whose connector target is a validated IP."""
-        target_ip = next(iter(allowed_ips))
-        original_host = request.url.host
-        extensions = dict(request.extensions)
+        target_ip = sorted(allowed_ips)[0]
+        original_host = logical_host or request.url.host
+        if not original_host:
+            raise httpx.ConnectError("Missing logical request host", request=request)
 
+        extensions = dict(request.extensions)
         if request.url.scheme == "https":
+            # Supported by httpcore: connect to the URL IP while validating the
+            # certificate and sending SNI for the original hostname.
             extensions["sni_hostname"] = original_host
 
         headers = httpx.Headers(request.headers)
-        headers["Host"] = original_host
+        default_port = 443 if request.url.scheme == "https" else 80
+        if request.url.port and request.url.port != default_port:
+            headers["Host"] = f"{original_host}:{request.url.port}"
+        else:
+            headers["Host"] = original_host
+
         return httpx.Request(
             request.method,
             request.url.copy_with(host=target_ip),
