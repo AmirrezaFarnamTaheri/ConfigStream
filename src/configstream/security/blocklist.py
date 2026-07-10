@@ -58,8 +58,8 @@ class BlocklistManager:
                     for key, value in data.items()
                     if key in {"etag", "last_modified"} and value
                 }
-        except (OSError, ValueError, TypeError, json.JSONDecodeError):
-            pass
+        except (OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
+            logger.debug("Ignoring unusable blocklist metadata: %s", type(exc).__name__)
         return {}
 
     @staticmethod
