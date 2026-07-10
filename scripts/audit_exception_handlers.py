@@ -12,6 +12,7 @@ from typing import Iterable, Sequence
 
 
 LOG_METHODS = {"debug", "info", "warning", "error", "exception", "critical", "log"}
+OUTPUT_METHODS = {"echo", "secho", "print", "write", "print_exception"}
 BROAD_NAMES = {"Exception", "BaseException"}
 
 
@@ -21,13 +22,14 @@ class Finding:
     line: int
     handler: str
     has_log: bool
+    has_output: bool
     reraises: bool
     terminates: bool
     body_summary: str
 
     @property
     def silent(self) -> bool:
-        return not self.has_log and not self.reraises
+        return not self.has_log and not self.has_output and not self.reraises
 
 
 def _handler_name(node: ast.ExceptHandler) -> str:
@@ -65,15 +67,34 @@ def _is_logging_call(call: ast.Call) -> bool:
     function = call.func
     if isinstance(function, ast.Attribute) and function.attr in LOG_METHODS:
         root = _root_name(function)
-        return root in {"logger", "logging", "log"} or bool(root and root.endswith("logger"))
+        return root in {"logger", "logging", "log"} or bool(
+            root and root.endswith("logger")
+        )
     if isinstance(function, ast.Attribute) and function.attr == "warn":
         return _root_name(function) == "warnings"
     return False
 
 
-def _contains_log(node: ast.ExceptHandler) -> bool:
+def _is_user_output_call(call: ast.Call) -> bool:
+    function = call.func
+    if isinstance(function, ast.Name):
+        return function.id == "print"
+    if isinstance(function, ast.Attribute) and function.attr in OUTPUT_METHODS:
+        root = _root_name(function)
+        return root in {
+            "click",
+            "typer",
+            "console",
+            "rich_console",
+            "traceback",
+            "sys",
+        }
+    return False
+
+
+def _contains_call(node: ast.ExceptHandler, predicate: object) -> bool:
     return any(
-        isinstance(child, ast.Call) and _is_logging_call(child)
+        isinstance(child, ast.Call) and predicate(child)  # type: ignore[operator]
         for child in ast.walk(node)
     )
 
@@ -112,7 +133,8 @@ def audit_file(path: Path, root: Path) -> list[Finding]:
                 path=path.relative_to(root).as_posix(),
                 line=node.lineno,
                 handler=_handler_name(node),
-                has_log=_contains_log(node),
+                has_log=_contains_call(node, _is_logging_call),
+                has_output=_contains_call(node, _is_user_output_call),
                 reraises=_contains_reraise(node),
                 terminates=_terminates_control_flow(node),
                 body_summary=_body_summary(node),
@@ -122,16 +144,20 @@ def audit_file(path: Path, root: Path) -> list[Finding]:
 
 
 def iter_python_files(paths: Sequence[Path]) -> Iterable[tuple[Path, Path]]:
+    repository_root = Path.cwd()
     for root in paths:
         if root.is_file() and root.suffix == ".py":
-            yield root, root.parent
+            yield root, repository_root
             continue
         if not root.exists():
             continue
         for path in sorted(root.rglob("*.py")):
-            if any(part in {".venv", "venv", "build", "dist", "node_modules"} for part in path.parts):
+            if any(
+                part in {".venv", "venv", "build", "dist", "node_modules"}
+                for part in path.parts
+            ):
                 continue
-            yield path, root.parent
+            yield path, repository_root
 
 
 def main() -> int:
