@@ -237,7 +237,6 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
       env:
-        FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
         CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
         CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
         PYTHONPATH: /app/src
