@@ -39,16 +39,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tini \
     libmaxminddb0 \
     ca-certificates \
+    nodejs \
+    npm \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Node.js 22 LTS via official setup script.
-# Required for GitHub Actions JavaScript actions (checkout, cache, upload-artifact)
-# to run inside the container during CI pipeline jobs.
-RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
-    && apt-get install -y --no-install-recommends nodejs \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN node --version && npm --version
+# Verify Node.js installation (required for GitHub Actions JS actions)
+RUN node --version
 
 WORKDIR /app
 
