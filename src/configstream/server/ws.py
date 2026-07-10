@@ -152,6 +152,6 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
             else:
                 logger.debug("Rejected unknown WebSocket command")
     except WebSocketDisconnect:
-        pass
+        logger.debug("WebSocket peer disconnected")
     finally:
         await manager.disconnect(websocket)
