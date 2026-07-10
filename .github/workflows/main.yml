@@ -122,6 +122,8 @@ jobs:
           tags: |
             ghcr.io/${{ env.REPO_LOWERCASE }}:latest
             ghcr.io/${{ env.REPO_LOWERCASE }}:${{ github.sha }}
+          build-args: |
+            CACHE_BUST=${{ github.run_id }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: true

@@ -32,6 +32,7 @@ LABEL org.opencontainers.image.version="3.1.0"
 # handle SIGTERM/SIGINT signals, causing unclean container shutdowns.
 # Install Node.js 22 LTS (needed for GitHub Actions JavaScript actions
 # like actions/checkout, actions/cache, actions/upload-artifact)
+ARG CACHE_BUST=1
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     curl \
