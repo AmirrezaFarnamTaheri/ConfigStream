@@ -3,6 +3,19 @@
 
 import { WARP_PUBLIC_KEY } from './state.js';
 
+/**
+ * SECURITY FIX (#474): Escape a string value for safe YAML interpolation.
+ * Characters that could break YAML structure are escaped.
+ */
+function yamlEscape(val) {
+    const s = String(val ?? '');
+    // If the value is empty, needs quoting, or contains dangerous chars, quote it
+    if (s === '' || /[:{}\[\],&*?|>!%@`#'"\\\n\r\t]/.test(s) || /^\d/.test(s)) {
+        return '"' + s.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r') + '"';
+    }
+    return s;
+}
+
 export function singboxOutboundToClash(sbOut) {
     const t = sbOut.type;
     const name = sbOut.tag;
@@ -14,63 +27,63 @@ export function singboxOutboundToClash(sbOut) {
         const tType = transport.type || '';
         let lines = '';
         if (tType === 'ws') {
-            lines += `\n    network: ws\n    ws-opts:\n      path: ${transport.path || '/'}`;
-            if (transport.headers && transport.headers.Host) lines += `\n      headers:\n        Host: ${transport.headers.Host}`;
+            lines += `\n    network: ws\n    ws-opts:\n      path: ${yamlEscape(transport.path || '/')}`;
+            if (transport.headers && transport.headers.Host) lines += `\n      headers:\n        Host: ${yamlEscape(transport.headers.Host)}`;
         } else if (tType === 'grpc') {
-            lines += `\n    network: grpc\n    grpc-opts:\n      grpc-service-name: ${transport.service_name || ''}`;
+            lines += `\n    network: grpc\n    grpc-opts:\n      grpc-service-name: ${yamlEscape(transport.service_name || '')}`;
         } else if (tType === 'http') {
-            lines += `\n    network: h2\n    h2-opts:\n      path: ${transport.path || '/'}`;
-            if (transport.host) lines += `\n      host:\n        - ${transport.host}`;
+            lines += `\n    network: h2\n    h2-opts:\n      path: ${yamlEscape(transport.path || '/')}`;
+            if (transport.host) lines += `\n      host:\n        - ${yamlEscape(transport.host)}`;
         } else if (tType === 'httpupgrade') {
-            lines += `\n    network: ws\n    ws-opts:\n      path: ${transport.path || '/'}\n      v2ray-http-upgrade: true`;
+            lines += `\n    network: ws\n    ws-opts:\n      path: ${yamlEscape(transport.path || '/')}\n      v2ray-http-upgrade: true`;
         }
-        if (tls.utls && tls.utls.fingerprint) lines += `\n    client-fingerprint: ${tls.utls.fingerprint}`;
-        if (tls.alpn && tls.alpn.length) lines += `\n    alpn:\n${tls.alpn.map(a => '      - ' + a).join('\n')}`;
+        if (tls.utls && tls.utls.fingerprint) lines += `\n    client-fingerprint: ${yamlEscape(tls.utls.fingerprint)}`;
+        if (tls.alpn && tls.alpn.length) lines += `\n    alpn:\n${tls.alpn.map(a => '      - ' + yamlEscape(a)).join('\n')}`;
         return lines;
     }
 
     function realityLines() {
         if (tls.reality && tls.reality.enabled) {
-            let r = `\n    reality-opts:\n      public-key: ${tls.reality.public_key || ''}`;
-            if (tls.reality.short_id) r += `\n      short-id: ${tls.reality.short_id}`;
+            let r = `\n    reality-opts:\n      public-key: ${yamlEscape(tls.reality.public_key || '')}`;
+            if (tls.reality.short_id) r += `\n      short-id: ${yamlEscape(tls.reality.short_id)}`;
             return r;
         }
         return '';
     }
 
     if (t === 'vless') {
-        let block = `  - name: "${name}"\n    type: vless\n    server: ${sbOut.server}\n    port: ${sbOut.server_port}\n    uuid: ${sbOut.uuid || ''}\n    tls: true\n    servername: ${sni}`;
-        if (sbOut.flow) block += `\n    flow: ${sbOut.flow}`;
+        let block = `  - name: ${yamlEscape(name)}\n    type: vless\n    server: ${yamlEscape(sbOut.server)}\n    port: ${sbOut.server_port}\n    uuid: ${yamlEscape(sbOut.uuid || '')}\n    tls: true\n    servername: ${yamlEscape(sni)}`;
+        if (sbOut.flow) block += `\n    flow: ${yamlEscape(sbOut.flow)}`;
         block += realityLines() + transportLines();
         return block;
     } else if (t === 'vmess') {
-        let block = `  - name: "${name}"\n    type: vmess\n    server: ${sbOut.server}\n    port: ${sbOut.server_port}\n    uuid: ${sbOut.uuid || ''}\n    alterId: 0\n    cipher: auto\n    tls: true\n    servername: ${sni}`;
+        let block = `  - name: ${yamlEscape(name)}\n    type: vmess\n    server: ${yamlEscape(sbOut.server)}\n    port: ${sbOut.server_port}\n    uuid: ${yamlEscape(sbOut.uuid || '')}\n    alterId: 0\n    cipher: auto\n    tls: true\n    servername: ${yamlEscape(sni)}`;
         block += transportLines();
         return block;
     } else if (t === 'trojan') {
-        let block = `  - name: "${name}"\n    type: trojan\n    server: ${sbOut.server}\n    port: ${sbOut.server_port}\n    password: ${sbOut.password || ''}\n    sni: ${sni}`;
+        let block = `  - name: ${yamlEscape(name)}\n    type: trojan\n    server: ${yamlEscape(sbOut.server)}\n    port: ${sbOut.server_port}\n    password: ${yamlEscape(sbOut.password || '')}\n    sni: ${yamlEscape(sni)}`;
         block += transportLines();
         return block;
     } else if (t === 'shadowsocks') {
-        return `  - name: "${name}"\n    type: ss\n    server: ${sbOut.server}\n    port: ${sbOut.server_port}\n    cipher: ${sbOut.method || 'aes-128-gcm'}\n    password: ${sbOut.password || ''}`;
+        return `  - name: ${yamlEscape(name)}\n    type: ss\n    server: ${yamlEscape(sbOut.server)}\n    port: ${sbOut.server_port}\n    cipher: ${yamlEscape(sbOut.method || 'aes-128-gcm')}\n    password: ${yamlEscape(sbOut.password || '')}`;
     } else if (t === 'socks') {
-        return `  - name: "${name}"\n    type: socks5\n    server: ${sbOut.server}\n    port: ${sbOut.server_port}`;
+        return `  - name: ${yamlEscape(name)}\n    type: socks5\n    server: ${yamlEscape(sbOut.server)}\n    port: ${sbOut.server_port}`;
     } else if (t === 'http') {
-        return `  - name: "${name}"\n    type: http\n    server: ${sbOut.server}\n    port: ${sbOut.server_port}`;
+        return `  - name: ${yamlEscape(name)}\n    type: http\n    server: ${yamlEscape(sbOut.server)}\n    port: ${sbOut.server_port}`;
     } else if (t === 'wireguard') {
         const ip = (sbOut.local_address && sbOut.local_address[0]) ? sbOut.local_address[0].split('/')[0] : '172.16.0.2';
         const reserved = sbOut.reserved ? JSON.stringify(sbOut.reserved) : '[0, 0, 0]';
-        return `  - name: "${name}"\n    type: wireguard\n    server: ${sbOut.server}\n    port: ${sbOut.server_port}\n    ip: ${ip}\n    private-key: ${sbOut.private_key || 'YNS+CEQE6JIQiVWcOUJd0K8FLFeCQBONJnXCdFnMRlQ='}\n    public-key: ${sbOut.peer_public_key || WARP_PUBLIC_KEY}\n    reserved: ${reserved}\n    mtu: ${sbOut.mtu || 1280}\n    udp: true`;
+        return `  - name: ${yamlEscape(name)}\n    type: wireguard\n    server: ${yamlEscape(sbOut.server)}\n    port: ${sbOut.server_port}\n    ip: ${yamlEscape(ip)}\n    private-key: ${yamlEscape(sbOut.private_key || 'YNS+CEQE6JIQiVWcOUJd0K8FLFeCQBONJnXCdFnMRlQ=')}\n    public-key: ${yamlEscape(sbOut.peer_public_key || WARP_PUBLIC_KEY)}\n    reserved: ${yamlEscape(reserved)}\n    mtu: ${sbOut.mtu || 1280}\n    udp: true`;
     } else if (t === 'hysteria2') {
-        let block = `  - name: "${name}"\n    type: hysteria2\n    server: ${sbOut.server}\n    port: ${sbOut.server_port}\n    password: ${sbOut.password || ''}`;
-        if (sni) block += `\n    sni: ${sni}`;
+        let block = `  - name: ${yamlEscape(name)}\n    type: hysteria2\n    server: ${yamlEscape(sbOut.server)}\n    port: ${sbOut.server_port}\n    password: ${yamlEscape(sbOut.password || '')}`;
+        if (sni) block += `\n    sni: ${yamlEscape(sni)}`;
         return block;
     } else if (t === 'tuic') {
-        let block = `  - name: "${name}"\n    type: tuic\n    server: ${sbOut.server}\n    port: ${sbOut.server_port}\n    uuid: ${sbOut.uuid || ''}\n    password: ${sbOut.password || ''}`;
-        if (sni) block += `\n    sni: ${sni}`;
+        let block = `  - name: ${yamlEscape(name)}\n    type: tuic\n    server: ${yamlEscape(sbOut.server)}\n    port: ${sbOut.server_port}\n    uuid: ${yamlEscape(sbOut.uuid || '')}\n    password: ${yamlEscape(sbOut.password || '')}`;
+        if (sni) block += `\n    sni: ${yamlEscape(sni)}`;
         return block;
     }
-    return `  - name: "${name}"\n    type: ${t}\n    server: ${sbOut.server}\n    port: ${sbOut.server_port}`;
+    return `  - name: ${yamlEscape(name)}\n    type: ${yamlEscape(t)}\n    server: ${yamlEscape(sbOut.server)}\n    port: ${sbOut.server_port}`;
 }
 
 export function buildClashYaml(chainConfig) {

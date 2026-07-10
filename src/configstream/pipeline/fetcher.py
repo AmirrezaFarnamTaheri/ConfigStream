@@ -84,19 +84,25 @@ async def _reject_source_dns(
     url: str,
     block_private_networks: bool = True,
     validate_dns: bool = True,
-) -> Optional[str]:
+) -> Tuple[Optional[str], Optional[str]]:
+    """Validate DNS resolution of *url* and return (error, validated_ip).
+
+    SECURITY FIX (#493): Returns the validated IP so callers can pin the
+    connection, preventing DNS-rebinding TOCTOU attacks.
+    """
     if not validate_dns or not block_private_networks:
-        return None
+        return None, None
 
     parsed = urlparse(url)
     host = parsed.hostname
     if not host:
-        return "Invalid URL host"
+        return "Invalid URL host", None
 
     host = host.strip("[]")
     try:
-        ipaddress.ip_address(host)
-        return None
+        ip = ipaddress.ip_address(host)
+        # Already an IP literal — no DNS needed
+        return None, str(ip)
     except ValueError:
         pass
 
@@ -109,9 +115,9 @@ async def _reject_source_dns(
             type=socket.SOCK_STREAM,
         )
     except socket.gaierror:
-        return "Source URL host could not be resolved"
+        return "Source URL host could not be resolved", None
     except OSError:
-        return "Source URL host DNS validation failed"
+        return "Source URL host DNS validation failed", None
 
     resolved_ips = {
         sockaddr[0].strip("[]")
@@ -119,16 +125,19 @@ async def _reject_source_dns(
         if sockaddr and sockaddr[0]
     }
     if not resolved_ips:
-        return "Source URL host resolved to no addresses"
+        return "Source URL host resolved to no addresses", None
 
     for raw_ip in resolved_ips:
         try:
             ip = ipaddress.ip_address(raw_ip)
         except ValueError:
-            return "Source URL host resolved to an invalid address"
+            return "Source URL host resolved to an invalid address", None
         if not ip.is_global:
-            return "Source URL host resolves to a private or non-global address"
-    return None
+            return "Source URL host resolves to a private or non-global address", None
+
+    # Return the first validated IP for connection pinning
+    validated_ip = next(iter(resolved_ips))
+    return None, validated_ip
 
 
 async def fetch_from_source(
@@ -250,7 +259,7 @@ async def fetch_from_source(
     while attempt < max_retries:
         start_ts = loop.time()
         try:
-            dns_error = await _reject_source_dns(
+            dns_error, validated_ip = await _reject_source_dns(
                 current_url,
                 block_private_networks=bool(app_settings.FETCH_BLOCK_PRIVATE_NETWORKS),
                 validate_dns=validate_dns,
@@ -272,6 +281,22 @@ async def fetch_from_source(
                     response_time=response_time,
                 )
 
+            # SECURITY FIX (#493): Pin the validated IP to prevent DNS-rebinding
+            # TOCTOU attacks. Replace hostname with validated IP in URL and set
+            # Host header so the TLS SNI remains correct.
+            pinned_url = current_url
+            host_header = None
+            if validated_ip:
+                parsed = urlparse(current_url)
+                original_host = parsed.hostname
+                if original_host and original_host != validated_ip:
+                    # Build URL with IP literal, preserving port and path
+                    netloc = validated_ip
+                    if parsed.port:
+                        netloc = f"{validated_ip}:{parsed.port}"
+                    pinned_url = parsed._replace(netloc=netloc).geturl()
+                    host_header = original_host
+
             # Jitter / Timeout Tracking
             effective_timeout = float(timeout) if timeout is not None else 30.0
             if timeout_tracker:
@@ -283,10 +308,14 @@ async def fetch_from_source(
                 if jitter > 2.0:
                     logger.info(f"High Jitter detected for {safe_source}: {jitter}s")
 
+            request_headers = dict(headers)
+            if host_header:
+                request_headers["Host"] = host_header
+
             async with client.stream(
                 "GET",
-                current_url,
-                headers=headers,
+                pinned_url,
+                headers=request_headers,
                 timeout=effective_timeout,
                 follow_redirects=False,
             ) as response:

@@ -38,38 +38,35 @@ export function showResultText(elId, type, text) {
 }
 
 export function showResultHTML(elId, type, html) {
-    // SECURITY: Transitioning from innerHTML to programmatic DOM construction
     const el = document.getElementById(elId);
     if (!el) return;
     el.className = 'lab-test-result ' + type;
     
-    // Simple parser for <strong> and <code> and <br>
+    // SECURITY FIX (#490): Use DOMPurify instead of hand-rolled regex.
+    // Allow only safe tags: <strong>, <code>, <br>, <a> with restricted attributes.
     el.replaceChildren();
-    const parts = html.split(/(<[^>]+>[^<]+<\/[^>]+>|<br>)/);
-    for (const part of parts) {
-        if (!part) continue;
-        if (part === '<br>') {
-            el.appendChild(document.createElement('br'));
-        } else if (part.startsWith('<strong>')) {
-            const strong = document.createElement('strong');
-            strong.textContent = part.replace(/<\/?strong>/g, '');
-            el.appendChild(strong);
-        } else if (part.startsWith('<code>')) {
-            const code = document.createElement('code');
-            code.textContent = part.replace(/<\/?code>/g, '');
-            el.appendChild(code);
-        } else if (part.startsWith('<a')) {
-             // Basic link support for trusted links
-             const match = part.match(/href="([^"]+)"/);
-             const a = document.createElement('a');
-             a.href = match ? match[1] : '#';
-             a.target = '_blank';
-             a.rel = 'noopener';
-             a.textContent = part.replace(/<[^>]+>/g, '');
-             el.appendChild(a);
-        } else {
-            el.appendChild(document.createTextNode(part));
+    if (window.DOMPurify) {
+        const fragment = window.DOMPurify.sanitize(String(html), {
+            RETURN_DOM_FRAGMENT: true,
+            ALLOWED_TAGS: ['strong', 'code', 'br', 'a'],
+            ALLOWED_ATTR: ['href', 'target', 'rel'],
+            ALLOW_DATA_ATTR: false,
+        });
+        // Enforce safe link attributes on all <a> elements
+        if (fragment && fragment.querySelectorAll) {
+            fragment.querySelectorAll('a').forEach(a => {
+                const href = a.getAttribute('href') || '';
+                if (/^javascript:/i.test(href.replace(/[\u0000-\u0020]/g, ''))) {
+                    a.removeAttribute('href');
+                }
+                a.target = '_blank';
+                a.rel = 'noopener';
+            });
         }
+        el.appendChild(fragment);
+    } else {
+        // Fallback: DOMPurify unavailable — render as safe text only
+        el.textContent = String(html).replace(/<br>/gi, '\n');
     }
     el.style.display = 'block';
 }

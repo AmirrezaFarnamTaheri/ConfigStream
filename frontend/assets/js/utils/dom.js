@@ -69,8 +69,7 @@ function updateElement(selector, content, options = {}) {
   const {
     method = 'textContent',
     clearFirst = false,
-    throwError = false,
-    trustedHTML = false
+    throwError = false
   } = options;
 
   if (!selector || typeof selector !== 'string') return false;
@@ -87,8 +86,6 @@ function updateElement(selector, content, options = {}) {
     if (method === 'innerHTML') {
       if (content instanceof Node) {
         element.replaceChildren(content);
-      } else if (trustedHTML) {
-        element.replaceChildren(htmlToFragment(content));
       } else {
         element.replaceChildren(sanitizeHTMLToFragment(content));
       }
