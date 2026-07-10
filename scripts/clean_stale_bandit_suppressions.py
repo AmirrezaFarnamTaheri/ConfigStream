@@ -3,9 +3,7 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-
-from scripts.validate_bandit_suppressions import (
+from validate_bandit_suppressions import (
     SCAN_ROOTS,
     _bandit_findings,
     _iter_python_files,
@@ -42,7 +40,9 @@ def main() -> None:
             replacement = "# nosec " + ", ".join(retained) if retained else ""
             new_line = line[: match.start()] + replacement + line[match.end() :]
             if not replacement:
-                new_line = new_line.rstrip(" \t\r\n") + ("\n" if line.endswith("\n") else "")
+                new_line = new_line.rstrip(" \t\r\n") + (
+                    "\n" if line.endswith("\n") else ""
+                )
             lines[index - 1] = new_line
             changed = True
 
