@@ -241,11 +241,12 @@ jobs:
         CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
         PYTHONPATH: /app/src
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-          persist-credentials: false
+      - name: Checkout (shell fallback — no Node.js in container)
+        run: |
+          git clone --depth 1 https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git /tmp/repo
+          shopt -s dotglob
+          cp -a /tmp/repo/. "$GITHUB_WORKSPACE"
+          rm -rf /tmp/repo
       - name: Restore Cache (Adaptive Logic)
         uses: actions/cache@v6
         with:
