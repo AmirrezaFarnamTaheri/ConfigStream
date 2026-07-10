@@ -8,9 +8,7 @@ import base64
 import binascii
 import json
 import os
-import shutil
 import stat
-import subprocess
 import tempfile
 import zipfile
 import zlib
@@ -25,14 +23,6 @@ MAX_ARCHIVE_FILES = 20_000
 MAX_ARCHIVE_TOTAL_BYTES = 2 * 1024 * 1024 * 1024
 MAX_ARCHIVE_FILE_BYTES = 512 * 1024 * 1024
 _COPY_CHUNK_BYTES = 1024 * 1024
-
-
-def _which_sing_box() -> str | None:
-    for name in ("sing-box", "sing-box.exe"):
-        path = shutil.which(name)
-        if path:
-            return path
-    return None
 
 
 def _safe_zip_member_path(info: zipfile.ZipInfo, workdir: Path) -> Path:
@@ -122,7 +112,7 @@ def _extract_artifact(artifact: Path, workdir: Path) -> Path:
     raise RuntimeError(f"Unsupported artifact type: {artifact}")
 
 
-def _validate_json(path: Path, sing_box_bin: str | None) -> dict[str, Any]:
+def _validate_json(path: Path) -> dict[str, Any]:
     result: dict[str, Any] = {
         "path": str(path),
         "json_valid": False,
@@ -133,18 +123,6 @@ def _validate_json(path: Path, sing_box_bin: str | None) -> dict[str, Any]:
         result["json_valid"] = True
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
         result["error"] = f"json: {type(exc).__name__}"
-        return result
-
-    if sing_box_bin:
-        proc = subprocess.run(
-            [sing_box_bin, "check", "-c", str(path)],
-            text=True,
-            capture_output=True,
-            check=False,
-        )
-        result["sing_box_check"] = proc.returncode == 0
-        if proc.returncode != 0:
-            result["sing_box_error"] = (proc.stderr or proc.stdout).strip()[:2000]
     return result
 
 
@@ -203,9 +181,12 @@ def audit_artifact(
         "base64_lists": [],
         "stego_assets": [],
         "missing_expected": [],
+        "sing_box_binary": None,
+        "sing_box_note": (
+            "External executable validation is intentionally disabled in the "
+            "untrusted-artifact audit path."
+        ),
     }
-    sing_box_bin = _which_sing_box()
-    report["sing_box_binary"] = sing_box_bin
 
     with tempfile.TemporaryDirectory(prefix="configstream-audit-") as temp_dir:
         extracted = _extract_artifact(artifact, Path(temp_dir))
@@ -262,7 +243,7 @@ def audit_artifact(
         for name in json_files:
             target = extracted / name
             if target.exists():
-                report["json_configs"].append(_validate_json(target, sing_box_bin))
+                report["json_configs"].append(_validate_json(target))
             else:
                 report["missing_expected"].append(name)
 
