@@ -34,6 +34,12 @@ jobs:
           python scripts/audit_exception_handlers.py \
             --json exception-audit.json \
             --fail-on-unlogged
+      - name: Prepare reviewable exception-hardening patch
+        if: always()
+        run: |
+          python scripts/harden_exception_handlers.py \
+            --report exception-audit.json \
+            --patch-file exception-hardening.patch
       - name: Upload Bandit report
         if: always()
         uses: actions/upload-artifact@v7
@@ -48,6 +54,14 @@ jobs:
         with:
           name: exception-audit-${{ github.run_id }}
           path: exception-audit.json
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload exception-hardening patch
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: exception-hardening-patch-${{ github.run_id }}
+          path: exception-hardening.patch
           if-no-files-found: error
           retention-days: 14
       - name: Enforce security diagnostics
