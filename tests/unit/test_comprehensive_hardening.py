@@ -3,7 +3,9 @@ from __future__ import annotations
 
 import base64
 import binascii
+import hashlib
 import json
+import math
 import struct
 import zlib
 from pathlib import Path
@@ -15,7 +17,7 @@ from configstream.intelligence.evasion import get_fragment_config
 from configstream.intelligence.washer.key_generator import KeyGenerator
 from configstream.intelligence.washer.utils import make_entry
 from configstream.server import ws
-from configstream.stego import StegoPacker
+from configstream.stego import StegoPacker, _derive_offsets
 
 
 def _png_chunk(kind: bytes, data: bytes) -> bytes:
@@ -73,7 +75,11 @@ def test_fragment_selection_is_stable_per_seed_and_rotatable() -> None:
     first = get_fragment_config("proxy-a", preset="heavy", rotation_seed="day-1")
     repeated = get_fragment_config("proxy-a", preset="heavy", rotation_seed="day-1")
     assert first == repeated
-    assert first in [entry for entry in get_fragment_config.__globals__["FRAG_PRESETS"]["heavy"] if entry]
+    assert first in [
+        entry
+        for entry in get_fragment_config.__globals__["FRAG_PRESETS"]["heavy"]
+        if entry
+    ]
 
     choices = {
         json.dumps(
@@ -85,7 +91,9 @@ def test_fragment_selection_is_stable_per_seed_and_rotatable() -> None:
     assert len(choices) > 1
 
 
-def test_websocket_wildcard_never_allows_arbitrary_origin(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_websocket_wildcard_never_allows_arbitrary_origin(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setattr(ws.settings, "ALLOWED_ORIGINS", "*")
     monkeypatch.setattr(ws.settings, "ALLOWED_ORIGIN_REGEX", "")
     assert ws._is_allowed_origin("https://attacker.example") is False
@@ -104,11 +112,32 @@ async def test_event_stream_flushes_all_records_on_close(tmp_path: Path) -> None
 
     records = [
         json.loads(line)
-        for line in (tmp_path / "pipeline_events.jsonl").read_text(encoding="utf-8").splitlines()
+        for line in (tmp_path / "pipeline_events.jsonl")
+        .read_text(encoding="utf-8")
+        .splitlines()
     ]
     assert len(records) == 301
     assert records[0]["message"] == "event-0"
     assert records[-1]["event_type"] == "stream_close"
+
+
+def test_legacy_stego_offset_derivation_is_preserved() -> None:
+    key = b"legacy-key-material"
+    carrier_len = 997
+    digest = hashlib.sha256(key + struct.pack(">Q", carrier_len)).digest()
+    expected_start = int.from_bytes(digest[:8], "big") % carrier_len
+    expected_stride = max(
+        1,
+        (int.from_bytes(digest[8:16], "big") % carrier_len) | 1,
+    )
+    while math.gcd(expected_stride, carrier_len) != 1:
+        expected_stride = (expected_stride + 2) % carrier_len or 1
+
+    assert _derive_offsets(key, carrier_len) == (expected_start, expected_stride)
+    assert _derive_offsets(key, carrier_len, b"x" * 16) != (
+        expected_start,
+        expected_stride,
+    )
 
 
 def test_stego_round_trip_uses_per_image_salt(tmp_path: Path) -> None:
