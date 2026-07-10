@@ -76,6 +76,7 @@ class KeyGenerator:
             private_key, public_key = self._generate_keys()
             install_id = uuid.uuid4().hex
             serial_number = uuid.uuid4().hex
+            push_registration = str()
             payload = {
                 "key": public_key,
                 "install_id": install_id,
@@ -85,7 +86,7 @@ class KeyGenerator:
                 "model": "Linux",
                 "serial_number": serial_number,
                 "locale": "en_US",
-                "fcm_token": "",
+                "fcm_token": push_registration,
             }
             headers = {
                 "User-Agent": "okhttp/3.12.1",
