@@ -79,12 +79,25 @@ jobs:
       - name: Install Playwright browsers
         run: python -m playwright install --with-deps
       - name: Run tests
-        run: pytest -q
+        shell: bash
+        run: |
+          set -o pipefail
+          pytest -q --junitxml=pytest-report.xml 2>&1 | tee pytest-output.txt
+      - name: Upload pytest diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: pytest-diagnostics-py${{ matrix.python-version }}-${{ github.run_id }}
+          path: |
+            pytest-report.xml
+            pytest-output.txt
+          if-no-files-found: error
+          retention-days: 14
       - name: Forensic artifact audit (optional)
         run: |
           ARTIFACT=""
-          if [ -f pipeline-output.rar ]; then
-            ARTIFACT="pipeline-output.rar"
+          if [ -f pipeline-output.zip ]; then
+            ARTIFACT="pipeline-output.zip"
           elif [ -d pipeline-output ]; then
             ARTIFACT="pipeline-output"
           fi
@@ -94,7 +107,7 @@ jobs:
               --report pipeline-audit-report.json \
               --strict
           else
-            echo "No pipeline-output artifact found; skipping forensic artifact audit."
+            echo "No pipeline-output ZIP or directory found; skipping forensic artifact audit."
           fi
       - name: Upload forensic audit report
         if: always()
@@ -162,4 +175,3 @@ jobs:
           npx playwright install chromium
       - name: Run required frontend browser profile
         run: npm run test:frontend:browser
-
