@@ -1,22 +1,18 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""
-Evasion Intelligence: Advanced anti-censorship features.
+"""Evasion configuration helpers with bounded, periodically rotating choices."""
 
-This module provides TLS fingerprint rotation, ALPN rotation, padding strategies,
-and other evasion techniques to bypass DPI and censorship.
-"""
+from __future__ import annotations
 
 import hashlib
 import logging
-from typing import Dict, Any, Optional, List
+from datetime import datetime, timezone
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
 
 class TLSFingerprint(Enum):
-    """Supported TLS fingerprints."""
-
     CHROME = "chrome"
     FIREFOX = "firefox"
     SAFARI = "safari"
@@ -27,14 +23,11 @@ class TLSFingerprint(Enum):
 
 
 class ALPNProtocol(Enum):
-    """Supported ALPN protocols."""
-
     H2 = "h2"
     HTTP1_1 = "http/1.1"
     HTTP1_0 = "http/1.0"
 
 
-# Safe fingerprint set for rotation
 SAFE_FINGERPRINTS = [
     TLSFingerprint.CHROME,
     TLSFingerprint.FIREFOX,
@@ -42,7 +35,6 @@ SAFE_FINGERPRINTS = [
     TLSFingerprint.IOS,
 ]
 
-# Safe ALPN combinations
 SAFE_ALPN_COMBINATIONS = [
     ["h2", "http/1.1"],
     ["http/1.1"],
@@ -50,32 +42,35 @@ SAFE_ALPN_COMBINATIONS = [
 ]
 
 
+def _rotation_hash(proxy_id: str, namespace: str, rotation_seed: Optional[str] = None) -> int:
+    """Return a stable hash within a rotation window, but not forever.
+
+    The default seed changes daily in UTC. Tests and callers that require exact
+    reproducibility can pass an explicit seed.
+    """
+    seed = rotation_seed or datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    payload = f"{namespace}\0{seed}\0{proxy_id}".encode("utf-8", errors="strict")
+    return int.from_bytes(hashlib.sha256(payload).digest(), "big")
+
+
 def rotate_tls_fingerprint(
     proxy_id: str,
     enabled: bool = True,
     fingerprint: Optional[str] = None,
+    rotation_seed: Optional[str] = None,
 ) -> Optional[Dict[str, Any]]:
-    """
-    Rotate TLS fingerprint for a proxy.
-
-    Args:
-        proxy_id: Unique proxy identifier for deterministic rotation
-        enabled: Whether to enable uTLS
-        fingerprint: Specific fingerprint to use, or None for rotation
-
-    Returns:
-        uTLS configuration dict or None
-    """
     if not enabled:
         return None
-
     if fingerprint:
-        # Use specified fingerprint
-        return {"enabled": True, "fingerprint": fingerprint}
-
-    # Deterministic rotation based on proxy ID
-    hash_val = int(hashlib.sha256(proxy_id.encode()).hexdigest(), 16)
-    selected = SAFE_FINGERPRINTS[hash_val % len(SAFE_FINGERPRINTS)]
+        normalized = str(fingerprint).strip().lower()
+        allowed = {member.value for member in TLSFingerprint}
+        if normalized not in allowed:
+            logger.warning("Ignoring unsupported TLS fingerprint %r", normalized)
+        else:
+            return {"enabled": True, "fingerprint": normalized}
+    selected = SAFE_FINGERPRINTS[
+        _rotation_hash(proxy_id, "tls-fingerprint", rotation_seed) % len(SAFE_FINGERPRINTS)
+    ]
     return {"enabled": True, "fingerprint": selected.value}
 
 
@@ -83,27 +78,21 @@ def rotate_alpn(
     proxy_id: str,
     enabled: bool = True,
     alpn: Optional[List[str]] = None,
+    rotation_seed: Optional[str] = None,
 ) -> Optional[List[str]]:
-    """
-    Rotate ALPN protocols for a proxy.
-
-    Args:
-        proxy_id: Unique proxy identifier for deterministic rotation
-        enabled: Whether to enable ALPN rotation
-        alpn: Specific ALPN list to use, or None for rotation
-
-    Returns:
-        ALPN list or None
-    """
     if not enabled:
         return None
-
     if alpn:
-        return alpn
-
-    # Deterministic rotation based on proxy ID
-    hash_val = int(hashlib.sha256(proxy_id.encode()).hexdigest(), 16)
-    selected = SAFE_ALPN_COMBINATIONS[hash_val % len(SAFE_ALPN_COMBINATIONS)]
+        normalized = [str(value).strip() for value in alpn if str(value).strip()]
+        allowed = {member.value for member in ALPNProtocol}
+        invalid = [value for value in normalized if value not in allowed]
+        if invalid:
+            logger.warning("Ignoring unsupported ALPN values: %s", ", ".join(invalid))
+        else:
+            return normalized
+    selected = SAFE_ALPN_COMBINATIONS[
+        _rotation_hash(proxy_id, "alpn", rotation_seed) % len(SAFE_ALPN_COMBINATIONS)
+    ]
     return selected.copy()
 
 
@@ -115,40 +104,26 @@ def add_multiplexing(
     max_connections: int = 4,
     min_streams: int = 2,
 ) -> Dict[str, Any]:
-    """
-    Add multiplexing with padding to an outbound config.
-
-    Args:
-        outbound: Sing-box outbound configuration
-        enabled: Whether to enable multiplexing
-        padding: Whether to enable padding (adds noise to packet sizes)
-        protocol: Multiplexing protocol (h2mux, smux)
-        max_connections: Maximum concurrent connections
-        min_streams: Minimum streams per connection
-
-    Returns:
-        Updated outbound config
-    """
-    if not enabled:
+    if not enabled or outbound.get("type", "") not in {
+        "vmess",
+        "vless",
+        "trojan",
+        "shadowsocks",
+    }:
         return outbound
-
-    # Only apply to protocols that support multiplexing
-    protocol_type = outbound.get("type", "")
-    if protocol_type not in ["vmess", "vless", "trojan", "shadowsocks"]:
-        return outbound
-
+    if protocol not in {"h2mux", "smux", "yamux"}:
+        logger.warning("Unsupported multiplexing protocol %r; using h2mux", protocol)
+        protocol = "h2mux"
     outbound["multiplex"] = {
         "enabled": True,
-        "padding": padding,
+        "padding": bool(padding),
         "protocol": protocol,
-        "max_connections": max_connections,
-        "min_streams": min_streams,
+        "max_connections": max(1, min(int(max_connections), 64)),
+        "min_streams": max(1, min(int(min_streams), 1024)),
     }
-
     return outbound
 
 
-# Fragmentation presets from cfray
 FRAG_PRESETS: Dict[str, List[Optional[Dict[str, str]]]] = {
     "none": [None],
     "light": [
@@ -176,24 +151,30 @@ def get_fragment_config(
     proxy_id: str,
     enabled: bool = True,
     preset: str = "medium",
+    rotation_seed: Optional[str] = None,
 ) -> Optional[Dict[str, Any]]:
-    """
-    Select a fragmentation configuration from presets deterministically based on proxy ID.
-    """
-    if not enabled or preset == "none":
+    """Select a fragmentation preset that rotates daily by default."""
+    if not enabled:
         return None
+    normalized_preset = str(preset or "medium").strip().lower()
+    if normalized_preset == "none":
+        return None
+    choices = FRAG_PRESETS.get(normalized_preset)
+    if choices is None:
+        logger.warning(
+            "Unknown fragmentation preset %r; using medium",
+            normalized_preset,
+        )
+        normalized_preset = "medium"
+        choices = FRAG_PRESETS[normalized_preset]
 
-    choices = FRAG_PRESETS.get(preset)
-    if not choices:
-        choices = FRAG_PRESETS["medium"]  # Fallback
-
-    valid_choices = [c for c in choices if c is not None]
+    valid_choices = [choice for choice in choices if choice is not None]
     if not valid_choices:
         return None
-
-    # Deterministic selection based on proxy ID
-    hash_val = int(hashlib.sha256(proxy_id.encode()).hexdigest(), 16)
-    selected = valid_choices[hash_val % len(valid_choices)]
+    selected = valid_choices[
+        _rotation_hash(proxy_id, f"fragment:{normalized_preset}", rotation_seed)
+        % len(valid_choices)
+    ]
     return selected.copy()
 
 
@@ -211,78 +192,58 @@ def enrich_outbound_with_evasion(
     enable_mptcp: bool = False,
     enable_padding: bool = False,
     ech_config: Optional[str] = None,
+    rotation_seed: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """
-    Enrich an outbound config with evasion features.
-
-    Args:
-        outbound: Sing-box outbound configuration
-        proxy_id: Unique proxy identifier
-        enable_utls: Enable TLS fingerprint rotation
-        enable_alpn: Enable ALPN rotation
-        enable_fragmentation: Enable TLS fragmentation
-        enable_multiplexing: Enable multiplexing with padding
-        tls_fingerprint: Specific fingerprint to use (optional)
-        alpn_list: Specific ALPN list to use (optional)
-        fragment_preset: Specific fragmentation preset to use (optional, defaults to "medium")
-        enable_tfo: Enable TCP Fast Open (optional, defaults to False)
-        enable_mptcp: Enable Multipath TCP (optional, defaults to False)
-        enable_padding: Enable TLS padding (optional, defaults to False)
-        ech_config: Encrypted Client Hello config string (optional)
-
-    Returns:
-        Enriched outbound config
-    """
     protocol = outbound.get("type", "")
+    tls = outbound.get("tls")
 
-    # Apply uTLS fingerprint rotation
-    if enable_utls and protocol in ["vmess", "vless", "trojan", "hysteria2", "tuic"]:
-        if "tls" in outbound and isinstance(outbound["tls"], dict):
+    if enable_utls and protocol in {"vmess", "vless", "trojan", "hysteria2", "tuic"}:
+        if isinstance(tls, dict):
             utls_config = rotate_tls_fingerprint(
-                proxy_id, enabled=True, fingerprint=tls_fingerprint
+                proxy_id,
+                enabled=True,
+                fingerprint=tls_fingerprint,
+                rotation_seed=rotation_seed,
             )
             if utls_config:
-                outbound["tls"]["utls"] = utls_config
+                tls["utls"] = utls_config
 
-    # Apply ALPN rotation
-    if enable_alpn and protocol in ["vmess", "vless", "trojan"]:
-        if "tls" in outbound and isinstance(outbound["tls"], dict):
-            alpn_protocols = rotate_alpn(proxy_id, enabled=True, alpn=alpn_list)
-            if alpn_protocols:
-                outbound["tls"]["alpn"] = alpn_protocols
+    if enable_alpn and protocol in {"vmess", "vless", "trojan"} and isinstance(tls, dict):
+        alpn_protocols = rotate_alpn(
+            proxy_id,
+            enabled=True,
+            alpn=alpn_list,
+            rotation_seed=rotation_seed,
+        )
+        if alpn_protocols:
+            tls["alpn"] = alpn_protocols
 
-    # Apply TLS padding
-    if enable_padding and protocol in ["vmess", "vless", "trojan", "hysteria2", "tuic"]:
-        if "tls" in outbound and isinstance(outbound["tls"], dict):
-            outbound["tls"]["padding"] = True
+    if enable_padding and protocol in {"vmess", "vless", "trojan", "hysteria2", "tuic"}:
+        if isinstance(tls, dict):
+            tls["padding"] = True
 
-    # Apply ECH (Encrypted Client Hello)
-    if ech_config and protocol in ["vmess", "vless", "trojan", "hysteria2", "tuic"]:
-        if "tls" in outbound and isinstance(outbound["tls"], dict):
-            outbound["tls"]["ech"] = {"enabled": True, "config": ech_config}
+    if ech_config and protocol in {"vmess", "vless", "trojan", "hysteria2", "tuic"}:
+        if isinstance(tls, dict):
+            tls["ech"] = {"enabled": True, "config": str(ech_config)}
 
-    # Apply TLS fragmentation
-    if enable_fragmentation and protocol in ["vmess", "vless", "trojan"]:
-        # Do not fragment XTLS-Vision or Reality
-        is_reality = False
-        if "tls" in outbound and isinstance(outbound["tls"], dict):
-            if outbound["tls"].get("reality", {}).get("enabled"):
-                is_reality = True
-        is_vision = outbound.get("flow", "").startswith("xtls-rprx-vision")
-
+    if enable_fragmentation and protocol in {"vmess", "vless", "trojan"}:
+        is_reality = isinstance(tls, dict) and bool(tls.get("reality", {}).get("enabled"))
+        is_vision = str(outbound.get("flow", "")).startswith("xtls-rprx-vision")
         if not is_reality and not is_vision:
             frag_cfg = get_fragment_config(
-                proxy_id, enabled=True, preset=fragment_preset
+                proxy_id,
+                enabled=True,
+                preset=fragment_preset,
+                rotation_seed=rotation_seed,
             )
             if frag_cfg:
-                dial = outbound.get("dial", {})
+                dial = outbound.get("dial")
                 if not isinstance(dial, dict):
                     dial = {}
                 dial["fragment"] = {"enabled": True, **frag_cfg}
                 outbound["dial"] = dial
 
-    # Apply TCP Fast Open and Multipath TCP
-    if (enable_tfo or enable_mptcp) and protocol in [
+    if (enable_tfo or enable_mptcp) and protocol in {
         "vmess",
         "vless",
         "trojan",
@@ -291,8 +252,8 @@ def enrich_outbound_with_evasion(
         "http",
         "hysteria2",
         "tuic",
-    ]:
-        dial = outbound.get("dial", {})
+    }:
+        dial = outbound.get("dial")
         if not isinstance(dial, dict):
             dial = {}
         if enable_tfo:
@@ -301,10 +262,8 @@ def enrich_outbound_with_evasion(
             dial["tcp_multi_path"] = True
         outbound["dial"] = dial
 
-    # Apply multiplexing with padding
     if enable_multiplexing:
         outbound = add_multiplexing(outbound, enabled=True, padding=True)
-
     return outbound
 
 
@@ -312,35 +271,20 @@ def preserve_sni_when_using_ip(
     outbound: Dict[str, Any],
     original_hostname: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """
-    Preserve SNI/Host when using resolved IP address.
-
-    Args:
-        outbound: Sing-box outbound configuration
-        original_hostname: Original hostname to preserve in SNI
-
-    Returns:
-        Updated outbound config with SNI preserved
-    """
     if not original_hostname:
         return outbound
+    tls = outbound.get("tls")
+    if isinstance(tls, dict) and not tls.get("server_name"):
+        tls["server_name"] = original_hostname
 
-    # Preserve SNI in TLS config
-    if "tls" in outbound and isinstance(outbound["tls"], dict):
-        if not outbound["tls"].get("server_name"):
-            outbound["tls"]["server_name"] = original_hostname
-
-    # Preserve Host header in transport
-    if "transport" in outbound:
-        transport = outbound["transport"]
-        if isinstance(transport, dict):
-            if transport.get("type") == "ws":
-                headers = transport.get("headers", {})
-                if "Host" not in headers:
-                    headers["Host"] = original_hostname
-                    transport["headers"] = headers
-            elif transport.get("type") == "http":
-                if "host" not in transport:
-                    transport["host"] = [original_hostname]
-
+    transport = outbound.get("transport")
+    if isinstance(transport, dict):
+        if transport.get("type") == "ws":
+            headers = transport.get("headers")
+            if not isinstance(headers, dict):
+                headers = {}
+            headers.setdefault("Host", original_hostname)
+            transport["headers"] = headers
+        elif transport.get("type") == "http":
+            transport.setdefault("host", [original_hostname])
     return outbound
