@@ -30,6 +30,8 @@ LABEL org.opencontainers.image.version="3.1.0"
 # Added tini for proper PID 1 signal handling and zombie reaping.
 # Without tini, the Python process runs as PID 1 and cannot properly
 # handle SIGTERM/SIGINT signals, causing unclean container shutdowns.
+# Install Node.js 22 LTS (needed for GitHub Actions JavaScript actions
+# like actions/checkout, actions/cache, actions/upload-artifact)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     curl \
@@ -37,6 +39,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     unzip \
     tini \
     libmaxminddb0 \
+    ca-certificates \
+    gnupg \
+    && mkdir -p /etc/apt/keyrings \
+    && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
+    && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" > /etc/apt/sources.list.d/nodesource.list \
+    && apt-get update && apt-get install -y --no-install-recommends nodejs \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
