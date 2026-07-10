@@ -3,6 +3,7 @@
 """Check SPDX license headers on first-party Python/Go scripts."""
 
 from __future__ import annotations
+import logging
 
 from pathlib import Path
 
@@ -27,6 +28,7 @@ def _has_spdx_header(path: Path) -> bool:
     try:
         lines = path.read_text(encoding="utf-8", errors="ignore").splitlines()
     except Exception:
+        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
         return False
     head = "\n".join(lines[:5])
     return SPDX_HEADER_MARKER in head

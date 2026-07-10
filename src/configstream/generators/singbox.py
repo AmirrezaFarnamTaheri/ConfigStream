@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import logging
 import copy
 import json
 from typing import List, Dict, Any, Optional, cast
@@ -140,6 +141,7 @@ class SingBoxGenerator:
                 if added and tag:
                     cast(List[str], urltest_outbound["outbounds"]).append(tag)
             except Exception:  # nosec B112
+                logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
                 continue
 
         # Assemble Final Config

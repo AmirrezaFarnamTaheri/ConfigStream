@@ -324,6 +324,7 @@ def save_metadata(
     try:
         pkg_version = version("configstream")
     except Exception:
+        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
         pkg_version = "unknown"
 
     update_interval_hours = _meta_settings.UPDATE_INTERVAL_HOURS

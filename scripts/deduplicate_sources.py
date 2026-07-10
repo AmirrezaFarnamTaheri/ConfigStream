@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import logging
 from pathlib import Path
 from urllib.parse import urlparse
 from typing import Set, List
@@ -158,6 +159,7 @@ def _project_key(url: str) -> str:
             return f"{host}:{parts[0]}/{parts[1]}"
         return host or url
     except Exception:
+        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
         return url
 
 
@@ -165,6 +167,7 @@ def get_domain(url: str) -> str:
     try:
         return urlparse(url).netloc.lower().replace("www.", "")
     except Exception:
+        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
         return ""
 
 

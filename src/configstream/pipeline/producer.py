@@ -96,6 +96,7 @@ async def _report_source_failure(
             },
         )
     except Exception:  # nosec B110
+        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
         pass
 
 
@@ -126,6 +127,7 @@ async def _report_source_backpressure(
             },
         )
     except Exception:  # nosec B110
+        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
         pass
 
 
@@ -513,6 +515,7 @@ async def source_producer(
                                     f"anomaly_blocked:{reason}",
                                 )
                             except Exception:  # nosec B110
+                                logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
                                 pass
                             if event_stream:
                                 event_stream.emit(

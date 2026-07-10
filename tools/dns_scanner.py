@@ -5,6 +5,7 @@ Standalone DNS Scanner
 Scans IPs/CIDRs for working DNS servers using aiodns.
 Based on dnsscanner_tui.py logic but adapted for CLI.
 """
+import logging
 
 import asyncio
 import ipaddress
@@ -47,6 +48,7 @@ async def test_dns(
                 return (ip, True, elapsed)
             return (ip, False, 0.0)
     except Exception:
+        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
         return (ip, False, 0.0)
 
 

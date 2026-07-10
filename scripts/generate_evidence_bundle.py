@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Generate a consolidated evidence bundle for a pipeline and deploy run."""
+import logging
 
 import argparse
 import base64
@@ -49,6 +50,7 @@ def get_file_stats(output_dir: str) -> Dict[str, Any]:
                 "shielded_verified_count", 0
             )
         except Exception:  # nosec B110
+            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
             pass
 
     # Count decoded subscription lines from base64.txt
@@ -62,6 +64,7 @@ def get_file_stats(output_dir: str) -> Dict[str, Any]:
                     [line for line in decoded.splitlines() if line.strip()]
                 )
         except Exception:  # nosec B110
+            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
             pass
 
     return stats
@@ -101,6 +104,7 @@ def generate_evidence_bundle(
                 Path(smoke_report).read_text(encoding="utf-8")
             )
         except Exception:
+            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
             bundle_meta["smoke_test"] = {"error": "Failed to read smoke report"}
 
     native_report_path = Path(native_report) if native_report else None
@@ -113,6 +117,7 @@ def generate_evidence_bundle(
             if native_report_path.resolve() != default_native_report.resolve():
                 shutil.copy2(native_report_path, default_native_report)
         except Exception:
+            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
             bundle_meta["native_client_check"] = {
                 "error": "Failed to read native client check report"
             }
@@ -122,6 +127,7 @@ def generate_evidence_bundle(
                 default_native_report.read_text(encoding="utf-8")
             )
         except Exception:
+            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
             bundle_meta["native_client_check"] = {
                 "error": "Failed to read native client check report"
             }
