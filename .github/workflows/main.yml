@@ -242,7 +242,7 @@ jobs:
         PYTHONPATH: /app/src
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
           persist-credentials: false
