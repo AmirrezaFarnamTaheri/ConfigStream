@@ -81,7 +81,7 @@ pycodestyle==2.14.0
 pycares==4.11.0
 pycparser==2.23
 pydantic-settings==2.14.2
-pydantic==2.12.5
+pydantic==2.13.4
 pydantic_core==2.41.5
 pyee==13.0.0
 pyfakefs==6.2.0
