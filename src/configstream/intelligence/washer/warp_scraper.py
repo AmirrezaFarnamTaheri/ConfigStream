@@ -219,8 +219,11 @@ class WarpScraper:
                                 decoded_bytes = base64.b64decode(compact, validate=True)
                                 if len(decoded_bytes) <= MAX_SOURCE_BYTES:
                                     decoded = decoded_bytes.decode("utf-8", errors="replace")
-                            except (binascii.Error, ValueError):
-                                pass
+                            except (binascii.Error, ValueError) as exc:
+                                logger.debug(
+                                    "WARP source was not base64 text; parsing as plain text (%s)",
+                                    type(exc).__name__,
+                                )
                         for raw_line in decoded.splitlines():
                             line = raw_line.strip()
                             if line.startswith("warp://"):
