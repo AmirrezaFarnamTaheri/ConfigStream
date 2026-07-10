@@ -1,0 +1,40 @@
+name: Security Diagnostics
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bandit-report:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install Bandit
+        run: python -m pip install bandit
+      - name: Generate machine-readable Bandit report
+        id: bandit
+        continue-on-error: true
+        run: |
+          bandit -r src/configstream scripts tools frontend/assets/js \
+            -f json -o bandit-report.json
+      - name: Upload Bandit report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: bandit-report-${{ github.run_id }}
+          path: bandit-report.json
+          if-no-files-found: error
+          retention-days: 14
+      - name: Enforce Bandit result
+        if: steps.bandit.outcome == 'failure'
+        run: exit 1
