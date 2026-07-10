@@ -1,0 +1,43 @@
+name: Apply Go Tester Hardening
+
+on:
+  push:
+    branches:
+      - agent/comprehensive-hardening
+    paths:
+      - .github/workflows/apply-go-tester-hardening.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: agent/comprehensive-hardening
+          fetch-depth: 0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+      - name: Apply base-manager hardening
+        run: python scripts/apply_go_tester_hardening.py
+      - name: Validate transformed manager
+        run: |
+          python -m compileall -q src/configstream/testers/go_tester
+          python scripts/check_license_headers.py
+          python scripts/validate_bandit_suppressions.py --require-active
+          git diff --check
+          grep -q "minimal_subprocess_environment(settings)" src/configstream/testers/go_tester/manager.py
+          if grep -q "os.environ.copy()" src/configstream/testers/go_tester/manager.py; then
+            echo "Full environment propagation remains in the base manager" >&2
+            exit 1
+          fi
+      - name: Commit transformation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/configstream/testers/go_tester/manager.py
+          git commit -m "fix(tester): harden every Go process launch path"
+          git push origin HEAD:agent/comprehensive-hardening
