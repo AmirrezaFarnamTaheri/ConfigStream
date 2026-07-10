@@ -136,13 +136,14 @@ def audit_file(path: Path, root: Path) -> list[Finding]:
     except (OSError, UnicodeDecodeError, SyntaxError) as exc:
         raise RuntimeError(f"Unable to parse {path}: {type(exc).__name__}") from exc
 
+    relative_path = path.resolve().relative_to(root.resolve()).as_posix()
     findings: list[Finding] = []
     for node in ast.walk(tree):
         if not isinstance(node, ast.ExceptHandler) or not _is_broad(node):
             continue
         findings.append(
             Finding(
-                path=path.relative_to(root).as_posix(),
+                path=relative_path,
                 line=node.lineno,
                 handler=_handler_name(node),
                 has_log=_contains_call(node, _is_logging_call),
