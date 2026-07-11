@@ -42,10 +42,10 @@ def test_status_reflects_current_blocked_release_state() -> None:
     """STATUS.md must follow current CI and live-deployment evidence."""
     status = _read("STATUS.md")
     normalized = status.lower()
-    assert "remediation in progress" not in normalized
     assert "not production-ready" in normalized
     assert "repository production gate | **open**" in normalized
     assert "release gate | **blocked**" in normalized
+    assert "remediation in progress" in normalized
     assert "dns_prewarm.py, fetcher.py, output.py" not in status
 
 
