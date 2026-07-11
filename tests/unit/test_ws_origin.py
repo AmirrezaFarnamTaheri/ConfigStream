@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Tests for WebSocket origin validation (P2-13 fix coverage)."""
 
-from unittest.mock import patch
 from unittest.mock import _patch as _PatchType
+from unittest.mock import patch
 
 from configstream.server.ws import _is_allowed_origin
 
@@ -83,7 +83,6 @@ def test_invalid_regex_does_not_raise() -> None:
         allowed_origin_regex=r"[invalid(regex",
     )
     with _patch_settings(s):
-        # Must not raise re.error; must safely return False.
         result = _is_allowed_origin("http://localhost:8000")
         assert result is False
 
@@ -113,11 +112,9 @@ def test_proxy_id_always_16_chars() -> None:
         uuid="550e8400-e29b-41d4-a716-446655440000",
     )
     id_val = p_with_uuid.id
-    # Previously returned the raw UUID (36 chars); now must be 16 hex chars.
     assert len(id_val) == 16, (
         f"Expected 16-char hex id, got {len(id_val)!r}: {id_val!r}"
     )
-    # Must be valid hex
     int(id_val, 16)
 
 
@@ -125,14 +122,21 @@ def test_proxy_id_same_for_equivalent_proxies() -> None:
     """Two logically identical proxies must produce the same id."""
     from configstream.models import Proxy
 
-    kwargs = dict(
+    first = Proxy(
         config="vmess://test",
         protocol="vmess",
         address="10.0.0.1",
         port=1080,
         uuid="abc123",
     )
-    assert Proxy(**kwargs).id == Proxy(**kwargs).id
+    second = Proxy(
+        config="vmess://test",
+        protocol="vmess",
+        address="10.0.0.1",
+        port=1080,
+        uuid="abc123",
+    )
+    assert first.id == second.id
 
 
 def test_proxy_id_different_for_different_proxies() -> None:
