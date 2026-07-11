@@ -8,6 +8,6 @@ from .secure_manager import GoBatchTester
 # ``configstream.testers.go_tester.manager``. Rebinding the module attribute
 # ensures direct submodule imports receive the verified launcher too, while the
 # secure subclass retains its private reference to the streaming base class.
-_manager.GoBatchTester = GoBatchTester
+_manager.GoBatchTester = GoBatchTester  # type: ignore[misc]
 
 __all__ = ["GoBatchTester"]
