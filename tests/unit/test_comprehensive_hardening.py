@@ -9,6 +9,7 @@ import math
 import struct
 import zlib
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -94,11 +95,15 @@ def test_fragment_selection_is_stable_per_seed_and_rotatable() -> None:
 def test_websocket_wildcard_never_allows_arbitrary_origin(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr(ws.settings, "ALLOWED_ORIGINS", "*")
-    monkeypatch.setattr(ws.settings, "ALLOWED_ORIGIN_REGEX", "")
+    wildcard_settings = SimpleNamespace(ALLOWED_ORIGINS="*", ALLOWED_ORIGIN_REGEX="")
+    monkeypatch.setattr(ws, "settings", wildcard_settings)
     assert ws._is_allowed_origin("https://attacker.example") is False
 
-    monkeypatch.setattr(ws.settings, "ALLOWED_ORIGINS", "https://app.example")
+    explicit_settings = SimpleNamespace(
+        ALLOWED_ORIGINS="https://app.example",
+        ALLOWED_ORIGIN_REGEX="",
+    )
+    monkeypatch.setattr(ws, "settings", explicit_settings)
     assert ws._is_allowed_origin("https://app.example") is True
     assert ws._is_allowed_origin("https://attacker.example") is False
 
