@@ -64,9 +64,13 @@ class BlocklistManager:
 
     @staticmethod
     def _write_metadata(response: httpx.Response) -> None:
+        def header(name: str) -> str:
+            value = response.headers.get(name, "")
+            return value if isinstance(value, str) else ""
+
         metadata = {
-            "etag": response.headers.get("ETag", ""),
-            "last_modified": response.headers.get("Last-Modified", ""),
+            "etag": header("ETag"),
+            "last_modified": header("Last-Modified"),
         }
         AtomicFileWriter.write_text(METADATA_FILE, json.dumps(metadata, sort_keys=True))
 
