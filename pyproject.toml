@@ -120,15 +120,15 @@ ignore_missing_imports = true
 exclude = "^(invvest|Latest Outputs to investigate|output|data)(/|\\\\)"
 
 [[tool.mypy.overrides]]
-module = "configstream.pipeline.fetcher"
+module = ["configstream.pipeline.fetcher", "src.configstream.pipeline.fetcher"]
 disable_error_code = ["union-attr"]
 
 [[tool.mypy.overrides]]
-module = "configstream.security.transport"
+module = ["configstream.security.transport", "src.configstream.security.transport"]
 disable_error_code = ["union-attr"]
 
 [[tool.mypy.overrides]]
-module = "configstream.testers.go_tester"
+module = ["configstream.testers.go_tester", "src.configstream.testers.go_tester"]
 disable_error_code = ["misc"]
 
 [[tool.mypy.overrides]]
