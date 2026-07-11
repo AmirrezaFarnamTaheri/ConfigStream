@@ -44,15 +44,14 @@ def test_lab_csp_allows_network_diagnosis_endpoints() -> None:
 def test_lab_generated_scripts_do_not_auto_download_binaries() -> None:
     lab_js = _read(FRONTEND_DIR / "assets" / "js" / "lab" / "exporters.js")
 
-    # Bash export must not use inline remote install/extract.
     assert 'curl -sL "$URL" | tar xz' not in lab_js
-
-    # Python export must not auto-download archives.
     assert "urllib.request.urlretrieve" not in lab_js
     assert "tar.extractall" not in lab_js
 
-    # Generated scripts should require a preinstalled sing-box binary.
-    assert "sing-box not found in PATH" in lab_js
+    required_message = "sing-box is required and must be installed from an official release"
+    assert lab_js.count(required_message) >= 2
+    assert 'shutil.which("sing-box")' in lab_js
+    assert "command -v sing-box" in lab_js
 
 
 def test_project_frontend_avoids_raw_inner_html_assignment() -> None:
