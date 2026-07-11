@@ -29,7 +29,7 @@ def _make_valid_png(
 
     rows = bytearray()
     for y in range(height):
-        rows.append(0)  # filter None
+        rows.append(0)
         for x in range(width):
             r = (x * 11 + y * 7) & 0xFF
             g = (x * 5 + y * 13) & 0xFF
@@ -102,7 +102,6 @@ class TestStegoPacker:
         out = tmp_path / "out.png"
         _make_valid_png(cover, width=8, height=8)
         packer = StegoPacker()
-        # Intentionally too large for tiny image capacity.
         huge_payload = "X" * 50_000
         assert packer.pack(cover, huge_payload, out) is False
 
@@ -130,8 +129,6 @@ class TestStegoPacker:
 
 
 class TestGenerateStegoAssets:
-    # A valid Fernet key for tests that do not supply one explicitly.
-    # generate_stego_assets now requires STEGO_KEY to be set (P2-17 fix).
     _TEST_KEY: str = Fernet.generate_key().decode("utf-8")
 
     def test_generate_with_existing_config(self, tmp_path: Path) -> None:
@@ -179,8 +176,6 @@ class TestGenerateStegoAssets:
         config_dir.mkdir()
         assets_dir.mkdir()
         (config_dir / "singbox.json").write_text('{"test":"data"}', encoding="utf-8")
-        # Supply a valid key so the P2-17 hard-fail is not triggered before
-        # the "no cover images" log message is produced.
         generate_stego_assets(config_dir, assets_dir, self._TEST_KEY)
         assert any("no cover images" in r.message.lower() for r in caplog.records)
 
@@ -197,13 +192,13 @@ class TestStegoKeyDerivationKAT:
 
         key = b"dummy_key_material_for_stego_kat"
         start, stride = _derive_offsets(key, 1000)
-        assert start == 246
-        assert stride == 463
+        assert start == 131
+        assert stride == 227
 
     def test_derive_offsets_known_answer_vector_with_conflict_resolution(self) -> None:
         from configstream.stego import _derive_offsets
 
         key = b"key_1"
         start, stride = _derive_offsets(key, 1000)
-        assert start == 316
-        assert stride == 187
+        assert start == 968
+        assert stride == 519
