@@ -155,3 +155,10 @@ def test_stego_round_trip_uses_per_image_salt(tmp_path: Path) -> None:
     assert first.read_bytes() != second.read_bytes()
     assert packer.unpack(first) == payload
     assert packer.unpack(second) == payload
+
+
+def test_direct_go_tester_manager_import_uses_verified_launcher() -> None:
+    from configstream.testers.go_tester.manager import GoBatchTester as direct
+    from configstream.testers.go_tester.secure_manager import GoBatchTester as verified
+
+    assert direct is verified
