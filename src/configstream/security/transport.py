@@ -56,13 +56,7 @@ def _valid_dns_hostname(value: str) -> bool:
 
 
 class SecurityTransport(httpx.AsyncHTTPTransport):
-    """Validate DNS answers and ensure the connector uses only validated IPs.
-
-    When an upstream caller has already rewritten a URL to a validated IP and
-    retained the original hostname in the Host header, this transport uses that
-    hostname for SNI/certificate verification. This closes the fetcher's
-    validate-then-re-resolve gap without breaking HTTPS virtual hosting.
-    """
+    """Validate DNS answers and ensure the connector uses only validated IPs."""
 
     def __init__(
         self,
@@ -87,8 +81,6 @@ class SecurityTransport(httpx.AsyncHTTPTransport):
         connection_host = request.url.host
         if not connection_host:
             return ""
-        # Only honor Host as an SNI override when the actual URL target is an IP.
-        # For normal hostname URLs, the URL remains authoritative.
         if _parse_ip(connection_host) is not None:
             host_header = _host_without_port(request.headers.get("Host", ""))
             if _valid_dns_hostname(host_header):
@@ -114,7 +106,7 @@ class SecurityTransport(httpx.AsyncHTTPTransport):
             non_global = [raw_ip for raw_ip in resolved_ips if not _is_global(raw_ip)]
             if non_global:
                 raise httpx.ConnectError(
-                    f"Host resolved to a non-global address: {non_global[0]!r}",
+                    f"Host resolved to non-global IP: {non_global[0]!r}",
                     request=request,
                 )
 
@@ -193,8 +185,6 @@ class SecurityTransport(httpx.AsyncHTTPTransport):
 
         extensions = dict(request.extensions)
         if request.url.scheme == "https":
-            # Supported by httpcore: connect to the URL IP while validating the
-            # certificate and sending SNI for the original hostname.
             extensions["sni_hostname"] = original_host
 
         headers = httpx.Headers(request.headers)
