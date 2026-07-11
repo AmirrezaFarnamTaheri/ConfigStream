@@ -77,6 +77,13 @@ class AdaptiveTimeout:
             raise ValueError("latency must be a finite non-negative number")
 
         safe_source = str(source)
+        if value > self.max_timeout:
+            logger.debug(
+                "Observed high latency %.2fs for %s",
+                value,
+                SecurityValidator.sanitize_log_message(safe_source),
+            )
+
         lock = self._get_lock()
         async with lock:
             self.latencies.append(value)
