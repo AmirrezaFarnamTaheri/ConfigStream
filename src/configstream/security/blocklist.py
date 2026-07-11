@@ -155,10 +155,11 @@ class BlocklistManager:
 
         if isinstance(ip, ipaddress.IPv4Address):
             bucket = self._v4_index.get(int(ip.packed[0]), ())
-        else:
-            first_segment = (int(ip.packed[0]) << 8) | int(ip.packed[1])
-            bucket = self._v6_index.get(first_segment, ())
-        return any(ip in network for network in bucket)
+            return any(ip in network for network in bucket)
+
+        first_segment = (int(ip.packed[0]) << 8) | int(ip.packed[1])
+        bucket_v6 = self._v6_index.get(first_segment, ())
+        return any(ip in network for network in bucket_v6)
 
     def is_suspicious_port(self, port: int) -> bool:
         return int(port) in HONEYPOT_PORTS
