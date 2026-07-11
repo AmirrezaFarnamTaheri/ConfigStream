@@ -14,7 +14,8 @@ def _is_allowed_origin(origin: Optional[str]) -> bool:
     if not origin:
         return False
 
-    allowed = [item.strip() for item in settings.ALLOWED_ORIGINS.split(",") if item.strip()]
+    raw_allowed = str(getattr(settings, "ALLOWED_ORIGINS", "") or "")
+    allowed = [item.strip() for item in raw_allowed.split(",") if item.strip()]
     if "*" in allowed:
         logger.error(
             "Ignoring insecure WebSocket wildcard in ALLOWED_ORIGINS; configure explicit origins"
@@ -24,7 +25,7 @@ def _is_allowed_origin(origin: Optional[str]) -> bool:
     if origin in allowed:
         return True
 
-    pattern = settings.ALLOWED_ORIGIN_REGEX
+    pattern = str(getattr(settings, "ALLOWED_ORIGIN_REGEX", "") or "")
     if pattern:
         try:
             return re.fullmatch(pattern, origin) is not None
@@ -128,7 +129,6 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
         logger.warning("WebSocket connection rejected: disallowed origin %r", safe_origin)
         await websocket.close(code=4003)
         return
-
     if not await manager.connect(websocket):
         return
     try:
