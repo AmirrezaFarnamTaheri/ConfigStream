@@ -2,5 +2,7 @@
 extend-ignore = E203,E501,E302,E303,E305,E306,W291,W293
 per-file-ignores =
     tests/*:E402,F401
+    # Remove this narrow compatibility exception when fetcher.py is next edited directly.
+    src/configstream/pipeline/fetcher.py:F401
     # scripts bootstrap sys.path to the repo root before importing local modules
     scripts/*:E402
