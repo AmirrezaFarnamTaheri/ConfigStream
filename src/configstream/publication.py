@@ -22,10 +22,19 @@ _PRIVATE_BASENAMES = {
     "consolidated_pipeline.log",
 }
 _PRIVATE_SUFFIXES = {".db", ".sqlite", ".sqlite3", ".log", ".lock", ".tmp"}
+# Deliberately high-confidence patterns. Public frontend code legitimately
+# contains field names such as `password` or `apiKey`; those identifiers alone
+# are not secrets. These rules target credential-bearing URLs, literal Bearer
+# values, private-key blocks, and common long token formats.
 _SECRET_PATTERNS = (
-    re.compile(r"(?i)(?:token|api[_-]?key|authorization|password|private[_-]?key)\s*[:=]\s*[^\s,}\]]+"),
-    re.compile(r"(?i)https?://[^\s\"']+[?&](?:token|key|auth|signature|sig)=[^\s&\"']+"),
+    re.compile(
+        r"(?i)https?://[^\s\"']+[?&](?:token|api[_-]?key|key|auth|signature|sig)="
+        r"(?!example|placeholder|your[-_])[A-Za-z0-9._~+/=-]{8,}"
+    ),
+    re.compile(r"(?i)authorization\s*[:=]\s*[\"']?bearer\s+[A-Za-z0-9._~+/=-]{12,}"),
     re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
+    re.compile(r"\bgh[pousr]_[A-Za-z0-9]{30,}\b"),
+    re.compile(r"\bsk-(?:proj-)?[A-Za-z0-9_-]{20,}\b"),
 )
 
 
@@ -55,7 +64,7 @@ def _is_private_path(relative: PurePosixPath) -> bool:
     if relative.suffix.lower() in _PRIVATE_SUFFIXES:
         return True
     lowered_parts = {part.lower() for part in relative.parts}
-    return bool(lowered_parts & {"private", "private-state", "cache", "fingerprints"})
+    return bool(lowered_parts & {"private", "private-state", "fingerprints"})
 
 
 def validate_public_artifact(
@@ -163,6 +172,8 @@ def write_release_manifest(
     destination = Path(destination)
     destination.parent.mkdir(parents=True, exist_ok=True)
     temporary = destination.with_name(f".{destination.name}.{os.getpid()}.tmp")
-    temporary.write_text(json.dumps(payload, sort_keys=True, indent=2) + "\n", encoding="utf-8")
+    temporary.write_text(
+        json.dumps(payload, sort_keys=True, indent=2) + "\n", encoding="utf-8"
+    )
     temporary.replace(destination)
     return payload
