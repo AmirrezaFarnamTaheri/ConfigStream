@@ -28,6 +28,10 @@ jobs:
         github.event_name == 'workflow_dispatch'
       }}
     runs-on: ubuntu-latest
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      PINATA_JWT: ${{ secrets.PINATA_JWT }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -90,23 +94,20 @@ jobs:
             esac
           done
       - name: Deploy exact bytes to Vercel
-        if: ${{ secrets.VERCEL_TOKEN != '' }}
+        if: env.VERCEL_TOKEN != ''
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           CLI_VERSION: ${{ vars.VERCEL_CLI_VERSION }}
         run: npx --yes "vercel@$CLI_VERSION" --cwd output deploy --prod --token="$VERCEL_TOKEN"
       - name: Deploy exact bytes to Netlify
-        if: ${{ secrets.NETLIFY_AUTH_TOKEN != '' }}
+        if: env.NETLIFY_AUTH_TOKEN != ''
         env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
           CLI_VERSION: ${{ vars.NETLIFY_CLI_VERSION }}
         run: npx --yes "netlify-cli@$CLI_VERSION" deploy --prod --dir=output --site="$NETLIFY_SITE_ID" --auth="$NETLIFY_AUTH_TOKEN"
       - name: Deploy exact bytes to IPFS
-        if: ${{ secrets.PINATA_JWT != '' }}
+        if: env.PINATA_JWT != ''
         env:
-          PINATA_JWT: ${{ secrets.PINATA_JWT }}
           CLI_VERSION: ${{ vars.PINATA_CLI_VERSION }}
         run: npx --yes "@pinata/cli@$CLI_VERSION" upload output/ --jwt="$PINATA_JWT"
