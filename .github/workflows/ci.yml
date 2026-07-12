@@ -184,6 +184,8 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
       - name: Install Playwright browsers
-        run: python -m playwright install --with-deps chromium
+        run: |
+          python -m playwright install --with-deps chromium
+          npx playwright install chromium
       - name: Run required frontend browser profile
-        run: pytest -q -m frontend_browser tests/frontend/test_browser_e2e.py
+        run: npm run test:frontend:browser
