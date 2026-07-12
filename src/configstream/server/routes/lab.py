@@ -1,18 +1,15 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-import asyncio
-import json
+"""Strictly isolated live-chain testing API."""
+
 import ipaddress
-import re
+import json
 import secrets
-import socket
 from typing import Optional
-from fastapi import APIRouter, Request, HTTPException
+
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
-from ..utils import (
-    settings,
-    limiter,
-    _is_nonproduction_environment,
-)
+
+from ..utils import _is_nonproduction_environment, limiter, settings
 
 router = APIRouter(prefix="/api/lab", tags=["lab"])
 
@@ -33,70 +30,43 @@ LAB_ALLOWED_OUTBOUND_TYPES = {
     "vmess",
     "wireguard",
 }
-
 LAB_DESTINATION_KEYS = {"server", "address"}
-LAB_INTERNAL_HOST_SUFFIXES = (".local", ".localhost", ".lan", ".internal")
 
 
-async def _validate_lab_destination(host: object, path: str) -> None:
+def _validate_lab_destination(host: object, path: str) -> str:
+    """Require a literal, globally routable IP for live execution.
+
+    Hostnames are intentionally rejected.  Validating a DNS answer and then
+    allowing another process to resolve the hostname again creates a DNS
+    rebinding/TOCTOU window.  Until the tester accepts a validated pinned socket
+    address with a separate SNI hostname, literal global addresses are the only
+    defensible live-lab contract.
+    """
+
     if not isinstance(host, str) or not host.strip():
-        raise HTTPException(status_code=400, detail=f"{path} must be a non-empty host")
+        raise HTTPException(status_code=400, detail=f"{path} must be a non-empty IP")
 
-    cleaned = host.strip().strip("[]").rstrip(".").lower()
-    if len(cleaned) > 253:
-        raise HTTPException(status_code=400, detail=f"{path} is too long")
-    if cleaned == "localhost" or cleaned.endswith(LAB_INTERNAL_HOST_SUFFIXES):
+    cleaned = host.strip().strip("[]")
+    try:
+        address = ipaddress.ip_address(cleaned)
+    except ValueError as exc:
         raise HTTPException(
             status_code=400,
-            detail=f"{path} must not target localhost or internal hostnames",
+            detail=(
+                f"{path} must be a literal globally routable IP; hostnames are "
+                "not accepted by live lab testing"
+            ),
+        ) from exc
+
+    if not address.is_global:
+        raise HTTPException(
+            status_code=400,
+            detail=f"{path} must not target private or non-global addresses",
         )
-
-    try:
-        ip = ipaddress.ip_address(cleaned)
-        is_ip = True
-    except ValueError:
-        is_ip = False
-        if not re.fullmatch(r"[a-z0-9.-]+", cleaned):
-            raise HTTPException(
-                status_code=400, detail=f"{path} is not a valid host"
-            ) from None
-
-    if is_ip:
-        if not ip.is_global:
-            raise HTTPException(
-                status_code=400,
-                detail=f"{path} must not target private or non-global addresses",
-            )
-    else:
-        # Resolve the hostname asynchronously (asyncio.to_thread keeps the event
-        # loop unblocked) and validate every returned address.
-        #
-        # TOCTOU note: the resolved IP addresses are only used for the allow/deny
-        # check here.  The downstream connection test receives the *same* validated
-        # config object; the actual TCP connection will re-resolve the hostname, but
-        # that second resolution is outside our control.  To fully prevent
-        # DNS-rebinding the caller should pass the pinned IP directly rather than a
-        # hostname, or the tester must re-validate the resolved address at connect
-        # time — documented as a known residual risk for hostname-based configs.
-        try:
-            addr_infos = await asyncio.to_thread(socket.getaddrinfo, cleaned, None)
-            for _family, _socktype, _proto, _canonname, sockaddr in addr_infos:
-                ip_str = sockaddr[0]
-                try:
-                    resolved_ip = ipaddress.ip_address(ip_str)
-                    if not resolved_ip.is_global:
-                        raise HTTPException(
-                            status_code=400,
-                            detail=f"{path} resolves to private or non-global address: {ip_str}",
-                        )
-                except ValueError:
-                    pass
-        except socket.gaierror:
-            # Allow unresolved hosts to fail at connection test time.
-            pass
+    return address.compressed
 
 
-async def _validate_lab_config(config: object) -> None:
+def _validate_lab_config(config: object) -> dict:
     if not isinstance(config, dict):
         raise HTTPException(status_code=400, detail="Config must be JSON object")
 
@@ -107,7 +77,12 @@ async def _validate_lab_config(config: object) -> None:
             detail="Config must include a non-empty outbounds array",
         )
 
-    for index, outbound in enumerate(outbounds):
+    # Work on a serialization round-trip copy so the caller's object is never
+    # mutated and all data is JSON-compatible before execution.
+    normalized = json.loads(json.dumps(config, separators=(",", ":")))
+    normalized_outbounds = normalized["outbounds"]
+
+    for index, outbound in enumerate(normalized_outbounds):
         path = f"outbounds[{index}]"
         if not isinstance(outbound, dict):
             raise HTTPException(status_code=400, detail=f"{path} must be an object")
@@ -123,31 +98,43 @@ async def _validate_lab_config(config: object) -> None:
 
         for key in LAB_DESTINATION_KEYS:
             if key in outbound:
-                await _validate_lab_destination(outbound[key], f"{path}.{key}")
+                outbound[key] = _validate_lab_destination(
+                    outbound[key], f"{path}.{key}"
+                )
+    return normalized
 
 
-def _require_payload_api_key(payload: dict, api_key: Optional[str]) -> None:
-    """Helper to validate API key in payload for production lab tests."""
+def _require_bearer_api_key(request: Request, api_key: Optional[str]) -> None:
+    """Require a constant-time Bearer credential in production."""
+
     if not api_key:
-        return
-    provided_key = payload.get("api_key")
-    if not provided_key or not secrets.compare_digest(provided_key, api_key):
-        raise HTTPException(status_code=403, detail="Forbidden: Invalid API key")
+        raise HTTPException(
+            status_code=503,
+            detail="Live lab authentication is not configured",
+        )
+    authorization = request.headers.get("authorization", "")
+    scheme, separator, credential = authorization.partition(" ")
+    if (
+        not separator
+        or scheme.lower() != "bearer"
+        or not credential
+        or not secrets.compare_digest(credential, api_key)
+    ):
+        raise HTTPException(status_code=403, detail="Forbidden: invalid API key")
 
 
 @router.post("/test-chain")
 @limiter.limit("30/minute")
 async def lab_test_chain(request: Request, payload: dict):
-    """
-    Lab chain test endpoint. Tests a sing-box config when singbox2proxy is available.
-    """
+    """Test a bounded sing-box chain configuration when explicitly enabled."""
+
     if not _is_nonproduction_environment(settings.ENVIRONMENT):
         if not settings.LAB_LIVE_TEST_ENABLED:
             raise HTTPException(
                 status_code=403,
                 detail="Live lab testing is disabled in production.",
             )
-        _require_payload_api_key(payload, settings.ADMIN_API_KEY)
+        _require_bearer_api_key(request, settings.ADMIN_API_KEY)
 
     config = payload.get("config") if isinstance(payload, dict) else None
     if config is None:
@@ -162,23 +149,29 @@ async def lab_test_chain(request: Request, payload: dict):
         raise HTTPException(
             status_code=413, detail="Config exceeds lab test size limit"
         )
-    await _validate_lab_config(config)
+
+    pinned_config = _validate_lab_config(config)
 
     try:
         from configstream.testers.lab_chain_tester import test_chain_config
     except ImportError:
         raise HTTPException(
             status_code=503,
-            detail="Live chain testing is not available. Use manual testing: save config to file and run 'sing-box run -c chain.json'.",
+            detail=(
+                "Live chain testing is not available. Save the config and run "
+                "sing-box manually in an isolated environment."
+            ),
         ) from None
 
-    result = await test_chain_config(config, timeout=settings.LAB_TEST_TIMEOUT_SECONDS)
+    result = await test_chain_config(
+        pinned_config,
+        timeout=settings.LAB_TEST_TIMEOUT_SECONDS,
+    )
     if result["success"]:
         return JSONResponse(content=result)
-
     if "singbox2proxy not installed" in result.get("error", ""):
         raise HTTPException(
             status_code=503,
-            detail="Live chain testing requires singbox2proxy. Use manual testing: save config and run 'sing-box run -c chain.json'.",
+            detail="Live chain testing requires singbox2proxy.",
         )
     return JSONResponse(content=result, status_code=200)
