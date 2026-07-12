@@ -64,7 +64,7 @@ mypy==2.1.0
 mypy_extensions==1.1.0
 nest-asyncio==1.6.0
 numpy==2.2.6
-orjson==3.11.6
+orjson==3.11.9
 packageurl-python==0.17.6
 packaging==25.0
 pathspec==1.1.1
