@@ -20,6 +20,24 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
+      - name: Install project diagnostics dependencies
+        run: python -m pip install -e ".[dev]"
+      - name: Capture source and contract diagnostics
+        id: contracts
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          {
+            pytest -q
+            python scripts/validate_versions.py
+            python scripts/validate_capability_registry.py
+            python scripts/validate_core_compatibility.py
+            python scripts/validate_module_ownership.py
+          } > contract-diagnostics.txt 2>&1
+          status=$?
+          tail -n 250 contract-diagnostics.txt
+          exit "$status"
       - name: Install pinned Bandit
         run: python -m pip install "bandit==1.8.6"
       - name: Generate machine-readable Bandit report
@@ -46,6 +64,14 @@ jobs:
             --report exception-audit.json \
             --patch-file exception-hardening.patch \
             || printf '# hardening helper could not generate a patch; inspect exception-audit.json\n' > exception-hardening.patch
+      - name: Upload contract diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: contract-diagnostics-${{ github.run_id }}
+          path: contract-diagnostics.txt
+          if-no-files-found: error
+          retention-days: 14
       - name: Upload Bandit report
         if: always()
         uses: actions/upload-artifact@v7
@@ -71,5 +97,5 @@ jobs:
           if-no-files-found: error
           retention-days: 14
       - name: Enforce security diagnostics
-        if: steps.bandit.outcome == 'failure' || steps.exceptions.outcome == 'failure'
+        if: steps.contracts.outcome == 'failure' || steps.bandit.outcome == 'failure' || steps.exceptions.outcome == 'failure'
         run: exit 1
