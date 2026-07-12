@@ -159,11 +159,13 @@ class SecurityTransport(httpx.AsyncHTTPTransport):
                 request=request,
             ) from exc
 
-        resolved = {
-            sockaddr[0].strip("[]")
-            for *_prefix, sockaddr in infos
-            if sockaddr and sockaddr[0]
-        }
+        resolved: Set[str] = set()
+        for *_prefix, sockaddr in infos:
+            if not sockaddr:
+                continue
+            raw_address = sockaddr[0]
+            if isinstance(raw_address, str) and raw_address:
+                resolved.add(raw_address.strip("[]"))
         if not resolved:
             raise httpx.ConnectError(
                 f"No IP addresses found for {host!r}",
