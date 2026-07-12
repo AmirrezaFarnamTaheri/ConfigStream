@@ -42,21 +42,21 @@ def test_status_reflects_current_blocked_release_state() -> None:
     """STATUS.md must follow current CI and live-deployment evidence."""
     status = _read("STATUS.md")
     normalized = status.lower()
-    assert "not production-ready" in normalized
-    assert "repository production gate | **open**" in normalized
-    assert "release gate | **blocked**" in normalized
-    assert "remediation in progress" in normalized
+    assert "fail — release blocked" in normalized
+    assert "must not be called production-ready" in normalized
+    assert "machine-readable release gate" in normalized
+    assert "pr #510" in normalized
     assert "dns_prewarm.py, fetcher.py, output.py" not in status
 
 
-def test_public_claims_reflect_closed_production_gate() -> None:
+def test_public_claims_reflect_open_production_gate() -> None:
     pyproject = _read("pyproject.toml")
     readme = _read("README.md")
 
-    assert "Development Status :: 5 - Production/Stable" in pyproject
-    assert "Development Status :: 4 - Beta" not in pyproject
-    assert "production-ready as of v3.1.0" in readme
-    assert "older production-ready claims are superseded" not in readme
+    assert "Development Status :: 4 - Beta" in pyproject
+    assert "Development Status :: 5 - Production/Stable" not in pyproject
+    assert "production-ready as of v3.1.0" not in readme
+    assert "older production-ready claims are superseded" in readme
     assert "TLS Fragmentation**: Splits TLS packets" not in readme
     assert "TLS Fragmentation**: Disabled" in readme
     assert "docs/history/source-of-truth/ConfigStream_Master_Audit_Report" not in readme
