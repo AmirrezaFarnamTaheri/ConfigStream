@@ -59,8 +59,10 @@ WORKDIR /app
 # Install 'uv'
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
-# Set up user
-RUN useradd -m -u 1000 runner
+# Match the GitHub-hosted Ubuntu runner UID so bind-mounted workspace and
+# runner command files remain writable when this image is used as a job container.
+ARG RUNNER_UID=1001
+RUN useradd -m -u "${RUNNER_UID}" runner
 
 # Copy Go binary
 COPY --from=builder /app/tester /usr/local/bin/configstream-tester
