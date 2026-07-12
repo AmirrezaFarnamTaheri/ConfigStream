@@ -67,7 +67,6 @@ async def async_client(monkeypatch):
 
     monkeypatch.setattr(anyio_asyncio, "current_task", _safe_current_task)
 
-    # Mock FileResponse to return content from disk (simulating server behavior)
     def _fake_file_response(path, *args, **kwargs):
         p = Path(path)
         if not p.exists():
@@ -91,7 +90,6 @@ def mock_output_dir(tmp_path, monkeypatch):
     output_dir = tmp_path / "output"
     output_dir.mkdir()
 
-    # Create metadata.json
     metadata = {
         "last_updated_utc": "2023-10-27T10:00:00Z",
         "total_proxies": 100,
@@ -101,21 +99,17 @@ def mock_output_dir(tmp_path, monkeypatch):
     }
     (output_dir / "metadata.json").write_text(json.dumps(metadata))
 
-    # Create proxies.json (Master list)
     proxies = [{"protocol": "vmess", "country_code": "US"}]
     (output_dir / "proxies.json").write_text(json.dumps(proxies))
 
-    # Create country specific file (.list.json)
     country_dir = output_dir / "countries"
     country_dir.mkdir()
     (country_dir / "US.list.json").write_text(json.dumps(proxies))
 
-    # Create protocol specific file (.list.json)
     proto_dir = output_dir / "protocols"
     proto_dir.mkdir()
     (proto_dir / "vmess.list.json").write_text(json.dumps(proxies))
 
-    # Create subscription files
     (output_dir / "clash.yaml").write_text("proxies: []")
 
     monkeypatch.setenv("OUTPUT_DIR", str(output_dir))
@@ -138,10 +132,12 @@ def mock_frontend_dir(tmp_path, monkeypatch):
 async def test_health_check(mock_output_dir, async_client):
     with patch("configstream.server.OUTPUT_DIR", mock_output_dir):
         response = await async_client.get("/health")
-        assert response.status_code == 200
+        assert response.status_code == 503
         json_resp = response.json()
-        assert json_resp["status"] == "ok"
-        assert "output_available" in json_resp
+        assert json_resp["status"] == "degraded"
+        assert json_resp["ready"] is False
+        assert json_resp["missing_public_files"]
+        assert "output_dir" not in json_resp
 
 
 @pytest.mark.asyncio
@@ -256,12 +252,10 @@ async def test_get_proxies_all(mock_output_dir, async_client):
 @pytest.mark.asyncio
 async def test_get_proxies_by_country(mock_output_dir, async_client):
     with patch("configstream.server.OUTPUT_DIR", mock_output_dir):
-        # Should return 200 for existing country (US.list.json)
         response = await async_client.get("/api/proxies?country=US")
         assert response.status_code == 200, f"Response: {response.text}"
         assert len(response.json()) == 1
 
-        # Should return 404 for non-existent country
         response = await async_client.get("/api/proxies?country=XX")
         assert response.status_code == 404
 
@@ -269,12 +263,10 @@ async def test_get_proxies_by_country(mock_output_dir, async_client):
 @pytest.mark.asyncio
 async def test_get_proxies_by_protocol(mock_output_dir, async_client):
     with patch("configstream.server.OUTPUT_DIR", mock_output_dir):
-        # Should return 200 for existing protocol (vmess.list.json)
         response = await async_client.get("/api/proxies?protocol=vmess")
         assert response.status_code == 200
         assert len(response.json()) == 1
 
-        # Should return 404 for non-existent protocol
         response = await async_client.get("/api/proxies?protocol=invalid")
         assert response.status_code == 404
 
@@ -333,9 +325,6 @@ async def test_admin_notify_accepts_valid_key_in_production(async_client, monkey
 async def test_admin_notify_allows_unkeyed_development(async_client, monkeypatch):
     monkeypatch.delenv("ADMIN_API_KEY", raising=False)
     monkeypatch.setenv("ENVIRONMENT", "development")
-    # P1-8 fix: the non-production bypass now also requires
-    # ALLOW_UNAUTHENTICATED_ADMIN=true to prevent misuse of the ENVIRONMENT
-    # label as an implicit auth bypass.
     monkeypatch.setenv("ALLOW_UNAUTHENTICATED_ADMIN", "true")
 
     response = await async_client.post("/api/admin/notify-update", json={})
@@ -549,7 +538,7 @@ async def test_lab_test_chain_requires_admin_key_when_enabled_in_production(
     )
 
     assert response.status_code == 403
-    assert "Invalid API key" in response.text
+    assert "invalid API key" in response.text
 
 
 @pytest.mark.asyncio
@@ -569,10 +558,8 @@ async def test_lab_test_chain_allows_valid_admin_key_when_enabled_in_production(
     ):
         response = await async_client.post(
             "/api/lab/test-chain",
-            json={
-                "api_key": "secret",
-                "config": {"outbounds": [{"type": "direct", "tag": "direct"}]},
-            },
+            json={"config": {"outbounds": [{"type": "direct", "tag": "direct"}]}},
+            headers={"Authorization": "Bearer secret"},
         )
 
     assert response.status_code == 200
@@ -655,7 +642,7 @@ async def test_lab_test_chain_rejects_internal_hostname(async_client, monkeypatc
     )
 
     assert response.status_code == 400
-    assert "internal hostnames" in response.text
+    assert "literal globally routable IP" in response.text
 
 
 @pytest.mark.asyncio
@@ -686,7 +673,7 @@ async def test_lab_test_chain_rejects_resolving_private_destination(
         )
 
     assert response.status_code == 400
-    assert "resolves to private" in response.text
+    assert "literal globally routable IP" in response.text
 
 
 def test_lab_test_chain_is_rate_limited() -> None:
