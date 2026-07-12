@@ -22,4 +22,5 @@ def normalize_socket_address_host(sockaddr: object) -> Optional[str]:
     if not isinstance(raw_host, str) or not raw_host:
         return None
 
-    return raw_host.strip("[]")
+    stripped_host = raw_host.strip("[]")
+    return stripped_host if stripped_host else None
