@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from datetime import datetime, timedelta, timezone
+from typing import Optional
 
 from configstream.evidence import (
     PublicationChannel,
@@ -12,33 +13,44 @@ from configstream.evidence import (
 NOW = datetime(2026, 7, 12, 12, 0, tzinfo=timezone.utc)
 
 
-def evidence(number: int, vantage: str, **overrides) -> ValidationEvidence:
-    values = {
-        "evidence_id": f"evidence-{number}",
-        "observation_id": "observation-1",
-        "run_id": f"run-{number}",
-        "tester_digest": "a" * 64,
-        "network_vantage_id": vantage,
-        "tested_at": NOW - timedelta(minutes=number),
-        "expires_at": NOW + timedelta(minutes=15),
-        "resolved_addresses": ("1.1.1.1",),
-        "selected_address": "1.1.1.1",
-        "public_address_validated": True,
-        "dns_rebinding_guarded": True,
-        "tcp_connected": True,
-        "connect_latency_ms": 100,
-        "protocol_claim": "http",
-        "protocol_confirmed": True,
-        "tls_attempted": True,
-        "certificate_chain_valid": True,
-        "hostname_valid": True,
-        "interception_detected": False,
-        "content_integrity_valid": True,
-        "critical_reputation_flags": (),
-        "outcome": ValidationOutcome.PASSED,
-    }
-    values.update(overrides)
-    return ValidationEvidence(**values)
+def evidence(
+    number: int,
+    vantage: str,
+    *,
+    tested_at: Optional[datetime] = None,
+    expires_at: Optional[datetime] = None,
+    content_integrity_valid: bool = True,
+    outcome: ValidationOutcome = ValidationOutcome.PASSED,
+    failure_reason: Optional[str] = None,
+    tls_attempted: bool = True,
+    certificate_chain_valid: Optional[bool] = True,
+    hostname_valid: Optional[bool] = True,
+) -> ValidationEvidence:
+    return ValidationEvidence(
+        evidence_id=f"evidence-{number}",
+        observation_id="observation-1",
+        run_id=f"run-{number}",
+        tester_digest="a" * 64,
+        network_vantage_id=vantage,
+        tested_at=tested_at or NOW - timedelta(minutes=number),
+        expires_at=expires_at or NOW + timedelta(minutes=15),
+        resolved_addresses=("1.1.1.1",),
+        selected_address="1.1.1.1",
+        public_address_validated=True,
+        dns_rebinding_guarded=True,
+        tcp_connected=True,
+        connect_latency_ms=100,
+        protocol_claim="http",
+        protocol_confirmed=True,
+        tls_attempted=tls_attempted,
+        certificate_chain_valid=certificate_chain_valid,
+        hostname_valid=hostname_valid,
+        interception_detected=False,
+        content_integrity_valid=content_integrity_valid,
+        critical_reputation_flags=(),
+        outcome=outcome,
+        failure_reason=failure_reason,
+    )
 
 
 def test_experimental_accepts_one_current_safe_observation():
