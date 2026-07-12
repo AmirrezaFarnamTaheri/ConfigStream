@@ -23,11 +23,21 @@ jobs:
           python-version: "3.12"
       - name: Install project diagnostics dependencies
         run: python -m pip install -e ".[dev]"
-      - name: Capture mypy diagnostics
+      - name: Reproduce CI state before mypy
         id: mypy
         continue-on-error: true
+        shell: bash
         run: |
-          python -m mypy . > mypy-diagnostics.txt 2>&1
+          set +e
+          python -m configstream.cli update-databases >> mypy-diagnostics.txt 2>&1
+          pytest -q >> mypy-diagnostics.txt 2>&1
+          printf '\n=== changed/untracked Python files ===\n' >> mypy-diagnostics.txt
+          git status --short --untracked-files=all | grep '\.py$' >> mypy-diagnostics.txt || true
+          printf '\n=== mypy ===\n' >> mypy-diagnostics.txt
+          python -m mypy . >> mypy-diagnostics.txt 2>&1
+          status=$?
+          tail -n 250 mypy-diagnostics.txt
+          exit "$status"
       - name: Capture Black diagnostics
         id: black
         continue-on-error: true
