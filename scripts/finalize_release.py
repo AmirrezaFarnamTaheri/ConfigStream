@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Sanitize, validate, and identify one immutable public release directory."""
+"""Sanitize, normalize, validate, and seal one immutable public release."""
 
 from __future__ import annotations
 
@@ -9,8 +9,10 @@ import hashlib
 import json
 import os
 import shutil
+from collections import Counter
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from typing import Any
 
 from configstream.publication import validate_public_artifact, write_release_manifest
 
@@ -44,28 +46,128 @@ def _purge_private_state(root: Path) -> None:
             directory.rmdir()
 
 
-def _load_json(path: Path):
+def _load_json(path: Path) -> Any:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
     except (OSError, UnicodeError, json.JSONDecodeError) as exc:
         raise SystemExit(f"invalid required JSON file {path}: {exc}") from exc
 
 
-def _require_viable_release(root: Path) -> None:
-    proxies = _load_json(root / "proxies.json")
-    metadata = _load_json(root / "metadata.json")
-    if not isinstance(proxies, list) or not proxies:
-        raise SystemExit("release rejected: proxies.json must be a non-empty list")
+def _write_json(path: Path, value: Any) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+    temporary.write_text(
+        json.dumps(value, sort_keys=True, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    temporary.replace(path)
+
+
+def _is_verified_stable_record(record: object) -> bool:
+    if not isinstance(record, dict) or record.get("is_working") is not True:
+        return False
+    details = record.get("details")
+    details = details if isinstance(details, dict) else {}
+    tags = record.get("tags")
+    tags = {str(item).lower() for item in tags} if isinstance(tags, list) else set()
+    is_candidate = bool(details.get("shielded_candidate")) or "candidate" in tags
+    is_verified = bool(details.get("shielded_verified")) or "verified" in tags
+    return not is_candidate or is_verified
+
+
+def _partition_and_normalize_public_records(root: Path) -> tuple[list[dict], list[dict]]:
+    source = _load_json(root / "proxies.json")
+    if not isinstance(source, list):
+        raise SystemExit("release rejected: proxies.json must be a JSON list")
+
+    stable: list[dict] = []
+    experimental: list[dict] = []
+    seen: set[str] = set()
+    for item in source:
+        if not isinstance(item, dict):
+            continue
+        config = item.get("config")
+        identity_material = str(config or item.get("id") or json.dumps(item, sort_keys=True))
+        identity = hashlib.sha256(identity_material.encode("utf-8")).hexdigest()
+        if identity in seen:
+            continue
+        seen.add(identity)
+        if _is_verified_stable_record(item):
+            stable.append(item)
+        else:
+            experimental.append(item)
+
+    if not stable:
+        raise SystemExit("release rejected: no verified working records for stable channel")
+
+    stable.sort(
+        key=lambda item: (
+            str(item.get("protocol") or ""),
+            str(item.get("country_code") or ""),
+            str(item.get("address") or ""),
+            int(item.get("port") or 0),
+            str(item.get("id") or ""),
+        )
+    )
+    experimental.sort(key=lambda item: str(item.get("id") or item.get("config") or ""))
+    _write_json(root / "proxies.json", stable)
+    experimental_path = root / "experimental" / "proxies.json"
+    if experimental:
+        _write_json(experimental_path, experimental)
+    else:
+        experimental_path.unlink(missing_ok=True)
+    return stable, experimental
+
+
+def _recompute_metadata(root: Path, stable: list[dict], experimental: list[dict]) -> None:
+    metadata_path = root / "metadata.json"
+    metadata = _load_json(metadata_path)
     if not isinstance(metadata, dict):
         raise SystemExit("release rejected: metadata.json must be an object")
+
+    protocols = Counter(str(item.get("protocol") or "unknown") for item in stable)
+    countries = Counter(str(item.get("country_code") or "XX") for item in stable)
+    asns = Counter(str(item.get("asn") or "Unknown") for item in stable)
+    shielded_candidates = sum(
+        1
+        for item in experimental
+        if isinstance(item.get("details"), dict)
+        and bool(item["details"].get("shielded_candidate"))
+    )
+    shielded_verified = sum(
+        1
+        for item in stable
+        if isinstance(item.get("details"), dict)
+        and bool(item["details"].get("shielded_verified"))
+    )
+
     tested = int(metadata.get("total_tested", metadata.get("tested", 0)) or 0)
-    working = int(metadata.get("total_working", metadata.get("working", 0)) or 0)
     if tested <= 0:
         raise SystemExit("release rejected: no proxy test evidence")
-    if working <= 0:
-        raise SystemExit("release rejected: no working proxy evidence")
-    if working > len(proxies):
-        raise SystemExit("release rejected: working count exceeds public records")
+    if tested < len(stable):
+        raise SystemExit("release rejected: stable record count exceeds tested evidence")
+
+    metadata.update(
+        {
+            "final_count": len(stable),
+            "total_working": len(stable),
+            "working": len(stable),
+            "total_valid_proxies": len(stable),
+            "protocols": dict(sorted(protocols.items())),
+            "country_stats": dict(sorted(countries.items())),
+            "asns": dict(sorted(asns.items())),
+            "experimental_count": len(experimental),
+            "shielded_candidate_count": shielded_candidates,
+            "shielded_verified_count": shielded_verified,
+            "publication_channels": {
+                "stable": "proxies.json",
+                "experimental": (
+                    "experimental/proxies.json" if experimental else None
+                ),
+            },
+        }
+    )
+    _write_json(metadata_path, metadata)
 
 
 def _digest_text(value: str) -> str:
@@ -87,10 +189,10 @@ def main() -> int:
     if not root.is_dir():
         raise SystemExit(f"output directory does not exist: {root}")
 
-    # Nothing may mutate the public tree after this sequence completes.
     _purge_private_state(root)
-    _require_viable_release(root)
     (root / "release_manifest.json").unlink(missing_ok=True)
+    stable, experimental = _partition_and_normalize_public_records(root)
+    _recompute_metadata(root, stable, experimental)
 
     allowed = {
         path.relative_to(root).as_posix()
@@ -105,6 +207,8 @@ def main() -> int:
 
     policy_material = json.dumps(
         {
+            "stable_requires_verified_working": True,
+            "experimental_channel_separated": True,
             "fail_on_zero_tested": True,
             "fail_on_zero_working": True,
             "private_state_forbidden": True,
