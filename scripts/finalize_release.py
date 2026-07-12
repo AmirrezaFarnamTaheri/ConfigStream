@@ -87,16 +87,15 @@ def main() -> int:
     if not root.is_dir():
         raise SystemExit(f"output directory does not exist: {root}")
 
+    # Nothing may mutate the public tree after this sequence completes.
     _purge_private_state(root)
     _require_viable_release(root)
+    (root / "release_manifest.json").unlink(missing_ok=True)
 
-    # The generator has a broad client-format surface, so the current generated
-    # file set becomes the exact allowlist for this immutable release.  Private
-    # classes and secret patterns are still rejected independently.
     allowed = {
         path.relative_to(root).as_posix()
         for path in root.rglob("*")
-        if path.is_file() and path.name != "release_manifest.json"
+        if path.is_file()
     }
     digests = validate_public_artifact(
         root,
@@ -125,15 +124,6 @@ def main() -> int:
         expires_at=datetime.now(timezone.utc)
         + timedelta(minutes=args.expires_minutes),
         parent_release_digest=os.environ.get("PARENT_RELEASE_DIGEST") or None,
-    )
-
-    metadata_path = root / "metadata.json"
-    metadata = _load_json(metadata_path)
-    metadata["release_id"] = manifest["release_id"]
-    metadata["release_expires_at"] = manifest["expires_at"]
-    metadata_path.write_text(
-        json.dumps(metadata, sort_keys=True, indent=2, ensure_ascii=False) + "\n",
-        encoding="utf-8",
     )
     print(manifest["release_id"])
     return 0
