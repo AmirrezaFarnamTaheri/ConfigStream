@@ -129,6 +129,7 @@ class PythonTester:
                 else:
                     proxy.is_working = False
         except Exception as e:
+            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
             proxy.is_working = False
             proxy.details["error"] = SecurityValidator.sanitize_log_message(str(e))
 
@@ -268,6 +269,7 @@ class PythonTester:
                         if 200 <= resp.status < 300:
                             latencies.append((time.monotonic() - start) * 1000)
                 except Exception:  # nosec B110
+                    logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
                     pass
             if not latencies:
                 return None

@@ -1,8 +1,14 @@
+import base64
+
 from configstream.intelligence.washer.utils import make_entry
 
 
+def _key(byte: int) -> str:
+    return base64.b64encode(bytes([byte]) * 32).decode("ascii")
+
+
 def test_make_entry_valid():
-    key = "a" * 44  # Mock key
+    key = _key(1)
     proxy = make_entry("test", key, "1.1.1.1", None, [0, 0, 0])
     assert proxy is not None
     assert proxy.protocol == "wireguard"
@@ -19,8 +25,7 @@ def test_make_entry_empty_key():
 
 
 def test_make_entry_unique_ip():
-    key1 = "a" * 44
-    key2 = "b" * 44
-    p1 = make_entry("t1", key1, "1.1.1.1", None, [0, 0, 0])
-    p2 = make_entry("t2", key2, "1.1.1.1", None, [0, 0, 0])
+    p1 = make_entry("t1", _key(1), "1.1.1.1", None, [0, 0, 0])
+    p2 = make_entry("t2", _key(2), "1.1.1.1", None, [0, 0, 0])
+    assert p1 is not None and p2 is not None
     assert p1.details["local_address"] != p2.details["local_address"]

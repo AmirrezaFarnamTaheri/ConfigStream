@@ -2,18 +2,19 @@
 import logging
 import re
 from typing import Optional
-from ..models import Proxy
+
 from ..constants import MAX_OPENVPN_CONFIG_SIZE
+from ..models import Proxy
 from ..security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
 
 # Pre-compiled patterns for OpenVPN parsing
 _CLIENT_DIRECTIVE_RE = re.compile(r"(^|\s)client(\s|$)", re.MULTILINE)
-_REMOTE_LINE_RE = re.compile(r"^remote\s+(\S+)\s+(\d+)", re.MULTILINE)
+_REMOTE_LINE_RE = re.compile(r"^[ \t]*remote\s+(\S+)\s+(\d+)", re.MULTILINE)
 _REMOTE_FALLBACK_RE = re.compile(r"remote\s+(\S+)\s+(\d+)")
-_HOSTNAME_FORMAT_RE = re.compile(r"^[\w\.\-\[\]:]+$")
-_PROTO_RE = re.compile(r"^proto\s+([\w-]+)", re.MULTILINE)
+_HOSTNAME_FORMAT_RE = re.compile(r"^[\w.\-\[\]:]+$")
+_PROTO_RE = re.compile(r"^[ \t]*proto\s+([\w-]+)", re.MULTILINE)
 
 
 def _safe_log_text(value: object) -> str:
@@ -118,7 +119,7 @@ def parse_openvpn(config: str) -> Optional[Proxy]:
             transport = "udp"
 
         return Proxy(
-            config=config,  # Store the full file content as config
+            config=config,
             protocol="openvpn",
             address=host,
             port=port,

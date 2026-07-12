@@ -79,6 +79,7 @@ def authenticate():
         logger.info("Authenticated via OAuth2 refresh token.")
         return _build_service(creds), creds
     except Exception as exc:  # pragma: no cover - environment dependent
+        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
         last_error = exc
 
     raise RuntimeError("Google Drive auth failed.") from last_error

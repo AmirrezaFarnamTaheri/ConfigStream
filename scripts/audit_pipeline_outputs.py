@@ -5,62 +5,114 @@ from __future__ import annotations
 
 import argparse
 import base64
+import binascii
 import json
 import os
-import shutil
-import subprocess  # nosec B404
+import stat
 import tempfile
-from pathlib import Path
-from typing import Any
 import zipfile
+import zlib
+from pathlib import Path, PurePosixPath
+from typing import Any
 
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet, InvalidToken
 
 from configstream.stego import StegoPacker
 
+MAX_ARCHIVE_FILES = 20_000
+MAX_ARCHIVE_TOTAL_BYTES = 2 * 1024 * 1024 * 1024
+MAX_ARCHIVE_FILE_BYTES = 512 * 1024 * 1024
+_COPY_CHUNK_BYTES = 1024 * 1024
 
-def _which_sing_box() -> str | None:
-    for name in ("sing-box", "sing-box.exe"):
-        p = shutil.which(name)
-        if p:
-            return p
-    return None
+
+def _safe_zip_member_path(info: zipfile.ZipInfo, workdir: Path) -> Path:
+    """Return a contained extraction path or reject an unsafe ZIP member."""
+    name = info.filename
+    if not name or "\x00" in name or "\\" in name:
+        raise ValueError("ZIP contains an invalid member name")
+
+    member = PurePosixPath(name)
+    if member.is_absolute() or any(part in {"", ".", ".."} for part in member.parts):
+        raise ValueError(f"ZIP member escapes extraction root: {name!r}")
+    if member.parts and ":" in member.parts[0]:
+        raise ValueError(f"ZIP member contains a drive-qualified path: {name!r}")
+
+    unix_mode = (info.external_attr >> 16) & 0xFFFF
+    file_type = stat.S_IFMT(unix_mode)
+    if file_type == stat.S_IFLNK:
+        raise ValueError(f"ZIP symbolic links are not accepted: {name!r}")
+    if file_type not in {0, stat.S_IFREG, stat.S_IFDIR}:
+        raise ValueError(f"ZIP contains an unsupported special file: {name!r}")
+    if info.flag_bits & 0x1:
+        raise ValueError(f"Encrypted ZIP members are not accepted: {name!r}")
+    if info.file_size < 0 or info.file_size > MAX_ARCHIVE_FILE_BYTES:
+        raise ValueError(f"ZIP member exceeds the per-file size limit: {name!r}")
+
+    root = workdir.resolve()
+    target = (root / Path(*member.parts)).resolve()
+    try:
+        target.relative_to(root)
+    except ValueError as exc:
+        raise ValueError(f"ZIP member escapes extraction root: {name!r}") from exc
+    return target
+
+
+def _extract_zip_safely(artifact: Path, workdir: Path) -> None:
+    """Extract a ZIP only after validating all paths and expansion limits."""
+    with zipfile.ZipFile(artifact, "r") as archive:
+        members = archive.infolist()
+        if len(members) > MAX_ARCHIVE_FILES:
+            raise ValueError("ZIP contains too many members")
+
+        planned: list[tuple[zipfile.ZipInfo, Path]] = []
+        total_size = 0
+        for info in members:
+            target = _safe_zip_member_path(info, workdir)
+            total_size += info.file_size
+            if total_size > MAX_ARCHIVE_TOTAL_BYTES:
+                raise ValueError("ZIP exceeds the total expanded-size limit")
+            planned.append((info, target))
+
+        for info, target in planned:
+            if info.is_dir():
+                target.mkdir(parents=True, exist_ok=True)
+                continue
+            target.parent.mkdir(parents=True, exist_ok=True)
+            written = 0
+            with archive.open(info, "r") as source, target.open("xb") as destination:
+                while True:
+                    chunk = source.read(_COPY_CHUNK_BYTES)
+                    if not chunk:
+                        break
+                    written += len(chunk)
+                    if written > info.file_size or written > MAX_ARCHIVE_FILE_BYTES:
+                        raise ValueError(
+                            f"ZIP member expanded beyond its declared size: {info.filename!r}"
+                        )
+                    destination.write(chunk)
+            if written != info.file_size:
+                raise ValueError(
+                    f"ZIP member size mismatch after extraction: {info.filename!r}"
+                )
 
 
 def _extract_artifact(artifact: Path, workdir: Path) -> Path:
     if artifact.is_dir():
-        return artifact
+        return artifact.resolve()
 
-    if artifact.suffix.lower() == ".zip":
-        with zipfile.ZipFile(artifact, "r") as zf:
-            zf.extractall(workdir)
+    suffix = artifact.suffix.lower()
+    if suffix == ".zip":
+        _extract_zip_safely(artifact, workdir)
         return workdir
-
-    if artifact.suffix.lower() == ".rar":
-        seven_zip = shutil.which("7z") or shutil.which("7z.exe")
-        unrar = shutil.which("unrar")
-        if seven_zip:
-            subprocess.run(  # nosec B603
-                [seven_zip, "x", "-y", str(artifact), f"-o{workdir}"],
-                check=True,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
-            return workdir
-        if unrar:
-            subprocess.run(  # nosec B603
-                [unrar, "x", "-y", str(artifact), str(workdir)],
-                check=True,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
-            return workdir
-        raise RuntimeError("RAR extraction requires 7z or unrar in PATH")
-
+    if suffix == ".rar":
+        raise RuntimeError(
+            "RAR artifacts are not accepted because external extractors cannot "
+            "guarantee path containment; provide a ZIP or extracted directory"
+        )
     raise RuntimeError(f"Unsupported artifact type: {artifact}")
 
 
-def _validate_json(path: Path, sing_box_bin: str | None) -> dict[str, Any]:
+def _validate_json(path: Path) -> dict[str, Any]:
     result: dict[str, Any] = {
         "path": str(path),
         "json_valid": False,
@@ -69,19 +121,8 @@ def _validate_json(path: Path, sing_box_bin: str | None) -> dict[str, Any]:
     try:
         json.loads(path.read_text(encoding="utf-8"))
         result["json_valid"] = True
-    except Exception as exc:
-        result["error"] = f"json: {exc}"
-        return result
-
-    if sing_box_bin:
-        proc = subprocess.run(  # nosec B603
-            [sing_box_bin, "check", "-c", str(path)],
-            text=True,
-            capture_output=True,
-        )
-        result["sing_box_check"] = proc.returncode == 0
-        if proc.returncode != 0:
-            result["sing_box_error"] = (proc.stderr or proc.stdout).strip()[:2000]
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        result["error"] = f"json: {type(exc).__name__}"
     return result
 
 
@@ -95,7 +136,7 @@ def _validate_base64_file(path: Path) -> dict[str, Any]:
         try:
             base64.b64decode(text, validate=True)
             ok += 1
-        except Exception:
+        except (binascii.Error, ValueError):
             bad += 1
     return {"path": str(path), "valid_lines": ok, "invalid_lines": bad}
 
@@ -106,8 +147,8 @@ def _extract_stego(path: Path, secret_key: str | None) -> dict[str, Any]:
         result["error"] = "STEGO_KEY/CONFIG_STREAM_KEY not provided"
         return result
     try:
-        key = secret_key.encode("utf-8")
-        Fernet(key)  # validate
+        key = secret_key.encode("ascii")
+        Fernet(key)
         payload = StegoPacker(key).unpack(path)
         if payload is None:
             result["error"] = "stego unpack returned None"
@@ -116,8 +157,16 @@ def _extract_stego(path: Path, secret_key: str | None) -> dict[str, Any]:
         result["decoded"] = True
         result["payload_bytes"] = len(payload.encode("utf-8"))
         return result
-    except Exception as exc:
-        result["error"] = str(exc)
+    except (
+        OSError,
+        UnicodeEncodeError,
+        UnicodeDecodeError,
+        ValueError,
+        InvalidToken,
+        json.JSONDecodeError,
+        zlib.error,
+    ) as exc:
+        result["error"] = type(exc).__name__
         return result
 
 
@@ -132,16 +181,19 @@ def audit_artifact(
         "base64_lists": [],
         "stego_assets": [],
         "missing_expected": [],
+        "sing_box_binary": None,
+        "sing_box_note": (
+            "External executable validation is intentionally disabled in the "
+            "untrusted-artifact audit path."
+        ),
     }
-    sing_box_bin = _which_sing_box()
-    report["sing_box_binary"] = sing_box_bin
 
-    with tempfile.TemporaryDirectory(prefix="configstream-audit-") as td:
-        extracted = _extract_artifact(artifact, Path(td))
+    with tempfile.TemporaryDirectory(prefix="configstream-audit-") as temp_dir:
+        extracted = _extract_artifact(artifact, Path(temp_dir))
 
-        json_files: tuple[str, ...] = ()
-        base64_files: tuple[str, ...] = ()
-        zip_files: tuple[str, ...] = ()
+        json_files: tuple[str, ...]
+        base64_files: tuple[str, ...]
+        zip_files: tuple[str, ...]
         if contract == "pages":
             json_files = (
                 "singbox.json",
@@ -191,7 +243,7 @@ def audit_artifact(
         for name in json_files:
             target = extracted / name
             if target.exists():
-                report["json_configs"].append(_validate_json(target, sing_box_bin))
+                report["json_configs"].append(_validate_json(target))
             else:
                 report["missing_expected"].append(name)
 
@@ -206,7 +258,6 @@ def audit_artifact(
             target = extracted / name
             if not target.exists():
                 report["missing_expected"].append(name)
-            # could add zip verification here if desired
 
         for name in ("stealth_apple-touch-icon.png",):
             target = extracted / name
@@ -260,12 +311,12 @@ def report_has_failures(
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Audit pipeline output artifact (rar/zip/dir)."
+        description="Audit a pipeline output artifact (ZIP or extracted directory)."
     )
     parser.add_argument(
         "--artifact",
-        default="pipeline-output.rar",
-        help="Artifact path (.rar, .zip, or extracted directory).",
+        default="pipeline-output.zip",
+        help="Artifact path (.zip or extracted directory).",
     )
     parser.add_argument(
         "--stego-key",

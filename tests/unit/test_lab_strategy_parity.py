@@ -12,12 +12,10 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 def _read(rel_path: str) -> str:
     path = REPO_ROOT / rel_path
     if rel_path == "frontend/assets/js/lab.js" or path.name == "lab.js":
-        # Concatenate all files in the modular lab directory to simulate monolithic lab.js
         lab_dir = REPO_ROOT / "frontend" / "assets" / "js" / "lab"
         contents = []
-        # Sort files to ensure deterministic order
-        for f in sorted(lab_dir.glob("*.js")):
-            contents.append(f.read_text(encoding="utf-8"))
+        for file in sorted(lab_dir.glob("*.js")):
+            contents.append(file.read_text(encoding="utf-8"))
         return "\n\n".join(contents)
     return path.read_text(encoding="utf-8")
 
@@ -33,7 +31,6 @@ def test_lab_strategy_dynamically_loaded() -> None:
 
     assert '<select class="lab-select" id="chainType">' in lab_html
     assert '<option value="warp">WARP Tunnel (Standard)</option>' in lab_html
-
     assert "fetch(" in lab_js
     assert "lab_strategies.json" in lab_js
     assert "state.strategyManifest[s.id] = s" in lab_js
@@ -52,19 +49,18 @@ def test_lab_strategy_static_fallback_matches_manifest() -> None:
 def test_lab_strategy_schema_is_complete() -> None:
     payload = json.loads(_read("frontend/assets/data/lab_strategies.json"))
     assert payload["schema_version"] == "1.1"
-    for s in payload["strategies"]:
-        assert "id" in s
-        assert "label" in s
-        assert "hint" in s
-        assert "visual_label" in s
-        assert "panels" in s
-        assert isinstance(s["panels"], list)
-        assert len(s["panels"]) > 0 or s["id"] == "direct"
+    for strategy in payload["strategies"]:
+        assert "id" in strategy
+        assert "label" in strategy
+        assert "hint" in strategy
+        assert "visual_label" in strategy
+        assert "panels" in strategy
+        assert isinstance(strategy["panels"], list)
+        assert len(strategy["panels"]) > 0 or strategy["id"] == "direct"
 
 
 def test_lab_strategy_build_path_fails_loudly_for_unknown_strategy() -> None:
     lab_js = _read("frontend/assets/js/lab.js")
-
     assert "Unsupported chain strategy:" in lab_js
     for strategy_id in _strategy_ids():
         assert strategy_id in lab_js
@@ -72,7 +68,6 @@ def test_lab_strategy_build_path_fails_loudly_for_unknown_strategy() -> None:
 
 def test_lab_strategy_count_is_documented_consistently() -> None:
     strategy_count = len(_strategy_ids())
-
     assert f"{strategy_count} chain strategies" in _read("README.md")
     assert f"Build Chain ({strategy_count} Strategies)" in _read(
         "docs/wiki/project/06-frontend.md"
@@ -81,7 +76,6 @@ def test_lab_strategy_count_is_documented_consistently() -> None:
 
 def test_lab_qr_generation_does_not_use_external_service() -> None:
     lab_js = _read("frontend/assets/js/lab.js")
-
     assert "api.qrserver.com" not in lab_js
     assert "create-qr-code" not in lab_js
     assert "External QR services are disabled" in lab_js
@@ -90,11 +84,9 @@ def test_lab_qr_generation_does_not_use_external_service() -> None:
 
 def test_lab_manual_clean_ip_table_uses_text_nodes() -> None:
     lab_js = _read("frontend/assets/js/lab.js")
-
     render_table = lab_js.split("function renderCleanIpTable()", 1)[1].split(
         "function populateWarpIpSelect()", 1
     )[0]
-
     assert "tbody.replaceChildren()" in render_table
     assert "ip.ip + ':' + ip.port" in render_table
     assert "textContent =" in render_table
@@ -105,7 +97,6 @@ def test_lab_manual_clean_ip_table_uses_text_nodes() -> None:
 
 def test_lab_show_result_dynamic_values_are_escaped() -> None:
     lab_js = _read("frontend/assets/js/lab.js")
-
     assert "function escapeHtml(value)" in lab_js
     assert "'&': '&amp;'" in lab_js
     assert "'<': '&lt;'" in lab_js
@@ -141,7 +132,6 @@ def test_lab_show_result_dynamic_values_are_escaped() -> None:
 def test_lab_step4_live_manual_modes_are_visible() -> None:
     lab_html = _read("frontend/lab.html")
     lab_js = _read("frontend/assets/js/lab.js")
-
     assert 'id="step4Mode"' in lab_html
     assert "function updateStep4TestMode()" in lab_js
     assert "Manual test mode." in lab_js
@@ -155,17 +145,7 @@ def test_lab_step4_live_manual_modes_are_visible() -> None:
 
 def test_lab_vwarp_metadata_exports() -> None:
     lab_js = _read("frontend/assets/js/lab.js")
-
-    assert (
-        r"vwarpComment = `\n# VWARP Metadata: ${JSON.stringify(chainConfig._vwarp)}`;"
-        in lab_js
-    )
-    assert r"xray._vwarp = chainConfig._vwarp;" in lab_js
-    assert (
-        """const vwarpPrint = chainConfig._vwarp ? `\\n    print("[*] Note: Config uses Vwarp metadata:", CONFIG.get("_vwarp"))` : '';"""
-        in lab_js
-    )
-    assert (
-        """const vwarpEcho = chainConfig._vwarp ? `\\necho "[*] Note: Config uses Vwarp metadata: ${JSON.stringify(chainConfig._vwarp).replace(/"/g, '\\\\"')}"` : '';"""
-        in lab_js
-    )
+    assert "clash['x-configstream-vwarp'] = chainConfig._vwarp;" in lab_js
+    assert "xray._vwarp = chainConfig._vwarp;" in lab_js
+    assert lab_js.count("toBase64Utf8(JSON.stringify(chainConfig))") >= 3
+    assert 'CONFIG.get("_vwarp")' not in lab_js

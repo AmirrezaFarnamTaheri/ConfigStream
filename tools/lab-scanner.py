@@ -34,6 +34,7 @@ User-supplied resources:
 Designed to run on Python 3.7+ with zero external dependencies.
 Works on Linux, macOS, and Windows.
 """
+import logging
 
 import argparse
 import concurrent.futures
@@ -430,6 +431,7 @@ def tcp_connect(host: str, port: int, timeout: float = 3.0) -> Tuple[bool, float
         latency = (time.monotonic() - start) * 1000
         return True, round(latency, 1)
     except Exception:
+        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
         return False, 0.0
     finally:
         s.close()
@@ -447,6 +449,7 @@ def udp_probe(host: str, port: int, timeout: float = 3.0) -> Tuple[bool, float]:
         latency = (time.monotonic() - start) * 1000
         return len(data) > 0, round(latency, 1)
     except Exception:
+        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
         return False, 0.0
     finally:
         s.close()
@@ -477,6 +480,7 @@ def dns_resolve(
             return ancount > 0, round(latency, 1)
         return False, round(latency, 1)
     except Exception:
+        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
         return False, 0.0
     finally:
         s.close()
@@ -514,6 +518,7 @@ def http_get(
         latency = (time.monotonic() - start) * 1000
         return False, round(latency, 1), e.code
     except Exception:
+        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
         return False, 0.0, 0
 
 
@@ -545,6 +550,7 @@ def tls_handshake(
         wrapped.close()
         return True, round(latency, 1)
     except Exception:
+        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
         raw.close()
         return False, 0.0
 
@@ -563,6 +569,7 @@ def socks5_handshake(host: str, port: int, timeout: float = 3.0) -> Tuple[bool, 
             return True, round(latency, 1)
         return False, 0.0
     except Exception:
+        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
         return False, 0.0
     finally:
         s.close()
@@ -585,6 +592,7 @@ def http_proxy_check(host: str, port: int, timeout: float = 5.0) -> Tuple[bool, 
             return True, round(latency, 1)
         return False, 0.0
     except Exception:
+        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
         return False, 0.0
     finally:
         s.close()
@@ -614,6 +622,7 @@ def dot_probe(
         wrapped.close()
         return True, round(latency, 1), tls_ver
     except Exception:
+        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
         raw.close()
         return False, 0.0, ""
 
@@ -642,6 +651,7 @@ def tls_handshake_detailed(
         wrapped.close()
         return True, round(latency, 1), tls_ver, cipher_name
     except Exception:
+        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
         raw.close()
         return False, 0.0, "", ""
 
@@ -664,6 +674,7 @@ def icmp_reachable(host: str) -> bool:
         )
         return result.returncode == 0
     except Exception:
+        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
         return False
 
 
@@ -698,6 +709,7 @@ def measure_download_speed(
         resp.close()
         return True, round(latency, 1), round(speed, 1)
     except Exception:
+        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
         return False, 0.0, 0.0
 
 
@@ -963,6 +975,7 @@ def scan_vwarp_endpoints(rtt_limit: str = "800ms") -> List[Dict[str, Any]]:
         fail("vwarp scan timed out after 60 seconds.")
         return []
     except Exception as exc:
+        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
         fail(f"vwarp scan failed: {exc}")
         return []
 
@@ -2108,6 +2121,7 @@ def _parse_proxy_uri(uri: str) -> Optional[Dict[str, Any]]:
                 "sni": obj.get("sni", obj.get("host", obj.get("add", ""))),
             }
         except Exception:
+            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
             return None
 
     if scheme == "ss":

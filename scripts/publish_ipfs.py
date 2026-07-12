@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import logging
 import argparse
 import os
 import httpx  # type: ignore
@@ -105,6 +106,7 @@ def pin_to_ipfs(filepath: str, jwt: str) -> str:
         return _pin_single_file_v3(filepath, jwt)
     except Exception:
         # Fallback for backwards compatibility and transient v3 issues.
+        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
         return _pin_to_ipfs_legacy(filepath, jwt)
 
 

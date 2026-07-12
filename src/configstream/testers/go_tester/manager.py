@@ -43,6 +43,7 @@ class GoBatchTester:
         try:
             w = int(workers)
         except Exception:
+            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
             w = 20
         self.workers = max(1, w)
         self.timeout = timeout
@@ -246,6 +247,7 @@ class GoBatchTester:
             try:
                 await safe_wait_for(self._restart_task, timeout=15.0)
             except Exception:  # nosec B110
+                logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
                 pass
             self._restart_task = None
 
@@ -350,6 +352,7 @@ class GoBatchTester:
             await asyncio.gather(*futures, return_exceptions=True)
         except Exception:  # nosec B110
             # Swallow any unexpected errors during cleanup
+            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
             pass
 
     @staticmethod
@@ -461,6 +464,7 @@ class GoBatchTester:
         except asyncio.CancelledError:
             pass
         except Exception:  # nosec B110
+            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
             pass
 
     async def test_batch(

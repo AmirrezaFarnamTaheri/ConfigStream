@@ -1,6 +1,7 @@
 # Runtime artifacts (MUST NOT be committed)
 /output/
 /data/
+/build/
 # Legacy mistake guard: runtime data must never land inside the package tree
 /src/data/
 

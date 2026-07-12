@@ -19,6 +19,7 @@ Usage:
 """
 
 from __future__ import annotations
+import logging
 
 import argparse
 import json
@@ -268,6 +269,7 @@ def build_graph(repo_path: Path) -> dict[str, Any]:
         try:
             content = fpath.read_text(encoding="utf-8", errors="replace")
         except Exception:
+            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
             content = ""
 
         tags = tag_node(fpath, lang, content)

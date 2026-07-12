@@ -47,7 +47,7 @@ httpcore==1.0.9
 httptools==0.8.0
 httpx==0.28.1
 hyperframe==6.1.0
-hypothesis==6.155.7
+hypothesis==6.156.1
 idna==3.15
 iniconfig==2.3.0
 joblib==1.5.3
@@ -55,7 +55,7 @@ librt==0.12.0
 license-expression==30.4.4
 limits==5.8.0
 markdown-it-py==4.0.0
-maxminddb==3.0.0
+maxminddb==3.1.1
 mccabe==0.7.0
 mdurl==0.1.2
 msgpack==1.2.1
@@ -81,8 +81,8 @@ pycodestyle==2.14.0
 pycares==4.11.0
 pycparser==2.23
 pydantic-settings==2.14.2
-pydantic==2.12.5
-pydantic_core==2.41.5
+pydantic==2.13.4
+pydantic_core==2.46.4
 pyee==13.0.0
 pyfakefs==6.2.0
 pyflakes==3.4.0
@@ -120,7 +120,7 @@ types-cachetools==6.2.0.20251022
 types-orjson==3.6.2
 types-psutil==7.2.2.20260518
 typing-inspection==0.4.2
-typing_extensions==4.15.0
+typing_extensions==4.16.0
 urllib3==2.7.0
 uvicorn==0.40.0
 uvloop==0.22.1

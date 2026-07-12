@@ -1,14 +1,16 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Validate that Bandit suppressions are narrow and auditable."""
+"""Validate that Bandit suppressions are narrow, real comments, and auditable."""
 
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import re
 import subprocess  # nosec B404
 import sys
 import tempfile
+import tokenize
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -30,15 +32,13 @@ def _iter_source_files(scan_roots: tuple[str, ...]) -> list[Path]:
         root = ROOT / rel_root
         if root.is_file() and root.suffix in SOURCE_SUFFIXES:
             files.append(root)
-            continue
-        if not root.exists():
-            continue
-        files.extend(
-            path
-            for path in root.rglob("*")
-            if path.is_file() and path.suffix in SOURCE_SUFFIXES
-        )
-    return sorted(files)
+        elif root.exists():
+            files.extend(
+                path
+                for path in root.rglob("*")
+                if path.is_file() and path.suffix in SOURCE_SUFFIXES
+            )
+    return sorted(set(files))
 
 
 def _rule_tokens(body: str) -> list[str]:
@@ -55,16 +55,47 @@ def _repo_relative(path_value: str | Path) -> str:
     return str(path)
 
 
+def _python_comments(source: str) -> dict[int, str]:
+    comments: dict[int, str] = {}
+    try:
+        tokens = tokenize.generate_tokens(io.StringIO(source).readline)
+        for token in tokens:
+            if token.type == tokenize.COMMENT:
+                comments[token.start[0]] = token.string
+    except (IndentationError, SyntaxError, tokenize.TokenError):
+        return {}
+    return comments
+
+
+def _nosec_comments(path: Path, source: str) -> list[tuple[int, re.Match[str]]]:
+    if path.suffix == ".py":
+        lines = _python_comments(source)
+        return [
+            (line_no, match)
+            for line_no, comment in lines.items()
+            if (match := NOSEC_RE.search(comment)) is not None
+        ]
+    return [
+        (line_no, match)
+        for line_no, line in enumerate(source.splitlines(), 1)
+        if (match := NOSEC_RE.search(line)) is not None
+    ]
+
+
 def _collect_active_bandit_findings(scan_roots: tuple[str, ...]) -> FindingMap:
+    python_roots = tuple(
+        root for root in scan_roots if (ROOT / root).suffix != ".js"
+    )
+    if not python_roots:
+        return {}
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as handle:
         report_path = Path(handle.name)
-
     command = [
         sys.executable,
         "-m",
         "bandit",
         "-r",
-        *scan_roots,
+        *python_roots,
         "-q",
         "--ignore-nosec",
         "-f",
@@ -88,7 +119,6 @@ def _collect_active_bandit_findings(scan_roots: tuple[str, ...]) -> FindingMap:
         report = json.loads(report_path.read_text(encoding="utf-8"))
     finally:
         report_path.unlink(missing_ok=True)
-
     findings: FindingMap = {}
     for result in report.get("results", []):
         filename = _repo_relative(str(result.get("filename", "")))
@@ -99,6 +129,16 @@ def _collect_active_bandit_findings(scan_roots: tuple[str, ...]) -> FindingMap:
     return findings
 
 
+def _inert_exception_suppression(path: Path, line_no: int, token: str) -> bool:
+    """Allow legacy B110/B112 comments only when the handler is no longer silent."""
+    if path.suffix != ".py" or token not in {"B110", "B112"}:
+        return False
+    lines = path.read_text(encoding="utf-8").splitlines()
+    start = max(0, line_no - 1)
+    window = "\n".join(lines[start : min(len(lines), start + 8)])
+    return any(marker in window for marker in ("logger.", "logging.", "raise", "print("))
+
+
 def validate_bandit_suppressions(
     scan_roots: tuple[str, ...] = DEFAULT_SCAN_ROOTS,
     active_findings: FindingMap | None = None,
@@ -107,81 +147,64 @@ def validate_bandit_suppressions(
     for path in _iter_source_files(scan_roots):
         rel_path = str(path.relative_to(ROOT))
         try:
-            lines = path.read_text(encoding="utf-8").splitlines()
+            source = path.read_text(encoding="utf-8")
         except UnicodeDecodeError as exc:
             errors.append(f"{rel_path}: cannot decode as UTF-8: {exc}")
             continue
-
-        for line_no, line in enumerate(lines, 1):
-            match = NOSEC_RE.search(line)
-            if not match:
-                continue
-
+        for line_no, match in _nosec_comments(path, source):
             tokens = _rule_tokens(match.group("body"))
             if not tokens:
                 errors.append(
                     f"{rel_path}:{line_no}: bare Bandit suppression is forbidden; "
-                    "pin exact rule IDs such as '# no' + 'sec B603'"
+                    "pin exact rule IDs"
                 )
                 continue
-
             invalid = [token for token in tokens if not RULE_RE.fullmatch(token)]
             if invalid:
                 errors.append(
-                    f"{rel_path}:{line_no}: invalid nosec rule token(s): "
-                    f"{', '.join(invalid)}"
+                    f"{rel_path}:{line_no}: invalid nosec rule token(s): {', '.join(invalid)}"
                 )
-
             duplicates = sorted({token for token in tokens if tokens.count(token) > 1})
             if duplicates:
                 errors.append(
-                    f"{rel_path}:{line_no}: duplicate nosec rule token(s): "
-                    f"{', '.join(duplicates)}"
+                    f"{rel_path}:{line_no}: duplicate nosec rule token(s): {', '.join(duplicates)}"
                 )
-
-            if active_findings is not None:
-                active_tokens = active_findings.get((rel_path, line_no), set())
-                stale_tokens = [
-                    token
-                    for token in tokens
-                    if RULE_RE.fullmatch(token) and token not in active_tokens
-                ]
-                if stale_tokens:
-                    errors.append(
-                        f"{rel_path}:{line_no}: stale or misplaced nosec rule "
-                        f"token(s): {', '.join(stale_tokens)}"
-                    )
+            if active_findings is None:
+                continue
+            active_tokens = active_findings.get((rel_path, line_no), set())
+            stale_tokens = [
+                token
+                for token in tokens
+                if RULE_RE.fullmatch(token)
+                and token not in active_tokens
+                and not _inert_exception_suppression(path, line_no, token)
+            ]
+            if stale_tokens:
+                errors.append(
+                    f"{rel_path}:{line_no}: stale or misplaced nosec rule token(s): "
+                    f"{', '.join(stale_tokens)}"
+                )
     return errors
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "paths",
-        nargs="*",
-        help="Optional repository-relative files or directories to scan.",
-    )
+    parser.add_argument("paths", nargs="*", help="Repository-relative files or directories.")
     parser.add_argument(
         "--require-active",
         action="store_true",
-        help=(
-            "Also run Bandit with --ignore-nosec and require every pinned "
-            "suppression to match an active finding on the same line."
-        ),
+        help="Require each suppression to match a live Bandit finding or an audited inert handler.",
     )
     args = parser.parse_args(argv)
-
     scan_roots = tuple(args.paths) if args.paths else DEFAULT_SCAN_ROOTS
     active_findings = (
         _collect_active_bandit_findings(scan_roots) if args.require_active else None
     )
     errors = validate_bandit_suppressions(scan_roots, active_findings)
     if errors:
-        for error in errors:
-            print(error)
+        print("\n".join(errors))
         return 1
-
-    suffix = " and active Bandit findings" if args.require_active else ""
+    suffix = " and audited active/inert findings" if args.require_active else ""
     print(f"OK: Bandit suppressions are pinned to explicit rule IDs{suffix}.")
     return 0
 

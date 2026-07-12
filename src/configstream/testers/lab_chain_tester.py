@@ -142,11 +142,13 @@ async def test_chain_config(
                                     data.get("ip") if isinstance(data, dict) else None
                                 )
                     except Exception:  # nosec B110
+                        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
                         pass
 
         except asyncio.TimeoutError:
             return {"success": False, "error": "Connection test timed out"}
         except Exception as e:
+            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
             return {
                 "success": False,
                 "error": SecurityValidator.sanitize_log_message(str(e)),

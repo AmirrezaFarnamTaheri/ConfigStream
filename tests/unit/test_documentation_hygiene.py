@@ -33,22 +33,19 @@ def test_frontend_docs_reference_vendored_libs_path() -> None:
 
 def test_known_issues_does_not_reference_resolved_wasm_limitation_as_open() -> None:
     known_issues = read_first_existing_doc(REPO_ROOT, KNOWN_ISSUES_SOURCES)
-
     assert "particularly the Go WASM networking limitation" not in known_issues
     assert "browser-limited reachability checks" in known_issues
     assert "sidecar/Python test results remain authoritative" in known_issues
 
 
-def test_status_reflects_production_ready_state() -> None:
-    """STATUS.md must reflect the closed production gate and not carry stale
-    remediation-in-progress language that contradicts the current verdict."""
+def test_status_reflects_current_blocked_release_state() -> None:
+    """STATUS.md must follow current CI and live-deployment evidence."""
     status = _read("STATUS.md")
-    # Production gate is closed — these stale phrases must not appear.
-    assert "Remediation in progress" not in status
-    assert "not production-ready" not in status.lower()
-    # The closed gate must be explicitly stated.
-    assert "production" in status.lower()
-    # Stale consolidated-file references must not appear.
+    normalized = status.lower()
+    assert "not production-ready" in normalized
+    assert "repository production gate | **open**" in normalized
+    assert "release gate | **blocked**" in normalized
+    assert "remediation in progress" in normalized
     assert "dns_prewarm.py, fetcher.py, output.py" not in status
 
 
@@ -141,7 +138,6 @@ def test_active_docs_avoid_overclaiming_trust_language() -> None:
 
 def test_readme_describes_proxies_json_as_array_not_metadata_envelope() -> None:
     readme = _read("README.md")
-
     assert "proxies.json: full dataset with metadata" not in readme
     assert "Full dataset with metadata" not in readme
     assert "`proxies.json` is always a JSON array" in readme
@@ -151,7 +147,6 @@ def test_readme_describes_proxies_json_as_array_not_metadata_envelope() -> None:
 def test_docs_match_runtime_security_defaults() -> None:
     readme = _read("README.md")
     config_doc = _read("docs/wiki/project/Configuration.md")
-
     assert "USE_VWARP_TUNNEL=true" in readme
     assert "`USE_VWARP_TUNNEL` | `true`" in config_doc
     assert "Required in production" in config_doc

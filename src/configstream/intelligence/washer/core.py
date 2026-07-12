@@ -70,8 +70,10 @@ class ProxyWasher:
         self.seen_chains: LRUCache[str, bool] = LRUCache(maxsize=50000)
         self._seen_chains_lock = threading.Lock()
         self._state_lock = threading.Lock()
-        # Critical: Add asyncio lock for async operations to prevent race conditions
-        self._async_state_lock = asyncio.Lock()
+        # asyncio.Lock must NOT be created in __init__ when the class is
+        # instantiated from sync context (no running event loop).  Use a
+        # lazy-init pattern so the lock is created on first async use.
+        self._async_state_lock: Optional[asyncio.Lock] = None
         self._clean_ips: List[Tuple[str, int]] = []
 
         # Initialize defaults immediately if not provided
@@ -108,6 +110,7 @@ class ProxyWasher:
             try:
                 decoded = base64.b64decode(cleaned, validate=False)
             except Exception:
+                logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
                 return None
         if len(decoded) != 32:
             return None
@@ -188,6 +191,8 @@ class ProxyWasher:
         Uses async lock for the ENTIRE method to prevent N consumers
         from triggering N redundant fetches (check-then-act race).
         """
+        if self._async_state_lock is None:
+            self._async_state_lock = asyncio.Lock()
         async with self._async_state_lock:
             # Early exit: already populated by a previous caller
             if self._warp_keys and self._clean_ips:
@@ -316,6 +321,7 @@ class ProxyWasher:
                                     )
                                     break  # Stop after one success
                     except Exception:  # nosec B110
+                        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
                         pass
 
             # --- STRATEGY 3: DEFAULTS ---
@@ -520,6 +526,7 @@ class ProxyWasher:
             _ = reader  # keep reference for type checkers
             return True
         except Exception:
+            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
             return False
 
     def wash_failed(
@@ -655,7 +662,7 @@ class ProxyWasher:
                         "mtu": 1280,
                         "detour": relay_out["tag"],
                     },
-                    is_working=True,
+                    is_working=False,  # Not yet verified — must be re-tested
                     process=process_tag,
                 )
 
@@ -794,6 +801,7 @@ class ProxyWasher:
                         if float(res.get("total_distance", 99999)) < 15000:
                             is_optimal = True
             except Exception:  # nosec B110
+                logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
                 pass
 
             flag = get_flag_emoji(relay.country_code or "XX")

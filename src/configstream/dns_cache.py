@@ -1,16 +1,19 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Simple asynchronous DNS resolver cache with size limits and TTL cleanup."""
+"""Asynchronous DNS resolver cache with TTL, SSRF filtering, and O(1) LRU."""
 
 from __future__ import annotations
 
 import asyncio
 import ipaddress
-import socket
 import logging
+import socket
+from collections import Counter, OrderedDict
 from dataclasses import dataclass
 from secrets import randbelow
 from time import monotonic
 from typing import Any, Dict, List, Optional
+from urllib.parse import urlparse
+
 import httpx
 
 try:
@@ -20,7 +23,6 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-# List of DoH providers for load balancing and failover
 DOH_PROVIDERS: List[Dict[str, Any]] = [
     {"name": "Cloudflare", "url": "https://cloudflare-dns.com/dns-query", "weight": 20},
     {"name": "Google", "url": "https://dns.google/dns-query", "weight": 15},
@@ -28,219 +30,165 @@ DOH_PROVIDERS: List[Dict[str, Any]] = [
     {"name": "OpenDNS", "url": "https://doh.opendns.com/dns-query", "weight": 10},
     {"name": "AdGuard", "url": "https://dns.adguard.com/dns-query", "weight": 10},
     {"name": "ControlD", "url": "https://freedns.controld.com/p2", "weight": 10},
-    {
-        "name": "Mullvad",
-        "url": "https://adblock.dns.mullvad.net/dns-query",
-        "weight": 10,
-    },
+    {"name": "Mullvad", "url": "https://adblock.dns.mullvad.net/dns-query", "weight": 10},
     {"name": "NextDNS", "url": "https://dns.nextdns.io/dns-query", "weight": 10},
 ]
 
 
 def select_doh_provider() -> Dict[str, Any]:
-    total_weight = sum(int(p["weight"]) for p in DOH_PROVIDERS)
+    if not DOH_PROVIDERS:
+        raise RuntimeError("No DoH providers configured")
+    total_weight = sum(max(0, int(provider.get("weight", 0))) for provider in DOH_PROVIDERS)
     if total_weight <= 0:
         return DOH_PROVIDERS[0]
-    r = randbelow(total_weight)
-    for p in DOH_PROVIDERS:
-        weight = int(p["weight"])
-        if r < weight:
-            return p
-        r -= weight
+    selection = randbelow(total_weight)
+    for provider in DOH_PROVIDERS:
+        weight = max(0, int(provider.get("weight", 0)))
+        if selection < weight:
+            return provider
+        selection -= weight
     return DOH_PROVIDERS[0]
 
 
 async def resolve_doh_json(host: str) -> Optional[str]:
     provider = select_doh_provider()
-    headers = {"accept": "application/dns-json"}
-    params = {"name": host, "type": "A"}
     try:
         async with httpx.AsyncClient(timeout=3.0, trust_env=False) as client:
-            response = await client.get(provider["url"], params=params, headers=headers)
-            if response.status_code == 200:
-                data = response.json()
-                answers = data.get("Answer", [])
-                for ans in answers:
-                    if ans.get("type") == 1:  # A record
-                        return str(ans.get("data"))
-    except Exception as e:
+            response = await client.get(
+                provider["url"],
+                params={"name": host, "type": "A"},
+                headers={"accept": "application/dns-json"},
+            )
+        if response.status_code != 200:
+            return None
+        data = response.json()
+        for answer in data.get("Answer", []):
+            if isinstance(answer, dict) and answer.get("type") == 1:
+                value = answer.get("data")
+                if value:
+                    return str(value)
+    except (httpx.HTTPError, ValueError, TypeError) as exc:
         logger.debug(
-            "DoH resolution via %s failed for %s: %s", provider["name"], host, e
+            "DoH resolution via %s failed for %s: %s",
+            provider.get("name", "unknown"),
+            host,
+            type(exc).__name__,
         )
     return None
 
 
 def _is_bogon_ip(address: str) -> bool:
-    """Check if an IP is a bogon (loopback, private, link-local, multicast).
-
-    Prevents SSRF attacks where a malicious DNS response resolves
-    a domain to a local/private IP, causing the tester to attack internal
-    infrastructure.
-    """
     try:
-        ip = ipaddress.ip_address(address)
-        return (
-            ip.is_loopback
-            or ip.is_private
-            or ip.is_reserved
-            or ip.is_multicast
-            or ip.is_link_local
-        )
+        return not ipaddress.ip_address(address).is_global
     except ValueError:
-        return False
+        return True
 
 
-@dataclass
+@dataclass(frozen=True)
 class CachedDNS:
     address: str
     expires_at: float
-    # Monotonic timestamp of the most recent cache hit.  Used for true LRU
-    # eviction: when the cache is full we remove the least-recently-accessed
-    # entry, not the one that will expire soonest.
-    last_accessed: float = 0.0
 
 
 class DNSCache:
-    """
-    DNS cache with TTL-based expiration and size limits to prevent OOM.
+    DEFAULT_MAX_SIZE = 10000
 
-    Features:
-    - Automatic TTL-based entry expiration
-    - Maximum size limit with LRU-like eviction (oldest entries removed)
-    - Periodic cleanup of expired entries
-    """
-
-    DEFAULT_MAX_SIZE = 10000  # Maximum cache entries
-    CLEANUP_THRESHOLD = 0.9  # Cleanup when 90% full
-
-    def __init__(
-        self,
-        ttl: float = 900.0,
-        max_size: Optional[int] = None,
-    ) -> None:
-        self._ttl = ttl
-        self._max_size = max_size or self.DEFAULT_MAX_SIZE
-        self._cache: Dict[str, CachedDNS] = {}
-        self._lock = asyncio.Lock()
-        self._cleanup_counter = 0  # Track operations for periodic cleanup
+    def __init__(self, ttl: float = 900.0, max_size: Optional[int] = None) -> None:
+        if ttl <= 0:
+            raise ValueError("ttl must be positive")
+        self._ttl = float(ttl)
+        self._max_size = int(max_size or self.DEFAULT_MAX_SIZE)
+        if self._max_size <= 0:
+            raise ValueError("max_size must be positive")
+        self._cache: OrderedDict[str, CachedDNS] = OrderedDict()
+        self._lock: Optional[asyncio.Lock] = None
+        self._cleanup_counter = 0
         self._resolver: Optional[Any] = None
 
+    def _get_lock(self) -> asyncio.Lock:
+        if self._lock is None:
+            self._lock = asyncio.Lock()
+        return self._lock
+
     async def resolve(self, host: str) -> str | None:
+        normalized_host = str(host).strip().rstrip(".")
+        if not normalized_host or len(normalized_host) > 253:
+            return None
+
         now = monotonic()
-        async with self._lock:
-            cached = self._cache.get(host)
+        async with self._get_lock():
+            cached = self._cache.get(normalized_host)
             if cached and cached.expires_at > now:
-                # Update the LRU timestamp on every cache hit.
-                cached.last_accessed = now
+                self._cache.move_to_end(normalized_host)
                 return cached.address
-
-            # Entry expired or missing - remove if expired
             if cached:
-                del self._cache[host]
+                self._cache.pop(normalized_host, None)
 
-        address = None
+        address: Optional[str] = None
         if aiodns is not None:
             try:
                 if self._resolver is None:
                     self._resolver = aiodns.DNSResolver()
-                records = await self._resolver.query(host, "A")
+                records = await self._resolver.query(normalized_host, "A")
                 if records:
-                    address = records[0].host
-            except Exception as e:
-                logger.debug("aiodns query failed for %s: %s", host, e)
+                    address = str(records[0].host)
+            except Exception as exc:
+                logger.debug("aiodns query failed for %s: %s", normalized_host, type(exc).__name__)
 
         if address is None:
-            address = await resolve_doh_json(host)
+            address = await resolve_doh_json(normalized_host)
 
         if address is None:
-            loop = asyncio.get_running_loop()
             try:
-                info = await loop.getaddrinfo(
-                    host, None, family=socket.AF_UNSPEC, type=socket.SOCK_STREAM
+                info = await asyncio.get_running_loop().getaddrinfo(
+                    normalized_host,
+                    None,
+                    family=socket.AF_UNSPEC,
+                    type=socket.SOCK_STREAM,
                 )
                 if info:
-                    address = info[0][4][0]
-            except socket.gaierror:
+                    address = str(info[0][4][0])
+            except (socket.gaierror, OSError):
                 return None
 
-        if not address:
+        if not address or _is_bogon_ip(address):
+            if address:
+                logger.warning("DNS resolved %s to a non-global address; rejecting", normalized_host)
             return None
 
-        # Reject bogon IPs to prevent SSRF attacks
-        if _is_bogon_ip(address):
-            logger.warning(
-                "DNS resolved %s to bogon IP %s - rejecting to prevent SSRF",
-                host,
-                address,
-            )
-            return None
-
-        async with self._lock:
-            # Enforce size limit before adding new entry
-            await self._enforce_size_limit_locked()
-
-            self._cache[host] = CachedDNS(
+        async with self._get_lock():
+            self._cleanup_expired_locked(monotonic())
+            self._cache[normalized_host] = CachedDNS(
                 address=address,
-                expires_at=now + self._ttl,
-                last_accessed=now,
+                expires_at=monotonic() + self._ttl,
             )
-
-            # Periodic cleanup every 100 operations
+            self._cache.move_to_end(normalized_host)
+            while len(self._cache) > self._max_size:
+                self._cache.popitem(last=False)
             self._cleanup_counter += 1
             if self._cleanup_counter >= 100:
-                self._cleanup_expired_locked(now)
+                self._cleanup_expired_locked(monotonic())
                 self._cleanup_counter = 0
-
         return address
 
     async def _enforce_size_limit_locked(self) -> None:
-        """Remove least-recently-accessed entries when the cache is full.
-
-        Previously sorted by ``expires_at`` (soonest-to-expire first), which is
-        not a true LRU policy: a freshly added entry with a short TTL would be
-        evicted before a stale entry that was accessed only once a long time ago.
-        We now sort by ``last_accessed`` (oldest access first) so the least
-        recently used entries are removed first.  Must be called with lock held.
-        """
-        if len(self._cache) < self._max_size:
-            return
-
-        # Calculate how many to remove (10% of max size)
-        remove_count = max(1, self._max_size // 10)
-
-        # Sort by last access time ascending → least-recently-used entries first.
-        sorted_entries = sorted(self._cache.items(), key=lambda x: x[1].last_accessed)
-
-        for host, _ in sorted_entries[:remove_count]:
-            del self._cache[host]
-
-        logger.debug(
-            f"DNS cache LRU eviction: removed {remove_count} entries "
-            f"(cache size: {len(self._cache)})"
-        )
+        while len(self._cache) >= self._max_size:
+            self._cache.popitem(last=False)
 
     def _cleanup_expired_locked(self, now: float) -> None:
-        """Remove expired entries. Must be called with lock held."""
-        expired = [
-            host for host, entry in self._cache.items() if entry.expires_at <= now
-        ]
+        expired = [host for host, entry in self._cache.items() if entry.expires_at <= now]
         for host in expired:
-            del self._cache[host]
-
+            self._cache.pop(host, None)
         if expired:
-            logger.debug(f"DNS cache cleanup: removed {len(expired)} expired entries")
+            logger.debug("DNS cache cleanup removed %d expired entries", len(expired))
 
     async def cleanup(self) -> int:
-        """Manually trigger cleanup of expired entries. Returns count of removed entries."""
-        now = monotonic()
-        async with self._lock:
+        async with self._get_lock():
             before = len(self._cache)
-            self._cleanup_expired_locked(now)
-            removed = before - len(self._cache)
-            return removed
+            self._cleanup_expired_locked(monotonic())
+            return before - len(self._cache)
 
     def __len__(self) -> int:
-        """Return current cache size."""
         return len(self._cache)
 
 
@@ -248,27 +196,16 @@ DEFAULT_CACHE = DNSCache()
 
 
 async def prewarm_dns_cache(sources: list[str], top_n: int = 10) -> None:
-    """
-    Resolves the most common hostnames from a list of sources
-    and populates the DNS cache.
-    """
-    from collections import Counter
-    from urllib.parse import urlparse
-
     try:
         host_counts = Counter(
-            urlparse(source).hostname
+            hostname
             for source in sources
-            if urlparse(source).hostname is not None
+            if (hostname := urlparse(source).hostname) is not None
         )
-
-        top_hosts = [
-            host for host, _ in host_counts.most_common(top_n) if host is not None
-        ]
-
+        top_hosts = [host for host, _ in host_counts.most_common(max(0, int(top_n)))]
         await asyncio.gather(
             *(DEFAULT_CACHE.resolve(host) for host in top_hosts),
             return_exceptions=True,
         )
-    except Exception as e:
-        logger.warning(f"DNS pre-warm failed: {e}")
+    except (TypeError, ValueError) as exc:
+        logger.warning("DNS pre-warm failed: %s", type(exc).__name__)
