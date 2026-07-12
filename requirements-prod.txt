@@ -5,7 +5,7 @@ PyYAML==6.0.3
 Pygments==2.20.0
 aiodns==3.6.1
 aiofiles==25.1.0
-aiohappyeyeballs==2.6.1
+aiohappyeyeballs==2.7.1
 aiohttp-proxy==0.1.2
 aiohttp==3.14.1
 aiohttp_socks==0.11.0
