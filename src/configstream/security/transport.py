@@ -12,6 +12,7 @@ from typing import Any, Dict, Optional, Set
 import httpx
 
 from configstream.dns_cache import DEFAULT_CACHE
+from configstream.dns_utils import normalize_socket_address_host
 
 logger = logging.getLogger(__name__)
 
@@ -161,11 +162,9 @@ class SecurityTransport(httpx.AsyncHTTPTransport):
 
         resolved: Set[str] = set()
         for *_prefix, sockaddr in infos:
-            if not sockaddr:
-                continue
-            raw_address = sockaddr[0]
-            if isinstance(raw_address, str) and raw_address:
-                resolved.add(raw_address.strip("[]"))
+            address = normalize_socket_address_host(sockaddr)
+            if address is not None:
+                resolved.add(address)
         if not resolved:
             raise httpx.ConnectError(
                 f"No IP addresses found for {host!r}",
