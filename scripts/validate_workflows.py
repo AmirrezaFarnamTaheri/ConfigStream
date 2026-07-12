@@ -65,6 +65,13 @@ def _content(path: Path) -> str:
         return ""
 
 
+def _normalized_shell_text(path: Path) -> str:
+    """Normalize YAML shell blocks without weakening command requirements."""
+
+    text = _content(path).replace("\\\n", " ")
+    return " ".join(text.split())
+
+
 def _uses_secret_context_in_if(path: Path) -> bool:
     text = _content(path)
     return "if: ${{ secrets." in text or "if:${{ secrets." in text
@@ -146,6 +153,7 @@ def _release_contract(path: Path) -> bool:
 
 def _main_contract(path: Path, data: dict[Any, Any]) -> list[str]:
     text = _content(path)
+    normalized = _normalized_shell_text(path)
     errors: list[str] = []
     if _contains_git_push(path):
         errors.append("main data workflow must not push commits")
@@ -153,18 +161,16 @@ def _main_contract(path: Path, data: dict[Any, Any]) -> list[str]:
         errors.append("dynamic resharding must publish an artifact recommendation")
     if not _has_durable_artifact(data, "pipeline-output"):
         errors.append("pipeline-output artifact retention must be durable")
-    if not all(
-        token in text
-        for token in (
-            "cp -R frontend/. output/",
-            "cp output/proxies.json output/api/proxies",
-            "cp output/metadata.json output/api/stats",
-            "python scripts/validate_pages_artifact.py --refresh-contract output",
-            "python scripts/validate_pages_artifact.py --native-client-check",
-        )
-    ):
+    required_commands = (
+        "cp -R frontend/. output/",
+        "cp output/proxies.json output/api/proxies",
+        "cp output/metadata.json output/api/stats",
+        "python scripts/validate_pages_artifact.py --refresh-contract output",
+        "python scripts/validate_pages_artifact.py --native-client-check",
+    )
+    if not all(" ".join(token.split()) in normalized for token in required_commands):
         errors.append("data release validation must prepare and validate the public output artifact")
-    if "--native-report-file pipeline-evidence/native_client_check_report.json" not in text and "generate_evidence_bundle.py" not in text:
+    if "--native-report-file pipeline-evidence/native_client_check_report.json" not in normalized and "generate_evidence_bundle.py" not in text:
         errors.append("data release assets must use the shared output contract")
     jobs = data.get("jobs", {})
     merge = jobs.get("merge_results", {}) if isinstance(jobs, dict) else {}
@@ -178,14 +184,21 @@ def _main_contract(path: Path, data: dict[Any, Any]) -> list[str]:
             if isinstance(steps, list)
         )
         needs = merge.get("needs", [])
-        normalized = [needs] if isinstance(needs, str) else list(needs) if isinstance(needs, list) else []
-        if downloads_wasm and "build_wasm" not in [str(item) for item in normalized]:
+        normalized_needs = (
+            [needs]
+            if isinstance(needs, str)
+            else list(needs)
+            if isinstance(needs, list)
+            else []
+        )
+        if downloads_wasm and "build_wasm" not in [str(item) for item in normalized_needs]:
             errors.append("merge_results must depend on build_wasm when downloading frontend-wasm")
     return errors
 
 
 def _deploy_pages_contract(path: Path, data: dict[Any, Any]) -> list[str]:
     text = _content(path)
+    normalized = _normalized_shell_text(path)
     errors: list[str] = []
     sealed_required = (
         "release_manifest.json",
@@ -197,7 +210,7 @@ def _deploy_pages_contract(path: Path, data: dict[Any, Any]) -> list[str]:
         "scripts/verify_pages_deployment.py",
         "steps.deployment.outputs.page_url",
     )
-    if not all(token in text for token in sealed_required):
+    if not all(" ".join(token.split()) in normalized for token in sealed_required):
         errors.append("Pages deploy must verify and deploy one exact sealed artifact")
     forbidden = ("npm run build", "vite build", "frontend-dist")
     if any(token in text for token in forbidden):
