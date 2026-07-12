@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from .interfaces import IFetcher, IProducer, IConsumer, IPipeline, FetchResult
 from .models import WorkItem, PipelineContext
+from .outcomes import PublicationDecision, RunDisposition, RunStatsView, classify_run
 from .fetcher import HttpFetcher
 from .producer import StreamingProducer
 from .consumer import WorkerConsumer
@@ -27,6 +28,10 @@ __all__ = [
     "FetchResult",
     "WorkItem",
     "PipelineContext",
+    "PublicationDecision",
+    "RunDisposition",
+    "RunStatsView",
+    "classify_run",
     "HttpFetcher",
     "StreamingProducer",
     "WorkerConsumer",
