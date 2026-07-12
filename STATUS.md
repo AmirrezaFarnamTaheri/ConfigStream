@@ -1,171 +1,81 @@
 # ConfigStream Project Status
 
-**Last updated:** 2026-07-10  
+**Last updated:** 2026-07-12  
 **Version:** v3.1.0  
-**Status:** Release remediation in progress. The repository is not production-ready until the comprehensive hardening branch passes all blocking checks and the post-merge live GitHub Pages smoke test succeeds.
+**Current verdict:** **FAIL — release blocked**  
+**Active remediation:** [PR #510](https://github.com/AmirrezaFarnamTaheri/ConfigStream/pull/510)
 
-The active architectural source of truth is [ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md](ConfigStream_Master_Audit_Report%20-%20Main%20SOURCE%20OF%20TRUTH.md). This status file is the release-state checkpoint and takes precedence over older readiness wording when current CI or deployment evidence disagrees.
+The machine-readable release gate is [`docs/readiness.json`](docs/readiness.json). It is authoritative for current readiness. Historical audit reports and prior “production-ready” wording are provenance only and cannot close a gate.
 
-## Current Verdict
+## Why the gate is blocked
 
-The modular architecture and artifact contracts are mature, but the release gate is open. A July 2026 repository-wide audit identified security, correctness, performance, deployment, dependency, and repository-hygiene defects that are being remediated in pull request #500. The previously published “all P0/P1/P2 items closed” verdict was not supported by the live deployment evidence and is withdrawn.
+PR #510 implements the Critical and High-priority remediation architecture, but the repository must not be called production-ready until all of the following are directly proven on the final merged commit:
 
-Current release blockers:
+1. The complete CI, security, typing, browser, native, dependency, and pipeline checks are green.
+2. A run-scoped pipeline artifact is generated from one source SHA and one container image digest.
+3. The artifact contains non-zero tested and working evidence.
+4. The artifact contains no private cache/database/log state and no secret material.
+5. Every file matches the content-addressed release manifest.
+6. The release has not expired.
+7. GitHub Pages deploys the exact sealed artifact without rebuilding or mutation.
+8. The live Pages smoke and digest-parity checks pass.
+9. Historical source-token and proxy-credential exposure has been investigated and affected credentials rotated.
 
-1. Pull request #500 must pass the complete Python, frontend, browser, security, formatting, typing, dependency, and pipeline matrices.
-2. The generated Pages artifact must pass the artifact validator after the hardening changes are merged.
-3. The live Pages deployment must be redeployed from the resulting `main` commit and pass `scripts/verify_pages_deployment.py`.
-4. The live deployment must contain runtime config, `health.json`, `artifact_manifest.json`, `pipeline_events.jsonl`, a valid proxy snapshot hash, and no unresolved static placeholders.
+## Remediation implemented on PR #510
 
-## Audit Remediation Scope
+| Area | Current state |
+|---|---|
+| Public serialization | Raw source URLs, internal keys, credentials, request metadata, and raw payloads are removed through an explicit public DTO boundary. |
+| Public/private filesystem boundary | The broad `/output` mount is removed; only approved root files are served. Private state is purged before release sealing. |
+| Pipeline failure semantics | Production defaults are fail-closed. Zero tested or zero working evidence prevents final release creation. |
+| Resource safety | Response, decode, line, source, queue, worker, and deduplication limits are finite and validated. |
+| Source provenance | External sources require canonical ownership, full commit/blob identity, bounded acquisition, content digest, timestamp, expiry, and license policy. |
+| Stale mirror handling | `rolandmccarthy13/free-proxy-list` is explicitly blocked as a stale ownership-ambiguous mirror. |
+| Validation truth | Candidate observations and validation evidence are typed, immutable, expiring, and channel-specific. Stable eligibility requires multi-vantage and longitudinal evidence. |
+| State persistence | Quality state is transactional, schema-versioned, fail-loud, and idempotent across replayed runs and shard merges. |
+| Telemetry | Event persistence uses a bounded queue and reports drops and shutdown failures. Telemetry is private operational state, not a public web artifact. |
+| Live lab | Production live tests require a Bearer credential and literal globally routable IP destinations, eliminating DNS-rebinding re-resolution. |
+| Runtime provenance | Shards execute an exact image digest and record source SHA plus image digest. Shared application-state caches and merged artifact paths are removed. |
+| Deployment | Pages and mirrors consume one exact successful run artifact, verify expiry and content hashes, and do not rebuild the bundle. |
+| Retest | A retest is an immutable child of one exact parent release and records the parent release digest. |
+| Tagged releases | Build tools are pinned, mutable AppImage tooling is removed, platform outputs are mandatory, and artifact names no longer make false architecture claims. |
+| Documentation claims | Package maturity is Beta until the machine-verifiable release gate passes. |
 
-| Area | Current state | Evidence / action |
-|---|---|---|
-| YAML and browser-output safety | Remediated on #500 | Clash output is data-model serialized instead of template-interpolated YAML; URI, host, port, and fragment inputs are validated. |
-| WebSocket origin and lifecycle safety | Remediated on #500 | Wildcards are rejected, async locks are loop-bound lazily, and failed sockets are removed. |
-| WARP acquisition and candidate semantics | Remediated on #500 | Registration identifiers are non-empty, IPv6 endpoints are parsed safely, source URLs are allow-listed, and untested candidates remain unverified. |
-| DNS / outbound connection safety | Remediated on #500 | DNS cache eviction is O(1); validated-IP connections preserve HTTP Host and TLS SNI. |
-| Go tester process trust | Remediated on #500 | Executable identity is rechecked before spawn; optional pinned SHA-256 and a minimal environment are enforced. |
-| Steganography correlation / parser safety | Remediated on #500 | Version 2 uses per-image salt, version 1 derivation remains readable, and PNG parsing/decompression are bounded. |
-| Generated source artifacts | Remediated on #500 | The checked-in `build/lib` mirror is removed and ignored. |
-| Dependency convergence | In validation on #500 | Pydantic/core and the remaining Python updates are reconciled as a compatible set. |
-| Broad exception handling | Audit in progress | High-risk silent paths are being narrowed or logged; a repository guard is required before closure. |
-| Public deployment | Blocked | The last recorded live Pages smoke failed the release contract. |
+## Current public-output contract
 
-## Gate Status
+- A failed, indeterminate, zero-tested, or zero-working run is **not publishable**.
+- `proxies.json` and `metadata.json` are required and must be non-empty and internally consistent.
+- Runtime caches, SQLite databases, logs, fingerprints, raw source material, and telemetry are private.
+- Public files are hashed before `release_manifest.json` is written.
+- No public file may change after sealing.
+- Every release includes generation time, expiry, source commit, workflow commit, image digest, policy digest, artifact hashes, and optional parent release identity.
+- Deployments must reject expired, incomplete, substituted, or mixed-revision artifacts.
 
-| Gate | Status | Notes |
-|---|---|---|
-| Repository production gate | **Open** | #500 is the integration branch; blocking CI must pass before merge. |
-| Security scan gate | **Open** | Bandit, gitleaks, dependency audit, suppression hygiene, and targeted regression tests must all be green on the final head. |
-| Dependency gate | **Open** | Consolidated lockfiles are under matrix validation. |
-| Pages artifact gate | **Open** | Must be regenerated and validated from the final merged source. |
-| Live Pages gate | **Failed / blocked** | The last recorded public smoke was missing required runtime and integrity artifacts. |
-| Release gate | **Blocked** | Opens only after every gate above has durable evidence. |
+## Operator actions required before release
 
-## Current Open Work
+1. Set exact repository variables:
+   - `PYTHON_BUILD_VERSION`
+   - `PYINSTALLER_VERSION`
+   - `VERCEL_CLI_VERSION`
+   - `NETLIFY_CLI_VERSION`
+   - `PINATA_CLI_VERSION`
+2. Review and rotate source tokens or proxy credentials that may have appeared in historical artifacts.
+3. Remove or expire affected historical Actions artifacts, releases, Pages builds, mirrors, and IPFS pins where operationally possible.
+4. Merge PR #510 only after all blocking checks pass.
+5. Run the pipeline from the merged `main` commit.
+6. Deploy Pages from that exact successful run.
+7. Record the run ID, source SHA, image digest, release ID, Pages deployment ID, and smoke report in `docs/readiness.json`.
 
-### Repository
+## Evidence hierarchy
 
-1. Complete the issue-by-issue verification and remediation in #500.
-2. Resolve every failing blocking job without weakening scanners or validators.
-3. Reconcile or close superseded dependency pull requests with an explicit rationale.
-4. Add regression tests for each behavior changed by the audit.
+When claims conflict, use this order:
 
-### Public Release
+1. independently reproduced runtime measurement;
+2. signed or attested immutable release manifest;
+3. exact retained CI artifact;
+4. workflow conclusion and machine-readable reports;
+5. repository code and configuration;
+6. current documentation;
+7. historical reports, badges, screenshots, or prose.
 
-After #500 is merged:
-
-1. Run the main pipeline and retain the generated artifact.
-2. Validate the exact Pages artifact before upload.
-3. Deploy GitHub Pages from the resulting `main` commit.
-4. Run the live smoke:
-
-```bash
-python scripts/verify_pages_deployment.py \
-  https://amirrezafarnamtaheri.github.io/ConfigStream/ \
-  --timeout 120
-```
-
-5. Record the deployment commit, workflow run, artifact identity, and smoke report in this file.
-
-## Current Contract Summary
-
-The master file carries detailed inventory, maturity levels, validation commands, definition-of-done rules, and operating contracts for source ingestion, parser/protocol handling, public serialization, output families, Pages/mirror deployment, frontend/Lab behavior, security/supply-chain gates, documentation ownership, and pruning rules. Its architectural contracts do not override contradictory current CI or live-deployment evidence.
-
-### Repository Contract
-
-- Raw static `frontend/` is the Pages source.
-- Vite build is a sanity check, not the deploy source.
-- Runtime public config is generated into the artifact.
-- Output artifacts are validated through the output matrix and Pages artifact validator.
-- `pipeline_events.jsonl` is a required sanitized telemetry artifact; JSONL shape and secret-marker absence are validated before Pages upload.
-- Generated artifacts and package build trees are not source truth and must not be committed.
-- `CHANGELOG.md` carries completed implementation details.
-- Current status prose must never describe a gate as closed when current evidence says otherwise.
-
-### Security Contract
-
-- Public outputs must not leak source tokens, raw source URLs, proxy secrets, deployment secrets, or internal-only model fields.
-- Logs must remain sanitized.
-- Active scanning remains disabled by default and in CI.
-- Lab/scanner tooling is opt-in and user-run.
-- Source-list files are scanned rather than allow-listed away from secret detection.
-- Optional mirrors must remain secret-gated.
-- External executables must have an explicit trust and integrity policy.
-- Network allow-list and private-address checks must apply at the actual connection boundary, not only before a later DNS lookup.
-
-### Output Contract
-
-- Zero-working degraded runs still generate artifacts.
-- Working, candidate, revived, shielded, and verified semantics must remain distinct.
-- Public country/protocol list JSON is part of the public API surface.
-- `docs/output_matrix.json` is the artifact inventory.
-- `proxies.json` is a dataset/API artifact, not a native Sing-box or Xray config.
-- Native client config families must be validated as their own formats.
-
-### Governance Contract
-
-- Stable capabilities must be listed in `docs/capability_registry.json` with proof.
-- Major module ownership and removed-module boundaries must remain listed in `docs/module_ownership.json`.
-- Public claims must remain linked in `docs/claim_ledger.json`.
-- Do not recreate standalone historical source-of-truth ledgers; promote durable value into the master, `STATUS.md`, `CHANGELOG.md`, and the relevant matrices.
-- Closing an issue requires current-code verification, regression evidence where applicable, and a reference to the fixing change or a documented false-positive rationale.
-
-### Evidence Contract
-
-- A local generated output tree proves only that local output tree.
-- A CI artifact proves only the retained artifact for the retention window.
-- A Pages artifact proves only the exact artifact uploaded to Pages.
-- A live Pages smoke proves what public users fetch at that moment.
-- Screenshots prove UI rendering only for the artifact or deployment they were captured from.
-- Optional mirrors prove only their own published artifact unless parity with Pages is validated.
-- Python/native release attestations prove only the release artifacts created by that workflow run; they do not prove current data freshness.
-- Historical test counts and scanner results are not evidence for a later commit.
-
-## Granular Current Area Status
-
-| Area | Current state | Remaining action |
-|---|---|---|
-| Pipeline/fetch/consumer | Security transport hardening is on #500. | Pass the complete test matrix and validate redirected/HTTPS edge cases. |
-| Parser/protocol support | Matrix-backed inventory exists; Lab parsing is hardened on #500. | Keep protocol matrix and browser tests aligned. |
-| Public JSON outputs | Safe serializer and categorized list parity are established. | Revalidate every output family after merge. |
-| Client config outputs | Sing-box/Clash are supported; Clash serialization changed materially on #500. | Run golden/config-consumer tests before release. |
-| Frontend | Build and browser profiles have remained green during remediation. | Keep the final head green and validate the deployed artifact. |
-| Lab | URI, endpoint, worker, fragment, and export boundaries are hardened on #500. | Complete click-path/export regression coverage. |
-| CI/security | Blocking gates are wired; diagnostics now retain machine-readable Bandit findings. | Obtain a fully green final run without broad suppressions. |
-| Artifacts | Generated build mirrors are removed on #500. | Validate packaging and Pages generation from a clean checkout. |
-| Docs/source of truth | Readiness wording now reflects current evidence. | Update again only after the live release gate actually passes. |
-
-## Validation Snapshot
-
-The following June 2026 results are historical context only and do **not** prove the July 2026 remediation head:
-
-- `python -m pytest -q`: 1106 passed, 6 skipped.
-- Black, Flake8, mypy, Bandit, pip-audit, npm audit, dependency-drift, local build, and local artifact smoke were previously reported as passing.
-- The previously recorded live command below failed against the public deployment:
-
-```bash
-python scripts/verify_pages_deployment.py \
-  https://amirrezafarnamtaheri.github.io/ConfigStream/ \
-  --timeout 120
-```
-
-Recorded failures were missing runtime config, missing `health.json`, missing `artifact_manifest.json`, missing `pipeline_events.jsonl`, placeholder markers in static JavaScript, and a missing `proxies_snapshot_hash`. Those failures remain release-blocking until a new public smoke report proves otherwise.
-
-## Current Source Files
-
-Use these files for current contracts and proof:
-
-- `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md`
-- `STATUS.md`
-- `docs/output_matrix.json`
-- `docs/protocol_matrix.json`
-- `docs/claim_ledger.json`
-- `docs/capability_registry.json`
-- `docs/core_compatibility_report.json`
-- `docs/module_ownership.json`
-- `docs/DEBT_MATRIX.md`
-- `CHANGELOG.md`
-
-Removed historical ledgers and earlier readiness statements are provenance only. When repository documents, CI, retained artifacts, and live deployment disagree, the most recent direct evidence controls the release verdict.
+No documentation statement may override a failing current gate.
