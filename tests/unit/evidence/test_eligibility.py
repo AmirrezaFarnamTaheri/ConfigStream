@@ -9,7 +9,6 @@ from configstream.evidence import (
     evaluate_eligibility,
 )
 
-
 NOW = datetime(2026, 7, 12, 12, 0, tzinfo=timezone.utc)
 
 
