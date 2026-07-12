@@ -68,7 +68,7 @@ async def test_arbitrary_output_files_are_not_statically_served(async_client):
     try:
         assert not any(getattr(route, "path", None) == "/output" for route in app.routes)
         response = await async_client.get("/output/test_cache.json")
-        assert response.status_code == 200  # SPA fallback, never raw private contents
+        assert response.status_code == 404
         assert b'"secret": true' not in response.content
     finally:
         private_file.unlink(missing_ok=True)
