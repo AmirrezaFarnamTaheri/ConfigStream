@@ -134,8 +134,6 @@ def _derive_offsets(
             + struct.pack(">Q", carrier_len)
         )
     else:
-        # Version 1 used this exact input. Keep it unchanged so existing images
-        # remain readable after upgrading to the salted version-2 format.
         derivation_input = key_material + struct.pack(">Q", carrier_len)
     digest = hashlib.sha256(derivation_input).digest()
     start = int.from_bytes(digest[:8], "big") % carrier_len
@@ -340,7 +338,11 @@ class StegoPacker:
             logger.info("Stego image created (%d bytes, salted LSB mode)", len(final_bytes))
             return True
         except (OSError, ValueError, zlib.error) as exc:
-            logger.error("Stego packing failed: %s", type(exc).__name__)
+            logger.error(
+                "Stego packing failed for %s: %s",
+                cover_image_path.name,
+                type(exc).__name__,
+            )
             return False
 
     def _unpack_lsb_png(self, image_path: Path) -> str:
@@ -443,6 +445,21 @@ def generate_stego_assets(
     if not covers:
         logger.warning("No cover images found for steganography")
         return
+
+    generated = 0
+    skipped: list[str] = []
     for cover in covers:
-        if not packer.pack(cover, content, config_dir / f"stealth_{cover.name}"):
-            raise ValueError(f"Failed to generate stego asset for {cover.name}")
+        output_path = config_dir / f"stealth_{cover.name}"
+        if packer.pack(cover, content, output_path):
+            generated += 1
+        else:
+            skipped.append(cover.name)
+
+    if skipped:
+        logger.warning(
+            "Skipped %d unsuitable stego cover(s): %s",
+            len(skipped),
+            ", ".join(skipped),
+        )
+    if generated == 0:
+        logger.warning("No stego assets were generated from %d cover image(s)", len(covers))
