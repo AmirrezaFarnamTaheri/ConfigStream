@@ -1,12 +1,13 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import asyncio
+from pathlib import Path
 
 import httpx
-import sniffio
-from pathlib import Path
-from starlette.responses import Response
 import pytest
-from configstream.server import app, OUTPUT_DIR
+import sniffio
+from starlette.responses import Response
+
+from configstream.server import OUTPUT_DIR, app
 
 
 @pytest.fixture
@@ -57,7 +58,9 @@ async def test_api_stats_endpoint(async_client):
     meta_path = OUTPUT_DIR / "metadata.json"
     if not meta_path.parent.exists():
         meta_path.parent.mkdir(parents=True)
-    meta_path.write_text('{"status": "ok", "last_updated_utc": "2023-01-01T00:00:00Z"}')
+    meta_path.write_text(
+        '{"status": "ok", "last_updated_utc": "2023-01-01T00:00:00Z"}'
+    )
 
     response = await async_client.get("/api/stats")
     assert response.status_code == 200
