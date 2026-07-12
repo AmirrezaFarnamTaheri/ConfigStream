@@ -12,6 +12,7 @@ from configstream.concurrency_manager import ConcurrencyManager
 from configstream.config import AppSettings
 from configstream.circuit_breaker import CircuitBreakerManager
 from configstream.dns_cache import prewarm_dns_cache
+from configstream.dns_utils import normalize_socket_address_host
 from configstream.adaptive_timeout import AdaptiveTimeout
 from configstream.http_client import get_client
 from configstream.source_quality import SourceQualityTracker
@@ -120,11 +121,11 @@ async def _reject_source_dns(
     except OSError:
         return "Source URL host DNS validation failed", None
 
-    resolved_ips = {
-        sockaddr[0].strip("[]")
-        for *_prefix, sockaddr in infos
-        if sockaddr and sockaddr[0]
-    }
+    resolved_ips = set()
+    for *_prefix, sockaddr in infos:
+        address = normalize_socket_address_host(sockaddr)
+        if address is not None:
+            resolved_ips.add(address)
     if not resolved_ips:
         return "Source URL host resolved to no addresses", None
 
@@ -198,7 +199,9 @@ async def fetch_from_source(
             host = parsed.netloc
             key = host
         except Exception:
-            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+            logging.getLogger(__name__).debug(
+                "Suppressed broad exception", exc_info=True
+            )
             key = source
 
         breaker = await breaker_manager.get_breaker(key)
@@ -626,9 +629,11 @@ async def fetch_multiple_sources(
     # P1-7 fix).  Uses a simple token-bucket so that no single source can be
     # hammered on retries even if the circuit breaker has not opened yet.
     rate_limiter: Optional[_SimpleRateLimiter] = _SimpleRateLimiter(
-        rate_per_second=app_settings.FETCH_RATE_LIMIT_RPS
-        if hasattr(app_settings, "FETCH_RATE_LIMIT_RPS")
-        else 2.0
+        rate_per_second=(
+            app_settings.FETCH_RATE_LIMIT_RPS
+            if hasattr(app_settings, "FETCH_RATE_LIMIT_RPS")
+            else 2.0
+        )
     )
     if breaker_manager is None:
         breaker_manager = CircuitBreakerManager(
