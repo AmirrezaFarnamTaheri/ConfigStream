@@ -300,6 +300,15 @@ jobs:
           STRICT_SECURITY: "true"
           INCLUDE_INSECURE_PROXIES: "false"
         run: python -m scripts.merge_batches
+      - name: Generate source reshard recommendation
+        run: python scripts/dynamic_reshard.py
+      - name: Upload source reshard recommendation
+        uses: actions/upload-artifact@v7
+        with:
+          name: source-reshard-recommendation-${{ github.run_id }}
+          path: sources/batch_*.txt
+          if-no-files-found: error
+          retention-days: 30
       - name: Add immutable frontend and WASM assets
         uses: actions/download-artifact@v8
         with:
