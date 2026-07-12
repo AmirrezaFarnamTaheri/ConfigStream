@@ -42,12 +42,6 @@ async def async_client(monkeypatch):
 @pytest.mark.asyncio
 async def test_read_root(async_client):
     response = await async_client.get("/")
-    # Should fail if index.html is missing (which it is in the test env likely),
-    # but we are testing the route logic.
-    # The server code returns FileResponse.
-    # If file is missing, Starlette/FastAPI might raise runtime error or 404 depending on implementation.
-    # But since we mocked/created dummy files in previous steps or they exist in repo...
-    # The repo has frontend/index.html.
     assert response.status_code == 200
 
 
@@ -60,7 +54,6 @@ def test_websocket_feed_removed():
 
 @pytest.mark.asyncio
 async def test_api_stats_endpoint(async_client):
-    # Ensure metadata.json exists for this test
     meta_path = OUTPUT_DIR / "metadata.json"
     if not meta_path.parent.exists():
         meta_path.parent.mkdir(parents=True)
@@ -74,6 +67,9 @@ async def test_api_stats_endpoint(async_client):
 @pytest.mark.asyncio
 async def test_health_check(async_client):
     response = await async_client.get("/health")
-    assert response.status_code == 200
-    # output_dir removed from health endpoint for security (no filesystem path exposure)
-    assert "output_available" in response.json()
+    assert response.status_code == 503
+    payload = response.json()
+    assert payload["status"] == "degraded"
+    assert payload["ready"] is False
+    assert payload["missing_public_files"]
+    assert "output_dir" not in payload
