@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=70.0.0", "wheel"]
+requires = ["setuptools==80.9.0", "wheel==0.45.1"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -14,7 +14,7 @@ authors = [
 ]
 keywords = ["vpn", "v2ray", "clash", "sing-box", "proxy", "aggregator", "asyncio"]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Topic :: Internet :: Proxy Servers",
     "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
@@ -24,72 +24,57 @@ classifiers = [
 ]
 
 dependencies = [
-    # Network Core
-    "tenacity",
-    "cachetools>=5.3.3",
-    "httpx[http2]>=0.27.0",
-    "h2>=4.1.0",
-    "sniffio>=1.3.0",
-    "aiohttp>=3.9.0",
-    "aiohttp-socks>=0.8.0",
-    "aiodns>=3.6.1",
-    "pycares<5.0.0",
-    "aiohttp-proxy",
-
-    # Parsing & Logic
-    "PyYAML>=6.0",
-    "pydantic>=2.12.4",
-    "pydantic-settings",
+    "tenacity>=8.2,<10",
+    "cachetools>=5.3.3,<7",
+    "httpx[http2]>=0.27.0,<1",
+    "h2>=4.1.0,<5",
+    "sniffio>=1.3.0,<2",
+    "aiohttp>=3.9.0,<4",
+    "aiohttp-socks>=0.8.0,<1",
+    "aiodns>=3.6.1,<4",
+    "pycares>=4.4,<5.0.0",
+    "aiohttp-proxy>=0.1.2,<1",
+    "PyYAML>=6.0,<7",
+    "pydantic>=2.12.4,<3",
+    "pydantic-settings>=2.6,<3",
     "singbox2proxy~=0.2.4",
-
-    # I/O & Async
-    "aiofiles>=23.2.0",
-    "orjson>=3.9.0",
-    "nest-asyncio",
-    "wasmtime>=40.0.0",
-    "slowapi>=0.1.9",
-
-    # CLI & UI
-    "click",
-    "rich",
-    "python-telegram-bot>=20.0",
-
-    # Geo & Sys
-    "geoip2",
-    "geopy>=2.3.0",
-    "psutil>=5.9.0; sys_platform != 'win32'",
-
-    # Web Server
-    "fastapi>=0.109.0",
-    "uvicorn[standard]>=0.27.0",
-
-    # Crypto (for WARP)
-    "cryptography",
-
-    # HTML Parsing (Security)
-    "beautifulsoup4"
+    "aiofiles>=23.2.0,<25",
+    "orjson>=3.9.0,<4",
+    "nest-asyncio>=1.6,<2",
+    "wasmtime>=40.0.0,<41",
+    "slowapi>=0.1.9,<1",
+    "click>=8.1,<9",
+    "rich>=13.7,<15",
+    "python-telegram-bot>=20.0,<23",
+    "geoip2>=4.8,<6",
+    "geopy>=2.3.0,<3",
+    "psutil>=5.9.0,<8; sys_platform != 'win32'",
+    "fastapi>=0.109.0,<1",
+    "uvicorn[standard]>=0.27.0,<1",
+    "cryptography>=42,<47",
+    "beautifulsoup4>=4.12,<5",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "playwright",
-    "pytest>=8.0.0",
-    "pytest-asyncio>=0.23.0",
-    "pytest-cov>=4.1.0",
-    "pytest-aiohttp",
-    "pytest-playwright",
-    "pytest-base-url",
-    "pyfakefs",
-    "types-PyYAML",
-    "types-psutil",
-    "types-cachetools",
-    "flake8",
-    "black",
-    "mypy",
-    "respx",
-    "hypothesis>=6.0.0",
-    "types-aiofiles",
-    "types-orjson"
+    "playwright>=1.45,<2",
+    "pytest>=8.0.0,<10",
+    "pytest-asyncio>=0.23.0,<2",
+    "pytest-cov>=4.1.0,<8",
+    "pytest-aiohttp>=1.0,<2",
+    "pytest-playwright>=0.5,<1",
+    "pytest-base-url>=2.1,<3",
+    "pyfakefs>=5.6,<6",
+    "types-PyYAML>=6.0,<7",
+    "types-psutil>=5.9,<8",
+    "types-cachetools>=5.3,<7",
+    "flake8>=7,<8",
+    "black>=24,<27",
+    "mypy>=1.11,<2",
+    "respx>=0.21,<1",
+    "hypothesis>=6.0.0,<7",
+    "types-aiofiles>=23.2,<25",
+    "types-orjson>=3.6,<4",
 ]
 
 [project.scripts]
@@ -109,7 +94,7 @@ markers = [
     "frontend_browser: browser-backed frontend tests",
     "degraded: degraded/no-JS behavior tests",
     "slow: Slow tests",
-    "asyncio: AsyncIO tests"
+    "asyncio: AsyncIO tests",
 ]
 
 [tool.mypy]
