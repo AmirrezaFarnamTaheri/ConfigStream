@@ -16,45 +16,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-      - name: Install project diagnostics dependencies
-        run: python -m pip install -e ".[dev]"
-      - name: Reproduce CI state before mypy
-        id: mypy
-        continue-on-error: true
-        shell: bash
-        run: |
-          set +e
-          python -m configstream.cli update-databases >> mypy-diagnostics.txt 2>&1
-          pytest -q >> mypy-diagnostics.txt 2>&1
-          printf '\n=== changed/untracked Python files ===\n' >> mypy-diagnostics.txt
-          git status --short --untracked-files=all | grep '\.py$' >> mypy-diagnostics.txt || true
-          printf '\n=== mypy ===\n' >> mypy-diagnostics.txt
-          python -m mypy . >> mypy-diagnostics.txt 2>&1
-          status=$?
-          tail -n 250 mypy-diagnostics.txt
-          exit "$status"
-      - name: Capture Black diagnostics
-        id: black
-        continue-on-error: true
-        shell: bash
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.sha }}
-        run: |
-          mapfile -t python_files < <(
-            git diff --name-only --diff-filter=ACMR "$BASE_SHA" "$HEAD_SHA" -- '*.py'
-          )
-          if ((${#python_files[@]} == 0)); then
-            printf 'No changed Python files to check.\n' > black-diagnostics.txt
-            exit 0
-          fi
-          python -m black --check --fast --target-version py310 "${python_files[@]}" \
-            > black-diagnostics.txt 2>&1
       - name: Install pinned Bandit
         run: python -m pip install "bandit==1.8.6"
       - name: Generate machine-readable Bandit report
@@ -81,22 +46,6 @@ jobs:
             --report exception-audit.json \
             --patch-file exception-hardening.patch \
             || printf '# hardening helper could not generate a patch; inspect exception-audit.json\n' > exception-hardening.patch
-      - name: Upload mypy diagnostics
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: mypy-diagnostics-${{ github.run_id }}
-          path: mypy-diagnostics.txt
-          if-no-files-found: error
-          retention-days: 14
-      - name: Upload Black diagnostics
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: black-diagnostics-${{ github.run_id }}
-          path: black-diagnostics.txt
-          if-no-files-found: error
-          retention-days: 14
       - name: Upload Bandit report
         if: always()
         uses: actions/upload-artifact@v7
@@ -121,6 +70,6 @@ jobs:
           path: exception-hardening.patch
           if-no-files-found: error
           retention-days: 14
-      - name: Enforce diagnostics
-        if: steps.mypy.outcome == 'failure' || steps.black.outcome == 'failure' || steps.bandit.outcome == 'failure' || steps.exceptions.outcome == 'failure'
+      - name: Enforce security diagnostics
+        if: steps.bandit.outcome == 'failure' || steps.exceptions.outcome == 'failure'
         run: exit 1
