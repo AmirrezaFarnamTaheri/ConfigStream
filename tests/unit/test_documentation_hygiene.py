@@ -52,11 +52,12 @@ def test_status_reflects_current_blocked_release_state() -> None:
 def test_public_claims_reflect_open_production_gate() -> None:
     pyproject = _read("pyproject.toml")
     readme = _read("README.md")
+    readme_lower = readme.lower()
 
     assert "Development Status :: 4 - Beta" in pyproject
     assert "Development Status :: 5 - Production/Stable" not in pyproject
     assert "production-ready as of v3.1.0" not in readme
-    assert "older production-ready claims are superseded" in readme
+    assert "older production-ready claims are superseded" in readme_lower
     assert "TLS Fragmentation**: Splits TLS packets" not in readme
     assert "TLS Fragmentation**: Disabled" in readme
     assert "docs/history/source-of-truth/ConfigStream_Master_Audit_Report" not in readme
@@ -64,7 +65,7 @@ def test_public_claims_reflect_open_production_gate() -> None:
         "Historical source-of-truth ledgers were absorbed into the master report and removed"
         in readme
     )
-    assert "unblockable" not in readme.lower()
+    assert "unblockable" not in readme_lower
     assert "Upgrade to Platinum" not in readme
 
 
