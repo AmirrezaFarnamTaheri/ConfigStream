@@ -7,20 +7,21 @@ on:
 permissions:
   contents: read
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   reports:
     runs-on: ubuntu-latest
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - uses: actions/setup-python@v6
         with:
-          python-version: '3.12'
-      - name: Install Bandit
-        run: python -m pip install bandit
+          python-version: "3.12"
+      - name: Install pinned Bandit
+        run: python -m pip install "bandit==1.8.6"
       - name: Generate machine-readable Bandit report
         id: bandit
         continue-on-error: true
@@ -36,10 +37,15 @@ jobs:
             --fail-on-unlogged
       - name: Prepare reviewable exception-hardening patch
         if: always()
+        shell: bash
         run: |
+          set -euo pipefail
+          test -s exception-audit.json || printf '{"findings": []}\n' > exception-audit.json
+          : > exception-hardening.patch
           python scripts/harden_exception_handlers.py \
             --report exception-audit.json \
-            --patch-file exception-hardening.patch
+            --patch-file exception-hardening.patch \
+            || printf '# hardening helper could not generate a patch; inspect exception-audit.json\n' > exception-hardening.patch
       - name: Upload Bandit report
         if: always()
         uses: actions/upload-artifact@v7
