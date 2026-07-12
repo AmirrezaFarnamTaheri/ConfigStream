@@ -1,0 +1,26 @@
+name: Apply lifecycle fail-closed batch
+
+on:
+  push:
+    branches: [agent/full-audit-remediation]
+    paths:
+      - ".github/workflows/apply-lifecycle-fail-closed.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apply-lifecycle-fail-closed
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: src
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/full-audit-remediation
+          fetch
