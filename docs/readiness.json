@@ -1,0 +1,68 @@
+{
+  "schema_version": "1",
+  "evaluated_at": "2026-07-12T00:00:00Z",
+  "repository": "AmirrezaFarnamTaheri/ConfigStream",
+  "remediation_pull_request": 510,
+  "verdict": "FAIL",
+  "release_gate": "blocked",
+  "required_gates": {
+    "critical_confidentiality_paths_closed": {
+      "status": "implemented_pending_ci",
+      "evidence": [
+        "src/configstream/serialize.py",
+        "src/configstream/publication.py",
+        "src/configstream/server/__init__.py"
+      ]
+    },
+    "fail_closed_pipeline": {
+      "status": "implemented_pending_ci",
+      "evidence": [
+        "src/configstream/config.py",
+        ".github/workflows/main.yml",
+        "scripts/finalize_release.py"
+      ]
+    },
+    "finite_resource_boundaries": {
+      "status": "implemented_pending_ci",
+      "evidence": ["src/configstream/config.py"]
+    },
+    "immutable_provenance": {
+      "status": "implemented_pending_ci",
+      "evidence": [
+        ".github/workflows/main.yml",
+        ".github/workflows/deploy-pages.yml",
+        ".github/workflows/deploy_mirror.yml",
+        ".github/workflows/retest.yml"
+      ]
+    },
+    "state_idempotency": {
+      "status": "implemented_pending_ci",
+      "evidence": ["src/configstream/quality/storage.py"]
+    },
+    "source_snapshot_policy": {
+      "status": "implemented_pending_ci",
+      "evidence": ["src/configstream/sources/"]
+    },
+    "validation_evidence_policy": {
+      "status": "implemented_pending_ci",
+      "evidence": ["src/configstream/evidence/"]
+    },
+    "blocking_ci_green": {
+      "status": "pending",
+      "evidence": []
+    },
+    "sealed_pipeline_artifact_generated": {
+      "status": "pending",
+      "evidence": []
+    },
+    "live_pages_digest_and_smoke_verified": {
+      "status": "pending",
+      "evidence": []
+    },
+    "historical_secret_exposure_investigated": {
+      "status": "operator_action_required",
+      "evidence": []
+    }
+  },
+  "release_invariant": "A release is prohibited unless every required gate is passing and no Critical finding is open."
+}
