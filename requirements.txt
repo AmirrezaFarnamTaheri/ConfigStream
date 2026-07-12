@@ -39,7 +39,7 @@ frozenlist==1.8.0
 geographiclib==2.1
 geoip2==5.2.0
 geopy==2.4.1
-greenlet==3.2.4
+greenlet==3.5.3
 h11==0.16.0
 h2==4.3.0
 hpack==4.2.0

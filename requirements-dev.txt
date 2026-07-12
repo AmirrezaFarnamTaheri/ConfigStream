@@ -44,7 +44,7 @@ scikit-learn==1.7.2
 scipy==1.15.3
 joblib==1.5.3
 threadpoolctl==3.6.0
-greenlet==3.2.4
+greenlet==3.5.3
 
 # Security audit tools
 pip_audit==2.10.1
