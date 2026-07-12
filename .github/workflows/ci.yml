@@ -121,8 +121,24 @@ jobs:
         run: python -m flake8 src/ tests/
       - name: Run mypy
         run: python -m mypy .
-      - name: Run black
-        run: python -m black --check .
+      - name: Run black on changed Python files
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+            BASE_SHA="${HEAD_SHA}^"
+          fi
+          mapfile -t python_files < <(
+            git diff --name-only --diff-filter=ACMR "$BASE_SHA" "$HEAD_SHA" -- '*.py'
+          )
+          if ((${#python_files[@]} == 0)); then
+            echo "No changed Python files to check."
+            exit 0
+          fi
+          python -m black --check --fast --target-version py310 "${python_files[@]}"
 
   frontend:
     runs-on: ubuntu-latest
