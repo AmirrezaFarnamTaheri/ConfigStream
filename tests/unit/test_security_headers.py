@@ -13,7 +13,8 @@ def test_security_headers_present_on_api_routes() -> None:
     client = TestClient(create_app())
     response = client.get("/health")
 
-    assert response.status_code == 200
+    assert response.status_code == 503
+    assert response.json()["ready"] is False
     assert response.headers.get("X-Content-Type-Options") == "nosniff"
     assert response.headers.get("X-Frame-Options") == "DENY"
     assert response.headers.get("Referrer-Policy") == _EXPECTED_REFERRER_POLICY
