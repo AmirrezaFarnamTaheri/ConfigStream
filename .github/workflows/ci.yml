@@ -135,7 +135,22 @@ jobs:
       - name: Run flake8
         run: python -m flake8 src/ tests/
       - name: Run mypy
-        run: python -m mypy .
+        id: mypy
+        shell: bash
+        run: |
+          set +e
+          python -m mypy . 2>&1 | tee mypy-output.txt
+          status=${PIPESTATUS[0]}
+          echo "exit_code=$status" >> "$GITHUB_OUTPUT"
+          exit 0
+      - name: Upload mypy diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: mypy-diagnostics-py${{ matrix.python-version }}-${{ github.run_id }}
+          path: mypy-output.txt
+          if-no-files-found: error
+          retention-days: 14
       - name: Run black on changed Python files
         shell: bash
         env:
@@ -154,6 +169,16 @@ jobs:
             exit 0
           fi
           python -m black --check --fast --target-version py310 "${python_files[@]}"
+      - name: Enforce mypy
+        if: always()
+        shell: bash
+        env:
+          MYPY_EXIT_CODE: ${{ steps.mypy.outputs.exit_code }}
+        run: |
+          if [ "${MYPY_EXIT_CODE:-1}" -ne 0 ]; then
+            echo "mypy found type errors; inspect the uploaded diagnostics artifact."
+            exit 1
+          fi
       - name: Enforce dependency audit
         if: always()
         shell: bash
