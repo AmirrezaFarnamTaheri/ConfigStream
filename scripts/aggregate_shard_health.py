@@ -9,7 +9,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from scripts.shard_sources import partition
+from shard_sources import partition
 
 
 def load(path: Path) -> Any:
