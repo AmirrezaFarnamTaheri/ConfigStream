@@ -42,8 +42,10 @@ jobs:
       - name: Validate remediation scripts
         run: |
           python -m py_compile \
+            scripts/aggregate_shard_health.py \
             scripts/finalize_release_outputs.py \
             scripts/native_client_checks.py \
+            scripts/normalize_legacy_profiles.py \
             scripts/release_gate.py \
             scripts/shard_sources.py
           pytest -q tests/unit --disable-warnings --maxfail=1
@@ -262,8 +264,10 @@ jobs:
           find artifacts -mindepth 1 -maxdepth 1 -type d -name 'output_batch_*' -exec mv {} . \;
           find artifacts -type f -name 'pipeline_batch_*.log' -exec mv {} . \;
           test "$(find . -maxdepth 1 -type d -name 'output_batch_*' | wc -l)" -gt 0
-      - name: Merge outputs
-        run: python -m scripts.merge_batches
+      - name: Merge and reconcile shard evidence
+        run: |
+          python -m scripts.merge_batches
+          python scripts/aggregate_shard_health.py --parts "$SOURCE_SHARD_PARTS"
       - name: Prepare public tree
         run: |
           set -euo pipefail
@@ -273,6 +277,7 @@ jobs:
           cp tools/lab-scanner.py output/tools/lab-scanner.py
           cp tools/lab-runner.sh output/tools/lab-runner.sh
           python scripts/validate_frontend_placeholders.py --inject-env output
+          python scripts/normalize_legacy_profiles.py output
           python scripts/finalize_release_outputs.py output --repo-root . --min-source-coverage "$MIN_SOURCE_COVERAGE"
       - name: Install pinned native validators
         env:
