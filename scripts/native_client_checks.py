@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import shutil
-import subprocess
+import subprocess  # nosec B404 - fixed validator executables, never a shell
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -13,7 +13,10 @@ from typing import Any
 
 def run(command: list[str], core: str, path: Path) -> dict[str, Any]:
     try:
-        result = subprocess.run(
+        # Commands are assembled exclusively from shutil.which results, fixed
+        # flags, and repository-controlled artifact paths. shell=False is the
+        # subprocess default and no user-provided command text is evaluated.
+        result = subprocess.run(  # nosec B603
             command,
             capture_output=True,
             check=False,
@@ -66,13 +69,33 @@ def main() -> int:
             )
     if binaries["sing-box"]:
         for path in sorted(args.artifact_dir.glob("singbox*.json")):
-            checks.append(run([binaries["sing-box"], "check", "-c", str(path)], "sing-box", path))
+            checks.append(
+                run(
+                    [binaries["sing-box"], "check", "-c", str(path)],
+                    "sing-box",
+                    path,
+                )
+            )
     if binaries["mihomo"]:
         for path in sorted(args.artifact_dir.glob("clash*.yaml")):
-            checks.append(run([binaries["mihomo"], "-t", "-f", str(path)], "mihomo", path))
+            checks.append(
+                run([binaries["mihomo"], "-t", "-f", str(path)], "mihomo", path)
+            )
     xray_config = args.artifact_dir / "xray.json"
     if binaries["xray"] and xray_config.is_file():
-        checks.append(run([binaries["xray"], "run", "-test", "-config", str(xray_config)], "xray", xray_config))
+        checks.append(
+            run(
+                [
+                    binaries["xray"],
+                    "run",
+                    "-test",
+                    "-config",
+                    str(xray_config),
+                ],
+                "xray",
+                xray_config,
+            )
+        )
 
     summary = {
         "passed": sum(item["status"] == "passed" for item in checks),
