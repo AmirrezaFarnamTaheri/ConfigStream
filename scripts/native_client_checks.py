@@ -5,7 +5,9 @@ from __future__ import annotations
 import argparse
 import json
 import shutil
-import subprocess  # nosec B404 - fixed validator executables, never a shell
+# Native validators are resolved with shutil.which and invoked with fixed
+# argument lists. No shell or user-controlled command text is used.
+import subprocess  # nosec B404
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
