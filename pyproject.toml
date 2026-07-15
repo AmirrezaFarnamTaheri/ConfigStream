@@ -50,7 +50,7 @@ dependencies = [
     "slowapi>=0.1.9",
 
     # CLI & UI
-    "click",
+    "click>=8.3.3",
     "rich",
     "python-telegram-bot>=20.0",
 
