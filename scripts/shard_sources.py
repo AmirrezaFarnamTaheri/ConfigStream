@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Create deterministic runtime source shards and a GitHub Actions matrix."""
+
 from __future__ import annotations
 
 import argparse
@@ -9,7 +10,7 @@ from pathlib import Path
 
 
 def partition(lines: list[str], parts: int) -> list[list[str]]:
-    buckets = [[] for _ in range(parts)]
+    buckets: list[list[str]] = [[] for _ in range(parts)]
     for line in sorted(dict.fromkeys(lines)):
         index = int(hashlib.sha256(line.encode()).hexdigest(), 16) % parts
         buckets[index].append(line)
@@ -26,7 +27,7 @@ def main() -> int:
     if args.parts < 1:
         raise SystemExit("--parts must be >= 1")
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    matrix = []
+    matrix: list[dict[str, object]] = []
     for source_file in sorted(args.sources_dir.glob("batch_*.txt")):
         batch = source_file.stem.removeprefix("batch_")
         lines = [

@@ -1,10 +1,12 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Run mandatory native client validation and emit structured evidence."""
+
 from __future__ import annotations
 
 import argparse
 import json
 import shutil
+
 # Native validators are resolved with shutil.which and invoked with fixed
 # argument lists. No shell or user-controlled command text is used.
 import subprocess  # nosec B404

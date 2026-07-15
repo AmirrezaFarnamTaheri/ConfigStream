@@ -5,6 +5,7 @@ The fallback never downloads or installs client binaries at runtime. Complex
 protocols are tested only when sing-box and the optional wrapper are already
 installed. The native Go tester remains the authoritative CI test path.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -46,9 +47,7 @@ def _get_singbox_factory():
     binary = shutil.which("sing-box")
     if not binary:
         _singbox_factory = False
-        logger.info(
-            "sing-box is not preinstalled; complex Python fallback is disabled"
-        )
+        logger.info("sing-box is not preinstalled; complex Python fallback is disabled")
         return None
     try:
         from singbox2proxy import SingBoxProxy  # type: ignore
@@ -118,9 +117,7 @@ class PythonTester:
             host = proxy.address
             if ":" in host and not host.startswith("["):
                 host = f"[{host}]"
-            connector = ProxyConnector.from_url(
-                f"{proto}://{auth}{host}:{proxy.port}"
-            )
+            connector = ProxyConnector.from_url(f"{proto}://{auth}{host}:{proxy.port}")
             async with aiohttp.ClientSession(connector=connector) as session:
                 latency = await self._measure_latency_robust(session, proxy)
                 proxy.is_working = latency is not None
@@ -138,9 +135,7 @@ class PythonTester:
         except Exception as exc:
             proxy.is_working = False
             proxy.details["tester_error_category"] = "direct_test_failed"
-            proxy.details["error"] = SecurityValidator.sanitize_log_message(
-                str(exc)
-            )
+            proxy.details["error"] = SecurityValidator.sanitize_log_message(str(exc))
             logger.debug("direct fallback failed", exc_info=True)
         proxy.tested_at = self.datetime_now_iso()
         return proxy
@@ -230,9 +225,7 @@ class PythonTester:
                     return proxy
                 proxy_url = getattr(instance, "http_proxy_url", None)
                 if not instance or not proxy_url:
-                    proxy.details[
-                        "tester_error_category"
-                    ] = "singbox_proxy_url_missing"
+                    proxy.details["tester_error_category"] = "singbox_proxy_url_missing"
                     proxy.is_working = False
                     return proxy
                 async with aiohttp.ClientSession(
@@ -257,9 +250,7 @@ class PythonTester:
                 )
             proxy.is_working = False
             proxy.details["tester_error_category"] = "singbox_runtime_failed"
-            proxy.details["error"] = SecurityValidator.sanitize_log_message(
-                str(exc)
-            )
+            proxy.details["error"] = SecurityValidator.sanitize_log_message(str(exc))
         finally:
             if instance:
                 try:

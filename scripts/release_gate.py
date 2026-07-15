@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Fail closed unless a ConfigStream release is complete and natively validated."""
+
 from __future__ import annotations
 
 import argparse
@@ -53,20 +54,20 @@ def validate(root: Path, native_report: Path, min_coverage: float) -> list[str]:
         errors.append(f"source coverage {coverage:.4f} is below {min_coverage:.4f}")
     if metadata.get("time_limited"):
         errors.append("pipeline was time-limited")
-    if int(metadata.get("logical_total_working") or metadata.get("total_working") or 0) <= 0:
+    if (
+        int(metadata.get("logical_total_working") or metadata.get("total_working") or 0)
+        <= 0
+    ):
         errors.append("no logical working proxies")
     candidates = int(
-        metadata.get("shielded_candidate_count")
-        or metadata.get("shielded_count")
-        or 0
+        metadata.get("shielded_candidate_count") or metadata.get("shielded_count") or 0
     )
     verified = int(metadata.get("shielded_verified_count") or 0)
     if candidates > verified:
         errors.append(f"{candidates - verified} shielded candidates are unverified")
     for key, value in (metadata.get("drop_reasons") or {}).items():
         if (
-            "nonetype" in str(key).lower()
-            or "sequence item" in str(key).lower()
+            "nonetype" in str(key).lower() or "sequence item" in str(key).lower()
         ) and int(value or 0):
             errors.append(f"tester infrastructure errors remain: {key}={value}")
 

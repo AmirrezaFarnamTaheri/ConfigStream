@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Prepare deterministic, validated GitHub Release asset paths."""
+
 from __future__ import annotations
 
 import json

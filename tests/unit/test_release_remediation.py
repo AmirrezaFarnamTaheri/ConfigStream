@@ -43,7 +43,11 @@ def test_modernize_singbox_migrates_wireguard_and_route_contract() -> None:
                 "peer_public_key": "public",
                 "detour": "relay",
             },
-            {"type": "selector", "tag": "🌍 Proxy Select", "outbounds": ["🛡️\u008f SECURE"]},
+            {
+                "type": "selector",
+                "tag": "🌍 Proxy Select",
+                "outbounds": ["🛡️\u008f SECURE"],
+            },
             {"type": "block", "tag": "block"},
             {"type": "dns", "tag": "dns-out"},
         ],
@@ -121,7 +125,9 @@ def test_finalize_sanitizes_counts_sources_and_transients(tmp_path: Path) -> Non
             ]
         },
     )
-    (output / "clash.yaml").write_text("proxies: []\nproxy-groups: []\n", encoding="utf-8")
+    (output / "clash.yaml").write_text(
+        "proxies: []\nproxy-groups: []\n", encoding="utf-8"
+    )
     (output / ".metadata.json.lock").write_text("", encoding="utf-8")
     finalize(output, tmp_path, 0.80)
 
@@ -140,7 +146,9 @@ def test_finalize_sanitizes_counts_sources_and_transients(tmp_path: Path) -> Non
     assert health["release_blockers"] == []
 
 
-def test_release_gate_rejects_skipped_or_missing_native_validation(tmp_path: Path) -> None:
+def test_release_gate_rejects_skipped_or_missing_native_validation(
+    tmp_path: Path,
+) -> None:
     root = tmp_path / "output"
     root.mkdir()
     write_json(root / "proxies.json", [{"id": "p"}])
@@ -160,7 +168,14 @@ def test_release_gate_rejects_skipped_or_missing_native_validation(tmp_path: Pat
         {
             "targets": {
                 name: {"status": "generated"}
-                for name in ("sing-box", "xray", "mihomo", "surge", "loon", "quantumult-x")
+                for name in (
+                    "sing-box",
+                    "xray",
+                    "mihomo",
+                    "surge",
+                    "loon",
+                    "quantumult-x",
+                )
             }
         },
     )

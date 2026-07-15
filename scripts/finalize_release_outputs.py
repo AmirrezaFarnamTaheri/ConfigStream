@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Normalize, sanitize, and contract-check public release outputs."""
+
 from __future__ import annotations
 
 import argparse
@@ -103,8 +104,7 @@ def _wireguard_endpoint(outbound: dict[str, Any]) -> dict[str, Any]:
     peer: dict[str, Any] = {
         "address": outbound.get("server"),
         "port": int(outbound.get("server_port") or 0),
-        "public_key": outbound.get("peer_public_key")
-        or outbound.get("public_key"),
+        "public_key": outbound.get("peer_public_key") or outbound.get("public_key"),
         "allowed_ips": allowed,
     }
     for field in ("pre_shared_key", "reserved", "persistent_keepalive_interval"):
@@ -130,12 +130,14 @@ def _wireguard_endpoint(outbound: dict[str, Any]) -> dict[str, Any]:
     ):
         if field in outbound:
             endpoint[field] = outbound[field]
-    return _sanitize(endpoint)
+    sanitized = _sanitize(endpoint)
+    return sanitized if isinstance(sanitized, dict) else {}
 
 
 def _dns_server(server: dict[str, Any]) -> dict[str, Any]:
     if server.get("type") and "address" not in server:
-        return _sanitize(server)
+        sanitized = _sanitize(server)
+        return sanitized if isinstance(sanitized, dict) else {}
     address = str(server.get("address") or server.get("server") or "local")
     parsed = urlparse(address)
     if address == "local":
@@ -156,16 +158,16 @@ def _dns_server(server: dict[str, Any]) -> dict[str, Any]:
     for field in ("tag", "detour", "client_subnet"):
         if server.get(field) not in (None, ""):
             result[field] = server[field]
-    return _sanitize(result)
+    sanitized = _sanitize(result)
+    return sanitized if isinstance(sanitized, dict) else {}
 
 
 def modernize_singbox(payload: Any) -> Any:
     if not isinstance(payload, dict):
         return payload
-    config = _sanitize(payload)
-    endpoints = [
-        item for item in config.get("endpoints", []) if isinstance(item, dict)
-    ]
+    sanitized = _sanitize(payload)
+    config: dict[str, Any] = sanitized if isinstance(sanitized, dict) else {}
+    endpoints = [item for item in config.get("endpoints", []) if isinstance(item, dict)]
     outbounds: list[dict[str, Any]] = []
     for outbound in config.get("outbounds", []):
         if not isinstance(outbound, dict):
@@ -201,11 +203,14 @@ def modernize_singbox(payload: Any) -> Any:
             for item in dns.get("servers", [])
             if isinstance(item, dict)
         ]
-        dns_rules = []
+        dns_rules: list[dict[str, Any]] = []
         for item in dns.get("rules", []):
             if not isinstance(item, dict):
                 continue
-            rule = _sanitize(item)
+            sanitized_rule = _sanitize(item)
+            rule: dict[str, Any] = (
+                sanitized_rule if isinstance(sanitized_rule, dict) else {}
+            )
             if rule.get("server") == "block_dns":
                 rule.pop("server", None)
                 rule["action"] = "reject"
@@ -214,12 +219,14 @@ def modernize_singbox(payload: Any) -> Any:
             dns_rules.append(rule)
         dns["rules"] = dns_rules
 
-    route = config.get("route") if isinstance(config.get("route"), dict) else {}
-    rules = []
+    route_value = config.get("route")
+    route: dict[str, Any] = route_value if isinstance(route_value, dict) else {}
+    rules: list[dict[str, Any]] = []
     for item in route.get("rules", []):
         if not isinstance(item, dict):
             continue
-        rule = _sanitize(item)
+        sanitized_rule = _sanitize(item)
+        rule = sanitized_rule if isinstance(sanitized_rule, dict) else {}
         protocols = _string_list(rule.get("protocol"))
         if rule.get("outbound") == "block":
             rule.pop("outbound", None)
@@ -240,9 +247,7 @@ def modernize_singbox(payload: Any) -> Any:
         rules.insert(1, {"protocol": "dns", "action": "hijack-dns"})
     route["rules"] = rules
     tags = [
-        str(item.get("tag"))
-        for item in [*outbounds, *endpoints]
-        if item.get("tag")
+        str(item.get("tag")) for item in [*outbounds, *endpoints] if item.get("tag")
     ]
     preferred = next(
         (
@@ -252,8 +257,10 @@ def modernize_singbox(payload: Any) -> Any:
         ),
         None,
     )
-    route["final"] = route.get("final") or preferred or next(
-        (tag for tag in tags if tag != "direct"), "direct"
+    route["final"] = (
+        route.get("final")
+        or preferred
+        or next((tag for tag in tags if tag != "direct"), "direct")
     )
     config["route"] = route
 
@@ -327,9 +334,7 @@ def _xray_outbound(outbound: dict[str, Any], tag: str) -> dict[str, Any] | None:
             {
                 "protocol": kind,
                 "settings": {
-                    "vnext": [
-                        {"address": address, "port": port, "users": [user]}
-                    ]
+                    "vnext": [{"address": address, "port": port, "users": [user]}]
                 },
             }
         )
@@ -366,7 +371,9 @@ def _xray_outbound(outbound: dict[str, Any], tag: str) -> dict[str, Any] | None:
     return result
 
 
-def generate_xray(records: list[dict[str, Any]]) -> tuple[dict[str, Any], dict[str, Any]]:
+def generate_xray(
+    records: list[dict[str, Any]],
+) -> tuple[dict[str, Any], dict[str, Any]]:
     outbounds: list[dict[str, Any]] = []
     seen: set[str] = set()
     unsupported: Counter[str] = Counter()
@@ -378,9 +385,12 @@ def generate_xray(records: list[dict[str, Any]]) -> tuple[dict[str, Any], dict[s
         candidates: list[dict[str, Any]] = []
         if protocol in {"chain", "revived"}:
             try:
-                mini = modernize_singbox(json.loads(str(record.get("config") or "")))
+                modernized = modernize_singbox(
+                    json.loads(str(record.get("config") or ""))
+                )
             except json.JSONDecodeError:
-                mini = {}
+                modernized = {}
+            mini: dict[str, Any] = modernized if isinstance(modernized, dict) else {}
             candidates.extend(
                 item for item in mini.get("outbounds", []) if isinstance(item, dict)
             )
@@ -388,14 +398,11 @@ def generate_xray(records: list[dict[str, Any]]) -> tuple[dict[str, Any], dict[s
                 item for item in mini.get("endpoints", []) if isinstance(item, dict)
             )
         else:
-            details = (
-                record.get("details")
-                if isinstance(record.get("details"), dict)
-                else {}
+            raw_details = record.get("details")
+            details: dict[str, Any] = (
+                raw_details if isinstance(raw_details, dict) else {}
             )
-            kind = {"socks5": "socks", "ss": "shadowsocks"}.get(
-                protocol, protocol
-            )
+            kind = {"socks5": "socks", "ss": "shadowsocks"}.get(protocol, protocol)
             candidate: dict[str, Any] = {
                 "type": kind,
                 "tag": record.get("remarks") or record.get("id"),
@@ -404,9 +411,7 @@ def generate_xray(records: list[dict[str, Any]]) -> tuple[dict[str, Any], dict[s
             }
             if kind in {"http", "socks"}:
                 candidate["username"] = (
-                    record.get("uuid")
-                    or details.get("username")
-                    or details.get("user")
+                    record.get("uuid") or details.get("username") or details.get("user")
                 )
                 candidate["password"] = details.get("password")
             elif kind == "shadowsocks":
@@ -498,18 +503,29 @@ def _repair_clash(root: Path, records: list[dict[str, Any]]) -> dict[str, Any]:
         return {"status": "skipped", "reason": "PyYAML unavailable"}
     added = 0
     for path in root.glob("clash*.yaml"):
-        payload = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-        proxies = payload.get("proxies") if isinstance(payload.get("proxies"), list) else []
+        loaded = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        payload: dict[str, Any] = loaded if isinstance(loaded, dict) else {}
+        raw_proxies = payload.get("proxies")
+        proxies: list[Any] = raw_proxies if isinstance(raw_proxies, list) else []
         names = {str(item.get("name")) for item in proxies if isinstance(item, dict)}
-        new_names = []
+        new_names: list[str] = []
         for record in records:
             protocol = str(record.get("protocol") or "").lower()
-            if not record.get("is_working") or protocol not in {"http", "socks", "socks5"}:
+            if not record.get("is_working") or protocol not in {
+                "http",
+                "socks",
+                "socks5",
+            }:
                 continue
-            name = _clean_text(str(record.get("remarks") or record.get("id") or "Proxy"))
+            name = _clean_text(
+                str(record.get("remarks") or record.get("id") or "Proxy")
+            )
             if name in names:
                 continue
-            details = record.get("details") if isinstance(record.get("details"), dict) else {}
+            raw_details = record.get("details")
+            details: dict[str, Any] = (
+                raw_details if isinstance(raw_details, dict) else {}
+            )
             item: dict[str, Any] = {
                 "name": name,
                 "type": "socks5" if protocol.startswith("socks") else "http",
@@ -518,17 +534,25 @@ def _repair_clash(root: Path, records: list[dict[str, Any]]) -> dict[str, Any]:
             }
             user = record.get("uuid") or details.get("username") or details.get("user")
             if user:
-                item.update({"username": user, "password": details.get("password") or ""})
+                item.update(
+                    {"username": user, "password": details.get("password") or ""}
+                )
             proxies.append(item)
             names.add(name)
             new_names.append(name)
             added += 1
         payload["proxies"] = proxies
-        for group in payload.get("proxy-groups", []):
-            if isinstance(group, dict) and isinstance(group.get("proxies"), list):
-                group["proxies"].extend(
-                    name for name in new_names if name not in group["proxies"]
-                )
+        raw_groups = payload.get("proxy-groups")
+        groups = raw_groups if isinstance(raw_groups, list) else []
+        for group in groups:
+            if not isinstance(group, dict):
+                continue
+            raw_group_proxies = group.get("proxies")
+            if not isinstance(raw_group_proxies, list):
+                continue
+            raw_group_proxies.extend(
+                name for name in new_names if name not in raw_group_proxies
+            )
         path.write_text(
             yaml.safe_dump(payload, allow_unicode=True, sort_keys=False),
             encoding="utf-8",
@@ -537,7 +561,7 @@ def _repair_clash(root: Path, records: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def _cleanup(root: Path) -> list[str]:
-    removed = []
+    removed: list[str] = []
     for path in sorted(root.rglob("*"), reverse=True):
         if path.is_file() and path.name.endswith(TRANSIENT_SUFFIXES):
             removed.append(path.relative_to(root).as_posix())
@@ -565,7 +589,7 @@ def _cleanup(root: Path) -> list[str]:
 
 
 def _blockers(metadata: dict[str, Any], threshold: float) -> list[str]:
-    reasons = []
+    reasons: list[str] = []
     configured = int(
         metadata.get("total_configured_sources") or metadata.get("total_sources") or 0
     )
@@ -578,19 +602,19 @@ def _blockers(metadata: dict[str, Any], threshold: float) -> list[str]:
     if metadata.get("time_limited"):
         reasons.append("pipeline_time_limited")
     tester_errors = 0
-    for key, value in (metadata.get("drop_reasons") or {}).items():
-        if (
-            "nonetype" in str(key).lower()
-            or "sequence item" in str(key).lower()
-            or "tester" in str(key).lower()
-        ):
-            tester_errors += int(value or 0)
+    drop_reasons = metadata.get("drop_reasons")
+    if isinstance(drop_reasons, dict):
+        for key, value in drop_reasons.items():
+            if (
+                "nonetype" in str(key).lower()
+                or "sequence item" in str(key).lower()
+                or "tester" in str(key).lower()
+            ):
+                tester_errors += int(value or 0)
     if tester_errors:
         reasons.append(f"tester_errors:{tester_errors}")
     candidates = int(
-        metadata.get("shielded_candidate_count")
-        or metadata.get("shielded_count")
-        or 0
+        metadata.get("shielded_candidate_count") or metadata.get("shielded_count") or 0
     )
     verified = int(metadata.get("shielded_verified_count") or 0)
     if candidates > verified:
@@ -600,7 +624,14 @@ def _blockers(metadata: dict[str, Any], threshold: float) -> list[str]:
 
 def finalize(root: Path, repo_root: Path, threshold: float) -> None:
     raw = _load(root / "proxies.json", [])
-    records = [_sanitize(item) for item in raw if isinstance(item, dict)] if isinstance(raw, list) else []
+    records: list[dict[str, Any]] = []
+    if isinstance(raw, list):
+        for item in raw:
+            if not isinstance(item, dict):
+                continue
+            sanitized = _sanitize(item)
+            if isinstance(sanitized, dict):
+                records.append(sanitized)
     for record in records:
         config = record.get("config")
         if isinstance(config, str) and config.lstrip().startswith("{"):
@@ -614,7 +645,7 @@ def finalize(root: Path, repo_root: Path, threshold: float) -> None:
                 pass
     _write(root / "proxies.json", records)
 
-    modernized = []
+    modernized: list[str] = []
     for path in sorted({*root.glob("singbox*.json"), *root.glob("chains*.json")}):
         payload = _load(path)
         if isinstance(payload, dict):
@@ -624,7 +655,7 @@ def finalize(root: Path, repo_root: Path, threshold: float) -> None:
     xray, xray_report = generate_xray(records)
     _write(root / "xray.json", xray)
     clash_report = _repair_clash(root, records)
-    copied_wasm = []
+    copied_wasm: list[str] = []
     for source, destination in (
         (repo_root / "wasm/tester.wasm", root / "assets/wasm/tester.wasm"),
         (repo_root / "js/wasm_exec.js", root / "assets/js/wasm_exec.js"),
@@ -638,9 +669,10 @@ def finalize(root: Path, repo_root: Path, threshold: float) -> None:
     logical = [item for item in records if item.get("protocol") != "chain"]
     logical_working = sum(bool(item.get("is_working")) for item in logical)
     exported_working = sum(bool(item.get("is_working")) for item in records)
-    metadata = _load(root / "metadata.json", {})
-    if not isinstance(metadata, dict):
-        metadata = {}
+    loaded_metadata = _load(root / "metadata.json", {})
+    metadata: dict[str, Any] = (
+        loaded_metadata if isinstance(loaded_metadata, dict) else {}
+    )
     tested = int(metadata.get("total_tested") or metadata.get("tested") or 0)
     configured = int(
         metadata.get("total_configured_sources") or metadata.get("total_sources") or 0
@@ -668,7 +700,7 @@ def finalize(root: Path, repo_root: Path, threshold: float) -> None:
     )
     _write(root / "metadata.json", metadata)
 
-    compatibility = {
+    compatibility: dict[str, Any] = {
         "schema_version": 1,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "targets": {
@@ -699,7 +731,7 @@ def finalize(root: Path, repo_root: Path, threshold: float) -> None:
         or metadata.get("last_updated_utc")
         or datetime.now(timezone.utc).isoformat()
     )
-    health = {
+    health: dict[str, Any] = {
         "schema_version": "2.0",
         "status": "failed" if reasons else "degraded",
         "generated_at": generated_at,
@@ -720,7 +752,7 @@ def finalize(root: Path, repo_root: Path, threshold: float) -> None:
     shutil.copy2(root / "proxies.json", root / "api/proxies")
     shutil.copy2(root / "metadata.json", root / "api/stats")
 
-    files = []
+    files: list[dict[str, Any]] = []
     for path in sorted(root.rglob("*")):
         if (
             not path.is_file()
@@ -734,10 +766,12 @@ def finalize(root: Path, repo_root: Path, threshold: float) -> None:
                 "path": rel,
                 "size_bytes": path.stat().st_size,
                 "sha256": _sha256(path),
-                "category": "control"
-                if rel
-                in {"metadata.json", "health.json", "format_compatibility.json"}
-                else "artifact",
+                "category": (
+                    "control"
+                    if rel
+                    in {"metadata.json", "health.json", "format_compatibility.json"}
+                    else "artifact"
+                ),
             }
         )
     _write(

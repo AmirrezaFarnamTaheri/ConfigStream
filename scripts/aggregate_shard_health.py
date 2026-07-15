@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Reconcile shard lineage and counters into merged metadata."""
+
 from __future__ import annotations
 
 import argparse
@@ -46,12 +47,18 @@ def main() -> int:
     parser.add_argument("--parts", type=int, default=4)
     args = parser.parse_args()
 
-    expected = args.expected_shards or expected_from_sources(args.sources_dir, args.parts)
+    expected = args.expected_shards or expected_from_sources(
+        args.sources_dir, args.parts
+    )
     if expected <= 0:
         raise SystemExit("could not derive expected shard count")
-    directories = sorted(path for path in Path(".").glob(args.batch_glob) if path.is_dir())
+    directories = sorted(
+        path for path in Path(".").glob(args.batch_glob) if path.is_dir()
+    )
     if len(directories) != expected:
-        raise SystemExit(f"expected {expected} shard directories, found {len(directories)}")
+        raise SystemExit(
+            f"expected {expected} shard directories, found {len(directories)}"
+        )
     counters: Counter[str] = Counter()
     starts: list[datetime] = []
     ends: list[datetime] = []
@@ -105,16 +112,14 @@ def main() -> int:
     merged = load(args.metadata)
     for key, value in counters.items():
         merged[key] = value
-    wall_seconds = (
-        (max(ends) - min(starts)).total_seconds() if starts and ends else 0.0
-    )
+    wall_seconds = (max(ends) - min(starts)).total_seconds() if starts and ends else 0.0
     merged.update(
         {
             "pipeline_work_seconds_sum": work_seconds,
             "pipeline_wall_clock_seconds": max(0.0, wall_seconds),
-            "start_time": min(starts).isoformat()
-            if starts
-            else merged.get("start_time"),
+            "start_time": (
+                min(starts).isoformat() if starts else merged.get("start_time")
+            ),
             "end_time": max(ends).isoformat() if ends else merged.get("end_time"),
             "duration": max(0.0, wall_seconds) or merged.get("duration", 0.0),
             "duration_seconds": max(0.0, wall_seconds)
