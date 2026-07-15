@@ -35,7 +35,22 @@ jobs:
       - name: Install shift-left security tooling
         run: pip install bandit pip-audit
       - name: Shift-left security scan (dependency audit)
-        run: pip-audit -r requirements-prod.txt --format json
+        id: dependency-audit
+        shell: bash
+        run: |
+          set +e
+          pip-audit -r requirements-prod.txt --format json --output pip-audit-report.json
+          status=$?
+          echo "exit_code=$status" >> "$GITHUB_OUTPUT"
+          exit 0
+      - name: Upload dependency audit report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: pip-audit-py${{ matrix.python-version }}-${{ github.run_id }}
+          path: pip-audit-report.json
+          if-no-files-found: error
+          retention-days: 14
       - name: Shift-left security scan (bandit)
         run: bandit -r src/configstream scripts tools frontend/assets/js -q
       - name: Validate Bandit suppression hygiene
@@ -139,6 +154,16 @@ jobs:
             exit 0
           fi
           python -m black --check --fast --target-version py310 "${python_files[@]}"
+      - name: Enforce dependency audit
+        if: always()
+        shell: bash
+        env:
+          AUDIT_EXIT_CODE: ${{ steps.dependency-audit.outputs.exit_code }}
+        run: |
+          if [ "${AUDIT_EXIT_CODE:-1}" -ne 0 ]; then
+            echo "Dependency audit found vulnerabilities; inspect the uploaded pip-audit report."
+            exit 1
+          fi
 
   frontend:
     runs-on: ubuntu-latest
