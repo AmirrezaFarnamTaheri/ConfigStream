@@ -152,6 +152,35 @@ def promote(root: Path, native_report: Path) -> None:
         json.dumps(health, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
 
+    # Promotion mutates health.json, so refresh its manifest entry before publish.
+    manifest_path = root / "artifact_manifest.json"
+    manifest = load(manifest_path)
+    files = manifest.get("files") if isinstance(manifest, dict) else None
+    if not isinstance(files, list):
+        raise ValueError("artifact manifest files must be a list")
+    for item in files:
+        if isinstance(item, dict) and item.get("path") == "health.json":
+            item["size_bytes"] = health_path.stat().st_size
+            item["sha256"] = digest(health_path)
+            break
+    else:
+        files.append(
+            {
+                "path": "health.json",
+                "size_bytes": health_path.stat().st_size,
+                "sha256": digest(health_path),
+                "category": "control",
+            }
+        )
+    manifest["file_count"] = len(files)
+    manifest["total_size_bytes"] = sum(
+        int(item.get("size_bytes") or 0) for item in files if isinstance(item, dict)
+    )
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
