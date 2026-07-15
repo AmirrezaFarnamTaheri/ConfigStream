@@ -27,7 +27,7 @@ cachetools==6.2.4
 certifi==2025.11.12
 charset-normalizer==3.4.4
 click==8.3.3
-coverage==7.14.3
+coverage==7.15.1
 cryptography==48.0.1
 cyclonedx-python-lib==11.11.0
 defusedxml==0.7.1
