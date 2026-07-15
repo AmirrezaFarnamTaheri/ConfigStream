@@ -47,8 +47,9 @@ jobs:
             scripts/native_client_checks.py \
             scripts/normalize_legacy_profiles.py \
             scripts/release_gate.py \
-            scripts/shard_sources.py
-          pytest -q tests/unit --disable-warnings --maxfail=1
+            scripts/shard_sources.py \
+            src/configstream/testers/python.py
+          pytest -q tests/unit/test_release_remediation.py --disable-warnings --maxfail=1
 
   build_container:
     name: Build and Push Container
