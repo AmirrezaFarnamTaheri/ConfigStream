@@ -269,10 +269,20 @@ jobs:
         run: |
           python -m scripts.merge_batches
           python scripts/aggregate_shard_health.py --parts "$SOURCE_SHARD_PARTS"
-      - name: Prepare public tree
+      - name: Generate source reshard recommendation
+        run: python scripts/dynamic_reshard.py
+      - name: Upload source reshard recommendation
+        uses: actions/upload-artifact@v7
+        with:
+          name: source-reshard-recommendation
+          path: sources/batch_*.txt
+          if-no-files-found: error
+          retention-days: 30
+      - name: Prepare public output artifact
         run: |
           set -euo pipefail
-          mkdir -p output/docs output/tools output/api
+          mkdir -p output/docs
+          mkdir -p output/tools output/api
           test ! -d docs/wiki || cp -R docs/wiki output/docs/
           cp -R frontend/. output/
           cp tools/lab-scanner.py output/tools/lab-scanner.py
@@ -280,6 +290,13 @@ jobs:
           python scripts/validate_frontend_placeholders.py --inject-env output
           python scripts/normalize_legacy_profiles.py output
           python scripts/finalize_release_outputs.py output --repo-root . --min-source-coverage "$MIN_SOURCE_COVERAGE"
+          cp output/proxies.json output/api/proxies
+          cp output/metadata.json output/api/stats
+          touch output/.nojekyll
+          if [ ! -s output/pipeline_events.jsonl ]; then
+            printf '{"timestamp":"%s","stage":"artifact_prepare","level":"info","event_type":"artifact_prepare","message":"pipeline event telemetry initialized during public artifact preparation"}\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > output/pipeline_events.jsonl
+          fi
+          python scripts/validate_pages_artifact.py --refresh-contract output
       - name: Install pinned native validators
         env:
           GH_TOKEN: ${{ github.token }}
@@ -309,7 +326,12 @@ jobs:
             --native-report pipeline-evidence/native_client_check_report.json \
             --min-source-coverage "$MIN_SOURCE_COVERAGE" \
             --promote
-          python scripts/validate_pages_artifact.py output
+      - name: Validate data release output contract
+        run: |
+          python scripts/validate_pages_artifact.py \
+            --native-client-check \
+            --native-report-file pipeline-evidence/native_client_check_report.json \
+            output
       - name: Generate evidence
         run: |
           python scripts/generate_evidence_bundle.py \
@@ -324,7 +346,7 @@ jobs:
           retention-days: 30
       - uses: actions/upload-artifact@v7
         with:
-          name: pipeline-output-${{ github.run_id }}-${{ github.run_attempt }}
+          name: pipeline-output
           path: output/
           include-hidden-files: true
           if-no-files-found: error
