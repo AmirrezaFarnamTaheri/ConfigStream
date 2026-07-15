@@ -4,330 +4,229 @@ on:
   push:
     branches: [main]
     paths-ignore:
-      - 'sources/batch_*.txt'
-      - 'sources/backup_dynamic/**'
+      - 'sources/runtime/**'
   pull_request:
   schedule:
-    - cron: "0 */4 * * *"  # Every 4 hours
+    - cron: "0 */4 * * *"
   workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
-# Default: minimum read-only access. Individual jobs override only what they need.
-# actions: read is required by schedule_gate's `gh api .../actions/workflows/...` query.
 permissions:
   contents: read
   actions: read
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  MIN_SOURCE_COVERAGE: "0.80"
+  SOURCE_SHARD_PARTS: "4"
+  SING_BOX_VERSION: "1.13.14"
+  XRAY_VERSION: "v26.3.27"
+  MIHOMO_VERSION: "v1.19.20"
+
 jobs:
-  schedule_gate:
-    name: Schedule Gate
+  quality:
+    name: Static and Unit Validation
     runs-on: ubuntu-latest
-    outputs:
-      proceed: ${{ steps.gate.outputs.proceed }}
     steps:
-      - name: Check schedule eligibility
-        id: gate
-        env:
-          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-          CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
-          CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
-          GH_TOKEN: ${{ github.token }}
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -e .[dev]
+      - name: Validate remediation scripts
         run: |
-          if [ "${{ github.event_name }}" != "schedule" ]; then
-            echo "proceed=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          LAST_RUN=$(gh api \
-            "repos/${{ github.repository }}/actions/workflows/main.yml/runs?branch=${{ github.ref_name }}&status=completed&per_page=1" \
-            --jq '.workflow_runs[0] // empty' 2>/dev/null || true)
-
-          if [ -z "$LAST_RUN" ]; then
-            echo "No previous run found — proceeding"
-            echo "proceed=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          CONCLUSION=$(echo "$LAST_RUN" | jq -r '.conclusion')
-          UPDATED_AT=$(echo "$LAST_RUN" | jq -r '.updated_at')
-          NOW_EPOCH=$(date +%s)
-          LAST_EPOCH=$(date -d "$UPDATED_AT" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%SZ" "$UPDATED_AT" +%s 2>/dev/null || echo 0)
-          ELAPSED=$(( NOW_EPOCH - LAST_EPOCH ))
-
-          echo "Last run conclusion: $CONCLUSION"
-          echo "Elapsed since last run: ${ELAPSED}s"
-
-          if [ "$CONCLUSION" = "success" ]; then
-            # After success: require at least 2 h (7200 s) gap
-            if [ "$ELAPSED" -lt 7200 ]; then
-              echo "Success cooldown active (${ELAPSED}s < 7200s) — skipping"
-              echo "proceed=false" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-          elif [ "$CONCLUSION" = "failure" ] || [ "$CONCLUSION" = "cancelled" ]; then
-            # After failure: require only 30m (1800 s) before retry
-            if [ "$ELAPSED" -lt 1800 ]; then
-              echo "Failure retry cooldown (${ELAPSED}s < 1800s) — skipping"
-              echo "proceed=false" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-          fi
-
-          echo "Gate passed — proceeding"
-          echo "proceed=true" >> "$GITHUB_OUTPUT"
+          python -m py_compile \
+            scripts/finalize_release_outputs.py \
+            scripts/native_client_checks.py \
+            scripts/release_gate.py \
+            scripts/shard_sources.py
+          pytest -q tests/unit --disable-warnings --maxfail=1
 
   build_container:
-    name: Build & Push Container
+    name: Build and Push Container
+    if: github.event_name != 'pull_request'
+    needs: [quality]
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request' && (!needs.schedule_gate.outputs.proceed || needs.schedule_gate.outputs.proceed == 'true')
-    needs: [schedule_gate]
     permissions:
       contents: read
       packages: write
     outputs:
-      repo_lowercase: ${{ steps.repo_name.outputs.repo_lowercase }}
+      image: ${{ steps.image.outputs.value }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v7
+      - uses: actions/checkout@v7
         with:
-          fetch-depth: 1
           persist-credentials: false
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4.4.0
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Set lowercase repository name
-        id: repo_name
-        run: |
-          REPO_LOWERCASE=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')
-          echo "REPO_LOWERCASE=$REPO_LOWERCASE" >> $GITHUB_ENV
-          echo "repo_lowercase=$REPO_LOWERCASE" >> $GITHUB_OUTPUT
-
-      - name: Build and Push Docker image
-        uses: docker/build-push-action@v7
+      - id: image
+        run: echo "value=ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]'):${{ github.sha }}" >> "$GITHUB_OUTPUT"
+      - uses: docker/build-push-action@v7
         with:
           context: .
           push: true
-          platforms: linux/amd64,linux/arm64
-          tags: |
-            ghcr.io/${{ env.REPO_LOWERCASE }}:latest
-            ghcr.io/${{ env.REPO_LOWERCASE }}:${{ github.sha }}
-          build-args: |
-            CACHE_BUST=${{ github.run_id }}
+          platforms: linux/amd64
+          tags: ${{ steps.image.outputs.value }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: true
           sbom: true
 
-  setup_data:
-    name: Setup Intelligence Data
-    runs-on: ubuntu-latest
-    needs: [schedule_gate]
-    if: "!needs.schedule_gate.outputs.proceed || needs.schedule_gate.outputs.proceed == 'true'"
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-        with:
-          fetch-depth: 1
-          persist-credentials: false
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.11"
-          cache: pip
-      - name: Install dependencies
-        run: pip install -e .
-      - name: Cache Data
-        uses: actions/cache@v6
-        with:
-          path: |
-            data/source_quality.db
-            data/test_cache.json
-            data/history.db
-            data/timeout_history.json
-            data/GeoLite2-City.mmdb
-            data/GeoLite2-ASN.mmdb
-          key: configstream-data-${{ github.ref }}-${{ github.run_id }}
-          restore-keys: |
-            configstream-data-${{ github.ref }}-
-      - name: Download GeoIP databases
-        env:
-          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-          CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
-          CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
-          MAXMIND_LICENSE_KEY: ${{ secrets.MAXMIND_LICENSE_KEY }}
-        run: python -m configstream.cli update-databases
-
   build_wasm:
     name: Build WASM Module
+    if: github.event_name != 'pull_request'
+    needs: [quality]
     runs-on: ubuntu-latest
-    needs: [schedule_gate]
-    if: "!needs.schedule_gate.outputs.proceed || needs.schedule_gate.outputs.proceed == 'true'"
     steps:
       - uses: actions/checkout@v7
         with:
-          fetch-depth: 1
           persist-credentials: false
       - uses: actions/setup-go@v6
         with:
           go-version: '1.24'
           cache-dependency-path: src/go/tester/go.sum
-      - name: Install wasm-opt
-        run: |
+      - run: |
           sudo apt-get update
           sudo apt-get install -y binaryen
-      - name: Build WASM Binary
-        run: |
           chmod +x scripts/build_wasm.sh
           ./scripts/build_wasm.sh
-      - name: Upload WASM Artifact
-        uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@v7
         with:
-          name: frontend-wasm
+          name: frontend-wasm-${{ github.sha }}-${{ github.run_attempt }}
           path: |
             frontend/assets/wasm/tester.wasm
             frontend/assets/js/wasm_exec.js
+          if-no-files-found: error
 
   setup_matrix:
-    name: Generate Dynamic Batch Matrix
+    name: Generate Runtime Source Matrix
+    if: github.event_name != 'pull_request'
+    needs: [quality]
     runs-on: ubuntu-latest
-    needs: [schedule_gate]
-    if: "!needs.schedule_gate.outputs.proceed || needs.schedule_gate.outputs.proceed == 'true'"
     outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      matrix: ${{ steps.matrix.outputs.value }}
     steps:
       - uses: actions/checkout@v7
         with:
-          fetch-depth: 1
           persist-credentials: false
-      - id: set-matrix
+      - id: matrix
         run: |
-          BATCHES=$(ls sources/batch_*.txt 2>/dev/null | sed 's/.*batch_\([0-9]*\)\.txt/\1/' | jq -R -s -c 'split("\n")[:-1]')
-          if [ -z "$BATCHES" ] || [ "$BATCHES" = "[]" ]; then
-            echo "No batch files found, using fallback [1-17]"
-            BATCHES='["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17"]'
-          fi
-          echo "matrix=$BATCHES" >> $GITHUB_OUTPUT
-          echo "Generated matrix: $BATCHES"
+          python scripts/shard_sources.py \
+            --parts "$SOURCE_SHARD_PARTS" \
+            --matrix-output source-matrix.json \
+            > matrix.stdout.json
+          echo "value=$(cat source-matrix.json)" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: source-matrix-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            sources/runtime/
+            source-matrix.json
+          if-no-files-found: error
 
   pipeline:
-    name: Run Batch Shard (${{ matrix.batch_number }})
-    runs-on: ubuntu-latest
-    timeout-minutes: 360
-    needs: [build_container, setup_data, setup_matrix]
+    name: Run Source Shard ${{ matrix.batch }}.${{ matrix.part }}
     if: github.event_name != 'pull_request'
+    needs: [build_container, setup_matrix]
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
     permissions:
       contents: read
-      packages: read # required to pull the ghcr.io container image with GITHUB_TOKEN
+      packages: read
     strategy:
-      matrix:
-        batch_number: ${{ fromJson(needs.setup_matrix.outputs.matrix) }}
       fail-fast: false
+      max-parallel: 12
+      matrix: ${{ fromJson(needs.setup_matrix.outputs.matrix) }}
     container:
-      image: ghcr.io/${{ needs.build_container.outputs.repo_lowercase }}:latest
+      image: ${{ needs.build_container.outputs.image }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
       env:
-        CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
-        CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
         PYTHONPATH: /app/src
     steps:
-      - name: Checkout
-        uses: actions/checkout@v7
+      - uses: actions/checkout@v7
         with:
-          fetch-depth: 1
           persist-credentials: false
-      - name: Restore Cache (Adaptive Logic)
-        uses: actions/cache@v6
+      - uses: actions/download-artifact@v8
         with:
-          path: |
-            data/source_quality.db
-            data/test_cache.json
-            data/history.db
-            data/timeout_history.json
-            data/GeoLite2-City.mmdb
-            data/GeoLite2-ASN.mmdb
-          key: configstream-data-${{ github.ref }}-${{ github.run_id }}
-          restore-keys: |
-            configstream-data-${{ github.ref }}-
-            configstream-data-
-      - name: Download GeoIP databases
+          name: source-matrix-${{ github.sha }}-${{ github.run_attempt }}
+          path: .
+      - name: Run bounded shard
         env:
-          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
           CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
-          MAXMIND_LICENSE_KEY: ${{ secrets.MAXMIND_LICENSE_KEY }}
-        run: python -m configstream.cli update-databases
-      - name: Run pipeline for Batch ${{ matrix.batch_number }}
-        env:
-          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-          CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
-          CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
-          BATCH_NUMBER: ${{ matrix.batch_number }}
           VT_API_KEY: ${{ secrets.VT_API_KEY }}
           WARP_KEY_POOL: ${{ secrets.WARP_KEY_POOL }}
-          UPDATE_INTERVAL_HOURS: 4
           CANARY_URL: "https://httpbin.org"
-          BATCH_TIME_LIMIT_SECONDS: 14400
-          BATCH_TIME_LIMIT_GRACE_SECONDS: 2700
+          BATCH_TIME_LIMIT_SECONDS: 9000
+          BATCH_TIME_LIMIT_GRACE_SECONDS: 900
           FORCE_SCANNER: "false"
           ALLOW_ACTIVE_SCANNING: "false"
+          BATCH: ${{ matrix.batch }}
+          PART: ${{ matrix.part }}
+          SOURCE_FILE: ${{ matrix.source_file }}
+          SOURCE_COUNT: ${{ matrix.source_count }}
+          SOURCE_SHA256: ${{ matrix.source_sha256 }}
         run: |
-          set -uxo pipefail
-          echo "Running pipeline for batch $BATCH_NUMBER"
-          PIPELINE_EXIT=0
+          set -euo pipefail
+          output="output_batch_${BATCH}_part_${PART}"
+          export started_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
           python -m configstream.cli merge \
-            --sources "sources/batch_${BATCH_NUMBER}.txt" \
-            --output "output_batch_${BATCH_NUMBER}" \
-            --max-workers 50 \
+            --sources "$SOURCE_FILE" \
+            --output "$output" \
+            --max-workers 40 \
             --timeout 24 \
-            --max-latency 6000 | tee "pipeline_batch_${BATCH_NUMBER}.log" || PIPELINE_EXIT=$?
-          mkdir -p output_batch_${BATCH_NUMBER}/data
-          [ -f data/source_quality.db ] && cp data/source_quality.db output_batch_${BATCH_NUMBER}/data/ || true
-          [ -f data/anomaly.db ] && cp data/anomaly.db output_batch_${BATCH_NUMBER}/data/ || true
-          [ -f data/history.db ] && cp data/history.db output_batch_${BATCH_NUMBER}/data/ || true
-          [ -f data/timeout_history.json ] && cp data/timeout_history.json output_batch_${BATCH_NUMBER}/data/ || true
-          [ -f data/test_cache.json ] && cp data/test_cache.json output_batch_${BATCH_NUMBER}/data/ || true
-          exit $PIPELINE_EXIT
-      - name: Upload shard artifact
+            --max-latency 6000 2>&1 | tee "pipeline_batch_${BATCH}_part_${PART}.log"
+          export completed_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          python - "$output/shard_lineage.json" <<'PY'
+          import json, os, pathlib, sys
+          pathlib.Path(sys.argv[1]).write_text(json.dumps({
+              "batch": os.environ["BATCH"],
+              "part": int(os.environ["PART"]),
+              "source_file": os.environ["SOURCE_FILE"],
+              "source_count": int(os.environ["SOURCE_COUNT"]),
+              "source_sha256": os.environ["SOURCE_SHA256"],
+              "run_id": os.environ["GITHUB_RUN_ID"],
+              "run_attempt": os.environ["GITHUB_RUN_ATTEMPT"],
+              "source_commit": os.environ["GITHUB_SHA"],
+              "started_at": os.environ.get("started_at"),
+              "completed_at": os.environ.get("completed_at"),
+          }, indent=2) + "\n", encoding="utf-8")
+          PY
+      - uses: actions/upload-artifact@v7
         if: always()
-        uses: actions/upload-artifact@v7
         with:
-          name: shard-run-${{ github.sha }}-${{ matrix.batch_number }}
+          name: shard-${{ github.sha }}-${{ github.run_attempt }}-${{ matrix.batch }}-${{ matrix.part }}
           path: |
-            output_batch_${{ matrix.batch_number }}/
-            pipeline_batch_${{ matrix.batch_number }}.log
-            data/test_cache.json
+            output_batch_${{ matrix.batch }}_part_${{ matrix.part }}/
+            pipeline_batch_${{ matrix.batch }}_part_${{ matrix.part }}.log
+          if-no-files-found: error
+          retention-days: 7
 
-  merge_results:
-    name: Merge & Fan-Out
-    runs-on: ubuntu-latest
+  merge_validate_publish:
+    name: Merge, Validate, and Publish
+    if: github.event_name != 'pull_request' && needs.pipeline.result == 'success'
     needs: [pipeline, build_wasm]
-    if: always() && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
     permissions:
-      # actions:read — download shard/WASM artifacts
       actions: read
-      # contents:write — push merged config to the repo branch
       contents: write
-      # id-token:write — OIDC token for IPFS/cloud publish steps
       id-token: write
-      # pages:write and packages:read are not used by this job; omitted
-      # to keep the token on least-privilege.
     env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
       CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
+      WARP_KEY_POOL: ${{ secrets.WARP_KEY_POOL }}
+      STEGO_KEY: ${{ secrets.STEGO_KEY }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       HF_TOKEN: ${{ secrets.HF_TOKEN }}
@@ -336,188 +235,118 @@ jobs:
       GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
       PINATA_JWT: ${{ secrets.PINATA_JWT }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v7
+      - uses: actions/checkout@v7
         with:
-          fetch-depth: 1
           persist-credentials: true
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
-      - name: Set up Go
-        uses: actions/setup-go@v6
+          cache: pip
+      - uses: actions/setup-go@v6
         with:
           go-version: '1.24'
           cache-dependency-path: src/go/tester/go.sum
-      - name: Build Native Go Tester
-        run: |
-          cd src/go/tester
-          go build -o configstream-tester -tags "with_quic with_dhcp with_wireguard with_ech with_utls with_reality_server with_clash_api with_gvisor" .
-          mv configstream-tester $GITHUB_WORKSPACE/configstream-tester
-          echo "$GITHUB_WORKSPACE" >> $GITHUB_PATH
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y git-lfs
-          git lfs install --system
-          pip install -e .[dev] huggingface_hub
-      - name: Download shard artifacts
-        uses: actions/download-artifact@v8
+      - run: pip install -e .[dev] huggingface_hub
+      - uses: actions/download-artifact@v8
         with:
-          pattern: shard-run-${{ github.sha }}-*
+          pattern: shard-${{ github.sha }}-${{ github.run_attempt }}-*
           path: artifacts
           merge-multiple: true
-      - name: Download WASM for Deployment
-        uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@v8
         with:
-          name: frontend-wasm
-          path: .
-      - name: Prepare Documentation
+          name: frontend-wasm-${{ github.sha }}-${{ github.run_attempt }}
+          path: frontend/assets
+      - name: Restore isolated shard outputs
         run: |
-          mkdir -p output/docs
-          if [ -d docs/wiki ]; then
-             cp -r docs/wiki output/docs/
-          fi
-      - name: Restore previous outputs for merge
-        run: |
-          set -euxo pipefail
-          if [ -z "$(ls -A artifacts)" ]; then
-              echo "No artifacts found to restore."
-              exit 0
-          fi
+          set -euo pipefail
           find artifacts -mindepth 1 -maxdepth 1 -type d -name 'output_batch_*' -exec mv {} . \;
-          find artifacts -type f -name '*.log' -exec mv {} . \;
-      - name: Run merge script
-        env:
-          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-          CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
-          CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
-          WARP_KEY_POOL: ${{ secrets.WARP_KEY_POOL }}
-          STEGO_KEY: ${{ secrets.STEGO_KEY }}
+          find artifacts -type f -name 'pipeline_batch_*.log' -exec mv {} . \;
+          test "$(find . -maxdepth 1 -type d -name 'output_batch_*' | wc -l)" -gt 0
+      - name: Merge outputs
         run: python -m scripts.merge_batches
-      - name: Generate source reshard recommendation
-        run: python scripts/dynamic_reshard.py
-      - name: Upload source reshard recommendation
-        uses: actions/upload-artifact@v7
-        with:
-          name: source-reshard-recommendation
-          path: sources/batch_*.txt
-          retention-days: 30
-      - name: Prepare public output artifact
-        env:
-          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-          CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
-          CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
-          STEGO_KEY: ${{ secrets.STEGO_KEY }}
+      - name: Prepare public tree
         run: |
-          set -euxo pipefail
-
-          if [ -d "frontend" ]; then
-            cp -R frontend/. output/
-          fi
-
-          mkdir -p output/tools output/api
+          set -euo pipefail
+          mkdir -p output/docs output/tools output/api
+          test ! -d docs/wiki || cp -R docs/wiki output/docs/
+          cp -R frontend/. output/
           cp tools/lab-scanner.py output/tools/lab-scanner.py
           cp tools/lab-runner.sh output/tools/lab-runner.sh
-
           python scripts/validate_frontend_placeholders.py --inject-env output
-
-          cp output/proxies.json output/api/proxies
-          cp output/metadata.json output/api/stats
-          touch output/.nojekyll
-          rm -f output/data/test_cache.json
-          if [ ! -s output/pipeline_events.jsonl ]; then
-            printf '{"timestamp":"%s","stage":"artifact_prepare","level":"info","event_type":"artifact_prepare","message":"pipeline event telemetry initialized during public artifact preparation"}\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > output/pipeline_events.jsonl
-          fi
-
-          python scripts/validate_pages_artifact.py --refresh-contract output
-      - name: Publish to IPFS (Unstoppable)
-        if: env.PINATA_JWT != ''
+          python scripts/finalize_release_outputs.py output --repo-root . --min-source-coverage "$MIN_SOURCE_COVERAGE"
+      - name: Install pinned native validators
         env:
-          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-          CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
-          CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
-          PINATA_JWT: ${{ secrets.PINATA_JWT }}
-          CF_TOKEN: ${{ secrets.CF_TOKEN }}
-          CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          python scripts/publish_ipfs.py \
-            --file output/ \
-            --domain fallback.example.com
-      - name: Upload Pipeline Output
-        uses: actions/upload-artifact@v7
-        with:
-          name: pipeline-output
-          path: output/
-          include-hidden-files: true
-          retention-days: 30
-      - name: Generate Version Tag
-        id: tag
-        run: |
-          TAG=v$(date +'%Y.%m.%d-%H%M')
-          echo "VERSION_TAG=$TAG" >> $GITHUB_ENV
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-      - name: Upload to Telegram
-        if: env.TELEGRAM_BOT_TOKEN != ''
-        run: python scripts/upload_telegram.py
-      - name: Upload to Hugging Face
-        if: env.HF_TOKEN != ''
-        env:
-          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-          CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
-          CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-          HF_REPO_ID: ${{ secrets.HF_REPO_ID }}
-        run: python scripts/upload_hf.py --path output/ --repo-id $HF_REPO_ID
-      - name: Upload to Google Drive Mirror
-        if: env.GDRIVE_FOLDER_ID != ''
-        run: |
-          pip install google-api-python-client google-auth
-          python scripts/upload_gdrive.py --path output/ --folder-id $GDRIVE_FOLDER_ID
-      - name: Validate data release output contract
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/native" "$HOME/.local/bin"
+          cd "$RUNNER_TEMP/native"
+          gh release download "v${SING_BOX_VERSION}" --repo SagerNet/sing-box --pattern "sing-box-${SING_BOX_VERSION}-linux-amd64.tar.gz"
+          tar -xzf "sing-box-${SING_BOX_VERSION}-linux-amd64.tar.gz"
+          install -m 0755 "sing-box-${SING_BOX_VERSION}-linux-amd64/sing-box" "$HOME/.local/bin/sing-box"
+          gh release download "$XRAY_VERSION" --repo XTLS/Xray-core --pattern "Xray-linux-64.zip"
+          mkdir xray && unzip -q Xray-linux-64.zip -d xray
+          install -m 0755 xray/xray "$HOME/.local/bin/xray"
+          asset=$(gh api "repos/MetaCubeX/mihomo/releases/tags/${MIHOMO_VERSION}" --jq '.assets[].name | select(test("^mihomo-linux-amd64-v[0-9]+-v[0-9.]+\\.gz$"))' | head -1)
+          test -n "$asset"
+          gh release download "$MIHOMO_VERSION" --repo MetaCubeX/mihomo --pattern "$asset"
+          gzip -dc "$asset" > "$HOME/.local/bin/mihomo"
+          chmod 0755 "$HOME/.local/bin/mihomo"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Mandatory native validation
         run: |
           mkdir -p pipeline-evidence
-          python scripts/validate_pages_artifact.py \
-            --native-client-check \
-            --native-report-file pipeline-evidence/native_client_check_report.json \
-            output
-
-      - name: Generate Pipeline Evidence Bundle
+          python scripts/native_client_checks.py output --report pipeline-evidence/native_client_check_report.json
+      - name: Fail-closed release gate
+        run: |
+          python scripts/release_gate.py output \
+            --native-report pipeline-evidence/native_client_check_report.json \
+            --min-source-coverage "$MIN_SOURCE_COVERAGE" \
+            --promote
+          python scripts/validate_pages_artifact.py output
+      - name: Generate evidence
         run: |
           python scripts/generate_evidence_bundle.py \
             --output-dir output \
             --evidence-dir pipeline-evidence \
             --native-report pipeline-evidence/native_client_check_report.json
-
-      - name: Upload Pipeline Evidence Bundle
-        uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@v7
         with:
-          name: pipeline-evidence-${{ github.run_id }}
+          name: pipeline-evidence-${{ github.run_id }}-${{ github.run_attempt }}
           path: pipeline-evidence/
+          if-no-files-found: error
           retention-days: 30
-
-      - name: Prepare Release Assets
+      - uses: actions/upload-artifact@v7
+        with:
+          name: pipeline-output-${{ github.run_id }}-${{ github.run_attempt }}
+          path: output/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30
+      - name: Publish to IPFS
+        if: env.PINATA_JWT != ''
+        run: python scripts/publish_ipfs.py --file output/ --domain fallback.example.com
+      - name: Upload to Telegram
+        if: env.TELEGRAM_BOT_TOKEN != ''
+        run: python scripts/upload_telegram.py
+      - name: Upload to Hugging Face
+        if: env.HF_TOKEN != ''
+        run: python scripts/upload_hf.py --path output/ --repo-id "$HF_REPO_ID"
+      - name: Upload to Google Drive
+        if: env.GDRIVE_FOLDER_ID != ''
+        run: |
+          pip install google-api-python-client google-auth
+          python scripts/upload_gdrive.py --path output/ --folder-id "$GDRIVE_FOLDER_ID"
+      - name: Prepare release assets
         id: assets
         run: |
-          ASSETS=$(python scripts/prepare_release_assets.py --output-dir output)
-          # Add the consolidated log as it's not in the matrix
-          if [ -f "output/consolidated_pipeline.log" ]; then
-            ASSETS="$ASSETS output/consolidated_pipeline.log"
-          fi
-          echo "files=$ASSETS" >> $GITHUB_OUTPUT
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b # v3.0.1
+          files=$(python scripts/prepare_release_assets.py --output-dir output)
+          echo "files=$files" >> "$GITHUB_OUTPUT"
+          echo "tag=v$(date +'%Y.%m.%d-%H%M')" >> "$GITHUB_OUTPUT"
+      - uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b
         with:
-          tag_name: ${{ steps.tag.outputs.tag }}
-          name: ConfigStream ${{ steps.tag.outputs.tag }}
+          tag_name: ${{ steps.assets.outputs.tag }}
+          name: ConfigStream ${{ steps.assets.outputs.tag }}
           files: ${{ steps.assets.outputs.files }}
           draft: false
           prerelease: false
-        env:
-          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-          CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
-          CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
