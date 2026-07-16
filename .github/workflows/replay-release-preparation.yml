@@ -1,55 +1,11 @@
 name: Release Preparation Replay
 
 on:
-  workflow_dispatch:
-    inputs:
-      source_run:
-        required: true
-        default: "29435689792"
-
-permissions:
-  actions: read
-  contents: read
-
-jobs:
-  replay:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.11"
-      - run: pip install -e .[dev] huggingface_hub
-      - name: Download failed-run artifacts
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          mkdir -p artifacts
-          gh run download "${{ inputs.source_run }}" --dir artifacts
-      - name: Execute preparation stages independently
-        run: |
-          set +e
-          mkdir -p replay-output logs
-          {
-            echo 'stage=contract';
-            python scripts/validate_frontend_placeholders.py --inject-env frontend;
-          } 2>&1 | tee logs/frontend.log
-          {
-            echo 'stage=profiles';
-            python scripts/normalize_legacy_profiles.py replay-output;
-          } 2>&1 | tee logs/profiles.log
-          {
-            echo 'stage=finalizer';
-            python scripts/finalize_release_outputs.py replay-output --repo-root . --min-source-coverage 0.80;
-          } 2>&1 | tee logs/finalizer.log
-          {
-            echo 'stage=pages-contract';
-            python scripts/validate_pages_artifact.py --refresh-contract replay-output;
-          } 2>&1 | tee logs/pages.log
-          exit 0
-      - uses: actions/upload-artifact@v7
-        with:
-          name: release-preparation-replay-evidence
-          path: |
-            logs/
-            replay-output/
+  pull_request:
+    paths:
+      - '.github/workflows/replay-release-preparation.yml'
+      - '.github/workflows/main.yml'
+      - 'scripts/aggregate_shard_health.py'
+      - 'scripts/finalize_release_outputs.py'
+      - 'scripts/merge_batches.py'
+      - 'scripts/normalize_legacy_profiles.py'
