@@ -1,11 +1,157 @@
 name: Release Preparation Replay
 
 on:
-  pull_request:
-    paths:
-      - '.github/workflows/replay-release-preparation.yml'
-      - '.github/workflows/main.yml'
-      - 'scripts/aggregate_shard_health.py'
-      - 'scripts/finalize_release_outputs.py'
-      - 'scripts/merge_batches.py'
-      - 'scripts/normalize_legacy_profiles.py'
+  workflow_dispatch:
+    inputs:
+      source_run:
+        description: Source Config's Stream run ID
+        required: true
+        default: "29435689792"
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      MIN_SOURCE_COVERAGE: "0.80"
+      SOURCE_SHARD_PARTS: "4"
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - name: Install dependencies
+        run: pip install -e .[dev] huggingface_hub
+      - name: Download source-run artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          gh run download "${{ inputs.source_run }}" --dir artifacts
+      - name: Restore isolated shard and WASM outputs
+        run: |
+          set -euo pipefail
+          find artifacts -type d -name 'output_batch_*' -print0 | while IFS= read -r -d '' path; do
+            mv "$path" .
+          done
+          find artifacts -type f -name 'pipeline_batch_*.log' -exec cp {} . \;
+          mkdir -p frontend/assets/wasm frontend/assets/js
+          wasm_file=$(find artifacts -type f -name tester.wasm -print -quit)
+          wasm_exec=$(find artifacts -type f -name wasm_exec.js -print -quit)
+          test -n "$wasm_file"
+          test -n "$wasm_exec"
+          cp "$wasm_file" frontend/assets/wasm/tester.wasm
+          cp "$wasm_exec" frontend/assets/js/wasm_exec.js
+          test "$(find . -maxdepth 1 -type d -name 'output_batch_*' | wc -l)" -gt 0
+      - name: Merge and reconcile shard evidence
+        id: merge
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p replay-logs
+          {
+            python -m scripts.merge_batches
+            python scripts/aggregate_shard_health.py --parts "$SOURCE_SHARD_PARTS"
+          } 2>&1 | tee replay-logs/merge.log
+      - name: Prepare public output tree
+        id: prepare
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p replay-logs output/docs output/tools output/api
+          {
+            test ! -d docs/wiki || cp -R docs/wiki output/docs/
+            cp -R frontend/. output/
+            cp tools/lab-scanner.py output/tools/lab-scanner.py
+            cp tools/lab-runner.sh output/tools/lab-runner.sh
+            python scripts/validate_frontend_placeholders.py --inject-env output
+          } 2>&1 | tee replay-logs/prepare.log
+      - name: Normalize legacy profiles
+        id: profiles
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p replay-logs
+          python scripts/normalize_legacy_profiles.py output 2>&1 | tee replay-logs/profiles.log
+      - name: Finalize release outputs
+        id: finalize
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p replay-logs
+          python scripts/finalize_release_outputs.py output \
+            --repo-root . \
+            --min-source-coverage "$MIN_SOURCE_COVERAGE" \
+            2>&1 | tee replay-logs/finalize.log
+      - name: Create API aliases and telemetry
+        id: aliases
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p replay-logs output/api
+          {
+            cp output/proxies.json output/api/proxies
+            cp output/metadata.json output/api/stats
+            touch output/.nojekyll
+            if [ ! -s output/pipeline_events.jsonl ]; then
+              printf '{"timestamp":"%s","stage":"artifact_prepare","level":"info","event_type":"artifact_prepare","message":"pipeline event telemetry initialized during public artifact preparation"}\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > output/pipeline_events.jsonl
+            fi
+          } 2>&1 | tee replay-logs/aliases.log
+      - name: Validate Pages artifact contract
+        id: pages
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p replay-logs
+          python scripts/validate_pages_artifact.py --refresh-contract output \
+            2>&1 | tee replay-logs/pages.log
+      - name: Upload replay evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-preparation-replay-evidence-${{ github.run_id }}
+          path: |
+            replay-logs/
+            output/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Enforce replay stages
+        if: always()
+        env:
+          MERGE_OUTCOME: ${{ steps.merge.outcome }}
+          PREPARE_OUTCOME: ${{ steps.prepare.outcome }}
+          PROFILES_OUTCOME: ${{ steps.profiles.outcome }}
+          FINALIZE_OUTCOME: ${{ steps.finalize.outcome }}
+          ALIASES_OUTCOME: ${{ steps.aliases.outcome }}
+          PAGES_OUTCOME: ${{ steps.pages.outcome }}
+        run: |
+          set -euo pipefail
+          for outcome in \
+            "$MERGE_OUTCOME" \
+            "$PREPARE_OUTCOME" \
+            "$PROFILES_OUTCOME" \
+            "$FINALIZE_OUTCOME" \
+            "$ALIASES_OUTCOME" \
+            "$PAGES_OUTCOME"; do
+            test "$outcome" = success
+          done
