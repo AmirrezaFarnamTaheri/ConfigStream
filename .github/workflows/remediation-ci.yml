@@ -19,4 +19,5 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          persist
+          persist-credentials: false
+      - uses: actions
