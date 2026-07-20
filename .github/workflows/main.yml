@@ -371,7 +371,7 @@ jobs:
           files=$(python scripts/prepare_release_assets.py --output-dir output)
           echo "files=$files" >> "$GITHUB_OUTPUT"
           echo "tag=v$(date +'%Y.%m.%d-%H%M')" >> "$GITHUB_OUTPUT"
-      - uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b
+      - uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228
         with:
           tag_name: ${{ steps.assets.outputs.tag }}
           name: ConfigStream ${{ steps.assets.outputs.tag }}
