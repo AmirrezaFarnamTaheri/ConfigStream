@@ -101,6 +101,74 @@ class Signer:
             "timestamp": timestamp_int,
         }
 
+    def sign_manifest(self, manifest: Dict[str, Any]) -> Dict[str, Any]:
+        """Sign an artifact manifest dictionary with Ed25519 and timestamp.
+
+        Returns a manifest_signature dictionary to attach to the manifest.
+        """
+        if not self._private_key:
+            raise ValueError("Private key not configured for signing.")
+
+        timestamp_int = int(time.time())
+        payload = dict(manifest)
+        payload.pop("manifest_signature", None)
+
+        canonical_bytes = _canonical_manifest_payload(payload, timestamp_int)
+        signature_bytes = self._private_key.sign(canonical_bytes)
+
+        import hashlib
+        public_key_bytes = bytes.fromhex(self.get_public_key_hex())
+        key_id = hashlib.sha256(public_key_bytes).hexdigest()[:16]
+
+        return {
+            "algorithm": "ed25519",
+            "signature": signature_bytes.hex(),
+            "key_id": f"sha256:{key_id}",
+            "timestamp": timestamp_int,
+        }
+
+    @staticmethod
+    def verify_manifest_signature(
+        manifest: Dict[str, Any],
+        public_key_hex: str,
+        max_age_seconds: int = SIGNATURE_MAX_AGE_SECONDS,
+    ) -> bool:
+        """Verify an artifact manifest's signature and timestamp freshness."""
+        sig_info = manifest.get("manifest_signature")
+        if not isinstance(sig_info, dict):
+            return False
+
+        signature_hex = sig_info.get("signature")
+        if not isinstance(signature_hex, str):
+            return False
+
+        timestamp = sig_info.get("timestamp")
+        timestamp_int = int(timestamp) if timestamp is not None else None
+
+        if timestamp_int is not None:
+            age = int(time.time()) - timestamp_int
+            if age < -CLOCK_SKEW_TOLERANCE_SECONDS or age > max_age_seconds:
+                return False
+
+        payload = dict(manifest)
+        payload.pop("manifest_signature", None)
+
+        if timestamp_int is not None:
+            canonical_bytes = _canonical_manifest_payload(payload, timestamp_int)
+        else:
+            canonical_bytes = json.dumps(
+                payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+            ).encode("utf-8")
+
+        try:
+            public_key = ed25519.Ed25519PublicKey.from_public_bytes(
+                bytes.fromhex(public_key_hex)
+            )
+            public_key.verify(bytes.fromhex(signature_hex), canonical_bytes)
+            return True
+        except (InvalidSignature, ValueError):
+            return False
+
     @staticmethod
     def verify_signature(
         content: str,

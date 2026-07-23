@@ -11,8 +11,10 @@ import json
 import os
 import re
 import shutil
+import struct
 import subprocess  # nosec B404
 import sys
+import time
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
@@ -217,7 +219,7 @@ def _manifest_signer_from_env() -> ed25519.Ed25519PrivateKey | None:
     return ed25519.Ed25519PrivateKey.from_private_bytes(key_bytes)
 
 
-def _canonical_manifest_payload(manifest: dict[str, object]) -> bytes:
+def _canonical_manifest_payload(manifest: dict[str, object], timestamp: int | None = None) -> bytes:
     payload = dict(manifest)
     payload.pop("manifest_signature", None)
     canonical = json.dumps(
@@ -225,8 +227,10 @@ def _canonical_manifest_payload(manifest: dict[str, object]) -> bytes:
         sort_keys=True,
         separators=(",", ":"),
         ensure_ascii=False,
-    )
-    return canonical.encode("utf-8")
+    ).encode("utf-8")
+    if timestamp is not None:
+        return struct.pack(">Q", int(timestamp)) + canonical
+    return canonical
 
 
 def _load_json(path: Path) -> tuple[object | None, str | None]:
@@ -771,12 +775,18 @@ def _validate_manifest_signature(manifest: dict[str, object]) -> list[str]:
         )
         return errors
 
+    timestamp = signature_obj.get("timestamp")
+    if timestamp is not None and not isinstance(timestamp, (int, float)):
+        errors.append("artifact_manifest.json manifest_signature.timestamp must be a number")
+        return errors
+
     if verifier_key is None:
         return errors
 
     try:
+        ts_val = int(timestamp) if timestamp is not None else None
         verifier_key.verify(
-            bytes.fromhex(signature_hex), _canonical_manifest_payload(manifest)
+            bytes.fromhex(signature_hex), _canonical_manifest_payload(manifest, ts_val)
         )
     except (InvalidSignature, ValueError):
         errors.append("artifact_manifest.json manifest_signature verification failed")
@@ -1140,7 +1150,8 @@ def write_pages_contract(root: Path) -> None:
     }
     signer = _manifest_signer_from_env()
     if signer is not None:
-        payload = _canonical_manifest_payload(manifest)
+        ts_val = int(time.time())
+        payload = _canonical_manifest_payload(manifest, ts_val)
         signature = signer.sign(payload).hex()
         public_key = signer.public_key().public_bytes(
             encoding=serialization.Encoding.Raw,
@@ -1151,6 +1162,7 @@ def write_pages_contract(root: Path) -> None:
             "algorithm": "ed25519",
             "signature": signature,
             "key_id": f"sha256:{key_id}",
+            "timestamp": ts_val,
         }
     (root / "artifact_manifest.json").write_text(
         json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8"

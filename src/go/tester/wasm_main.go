@@ -45,9 +45,17 @@ func testProxyWasm(this js.Value, args []js.Value) interface{} {
 	// Create and return a JavaScript Promise
 	handler := js.FuncOf(func(this js.Value, promiseArgs []js.Value) interface{} {
 		resolve := promiseArgs[0]
-		// reject := promiseArgs[1] // available if needed
+		reject := promiseArgs[1]
 
 		go func() {
+			defer func() {
+				if r := recover(); r != nil {
+					reject.Invoke(js.ValueOf(map[string]interface{}{
+						"alive": false,
+						"error": "WASM execution panic",
+					}))
+				}
+			}()
 			result := doTestProxy(rawURL)
 			resolve.Invoke(js.ValueOf(result))
 		}()
@@ -61,12 +69,6 @@ func testProxyWasm(this js.Value, args []js.Value) interface{} {
 }
 
 func doTestProxy(rawURL string) map[string]interface{} {
-	// Panic handler for JS exceptions
-	defer func() {
-		if r := recover(); r != nil {
-			// Can't return from here, but prevent crash loop
-		}
-	}()
 
 	start := time.Now()
 
