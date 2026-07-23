@@ -27,6 +27,19 @@ def _build_signed_payload(content_bytes: bytes, timestamp_int: int) -> bytes:
     return struct.pack(">Q", timestamp_int) + content_bytes
 
 
+import json
+
+def _canonical_manifest_payload(manifest: dict, timestamp_int: int) -> bytes:
+    """Return canonical JSON bytes prefixed with big-endian uint64 timestamp."""
+    canonical_json = json.dumps(
+        manifest,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    ).encode("utf-8")
+    return _build_signed_payload(canonical_json, timestamp_int)
+
+
 class Signer:
     """
     Handles Ed25519 signing and verification of subscription content.
