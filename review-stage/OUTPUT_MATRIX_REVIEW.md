@@ -73,5 +73,7 @@ Add to `src/configstream/output_handler.py` (Line ~820):
         shutil.copy2(docs_wiki, wiki_out / "index.md")
 ```
 
+**Note on Artifact Copy Logic:** Required artifacts must emit a validation error (not silently skip) when the source is missing during the copy phase.
+
 ---
 **Final Compliance Score:** 80/100 (16/20 artifacts verified).

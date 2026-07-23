@@ -92,6 +92,8 @@ def _format_proxy(self, p: Proxy) -> str:
         return f"{name} = vmess, {p.address}, {p.port}, username={uuid}{sni_part}{ws_part}{host_part}"
 ```
 
+**Note:** `ws_path`, `host`, `sni`, and credentials must be escaped/quoted before adapter text concatenation, rejecting control characters.
+
 ### Patch 2: Add Path and Host to Quantumult X Adapter
 ```python
 # In src/configstream/adapters/quantumult.py
@@ -109,9 +111,13 @@ def _format_proxy(self, p: Proxy) -> str:
         return f"vmess={name}: {p.address}, {p.port}, method={method}, password={uuid}{sni_part}{obfs_part}{host_part}"
 ```
 
+**Note:** `ws_path`, `host`, `sni`, and credentials must be escaped/quoted before adapter text concatenation, rejecting control characters.
+
 ### Patch 3: Register Output Matrix Definitions
 Add the following objects to `docs/output_matrix.json`:
 ```json
 {"path": "surge.conf", "family": "surge", "category": "subscription", "format": "text", "required": true, "nonempty": true, "schema_validation": false, "degraded_valid": true, "notes": "Surge profile format."},
-{"path": "quantumultx.conf", "family": "quantumultx", "category": "subscription", "format": "text", "required": true, "nonempty": true, "schema_validation": false, "degraded_valid": true, "notes": "QuantumultX profile format."}
+{"path": "quantumultx.conf", "family": "quantumultx", "category": "subscription", "format": "text", "required": true, "nonempty": true, "schema_validation": false, "degraded_valid": true, "notes": "QuantumultX profile format."},
+{"path": "loon.conf", "family": "loon", "category": "subscription", "format": "text", "required": true, "nonempty": true, "schema_validation": false, "degraded_valid": true, "notes": "Loon profile format."},
+{"path": "shadowrocket.conf", "family": "shadowrocket", "category": "subscription", "format": "text", "required": true, "nonempty": true, "schema_validation": false, "degraded_valid": true, "notes": "Shadowrocket profile format."}
 ```
