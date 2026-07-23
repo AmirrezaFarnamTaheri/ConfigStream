@@ -126,7 +126,7 @@ func normalizeBrowserReachabilityURL(rawURL string) (string, string) {
 
 	knownProxySchemes := []string{
 		"vmess://", "vless://", "trojan://", "hysteria://",
-		"hysteria2://", "hy2://", "tuic://", "ssr://", "ss://",
+		"hysteria2://", "hy2://", "hysteria3://", "hy3://", "tuic://", "ssr://", "ss://",
 	}
 	for _, scheme := range knownProxySchemes {
 		if strings.HasPrefix(lowerURL, scheme) {
