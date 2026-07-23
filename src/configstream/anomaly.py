@@ -385,3 +385,9 @@ CREATE TABLE IF NOT EXISTS history (
                         _safe_log_text(close_exc),
                     )
                 self._conn = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
