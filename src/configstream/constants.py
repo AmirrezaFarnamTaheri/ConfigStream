@@ -103,6 +103,8 @@ VALID_PROTOCOLS = [
     "hysteria",
     "hysteria2",
     "hy2",
+    "hysteria3",
+    "hy3",
     "husi",  # Hysteria2/Sing-box URI scheme used in the wild
     "tuic",
     "wireguard",

@@ -9,10 +9,11 @@ from .vless import parse_vless
 from .shadowsocks import parse_ss, parse_ss2022
 from .trojan import parse_trojan
 from .ssr import parse_ssr
+from .tuic import parse_tuic
+from .hysteria3 import parse_hysteria3
 from .others import (
     parse_hysteria,
     parse_hysteria2,
-    parse_tuic,
     parse_wireguard,
     parse_xray,
     parse_snell,
@@ -33,6 +34,7 @@ __all__ = [
     "parse_ssr",
     "parse_hysteria",
     "parse_hysteria2",
+    "parse_hysteria3",
     "parse_tuic",
     "parse_wireguard",
     "parse_xray",
