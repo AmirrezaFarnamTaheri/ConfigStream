@@ -97,7 +97,8 @@ class GoBatchTester(_StreamingGoBatchTester):
                 raise ValueError("tester binary is not a regular file")
             if os.name != "nt" and (file_stat.st_mode & (stat.S_IWGRP | stat.S_IWOTH)):
                 raise ValueError("tester binary is group/world writable")
-            if os.name != "nt" and file_stat.st_uid not in {0, os.geteuid()}:
+            euid = getattr(os, "geteuid", lambda: 0)()
+            if os.name != "nt" and file_stat.st_uid not in {0, euid}:
                 raise ValueError("tester binary is owned by an unexpected user")
             if not os.access(resolved, os.X_OK):
                 raise ValueError("tester binary is not executable")

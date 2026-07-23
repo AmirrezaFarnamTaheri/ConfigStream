@@ -3,7 +3,7 @@
 
 import logging
 import urllib.parse
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 
 from ..models import Proxy
 from ..security_validator import SecurityValidator
@@ -64,7 +64,7 @@ def parse_tuic(line: str) -> Optional[Proxy]:
         if not alpn_list:
             alpn_list = ["h3"]
 
-        details = {
+        details: Dict[str, Any] = {
             "password": password_val,
             "congestion_control": cc_algo,
             "cc_algo": cc_algo,  # canonical alias per spec
