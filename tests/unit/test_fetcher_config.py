@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import pytest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch, AsyncMock
 import httpx
 from configstream.pipeline.fetcher import fetch_from_source
 from configstream.config import AppSettings
@@ -36,12 +36,16 @@ async def test_max_response_size_behavior():
     mock_stream.__aexit__.return_value = None
     mock_client.stream.return_value = mock_stream
 
-    # Expect ValueError due to size
-    result = await fetch_from_source(
-        mock_client, "http://example.com", app_settings=app_settings
-    )
-    assert result.success is False
-    assert "Response too large" in result.error
+    # Mock _reject_source_dns to pass DNS validation without network call
+    with patch(
+        "configstream.pipeline.fetcher._reject_source_dns",
+        new=AsyncMock(return_value=(None, "93.184.216.34")),
+    ):
+        result = await fetch_from_source(
+            mock_client, "http://example.com", app_settings=app_settings
+        )
+        assert result.success is False
+        assert "Response too large" in result.error
 
 
 @pytest.mark.asyncio
