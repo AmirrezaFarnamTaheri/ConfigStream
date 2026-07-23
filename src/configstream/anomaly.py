@@ -386,8 +386,8 @@ CREATE TABLE IF NOT EXISTS history (
                     )
                 self._conn = None
 
-    def __enter__(self):
+    def __enter__(self) -> "AnomalyDetector":
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Optional[type], exc_val: Optional[BaseException], exc_tb: Optional[Any]) -> None:
         self.close()

@@ -11,7 +11,7 @@ import os
 import struct
 import zlib
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional, List, List
 
 from cryptography.fernet import Fernet, InvalidToken
 
@@ -127,14 +127,12 @@ def _derive_offsets(
     if salt:
         if len(salt) != SALT_SIZE:
             raise ValueError("Invalid LSB salt length")
-        derivation_input = (
-            b"ConfigStream-LSB-v2\0"
-            + key_material
-            + salt
-            + struct.pack(">Q", carrier_len)
-        )
-    else:
-        derivation_input = key_material + struct.pack(">Q", carrier_len)
+    derivation_input = (
+        b"ConfigStream-LSB-v2\0"
+        + key_material
+        + salt
+        + struct.pack(">Q", carrier_len)
+    )
     digest = hashlib.sha256(derivation_input).digest()
     start = int.from_bytes(digest[:8], "big") % carrier_len
     stride = max(1, (int.from_bytes(digest[8:16], "big") % carrier_len) | 1)
@@ -246,16 +244,24 @@ def _embed_permuted(
     payload: bytes,
     key_material: bytes,
     salt: bytes,
+    stego_version: int = 2,
 ) -> None:
     needed = len(payload) * 8
     if needed > len(positions):
         raise ValueError("Payload exceeds carrier capacity")
-    start, stride = _derive_offsets(key_material, len(positions), salt)
-    for bit_index in range(needed):
-        bit = (payload[bit_index // 8] >> (7 - (bit_index % 8))) & 1
-        position_index = (start + bit_index * stride) % len(positions)
-        raw_index = positions[position_index]
-        raw_pixels[raw_index] = (raw_pixels[raw_index] & 0xFE) | bit
+    if stego_version >= 2:
+        offsets = derive_lsb_offsets(key_material + salt, len(positions), needed)
+        for bit_index in range(needed):
+            bit = (payload[bit_index // 8] >> (7 - (bit_index % 8))) & 1
+            raw_index = positions[offsets[bit_index]]
+            raw_pixels[raw_index] = (raw_pixels[raw_index] & 0xFE) | bit
+    else:
+        start, stride = _derive_offsets(key_material, len(positions), salt)
+        for bit_index in range(needed):
+            bit = (payload[bit_index // 8] >> (7 - (bit_index % 8))) & 1
+            position_index = (start + bit_index * stride) % len(positions)
+            raw_index = positions[position_index]
+            raw_pixels[raw_index] = (raw_pixels[raw_index] & 0xFE) | bit
 
 
 def _extract_permuted(
@@ -264,16 +270,23 @@ def _extract_permuted(
     length: int,
     key_material: bytes,
     salt: bytes,
+    stego_version: int = 2,
 ) -> bytes:
     needed = length * 8
     if needed > len(positions):
         raise ValueError("Requested data exceeds carrier capacity")
-    start, stride = _derive_offsets(key_material, len(positions), salt)
     output = bytearray(length)
-    for bit_index in range(needed):
-        position_index = (start + bit_index * stride) % len(positions)
-        bit = raw_pixels[positions[position_index]] & 1
-        output[bit_index // 8] = (output[bit_index // 8] << 1) | bit
+    if stego_version >= 2:
+        offsets = derive_lsb_offsets(key_material + salt, len(positions), needed)
+        for bit_index in range(needed):
+            bit = raw_pixels[positions[offsets[bit_index]]] & 1
+            output[bit_index // 8] = (output[bit_index // 8] << 1) | bit
+    else:
+        start, stride = _derive_offsets(key_material, len(positions), salt)
+        for bit_index in range(needed):
+            position_index = (start + bit_index * stride) % len(positions)
+            bit = raw_pixels[positions[position_index]] & 1
+            output[bit_index // 8] = (output[bit_index // 8] << 1) | bit
     return bytes(output)
 
 
@@ -323,7 +336,7 @@ class StegoPacker:
         bootstrap_positions = positions[:bootstrap_bits]
         payload_positions = positions[bootstrap_bits:]
         _sequential_embed(pixels, bootstrap_positions, header)
-        _embed_permuted(pixels, payload_positions, token, self.key, salt)
+        _embed_permuted(pixels, payload_positions, token, self.key, salt, stego_version=LSB_VERSION)
 
         filtered = _filter_none(bytes(pixels), width, height, bpp)
         return _replace_idat(chunks, zlib.compress(filtered, level=9))
@@ -366,10 +379,11 @@ class StegoPacker:
                 token_length,
                 self.key,
                 salt,
+                stego_version=LSB_VERSION,
             )
         else:
             legacy_header = _extract_permuted(
-                bytes(pixels), positions, LEGACY_HEADER_SIZE, self.key, b""
+                bytes(pixels), positions, LEGACY_HEADER_SIZE, self.key, b"", stego_version=1
             )
             if legacy_header[:4] != LSB_MAGIC or legacy_header[4] != LEGACY_LSB_VERSION:
                 raise ValueError("LSB stego marker not found")
@@ -382,6 +396,7 @@ class StegoPacker:
                 LEGACY_HEADER_SIZE + token_length,
                 self.key,
                 b"",
+                stego_version=1,
             )
             token = legacy_payload[LEGACY_HEADER_SIZE:]
 
@@ -469,6 +484,8 @@ def derive_lsb_offsets(key: bytes, max_index: int, count: int) -> List[int]:
     """Derive deterministic, pseudorandom LSB pixel indices using HMAC-SHA256."""
     if max_index <= 0 or count <= 0:
         raise ValueError("max_index and count must be positive")
+    if count > max_index:
+        raise ValueError(f"count ({count}) cannot exceed max_index ({max_index})")
 
     offsets: list[int] = []
     counter = 0

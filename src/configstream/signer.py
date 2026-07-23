@@ -29,7 +29,7 @@ def _build_signed_payload(content_bytes: bytes, timestamp_int: int) -> bytes:
 
 import json
 
-def _canonical_manifest_payload(manifest: dict, timestamp_int: int) -> bytes:
+def _canonical_manifest_payload(manifest: Dict[str, Any], timestamp_int: int) -> bytes:
     """Return canonical JSON bytes prefixed with big-endian uint64 timestamp."""
     canonical_json = json.dumps(
         manifest,

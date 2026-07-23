@@ -537,7 +537,6 @@ class GoBatchTester:
 
         # Send batch to daemon
         try:
-            # Use NDJSON
             payload_str = "\n".join(_json_str(i) for i in inputs) + "\n"
             self._proc.stdin.write(payload_str.encode())
             # Bounded drain: a full kernel buffer can block indefinitely.

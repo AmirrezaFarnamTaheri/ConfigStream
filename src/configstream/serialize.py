@@ -56,6 +56,19 @@ def _sanitize_source(raw_source: Optional[str]) -> Optional[str]:
     return hashlib.sha256(raw_source.encode("utf-8")).hexdigest()[:12]
 
 
+def _strip_internal_keys(obj: Any) -> Any:
+    """Recursively remove keys starting with '_' or 'has_' from all nested dicts."""
+    if isinstance(obj, dict):
+        return {
+            k: _strip_internal_keys(v)
+            for k, v in obj.items()
+            if not (isinstance(k, str) and (k.startswith("_") or k.startswith("has_")))
+        }
+    elif isinstance(obj, list):
+        return [_strip_internal_keys(item) for item in obj]
+    return obj
+
+
 def serialize_proxy(
     proxy: Proxy, history_points: Optional[List[float]] = None
 ) -> Dict[str, Any]:
@@ -139,7 +152,7 @@ def serialize_proxy(
         if hist:
             data["history"] = hist
 
-    return data
+    return _strip_internal_keys(data)
 
 
 def _build_chain_config(chain_outbounds: List[Dict[str, Any]]) -> str:
