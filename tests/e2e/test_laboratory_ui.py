@@ -17,7 +17,7 @@ async def test_laboratory_page_object_model() -> None:
     assert await lab_page.get_title() == "ConfigStream Laboratory"
 
 @pytest.mark.playwright
-async def test_laboratory_page_loads(page: Page) -> None:
+def test_laboratory_page_loads(page) -> None:
     """Real browser test: Laboratory page loads without JS runtime errors."""
     import pathlib
     lab_html = pathlib.Path("frontend/lab.html").resolve()
@@ -25,7 +25,7 @@ async def test_laboratory_page_loads(page: Page) -> None:
     errors = []
     page.on("pageerror", lambda exc: errors.append(str(exc)))
     
-    await page.goto(f"file://{lab_html}")
-    title = await page.title()
+    page.goto(f"file://{lab_html}")
+    title = page.title()
     assert "Lab" in title or "ConfigStream" in title
     assert len(errors) == 0, f"Page JS errors: {errors}"
