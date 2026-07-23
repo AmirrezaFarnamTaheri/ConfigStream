@@ -9,6 +9,7 @@ exactly ONE actual disk read (via asyncio.Lock double-checked locking).
 import asyncio
 import pytest
 from pathlib import Path
+from typing import Dict, Any
 from unittest.mock import patch, MagicMock
 
 from configstream.server.utils import _read_json_file_async, _json_cache, _cache_locks
@@ -19,7 +20,7 @@ from configstream.server.utils import _read_json_file_async, _json_cache, _cache
 # ---------------------------------------------------------------------------
 
 @pytest.mark.asyncio
-async def test_cache_stampede_single_read_execution(tmp_path):
+async def test_cache_stampede_single_read_execution(tmp_path: Path) -> None:
     """10 concurrent callers on a cache-miss path must trigger only 1 disk read."""
     json_file = tmp_path / "test_data.json"
     json_file.write_text('{"status": "ok"}')
@@ -31,7 +32,7 @@ async def test_cache_stampede_single_read_execution(tmp_path):
     read_count = 0
     fixed_mtime = json_file.stat().st_mtime
 
-    def mock_read_sync(p):
+    def mock_read_sync(p: Path) -> Dict[str, Any]:
         """Synchronous read counter that simulates slow disk I/O."""
         nonlocal read_count
         read_count += 1
@@ -65,7 +66,7 @@ async def test_cache_stampede_single_read_execution(tmp_path):
 # ---------------------------------------------------------------------------
 
 @pytest.mark.asyncio
-async def test_cache_hit_skips_disk_read(tmp_path):
+async def test_cache_hit_skips_disk_read(tmp_path: Path) -> None:
     """A subsequent call for the same unchanged file must use the cache."""
     json_file = tmp_path / "cached_data.json"
     json_file.write_text('{"value": 42}')
@@ -76,7 +77,7 @@ async def test_cache_hit_skips_disk_read(tmp_path):
     read_count = 0
     fixed_mtime = json_file.stat().st_mtime
 
-    def mock_read_sync(p):
+    def mock_read_sync(p: Path) -> Dict[str, Any]:
         nonlocal read_count
         read_count += 1
         return {"value": 42}

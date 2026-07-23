@@ -3,7 +3,7 @@
 import pytest
 from configstream.signer import Signer, _canonical_manifest_payload
 
-def test_canonical_manifest_payload_sorting():
+def test_canonical_manifest_payload_sorting() -> None:
     manifest_a = {"version": "3.1.0", "count": 100, "meta": {"b": 2, "a": 1}}
     manifest_b = {"meta": {"a": 1, "b": 2}, "count": 100, "version": "3.1.0"}
 

@@ -3,7 +3,7 @@
 import pytest
 from configstream.stego import derive_lsb_offsets
 
-def test_hmac_lsb_offset_derivation_kat():
+def test_hmac_lsb_offset_derivation_kat() -> None:
     """Verify deterministic HMAC-SHA256 LSB offset derivation against Known-Answer-Test."""
     secret_key = b"0123456789abcdef0123456789abcdef"
     max_index = 1000

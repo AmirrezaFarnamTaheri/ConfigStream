@@ -11,7 +11,7 @@ import os
 import struct
 import zlib
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List
 
 from cryptography.fernet import Fernet, InvalidToken
 
@@ -465,7 +465,7 @@ def generate_stego_assets(
         logger.warning("No stego assets were generated from %d cover image(s)", len(covers))
 
 
-def derive_lsb_offsets(key: bytes, max_index: int, count: int) -> list[int]:
+def derive_lsb_offsets(key: bytes, max_index: int, count: int) -> List[int]:
     """Derive deterministic, pseudorandom LSB pixel indices using HMAC-SHA256."""
     if max_index <= 0 or count <= 0:
         raise ValueError("max_index and count must be positive")

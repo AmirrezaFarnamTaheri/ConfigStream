@@ -16,14 +16,14 @@ import configstream.fetcher_worker as fw
 # Negative tests: confirm dead code is absent
 # ---------------------------------------------------------------------------
 
-def test_unused_exception_classes_removed():
+def test_unused_exception_classes_removed() -> None:
     """fetcher_worker.py must not contain any unused legacy exception classes."""
     assert not hasattr(fw, "UnusedLegacyFetcherError"), (
         "UnusedLegacyFetcherError should not exist in fetcher_worker.py"
     )
 
 
-def test_no_dead_pass_through_wrappers():
+def test_no_dead_pass_through_wrappers() -> None:
     """fetcher_worker.py must not export dead or unused callables it defined itself."""
     # Allowed public symbols defined directly in fetcher_worker
     expected_own_symbols = {
@@ -55,7 +55,7 @@ def test_no_dead_pass_through_wrappers():
 # Positive tests: confirm the core API still works
 # ---------------------------------------------------------------------------
 
-def test_fetch_result_construction():
+def test_fetch_result_construction() -> None:
     """FetchResult must remain constructable with minimal arguments."""
     result = fw.FetchResult(success=True, source="https://example.com/sub")
     assert result.success is True
@@ -64,23 +64,23 @@ def test_fetch_result_construction():
     assert result.error is None
 
 
-def test_rate_limit_error_with_retry_after():
+def test_rate_limit_error_with_retry_after() -> None:
     """RateLimitError must carry the retry_after attribute."""
     err = fw.RateLimitError(retry_after=30.0)
     assert err.retry_after == 30.0
     assert "30.0" in str(err)
 
 
-def test_parse_retry_after_integer_string():
+def test_parse_retry_after_integer_string() -> None:
     """parse_retry_after must parse a plain integer string to float."""
     assert fw.parse_retry_after("120") == 120.0
 
 
-def test_parse_retry_after_none_input():
+def test_parse_retry_after_none_input() -> None:
     """parse_retry_after must return None for missing header."""
     assert fw.parse_retry_after(None) is None
 
 
-def test_parse_retry_after_invalid_returns_none():
+def test_parse_retry_after_invalid_returns_none() -> None:
     """parse_retry_after must return None for unparseable values."""
     assert fw.parse_retry_after("garbage$$value") is None
