@@ -200,6 +200,7 @@ _OUTPUT_PROTOCOL_ALIASES = {
     "ss": "shadowsocks",
     "wg": "wireguard",
     "hy2": "hysteria2",
+    "hy3": "hysteria3",
     "husi": "hysteria2",
     "socks": "socks5",
 }
