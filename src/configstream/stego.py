@@ -127,12 +127,16 @@ def _derive_offsets(
     if salt:
         if len(salt) != SALT_SIZE:
             raise ValueError("Invalid LSB salt length")
-    derivation_input = (
-        b"ConfigStream-LSB-v2\0"
-        + key_material
-        + salt
-        + struct.pack(">Q", carrier_len)
-    )
+        derivation_input = (
+            b"ConfigStream-LSB-v2\0"
+            + key_material
+            + salt
+            + struct.pack(">Q", carrier_len)
+        )
+    else:
+        # Legacy v1 path: no domain prefix — preserved for backward compatibility
+        # with existing v1 carriers. New carriers use derive_lsb_offsets (HMAC).
+        derivation_input = key_material + struct.pack(">Q", carrier_len)
     digest = hashlib.sha256(derivation_input).digest()
     start = int.from_bytes(digest[:8], "big") % carrier_len
     stride = max(1, (int.from_bytes(digest[8:16], "big") % carrier_len) | 1)
