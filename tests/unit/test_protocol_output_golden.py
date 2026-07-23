@@ -26,6 +26,7 @@ from configstream.parsers import (
     parse_generic_url_scheme,
     parse_hysteria,
     parse_hysteria2,
+    parse_hysteria3,
     parse_juicity,
     parse_naive,
     parse_openvpn,
@@ -96,6 +97,9 @@ GOLDEN_PROXIES: dict[str, Proxy] = {
     ),
     "hysteria2": _proxy(
         "hysteria2", uuid="pass", details={"password": "pass", "sni": "fixture.example"}
+    ),
+    "hysteria3": _proxy(
+        "hysteria3", uuid="", details={"auth": "secretpass", "sni": "fixture.example"}
     ),
     "tuic": _proxy("tuic", details={"password": "pass", "sni": "fixture.example"}),
     "wireguard": _proxy(
@@ -231,6 +235,11 @@ PARSER_TO_FRONTEND_FIXTURES: dict[str, tuple[Any, str, str]] = {
         "hysteria2://pass@fixture.example:443?sni=fixture.example#fixture-hy2",
         "hysteria2",
     ),
+    "hysteria3": (
+        parse_hysteria3,
+        "hy3://secretpass@fixture.example:443?sni=fixture.example#fixture-hy3",
+        "hysteria3",
+    ),
     "tuic": (
         parse_tuic,
         f"tuic://{UUID}:pass@fixture.example:443?sni=fixture.example#fixture-tuic",
@@ -328,6 +337,7 @@ MALFORMED_PARSER_FIXTURES: dict[str, tuple[str, ...]] = {
     "trojan": ("trojan://@fixture.example:443",),
     "hysteria": ("hysteria://",),
     "hysteria2": ("hysteria2://",),
+    "hysteria3": ("hy3://", "hy3://@fixture.example:443"),
     "tuic": ("tuic://", "tuic://@fixture.example:443"),
     "wireguard": (
         "wireguard://fixture@example.com:2408",
