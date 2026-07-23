@@ -118,10 +118,17 @@ async def test_go_and_python_tester_verdict_parity():
 
     import sys
 
-    with patch("asyncio.create_subprocess_exec", new=AsyncMock(return_value=proc)), \
-         patch("configstream.testers.go_tester.secure_manager.GoBatchTester._initialize_binary_identity"), \
-         patch("configstream.testers.go_tester.secure_manager.GoBatchTester._verify_binary_integrity", return_value=True), \
-         patch.object(GoBatchTester, "self_test", new=AsyncMock(return_value=True)):
+    with (
+        patch("asyncio.create_subprocess_exec", new=AsyncMock(return_value=proc)),
+        patch(
+            "configstream.testers.go_tester.secure_manager.GoBatchTester._initialize_binary_identity"
+        ),
+        patch(
+            "configstream.testers.go_tester.secure_manager.GoBatchTester._verify_binary_integrity",
+            return_value=True,
+        ),
+        patch.object(GoBatchTester, "self_test", new=AsyncMock(return_value=True)),
+    ):
         go_tester = GoBatchTester(binary_path=sys.executable)
         go_tester.available = True
         await go_tester.start()

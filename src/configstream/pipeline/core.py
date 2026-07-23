@@ -374,7 +374,10 @@ class StandardPipeline(IPipeline):
                 )
             except Exception as e:
                 from configstream.security_validator import SecurityValidator
-                logger.warning(f"History cleanup failed: {SecurityValidator.sanitize_log_message(str(e))}")
+
+                logger.warning(
+                    f"History cleanup failed: {SecurityValidator.sanitize_log_message(str(e))}"
+                )
 
             if self.context.test_cache:
                 await loop.run_in_executor(None, self.context.test_cache.save)

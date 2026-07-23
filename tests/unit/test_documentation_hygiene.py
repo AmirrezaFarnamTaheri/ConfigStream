@@ -86,9 +86,9 @@ def test_active_docs_do_not_use_archived_ledgers_as_current_sources() -> None:
     for rel_path in active_paths:
         text = _read(rel_path)
         for phrase in forbidden:
-            assert phrase not in text, (
-                f"{rel_path} still cites removed historical source {phrase}"
-            )
+            assert (
+                phrase not in text
+            ), f"{rel_path} still cites removed historical source {phrase}"
 
 
 def test_master_records_second_pass_history_absorption() -> None:

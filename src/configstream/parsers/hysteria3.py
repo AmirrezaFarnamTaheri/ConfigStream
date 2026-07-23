@@ -27,9 +27,9 @@ def parse_hysteria3(line: str) -> Optional[Proxy]:
     try:
         # Normalize scheme for urlparse
         if lower.startswith("hy3://"):
-            normalized = "http://" + raw[len("hy3://"):]
+            normalized = "http://" + raw[len("hy3://") :]
         else:
-            normalized = "http://" + raw[len("hysteria3://"):]
+            normalized = "http://" + raw[len("hysteria3://") :]
 
         parsed = urllib.parse.urlparse(normalized)
         host = parsed.hostname

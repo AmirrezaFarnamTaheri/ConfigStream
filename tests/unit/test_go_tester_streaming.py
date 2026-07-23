@@ -38,10 +38,17 @@ async def test_go_tester_streaming():
 
     import sys
 
-    with patch("asyncio.create_subprocess_exec", new=AsyncMock(return_value=proc)), \
-         patch("configstream.testers.go_tester.secure_manager.GoBatchTester._initialize_binary_identity"), \
-         patch("configstream.testers.go_tester.secure_manager.GoBatchTester._verify_binary_integrity", return_value=True), \
-         patch.object(GoBatchTester, "self_test", new=AsyncMock(return_value=True)):
+    with (
+        patch("asyncio.create_subprocess_exec", new=AsyncMock(return_value=proc)),
+        patch(
+            "configstream.testers.go_tester.secure_manager.GoBatchTester._initialize_binary_identity"
+        ),
+        patch(
+            "configstream.testers.go_tester.secure_manager.GoBatchTester._verify_binary_integrity",
+            return_value=True,
+        ),
+        patch.object(GoBatchTester, "self_test", new=AsyncMock(return_value=True)),
+    ):
         tester = GoBatchTester(binary_path=sys.executable)
         tester.available = True
         await tester.start()

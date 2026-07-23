@@ -110,7 +110,9 @@ class ProxyWasher:
             try:
                 decoded = base64.b64decode(cleaned, validate=False)
             except Exception:
-                logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+                logging.getLogger(__name__).debug(
+                    "Suppressed broad exception", exc_info=True
+                )
                 return None
         if len(decoded) != 32:
             return None
@@ -321,7 +323,9 @@ class ProxyWasher:
                                     )
                                     break  # Stop after one success
                     except Exception:  # nosec B110
-                        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+                        logging.getLogger(__name__).debug(
+                            "Suppressed broad exception", exc_info=True
+                        )
                         pass
 
             # --- STRATEGY 3: DEFAULTS ---
@@ -526,7 +530,9 @@ class ProxyWasher:
             _ = reader  # keep reference for type checkers
             return True
         except Exception:
-            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+            logging.getLogger(__name__).debug(
+                "Suppressed broad exception", exc_info=True
+            )
             return False
 
     def wash_failed(
@@ -804,7 +810,9 @@ class ProxyWasher:
                         if float(res.get("total_distance", 99999)) < 15000:
                             is_optimal = True
             except Exception:  # nosec B110
-                logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+                logging.getLogger(__name__).debug(
+                    "Suppressed broad exception", exc_info=True
+                )
                 pass
 
             flag = get_flag_emoji(relay.country_code or "XX")

@@ -219,7 +219,9 @@ def _manifest_signer_from_env() -> ed25519.Ed25519PrivateKey | None:
     return ed25519.Ed25519PrivateKey.from_private_bytes(key_bytes)
 
 
-def _canonical_manifest_payload(manifest: dict[str, object], timestamp: int | None = None) -> bytes:
+def _canonical_manifest_payload(
+    manifest: dict[str, object], timestamp: int | None = None
+) -> bytes:
     payload = dict(manifest)
     payload.pop("manifest_signature", None)
     canonical = json.dumps(
@@ -777,7 +779,9 @@ def _validate_manifest_signature(manifest: dict[str, object]) -> list[str]:
 
     timestamp = signature_obj.get("timestamp")
     if timestamp is not None and not isinstance(timestamp, (int, float)):
-        errors.append("artifact_manifest.json manifest_signature.timestamp must be a number")
+        errors.append(
+            "artifact_manifest.json manifest_signature.timestamp must be a number"
+        )
         return errors
 
     if verifier_key is None:

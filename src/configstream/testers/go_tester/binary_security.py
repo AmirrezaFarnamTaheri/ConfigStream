@@ -50,7 +50,9 @@ def _normalize_digest(value: str) -> Optional[str]:
     if not text:
         return None
     candidate = text.split()[0].lower()
-    if len(candidate) != 64 or any(char not in "0123456789abcdef" for char in candidate):
+    if len(candidate) != 64 or any(
+        char not in "0123456789abcdef" for char in candidate
+    ):
         return None
     return candidate
 
@@ -121,9 +123,7 @@ def verify_binary_identity(identity: BinaryIdentity) -> None:
 def minimal_subprocess_environment(settings: Any) -> dict[str, str]:
     """Build an explicit environment without propagating unrelated secrets."""
     environment = {
-        key: value
-        for key in _ENV_ALLOWLIST
-        if (value := os.environ.get(key))
+        key: value for key in _ENV_ALLOWLIST if (value := os.environ.get(key))
     }
     environment.setdefault("PATH", os.defpath)
     environment["TMPDIR"] = os.environ.get("TMPDIR") or tempfile.gettempdir()

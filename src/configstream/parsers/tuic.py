@@ -71,7 +71,12 @@ def parse_tuic(line: str) -> Optional[Proxy]:
             "alpn": alpn_list,
         }
         # Preserve extra query parameters
-        for key in ("max_idle_time", "initial_max_streams", "disable_sni", "reduce_rtt"):
+        for key in (
+            "max_idle_time",
+            "initial_max_streams",
+            "disable_sni",
+            "reduce_rtt",
+        ):
             if key in params:
                 try:
                     details[key] = int(params[key][0])

@@ -1,0 +1,287 @@
+C:\Users\ACER\AppData\Roaming\Python\Python311\site-packages\requests\__init__.py:113: RequestsDependencyWarning: urllib3 (2.6.3) or chardet (6.0.0.post1)/charset_normalizer (3.4.4) doesn't match a supported version!
+  warnings.warn(
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-8.3.3, pluggy-1.6.0
+rootdir: D:\GitHub\ConfigStream
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.155.2, pyfakefs-6.2.0, aiohttp-1.1.1, asyncio-0.24.0, base-url-2.1.0, cov-7.1.0, playwright-0.8.0, respx-0.23.1, arize-phoenix-client-2.13.0, Faker-37.12.0
+asyncio: mode=Mode.AUTO, default_loop_scope=function
+collected 1336 items
+
+tests\e2e\test_failure_scenarios.py ..                                   [  0%]
+tests\e2e\test_frontend.py EEEE                                          [  0%]
+tests\e2e\test_laboratory_ui.py E.                                       [  0%]
+tests\e2e\test_mixed_protocols.py .                                      [  0%]
+tests\e2e\test_pipeline_real.py .                                        [  0%]
+tests\fuzz\test_parsers.py ..                                            [  0%]
+tests\scenarios\test_failure_modes.py ...                                [  1%]
+tests\test_anomaly.py ............                                       [  2%]
+tests\test_clash_json.py ........                                        [  2%]
+tests\test_manager.py ......                                             [  3%]
+tests\test_output_transport.py ....                                      [  3%]
+tests\test_python_tester.py ....                                         [  3%]
+tests\test_scanner.py .....                                              [  4%]
+tests\test_server_ratelimit.py ...                                       [  4%]
+tests\test_warp_scraper.py ....                                          [  4%]
+tests\test_washer_utils.py ....                                          [  4%]
+tests\unit\converters\test_singbox_bool_fix.py ..                        [  5%]
+tests\unit\converters\test_singbox_converters.py ..............          [  6%]
+tests\unit\converters\test_singbox_fix.py ....                           [  6%]
+tests\unit\converters\test_singbox_legacy_ss.py ..                       [  6%]
+tests\unit\coverage_boost\test_adaptive_workers_coverage.py .......      [  7%]
+tests\unit\coverage_boost\test_blocklist_coverage.py .....               [  7%]
+tests\unit\coverage_boost\test_cli_coverage.py ......                    [  7%]
+tests\unit\coverage_boost\test_converters_coverage.py .                  [  7%]
+tests\unit\coverage_boost\test_parsers_base_coverage.py .........        [  8%]
+tests\unit\coverage_boost\test_server_coverage.py ...                    [  8%]
+tests\unit\coverage_boost\test_ssr_coverage.py ....                      [  9%]
+tests\unit\coverage_boost\test_washer_coverage.py ....                   [  9%]
+tests\unit\crypto\test_signer_comprehensive.py ..........                [ 10%]
+tests\unit\fetcher\test_fetcher_core.py ...                              [ 10%]
+tests\unit\generators\test_singbox_comprehensive.py ....                 [ 10%]
+tests\unit\geoip\test_geoip_resolver.py ......                           [ 11%]
+tests\unit\history\test_history_components.py ............               [ 12%]
+tests\unit\intelligence\test_chaining_extended.py ......                 [ 12%]
+tests\unit\intelligence\test_vectors.py ....                             [ 12%]
+tests\unit\parsers\test_decoders.py ...........................          [ 14%]
+tests\unit\parsers\test_extraction_robustness.py .......                 [ 15%]
+tests\unit\parsers\test_generic.py ..................................... [ 18%]
+.........                                                                [ 18%]
+tests\unit\parsers\test_hysteria3.py ...                                 [ 19%]
+tests\unit\parsers\test_normalization_comprehensive.py .....             [ 19%]
+tests\unit\parsers\test_openvpn.py .................                     [ 20%]
+tests\unit\parsers\test_others_new.py ..                                 [ 20%]
+tests\unit\parsers\test_parser_fixes.py .................                [ 22%]
+tests\unit\parsers\test_shadowsocks_comprehensive.py ..............      [ 23%]
+tests\unit\parsers\test_ssr.py ...............                           [ 24%]
+tests\unit\parsers\test_tuic.py ......                                   [ 24%]
+tests\unit\parsers\test_vless.py ............                            [ 25%]
+tests\unit\quality\test_quality_components.py .......                    [ 26%]
+tests\unit\security\test_censorship.py ....                              [ 26%]
+tests\unit\security\test_rules.py ....                                   [ 26%]
+tests\unit\security\test_transport.py ....                               [ 27%]
+tests\unit\security\test_utls_wrapper.py ....                            [ 27%]
+tests\unit\security\test_virus_total_comprehensive.py .................. [ 28%]
+.                                                                        [ 28%]
+tests\unit\serialization\test_serialize_proxy.py ......                  [ 29%]
+tests\unit\test_adapters.py ....                                         [ 29%]
+tests\unit\test_adapters_comprehensive.py .............................. [ 31%]
+.............                                                            [ 32%]
+tests\unit\test_adapters_export.py .......                               [ 33%]
+tests\unit\test_adapters_full.py ......                                  [ 33%]
+tests\unit\test_adapters_new.py ..                                       [ 33%]
+tests\unit\test_adaptive_timeout_comprehensive.py ....                   [ 34%]
+tests\unit\test_adaptive_timeout_extra.py .........                      [ 34%]
+tests\unit\test_adaptive_workers.py .                                    [ 34%]
+tests\unit\test_analytics_output.py .                                    [ 34%]
+tests\unit\test_anomaly_detector_lifecycle.py ..                         [ 35%]
+tests\unit\test_anomaly_extended.py ..........                           [ 35%]
+tests\unit\test_artifact_consistency.py ................................ [ 38%]
+.                                                                        [ 38%]
+tests\unit\test_async_file_ops_extended.py .....                         [ 38%]
+tests\unit\test_audit_pipeline_outputs.py ...........                    [ 39%]
+tests\unit\test_auto_detect.py .......                                   [ 40%]
+tests\unit\test_backup.py .                                              [ 40%]
+tests\unit\test_backup_extended.py ...........                           [ 40%]
+tests\unit\test_bot_cli.py .......                                       [ 41%]
+tests\unit\test_cache_warming.py ...                                     [ 41%]
+tests\unit\test_canonical_chain_details.py ...                           [ 41%]
+tests\unit\test_circuit_breaker.py .....                                 [ 42%]
+tests\unit\test_cli_extended.py ........                                 [ 42%]
+tests\unit\test_cli_full.py ...                                          [ 43%]
+tests\unit\test_comprehensive_hardening.py ........                      [ 43%]
+tests\unit\test_concurrency.py .                                         [ 43%]
+tests\unit\test_concurrency_contract.py ..                               [ 43%]
+tests\unit\test_concurrency_extended.py ....                             [ 44%]
+tests\unit\test_consumer.py .                                            [ 44%]
+tests\unit\test_converters.py .....                                      [ 44%]
+tests\unit\test_cross_engine_parity.py .                                 [ 44%]
+tests\unit\test_debt_matrix.py .....                                     [ 45%]
+tests\unit\test_dependency_drift.py ..                                   [ 45%]
+tests\unit\test_dns_batch_resolver.py ...                                [ 45%]
+tests\unit\test_dns_cache.py ..                                          [ 45%]
+tests\unit\test_dns_profiles.py ....                                     [ 45%]
+tests\unit\test_dns_variant_revived.py ..                                [ 46%]
+tests\unit\test_documentation_hygiene.py ..........                      [ 46%]
+tests\unit\test_evasion.py ......................                        [ 48%]
+tests\unit\test_event_stream.py ...............................          [ 50%]
+tests\unit\test_fetcher.py ..................                            [ 52%]
+tests\unit\test_fetcher_advanced.py ......                               [ 52%]
+tests\unit\test_fetcher_config.py ..                                     [ 52%]
+tests\unit\test_fetcher_resilience.py ....                               [ 53%]
+tests\unit\test_fetcher_retries.py ...                                   [ 53%]
+tests\unit\test_filtering.py ...                                         [ 53%]
+tests\unit\test_filtering_extended.py ......                             [ 53%]
+tests\unit\test_frontend_backend_contract.py ....                        [ 54%]
+tests\unit\test_frontend_cache_snapshot.py .                             [ 54%]
+tests\unit\test_frontend_failover.py ...                                 [ 54%]
+tests\unit\test_frontend_local_first.py ......                           [ 55%]
+tests\unit\test_frontend_security_contract.py .....                      [ 55%]
+tests\unit\test_frontend_shell_consistency.py .                          [ 55%]
+tests\unit\test_frontend_trust_labels.py ...                             [ 55%]
+tests\unit\test_frontend_verifier.py ..                                  [ 55%]
+tests\unit\test_geoip_extended.py ...                                    [ 56%]
+tests\unit\test_geoip_robustness.py ...........                          [ 56%]
+tests\unit\test_getaddrinfo_address_normalization.py ...                 [ 57%]
+tests\unit\test_go_batch_tester_remediation.py ..                        [ 57%]
+tests\unit\test_go_tester_streaming.py ...                               [ 57%]
+tests\unit\test_hard_stop.py ..                                          [ 57%]
+tests\unit\test_honeypot.py ...................                          [ 59%]
+tests\unit\test_init_module.py ......................                    [ 60%]
+tests\unit\test_integration_adapters.py ..                               [ 60%]
+tests\unit\test_lab_strategy_parity.py ..........                        [ 61%]
+tests\unit\test_logging.py .                                             [ 61%]
+tests\unit\test_logging_coverage.py ..                                   [ 61%]
+tests\unit\test_logging_extra.py ....                                    [ 62%]
+tests\unit\test_logging_sanitization_policy.py ..........                [ 62%]
+tests\unit\test_merge_batches.py ...                                     [ 63%]
+tests\unit\test_metadata_completeness.py .                               [ 63%]
+tests\unit\test_modular_output.py ..                                     [ 63%]
+tests\unit\test_no_requests_imports.py .                                 [ 63%]
+tests\unit\test_output.py ........                                       [ 63%]
+tests\unit\test_output_advanced.py ..                                    [ 64%]
+tests\unit\test_output_full.py .....                                     [ 64%]
+tests\unit\test_output_generators.py ..                                  [ 64%]
+tests\unit\test_output_handler_frontend_data.py ...                      [ 64%]
+tests\unit\test_output_logic.py ...........                              [ 65%]
+tests\unit\test_parsers_extended.py ..                                   [ 65%]
+tests\unit\test_parsers_full.py .....                                    [ 66%]
+tests\unit\test_parsers_generic_extended.py .......                      [ 66%]
+tests\unit\test_parsers_json_yaml.py ........                            [ 67%]
+tests\unit\test_parsers_logging.py ..                                    [ 67%]
+tests\unit\test_parsers_new.py ......                                    [ 67%]
+tests\unit\test_parsers_robustness.py .................................. [ 70%]
+..                                                                       [ 70%]
+tests\unit\test_parsers_split.py .......                                 [ 71%]
+tests\unit\test_performance.py .                                         [ 71%]
+tests\unit\test_pipeline_coverage.py .                                   [ 71%]
+tests\unit\test_pipeline_deep.py .                                       [ 71%]
+tests\unit\test_pipeline_extended.py ...                                 [ 71%]
+tests\unit\test_pipeline_orchestration.py ...                            [ 71%]
+tests\unit\test_pipeline_stages.py ...........                           [ 72%]
+tests\unit\test_producer_quality_accounting.py .                         [ 72%]
+tests\unit\test_protocol_output_golden.py ......                         [ 73%]
+tests\unit\test_proxy_history_extended.py ......                         [ 73%]
+tests\unit\test_proxy_schema.py .......                                  [ 74%]
+tests\unit\test_release_remediation.py ....                              [ 74%]
+tests\unit\test_release_scripts.py ...                                   [ 74%]
+tests\unit\test_repo_hygiene.py ..                                       [ 74%]
+tests\unit\test_scheduler.py ....                                        [ 75%]
+tests\unit\test_security.py .....                                        [ 75%]
+tests\unit\test_security_headers.py ..                                   [ 75%]
+tests\unit\test_security_validator.py ......                             [ 76%]
+tests\unit\test_security_validator_extra.py ...                          [ 76%]
+tests\unit\test_security_validator_full.py .....                         [ 76%]
+tests\unit\test_server.py .......................................        [ 79%]
+tests\unit\test_server_cache_remediation.py ..                           [ 79%]
+tests\unit\test_server_concurrent_cache.py .                             [ 79%]
+tests\unit\test_server_new.py ....                                       [ 80%]
+tests\unit\test_signer_canonical_replay.py ...                           [ 80%]
+tests\unit\test_singbox_binary_resolution.py ...                         [ 80%]
+tests\unit\test_slop_cleanup_verification.py .......                     [ 81%]
+tests\unit\test_sorter.py ................                               [ 82%]
+tests\unit\test_source_quality.py ..                                     [ 82%]
+tests\unit\test_ss_ffi.py ..................                             [ 83%]
+tests\unit\test_standalone_library.py ...                                [ 84%]
+tests\unit\test_tagging.py ...                                           [ 84%]
+tests\unit\test_utils.py ..........                                      [ 85%]
+tests\unit\test_utils_extended.py .....                                  [ 85%]
+tests\unit\test_utils_full.py ..                                         [ 85%]
+tests\unit\test_validate_assets.py ......                                [ 86%]
+tests\unit\test_validate_bandit_suppressions.py .......                  [ 86%]
+tests\unit\test_validate_capability_registry.py .....                    [ 86%]
+tests\unit\test_validate_claim_ledger.py ....                            [ 87%]
+tests\unit\test_validate_core_compatibility.py ......                    [ 87%]
+tests\unit\test_validate_docs_sync.py ...                                [ 87%]
+tests\unit\test_validate_frontend_placeholders.py ....                   [ 88%]
+tests\unit\test_validate_module_ownership.py .....                       [ 88%]
+tests\unit\test_validate_optional_mirrors.py ...                         [ 88%]
+tests\unit\test_validate_output_matrix.py .........                      [ 89%]
+tests\unit\test_validate_pages_artifact.py ............................. [ 91%]
+.                                                                        [ 91%]
+tests\unit\test_validate_protocol_matrix.py ....                         [ 91%]
+tests\unit\test_validate_status.py ......                                [ 92%]
+tests\unit\test_validate_test_skips.py .........                         [ 93%]
+tests\unit\test_validate_versions.py ...                                 [ 93%]
+tests\unit\test_validate_workflows.py .........................          [ 95%]
+tests\unit\test_verify_pages_deployment.py ......                        [ 95%]
+tests\unit\test_washer.py ......                                         [ 96%]
+tests\unit\test_wasm_browser_semantics.py ...                            [ 96%]
+tests\unit\test_wasm_panic_recovery.py .                                 [ 96%]
+tests\unit\test_ws_origin.py ...........                                 [ 97%]
+tests\unit\tools\test_dns_scanner.py ..                                  [ 97%]
+tests\unit\tools\test_vwarp_sanitize.py ....                             [ 97%]
+tests\unit\tools\test_vwarp_tool.py ..........                           [ 98%]
+tests\unit\transport\test_stego.py .................                     [ 99%]
+tests\unit\transport\test_stego_cover_selection.py ..                    [ 99%]
+tests\unit\transport\test_stego_kat.py .                                 [ 99%]
+C:\Users\ACER\AppData\Roaming\Python\Python311\site-packages\_pytest\cacheprovider.py:475: PytestCacheWarning: could not create cache path D:\GitHub\ConfigStream\.pytest_cache\v\cache\nodeids: [WinError 5] Access is denied: 'D:\\GitHub\\ConfigStream\\.pytest_cache\\v\\cache'
+  config.cache.set("cache/nodeids", sorted(self.cached_nodeids))
+C:\Users\ACER\AppData\Roaming\Python\Python311\site-packages\_pytest\cacheprovider.py:429: PytestCacheWarning: could not create cache path D:\GitHub\ConfigStream\.pytest_cache\v\cache\lastfailed: [WinError 5] Access is denied: 'D:\\GitHub\\ConfigStream\\.pytest_cache\\v\\cache'
+  config.cache.set("cache/lastfailed", self.lastfailed)
+C:\Users\ACER\AppData\Roaming\Python\Python311\site-packages\_pytest\stepwise.py:51: PytestCacheWarning: could not create cache path D:\GitHub\ConfigStream\.pytest_cache\v\cache\stepwise: [WinError 5] Access is denied: 'D:\\GitHub\\ConfigStream\\.pytest_cache\\v\\cache'
+  session.config.cache.set(STEPWISE_CACHE_DIR, [])
+tests\unit\utils\test_cert.py .                                          [100%]
+
+=================================== ERRORS ====================================
+_______________ ERROR at setup of test_homepage_loads[chromium] _______________
+E   playwright._impl._errors.Error: BrowserType.launch: Executable doesn't exist at C:\Users\ACER\AppData\Local\ms-playwright\chromium_headless_shell-1223\chrome-headless-shell-win64\chrome-headless-shell.exe
+    \u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557
+    \u2551 Looks like Playwright was just installed or updated.       \u2551
+    \u2551 Please run the following command to download new browsers: \u2551
+    \u2551                                                            \u2551
+    \u2551     playwright install                                     \u2551
+    \u2551                                                            \u2551
+    \u2551 <3 Playwright Team                                         \u2551
+    \u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d
+---------------------------- Captured stdout setup ----------------------------
+2026-07-24 01:55:26,264 - httpx - INFO - [-] - [_client.py:1025] - HTTP Request: GET http://[IP]:8701 "HTTP/1.0 200 OK"
+----------------------------- Captured log setup ------------------------------
+INFO     httpx:_client.py:1025 HTTP Request: GET http://[IP]:8701 "HTTP/1.0 200 OK"
+_____________ ERROR at setup of test_pwa_manifest_link[chromium] ______________
+E   playwright._impl._errors.Error: BrowserType.launch: Executable doesn't exist at C:\Users\ACER\AppData\Local\ms-playwright\chromium_headless_shell-1223\chrome-headless-shell-win64\chrome-headless-shell.exe
+    \u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557
+    \u2551 Looks like Playwright was just installed or updated.       \u2551
+    \u2551 Please run the following command to download new browsers: \u2551
+    \u2551                                                            \u2551
+    \u2551     playwright install                                     \u2551
+    \u2551                                                            \u2551
+    \u2551 <3 Playwright Team                                         \u2551
+    \u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d
+______________ ERROR at setup of test_widgets_presence[chromium] ______________
+E   playwright._impl._errors.Error: BrowserType.launch: Executable doesn't exist at C:\Users\ACER\AppData\Local\ms-playwright\chromium_headless_shell-1223\chrome-headless-shell-win64\chrome-headless-shell.exe
+    \u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557
+    \u2551 Looks like Playwright was just installed or updated.       \u2551
+    \u2551 Please run the following command to download new browsers: \u2551
+    \u2551                                                            \u2551
+    \u2551     playwright install                                     \u2551
+    \u2551                                                            \u2551
+    \u2551 <3 Playwright Team                                         \u2551
+    \u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d
+_ ERROR at setup of test_frontend_pages_load_with_external_network_blocked[chromium] _
+E   playwright._impl._errors.Error: BrowserType.launch: Executable doesn't exist at C:\Users\ACER\AppData\Local\ms-playwright\chromium_headless_shell-1223\chrome-headless-shell-win64\chrome-headless-shell.exe
+    \u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557
+    \u2551 Looks like Playwright was just installed or updated.       \u2551
+    \u2551 Please run the following command to download new browsers: \u2551
+    \u2551                                                            \u2551
+    \u2551     playwright install                                     \u2551
+    \u2551                                                            \u2551
+    \u2551 <3 Playwright Team                                         \u2551
+    \u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d
+___________ ERROR at setup of test_laboratory_page_loads[chromium] ____________
+E   playwright._impl._errors.Error: BrowserType.launch: Executable doesn't exist at C:\Users\ACER\AppData\Local\ms-playwright\chromium_headless_shell-1223\chrome-headless-shell-win64\chrome-headless-shell.exe
+    \u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557
+    \u2551 Looks like Playwright was just installed or updated.       \u2551
+    \u2551 Please run the following command to download new browsers: \u2551
+    \u2551                                                            \u2551
+    \u2551     playwright install                                     \u2551
+    \u2551                                                            \u2551
+    \u2551 <3 Playwright Team                                         \u2551
+    \u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d
+=========================== short test summary info ===========================
+ERROR tests/e2e/test_frontend.py::test_homepage_loads[chromium] - playwright....
+ERROR tests/e2e/test_frontend.py::test_pwa_manifest_link[chromium] - playwrig...
+ERROR tests/e2e/test_frontend.py::test_widgets_presence[chromium] - playwrigh...
+ERROR tests/e2e/test_frontend.py::test_frontend_pages_load_with_external_network_blocked[chromium]
+ERROR tests/e2e/test_laboratory_ui.py::test_laboratory_page_loads[chromium]
+================= 1331 passed, 5 errors in 180.82s (0:03:00) ==================

@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Page Object Model for Frontend Laboratory UI."""
+
 from playwright.async_api import Page
+
 
 class LaboratoryPage:
     def __init__(self, page: Page):

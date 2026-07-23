@@ -6,21 +6,22 @@ These tests act as regression guards — they verify that previously identified
 dead code and unnecessary abstractions have been removed and that no regressions
 were introduced in the modules that were cleaned up.
 """
+
 import pytest
 import importlib
 
 import configstream.fetcher_worker as fw
 
-
 # ---------------------------------------------------------------------------
 # Negative tests: confirm dead code is absent
 # ---------------------------------------------------------------------------
 
+
 def test_unused_exception_classes_removed() -> None:
     """fetcher_worker.py must not contain any unused legacy exception classes."""
-    assert not hasattr(fw, "UnusedLegacyFetcherError"), (
-        "UnusedLegacyFetcherError should not exist in fetcher_worker.py"
-    )
+    assert not hasattr(
+        fw, "UnusedLegacyFetcherError"
+    ), "UnusedLegacyFetcherError should not exist in fetcher_worker.py"
 
 
 def test_no_dead_pass_through_wrappers() -> None:
@@ -54,6 +55,7 @@ def test_no_dead_pass_through_wrappers() -> None:
 # ---------------------------------------------------------------------------
 # Positive tests: confirm the core API still works
 # ---------------------------------------------------------------------------
+
 
 def test_fetch_result_construction() -> None:
     """FetchResult must remain constructable with minimal arguments."""

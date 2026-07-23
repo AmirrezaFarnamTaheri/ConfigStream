@@ -42,7 +42,9 @@ SAFE_ALPN_COMBINATIONS = [
 ]
 
 
-def _rotation_hash(proxy_id: str, namespace: str, rotation_seed: Optional[str] = None) -> int:
+def _rotation_hash(
+    proxy_id: str, namespace: str, rotation_seed: Optional[str] = None
+) -> int:
     """Return a stable hash within a rotation window, but not forever.
 
     The default seed changes daily in UTC. Tests and callers that require exact
@@ -69,7 +71,8 @@ def rotate_tls_fingerprint(
         else:
             return {"enabled": True, "fingerprint": normalized}
     selected = SAFE_FINGERPRINTS[
-        _rotation_hash(proxy_id, "tls-fingerprint", rotation_seed) % len(SAFE_FINGERPRINTS)
+        _rotation_hash(proxy_id, "tls-fingerprint", rotation_seed)
+        % len(SAFE_FINGERPRINTS)
     ]
     return {"enabled": True, "fingerprint": selected.value}
 
@@ -208,7 +211,11 @@ def enrich_outbound_with_evasion(
             if utls_config:
                 tls["utls"] = utls_config
 
-    if enable_alpn and protocol in {"vmess", "vless", "trojan"} and isinstance(tls, dict):
+    if (
+        enable_alpn
+        and protocol in {"vmess", "vless", "trojan"}
+        and isinstance(tls, dict)
+    ):
         alpn_protocols = rotate_alpn(
             proxy_id,
             enabled=True,
@@ -227,7 +234,9 @@ def enrich_outbound_with_evasion(
             tls["ech"] = {"enabled": True, "config": str(ech_config)}
 
     if enable_fragmentation and protocol in {"vmess", "vless", "trojan"}:
-        is_reality = isinstance(tls, dict) and bool(tls.get("reality", {}).get("enabled"))
+        is_reality = isinstance(tls, dict) and bool(
+            tls.get("reality", {}).get("enabled")
+        )
         is_vision = str(outbound.get("flow", "")).startswith("xtls-rprx-vision")
         if not is_reality and not is_vision:
             frag_cfg = get_fragment_config(

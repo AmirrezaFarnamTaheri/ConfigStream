@@ -195,7 +195,9 @@ def parse_logs(
                                                 duration,
                                             )
                 except Exception:  # nosec B112
-                    logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+                    logging.getLogger(__name__).debug(
+                        "Suppressed broad exception", exc_info=True
+                    )
                     continue
         except Exception as e:
             print(f"[WARN] Could not read {log_file}: {e}")
@@ -242,22 +244,30 @@ def parse_db_runs(
         try:
             ts_i = int(ts or 0)
         except Exception:
-            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+            logging.getLogger(__name__).debug(
+                "Suppressed broad exception", exc_info=True
+            )
             ts_i = 0
         try:
             dur_ms = float(duration_ms or 0.0)
         except Exception:
-            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+            logging.getLogger(__name__).debug(
+                "Suppressed broad exception", exc_info=True
+            )
             dur_ms = 0.0
         try:
             fetched = int(fetched_count or 0)
         except Exception:
-            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+            logging.getLogger(__name__).debug(
+                "Suppressed broad exception", exc_info=True
+            )
             fetched = 0
         try:
             working = int(working_count or 0)
         except Exception:
-            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+            logging.getLogger(__name__).debug(
+                "Suppressed broad exception", exc_info=True
+            )
             working = 0
         batch_tag = str(batch_source or "").strip()
         per_url_runs[url].append((ts_i, dur_ms, fetched, working, batch_tag))
@@ -424,7 +434,9 @@ def analyze_similarity(observed_metrics: Dict[str, Tuple[int, float]]) -> Set[st
                 fingerprints[url] = proxies
                 count += 1
         except Exception:  # nosec B110
-            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+            logging.getLogger(__name__).debug(
+                "Suppressed broad exception", exc_info=True
+            )
             pass
 
     print(f"[INFO] Loaded {count} source fingerprints.")

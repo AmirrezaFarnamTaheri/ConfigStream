@@ -34,7 +34,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
-
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
@@ -42,10 +41,29 @@ OUT_DIR = "repo-topology-out"
 
 # Protection vocabulary for taint analysis
 PROTECTION_VOCABULARY = {
-    "auth", "authenticate", "authorize", "authorization", "guard", "middleware",
-    "sanitize", "validate", "validator", "schema", "permission", "acl", "csrf",
-    "rate-limit", "escape", "parameterize", "allowlist", "normalize", "tenant",
-    "ownership", "scope", "jail", "safe",
+    "auth",
+    "authenticate",
+    "authorize",
+    "authorization",
+    "guard",
+    "middleware",
+    "sanitize",
+    "validate",
+    "validator",
+    "schema",
+    "permission",
+    "acl",
+    "csrf",
+    "rate-limit",
+    "escape",
+    "parameterize",
+    "allowlist",
+    "normalize",
+    "tenant",
+    "ownership",
+    "scope",
+    "jail",
+    "safe",
 }
 
 # Sink patterns for security taint analysis
@@ -80,8 +98,14 @@ def normalize_path(value: Any) -> str:
 def detect_workspace_roots(repo_path: Path) -> list[Path]:
     """Detect workspace roots from common markers."""
     markers = [
-        "package.json", "pyproject.toml", "Cargo.toml", "go.mod",
-        "pom.xml", "build.gradle", "setup.py", "Makefile",
+        "package.json",
+        "pyproject.toml",
+        "Cargo.toml",
+        "go.mod",
+        "pom.xml",
+        "build.gradle",
+        "setup.py",
+        "Makefile",
     ]
     roots = []
     for marker in markers:
@@ -106,9 +130,19 @@ def discover_files(repo_path: Path, exclude_dirs: set[str] | None = None) -> lis
     """Discover all source files in the repository."""
     if exclude_dirs is None:
         exclude_dirs = {
-            ".git", "node_modules", "venv", ".venv", "__pycache__",
-            "build", "dist", ".mypy_cache", ".pytest_cache", ".hypothesis",
-            "frontend-dist", ".github", "repo-topology-out",
+            ".git",
+            "node_modules",
+            "venv",
+            ".venv",
+            "__pycache__",
+            "build",
+            "dist",
+            ".mypy_cache",
+            ".pytest_cache",
+            ".hypothesis",
+            "frontend-dist",
+            ".github",
+            "repo-topology-out",
         }
     files = []
     for root, dirs, filenames in os.walk(repo_path):
@@ -127,19 +161,34 @@ def discover_files(repo_path: Path, exclude_dirs: set[str] | None = None) -> lis
 
 LANGUAGE_EXTENSIONS = {
     ".py": "python",
-    ".js": "javascript", ".jsx": "javascript", ".ts": "typescript", ".tsx": "typescript",
+    ".js": "javascript",
+    ".jsx": "javascript",
+    ".ts": "typescript",
+    ".tsx": "typescript",
     ".rs": "rust",
     ".go": "golang",
-    ".java": "java", ".kt": "kotlin", ".kts": "kotlin",
-    ".c": "c", ".h": "c", ".cpp": "cpp", ".hpp": "cpp",
+    ".java": "java",
+    ".kt": "kotlin",
+    ".kts": "kotlin",
+    ".c": "c",
+    ".h": "c",
+    ".cpp": "cpp",
+    ".hpp": "cpp",
     ".php": "php",
     ".rb": "ruby",
     ".swift": "swift",
     ".scala": "scala",
-    ".mjs": "javascript", ".cjs": "javascript",
-    ".html": "html", ".css": "css", ".scss": "scss",
-    ".yaml": "yaml", ".yml": "yaml", ".json": "json", ".toml": "toml",
-    ".md": "markdown", ".rst": "rst",
+    ".mjs": "javascript",
+    ".cjs": "javascript",
+    ".html": "html",
+    ".css": "css",
+    ".scss": "scss",
+    ".yaml": "yaml",
+    ".yml": "yaml",
+    ".json": "json",
+    ".toml": "toml",
+    ".md": "markdown",
+    ".rst": "rst",
 }
 
 
@@ -155,6 +204,7 @@ def parse_python_imports(content: str) -> list[str]:
     imports = []
     try:
         import ast
+
         tree = ast.parse(content)
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
@@ -175,22 +225,26 @@ def parse_python_imports(content: str) -> list[str]:
 # ---------------------------------------------------------------------------
 IMPORT_PATTERNS: dict[str, list[re.Pattern]] = {
     "javascript": [
-        re.compile(r'(?:import\s+(?:(?:\{[^}]*\}|[^;{]+)\s+from\s+)?["\']([^"\']+)["\'])'),
+        re.compile(
+            r'(?:import\s+(?:(?:\{[^}]*\}|[^;{]+)\s+from\s+)?["\']([^"\']+)["\'])'
+        ),
         re.compile(r'(?:require\(["\']([^"\']+)["\']\))'),
     ],
     "typescript": [
-        re.compile(r'(?:import\s+(?:(?:\{[^}]*\}|[^;{]+)\s+from\s+)?["\']([^"\']+)["\'])'),
+        re.compile(
+            r'(?:import\s+(?:(?:\{[^}]*\}|[^;{]+)\s+from\s+)?["\']([^"\']+)["\'])'
+        ),
         re.compile(r'(?:require\(["\']([^"\']+)["\']\))'),
     ],
     "rust": [
-        re.compile(r'^use\s+([^;]+);', re.MULTILINE),
-        re.compile(r'^extern\s+crate\s+(\w+);', re.MULTILINE),
+        re.compile(r"^use\s+([^;]+);", re.MULTILINE),
+        re.compile(r"^extern\s+crate\s+(\w+);", re.MULTILINE),
     ],
     "golang": [
         re.compile(r'"(?:[^"]*\/)?([^"/]+)"'),
     ],
     "java": [
-        re.compile(r'^import\s+(?:static\s+)?([\w.]+);', re.MULTILINE),
+        re.compile(r"^import\s+(?:static\s+)?([\w.]+);", re.MULTILINE),
     ],
 }
 
@@ -230,8 +284,16 @@ def tag_node(path: Path, language: str, content: str) -> set[str]:
         tags.add("test")
 
     # Configuration
-    if name in ("package.json", "pyproject.toml", "Cargo.toml", "go.mod",
-                "Dockerfile", "docker-compose.yml", ".gitignore", "Makefile"):
+    if name in (
+        "package.json",
+        "pyproject.toml",
+        "Cargo.toml",
+        "go.mod",
+        "Dockerfile",
+        "docker-compose.yml",
+        ".gitignore",
+        "Makefile",
+    ):
         tags.add("configuration")
 
     # Migrations
@@ -245,7 +307,7 @@ def tag_node(path: Path, language: str, content: str) -> set[str]:
 
     # Protection vocabulary
     for word in PROTECTION_VOCABULARY:
-        if re.search(rf'\b{re.escape(word)}\b', content, re.I):
+        if re.search(rf"\b{re.escape(word)}\b", content, re.I):
             tags.add(f"protect:{word}")
 
     return tags
@@ -269,7 +331,9 @@ def build_graph(repo_path: Path) -> dict[str, Any]:
         try:
             content = fpath.read_text(encoding="utf-8", errors="replace")
         except Exception:
-            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+            logging.getLogger(__name__).debug(
+                "Suppressed broad exception", exc_info=True
+            )
             content = ""
 
         tags = tag_node(fpath, lang, content)
@@ -300,11 +364,13 @@ def build_graph(repo_path: Path) -> dict[str, Any]:
             # Try to resolve the import to a local file
             target = _resolve_import(imp, file_to_rel)
             if target and target != source:
-                edges.append({
-                    "source": source,
-                    "target": target,
-                    "type": "import",
-                })
+                edges.append(
+                    {
+                        "source": source,
+                        "target": target,
+                        "type": "import",
+                    }
+                )
 
     # Add edges from package.json scripts
     pkg_json = repo_path / "package.json"
@@ -353,9 +419,19 @@ def build_graph(repo_path: Path) -> dict[str, Any]:
 
 def exclude_dirs_default() -> set[str]:
     return {
-        ".git", "node_modules", "venv", ".venv", "__pycache__",
-        "build", "dist", ".mypy_cache", ".pytest_cache", ".hypothesis",
-        "frontend-dist", ".github", "repo-topology-out",
+        ".git",
+        "node_modules",
+        "venv",
+        ".venv",
+        "__pycache__",
+        "build",
+        "dist",
+        ".mypy_cache",
+        ".pytest_cache",
+        ".hypothesis",
+        "frontend-dist",
+        ".github",
+        "repo-topology-out",
     }
 
 
@@ -363,9 +439,22 @@ def _estimate_complexity(content: str) -> int:
     """Estimate cyclomatic complexity from source content."""
     complexity = 1
     # Count decision points (excluding 'else' which pairs with 'if')
-    for pattern in [r'\bif\b', r'\belif\b', r'\bfor\b', r'\bwhile\b',
-                    r'\bcase\b', r'\bcatch\b', r'\bexcept\b', r'\bwith\b',
-                    r'\band\b', r'\bor\b', r'\bnot\b', r'\?', r'\|\|', r'&&']:
+    for pattern in [
+        r"\bif\b",
+        r"\belif\b",
+        r"\bfor\b",
+        r"\bwhile\b",
+        r"\bcase\b",
+        r"\bcatch\b",
+        r"\bexcept\b",
+        r"\bwith\b",
+        r"\band\b",
+        r"\bor\b",
+        r"\bnot\b",
+        r"\?",
+        r"\|\|",
+        r"&&",
+    ]:
         complexity += len(re.findall(pattern, content))
     return complexity
 
@@ -377,17 +466,30 @@ def _resolve_import(imp: str, file_to_rel: dict[str, str]) -> Optional[str]:
     """
     # Normalize the import path (dotted to slash)
     imp_path_base = imp.replace(".", "/")
-    
+
     # Try common source extensions
-    for ext in [".py", "/__init__.py", ".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs", ".go", ".rs"]:
+    for ext in [
+        ".py",
+        "/__init__.py",
+        ".js",
+        ".jsx",
+        ".ts",
+        ".tsx",
+        ".mjs",
+        ".cjs",
+        ".go",
+        ".rs",
+    ]:
         test_path = imp_path_base + ext
         if test_path in file_to_rel:
             return normalize_path(file_to_rel[test_path])
-    
+
     return None
 
 
-def _add_package_json_edges(pkg_path: Path, file_to_rel: dict[str, str], edges: list[dict[str, Any]]) -> None:
+def _add_package_json_edges(
+    pkg_path: Path, file_to_rel: dict[str, str], edges: list[dict[str, Any]]
+) -> None:
     """Add edges from package.json script references."""
     try:
         data = json.loads(pkg_path.read_text())
@@ -400,11 +502,13 @@ def _add_package_json_edges(pkg_path: Path, file_to_rel: dict[str, str], edges: 
                 for part in cmd.split():
                     if part in file_to_rel:
                         target = normalize_path(file_to_rel[part])
-                        edges.append({
-                            "source": pkg_norm,
-                            "target": target,
-                            "type": "script_ref",
-                        })
+                        edges.append(
+                            {
+                                "source": pkg_norm,
+                                "target": target,
+                                "type": "script_ref",
+                            }
+                        )
     except (json.JSONDecodeError, OSError):
         pass
 
@@ -467,20 +571,26 @@ def run_audit(graph: dict[str, Any], target: str = "") -> list[dict[str, Any]]:
             continue
         if nid not in targets:
             tags = set(node.get("tags", []))
-            if not any(t in tags for t in ["entry_point", "test", "configuration", "migration"]):
-                findings.append({
-                    "id": f"AUDIT-{len(findings)+1:03d}",
-                    "type": "orphan_node",
-                    "node_path": nid,
-                    "risk": "Low",
-                    "confidence": "Medium",
-                    "evidence": "Graph",
-                    "action": "Review for dead code (zero incoming edges)",
-                })
+            if not any(
+                t in tags for t in ["entry_point", "test", "configuration", "migration"]
+            ):
+                findings.append(
+                    {
+                        "id": f"AUDIT-{len(findings)+1:03d}",
+                        "type": "orphan_node",
+                        "node_path": nid,
+                        "risk": "Low",
+                        "confidence": "Medium",
+                        "evidence": "Graph",
+                        "action": "Review for dead code (zero incoming edges)",
+                    }
+                )
 
     # God node detection (sweep 3)
     values = [n.get("centrality", 0) for n in nodes if n.get("centrality", 0) > 0]
-    threshold = _compute_threshold(values, graph.get("metadata", {}).get("density", 0.02))
+    threshold = _compute_threshold(
+        values, graph.get("metadata", {}).get("density", 0.02)
+    )
 
     for node in nodes:
         nid = node["id"]
@@ -489,15 +599,17 @@ def run_audit(graph: dict[str, Any], target: str = "") -> list[dict[str, Any]]:
         cent = node.get("centrality", 0)
         comp = node.get("cyclomatic_complexity", 0)
         if cent >= threshold and comp > 15:
-            findings.append({
-                "id": f"AUDIT-{len(findings)+1:03d}",
-                "type": "god_node",
-                "node_path": nid,
-                "risk": "High",
-                "confidence": "High",
-                "evidence": "Graph",
-                "action": f"Refactor: centrality={cent:.3f}, complexity={comp}",
-            })
+            findings.append(
+                {
+                    "id": f"AUDIT-{len(findings)+1:03d}",
+                    "type": "god_node",
+                    "node_path": nid,
+                    "risk": "High",
+                    "confidence": "High",
+                    "evidence": "Graph",
+                    "action": f"Refactor: centrality={cent:.3f}, complexity={comp}",
+                }
+            )
 
     # Cross-cluster cycles (sweep 2)
     edge_pairs = {(e.get("source"), e.get("target")) for e in edges}
@@ -508,15 +620,17 @@ def run_audit(graph: dict[str, Any], target: str = "") -> list[dict[str, Any]]:
             src_cluster = node_map.get(src, {}).get("cluster_id")
             tgt_cluster = node_map.get(tgt, {}).get("cluster_id")
             if src_cluster and tgt_cluster and src_cluster != tgt_cluster:
-                findings.append({
-                    "id": f"AUDIT-{len(findings)+1:03d}",
-                    "type": "cross_cluster_cycle",
-                    "node_path": f"{src} <-> {tgt}",
-                    "risk": "High",
-                    "confidence": "High",
-                    "evidence": "Graph",
-                    "action": "Design abstraction boundary between clusters",
-                })
+                findings.append(
+                    {
+                        "id": f"AUDIT-{len(findings)+1:03d}",
+                        "type": "cross_cluster_cycle",
+                        "node_path": f"{src} <-> {tgt}",
+                        "risk": "High",
+                        "confidence": "High",
+                        "evidence": "Graph",
+                        "action": "Design abstraction boundary between clusters",
+                    }
+                )
 
     # Sink taint analysis
     for node in nodes:
@@ -527,15 +641,17 @@ def run_audit(graph: dict[str, Any], target: str = "") -> list[dict[str, Any]]:
         sinks = [t for t in tags if t.startswith("sink:")]
         has_protection = any(t.startswith("protect:") for t in tags)
         if sinks and not has_protection:
-            findings.append({
-                "id": f"AUDIT-{len(findings)+1:03d}",
-                "type": "unprotected_sink",
-                "node_path": nid,
-                "risk": "Critical",
-                "confidence": "Medium",
-                "evidence": "Source",
-                "action": f"Add protection vocabulary to sink ({', '.join(sinks)})",
-            })
+            findings.append(
+                {
+                    "id": f"AUDIT-{len(findings)+1:03d}",
+                    "type": "unprotected_sink",
+                    "node_path": nid,
+                    "risk": "Critical",
+                    "confidence": "Medium",
+                    "evidence": "Source",
+                    "action": f"Add protection vocabulary to sink ({', '.join(sinks)})",
+                }
+            )
 
     return findings
 
@@ -560,7 +676,11 @@ def query_nodes(graph: dict[str, Any], target: str) -> list[dict[str, Any]]:
     results = []
     for node in graph.get("nodes", []):
         nid = node.get("id", "")
-        if target_norm in nid or target in nid or target_norm.replace("repo://", "") in nid:
+        if (
+            target_norm in nid
+            or target in nid
+            or target_norm.replace("repo://", "") in nid
+        ):
             results.append(node)
     return results
 
@@ -593,7 +713,9 @@ def blast_radius(graph: dict[str, Any], target: str) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 # Trace (entry points to sink paths)
 # ---------------------------------------------------------------------------
-def trace_paths(graph: dict[str, Any], target: str, from_type: str = "entry_point") -> list[dict[str, Any]]:
+def trace_paths(
+    graph: dict[str, Any], target: str, from_type: str = "entry_point"
+) -> list[dict[str, Any]]:
     """Trace paths from entry points to a target sink node."""
     target_norm = normalize_path(target)
     nodes = graph.get("nodes", [])
@@ -606,8 +728,10 @@ def trace_paths(graph: dict[str, Any], target: str, from_type: str = "entry_poin
 
     # Find entry points
     entry_points = [
-        n["id"] for n in nodes
-        if from_type in n.get("tags", []) or n.get("name") in ("main.py", "cli.py", "main.go")
+        n["id"]
+        for n in nodes
+        if from_type in n.get("tags", [])
+        or n.get("name") in ("main.py", "cli.py", "main.go")
     ]
 
     # BFS from each entry point to find paths to target
@@ -693,7 +817,9 @@ def generate_report(graph: dict[str, Any], audit: list[dict[str, Any]]) -> str:
 
     lines.append("# RepoTopology Report")
     lines.append(f"Generated: {meta.get('generated_at', 'unknown')}")
-    lines.append(f"Nodes: {meta.get('node_count', 0)} | Edges: {meta.get('edge_count', 0)} | Density: {meta.get('density', 0):.4f}")
+    lines.append(
+        f"Nodes: {meta.get('node_count', 0)} | Edges: {meta.get('edge_count', 0)} | Density: {meta.get('density', 0):.4f}"
+    )
     lines.append("")
 
     # Clusters
@@ -706,8 +832,12 @@ def generate_report(graph: dict[str, Any], audit: list[dict[str, Any]]) -> str:
     for cid in sorted(clusters.keys()):
         cluster_nodes = clusters[cid]
         lines.append(f"### {cid} ({len(cluster_nodes)} nodes)")
-        for n in sorted(cluster_nodes, key=lambda x: x.get("centrality", 0), reverse=True)[:5]:
-            lines.append(f"- {n['id']} (centrality: {n.get('centrality', 0):.3f}, complexity: {n.get('cyclomatic_complexity', 0)})")
+        for n in sorted(
+            cluster_nodes, key=lambda x: x.get("centrality", 0), reverse=True
+        )[:5]:
+            lines.append(
+                f"- {n['id']} (centrality: {n.get('centrality', 0):.3f}, complexity: {n.get('cyclomatic_complexity', 0)})"
+            )
     lines.append("")
 
     # Centrality threshold
@@ -718,16 +848,24 @@ def generate_report(graph: dict[str, Any], audit: list[dict[str, Any]]) -> str:
 
     # Top nodes by centrality
     lines.append("## Top 15 Nodes by Centrality")
-    sorted_nodes = sorted(nodes, key=lambda x: x.get("centrality", 0), reverse=True)[:15]
+    sorted_nodes = sorted(nodes, key=lambda x: x.get("centrality", 0), reverse=True)[
+        :15
+    ]
     for n in sorted_nodes:
-        lines.append(f"- {n['id']}: centrality={n.get('centrality', 0):.3f}, complexity={n.get('cyclomatic_complexity', 0)}, cluster={n.get('cluster_id', '')}")
+        lines.append(
+            f"- {n['id']}: centrality={n.get('centrality', 0):.3f}, complexity={n.get('cyclomatic_complexity', 0)}, cluster={n.get('cluster_id', '')}"
+        )
     lines.append("")
 
     # Audit findings
     lines.append(f"## Audit Findings ({len(audit)})")
     for finding in audit:
-        lines.append(f"- [{finding.get('risk', '?')}] {finding.get('type', '?')}: {finding.get('node_path', '?')}")
-        lines.append(f"  - {finding.get('action', '')} (confidence: {finding.get('confidence', '?')})")
+        lines.append(
+            f"- [{finding.get('risk', '?')}] {finding.get('type', '?')}: {finding.get('node_path', '?')}"
+        )
+        lines.append(
+            f"  - {finding.get('action', '')} (confidence: {finding.get('confidence', '?')})"
+        )
 
     return "\n".join(lines)
 
@@ -772,7 +910,10 @@ def lease_acquire(cluster: str, owner: str, target: str = "") -> dict[str, Any]:
             existing = leases["clusters"][cluster]
             if existing.get("status") == "active":
                 _lease_mutex_release()
-                return {"status": "blocked", "message": f"Cluster {cluster} is actively leased by {existing.get('owner')}"}
+                return {
+                    "status": "blocked",
+                    "message": f"Cluster {cluster} is actively leased by {existing.get('owner')}",
+                }
 
         leases.setdefault("clusters", {})[cluster] = {
             "owner": owner,
@@ -799,7 +940,9 @@ def lease_release(cluster: str, owner: str) -> dict[str, Any]:
         leases = json.loads(LEASE_FILE.read_text())
         if cluster in leases.get("clusters", {}):
             leases["clusters"][cluster]["status"] = "released"
-            leases["clusters"][cluster]["released_at"] = datetime.now(timezone.utc).isoformat()
+            leases["clusters"][cluster]["released_at"] = datetime.now(
+                timezone.utc
+            ).isoformat()
         tmp = LEASE_FILE.with_suffix(".tmp.json")
         tmp.write_text(json.dumps(leases, indent=2))
         tmp.replace(LEASE_FILE)
@@ -832,7 +975,9 @@ def reflect(lesson: str) -> None:
 # Main CLI
 # ---------------------------------------------------------------------------
 def main() -> int:
-    parser = argparse.ArgumentParser(description="RepoTopology — Zero-dependency repository topology engine")
+    parser = argparse.ArgumentParser(
+        description="RepoTopology — Zero-dependency repository topology engine"
+    )
     subparsers = parser.add_subparsers(dest="command")
 
     # build
@@ -927,8 +1072,14 @@ def main() -> int:
             print("ERROR: run 'build' first")
             return 1
         graph = json.loads(graph_path.read_text())
-        values = [n.get("centrality", 0) for n in graph.get("nodes", []) if n.get("centrality", 0) > 0]
-        threshold = _compute_threshold(values, graph.get("metadata", {}).get("density", 0.02))
+        values = [
+            n.get("centrality", 0)
+            for n in graph.get("nodes", [])
+            if n.get("centrality", 0) > 0
+        ]
+        threshold = _compute_threshold(
+            values, graph.get("metadata", {}).get("density", 0.02)
+        )
         result = {
             "threshold": round(threshold, 4),
             "density": graph.get("metadata", {}).get("density", 0),

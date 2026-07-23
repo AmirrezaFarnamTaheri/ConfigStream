@@ -30,7 +30,9 @@ def _is_allowed_origin(origin: Optional[str]) -> bool:
         try:
             return re.fullmatch(pattern, origin) is not None
         except re.error:
-            logger.error("ALLOWED_ORIGIN_REGEX is invalid; regex origin matching disabled")
+            logger.error(
+                "ALLOWED_ORIGIN_REGEX is invalid; regex origin matching disabled"
+            )
     return False
 
 
@@ -126,7 +128,9 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
     origin: Optional[str] = websocket.headers.get("origin")
     if not _is_allowed_origin(origin):
         safe_origin = SecurityValidator.sanitize_log_message(origin or "")
-        logger.warning("WebSocket connection rejected: disallowed origin %r", safe_origin)
+        logger.warning(
+            "WebSocket connection rejected: disallowed origin %r", safe_origin
+        )
         await websocket.close(code=4003)
         return
     if not await manager.connect(websocket):

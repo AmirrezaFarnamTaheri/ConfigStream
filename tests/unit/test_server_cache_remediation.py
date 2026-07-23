@@ -6,6 +6,7 @@ Task 2 of the Post-Audit Remediation Plan.
 Verifies that concurrent async calls for the same uncached path result in
 exactly ONE actual disk read (via asyncio.Lock double-checked locking).
 """
+
 import asyncio
 import pytest
 from pathlib import Path
@@ -14,10 +15,10 @@ from unittest.mock import patch, MagicMock
 
 from configstream.server.utils import _read_json_file_async, _json_cache, _cache_locks
 
-
 # ---------------------------------------------------------------------------
 # Test 1: Cache stampede prevention — single disk read under concurrency
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_cache_stampede_single_read_execution(tmp_path: Path) -> None:
@@ -40,12 +41,15 @@ async def test_cache_stampede_single_read_execution(tmp_path: Path) -> None:
 
     # Patch the synchronous helper so we can count calls.
     # Also patch os.path.getmtime to return a stable value.
-    with patch(
-        "configstream.server.utils._read_json_file",
-        side_effect=mock_read_sync,
-    ), patch(
-        "configstream.server.utils.os.path.getmtime",
-        return_value=fixed_mtime,
+    with (
+        patch(
+            "configstream.server.utils._read_json_file",
+            side_effect=mock_read_sync,
+        ),
+        patch(
+            "configstream.server.utils.os.path.getmtime",
+            return_value=fixed_mtime,
+        ),
     ):
         # Fire 10 concurrent requests for the same file
         results = await asyncio.gather(
@@ -65,6 +69,7 @@ async def test_cache_stampede_single_read_execution(tmp_path: Path) -> None:
 # Test 2: Cached result is returned without re-reading on subsequent calls
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_cache_hit_skips_disk_read(tmp_path: Path) -> None:
     """A subsequent call for the same unchanged file must use the cache."""
@@ -82,12 +87,15 @@ async def test_cache_hit_skips_disk_read(tmp_path: Path) -> None:
         read_count += 1
         return {"value": 42}
 
-    with patch(
-        "configstream.server.utils._read_json_file",
-        side_effect=mock_read_sync,
-    ), patch(
-        "configstream.server.utils.os.path.getmtime",
-        return_value=fixed_mtime,
+    with (
+        patch(
+            "configstream.server.utils._read_json_file",
+            side_effect=mock_read_sync,
+        ),
+        patch(
+            "configstream.server.utils.os.path.getmtime",
+            return_value=fixed_mtime,
+        ),
     ):
         first = await _read_json_file_async(json_file)
         second = await _read_json_file_async(json_file)
@@ -95,6 +103,6 @@ async def test_cache_hit_skips_disk_read(tmp_path: Path) -> None:
     assert first == {"value": 42}
     assert second == {"value": 42}
     # Second call must be served from cache — no additional read
-    assert read_count == 1, (
-        f"Expected 1 disk read total but got {read_count}. Cache lookup is broken."
-    )
+    assert (
+        read_count == 1
+    ), f"Expected 1 disk read total but got {read_count}. Cache lookup is broken."

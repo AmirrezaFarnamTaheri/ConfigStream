@@ -475,6 +475,7 @@ def _attach_manifest_signature(manifest: Dict[str, Any]) -> None:
         manifest["manifest_signature"] = signer.sign_manifest(manifest)
     except Exception as exc:
         from ..security_validator import SecurityValidator
+
         logger.error(
             "Failed to sign manifest [%s]: %s",
             type(exc).__name__,

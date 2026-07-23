@@ -31,7 +31,11 @@ def make_entry(
     """Build an unverified WARP candidate from validated key material."""
     if not _valid_wireguard_key(private_key):
         return None
-    peer_key = peer_pub if peer_pub and _valid_wireguard_key(peer_pub) else DEFAULT_WARP_PEER_KEY
+    peer_key = (
+        peer_pub
+        if peer_pub and _valid_wireguard_key(peer_pub)
+        else DEFAULT_WARP_PEER_KEY
+    )
 
     try:
         normalized_port = int(port)

@@ -61,6 +61,7 @@ class StreamingProducer(IProducer):
             )
         except Exception as e:
             from configstream.security_validator import SecurityValidator
+
             safe_err = SecurityValidator.sanitize_log_message(str(e))
             logger.error(
                 "StreamingProducer encountered an unhandled exception [%s]: %s",
@@ -525,7 +526,9 @@ async def source_producer(
                                     f"anomaly_blocked:{reason}",
                                 )
                             except Exception:  # nosec B110
-                                logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+                                logging.getLogger(__name__).debug(
+                                    "Suppressed broad exception", exc_info=True
+                                )
                                 pass
                             if event_stream:
                                 event_stream.emit(

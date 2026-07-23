@@ -83,9 +83,7 @@ def _nosec_comments(path: Path, source: str) -> list[tuple[int, re.Match[str]]]:
 
 
 def _collect_active_bandit_findings(scan_roots: tuple[str, ...]) -> FindingMap:
-    python_roots = tuple(
-        root for root in scan_roots if (ROOT / root).suffix != ".js"
-    )
+    python_roots = tuple(root for root in scan_roots if (ROOT / root).suffix != ".js")
     if not python_roots:
         return {}
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as handle:
@@ -136,7 +134,9 @@ def _inert_exception_suppression(path: Path, line_no: int, token: str) -> bool:
     lines = path.read_text(encoding="utf-8").splitlines()
     start = max(0, line_no - 1)
     window = "\n".join(lines[start : min(len(lines), start + 8)])
-    return any(marker in window for marker in ("logger.", "logging.", "raise", "print("))
+    return any(
+        marker in window for marker in ("logger.", "logging.", "raise", "print(")
+    )
 
 
 def validate_bandit_suppressions(
@@ -189,7 +189,9 @@ def validate_bandit_suppressions(
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("paths", nargs="*", help="Repository-relative files or directories.")
+    parser.add_argument(
+        "paths", nargs="*", help="Repository-relative files or directories."
+    )
     parser.add_argument(
         "--require-active",
         action="store_true",

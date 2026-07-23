@@ -76,7 +76,9 @@ CREATE TABLE IF NOT EXISTS history (
                     try:
                         self._init_db()
                     except Exception as e:
-                        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+                        logging.getLogger(__name__).debug(
+                            "Suppressed broad exception", exc_info=True
+                        )
                         return True, f"DB Init Error (Fail Open): {_safe_log_text(e)}"
 
                 # Mypy safety: ensure _conn is not None before usage
@@ -389,5 +391,10 @@ CREATE TABLE IF NOT EXISTS history (
     def __enter__(self) -> "AnomalyDetector":
         return self
 
-    def __exit__(self, exc_type: Optional[type], exc_val: Optional[BaseException], exc_tb: Optional[Any]) -> None:
+    def __exit__(
+        self,
+        exc_type: Optional[type],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[Any],
+    ) -> None:
         self.close()

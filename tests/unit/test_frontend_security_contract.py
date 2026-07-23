@@ -48,7 +48,9 @@ def test_lab_generated_scripts_do_not_auto_download_binaries() -> None:
     assert "urllib.request.urlretrieve" not in lab_js
     assert "tar.extractall" not in lab_js
 
-    required_message = "sing-box is required and must be installed from an official release"
+    required_message = (
+        "sing-box is required and must be installed from an official release"
+    )
     assert lab_js.count(required_message) >= 2
     assert 'shutil.which("sing-box")' in lab_js
     assert "command -v sing-box" in lab_js

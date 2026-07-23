@@ -2,6 +2,7 @@
 """
 ConfigStream: High-Performance VPN Aggregator & Tester
 """
+
 import logging
 
 import sys
@@ -113,7 +114,9 @@ def _patch_anyio_current_task() -> None:
         return
 
     _orig_current_task = anyio_asyncio.current_task
-    _sentinel_tasks: "weakref.WeakKeyDictionary[asyncio.AbstractEventLoop, asyncio.Task]" = weakref.WeakKeyDictionary()
+    _sentinel_tasks: (
+        "weakref.WeakKeyDictionary[asyncio.AbstractEventLoop, asyncio.Task]"
+    ) = weakref.WeakKeyDictionary()
 
     async def _keepalive() -> None:
         await asyncio.Event().wait()

@@ -1,0 +1,2494 @@
+author:	qodo-code-review
+association:	contributor
+edited:	false
+status:	none
+--
+### Qodo reviews are paused for this user.
+
+Troubleshooting steps vary by plan [Learn more ÔåÆ](https://docs.qodo.ai/subscription-plans#what-you%E2%80%99ll-see-when-reviews-are-paused)
+
+
+**On a Teams plan?**
+Reviews resume once this user has a paid seat *and* their Git account is linked in Qodo.
+[Link Git account ÔåÆ](https://docs.qodo.ai/subscription-plans#linking-a-git-account)
+
+**Using GitHub Enterprise Server, GitLab Self-Managed, or Bitbucket Data Center?**
+These require an Enterprise plan - Contact us
+[Contact us ÔåÆ](https://docs.qodo.ai/qodo-support#support)
+
+--
+author:	AmirrezaFarnamTaheri
+association:	owner
+edited:	false
+status:	none
+--
+Thanks for the thorough remediation pass ÔÇö this looks like a broad v3.1.0 follow-up touching IPC stability, new protocol parsers, crypto/signing behavior, and expanded E2E coverage.
+
+A few things that feel risky/need a bit more clarity before merge:
+- This is a very large surface area in one PR. Could you call out the highest-risk changes and confirm which ones are already covered by targeted tests vs only broad suite coverage?
+- The new TUIC v5 / Hysteria3 parsers and schema/protocol matrix updates look especially sensitive ÔÇö do we have compatibility notes or example payloads showing they match expected wire behavior?
+- The steganography HMAC-SHA256 change and Ed25519 canonical JSON sorting are security-significant; it would help to document any backward-compatibility or migration impact on existing artifacts/signatures.
+- The description mentions ÔÇ£100% greenÔÇØ and 1,264 passing tests, but I donÔÇÖt see a summary of what was added/updated for unit vs integration vs E2E. Could you point to the new/updated test files for each major change?
+- Since the PR includes the 44 audit reports and implementation plans, can you confirm whether all of those docs are intended to ship in-tree, or if some should be moved/trimmed to keep the change set focused?
+Suggestion: consider splitting the protocol/parser work, crypto changes, and test harness/docs updates into smaller follow-up PRs if possible ÔÇö itÔÇÖll make review and rollback much easier.
+
+--
+author:	coderabbitai
+association:	contributor
+edited:	true
+status:	none
+--
+<!-- This is an auto-generated comment: summarize by coderabbit.ai -->
+<!-- review_stack_entry_start -->
+
+[![Review Change Stack](https://storage.googleapis.com/coderabbit_public_assets/review-stack-in-coderabbit-ui.svg)](https://app.coderabbit.ai/change-stack/AmirrezaFarnamTaheri/ConfigStream/pull/526?utm_source=github_walkthrough&utm_medium=github&utm_campaign=change_stack)
+
+<!-- review_stack_entry_end -->
+<!-- walkthrough_start -->
+
+<details>
+<summary>­ƒôØ Walkthrough</summary>
+
+## Walkthrough
+
+This PR adds extensive audit and remediation-plan documentation, introduces TUIC and Hysteria3 parsing, improves pipeline and cache resilience, adds canonical signing and steganography helpers, hardens frontend behavior, and expands targeted unit and E2E test coverage.
+
+### Changes
+
+**Audit and remediation documentation**
+
+|Layer / File(s)|Summary|
+|---|---|
+|**Repository audit reports and plans** <br> `docs/*.md`, `docs/superpowers/plans/*`, `review-stage/*`|Adds audits and implementation plans covering pipeline behavior, security, frontend, protocols, deployment, caching, IPC, signing, steganography, and refactoring boundaries.|
+|**Protocol metadata contracts** <br> `docs/protocol_matrix.json`, `docs/wiki/project/03-protocols.md`, `schema/*.json`|Registers Hysteria3 and the `hy3` alias and extends accepted protocol schema values and metadata fields.|
+
+**Runtime implementations**
+
+|Layer / File(s)|Summary|
+|---|---|
+|**Protocol parsing** <br> `src/configstream/parsers/*`, `src/configstream/constants.py`, `src/go/tester/wasm_main.go`|Adds TUIC and Hysteria3 URI parsing, exports Hysteria3 through the parser package, accepts both protocols, and normalizes them for browser reachability.|
+|**Pipeline and cache resilience** <br> `src/configstream/pipeline/*`, `src/configstream/server/utils.py`, `src/configstream/testers/go_tester/*`, `src/configstream/serialize.py`|Re-raises producer failures, moves persistence off the event loop, avoids duplicate revival candidates, serializes fewer internal fields, prevents cache stampedes, bounds tester drains, and adjusts Windows permission checks.|
+|**Signing, steganography, and lifecycle** <br> `src/configstream/signer.py`, `src/configstream/stego.py`, `src/configstream/anomaly.py`|Adds deterministic canonical manifest payloads, HMAC-SHA256 offset derivation, and context-manager cleanup for `AnomalyDetector`.|
+|**Frontend hardening and E2E scaffolding** <br> `frontend/assets/js/inline-icons.js`, `frontend/lab.html`, `tests/e2e/*`, `pyproject.toml`|Removes executable SVG child nodes, loads DOMPurify, adds a Laboratory page object and structural test, and registers the Playwright marker.|
+
+### Sequence Diagram(s)
+
+```mermaid
+sequenceDiagram
+  participant Input
+  participant ParserRegistry
+  participant Proxy
+  participant Frontend
+  Input->>ParserRegistry: parse TUIC or Hysteria3 URI
+  ParserRegistry->>Proxy: construct normalized proxy model
+  Proxy->>Frontend: expose protocol and connection details
+  Frontend->>Frontend: normalize supported browser URL schemes
+```
+
+**Estimated code review effort:** 5 (Critical) | ~120 minutes
+
+**Possibly related PRs**
+
+- [AmirrezaFarnamTaheri/ConfigStream#465](https://github.com/AmirrezaFarnamTaheri/ConfigStream/pull/465): Both changes update Ed25519 manifest signing and timestamped canonical payload handling.
+
+</details>
+
+<!-- walkthrough_end -->
+<!-- pre_merge_checks_walkthrough_start -->
+
+<details>
+<summary>­ƒÜÑ Pre-merge checks | Ô£à 5</summary>
+
+<details>
+<summary>Ô£à Passed checks (5 passed)</summary>
+
+|         Check name         | Status   | Explanation                                                                                                |
+| :------------------------: | :------- | :--------------------------------------------------------------------------------------------------------- |
+|      Description Check     | Ô£à Passed | Check skipped - CodeRabbitÔÇÖs high-level summary is enabled.                                                |
+|         Title check        | Ô£à Passed | The title accurately reflects the PRÔÇÖs broad post-audit remediation and protocol enhancement scope.        |
+|     Docstring Coverage     | Ô£à Passed | No functions found in the changed files to evaluate docstring coverage. Skipping docstring coverage check. |
+|     Linked Issues check    | Ô£à Passed | Check skipped because no linked issues were found for this pull request.                                   |
+| Out of Scope Changes check | Ô£à Passed | Check skipped because no linked issues were found for this pull request.                                   |
+
+</details>
+
+</details>
+
+<!-- pre_merge_checks_walkthrough_end -->
+<!-- finishing_touch_checkbox_start -->
+
+<details>
+<summary>Ô£¿ Finishing Touches</summary>
+
+<details>
+<summary>­ƒôØ Generate docstrings</summary>
+
+- [ ] <!-- {"checkboxId": "7962f53c-55bc-4827-bfbf-6a18da830691"} --> Create stacked PR
+- [ ] <!-- {"checkboxId": "3e1879ae-f29b-4d0d-8e06-d12b7ba33d98"} --> Commit on current branch
+
+</details>
+<details>
+<summary>­ƒº¬ Generate unit tests (beta)</summary>
+
+- [ ] <!-- {"checkboxId": "f47ac10b-58cc-4372-a567-0e02b2c3d479", "radioGroupId": "utg-output-choice-group-unknown_comment_id"} -->   Create PR with unit tests
+- [ ] <!-- {"checkboxId": "6ba7b810-9dad-11d1-80b4-00c04fd430c8", "radioGroupId": "utg-output-choice-group-unknown_comment_id"} -->   Commit unit tests in branch `feat/post-audit-remediation-v3.1.0`
+
+</details>
+
+</details>
+
+<!-- finishing_touch_checkbox_end -->
+<!-- This is an auto-generated comment: all tool run failures by coderabbit.ai -->
+
+> [!WARNING]
+> There were issues while running some tools. Please review the errors and either fix the tool's configuration or disable the tool if it's a critical failure.
+> 
+> <details>
+> <summary>­ƒöº golangci-lint (2.12.2)</summary>
+> 
+> level=error msg="[linters_context] typechecking error: pattern ./...: directory prefix . does not contain main module or its selected dependencies"
+> 
+> 
+> 
+> 
+> </details>
+
+<!-- end of auto-generated comment: all tool run failures by coderabbit.ai -->
+<!-- tips_start -->
+
+---
+
+Thanks for using [CodeRabbit](https://coderabbit.ai?utm_source=oss&utm_medium=github&utm_campaign=AmirrezaFarnamTaheri/ConfigStream&utm_content=526)! It's free for OSS, and your support helps us grow. If you like it, consider giving us a shout-out.
+
+<details>
+<summary>ÔØñ´©Å Share</summary>
+
+- [X](https://twitter.com/intent/tweet?text=I%20just%20used%20%40coderabbitai%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20the%20proprietary%20code.%20Check%20it%20out%3A&url=https%3A//coderabbit.ai)
+- [Mastodon](https://mastodon.social/share?text=I%20just%20used%20%40coderabbitai%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20the%20proprietary%20code.%20Check%20it%20out%3A%20https%3A%2F%2Fcoderabbit.ai)
+- [Reddit](https://www.reddit.com/submit?title=Great%20tool%20for%20code%20review%20-%20CodeRabbit&text=I%20just%20used%20CodeRabbit%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20proprietary%20code.%20Check%20it%20out%3A%20https%3A//coderabbit.ai)
+- [LinkedIn](https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fcoderabbit.ai&mini=true&title=Great%20tool%20for%20code%20review%20-%20CodeRabbit&summary=I%20just%20used%20CodeRabbit%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20proprietary%20code)
+
+</details>
+
+
+<sub>Comment `@coderabbitai help` to get the list of available commands.</sub>
+
+<!-- tips_end -->
+--
+author:	coderabbitai
+association:	contributor
+edited:	false
+status:	commented
+--
+**Actionable comments posted: 1**
+
+> [!NOTE]
+> Due to the large number of review comments, Critical severity comments were prioritized as inline comments.
+
+<details>
+<summary>­ƒƒá Major comments (41)</summary><blockquote>
+
+<details>
+<summary>tests/unit/test_slop_cleanup_verification.py-19-86 (1)</summary><blockquote>
+
+`19-86`: _­ƒôÉ Maintainability & Code Quality_ | _­ƒƒá Major_ | _ÔÜí Quick win_
+
+**Add strict type annotations to every test function.**
+
+All six test functions are untyped. Add `-> None` to each signature and run `mypy` before submission.
+
+<details>
+<summary>Suggested change</summary>
+
+```diff
+-def test_unused_exception_classes_removed():
++def test_unused_exception_classes_removed() -> None:
+ 
+-def test_no_dead_pass_through_wrappers():
++def test_no_dead_pass_through_wrappers() -> None:
+ 
+-def test_fetch_result_construction():
++def test_fetch_result_construction() -> None:
+ 
+-def test_rate_limit_error_with_retry_after():
++def test_rate_limit_error_with_retry_after() -> None:
+ 
+-def test_parse_retry_after_integer_string():
++def test_parse_retry_after_integer_string() -> None:
+ 
+-def test_parse_retry_after_none_input():
++def test_parse_retry_after_none_input() -> None:
+ 
+-def test_parse_retry_after_invalid_returns_none():
++def test_parse_retry_after_invalid_returns_none() -> None:
+```
+
+</details>
+
+As per coding guidelines, Python files must use strict typing on all function signatures and verify type safety with `mypy`.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@tests/unit/test_slop_cleanup_verification.py` around lines 19 - 86, Add an
+explicit -> None return annotation to all six test functions in this file:
+test_unused_exception_classes_removed, test_no_dead_pass_through_wrappers,
+test_fetch_result_construction, test_rate_limit_error_with_retry_after,
+test_parse_retry_after_integer_string, test_parse_retry_after_none_input, and
+test_parse_retry_after_invalid_returns_none. Run mypy afterward and resolve any
+type errors.
+```
+
+</details>
+
+<!-- cr-comment:v1:ae979ac09c145c7eb17ef4da -->
+
+_Source: Coding guidelines_
+
+</blockquote></details>
+<details>
+<summary>docs/CLIENT_ADAPTER_PROFILES_AUDIT.md-112-117 (1)</summary><blockquote>
+
+`112-117`: _­ƒùä´©Å Data Integrity & Integration_ | _­ƒƒá Major_ | _ÔÜí Quick win_
+
+**Register every generated adapter profile in the output matrix.**
+
+The audit says Surge, Loon, QuantumultX, and Shadowrocket artifacts are all untracked, but the proposed patch adds only Surge and QuantumultX. Loon and Shadowrocket remain outside integrity validation; add their exact generated paths or narrow the finding.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@docs/CLIENT_ADAPTER_PROFILES_AUDIT.md` around lines 112 - 117, Update the
+ÔÇ£Register Output Matrix DefinitionsÔÇØ instructions and docs/output_matrix.json to
+include exact generated entries for the Loon and Shadowrocket adapter profiles
+alongside Surge and QuantumultX. Ensure all four generated artifacts are covered
+by the output matrix, or explicitly narrow the audit finding to only the
+profiles being registered.
+```
+
+</details>
+
+<!-- cr-comment:v1:8191fc652bc50aa0a5df3681 -->
+
+</blockquote></details>
+<details>
+<summary>review-stage/OUTPUT_MATRIX_REVIEW.md-47-73 (1)</summary><blockquote>
+
+`47-73`: _­ƒùä´©Å Data Integrity & Integration_ | _­ƒƒá Major_ | _ÔÜí Quick win_
+
+**Do not silently skip artifacts marked required.**
+
+Each proposed copy is conditional on the source existing, with no failure or diagnostic in the missing case. The pipeline can therefore appear successful while still omitting `api/proxies`, `api/stats`, `index.html`, or the wiki artifact. Fail generation or emit a validation error when a required source is absent.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@review-stage/OUTPUT_MATRIX_REVIEW.md` around lines 47 - 73, Make the
+artifact-copy logic fail generation or emit a validation error when required
+sources are missing instead of silently skipping them. Update the API alias
+copies for proxies_path and meta_path, plus the frontend_index and docs_wiki
+copies, while preserving the existing destination paths and copy behavior when
+sources exist.
+```
+
+</details>
+
+<!-- cr-comment:v1:1f650abd9bfc8049b5a931b7 -->
+
+</blockquote></details>
+<details>
+<summary>docs/CLIENT_ADAPTER_PROFILES_AUDIT.md-88-92 (1)</summary><blockquote>
+
+`88-92`: _­ƒöÆ Security & Privacy_ | _­ƒƒá Major_ | _ÔÜí Quick win_
+
+**Escape proxy-derived fields before profile serialization.**
+
+`ws_path`, `host`, `sni`, and credentials are inserted directly into adapter text. Malicious or malformed values containing delimiters or line breaks can inject additional options or profile entries. Use each adapterÔÇÖs escaping/quoting helper and reject control characters before concatenation.
+
+
+
+
+
+
+Also applies to: 105-109
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@docs/CLIENT_ADAPTER_PROFILES_AUDIT.md` around lines 88 - 92, Update the
+profile serialization logic around ws_path, host, sni, uuid, and other
+proxy-derived fields to reject control characters and escape or quote every
+value using the adapterÔÇÖs established helper before concatenation. Apply the
+same protection to the corresponding serialization block noted in the review,
+while preserving valid output for ordinary values.
+```
+
+</details>
+
+<!-- cr-comment:v1:86ed4c02dd4051baf28b5d7a -->
+
+</blockquote></details>
+<details>
+<summary>review-stage/PIPELINE_REVIEW.md-45-46 (1)</summary><blockquote>
+
+`45-46`: _­ƒöÆ Security & Privacy_ | _­ƒƒá Major_ | _ÔÜí Quick win_
+
+**Sanitize the cleanup exception before logging.**
+
+The proposed patch logs raw `e`, unlike the sanitized producer path:
+
+<details>
+<summary>Proposed correction</summary>
+
+```diff
+-                logger.warning(f"History cleanup failed: {e}")
++                safe_error = SecurityValidator.sanitize_log_message(str(e))
++                logger.warning(f"History cleanup failed: {safe_error}")
+```
+
+As per coding guidelines, wrap all URLs and errors in log statements with `SecurityValidator.sanitize_log_message` to prevent token/credential leaks.
+</details>
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@review-stage/PIPELINE_REVIEW.md` around lines 45 - 46, Update the history
+cleanup exception handling around the logger.warning call to sanitize the caught
+exception with SecurityValidator.sanitize_log_message before including it in the
+log message, matching the existing sanitized producer path.
+```
+
+</details>
+
+<!-- cr-comment:v1:bdafa4cf9c531340643ac70c -->
+
+_Source: Coding guidelines_
+
+</blockquote></details>
+<details>
+<summary>docs/CICD_RESILIENCE_REPORT.md-61-68 (1)</summary><blockquote>
+
+`61-68`: _­ƒöÆ Security & Privacy_ | _­ƒƒá Major_ | _ÔÜí Quick win_
+
+**URL-encode `GITHUB_REF_NAME` before passing it to `gh api`.**
+
+Assigning `${{ github.ref_name }}` to `GITHUB_REF_NAME` prevents shell injection, but raw branch names are still inserted into the query string. Branch names containing `/`, `&`, `=`, `#`, `%`, or spaces can make the API URL parse incorrectly; prefer an encoded API field/parameter or percent-encode the value before construction.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@docs/CICD_RESILIENCE_REPORT.md` around lines 61 - 68, Update the API request
+construction in the MAIN_RUN and RETEST_RUN commands to URL-encode
+GITHUB_REF_NAME before including it in the branch query parameter. Preserve the
+existing GITHUB_REPO usage and workflow-run lookup behavior while ensuring
+branch names containing reserved characters or spaces are transmitted as a
+single query value.
+```
+
+</details>
+
+<!-- cr-comment:v1:2d446448eae60c5728056808 -->
+
+</blockquote></details>
+<details>
+<summary>docs/FRONTEND_DESIGN_DESLOP_REPORT.md-21-29 (1)</summary><blockquote>
+
+`21-29`: _­ƒÄ» Functional Correctness_ | _­ƒƒá Major_ | _ÔÜí Quick win_
+
+**Do not present OKLCH as a contrast guarantee.**
+
+OKLCH does not itself guarantee WCAG contrast. Measure each foreground/background pair, including hover, focus, disabled, and dark-mode states, before claiming 4.5:1 compliance.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@docs/FRONTEND_DESIGN_DESLOP_REPORT.md` around lines 21 - 29, Update the OKLCH
+recommendation in the frontend design report to avoid claiming that OKLCH
+guarantees contrast or that the sample brand color meets 4.5:1 automatically.
+State that every foreground/background pairing, including hover, focus,
+disabled, and dark-mode states, must be measured before asserting WCAG
+compliance.
+```
+
+</details>
+
+<!-- cr-comment:v1:f1fda3dc202457196056f762 -->
+
+</blockquote></details>
+<details>
+<summary>docs/FRONTEND_ANALYTICS_GLOBE_AUDIT.md-41-46 (1)</summary><blockquote>
+
+`41-46`: _­ƒöÆ Security & Privacy_ | _­ƒƒá Major_ | _ÔÜí Quick win_
+
+**Narrow the Chart.js XSS ÔÇ£PASSÔÇØ claim.**
+
+Canvas rendering avoids HTML parsing in the default path, but it is not an input sanitizer; plugins, tooltips, or future DOM adapters can reintroduce HTML sinks. State the exact safe path and retain the explicit no-HTML-sink requirement.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@docs/FRONTEND_ANALYTICS_GLOBE_AUDIT.md` around lines 41 - 46, Revise the
+Chart.js XSS audit entry to limit the PASS claim to the default canvas
+text-rendering path, explicitly noting that Chart.js is not an input sanitizer
+and that plugins, tooltips, or DOM adapters may introduce HTML sinks. Retain the
+requirement that chart labels must not flow into HTML-rendering sinks.
+```
+
+</details>
+
+<!-- cr-comment:v1:8b4971fd58f71b463e0f9fa0 -->
+
+</blockquote></details>
+<details>
+<summary>docs/DNS_SCANNER_TOOLS_AUDIT.md-60-66 (1)</summary><blockquote>
+
+`60-66`: _­ƒ®║ Stability & Availability_ | _­ƒƒá Major_ | _ÔÜí Quick win_
+
+**Move the active-scanning guard into the scan entry points.**
+
+This module-level snippet both omits `import sys` and exits during import, breaking tests and non-scanning commands. Enforce the check in each scan dispatcher/CLI entry point and return a controlled error.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@docs/DNS_SCANNER_TOOLS_AUDIT.md` around lines 60 - 66, Remove the
+module-level ALLOW_ACTIVE_SCANNING check from lab-scanner.py and
+dnsscanner_tui.py, including its import-time sys.exit behavior. Add the guard to
+each scan dispatcher or CLI entry point, using the existing environment-variable
+condition, and return a controlled error when active scanning is disabled while
+allowing imports and non-scanning commands to proceed.
+```
+
+</details>
+
+<!-- cr-comment:v1:adb5a536079e7001144efa8f -->
+
+</blockquote></details>
+<details>
+<summary>src/configstream/parsers/tuic.py-45-46 (1)</summary><blockquote>
+
+`45-46`: _­ƒ®║ Stability & Availability_ | _­ƒƒá Major_ | _ÔÜí Quick win_
+
+**Replace the unlogged broad exception handler.**
+
+This converts malformed URLs, invalid ports, model validation failures, and programming bugs into `None`, hiding regressions and failing the supplied security diagnostics. Catch expected validation exceptions and log a sanitized drop reason at `DEBUG`; let unexpected exceptions surface.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@src/configstream/parsers/tuic.py` around lines 45 - 46, Update the parser
+exception handling around the visible broad catch to handle only expected URL,
+port, and model-validation exceptions, logging a sanitized drop reason at DEBUG
+before returning None. Remove the blanket Exception catch so programming errors
+and unexpected failures propagate.
+```
+
+</details>
+
+<!-- cr-comment:v1:c18e246930cfdd26fdfd2526 -->
+
+_Sources: Coding guidelines, Linters/SAST tools, Pipeline failures_
+
+</blockquote></details>
+<details>
+<summary>src/configstream/parsers/tuic.py-29-33 (1)</summary><blockquote>
+
+`29-33`: _­ƒùä´©Å Data Integrity & Integration_ | _­ƒƒá Major_ | _ÔÜí Quick win_
+
+**Do not fall back to the TUIC UUID when the password is missing.**
+
+TUIC v5 needs the raw password to derive the authenticate token together with the UUID, so `password_val or uuid_val` creates a different, unusable credential. Reject TUIC URLs without a password, or implement a documented fallback if missing passwords can be recovered.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@src/configstream/parsers/tuic.py` around lines 29 - 33, The TUIC parser must
+not substitute uuid_val when password_val is absent. Update the details
+construction in the TUIC URL parsing flow to require and preserve the raw
+password, rejecting URLs without one or using an existing documented recovery
+mechanism; keep UUID handling separate for authentication-token derivation.
+```
+
+</details>
+
+<!-- cr-comment:v1:a999d3f2a60c9d30f6cfa887 -->
+
+</blockquote></details>
+<details>
+<summary>docs/DNS_SCANNER_TOOLS_AUDIT.md-72-77 (1)</summary><blockquote>
+
+`72-77`: _­ƒöÆ Security & Privacy_ | _­ƒƒá Major_ | _ÔÜí Quick win_
+
+**Do not mask credentials with raw string replacement.**
+
+`urlparse()` decoded passwords wonÔÇÖt match encoded substrings in `proxy_url`, so `str.replace()` can leave the original encoded credential in logs. Build the sanitized URL from parsed components instead, removing the username/password entirely or replacing each URL-encoded credential fragment.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@docs/DNS_SCANNER_TOOLS_AUDIT.md` around lines 72 - 77, Update safe_log_proxy
+to avoid raw string replacement when masking proxy credentials. Reconstruct the
+sanitized URL from the parsed URL components, removing or safely replacing the
+username and password while preserving URL encoding, so encoded credentials
+cannot remain in logs.
+```
+
+</details>
+
+<!-- cr-comment:v1:7a43ea958945e0160d0696ed -->
+
+</blockquote></details>
+<details>
+<summary>docs/ED25519_WEB_CRYPTO_AUDIT.md-28-34 (1)</summary><blockquote>
+
+`28-34`: _­ƒùä´©Å Data Integrity & Integration_ | _­ƒƒá Major_ | _­ƒÅù´©Å Heavy lift_
+
+**Do not claim cross-language canonical JSON is parity-safe.**
+
+`sort_keys=True`, compact separators, and UTF-8 preservation do not cover all deterministic cases: the JS path also stringifies after sorting, numeric formatting can differ, and JavaScript stringifies `NaN`/`Infinity` as `null` while Python emits JSON literals. Add explicit canonicalization tests covering numbers, Unicode/escaping, key order, and schema constraints, or define/reuse one canonical form between Python and Web Crypto.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@docs/ED25519_WEB_CRYPTO_AUDIT.md` around lines 28 - 34, The auditÔÇÖs ÔÇ£JS
+CanonicalizationÔÇØ assessment must not claim Python and JavaScript serialization
+is parity-safe based only on matching key sorting and separators. Update the
+documentation around _canonicalize and validate_pages_artifact.py to either
+define and reuse one canonical format, or add explicit cross-language tests
+covering numbers, NaN/Infinity handling, Unicode and escaping, key ordering, and
+schema constraints.
+```
+
+</details>
+
+<!-- cr-comment:v1:bbc9065c03bda5a08dcd0b6d -->
+
+</blockquote></details>
+<details>
+<summary>docs/GOBATCHTESTER_BRIDGE_AUDIT.md-55-60 (1)</summary><blockquote>
+
+`55-60`: _­ƒ®║ Stability & Availability_ | _­ƒƒá Major_ | _ÔÜí Quick win_
+
+**Bound the daemon restart after a drain timeout.**
+
+The proposed recovery bounds `stdin.drain()` but then directly awaits `_restart_daemon()`. If restart hangs, the next batch still never starts. Wrap the restart itself in the required 30-second timeout and disable/close the daemon if that timeout expires.
+
+As per coding guidelines, `GoBatchTester` must await restarts with a 30-second timeout before processing the next batch.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@docs/GOBATCHTESTER_BRIDGE_AUDIT.md` around lines 55 - 60, Update the
+drain-timeout recovery in GoBatchTester to await _restart_daemon() with the
+required 30-second timeout before processing another batch. If the restart
+exceeds that timeout, disable and close the daemon, then preserve the existing
+proxy-return flow.
+```
+
+</details>
+
+<!-- cr-comment:v1:a881155ceae170afac29ec40 -->
+
+_Source: Coding guidelines_
+
+</blockquote></details>
+<details>
+<summary>docs/I18N_LOCALIZATION_AUDIT.md-65-67 (1)</summary><blockquote>
+
+`65-67`: _­ƒöÆ Security & Privacy_ | _­ƒƒá Major_ | _ÔÜí Quick win_
+
+**Do not interpolate untrusted values after sanitization.**
+
+Sanitizing the template first and substituting `{user}` afterward can reintroduce HTML/XSS. Escape dynamic values before insertion and sanitize the final fragment, or render them with `textContent` and DOM APIs instead of HTML rendering.
+
+As per coding guidelines, untrusted frontend data must not be rendered with `innerHTML`; use `textContent`, `createElement`, `appendChild`, or `replaceChildren`.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@docs/I18N_LOCALIZATION_AUDIT.md` around lines 65 - 67, Update the ÔÇ£Template
+SubstitutionÔÇØ guidance to prohibit inserting untrusted values after
+sanitization. Require dynamic values to be escaped before insertion and the
+complete fragment sanitized afterward, or rendered safely with textContent and
+DOM APIs such as createElement, appendChild, or replaceChildren instead of
+innerHTML.
+```
+
+</details>
+
+<!-- cr-comment:v1:aac4eb3759ab0d5c95a0a8d2 -->
+
+_Source: Coding guidelines_
+
+</blockquote></details>
+<details>
+<summary>docs/GEOIP_SUBNET_MASKING_AUDIT.md-56-59 (1)</summary><blockquote>
+
+`56-59`: _­ƒ®║ Stability & Availability_ | _­ƒƒá Major_ | _ÔÜí Quick win_
+
+**Reconcile the GeoIP concurrency finding across the audits.**
+
+`docs/GEOIP_SUBNET_MASKING_AUDIT.md` correctly flags the pure-Python fallback: reload closes readers under `threading.Lock`, while `_do_lookup()` is protected only by `asyncio.Lock`, so a lookup can race a thread reloading the database. Update `docs/INTELLIGENCE_LAYER_AUDIT.md` so its `GeoIPResolver` row does not imply the async lock is sufficient for all DB access paths.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@docs/GEOIP_SUBNET_MASKING_AUDIT.md` around lines 56 - 59, The GeoIP
+concurrency audits must consistently document that the async lookup lock does
+not protect pure-Python reader access during threaded reloads. In
+docs/GEOIP_SUBNET_MASKING_AUDIT.md lines 56-59, retain the existing
+race-condition finding; in docs/INTELLIGENCE_LAYER_AUDIT.md lines 31-35, update
+the GeoIPResolver row to explicitly note that _lookup_lock is insufficient for
+all database access paths and that reload can race with _do_lookup().
+```
+
+</details>
+
+<!-- cr-comment:v1:48c601de22065736cded6ad7 -->
+
+</blockquote></details>
+<details>
+<summary>docs/LAB_CHAIN_TESTER_AUDIT.md-82-88 (1)</summary><blockquote>
+
+`82-88`: _­ƒöÆ Security & Privacy_ | _­ƒƒá Major_ | _­ƒÅù´©Å Heavy lift_
+
+**Make the outbound validator structural and DNS-aware before relying on it for SSRF prevention.**
+
+`outbound.get(...)` and `ob.get(...)` crash on non-object entries in the documented patch, while `test_chain_config()` only catches `ValueError`, so malformed JSON can bypass the intended error response. The check also covers only top-level `server` fields; chained/detour endpoints and hostnames that resolve to private addresses need recursive canonicalization/validation before execution.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@docs/LAB_CHAIN_TESTER_AUDIT.md` around lines 82 - 88, The
+_validate_and_sanitize_outbounds function must safely handle non-object outbound
+entries and reject malformed structures with ValueError so test_chain_configÔÇÖs
+error handling remains effective. Recursively inspect top-level, chained, and
+detour endpoints, canonicalize hostnames through DNS resolution, and validate
+every resolved address against private/local SSRF ranges before execution.
+```
+
+</details>
+
+<!-- cr-comment:v1:d7b1a1450df6b9c59b00fd8d -->
+
+</blockquote></details>
+<details>
+<summary>docs/GEOIP_SUBNET_MASKING_AUDIT.md-73-75 (1)</summary><blockquote>
+
+`73-75`: _­ƒ®║ Stability & Availability_ | _­ƒƒá Major_ | _­ƒÅù´©Å Heavy lift_
+
+**DonÔÇÖt recommend a blocking lock for pure-Python GeoIP lookups.**
+
+`_do_lookup()` runs inside the async `lookup()` path in pure-Python mode, so replacing the existing `asyncio.Lock` with `threading.RLock()` blocks the event loop and still does not make the close/swap operation race-safe for in-flight readers. Prefer a reader-lifetime/reference-counting approach or move the reader lifecycle and lookup into one async-safe boundary.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@docs/GEOIP_SUBNET_MASKING_AUDIT.md` around lines 73 - 75, The documentationÔÇÖs
+proposed lock unification is unsafe for pure-Python GeoIP lookups because a
+blocking lock would stall the event loop and not protect in-flight readers.
+Update the ÔÇ£Fix Thread-Safe Read/Write Lock in GeoIPResolverÔÇØ guidance to reject
+replacing asyncio.Lock with threading.RLock, and require a
+reader-lifetime/reference-counting strategy or a single async-safe boundary that
+prevents closing swapped readers until all lookups finish.
+```
+
+</details>
+
+<!-- cr-comment:v1:3691e9d90a83d94c51e53188 -->
+
+_Source: Coding guidelines_
+
+</blockquote></details>
+<details>
+<summary>tests/unit/parsers/test_tuic.py-6-18 (1)</summary><blockquote>
+
+`6-18`: _­ƒôÉ Maintainability & Code Quality_ | _­ƒƒá Major_ | _ÔÜí Quick win_
+
+**Add strict return annotations to both tests.**
+
+Use `def test_parse_tuic_valid_uri() -> None:` and `def test_parse_tuic_invalid_uri() -> None:`.
+
+As per coding guidelines, enforce Python 3.10+ with strict typing on all function signatures using `Optional`, `List`, `Dict`, and `Union` from the `typing` module.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@tests/unit/parsers/test_tuic.py` around lines 6 - 18, Add explicit None
+return annotations to both test functions, test_parse_tuic_valid_uri and
+test_parse_tuic_invalid_uri, while leaving their assertions and behavior
+unchanged.
+```
+
+</details>
+
+<!-- cr-comment:v1:99fd2e27852a256bf79c5d54 -->
+
+_Source: Coding guidelines_
+
+</blockquote></details>
+<details>
+<summary>docs/SERVER_CONCURRENT_CACHE_AUDIT.md-119-120 (1)</summary><blockquote>
+
+`119-120`: _­ƒöÆ Security & Privacy_ | _­ƒƒá Major_ | _ÔÜí Quick win_
+
+**Sanitize exception text before logging.**
+
+The proposed `logger.error(f"Failed to read metadata.json: {e}")` emits raw error details. Sanitize the exception before logging to avoid leaking paths, URLs, or credentials.
+
+As per coding guidelines, wrap all URLs and errors in log statements with `SecurityValidator.sanitize_log_message`.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@docs/SERVER_CONCURRENT_CACHE_AUDIT.md` around lines 119 - 120, Update the
+metadata read exception handler to pass the exception text through
+SecurityValidator.sanitize_log_message before supplying it to logger.error.
+Preserve the existing failure context while ensuring raw paths, URLs, and
+credentials are not logged.
+```
+
+</details>
+
+<!-- cr-comment:v1:553e7e6e2f30cab72c4f933a -->
+
+_Source: Coding guidelines_
+
+</blockquote></details>
+<details>
+<summary>docs/SINGBOX_EVASION_RULESETS_AUDIT.md-56-61 (1)</summary><blockquote>
+
+`56-61`: _­ƒöÆ Security & Privacy_ | _­ƒƒá Major_ | _ÔÜí Quick win_
+
+**Use a real loopback address for the ÔÇ£Local (Loopback)ÔÇØ profile.**
+
+`1.1.1.1` is CloudflareÔÇÖs public resolver, not a loopback address. Use `127.0.0.1`/`::1`, or rename this profile as remote DNS; otherwise the documented routing can misclassify external DNS as internal.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@docs/SINGBOX_EVASION_RULESETS_AUDIT.md` around lines 56 - 61, Update the
+ÔÇ£Local (Loopback)ÔÇØ profileÔÇÖs Transport / Protocol value in the DNS profiles
+table to a real loopback address such as 127.0.0.1 or ::1, while preserving its
+direct detour and sing_box-ProxyChain rule-set association.
+```
+
+</details>
+
+<!-- cr-comment:v1:1829d11fb28203fe20fb5727 -->
+
+</blockquote></details>
+<details>
+<summary>docs/SERVER_CONCURRENT_CACHE_AUDIT.md-64-65 (1)</summary><blockquote>
+
+`64-65`: _­ƒ®║ Stability & Availability_ | _­ƒƒá Major_ | _ÔÜí Quick win_
+
+**Bound the lock registry as well as the data cache.**
+
+Patch 1 stores locks in an unbounded `defaultdict`, while Patch 3 limits only `_json_cache`. Long-lived or attacker-controlled paths can still accumulate `asyncio.Lock` objects. Use safe lock-entry cleanup or a bounded lock manager.
+
+
+
+
+
+
+Also applies to: 124-133
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@docs/SERVER_CONCURRENT_CACHE_AUDIT.md` around lines 64 - 65, The _cache_locks
+registry remains unbounded even though _json_cache is bounded. Update the
+lock-management logic around _cache_locks and its associated access/cleanup flow
+to safely remove entries when no longer needed or enforce an equivalent bounded
+lock manager, while preserving synchronization for active paths and preventing
+lock accumulation from long-lived or attacker-controlled paths.
+```
+
+</details>
+
+<!-- cr-comment:v1:e1460fe44f2e7d789b9142a0 -->
+
+</blockquote></details>
+<details>
+<summary>docs/PONYTAIL_SLOP_AUDIT.md-6-19 (1)</summary><blockquote>
+
+`6-19`: _­ƒ®║ Stability & Availability_ | _­ƒƒá Major_ | _ÔÜí Quick win_
+
+**Do not recommend deleting `anomaly.py` without preserving its lifecycle contract.**
+
+This plan conflicts with the required SQLite connection cleanup and the PRÔÇÖs AnomalyDetector lifecycle remediation. If the implementation is replaced, explicitly preserve an equivalent detector API and shutdown/close behavior.
+
+As per path instructions, `src/configstream/anomaly.py`: AnomalyDetector must call `.close()` during pipeline shutdown to release the SQLite DB connection.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@docs/PONYTAIL_SLOP_AUDIT.md` around lines 6 - 19, Update the proposed
+anomaly.py simplification while preserving the AnomalyDetector API and lifecycle
+contract. If replacing the SQLite-backed implementation, retain an equivalent
+detector interface and ensure pipeline shutdown explicitly calls
+AnomalyDetector.close() to release database resources; do not recommend deleting
+the detector without this cleanup behavior.
+```
+
+</details>
+
+<!-- cr-comment:v1:2f5fa5dfa528ab65b2d4e310 -->
+
+_Source: Path instructions_
+
+</blockquote></details>
+<details>
+<summary>docs/PARSER_EXTENSION_SPEC.md-47-55 (1)</summary><blockquote>
+
+`47-55`: _­ƒùä´©Å Data Integrity & Integration_ | _­ƒƒá Major_ | _ÔÜí Quick win_
+
+**Synchronize the parser specifications and audit with the shipped implementations.**
+
+- `docs/PARSER_EXTENSION_SPEC.md#L47-L55`: document the actual TUIC keys/types or implement the advertised advanced fields.
+- `docs/PARSER_EXTENSION_SPEC.md#L71-L78`: align Hysteria3 fields with `src/configstream/parsers/hysteria3.py`.
+- `docs/PROTOCOL_PARSER_DEEPDIVE.md#L5-L24`: add Hysteria3 and correct parser module paths.
+- `docs/PROTOCOL_PARSER_DEEPDIVE.md#L45-L52`: correct claims about default ports and drop-reason logging.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@docs/PARSER_EXTENSION_SPEC.md` around lines 47 - 55, Synchronize the
+documentation with shipped parser behavior: in docs/PARSER_EXTENSION_SPEC.md
+lines 47-55, document the actual TUIC keys and types or implement the advertised
+advanced fields; in lines 71-78, align Hysteria3 fields with
+src/configstream/parsers/hysteria3.py. Update docs/PROTOCOL_PARSER_DEEPDIVE.md
+lines 5-24 to include Hysteria3 and correct parser module paths, and lines 45-52
+to accurately describe default ports and drop-reason logging.
+```
+
+</details>
+
+<!-- cr-comment:v1:d85abee1aa4ca687c582b69f -->
+
+</blockquote></details>
+<details>
+<summary>docs/SECURITY_AUDIT_REPORT.md-10-16 (1)</summary><blockquote>
+
+`10-16`: _­ƒöÆ Security & Privacy_ | _­ƒƒá Major_ | _ÔÜí Quick win_
+
+**DonÔÇÖt call a lower bound a dependency pin.**
+
+`>=3.9.4` still allows future major releases and doesnÔÇÖt address the supply-chain risk listed here. Use a lock/constraints strategy with verified hashes, or at least an explicitly bounded and reviewed range, and update the `aiohttp` table entry and remediation roadmap wording accordingly.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@docs/SECURITY_AUDIT_REPORT.md` around lines 10 - 16, The security auditÔÇÖs
+aiohttp recommendation incorrectly treats a lower bound as a pin. Update the
+aiohttp entry to specify a lock/constraints approach with verified hashes, or an
+explicitly bounded reviewed version range, and revise the remediation roadmap
+wording to match that strategy.
+```
+
+</details>
+
+<!-- cr-comment:v1:fc4d65efd365a73c8d99faeb -->
+
+</blockquote></details>
+<details>
+<summary>docs/SUBSCRIPTIONS_PACKAGING_AUDIT.md-31-37 (1)</summary><blockquote>
+
+`31-37`: _­ƒùä´©Å Data Integrity & Integration_ | _­ƒƒá Major_ | _­ƒÅù´©Å Heavy lift_
+
+**Do not equate file `fsync` plus `os.replace` with power-loss durability.**
+
+`src/configstream/utils/__init__.py:95-139` fsyncs the temporary file but does not fsync the parent directory after `os.replace`; on POSIX, the directory entry may still be lost after a crash. Add platform-specific directory syncing or qualify the claim.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@docs/SUBSCRIPTIONS_PACKAGING_AUDIT.md` around lines 31 - 37, Revise the ÔÇ£Data
+IntegrityÔÇØ and ÔÇ£AssessmentÔÇØ statements under ÔÇ£Atomic File Writer Safety &
+Concurrency AssessmentÔÇØ so they no longer claim power-loss durability from file
+fsync plus os.replace. Either document the required platform-specific
+parent-directory fsync after replacement in the referenced AtomicFileWriter
+flow, or qualify the documentation to state that full directory-entry durability
+is not guaranteed.
+```
+
+</details>
+
+<!-- cr-comment:v1:59351cb096113e4c4fe6a445 -->
+
+</blockquote></details>
+<details>
+<summary>docs/WASM_SANDBOX_AUDIT.md-19-23 (1)</summary><blockquote>
+
+`19-23`: _­ƒ®║ Stability & Availability_ | _­ƒƒá Major_ | _­ƒÅù´©Å Heavy lift_
+
+**Resolve the WebSocket callback lifecycle race before declaring WASM memory safety complete.**
+
+Both documents concern the same missing lifecycle guarantee: closing/detaching the WebSocket does not prove that callbacks are no longer queued or executing before `js.Func.Release()`.
+
+- `docs/WASM_SANDBOX_AUDIT.md#L19-L23`: require idempotent completion plus a lifecycle barrier before releasing callbacks; listener nulling alone is insufficient.
+- `docs/WASM_JS_BRIDGE_INTEROP_AUDIT.md#L32-L37`: change the ÔÇ£handled correctlyÔÇØ verdict to reflect this unresolved race and reference the required lifecycle fix.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@docs/WASM_SANDBOX_AUDIT.md` around lines 19 - 23, The WASM audits must
+document and resolve the WebSocket callback lifecycle race: in
+docs/WASM_SANDBOX_AUDIT.md lines 19-23, require idempotent completion and a
+lifecycle barrier ensuring callbacks are no longer queued or executing before
+releasing onOpen and onError; listener nulling alone is insufficient. In
+docs/WASM_JS_BRIDGE_INTEROP_AUDIT.md lines 32-37, change the ÔÇ£handled correctlyÔÇØ
+verdict to identify this unresolved race and reference the required lifecycle
+fix.
+```
+
+</details>
+
+<!-- cr-comment:v1:4a5ede69724a98dc66f2c604 -->
+
+</blockquote></details>
+<details>
+<summary>docs/WARP_WASHER_SECURITY_REPORT.md-31-35 (1)</summary><blockquote>
+
+`31-35`: _­ƒÄ» Functional Correctness_ | _­ƒƒá Major_ | _ÔÜí Quick win_
+
+**The Psiphon matrix overstates enforcement.**
+
+`src/configstream/tools/vwarp/config.py:22-78` uppercases unknown countries, logs a warning, and still writes `config["psiphon"]`; it does not restrict values to `PSIPHON_COUNTRY_CODES`. Mark this as warn-only or reject unknown codes before claiming enforcement.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@docs/WARP_WASHER_SECURITY_REPORT.md` around lines 31 - 35, Update the Psiphon
+compliance note in the protocol matrix to describe unknown country codes as
+warn-only, matching the behavior in config.py where they are uppercased, logged,
+and still written to config["psiphon"]. Do not claim values are restricted to
+PSIPHON_COUNTRY_CODES unless the configuration logic is changed to reject
+unknown codes before writing them.
+```
+
+</details>
+
+<!-- cr-comment:v1:ea4110f088563e96e04076bc -->
+
+</blockquote></details>
+<details>
+<summary>docs/STEGO_KAT_HMAC_SECURITY_AUDIT.md-90-103 (1)</summary><blockquote>
+
+`90-103`: _­ƒùä´©Å Data Integrity & Integration_ | _­ƒƒá Major_ | _ÔÜí Quick win_
+
+**Keep the domain-separation prefix in both HMAC branches.**
+
+The salted path derives `ConfigStream-LSB-v2\0 || salt || length`, but the unsalted path derives only `length`. This contradicts the flowchart contract and can break KAT/interoperability expectations. Construct the prefix, optional salt, and length once before calling HMAC.
+
+
+
+
+
+<details>
+<summary>Proposed correction</summary>
+
+```diff
+-    if salt:
+-        derivation_input = (
+-            b"ConfigStream-LSB-v2\0"
+-            + salt
+-            + struct.pack(">Q", carrier_len)
+-        )
+-    else:
+-        derivation_input = struct.pack(">Q", carrier_len)
++    derivation_input = (
++        b"ConfigStream-LSB-v2\0"
++        + salt
++        + struct.pack(">Q", carrier_len)
++    )
+```
+</details>
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@docs/STEGO_KAT_HMAC_SECURITY_AUDIT.md` around lines 90 - 103, Update the
+derivation input construction in the affected KAT/HMAC logic to always begin
+with the ConfigStream-LSB-v2 domain-separation prefix, append the salt only for
+the salted branch, and append carrier_len in both cases before calling HMAC.
+Preserve the existing key_material usage as the HMAC key and keep the
+salted-path validation unchanged.
+```
+
+</details>
+
+<!-- cr-comment:v1:d1b1b9daeabec422c99cf869 -->
+
+</blockquote></details>
+<details>
+<summary>docs/superpowers/plans/2026-07-24-master-post-audit-enhancements-plan.md-31-33 (1)</summary><blockquote>
+
+`31-33`: _­ƒÄ» Functional Correctness_ | _­ƒƒá Major_ | _ÔÜí Quick win_
+
+**Correct the Hysteria3 URI contract.**
+
+This plan lists `hysteria2://`, but `parse_hysteria3` accepts `hy3://` and `hysteria3://`; `hysteria2` is a separate protocol. Update the plan and fixtures to use the supported schemes.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@docs/superpowers/plans/2026-07-24-master-post-audit-enhancements-plan.md`
+around lines 31 - 33, Update the Interfaces section to remove hysteria2:// from
+the Hysteria3 input contract and list only hy3:// and hysteria3://; revise any
+associated plan fixtures to use these supported schemes, keeping hysteria2://
+separate.
+```
+
+</details>
+
+<!-- cr-comment:v1:25bd8a168bc94bd9154c8e62 -->
+
+</blockquote></details>
+<details>
+<summary>docs/superpowers/plans/2026-07-24-master-post-audit-enhancements-plan.md-238-256 (1)</summary><blockquote>
+
+`238-256`: _­ƒ®║ Stability & Availability_ | _­ƒƒá Major_ | _ÔÜí Quick win_
+
+**Reject impossible unique-offset requests before entering the loop.**
+- `docs/superpowers/plans/2026-07-24-master-post-audit-enhancements-plan.md#L238-L256`: add `count > max_index` validation.
+- `docs/superpowers/plans/2026-07-24-post-audit-enhancements-plan.md#L64-L82`: add the same validation.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@docs/superpowers/plans/2026-07-24-master-post-audit-enhancements-plan.md`
+around lines 238 - 256, Update derive_lsb_offsets in
+docs/superpowers/plans/2026-07-24-master-post-audit-enhancements-plan.md at
+lines 238-256 to reject count > max_index alongside the existing validation
+before the loop; apply the same validation in
+docs/superpowers/plans/2026-07-24-post-audit-enhancements-plan.md at lines
+64-82.
+```
+
+</details>
+
+<!-- cr-comment:v1:b1d8ca9bbb5256cbc301a2f9 -->
+
+</blockquote></details>
+<details>
+<summary>docs/superpowers/plans/2026-07-24-post-audit-enhancements-plan.md-25-27 (1)</summary><blockquote>
+
+`25-27`: _­ƒÄ» Functional Correctness_ | _­ƒƒá Major_ | _ÔÜí Quick win_
+
+**Keep the stego API contract consistent.**
+
+The interface documents `pixel_count` and `num_bits`, while the implementation exposes `max_index` and `count`. Align the names; otherwise callers using the documented keyword arguments will fail.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@docs/superpowers/plans/2026-07-24-post-audit-enhancements-plan.md` around
+lines 25 - 27, Align the `derive_lsb_offsets` API parameter names with the
+documented contract by exposing `pixel_count` and `num_bits` instead of
+`max_index` and `count`. Update the implementation and any internal call sites
+or KAT verification to use the aligned names while preserving the existing
+HMAC-SHA256 behavior.
+```
+
+</details>
+
+<!-- cr-comment:v1:c26f0b99e4fbf9e67bebfaaa -->
+
+</blockquote></details>
+<details>
+<summary>src/configstream/parsers/hysteria3.py-47-48 (1)</summary><blockquote>
+
+`47-48`: _­ƒ®║ Stability & Availability_ | _­ƒƒá Major_ | _ÔÜí Quick win_
+
+**Do not swallow parser failures in an unlogged broad handler.**
+
+This `Exception -> None` path is the CI-reported failure and hides malformed-port/URI causes, preventing parser drop diagnostics. Catch expected parsing exceptions, log a sanitized DEBUG reason, and let unexpected failures surface or be accounted for by `extract_config_lines`.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@src/configstream/parsers/hysteria3.py` around lines 47 - 48, Update the
+parserÔÇÖs broad exception handler to catch only expected parsing/validation
+exceptions, logging a sanitized DEBUG message with the failure reason before
+returning None. Do not suppress unexpected exceptions; allow them to propagate
+to extract_config_lines for its existing accounting.
+```
+
+</details>
+
+<!-- cr-comment:v1:cf59b2de0e75196b7b1d57ac -->
+
+_Sources: Coding guidelines, Linters/SAST tools, Pipeline failures_
+
+</blockquote></details>
+<details>
+<summary>docs/superpowers/plans/2026-07-23-post-audit-remediation-refactoring.md-90-101 (1)</summary><blockquote>
+
+`90-101`: _­ƒÄ» Functional Correctness_ | _­ƒƒá Major_ | _ÔÜí Quick win_
+
+**Do not count every exception as a timeout.**
+
+`except (asyncio.TimeoutError, Exception)` is effectively `except Exception`, so write, JSON, and process failures consume the consecutive-timeout budget. The shown flow also needs to reset `_consecutive_timeouts` after a successful batch.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@docs/superpowers/plans/2026-07-23-post-audit-remediation-refactoring.md`
+around lines 90 - 101, Update the batch flow around safe_wait_for and
+_consecutive_timeouts so only asyncio.TimeoutError increments the
+consecutive-timeout budget; handle other exceptions without treating them as
+timeouts. After a batch completes successfully, reset _consecutive_timeouts to
+zero, while preserving the existing restart, disable, close, and return behavior
+for actual timeout failures.
+```
+
+</details>
+
+<!-- cr-comment:v1:cc33a8104eb190473a28ff7b -->
+
+</blockquote></details>
+<details>
+<summary>tests/unit/test_wasm_panic_recovery.py-5-9 (1)</summary><blockquote>
+
+`5-9`: _­ƒ®║ Stability & Availability_ | _­ƒƒá Major_ | _­ƒÅù´©Å Heavy lift_
+
+**Verify panic behavior, not just token presence.**
+
+`"recover()" in content` can match a comment or unrelated function and does not verify the required structured `PANIC` rejection from exported JS functions. Add a structural/static assertion or an executable Go/WASM test covering the actual export path.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@tests/unit/test_wasm_panic_recovery.py` around lines 5 - 9, Replace the
+token-presence check in test_wasm_main_contains_defer_recover with validation of
+the exported Go/WASM function path: assert structurally that exported handlers
+use deferred recovery which converts panics into the required structured PANIC
+rejection, or execute the WASM export and verify that behavior. Ensure comments
+or unrelated recover() calls cannot satisfy the test.
+```
+
+</details>
+
+<!-- cr-comment:v1:9e8c5826f36765e060749724 -->
+
+</blockquote></details>
+<details>
+<summary>docs/superpowers/plans/2026-07-23-post-audit-remediation-refactoring.md-176-188 (1)</summary><blockquote>
+
+`176-188`: _­ƒùä´©Å Data Integrity & Integration_ | _­ƒƒá Major_ | _ÔÜí Quick win_
+
+**Recompute mtime inside the cache lock.**
+
+`current_mtime` is captured before waiting. If the file changes while another reader holds the lock, new data can be stored under the old mtime and then served as fresh. Re-read the mtime after acquiring the lock before the second cache check and cache write.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@docs/superpowers/plans/2026-07-23-post-audit-remediation-refactoring.md`
+around lines 176 - 188, Recompute current_mtime immediately after acquiring
+_cache_locks[path], before the second _json_cache check. Use this refreshed
+mtime for cache validation and when storing the result, while preserving the
+existing fast path before lock acquisition.
+```
+
+</details>
+
+<!-- cr-comment:v1:7ac48f87fa0f219fb48175bc -->
+
+</blockquote></details>
+<details>
+<summary>src/configstream/testers/go_tester/manager.py-562-570 (1)</summary><blockquote>
+
+`562-570`: _­ƒ®║ Stability & Availability_ | _­ƒƒá Major_ | _ÔÜí Quick win_
+
+**Bound the recovery restart.**
+
+Line 570 awaits `_restart_daemon()` without a deadline. A stalled restart can still block the pipeline indefinitely after the drain timeout. Wrap it with `safe_wait_for(..., timeout=30.0)` and handle `asyncio.TimeoutError`, as the batch-result timeout path does.
+
+
+
+
+
+As per coding guidelines, ÔÇ£await restarts (30s timeout) before the next batchÔÇØ.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@src/configstream/testers/go_tester/manager.py` around lines 562 - 570, Bound
+the recovery path in the consecutive-timeout handling by wrapping
+_restart_daemon() with safe_wait_for using a 30.0-second timeout. Catch
+asyncio.TimeoutError consistently with the batch-result timeout path, and
+preserve the existing daemon-disabling behavior when the restart exceeds the
+deadline.
+```
+
+</details>
+
+<!-- cr-comment:v1:864cc3bc2830ef84474664a4 -->
+
+_Source: Coding guidelines_
+
+</blockquote></details>
+<details>
+<summary>src/configstream/pipeline/producer.py-62-64 (1)</summary><blockquote>
+
+`62-64`: _­ƒöÆ Security & Privacy_ | _­ƒƒá Major_ | _ÔÜí Quick win_
+
+**Sanitize exception logging before it reaches application logs.** Raw exception stringsÔÇöand `logger.exception` tracebacksÔÇöcan include credential-bearing source URLs.
+
+- `src/configstream/pipeline/producer.py#L62-L64`: replace raw `logger.exception(...)` output with a sanitized error message; avoid emitting raw exception traceback text.
+- `src/configstream/pipeline/core.py#L371-L376`: sanitize `e` before logging the cleanup failure.
+
+As per coding guidelines, ÔÇ£Wrap all URLs and errors in log statements with `SecurityValidator.sanitize_log_message` to prevent token/credential leaks.ÔÇØ
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@src/configstream/pipeline/producer.py` around lines 62 - 64, Sanitize
+exception details before logging to prevent credential-bearing URLs from
+reaching application logs. In src/configstream/pipeline/producer.py lines 62-64,
+update the StreamingProducer exception handler to log only
+SecurityValidator.sanitize_log_message output and avoid logger.exception
+traceback text; in src/configstream/pipeline/core.py lines 371-376, sanitize e
+before logging the cleanup failure.
+```
+
+</details>
+
+<!-- cr-comment:v1:c19a7b7e2edd4b276a3a4d29 -->
+
+_Source: Coding guidelines_
+
+</blockquote></details>
+<details>
+<summary>tests/unit/test_server_cache_remediation.py-22-38 (1)</summary><blockquote>
+
+`22-38`: _­ƒôÉ Maintainability & Code Quality_ | _­ƒƒá Major_ | _ÔÜí Quick win_
+
+**Apply the repositoryÔÇÖs strict typing policy to new Python functions.**
+
+- `tests/unit/test_server_cache_remediation.py#L22-L38`: annotate the async test and synchronous mock parameters/returns.
+- `tests/unit/test_server_cache_remediation.py#L68-L82`: annotate the async test and synchronous mock parameters/returns.
+- `src/configstream/anomaly.py#L389-L393`: type `__enter__`, all `__exit__` parameters, and its `None` return.
+- `src/configstream/signer.py#L32-L32`: replace unparameterized `dict` with `Dict[str, Any]`.
+- `src/configstream/stego.py#L468-L468`: use the required `List[int]` annotation.
+
+As per coding guidelines, ÔÇ£Enforce Python 3.10+ with strict typing on all function signatures using `Optional`, `List`, `Dict`, `Union` from `typing` module.ÔÇØ
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@tests/unit/test_server_cache_remediation.py` around lines 22 - 38, Apply
+strict Python 3.10+ typing at all listed sites: annotate both async tests and
+their synchronous mock parameters and return types in
+tests/unit/test_server_cache_remediation.py lines 22-38 and 68-82; type
+__enter__, every __exit__ parameter, and the None return in
+src/configstream/anomaly.py lines 389-393; replace the unparameterized dict with
+Dict[str, Any] in src/configstream/signer.py line 32; and use List[int] in
+src/configstream/stego.py line 468.
+```
+
+</details>
+
+<!-- cr-comment:v1:817c454812b225abaef20b1c -->
+
+_Source: Coding guidelines_
+
+</blockquote></details>
+<details>
+<summary>src/configstream/stego.py-470-486 (1)</summary><blockquote>
+
+`470-486`: _­ƒ®║ Stability & Availability_ | _­ƒƒá Major_ | _ÔÜí Quick win_
+
+**Reject impossible unique-offset requests.**
+
+When `count > max_index`, no additional unique index exists and this loop never terminates. Validate that bound before generating offsets.
+
+<details>
+<summary>Proposed fix</summary>
+
+```diff
+ if max_index <= 0 or count <= 0:
+     raise ValueError("max_index and count must be positive")
++if count > max_index:
++    raise ValueError("count cannot exceed max_index")
+```
+</details>
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@src/configstream/stego.py` around lines 470 - 486, Update the validation at
+the start of the offset-generation logic to reject requests where count exceeds
+max_index, alongside the existing positive-value checks. Ensure the loop in the
+offset generation function only runs when a unique set of count indices is
+possible.
+```
+
+</details>
+
+<!-- cr-comment:v1:d23abe18fc6afb6c9aa442a1 -->
+
+</blockquote></details>
+<details>
+<summary>tests/e2e/pages/laboratory_page.py-3-14 (1)</summary><blockquote>
+
+`3-14`: _­ƒôÉ Maintainability & Code Quality_ | _­ƒƒá Major_ | _ÔÜí Quick win_
+
+**Use PlaywrightÔÇÖs async API for browser I/O.** The page object performs synchronous navigation and DOM reads, contrary to the projectÔÇÖs asyncio requirement.
+
+- `tests/e2e/pages/laboratory_page.py`: switch to `playwright.async_api.Page`; mark `navigate` and `get_title` async with typed returns.
+- `tests/e2e/test_laboratory_ui.py`: make the test async and await page-object operations.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@tests/e2e/pages/laboratory_page.py` around lines 3 - 14, The LaboratoryPage
+uses PlaywrightÔÇÖs synchronous API; convert tests/e2e/pages/laboratory_page.py
+lines 3-14 to playwright.async_api.Page, make navigate and get_title async with
+typed return annotations, and await browser operations. Update
+tests/e2e/test_laboratory_ui.py lines 7-15 so the test is async and awaits the
+page-object methods.
+```
+
+</details>
+
+<!-- cr-comment:v1:8d17aeb3eb0291a640c33983 -->
+
+_Source: Coding guidelines_
+
+</blockquote></details>
+
+</blockquote></details>
+
+<details>
+<summary>­ƒº╣ Nitpick comments (11)</summary><blockquote>
+
+<details>
+<summary>docs/FRONTEND_ANALYTICS_GLOBE_AUDIT.md (1)</summary><blockquote>
+
+`30-33`: _­ƒôÉ Maintainability & Code Quality_ | _­ƒöÁ Trivial_ | _ÔÜí Quick win_
+
+**Do not prescribe an unverified `globe._destructor()` API.**
+
+This private-looking method may not exist for the pinned Globe/Three.js versions. Document the supported teardown API or the wrapper-owned resource lifecycle, and cover repeated initialization with a regression test.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@docs/FRONTEND_ANALYTICS_GLOBE_AUDIT.md` around lines 30 - 33, Update the
+Globe Instance guidance for _initGlobeInternal to avoid prescribing an
+unverified globe._destructor() call: document the teardown API confirmed for the
+pinned Globe/Three.js versions, or specify a wrapper-owned lifecycle that
+disposes scenes, materials, textures, geometries, and WebGL resources before
+recreating the Globe. Add a regression test covering repeated initialization and
+verifying the prior instance/resources are torn down.
+```
+
+</details>
+
+<!-- cr-comment:v1:8b71cfdd545db8b7eb33252f -->
+
+</blockquote></details>
+<details>
+<summary>tests/unit/parsers/test_hysteria3.py (1)</summary><blockquote>
+
+`6-14`: _­ƒÄ» Functional Correctness_ | _­ƒöÁ Trivial_ | _ÔÜí Quick win_
+
+**Assert all parsed credentials represented by the fixture.**
+
+The URI includes `secretpass` and `obfs-password=pass123`, but the test checks only `obfs`. Add assertions for `proxy.details["auth"]` and `proxy.details["obfs_password"]` so credential-recovery regressions are detected.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@tests/unit/parsers/test_hysteria3.py` around lines 6 - 14, Add assertions in
+test_parse_hysteria3_valid_uri for proxy.details["auth"] and
+proxy.details["obfs_password"], verifying they contain "secretpass" and
+"pass123" respectively while preserving the existing parsed-field checks.
+```
+
+</details>
+
+<!-- cr-comment:v1:f3b537544ab6d3f16977e506 -->
+
+</blockquote></details>
+<details>
+<summary>docs/GENERATE_PIPELINE_OUTPUTS_FLOW_AUDIT.md (1)</summary><blockquote>
+
+`126-127`: _­ƒÜÇ Performance & Scalability_ | _­ƒöÁ Trivial_ | _ÔÜí Quick win_
+
+**Do not describe `aiofiles` as true non-blocking disk I/O.**
+
+For regular local files, `aiofiles` generally delegates operations to an executor, so this migration may not free executor workers as claimed. Reframe this as bounded/dedicated executor-backed writing and benchmark before changing the implementation.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@docs/GENERATE_PIPELINE_OUTPUTS_FLOW_AUDIT.md` around lines 126 - 127, Update
+the ÔÇ£Asynchronous Atomic File WritingÔÇØ section in
+GENERATE_PIPELINE_OUTPUTS_FLOW_AUDIT.md to remove the claim that aiofiles
+provides true non-blocking disk I/O. Reframe the recommendation around bounded
+or dedicated executor-backed writing, and require benchmarking before changing
+AtomicFileWriter or its I/O strategy.
+```
+
+</details>
+
+<!-- cr-comment:v1:64fdb3c14879b0f84a2a9564 -->
+
+</blockquote></details>
+<details>
+<summary>docs/HUB_NODES_BLAST_RADIUS_AUDIT.md (1)</summary><blockquote>
+
+`75-78`: _­ƒôÉ Maintainability & Code Quality_ | _­ƒöÁ Trivial_ | _ÔÜí Quick win_
+
+**Use one strictly typed API policy across the refactoring guidance.**
+
+- `docs/HUB_NODES_BLAST_RADIUS_AUDIT.md#L75-L78`: replace generic `**kwargs` guidance with explicit typed keyword-only parameters or versioned adapters.
+- `docs/MONOLITHIC_FUNCTIONS_DESLOP.md#L111-L123`: replace raw `dict` annotations with concrete typed aliases.
+- `docs/MONOLITHIC_FUNCTIONS_DESLOP.md#L135-L142`: type `config`, `proxies`, and return values using `Optional`, `List`, `Dict`, or `Union`.
+
+As per coding guidelines, Python 3.10+ function signatures must use strict typing and be verified with mypy.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@docs/HUB_NODES_BLAST_RADIUS_AUDIT.md` around lines 75 - 78, Apply one strict
+typing policy across all referenced guidance: in
+docs/HUB_NODES_BLAST_RADIUS_AUDIT.md lines 75-78, replace generic **kwargs
+API-extension advice with explicit typed keyword-only parameters or versioned
+adapters; in docs/MONOLITHIC_FUNCTIONS_DESLOP.md lines 111-123, replace raw dict
+annotations with concrete typed aliases; and in
+docs/MONOLITHIC_FUNCTIONS_DESLOP.md lines 135-142, type config, proxies, and
+return values with appropriate Optional, List, Dict, or Union annotations,
+consistently targeting Python 3.10+ signatures and mypy verification.
+```
+
+</details>
+
+<!-- cr-comment:v1:ce7d8d442d3e1f8d317fc3e1 -->
+
+_Source: Coding guidelines_
+
+</blockquote></details>
+<details>
+<summary>tests/unit/parsers/test_tuic.py (1)</summary><blockquote>
+
+`6-15`: _­ƒôÉ Maintainability & Code Quality_ | _­ƒöÁ Trivial_ | _ÔÜí Quick win_
+
+**Cover TUIC defaults and credential fallback.**
+
+This test only checks `congestion_control`; regressions in the custom password, ALPN mapping, default port, or UUID-password fallback could pass unnoticed. Add focused cases for those behaviors after the parser contract is finalized.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@tests/unit/parsers/test_tuic.py` around lines 6 - 15, Extend the TUIC parser
+tests around test_parse_tuic_valid_uri with focused cases covering custom
+password preservation, ALPN mapping, the default port, and UUID-as-password
+fallback. Assert each behavior through the parsed proxy fields/details while
+keeping the existing valid-URI assertions unchanged.
+```
+
+</details>
+
+<!-- cr-comment:v1:482b71076eac04ce749b8979 -->
+
+</blockquote></details>
+<details>
+<summary>docs/PIPELINE_CONSUMER_REFACTORING_AUDIT.md (1)</summary><blockquote>
+
+`89-100`: _­ƒ®║ Stability & Availability_ | _­ƒöÁ Trivial_
+
+**Define executor shutdown in the proposed architecture.**
+
+The patch creates process and thread pools but never closes them. Repeated pipeline runs can retain worker processes/threads; make `StandardPipeline` own these executors and shut them down in its `finally` cleanup, or provide an equivalent lifecycle manager.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@docs/PIPELINE_CONSUMER_REFACTORING_AUDIT.md` around lines 89 - 100, Update
+the proposed executor architecture so StandardPipeline owns both cpu_executor
+and io_executor, and ensure its finally cleanup shuts down each executor on
+every pipeline termination path. Preserve executor use by Consumer while
+preventing worker processes and threads from surviving repeated runs; use an
+equivalent lifecycle manager only if it guarantees the same cleanup behavior.
+```
+
+</details>
+
+<!-- cr-comment:v1:639658b3cb33eac02aa2e804 -->
+
+</blockquote></details>
+<details>
+<summary>tests/unit/test_signer_canonical_replay.py (1)</summary><blockquote>
+
+`6-15`: _­ƒôÉ Maintainability & Code Quality_ | _­ƒöÁ Trivial_ | _ÔÜí Quick win_
+
+**Annotate the test function.**
+
+Add `-> None` to comply with the repositoryÔÇÖs strict Python typing requirement.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@tests/unit/test_signer_canonical_replay.py` around lines 6 - 15, Update the
+test function test_canonical_manifest_payload_sorting by adding the explicit ->
+None return annotation, preserving its existing test logic unchanged.
+```
+
+</details>
+
+<!-- cr-comment:v1:d7d59babbb332f986bc7ce91 -->
+
+_Source: Coding guidelines_
+
+</blockquote></details>
+<details>
+<summary>tests/unit/transport/test_stego_kat.py (1)</summary><blockquote>
+
+`6-6`: _­ƒôÉ Maintainability & Code Quality_ | _­ƒöÁ Trivial_ | _ÔÜí Quick win_
+
+**Annotate the test function.**
+
+Add `-> None` to satisfy the repositoryÔÇÖs strict typing policy.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@tests/unit/transport/test_stego_kat.py` at line 6, Update the
+test_hmac_lsb_offset_derivation_kat function annotation to explicitly declare a
+None return type, preserving its existing test behavior.
+```
+
+</details>
+
+<!-- cr-comment:v1:43f80b6277d22b7b668c2a45 -->
+
+_Source: Coding guidelines_
+
+</blockquote></details>
+<details>
+<summary>tests/unit/test_anomaly_detector_lifecycle.py (1)</summary><blockquote>
+
+`7-19`: _­ƒôÉ Maintainability & Code Quality_ | _­ƒöÁ Trivial_ | _ÔÜí Quick win_
+
+**Add strict annotations to both tests.**
+
+Annotate the fixture as `tmp_path: Path` and both functions with `-> None` to satisfy the repositoryÔÇÖs strict Python typing policy.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@tests/unit/test_anomaly_detector_lifecycle.py` around lines 7 - 19, Update
+test_anomaly_detector_close_releases_db and
+test_anomaly_detector_context_manager to annotate tmp_path as Path and declare
+each test returns None. Ensure Path is imported from pathlib.
+```
+
+</details>
+
+<!-- cr-comment:v1:330a21372e677c6d44e31041 -->
+
+_Source: Coding guidelines_
+
+</blockquote></details>
+<details>
+<summary>tests/unit/test_wasm_panic_recovery.py (1)</summary><blockquote>
+
+`5-5`: _­ƒôÉ Maintainability & Code Quality_ | _­ƒöÁ Trivial_ | _ÔÜí Quick win_
+
+**Annotate the test function.**
+
+Add `-> None` to comply with the repositoryÔÇÖs strict Python typing requirement.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@tests/unit/test_wasm_panic_recovery.py` at line 5, Add the return type
+annotation -> None to the test_wasm_main_contains_defer_recover test function,
+preserving its existing behavior and body.
+```
+
+</details>
+
+<!-- cr-comment:v1:e7cabe11626a37db3f500707 -->
+
+_Source: Coding guidelines_
+
+</blockquote></details>
+<details>
+<summary>tests/e2e/test_laboratory_ui.py (1)</summary><blockquote>
+
+`7-15`: _­ƒôÉ Maintainability & Code Quality_ | _­ƒöÁ Trivial_ | _­ƒÅù´©Å Heavy lift_
+
+**Add a real browser-level Laboratory test.**
+
+This only verifies `MagicMock` interactions; it cannot catch broken loading, DOM selectors, or runtime JavaScript in `frontend/lab.html`. Keep it as a unit test, but add a marked Playwright test using a real page and served frontend.
+
+<details>
+<summary>­ƒñû Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@tests/e2e/test_laboratory_ui.py` around lines 7 - 15, Add a separate marked
+Playwright test alongside test_laboratory_page_object_model that uses a real
+browser page fixture and the served frontend URL to navigate to the Laboratory
+page, then assert the page loads and displays the expected title/content. Keep
+the existing MagicMock-based unit test unchanged, and use the projectÔÇÖs
+established marker and browser fixture conventions.
+```
+
+</details>
+
+<!-- cr-comment:v1:37b75da7f24c24e8fbecfa65 -->
+
+</blockquote></details>
+
+</blockquote></details>
+
+<!-- This is an auto-generated comment by CodeRabbit for review status -->
+--
+author:	AmirrezaFarnamTaheri
+association:	owner
+edited:	false
+status:	none
+--
+## Principal systems audit ÔÇö **REQUEST CHANGES / NOT MERGE-READY**
+
+I reviewed the full 95-file change set, the executable diffs, the new tests, the protocol/schema/docs synchronization, existing PR discussion, and the current GitHub Actions evidence for head `9fe871e44f9ae7dfa39d0e781e149fe5d4bf38e0`.
+
+### Executive verdict
+
+**Fail.** This PR is not a completed remediation and is not production-ready. The current branch has two failed workflows, several headline remediations are not connected to production code paths, multiple new tests are cosmetic or currently failing, and the parser implementation contradicts both the pre-existing behavior and the specification committed in this same PR.
+
+The descriptionÔÇÖs ÔÇ£1,264 passing unit tests (100% green)ÔÇØ and ÔÇ£complete post-audit remediationÔÇØ claims must be removed or corrected until the evidence supports them.
+
+---
+
+## Blocking findings
+
+### 1. **HIGH ÔÇö CI and Security Diagnostics are red**
+
+Current head status:
+
+- **Security Diagnostics: failed**
+- **CI: failed** on Python 3.10, 3.11, and 3.12
+
+The Python 3.11 artifact reports:
+
+```text
+2 failed, 1318 passed, 2 skipped
+```
+
+The failures are newly added/affected tests:
+
+1. `tests/unit/test_cross_engine_parity.py::test_go_and_python_tester_verdict_parity`
+   - `RuntimeError: Runner.run() cannot be called from a running event loop`
+2. `tests/unit/test_go_tester_streaming.py::test_go_tester_streaming`
+   - the test supplies `sys.executable`, which is a symlink on the runner; the hardened tester rejects it, so `_proc` remains `None`
+
+Security Diagnostics also correctly rejects the two newly introduced silent broad handlers:
+
+- `src/configstream/parsers/tuic.py:47`
+- `src/configstream/parsers/hysteria3.py:49`
+
+Both use:
+
+```python
+except Exception:
+    return None
+```
+
+**Required correction:** make all supported Python matrix jobs and Security Diagnostics green. Catch narrow parsing exceptions and log sanitized diagnostic context. Repair the async tests and use an admissible test binary/path rather than weakening the symlink security check.
+
+---
+
+### 2. **HIGH ÔÇö TUIC parser replacement is a behavioral regression and contradicts the committed specification**
+
+`parsers/__init__.py` replaces the established `others.parse_tuic` with the new standalone implementation.
+
+The previous parser:
+
+- used default port `443`;
+- enforced `MAX_CONFIG_LINE_LENGTH`;
+- validated port bounds;
+- retained query parameters;
+- sanitized parse errors;
+- called `normalize_proxy_details`;
+- represented default ALPN as `['h3']`.
+
+The replacement in `src/configstream/parsers/tuic.py`:
+
+- silently changes the default port to `8443`;
+- discards every query field except `congestion_control` and `alpn`;
+- does not normalize details;
+- stores `alpn` as a string rather than the documented list;
+- uses `congestion_control`, while `docs/PARSER_EXTENSION_SPEC.md` requires `cc_algo`;
+- does not implement the specified `max_idle_time` or `initial_max_streams` fields;
+- swallows every exception without diagnostics.
+
+This is not a compatible ÔÇ£extensionÔÇØ; it replaces a broader parser with a narrower and internally inconsistent one.
+
+**Required correction:** preserve the established parser contract and normalization path, explicitly define any intended port migration, implement the fields/types in the committed spec, retain backward-compatible aliases, and add regression tests comparing old and new accepted URIs, malformed ports, oversized lines, IPv6, percent-encoded credentials, duplicate parameters, and all documented defaults.
+
+---
+
+### 3. **HIGH ÔÇö Hysteria3 implementation does not satisfy its own specification**
+
+`docs/PARSER_EXTENSION_SPEC.md` requires:
+
+- username/auth mapped to `Proxy.uuid`;
+- `multi_port`;
+- `obfs_v2`;
+- `padding_len`;
+- canonical `obfs-password`;
+- rejection when `obfs_v2` requires a missing password.
+
+`src/configstream/parsers/hysteria3.py` instead:
+
+- sets `uuid=''` and stores auth in `details['auth']`;
+- omits `multi_port`, `obfs_v2`, and `padding_len` entirely;
+- writes `obfs_password` rather than the specified canonical key;
+- performs no conditional obfuscation-password validation;
+- does not call `normalize_proxy_details`;
+- silently catches all exceptions.
+
+The same PRÔÇÖs protocol specification says Hysteria3 should have Sing-box/Clash export support, while `docs/protocol_matrix.json` marks both exporters false. The change therefore introduces parser/schema recognition without a coherent end-to-end product contract.
+
+**Required correction:** either implement and test the complete documented contract across parser, canonical model, frontend, converters/exporters, schema, and generated protocol docs, or narrow the public capability claims and remove unsupported schema/matrix promises.
+
+---
+
+### 4. **HIGH ÔÇö Claimed HMAC steganography remediation is dead code; the ÔÇ£KATÔÇØ is not a KAT and the helper can hang forever**
+
+The production steganography path still uses `_derive_offsets`, which derives start/stride using raw `hashlib.sha256`. The PR merely appends a separate `derive_lsb_offsets()` helper; no packing or unpacking call site uses it.
+
+Additionally:
+
+```python
+while len(offsets) < count:
+```
+
+can never terminate when `count > max_index`, because the function requires unique indices but does not validate `count <= max_index`.
+
+`tests/unit/transport/test_stego_kat.py` does not contain a known answer. It only checks bounds and compares the function with a second invocation of itself. A regression that deterministically changes every output would still pass.
+
+**Required correction:** integrate one versioned derivation algorithm into both embed and extract paths, reject impossible cardinalities, define backward compatibility/migration for existing carriers, and add immutable expected offset vectors plus pack/unpack interoperability fixtures. Otherwise remove the claim that production offset scattering was upgraded.
+
+---
+
+### 5. **HIGH ÔÇö Canonical manifest signing helper is not used by signing or verification**
+
+`_canonical_manifest_payload()` is added to `src/configstream/signer.py`, but:
+
+- `Signer.sign_subscription()` still signs `_build_signed_payload(content.encode(...), timestamp)`;
+- `Signer.verify_signature()` still verifies the caller-provided content string;
+- no manifest signing/verification API calls the canonical helper;
+- the new test only compares two helper outputs with different dictionary insertion order.
+
+Therefore the claimed canonical Ed25519 manifest-signature remediation is not implemented in the production path and has no cryptographic integration proof.
+
+**Required correction:** connect canonical serialization to the actual manifest producer, signer, verifier, and consumer contract; specify which fields are excluded from the signed payload; test sign/verify across reordered/nested manifests, tampering, stale/future timestamps, malformed keys/signatures, and legacy artifacts.
+
+---
+
+### 6. **HIGH ÔÇö Go tester drain timeout creates false proxy failures and bypasses fallback**
+
+In `src/configstream/testers/go_tester/manager.py`, an IPC drain timeout now:
+
+1. marks every affected proxy `is_working = False`;
+2. assigns `DRAIN_TIMEOUT` / `TIMEOUT`;
+3. returns normally.
+
+But `SingBoxTester.test_batch()` only falls back to Python when the Go tester **raises**. A normal return therefore bypasses fallback, and the caller may cache infrastructure failure as a negative proxy verdict.
+
+This conflates ÔÇ£the tester transport failedÔÇØ with ÔÇ£the proxy is dead,ÔÇØ producing systematic false negatives under daemon backpressureÔÇöthe exact condition the remediation is intended to handle.
+
+**Required correction:** treat drain timeout/crash as unresolved infrastructure failure and either raise a typed retryable exception or explicitly route affected proxies through the Python fallback. Do not cache these as endpoint failures. Add tests proving fallback occurs and that transient Go IPC failures never become durable negative proxy verdicts.
+
+---
+
+### 7. **HIGH ÔÇö WASM panic recovery is not remediated; the test is a source-text assertion**
+
+The substantive WASM change only adds `hysteria3://` / `hy3://` to the recognized scheme list. The panic path remains:
+
+- `recover()` silently suppresses a panic in a function without a named result;
+- the Promise `reject` callback is ignored;
+- the caller can receive a resolved `null`/invalid result rather than a structured failure.
+
+`tests/unit/test_wasm_panic_recovery.py` only asserts that the source file contains the substring `recover()`. It neither compiles the WASM target nor executes a Promise/panic path, and it would pass for a comment containing that text.
+
+**Required correction:** return or reject with a deterministic structured error on panic, avoid resolving an invalid result, compile under `GOOS=js GOARCH=wasm`, and execute the JS bridge in a real runtime test that forces error, timeout, callback, and cleanup paths.
+
+---
+
+### 8. **MEDIUM ÔÇö The advertised Playwright E2E test does not use Playwright or exercise the UI**
+
+`tests/e2e/test_laboratory_ui.py` creates a `MagicMock`, calls a page-object wrapper, and asserts mocked calls/values. It launches no browser, starts no server, renders no DOM, and validates no user flow. It is a unit test of a wrapper, not an E2E test.
+
+**Required correction:** use the real Playwright `page` fixture against a started application, verify rendered content and interactions, and cover loading/error/empty/accessibility behavior. Rename/reclassify the current test if retained.
+
+---
+
+### 9. **MEDIUM ÔÇö Raw exception logging violates the PRÔÇÖs own sanitization objective**
+
+`src/configstream/pipeline/producer.py` adds:
+
+```python
+logger.exception(f"StreamingProducer encountered an unhandled exception: {e}")
+```
+
+Raw fetch/parser exceptions can include source URLs, credentials, query tokens, or filesystem details. `SecurityValidator` is already imported but not used here.
+
+**Required correction:** log a constant message plus sanitized metadata; preserve traceback through `exc_info=True` without interpolating unsanitized exception text.
+
+---
+
+### 10. **MEDIUM ÔÇö Documentation and readiness claims are internally contradictory**
+
+The PR describes complete remediation and green verification, while the committed `docs/DEPLOYMENT_READINESS_REPORT.md` explicitly records all major gates as FAIL/BLOCKED, including security, dependency, Pages artifact, live Pages, and release gates. Many of the 44 reports are audit findings or future implementation plans rather than evidence of completed work.
+
+**Required correction:** distinguish clearly among assessment, planned remediation, implemented remediation, and verified remediation. Do not mark report creation as implementation completion. Remove or archive contradictory/generated reports, regenerate derived docs from the capability source of truth, and keep only evidence that matches the head commit.
+
+---
+
+## Roadmap completion matrix
+
+| Area | Status | Verdict |
+|---|---|---|
+| CI/test matrix | Regressed | **Fail** |
+| Security diagnostics | Regressed | **Fail** |
+| TUIC v5 parser | Incorrect/incompatible | **Fail** |
+| Hysteria3 support | Partial and contract-inconsistent | **Fail** |
+| Stego HMAC/KAT | Dead code + unsafe edge case | **Fail** |
+| Canonical signing | Helper only; not integrated | **Fail** |
+| Go IPC resilience | False-negative failure semantics | **Fail** |
+| WASM recovery | Unverified/cosmetic test | **Fail** |
+| Playwright E2E | Not an E2E test | **Fail** |
+| Docs/readiness | Contradictory | **Fail** |
+
+## Minimum verification required before re-review
+
+1. Make Security Diagnostics and the full Python 3.10/3.11/3.12 CI matrix green.
+2. Run formatter, lint, type checking, dependency/security gates, and preserve their reports as artifacts.
+3. Add compatibility/golden tests for every protocol field and every exporter/front-end capability claimed in the matrix.
+4. Prove stego and signer changes through the real production call paths, not standalone helpers.
+5. Add actual browser/WASM integration tests rather than source-text or mock-only assertions.
+6. Prove Go-daemon timeout/crash paths fall back without poisoning cache or proxy verdicts.
+7. Reconcile PR description, protocol spec, protocol matrix, schemas, generated wiki, implementation, tests, and deployment-readiness report.
+8. Strongly consider splitting this PR into independently reviewable protocol, crypto/stego, tester/IPC, UI/E2E, and audit-documentation changes.
+
+## Final recommendation
+
+**Do not merge this head.** Revise and re-audit after the blocking defects are corrected and all claims are backed by executable evidence.
+--
+author:	AmirrezaFarnamTaheri
+association:	owner
+edited:	false
+status:	none
+--
+## Deep audit-document conformance review ÔÇö **blocking**
+
+I performed a second-pass review that treated the PR description and the 44 included audit tracks as acceptance criteria, then traced each claimed remediation into the executable path, its integration boundary, and its tests.
+
+### Verdict
+
+This PR is **not a complete post-audit remediation suite** in its current form. It contains several useful narrow fixes, but many audit documents are inventories or future roadmaps whose findings remain open. More seriously, several headline security/features are implemented as disconnected helpers or tests that can pass without exercising production behavior.
+
+I would not merge this as ÔÇ£complete remediation / 100% greenÔÇØ until the blockers below are resolved or the PR is honestly re-scoped and split.
+
+---
+
+## Critical / high-severity blockers
+
+### 1. Laboratory chain testing still permits arbitrary outbound SSRF
+
+`docs/LAB_CHAIN_TESTER_AUDIT.md` correctly identifies missing pre-execution outbound validation as **Critical** and proposes scanning every outbound `server` before invoking sing-box.
+
+That remediation is absent. `src/configstream/testers/lab_chain_tester.py::test_chain_config()` still:
+
+1. accepts an arbitrary client-supplied `config` dictionary,
+2. calls `_ensure_config_ready()`,
+3. serializes it,
+4. launches sing-box.
+
+`SecurityValidator` is used only to sanitize error text after execution. No code rejects loopback, RFC1918, link-local, metadata-service, IPv6-local, or suspicious internal destinations. A caller can therefore ask the backend tester to establish chains toward internal services such as `127.0.0.1`, private LAN hosts, or `169.254.169.254`.
+
+**Required:** implement recursive outbound validation before process launch, validate hostnames after DNS resolution where applicable, constrain ports/types/detours, reject unknown outbound fields where practical, and add negative integration tests for IPv4, IPv6, encoded/local-hostname, and nested-chain cases.
+
+### 2. Manifest signatures produced by the pipeline cannot verify under the validator
+
+The signing track is internally incompatible:
+
+- `Signer.sign_subscription()` signs `uint64(timestamp) || content_bytes`.
+- `src/configstream/output/metadata.py::_attach_manifest_signature()` calls that method, but stores only `algorithm`, `signature`, and `key_id`; it does **not** store the timestamp.
+- `scripts/validate_pages_artifact.py::_validate_manifest_signature()` verifies the signature against canonical manifest bytes **without** the timestamp prefix.
+
+Therefore, when a signing key and verifier key are configured, the generated signature and validator payload differ byte-for-byte and verification must fail.
+
+The new `src/configstream/signer.py::_canonical_manifest_payload()` helper is not wired into manifest generation or validation. `tests/unit/test_signer_canonical_replay.py` only proves that two dictionaries produce the same helper output; it does not generate, attach, serialize, reload, and verify a real manifest.
+
+**Required:** define one versioned signature envelope and one canonical payload function used by both producer and verifier. Persist the signed timestamp (and ideally payload/schema version and key ID), enforce freshness consistently, then add a round-trip test using a generated Ed25519 keypair and the real manifest writer/validator.
+
+### 3. The steganography HMAC migration does not affect the encoder or decoder
+
+The PR description says pixel-offset scattering was upgraded to HMAC-SHA256. It was not.
+
+Production embedding/extraction still uses `_derive_offsets()`, which computes raw `hashlib.sha256(prefix + key + salt + carrier_len)`. The PR adds a separate `derive_lsb_offsets()` HMAC helper at the bottom of `stego.py`, but no production call site uses it.
+
+`tests/unit/transport/test_stego_kat.py` tests only this disconnected helper. It is also not a known-answer test: it compares the function with itself rather than asserting a fixed independently derived vector. Additionally, `derive_lsb_offsets()` can loop forever when `count > max_index`, because it requires unique indices but can never reach the requested count.
+
+This directly contradicts `docs/STEGANOGRAPHY_SECURITY_REPORT.md` and `docs/STEGO_KAT_HMAC_SECURITY_AUDIT.md`, both of which say the real `_derive_offsets()` path must be migrated.
+
+**Required:** replace or version the actual `_derive_offsets()` algorithm used by `_embed_permuted()` and extraction, define backward compatibility for existing v2 carriers, validate `count <= max_index`, and add fixed KAT vectors plus real pack/unpack compatibility tests.
+
+### 4. WASM panic recovery was not implemented
+
+The only PR change in `src/go/tester/wasm_main.go` is adding `hysteria3://` and `hy3://` to the recognized scheme list.
+
+The pre-existing panic path remains flawed:
+
+- `doTestProxy()` catches a panic in a deferred function but cannot convert it into a returned result.
+- The Promise wrapper ignores `reject`.
+- A panic can therefore be swallowed and the Promise resolved with an empty/nil result rather than a structured rejection.
+
+This is exactly the failure documented in `docs/WASM_JS_BRIDGE_INTEROP_AUDIT.md`. The proposed reject-wrapper patch was not applied.
+
+`tests/unit/test_wasm_panic_recovery.py` merely searches the Go source for the substring `recover()`. That substring existed in the defective implementation, so the test passes while proving nothing about Promise behavior.
+
+**Required:** recover in the Promise goroutine, reject or resolve with a documented structured error exactly once, prevent double resolution, and execute the compiled WASM in a browser test that deliberately triggers the failure path.
+
+### 5. Hysteria3 is not connected to normal pipeline ingestion
+
+`parse_hysteria3` is exported from `configstream.parsers`, but `src/configstream/auto_detect.py` does not import or register it in:
+
+- the scheme-to-parser map,
+- fallback parsers,
+- valid-scheme enforcement.
+
+The pipeline calls `configstream.consumer.parse_config`, which forwards to `auto_detect_and_parse`. Consequently, normal source ingestion cannot parse `hy3://` or `hysteria3://` even though direct unit tests of `parse_hysteria3()` pass.
+
+The alias is also absent from `_OUTPUT_PROTOCOL_ALIASES`, so `hy3` is not canonically normalized to `hysteria3` as claimed by `docs/protocol_matrix.json`.
+
+**Required:** test the actual public ingestion entrypoint, not just the leaf parser. Add both schemes to auto-detection, fallback validation, canonical normalization, extraction/allowlists, frontend parsing where claimed, and protocol ordering where appropriate.
+
+### 6. The new protocol parsers do not implement their own documented contracts
+
+`docs/PARSER_EXTENSION_SPEC.md` specifies substantially richer behavior than the committed parsers.
+
+For TUIC, the spec requires `cc_algo`, integer `max_idle_time`, integer `initial_max_streams`, and ALPN list semantics. The implementation only records `password`, `congestion_control`, and scalar `alpn`.
+
+For Hysteria3, the spec requires `multi_port`, `obfs_v2`, `padding_len`, username/UUID mapping, and conditional rejection when an obfuscation mode requires a password. The implementation omits those fields and validations and leaves `uuid` empty.
+
+The documents also disagree with each other: the extension specification advertises Sing-box and Clash export support for Hysteria3, while `docs/protocol_matrix.json` marks both exports false.
+
+**Required:** establish one authoritative wire/field contract, implement it end-to-end, validate numeric/range/list fields, define malformed-input behavior, and regenerate all matrix/schema/wiki claims from that source of truth.
+
+### 7. `GoBatchTester.test_custom_configs()` retains the unbounded IPC deadlock
+
+The bridge audit explicitly scopes the bounded-drain remediation to both `test_batch()` and `test_custom_configs()`.
+
+Only `test_batch()` now wraps `stdin.drain()` with a 15-second timeout. `test_custom_configs()` still acquires `_lock`, writes the payload, and awaits `proc.stdin.drain()` without any bound. A wedged daemon can still block this high-centrality bridge indefinitely while holding the process lock.
+
+No new test exercises this method.
+
+**Required:** use the same bounded write/drain policy for all IPC writers, clean pending futures, avoid holding the global lifecycle lock across a potentially slow drain, classify timeout/crash outcomes consistently, and test daemon restart/disable behavior for custom configs.
+
+### 8. Internal source URLs can still leak through nested revived-proxy structures
+
+The new `serialize_proxy()` filter removes `_...` and `has_...` keys only from the top-level `details` dictionary.
+
+However:
+
+- the pipeline stores the raw source in `proxy.details["_source"]`;
+- revival stores a full `origin_proxy` model dump;
+- chain hops are serialized with `Proxy.model_dump()`;
+- `origin_config.details` is copied wholesale from the original proxy.
+
+Thus `_source` can survive inside nested `chain[*].details` and `origin_config.details`, including subscription paths or tokens. This contradicts `docs/PUBLIC_LISTS_GEO_AUDIT.md`, which claims internal provenance keys are stripped from public serialization.
+
+**Required:** recursively sanitize public structures through an explicit allowlist/schema, never copy arbitrary internal `details` into public artifacts, and add a regression test that plants secrets at every nesting depth and scans every generated public artifact.
+
+---
+
+## Tests that pass without proving the claimed behavior
+
+The recurring pattern is leaf/helper verification rather than production-path verification:
+
+| Claimed capability | Current evidence | Missing proof |
+|---|---|---|
+| Hysteria3 support | Calls `parse_hysteria3()` directly | `consumer.parse_config()` / `auto_detect_and_parse()` ingestion |
+| HMAC stego migration | Tests disconnected helper twice | Real encoder/decoder use HMAC and round-trip existing/new versions |
+| Manifest replay hardening | Tests canonical helper ordering | Real writer ÔåÆ file ÔåÆ validator cryptographic round trip |
+| WASM panic recovery | Searches source for `recover()` | Browser-executed Promise rejection behavior |
+| Playwright E2E | Uses `MagicMock` as `Page` | A launched browser, served UI, interactions, network/error paths |
+| Slop cleanup | Checks an invented legacy symbol is absent | Actual removal of the auditÔÇÖs enumerated modules/symbols |
+| Server cache remediation | Counts one disk read | ETag, 304, Cache-Control, cache/lock bounds, invalidation races |
+
+The Laboratory ÔÇ£E2EÔÇØ test is especially misleading: `tests/e2e/test_laboratory_ui.py` never launches Playwright and never receives a `page` fixture. It mocks `goto()` and `inner_text()` and asserts the configured mock response. This is a unit test of a two-method wrapper, not an end-to-end test of the Laboratory UI.
+
+---
+
+## Broader audit tracks remain open
+
+The included documents themselves identify the following unresolved work, but the corresponding implementation files are untouched or only partially changed:
+
+- **Server cache audit:** per-path locking was added, but ETag/`If-None-Match`, explicit Cache-Control, bounded LRU storage, and lock eviction remain absent.
+- **Artifact/metadata audit:** the schema adds `exported_record_count` and `pipeline_wall_clock_seconds`, while `output/metadata.py` still emits `public_record_count`, `duration`, and `duration_seconds`. The documented drift was recorded, not fixed.
+- **CI/CD resilience/security audits:** direct GitHub-context interpolation in `retest.yml` and `deploy-pages.yml`, dependency lower bounds/pinning, and action pinning remain unchanged.
+- **Pipeline consumer audit:** global-lock deduplication, per-failure lock acquisition, and default-executor starvation remain. The PR improves a few persistence calls but does not implement the documented batching/dedicated-pool refactor.
+- **Source-quality audit:** `trust_score` remains hardcoded to `50.0`; probation still uses static update intervals; exponential cooldown, indexes, and the unused in-memory cache remain unresolved.
+- **GeoIP audit:** the reader/reload lock-domain race remains unaddressed.
+- **WARP washer audit:** failure classification, Vwarp MTU normalization, strict key-byte validation, and scraper memory hardening remain open.
+- **Client adapter audit:** missing VMess WS path/header mappings and orphaned third-party output contracts remain open.
+- **Frontend analytics audit:** WebGL/Chart destruction and repeated listener leaks remain open.
+- **DNS scanner audit:** active-scanning opt-in safeguards and authenticated-proxy parsing remain open.
+- **Release finalization audit:** atomic finalizer writes, permission normalization, and provenance signing remain open.
+
+Most importantly, `docs/DEPLOYMENT_READINESS_REPORT.md` explicitly states that repository, security, dependency, Pages artifact, live Pages, and release gates are **FAIL / Open / Blocked**. That is incompatible with the PR descriptionÔÇÖs ÔÇ£complete remediationÔÇØ and ÔÇ£100% greenÔÇØ positioning.
+
+---
+
+## Documentation contradictions that must be reconciled
+
+The audit corpus cannot currently serve as reliable evidence because several documents conflict with implementation or with each other:
+
+- The parser extension spec and protocol matrix disagree on Hysteria3 export support.
+- The public-list audit claims recursive provenance stripping that the serializer does not perform.
+- The Go sidecar audit says pipe consumption eliminates deadlocks, while the bridge audit correctly identifies an unbounded `drain()` path that still exists.
+- The repo-wide slop audit says `RateLimitError` and `parse_retry_after` should be removed; the new slop tests explicitly require and test those symbols.
+- The WASM audit says existing recovery is defective; the new test treats the mere presence of that defective recovery as success.
+- The implementation plans retain unchecked `- [ ]` steps but are shipped alongside a PR claiming execution is complete.
+
+Audit reports should distinguish **observed current state**, **accepted remediation**, **implemented change**, **verified evidence**, and **future recommendation**. Those categories are currently blended together.
+
+---
+
+## Required path to merge
+
+At minimum:
+
+1. Resolve the critical runtime defects above: Laboratory SSRF, manifest-signature incompatibility, disconnected stego migration, WASM rejection behavior, Hysteria3 ingestion, custom-config IPC timeout, and recursive provenance leakage.
+2. Replace helper/static tests with production-path integration tests.
+3. Reconcile protocol, schema, matrix, wiki, and parser field contracts.
+4. Add genuine browser-backed Laboratory tests covering import, chain construction, export, sanitization, backend errors, and download behavior.
+5. Add a manifest writer/validator cryptographic round-trip test with real keys and freshness checks.
+6. Add full stego pack/unpack KAT and backward-compatibility tests.
+7. Either implement every audit item claimed as resolved, or reclassify each report item as `implemented`, `verified`, `open`, `deferred`, or `out of scope` and update the PR description accordingly.
+8. Split this change into independently reviewable/rollbackable PRs: security/crypto, protocol ingestion, IPC/pipeline, frontend/E2E, and documentation/roadmap.
+9. Attach durable CI evidence for the exact head commit instead of relying on a prose test-count claim.
+
+### Recommendation
+
+**Request changes.** The narrow fixes that are sound should be preserved, but the current PR title, description, audit corpus, and tests materially overstate production readiness and completion.
+--
+author:	AmirrezaFarnamTaheri
+association:	owner
+edited:	false
+status:	none
+--
+## Deep audit-document conformance review ÔÇö **blocking**
+
+I performed a second-pass review that treated the PR description and the 44 included audit tracks as acceptance criteria, then traced each claimed remediation into the executable path, its integration boundary, and its tests.
+
+### Verdict
+
+This PR is **not a complete post-audit remediation suite** in its current form. It contains several useful narrow fixes, but many audit documents are inventories or future roadmaps whose findings remain open. More seriously, several headline security/features are implemented as disconnected helpers or tests that can pass without exercising production behavior.
+
+I would not merge this as ÔÇ£complete remediation / 100% greenÔÇØ until the blockers below are resolved or the PR is honestly re-scoped and split.
+
+---
+
+## Critical / high-severity blockers
+
+### 1. Laboratory chain testing still permits arbitrary outbound SSRF
+
+`docs/LAB_CHAIN_TESTER_AUDIT.md` correctly identifies missing pre-execution outbound validation as **Critical** and proposes scanning every outbound `server` before invoking sing-box.
+
+That remediation is absent. `src/configstream/testers/lab_chain_tester.py::test_chain_config()` still:
+
+1. accepts an arbitrary client-supplied `config` dictionary,
+2. calls `_ensure_config_ready()`,
+3. serializes it,
+4. launches sing-box.
+
+`SecurityValidator` is used only to sanitize error text after execution. No code rejects loopback, RFC1918, link-local, metadata-service, IPv6-local, or suspicious internal destinations. A caller can therefore ask the backend tester to establish chains toward internal services such as `127.0.0.1`, private LAN hosts, or `169.254.169.254`.
+
+**Required:** implement recursive outbound validation before process launch, validate hostnames after DNS resolution where applicable, constrain ports/types/detours, reject unknown outbound fields where practical, and add negative integration tests for IPv4, IPv6, encoded/local-hostname, and nested-chain cases.
+
+### 2. Manifest signatures produced by the pipeline cannot verify under the validator
+
+The signing track is internally incompatible:
+
+- `Signer.sign_subscription()` signs `uint64(timestamp) || content_bytes`.
+- `src/configstream/output/metadata.py::_attach_manifest_signature()` calls that method, but stores only `algorithm`, `signature`, and `key_id`; it does **not** store the timestamp.
+- `scripts/validate_pages_artifact.py::_validate_manifest_signature()` verifies the signature against canonical manifest bytes **without** the timestamp prefix.
+
+Therefore, when a signing key and verifier key are configured, the generated signature and validator payload differ byte-for-byte and verification must fail.
+
+The new `src/configstream/signer.py::_canonical_manifest_payload()` helper is not wired into manifest generation or validation. `tests/unit/test_signer_canonical_replay.py` only proves that two dictionaries produce the same helper output; it does not generate, attach, serialize, reload, and verify a real manifest.
+
+**Required:** define one versioned signature envelope and one canonical payload function used by both producer and verifier. Persist the signed timestamp (and ideally payload/schema version and key ID), enforce freshness consistently, then add a round-trip test using a generated Ed25519 keypair and the real manifest writer/validator.
+
+### 3. The steganography HMAC migration does not affect the encoder or decoder
+
+The PR description says pixel-offset scattering was upgraded to HMAC-SHA256. It was not.
+
+Production embedding/extraction still uses `_derive_offsets()`, which computes raw `hashlib.sha256(prefix + key + salt + carrier_len)`. The PR adds a separate `derive_lsb_offsets()` HMAC helper at the bottom of `stego.py`, but no production call site uses it.
+
+`tests/unit/transport/test_stego_kat.py` tests only this disconnected helper. It is also not a known-answer test: it compares the function with itself rather than asserting a fixed independently derived vector. Additionally, `derive_lsb_offsets()` can loop forever when `count > max_index`, because it requires unique indices but can never reach the requested count.
+
+This directly contradicts `docs/STEGANOGRAPHY_SECURITY_REPORT.md` and `docs/STEGO_KAT_HMAC_SECURITY_AUDIT.md`, both of which say the real `_derive_offsets()` path must be migrated.
+
+**Required:** replace or version the actual `_derive_offsets()` algorithm used by `_embed_permuted()` and extraction, define backward compatibility for existing v2 carriers, validate `count <= max_index`, and add fixed KAT vectors plus real pack/unpack compatibility tests.
+
+### 4. WASM panic recovery was not implemented
+
+The only PR change in `src/go/tester/wasm_main.go` is adding `hysteria3://` and `hy3://` to the recognized scheme list.
+
+The pre-existing panic path remains flawed:
+
+- `doTestProxy()` catches a panic in a deferred function but cannot convert it into a returned result.
+- The Promise wrapper ignores `reject`.
+- A panic can therefore be swallowed and the Promise resolved with an empty/nil result rather than a structured rejection.
+
+This is exactly the failure documented in `docs/WASM_JS_BRIDGE_INTEROP_AUDIT.md`. The proposed reject-wrapper patch was not applied.
+
+`tests/unit/test_wasm_panic_recovery.py` merely searches the Go source for the substring `recover()`. That substring existed in the defective implementation, so the test passes while proving nothing about Promise behavior.
+
+**Required:** recover in the Promise goroutine, reject or resolve with a documented structured error exactly once, prevent double resolution, and execute the compiled WASM in a browser test that deliberately triggers the failure path.
+
+### 5. Hysteria3 is not connected to normal pipeline ingestion
+
+`parse_hysteria3` is exported from `configstream.parsers`, but `src/configstream/auto_detect.py` does not import or register it in:
+
+- the scheme-to-parser map,
+- fallback parsers,
+- valid-scheme enforcement.
+
+The pipeline calls `configstream.consumer.parse_config`, which forwards to `auto_detect_and_parse`. Consequently, normal source ingestion cannot parse `hy3://` or `hysteria3://` even though direct unit tests of `parse_hysteria3()` pass.
+
+The alias is also absent from `_OUTPUT_PROTOCOL_ALIASES`, so `hy3` is not canonically normalized to `hysteria3` as claimed by `docs/protocol_matrix.json`.
+
+**Required:** test the actual public ingestion entrypoint, not just the leaf parser. Add both schemes to auto-detection, fallback validation, canonical normalization, extraction/allowlists, frontend parsing where claimed, and protocol ordering where appropriate.
+
+### 6. The new protocol parsers do not implement their own documented contracts
+
+`docs/PARSER_EXTENSION_SPEC.md` specifies substantially richer behavior than the committed parsers.
+
+For TUIC, the spec requires `cc_algo`, integer `max_idle_time`, integer `initial_max_streams`, and ALPN list semantics. The implementation only records `password`, `congestion_control`, and scalar `alpn`.
+
+For Hysteria3, the spec requires `multi_port`, `obfs_v2`, `padding_len`, username/UUID mapping, and conditional rejection when an obfuscation mode requires a password. The implementation omits those fields and validations and leaves `uuid` empty.
+
+The documents also disagree with each other: the extension specification advertises Sing-box and Clash export support for Hysteria3, while `docs/protocol_matrix.json` marks both exports false.
+
+**Required:** establish one authoritative wire/field contract, implement it end-to-end, validate numeric/range/list fields, define malformed-input behavior, and regenerate all matrix/schema/wiki claims from that source of truth.
+
+### 7. `GoBatchTester.test_custom_configs()` retains the unbounded IPC deadlock
+
+The bridge audit explicitly scopes the bounded-drain remediation to both `test_batch()` and `test_custom_configs()`.
+
+Only `test_batch()` now wraps `stdin.drain()` with a 15-second timeout. `test_custom_configs()` still acquires `_lock`, writes the payload, and awaits `proc.stdin.drain()` without any bound. A wedged daemon can still block this high-centrality bridge indefinitely while holding the process lock.
+
+No new test exercises this method.
+
+**Required:** use the same bounded write/drain policy for all IPC writers, clean pending futures, avoid holding the global lifecycle lock across a potentially slow drain, classify timeout/crash outcomes consistently, and test daemon restart/disable behavior for custom configs.
+
+### 8. Internal source URLs can still leak through nested revived-proxy structures
+
+The new `serialize_proxy()` filter removes `_...` and `has_...` keys only from the top-level `details` dictionary.
+
+However:
+
+- the pipeline stores the raw source in `proxy.details["_source"]`;
+- revival stores a full `origin_proxy` model dump;
+- chain hops are serialized with `Proxy.model_dump()`;
+- `origin_config.details` is copied wholesale from the original proxy.
+
+Thus `_source` can survive inside nested `chain[*].details` and `origin_config.details`, including subscription paths or tokens. This contradicts `docs/PUBLIC_LISTS_GEO_AUDIT.md`, which claims internal provenance keys are stripped from public serialization.
+
+**Required:** recursively sanitize public structures through an explicit allowlist/schema, never copy arbitrary internal `details` into public artifacts, and add a regression test that plants secrets at every nesting depth and scans every generated public artifact.
+
+---
+
+## Tests that pass without proving the claimed behavior
+
+The recurring pattern is leaf/helper verification rather than production-path verification:
+
+| Claimed capability | Current evidence | Missing proof |
+|---|---|---|
+| Hysteria3 support | Calls `parse_hysteria3()` directly | `consumer.parse_config()` / `auto_detect_and_parse()` ingestion |
+| HMAC stego migration | Tests disconnected helper twice | Real encoder/decoder use HMAC and round-trip existing/new versions |
+| Manifest replay hardening | Tests canonical helper ordering | Real writer ÔåÆ file ÔåÆ validator cryptographic round trip |
+| WASM panic recovery | Searches source for `recover()` | Browser-executed Promise rejection behavior |
+| Playwright E2E | Uses `MagicMock` as `Page` | A launched browser, served UI, interactions, network/error paths |
+| Slop cleanup | Checks an invented legacy symbol is absent | Actual removal of the auditÔÇÖs enumerated modules/symbols |
+| Server cache remediation | Counts one disk read | ETag, 304, Cache-Control, cache/lock bounds, invalidation races |
+
+The Laboratory ÔÇ£E2EÔÇØ test is especially misleading: `tests/e2e/test_laboratory_ui.py` never launches Playwright and never receives a `page` fixture. It mocks `goto()` and `inner_text()` and asserts the configured mock response. This is a unit test of a two-method wrapper, not an end-to-end test of the Laboratory UI.
+
+---
+
+## Broader audit tracks remain open
+
+The included documents themselves identify the following unresolved work, but the corresponding implementation files are untouched or only partially changed:
+
+- **Server cache audit:** per-path locking was added, but ETag/`If-None-Match`, explicit Cache-Control, bounded LRU storage, and lock eviction remain absent.
+- **Artifact/metadata audit:** the schema adds `exported_record_count` and `pipeline_wall_clock_seconds`, while `output/metadata.py` still emits `public_record_count`, `duration`, and `duration_seconds`. The documented drift was recorded, not fixed.
+- **CI/CD resilience/security audits:** direct GitHub-context interpolation in `retest.yml` and `deploy-pages.yml`, dependency lower bounds/pinning, and action pinning remain unchanged.
+- **Pipeline consumer audit:** global-lock deduplication, per-failure lock acquisition, and default-executor starvation remain. The PR improves a few persistence calls but does not implement the documented batching/dedicated-pool refactor.
+- **Source-quality audit:** `trust_score` remains hardcoded to `50.0`; probation still uses static update intervals; exponential cooldown, indexes, and the unused in-memory cache remain unresolved.
+- **GeoIP audit:** the reader/reload lock-domain race remains unaddressed.
+- **WARP washer audit:** failure classification, Vwarp MTU normalization, strict key-byte validation, and scraper memory hardening remain open.
+- **Client adapter audit:** missing VMess WS path/header mappings and orphaned third-party output contracts remain open.
+- **Frontend analytics audit:** WebGL/Chart destruction and repeated listener leaks remain open.
+- **DNS scanner audit:** active-scanning opt-in safeguards and authenticated-proxy parsing remain open.
+- **Release finalization audit:** atomic finalizer writes, permission normalization, and provenance signing remain open.
+
+Most importantly, `docs/DEPLOYMENT_READINESS_REPORT.md` explicitly states that repository, security, dependency, Pages artifact, live Pages, and release gates are **FAIL / Open / Blocked**. That is incompatible with the PR descriptionÔÇÖs ÔÇ£complete remediationÔÇØ and ÔÇ£100% greenÔÇØ positioning.
+
+---
+
+## Documentation contradictions that must be reconciled
+
+The audit corpus cannot currently serve as reliable evidence because several documents conflict with implementation or with each other:
+
+- The parser extension spec and protocol matrix disagree on Hysteria3 export support.
+- The public-list audit claims recursive provenance stripping that the serializer does not perform.
+- The Go sidecar audit says pipe consumption eliminates deadlocks, while the bridge audit correctly identifies an unbounded `drain()` path that still exists.
+- The repo-wide slop audit says `RateLimitError` and `parse_retry_after` should be removed; the new slop tests explicitly require and test those symbols.
+- The WASM audit says existing recovery is defective; the new test treats the mere presence of that defective recovery as success.
+- The implementation plans retain unchecked `- [ ]` steps but are shipped alongside a PR claiming execution is complete.
+
+Audit reports should distinguish **observed current state**, **accepted remediation**, **implemented change**, **verified evidence**, and **future recommendation**. Those categories are currently blended together.
+
+---
+
+## Required path to merge
+
+At minimum:
+
+1. Resolve the critical runtime defects above: Laboratory SSRF, manifest-signature incompatibility, disconnected stego migration, WASM rejection behavior, Hysteria3 ingestion, custom-config IPC timeout, and recursive provenance leakage.
+2. Replace helper/static tests with production-path integration tests.
+3. Reconcile protocol, schema, matrix, wiki, and parser field contracts.
+4. Add genuine browser-backed Laboratory tests covering import, chain construction, export, sanitization, backend errors, and download behavior.
+5. Add a manifest writer/validator cryptographic round-trip test with real keys and freshness checks.
+6. Add full stego pack/unpack KAT and backward-compatibility tests.
+7. Either implement every audit item claimed as resolved, or reclassify each report item as `implemented`, `verified`, `open`, `deferred`, or `out of scope` and update the PR description accordingly.
+8. Split this change into independently reviewable/rollbackable PRs: security/crypto, protocol ingestion, IPC/pipeline, frontend/E2E, and documentation/roadmap.
+9. Attach durable CI evidence for the exact head commit instead of relying on a prose test-count claim.
+
+### Recommendation
+
+**Request changes.** The narrow fixes that are sound should be preserved, but the current PR title, description, audit corpus, and tests materially overstate production readiness and completion.
+--

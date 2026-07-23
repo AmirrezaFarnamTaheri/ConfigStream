@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Unit tests for canonical manifest serialization and signature verification."""
+
 import json
 import pytest
 from cryptography.hazmat.primitives.asymmetric import ed25519
@@ -28,10 +29,14 @@ def test_manifest_signature_roundtrip_verification() -> None:
         format=serialization.PrivateFormat.Raw,
         encryption_algorithm=serialization.NoEncryption(),
     )
-    pub_key_hex = priv_key.public_key().public_bytes(
-        encoding=serialization.Encoding.Raw,
-        format=serialization.PublicFormat.Raw,
-    ).hex()
+    pub_key_hex = (
+        priv_key.public_key()
+        .public_bytes(
+            encoding=serialization.Encoding.Raw,
+            format=serialization.PublicFormat.Raw,
+        )
+        .hex()
+    )
 
     signer = Signer(seed_bytes.hex())
     manifest = {
@@ -48,7 +53,9 @@ def test_manifest_signature_roundtrip_verification() -> None:
     assert Signer.verify_manifest_signature(manifest, pub_key_hex) is True
 
 
-def test_manifest_signature_validation_script_integration(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_manifest_signature_validation_script_integration(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Test script _validate_manifest_signature with real signed payload."""
     priv_key = ed25519.Ed25519PrivateKey.generate()
     seed_bytes = priv_key.private_bytes(
@@ -56,10 +63,14 @@ def test_manifest_signature_validation_script_integration(monkeypatch: pytest.Mo
         format=serialization.PrivateFormat.Raw,
         encryption_algorithm=serialization.NoEncryption(),
     )
-    pub_key_hex = priv_key.public_key().public_bytes(
-        encoding=serialization.Encoding.Raw,
-        format=serialization.PublicFormat.Raw,
-    ).hex()
+    pub_key_hex = (
+        priv_key.public_key()
+        .public_bytes(
+            encoding=serialization.Encoding.Raw,
+            format=serialization.PublicFormat.Raw,
+        )
+        .hex()
+    )
 
     monkeypatch.setenv("CS_PUBLIC_KEY", pub_key_hex)
 

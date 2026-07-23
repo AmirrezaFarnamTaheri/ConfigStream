@@ -47,8 +47,12 @@ def _sha256_file(path: Path) -> str:
 
 
 def _normalize_digest(value: str) -> Optional[str]:
-    candidate = str(value or "").strip().lower().split()[0] if str(value or "").strip() else ""
-    if len(candidate) != 64 or any(char not in "0123456789abcdef" for char in candidate):
+    candidate = (
+        str(value or "").strip().lower().split()[0] if str(value or "").strip() else ""
+    )
+    if len(candidate) != 64 or any(
+        char not in "0123456789abcdef" for char in candidate
+    ):
         return None
     return candidate
 
@@ -65,7 +69,9 @@ def _sidecar_digest(path: Path) -> Optional[str]:
                     return digest
                 logger.error("Invalid tester checksum sidecar: %s", candidate)
         except OSError as exc:
-            logger.warning("Unable to read tester checksum sidecar: %s", type(exc).__name__)
+            logger.warning(
+                "Unable to read tester checksum sidecar: %s", type(exc).__name__
+            )
     return None
 
 
@@ -90,7 +96,9 @@ class GoBatchTester(_StreamingGoBatchTester):
         try:
             candidate = Path(self.binary_path)
             if candidate.is_symlink():
-                raise ValueError("symbolic links are not accepted for the tester binary")
+                raise ValueError(
+                    "symbolic links are not accepted for the tester binary"
+                )
             resolved = candidate.resolve(strict=True)
             file_stat = resolved.stat()
             if not stat.S_ISREG(file_stat.st_mode):
@@ -110,7 +118,9 @@ class GoBatchTester(_StreamingGoBatchTester):
             expected = expected or _sidecar_digest(resolved)
             baseline = _sha256_file(resolved)
             if expected and not hmac.compare_digest(baseline, expected):
-                raise ValueError("tester binary checksum does not match the pinned digest")
+                raise ValueError(
+                    "tester binary checksum does not match the pinned digest"
+                )
 
             self.binary_path = str(resolved)
             self._binary_file = resolved
@@ -144,7 +154,9 @@ class GoBatchTester(_StreamingGoBatchTester):
             current = _sha256_file(path)
             if not hmac.compare_digest(current, baseline):
                 raise ValueError("tester binary changed after discovery")
-            if self._expected_digest and not hmac.compare_digest(current, self._expected_digest):
+            if self._expected_digest and not hmac.compare_digest(
+                current, self._expected_digest
+            ):
                 raise ValueError("tester binary no longer matches the pinned digest")
             return True
         except (OSError, ValueError) as exc:
@@ -155,9 +167,7 @@ class GoBatchTester(_StreamingGoBatchTester):
     @staticmethod
     def _minimal_environment(settings: AppSettings) -> dict[str, str]:
         environment = {
-            key: value
-            for key in _ENV_ALLOWLIST
-            if (value := os.environ.get(key))
+            key: value for key in _ENV_ALLOWLIST if (value := os.environ.get(key))
         }
         environment.setdefault("PATH", os.defpath)
         environment["TMPDIR"] = os.environ.get("TMPDIR") or tempfile.gettempdir()
@@ -167,9 +177,7 @@ class GoBatchTester(_StreamingGoBatchTester):
         use_tunnel = (
             False
             if tunnel_override == "false"
-            else True
-            if tunnel_override == "true"
-            else settings.USE_VWARP_TUNNEL
+            else True if tunnel_override == "true" else settings.USE_VWARP_TUNNEL
         )
         if use_tunnel:
             environment["ALL_PROXY"] = (
@@ -209,7 +217,9 @@ class GoBatchTester(_StreamingGoBatchTester):
                         if key in preferred and value
                     }
                     url_map = filtered or url_map
-                command.extend(["-urls", ",".join(str(url) for url in url_map.values())])
+                command.extend(
+                    ["-urls", ",".join(str(url) for url in url_map.values())]
+                )
 
             logger.info("Starting verified Go tester daemon")
             try:
@@ -226,5 +236,7 @@ class GoBatchTester(_StreamingGoBatchTester):
                 self._stderr_task = loop.create_task(self._read_stderr_loop())
                 self._stderr_task.add_done_callback(self._silence_task)
             except (OSError, ValueError) as exc:
-                logger.error("Failed to start verified Go tester daemon: %s", type(exc).__name__)
+                logger.error(
+                    "Failed to start verified Go tester daemon: %s", type(exc).__name__
+                )
                 self._proc = None

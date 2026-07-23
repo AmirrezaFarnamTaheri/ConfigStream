@@ -34,6 +34,7 @@ User-supplied resources:
 Designed to run on Python 3.7+ with zero external dependencies.
 Works on Linux, macOS, and Windows.
 """
+
 import logging
 
 import argparse
@@ -2121,7 +2122,9 @@ def _parse_proxy_uri(uri: str) -> Optional[Dict[str, Any]]:
                 "sni": obj.get("sni", obj.get("host", obj.get("add", ""))),
             }
         except Exception:
-            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+            logging.getLogger(__name__).debug(
+                "Suppressed broad exception", exc_info=True
+            )
             return None
 
     if scheme == "ss":

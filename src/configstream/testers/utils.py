@@ -20,7 +20,9 @@ def _cleanup_temp_files():
             if os.path.exists(path):
                 os.unlink(path)
         except Exception:  # nosec B110
-            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+            logging.getLogger(__name__).debug(
+                "Suppressed broad exception", exc_info=True
+            )
             pass
 
 

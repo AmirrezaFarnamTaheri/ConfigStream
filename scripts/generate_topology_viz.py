@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Generate an interactive D3.js force-directed graph from repo-topology-out/graph.json."""
+
 import json
 from pathlib import Path
 
@@ -16,6 +17,8 @@ for n in data.get("nodes", []):
     node_map[nid] = n
 
 edges = data.get("edges", [])
+
+
 def _norm(p):
     # Normalize all repo:// variants: repo://repo:/ -> repo://
     if p.startswith("repo://"):
@@ -24,6 +27,7 @@ def _norm(p):
         p = p.removeprefix("/")
         return "repo://" + p
     return p
+
 
 connected_ids = set()
 for e in edges:
@@ -35,8 +39,9 @@ for e in edges:
 # Get centrality-ranked nodes beyond connected ones
 all_nodes_sorted = sorted(
     data.get("nodes", []),
-    key=lambda n: n.get("centrality", 0) * (n.get("out_degree", 0) + n.get("in_degree", 0) + 1),
-    reverse=True
+    key=lambda n: n.get("centrality", 0)
+    * (n.get("out_degree", 0) + n.get("in_degree", 0) + 1),
+    reverse=True,
 )
 
 # Include all connected nodes + top 50 by metric
@@ -54,18 +59,20 @@ for nid in vis_ids:
     n = node_map.get(nid)
     if not n:
         continue
-    vis_nodes.append({
-        "id": nid,
-        "label": n.get("name", nid.split("/")[-1]),
-        "path": nid.replace("repo://", ""),
-        "centrality": n.get("centrality", 0),
-        "complexity": n.get("cyclomatic_complexity", 0),
-        "cluster": n.get("cluster_id", "cluster-unknown"),
-        "type": n.get("language", "unknown"),
-        "imports": n.get("imports", []),
-        "in_degree": n.get("in_degree", 0),
-        "out_degree": n.get("out_degree", 0)
-    })
+    vis_nodes.append(
+        {
+            "id": nid,
+            "label": n.get("name", nid.split("/")[-1]),
+            "path": nid.replace("repo://", ""),
+            "centrality": n.get("centrality", 0),
+            "complexity": n.get("cyclomatic_complexity", 0),
+            "cluster": n.get("cluster_id", "cluster-unknown"),
+            "type": n.get("language", "unknown"),
+            "imports": n.get("imports", []),
+            "in_degree": n.get("in_degree", 0),
+            "out_degree": n.get("out_degree", 0),
+        }
+    )
 
 # Build edges with resolved indices
 node_id_to_idx = {n["id"]: i for i, n in enumerate(vis_nodes)}
@@ -80,11 +87,36 @@ for e in edges:
 all_clusters = sorted(set(n["cluster"] for n in vis_nodes))
 cluster_colors = {}
 palette = [
-    "#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231", "#911eb4",
-    "#46f0f0", "#f032e6", "#bcf60c", "#fabebe", "#008080", "#e6beff",
-    "#9a6324", "#fffac8", "#800000", "#aaffc3", "#808000", "#ffd8b1",
-    "#000075", "#808080", "#e6194b", "#3cb44b", "#ffe119", "#4363d8",
-    "#f58231", "#911eb4", "#46f0f0", "#f032e6", "#bcf60c", "#fabebe"
+    "#e6194b",
+    "#3cb44b",
+    "#ffe119",
+    "#4363d8",
+    "#f58231",
+    "#911eb4",
+    "#46f0f0",
+    "#f032e6",
+    "#bcf60c",
+    "#fabebe",
+    "#008080",
+    "#e6beff",
+    "#9a6324",
+    "#fffac8",
+    "#800000",
+    "#aaffc3",
+    "#808000",
+    "#ffd8b1",
+    "#000075",
+    "#808080",
+    "#e6194b",
+    "#3cb44b",
+    "#ffe119",
+    "#4363d8",
+    "#f58231",
+    "#911eb4",
+    "#46f0f0",
+    "#f032e6",
+    "#bcf60c",
+    "#fabebe",
 ]
 for i, c in enumerate(all_clusters):
     cluster_colors[c] = palette[i % len(palette)]
@@ -254,6 +286,7 @@ setTimeout(zoomToFit, 500);
 
 # Build legend rows (show top 15 clusters by count)
 from collections import Counter
+
 cluster_counts = Counter(n["cluster"] for n in vis_nodes)
 legend_rows = ""
 for c, count in cluster_counts.most_common(15):
@@ -272,4 +305,6 @@ html = html.replace("{json_colors}", json.dumps(cluster_colors))
 html = html.replace("{legend_rows}", legend_rows)
 
 OUTPUT_FILE.write_text(html)
-print(f"Written {OUTPUT_FILE} — {len(vis_nodes)} nodes, {len(vis_edges)} edges in visualization")
+print(
+    f"Written {OUTPUT_FILE} — {len(vis_nodes)} nodes, {len(vis_edges)} edges in visualization"
+)

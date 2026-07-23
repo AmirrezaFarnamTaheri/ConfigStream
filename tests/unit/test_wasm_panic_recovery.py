@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Static verification test for WASM panic recovery in go source."""
+
 from pathlib import Path
+
 
 def test_wasm_main_contains_defer_recover() -> None:
     wasm_main = Path("src/go/tester/wasm_main.go")

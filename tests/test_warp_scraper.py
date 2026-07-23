@@ -57,9 +57,7 @@ async def test_scrape_text_decode_warp_uri():
     scraper = WarpScraper()
     private_key = _key(1)
     peer_key = _key(2)
-    warp_uri = (
-        f"warp://{private_key}@1.2.3.4:5678?peer={peer_key}&reserved=1,2,3"
-    )
+    warp_uri = f"warp://{private_key}@1.2.3.4:5678?peer={peer_key}&reserved=1,2,3"
     mock_client = _mock_httpx_response(warp_uri)
 
     with (
@@ -85,7 +83,7 @@ async def test_scrape_text_decode_warp_uri():
 @pytest.mark.asyncio
 async def test_scrape_singbox_json():
     private_key = _key(1)
-    json_content = f'''{{
+    json_content = f"""{{
         "outbounds": [
             {{
                 "type": "wireguard",
@@ -93,7 +91,7 @@ async def test_scrape_singbox_json():
                 "local_address": ["172.16.0.2/32"]
             }}
         ]
-    }}'''
+    }}"""
     scraper = WarpScraper()
     mock_client = _mock_httpx_response(json_content)
 

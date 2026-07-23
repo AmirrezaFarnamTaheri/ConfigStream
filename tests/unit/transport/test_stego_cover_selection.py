@@ -56,7 +56,9 @@ def test_generate_stego_assets_skips_tiny_cover(tmp_path: Path, caplog) -> None:
     assert "favicon-16x16.png" in caplog.text
 
 
-def test_generate_stego_assets_all_unsuitable_is_nonfatal(tmp_path: Path, caplog) -> None:
+def test_generate_stego_assets_all_unsuitable_is_nonfatal(
+    tmp_path: Path, caplog
+) -> None:
     config_dir = tmp_path / "output"
     assets_dir = tmp_path / "assets"
     config_dir.mkdir()

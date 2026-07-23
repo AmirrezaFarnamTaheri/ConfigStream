@@ -13,10 +13,8 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-
 LOG_STATEMENT = (
-    'logging.getLogger(__name__).debug('
-    '"Suppressed broad exception", exc_info=True)'
+    "logging.getLogger(__name__).debug(" '"Suppressed broad exception", exc_info=True)'
 )
 
 
@@ -51,9 +49,14 @@ def _find_colon(source: str, handler: ast.ExceptHandler) -> tuple[int, int]:
     depth = 0
     for token in tokens:
         if not started:
-            if token.type == tokenize.NAME and token.string == "except" and token.start == (
-                handler.lineno,
-                handler.col_offset,
+            if (
+                token.type == tokenize.NAME
+                and token.string == "except"
+                and token.start
+                == (
+                    handler.lineno,
+                    handler.col_offset,
+                )
             ):
                 started = True
             continue

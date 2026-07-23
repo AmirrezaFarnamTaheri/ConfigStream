@@ -6,7 +6,6 @@ from unittest.mock import patch
 
 from configstream.server.ws import _is_allowed_origin
 
-
 # ---------------------------------------------------------------------------
 # _is_allowed_origin unit tests
 # ---------------------------------------------------------------------------
@@ -112,9 +111,9 @@ def test_proxy_id_always_16_chars() -> None:
         uuid="550e8400-e29b-41d4-a716-446655440000",
     )
     id_val = p_with_uuid.id
-    assert len(id_val) == 16, (
-        f"Expected 16-char hex id, got {len(id_val)!r}: {id_val!r}"
-    )
+    assert (
+        len(id_val) == 16
+    ), f"Expected 16-char hex id, got {len(id_val)!r}: {id_val!r}"
     int(id_val, 16)
 
 

@@ -84,7 +84,9 @@ def test_fragment_selection_is_stable_per_seed_and_rotatable() -> None:
 
     choices = {
         json.dumps(
-            get_fragment_config("proxy-a", preset="heavy", rotation_seed=f"day-{index}"),
+            get_fragment_config(
+                "proxy-a", preset="heavy", rotation_seed=f"day-{index}"
+            ),
             sort_keys=True,
         )
         for index in range(32)

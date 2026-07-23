@@ -31,6 +31,7 @@ _PRIVATE_NETWORKS = [
     ipaddress.ip_network("0.0.0.0/8"),
 ]
 
+
 def _is_private_or_local(host: str) -> bool:
     """Return True if host resolves to or IS a private/local/loopback address."""
     try:
@@ -52,6 +53,7 @@ def _is_private_or_local(host: str) -> bool:
         pass
     return False
 
+
 def _validate_outbound_no_ssrf(outbound: Any, depth: int = 0) -> None:
     """Recursively validate outbound entries for SSRF targets."""
     if depth > 10:
@@ -72,6 +74,7 @@ def _validate_outbound_no_ssrf(outbound: Any, depth: int = 0) -> None:
             for item in child:
                 if isinstance(item, dict):
                     _validate_outbound_no_ssrf(item, depth + 1)
+
 
 logger = logging.getLogger(__name__)
 
@@ -205,13 +208,17 @@ async def test_chain_config(
                                     data.get("ip") if isinstance(data, dict) else None
                                 )
                     except Exception:  # nosec B110
-                        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+                        logging.getLogger(__name__).debug(
+                            "Suppressed broad exception", exc_info=True
+                        )
                         pass
 
         except asyncio.TimeoutError:
             return {"success": False, "error": "Connection test timed out"}
         except Exception as e:
-            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+            logging.getLogger(__name__).debug(
+                "Suppressed broad exception", exc_info=True
+            )
             return {
                 "success": False,
                 "error": SecurityValidator.sanitize_log_message(str(e)),

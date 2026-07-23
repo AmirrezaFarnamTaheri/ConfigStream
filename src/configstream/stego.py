@@ -176,8 +176,8 @@ def _read_png(
             if saw_ihdr or length != 13:
                 raise ValueError("Invalid PNG IHDR")
             saw_ihdr = True
-            width, height, bit_depth, color_type, compression, filt, interlace = struct.unpack(
-                ">IIBBBBB", chunk_data
+            width, height, bit_depth, color_type, compression, filt, interlace = (
+                struct.unpack(">IIBBBBB", chunk_data)
             )
             if width <= 0 or height <= 0 or width * height > MAX_PIXELS:
                 raise ValueError("PNG dimensions exceed safety limit")
@@ -315,7 +315,9 @@ class StegoPacker:
         self.cipher = Fernet(self.key)
 
     def _encrypt(self, payload_data: str) -> bytes:
-        token = self.cipher.encrypt(zlib.compress(payload_data.encode("utf-8"), level=9))
+        token = self.cipher.encrypt(
+            zlib.compress(payload_data.encode("utf-8"), level=9)
+        )
         if not token or len(token) > MAX_TOKEN_BYTES:
             raise ValueError("Stego token exceeds header size limit")
         return token
@@ -324,15 +326,14 @@ class StegoPacker:
         png_bytes = cover_image_path.read_bytes()
         width, height, bpp, chunks, idat_data = _read_png(png_bytes)
         expected = (width * bpp + 1) * height
-        pixels = _unfilter_png(_safe_decompress(idat_data, expected), width, height, bpp)
+        pixels = _unfilter_png(
+            _safe_decompress(idat_data, expected), width, height, bpp
+        )
         positions = _build_carrier_positions(width, height, bpp)
 
         salt = os.urandom(SALT_SIZE)
         header = (
-            LSB_MAGIC
-            + bytes([LSB_VERSION, 0])
-            + struct.pack(">H", len(token))
-            + salt
+            LSB_MAGIC + bytes([LSB_VERSION, 0]) + struct.pack(">H", len(token)) + salt
         )
         bootstrap_bits = len(header) * 8
         if bootstrap_bits >= len(positions):
@@ -340,19 +341,27 @@ class StegoPacker:
         bootstrap_positions = positions[:bootstrap_bits]
         payload_positions = positions[bootstrap_bits:]
         _sequential_embed(pixels, bootstrap_positions, header)
-        _embed_permuted(pixels, payload_positions, token, self.key, salt, stego_version=LSB_VERSION)
+        _embed_permuted(
+            pixels, payload_positions, token, self.key, salt, stego_version=LSB_VERSION
+        )
 
         filtered = _filter_none(bytes(pixels), width, height, bpp)
         return _replace_idat(chunks, zlib.compress(filtered, level=9))
 
-    def pack(self, cover_image_path: Path, payload_data: str, output_path: Path) -> bool:
+    def pack(
+        self, cover_image_path: Path, payload_data: str, output_path: Path
+    ) -> bool:
         try:
             if not cover_image_path.is_file():
                 logger.error("Cover image not found")
                 return False
-            final_bytes = self._pack_lsb_png(cover_image_path, self._encrypt(payload_data))
+            final_bytes = self._pack_lsb_png(
+                cover_image_path, self._encrypt(payload_data)
+            )
             AtomicFileWriter.write_bytes(output_path, final_bytes)
-            logger.info("Stego image created (%d bytes, salted LSB mode)", len(final_bytes))
+            logger.info(
+                "Stego image created (%d bytes, salted LSB mode)", len(final_bytes)
+            )
             return True
         except (OSError, ValueError, zlib.error) as exc:
             logger.error(
@@ -366,7 +375,9 @@ class StegoPacker:
         png_bytes = image_path.read_bytes()
         width, height, bpp, _chunks, idat_data = _read_png(png_bytes)
         expected = (width * bpp + 1) * height
-        pixels = _unfilter_png(_safe_decompress(idat_data, expected), width, height, bpp)
+        pixels = _unfilter_png(
+            _safe_decompress(idat_data, expected), width, height, bpp
+        )
         positions = _build_carrier_positions(width, height, bpp)
 
         prefix = _sequential_extract(bytes(pixels), positions, LEGACY_HEADER_SIZE)
@@ -387,7 +398,12 @@ class StegoPacker:
             )
         else:
             legacy_header = _extract_permuted(
-                bytes(pixels), positions, LEGACY_HEADER_SIZE, self.key, b"", stego_version=1
+                bytes(pixels),
+                positions,
+                LEGACY_HEADER_SIZE,
+                self.key,
+                b"",
+                stego_version=1,
             )
             if legacy_header[:4] != LSB_MAGIC or legacy_header[4] != LEGACY_LSB_VERSION:
                 raise ValueError("LSB stego marker not found")
@@ -419,11 +435,19 @@ class StegoPacker:
         return zlib.decompress(blob[32:]).decode("utf-8")
 
     def unpack(self, stego_image_path: Path) -> Optional[str]:
-        expected_errors = (OSError, ValueError, zlib.error, InvalidToken, UnicodeDecodeError)
+        expected_errors = (
+            OSError,
+            ValueError,
+            zlib.error,
+            InvalidToken,
+            UnicodeDecodeError,
+        )
         try:
             return self._unpack_lsb_png(stego_image_path)
         except expected_errors as lsb_error:
-            logger.debug("LSB unpack failed (%s); trying legacy mode", type(lsb_error).__name__)
+            logger.debug(
+                "LSB unpack failed (%s); trying legacy mode", type(lsb_error).__name__
+            )
             try:
                 return self._unpack_legacy_append(stego_image_path)
             except expected_errors as legacy_error:
@@ -481,7 +505,9 @@ def generate_stego_assets(
             ", ".join(skipped),
         )
     if generated == 0:
-        logger.warning("No stego assets were generated from %d cover image(s)", len(covers))
+        logger.warning(
+            "No stego assets were generated from %d cover image(s)", len(covers)
+        )
 
 
 def derive_lsb_offsets(key: bytes, max_index: int, count: int) -> List[int]:
@@ -494,11 +520,12 @@ def derive_lsb_offsets(key: bytes, max_index: int, count: int) -> List[int]:
     offsets: list[int] = []
     counter = 0
     import hmac
+
     while len(offsets) < count:
         msg = struct.pack(">I", counter)
         h = hmac.new(key, msg, hashlib.sha256).digest()
         for i in range(0, len(h), 4):
-            val = struct.unpack(">I", h[i:i+4])[0]
+            val = struct.unpack(">I", h[i : i + 4])[0]
             idx = val % max_index
             if idx not in offsets:
                 offsets.append(idx)

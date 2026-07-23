@@ -376,7 +376,9 @@ async def processing_consumer(
                     0.0,
                 )
             except Exception:  # nosec B110
-                logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+                logging.getLogger(__name__).debug(
+                    "Suppressed broad exception", exc_info=True
+                )
                 pass
             try:
                 batch_number = str(getattr(settings, "BATCH_NUMBER", "")).strip()
@@ -396,7 +398,9 @@ async def processing_consumer(
                     },
                 )
             except Exception:  # nosec B110
-                logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+                logging.getLogger(__name__).debug(
+                    "Suppressed broad exception", exc_info=True
+                )
                 pass
 
         work_queue.task_done()

@@ -87,7 +87,9 @@ def _save_clean_ips(clean_ips: List[tuple[str, int]], path: Path) -> None:
         try:
             ip, port = entry
         except Exception:  # nosec B112
-            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+            logging.getLogger(__name__).debug(
+                "Suppressed broad exception", exc_info=True
+            )
             continue
         ip_s = str(ip).strip()
         if not ip_s or not _is_clean_ip(ip_s):
@@ -95,7 +97,9 @@ def _save_clean_ips(clean_ips: List[tuple[str, int]], path: Path) -> None:
         try:
             port_i = int(port)
         except Exception:
-            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+            logging.getLogger(__name__).debug(
+                "Suppressed broad exception", exc_info=True
+            )
             port_i = 2408
         key = f"{ip_s}:{port_i}"
         if key in seen:
@@ -200,7 +204,9 @@ def _chain_to_proxy_entry(
             )
             remarks = format_proxy_name(name_template, chain_proxy)
         except Exception:
-            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+            logging.getLogger(__name__).debug(
+                "Suppressed broad exception", exc_info=True
+            )
             remarks = tag
     if used_names is not None:
         base_name = remarks or tag
@@ -271,7 +277,9 @@ def _chain_obs_to_entries(
         try:
             port = int(ob.get("server_port", 0) or 0)
         except Exception:
-            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+            logging.getLogger(__name__).debug(
+                "Suppressed broad exception", exc_info=True
+            )
             return False
         return 1 <= port <= 65535
 

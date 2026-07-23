@@ -37,7 +37,10 @@ def _logical_url_fetcher_fixture(
         )
         return
 
-    if request.node.name == "test_fetch_from_source_validates_redirect_dns_before_fetch":
+    if (
+        request.node.name
+        == "test_fetch_from_source_validates_redirect_dns_before_fetch"
+    ):
 
         async def validate_redirect(
             url: str,
@@ -45,7 +48,10 @@ def _logical_url_fetcher_fixture(
             **kwargs: object,
         ) -> tuple[str | None, None]:
             if "safe-name.example" in url:
-                return "Source URL host resolves to a private or non-global address", None
+                return (
+                    "Source URL host resolves to a private or non-global address",
+                    None,
+                )
             return None, None
 
         monkeypatch.setattr(
