@@ -86,20 +86,35 @@ func doTestProxy(rawURL string) map[string]interface{} {
 	var onOpen, onError js.Func
 	var jsWS js.Value
 
+	sendResult := func(res map[string]interface{}) {
+		select {
+		case done <- res:
+		default:
+		}
+	}
+
 	onOpen = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		latency := time.Since(start).Milliseconds()
-		jsWS.Call("close")
-		done <- map[string]interface{}{"alive": true, "latency": latency}
+		if !jsWS.IsUndefined() && !jsWS.IsNull() {
+			jsWS.Call("close")
+		}
+		sendResult(map[string]interface{}{"alive": true, "latency": latency})
 		return nil
 	})
 
 	onError = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		done <- map[string]interface{}{"alive": false, "error": "Connection Failed"}
+		sendResult(map[string]interface{}{"alive": false, "error": "Connection Failed"})
 		return nil
 	})
 
-	defer onOpen.Release()
-	defer onError.Release()
+	defer func() {
+		if !jsWS.IsUndefined() && !jsWS.IsNull() {
+			jsWS.Set("onopen", js.Null())
+			jsWS.Set("onerror", js.Null())
+		}
+		onOpen.Release()
+		onError.Release()
+	}()
 
 	jsWS = js.Global().Get("WebSocket").New(wsURL)
 	jsWS.Set("onopen", onOpen)
@@ -110,7 +125,9 @@ func doTestProxy(rawURL string) map[string]interface{} {
 	case res := <-done:
 		return res
 	case <-time.After(5 * time.Second):
-		jsWS.Call("close")
+		if !jsWS.IsUndefined() && !jsWS.IsNull() {
+			jsWS.Call("close")
+		}
 		return map[string]interface{}{"alive": false, "error": "Timeout"}
 	}
 }

@@ -82,25 +82,39 @@ def _read_json_file(path: Path) -> Any:
 async def _read_json_file_async(path: Path) -> Any:
     try:
         current_mtime = await asyncio.to_thread(os.path.getmtime, path)
-    except FileNotFoundError:
+    except (FileNotFoundError, OSError):
         _json_cache.pop(path, None)
         raise
 
-    # Fast path: cache hit before acquiring the lock (avoids lock contention
-    # on repeated reads of a hot, unchanged file).
+    # Fast path: cache hit before acquiring the lock
     cached = _json_cache.get(path)
     if cached and cached[0] == current_mtime:
         return cached[1]
 
     # Slow path: serialise concurrent cache-miss readers with a per-path lock.
-    # Double-check inside the lock so only the first waiter reads from disk;
-    # subsequent waiters return the value already placed in the cache.
     async with _cache_locks[path]:
+        # Re-read mtime inside the lock to prevent TOCTOU races if file changed while waiting for lock
+        try:
+            current_mtime = await asyncio.to_thread(os.path.getmtime, path)
+        except (FileNotFoundError, OSError):
+            _json_cache.pop(path, None)
+            raise
+
         cached = _json_cache.get(path)
         if cached and cached[0] == current_mtime:
             return cached[1]
 
-        data = await asyncio.to_thread(_read_json_file, path)
+        try:
+            data = await asyncio.to_thread(_read_json_file, path)
+        except (FileNotFoundError, OSError, json.JSONDecodeError):
+            _json_cache.pop(path, None)
+            raise
+
+        # Bound cache size to 100 entries to prevent memory growth
+        if len(_json_cache) > 100:
+            _json_cache.clear()
+            _cache_locks.clear()
+
         _json_cache[path] = (current_mtime, data)
         return data
 

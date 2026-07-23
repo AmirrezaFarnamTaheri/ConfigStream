@@ -18,12 +18,14 @@ async def test_laboratory_page_object_model() -> None:
 
 @pytest.mark.playwright
 async def test_laboratory_page_loads(page: Page) -> None:
-    """Real browser test: Laboratory page loads and has expected structure."""
+    """Real browser test: Laboratory page loads without JS runtime errors."""
     import pathlib
     lab_html = pathlib.Path("frontend/lab.html").resolve()
-    await page.goto(f"file://{lab_html}")
-    title = await page.title()
-    assert "Lab" in title or "ConfigStream" in title or title != ""
+    
     errors = []
     page.on("pageerror", lambda exc: errors.append(str(exc)))
+    
+    await page.goto(f"file://{lab_html}")
+    title = await page.title()
+    assert "Lab" in title or "ConfigStream" in title
     assert len(errors) == 0, f"Page JS errors: {errors}"

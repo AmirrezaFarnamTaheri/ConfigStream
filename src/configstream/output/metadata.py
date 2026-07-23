@@ -474,7 +474,12 @@ def _attach_manifest_signature(manifest: Dict[str, Any]) -> None:
         signer = Signer(private_key_hex)
         manifest["manifest_signature"] = signer.sign_manifest(manifest)
     except Exception as exc:
-        logger.error(f"Failed to sign manifest: {exc}")
+        from ..security_validator import SecurityValidator
+        logger.error(
+            "Failed to sign manifest [%s]: %s",
+            type(exc).__name__,
+            SecurityValidator.sanitize_log_message(str(exc)),
+        )
 
 
 def write_public_artifact_contract(output_dir: Path) -> Dict[str, Any]:

@@ -62,7 +62,11 @@ class StreamingProducer(IProducer):
         except Exception as e:
             from configstream.security_validator import SecurityValidator
             safe_err = SecurityValidator.sanitize_log_message(str(e))
-            logger.error("StreamingProducer encountered an unhandled exception: %s", safe_err, exc_info=True)
+            logger.error(
+                "StreamingProducer encountered an unhandled exception [%s]: %s",
+                type(e).__name__,
+                safe_err,
+            )
             raise
 
 

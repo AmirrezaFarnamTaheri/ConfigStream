@@ -678,6 +678,8 @@ class ProxyWasher:
             chain_proxies = (
                 [warp_chain, relay_chain] if use_vwarp else [relay_chain, warp_chain]
             )
+            from ...filtering import proxy_unique_key
+
             revived_details: Dict[str, Any] = {
                 # Canonical chain data model (protocol-agnostic Proxy objects).
                 "chain": chain_proxies,
@@ -686,6 +688,7 @@ class ProxyWasher:
                 "vwarp_mode": vwarp_mode if use_vwarp else None,
                 "origin_proxy": origin_dict,
                 "origin_id": relay.id,
+                "origin_key": str(proxy_unique_key(relay)),
             }
             # Keep legacy chain in sync for downstream compatibility.
             update_chain_details(revived_details, chain_order)
