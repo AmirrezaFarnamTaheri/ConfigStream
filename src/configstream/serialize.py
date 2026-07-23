@@ -71,7 +71,7 @@ def serialize_proxy(
     details_value = proxy.details
     if isinstance(details_value, dict):
         details_value = {
-            k: v for k, v in details_value.items() if not k.startswith("has_")
+            k: v for k, v in details_value.items() if not k.startswith("has_") and not k.startswith("_")
         }
         if isinstance(details_value.get("chain"), list):
             serialized_chain: List[Dict[str, Any]] = []

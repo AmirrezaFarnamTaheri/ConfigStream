@@ -116,8 +116,10 @@ async def test_go_and_python_tester_verdict_parity():
 
     proc.stdin.write.side_effect = side_effect_write
 
+    import sys
+
     with patch("asyncio.create_subprocess_exec", new=AsyncMock(return_value=proc)):
-        go_tester = GoBatchTester(binary_path="/bin/true")
+        go_tester = GoBatchTester(binary_path=sys.executable)
         go_tester.available = True
 
         with patch.object(GoBatchTester, "self_test", new=AsyncMock(return_value=True)):

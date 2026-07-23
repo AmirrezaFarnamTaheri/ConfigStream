@@ -366,16 +366,17 @@ class StandardPipeline(IPipeline):
             if self.context.anomaly_detector:
                 self.context.anomaly_detector.get_statistics()
 
-            history.save()
+            loop = asyncio.get_running_loop()
+            await loop.run_in_executor(None, history.save)
             try:
-                await asyncio.get_running_loop().run_in_executor(
+                await loop.run_in_executor(
                     None, lambda: history.cleanup_old_data(days=30)
                 )
             except Exception as e:
                 logger.warning(f"History cleanup failed: {e}")
 
             if self.context.test_cache:
-                self.context.test_cache.save()
+                await loop.run_in_executor(None, self.context.test_cache.save)
 
             # Server notify
             notify_url = self.context.settings.NOTIFY_UPDATE_URL

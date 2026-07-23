@@ -45,19 +45,23 @@ class StreamingProducer(IProducer):
                 "StreamingProducer requires a fully initialised context"
             )
 
-        await configstream.pipeline.source_producer(
-            self.sources,
-            self.context.work_queue,
-            None,  # Pre-supplied proxies are queued separately, not via results list.
-            self.context.quality_tracker,
-            self.context.anomaly_detector,
-            self.context.event_stream,
-            self.context.progress,
-            self.context.task_fetch,
-            num_consumers=getattr(self.context, "num_consumers", 4),
-            stop_event=self.context.stop_event,
-            stats=self.context.stats,
-        )
+        try:
+            await configstream.pipeline.source_producer(
+                self.sources,
+                self.context.work_queue,
+                None,  # Pre-supplied proxies are queued separately, not via results list.
+                self.context.quality_tracker,
+                self.context.anomaly_detector,
+                self.context.event_stream,
+                self.context.progress,
+                self.context.task_fetch,
+                num_consumers=getattr(self.context, "num_consumers", 4),
+                stop_event=self.context.stop_event,
+                stats=self.context.stats,
+            )
+        except Exception as e:
+            logger.exception(f"StreamingProducer encountered an unhandled exception: {e}")
+            raise
 
 
 def _chunk_lines(lines: List[str], chunk_size: int) -> List[List[str]]:

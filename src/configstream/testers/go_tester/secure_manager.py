@@ -95,7 +95,7 @@ class GoBatchTester(_StreamingGoBatchTester):
             file_stat = resolved.stat()
             if not stat.S_ISREG(file_stat.st_mode):
                 raise ValueError("tester binary is not a regular file")
-            if file_stat.st_mode & (stat.S_IWGRP | stat.S_IWOTH):
+            if os.name != "nt" and (file_stat.st_mode & (stat.S_IWGRP | stat.S_IWOTH)):
                 raise ValueError("tester binary is group/world writable")
             if os.name != "nt" and file_stat.st_uid not in {0, os.geteuid()}:
                 raise ValueError("tester binary is owned by an unexpected user")
@@ -138,7 +138,7 @@ class GoBatchTester(_StreamingGoBatchTester):
             file_stat = path.stat()
             if not stat.S_ISREG(file_stat.st_mode):
                 raise ValueError("tester binary is no longer a regular file")
-            if file_stat.st_mode & (stat.S_IWGRP | stat.S_IWOTH):
+            if os.name != "nt" and (file_stat.st_mode & (stat.S_IWGRP | stat.S_IWOTH)):
                 raise ValueError("tester binary became group/world writable")
             current = _sha256_file(path)
             if not hmac.compare_digest(current, baseline):

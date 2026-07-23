@@ -289,6 +289,7 @@ def test_singbox_outbounds_validate_against_schema():
             address="example.com",
             port=443,
             uuid="aes-256-gcm:pass",
+            details={"method": "aes-256-gcm", "password": "pass"},
         ),
         # Hysteria2
         Proxy(

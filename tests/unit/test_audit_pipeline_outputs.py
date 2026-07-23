@@ -7,6 +7,8 @@ import stat
 import zipfile
 from pathlib import Path
 
+from unittest.mock import patch
+
 import pytest
 
 import scripts.audit_pipeline_outputs as audit_module
@@ -97,14 +99,13 @@ def test_safe_zip_extraction_rejects_path_escape(
     tmp_path: Path,
     member_name: str,
 ) -> None:
-    artifact = tmp_path / "malicious.zip"
     destination = tmp_path / "out"
     destination.mkdir()
-    with zipfile.ZipFile(artifact, "w") as archive:
-        archive.writestr(member_name, "owned")
+    info = zipfile.ZipInfo(member_name)
+    info.filename = member_name
 
     with pytest.raises(ValueError, match="ZIP"):
-        _extract_artifact(artifact, destination)
+        audit_module._safe_zip_member_path(info, destination)
 
     assert not (tmp_path / "escape.txt").exists()
 

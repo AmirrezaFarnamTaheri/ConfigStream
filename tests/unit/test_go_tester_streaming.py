@@ -36,8 +36,10 @@ async def test_go_tester_streaming():
     proc.stderr.at_eof.return_value = False
     proc.stderr.readline = AsyncMock(return_value=b"")  # No logs
 
+    import sys
+
     with patch("asyncio.create_subprocess_exec", new=AsyncMock(return_value=proc)):
-        tester = GoBatchTester(binary_path="/bin/true")
+        tester = GoBatchTester(binary_path=sys.executable)
         tester.available = True
 
         # Mock self_test to succeed since we are mocking process anyway

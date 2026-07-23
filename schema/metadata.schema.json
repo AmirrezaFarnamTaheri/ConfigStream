@@ -493,6 +493,31 @@
     "chain_obs_count": {
       "type": "integer",
       "description": "Alias for chain_outbounds_count; number of unique chain outbound tags."
+    },
+    "exported_record_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "exported_working_record_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "pipeline_wall_clock_seconds": {
+      "type": "number",
+      "minimum": 0
+    },
+    "pipeline_work_seconds_sum": {
+      "type": "number",
+      "minimum": 0
+    },
+    "record_semantics": {
+      "type": "string"
+    },
+    "shard_summary": {
+      "type": "object"
+    },
+    "source_coverage": {
+      "type": ["object", "number", "string"]
     }
   },
   "additionalProperties": false

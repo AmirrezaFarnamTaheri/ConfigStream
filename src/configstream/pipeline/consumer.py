@@ -728,7 +728,12 @@ async def _revive_failed_proxies(
 
     # 2. Attempt Standard Warp Revival (Fallback)
     remaining_failed = (
-        [fp for fp in failed_proxies if str(fp.id) not in vwarp_success_ids]
+        [
+            fp
+            for fp in failed_proxies
+            if str(fp.id) not in vwarp_success_ids
+            and (not fp.uuid or str(fp.uuid) not in vwarp_success_ids)
+        ]
         if vwarp_success_ids
         else list(failed_proxies)
     )
