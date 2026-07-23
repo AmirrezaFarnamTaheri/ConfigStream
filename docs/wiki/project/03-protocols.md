@@ -17,6 +17,7 @@ ConfigStream supports **26+ protocols** with comprehensive parsing and validatio
 | **http** | canonical | `parse_generic_url_scheme` | yes | no | Generic HTTP proxy and naked host:port parsing; Sing-box export is implemented. |
 | **hysteria** | canonical | `parse_hysteria` | yes | no | Hysteria URI parsing is supported; not all legacy clients support export. |
 | **hysteria2** | canonical | `parse_hysteria2` | yes | yes | Hysteria2 URI parsing and Sing-box export support. |
+| **hysteria3** | canonical | `parse_hysteria3` | yes | no | Hysteria3 URI parsing support. |
 | **juicity** | canonical | `parse_juicity` | no | no | Juicity parser support; generated client export support is not currently implemented. |
 | **naive** | canonical | `parse_naive` | yes | no | Naive proxy URI parsing. |
 | **openvpn** | canonical | `parse_openvpn` | no | no | OpenVPN config import and side-product support. |
@@ -37,6 +38,7 @@ ConfigStream supports **26+ protocols** with comprehensive parsing and validatio
 | **exclave** | alias | `parse_wireguard` | yes | no | Input alias handled by the WireGuard parser. |
 | **https** | alias | `parse_generic_url_scheme` | yes | yes | Input normalized to http with tls=true. |
 | **hy2** | alias | `parse_hysteria2` | yes | yes | Input alias normalized to hysteria2. |
+| **hy3** | alias | `parse_hysteria3` | yes | no | Input alias normalized to hysteria3. |
 | **naive+http** | alias | `parse_naive` | yes | no | Naive HTTP input alias. |
 | **naive+https** | alias | `parse_naive` | yes | no | Naive HTTPS input alias. |
 | **socks** | alias | `parse_generic_url_scheme` | yes | yes | Input normalized to socks5. |
