@@ -463,3 +463,25 @@ def generate_stego_assets(
         )
     if generated == 0:
         logger.warning("No stego assets were generated from %d cover image(s)", len(covers))
+
+
+def derive_lsb_offsets(key: bytes, max_index: int, count: int) -> list[int]:
+    """Derive deterministic, pseudorandom LSB pixel indices using HMAC-SHA256."""
+    if max_index <= 0 or count <= 0:
+        raise ValueError("max_index and count must be positive")
+
+    offsets: list[int] = []
+    counter = 0
+    import hmac
+    while len(offsets) < count:
+        msg = struct.pack(">I", counter)
+        h = hmac.new(key, msg, hashlib.sha256).digest()
+        for i in range(0, len(h), 4):
+            val = struct.unpack(">I", h[i:i+4])[0]
+            idx = val % max_index
+            if idx not in offsets:
+                offsets.append(idx)
+                if len(offsets) == count:
+                    break
+        counter += 1
+    return offsets
