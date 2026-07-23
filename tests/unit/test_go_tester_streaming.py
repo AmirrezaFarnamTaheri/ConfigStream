@@ -39,8 +39,9 @@ async def test_go_tester_streaming():
     import sys
 
     with patch("asyncio.create_subprocess_exec", new=AsyncMock(return_value=proc)):
-        tester = GoBatchTester(binary_path=sys.executable)
-        tester.available = True
+        with patch("configstream.testers.go_tester.secure_manager.GoBatchTester._initialize_binary_identity"):
+            tester = GoBatchTester(binary_path=sys.executable)
+            tester.available = True
 
         # Mock self_test to succeed since we are mocking process anyway
         with patch.object(GoBatchTester, "self_test", new=AsyncMock(return_value=True)):
