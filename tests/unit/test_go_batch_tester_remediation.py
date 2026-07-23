@@ -84,17 +84,19 @@ async def test_drain_timeout_triggers_daemon_restart():
             pass
         raise asyncio.TimeoutError
 
-    with patch.object(tester, "_ensure_process", new_callable=AsyncMock), \
-         patch(
-             "configstream.testers.go_tester.manager.to_singbox_outbound",
-             return_value=_MOCK_OUTBOUND,
-         ), \
-         patch.object(tester, "_restart_daemon", new_callable=AsyncMock) as mock_restart, \
-         patch.object(tester, "close", new_callable=AsyncMock), \
-         patch(
-             "configstream.testers.go_tester.manager.safe_wait_for",
-             side_effect=instant_timeout,
-         ):
+    with (
+        patch.object(tester, "_ensure_process", new_callable=AsyncMock),
+        patch(
+            "configstream.testers.go_tester.manager.to_singbox_outbound",
+            return_value=_MOCK_OUTBOUND,
+        ),
+        patch.object(tester, "_restart_daemon", new_callable=AsyncMock) as mock_restart,
+        patch.object(tester, "close", new_callable=AsyncMock),
+        patch(
+            "configstream.testers.go_tester.manager.safe_wait_for",
+            side_effect=instant_timeout,
+        ),
+    ):
         result = await tester.test_batch([proxy])
 
     mock_restart.assert_called_once()
@@ -126,17 +128,19 @@ async def test_fifth_consecutive_drain_timeout_disables_tester():
             pass
         raise asyncio.TimeoutError
 
-    with patch.object(tester, "_ensure_process", new_callable=AsyncMock), \
-         patch(
-             "configstream.testers.go_tester.manager.to_singbox_outbound",
-             return_value=_MOCK_OUTBOUND,
-         ), \
-         patch.object(tester, "close", new_callable=AsyncMock) as mock_close, \
-         patch.object(tester, "_restart_daemon", new_callable=AsyncMock) as mock_restart, \
-         patch(
-             "configstream.testers.go_tester.manager.safe_wait_for",
-             side_effect=instant_timeout,
-         ):
+    with (
+        patch.object(tester, "_ensure_process", new_callable=AsyncMock),
+        patch(
+            "configstream.testers.go_tester.manager.to_singbox_outbound",
+            return_value=_MOCK_OUTBOUND,
+        ),
+        patch.object(tester, "close", new_callable=AsyncMock) as mock_close,
+        patch.object(tester, "_restart_daemon", new_callable=AsyncMock) as mock_restart,
+        patch(
+            "configstream.testers.go_tester.manager.safe_wait_for",
+            side_effect=instant_timeout,
+        ),
+    ):
         result = await tester.test_batch([proxy])
 
     assert tester.available is False
