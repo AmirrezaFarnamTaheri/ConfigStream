@@ -540,7 +540,35 @@ class GoBatchTester:
             # Use NDJSON
             payload_str = "\n".join(_json_str(i) for i in inputs) + "\n"
             self._proc.stdin.write(payload_str.encode())
-            await self._proc.stdin.drain()
+            # Bounded drain: a full kernel buffer can block indefinitely.
+            # 15 s is generous for any reasonable batch; on timeout we treat
+            # this the same as a batch timeout (increment counter, restart/disable).
+            await safe_wait_for(self._proc.stdin.drain(), timeout=15.0)
+        except asyncio.TimeoutError:
+            self._consecutive_timeouts += 1
+            logger.error(
+                f"IPC drain timed out writing to Go Tester Daemon "
+                f"(consecutive: {self._consecutive_timeouts}/{self._max_consecutive_timeouts})."
+            )
+            await self._cleanup_pending(list(req_id_map.keys()), futures)
+            for p in req_id_map.values():
+                if p.is_working is not True:
+                    p.is_working = False
+                    if not isinstance(p.details, dict):
+                        p.details = {}
+                    p.details.setdefault("error", "DRAIN_TIMEOUT")
+                    p.details.setdefault("failure_category", "TIMEOUT")
+                    p.tested_at = batch_tested_at
+            if self._consecutive_timeouts >= self._max_consecutive_timeouts:
+                logger.error(
+                    f"Go Tester Daemon exceeded {self._max_consecutive_timeouts} "
+                    f"consecutive timeouts on drain. Disabling to preserve pipeline time budget."
+                )
+                self.available = False
+                await self.close()
+            else:
+                await self._restart_daemon()
+            return proxies
         except asyncio.CancelledError:
             await self._cleanup_pending(list(req_id_map.keys()), futures)
             raise
