@@ -11,7 +11,7 @@ import os
 import struct
 import zlib
 from pathlib import Path
-from typing import Optional, List, List
+from typing import List, Optional
 
 from cryptography.fernet import Fernet, InvalidToken
 

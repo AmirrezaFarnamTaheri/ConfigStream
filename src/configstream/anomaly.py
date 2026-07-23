@@ -13,7 +13,7 @@ import statistics
 import threading
 import time
 from pathlib import Path
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 from .constants import Z_SCORE_NORMAL_CONSTANT
 from .security_validator import _safe_log_text
