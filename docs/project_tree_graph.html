@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ConfigStream — Interactive Codebase Topology & Tree Graph</title>
+    <title>ConfigStream — Advanced Codebase Topology & Tree Graph (v2.0)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
     <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
     <style>
         :root {
-            --bg-dark: #0b0f19;
-            --bg-panel: rgba(15, 23, 42, 0.75);
-            --border-panel: rgba(255, 255, 255, 0.1);
+            --bg-dark: #070a12;
+            --bg-panel: rgba(13, 20, 36, 0.82);
+            --border-panel: rgba(255, 255, 255, 0.12);
             --accent-primary: #38bdf8;
             --accent-purple: #a855f7;
             --accent-rose: #f43f5e;
@@ -22,286 +22,124 @@
             --font-mono: 'JetBrains Mono', monospace;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body, html {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
+            width: 100%; height: 100%; overflow: hidden;
             background-color: var(--bg-dark);
             font-family: var(--font-sans);
             color: var(--text-main);
         }
 
-        #network {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 1;
-        }
+        #network { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
 
-        /* Glassmorphic UI Overlays */
         .glass-panel {
             background: var(--bg-panel);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--border-panel);
-            border-radius: 12px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            border-radius: 14px;
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
         }
 
-        /* Header Bar */
         #header-bar {
-            position: absolute;
-            top: 16px;
-            left: 16px;
-            right: 16px;
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 20px;
+            position: absolute; top: 16px; left: 16px; right: 16px; z-index: 10;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 22px;
         }
 
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
+        .brand { display: flex; align-items: center; gap: 14px; }
         .brand-badge {
-            width: 32px;
-            height: 32px;
+            width: 36px; height: 36px;
             background: linear-gradient(135deg, var(--accent-rose), var(--accent-purple));
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 16px;
-            box-shadow: 0 0 12px rgba(244, 63, 94, 0.4);
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 16px; color: #fff;
+            box-shadow: 0 0 16px rgba(244, 63, 94, 0.5);
         }
-
         .brand-title {
-            font-size: 18px;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            background: linear-gradient(to right, #ffffff, #94a3b8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-size: 19px; font-weight: 700; letter-spacing: -0.02em;
+            background: linear-gradient(to right, #ffffff, #cbd5e1);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
+        .brand-subtitle { font-size: 12px; color: var(--text-muted); }
 
-        .brand-subtitle {
-            font-size: 12px;
-            color: var(--text-muted);
-            font-weight: 400;
-        }
+        .controls-wrapper { display: flex; align-items: center; gap: 10px; }
 
-        /* Controls & Filter Bar */
-        .controls-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .search-box {
-            position: relative;
-            width: 240px;
-        }
-
+        .search-box { position: relative; width: 260px; }
         .search-input {
-            width: 100%;
-            padding: 8px 12px 8px 34px;
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid var(--border-panel);
-            border-radius: 8px;
-            color: var(--text-main);
-            font-family: var(--font-sans);
-            font-size: 13px;
-            outline: none;
+            width: 100%; padding: 9px 12px 9px 36px;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid var(--border-panel); border-radius: 8px;
+            color: var(--text-main); font-family: var(--font-sans); font-size: 13px; outline: none;
             transition: all 0.2s ease;
         }
-
-        .search-input:focus {
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25);
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 14px;
-            height: 14px;
-            fill: var(--text-muted);
-        }
+        .search-input:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.3); }
+        .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; fill: var(--text-muted); }
 
         .btn {
-            padding: 8px 14px;
-            background: rgba(30, 41, 59, 0.8);
-            border: 1px solid var(--border-panel);
-            border-radius: 8px;
-            color: var(--text-main);
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
+            padding: 9px 14px; background: rgba(30, 41, 59, 0.85);
+            border: 1px solid var(--border-panel); border-radius: 8px;
+            color: var(--text-main); font-size: 13px; font-weight: 500; cursor: pointer;
+            transition: all 0.2s ease; display: flex; align-items: center; gap: 6px;
+        }
+        .btn:hover { background: rgba(51, 65, 85, 1); border-color: rgba(255, 255, 255, 0.3); transform: translateY(-1px); }
+        .btn.active { background: rgba(56, 189, 248, 0.2); border-color: var(--accent-primary); color: #fff; }
+
+        /* View Mode Controller Toolbar */
+        #view-modes-bar {
+            position: absolute; top: 82px; left: 16px; z-index: 10;
+            display: flex; gap: 8px; align-items: center; padding: 6px;
+        }
+        .mode-btn {
+            padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600;
+            cursor: pointer; background: transparent; border: none; color: var(--text-muted);
             transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 6px;
         }
+        .mode-btn.active { background: rgba(56, 189, 248, 0.25); color: #ffffff; border: 1px solid var(--accent-primary); }
 
-        .btn:hover {
-            background: rgba(51, 65, 85, 1);
-            border-color: rgba(255, 255, 255, 0.2);
-            transform: translateY(-1px);
-        }
-
-        /* Subsystem Filters Chips */
+        /* Subsystem Filters */
         #filters-bar {
-            position: absolute;
-            top: 80px;
-            left: 16px;
-            z-index: 10;
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-            max-width: calc(100% - 380px);
+            position: absolute; top: 132px; left: 16px; z-index: 10;
+            display: flex; gap: 6px; flex-wrap: wrap; max-width: calc(100% - 400px);
         }
-
         .chip {
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            background: rgba(15, 23, 42, 0.7);
-            border: 1px solid var(--border-panel);
-            color: var(--text-muted);
-            transition: all 0.2s ease;
+            padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;
+            cursor: pointer; background: rgba(15, 23, 42, 0.75); border: 1px solid var(--border-panel);
+            color: var(--text-muted); transition: all 0.2s ease;
         }
+        .chip.active, .chip:hover { color: #ffffff; border-color: var(--accent-primary); background: rgba(56, 189, 248, 0.2); }
 
-        .chip.active, .chip:hover {
-            color: #ffffff;
-            border-color: var(--accent-primary);
-            background: rgba(56, 189, 248, 0.15);
-        }
-
-        /* Inspector Sidebar */
+        /* Inspector Sidebar with Verbatim Snippet */
         #inspector {
-            position: absolute;
-            top: 130px;
-            right: 16px;
-            bottom: 16px;
-            width: 340px;
-            z-index: 10;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            overflow-y: auto;
-            transform: translateX(0);
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: absolute; top: 82px; right: 16px; bottom: 16px; width: 380px; z-index: 10;
+            padding: 22px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto;
+        }
+        .inspector-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-panel); padding-bottom: 14px; }
+        .inspector-title { font-size: 17px; font-weight: 700; color: var(--text-main); }
+        .badge-type { padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+        
+        .info-group { display: flex; flex-direction: column; gap: 4px; }
+        .info-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; }
+        .info-value { font-size: 13px; color: var(--text-main); word-break: break-all; line-height: 1.4; }
+        
+        .code-container {
+            font-family: var(--font-mono); font-size: 11px; color: #e2e8f0;
+            background: rgba(0, 0, 0, 0.6); padding: 12px; border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.08); overflow-x: auto; max-height: 220px;
+            white-space: pre; line-height: 1.5;
         }
 
-        .inspector-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--border-panel);
-            padding-bottom: 12px;
-        }
-
-        .inspector-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--text-main);
-        }
-
-        .badge-type {
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .info-group {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .info-label {
-            font-size: 11px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            font-weight: 600;
-            letter-spacing: 0.05em;
-        }
-
-        .info-value {
-            font-size: 13px;
-            color: var(--text-main);
-            word-break: break-all;
-        }
-
-        .info-code {
-            font-family: var(--font-mono);
-            background: rgba(0, 0, 0, 0.4);
-            padding: 6px 10px;
-            border-radius: 6px;
-            font-size: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
+        .sig-list { display: flex; flex-direction: column; gap: 4px; font-family: var(--font-mono); font-size: 11px; color: var(--accent-primary); }
 
         /* Legend */
         #legend {
-            position: absolute;
-            bottom: 16px;
-            left: 16px;
-            z-index: 10;
-            padding: 14px 18px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
+            position: absolute; bottom: 16px; left: 16px; z-index: 10; padding: 14px 18px;
+            display: flex; flex-direction: column; gap: 8px;
         }
-
-        .legend-title {
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .legend-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 6px 16px;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 12px;
-            color: var(--text-main);
-        }
-
-        .legend-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-        }
+        .legend-title { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        .legend-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 16px; }
+        .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-main); }
+        .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
     </style>
 </head>
 <body>
@@ -312,18 +150,25 @@
         <div class="brand">
             <div class="brand-badge">CS</div>
             <div>
-                <div class="brand-title">ConfigStream Codebase Graph</div>
-                <div class="brand-subtitle">Interactive Structural Hierarchy & MCP Code Review Topology</div>
+                <div class="brand-title">ConfigStream Topology & Flow Graph</div>
+                <div class="brand-subtitle">Interactive Codebase Architecture, Flow Pulses & Live Code Snippets (v2.0)</div>
             </div>
         </div>
         <div class="controls-wrapper">
             <div class="search-box">
                 <svg class="search-icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-                <input type="text" id="searchInput" class="search-input" placeholder="Search modules, paths...">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search modules, files, symbols...">
             </div>
             <button class="btn" onclick="resetView()">Reset View</button>
             <button class="btn" onclick="togglePhysics()">Toggle Layout</button>
         </div>
+    </div>
+
+    <!-- Multi-View Mode Controller Toolbar -->
+    <div id="view-modes-bar" class="glass-panel">
+        <button class="mode-btn active" onclick="switchViewMode('subsystem', this)">🎨 Subsystems</button>
+        <button class="mode-btn" onclick="switchViewMode('complexity', this)">🔥 Complexity Heatmap</button>
+        <button class="mode-btn" onclick="switchViewMode('flow', this)">⚡ Streaming Flow Focus</button>
     </div>
 
     <!-- Subsystem Filters -->
@@ -341,7 +186,7 @@
         <div class="chip" onclick="filterSubsystem('scripts', this)">Scripts & Tools</div>
     </div>
 
-    <!-- Inspector Sidebar -->
+    <!-- Verbatim Code Inspector Sidebar -->
     <div id="inspector" class="glass-panel">
         <div class="inspector-header">
             <div id="nodeTitle" class="inspector-title">Select a Node</div>
@@ -353,26 +198,30 @@
         </div>
         <div class="info-group">
             <div class="info-label">File Path</div>
-            <div id="nodePath" class="info-code">D:/GitHub/ConfigStream</div>
+            <div id="nodePath" class="info-value" style="font-family: var(--font-mono); font-size: 11px;">D:/GitHub/ConfigStream</div>
         </div>
         <div class="info-group">
-            <div class="info-label">Description</div>
-            <div id="nodeDesc" class="info-value">Click any node in the topology graph to inspect its function, metrics, and relationships.</div>
+            <div class="info-label">Description / Docstring</div>
+            <div id="nodeDesc" class="info-value">Click any node in the topology graph to inspect its function, verbatim code snippet, line count, and signatures.</div>
         </div>
-        <div class="info-group" id="linesGroup">
+        <div class="info-group">
             <div class="info-label">Lines of Code</div>
             <div id="nodeLines" class="info-value">--</div>
         </div>
         <div class="info-group">
-            <div class="info-label">Connected Edges</div>
-            <div id="nodeEdges" class="info-value">--</div>
+            <div class="info-label">Key Signatures</div>
+            <div id="nodeSigs" class="sig-list">--</div>
+        </div>
+        <div class="info-group">
+            <div class="info-label">Verbatim Code Preview</div>
+            <div id="nodeCode" class="code-container"># Select a file node to view live code preview</div>
         </div>
     </div>
 
     <!-- Legend -->
     <div id="legend" class="glass-panel">
-        <div class="legend-title">Subsystem Legend</div>
-        <div class="legend-grid">
+        <div class="legend-title" id="legendTitle">Subsystem Legend</div>
+        <div class="legend-grid" id="legendGrid">
             <div class="legend-item"><div class="legend-dot" style="background: #a855f7;"></div>Pipeline Core</div>
             <div class="legend-item"><div class="legend-dot" style="background: #ec4899;"></div>Parsers</div>
             <div class="legend-item"><div class="legend-dot" style="background: #f59e0b;"></div>Generators</div>
@@ -391,12 +240,17 @@
     "label": "ConfigStream",
     "group": "root",
     "type": "root",
-    "path": "D:\\GitHub\\ConfigStream",
+    "path": "",
     "description": "Sovereignty-grade zero-budget anti-censorship platform",
     "lines": 0,
+    "subsystemColor": "#f43f5e",
+    "complexityColor": "#38bdf8",
     "color": "#f43f5e",
     "size": 36,
-    "shape": "diamond"
+    "shape": "diamond",
+    "snippet": "",
+    "signatures": [],
+    "communityId": "default"
   },
   {
     "id": "src",
@@ -406,9 +260,14 @@
     "path": "src",
     "description": "Source packages (Python backend & Go sidecar)",
     "lines": 0,
+    "subsystemColor": "#38bdf8",
+    "complexityColor": "#38bdf8",
     "color": "#38bdf8",
     "size": 28,
-    "shape": "folder"
+    "shape": "folder",
+    "snippet": "",
+    "signatures": [],
+    "communityId": "default"
   },
   {
     "id": "src/configstream",
@@ -418,9 +277,14 @@
     "path": "src/configstream",
     "description": "Core Python package root",
     "lines": 0,
+    "subsystemColor": "#38bdf8",
+    "complexityColor": "#38bdf8",
     "color": "#38bdf8",
     "size": 28,
-    "shape": "folder"
+    "shape": "folder",
+    "snippet": "",
+    "signatures": [],
+    "communityId": "default"
   },
   {
     "id": "src/configstream/pipeline",
@@ -430,9 +294,14 @@
     "path": "src/configstream/pipeline",
     "description": "StandardPipeline streaming engine & consumers",
     "lines": 0,
+    "subsystemColor": "#a855f7",
+    "complexityColor": "#38bdf8",
     "color": "#a855f7",
     "size": 28,
-    "shape": "folder"
+    "shape": "folder",
+    "snippet": "",
+    "signatures": [],
+    "communityId": "default"
   },
   {
     "id": "src/configstream/parsers",
@@ -442,9 +311,14 @@
     "path": "src/configstream/parsers",
     "description": "20+ protocol URI parsers",
     "lines": 0,
+    "subsystemColor": "#ec4899",
+    "complexityColor": "#38bdf8",
     "color": "#ec4899",
     "size": 28,
-    "shape": "folder"
+    "shape": "folder",
+    "snippet": "",
+    "signatures": [],
+    "communityId": "default"
   },
   {
     "id": "src/configstream/generators",
@@ -454,9 +328,14 @@
     "path": "src/configstream/generators",
     "description": "Split, Plaintext, and Sing-box config generators",
     "lines": 0,
+    "subsystemColor": "#f59e0b",
+    "complexityColor": "#38bdf8",
     "color": "#f59e0b",
     "size": 28,
-    "shape": "folder"
+    "shape": "folder",
+    "snippet": "",
+    "signatures": [],
+    "communityId": "default"
   },
   {
     "id": "src/configstream/output",
@@ -466,9 +345,14 @@
     "path": "src/configstream/output",
     "description": "Artifact exports & subscription builders",
     "lines": 0,
+    "subsystemColor": "#10b981",
+    "complexityColor": "#38bdf8",
     "color": "#10b981",
     "size": 28,
-    "shape": "folder"
+    "shape": "folder",
+    "snippet": "",
+    "signatures": [],
+    "communityId": "default"
   },
   {
     "id": "src/configstream/intelligence",
@@ -478,9 +362,14 @@
     "path": "src/configstream/intelligence",
     "description": "WARP Washer & chaining engine",
     "lines": 0,
+    "subsystemColor": "#3b82f6",
+    "complexityColor": "#38bdf8",
     "color": "#3b82f6",
     "size": 28,
-    "shape": "folder"
+    "shape": "folder",
+    "snippet": "",
+    "signatures": [],
+    "communityId": "default"
   },
   {
     "id": "src/configstream/testers",
@@ -490,9 +379,14 @@
     "path": "src/configstream/testers",
     "description": "GoBatchTester sidecar IPC & Python fallbacks",
     "lines": 0,
+    "subsystemColor": "#6366f1",
+    "complexityColor": "#38bdf8",
     "color": "#6366f1",
     "size": 28,
-    "shape": "folder"
+    "shape": "folder",
+    "snippet": "",
+    "signatures": [],
+    "communityId": "default"
   },
   {
     "id": "src/configstream/security",
@@ -502,9 +396,14 @@
     "path": "src/configstream/security",
     "description": "SecurityValidator & IP/domain blocklists",
     "lines": 0,
+    "subsystemColor": "#ef4444",
+    "complexityColor": "#38bdf8",
     "color": "#ef4444",
     "size": 28,
-    "shape": "folder"
+    "shape": "folder",
+    "snippet": "",
+    "signatures": [],
+    "communityId": "default"
   },
   {
     "id": "src/configstream/server",
@@ -514,9 +413,14 @@
     "path": "src/configstream/server",
     "description": "FastAPI server routes (Lab, Proxy, Health)",
     "lines": 0,
+    "subsystemColor": "#06b6d4",
+    "complexityColor": "#38bdf8",
     "color": "#06b6d4",
     "size": 28,
-    "shape": "folder"
+    "shape": "folder",
+    "snippet": "",
+    "signatures": [],
+    "communityId": "default"
   },
   {
     "id": "src/configstream/converters",
@@ -526,9 +430,14 @@
     "path": "src/configstream/converters",
     "description": "Client profile adapters (Clash, Surge, Loon)",
     "lines": 0,
+    "subsystemColor": "#f59e0b",
+    "complexityColor": "#38bdf8",
     "color": "#f59e0b",
     "size": 28,
-    "shape": "folder"
+    "shape": "folder",
+    "snippet": "",
+    "signatures": [],
+    "communityId": "default"
   },
   {
     "id": "src/configstream/tools",
@@ -538,9 +447,14 @@
     "path": "src/configstream/tools",
     "description": "Vwarp tool, Censorship Lab, DNS scanner TUI",
     "lines": 0,
+    "subsystemColor": "#f97316",
+    "complexityColor": "#38bdf8",
     "color": "#f97316",
     "size": 28,
-    "shape": "folder"
+    "shape": "folder",
+    "snippet": "",
+    "signatures": [],
+    "communityId": "default"
   },
   {
     "id": "src/go",
@@ -550,9 +464,14 @@
     "path": "src/go",
     "description": "Go native components",
     "lines": 0,
+    "subsystemColor": "#38bdf8",
+    "complexityColor": "#38bdf8",
     "color": "#38bdf8",
     "size": 28,
-    "shape": "folder"
+    "shape": "folder",
+    "snippet": "",
+    "signatures": [],
+    "communityId": "default"
   },
   {
     "id": "src/go/tester",
@@ -562,9 +481,14 @@
     "path": "src/go/tester",
     "description": "Go batch tester daemon & WASM bridge",
     "lines": 0,
+    "subsystemColor": "#6366f1",
+    "complexityColor": "#38bdf8",
     "color": "#6366f1",
     "size": 28,
-    "shape": "folder"
+    "shape": "folder",
+    "snippet": "",
+    "signatures": [],
+    "communityId": "default"
   },
   {
     "id": "frontend",
@@ -574,9 +498,14 @@
     "path": "frontend",
     "description": "Frontend Web UI & WebGL Globe",
     "lines": 0,
+    "subsystemColor": "#8b5cf6",
+    "complexityColor": "#38bdf8",
     "color": "#8b5cf6",
     "size": 28,
-    "shape": "folder"
+    "shape": "folder",
+    "snippet": "",
+    "signatures": [],
+    "communityId": "default"
   },
   {
     "id": "frontend/assets/js/lab",
@@ -586,9 +515,14 @@
     "path": "frontend/assets/js/lab",
     "description": "Modular ES6 Laboratory package",
     "lines": 0,
+    "subsystemColor": "#8b5cf6",
+    "complexityColor": "#38bdf8",
     "color": "#8b5cf6",
     "size": 28,
-    "shape": "folder"
+    "shape": "folder",
+    "snippet": "",
+    "signatures": [],
+    "communityId": "default"
   },
   {
     "id": "scripts",
@@ -598,9 +532,14 @@
     "path": "scripts",
     "description": "CI/CD resharding & deployment scripts",
     "lines": 0,
+    "subsystemColor": "#f97316",
+    "complexityColor": "#38bdf8",
     "color": "#f97316",
     "size": 28,
-    "shape": "folder"
+    "shape": "folder",
+    "snippet": "",
+    "signatures": [],
+    "communityId": "default"
   },
   {
     "id": "tests",
@@ -610,9 +549,14 @@
     "path": "tests",
     "description": "1,270+ Unit & E2E integration test suites",
     "lines": 0,
+    "subsystemColor": "#84cc16",
+    "complexityColor": "#38bdf8",
     "color": "#84cc16",
     "size": 28,
-    "shape": "folder"
+    "shape": "folder",
+    "snippet": "",
+    "signatures": [],
+    "communityId": "default"
   },
   {
     "id": "docs",
@@ -622,9 +566,14 @@
     "path": "docs",
     "description": "Canonical matrices & architecture reports",
     "lines": 0,
+    "subsystemColor": "#14b8a6",
+    "complexityColor": "#38bdf8",
     "color": "#14b8a6",
     "size": 28,
-    "shape": "folder"
+    "shape": "folder",
+    "snippet": "",
+    "signatures": [],
+    "communityId": "default"
   },
   {
     "id": "schema",
@@ -634,9 +583,14 @@
     "path": "schema",
     "description": "JSON Schemas for Proxy, Metadata, Singbox",
     "lines": 0,
+    "subsystemColor": "#14b8a6",
+    "complexityColor": "#38bdf8",
     "color": "#14b8a6",
     "size": 28,
-    "shape": "folder"
+    "shape": "folder",
+    "snippet": "",
+    "signatures": [],
+    "communityId": "default"
   },
   {
     "id": "mod:pipeline:core",
@@ -645,10 +599,23 @@
     "type": "module",
     "path": "src/configstream/pipeline/core.py",
     "description": "StandardPipeline orchestrator & lifecycle",
-    "lines": 497,
+    "lines": 499,
+    "subsystemColor": "#a855f7",
+    "complexityColor": "#f59e0b",
     "color": "#a855f7",
-    "size": 20,
-    "shape": "box"
+    "size": 18,
+    "shape": "box",
+    "snippet": "# SPDX-License-Identifier: AGPL-3.0-or-later\nimport asyncio\nimport logging\nimport multiprocessing\nimport os\nfrom datetime import datetime, timezone\nfrom pathlib import Path\nfrom typing import List, Optional, Any\nfrom contextlib import suppress\n\nfrom .interfaces import IPipeline\nfrom .models import PipelineContext\nfrom configstream.pipeline_stats import PipelineStats, PipelineResult\nfrom configstream.config import AppSettings\n\n# Intelligence and Domain Dependencies\nfrom configstream.testers import SingBoxTester\nfrom configstream.test_cache import TestResultCache\nfrom configstream.scheduler import SmartRetestScheduler\nfrom configstream.concurrency_manager import ConcurrencyManager\nfrom configstream.geoip import GeoIPResolver\nfrom configstream.source_quality import SourceQualityTracker\nfrom configstream.anomaly import AnomalyDetector\nfrom configstream.security.blocklist import DEFAULT_BLOCKLIST\nfrom configstream.security_validator import SecurityValidator\n... [474 more lines]",
+    "signatures": [
+      "async def _cancel_all(",
+      "class StandardPipeline(IPipeline)",
+      "def __init__(",
+      "async def create_and_init(",
+      "async def run(self) -> PipelineResult",
+      "async def _time_limit_watcher()",
+      "async def run_full_pipeline("
+    ],
+    "communityId": "default"
   },
   {
     "id": "mod:pipeline:producer",
@@ -657,10 +624,24 @@
     "type": "module",
     "path": "src/configstream/pipeline/producer.py",
     "description": "StreamingProducer source fetcher & queue pusher",
-    "lines": 560,
+    "lines": 574,
+    "subsystemColor": "#a855f7",
+    "complexityColor": "#ef4444",
     "color": "#a855f7",
-    "size": 20,
-    "shape": "box"
+    "size": 22,
+    "shape": "box",
+    "snippet": "# SPDX-License-Identifier: AGPL-3.0-or-later\nimport asyncio\nimport logging\nimport json\nimport random\nimport time\nfrom typing import Any, Dict, List, Optional, TYPE_CHECKING\nfrom rich.progress import Progress, TaskID\nfrom functools import partial\nfrom urllib.parse import urlparse\n\nfrom configstream.models import Proxy\nfrom configstream.config import AppSettings\nimport configstream.producer as producer_mod\nfrom configstream.circuit_breaker import CircuitBreakerManager\nfrom configstream.parsers import extract_config_lines\nfrom configstream.source_quality import SourceQualityTracker\nfrom configstream.anomaly import AnomalyDetector\nfrom configstream.security_validator import SecurityValidator\nfrom configstream.pipeline.interfaces import IProducer\nfrom configstream.pipeline.models import PipelineContext\n\nif TYPE_CHECKING:\n    from configstream.event_stream import EventStream\n    from configstream.pipeline_stats import PipelineStats\n... [549 more lines]",
+    "signatures": [
+      "class StreamingProducer(IProducer)",
+      "def __init__(self, sources",
+      "async def produce(self) -> None",
+      "def _chunk_lines(lines",
+      "async def _report_source_failure(",
+      "async def _report_source_backpressure(",
+      "async def source_producer(",
+      "def _queue_pressure() -> float"
+    ],
+    "communityId": "default"
   },
   {
     "id": "mod:pipeline:consumer",
@@ -669,10 +650,24 @@
     "type": "module",
     "path": "src/configstream/pipeline/consumer.py",
     "description": "WorkerConsumer queue processing & revival",
-    "lines": 831,
+    "lines": 833,
+    "subsystemColor": "#a855f7",
+    "complexityColor": "#ef4444",
     "color": "#a855f7",
-    "size": 20,
-    "shape": "box"
+    "size": 22,
+    "shape": "box",
+    "snippet": "# SPDX-License-Identifier: AGPL-3.0-or-later\nimport asyncio\nimport logging\nimport inspect\nimport time\nimport hashlib\nfrom pathlib import Path\nimport orjson as json\nfrom typing import List, Optional, Any, TYPE_CHECKING, cast, Dict\n\nfrom rich.progress import Progress, TaskID\n\nfrom configstream.models import Proxy\nimport configstream.consumer as consumer_mod\nfrom configstream.security_validator import (\n    STRICT_POLICY,\n    TEST_POLICY,\n    SecurityValidator,\n)\nfrom configstream.filtering import proxy_unique_key\nfrom configstream.testers import SingBoxTester\nfrom configstream.test_cache import TestResultCache\nfrom configstream.scheduler import SmartRetestScheduler\nfrom configstream.concurrency_manager import ConcurrencyManager\nfrom configstream.geoip import GeoIPResolver\n... [808 more lines]",
+    "signatures": [
+      "class WorkerConsumer(IConsumer)",
+      "def __init__(self, context",
+      "async def consume(self) -> None",
+      "async def processing_consumer(",
+      "def _parse_chunk(lines, src)",
+      "def _save_fingerprint(batch, src_url)",
+      "def _deduplicate_batch(",
+      "def _to_bloom_key(unique_key"
+    ],
+    "communityId": "default"
   },
   {
     "id": "mod:models",
@@ -680,11 +675,25 @@
     "group": "pipeline",
     "type": "module",
     "path": "src/configstream/models.py",
-    "description": "Canonical Proxy & ProxyGroup DTO models",
-    "lines": 214,
+    "description": "ConfigStream Data Models.\nDefines the core Proxy object and Pydantic schemas.",
+    "lines": 213,
+    "subsystemColor": "#a855f7",
+    "complexityColor": "#f59e0b",
     "color": "#a855f7",
-    "size": 20,
-    "shape": "box"
+    "size": 18,
+    "shape": "box",
+    "snippet": "# SPDX-License-Identifier: AGPL-3.0-or-later\n\"\"\"\nConfigStream Data Models.\nDefines the core Proxy object and Pydantic schemas.\n\"\"\"\n\n# pylint: disable=no-member\n\nimport hashlib\nfrom typing import Any, Dict, List, Optional\n\nfrom pydantic import BaseModel, ConfigDict, Field, field_validator\n\nfrom .constants import (\n    PROCESS_TYPES,\n    VALID_PROTOCOLS,\n    canonical_protocol_name,\n    latency_bucket_for_ms,\n)\n\n\nclass Proxy(BaseModel):\n    \"\"\"\n    Represents a proxy with its configuration and test results.\n    Migrated to Pydantic for robust validation.\n... [188 more lines]",
+    "signatures": [
+      "class Proxy(BaseModel)",
+      "def _validate_protocol(cls, value",
+      "def _validate_process(cls, value",
+      "def _validate_latency(cls, value",
+      "def latency_ms(self) -> Optional[float]",
+      "def latency_ms(self, value",
+      "def id(self) -> str",
+      "def latency_bucket(self) -> str"
+    ],
+    "communityId": "default"
   },
   {
     "id": "mod:parsers:vmess",
@@ -693,10 +702,18 @@
     "type": "module",
     "path": "src/configstream/parsers/vmess.py",
     "description": "VMess base64 JSON parser",
-    "lines": 180,
+    "lines": 87,
+    "subsystemColor": "#ec4899",
+    "complexityColor": "#10b981",
     "color": "#ec4899",
-    "size": 20,
-    "shape": "box"
+    "size": 18,
+    "shape": "box",
+    "snippet": "# SPDX-License-Identifier: AGPL-3.0-or-later\nimport json\nimport logging\nimport binascii\nfrom typing import Optional\nfrom ..models import Proxy\nfrom ..constants import MAX_CONFIG_LINE_LENGTH\nfrom .base import normalize_proxy_details, safe_b64_decode\nfrom ..security_validator import SecurityValidator\n\nlogger = logging.getLogger(__name__)\n\n\ndef _safe_log_text(value: object) -> str:\n    return SecurityValidator.sanitize_log_message(str(value))\n\n\ndef parse_vmess(config: str) -> Optional[Proxy]:\n    try:\n        if not config.startswith(\"vmess://\"):\n            return None\n        data = config[len(\"vmess://\") :]\n\n        # Use safe_b64_decode to handle URL-encoding and padding automatically\n        decoded = safe_b64_decode(data)\n... [62 more lines]",
+    "signatures": [
+      "def _safe_log_text(value",
+      "def parse_vmess(config"
+    ],
+    "communityId": "default"
   },
   {
     "id": "mod:parsers:vless",
@@ -705,10 +722,17 @@
     "type": "module",
     "path": "src/configstream/parsers/vless.py",
     "description": "VLESS URI & query param parser",
-    "lines": 165,
+    "lines": 162,
+    "subsystemColor": "#ec4899",
+    "complexityColor": "#10b981",
     "color": "#ec4899",
-    "size": 20,
-    "shape": "box"
+    "size": 18,
+    "shape": "box",
+    "snippet": "# SPDX-License-Identifier: AGPL-3.0-or-later\nimport html\nimport logging\nimport urllib.parse\nfrom configstream.models import Proxy\nfrom .base import normalize_proxy_details\n\nlogger = logging.getLogger(__name__)\n\n\ndef parse_vless(url: str) -> Proxy | None:\n    url = html.unescape(url)\n    \"\"\"\n    Parses a VLESS URL into a Proxy object.\n    Format: vless://uuid@host:port?params#name\n    \"\"\"\n    try:\n        if not url.startswith(\"vless://\"):\n            return None\n\n        # Remove \"vless://\"\n        main_part = url[8:]\n\n        # Split #name\n        name = \"\"\n... [137 more lines]",
+    "signatures": [
+      "def parse_vless(url"
+    ],
+    "communityId": "default"
   },
   {
     "id": "mod:parsers:hy3",
@@ -716,11 +740,18 @@
     "group": "parsers",
     "type": "module",
     "path": "src/configstream/parsers/hysteria3.py",
-    "description": "Hysteria3 direct proxy scheme parser",
-    "lines": 140,
+    "description": "Hysteria3 protocol URI parser.",
+    "lines": 99,
+    "subsystemColor": "#ec4899",
+    "complexityColor": "#10b981",
     "color": "#ec4899",
-    "size": 20,
-    "shape": "box"
+    "size": 18,
+    "shape": "box",
+    "snippet": "# SPDX-License-Identifier: AGPL-3.0-or-later\n\"\"\"Hysteria3 protocol URI parser.\"\"\"\n\nimport logging\nimport urllib.parse\nfrom typing import Optional\n\nfrom ..models import Proxy\nfrom ..security_validator import SecurityValidator\n\nlogger = logging.getLogger(__name__)\n\n# Obfuscation modes that require a password.\n_OBFS_REQUIRING_PASSWORD = frozenset({\"salamander\", \"xplus\"})\n\n\ndef parse_hysteria3(line: str) -> Optional[Proxy]:\n    \"\"\"Parse a hy3:// or hysteria3:// URI into a Proxy model.\n\n    Supports: auth (username), obfs mode/password, SNI, multi-port hint.\n    Drops configurations missing required fields.\n    \"\"\"\n    raw = (line or \"\").strip()\n    lower = raw.lower()\n    if not (lower.startswith(\"hy3://\") or lower.startswith(\"hysteria3://\")):\n... [74 more lines]",
+    "signatures": [
+      "def parse_hysteria3(line"
+    ],
+    "communityId": "default"
   },
   {
     "id": "mod:parsers:tuic",
@@ -728,11 +759,18 @@
     "group": "parsers",
     "type": "module",
     "path": "src/configstream/parsers/tuic.py",
-    "description": "TUIC v5 protocol parser",
-    "lines": 120,
+    "description": "TUIC v5 protocol URI parser.",
+    "lines": 100,
+    "subsystemColor": "#ec4899",
+    "complexityColor": "#10b981",
     "color": "#ec4899",
-    "size": 20,
-    "shape": "box"
+    "size": 18,
+    "shape": "box",
+    "snippet": "# SPDX-License-Identifier: AGPL-3.0-or-later\n\"\"\"TUIC v5 protocol URI parser.\"\"\"\n\nimport logging\nimport urllib.parse\nfrom typing import List, Optional, Dict, Any\n\nfrom ..models import Proxy\nfrom ..security_validator import SecurityValidator\n\nlogger = logging.getLogger(__name__)\n\n\ndef parse_tuic(line: str) -> Optional[Proxy]:\n    \"\"\"Parse a tuic:// URI into a Proxy model.\n\n    TUIC v5 requires both UUID (username) and password fields.\n    Falls back to empty password with a debug log rather than using UUID as password.\n    \"\"\"\n    raw = (line or \"\").strip()\n    if not raw.lower().startswith(\"tuic://\"):\n        return None\n    try:\n        parsed = urllib.parse.urlparse(raw)\n        host = parsed.hostname\n... [75 more lines]",
+    "signatures": [
+      "def parse_tuic(line"
+    ],
+    "communityId": "default"
   },
   {
     "id": "mod:parsers:ss",
@@ -741,10 +779,19 @@
     "type": "module",
     "path": "src/configstream/parsers/shadowsocks.py",
     "description": "Shadowsocks & SS2022 parser",
-    "lines": 195,
+    "lines": 218,
+    "subsystemColor": "#ec4899",
+    "complexityColor": "#f59e0b",
     "color": "#ec4899",
-    "size": 20,
-    "shape": "box"
+    "size": 18,
+    "shape": "box",
+    "snippet": "# SPDX-License-Identifier: AGPL-3.0-or-later\nimport logging\nimport binascii\nfrom typing import Any, Dict, Optional\nfrom urllib.parse import parse_qs, unquote\nfrom ..models import Proxy\nfrom .base import normalize_proxy_details, safe_b64_decode\nfrom ..constants import MAX_CONFIG_LINE_LENGTH\nfrom ..security_validator import SecurityValidator\n\nlogger = logging.getLogger(__name__)\n\n\ndef _safe_log_text(value: object) -> str:\n    return SecurityValidator.sanitize_log_message(str(value))\n\n\ndef parse_ss(config: str) -> Optional[Proxy]:\n    \"\"\"Parse a Shadowsocks (ss://) URL.\"\"\"\n    try:\n        config = config.strip()\n        if MAX_CONFIG_LINE_LENGTH > 0 and len(config) > MAX_CONFIG_LINE_LENGTH:\n            return None\n\n        if not config.startswith(\"ss://\"):\n... [193 more lines]",
+    "signatures": [
+      "def _safe_log_text(value",
+      "def parse_ss(config",
+      "def parse_ss2022(config"
+    ],
+    "communityId": "default"
   },
   {
     "id": "mod:washer:core",
@@ -753,10 +800,24 @@
     "type": "module",
     "path": "src/configstream/intelligence/washer/core.py",
     "description": "ProxyWasher WARP key & chain manager",
-    "lines": 850,
+    "lines": 986,
+    "subsystemColor": "#3b82f6",
+    "complexityColor": "#ef4444",
     "color": "#3b82f6",
-    "size": 20,
-    "shape": "box"
+    "size": 22,
+    "shape": "box",
+    "snippet": "# SPDX-License-Identifier: AGPL-3.0-or-later\nimport shutil\nimport asyncio\nimport base64\nimport binascii\nimport json\nimport hashlib\nimport logging\nimport threading\nimport httpx\nimport time\nfrom typing import List, Dict, Optional, Set, Any, Tuple\nfrom cachetools import LRUCache  # type: ignore\n\nfrom configstream.models import Proxy\nfrom configstream.converters import to_singbox_outbound, update_chain_details\nfrom configstream.warp_scanner import WarpScannerWorker\nfrom configstream.intelligence.washer.warp_scraper import WarpScraper\nfrom configstream.intelligence.washer.key_generator import (\n    KeyGenerator,\n)  # Import the new key generator\nfrom configstream.tools.vwarp.manager import VwarpTool\nfrom pathlib import Path\nfrom configstream.intelligence.chaining import (\n    find_optimal_relay,\n... [961 more lines]",
+    "signatures": [
+      "class ProxyWasher",
+      "def __init__(self, warp_keys_json",
+      "def _normalize_wg_key(key",
+      "def _normalize_warp_keys(cls, entries",
+      "def warp_keys(self) -> List[Dict[str, Any]]",
+      "def warp_keys(self, value",
+      "def clean_ips(self) -> List[Tuple[str, int]]",
+      "def clean_ips(self, value"
+    ],
+    "communityId": "default"
   },
   {
     "id": "mod:chaining",
@@ -765,10 +826,24 @@
     "type": "module",
     "path": "src/configstream/intelligence/chaining.py",
     "description": "Haversine geo-distance & multi-hop chaining",
-    "lines": 320,
+    "lines": 834,
+    "subsystemColor": "#3b82f6",
+    "complexityColor": "#ef4444",
     "color": "#3b82f6",
-    "size": 20,
-    "shape": "box"
+    "size": 22,
+    "shape": "box",
+    "snippet": "# SPDX-License-Identifier: AGPL-3.0-or-later\nfrom typing import List, Dict, Any, Optional, Tuple\nimport logging\nimport ipaddress\nimport hashlib\nimport math\n\nfrom configstream.converters import to_singbox_outbound\nfrom configstream.models import Proxy\nfrom configstream.config import AppSettings\nfrom configstream.tagging import get_flag_emoji\n\nlogger = logging.getLogger(__name__)\n\n# --- Geodesic Logic ---\ntry:\n    from geopy.distance import geodesic  # type: ignore\n\n    GEOPY_AVAILABLE = True\nexcept ImportError:\n    logger.warning(\n        \"geopy not installed - optimal relay selection disabled. Install with: pip install geopy\"\n    )\n    GEOPY_AVAILABLE = False\n\n... [809 more lines]",
+    "signatures": [
+      "class DistanceResult",
+      "def __init__(self, km",
+      "def geodesic(",
+      "class RelayCandidate",
+      "def __init__(",
+      "def haversine(lat1",
+      "def is_likely_ipv4(address",
+      "def create_chain("
+    ],
+    "communityId": "default"
   },
   {
     "id": "mod:go_tester:manager",
@@ -777,10 +852,24 @@
     "type": "module",
     "path": "src/configstream/testers/go_tester/manager.py",
     "description": "GoBatchTester sidecar IPC & daemon lifecycle",
-    "lines": 921,
+    "lines": 929,
+    "subsystemColor": "#6366f1",
+    "complexityColor": "#ef4444",
     "color": "#6366f1",
-    "size": 20,
-    "shape": "box"
+    "size": 22,
+    "shape": "box",
+    "snippet": "# SPDX-License-Identifier: AGPL-3.0-or-later\nimport asyncio\nimport logging\nimport orjson as json\nimport shutil\nimport uuid\nimport time\nimport os\nimport re\nimport tempfile\nfrom datetime import datetime, timezone\nfrom pathlib import Path\nfrom typing import List, Dict, Any, Optional, cast, Set\n\nfrom ...config import AppSettings\nfrom ...models import Proxy\nfrom ...converters import to_singbox_outbound\nfrom ...constants import VWARP_SOCKS5_PORT, VWARP_BIND_ADDRESS\nfrom ...async_utils import safe_wait_for\nfrom ...intelligence.evasion import enrich_outbound_with_evasion\n\nlogger = logging.getLogger(__name__)\n\n\ndef _json_str(obj: Any) -> str:\n... [904 more lines]",
+    "signatures": [
+      "def _json_str(obj",
+      "class GoBatchTester",
+      "def __init__(",
+      "async def start(self) -> None",
+      "async def self_test(self) -> bool",
+      "async def _restart_daemon(self) -> None",
+      "async def _heartbeat_loop(self) -> None",
+      "async def close(self) -> None"
+    ],
+    "communityId": "default"
   },
   {
     "id": "mod:go_tester:wasm",
@@ -789,10 +878,21 @@
     "type": "module",
     "path": "src/go/tester/wasm_main.go",
     "description": "Go WASM bridge & Web Crypto interop",
-    "lines": 410,
+    "lines": 168,
+    "subsystemColor": "#6366f1",
+    "complexityColor": "#10b981",
     "color": "#6366f1",
-    "size": 20,
-    "shape": "box"
+    "size": 18,
+    "shape": "box",
+    "snippet": "// SPDX-License-Identifier: AGPL-3.0-or-later\n//go:build js && wasm\n// +build js,wasm\n\npackage main\n\nimport (\n\t\"net/url\"\n\t\"strings\"\n\t\"syscall/js\"\n\t\"time\"\n)\n\nfunc main() {\n\t// Idiomatic unbuffered channel (removed redundant \", 0\")\n\tc := make(chan struct{})\n\n\t// Register test function and keep reference\n\ttestFunc := js.FuncOf(testProxyWasm)\n\tjs.Global().Set(\"testProxyWasm\", testFunc)\n\n\t// Register cleanup function that also releases itself to prevent memory leak\n\tvar cleanupFunc js.Func\n\tcleanupFunc = js.FuncOf(func(this js.Value, args []js.Value) interface{} {\n\t\ttestFunc.Release()\n... [143 more lines]",
+    "signatures": [
+      "func main() ",
+      "func testProxyWasm(this js.Value, args []js.Value) interface",
+      "func doTestProxy(rawURL string) map[string]interface",
+      "func normalizeBrowserReachabilityURL(rawURL string) (string, string) ",
+      "func validateBrowserURL(candidate string) (string, string) "
+    ],
+    "communityId": "default"
   },
   {
     "id": "mod:output:logic",
@@ -801,10 +901,21 @@
     "type": "module",
     "path": "src/configstream/output_logic.py",
     "description": "Thin orchestrator for output generation",
-    "lines": 185,
+    "lines": 409,
+    "subsystemColor": "#10b981",
+    "complexityColor": "#f59e0b",
     "color": "#10b981",
-    "size": 20,
-    "shape": "box"
+    "size": 18,
+    "shape": "box",
+    "snippet": "# SPDX-License-Identifier: AGPL-3.0-or-later\nimport logging\nimport copy\nimport shutil\nfrom typing import List, Dict, Optional, Any, Tuple\nfrom pathlib import Path\n\nfrom .models import Proxy\nfrom .intelligence.washer.core import ProxyWasher\nfrom .intelligence.chaining import generate_smart_chains\nfrom .generators import (\n    generate_singbox_config,\n    generate_clash_config,\n    generate_split_outputs,\n)\nfrom .dns_profiles import (\n    build_singbox_dns_profile,\n    build_clash_dns_profile,\n    build_resolver_sets,\n)\nfrom .utils import AtomicFileWriter\nfrom .config import AppSettings\nfrom .constants import (\n    CHOSEN_TOTAL_TARGET,\n    CHOSEN_TOP_PER_PROTOCOL,\n... [384 more lines]",
+    "signatures": [
+      "def generate_categorized_outputs(",
+      "def _collect_all_chains(",
+      "def _append(outbounds)",
+      "def _gen_dns_variation(",
+      "def _gen_hardened_third_party_profiles("
+    ],
+    "communityId": "default"
   },
   {
     "id": "mod:output:metadata",
@@ -813,10 +924,24 @@
     "type": "module",
     "path": "src/configstream/output/metadata.py",
     "description": "Metadata, health.json & manifest exporter",
-    "lines": 290,
+    "lines": 558,
+    "subsystemColor": "#10b981",
+    "complexityColor": "#ef4444",
     "color": "#10b981",
-    "size": 20,
-    "shape": "box"
+    "size": 22,
+    "shape": "box",
+    "snippet": "# SPDX-License-Identifier: AGPL-3.0-or-later\nimport json\nimport logging\nimport hashlib\nimport os\nfrom pathlib import Path\nfrom datetime import datetime, timezone\nfrom typing import List, Dict, Any\nfrom importlib.metadata import version\n\nfrom ..models import Proxy\nfrom ..pipeline_stats import PipelineExecutionAudit\nfrom ..converters.common import safe_int_conversion\nfrom ..utils import AtomicFileWriter\nfrom ..config import AppSettings\nfrom ..serialize import serialize_proxy\nfrom ..constants import (\n    CHOSEN_TOTAL_TARGET,\n    DropCategory,\n    latency_bucket_for_ms,\n)\n\nlogger = logging.getLogger(__name__)\n\nPUBLIC_CONTRACT_SCHEMA_VERSION = \"1.0\"\n... [533 more lines]",
+    "signatures": [
+      "def _json_snapshot_sha256(payload",
+      "def _file_sha256(path",
+      "def _artifact_category(rel_path",
+      "def _read_json_object(path",
+      "def save_metadata(",
+      "def _normalize_drop_reason(reason",
+      "def _attach_manifest_signature(manifest",
+      "def write_public_artifact_contract(output_dir"
+    ],
+    "communityId": "default"
   },
   {
     "id": "mod:output:native",
@@ -825,10 +950,24 @@
     "type": "module",
     "path": "src/configstream/output/native_configs.py",
     "description": "Sing-box & Clash profile generator",
-    "lines": 410,
+    "lines": 424,
+    "subsystemColor": "#10b981",
+    "complexityColor": "#f59e0b",
     "color": "#10b981",
-    "size": 20,
-    "shape": "box"
+    "size": 18,
+    "shape": "box",
+    "snippet": "# SPDX-License-Identifier: AGPL-3.0-or-later\nimport logging\nimport copy\nfrom typing import List, Dict, Optional, Any, Tuple\n\nfrom ..models import Proxy\nfrom ..adapters import get_adapter, ShadowrocketAdapter\nfrom ..utils.net import (\n    normalize_host as _normalize_host,\n    is_ip_literal as _is_ip_literal,\n    is_global_ip as _is_global_ip,\n)\nfrom ..converters.chains import chain_obs_from_details, update_chain_details\n\nlogger = logging.getLogger(__name__)\n\n\ndef _rewrite_openvpn_remote(config: str, original_host: str, ip_value: str) -> str:\n    if not config or not original_host or not ip_value:\n        return config\n    out_lines: List[str] = []\n    for line in config.splitlines():\n        stripped = line.strip()\n        if not stripped or stripped.startswith(\"#\") or stripped.startswith(\";\"):\n            out_lines.append(line)\n... [399 more lines]",
+    "signatures": [
+      "def _rewrite_openvpn_remote(config",
+      "def _rewrite_chain_obs_for_dns(",
+      "def build_dns_safe_proxies(",
+      "def build_dns_hardened_proxies(",
+      "def _rewrite_outbound_for_dns_safe(",
+      "def _rewrite_outbound_for_dns_hardened(",
+      "def _prune_dangling_detours(cleaned",
+      "def filter_outbounds_for_dns_safe("
+    ],
+    "communityId": "default"
   },
   {
     "id": "mod:signer",
@@ -837,10 +976,24 @@
     "type": "module",
     "path": "src/configstream/signer.py",
     "description": "Ed25519 manifest signer & verification",
-    "lines": 240,
+    "lines": 224,
+    "subsystemColor": "#ef4444",
+    "complexityColor": "#f59e0b",
     "color": "#ef4444",
-    "size": 20,
-    "shape": "box"
+    "size": 18,
+    "shape": "box",
+    "snippet": "# SPDX-License-Identifier: AGPL-3.0-or-later\nimport hashlib\nimport json\nimport struct\nimport time\nfrom typing import Dict, Any, Optional\nfrom cryptography.hazmat.primitives.asymmetric import ed25519\nfrom cryptography.hazmat.primitives import serialization\nfrom cryptography.exceptions import InvalidSignature\n\n# Maximum age (seconds) of a valid signed payload.\nSIGNATURE_MAX_AGE_SECONDS: int = 300  # 5 minutes\n\n# Tolerance for NTP clock drift between signer and verifier hosts.\nCLOCK_SKEW_TOLERANCE_SECONDS: int = 30\n\n\ndef _build_signed_payload(content_bytes: bytes, timestamp_int: int) -> bytes:\n    \"\"\"Return the canonical byte string that is actually signed/verified.\"\"\"\n    return struct.pack(\">Q\", timestamp_int) + content_bytes\n\n\ndef _canonical_manifest_payload(manifest: Dict[str, Any], timestamp_int: int) -> bytes:\n    \"\"\"Return canonical JSON bytes prefixed with big-endian uint64 timestamp.\"\"\"\n    canonical_json = json.dumps(\n... [199 more lines]",
+    "signatures": [
+      "def _build_signed_payload(content_bytes",
+      "def _canonical_manifest_payload(manifest",
+      "class Signer",
+      "def __init__(self, private_key_hex",
+      "def sign_subscription(self, content",
+      "def sign_manifest(self, manifest",
+      "def verify_manifest_signature(",
+      "def verify_signature("
+    ],
+    "communityId": "default"
   },
   {
     "id": "mod:stego",
@@ -848,11 +1001,25 @@
     "group": "security",
     "type": "module",
     "path": "src/configstream/stego.py",
-    "description": "LSB PNG steganography v1/v2/v3 (HMAC)",
-    "lines": 380,
+    "description": "PNG LSB steganography transport with Fernet-authenticated payloads.",
+    "lines": 555,
+    "subsystemColor": "#ef4444",
+    "complexityColor": "#ef4444",
     "color": "#ef4444",
-    "size": 20,
-    "shape": "box"
+    "size": 22,
+    "shape": "box",
+    "snippet": "# SPDX-License-Identifier: AGPL-3.0-or-later\n\"\"\"PNG LSB steganography transport with Fernet-authenticated payloads.\"\"\"\n\nfrom __future__ import annotations\n\nimport binascii\nimport hashlib\nimport logging\nimport math\nimport os\nimport struct\nimport zlib\nfrom pathlib import Path\nfrom typing import List, Optional\n\nfrom cryptography.fernet import Fernet, InvalidToken\n\nfrom .utils import AtomicFileWriter\n\nlogger = logging.getLogger(__name__)\n\nMAGIC_MARKER = b\"CSTREAM_PAYLOAD_START>>\"\nLSB_MAGIC = b\"CSP2\"\nLEGACY_LSB_VERSION = 1\nSALTED_SHA_LSB_VERSION = 2\n... [530 more lines]",
+    "signatures": [
+      "def _crc32(chunk_type",
+      "def _pack_chunk(chunk_type",
+      "def _paeth_predictor(a",
+      "def _safe_decompress(data",
+      "def _unfilter_png(raw",
+      "def _filter_none(raw_pixels",
+      "def _derive_offsets(",
+      "def _read_png("
+    ],
+    "communityId": "default"
   },
   {
     "id": "mod:security_val",
@@ -861,10 +1028,24 @@
     "type": "module",
     "path": "src/configstream/security_validator.py",
     "description": "Log sanitization & blocklist enforcement",
-    "lines": 290,
+    "lines": 342,
+    "subsystemColor": "#ef4444",
+    "complexityColor": "#f59e0b",
     "color": "#ef4444",
-    "size": 20,
-    "shape": "box"
+    "size": 18,
+    "shape": "box",
+    "snippet": "# SPDX-License-Identifier: AGPL-3.0-or-later\nimport re\nimport uuid\nimport ipaddress\n\n# Import urlparse directly to allow mocking in tests\nfrom urllib.parse import urlparse\nfrom typing import List, Tuple, TYPE_CHECKING\nimport logging\nfrom .utils.bool_parser import parse_tls_flag\nfrom .config import AppSettings\n\nif TYPE_CHECKING:\n    from configstream.models import Proxy\n\nlogger = logging.getLogger(__name__)\n\n# Cache settings to avoid repeated pydantic_settings instantiation in per-proxy hot paths\n_SETTINGS_CACHE = AppSettings()\n\n# Pre-compiled patterns for sanitize_log_message (called per log message - extremely hot)\n_LOG_UUID_RE = re.compile(\n    r\"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\",\n    re.IGNORECASE,\n)\n... [317 more lines]",
+    "signatures": [
+      "class SecurityValidator",
+      "def is_local_ip(ip",
+      "def is_valid_uuid(val",
+      "def sanitize_log_message(msg",
+      "def sanitize_address(address",
+      "def _is_address_safe(address",
+      "def validate_url(url",
+      "def validate_proxy_config("
+    ],
+    "communityId": "default"
   },
   {
     "id": "mod:server:lab",
@@ -873,10 +1054,20 @@
     "type": "module",
     "path": "src/configstream/server/routes/lab.py",
     "description": "FastAPI live lab testing route & auth",
-    "lines": 280,
+    "lines": 189,
+    "subsystemColor": "#06b6d4",
+    "complexityColor": "#10b981",
     "color": "#06b6d4",
-    "size": 20,
-    "shape": "box"
+    "size": 18,
+    "shape": "box",
+    "snippet": "# SPDX-License-Identifier: AGPL-3.0-or-later\nimport asyncio\nimport json\nimport ipaddress\nimport re\nimport secrets\nimport socket\nfrom typing import Optional\nfrom fastapi import APIRouter, Request, HTTPException\nfrom fastapi.responses import JSONResponse\nfrom ..utils import (\n    settings,\n    limiter,\n    _is_nonproduction_environment,\n)\n\nrouter = APIRouter(prefix=\"/api/lab\", tags=[\"lab\"])\n\nLAB_ALLOWED_OUTBOUND_TYPES = {\n    \"block\",\n    \"direct\",\n    \"hysteria\",\n    \"hysteria2\",\n    \"http\",\n    \"https\",\n... [164 more lines]",
+    "signatures": [
+      "async def _validate_lab_destination(host",
+      "async def _validate_lab_config(config",
+      "def _require_payload_api_key(payload",
+      "async def lab_test_chain(request"
+    ],
+    "communityId": "default"
   },
   {
     "id": "mod:fe:lab_ui",
@@ -885,10 +1076,22 @@
     "type": "module",
     "path": "frontend/assets/js/lab/ui.js",
     "description": "DOM builder & XSS-safe renderer",
-    "lines": 340,
+    "lines": 144,
+    "subsystemColor": "#8b5cf6",
+    "complexityColor": "#10b981",
     "color": "#8b5cf6",
-    "size": 20,
-    "shape": "box"
+    "size": 18,
+    "shape": "box",
+    "snippet": "// ConfigStream Laboratory - UI Logic\n// SPDX-License-Identifier: AGPL-3.0-or-later\n\nimport { state } from './state.js';\nimport { $, $$, escapeHtml } from './utils.js';\n\nexport function goToStep(step) {\n    if (step < 1 || step > state.totalSteps) return;\n    state.currentStep = step;\n\n    // Update panels\n    $$('.lab-step-panel').forEach((panel, i) => {\n        panel.classList.toggle('active', i + 1 === step);\n    });\n\n    // Update stepper dots\n    $$('.lab-step-dot').forEach((dot) => {\n        const s = parseInt(dot.dataset.step);\n        dot.classList.remove('active', 'completed');\n        if (s === step) dot.classList.add('active');\n        else if (s < step) dot.classList.add('completed');\n    });\n\n    // Update connector lines\n    $$('.lab-step-line').forEach((line, i) => {\n... [119 more lines]",
+    "signatures": [
+      "export function goToStep(step) ",
+      "export function showResultText(elId, type, text) ",
+      "export function showResultHTML(elId, type, html) ",
+      "export function hideResult(elId) ",
+      "export function renderGauge(score, total) ",
+      "export function renderHealthBadges(results) "
+    ],
+    "communityId": "default"
   },
   {
     "id": "mod:fe:stego",
@@ -897,10 +1100,15 @@
     "type": "module",
     "path": "frontend/assets/js/stego.js",
     "description": "Web Crypto Ed25519 signature validator",
-    "lines": 210,
+    "lines": 311,
+    "subsystemColor": "#8b5cf6",
+    "complexityColor": "#f59e0b",
     "color": "#8b5cf6",
-    "size": 20,
-    "shape": "box"
+    "size": 18,
+    "shape": "box",
+    "snippet": "// frontend/assets/js/stego.js\n\nconst logger = window.createLogger ? window.createLogger(\"Stego\") : console;\n\n// Legacy marker kept for backward compatibility with old append-mode artifacts.\nconst LEGACY_MAGIC_MARKER = \"CSTREAM_PAYLOAD_START>>\";\nconst LSB_MAGIC = \"CSP2\";\nconst LSB_HEADER_SIZE = 8;\n\nfunction _configuredSecretKey() {\n  const runtimeConfig = window.CS_RUNTIME_CONFIG || {};\n  return typeof runtimeConfig.STEGO_KEY === \"string\" ? runtimeConfig.STEGO_KEY : \"\";\n}\n\nfunction _isPlaceholderSecretKey(secretKey) {\n  return secretKey === \"PLACEHOLDER_\" + \"KEY_INJECTED_BY_CI\";\n}\n\n// A valid Fernet key is 32 bytes encoded as URL-safe base64 = 44 characters\n// (no padding).  Accept anything \u2265 40 to be tolerant of minor encoding\n// variants while still rejecting clearly wrong values.\nconst MIN_VALID_KEY_LENGTH = 40;\n\nfunction _ensureConfiguredKey() {\n  const secretKey = _configuredSecretKey();\n... [286 more lines]",
+    "signatures": [],
+    "communityId": "default"
   },
   {
     "id": "mod:tools:vwarp",
@@ -909,10 +1117,15 @@
     "type": "module",
     "path": "src/configstream/tools/vwarp.py",
     "description": "Canonical VwarpTool scanner & MASQUE builder",
-    "lines": 640,
+    "lines": 0,
+    "subsystemColor": "#f97316",
+    "complexityColor": "#38bdf8",
     "color": "#f97316",
-    "size": 20,
-    "shape": "box"
+    "size": 18,
+    "shape": "box",
+    "snippet": "",
+    "signatures": [],
+    "communityId": "default"
   },
   {
     "id": "mod:scripts:validate",
@@ -920,11 +1133,51 @@
     "group": "scripts",
     "type": "module",
     "path": "scripts/validate_pages_artifact.py",
-    "description": "Artifact validator & schema checker",
-    "lines": 1326,
+    "description": "Validate the static GitHub Pages artifact before deployment.",
+    "lines": 1341,
+    "subsystemColor": "#f97316",
+    "complexityColor": "#ef4444",
     "color": "#f97316",
-    "size": 20,
-    "shape": "box"
+    "size": 22,
+    "shape": "box",
+    "snippet": "# SPDX-License-Identifier: AGPL-3.0-or-later\n\"\"\"Validate the static GitHub Pages artifact before deployment.\"\"\"\n\nfrom __future__ import annotations\n\nimport argparse\nimport base64\nimport binascii\nimport hashlib\nimport json\nimport os\nimport re\nimport shutil\nimport struct\nimport subprocess  # nosec B404\nimport sys\nimport time\nimport zipfile\nfrom datetime import datetime, timezone\nfrom pathlib import Path\nfrom typing import cast\nfrom cryptography.hazmat.primitives.asymmetric import ed25519\nfrom cryptography.hazmat.primitives import serialization\nfrom cryptography.exceptions import InvalidSignature\n\n... [1316 more lines]",
+    "signatures": [
+      "def _public_key_from_runtime_env() -> ed25519.Ed25519PublicKey | None",
+      "def _manifest_signer_from_env() -> ed25519.Ed25519PrivateKey | None",
+      "def _canonical_manifest_payload(",
+      "def _load_json(path",
+      "def _load_yaml(path",
+      "def _sha256(path",
+      "def _first_available_binary(names",
+      "def _run_native_check(command"
+    ],
+    "communityId": "default"
+  },
+  {
+    "id": "mod:tools:lab_scanner",
+    "label": "lab-scanner.py",
+    "group": "scripts",
+    "type": "module",
+    "path": "tools/lab-scanner.py",
+    "description": "ConfigStream Lab Scanner - Local Network Diagnostic & Clean IP Finder\n\nA portable, zero-dependency Python script that helps users behind heavy\ncensorship discover working network paths to the free internet.\n\nUsage:\n    python lab-scanner.py                  # Full diagnostic (all 6 phases)\n    python lab-scanner.py --scan-ips       # Scan for clean Cloudflare IPs\n    python lab-scanner.py --scan-dns       # Find working DNS (UDP/DoH/DoT)\n    python lab-scanner.py --scan-proxies   # Discover local/network proxies\n    python lab-scanner.py --scan-sni       # Detect SNI-based domain blocking\n    python lab-scanner.py --scan-ports     # TCP port reachability matrix\n    python lab-scanner.py --interactive    # Interactive chain builder\n    python lab-scanner.py --auto-chain     # Auto-detect best chain path\n    python lab-scanner.py --check-vwarp    # Check Vwarp binary availability\n    python lab-scanner.py --quick          # Quick connectivity check\n    python lab-scanner.py --test-proxy socks5://127.0.0.1:1080\n    python lab-scanner.py --scan-ips --custom-ips \"1.2.3.4:2408,5.6.7.8\"\n    python lab-scanner.py --auto-chain --custom-proxy socks5://127.0.0.1:1080\n\nPhases:\n    1. Basic Connectivity (ICMP, TCP, DNS, TLS, HTTPS, Cloudflare, speed)\n    2. Local Proxy Discovery (SOCKS5, HTTP on localhost + LAN gateways)\n    3. Clean Cloudflare IP Scan (UDP/TCP across WARP port ranges)\n    4. DNS Server Scan (UDP/53, DoH, DoT with latency ranking)\n    5. SNI Blocking Detection (TLS handshake to 25 popular domains)\n    6. Port Reachability Matrix (IP x Port with alt CDN IPs)\n\nUser-supplied resources:\n    --custom-ips    Your own IPs (comma-separated or file path) merged into scans\n    --custom-proxy  Your own proxy as Layer 1 in --auto-chain\n\nDesigned to run on Python 3.7+ with zero external dependencies.\nWorks on Linux, macOS, and Windows.",
+    "lines": 2742,
+    "subsystemColor": "#f97316",
+    "complexityColor": "#ef4444",
+    "color": "#f97316",
+    "size": 22,
+    "shape": "box",
+    "snippet": "#!/usr/bin/env python3\n\"\"\"ConfigStream Lab Scanner - Local Network Diagnostic & Clean IP Finder\n\nA portable, zero-dependency Python script that helps users behind heavy\ncensorship discover working network paths to the free internet.\n\nUsage:\n    python lab-scanner.py                  # Full diagnostic (all 6 phases)\n    python lab-scanner.py --scan-ips       # Scan for clean Cloudflare IPs\n    python lab-scanner.py --scan-dns       # Find working DNS (UDP/DoH/DoT)\n    python lab-scanner.py --scan-proxies   # Discover local/network proxies\n    python lab-scanner.py --scan-sni       # Detect SNI-based domain blocking\n    python lab-scanner.py --scan-ports     # TCP port reachability matrix\n    python lab-scanner.py --interactive    # Interactive chain builder\n    python lab-scanner.py --auto-chain     # Auto-detect best chain path\n    python lab-scanner.py --check-vwarp    # Check Vwarp binary availability\n    python lab-scanner.py --quick          # Quick connectivity check\n    python lab-scanner.py --test-proxy socks5://127.0.0.1:1080\n    python lab-scanner.py --scan-ips --custom-ips \"1.2.3.4:2408,5.6.7.8\"\n    python lab-scanner.py --auto-chain --custom-proxy socks5://127.0.0.1:1080\n\nPhases:\n    1. Basic Connectivity (ICMP, TCP, DNS, TLS, HTTPS, Cloudflare, speed)\n    2. Local Proxy Discovery (SOCKS5, HTTP on localhost + LAN gateways)\n    3. Clean Cloudflare IP Scan (UDP/TCP across WARP port ranges)\n... [2717 more lines]",
+    "signatures": [
+      "class SecurityValidator",
+      "def sanitize_log_message(msg",
+      "class Colors",
+      "def _c(code",
+      "def green(t",
+      "def red(t",
+      "def yellow(t",
+      "def cyan(t"
+    ],
+    "communityId": "default"
   },
   {
     "id": "mcp:comm:49",
@@ -933,10 +1186,15 @@
     "type": "community",
     "path": "",
     "description": "Language: javascript. Directory-based community: frontend/assets",
-    "lines": 0,
+    "lines": 25200,
+    "subsystemColor": "#14b8a6",
+    "complexityColor": "#ef4444",
     "color": "#14b8a6",
-    "size": 14,
-    "shape": "dot"
+    "size": 22,
+    "shape": "dot",
+    "snippet": "",
+    "signatures": [],
+    "communityId": "default"
   },
   {
     "id": "mcp:comm:51",
@@ -945,10 +1203,15 @@
     "type": "community",
     "path": "",
     "description": "Language: python. Directory-based community: scripts",
-    "lines": 0,
+    "lines": 21300,
+    "subsystemColor": "#f97316",
+    "complexityColor": "#ef4444",
     "color": "#f97316",
-    "size": 14,
-    "shape": "dot"
+    "size": 22,
+    "shape": "dot",
+    "snippet": "",
+    "signatures": [],
+    "communityId": "default"
   },
   {
     "id": "mcp:comm:53",
@@ -957,10 +1220,15 @@
     "type": "community",
     "path": "",
     "description": "Language: python. Directory-based community: src/configstream",
-    "lines": 0,
+    "lines": 50700,
+    "subsystemColor": "#a855f7",
+    "complexityColor": "#ef4444",
     "color": "#a855f7",
-    "size": 14,
-    "shape": "dot"
+    "size": 22,
+    "shape": "dot",
+    "snippet": "",
+    "signatures": [],
+    "communityId": "default"
   },
   {
     "id": "mcp:comm:54",
@@ -969,10 +1237,15 @@
     "type": "community",
     "path": "",
     "description": "Language: go. Directory-based community: src/go",
-    "lines": 0,
+    "lines": 1000,
+    "subsystemColor": "#a855f7",
+    "complexityColor": "#ef4444",
     "color": "#a855f7",
-    "size": 14,
-    "shape": "dot"
+    "size": 22,
+    "shape": "dot",
+    "snippet": "",
+    "signatures": [],
+    "communityId": "default"
   },
   {
     "id": "mcp:comm:55",
@@ -981,10 +1254,15 @@
     "type": "community",
     "path": "",
     "description": "Language: rust. Directory-based community: src/rust",
-    "lines": 0,
+    "lines": 350,
+    "subsystemColor": "#14b8a6",
+    "complexityColor": "#f59e0b",
     "color": "#14b8a6",
-    "size": 14,
-    "shape": "dot"
+    "size": 18,
+    "shape": "dot",
+    "snippet": "",
+    "signatures": [],
+    "communityId": "default"
   },
   {
     "id": "mcp:comm:56",
@@ -993,10 +1271,15 @@
     "type": "community",
     "path": "",
     "description": "Language: python. Directory-based community: tests",
-    "lines": 0,
+    "lines": 3700,
+    "subsystemColor": "#14b8a6",
+    "complexityColor": "#ef4444",
     "color": "#14b8a6",
-    "size": 14,
-    "shape": "dot"
+    "size": 22,
+    "shape": "dot",
+    "snippet": "",
+    "signatures": [],
+    "communityId": "default"
   },
   {
     "id": "mcp:comm:57",
@@ -1005,10 +1288,15 @@
     "type": "community",
     "path": "",
     "description": "Language: python. Directory-based community: tests/e2e",
-    "lines": 0,
+    "lines": 1200,
+    "subsystemColor": "#14b8a6",
+    "complexityColor": "#ef4444",
     "color": "#14b8a6",
-    "size": 14,
-    "shape": "dot"
+    "size": 22,
+    "shape": "dot",
+    "snippet": "",
+    "signatures": [],
+    "communityId": "default"
   },
   {
     "id": "mcp:comm:59",
@@ -1017,10 +1305,15 @@
     "type": "community",
     "path": "",
     "description": "Language: python. Directory-based community: tests/scenarios",
-    "lines": 0,
+    "lines": 400,
+    "subsystemColor": "#14b8a6",
+    "complexityColor": "#f59e0b",
     "color": "#14b8a6",
-    "size": 14,
-    "shape": "dot"
+    "size": 18,
+    "shape": "dot",
+    "snippet": "",
+    "signatures": [],
+    "communityId": "default"
   },
   {
     "id": "mcp:comm:60",
@@ -1029,10 +1322,15 @@
     "type": "community",
     "path": "",
     "description": "Language: python. Directory-based community: tests/unit",
-    "lines": 0,
+    "lines": 78300,
+    "subsystemColor": "#14b8a6",
+    "complexityColor": "#ef4444",
     "color": "#14b8a6",
-    "size": 14,
-    "shape": "dot"
+    "size": 22,
+    "shape": "dot",
+    "snippet": "",
+    "signatures": [],
+    "communityId": "default"
   },
   {
     "id": "mcp:comm:62",
@@ -1041,10 +1339,15 @@
     "type": "community",
     "path": "",
     "description": "Language: python. Directory-based community: tools",
-    "lines": 0,
+    "lines": 3550,
+    "subsystemColor": "#14b8a6",
+    "complexityColor": "#ef4444",
     "color": "#14b8a6",
-    "size": 14,
-    "shape": "dot"
+    "size": 22,
+    "shape": "dot",
+    "snippet": "",
+    "signatures": [],
+    "communityId": "default"
   },
   {
     "id": "mcp:comm:63",
@@ -1053,10 +1356,15 @@
     "type": "community",
     "path": "",
     "description": "Language: bash. Directory-based community: tools/scripts",
-    "lines": 0,
+    "lines": 300,
+    "subsystemColor": "#f97316",
+    "complexityColor": "#f59e0b",
     "color": "#f97316",
-    "size": 14,
-    "shape": "dot"
+    "size": 18,
+    "shape": "dot",
+    "snippet": "",
+    "signatures": [],
+    "communityId": "default"
   },
   {
     "id": "mcp:comm:64",
@@ -1065,10 +1373,15 @@
     "type": "community",
     "path": "",
     "description": "Language: javascript. Directory-based community: tools/workers",
-    "lines": 0,
+    "lines": 5200,
+    "subsystemColor": "#14b8a6",
+    "complexityColor": "#ef4444",
     "color": "#14b8a6",
-    "size": 14,
-    "shape": "dot"
+    "size": 22,
+    "shape": "dot",
+    "snippet": "",
+    "signatures": [],
+    "communityId": "default"
   }
 ];
         const rawEdges = [
@@ -1601,16 +1914,28 @@
     "width": 1
   },
   {
+    "from": "tools",
+    "to": "mod:tools:lab_scanner",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
     "from": "mod:pipeline:producer",
     "to": "mod:models",
     "label": "creates Proxy DTO",
     "type": "dataflow",
     "color": {
-      "color": "#ec4899",
+      "color": "#a855f7",
       "highlight": "#f43f5e"
     },
     "dashes": true,
-    "width": 2
+    "width": 3
   },
   {
     "from": "mod:pipeline:producer",
@@ -1618,47 +1943,47 @@
     "label": "asyncio.Queue work items",
     "type": "dataflow",
     "color": {
-      "color": "#ec4899",
+      "color": "#a855f7",
       "highlight": "#f43f5e"
     },
     "dashes": true,
-    "width": 2
+    "width": 3
   },
   {
     "from": "mod:pipeline:consumer",
     "to": "mod:go_tester:manager",
     "label": "batch test IPC",
-    "type": "dependency",
+    "type": "dataflow",
     "color": {
       "color": "#a855f7",
       "highlight": "#f43f5e"
     },
-    "dashes": false,
-    "width": 1
+    "dashes": true,
+    "width": 3
   },
   {
     "from": "mod:pipeline:consumer",
     "to": "mod:washer:core",
     "label": "revive failed proxies",
-    "type": "dependency",
+    "type": "dataflow",
     "color": {
       "color": "#a855f7",
       "highlight": "#f43f5e"
     },
-    "dashes": false,
-    "width": 1
+    "dashes": true,
+    "width": 3
   },
   {
     "from": "mod:washer:core",
     "to": "mod:tools:vwarp",
     "label": "generate WARP/Vwarp config",
-    "type": "dependency",
+    "type": "dataflow",
     "color": {
       "color": "#a855f7",
       "highlight": "#f43f5e"
     },
-    "dashes": false,
-    "width": 1
+    "dashes": true,
+    "width": 3
   },
   {
     "from": "mod:pipeline:core",
@@ -1666,71 +1991,71 @@
     "label": "trigger artifact export",
     "type": "dataflow",
     "color": {
-      "color": "#ec4899",
+      "color": "#a855f7",
       "highlight": "#f43f5e"
     },
     "dashes": true,
-    "width": 2
+    "width": 3
   },
   {
     "from": "mod:output:logic",
     "to": "mod:output:native",
     "label": "generate profiles",
-    "type": "dependency",
+    "type": "dataflow",
     "color": {
       "color": "#a855f7",
       "highlight": "#f43f5e"
     },
-    "dashes": false,
-    "width": 1
+    "dashes": true,
+    "width": 3
   },
   {
     "from": "mod:output:logic",
     "to": "mod:output:metadata",
     "label": "write metadata & manifest",
-    "type": "dependency",
+    "type": "dataflow",
     "color": {
       "color": "#a855f7",
       "highlight": "#f43f5e"
     },
-    "dashes": false,
-    "width": 1
+    "dashes": true,
+    "width": 3
   },
   {
     "from": "mod:output:metadata",
     "to": "mod:signer",
     "label": "sign manifest (Ed25519)",
-    "type": "dependency",
+    "type": "dataflow",
     "color": {
       "color": "#a855f7",
       "highlight": "#f43f5e"
     },
-    "dashes": false,
-    "width": 1
+    "dashes": true,
+    "width": 3
   },
   {
     "from": "mod:output:logic",
     "to": "mod:stego",
     "label": "pack stego carrier images",
-    "type": "dependency",
+    "type": "dataflow",
     "color": {
       "color": "#a855f7",
       "highlight": "#f43f5e"
     },
-    "dashes": false,
-    "width": 1
+    "dashes": true,
+    "width": 3
   },
   {
     "from": "mod:server:lab",
     "to": "mod:go_tester:manager",
     "label": "live proxy chain test",
-    "type": "dependency",
+    "type": "dataflow",
     "color": {
       "color": "#a855f7",
       "highlight": "#f43f5e"
     },
-    "dashes": false,
-    "width": 1
+    "dashes": true,
+    "width": 3
   },
   {
     "from": "mod:fe:stego",
@@ -1738,23 +2063,23 @@
     "label": "Web Crypto verification",
     "type": "dataflow",
     "color": {
-      "color": "#ec4899",
+      "color": "#a855f7",
       "highlight": "#f43f5e"
     },
     "dashes": true,
-    "width": 2
+    "width": 3
   },
   {
     "from": "mod:scripts:validate",
     "to": "mod:output:metadata",
     "label": "validate artifact bundle",
-    "type": "dependency",
+    "type": "dataflow",
     "color": {
       "color": "#a855f7",
       "highlight": "#f43f5e"
     },
-    "dashes": false,
-    "width": 1
+    "dashes": true,
+    "width": 3
   },
   {
     "from": "root",
@@ -1905,6 +2230,7 @@
         let network = null;
         let nodesDataset = new vis.DataSet(rawNodes);
         let edgesDataset = new vis.DataSet(rawEdges);
+        let currentMode = 'subsystem';
         let physicsEnabled = true;
 
         const container = document.getElementById('network');
@@ -1913,8 +2239,7 @@
         const options = {
             nodes: {
                 font: { color: '#f8fafc', face: 'Inter', size: 13 },
-                borderWidth: 2,
-                shadow: true,
+                borderWidth: 2, shadow: true,
             },
             edges: {
                 font: { color: '#94a3b8', face: 'Inter', size: 10, align: 'middle' },
@@ -1922,32 +2247,19 @@
             },
             physics: {
                 solver: 'forceAtlas2Based',
-                forceAtlas2Based: {
-                    gravitationalConstant: -50,
-                    centralGravity: 0.01,
-                    springLength: 100,
-                    springConstant: 0.08,
-                },
-                maxVelocity: 50,
-                timestep: 0.35,
-                stabilization: { iterations: 150 },
+                forceAtlas2Based: { gravitationalConstant: -55, centralGravity: 0.01, springLength: 110, springConstant: 0.08 },
+                maxVelocity: 50, timestep: 0.35, stabilization: { iterations: 150 },
             },
-            interaction: {
-                hover: true,
-                tooltipDelay: 200,
-                navigationButtons: false,
-                keyboard: true,
-            },
+            interaction: { hover: true, tooltipDelay: 200, keyboard: true },
         };
 
         network = new vis.Network(container, data, options);
 
-        // Click Event for Inspector
+        // Click Handler for Verbatim Inspector
         network.on('click', function(params) {
             if (params.nodes.length > 0) {
                 const nodeId = params.nodes[0];
                 const node = nodesDataset.get(nodeId);
-                const connectedEdges = network.getConnectedEdges(nodeId);
                 
                 document.getElementById('nodeTitle').innerText = node.label;
                 document.getElementById('nodeTypeBadge').innerText = node.type;
@@ -1957,35 +2269,96 @@
                 document.getElementById('nodePath').innerText = node.path || '--';
                 document.getElementById('nodeDesc').innerText = node.description || 'No description available.';
                 document.getElementById('nodeLines').innerText = node.lines ? node.lines + ' lines' : 'N/A';
-                document.getElementById('nodeEdges').innerText = connectedEdges.length + ' connections';
+                
+                // Signatures
+                const sigsEl = document.getElementById('nodeSigs');
+                if (node.signatures && node.signatures.length > 0) {
+                    sigsEl.innerHTML = node.signatures.map(s => '<div>• ' + escapeHtml(s) + '</div>').join('');
+                } else {
+                    sigsEl.innerText = 'No primary signatures extracted.';
+                }
+
+                // Code Preview
+                const codeEl = document.getElementById('nodeCode');
+                codeEl.innerText = node.snippet || '# No code snippet available for directory/root node.';
             }
         });
 
-        // Search Filter
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        // View Mode Switcher
+        function switchViewMode(mode, btnEl) {
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            btnEl.classList.add('active');
+            currentMode = mode;
+
+            if (mode === 'subsystem') {
+                nodesDataset.update(rawNodes.map(n => ({ id: n.id, color: n.subsystemColor, hidden: false })));
+                updateLegend('subsystem');
+            } else if (mode === 'complexity') {
+                nodesDataset.update(rawNodes.map(n => ({ id: n.id, color: n.complexityColor, hidden: false })));
+                updateLegend('complexity');
+            } else if (mode === 'flow') {
+                nodesDataset.update(rawNodes.map(n => ({
+                    id: n.id,
+                    color: n.id.startsWith('mod:') ? '#ec4899' : '#334155',
+                    hidden: false
+                })));
+                updateLegend('flow');
+            }
+        }
+
+        function updateLegend(mode) {
+            const titleEl = document.getElementById('legendTitle');
+            const gridEl = document.getElementById('legendGrid');
+            if (mode === 'complexity') {
+                titleEl.innerText = 'LOC Complexity Heatmap';
+                gridEl.innerHTML = `
+                    <div class="legend-item"><div class="legend-dot" style="background: #10b981;"></div>Lightweight (&lt;200 lines)</div>
+                    <div class="legend-item"><div class="legend-dot" style="background: #f59e0b;"></div>Medium (200-500 lines)</div>
+                    <div class="legend-item"><div class="legend-dot" style="background: #ef4444;"></div>Complex (&gt;500 lines)</div>
+                    <div class="legend-item"><div class="legend-dot" style="background: #38bdf8;"></div>Directory / Virtual</div>
+                `;
+            } else if (mode === 'flow') {
+                titleEl.innerText = 'Streaming Data Flow';
+                gridEl.innerHTML = `
+                    <div class="legend-item"><div class="legend-dot" style="background: #ec4899;"></div>Pipeline Streaming Path</div>
+                    <div class="legend-item"><div class="legend-dot" style="background: #334155;"></div>Supporting Module</div>
+                `;
+            } else {
+                titleEl.innerText = 'Subsystem Legend';
+                gridEl.innerHTML = `
+                    <div class="legend-item"><div class="legend-dot" style="background: #a855f7;"></div>Pipeline Core</div>
+                    <div class="legend-item"><div class="legend-dot" style="background: #ec4899;"></div>Parsers</div>
+                    <div class="legend-item"><div class="legend-dot" style="background: #f59e0b;"></div>Generators</div>
+                    <div class="legend-item"><div class="legend-dot" style="background: #10b981;"></div>Output Engine</div>
+                    <div class="legend-item"><div class="legend-dot" style="background: #3b82f6;"></div>WARP Washer</div>
+                    <div class="legend-item"><div class="legend-dot" style="background: #6366f1;"></div>Go Sidecar</div>
+                    <div class="legend-item"><div class="legend-dot" style="background: #ef4444;"></div>Security & Crypto</div>
+                    <div class="legend-item"><div class="legend-dot" style="background: #06b6d4;"></div>FastAPI Server</div>
+                `;
+            }
+        }
+
+        // Search
         document.getElementById('searchInput').addEventListener('input', function(e) {
             const query = e.target.value.toLowerCase().trim();
             if (!query) return;
-            
             const match = rawNodes.find(n => n.label.toLowerCase().includes(query) || (n.path && n.path.toLowerCase().includes(query)));
             if (match) {
-                network.focus(match.id, { scale: 1.2, animation: true });
+                network.focus(match.id, { scale: 1.3, animation: true });
                 network.selectNodes([match.id]);
             }
         });
 
-        function resetView() {
-            network.fit({ animation: true });
-        }
-
-        function togglePhysics() {
-            physicsEnabled = !physicsEnabled;
-            network.setOptions({ physics: { enabled: physicsEnabled } });
-        }
+        function resetView() { network.fit({ animation: true }); }
+        function togglePhysics() { physicsEnabled = !physicsEnabled; network.setOptions({ physics: { enabled: physicsEnabled } }); }
 
         function filterSubsystem(subsystem, chipEl) {
             document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
             chipEl.classList.add('active');
-
             if (subsystem === 'all') {
                 nodesDataset.update(rawNodes.map(n => ({ id: n.id, hidden: false })));
             } else {

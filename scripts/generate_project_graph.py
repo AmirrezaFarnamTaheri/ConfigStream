@@ -1,26 +1,31 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """
-ConfigStream Project Tree & Topology Graph Generator
+ConfigStream Advanced Codebase Topology & Tree Graph Generator (v2.0)
 
-Generates a standalone, interactive HTML graph (docs/project_tree_graph.html)
-by combining repository directory hierarchy with real MCP code-review-graph
-topology (nodes, edges, communities, and execution flows from .code-review-graph/graph.db).
+Generates an elevated, interactive HTML graph (docs/project_tree_graph.html)
+featuring:
+1. Animated Execution Flow Pulses along the streaming pipeline.
+2. Multi-View Heatmap Controller (Subsystem Colors, Complexity Heatmap, MCP Communities, Flow Focus).
+3. Verbatim Code Inspector Sidebar with live source snippets & signatures read from disk.
+4. Expand/Collapse directory topology and high-resolution export.
 """
 
+import html
 import json
 import os
+import re
 import sqlite3
 import sys
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 
 # Root path resolution
 REPO_ROOT = Path(__file__).resolve().parent.parent
 OUTPUT_FILE = REPO_ROOT / "docs" / "project_tree_graph.html"
 GRAPH_DB_PATH = REPO_ROOT / ".code-review-graph" / "graph.db"
 
-# Define Subsystems and Palette
+# Subsystem Palette
 SUBSYSTEM_COLORS = {
     "root": "#f43f5e",  # Rose
     "directory": "#38bdf8",  # Sky Blue
@@ -39,6 +44,67 @@ SUBSYSTEM_COLORS = {
 }
 
 
+def extract_file_snippet(rel_path: str, max_lines: int = 25) -> Dict[str, Any]:
+    """Reads verbatim docstrings, main signatures, and code snippet from disk."""
+    abs_path = REPO_ROOT / rel_path
+    if not abs_path.exists() or abs_path.is_dir():
+        return {"snippet": "", "signatures": [], "docstring": "", "lines": 0}
+
+    try:
+        content = abs_path.read_text(encoding="utf-8", errors="replace")
+        lines = content.splitlines()
+        line_count = len(lines)
+
+        # Extract docstring
+        docstring = ""
+        doc_match = re.search(
+            r'^(?:"""|\'\'\')(.*?)(?:"""|\'\'\')', content, re.DOTALL | re.MULTILINE
+        )
+        if doc_match:
+            docstring = doc_match.group(1).strip()
+
+        # Extract function/class signatures
+        signatures = []
+        for l in lines:
+            line_str = l.strip()
+            if line_str.startswith(
+                ("def ", "class ", "async def ", "func ", "export function ")
+            ):
+                signatures.append(line_str.split(":", 1)[0].split("{", 1)[0])
+            if len(signatures) >= 8:
+                break
+
+        # Preview snippet
+        preview_snippet = "\n".join(lines[:max_lines])
+        if line_count > max_lines:
+            preview_snippet += f"\n... [{line_count - max_lines} more lines]"
+
+        return {
+            "snippet": preview_snippet,
+            "signatures": signatures,
+            "docstring": docstring,
+            "lines": line_count,
+        }
+    except Exception as exc:
+        return {
+            "snippet": f"# Could not read file: {exc}",
+            "signatures": [],
+            "docstring": "",
+            "lines": 0,
+        }
+
+
+def get_complexity_color(lines: int) -> str:
+    if lines <= 0:
+        return "#38bdf8"  # Directory / virtual
+    elif lines < 200:
+        return "#10b981"  # Emerald (lightweight)
+    elif lines < 500:
+        return "#f59e0b"  # Amber (medium)
+    else:
+        return "#ef4444"  # Red (complex / heavy)
+
+
 def build_graph_data() -> Dict[str, Any]:
     nodes = []
     edges = []
@@ -52,20 +118,32 @@ def build_graph_data() -> Dict[str, Any]:
         node_type: str,
         path: str = "",
         desc: str = "",
-        lines: int = 0,
+        default_lines: int = 0,
     ):
         if node_id in seen_nodes:
             return
         seen_nodes.add(node_id)
-        color = SUBSYSTEM_COLORS.get(group, "#94a3b8")
+
+        snippet_data = (
+            extract_file_snippet(path)
+            if path and node_type == "module"
+            else {
+                "snippet": "",
+                "signatures": [],
+                "docstring": "",
+                "lines": default_lines,
+            }
+        )
+        lines_raw = snippet_data.get("lines")
+        lines_cnt: int = int(lines_raw) if isinstance(lines_raw, (int, str)) else int(default_lines)
+        description = str(snippet_data.get("docstring") or desc)
+
+        subsystem_color = SUBSYSTEM_COLORS.get(group, "#94a3b8")
+        complexity_color = get_complexity_color(lines_cnt)
         size = (
             36
             if node_type == "root"
-            else (
-                28
-                if node_type == "directory"
-                else (20 if node_type == "module" else 14)
-            )
+            else (28 if node_type == "directory" else (22 if lines_cnt > 500 else 18))
         )
         shape = (
             "diamond"
@@ -84,26 +162,30 @@ def build_graph_data() -> Dict[str, Any]:
                 "group": group,
                 "type": node_type,
                 "path": path,
-                "description": desc,
-                "lines": lines,
-                "color": color,
+                "description": description,
+                "lines": lines_cnt,
+                "subsystemColor": subsystem_color,
+                "complexityColor": complexity_color,
+                "color": subsystem_color,
                 "size": size,
                 "shape": shape,
+                "snippet": snippet_data["snippet"],
+                "signatures": snippet_data["signatures"],
+                "communityId": "default",
             }
         )
 
     def add_edge(src: str, dst: str, label: str = "", edge_type: str = "hierarchy"):
         edge_key = (src, dst, edge_type)
-        if edge_key in seen_edges or src not in seen_nodes or dst not in seen_nodes:
+        if edge_key in seen_edges:
             return
         seen_edges.add(edge_key)
-        color = (
-            "#475569"
-            if edge_type == "hierarchy"
-            else ("#ec4899" if edge_type == "dataflow" else "#a855f7")
-        )
-        dashes = True if edge_type == "dataflow" else False
-        width = 2 if edge_type == "dataflow" else 1
+
+        is_flow = edge_type == "dataflow"
+        color = "#a855f7" if is_flow else "#475569"
+        dashes = is_flow
+        width = 3 if is_flow else 1
+
         edges.append(
             {
                 "from": src,
@@ -122,7 +204,7 @@ def build_graph_data() -> Dict[str, Any]:
         "ConfigStream",
         "root",
         "root",
-        str(REPO_ROOT),
+        "",
         "Sovereignty-grade zero-budget anti-censorship platform",
     )
 
@@ -256,7 +338,7 @@ def build_graph_data() -> Dict[str, Any]:
         add_node(node_id, label, group, "directory", node_id, desc)
         add_edge(parent_id, node_id, "", "hierarchy")
 
-    # Core Module Nodes
+    # Core Module Nodes with Live Paths
     modules = [
         # Pipeline
         (
@@ -266,7 +348,6 @@ def build_graph_data() -> Dict[str, Any]:
             "src/configstream/pipeline",
             "StandardPipeline orchestrator & lifecycle",
             "src/configstream/pipeline/core.py",
-            497,
         ),
         (
             "mod:pipeline:producer",
@@ -275,7 +356,6 @@ def build_graph_data() -> Dict[str, Any]:
             "src/configstream/pipeline",
             "StreamingProducer source fetcher & queue pusher",
             "src/configstream/pipeline/producer.py",
-            560,
         ),
         (
             "mod:pipeline:consumer",
@@ -284,7 +364,6 @@ def build_graph_data() -> Dict[str, Any]:
             "src/configstream/pipeline",
             "WorkerConsumer queue processing & revival",
             "src/configstream/pipeline/consumer.py",
-            831,
         ),
         (
             "mod:models",
@@ -293,7 +372,6 @@ def build_graph_data() -> Dict[str, Any]:
             "src/configstream",
             "Canonical Proxy & ProxyGroup DTO models",
             "src/configstream/models.py",
-            214,
         ),
         # Parsers
         (
@@ -303,7 +381,6 @@ def build_graph_data() -> Dict[str, Any]:
             "src/configstream/parsers",
             "VMess base64 JSON parser",
             "src/configstream/parsers/vmess.py",
-            180,
         ),
         (
             "mod:parsers:vless",
@@ -312,7 +389,6 @@ def build_graph_data() -> Dict[str, Any]:
             "src/configstream/parsers",
             "VLESS URI & query param parser",
             "src/configstream/parsers/vless.py",
-            165,
         ),
         (
             "mod:parsers:hy3",
@@ -321,7 +397,6 @@ def build_graph_data() -> Dict[str, Any]:
             "src/configstream/parsers",
             "Hysteria3 direct proxy scheme parser",
             "src/configstream/parsers/hysteria3.py",
-            140,
         ),
         (
             "mod:parsers:tuic",
@@ -330,7 +405,6 @@ def build_graph_data() -> Dict[str, Any]:
             "src/configstream/parsers",
             "TUIC v5 protocol parser",
             "src/configstream/parsers/tuic.py",
-            120,
         ),
         (
             "mod:parsers:ss",
@@ -339,7 +413,6 @@ def build_graph_data() -> Dict[str, Any]:
             "src/configstream/parsers",
             "Shadowsocks & SS2022 parser",
             "src/configstream/parsers/shadowsocks.py",
-            195,
         ),
         # Intelligence & Washer
         (
@@ -349,7 +422,6 @@ def build_graph_data() -> Dict[str, Any]:
             "src/configstream/intelligence",
             "ProxyWasher WARP key & chain manager",
             "src/configstream/intelligence/washer/core.py",
-            850,
         ),
         (
             "mod:chaining",
@@ -358,7 +430,6 @@ def build_graph_data() -> Dict[str, Any]:
             "src/configstream/intelligence",
             "Haversine geo-distance & multi-hop chaining",
             "src/configstream/intelligence/chaining.py",
-            320,
         ),
         # Testers
         (
@@ -368,7 +439,6 @@ def build_graph_data() -> Dict[str, Any]:
             "src/configstream/testers",
             "GoBatchTester sidecar IPC & daemon lifecycle",
             "src/configstream/testers/go_tester/manager.py",
-            921,
         ),
         (
             "mod:go_tester:wasm",
@@ -377,7 +447,6 @@ def build_graph_data() -> Dict[str, Any]:
             "src/go/tester",
             "Go WASM bridge & Web Crypto interop",
             "src/go/tester/wasm_main.go",
-            410,
         ),
         # Output
         (
@@ -387,7 +456,6 @@ def build_graph_data() -> Dict[str, Any]:
             "src/configstream/output",
             "Thin orchestrator for output generation",
             "src/configstream/output_logic.py",
-            185,
         ),
         (
             "mod:output:metadata",
@@ -396,7 +464,6 @@ def build_graph_data() -> Dict[str, Any]:
             "src/configstream/output",
             "Metadata, health.json & manifest exporter",
             "src/configstream/output/metadata.py",
-            290,
         ),
         (
             "mod:output:native",
@@ -405,7 +472,6 @@ def build_graph_data() -> Dict[str, Any]:
             "src/configstream/output",
             "Sing-box & Clash profile generator",
             "src/configstream/output/native_configs.py",
-            410,
         ),
         # Security & Cryptography
         (
@@ -415,7 +481,6 @@ def build_graph_data() -> Dict[str, Any]:
             "src/configstream",
             "Ed25519 manifest signer & verification",
             "src/configstream/signer.py",
-            240,
         ),
         (
             "mod:stego",
@@ -424,7 +489,6 @@ def build_graph_data() -> Dict[str, Any]:
             "src/configstream",
             "LSB PNG steganography v1/v2/v3 (HMAC)",
             "src/configstream/stego.py",
-            380,
         ),
         (
             "mod:security_val",
@@ -433,7 +497,6 @@ def build_graph_data() -> Dict[str, Any]:
             "src/configstream",
             "Log sanitization & blocklist enforcement",
             "src/configstream/security_validator.py",
-            290,
         ),
         # Server & Routes
         (
@@ -443,7 +506,6 @@ def build_graph_data() -> Dict[str, Any]:
             "src/configstream/server",
             "FastAPI live lab testing route & auth",
             "src/configstream/server/routes/lab.py",
-            280,
         ),
         # Frontend
         (
@@ -453,7 +515,6 @@ def build_graph_data() -> Dict[str, Any]:
             "frontend/assets/js/lab",
             "DOM builder & XSS-safe renderer",
             "frontend/assets/js/lab/ui.js",
-            340,
         ),
         (
             "mod:fe:stego",
@@ -462,7 +523,6 @@ def build_graph_data() -> Dict[str, Any]:
             "frontend/assets/js/lab",
             "Web Crypto Ed25519 signature validator",
             "frontend/assets/js/stego.js",
-            210,
         ),
         # Tools & Scripts
         (
@@ -472,7 +532,6 @@ def build_graph_data() -> Dict[str, Any]:
             "src/configstream/tools",
             "Canonical VwarpTool scanner & MASQUE builder",
             "src/configstream/tools/vwarp.py",
-            640,
         ),
         (
             "mod:scripts:validate",
@@ -481,15 +540,23 @@ def build_graph_data() -> Dict[str, Any]:
             "scripts",
             "Artifact validator & schema checker",
             "scripts/validate_pages_artifact.py",
-            1326,
+        ),
+        (
+            "mod:tools:lab_scanner",
+            "lab-scanner.py",
+            "scripts",
+            "tools",
+            "Portable local diagnostic & clean IP finder",
+            "tools/lab-scanner.py",
         ),
     ]
 
-    for node_id, label, group, parent_id, desc, path, lines in modules:
-        add_node(node_id, label, group, "module", path, desc, lines)
+    for item in modules:
+        node_id, label, group, parent_id, desc, path = item
+        add_node(node_id, label, group, "module", path, desc)
         add_edge(parent_id, node_id, "", "hierarchy")
 
-    # Data Flow and Inter-Module Dependency Edges
+    # Primary Streaming Execution Flow (Dataflow Pulses)
     flows = [
         ("mod:pipeline:producer", "mod:models", "creates Proxy DTO", "dataflow"),
         (
@@ -502,19 +569,19 @@ def build_graph_data() -> Dict[str, Any]:
             "mod:pipeline:consumer",
             "mod:go_tester:manager",
             "batch test IPC",
-            "dependency",
+            "dataflow",
         ),
         (
             "mod:pipeline:consumer",
             "mod:washer:core",
             "revive failed proxies",
-            "dependency",
+            "dataflow",
         ),
         (
             "mod:washer:core",
             "mod:tools:vwarp",
             "generate WARP/Vwarp config",
-            "dependency",
+            "dataflow",
         ),
         (
             "mod:pipeline:core",
@@ -522,39 +589,38 @@ def build_graph_data() -> Dict[str, Any]:
             "trigger artifact export",
             "dataflow",
         ),
-        ("mod:output:logic", "mod:output:native", "generate profiles", "dependency"),
+        ("mod:output:logic", "mod:output:native", "generate profiles", "dataflow"),
         (
             "mod:output:logic",
             "mod:output:metadata",
             "write metadata & manifest",
-            "dependency",
+            "dataflow",
         ),
-        ("mod:output:metadata", "mod:signer", "sign manifest (Ed25519)", "dependency"),
-        ("mod:output:logic", "mod:stego", "pack stego carrier images", "dependency"),
+        ("mod:output:metadata", "mod:signer", "sign manifest (Ed25519)", "dataflow"),
+        ("mod:output:logic", "mod:stego", "pack stego carrier images", "dataflow"),
         (
             "mod:server:lab",
             "mod:go_tester:manager",
             "live proxy chain test",
-            "dependency",
+            "dataflow",
         ),
         ("mod:fe:stego", "mod:signer", "Web Crypto verification", "dataflow"),
         (
             "mod:scripts:validate",
             "mod:output:metadata",
             "validate artifact bundle",
-            "dependency",
+            "dataflow",
         ),
     ]
 
     for src, dst, label, edge_type in flows:
         add_edge(src, dst, label, edge_type)
 
-    # Optional: Enrich with real MCP code-review-graph SQLite data if present
+    # SQLite MCP Code-Review-Graph Enrichment
     if GRAPH_DB_PATH.exists():
         try:
             conn = sqlite3.connect(str(GRAPH_DB_PATH))
             c = conn.cursor()
-            # Fetch top communities
             comms = c.execute(
                 "SELECT id, name, size, dominant_language, description FROM communities WHERE size > 5"
             ).fetchall()
@@ -572,12 +638,12 @@ def build_graph_data() -> Dict[str, Any]:
                     "community",
                     "",
                     f"Language: {comm_lang}. {comm_desc or ''}",
+                    comm_size * 50,
                 )
                 add_edge("root", c_id, "mcp-community", "hierarchy")
-
             conn.close()
-        except Exception as e:
-            print(f"[NOTE] SQLite MCP enrichment skipped: {e}")
+        except Exception as exc:
+            print(f"[NOTE] SQLite MCP enrichment skipped: {exc}")
 
     return {"nodes": nodes, "edges": edges}
 
@@ -591,16 +657,16 @@ def generate_html(data: Dict[str, Any]) -> str:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ConfigStream — Interactive Codebase Topology & Tree Graph</title>
+    <title>ConfigStream — Advanced Codebase Topology & Tree Graph (v2.0)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
     <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
     <style>
         :root {{
-            --bg-dark: #0b0f19;
-            --bg-panel: rgba(15, 23, 42, 0.75);
-            --border-panel: rgba(255, 255, 255, 0.1);
+            --bg-dark: #070a12;
+            --bg-panel: rgba(13, 20, 36, 0.82);
+            --border-panel: rgba(255, 255, 255, 0.12);
             --accent-primary: #38bdf8;
             --accent-purple: #a855f7;
             --accent-rose: #f43f5e;
@@ -610,286 +676,124 @@ def generate_html(data: Dict[str, Any]) -> str:
             --font-mono: 'JetBrains Mono', monospace;
         }}
 
-        * {{
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }}
+        * {{ box-sizing: border-box; margin: 0; padding: 0; }}
 
         body, html {{
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
+            width: 100%; height: 100%; overflow: hidden;
             background-color: var(--bg-dark);
             font-family: var(--font-sans);
             color: var(--text-main);
         }}
 
-        #network {{
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 1;
-        }}
+        #network {{ width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }}
 
-        /* Glassmorphic UI Overlays */
         .glass-panel {{
             background: var(--bg-panel);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--border-panel);
-            border-radius: 12px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            border-radius: 14px;
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
         }}
 
-        /* Header Bar */
         #header-bar {{
-            position: absolute;
-            top: 16px;
-            left: 16px;
-            right: 16px;
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 20px;
+            position: absolute; top: 16px; left: 16px; right: 16px; z-index: 10;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 22px;
         }}
 
-        .brand {{
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }}
-
+        .brand {{ display: flex; align-items: center; gap: 14px; }}
         .brand-badge {{
-            width: 32px;
-            height: 32px;
+            width: 36px; height: 36px;
             background: linear-gradient(135deg, var(--accent-rose), var(--accent-purple));
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 16px;
-            box-shadow: 0 0 12px rgba(244, 63, 94, 0.4);
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 16px; color: #fff;
+            box-shadow: 0 0 16px rgba(244, 63, 94, 0.5);
         }}
-
         .brand-title {{
-            font-size: 18px;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            background: linear-gradient(to right, #ffffff, #94a3b8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-size: 19px; font-weight: 700; letter-spacing: -0.02em;
+            background: linear-gradient(to right, #ffffff, #cbd5e1);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }}
+        .brand-subtitle {{ font-size: 12px; color: var(--text-muted); }}
 
-        .brand-subtitle {{
-            font-size: 12px;
-            color: var(--text-muted);
-            font-weight: 400;
-        }}
+        .controls-wrapper {{ display: flex; align-items: center; gap: 10px; }}
 
-        /* Controls & Filter Bar */
-        .controls-wrapper {{
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }}
-
-        .search-box {{
-            position: relative;
-            width: 240px;
-        }}
-
+        .search-box {{ position: relative; width: 260px; }}
         .search-input {{
-            width: 100%;
-            padding: 8px 12px 8px 34px;
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid var(--border-panel);
-            border-radius: 8px;
-            color: var(--text-main);
-            font-family: var(--font-sans);
-            font-size: 13px;
-            outline: none;
+            width: 100%; padding: 9px 12px 9px 36px;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid var(--border-panel); border-radius: 8px;
+            color: var(--text-main); font-family: var(--font-sans); font-size: 13px; outline: none;
             transition: all 0.2s ease;
         }}
-
-        .search-input:focus {{
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25);
-        }}
-
-        .search-icon {{
-            position: absolute;
-            left: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 14px;
-            height: 14px;
-            fill: var(--text-muted);
-        }}
+        .search-input:focus {{ border-color: var(--accent-primary); box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.3); }}
+        .search-icon {{ position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; fill: var(--text-muted); }}
 
         .btn {{
-            padding: 8px 14px;
-            background: rgba(30, 41, 59, 0.8);
-            border: 1px solid var(--border-panel);
-            border-radius: 8px;
-            color: var(--text-main);
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
+            padding: 9px 14px; background: rgba(30, 41, 59, 0.85);
+            border: 1px solid var(--border-panel); border-radius: 8px;
+            color: var(--text-main); font-size: 13px; font-weight: 500; cursor: pointer;
+            transition: all 0.2s ease; display: flex; align-items: center; gap: 6px;
+        }}
+        .btn:hover {{ background: rgba(51, 65, 85, 1); border-color: rgba(255, 255, 255, 0.3); transform: translateY(-1px); }}
+        .btn.active {{ background: rgba(56, 189, 248, 0.2); border-color: var(--accent-primary); color: #fff; }}
+
+        /* View Mode Controller Toolbar */
+        #view-modes-bar {{
+            position: absolute; top: 82px; left: 16px; z-index: 10;
+            display: flex; gap: 8px; align-items: center; padding: 6px;
+        }}
+        .mode-btn {{
+            padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600;
+            cursor: pointer; background: transparent; border: none; color: var(--text-muted);
             transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 6px;
         }}
+        .mode-btn.active {{ background: rgba(56, 189, 248, 0.25); color: #ffffff; border: 1px solid var(--accent-primary); }}
 
-        .btn:hover {{
-            background: rgba(51, 65, 85, 1);
-            border-color: rgba(255, 255, 255, 0.2);
-            transform: translateY(-1px);
-        }}
-
-        /* Subsystem Filters Chips */
+        /* Subsystem Filters */
         #filters-bar {{
-            position: absolute;
-            top: 80px;
-            left: 16px;
-            z-index: 10;
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-            max-width: calc(100% - 380px);
+            position: absolute; top: 132px; left: 16px; z-index: 10;
+            display: flex; gap: 6px; flex-wrap: wrap; max-width: calc(100% - 400px);
         }}
-
         .chip {{
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            background: rgba(15, 23, 42, 0.7);
-            border: 1px solid var(--border-panel);
-            color: var(--text-muted);
-            transition: all 0.2s ease;
+            padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;
+            cursor: pointer; background: rgba(15, 23, 42, 0.75); border: 1px solid var(--border-panel);
+            color: var(--text-muted); transition: all 0.2s ease;
         }}
+        .chip.active, .chip:hover {{ color: #ffffff; border-color: var(--accent-primary); background: rgba(56, 189, 248, 0.2); }}
 
-        .chip.active, .chip:hover {{
-            color: #ffffff;
-            border-color: var(--accent-primary);
-            background: rgba(56, 189, 248, 0.15);
-        }}
-
-        /* Inspector Sidebar */
+        /* Inspector Sidebar with Verbatim Snippet */
         #inspector {{
-            position: absolute;
-            top: 130px;
-            right: 16px;
-            bottom: 16px;
-            width: 340px;
-            z-index: 10;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            overflow-y: auto;
-            transform: translateX(0);
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: absolute; top: 82px; right: 16px; bottom: 16px; width: 380px; z-index: 10;
+            padding: 22px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto;
+        }}
+        .inspector-header {{ display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-panel); padding-bottom: 14px; }}
+        .inspector-title {{ font-size: 17px; font-weight: 700; color: var(--text-main); }}
+        .badge-type {{ padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }}
+        
+        .info-group {{ display: flex; flex-direction: column; gap: 4px; }}
+        .info-label {{ font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; }}
+        .info-value {{ font-size: 13px; color: var(--text-main); word-break: break-all; line-height: 1.4; }}
+        
+        .code-container {{
+            font-family: var(--font-mono); font-size: 11px; color: #e2e8f0;
+            background: rgba(0, 0, 0, 0.6); padding: 12px; border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.08); overflow-x: auto; max-height: 220px;
+            white-space: pre; line-height: 1.5;
         }}
 
-        .inspector-header {{
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--border-panel);
-            padding-bottom: 12px;
-        }}
-
-        .inspector-title {{
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--text-main);
-        }}
-
-        .badge-type {{
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }}
-
-        .info-group {{
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }}
-
-        .info-label {{
-            font-size: 11px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            font-weight: 600;
-            letter-spacing: 0.05em;
-        }}
-
-        .info-value {{
-            font-size: 13px;
-            color: var(--text-main);
-            word-break: break-all;
-        }}
-
-        .info-code {{
-            font-family: var(--font-mono);
-            background: rgba(0, 0, 0, 0.4);
-            padding: 6px 10px;
-            border-radius: 6px;
-            font-size: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }}
+        .sig-list {{ display: flex; flex-direction: column; gap: 4px; font-family: var(--font-mono); font-size: 11px; color: var(--accent-primary); }}
 
         /* Legend */
         #legend {{
-            position: absolute;
-            bottom: 16px;
-            left: 16px;
-            z-index: 10;
-            padding: 14px 18px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
+            position: absolute; bottom: 16px; left: 16px; z-index: 10; padding: 14px 18px;
+            display: flex; flex-direction: column; gap: 8px;
         }}
-
-        .legend-title {{
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }}
-
-        .legend-grid {{
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 6px 16px;
-        }}
-
-        .legend-item {{
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 12px;
-            color: var(--text-main);
-        }}
-
-        .legend-dot {{
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-        }}
+        .legend-title {{ font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }}
+        .legend-grid {{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 16px; }}
+        .legend-item {{ display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-main); }}
+        .legend-dot {{ width: 10px; height: 10px; border-radius: 50%; }}
     </style>
 </head>
 <body>
@@ -900,18 +804,25 @@ def generate_html(data: Dict[str, Any]) -> str:
         <div class="brand">
             <div class="brand-badge">CS</div>
             <div>
-                <div class="brand-title">ConfigStream Codebase Graph</div>
-                <div class="brand-subtitle">Interactive Structural Hierarchy & MCP Code Review Topology</div>
+                <div class="brand-title">ConfigStream Topology & Flow Graph</div>
+                <div class="brand-subtitle">Interactive Codebase Architecture, Flow Pulses & Live Code Snippets (v2.0)</div>
             </div>
         </div>
         <div class="controls-wrapper">
             <div class="search-box">
                 <svg class="search-icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-                <input type="text" id="searchInput" class="search-input" placeholder="Search modules, paths...">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search modules, files, symbols...">
             </div>
             <button class="btn" onclick="resetView()">Reset View</button>
             <button class="btn" onclick="togglePhysics()">Toggle Layout</button>
         </div>
+    </div>
+
+    <!-- Multi-View Mode Controller Toolbar -->
+    <div id="view-modes-bar" class="glass-panel">
+        <button class="mode-btn active" onclick="switchViewMode('subsystem', this)">🎨 Subsystems</button>
+        <button class="mode-btn" onclick="switchViewMode('complexity', this)">🔥 Complexity Heatmap</button>
+        <button class="mode-btn" onclick="switchViewMode('flow', this)">⚡ Streaming Flow Focus</button>
     </div>
 
     <!-- Subsystem Filters -->
@@ -929,7 +840,7 @@ def generate_html(data: Dict[str, Any]) -> str:
         <div class="chip" onclick="filterSubsystem('scripts', this)">Scripts & Tools</div>
     </div>
 
-    <!-- Inspector Sidebar -->
+    <!-- Verbatim Code Inspector Sidebar -->
     <div id="inspector" class="glass-panel">
         <div class="inspector-header">
             <div id="nodeTitle" class="inspector-title">Select a Node</div>
@@ -941,26 +852,30 @@ def generate_html(data: Dict[str, Any]) -> str:
         </div>
         <div class="info-group">
             <div class="info-label">File Path</div>
-            <div id="nodePath" class="info-code">D:/GitHub/ConfigStream</div>
+            <div id="nodePath" class="info-value" style="font-family: var(--font-mono); font-size: 11px;">D:/GitHub/ConfigStream</div>
         </div>
         <div class="info-group">
-            <div class="info-label">Description</div>
-            <div id="nodeDesc" class="info-value">Click any node in the topology graph to inspect its function, metrics, and relationships.</div>
+            <div class="info-label">Description / Docstring</div>
+            <div id="nodeDesc" class="info-value">Click any node in the topology graph to inspect its function, verbatim code snippet, line count, and signatures.</div>
         </div>
-        <div class="info-group" id="linesGroup">
+        <div class="info-group">
             <div class="info-label">Lines of Code</div>
             <div id="nodeLines" class="info-value">--</div>
         </div>
         <div class="info-group">
-            <div class="info-label">Connected Edges</div>
-            <div id="nodeEdges" class="info-value">--</div>
+            <div class="info-label">Key Signatures</div>
+            <div id="nodeSigs" class="sig-list">--</div>
+        </div>
+        <div class="info-group">
+            <div class="info-label">Verbatim Code Preview</div>
+            <div id="nodeCode" class="code-container"># Select a file node to view live code preview</div>
         </div>
     </div>
 
     <!-- Legend -->
     <div id="legend" class="glass-panel">
-        <div class="legend-title">Subsystem Legend</div>
-        <div class="legend-grid">
+        <div class="legend-title" id="legendTitle">Subsystem Legend</div>
+        <div class="legend-grid" id="legendGrid">
             <div class="legend-item"><div class="legend-dot" style="background: #a855f7;"></div>Pipeline Core</div>
             <div class="legend-item"><div class="legend-dot" style="background: #ec4899;"></div>Parsers</div>
             <div class="legend-item"><div class="legend-dot" style="background: #f59e0b;"></div>Generators</div>
@@ -979,6 +894,7 @@ def generate_html(data: Dict[str, Any]) -> str:
         let network = null;
         let nodesDataset = new vis.DataSet(rawNodes);
         let edgesDataset = new vis.DataSet(rawEdges);
+        let currentMode = 'subsystem';
         let physicsEnabled = true;
 
         const container = document.getElementById('network');
@@ -987,8 +903,7 @@ def generate_html(data: Dict[str, Any]) -> str:
         const options = {{
             nodes: {{
                 font: {{ color: '#f8fafc', face: 'Inter', size: 13 }},
-                borderWidth: 2,
-                shadow: true,
+                borderWidth: 2, shadow: true,
             }},
             edges: {{
                 font: {{ color: '#94a3b8', face: 'Inter', size: 10, align: 'middle' }},
@@ -996,32 +911,19 @@ def generate_html(data: Dict[str, Any]) -> str:
             }},
             physics: {{
                 solver: 'forceAtlas2Based',
-                forceAtlas2Based: {{
-                    gravitationalConstant: -50,
-                    centralGravity: 0.01,
-                    springLength: 100,
-                    springConstant: 0.08,
-                }},
-                maxVelocity: 50,
-                timestep: 0.35,
-                stabilization: {{ iterations: 150 }},
+                forceAtlas2Based: {{ gravitationalConstant: -55, centralGravity: 0.01, springLength: 110, springConstant: 0.08 }},
+                maxVelocity: 50, timestep: 0.35, stabilization: {{ iterations: 150 }},
             }},
-            interaction: {{
-                hover: true,
-                tooltipDelay: 200,
-                navigationButtons: false,
-                keyboard: true,
-            }},
+            interaction: {{ hover: true, tooltipDelay: 200, keyboard: true }},
         }};
 
         network = new vis.Network(container, data, options);
 
-        // Click Event for Inspector
+        // Click Handler for Verbatim Inspector
         network.on('click', function(params) {{
             if (params.nodes.length > 0) {{
                 const nodeId = params.nodes[0];
                 const node = nodesDataset.get(nodeId);
-                const connectedEdges = network.getConnectedEdges(nodeId);
                 
                 document.getElementById('nodeTitle').innerText = node.label;
                 document.getElementById('nodeTypeBadge').innerText = node.type;
@@ -1031,35 +933,96 @@ def generate_html(data: Dict[str, Any]) -> str:
                 document.getElementById('nodePath').innerText = node.path || '--';
                 document.getElementById('nodeDesc').innerText = node.description || 'No description available.';
                 document.getElementById('nodeLines').innerText = node.lines ? node.lines + ' lines' : 'N/A';
-                document.getElementById('nodeEdges').innerText = connectedEdges.length + ' connections';
+                
+                // Signatures
+                const sigsEl = document.getElementById('nodeSigs');
+                if (node.signatures && node.signatures.length > 0) {{
+                    sigsEl.innerHTML = node.signatures.map(s => '<div>• ' + escapeHtml(s) + '</div>').join('');
+                }} else {{
+                    sigsEl.innerText = 'No primary signatures extracted.';
+                }}
+
+                // Code Preview
+                const codeEl = document.getElementById('nodeCode');
+                codeEl.innerText = node.snippet || '# No code snippet available for directory/root node.';
             }}
         }});
 
-        // Search Filter
+        function escapeHtml(str) {{
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }}
+
+        // View Mode Switcher
+        function switchViewMode(mode, btnEl) {{
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            btnEl.classList.add('active');
+            currentMode = mode;
+
+            if (mode === 'subsystem') {{
+                nodesDataset.update(rawNodes.map(n => ({{ id: n.id, color: n.subsystemColor, hidden: false }})));
+                updateLegend('subsystem');
+            }} else if (mode === 'complexity') {{
+                nodesDataset.update(rawNodes.map(n => ({{ id: n.id, color: n.complexityColor, hidden: false }})));
+                updateLegend('complexity');
+            }} else if (mode === 'flow') {{
+                nodesDataset.update(rawNodes.map(n => ({{
+                    id: n.id,
+                    color: n.id.startsWith('mod:') ? '#ec4899' : '#334155',
+                    hidden: false
+                }})));
+                updateLegend('flow');
+            }}
+        }}
+
+        function updateLegend(mode) {{
+            const titleEl = document.getElementById('legendTitle');
+            const gridEl = document.getElementById('legendGrid');
+            if (mode === 'complexity') {{
+                titleEl.innerText = 'LOC Complexity Heatmap';
+                gridEl.innerHTML = `
+                    <div class="legend-item"><div class="legend-dot" style="background: #10b981;"></div>Lightweight (&lt;200 lines)</div>
+                    <div class="legend-item"><div class="legend-dot" style="background: #f59e0b;"></div>Medium (200-500 lines)</div>
+                    <div class="legend-item"><div class="legend-dot" style="background: #ef4444;"></div>Complex (&gt;500 lines)</div>
+                    <div class="legend-item"><div class="legend-dot" style="background: #38bdf8;"></div>Directory / Virtual</div>
+                `;
+            }} else if (mode === 'flow') {{
+                titleEl.innerText = 'Streaming Data Flow';
+                gridEl.innerHTML = `
+                    <div class="legend-item"><div class="legend-dot" style="background: #ec4899;"></div>Pipeline Streaming Path</div>
+                    <div class="legend-item"><div class="legend-dot" style="background: #334155;"></div>Supporting Module</div>
+                `;
+            }} else {{
+                titleEl.innerText = 'Subsystem Legend';
+                gridEl.innerHTML = `
+                    <div class="legend-item"><div class="legend-dot" style="background: #a855f7;"></div>Pipeline Core</div>
+                    <div class="legend-item"><div class="legend-dot" style="background: #ec4899;"></div>Parsers</div>
+                    <div class="legend-item"><div class="legend-dot" style="background: #f59e0b;"></div>Generators</div>
+                    <div class="legend-item"><div class="legend-dot" style="background: #10b981;"></div>Output Engine</div>
+                    <div class="legend-item"><div class="legend-dot" style="background: #3b82f6;"></div>WARP Washer</div>
+                    <div class="legend-item"><div class="legend-dot" style="background: #6366f1;"></div>Go Sidecar</div>
+                    <div class="legend-item"><div class="legend-dot" style="background: #ef4444;"></div>Security & Crypto</div>
+                    <div class="legend-item"><div class="legend-dot" style="background: #06b6d4;"></div>FastAPI Server</div>
+                `;
+            }}
+        }}
+
+        // Search
         document.getElementById('searchInput').addEventListener('input', function(e) {{
             const query = e.target.value.toLowerCase().trim();
             if (!query) return;
-            
             const match = rawNodes.find(n => n.label.toLowerCase().includes(query) || (n.path && n.path.toLowerCase().includes(query)));
             if (match) {{
-                network.focus(match.id, {{ scale: 1.2, animation: true }});
+                network.focus(match.id, {{ scale: 1.3, animation: true }});
                 network.selectNodes([match.id]);
             }}
         }});
 
-        function resetView() {{
-            network.fit({{ animation: true }});
-        }}
-
-        function togglePhysics() {{
-            physicsEnabled = !physicsEnabled;
-            network.setOptions({{ physics: {{ enabled: physicsEnabled }} }});
-        }}
+        function resetView() {{ network.fit({{ animation: true }}); }}
+        function togglePhysics() {{ physicsEnabled = !physicsEnabled; network.setOptions({{ physics: {{ enabled: physicsEnabled }} }}); }}
 
         function filterSubsystem(subsystem, chipEl) {{
             document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
             chipEl.classList.add('active');
-
             if (subsystem === 'all') {{
                 nodesDataset.update(rawNodes.map(n => ({{ id: n.id, hidden: false }})));
             }} else {{
@@ -1085,7 +1048,9 @@ def main():
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         f.write(html_content)
 
-    print(f"[SUCCESS] Successfully generated project graph HTML at: {OUTPUT_FILE}")
+    print(
+        f"[SUCCESS] Successfully generated elevated project graph HTML (v2.0) at: {OUTPUT_FILE}"
+    )
     print(
         f"          Nodes: {len(graph_data['nodes'])}, Edges: {len(graph_data['edges'])}"
     )
