@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-07-24  
 **Version:** v3.2.0  
-**Status:** Audit remediation complete at repository level. All 9 PR #526 audit findings remediated and verified 100% green. Public Pages readiness remains gated on a fresh validated artifact deploy plus `scripts/verify_pages_deployment.py` passing against the live URL.
+**Status:** Release remediation in progress. The repository is not production-ready until the post-merge live GitHub Pages smoke test succeeds. Audit remediation complete at repository level (v3.2.0); all 9 PR #526 audit findings remediated and verified 100% green.
 
 The active architectural source of truth is [ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md](ConfigStream_Master_Audit_Report%20-%20Main%20SOURCE%20OF%20TRUTH.md). This status file is the release-state checkpoint and takes precedence over older readiness wording when current CI or deployment evidence disagrees.
 
