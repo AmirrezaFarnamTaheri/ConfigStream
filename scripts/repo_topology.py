@@ -813,7 +813,6 @@ def generate_report(graph: dict[str, Any], audit: list[dict[str, Any]]) -> str:
     lines = []
     meta = graph.get("metadata", {})
     nodes = graph.get("nodes", [])
-    edges = graph.get("edges", [])
 
     lines.append("# RepoTopology Report")
     lines.append(f"Generated: {meta.get('generated_at', 'unknown')}")

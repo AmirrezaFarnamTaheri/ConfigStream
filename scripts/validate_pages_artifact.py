@@ -8,6 +8,7 @@ import base64
 import binascii
 import hashlib
 import json
+import logging
 import os
 import re
 import shutil
@@ -21,7 +22,8 @@ from pathlib import Path
 from typing import cast
 from cryptography.hazmat.primitives.asymmetric import ed25519
 from cryptography.hazmat.primitives import serialization
-from cryptography.exceptions import InvalidSignature
+
+logger = logging.getLogger(__name__)
 
 try:
     import yaml  # type: ignore
@@ -821,6 +823,7 @@ def _validate_manifest_signature(manifest: dict[str, object]) -> list[str]:
                 "artifact_manifest.json manifest_signature verification failed"
             )
     except Exception as exc:
+        logger.warning("Manifest signature check exception: %s", exc)
         errors.append(f"artifact_manifest.json signature check error: {exc}")
 
     return errors

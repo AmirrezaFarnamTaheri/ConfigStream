@@ -13,12 +13,14 @@ Generates a secure, deterministic, standalone interactive HTML graph (docs/proje
 """
 
 import json
-import os
+import logging
 import re
 import sqlite3
 import sys
 from pathlib import Path
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any
+
+logger = logging.getLogger(__name__)
 
 # Root path resolution
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -65,8 +67,8 @@ def extract_file_snippet(rel_path: str, max_lines: int = 25) -> Dict[str, Any]:
 
         # Extract function/class signatures
         signatures = []
-        for l in lines:
-            line_str = l.strip()
+        for raw_line in lines:
+            line_str = raw_line.strip()
             if line_str.startswith(
                 ("def ", "class ", "async def ", "func ", "export function ")
             ):
@@ -86,6 +88,7 @@ def extract_file_snippet(rel_path: str, max_lines: int = 25) -> Dict[str, Any]:
             "lines": line_count,
         }
     except Exception as exc:
+        logger.debug("Failed to extract snippet from %s: %s", rel_path, exc)
         return {
             "snippet": f"# Could not read file: {exc}",
             "signatures": [],
