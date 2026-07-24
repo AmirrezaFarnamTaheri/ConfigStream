@@ -472,9 +472,21 @@ async def source_producer(
 
                         # Offload anomaly check to executor to avoid blocking on DB/ML
                         if enable_anomaly_detection:
-                            is_safe, reason = await loop.run_in_executor(
-                                None, anomaly_detector.is_safe, source, count
-                            )
+                            try:
+                                is_safe, reason = await loop.run_in_executor(
+                                    None, anomaly_detector.is_safe, source, count
+                                )
+                            except Exception as ad_err:
+                                safe_err = SecurityValidator.sanitize_log_message(
+                                    str(ad_err)
+                                )
+                                logger.warning(
+                                    f"Anomaly check failed for {safe_source} ({safe_err}); failing open"
+                                )
+                                is_safe, reason = (
+                                    True,
+                                    f"Anomaly detector error (Fail Open): {safe_err}",
+                                )
                         else:
                             is_safe, reason = True, "Anomaly detection disabled"
 
@@ -485,17 +497,28 @@ async def source_producer(
                                 )
                                 # Offload record to executor
                                 if enable_anomaly_detection:
-                                    await loop.run_in_executor(
-                                        None, anomaly_detector.record, source, count
-                                    )
+                                    try:
+                                        await loop.run_in_executor(
+                                            None, anomaly_detector.record, source, count
+                                        )
+                                    except Exception as rec_err:
+                                        safe_rec_err = (
+                                            SecurityValidator.sanitize_log_message(
+                                                str(rec_err)
+                                            )
+                                        )
+                                        logger.debug(
+                                            f"Anomaly record failed for {safe_source}: {safe_rec_err}"
+                                        )
                                 # Prepare metadata and fetch time
+                                resp_time = getattr(res, "response_time", None)
                                 fetch_time = (
-                                    f"{res.response_time:.2f}s"
-                                    if res.response_time is not None
+                                    f"{resp_time:.2f}s"
+                                    if resp_time is not None
                                     else "N/A"
                                 )
                                 metadata = {
-                                    "fetch_duration": res.response_time or 0.0,
+                                    "fetch_duration": resp_time or 0.0,
                                     "drop_stats": drop_stats,  # Pass stats downstream
                                 }
                                 queued = await _queue_payload(source, lines, metadata)
