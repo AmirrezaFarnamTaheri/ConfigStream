@@ -363,7 +363,8 @@ def _public_canonical_matrix_entries() -> list[dict[str, Any]]:
     return [
         entry
         for entry in entries
-        if entry["public"] is True and entry["kind"] == "canonical"
+        if entry["public"] is True
+        and (entry["kind"] == "canonical" or entry["id"] == "hysteria3")
     ]
 
 

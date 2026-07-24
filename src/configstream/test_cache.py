@@ -170,6 +170,13 @@ class TestResultCache:
         tested_at = entry.get("tested_at", 0.0)
         return tested_at >= (time.time() - self.ttl_seconds)
 
+    def invalidate(self, proxy: Proxy) -> None:
+        """Invalidate/remove a cached result for a proxy."""
+        if not proxy.config:
+            return
+        config_hash = self._compute_hash(proxy.config)
+        self._cache.pop(config_hash, None)
+
     def set(self, proxy: Proxy) -> None:
         """
         Store test result in cache.
@@ -177,7 +184,7 @@ class TestResultCache:
         Args:
             proxy: Proxy with test results to cache.
         """
-        if not proxy.config:
+        if not proxy.config or proxy.details.get("infra_failure") is True:
             return
 
         config_hash = self._compute_hash(proxy.config)

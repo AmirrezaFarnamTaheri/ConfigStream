@@ -1,7 +1,7 @@
 # Deployment Readiness Report
 
 ## Current Gate Status
-- **Repository production gate**: FAIL / Open (#500 must pass blocking CI)
+- **Repository production gate**: FAIL / Open (#526 must pass blocking CI)
 - **Security scan gate**: FAIL / Open (All scans must be green)
 - **Dependency gate**: FAIL / Open (Consolidated lockfiles under validation)
 - **Pages artifact gate**: FAIL / Open (Must be regenerated and validated)
@@ -74,8 +74,8 @@ python scripts/verify_pages_deployment.py https://amirrezafarnamtaheri.github.io
    - *Remediation:* Execute a full local pipeline run to generate the missing configs, datasets, and frontend pages.
 2. **Unresolved Frontend Placeholders:** The frontend assets (`constants.js` and `stego.js`) expect `PUBLIC_KEY`, `IPNS_KEY`, and `STEGO_KEY` which are normally injected into `runtime-config.js` via the pipeline CI.
    - *Remediation:* Ensure environment variables (`CS_PUBLIC_KEY`, `STEGO_KEY`) are set when running `validate_frontend_placeholders.py` locally or in CI so it correctly generates `assets/js/runtime-config.js`.
-3. **Pending PR #500:** Architectural issues are still being resolved.
-   - *Remediation:* Complete issue-by-issue verification, ensure fully green CI on #500, and merge into main.
+3. **Pending PR #526:** Architectural issues are still being resolved.
+   - *Remediation:* Complete issue-by-issue verification, ensure fully green CI on #526, and merge into main.
 
 ## Estimated Time to Live Deployment
-Assuming PR #500 remediation steps are finalized and CI pipeline is green, a full pipeline execution takes up to **~180 minutes**, followed by Pages deployment taking **~10 minutes**. Estimated time to live deployment is approximately **3 to 4 hours** after the integration branch is fully approved and merged.
+Assuming PR #526 remediation steps are finalized and CI pipeline is green, a full pipeline execution takes up to **~180 minutes**, followed by Pages deployment taking **~10 minutes**. Estimated time to live deployment is approximately **~3 to 4 hours** after the integration branch is fully approved and merged.

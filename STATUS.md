@@ -127,14 +127,14 @@ The master file carries detailed inventory, maturity levels, validation commands
 
 | Area | Current state | Remaining action |
 |---|---|---|
-| Pipeline/fetch/consumer | Security transport hardening is on #500. | Pass the complete test matrix and validate redirected/HTTPS edge cases. |
-| Parser/protocol support | Matrix-backed inventory exists; Lab parsing is hardened on #500. | Keep protocol matrix and browser tests aligned. |
-| Public JSON outputs | Safe serializer and categorized list parity are established. | Revalidate every output family after merge. |
-| Client config outputs | Sing-box/Clash are supported; Clash serialization changed materially on #500. | Run golden/config-consumer tests before release. |
-| Frontend | Build and browser profiles have remained green during remediation. | Keep the final head green and validate the deployed artifact. |
-| Lab | URI, endpoint, worker, fragment, and export boundaries are hardened on #500. | Complete click-path/export regression coverage. |
-| CI/security | Blocking gates are wired; diagnostics now retain machine-readable Bandit findings. | Obtain a fully green final run without broad suppressions. |
-| Artifacts | Generated build mirrors are removed on #500. | Validate packaging and Pages generation from a clean checkout. |
+| Pipeline/fetch/consumer | Security transport hardening is on #526. | Pass the complete test matrix and validate redirected/HTTPS edge cases. |
+| Parser/protocol support | Matrix-backed inventory exists; Lab parsing is hardened on #526. | Keep protocol matrix and browser tests aligned. |
+| Memory/WASM/testing | Washed chain candidate re-testing and memory profiling are active on #526. | Run memory and Go sidecar benchmark tests. |
+| Client config outputs | Sing-box/Clash are supported; Clash serialization changed materially on #526. | Run golden/config-consumer tests before release. |
+| UI/Web asset security | Modular lab assets and strict content-type headers are applied on #526. | Pass all frontend and UI end-to-end checks. |
+| Lab | URI, endpoint, worker, fragment, and export boundaries are hardened on #526. | Complete click-path/export regression coverage. |
+| Signatures & manifest | Artifact validation and signing rules are enforced on #526. | Run `validate_pages_artifact.py` before release. |
+| Artifacts | Generated build mirrors are removed on #526. | Validate packaging and Pages generation from a clean checkout. |
 | Docs/source of truth | Readiness wording now reflects current evidence. | Update again only after the live release gate actually passes. |
 
 ## Validation Snapshot

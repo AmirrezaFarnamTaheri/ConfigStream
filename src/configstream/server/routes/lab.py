@@ -168,9 +168,6 @@ async def _sanitize_and_pin_outbound(outbound: Any, path: str) -> Dict[str, Any]
                     tls_obj = clean_outbound.setdefault("tls", {})
                     if isinstance(tls_obj, dict):
                         tls_obj.setdefault("server_name", orig_clean)
-                else:
-                    # Do not implicitly add a tls block to plaintext outbounds
-                    clean_outbound.setdefault("server_name", orig_clean)
 
     # Recursively check nested outbounds/detours/next
     for key in ("detour", "next", "outbounds"):

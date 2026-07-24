@@ -548,7 +548,20 @@ async def _test_candidates(
                 sem = concurrency.get_semaphore()
                 async with sem:
                     try:
-                        return await tester.test(p)
+                        test_cache.invalidate(p)
+                        if (p.protocol or "").lower() in (
+                            "http",
+                            "https",
+                            "socks",
+                            "socks5",
+                            "socks4",
+                        ):
+                            res = await tester.python_tester.test_direct(p)
+                        else:
+                            res = await tester.python_tester.test_via_singbox(p)
+                        if res.is_working:
+                            test_cache.set(res)
+                        return res
                     except asyncio.CancelledError:
                         raise
                     except Exception as e:
