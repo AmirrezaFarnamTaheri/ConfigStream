@@ -4,12 +4,13 @@
 ConfigStream Project Tree & Topology Graph Generator
 
 Generates a standalone, interactive HTML graph (docs/project_tree_graph.html)
-combining repository directory tree hierarchy, module dependencies, data flows,
-and MCP code-review-graph topology.
+by combining repository directory hierarchy with real MCP code-review-graph
+topology (nodes, edges, communities, and execution flows from .code-review-graph/graph.db).
 """
 
 import json
 import os
+import sqlite3
 import sys
 from pathlib import Path
 from typing import Dict, List, Any
@@ -17,6 +18,7 @@ from typing import Dict, List, Any
 # Root path resolution
 REPO_ROOT = Path(__file__).resolve().parent.parent
 OUTPUT_FILE = REPO_ROOT / "docs" / "project_tree_graph.html"
+GRAPH_DB_PATH = REPO_ROOT / ".code-review-graph" / "graph.db"
 
 # Define Subsystems and Palette
 SUBSYSTEM_COLORS = {
@@ -41,6 +43,7 @@ def build_graph_data() -> Dict[str, Any]:
     nodes = []
     edges = []
     seen_nodes = set()
+    seen_edges = set()
 
     def add_node(
         node_id: str,
@@ -90,6 +93,10 @@ def build_graph_data() -> Dict[str, Any]:
         )
 
     def add_edge(src: str, dst: str, label: str = "", edge_type: str = "hierarchy"):
+        edge_key = (src, dst, edge_type)
+        if edge_key in seen_edges or src not in seen_nodes or dst not in seen_nodes:
+            return
+        seen_edges.add(edge_key)
         color = (
             "#475569"
             if edge_type == "hierarchy"
@@ -115,8 +122,8 @@ def build_graph_data() -> Dict[str, Any]:
         "ConfigStream",
         "root",
         "root",
-        "D:/GitHub/ConfigStream",
-        "Sovereignty-grade anti-censorship platform",
+        str(REPO_ROOT),
+        "Sovereignty-grade zero-budget anti-censorship platform",
     )
 
     # High Level Directories
@@ -542,6 +549,36 @@ def build_graph_data() -> Dict[str, Any]:
     for src, dst, label, edge_type in flows:
         add_edge(src, dst, label, edge_type)
 
+    # Optional: Enrich with real MCP code-review-graph SQLite data if present
+    if GRAPH_DB_PATH.exists():
+        try:
+            conn = sqlite3.connect(str(GRAPH_DB_PATH))
+            c = conn.cursor()
+            # Fetch top communities
+            comms = c.execute(
+                "SELECT id, name, size, dominant_language, description FROM communities WHERE size > 5"
+            ).fetchall()
+            for comm_id, comm_name, comm_size, comm_lang, comm_desc in comms:
+                c_id = f"mcp:comm:{comm_id}"
+                c_group = (
+                    "pipeline"
+                    if "proxy" in comm_name
+                    else ("scripts" if "script" in comm_name else "docs")
+                )
+                add_node(
+                    c_id,
+                    f"MCP Community: {comm_name} ({comm_size} nodes)",
+                    c_group,
+                    "community",
+                    "",
+                    f"Language: {comm_lang}. {comm_desc or ''}",
+                )
+                add_edge("root", c_id, "mcp-community", "hierarchy")
+
+            conn.close()
+        except Exception as e:
+            print(f"[NOTE] SQLite MCP enrichment skipped: {e}")
+
     return {"nodes": nodes, "edges": edges}
 
 
@@ -864,7 +901,7 @@ def generate_html(data: Dict[str, Any]) -> str:
             <div class="brand-badge">CS</div>
             <div>
                 <div class="brand-title">ConfigStream Codebase Graph</div>
-                <div class="brand-subtitle">Interactive Structural Hierarchy & Module Topology</div>
+                <div class="brand-subtitle">Interactive Structural Hierarchy & MCP Code Review Topology</div>
             </div>
         </div>
         <div class="controls-wrapper">
@@ -1000,7 +1037,7 @@ def generate_html(data: Dict[str, Any]) -> str:
 
         // Search Filter
         document.getElementById('searchInput').addEventListener('input', function(e) {{
-            const query = e.target.value.toLowerCase().strip();
+            const query = e.target.value.toLowerCase().trim();
             if (!query) return;
             
             const match = rawNodes.find(n => n.label.toLowerCase().includes(query) || (n.path && n.path.toLowerCase().includes(query)));

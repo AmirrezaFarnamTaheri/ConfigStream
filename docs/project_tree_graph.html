@@ -313,7 +313,7 @@
             <div class="brand-badge">CS</div>
             <div>
                 <div class="brand-title">ConfigStream Codebase Graph</div>
-                <div class="brand-subtitle">Interactive Structural Hierarchy & Module Topology</div>
+                <div class="brand-subtitle">Interactive Structural Hierarchy & MCP Code Review Topology</div>
             </div>
         </div>
         <div class="controls-wrapper">
@@ -391,8 +391,8 @@
     "label": "ConfigStream",
     "group": "root",
     "type": "root",
-    "path": "D:/GitHub/ConfigStream",
-    "description": "Sovereignty-grade anti-censorship platform",
+    "path": "D:\\GitHub\\ConfigStream",
+    "description": "Sovereignty-grade zero-budget anti-censorship platform",
     "lines": 0,
     "color": "#f43f5e",
     "size": 36,
@@ -925,6 +925,150 @@
     "color": "#f97316",
     "size": 20,
     "shape": "box"
+  },
+  {
+    "id": "mcp:comm:49",
+    "label": "MCP Community: js-handle (504 nodes)",
+    "group": "docs",
+    "type": "community",
+    "path": "",
+    "description": "Language: javascript. Directory-based community: frontend/assets",
+    "lines": 0,
+    "color": "#14b8a6",
+    "size": 14,
+    "shape": "dot"
+  },
+  {
+    "id": "mcp:comm:51",
+    "label": "MCP Community: scripts-validate (426 nodes)",
+    "group": "scripts",
+    "type": "community",
+    "path": "",
+    "description": "Language: python. Directory-based community: scripts",
+    "lines": 0,
+    "color": "#f97316",
+    "size": 14,
+    "shape": "dot"
+  },
+  {
+    "id": "mcp:comm:53",
+    "label": "MCP Community: configstream-proxy (1014 nodes)",
+    "group": "pipeline",
+    "type": "community",
+    "path": "",
+    "description": "Language: python. Directory-based community: src/configstream",
+    "lines": 0,
+    "color": "#a855f7",
+    "size": 14,
+    "shape": "dot"
+  },
+  {
+    "id": "mcp:comm:54",
+    "label": "MCP Community: tester-proxy (20 nodes)",
+    "group": "pipeline",
+    "type": "community",
+    "path": "",
+    "description": "Language: go. Directory-based community: src/go",
+    "lines": 0,
+    "color": "#a855f7",
+    "size": 14,
+    "shape": "dot"
+  },
+  {
+    "id": "mcp:comm:55",
+    "label": "MCP Community: src-verify (7 nodes)",
+    "group": "docs",
+    "type": "community",
+    "path": "",
+    "description": "Language: rust. Directory-based community: src/rust",
+    "lines": 0,
+    "color": "#14b8a6",
+    "size": 14,
+    "shape": "dot"
+  },
+  {
+    "id": "mcp:comm:56",
+    "label": "MCP Community: tests-mock (74 nodes)",
+    "group": "docs",
+    "type": "community",
+    "path": "",
+    "description": "Language: python. Directory-based community: tests",
+    "lines": 0,
+    "color": "#14b8a6",
+    "size": 14,
+    "shape": "dot"
+  },
+  {
+    "id": "mcp:comm:57",
+    "label": "MCP Community: e2e-fake (24 nodes)",
+    "group": "docs",
+    "type": "community",
+    "path": "",
+    "description": "Language: python. Directory-based community: tests/e2e",
+    "lines": 0,
+    "color": "#14b8a6",
+    "size": 14,
+    "shape": "dot"
+  },
+  {
+    "id": "mcp:comm:59",
+    "label": "MCP Community: scenarios-fake (8 nodes)",
+    "group": "docs",
+    "type": "community",
+    "path": "",
+    "description": "Language: python. Directory-based community: tests/scenarios",
+    "lines": 0,
+    "color": "#14b8a6",
+    "size": 14,
+    "shape": "dot"
+  },
+  {
+    "id": "mcp:comm:60",
+    "label": "MCP Community: unit-mock (1566 nodes)",
+    "group": "docs",
+    "type": "community",
+    "path": "",
+    "description": "Language: python. Directory-based community: tests/unit",
+    "lines": 0,
+    "color": "#14b8a6",
+    "size": 14,
+    "shape": "dot"
+  },
+  {
+    "id": "mcp:comm:62",
+    "label": "MCP Community: tools-scan (71 nodes)",
+    "group": "docs",
+    "type": "community",
+    "path": "",
+    "description": "Language: python. Directory-based community: tools",
+    "lines": 0,
+    "color": "#14b8a6",
+    "size": 14,
+    "shape": "dot"
+  },
+  {
+    "id": "mcp:comm:63",
+    "label": "MCP Community: scripts-print (6 nodes)",
+    "group": "scripts",
+    "type": "community",
+    "path": "",
+    "description": "Language: bash. Directory-based community: tools/scripts",
+    "lines": 0,
+    "color": "#f97316",
+    "size": 14,
+    "shape": "dot"
+  },
+  {
+    "id": "mcp:comm:64",
+    "label": "MCP Community: workers-handle (104 nodes)",
+    "group": "docs",
+    "type": "community",
+    "path": "",
+    "description": "Language: javascript. Directory-based community: tools/workers",
+    "lines": 0,
+    "color": "#14b8a6",
+    "size": 14,
+    "shape": "dot"
   }
 ];
         const rawEdges = [
@@ -1611,6 +1755,150 @@
     },
     "dashes": false,
     "width": 1
+  },
+  {
+    "from": "root",
+    "to": "mcp:comm:49",
+    "label": "mcp-community",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "root",
+    "to": "mcp:comm:51",
+    "label": "mcp-community",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "root",
+    "to": "mcp:comm:53",
+    "label": "mcp-community",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "root",
+    "to": "mcp:comm:54",
+    "label": "mcp-community",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "root",
+    "to": "mcp:comm:55",
+    "label": "mcp-community",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "root",
+    "to": "mcp:comm:56",
+    "label": "mcp-community",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "root",
+    "to": "mcp:comm:57",
+    "label": "mcp-community",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "root",
+    "to": "mcp:comm:59",
+    "label": "mcp-community",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "root",
+    "to": "mcp:comm:60",
+    "label": "mcp-community",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "root",
+    "to": "mcp:comm:62",
+    "label": "mcp-community",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "root",
+    "to": "mcp:comm:63",
+    "label": "mcp-community",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "root",
+    "to": "mcp:comm:64",
+    "label": "mcp-community",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
   }
 ];
 
@@ -1675,7 +1963,7 @@
 
         // Search Filter
         document.getElementById('searchInput').addEventListener('input', function(e) {
-            const query = e.target.value.toLowerCase().strip();
+            const query = e.target.value.toLowerCase().trim();
             if (!query) return;
             
             const match = rawNodes.find(n => n.label.toLowerCase().includes(query) || (n.path && n.path.toLowerCase().includes(query)));
