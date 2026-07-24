@@ -203,6 +203,15 @@ def _public_key_from_runtime_env() -> ed25519.Ed25519PublicKey | None:
         return None
 
 
+def _public_key_hex_from_env() -> str:
+    key = _public_key_from_runtime_env()
+    if not key:
+        return ""
+    return key.public_bytes(
+        encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
+    ).hex()
+
+
 def _manifest_signer_from_env() -> ed25519.Ed25519PrivateKey | None:
     key_hex = ""
     for env_name in _MANIFEST_PRIVATE_KEY_ENV:
@@ -749,10 +758,10 @@ def _validate_manifest(root: Path, manifest: object) -> list[str]:
 def _validate_manifest_signature(manifest: dict[str, object]) -> list[str]:
     errors: list[str] = []
     signature_obj = manifest.get("manifest_signature")
-    verifier_key = _public_key_from_runtime_env()
+    pub_key_hex = _public_key_hex_from_env()
 
     if signature_obj is None:
-        if verifier_key is not None:
+        if pub_key_hex:
             errors.append(
                 "artifact_manifest.json missing manifest_signature while CS_PUBLIC_KEY is configured"
             )
@@ -764,6 +773,9 @@ def _validate_manifest_signature(manifest: dict[str, object]) -> list[str]:
 
     algorithm = signature_obj.get("algorithm")
     signature_hex = signature_obj.get("signature")
+    key_id = signature_obj.get("key_id")
+    timestamp = signature_obj.get("timestamp")
+
     if algorithm != "ed25519":
         errors.append(
             "artifact_manifest.json manifest_signature.algorithm must be ed25519"
@@ -777,23 +789,40 @@ def _validate_manifest_signature(manifest: dict[str, object]) -> list[str]:
         )
         return errors
 
-    timestamp = signature_obj.get("timestamp")
-    if timestamp is not None and not isinstance(timestamp, (int, float)):
+    if not isinstance(key_id, str) or not re.fullmatch(r"sha256:[a-f0-9]{16}", key_id):
         errors.append(
-            "artifact_manifest.json manifest_signature.timestamp must be a number"
+            "artifact_manifest.json manifest_signature.key_id must be sha256:<16-hex-chars>"
         )
         return errors
 
-    if verifier_key is None:
+    if timestamp is None or type(timestamp) is not int:
+        errors.append(
+            "artifact_manifest.json manifest_signature.timestamp must be an integer (UTC seconds)"
+        )
         return errors
 
+    # Freshness / skew check (30s negative skew tolerance, 300s max age)
+    age = time.time() - timestamp
+    if age < -30 or age > 300:
+        errors.append(
+            f"artifact_manifest.json manifest_signature.timestamp expired or skewed (age: {age:.1f}s)"
+        )
+        return errors
+
+    if not pub_key_hex:
+        return errors
+
+    # Import Signer to verify canonical signature
     try:
-        ts_val = int(timestamp) if timestamp is not None else None
-        verifier_key.verify(
-            bytes.fromhex(signature_hex), _canonical_manifest_payload(manifest, ts_val)
-        )
-    except (InvalidSignature, ValueError):
-        errors.append("artifact_manifest.json manifest_signature verification failed")
+        from configstream.signer import Signer
+
+        if not Signer.verify_manifest_signature(manifest, pub_key_hex):
+            errors.append(
+                "artifact_manifest.json manifest_signature verification failed"
+            )
+    except Exception as exc:
+        errors.append(f"artifact_manifest.json signature check error: {exc}")
+
     return errors
 
 

@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """
-ConfigStream Advanced Codebase Topology & Tree Graph Generator (v2.0)
+ConfigStream Advanced Codebase Topology & Tree Graph Generator (v2.1)
 
-Generates an elevated, interactive HTML graph (docs/project_tree_graph.html)
-featuring:
-1. Animated Execution Flow Pulses along the streaming pipeline.
-2. Multi-View Heatmap Controller (Subsystem Colors, Complexity Heatmap, MCP Communities, Flow Focus).
-3. Verbatim Code Inspector Sidebar with live source snippets & signatures read from disk.
-4. Expand/Collapse directory topology and high-resolution export.
+Generates a secure, deterministic, standalone interactive HTML graph (docs/project_tree_graph.html):
+1. Safe JSON embedding via <script type="application/json"> with HTML entity escaping to prevent XSS.
+2. Machine-independent relative repository paths (no absolute D:/... path leaks).
+3. Deterministic reproducible builds across clean CI checkouts.
+4. Animated Execution Flow Pulses along the streaming pipeline.
+5. Multi-View Heatmap Controller (Subsystems, LOC Density, Streaming Flow Focus).
+6. Verbatim Code Inspector Sidebar with live source snippets & signatures.
 """
 
-import html
 import json
 import os
 import re
@@ -105,6 +105,18 @@ def get_complexity_color(lines: int) -> str:
         return "#ef4444"  # Red (complex / heavy)
 
 
+def safe_json_dumps(data: Any) -> str:
+    """Safely serializes JSON for inclusion in HTML script blocks by escaping HTML tags."""
+    raw_json = json.dumps(data, indent=2, sort_keys=True)
+    return (
+        raw_json.replace("&", "\\u0026")
+        .replace("<", "\\u003c")
+        .replace(">", "\\u003e")
+        .replace("\u2028", "\\u2028")
+        .replace("\u2029", "\\u2029")
+    )
+
+
 def build_graph_data() -> Dict[str, Any]:
     nodes = []
     edges = []
@@ -124,9 +136,12 @@ def build_graph_data() -> Dict[str, Any]:
             return
         seen_nodes.add(node_id)
 
+        # Normalize paths to relative repo format
+        rel_path = path.replace("\\", "/").strip("/") if path else ""
+
         snippet_data = (
-            extract_file_snippet(path)
-            if path and node_type == "module"
+            extract_file_snippet(rel_path)
+            if rel_path and node_type == "module"
             else {
                 "snippet": "",
                 "signatures": [],
@@ -135,7 +150,9 @@ def build_graph_data() -> Dict[str, Any]:
             }
         )
         lines_raw = snippet_data.get("lines")
-        lines_cnt: int = int(lines_raw) if isinstance(lines_raw, (int, str)) else int(default_lines)
+        lines_cnt: int = (
+            int(lines_raw) if isinstance(lines_raw, (int, str)) else int(default_lines)
+        )
         description = str(snippet_data.get("docstring") or desc)
 
         subsystem_color = SUBSYSTEM_COLORS.get(group, "#94a3b8")
@@ -155,13 +172,18 @@ def build_graph_data() -> Dict[str, Any]:
             )
         )
 
+        sigs_raw = snippet_data.get("signatures")
+        sigs_list: List[str] = (
+            [str(s) for s in sigs_raw] if isinstance(sigs_raw, list) else []
+        )
+
         nodes.append(
             {
                 "id": node_id,
                 "label": label,
                 "group": group,
                 "type": node_type,
-                "path": path,
+                "path": rel_path or ".",
                 "description": description,
                 "lines": lines_cnt,
                 "subsystemColor": subsystem_color,
@@ -169,8 +191,8 @@ def build_graph_data() -> Dict[str, Any]:
                 "color": subsystem_color,
                 "size": size,
                 "shape": shape,
-                "snippet": snippet_data["snippet"],
-                "signatures": snippet_data["signatures"],
+                "snippet": str(snippet_data.get("snippet", "")),
+                "signatures": sigs_list,
                 "communityId": "default",
             }
         )
@@ -204,7 +226,7 @@ def build_graph_data() -> Dict[str, Any]:
         "ConfigStream",
         "root",
         "root",
-        "",
+        ".",
         "Sovereignty-grade zero-budget anti-censorship platform",
     )
 
@@ -616,20 +638,20 @@ def build_graph_data() -> Dict[str, Any]:
     for src, dst, label, edge_type in flows:
         add_edge(src, dst, label, edge_type)
 
-    # SQLite MCP Code-Review-Graph Enrichment
+    # Optional SQLite MCP Code-Review-Graph Enrichment (if database present)
     if GRAPH_DB_PATH.exists():
         try:
             conn = sqlite3.connect(str(GRAPH_DB_PATH))
             c = conn.cursor()
             comms = c.execute(
-                "SELECT id, name, size, dominant_language, description FROM communities WHERE size > 5"
+                "SELECT id, name, size, dominant_language, description FROM communities WHERE size > 5 ORDER BY id ASC"
             ).fetchall()
             for comm_id, comm_name, comm_size, comm_lang, comm_desc in comms:
                 c_id = f"mcp:comm:{comm_id}"
                 c_group = (
                     "pipeline"
-                    if "proxy" in comm_name
-                    else ("scripts" if "script" in comm_name else "docs")
+                    if "proxy" in str(comm_name).lower()
+                    else ("scripts" if "script" in str(comm_name).lower() else "docs")
                 )
                 add_node(
                     c_id,
@@ -645,35 +667,35 @@ def build_graph_data() -> Dict[str, Any]:
         except Exception as exc:
             print(f"[NOTE] SQLite MCP enrichment skipped: {exc}")
 
+    # Sort nodes and edges for 100% deterministic output ordering
+    nodes.sort(key=lambda n: str(n["id"]))
+    edges.sort(key=lambda e: (str(e["from"]), str(e["to"]), str(e["type"])))
+
     return {"nodes": nodes, "edges": edges}
 
 
 def generate_html(data: Dict[str, Any]) -> str:
-    nodes_json = json.dumps(data["nodes"], indent=2)
-    edges_json = json.dumps(data["edges"], indent=2)
+    nodes_safe_json = safe_json_dumps(data["nodes"])
+    edges_safe_json = safe_json_dumps(data["edges"])
 
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ConfigStream — Advanced Codebase Topology & Tree Graph (v2.0)</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
-    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <title>ConfigStream — Advanced Codebase Topology & Tree Graph (v2.1)</title>
     <style>
         :root {{
             --bg-dark: #070a12;
-            --bg-panel: rgba(13, 20, 36, 0.82);
+            --bg-panel: rgba(13, 20, 36, 0.85);
             --border-panel: rgba(255, 255, 255, 0.12);
             --accent-primary: #38bdf8;
             --accent-purple: #a855f7;
             --accent-rose: #f43f5e;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
-            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            --font-mono: 'JetBrains Mono', monospace;
+            --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
         }}
 
         * {{ box-sizing: border-box; margin: 0; padding: 0; }}
@@ -739,7 +761,6 @@ def generate_html(data: Dict[str, Any]) -> str:
         .btn:hover {{ background: rgba(51, 65, 85, 1); border-color: rgba(255, 255, 255, 0.3); transform: translateY(-1px); }}
         .btn.active {{ background: rgba(56, 189, 248, 0.2); border-color: var(--accent-primary); color: #fff; }}
 
-        /* View Mode Controller Toolbar */
         #view-modes-bar {{
             position: absolute; top: 82px; left: 16px; z-index: 10;
             display: flex; gap: 8px; align-items: center; padding: 6px;
@@ -751,10 +772,9 @@ def generate_html(data: Dict[str, Any]) -> str:
         }}
         .mode-btn.active {{ background: rgba(56, 189, 248, 0.25); color: #ffffff; border: 1px solid var(--accent-primary); }}
 
-        /* Subsystem Filters */
         #filters-bar {{
             position: absolute; top: 132px; left: 16px; z-index: 10;
-            display: flex; gap: 6px; flex-wrap: wrap; max-width: calc(100% - 400px);
+            display: flex; gap: 6px; flex-wrap: wrap; max-width: calc(100% - 420px);
         }}
         .chip {{
             padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;
@@ -763,7 +783,6 @@ def generate_html(data: Dict[str, Any]) -> str:
         }}
         .chip.active, .chip:hover {{ color: #ffffff; border-color: var(--accent-primary); background: rgba(56, 189, 248, 0.2); }}
 
-        /* Inspector Sidebar with Verbatim Snippet */
         #inspector {{
             position: absolute; top: 82px; right: 16px; bottom: 16px; width: 380px; z-index: 10;
             padding: 22px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto;
@@ -771,11 +790,11 @@ def generate_html(data: Dict[str, Any]) -> str:
         .inspector-header {{ display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-panel); padding-bottom: 14px; }}
         .inspector-title {{ font-size: 17px; font-weight: 700; color: var(--text-main); }}
         .badge-type {{ padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }}
-        
+
         .info-group {{ display: flex; flex-direction: column; gap: 4px; }}
         .info-label {{ font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; }}
         .info-value {{ font-size: 13px; color: var(--text-main); word-break: break-all; line-height: 1.4; }}
-        
+
         .code-container {{
             font-family: var(--font-mono); font-size: 11px; color: #e2e8f0;
             background: rgba(0, 0, 0, 0.6); padding: 12px; border-radius: 8px;
@@ -785,7 +804,6 @@ def generate_html(data: Dict[str, Any]) -> str:
 
         .sig-list {{ display: flex; flex-direction: column; gap: 4px; font-family: var(--font-mono); font-size: 11px; color: var(--accent-primary); }}
 
-        /* Legend */
         #legend {{
             position: absolute; bottom: 16px; left: 16px; z-index: 10; padding: 14px 18px;
             display: flex; flex-direction: column; gap: 8px;
@@ -795,6 +813,7 @@ def generate_html(data: Dict[str, Any]) -> str:
         .legend-item {{ display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-main); }}
         .legend-dot {{ width: 10px; height: 10px; border-radius: 50%; }}
     </style>
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
 </head>
 <body>
     <div id="network"></div>
@@ -805,7 +824,7 @@ def generate_html(data: Dict[str, Any]) -> str:
             <div class="brand-badge">CS</div>
             <div>
                 <div class="brand-title">ConfigStream Topology & Flow Graph</div>
-                <div class="brand-subtitle">Interactive Codebase Architecture, Flow Pulses & Live Code Snippets (v2.0)</div>
+                <div class="brand-subtitle">Interactive Codebase Architecture, Flow Pulses & Live Code Snippets (v2.1)</div>
             </div>
         </div>
         <div class="controls-wrapper">
@@ -821,7 +840,7 @@ def generate_html(data: Dict[str, Any]) -> str:
     <!-- Multi-View Mode Controller Toolbar -->
     <div id="view-modes-bar" class="glass-panel">
         <button class="mode-btn active" onclick="switchViewMode('subsystem', this)">🎨 Subsystems</button>
-        <button class="mode-btn" onclick="switchViewMode('complexity', this)">🔥 Complexity Heatmap</button>
+        <button class="mode-btn" onclick="switchViewMode('complexity', this)">🔥 LOC Density Heatmap</button>
         <button class="mode-btn" onclick="switchViewMode('flow', this)">⚡ Streaming Flow Focus</button>
     </div>
 
@@ -852,7 +871,7 @@ def generate_html(data: Dict[str, Any]) -> str:
         </div>
         <div class="info-group">
             <div class="info-label">File Path</div>
-            <div id="nodePath" class="info-value" style="font-family: var(--font-mono); font-size: 11px;">D:/GitHub/ConfigStream</div>
+            <div id="nodePath" class="info-value" style="font-family: var(--font-mono); font-size: 11px;">.</div>
         </div>
         <div class="info-group">
             <div class="info-label">Description / Docstring</div>
@@ -887,66 +906,87 @@ def generate_html(data: Dict[str, Any]) -> str:
         </div>
     </div>
 
+    <!-- Secure Non-Executable JSON Data Blocks -->
+    <script type="application/json" id="graph-data-nodes">{nodes_safe_json}</script>
+    <script type="application/json" id="graph-data-edges">{edges_safe_json}</script>
+
     <script>
-        const rawNodes = {nodes_json};
-        const rawEdges = {edges_json};
+        function safeParseJSON(elementId) {{
+            try {{
+                const el = document.getElementById(elementId);
+                return el ? JSON.parse(el.textContent) : [];
+            }} catch (err) {{
+                console.error("Failed to parse JSON for " + elementId, err);
+                return [];
+            }}
+        }}
+
+        const rawNodes = safeParseJSON('graph-data-nodes');
+        const rawEdges = safeParseJSON('graph-data-edges');
 
         let network = null;
-        let nodesDataset = new vis.DataSet(rawNodes);
-        let edgesDataset = new vis.DataSet(rawEdges);
+        let nodesDataset = null;
+        let edgesDataset = null;
         let currentMode = 'subsystem';
         let physicsEnabled = true;
 
-        const container = document.getElementById('network');
-        const data = {{ nodes: nodesDataset, edges: edgesDataset }};
+        if (typeof vis !== 'undefined') {{
+            nodesDataset = new vis.DataSet(rawNodes);
+            edgesDataset = new vis.DataSet(rawEdges);
 
-        const options = {{
-            nodes: {{
-                font: {{ color: '#f8fafc', face: 'Inter', size: 13 }},
-                borderWidth: 2, shadow: true,
-            }},
-            edges: {{
-                font: {{ color: '#94a3b8', face: 'Inter', size: 10, align: 'middle' }},
-                smooth: {{ type: 'cubicBezier', forceDirection: 'none', roundness: 0.4 }},
-            }},
-            physics: {{
-                solver: 'forceAtlas2Based',
-                forceAtlas2Based: {{ gravitationalConstant: -55, centralGravity: 0.01, springLength: 110, springConstant: 0.08 }},
-                maxVelocity: 50, timestep: 0.35, stabilization: {{ iterations: 150 }},
-            }},
-            interaction: {{ hover: true, tooltipDelay: 200, keyboard: true }},
-        }};
+            const container = document.getElementById('network');
+            const data = {{ nodes: nodesDataset, edges: edgesDataset }};
 
-        network = new vis.Network(container, data, options);
+            const options = {{
+                nodes: {{
+                    font: {{ color: '#f8fafc', face: 'system-ui', size: 13 }},
+                    borderWidth: 2, shadow: true,
+                }},
+                edges: {{
+                    font: {{ color: '#94a3b8', face: 'system-ui', size: 10, align: 'middle' }},
+                    smooth: {{ type: 'cubicBezier', forceDirection: 'none', roundness: 0.4 }},
+                }},
+                physics: {{
+                    solver: 'forceAtlas2Based',
+                    forceAtlas2Based: {{ gravitationalConstant: -55, centralGravity: 0.01, springLength: 110, springConstant: 0.08 }},
+                    maxVelocity: 50, timestep: 0.35, stabilization: {{ iterations: 150 }},
+                }},
+                interaction: {{ hover: true, tooltipDelay: 200, keyboard: true }},
+            }};
 
-        // Click Handler for Verbatim Inspector
-        network.on('click', function(params) {{
-            if (params.nodes.length > 0) {{
-                const nodeId = params.nodes[0];
-                const node = nodesDataset.get(nodeId);
-                
-                document.getElementById('nodeTitle').innerText = node.label;
-                document.getElementById('nodeTypeBadge').innerText = node.type;
-                document.getElementById('nodeTypeBadge').style.background = node.color + '40';
-                document.getElementById('nodeTypeBadge').style.color = node.color;
-                document.getElementById('nodeGroup').innerText = node.group.toUpperCase();
-                document.getElementById('nodePath').innerText = node.path || '--';
-                document.getElementById('nodeDesc').innerText = node.description || 'No description available.';
-                document.getElementById('nodeLines').innerText = node.lines ? node.lines + ' lines' : 'N/A';
-                
-                // Signatures
-                const sigsEl = document.getElementById('nodeSigs');
-                if (node.signatures && node.signatures.length > 0) {{
-                    sigsEl.innerHTML = node.signatures.map(s => '<div>• ' + escapeHtml(s) + '</div>').join('');
-                }} else {{
-                    sigsEl.innerText = 'No primary signatures extracted.';
+            network = new vis.Network(container, data, options);
+
+            // Click Handler for Verbatim Inspector
+            network.on('click', function(params) {{
+                if (params.nodes.length > 0) {{
+                    const nodeId = params.nodes[0];
+                    const node = nodesDataset.get(nodeId);
+
+                    document.getElementById('nodeTitle').innerText = node.label;
+                    document.getElementById('nodeTypeBadge').innerText = node.type;
+                    document.getElementById('nodeTypeBadge').style.background = node.color + '40';
+                    document.getElementById('nodeTypeBadge').style.color = node.color;
+                    document.getElementById('nodeGroup').innerText = node.group.toUpperCase();
+                    document.getElementById('nodePath').innerText = node.path || '.';
+                    document.getElementById('nodeDesc').innerText = node.description || 'No description available.';
+                    document.getElementById('nodeLines').innerText = node.lines ? node.lines + ' lines' : 'N/A';
+
+                    // Signatures
+                    const sigsEl = document.getElementById('nodeSigs');
+                    if (node.signatures && node.signatures.length > 0) {{
+                        sigsEl.innerHTML = node.signatures.map(s => '<div>• ' + escapeHtml(s) + '</div>').join('');
+                    }} else {{
+                        sigsEl.innerText = 'No primary signatures extracted.';
+                    }}
+
+                    // Code Preview
+                    const codeEl = document.getElementById('nodeCode');
+                    codeEl.innerText = node.snippet || '# No code snippet available for directory/root node.';
                 }}
-
-                // Code Preview
-                const codeEl = document.getElementById('nodeCode');
-                codeEl.innerText = node.snippet || '# No code snippet available for directory/root node.';
-            }}
-        }});
+            }});
+        }} else {{
+            document.getElementById('network').innerHTML = '<div style="padding:40px; text-align:center; color:#94a3b8;">Vis.js network library not loaded. Codebase metadata is safely loaded in JSON data blocks.</div>';
+        }}
 
         function escapeHtml(str) {{
             return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -954,6 +994,7 @@ def generate_html(data: Dict[str, Any]) -> str:
 
         // View Mode Switcher
         function switchViewMode(mode, btnEl) {{
+            if (!nodesDataset) return;
             document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
             btnEl.classList.add('active');
             currentMode = mode;
@@ -978,7 +1019,7 @@ def generate_html(data: Dict[str, Any]) -> str:
             const titleEl = document.getElementById('legendTitle');
             const gridEl = document.getElementById('legendGrid');
             if (mode === 'complexity') {{
-                titleEl.innerText = 'LOC Complexity Heatmap';
+                titleEl.innerText = 'LOC Density Heatmap';
                 gridEl.innerHTML = `
                     <div class="legend-item"><div class="legend-dot" style="background: #10b981;"></div>Lightweight (&lt;200 lines)</div>
                     <div class="legend-item"><div class="legend-dot" style="background: #f59e0b;"></div>Medium (200-500 lines)</div>
@@ -1009,7 +1050,7 @@ def generate_html(data: Dict[str, Any]) -> str:
         // Search
         document.getElementById('searchInput').addEventListener('input', function(e) {{
             const query = e.target.value.toLowerCase().trim();
-            if (!query) return;
+            if (!query || !network) return;
             const match = rawNodes.find(n => n.label.toLowerCase().includes(query) || (n.path && n.path.toLowerCase().includes(query)));
             if (match) {{
                 network.focus(match.id, {{ scale: 1.3, animation: true }});
@@ -1017,10 +1058,11 @@ def generate_html(data: Dict[str, Any]) -> str:
             }}
         }});
 
-        function resetView() {{ network.fit({{ animation: true }}); }}
-        function togglePhysics() {{ physicsEnabled = !physicsEnabled; network.setOptions({{ physics: {{ enabled: physicsEnabled }} }}); }}
+        function resetView() {{ if (network) network.fit({{ animation: true }}); }}
+        function togglePhysics() {{ if (network) {{ physicsEnabled = !physicsEnabled; network.setOptions({{ physics: {{ enabled: physicsEnabled }} }}); }} }}
 
         function filterSubsystem(subsystem, chipEl) {{
+            if (!nodesDataset) return;
             document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
             chipEl.classList.add('active');
             if (subsystem === 'all') {{
@@ -1049,7 +1091,7 @@ def main():
         f.write(html_content)
 
     print(
-        f"[SUCCESS] Successfully generated elevated project graph HTML (v2.0) at: {OUTPUT_FILE}"
+        f"[SUCCESS] Successfully generated secure elevated project graph HTML (v2.1) at: {OUTPUT_FILE}"
     )
     print(
         f"          Nodes: {len(graph_data['nodes'])}, Edges: {len(graph_data['edges'])}"

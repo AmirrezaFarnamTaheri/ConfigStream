@@ -37,7 +37,7 @@
     },
     "manifest_signature": {
       "type": "object",
-      "required": ["algorithm", "signature", "key_id"],
+      "required": ["algorithm", "signature", "key_id", "timestamp"],
       "properties": {
         "algorithm": {
           "type": "string",

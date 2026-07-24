@@ -18,6 +18,7 @@ from ...converters import to_singbox_outbound
 from ...constants import VWARP_SOCKS5_PORT, VWARP_BIND_ADDRESS
 from ...async_utils import safe_wait_for
 from ...intelligence.evasion import enrich_outbound_with_evasion
+from ...security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
 
@@ -652,6 +653,11 @@ class GoBatchTester:
                     try:
                         completed_results.append(f.result())
                     except Exception as exc:
+                        safe_msg = SecurityValidator.sanitize_log_message(str(exc))
+                        logger.debug(
+                            "Go tester future exception during timeout recovery: %s",
+                            safe_msg,
+                        )
                         completed_results.append(exc)
 
             for f in futures:
@@ -668,15 +674,14 @@ class GoBatchTester:
                 )
                 self.available = False
                 await self.close()
-                return proxies
 
-            # Restart daemon and AWAIT completion before returning,
+            # Restart daemon and AWAIT completion before processing results,
             # so the next batch doesn't arrive before the daemon is ready
             try:
                 await safe_wait_for(self._restart_daemon(), timeout=30.0)
             except Exception as re_err:
-                logger.warning(f"Daemon restart failed: {re_err}")
-            return proxies
+                safe_re_msg = SecurityValidator.sanitize_log_message(str(re_err))
+                logger.warning("Daemon restart failed: %s", safe_re_msg)
 
         # Process Results
         working_count = 0

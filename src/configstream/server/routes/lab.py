@@ -100,6 +100,14 @@ async def _validate_lab_config(config: object) -> None:
     if not isinstance(config, dict):
         raise HTTPException(status_code=400, detail="Config must be JSON object")
 
+    forbidden_keys = {"inbounds", "experimental", "api", "stats"}
+    found_forbidden = forbidden_keys.intersection(config.keys())
+    if found_forbidden:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Forbidden top-level keys in lab test config: {', '.join(sorted(found_forbidden))}",
+        )
+
     outbounds = config.get("outbounds")
     if not isinstance(outbounds, list) or not outbounds:
         raise HTTPException(
