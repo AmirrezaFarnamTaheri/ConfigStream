@@ -44,11 +44,22 @@ def proxy_unique_key(
     port = int(p.port)
     uuid = (p.uuid or "").lower().strip()
     if not uuid:
-        uuid = (
-            str(p.details.get("auth") or p.details.get("password") or "")
-            .lower()
-            .strip()
-        )
+        details = p.details or {}
+        for key in (
+            "uuid",
+            "password",
+            "auth",
+            "private_key",
+            "public_key",
+            "peer_public_key",
+            "psk",
+            "key",
+            "token",
+        ):
+            candidate = details.get(key)
+            if isinstance(candidate, str) and candidate.strip():
+                uuid = candidate.strip().lower()
+                break
 
     # Transport details
     sni = (p.sni or "").lower().strip().rstrip(".")

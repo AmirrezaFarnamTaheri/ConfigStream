@@ -22,6 +22,7 @@ from configstream.geoip import GeoIPResolver
 from configstream.source_quality import SourceQualityTracker
 from configstream.anomaly import AnomalyDetector
 from configstream.security.blocklist import DEFAULT_BLOCKLIST
+from configstream.security_validator import SecurityValidator
 from configstream.performance import PerformanceTracker
 from configstream.history.tracker import ProxyHistoryTracker
 from configstream.event_stream import EventStream
@@ -47,7 +48,10 @@ async def _cancel_all(
     except asyncio.CancelledError:
         pass
     except BaseException as e:
-        logger.debug(f"Producer task ended with exception during cancellation: {e}")
+        safe_msg = SecurityValidator.sanitize_log_message(str(e))
+        logger.debug(
+            f"Producer task ended with exception during cancellation: {safe_msg}"
+        )
 
 
 class StandardPipeline(IPipeline):
@@ -285,7 +289,8 @@ class StandardPipeline(IPipeline):
                 await _cancel_all(producer_task, consumer_tasks)
                 raise
             except Exception as e:
-                logger.exception(f"Pipeline error: {e}")
+                safe_err = SecurityValidator.sanitize_log_message(str(e))
+                logger.error(f"Pipeline error: {safe_err}")
                 await _cancel_all(producer_task, consumer_tasks)
                 raise
 
