@@ -47,6 +47,7 @@ class TestResultCache:
             ttl_seconds = AppSettings().CACHE_TTL
         self.ttl_seconds = ttl_seconds
         self._cache: Dict[str, Dict[str, Any]] = {}
+        self._tombstones: set[str] = set()
         self.load()
 
     def load(self) -> None:
@@ -94,8 +95,10 @@ class TestResultCache:
             try:
                 with open(self.db_path, "r", encoding="utf-8") as f:
                     disk_cache = json.load(f)
-                    # Merge in-memory cache into disk cache (in-memory takes precedence for own tests)
-                    # Merge with timestamp awareness could be added here
+                    # Apply tombstones to remove invalidated entries from disk cache
+                    for tombstone in self._tombstones:
+                        disk_cache.pop(tombstone, None)
+                    # Merge in-memory cache into disk cache (in-memory takes precedence)
                     disk_cache.update(self._cache)
                     self._cache = disk_cache
             except (json.JSONDecodeError, IOError):
@@ -176,6 +179,7 @@ class TestResultCache:
             return
         config_hash = self._compute_hash(proxy.config)
         self._cache.pop(config_hash, None)
+        self._tombstones.add(config_hash)
 
     def set(self, proxy: Proxy) -> None:
         """
@@ -188,6 +192,7 @@ class TestResultCache:
             return
 
         config_hash = self._compute_hash(proxy.config)
+        self._tombstones.discard(config_hash)
         current_time = time.time()
 
         existing_entry = self._cache.get(config_hash, {})

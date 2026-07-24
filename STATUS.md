@@ -8,7 +8,7 @@ The active architectural source of truth is [ConfigStream_Master_Audit_Report - 
 
 ## Current Verdict
 
-The modular architecture, artifact contracts, and pipeline engine are remediated on PR #526. All audit findings (Go batch tester index mapping, tester infrastructure failure flags with Python fallback rerouting, Laboratory document boundaries and SSRF DNS rebinding pinning, Hysteria3 converter normalization, canonical proxy identity helper `get_proxy_credential()`, deterministic topology generator with HTML structure validation, fail-closed manifest signing, strict binary trust mode, and sync'd status surfaces) have been addressed and validated.
+The modular architecture, artifact contracts, and pipeline engine are remediated on PR #526. All audit findings (Go batch tester index mapping, tester infrastructure failure flags with Python fallback rerouting, persistent tombstone cache invalidation across disk saves, recovered proxy failure metadata cleanup, Laboratory document boundaries and SSRF DNS rebinding pinning, Hysteria3 converter normalization with independent alias fixtures, canonical proxy identity helper `get_proxy_credential()`, deterministic topology generator with HTML structure validation, fail-closed manifest signing, strict binary trust mode, and sync'd status surfaces) have been addressed and validated.
 
 Current release blockers:
 

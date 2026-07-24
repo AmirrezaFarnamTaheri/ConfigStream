@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Unit tests for pipeline consumer fallback cache bypass and infra_failure handling."""
+"""Unit tests for pipeline consumer fallback cache bypass, persistent invalidation, and infra_failure cleanup."""
 
 import asyncio
 from unittest.mock import AsyncMock, MagicMock
@@ -23,9 +23,35 @@ def _make_proxy(address: str = "1.1.1.1", port: int = 443) -> Proxy:
     )
 
 
+def test_persistent_cache_invalidation_sequence(tmp_path):
+    """Verify sequence: set failure -> save -> reload -> invalidate -> save -> reload -> assert missing."""
+    db_file = tmp_path / "test_cache.json"
+
+    # 1. Store working result & save to disk
+    cache1 = TestResultCache(db_path=str(db_file), ttl_seconds=3600)
+    p = _make_proxy("10.0.0.1", 443)
+    p.is_working = True
+    p.latency = 50.0
+    cache1.set(p)
+    cache1.save()
+
+    # 2. Reload from disk and verify entry exists
+    cache2 = TestResultCache(db_path=str(db_file), ttl_seconds=3600)
+    assert cache2.contains(p) is True
+
+    # 3. Invalidate entry & save
+    cache2.invalidate(p)
+    cache2.save()
+
+    # 4. Reload from disk in a fresh cache instance and verify entry is persistently purged
+    cache3 = TestResultCache(db_path=str(db_file), ttl_seconds=3600)
+    assert cache3.contains(p) is False
+    assert cache3.get(p) is None
+
+
 @pytest.mark.asyncio
 async def test_fallback_test_invalidates_cache_and_invokes_python_tester(tmp_path):
-    """When Go tester marks proxy with infra_failure=True, consumer must invalidate cache and run python_tester."""
+    """When Go tester marks proxy with infra_failure=True, consumer must invalidate cache, purge failure details, and run python_tester."""
     db_file = tmp_path / "test_cache.json"
     cache = TestResultCache(db_path=str(db_file), ttl_seconds=3600)
 
@@ -50,6 +76,8 @@ async def test_fallback_test_invalidates_cache_and_invokes_python_tester(tmp_pat
             item.is_working = False
             item.details["infra_failure"] = True
             item.details["error"] = "BATCH_TIMEOUT"
+            item.details["failure_category"] = "TIMEOUT"
+            item.details["tester_error_category"] = "IPC_ERROR"
 
     tester.test_batch = AsyncMock(side_effect=fake_go_batch)
 
@@ -92,5 +120,15 @@ async def test_fallback_test_invalidates_cache_and_invokes_python_tester(tmp_pat
 
     # Verify proxy was restored to working status via python fallback
     assert len(final_working) == 1
-    assert final_working[0].is_working is True
-    assert final_working[0].latency == 45.0
+    rec = final_working[0]
+    assert rec.is_working is True
+    assert rec.latency == 45.0
+
+    # Verify infrastructure failure details were purged completely
+    for bad_key in (
+        "infra_failure",
+        "error",
+        "failure_category",
+        "tester_error_category",
+    ):
+        assert bad_key not in rec.details

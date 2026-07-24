@@ -98,9 +98,6 @@ GOLDEN_PROXIES: dict[str, Proxy] = {
     "hysteria2": _proxy(
         "hysteria2", uuid="pass", details={"password": "pass", "sni": "fixture.example"}
     ),
-    "hysteria3": _proxy(
-        "hysteria3", uuid="", details={"auth": "secretpass", "sni": "fixture.example"}
-    ),
     "tuic": _proxy("tuic", details={"password": "pass", "sni": "fixture.example"}),
     "wireguard": _proxy(
         "wireguard",
@@ -235,11 +232,6 @@ PARSER_TO_FRONTEND_FIXTURES: dict[str, tuple[Any, str, str]] = {
         "hysteria2://pass@fixture.example:443?sni=fixture.example#fixture-hy2",
         "hysteria2",
     ),
-    "hysteria3": (
-        parse_hysteria3,
-        "hy3://secretpass@fixture.example:443?sni=fixture.example#fixture-hy3",
-        "hysteria3",
-    ),
     "tuic": (
         parse_tuic,
         f"tuic://{UUID}:pass@fixture.example:443?sni=fixture.example#fixture-tuic",
@@ -337,7 +329,6 @@ MALFORMED_PARSER_FIXTURES: dict[str, tuple[str, ...]] = {
     "trojan": ("trojan://@fixture.example:443",),
     "hysteria": ("hysteria://",),
     "hysteria2": ("hysteria2://",),
-    "hysteria3": ("hy3://", "hy3://@fixture.example:443"),
     "tuic": ("tuic://", "tuic://@fixture.example:443"),
     "wireguard": (
         "wireguard://fixture@example.com:2408",
@@ -363,8 +354,7 @@ def _public_canonical_matrix_entries() -> list[dict[str, Any]]:
     return [
         entry
         for entry in entries
-        if entry["public"] is True
-        and (entry["kind"] == "canonical" or entry["id"] == "hysteria3")
+        if entry["public"] is True and entry["kind"] == "canonical"
     ]
 
 
@@ -500,3 +490,40 @@ def test_public_protocol_parsers_fail_closed_on_malformed_inputs():
     ) in PARSER_TO_FRONTEND_FIXTURES.items():
         for config in (*generic_junk, *MALFORMED_PARSER_FIXTURES[protocol]):
             assert parser(config) is None, f"{protocol} accepted malformed input"
+
+
+def test_public_alias_protocol_fixtures():
+    """Verify public alias protocol fixtures (hysteria3:// and hy3://) independently."""
+    # 1. Test hysteria3:// URI
+    p_hy3 = parse_hysteria3(
+        "hysteria3://secretpass@fixture.example:443?sni=fixture.example#fixture-hy3"
+    )
+    assert p_hy3 is not None
+    assert p_hy3.address == "fixture.example"
+    assert p_hy3.port == 443
+    assert p_hy3.details.get("auth") == "secretpass"
+
+    sb_out_hy3 = to_singbox_outbound(p_hy3)
+    assert sb_out_hy3 is not None
+    assert sb_out_hy3["type"] == "hysteria2"
+    assert sb_out_hy3["tls"]["alpn"] == ["h3"]
+
+    # 2. Test hy3:// URI
+    p_hy3_alias = parse_hysteria3(
+        "hy3://secretpass@fixture.example:443?sni=fixture.example#fixture-hy3"
+    )
+    assert p_hy3_alias is not None
+    assert p_hy3_alias.address == "fixture.example"
+    assert p_hy3_alias.port == 443
+    assert p_hy3_alias.details.get("auth") == "secretpass"
+
+    sb_out_alias = to_singbox_outbound(p_hy3_alias)
+    assert sb_out_alias is not None
+    assert sb_out_alias["type"] == "hysteria2"
+    assert sb_out_alias["tls"]["alpn"] == ["h3"]
+
+    # 3. Test malformed inputs for both schemes
+    assert parse_hysteria3("hysteria3://") is None
+    assert parse_hysteria3("hysteria3://@fixture.example:443") is None
+    assert parse_hysteria3("hy3://") is None
+    assert parse_hysteria3("hy3://@fixture.example:443") is None

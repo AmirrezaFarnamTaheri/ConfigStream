@@ -549,6 +549,13 @@ async def _test_candidates(
                 async with sem:
                     try:
                         test_cache.invalidate(p)
+                        for key in (
+                            "infra_failure",
+                            "error",
+                            "failure_category",
+                            "tester_error_category",
+                        ):
+                            p.details.pop(key, None)
                         if (p.protocol or "").lower() in (
                             "http",
                             "https",
@@ -560,6 +567,13 @@ async def _test_candidates(
                         else:
                             res = await tester.python_tester.test_via_singbox(p)
                         if res.is_working:
+                            for key in (
+                                "infra_failure",
+                                "error",
+                                "failure_category",
+                                "tester_error_category",
+                            ):
+                                res.details.pop(key, None)
                             test_cache.set(res)
                         return res
                     except asyncio.CancelledError:
@@ -621,8 +635,13 @@ async def _test_candidates(
                     )
                     for p in infra_failed:
                         p.is_working = False
-                        p.details.pop("infra_failure", None)
-                        p.details.pop("error", None)
+                        for key in (
+                            "infra_failure",
+                            "error",
+                            "failure_category",
+                            "tester_error_category",
+                        ):
+                            p.details.pop(key, None)
 
                     fallback_results = await asyncio.gather(
                         *[_fallback_test(p) for p in infra_failed],
@@ -633,6 +652,14 @@ async def _test_candidates(
                         if isinstance(res, Proxy):
                             orig_p.is_working = res.is_working
                             orig_p.latency = res.latency
+                            if res.is_working:
+                                for key in (
+                                    "infra_failure",
+                                    "error",
+                                    "failure_category",
+                                    "tester_error_category",
+                                ):
+                                    orig_p.details.pop(key, None)
                             orig_p.details.update(res.details)
                         elif isinstance(res, Exception):
                             orig_p.is_working = False
