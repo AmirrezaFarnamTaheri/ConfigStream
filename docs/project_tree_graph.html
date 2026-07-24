@@ -1,0 +1,1712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConfigStream — Interactive Codebase Topology & Tree Graph</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <style>
+        :root {
+            --bg-dark: #0b0f19;
+            --bg-panel: rgba(15, 23, 42, 0.75);
+            --border-panel: rgba(255, 255, 255, 0.1);
+            --accent-primary: #38bdf8;
+            --accent-purple: #a855f7;
+            --accent-rose: #f43f5e;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-dark);
+            font-family: var(--font-sans);
+            color: var(--text-main);
+        }
+
+        #network {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        /* Glassmorphic UI Overlays */
+        .glass-panel {
+            background: var(--bg-panel);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-panel);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        /* Header Bar */
+        #header-bar {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            right: 16px;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-badge {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--accent-rose), var(--accent-purple));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+            box-shadow: 0 0 12px rgba(244, 63, 94, 0.4);
+        }
+
+        .brand-title {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(to right, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        /* Controls & Filter Bar */
+        .controls-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .search-box {
+            position: relative;
+            width: 240px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 8px 12px 8px 34px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-panel);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            font-size: 13px;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 14px;
+            height: 14px;
+            fill: var(--text-muted);
+        }
+
+        .btn {
+            padding: 8px 14px;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid var(--border-panel);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            background: rgba(51, 65, 85, 1);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        /* Subsystem Filters Chips */
+        #filters-bar {
+            position: absolute;
+            top: 80px;
+            left: 16px;
+            z-index: 10;
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            max-width: calc(100% - 380px);
+        }
+
+        .chip {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid var(--border-panel);
+            color: var(--text-muted);
+            transition: all 0.2s ease;
+        }
+
+        .chip.active, .chip:hover {
+            color: #ffffff;
+            border-color: var(--accent-primary);
+            background: rgba(56, 189, 248, 0.15);
+        }
+
+        /* Inspector Sidebar */
+        #inspector {
+            position: absolute;
+            top: 130px;
+            right: 16px;
+            bottom: 16px;
+            width: 340px;
+            z-index: 10;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            overflow-y: auto;
+            transform: translateX(0);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .inspector-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-panel);
+            padding-bottom: 12px;
+        }
+
+        .inspector-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .badge-type {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .info-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .info-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+
+        .info-value {
+            font-size: 13px;
+            color: var(--text-main);
+            word-break: break-all;
+        }
+
+        .info-code {
+            font-family: var(--font-mono);
+            background: rgba(0, 0, 0, 0.4);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Legend */
+        #legend {
+            position: absolute;
+            bottom: 16px;
+            left: 16px;
+            z-index: 10;
+            padding: 14px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .legend-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .legend-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 6px 16px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-main);
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div id="network"></div>
+
+    <!-- Header Bar -->
+    <div id="header-bar" class="glass-panel">
+        <div class="brand">
+            <div class="brand-badge">CS</div>
+            <div>
+                <div class="brand-title">ConfigStream Codebase Graph</div>
+                <div class="brand-subtitle">Interactive Structural Hierarchy & Module Topology</div>
+            </div>
+        </div>
+        <div class="controls-wrapper">
+            <div class="search-box">
+                <svg class="search-icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                <input type="text" id="searchInput" class="search-input" placeholder="Search modules, paths...">
+            </div>
+            <button class="btn" onclick="resetView()">Reset View</button>
+            <button class="btn" onclick="togglePhysics()">Toggle Layout</button>
+        </div>
+    </div>
+
+    <!-- Subsystem Filters -->
+    <div id="filters-bar">
+        <div class="chip active" onclick="filterSubsystem('all', this)">All Subsystems</div>
+        <div class="chip" onclick="filterSubsystem('pipeline', this)">Pipeline</div>
+        <div class="chip" onclick="filterSubsystem('parsers', this)">Parsers</div>
+        <div class="chip" onclick="filterSubsystem('generators', this)">Generators</div>
+        <div class="chip" onclick="filterSubsystem('output', this)">Output Engine</div>
+        <div class="chip" onclick="filterSubsystem('intelligence', this)">WARP Intelligence</div>
+        <div class="chip" onclick="filterSubsystem('testers', this)">Go Testers</div>
+        <div class="chip" onclick="filterSubsystem('security', this)">Security & Cryptography</div>
+        <div class="chip" onclick="filterSubsystem('server', this)">Server Routes</div>
+        <div class="chip" onclick="filterSubsystem('frontend', this)">Frontend & WebGL</div>
+        <div class="chip" onclick="filterSubsystem('scripts', this)">Scripts & Tools</div>
+    </div>
+
+    <!-- Inspector Sidebar -->
+    <div id="inspector" class="glass-panel">
+        <div class="inspector-header">
+            <div id="nodeTitle" class="inspector-title">Select a Node</div>
+            <div id="nodeTypeBadge" class="badge-type" style="background: rgba(255,255,255,0.1);">Overview</div>
+        </div>
+        <div class="info-group">
+            <div class="info-label">Subsystem Group</div>
+            <div id="nodeGroup" class="info-value">ConfigStream Root</div>
+        </div>
+        <div class="info-group">
+            <div class="info-label">File Path</div>
+            <div id="nodePath" class="info-code">D:/GitHub/ConfigStream</div>
+        </div>
+        <div class="info-group">
+            <div class="info-label">Description</div>
+            <div id="nodeDesc" class="info-value">Click any node in the topology graph to inspect its function, metrics, and relationships.</div>
+        </div>
+        <div class="info-group" id="linesGroup">
+            <div class="info-label">Lines of Code</div>
+            <div id="nodeLines" class="info-value">--</div>
+        </div>
+        <div class="info-group">
+            <div class="info-label">Connected Edges</div>
+            <div id="nodeEdges" class="info-value">--</div>
+        </div>
+    </div>
+
+    <!-- Legend -->
+    <div id="legend" class="glass-panel">
+        <div class="legend-title">Subsystem Legend</div>
+        <div class="legend-grid">
+            <div class="legend-item"><div class="legend-dot" style="background: #a855f7;"></div>Pipeline Core</div>
+            <div class="legend-item"><div class="legend-dot" style="background: #ec4899;"></div>Parsers</div>
+            <div class="legend-item"><div class="legend-dot" style="background: #f59e0b;"></div>Generators</div>
+            <div class="legend-item"><div class="legend-dot" style="background: #10b981;"></div>Output Engine</div>
+            <div class="legend-item"><div class="legend-dot" style="background: #3b82f6;"></div>WARP Washer</div>
+            <div class="legend-item"><div class="legend-dot" style="background: #6366f1;"></div>Go Sidecar</div>
+            <div class="legend-item"><div class="legend-dot" style="background: #ef4444;"></div>Security & Crypto</div>
+            <div class="legend-item"><div class="legend-dot" style="background: #06b6d4;"></div>FastAPI Server</div>
+        </div>
+    </div>
+
+    <script>
+        const rawNodes = [
+  {
+    "id": "root",
+    "label": "ConfigStream",
+    "group": "root",
+    "type": "root",
+    "path": "D:/GitHub/ConfigStream",
+    "description": "Sovereignty-grade anti-censorship platform",
+    "lines": 0,
+    "color": "#f43f5e",
+    "size": 36,
+    "shape": "diamond"
+  },
+  {
+    "id": "src",
+    "label": "src/",
+    "group": "directory",
+    "type": "directory",
+    "path": "src",
+    "description": "Source packages (Python backend & Go sidecar)",
+    "lines": 0,
+    "color": "#38bdf8",
+    "size": 28,
+    "shape": "folder"
+  },
+  {
+    "id": "src/configstream",
+    "label": "configstream/",
+    "group": "directory",
+    "type": "directory",
+    "path": "src/configstream",
+    "description": "Core Python package root",
+    "lines": 0,
+    "color": "#38bdf8",
+    "size": 28,
+    "shape": "folder"
+  },
+  {
+    "id": "src/configstream/pipeline",
+    "label": "pipeline/",
+    "group": "pipeline",
+    "type": "directory",
+    "path": "src/configstream/pipeline",
+    "description": "StandardPipeline streaming engine & consumers",
+    "lines": 0,
+    "color": "#a855f7",
+    "size": 28,
+    "shape": "folder"
+  },
+  {
+    "id": "src/configstream/parsers",
+    "label": "parsers/",
+    "group": "parsers",
+    "type": "directory",
+    "path": "src/configstream/parsers",
+    "description": "20+ protocol URI parsers",
+    "lines": 0,
+    "color": "#ec4899",
+    "size": 28,
+    "shape": "folder"
+  },
+  {
+    "id": "src/configstream/generators",
+    "label": "generators/",
+    "group": "generators",
+    "type": "directory",
+    "path": "src/configstream/generators",
+    "description": "Split, Plaintext, and Sing-box config generators",
+    "lines": 0,
+    "color": "#f59e0b",
+    "size": 28,
+    "shape": "folder"
+  },
+  {
+    "id": "src/configstream/output",
+    "label": "output/",
+    "group": "output",
+    "type": "directory",
+    "path": "src/configstream/output",
+    "description": "Artifact exports & subscription builders",
+    "lines": 0,
+    "color": "#10b981",
+    "size": 28,
+    "shape": "folder"
+  },
+  {
+    "id": "src/configstream/intelligence",
+    "label": "intelligence/",
+    "group": "intelligence",
+    "type": "directory",
+    "path": "src/configstream/intelligence",
+    "description": "WARP Washer & chaining engine",
+    "lines": 0,
+    "color": "#3b82f6",
+    "size": 28,
+    "shape": "folder"
+  },
+  {
+    "id": "src/configstream/testers",
+    "label": "testers/",
+    "group": "testers",
+    "type": "directory",
+    "path": "src/configstream/testers",
+    "description": "GoBatchTester sidecar IPC & Python fallbacks",
+    "lines": 0,
+    "color": "#6366f1",
+    "size": 28,
+    "shape": "folder"
+  },
+  {
+    "id": "src/configstream/security",
+    "label": "security/",
+    "group": "security",
+    "type": "directory",
+    "path": "src/configstream/security",
+    "description": "SecurityValidator & IP/domain blocklists",
+    "lines": 0,
+    "color": "#ef4444",
+    "size": 28,
+    "shape": "folder"
+  },
+  {
+    "id": "src/configstream/server",
+    "label": "server/",
+    "group": "server",
+    "type": "directory",
+    "path": "src/configstream/server",
+    "description": "FastAPI server routes (Lab, Proxy, Health)",
+    "lines": 0,
+    "color": "#06b6d4",
+    "size": 28,
+    "shape": "folder"
+  },
+  {
+    "id": "src/configstream/converters",
+    "label": "converters/",
+    "group": "generators",
+    "type": "directory",
+    "path": "src/configstream/converters",
+    "description": "Client profile adapters (Clash, Surge, Loon)",
+    "lines": 0,
+    "color": "#f59e0b",
+    "size": 28,
+    "shape": "folder"
+  },
+  {
+    "id": "src/configstream/tools",
+    "label": "tools/",
+    "group": "scripts",
+    "type": "directory",
+    "path": "src/configstream/tools",
+    "description": "Vwarp tool, Censorship Lab, DNS scanner TUI",
+    "lines": 0,
+    "color": "#f97316",
+    "size": 28,
+    "shape": "folder"
+  },
+  {
+    "id": "src/go",
+    "label": "go/",
+    "group": "directory",
+    "type": "directory",
+    "path": "src/go",
+    "description": "Go native components",
+    "lines": 0,
+    "color": "#38bdf8",
+    "size": 28,
+    "shape": "folder"
+  },
+  {
+    "id": "src/go/tester",
+    "label": "tester/",
+    "group": "testers",
+    "type": "directory",
+    "path": "src/go/tester",
+    "description": "Go batch tester daemon & WASM bridge",
+    "lines": 0,
+    "color": "#6366f1",
+    "size": 28,
+    "shape": "folder"
+  },
+  {
+    "id": "frontend",
+    "label": "frontend/",
+    "group": "frontend",
+    "type": "directory",
+    "path": "frontend",
+    "description": "Frontend Web UI & WebGL Globe",
+    "lines": 0,
+    "color": "#8b5cf6",
+    "size": 28,
+    "shape": "folder"
+  },
+  {
+    "id": "frontend/assets/js/lab",
+    "label": "lab/",
+    "group": "frontend",
+    "type": "directory",
+    "path": "frontend/assets/js/lab",
+    "description": "Modular ES6 Laboratory package",
+    "lines": 0,
+    "color": "#8b5cf6",
+    "size": 28,
+    "shape": "folder"
+  },
+  {
+    "id": "scripts",
+    "label": "scripts/",
+    "group": "scripts",
+    "type": "directory",
+    "path": "scripts",
+    "description": "CI/CD resharding & deployment scripts",
+    "lines": 0,
+    "color": "#f97316",
+    "size": 28,
+    "shape": "folder"
+  },
+  {
+    "id": "tests",
+    "label": "tests/",
+    "group": "tests",
+    "type": "directory",
+    "path": "tests",
+    "description": "1,270+ Unit & E2E integration test suites",
+    "lines": 0,
+    "color": "#84cc16",
+    "size": 28,
+    "shape": "folder"
+  },
+  {
+    "id": "docs",
+    "label": "docs/",
+    "group": "docs",
+    "type": "directory",
+    "path": "docs",
+    "description": "Canonical matrices & architecture reports",
+    "lines": 0,
+    "color": "#14b8a6",
+    "size": 28,
+    "shape": "folder"
+  },
+  {
+    "id": "schema",
+    "label": "schema/",
+    "group": "docs",
+    "type": "directory",
+    "path": "schema",
+    "description": "JSON Schemas for Proxy, Metadata, Singbox",
+    "lines": 0,
+    "color": "#14b8a6",
+    "size": 28,
+    "shape": "folder"
+  },
+  {
+    "id": "mod:pipeline:core",
+    "label": "core.py",
+    "group": "pipeline",
+    "type": "module",
+    "path": "src/configstream/pipeline/core.py",
+    "description": "StandardPipeline orchestrator & lifecycle",
+    "lines": 497,
+    "color": "#a855f7",
+    "size": 20,
+    "shape": "box"
+  },
+  {
+    "id": "mod:pipeline:producer",
+    "label": "producer.py",
+    "group": "pipeline",
+    "type": "module",
+    "path": "src/configstream/pipeline/producer.py",
+    "description": "StreamingProducer source fetcher & queue pusher",
+    "lines": 560,
+    "color": "#a855f7",
+    "size": 20,
+    "shape": "box"
+  },
+  {
+    "id": "mod:pipeline:consumer",
+    "label": "consumer.py",
+    "group": "pipeline",
+    "type": "module",
+    "path": "src/configstream/pipeline/consumer.py",
+    "description": "WorkerConsumer queue processing & revival",
+    "lines": 831,
+    "color": "#a855f7",
+    "size": 20,
+    "shape": "box"
+  },
+  {
+    "id": "mod:models",
+    "label": "models.py",
+    "group": "pipeline",
+    "type": "module",
+    "path": "src/configstream/models.py",
+    "description": "Canonical Proxy & ProxyGroup DTO models",
+    "lines": 214,
+    "color": "#a855f7",
+    "size": 20,
+    "shape": "box"
+  },
+  {
+    "id": "mod:parsers:vmess",
+    "label": "vmess.py",
+    "group": "parsers",
+    "type": "module",
+    "path": "src/configstream/parsers/vmess.py",
+    "description": "VMess base64 JSON parser",
+    "lines": 180,
+    "color": "#ec4899",
+    "size": 20,
+    "shape": "box"
+  },
+  {
+    "id": "mod:parsers:vless",
+    "label": "vless.py",
+    "group": "parsers",
+    "type": "module",
+    "path": "src/configstream/parsers/vless.py",
+    "description": "VLESS URI & query param parser",
+    "lines": 165,
+    "color": "#ec4899",
+    "size": 20,
+    "shape": "box"
+  },
+  {
+    "id": "mod:parsers:hy3",
+    "label": "hysteria3.py",
+    "group": "parsers",
+    "type": "module",
+    "path": "src/configstream/parsers/hysteria3.py",
+    "description": "Hysteria3 direct proxy scheme parser",
+    "lines": 140,
+    "color": "#ec4899",
+    "size": 20,
+    "shape": "box"
+  },
+  {
+    "id": "mod:parsers:tuic",
+    "label": "tuic.py",
+    "group": "parsers",
+    "type": "module",
+    "path": "src/configstream/parsers/tuic.py",
+    "description": "TUIC v5 protocol parser",
+    "lines": 120,
+    "color": "#ec4899",
+    "size": 20,
+    "shape": "box"
+  },
+  {
+    "id": "mod:parsers:ss",
+    "label": "shadowsocks.py",
+    "group": "parsers",
+    "type": "module",
+    "path": "src/configstream/parsers/shadowsocks.py",
+    "description": "Shadowsocks & SS2022 parser",
+    "lines": 195,
+    "color": "#ec4899",
+    "size": 20,
+    "shape": "box"
+  },
+  {
+    "id": "mod:washer:core",
+    "label": "core.py",
+    "group": "intelligence",
+    "type": "module",
+    "path": "src/configstream/intelligence/washer/core.py",
+    "description": "ProxyWasher WARP key & chain manager",
+    "lines": 850,
+    "color": "#3b82f6",
+    "size": 20,
+    "shape": "box"
+  },
+  {
+    "id": "mod:chaining",
+    "label": "chaining.py",
+    "group": "intelligence",
+    "type": "module",
+    "path": "src/configstream/intelligence/chaining.py",
+    "description": "Haversine geo-distance & multi-hop chaining",
+    "lines": 320,
+    "color": "#3b82f6",
+    "size": 20,
+    "shape": "box"
+  },
+  {
+    "id": "mod:go_tester:manager",
+    "label": "manager.py",
+    "group": "testers",
+    "type": "module",
+    "path": "src/configstream/testers/go_tester/manager.py",
+    "description": "GoBatchTester sidecar IPC & daemon lifecycle",
+    "lines": 921,
+    "color": "#6366f1",
+    "size": 20,
+    "shape": "box"
+  },
+  {
+    "id": "mod:go_tester:wasm",
+    "label": "wasm_main.go",
+    "group": "testers",
+    "type": "module",
+    "path": "src/go/tester/wasm_main.go",
+    "description": "Go WASM bridge & Web Crypto interop",
+    "lines": 410,
+    "color": "#6366f1",
+    "size": 20,
+    "shape": "box"
+  },
+  {
+    "id": "mod:output:logic",
+    "label": "output_logic.py",
+    "group": "output",
+    "type": "module",
+    "path": "src/configstream/output_logic.py",
+    "description": "Thin orchestrator for output generation",
+    "lines": 185,
+    "color": "#10b981",
+    "size": 20,
+    "shape": "box"
+  },
+  {
+    "id": "mod:output:metadata",
+    "label": "metadata.py",
+    "group": "output",
+    "type": "module",
+    "path": "src/configstream/output/metadata.py",
+    "description": "Metadata, health.json & manifest exporter",
+    "lines": 290,
+    "color": "#10b981",
+    "size": 20,
+    "shape": "box"
+  },
+  {
+    "id": "mod:output:native",
+    "label": "native_configs.py",
+    "group": "output",
+    "type": "module",
+    "path": "src/configstream/output/native_configs.py",
+    "description": "Sing-box & Clash profile generator",
+    "lines": 410,
+    "color": "#10b981",
+    "size": 20,
+    "shape": "box"
+  },
+  {
+    "id": "mod:signer",
+    "label": "signer.py",
+    "group": "security",
+    "type": "module",
+    "path": "src/configstream/signer.py",
+    "description": "Ed25519 manifest signer & verification",
+    "lines": 240,
+    "color": "#ef4444",
+    "size": 20,
+    "shape": "box"
+  },
+  {
+    "id": "mod:stego",
+    "label": "stego.py",
+    "group": "security",
+    "type": "module",
+    "path": "src/configstream/stego.py",
+    "description": "LSB PNG steganography v1/v2/v3 (HMAC)",
+    "lines": 380,
+    "color": "#ef4444",
+    "size": 20,
+    "shape": "box"
+  },
+  {
+    "id": "mod:security_val",
+    "label": "security_validator.py",
+    "group": "security",
+    "type": "module",
+    "path": "src/configstream/security_validator.py",
+    "description": "Log sanitization & blocklist enforcement",
+    "lines": 290,
+    "color": "#ef4444",
+    "size": 20,
+    "shape": "box"
+  },
+  {
+    "id": "mod:server:lab",
+    "label": "lab.py",
+    "group": "server",
+    "type": "module",
+    "path": "src/configstream/server/routes/lab.py",
+    "description": "FastAPI live lab testing route & auth",
+    "lines": 280,
+    "color": "#06b6d4",
+    "size": 20,
+    "shape": "box"
+  },
+  {
+    "id": "mod:fe:lab_ui",
+    "label": "ui.js",
+    "group": "frontend",
+    "type": "module",
+    "path": "frontend/assets/js/lab/ui.js",
+    "description": "DOM builder & XSS-safe renderer",
+    "lines": 340,
+    "color": "#8b5cf6",
+    "size": 20,
+    "shape": "box"
+  },
+  {
+    "id": "mod:fe:stego",
+    "label": "stego.js",
+    "group": "frontend",
+    "type": "module",
+    "path": "frontend/assets/js/stego.js",
+    "description": "Web Crypto Ed25519 signature validator",
+    "lines": 210,
+    "color": "#8b5cf6",
+    "size": 20,
+    "shape": "box"
+  },
+  {
+    "id": "mod:tools:vwarp",
+    "label": "vwarp.py",
+    "group": "scripts",
+    "type": "module",
+    "path": "src/configstream/tools/vwarp.py",
+    "description": "Canonical VwarpTool scanner & MASQUE builder",
+    "lines": 640,
+    "color": "#f97316",
+    "size": 20,
+    "shape": "box"
+  },
+  {
+    "id": "mod:scripts:validate",
+    "label": "validate_pages_artifact.py",
+    "group": "scripts",
+    "type": "module",
+    "path": "scripts/validate_pages_artifact.py",
+    "description": "Artifact validator & schema checker",
+    "lines": 1326,
+    "color": "#f97316",
+    "size": 20,
+    "shape": "box"
+  }
+];
+        const rawEdges = [
+  {
+    "from": "root",
+    "to": "src",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "src",
+    "to": "src/configstream",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "src/configstream",
+    "to": "src/configstream/pipeline",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "src/configstream",
+    "to": "src/configstream/parsers",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "src/configstream",
+    "to": "src/configstream/generators",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "src/configstream",
+    "to": "src/configstream/output",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "src/configstream",
+    "to": "src/configstream/intelligence",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "src/configstream",
+    "to": "src/configstream/testers",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "src/configstream",
+    "to": "src/configstream/security",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "src/configstream",
+    "to": "src/configstream/server",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "src/configstream",
+    "to": "src/configstream/converters",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "src/configstream",
+    "to": "src/configstream/tools",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "src",
+    "to": "src/go",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "src/go",
+    "to": "src/go/tester",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "root",
+    "to": "frontend",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "frontend",
+    "to": "frontend/assets/js/lab",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "root",
+    "to": "scripts",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "root",
+    "to": "tests",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "root",
+    "to": "docs",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "root",
+    "to": "schema",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "src/configstream/pipeline",
+    "to": "mod:pipeline:core",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "src/configstream/pipeline",
+    "to": "mod:pipeline:producer",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "src/configstream/pipeline",
+    "to": "mod:pipeline:consumer",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "src/configstream",
+    "to": "mod:models",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "src/configstream/parsers",
+    "to": "mod:parsers:vmess",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "src/configstream/parsers",
+    "to": "mod:parsers:vless",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "src/configstream/parsers",
+    "to": "mod:parsers:hy3",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "src/configstream/parsers",
+    "to": "mod:parsers:tuic",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "src/configstream/parsers",
+    "to": "mod:parsers:ss",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "src/configstream/intelligence",
+    "to": "mod:washer:core",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "src/configstream/intelligence",
+    "to": "mod:chaining",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "src/configstream/testers",
+    "to": "mod:go_tester:manager",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "src/go/tester",
+    "to": "mod:go_tester:wasm",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "src/configstream/output",
+    "to": "mod:output:logic",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "src/configstream/output",
+    "to": "mod:output:metadata",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "src/configstream/output",
+    "to": "mod:output:native",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "src/configstream",
+    "to": "mod:signer",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "src/configstream",
+    "to": "mod:stego",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "src/configstream",
+    "to": "mod:security_val",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "src/configstream/server",
+    "to": "mod:server:lab",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "frontend/assets/js/lab",
+    "to": "mod:fe:lab_ui",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "frontend/assets/js/lab",
+    "to": "mod:fe:stego",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "src/configstream/tools",
+    "to": "mod:tools:vwarp",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "scripts",
+    "to": "mod:scripts:validate",
+    "label": "",
+    "type": "hierarchy",
+    "color": {
+      "color": "#475569",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "mod:pipeline:producer",
+    "to": "mod:models",
+    "label": "creates Proxy DTO",
+    "type": "dataflow",
+    "color": {
+      "color": "#ec4899",
+      "highlight": "#f43f5e"
+    },
+    "dashes": true,
+    "width": 2
+  },
+  {
+    "from": "mod:pipeline:producer",
+    "to": "mod:pipeline:consumer",
+    "label": "asyncio.Queue work items",
+    "type": "dataflow",
+    "color": {
+      "color": "#ec4899",
+      "highlight": "#f43f5e"
+    },
+    "dashes": true,
+    "width": 2
+  },
+  {
+    "from": "mod:pipeline:consumer",
+    "to": "mod:go_tester:manager",
+    "label": "batch test IPC",
+    "type": "dependency",
+    "color": {
+      "color": "#a855f7",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "mod:pipeline:consumer",
+    "to": "mod:washer:core",
+    "label": "revive failed proxies",
+    "type": "dependency",
+    "color": {
+      "color": "#a855f7",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "mod:washer:core",
+    "to": "mod:tools:vwarp",
+    "label": "generate WARP/Vwarp config",
+    "type": "dependency",
+    "color": {
+      "color": "#a855f7",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "mod:pipeline:core",
+    "to": "mod:output:logic",
+    "label": "trigger artifact export",
+    "type": "dataflow",
+    "color": {
+      "color": "#ec4899",
+      "highlight": "#f43f5e"
+    },
+    "dashes": true,
+    "width": 2
+  },
+  {
+    "from": "mod:output:logic",
+    "to": "mod:output:native",
+    "label": "generate profiles",
+    "type": "dependency",
+    "color": {
+      "color": "#a855f7",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "mod:output:logic",
+    "to": "mod:output:metadata",
+    "label": "write metadata & manifest",
+    "type": "dependency",
+    "color": {
+      "color": "#a855f7",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "mod:output:metadata",
+    "to": "mod:signer",
+    "label": "sign manifest (Ed25519)",
+    "type": "dependency",
+    "color": {
+      "color": "#a855f7",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "mod:output:logic",
+    "to": "mod:stego",
+    "label": "pack stego carrier images",
+    "type": "dependency",
+    "color": {
+      "color": "#a855f7",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "mod:server:lab",
+    "to": "mod:go_tester:manager",
+    "label": "live proxy chain test",
+    "type": "dependency",
+    "color": {
+      "color": "#a855f7",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  },
+  {
+    "from": "mod:fe:stego",
+    "to": "mod:signer",
+    "label": "Web Crypto verification",
+    "type": "dataflow",
+    "color": {
+      "color": "#ec4899",
+      "highlight": "#f43f5e"
+    },
+    "dashes": true,
+    "width": 2
+  },
+  {
+    "from": "mod:scripts:validate",
+    "to": "mod:output:metadata",
+    "label": "validate artifact bundle",
+    "type": "dependency",
+    "color": {
+      "color": "#a855f7",
+      "highlight": "#f43f5e"
+    },
+    "dashes": false,
+    "width": 1
+  }
+];
+
+        let network = null;
+        let nodesDataset = new vis.DataSet(rawNodes);
+        let edgesDataset = new vis.DataSet(rawEdges);
+        let physicsEnabled = true;
+
+        const container = document.getElementById('network');
+        const data = { nodes: nodesDataset, edges: edgesDataset };
+
+        const options = {
+            nodes: {
+                font: { color: '#f8fafc', face: 'Inter', size: 13 },
+                borderWidth: 2,
+                shadow: true,
+            },
+            edges: {
+                font: { color: '#94a3b8', face: 'Inter', size: 10, align: 'middle' },
+                smooth: { type: 'cubicBezier', forceDirection: 'none', roundness: 0.4 },
+            },
+            physics: {
+                solver: 'forceAtlas2Based',
+                forceAtlas2Based: {
+                    gravitationalConstant: -50,
+                    centralGravity: 0.01,
+                    springLength: 100,
+                    springConstant: 0.08,
+                },
+                maxVelocity: 50,
+                timestep: 0.35,
+                stabilization: { iterations: 150 },
+            },
+            interaction: {
+                hover: true,
+                tooltipDelay: 200,
+                navigationButtons: false,
+                keyboard: true,
+            },
+        };
+
+        network = new vis.Network(container, data, options);
+
+        // Click Event for Inspector
+        network.on('click', function(params) {
+            if (params.nodes.length > 0) {
+                const nodeId = params.nodes[0];
+                const node = nodesDataset.get(nodeId);
+                const connectedEdges = network.getConnectedEdges(nodeId);
+                
+                document.getElementById('nodeTitle').innerText = node.label;
+                document.getElementById('nodeTypeBadge').innerText = node.type;
+                document.getElementById('nodeTypeBadge').style.background = node.color + '40';
+                document.getElementById('nodeTypeBadge').style.color = node.color;
+                document.getElementById('nodeGroup').innerText = node.group.toUpperCase();
+                document.getElementById('nodePath').innerText = node.path || '--';
+                document.getElementById('nodeDesc').innerText = node.description || 'No description available.';
+                document.getElementById('nodeLines').innerText = node.lines ? node.lines + ' lines' : 'N/A';
+                document.getElementById('nodeEdges').innerText = connectedEdges.length + ' connections';
+            }
+        });
+
+        // Search Filter
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase().strip();
+            if (!query) return;
+            
+            const match = rawNodes.find(n => n.label.toLowerCase().includes(query) || (n.path && n.path.toLowerCase().includes(query)));
+            if (match) {
+                network.focus(match.id, { scale: 1.2, animation: true });
+                network.selectNodes([match.id]);
+            }
+        });
+
+        function resetView() {
+            network.fit({ animation: true });
+        }
+
+        function togglePhysics() {
+            physicsEnabled = !physicsEnabled;
+            network.setOptions({ physics: { enabled: physicsEnabled } });
+        }
+
+        function filterSubsystem(subsystem, chipEl) {
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            chipEl.classList.add('active');
+
+            if (subsystem === 'all') {
+                nodesDataset.update(rawNodes.map(n => ({ id: n.id, hidden: false })));
+            } else {
+                nodesDataset.update(rawNodes.map(n => ({
+                    id: n.id,
+                    hidden: n.group !== subsystem && n.type !== 'root' && n.type !== 'directory'
+                })));
+            }
+        }
+    </script>
+</body>
+</html>

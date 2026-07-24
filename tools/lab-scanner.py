@@ -55,11 +55,16 @@ from typing import List, Tuple, Optional, Dict, Any
 try:
     from configstream.security_validator import SecurityValidator
 except ImportError:
+
     class SecurityValidator:  # type: ignore[no-redef]
         @staticmethod
         def sanitize_log_message(msg: str) -> str:
             import re
-            return re.sub(r"(?i)(token|password|secret|key|uuid)=[^&\s]+", r"\1=***", str(msg))
+
+            return re.sub(
+                r"(?i)(token|password|secret|key|uuid)=[^&\s]+", r"\1=***", str(msg)
+            )
+
 
 # ============================================================
 # Constants
