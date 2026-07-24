@@ -45,4 +45,17 @@ frontend-dist/
 Latest Outputs to investigate/
 invvest/
 
+# Local review dumps, transcripts, scratch scripts, and index DBs
+.cocoindex_code/
+.codebase-memory/
+all_pr_comments.txt
+all_tests_results.txt
+pr_full_output.txt
+test_results.txt
+pr_inline_comments.json
+pr_issue_comments.json
+pr_review_threads.json
+pr_reviews_full.json
+scratch_*.py
+
 .env.local

@@ -151,3 +151,75 @@ async def test_fifth_consecutive_drain_timeout_disables_tester():
     mock_close.assert_called_once()
     mock_restart.assert_not_called()
     assert result == [proxy]
+
+
+# ---------------------------------------------------------------------------
+# Test 3: test_custom_configs deadlock-free when process is None
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_custom_configs_deadlock_free_when_proc_none():
+    """test_custom_configs must complete without self-deadlock when _proc becomes None after initial check."""
+    tester = _make_tester()
+
+    mock_proc = MagicMock()
+    mock_proc.stdin = MagicMock()
+    tester._proc = mock_proc
+
+    class DyingConfig(dict):
+        def get(self, key, default=None):
+            if key == "outbounds":
+                tester._proc = None
+            return super().get(key, default)
+
+    custom_config = DyingConfig({
+        "id": "chain-1",
+        "outbounds": [{"type": "selector", "tag": "select", "outbounds": ["direct"]}],
+    })
+
+    with patch.object(tester, "_ensure_process", new_callable=AsyncMock):
+        res = await tester.test_custom_configs([custom_config])
+
+    assert res == {}
+
+
+# ---------------------------------------------------------------------------
+# Test 4: test_custom_configs IPC drain timeout -> restart daemon
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_custom_configs_drain_timeout_restarts_daemon():
+    """IPC drain timeout in test_custom_configs must restart daemon and return empty dict."""
+    tester = _make_tester()
+
+    mock_proc = MagicMock()
+    mock_proc.stdin = MagicMock()
+    mock_proc.stdin.write = MagicMock()
+    tester._proc = mock_proc
+
+    async def instant_timeout(coro, timeout):
+        try:
+            coro.close()
+        except Exception:
+            pass
+        raise asyncio.TimeoutError
+
+    custom_config = {
+        "id": "chain-2",
+        "outbounds": [{"type": "direct", "tag": "out"}],
+    }
+
+    with (
+        patch.object(tester, "_ensure_process", new_callable=AsyncMock),
+        patch.object(tester, "_restart_daemon", new_callable=AsyncMock) as mock_restart,
+        patch(
+            "configstream.testers.go_tester.manager.safe_wait_for",
+            side_effect=instant_timeout,
+        ),
+    ):
+        res = await tester.test_custom_configs([custom_config])
+
+    mock_restart.assert_called_once()
+    assert res == {}

@@ -289,9 +289,7 @@ class SlipstreamManager:
                     return False
             except Exception:
                 # Unexpected error - clean up partial download
-                logging.getLogger(__name__).debug(
-                    "Suppressed broad exception", exc_info=True
-                )
+                logging.getLogger(__name__).debug("Suppressed broad exception")
                 if temp_path.exists():
                     temp_path.unlink()
                 return False
@@ -436,9 +434,7 @@ class SlipstreamManager:
                     # Max retries reached, keep partial file for next attempt
                     return False
             except Exception as e:
-                logging.getLogger(__name__).debug(
-                    "Suppressed broad exception", exc_info=True
-                )
+                logging.getLogger(__name__).debug("Suppressed broad exception")
                 log_widget.write(
                     f"[red]Unexpected error: {type(e).__name__}: {e}[/red]"
                 )
@@ -816,21 +812,17 @@ class DNSScannerTUI(App):
             self.query_one("#pause-btn", Button).display = False
             self.query_one("#resume-btn", Button).display = False
         except Exception:  # nosec B110
-            logging.getLogger(__name__).debug(
-                "Suppressed broad exception", exc_info=True
-            )
+            logging.getLogger(__name__).debug("Suppressed broad exception")
             pass
 
-    def action_quit(self) -> None:
+    async def action_quit(self) -> None:
         """Immediately force quit the application."""
         # Kill all slipstream processes first
         for process in self.slipstream_processes:
             try:
                 process.kill()
             except Exception:  # nosec B110
-                logging.getLogger(__name__).debug(
-                    "Suppressed broad exception", exc_info=True
-                )
+                logging.getLogger(__name__).debug("Suppressed broad exception")
                 pass
 
         # Cancel all active tasks
@@ -838,18 +830,14 @@ class DNSScannerTUI(App):
             try:
                 task.cancel()
             except Exception:  # nosec B110
-                logging.getLogger(__name__).debug(
-                    "Suppressed broad exception", exc_info=True
-                )
+                logging.getLogger(__name__).debug("Suppressed broad exception")
                 pass
 
         for task in self.slipstream_tasks:
             try:
                 task.cancel()
             except Exception:  # nosec B110
-                logging.getLogger(__name__).debug(
-                    "Suppressed broad exception", exc_info=True
-                )
+                logging.getLogger(__name__).debug("Suppressed broad exception")
                 pass
 
         # Clear task lists
@@ -869,7 +857,7 @@ class DNSScannerTUI(App):
             browser = self.query_one("#file-browser-container")
             browser.display = not browser.display
         elif event.button.id == "exit-btn":
-            self.action_quit()
+            self.run_worker(self.action_quit())
         elif event.button.id == "pause-btn":
             self._pause_scan()
         elif event.button.id == "resume-btn":
@@ -877,7 +865,7 @@ class DNSScannerTUI(App):
         elif event.button.id == "save-btn":
             self.action_save_results()
         elif event.button.id == "quit-btn":
-            self.action_quit()
+            self.run_worker(self.action_quit())
 
     def on_directory_tree_file_selected(
         self, event: DirectoryTree.FileSelected
@@ -904,9 +892,7 @@ class DNSScannerTUI(App):
             self.query_one("#pause-btn", Button).display = False
             self.query_one("#resume-btn", Button).display = True
         except Exception:  # nosec B110
-            logging.getLogger(__name__).debug(
-                "Suppressed broad exception", exc_info=True
-            )
+            logging.getLogger(__name__).debug("Suppressed broad exception")
             pass
 
     def _resume_scan(self) -> None:
@@ -924,9 +910,7 @@ class DNSScannerTUI(App):
             self.query_one("#pause-btn", Button).display = True
             self.query_one("#resume-btn", Button).display = False
         except Exception:  # nosec B110
-            logging.getLogger(__name__).debug(
-                "Suppressed broad exception", exc_info=True
-            )
+            logging.getLogger(__name__).debug("Suppressed broad exception")
             pass
 
     def _start_scan_from_form(self) -> None:
@@ -981,9 +965,7 @@ class DNSScannerTUI(App):
             self.query_one("#pause-btn", Button).display = True
             self.query_one("#resume-btn", Button).display = False
         except Exception:  # nosec B110
-            logging.getLogger(__name__).debug(
-                "Suppressed broad exception", exc_info=True
-            )
+            logging.getLogger(__name__).debug("Suppressed broad exception")
             pass
 
         # Setup log display
@@ -1118,9 +1100,7 @@ class DNSScannerTUI(App):
             progress_bar = self.query_one("#progress-bar", CustomProgressBar)
             progress_bar.update_progress(0, estimated_ips)
         except Exception:  # nosec B110
-            logging.getLogger(__name__).debug(
-                "Suppressed broad exception", exc_info=True
-            )
+            logging.getLogger(__name__).debug("Suppressed broad exception")
             pass
 
         logger.info(f"Starting chunked scan with concurrency {self.concurrency}")
@@ -1233,9 +1213,7 @@ class DNSScannerTUI(App):
                 self.current_scanned, self.current_scanned
             )  # Force 100%
         except Exception:  # nosec B110
-            logging.getLogger(__name__).debug(
-                "Suppressed broad exception", exc_info=True
-            )
+            logging.getLogger(__name__).debug("Suppressed broad exception")
             pass
 
         # Final table rebuild
@@ -1274,9 +1252,7 @@ class DNSScannerTUI(App):
                     if line_str and not line_str.startswith(b"#"):
                         count += 1
         except Exception:  # nosec B110
-            logging.getLogger(__name__).debug(
-                "Suppressed broad exception", exc_info=True
-            )
+            logging.getLogger(__name__).debug("Suppressed broad exception")
             pass
         return count
 
@@ -1344,7 +1320,7 @@ class DNSScannerTUI(App):
                                 subnets.append(subnet)
                             except Exception:  # nosec B110
                                 logging.getLogger(__name__).debug(
-                                    "Suppressed broad exception", exc_info=True
+                                    "Suppressed broad exception"
                                 )
                                 pass
             except Exception as e:
@@ -1429,9 +1405,7 @@ class DNSScannerTUI(App):
                     progress_bar = self.query_one("#progress-bar", CustomProgressBar)
                     progress_bar.update_progress(self.current_scanned, stats.total)
                 except Exception:  # nosec B110
-                    logging.getLogger(__name__).debug(
-                        "Suppressed broad exception", exc_info=True
-                    )
+                    logging.getLogger(__name__).debug("Suppressed broad exception")
                     pass
 
     def _collect_ips(self, subnets: list[ipaddress.IPv4Network]) -> list[str]:
@@ -1527,9 +1501,7 @@ class DNSScannerTUI(App):
             except asyncio.TimeoutError:
                 return (ip, False, 0)
             except Exception:
-                logging.getLogger(__name__).debug(
-                    "Suppressed broad exception", exc_info=True
-                )
+                logging.getLogger(__name__).debug("Suppressed broad exception")
                 return (ip, False, 0)
 
     def _add_result(self, ip: str, response_time: float) -> None:
@@ -1569,9 +1541,7 @@ class DNSScannerTUI(App):
                 proxy_str,
             )
         except Exception:  # nosec B110
-            logging.getLogger(__name__).debug(
-                "Suppressed broad exception", exc_info=True
-            )
+            logging.getLogger(__name__).debug("Suppressed broad exception")
             pass
 
         # Mark table for periodic resort
@@ -1626,9 +1596,7 @@ class DNSScannerTUI(App):
 
             self.table_needs_rebuild = False
         except Exception:  # nosec B110
-            logging.getLogger(__name__).debug(
-                "Suppressed broad exception", exc_info=True
-            )
+            logging.getLogger(__name__).debug("Suppressed broad exception")
             pass  # Ignore errors during rebuild
 
     async def _queue_slipstream_test(self, dns_ip: str) -> None:
@@ -1883,20 +1851,16 @@ class DNSScannerTUI(App):
                     if process in self.slipstream_processes:
                         self.slipstream_processes.remove(process)
                 except Exception:  # nosec B110
-                    logging.getLogger(__name__).debug(
-                        "Suppressed broad exception", exc_info=True
-                    )
+                    logging.getLogger(__name__).debug("Suppressed broad exception")
                     pass
 
-    def _log(self, message: str) -> None:
+    def _log(self, message: str) -> None:  # type: ignore[override]
         """Add message to log display."""
         try:
             log_widget = self.query_one("#log-display", RichLog)
             log_widget.write(message)
         except Exception:  # nosec B110
-            logging.getLogger(__name__).debug(
-                "Suppressed broad exception", exc_info=True
-            )
+            logging.getLogger(__name__).debug("Suppressed broad exception")
             pass  # Widget might not be ready yet
 
     def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
@@ -1911,9 +1875,7 @@ class DNSScannerTUI(App):
                 pyperclip.copy(ip)
                 self.notify(f"{ip} copied!", severity="information", timeout=2)
             except Exception as e:
-                logging.getLogger(__name__).debug(
-                    "Suppressed broad exception", exc_info=True
-                )
+                logging.getLogger(__name__).debug("Suppressed broad exception")
                 self.notify(f"Copy failed: {str(e)[:30]}", severity="warning")
 
     def _auto_save_results(self) -> None:

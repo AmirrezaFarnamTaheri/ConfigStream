@@ -569,9 +569,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
                     return key
                 except Exception:
                     # Return empty string on invalid Base64 to prevent passing illegal data to Go
-                    logging.getLogger(__name__).debug(
-                        "Suppressed broad exception", exc_info=True
-                    )
+                    logging.getLogger(__name__).debug("Suppressed broad exception")
                     return ""
             return key
 

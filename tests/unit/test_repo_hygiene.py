@@ -33,16 +33,29 @@ def test_no_tracked_generated_artifacts() -> None:
         "invvest/",
         "Latest Outputs to investigate/",
         "output/",
+        ".cocoindex_code/",
+        ".codebase-memory/",
+        "scratch_",
+    )
+    forbidden_exact = (
+        "all_pr_comments.txt",
+        "all_tests_results.txt",
+        "pr_full_output.txt",
+        "test_results.txt",
+        "pr_inline_comments.json",
+        "pr_issue_comments.json",
+        "pr_review_threads.json",
+        "pr_reviews_full.json",
     )
     forbidden_tracked = [
-        f for f in tracked if any(f.startswith(p) for p in forbidden_prefixes)
+        f
+        for f in tracked
+        if any(f.startswith(p) for p in forbidden_prefixes) or f in forbidden_exact
     ]
 
-    # Allow docs/ within these if they are legitimate, but usually they aren't
-    # In this repo, these directories should be empty or ignored
     assert (
         not forbidden_tracked
-    ), f"Generated artifacts are being tracked: {forbidden_tracked[:10]}..."
+    ), f"Generated artifacts or local review state are being tracked: {forbidden_tracked[:10]}..."
 
 
 def test_no_tokens_in_tracked_sources() -> None:

@@ -80,9 +80,10 @@ def _validate_file_metadata(path: Path) -> Path:
     metadata = resolved.stat()
     if not stat.S_ISREG(metadata.st_mode):
         raise ValueError("tester binary is not a regular file")
-    if metadata.st_mode & (stat.S_IWGRP | stat.S_IWOTH):
+    if os.name != "nt" and (metadata.st_mode & (stat.S_IWGRP | stat.S_IWOTH)):
         raise ValueError("tester binary is group/world writable")
-    if os.name != "nt" and metadata.st_uid not in {0, os.geteuid()}:
+    euid = getattr(os, "geteuid", lambda: 0)()
+    if os.name != "nt" and metadata.st_uid not in {0, euid}:
         raise ValueError("tester binary has an unexpected owner")
     if not os.access(resolved, os.X_OK):
         raise ValueError("tester binary is not executable")
@@ -106,18 +107,28 @@ def initialize_binary_identity(path: Path | str) -> BinaryIdentity:
     )
 
 
-def verify_binary_identity(identity: BinaryIdentity) -> None:
-    resolved = _validate_file_metadata(identity.path)
-    if resolved != identity.path:
-        raise ValueError("tester binary path changed after discovery")
-    current = _sha256_file(resolved)
-    if not hmac.compare_digest(current, identity.baseline_sha256):
-        raise ValueError("tester binary changed after discovery")
-    if identity.expected_sha256 and not hmac.compare_digest(
-        current,
-        identity.expected_sha256,
-    ):
-        raise ValueError("tester binary no longer matches the pinned digest")
+def verify_binary_identity(identity: BinaryIdentity) -> bool:
+    if not identity or not identity.path:
+        return False
+    try:
+        path = identity.path
+        if path.is_symlink():
+            raise ValueError("tester binary became a symbolic link")
+        file_stat = path.stat()
+        if not stat.S_ISREG(file_stat.st_mode):
+            raise ValueError("tester binary is no longer a regular file")
+        if os.name != "nt" and (file_stat.st_mode & (stat.S_IWGRP | stat.S_IWOTH)):
+            raise ValueError("tester binary became group/world writable")
+        current = _sha256_file(path)
+        if not hmac.compare_digest(current, identity.baseline_sha256):
+            raise ValueError("tester binary changed after discovery")
+        if identity.expected_sha256 and not hmac.compare_digest(
+            current, identity.expected_sha256
+        ):
+            raise ValueError("tester binary no longer matches the pinned digest")
+        return True
+    except (OSError, ValueError):
+        return False
 
 
 def minimal_subprocess_environment(settings: Any) -> dict[str, str]:

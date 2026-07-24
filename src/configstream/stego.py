@@ -22,7 +22,8 @@ logger = logging.getLogger(__name__)
 MAGIC_MARKER = b"CSTREAM_PAYLOAD_START>>"
 LSB_MAGIC = b"CSP2"
 LEGACY_LSB_VERSION = 1
-LSB_VERSION = 2
+SALTED_SHA_LSB_VERSION = 2
+LSB_VERSION = 3
 LEGACY_HEADER_SIZE = 8
 SALT_SIZE = 16
 LSB_HEADER_SIZE = 4 + 1 + 1 + 2 + SALT_SIZE
@@ -248,19 +249,26 @@ def _embed_permuted(
     payload: bytes,
     key_material: bytes,
     salt: bytes,
-    stego_version: int = 2,
+    stego_version: int = LSB_VERSION,
 ) -> None:
     needed = len(payload) * 8
     if needed > len(positions):
         raise ValueError("Payload exceeds carrier capacity")
-    if stego_version >= 2:
+    if stego_version >= 3:
         offsets = derive_lsb_offsets(key_material + salt, len(positions), needed)
         for bit_index in range(needed):
             bit = (payload[bit_index // 8] >> (7 - (bit_index % 8))) & 1
             raw_index = positions[offsets[bit_index]]
             raw_pixels[raw_index] = (raw_pixels[raw_index] & 0xFE) | bit
-    else:
+    elif stego_version == 2:
         start, stride = _derive_offsets(key_material, len(positions), salt)
+        for bit_index in range(needed):
+            bit = (payload[bit_index // 8] >> (7 - (bit_index % 8))) & 1
+            position_index = (start + bit_index * stride) % len(positions)
+            raw_index = positions[position_index]
+            raw_pixels[raw_index] = (raw_pixels[raw_index] & 0xFE) | bit
+    else:
+        start, stride = _derive_offsets(key_material, len(positions), b"")
         for bit_index in range(needed):
             bit = (payload[bit_index // 8] >> (7 - (bit_index % 8))) & 1
             position_index = (start + bit_index * stride) % len(positions)
@@ -274,19 +282,25 @@ def _extract_permuted(
     length: int,
     key_material: bytes,
     salt: bytes,
-    stego_version: int = 2,
+    stego_version: int = LSB_VERSION,
 ) -> bytes:
     needed = length * 8
     if needed > len(positions):
         raise ValueError("Requested data exceeds carrier capacity")
     output = bytearray(length)
-    if stego_version >= 2:
+    if stego_version >= 3:
         offsets = derive_lsb_offsets(key_material + salt, len(positions), needed)
         for bit_index in range(needed):
             bit = raw_pixels[positions[offsets[bit_index]]] & 1
             output[bit_index // 8] = (output[bit_index // 8] << 1) | bit
-    else:
+    elif stego_version == 2:
         start, stride = _derive_offsets(key_material, len(positions), salt)
+        for bit_index in range(needed):
+            position_index = (start + bit_index * stride) % len(positions)
+            bit = raw_pixels[positions[position_index]] & 1
+            output[bit_index // 8] = (output[bit_index // 8] << 1) | bit
+    else:
+        start, stride = _derive_offsets(key_material, len(positions), b"")
         for bit_index in range(needed):
             position_index = (start + bit_index * stride) % len(positions)
             bit = raw_pixels[positions[position_index]] & 1
@@ -518,6 +532,7 @@ def derive_lsb_offsets(key: bytes, max_index: int, count: int) -> List[int]:
         raise ValueError(f"count ({count}) cannot exceed max_index ({max_index})")
 
     offsets: list[int] = []
+    seen: set[int] = set()
     counter = 0
     import hmac
 
@@ -527,7 +542,8 @@ def derive_lsb_offsets(key: bytes, max_index: int, count: int) -> List[int]:
         for i in range(0, len(h), 4):
             val = struct.unpack(">I", h[i : i + 4])[0]
             idx = val % max_index
-            if idx not in offsets:
+            if idx not in seen:
+                seen.add(idx)
                 offsets.append(idx)
                 if len(offsets) == count:
                     break

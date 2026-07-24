@@ -43,9 +43,7 @@ class GoBatchTester:
         try:
             w = int(workers)
         except Exception:
-            logging.getLogger(__name__).debug(
-                "Suppressed broad exception", exc_info=True
-            )
+            logging.getLogger(__name__).debug("Suppressed broad exception")
             w = 20
         self.workers = max(1, w)
         self.timeout = timeout
@@ -249,9 +247,7 @@ class GoBatchTester:
             try:
                 await safe_wait_for(self._restart_task, timeout=15.0)
             except Exception:  # nosec B110
-                logging.getLogger(__name__).debug(
-                    "Suppressed broad exception", exc_info=True
-                )
+                logging.getLogger(__name__).debug("Suppressed broad exception")
                 pass
             self._restart_task = None
 
@@ -356,9 +352,7 @@ class GoBatchTester:
             await asyncio.gather(*futures, return_exceptions=True)
         except Exception:  # nosec B110
             # Swallow any unexpected errors during cleanup
-            logging.getLogger(__name__).debug(
-                "Suppressed broad exception", exc_info=True
-            )
+            logging.getLogger(__name__).debug("Suppressed broad exception")
             pass
 
     @staticmethod
@@ -470,9 +464,7 @@ class GoBatchTester:
         except asyncio.CancelledError:
             pass
         except Exception:  # nosec B110
-            logging.getLogger(__name__).debug(
-                "Suppressed broad exception", exc_info=True
-            )
+            logging.getLogger(__name__).debug("Suppressed broad exception")
             pass
 
     async def test_batch(
@@ -666,7 +658,7 @@ class GoBatchTester:
                     f"consecutive timeouts. Disabling to preserve pipeline time budget."
                 )
                 self.available = False
-                await self._restart_daemon()
+                await self.close()
                 return proxies
 
             # Restart daemon and AWAIT completion before returning,
@@ -744,19 +736,21 @@ class GoBatchTester:
                     continue
 
                 target_proxy.is_working = False
-                target_proxy.details["error"] = error_msg
+                target_proxy.latency = None
                 target_proxy.tested_at = batch_tested_at
+                target_proxy.details["error"] = error_msg
 
-                # Categorize error
-                if "HONEYPOT" in error_msg:
-                    error_cat = "HONEYPOT"
-                elif "DIRTY_IP" in error_msg:
-                    error_cat = "DIRTY_IP"
-                elif "PANIC" in error_msg:
-                    error_cat = "PANIC"
-                elif "timeout" in error_msg.lower():
+                if "timeout" in error_msg.lower():
                     error_cat = "TIMEOUT"
-                elif "bind" in error_msg.lower() and "in use" in error_msg.lower():
+                elif "refused" in error_msg.lower():
+                    error_cat = "REFUSED"
+                elif "reset" in error_msg.lower():
+                    error_cat = "RESET"
+                elif "tls" in error_msg.lower() or "certificate" in error_msg.lower():
+                    error_cat = "TLS_ERROR"
+                elif "dns" in error_msg.lower():
+                    error_cat = "DNS_ERROR"
+                elif "bind" in error_msg.lower():
                     error_cat = "BIND_ERROR"
                 elif "handshake" in error_msg.lower():
                     error_cat = "HANDSHAKE_FAIL"
@@ -859,17 +853,25 @@ class GoBatchTester:
                     lines.append(dumped)
 
             payload_str = "\n".join(lines) + "\n"
-            # Capture proc reference under lock to prevent race with close()
+            # Read process references safely under lock, releasing lock before IPC write/drain
             async with self._lock:
                 proc = self._proc
-                if proc is None or proc.stdin is None:
-                    logger.error(
-                        "Go Tester process is dead, cannot send custom configs."
-                    )
-                    await self._cleanup_pending(list(reverse_map.keys()), futures)
-                    return {}
-                proc.stdin.write(payload_str.encode())
-                await proc.stdin.drain()
+                stdin = proc.stdin if proc else None
+
+            if proc is None or stdin is None:
+                logger.error("Go Tester process is dead, cannot send custom configs.")
+                await self._cleanup_pending(list(reverse_map.keys()), futures)
+                return {}
+
+            stdin.write(payload_str.encode())
+            await safe_wait_for(stdin.drain(), timeout=15.0)
+        except asyncio.TimeoutError:
+            logger.error(
+                "IPC drain timed out writing custom configs to Go Tester Daemon."
+            )
+            await self._cleanup_pending(list(reverse_map.keys()), futures)
+            await self._restart_daemon()
+            return {}
         except asyncio.CancelledError:
             await self._cleanup_pending(list(reverse_map.keys()), futures)
             raise

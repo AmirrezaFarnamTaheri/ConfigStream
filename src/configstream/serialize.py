@@ -51,7 +51,7 @@ def _sanitize_source(raw_source: Optional[str]) -> Optional[str]:
             return parsed.netloc
     except Exception:
         # Fall through to deterministic hash fallback
-        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+        logging.getLogger(__name__).debug("Suppressed broad exception")
         return hashlib.sha256(raw_source.encode("utf-8")).hexdigest()[:12]
     # Fallback to a short hash if it's not a parsable URL
     return hashlib.sha256(raw_source.encode("utf-8")).hexdigest()[:12]

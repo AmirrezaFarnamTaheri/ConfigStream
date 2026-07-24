@@ -2121,9 +2121,16 @@ def _parse_proxy_uri(uri: str) -> Optional[Dict[str, Any]]:
                 "tls": obj.get("tls", "") == "tls",
                 "sni": obj.get("sni", obj.get("host", obj.get("add", ""))),
             }
-        except Exception:
+        except (
+            json.JSONDecodeError,
+            KeyError,
+            ValueError,
+            TypeError,
+            binascii.Error,
+        ) as exc:
             logging.getLogger(__name__).debug(
-                "Suppressed broad exception", exc_info=True
+                "VMess parse error: %s",
+                SecurityValidator.sanitize_log_message(str(exc)),
             )
             return None
 

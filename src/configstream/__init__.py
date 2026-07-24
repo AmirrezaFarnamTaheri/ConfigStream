@@ -71,7 +71,7 @@ def _patch_sniffio_for_asyncio() -> None:
     try:
         import sniffio  # type: ignore
     except Exception:
-        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+        logging.getLogger(__name__).debug("Suppressed broad exception")
         return
 
     import asyncio
@@ -104,7 +104,7 @@ def _patch_anyio_current_task() -> None:
     try:
         import anyio._backends._asyncio as anyio_asyncio  # type: ignore
     except Exception:
-        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+        logging.getLogger(__name__).debug("Suppressed broad exception")
         return
 
     import asyncio

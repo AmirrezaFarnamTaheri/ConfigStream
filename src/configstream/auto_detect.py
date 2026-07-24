@@ -61,9 +61,7 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
             if result:
                 return result
         except Exception:  # nosec B110
-            logging.getLogger(__name__).debug(
-                "Suppressed broad exception", exc_info=True
-            )
+            logging.getLogger(__name__).debug("Suppressed broad exception")
             pass
 
     # Try Naked IP:PORT

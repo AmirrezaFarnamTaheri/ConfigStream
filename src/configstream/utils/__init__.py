@@ -23,7 +23,7 @@ if sys.platform != "win32":
     try:
         import fcntl  # type: ignore
     except Exception:  # pragma: no cover - platform-specific
-        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+        logging.getLogger(__name__).debug("Suppressed broad exception")
         fcntl = None  # type: ignore
     msvcrt = None  # type: ignore
 else:
@@ -31,7 +31,7 @@ else:
     try:
         import msvcrt  # type: ignore
     except Exception:  # pragma: no cover - platform-specific
-        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+        logging.getLogger(__name__).debug("Suppressed broad exception")
         msvcrt = None  # type: ignore
 
 

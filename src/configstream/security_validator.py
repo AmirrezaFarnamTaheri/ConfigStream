@@ -188,9 +188,7 @@ class SecurityValidator:
             return False, "invalid_scheme_or_netloc"
         except Exception:
             # Catch generic Exception as tests might raise arbitrary exceptions to test robustness
-            logging.getLogger(__name__).debug(
-                "Suppressed broad exception", exc_info=True
-            )
+            logging.getLogger(__name__).debug("Suppressed broad exception")
             return False, "parse_error"
 
     @staticmethod

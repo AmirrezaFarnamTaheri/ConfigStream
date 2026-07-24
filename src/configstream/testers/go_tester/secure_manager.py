@@ -4,13 +4,8 @@
 from __future__ import annotations
 
 import asyncio
-import hashlib
-import hmac
 import logging
 import os
-import stat
-import tempfile
-from pathlib import Path
 from typing import Optional
 
 from ...config import AppSettings
@@ -18,61 +13,14 @@ from ...constants import VWARP_BIND_ADDRESS, VWARP_SOCKS5_PORT
 from ...async_utils import safe_wait_for
 from .manager import GoBatchTester as _StreamingGoBatchTester
 
-logger = logging.getLogger(__name__)
-
-_DIGEST_ENV = "CONFIGSTREAM_TESTER_SHA256"
-_ENV_ALLOWLIST = (
-    "PATH",
-    "HOME",
-    "USERPROFILE",
-    "SYSTEMROOT",
-    "WINDIR",
-    "TMPDIR",
-    "TMP",
-    "TEMP",
-    "SSL_CERT_FILE",
-    "SSL_CERT_DIR",
-    "LANG",
-    "LC_ALL",
-    "TZ",
+from .binary_security import (
+    BinaryIdentity,
+    initialize_binary_identity,
+    minimal_subprocess_environment,
+    verify_binary_identity as _check_binary_identity,
 )
 
-
-def _sha256_file(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for block in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(block)
-    return digest.hexdigest()
-
-
-def _normalize_digest(value: str) -> Optional[str]:
-    candidate = (
-        str(value or "").strip().lower().split()[0] if str(value or "").strip() else ""
-    )
-    if len(candidate) != 64 or any(
-        char not in "0123456789abcdef" for char in candidate
-    ):
-        return None
-    return candidate
-
-
-def _sidecar_digest(path: Path) -> Optional[str]:
-    for candidate in (
-        path.with_name(path.name + ".sha256"),
-        path.with_suffix(path.suffix + ".sha256"),
-    ):
-        try:
-            if candidate.is_file():
-                digest = _normalize_digest(candidate.read_text(encoding="ascii"))
-                if digest:
-                    return digest
-                logger.error("Invalid tester checksum sidecar: %s", candidate)
-        except OSError as exc:
-            logger.warning(
-                "Unable to read tester checksum sidecar: %s", type(exc).__name__
-            )
-    return None
+logger = logging.getLogger(__name__)
 
 
 class GoBatchTester(_StreamingGoBatchTester):
@@ -86,47 +34,15 @@ class GoBatchTester(_StreamingGoBatchTester):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._binary_file: Optional[Path] = None
-        self._baseline_digest: Optional[str] = None
-        self._expected_digest: Optional[str] = None
+        self._identity: Optional[BinaryIdentity] = None
         if self.available:
             self._initialize_binary_identity()
 
     def _initialize_binary_identity(self) -> None:
         try:
-            candidate = Path(self.binary_path)
-            if candidate.is_symlink():
-                raise ValueError(
-                    "symbolic links are not accepted for the tester binary"
-                )
-            resolved = candidate.resolve(strict=True)
-            file_stat = resolved.stat()
-            if not stat.S_ISREG(file_stat.st_mode):
-                raise ValueError("tester binary is not a regular file")
-            if os.name != "nt" and (file_stat.st_mode & (stat.S_IWGRP | stat.S_IWOTH)):
-                raise ValueError("tester binary is group/world writable")
-            euid = getattr(os, "geteuid", lambda: 0)()
-            if os.name != "nt" and file_stat.st_uid not in {0, euid}:
-                raise ValueError("tester binary is owned by an unexpected user")
-            if not os.access(resolved, os.X_OK):
-                raise ValueError("tester binary is not executable")
-
-            configured = os.environ.get(_DIGEST_ENV, "")
-            expected = _normalize_digest(configured) if configured else None
-            if configured and expected is None:
-                raise ValueError(f"{_DIGEST_ENV} is not a valid SHA-256 digest")
-            expected = expected or _sidecar_digest(resolved)
-            baseline = _sha256_file(resolved)
-            if expected and not hmac.compare_digest(baseline, expected):
-                raise ValueError(
-                    "tester binary checksum does not match the pinned digest"
-                )
-
-            self.binary_path = str(resolved)
-            self._binary_file = resolved
-            self._baseline_digest = baseline
-            self._expected_digest = expected
-            if expected:
+            self._identity = initialize_binary_identity(self.binary_path)
+            self.binary_path = str(self._identity.path)
+            if self._identity.expected_sha256:
                 logger.info("Go tester binary verified against a pinned SHA-256 digest")
             else:
                 logger.warning(
@@ -135,44 +51,20 @@ class GoBatchTester(_StreamingGoBatchTester):
         except (OSError, ValueError) as exc:
             logger.error("Go tester binary rejected: %s", str(exc))
             self.available = False
-            self._binary_file = None
-            self._baseline_digest = None
+            self._identity = None
 
     def _verify_binary_integrity(self) -> bool:
-        path = self._binary_file
-        baseline = self._baseline_digest
-        if path is None or baseline is None:
+        if self._identity is None:
             return False
-        try:
-            if path.is_symlink():
-                raise ValueError("tester binary became a symbolic link")
-            file_stat = path.stat()
-            if not stat.S_ISREG(file_stat.st_mode):
-                raise ValueError("tester binary is no longer a regular file")
-            if os.name != "nt" and (file_stat.st_mode & (stat.S_IWGRP | stat.S_IWOTH)):
-                raise ValueError("tester binary became group/world writable")
-            current = _sha256_file(path)
-            if not hmac.compare_digest(current, baseline):
-                raise ValueError("tester binary changed after discovery")
-            if self._expected_digest and not hmac.compare_digest(
-                current, self._expected_digest
-            ):
-                raise ValueError("tester binary no longer matches the pinned digest")
-            return True
-        except (OSError, ValueError) as exc:
-            logger.error("Go tester integrity verification failed: %s", str(exc))
+        res = _check_binary_identity(self._identity)
+        if not res:
+            logger.error("Go tester integrity verification failed")
             self.available = False
-            return False
+        return res
 
     @staticmethod
     def _minimal_environment(settings: AppSettings) -> dict[str, str]:
-        environment = {
-            key: value for key in _ENV_ALLOWLIST if (value := os.environ.get(key))
-        }
-        environment.setdefault("PATH", os.defpath)
-        environment["TMPDIR"] = os.environ.get("TMPDIR") or tempfile.gettempdir()
-        environment["GOLOG_LOG_LEVEL"] = "error"
-
+        environment = minimal_subprocess_environment(settings)
         tunnel_override = os.environ.get("USE_VWARP_TUNNEL")
         use_tunnel = (
             False

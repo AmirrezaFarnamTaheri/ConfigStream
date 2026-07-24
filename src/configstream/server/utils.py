@@ -110,10 +110,10 @@ async def _read_json_file_async(path: Path) -> Any:
             _json_cache.pop(path, None)
             raise
 
-        # Bound cache size to 100 entries to prevent memory growth
+        # Bound cache size to 100 entries to prevent memory growth.
+        # Note: Do NOT clear _cache_locks as active waiters would acquire a split lock.
         if len(_json_cache) > 100:
             _json_cache.clear()
-            _cache_locks.clear()
 
         _json_cache[path] = (current_mtime, data)
         return data
