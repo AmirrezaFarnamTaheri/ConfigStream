@@ -11,8 +11,7 @@ import pytest
 
 from configstream.constants import PROCESS_TYPES, VALID_PROTOCOLS
 
-jsonschema = pytest.importorskip("jsonschema")
-
+import jsonschema
 
 SCHEMA_PATH = Path(__file__).resolve().parents[2] / "schema" / "proxy.schema.json"
 

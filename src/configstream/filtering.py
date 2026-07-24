@@ -43,6 +43,12 @@ def proxy_unique_key(
     addr = p.address.lower().strip().rstrip(".")
     port = int(p.port)
     uuid = (p.uuid or "").lower().strip()
+    if not uuid:
+        uuid = (
+            str(p.details.get("auth") or p.details.get("password") or "")
+            .lower()
+            .strip()
+        )
 
     # Transport details
     sni = (p.sni or "").lower().strip().rstrip(".")

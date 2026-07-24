@@ -395,21 +395,25 @@ class StegoPacker:
         positions = _build_carrier_positions(width, height, bpp)
 
         prefix = _sequential_extract(bytes(pixels), positions, LEGACY_HEADER_SIZE)
-        if prefix[:4] == LSB_MAGIC and prefix[4] == LSB_VERSION:
-            header = _sequential_extract(bytes(pixels), positions, LSB_HEADER_SIZE)
-            token_length = struct.unpack(">H", header[6:8])[0]
-            if token_length <= 0:
-                raise ValueError("Invalid LSB token length")
-            salt = header[8 : 8 + SALT_SIZE]
-            bootstrap_bits = LSB_HEADER_SIZE * 8
-            token = _extract_permuted(
-                bytes(pixels),
-                positions[bootstrap_bits:],
-                token_length,
-                self.key,
-                salt,
-                stego_version=LSB_VERSION,
-            )
+        if prefix[:4] == LSB_MAGIC:
+            version = prefix[4]
+            if version in (LSB_VERSION, SALTED_SHA_LSB_VERSION):
+                header = _sequential_extract(bytes(pixels), positions, LSB_HEADER_SIZE)
+                token_length = struct.unpack(">H", header[6:8])[0]
+                if token_length <= 0:
+                    raise ValueError("Invalid LSB token length")
+                salt = header[8 : 8 + SALT_SIZE]
+                bootstrap_bits = LSB_HEADER_SIZE * 8
+                token = _extract_permuted(
+                    bytes(pixels),
+                    positions[bootstrap_bits:],
+                    token_length,
+                    self.key,
+                    salt,
+                    stego_version=version,
+                )
+            else:
+                raise ValueError(f"Unsupported stego version: {version}")
         else:
             legacy_header = _extract_permuted(
                 bytes(pixels),

@@ -88,6 +88,8 @@ dev = [
     "mypy",
     "respx",
     "hypothesis>=6.0.0",
+    "jsonschema>=4.20.0",
+    "types-jsonschema",
     "types-aiofiles",
     "types-orjson"
 ]

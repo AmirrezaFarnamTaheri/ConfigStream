@@ -273,6 +273,8 @@ async def source_producer(
                 "hysteria://",
                 "hy2://",
                 "hysteria2://",
+                "hy3://",
+                "hysteria3://",
                 "tuic://",
                 "ssh://",
                 "wg://",
@@ -558,6 +560,7 @@ async def source_producer(
     except Exception as e:
         safe_error = SecurityValidator.sanitize_log_message(str(e))
         logger.error(f"Producer failed: {safe_error}")
+        raise
     finally:
         # If absolutely nothing was provided, log a clear warning – this would
         # otherwise result in a silent zero-output run.

@@ -145,6 +145,7 @@ class Proxy(BaseModel):
                 "psk",
                 "key",
                 "token",
+                "auth",
             ):
                 candidate = self.details.get(key)
                 if isinstance(candidate, str) and candidate.strip():

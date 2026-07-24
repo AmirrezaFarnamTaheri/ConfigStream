@@ -13,9 +13,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-LOG_STATEMENT = (
-    "logging.getLogger(__name__).debug(" '"Suppressed broad exception", exc_info=True)'
-)
+LOG_STATEMENT = 'logging.getLogger(__name__).debug("Suppressed broad exception")'
 
 
 def _line_offsets(source: str) -> list[int]:

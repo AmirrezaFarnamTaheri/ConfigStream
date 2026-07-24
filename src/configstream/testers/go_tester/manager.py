@@ -613,27 +613,20 @@ class GoBatchTester:
         # and gives Python breathing room, especially for WireGuard-heavy batches
         total_timeout = min(300, len(inputs) * 2 + 60)
 
-        try:
-            completed_results = await safe_wait_for(
-                asyncio.gather(*futures, return_exceptions=True), timeout=total_timeout
-            )
-        except asyncio.CancelledError:
-            await self._cleanup_pending(list(req_id_map.keys()), futures)
-            raise
-        except asyncio.TimeoutError:
+        done_set, pending_set = await asyncio.wait(futures, timeout=total_timeout)
+        completed_results = []
+        if pending_set:
             self._consecutive_timeouts += 1
             logger.error(
-                f"Timed out waiting for {len(inputs)} results from Go Tester Daemon "
+                f"Timed out waiting for {len(pending_set)}/{len(futures)} results from Go Tester Daemon "
                 f"(consecutive: {self._consecutive_timeouts}/{self._max_consecutive_timeouts}). "
                 f"Restarting daemon..."
             )
-            # Cleanup and mark incomplete proxies as unknown/failed
-            # Collect keys to remove under lock, then mark proxies outside lock
             async with self._lock:
                 keys_to_remove = [
                     req_id
                     for f, req_id in zip(futures, req_id_map.keys())
-                    if not f.done()
+                    if f in pending_set
                 ]
                 for req_id in keys_to_remove:
                     self._pending_futures.pop(req_id, None)
@@ -643,12 +636,19 @@ class GoBatchTester:
                     po.is_working = False
                     po.details["error"] = "BATCH_TIMEOUT"
                     po.details["failure_category"] = "TIMEOUT"
+                    po.details["infra_failure"] = True
                     po.tested_at = batch_tested_at
-            # Cancel futures after cleanup
-            for f in futures:
-                if not f.done():
-                    f.cancel()
-            await self._consume_futures(futures)
+            for f in pending_set:
+                f.cancel()
+            await self._consume_futures(list(pending_set))
+
+        # Collect results for done futures
+        for f in futures:
+            if f in done_set and not f.cancelled():
+                try:
+                    completed_results.append(f.result())
+                except Exception as exc:
+                    completed_results.append(exc)
 
             # If consecutive timeouts exceed threshold, disable daemon to avoid
             # wasting the entire time budget on a broken tester

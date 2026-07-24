@@ -244,7 +244,7 @@ def test_singbox_outbounds_validate_against_schema():
     """Verify that generated sing-box outbounds match our schema draft."""
     import pytest
 
-    jsonschema = pytest.importorskip("jsonschema")
+    import jsonschema
     import json
     from pathlib import Path
 

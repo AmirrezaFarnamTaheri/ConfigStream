@@ -19,15 +19,13 @@ def _tracked_files() -> list[str]:
         check=False,
     )
     if proc.returncode != 0:
-        return []
+        raise RuntimeError(f"git ls-files failed: {proc.stderr}")
     return proc.stdout.splitlines()
 
 
 def test_no_tracked_generated_artifacts() -> None:
     """Ensure generated artifact mirrors are not tracked by Git."""
     tracked = _tracked_files()
-    if not tracked:
-        return
 
     forbidden_prefixes = (
         "invvest/",
@@ -50,7 +48,8 @@ def test_no_tracked_generated_artifacts() -> None:
     forbidden_tracked = [
         f
         for f in tracked
-        if any(f.startswith(p) for p in forbidden_prefixes) or f in forbidden_exact
+        if any(f.startswith(p) or f"/{p}" in f for p in forbidden_prefixes)
+        or Path(f).name in forbidden_exact
     ]
 
     assert (

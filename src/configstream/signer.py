@@ -124,39 +124,43 @@ class Signer:
         max_age_seconds: int = SIGNATURE_MAX_AGE_SECONDS,
     ) -> bool:
         """Verify an artifact manifest's signature and timestamp freshness."""
-        sig_info = manifest.get("manifest_signature")
-        if not isinstance(sig_info, dict):
-            return False
+        try:
+            sig_info = manifest.get("manifest_signature")
+            if not isinstance(sig_info, dict):
+                return False
 
-        signature_hex = sig_info.get("signature")
-        if not isinstance(signature_hex, str):
-            return False
+            if sig_info.get("algorithm") != "ed25519":
+                return False
 
-        timestamp = sig_info.get("timestamp")
-        timestamp_int = int(timestamp) if timestamp is not None else None
+            signature_hex = sig_info.get("signature")
+            if not isinstance(signature_hex, str):
+                return False
 
-        if timestamp_int is not None:
+            key_id = sig_info.get("key_id")
+            pub_bytes = bytes.fromhex(public_key_hex)
+            expected_key_id = f"sha256:{hashlib.sha256(pub_bytes).hexdigest()[:16]}"
+            if key_id != expected_key_id:
+                return False
+
+            timestamp = sig_info.get("timestamp")
+            if timestamp is None:
+                return False
+            timestamp_int = int(timestamp)
+            if timestamp_int < 0:
+                return False
+
             age = int(time.time()) - timestamp_int
             if age < -CLOCK_SKEW_TOLERANCE_SECONDS or age > max_age_seconds:
                 return False
 
-        payload = dict(manifest)
-        payload.pop("manifest_signature", None)
+            payload = dict(manifest)
+            payload.pop("manifest_signature", None)
 
-        if timestamp_int is not None:
             canonical_bytes = _canonical_manifest_payload(payload, timestamp_int)
-        else:
-            canonical_bytes = json.dumps(
-                payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False
-            ).encode("utf-8")
-
-        try:
-            public_key = ed25519.Ed25519PublicKey.from_public_bytes(
-                bytes.fromhex(public_key_hex)
-            )
+            public_key = ed25519.Ed25519PublicKey.from_public_bytes(pub_bytes)
             public_key.verify(bytes.fromhex(signature_hex), canonical_bytes)
             return True
-        except (InvalidSignature, ValueError):
+        except (InvalidSignature, ValueError, TypeError, struct.error):
             return False
 
     @staticmethod

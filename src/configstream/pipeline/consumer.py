@@ -716,10 +716,12 @@ async def _revive_failed_proxies(
                 p.country_code = origin.get("country_code", "")
                 p.country = origin.get("country", "")
             origin_id = p.details.get("origin_id")
-            if not origin_id and isinstance(origin, dict):
-                origin_id = origin.get("uuid") or origin.get("id")
-            if origin_id and p.is_working:
-                vwarp_success_ids.add(str(origin_id))
+            origin_key = p.details.get("_origin_key")
+            if p.is_working:
+                if origin_id:
+                    vwarp_success_ids.add(str(origin_id))
+                if origin_key:
+                    vwarp_success_ids.add(str(origin_key))
             final_batch_for_this_source.append(p)
             if p.is_working:
                 async with seen_lock:
@@ -727,12 +729,14 @@ async def _revive_failed_proxies(
                     stats.vwarp_success += 1
 
     # 2. Attempt Standard Warp Revival (Fallback)
+    from ...filtering import proxy_unique_key
+
     remaining_failed = (
         [
             fp
             for fp in failed_proxies
             if str(fp.id) not in vwarp_success_ids
-            and (not fp.uuid or str(fp.uuid) not in vwarp_success_ids)
+            and str(proxy_unique_key(fp)) not in vwarp_success_ids
         ]
         if vwarp_success_ids
         else list(failed_proxies)

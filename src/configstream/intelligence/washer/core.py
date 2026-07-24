@@ -688,7 +688,7 @@ class ProxyWasher:
                 "vwarp_mode": vwarp_mode if use_vwarp else None,
                 "origin_proxy": origin_dict,
                 "origin_id": relay.id,
-                "origin_key": str(proxy_unique_key(relay)),
+                "_origin_key": str(proxy_unique_key(relay)),
             }
             # Keep legacy chain in sync for downstream compatibility.
             update_chain_details(revived_details, chain_order)

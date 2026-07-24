@@ -81,7 +81,7 @@ class GoBatchTester(_StreamingGoBatchTester):
         if self._restart_task and not self._restart_task.done():
             try:
                 await safe_wait_for(self._restart_task, timeout=15.0)
-            except (asyncio.TimeoutError, asyncio.CancelledError) as exc:
+            except asyncio.TimeoutError as exc:
                 logger.debug("Tester restart wait ended: %s", type(exc).__name__)
             self._restart_task = None
 

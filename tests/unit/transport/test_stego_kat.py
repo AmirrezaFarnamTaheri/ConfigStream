@@ -15,5 +15,22 @@ def test_hmac_lsb_offset_derivation_kat() -> None:
 
     assert len(offsets) == count
     assert all(0 <= idx < max_index for idx in offsets)
-    # Strict determinism assertion
-    assert offsets == derive_lsb_offsets(secret_key, max_index, count)
+    expected_golden = [
+        479,
+        422,
+        917,
+        374,
+        699,
+        588,
+        11,
+        727,
+        87,
+        794,
+        259,
+        186,
+        908,
+        819,
+        462,
+        545,
+    ]
+    assert offsets == expected_golden

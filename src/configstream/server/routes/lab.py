@@ -128,10 +128,15 @@ async def _validate_lab_config(config: object) -> None:
 
 def _require_payload_api_key(payload: dict, api_key: Optional[str]) -> None:
     """Helper to validate API key in payload for production lab tests."""
-    if not api_key:
-        return
+    if not api_key or not api_key.strip():
+        raise HTTPException(
+            status_code=500,
+            detail="Server configuration error: ADMIN_API_KEY must be set for live lab testing in production.",
+        )
     provided_key = payload.get("api_key")
-    if not provided_key or not secrets.compare_digest(provided_key, api_key):
+    if not isinstance(provided_key, str) or not secrets.compare_digest(
+        provided_key, api_key
+    ):
         raise HTTPException(status_code=403, detail="Forbidden: Invalid API key")
 
 
