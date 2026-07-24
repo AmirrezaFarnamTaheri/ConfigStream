@@ -122,6 +122,7 @@ def safe_json_dumps(data: Any) -> str:
 
 def build_graph_data(include_local_db: bool = False) -> Dict[str, Any]:
     nodes: List[Dict[str, Any]] = []
+    edges: List[Dict[str, Any]] = []
     seen_nodes = set()
     seen_edges = set()
 

@@ -10,7 +10,7 @@ import re
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import List, Dict, Any, Optional, cast, Set
+from typing import List, Dict, Any, Optional, cast, Set, Tuple
 
 from ...config import AppSettings
 from ...models import Proxy

@@ -651,7 +651,9 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "alpn": alpn_val,
         }
         obfs_type = proxy.details.get("obfs-type") or proxy.details.get("obfs")
-        obfs_pwd = proxy.details.get("obfs-password") or proxy.details.get("obfs_password", "")
+        obfs_pwd = proxy.details.get("obfs-password") or proxy.details.get(
+            "obfs_password", ""
+        )
         if obfs_type:
             out["obfs"] = {
                 "type": str(obfs_type),

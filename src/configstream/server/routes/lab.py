@@ -134,7 +134,10 @@ async def _sanitize_and_pin_outbound(outbound: Any, path: str) -> Dict[str, Any]
             pinned_ip = await _validate_lab_destination(original_host, f"{path}.{key}")
             clean_outbound[key] = pinned_ip
             # Ensure SNI preserves original hostname if server_name is not explicitly set
-            if isinstance(original_host, str) and not original_host.strip().replace(".", "").isdigit():
+            if (
+                isinstance(original_host, str)
+                and not original_host.strip().replace(".", "").isdigit()
+            ):
                 clean_outbound.setdefault("server_name", original_host.strip())
 
     # Recursively check nested outbounds/detours/next
@@ -142,12 +145,18 @@ async def _sanitize_and_pin_outbound(outbound: Any, path: str) -> Dict[str, Any]
         if key in clean_outbound:
             val = clean_outbound[key]
             if isinstance(val, dict):
-                clean_outbound[key] = await _sanitize_and_pin_outbound(val, f"{path}.{key}")
+                clean_outbound[key] = await _sanitize_and_pin_outbound(
+                    val, f"{path}.{key}"
+                )
             elif isinstance(val, list):
                 clean_list = []
                 for sub_idx, sub_item in enumerate(val):
                     if isinstance(sub_item, dict):
-                        clean_list.append(await _sanitize_and_pin_outbound(sub_item, f"{path}.{key}[{sub_idx}]"))
+                        clean_list.append(
+                            await _sanitize_and_pin_outbound(
+                                sub_item, f"{path}.{key}[{sub_idx}]"
+                            )
+                        )
                     else:
                         clean_list.append(sub_item)
                 clean_outbound[key] = clean_list
@@ -228,7 +237,9 @@ async def lab_test_chain(request: Request, payload: dict):
             detail="Live chain testing is not available. Use manual testing: save config to file and run 'sing-box run -c chain.json'.",
         ) from None
 
-    result = await test_chain_config(clean_config, timeout=settings.LAB_TEST_TIMEOUT_SECONDS)
+    result = await test_chain_config(
+        clean_config, timeout=settings.LAB_TEST_TIMEOUT_SECONDS
+    )
     if result["success"]:
         return JSONResponse(content=result)
 

@@ -259,11 +259,13 @@ async def test_go_batch_tester_partial_timeout_index_mapping():
     # Create dummy futures where index 1 completes first, index 0 is timed out
     f0 = asyncio.Future()
     f1 = asyncio.Future()
-    f1.set_result({
-        "req_id": "req-1",
-        "working": True,
-        "latency_ms": 120,
-    })
+    f1.set_result(
+        {
+            "req_id": "req-1",
+            "working": True,
+            "latency_ms": 120,
+        }
+    )
 
     req_id_map = {}
     futures = [f0, f1]
@@ -279,7 +281,7 @@ async def test_go_batch_tester_partial_timeout_index_mapping():
     tester._proc = mock_proc
 
     async def fake_wait_for(coro, timeout=None):
-        if timeout == 30.0:
+        if timeout in (5.0, 30.0):
             return None
         # Simulate asyncio.gather timeout
         try:
@@ -291,15 +293,21 @@ async def test_go_batch_tester_partial_timeout_index_mapping():
     with (
         patch.object(tester, "_ensure_process", new_callable=AsyncMock),
         patch.object(tester, "_restart_daemon", new_callable=AsyncMock),
-        patch("configstream.testers.go_tester.manager.to_singbox_outbound", return_value=_MOCK_OUTBOUND),
-        patch("configstream.testers.go_tester.manager.safe_wait_for", side_effect=fake_wait_for),
+        patch(
+            "configstream.testers.go_tester.manager.to_singbox_outbound",
+            return_value=_MOCK_OUTBOUND,
+        ),
+        patch(
+            "configstream.testers.go_tester.manager.safe_wait_for",
+            side_effect=fake_wait_for,
+        ),
     ):
         await tester.test_batch(proxies)
 
     # p0 timed out -> working False, infra_failure True
     assert p0.is_working is False
     assert p0.details.get("infra_failure") is True
-    assert p0.details.get("error") in ("BATCH_TIMEOUT", "DRAIN_TIMEOUT")
+    assert p0.details.get("error") == "BATCH_TIMEOUT"
 
     # p1 completed before timeout -> working True, latency_ms 120
     assert p1.is_working is True
