@@ -445,6 +445,6 @@ def test_chain_uniquification_prevents_collapse():
         for t in selector.get("outbounds", [])
         if t and t not in ("⚡ Best Latency", "direct")
     ]
-    assert len(entry_tags) >= 3, (
-        f"All 3 chains must appear (uniquified), got {len(entry_tags)}: {entry_tags}"
-    )
+    assert (
+        len(entry_tags) >= 3
+    ), f"All 3 chains must appear (uniquified), got {len(entry_tags)}: {entry_tags}"

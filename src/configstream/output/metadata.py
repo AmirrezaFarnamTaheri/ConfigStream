@@ -324,7 +324,7 @@ def save_metadata(
     try:
         pkg_version = version("configstream")
     except Exception:
-        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+        logging.getLogger(__name__).debug("Suppressed broad exception")
         pkg_version = "unknown"
 
     update_interval_hours = _meta_settings.UPDATE_INTERVAL_HOURS
@@ -469,28 +469,19 @@ def _attach_manifest_signature(manifest: Dict[str, Any]) -> None:
         return
 
     from ..signer import Signer
+    from ..security_validator import SecurityValidator
 
     try:
         signer = Signer(private_key_hex)
-        payload = dict(manifest)
-        payload.pop("manifest_signature", None)
-        canonical = json.dumps(
-            payload,
-            sort_keys=True,
-            separators=(",", ":"),
-            ensure_ascii=False,
-        )
-        sig_info = signer.sign_subscription(canonical)
-        public_key_bytes = bytes.fromhex(signer.get_public_key_hex())
-        key_id = hashlib.sha256(public_key_bytes).hexdigest()[:16]
-
-        manifest["manifest_signature"] = {
-            "algorithm": "ed25519",
-            "signature": sig_info["signature"],
-            "key_id": f"sha256:{key_id}",
-        }
+        manifest["manifest_signature"] = signer.sign_manifest(manifest)
     except Exception as exc:
-        logger.error(f"Failed to sign manifest: {exc}")
+        safe_msg = SecurityValidator.sanitize_log_message(str(exc))
+        logger.error(
+            "Failed to sign manifest [%s]: %s",
+            type(exc).__name__,
+            safe_msg,
+        )
+        raise RuntimeError(f"Configured manifest signing failed: {safe_msg}") from exc
 
 
 def write_public_artifact_contract(output_dir: Path) -> Dict[str, Any]:

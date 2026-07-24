@@ -10,7 +10,6 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Callable, Iterable, Sequence
 
-
 LOG_METHODS = {"debug", "info", "warning", "error", "exception", "critical", "log"}
 OUTPUT_METHODS = {"echo", "secho", "print", "write", "print_exception"}
 BROAD_NAMES = {"Exception", "BaseException"}
@@ -106,8 +105,7 @@ def _contains_call(
     predicate: Callable[[ast.Call], bool],
 ) -> bool:
     return any(
-        isinstance(child, ast.Call) and predicate(child)
-        for child in ast.walk(node)
+        isinstance(child, ast.Call) and predicate(child) for child in ast.walk(node)
     )
 
 
@@ -175,7 +173,9 @@ def iter_python_files(paths: Sequence[Path]) -> Iterable[tuple[Path, Path]]:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("paths", nargs="*", default=["src/configstream", "scripts", "tools"])
+    parser.add_argument(
+        "paths", nargs="*", default=["src/configstream", "scripts", "tools"]
+    )
     parser.add_argument("--json", dest="json_path", type=Path)
     parser.add_argument("--fail-on-unlogged", action="store_true")
     args = parser.parse_args()
@@ -190,8 +190,7 @@ def main() -> int:
         "broad_handler_count": len(findings),
         "unlogged_broad_handler_count": len(silent),
         "findings": [
-            {**asdict(finding), "silent": finding.silent}
-            for finding in findings
+            {**asdict(finding), "silent": finding.silent} for finding in findings
         ],
     }
 
@@ -202,9 +201,7 @@ def main() -> int:
             encoding="utf-8",
         )
 
-    print(
-        f"Broad handlers: {len(findings)}; unlogged broad handlers: {len(silent)}"
-    )
+    print(f"Broad handlers: {len(findings)}; unlogged broad handlers: {len(silent)}")
     for finding in silent:
         print(
             f"{finding.path}:{finding.line}: {finding.handler} -> "

@@ -141,7 +141,7 @@ class SingBoxGenerator:
                 if added and tag:
                     cast(List[str], urltest_outbound["outbounds"]).append(tag)
             except Exception:  # nosec B112
-                logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+                logging.getLogger(__name__).debug("Suppressed broad exception")
                 continue
 
         # Assemble Final Config

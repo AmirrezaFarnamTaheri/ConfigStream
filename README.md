@@ -58,11 +58,13 @@ ConfigStream uses a streaming producer-consumer pipeline.
    Write outputs atomically and publish via GitHub Pages.
 
 See `docs/wiki/project/02-architecture.md` for the full pipeline design and data flow.
+Explore the visual interactive topology: [Interactive Codebase Topology & Tree Graph](docs/project_tree_graph.html)
 
 ## Operational Governance
 - Unified source of truth, integrated roadmap history, release-hardening notes, and historical finalization/closure evidence: `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md`
 - Current remediation checkpoint: `STATUS.md`
 - Chronological implementation history: `CHANGELOG.md`
+- Interactive Codebase Graph: `docs/project_tree_graph.html`
 - Technical debt registry: `docs/DEBT_MATRIX.md`
 
 ## Evasion Features

@@ -128,10 +128,10 @@ class SingBoxTester:
                     configs.append({"id": p.id, "outbounds": chain_outbounds})
 
                 try:
-                    custom_results: Dict[
-                        str, bool
-                    ] = await self.go_tester.test_custom_configs(
-                        configs, check_honeypot=False
+                    custom_results: Dict[str, bool] = (
+                        await self.go_tester.test_custom_configs(
+                            configs, check_honeypot=False
+                        )
                     )
                 except Exception as e:
                     logger.warning(

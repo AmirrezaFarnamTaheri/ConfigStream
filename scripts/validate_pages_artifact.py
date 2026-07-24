@@ -8,18 +8,22 @@ import base64
 import binascii
 import hashlib
 import json
+import logging
 import os
 import re
 import shutil
+import struct
 import subprocess  # nosec B404
 import sys
+import time
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import cast
 from cryptography.hazmat.primitives.asymmetric import ed25519
 from cryptography.hazmat.primitives import serialization
-from cryptography.exceptions import InvalidSignature
+
+logger = logging.getLogger(__name__)
 
 try:
     import yaml  # type: ignore
@@ -201,6 +205,15 @@ def _public_key_from_runtime_env() -> ed25519.Ed25519PublicKey | None:
         return None
 
 
+def _public_key_hex_from_env() -> str:
+    key = _public_key_from_runtime_env()
+    if not key:
+        return ""
+    return key.public_bytes(
+        encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
+    ).hex()
+
+
 def _manifest_signer_from_env() -> ed25519.Ed25519PrivateKey | None:
     key_hex = ""
     for env_name in _MANIFEST_PRIVATE_KEY_ENV:
@@ -217,7 +230,9 @@ def _manifest_signer_from_env() -> ed25519.Ed25519PrivateKey | None:
     return ed25519.Ed25519PrivateKey.from_private_bytes(key_bytes)
 
 
-def _canonical_manifest_payload(manifest: dict[str, object]) -> bytes:
+def _canonical_manifest_payload(
+    manifest: dict[str, object], timestamp: int | None = None
+) -> bytes:
     payload = dict(manifest)
     payload.pop("manifest_signature", None)
     canonical = json.dumps(
@@ -225,8 +240,10 @@ def _canonical_manifest_payload(manifest: dict[str, object]) -> bytes:
         sort_keys=True,
         separators=(",", ":"),
         ensure_ascii=False,
-    )
-    return canonical.encode("utf-8")
+    ).encode("utf-8")
+    if timestamp is not None:
+        return struct.pack(">Q", int(timestamp)) + canonical
+    return canonical
 
 
 def _load_json(path: Path) -> tuple[object | None, str | None]:
@@ -743,10 +760,10 @@ def _validate_manifest(root: Path, manifest: object) -> list[str]:
 def _validate_manifest_signature(manifest: dict[str, object]) -> list[str]:
     errors: list[str] = []
     signature_obj = manifest.get("manifest_signature")
-    verifier_key = _public_key_from_runtime_env()
+    pub_key_hex = _public_key_hex_from_env()
 
     if signature_obj is None:
-        if verifier_key is not None:
+        if pub_key_hex:
             errors.append(
                 "artifact_manifest.json missing manifest_signature while CS_PUBLIC_KEY is configured"
             )
@@ -758,6 +775,9 @@ def _validate_manifest_signature(manifest: dict[str, object]) -> list[str]:
 
     algorithm = signature_obj.get("algorithm")
     signature_hex = signature_obj.get("signature")
+    key_id = signature_obj.get("key_id")
+    timestamp = signature_obj.get("timestamp")
+
     if algorithm != "ed25519":
         errors.append(
             "artifact_manifest.json manifest_signature.algorithm must be ed25519"
@@ -771,15 +791,41 @@ def _validate_manifest_signature(manifest: dict[str, object]) -> list[str]:
         )
         return errors
 
-    if verifier_key is None:
+    if not isinstance(key_id, str) or not re.fullmatch(r"sha256:[a-f0-9]{16}", key_id):
+        errors.append(
+            "artifact_manifest.json manifest_signature.key_id must be sha256:<16-hex-chars>"
+        )
         return errors
 
-    try:
-        verifier_key.verify(
-            bytes.fromhex(signature_hex), _canonical_manifest_payload(manifest)
+    if timestamp is None or type(timestamp) is not int:
+        errors.append(
+            "artifact_manifest.json manifest_signature.timestamp must be an integer (UTC seconds)"
         )
-    except (InvalidSignature, ValueError):
-        errors.append("artifact_manifest.json manifest_signature verification failed")
+        return errors
+
+    # Freshness / skew check (30s negative skew tolerance, 300s max age)
+    age = time.time() - timestamp
+    if age < -30 or age > 300:
+        errors.append(
+            f"artifact_manifest.json manifest_signature.timestamp expired or skewed (age: {age:.1f}s)"
+        )
+        return errors
+
+    if not pub_key_hex:
+        return errors
+
+    # Import Signer to verify canonical signature
+    try:
+        from configstream.signer import Signer
+
+        if not Signer.verify_manifest_signature(manifest, pub_key_hex):
+            errors.append(
+                "artifact_manifest.json manifest_signature verification failed"
+            )
+    except Exception as exc:
+        logger.warning("Manifest signature check exception: %s", exc)
+        errors.append(f"artifact_manifest.json signature check error: {exc}")
+
     return errors
 
 
@@ -1140,7 +1186,8 @@ def write_pages_contract(root: Path) -> None:
     }
     signer = _manifest_signer_from_env()
     if signer is not None:
-        payload = _canonical_manifest_payload(manifest)
+        ts_val = int(time.time())
+        payload = _canonical_manifest_payload(manifest, ts_val)
         signature = signer.sign(payload).hex()
         public_key = signer.public_key().public_bytes(
             encoding=serialization.Encoding.Raw,
@@ -1151,6 +1198,7 @@ def write_pages_contract(root: Path) -> None:
             "algorithm": "ed25519",
             "signature": signature,
             "key_id": f"sha256:{key_id}",
+            "timestamp": ts_val,
         }
     (root / "artifact_manifest.json").write_text(
         json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8"

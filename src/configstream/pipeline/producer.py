@@ -45,19 +45,30 @@ class StreamingProducer(IProducer):
                 "StreamingProducer requires a fully initialised context"
             )
 
-        await configstream.pipeline.source_producer(
-            self.sources,
-            self.context.work_queue,
-            None,  # Pre-supplied proxies are queued separately, not via results list.
-            self.context.quality_tracker,
-            self.context.anomaly_detector,
-            self.context.event_stream,
-            self.context.progress,
-            self.context.task_fetch,
-            num_consumers=getattr(self.context, "num_consumers", 4),
-            stop_event=self.context.stop_event,
-            stats=self.context.stats,
-        )
+        try:
+            await configstream.pipeline.source_producer(
+                self.sources,
+                self.context.work_queue,
+                None,  # Pre-supplied proxies are queued separately, not via results list.
+                self.context.quality_tracker,
+                self.context.anomaly_detector,
+                self.context.event_stream,
+                self.context.progress,
+                self.context.task_fetch,
+                num_consumers=getattr(self.context, "num_consumers", 4),
+                stop_event=self.context.stop_event,
+                stats=self.context.stats,
+            )
+        except Exception as e:
+            from configstream.security_validator import SecurityValidator
+
+            safe_err = SecurityValidator.sanitize_log_message(str(e))
+            logger.error(
+                "StreamingProducer encountered an unhandled exception [%s]: %s",
+                type(e).__name__,
+                safe_err,
+            )
+            raise
 
 
 def _chunk_lines(lines: List[str], chunk_size: int) -> List[List[str]]:
@@ -96,7 +107,7 @@ async def _report_source_failure(
             },
         )
     except Exception:  # nosec B110
-        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+        logging.getLogger(__name__).debug("Suppressed broad exception")
         pass
 
 
@@ -127,7 +138,7 @@ async def _report_source_backpressure(
             },
         )
     except Exception:  # nosec B110
-        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+        logging.getLogger(__name__).debug("Suppressed broad exception")
         pass
 
 
@@ -262,6 +273,8 @@ async def source_producer(
                 "hysteria://",
                 "hy2://",
                 "hysteria2://",
+                "hy3://",
+                "hysteria3://",
                 "tuic://",
                 "ssh://",
                 "wg://",
@@ -459,9 +472,21 @@ async def source_producer(
 
                         # Offload anomaly check to executor to avoid blocking on DB/ML
                         if enable_anomaly_detection:
-                            is_safe, reason = await loop.run_in_executor(
-                                None, anomaly_detector.is_safe, source, count
-                            )
+                            try:
+                                is_safe, reason = await loop.run_in_executor(
+                                    None, anomaly_detector.is_safe, source, count
+                                )
+                            except Exception as ad_err:
+                                safe_err = SecurityValidator.sanitize_log_message(
+                                    str(ad_err)
+                                )
+                                logger.warning(
+                                    f"Anomaly check failed for {safe_source} ({safe_err}); failing open"
+                                )
+                                is_safe, reason = (
+                                    True,
+                                    f"Anomaly detector error (Fail Open): {safe_err}",
+                                )
                         else:
                             is_safe, reason = True, "Anomaly detection disabled"
 
@@ -472,17 +497,28 @@ async def source_producer(
                                 )
                                 # Offload record to executor
                                 if enable_anomaly_detection:
-                                    await loop.run_in_executor(
-                                        None, anomaly_detector.record, source, count
-                                    )
+                                    try:
+                                        await loop.run_in_executor(
+                                            None, anomaly_detector.record, source, count
+                                        )
+                                    except Exception as rec_err:
+                                        safe_rec_err = (
+                                            SecurityValidator.sanitize_log_message(
+                                                str(rec_err)
+                                            )
+                                        )
+                                        logger.debug(
+                                            f"Anomaly record failed for {safe_source}: {safe_rec_err}"
+                                        )
                                 # Prepare metadata and fetch time
+                                resp_time = getattr(res, "response_time", None)
                                 fetch_time = (
-                                    f"{res.response_time:.2f}s"
-                                    if res.response_time is not None
+                                    f"{resp_time:.2f}s"
+                                    if resp_time is not None
                                     else "N/A"
                                 )
                                 metadata = {
-                                    "fetch_duration": res.response_time or 0.0,
+                                    "fetch_duration": resp_time or 0.0,
                                     "drop_stats": drop_stats,  # Pass stats downstream
                                 }
                                 queued = await _queue_payload(source, lines, metadata)
@@ -515,7 +551,9 @@ async def source_producer(
                                     f"anomaly_blocked:{reason}",
                                 )
                             except Exception:  # nosec B110
-                                logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+                                logging.getLogger(__name__).debug(
+                                    "Suppressed broad exception"
+                                )
                                 pass
                             if event_stream:
                                 event_stream.emit(
@@ -545,6 +583,7 @@ async def source_producer(
     except Exception as e:
         safe_error = SecurityValidator.sanitize_log_message(str(e))
         logger.error(f"Producer failed: {safe_error}")
+        raise
     finally:
         # If absolutely nothing was provided, log a clear warning – this would
         # otherwise result in a silent zero-output run.

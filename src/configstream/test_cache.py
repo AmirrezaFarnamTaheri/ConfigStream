@@ -47,6 +47,7 @@ class TestResultCache:
             ttl_seconds = AppSettings().CACHE_TTL
         self.ttl_seconds = ttl_seconds
         self._cache: Dict[str, Dict[str, Any]] = {}
+        self._tombstones: Dict[str, float] = {}
         self.load()
 
     def load(self) -> None:
@@ -94,8 +95,22 @@ class TestResultCache:
             try:
                 with open(self.db_path, "r", encoding="utf-8") as f:
                     disk_cache = json.load(f)
-                    # Merge in-memory cache into disk cache (in-memory takes precedence for own tests)
-                    # Merge with timestamp awareness could be added here
+                    # Apply only tombstones that are at least as new as the
+                    # corresponding disk entry. A newer result from another
+                    # writer must survive an older invalidation.
+                    for tombstone, invalidated_at in self._tombstones.items():
+                        disk_entry = disk_cache.get(tombstone)
+                        try:
+                            disk_tested_at = (
+                                float(disk_entry.get("tested_at", 0.0))
+                                if isinstance(disk_entry, dict)
+                                else 0.0
+                            )
+                        except (TypeError, ValueError):
+                            disk_tested_at = 0.0
+                        if disk_tested_at <= invalidated_at:
+                            disk_cache.pop(tombstone, None)
+                    # Merge in-memory cache into disk cache (in-memory takes precedence)
                     disk_cache.update(self._cache)
                     self._cache = disk_cache
             except (json.JSONDecodeError, IOError):
@@ -103,6 +118,9 @@ class TestResultCache:
 
         content = json.dumps(self._cache, indent=2)
         AtomicFileWriter.write_text(self.db_path, content)
+        # Tombstones describe pending deletions. Once the atomic write succeeds,
+        # retaining them would let a later unrelated save delete newer results.
+        self._tombstones.clear()
         logger.info(
             "Saved %d entries to cache file: %s",
             len(self._cache),
@@ -170,6 +188,14 @@ class TestResultCache:
         tested_at = entry.get("tested_at", 0.0)
         return tested_at >= (time.time() - self.ttl_seconds)
 
+    def invalidate(self, proxy: Proxy) -> None:
+        """Invalidate/remove a cached result for a proxy."""
+        if not proxy.config:
+            return
+        config_hash = self._compute_hash(proxy.config)
+        self._cache.pop(config_hash, None)
+        self._tombstones[config_hash] = time.time()
+
     def set(self, proxy: Proxy) -> None:
         """
         Store test result in cache.
@@ -177,10 +203,11 @@ class TestResultCache:
         Args:
             proxy: Proxy with test results to cache.
         """
-        if not proxy.config:
+        if not proxy.config or proxy.details.get("infra_failure") is True:
             return
 
         config_hash = self._compute_hash(proxy.config)
+        self._tombstones.pop(config_hash, None)
         current_time = time.time()
 
         existing_entry = self._cache.get(config_hash, {})

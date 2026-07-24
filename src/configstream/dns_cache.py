@@ -30,7 +30,11 @@ DOH_PROVIDERS: List[Dict[str, Any]] = [
     {"name": "OpenDNS", "url": "https://doh.opendns.com/dns-query", "weight": 10},
     {"name": "AdGuard", "url": "https://dns.adguard.com/dns-query", "weight": 10},
     {"name": "ControlD", "url": "https://freedns.controld.com/p2", "weight": 10},
-    {"name": "Mullvad", "url": "https://adblock.dns.mullvad.net/dns-query", "weight": 10},
+    {
+        "name": "Mullvad",
+        "url": "https://adblock.dns.mullvad.net/dns-query",
+        "weight": 10,
+    },
     {"name": "NextDNS", "url": "https://dns.nextdns.io/dns-query", "weight": 10},
 ]
 
@@ -38,7 +42,9 @@ DOH_PROVIDERS: List[Dict[str, Any]] = [
 def select_doh_provider() -> Dict[str, Any]:
     if not DOH_PROVIDERS:
         raise RuntimeError("No DoH providers configured")
-    total_weight = sum(max(0, int(provider.get("weight", 0))) for provider in DOH_PROVIDERS)
+    total_weight = sum(
+        max(0, int(provider.get("weight", 0))) for provider in DOH_PROVIDERS
+    )
     if total_weight <= 0:
         return DOH_PROVIDERS[0]
     selection = randbelow(total_weight)
@@ -133,7 +139,11 @@ class DNSCache:
                 if records:
                     address = str(records[0].host)
             except Exception as exc:
-                logger.debug("aiodns query failed for %s: %s", normalized_host, type(exc).__name__)
+                logger.debug(
+                    "aiodns query failed for %s: %s",
+                    normalized_host,
+                    type(exc).__name__,
+                )
 
         if address is None:
             address = await resolve_doh_json(normalized_host)
@@ -153,7 +163,10 @@ class DNSCache:
 
         if not address or _is_bogon_ip(address):
             if address:
-                logger.warning("DNS resolved %s to a non-global address; rejecting", normalized_host)
+                logger.warning(
+                    "DNS resolved %s to a non-global address; rejecting",
+                    normalized_host,
+                )
             return None
 
         async with self._get_lock():
@@ -176,7 +189,9 @@ class DNSCache:
             self._cache.popitem(last=False)
 
     def _cleanup_expired_locked(self, now: float) -> None:
-        expired = [host for host, entry in self._cache.items() if entry.expires_at <= now]
+        expired = [
+            host for host, entry in self._cache.items() if entry.expires_at <= now
+        ]
         for host in expired:
             self._cache.pop(host, None)
         if expired:

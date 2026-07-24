@@ -6,7 +6,7 @@ import hashlib
 import logging
 from typing import Callable, Iterable, List, Sequence, Dict, Tuple, Any
 
-from .models import Proxy
+from .models import Proxy, get_proxy_credential
 from .config import AppSettings
 from .utils.bool_parser import parse_tls_flag
 
@@ -42,7 +42,7 @@ def proxy_unique_key(
     # Normalize address by removing trailing dot (DNS root)
     addr = p.address.lower().strip().rstrip(".")
     port = int(p.port)
-    uuid = (p.uuid or "").lower().strip()
+    cred = get_proxy_credential(p)
 
     # Transport details
     sni = (p.sni or "").lower().strip().rstrip(".")
@@ -66,7 +66,7 @@ def proxy_unique_key(
         proto,
         addr,
         port,
-        uuid,
+        cred,
         sni,
         path,
         service_name,
@@ -128,7 +128,7 @@ def filter_unique_endpoints(proxies: List[Proxy]) -> List[Proxy]:
         # 1. Gather Core Identity Fields
         addr = (p.resolved_ip or p.address).lower().strip()
         port = str(p.port)
-        uuid = (p.uuid or "").lower().strip()
+        cred = get_proxy_credential(p).strip()
 
         # 2. Gather Transport Specifics (critical for differentiation)
         path = (p.path or "").strip()
@@ -139,8 +139,8 @@ def filter_unique_endpoints(proxies: List[Proxy]) -> List[Proxy]:
 
         # 3. Construct Fingerprint String
         # We ignore 'remarks' and 'title'. Protocol can be included if configured.
-        # Format: [PROTOCOL|]IP:PORT|UUID|PATH|SNI
-        raw_fingerprint = f"{addr}:{port}|{uuid}|{path}|{sni}"
+        # Format: [PROTOCOL|]IP:PORT|CREDENTIAL|PATH|SNI
+        raw_fingerprint = f"{addr}:{port}|{cred}|{path}|{sni}"
         if include_protocol:
             raw_fingerprint = f"{p.protocol.lower().strip()}|{raw_fingerprint}"
 

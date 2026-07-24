@@ -86,9 +86,9 @@ def test_active_docs_do_not_use_archived_ledgers_as_current_sources() -> None:
     for rel_path in active_paths:
         text = _read(rel_path)
         for phrase in forbidden:
-            assert phrase not in text, (
-                f"{rel_path} still cites removed historical source {phrase}"
-            )
+            assert (
+                phrase not in text
+            ), f"{rel_path} still cites removed historical source {phrase}"
 
 
 def test_master_records_second_pass_history_absorption() -> None:
@@ -142,6 +142,20 @@ def test_readme_describes_proxies_json_as_array_not_metadata_envelope() -> None:
     assert "Full dataset with metadata" not in readme
     assert "`proxies.json` is always a JSON array" in readme
     assert "metadata lives in metadata.json" in readme
+
+
+def test_project_tree_graph_html_structure() -> None:
+    """docs/project_tree_graph.html must have valid HTML structure with style, head, and body tags in order."""
+    html = _read("docs/project_tree_graph.html")
+    assert "</style>" in html
+    assert "</head>" in html
+    assert "<body>" in html
+    style_end = html.find("</style>")
+    head_end = html.find("</head>")
+    body_start = html.find("<body>")
+    assert -1 < style_end < head_end < body_start
+    assert "vis-network@9.1.2" in html
+    assert "Visualization Engine Unavailable" in html
 
 
 def test_docs_match_runtime_security_defaults() -> None:

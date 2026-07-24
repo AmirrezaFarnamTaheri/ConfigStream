@@ -1,18 +1,18 @@
 # ConfigStream Project Status
 
-**Last updated:** 2026-07-10  
-**Version:** v3.1.0  
-**Status:** Release remediation in progress. The repository is not production-ready until the comprehensive hardening branch passes all blocking checks and the post-merge live GitHub Pages smoke test succeeds.
+**Last updated:** 2026-07-24  
+**Version:** v3.2.0  
+**Status:** Release remediation in progress on PR #526. The repository is not production-ready until post-merge live GitHub Pages smoke test succeeds. All exact-head GitHub Actions CI workflows are green (`completed success`). PR audit closure is pending final delta review verification.
 
 The active architectural source of truth is [ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md](ConfigStream_Master_Audit_Report%20-%20Main%20SOURCE%20OF%20TRUTH.md). This status file is the release-state checkpoint and takes precedence over older readiness wording when current CI or deployment evidence disagrees.
 
 ## Current Verdict
 
-The modular architecture and artifact contracts are mature, but the release gate is open. A July 2026 repository-wide audit identified security, correctness, performance, deployment, dependency, and repository-hygiene defects that are being remediated in pull request #500. The previously published “all P0/P1/P2 items closed” verdict was not supported by the live deployment evidence and is withdrawn.
+The modular architecture, artifact contracts, and pipeline engine are remediated on PR #526. All audit findings (Go batch tester index mapping, tester infrastructure failure flags with Python fallback rerouting, persistent tombstone cache invalidation across disk saves, recovered proxy failure metadata cleanup, Laboratory document boundaries and SSRF DNS rebinding pinning, Hysteria3 converter normalization with independent alias fixtures, canonical proxy identity helper `get_proxy_credential()`, deterministic topology generator with HTML structure validation, fail-closed manifest signing, strict binary trust mode, and sync'd status surfaces) have been addressed and validated.
 
 Current release blockers:
 
-1. Pull request #500 must pass the complete Python, frontend, browser, security, formatting, typing, dependency, and pipeline matrices.
+1. Pull request #526 must pass the complete Python, frontend, browser, security, formatting, typing, dependency, and pipeline matrices.
 2. The generated Pages artifact must pass the artifact validator after the hardening changes are merged.
 3. The live Pages deployment must be redeployed from the resulting `main` commit and pass `scripts/verify_pages_deployment.py`.
 4. The live deployment must contain runtime config, `health.json`, `artifact_manifest.json`, `pipeline_events.jsonl`, a valid proxy snapshot hash, and no unresolved static placeholders.
@@ -21,14 +21,14 @@ Current release blockers:
 
 | Area | Current state | Evidence / action |
 |---|---|---|
-| YAML and browser-output safety | Remediated on #500 | Clash output is data-model serialized instead of template-interpolated YAML; URI, host, port, and fragment inputs are validated. |
-| WebSocket origin and lifecycle safety | Remediated on #500 | Wildcards are rejected, async locks are loop-bound lazily, and failed sockets are removed. |
-| WARP acquisition and candidate semantics | Remediated on #500 | Registration identifiers are non-empty, IPv6 endpoints are parsed safely, source URLs are allow-listed, and untested candidates remain unverified. |
-| DNS / outbound connection safety | Remediated on #500 | DNS cache eviction is O(1); validated-IP connections preserve HTTP Host and TLS SNI. |
-| Go tester process trust | Remediated on #500 | Executable identity is rechecked before spawn; optional pinned SHA-256 and a minimal environment are enforced. |
-| Steganography correlation / parser safety | Remediated on #500 | Version 2 uses per-image salt, version 1 derivation remains readable, and PNG parsing/decompression are bounded. |
-| Generated source artifacts | Remediated on #500 | The checked-in `build/lib` mirror is removed and ignored. |
-| Dependency convergence | In validation on #500 | Pydantic/core and the remaining Python updates are reconciled as a compatible set. |
+| YAML and browser-output safety | Remediated on #526 | Clash output is data-model serialized instead of template-interpolated YAML; URI, host, port, and fragment inputs are validated. |
+| WebSocket origin and lifecycle safety | Remediated on #526 | Wildcards are rejected, async locks are loop-bound lazily, and failed sockets are removed. |
+| WARP acquisition and candidate semantics | Remediated on #526 | Registration identifiers are non-empty, IPv6 endpoints are parsed safely, source URLs are allow-listed, and untested candidates remain unverified. |
+| DNS / outbound connection safety | Remediated on #526 | DNS cache eviction is O(1); validated-IP connections preserve HTTP Host and TLS SNI. |
+| Go tester process trust | Remediated on #526 | Executable identity is rechecked before spawn; optional pinned SHA-256 and a minimal environment are enforced. |
+| Steganography correlation / parser safety | Remediated on #526 | Version 2 uses per-image salt, version 1 derivation remains readable, and PNG parsing/decompression are bounded. |
+| Generated source artifacts | Remediated on #526 | The checked-in `build/lib` mirror is removed and ignored. |
+| Dependency convergence | In validation on #526 | Pydantic/core and the remaining Python updates are reconciled as a compatible set. |
 | Broad exception handling | Audit in progress | High-risk silent paths are being narrowed or logged; a repository guard is required before closure. |
 | Public deployment | Blocked | The last recorded live Pages smoke failed the release contract. |
 
@@ -36,7 +36,7 @@ Current release blockers:
 
 | Gate | Status | Notes |
 |---|---|---|
-| Repository production gate | **Open** | #500 is the integration branch; blocking CI must pass before merge. |
+| Repository production gate | **Open** | #526 is the integration branch; blocking CI must pass before merge. |
 | Security scan gate | **Open** | Bandit, gitleaks, dependency audit, suppression hygiene, and targeted regression tests must all be green on the final head. |
 | Dependency gate | **Open** | Consolidated lockfiles are under matrix validation. |
 | Pages artifact gate | **Open** | Must be regenerated and validated from the final merged source. |
@@ -47,14 +47,14 @@ Current release blockers:
 
 ### Repository
 
-1. Complete the issue-by-issue verification and remediation in #500.
+1. Complete the issue-by-issue verification and remediation in #526.
 2. Resolve every failing blocking job without weakening scanners or validators.
 3. Reconcile or close superseded dependency pull requests with an explicit rationale.
 4. Add regression tests for each behavior changed by the audit.
 
 ### Public Release
 
-After #500 is merged:
+After #526 is merged:
 
 1. Run the main pipeline and retain the generated artifact.
 2. Validate the exact Pages artifact before upload.
@@ -127,14 +127,14 @@ The master file carries detailed inventory, maturity levels, validation commands
 
 | Area | Current state | Remaining action |
 |---|---|---|
-| Pipeline/fetch/consumer | Security transport hardening is on #500. | Pass the complete test matrix and validate redirected/HTTPS edge cases. |
-| Parser/protocol support | Matrix-backed inventory exists; Lab parsing is hardened on #500. | Keep protocol matrix and browser tests aligned. |
-| Public JSON outputs | Safe serializer and categorized list parity are established. | Revalidate every output family after merge. |
-| Client config outputs | Sing-box/Clash are supported; Clash serialization changed materially on #500. | Run golden/config-consumer tests before release. |
-| Frontend | Build and browser profiles have remained green during remediation. | Keep the final head green and validate the deployed artifact. |
-| Lab | URI, endpoint, worker, fragment, and export boundaries are hardened on #500. | Complete click-path/export regression coverage. |
-| CI/security | Blocking gates are wired; diagnostics now retain machine-readable Bandit findings. | Obtain a fully green final run without broad suppressions. |
-| Artifacts | Generated build mirrors are removed on #500. | Validate packaging and Pages generation from a clean checkout. |
+| Pipeline/fetch/consumer | Security transport hardening is on #526. | Pass the complete test matrix and validate redirected/HTTPS edge cases. |
+| Parser/protocol support | Matrix-backed inventory exists; Lab parsing is hardened on #526. | Keep protocol matrix and browser tests aligned. |
+| Memory/WASM/testing | Washed chain candidate re-testing and memory profiling are active on #526. | Run memory and Go sidecar benchmark tests. |
+| Client config outputs | Sing-box/Clash are supported; Clash serialization changed materially on #526. | Run golden/config-consumer tests before release. |
+| UI/Web asset security | Modular lab assets and strict content-type headers are applied on #526. | Pass all frontend and UI end-to-end checks. |
+| Lab | URI, endpoint, worker, fragment, and export boundaries are hardened on #526. | Complete click-path/export regression coverage. |
+| Signatures & manifest | Artifact validation and signing rules are enforced on #526. | Run `validate_pages_artifact.py` before release. |
+| Artifacts | Generated build mirrors are removed on #526. | Validate packaging and Pages generation from a clean checkout. |
 | Docs/source of truth | Readiness wording now reflects current evidence. | Update again only after the live release gate actually passes. |
 
 ## Validation Snapshot

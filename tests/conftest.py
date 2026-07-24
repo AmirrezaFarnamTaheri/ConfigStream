@@ -1,5 +1,12 @@
 import pytest
+import sys
 import asyncio
+
+if sys.platform == "win32":
+    try:
+        asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+    except (AttributeError, NotImplementedError, RuntimeError):
+        pass
 import nest_asyncio
 import threading
 import http.server

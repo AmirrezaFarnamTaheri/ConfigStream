@@ -5,6 +5,7 @@ Standalone DNS Scanner
 Scans IPs/CIDRs for working DNS servers using aiodns.
 Based on dnsscanner_tui.py logic but adapted for CLI.
 """
+
 import logging
 
 import asyncio

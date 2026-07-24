@@ -116,18 +116,28 @@ async def test_go_and_python_tester_verdict_parity():
 
     proc.stdin.write.side_effect = side_effect_write
 
-    with patch("asyncio.create_subprocess_exec", new=AsyncMock(return_value=proc)):
-        go_tester = GoBatchTester(binary_path="/bin/true")
+    import sys
+
+    with (
+        patch("asyncio.create_subprocess_exec", new=AsyncMock(return_value=proc)),
+        patch(
+            "configstream.testers.go_tester.secure_manager.GoBatchTester._initialize_binary_identity"
+        ),
+        patch(
+            "configstream.testers.go_tester.secure_manager.GoBatchTester._verify_binary_integrity",
+            return_value=True,
+        ),
+        patch.object(GoBatchTester, "self_test", new=AsyncMock(return_value=True)),
+    ):
+        go_tester = GoBatchTester(binary_path=sys.executable)
         go_tester.available = True
+        await go_tester.start()
 
-        with patch.object(GoBatchTester, "self_test", new=AsyncMock(return_value=True)):
-            await go_tester.start()
+        batch = [proxy_ok, proxy_fail]
+        go_results = await go_tester.test_batch(batch)
 
-            batch = [proxy_ok, proxy_fail]
-            go_results = await go_tester.test_batch(batch)
-
-            responses_queue.put_nowait(b"")
-            await go_tester.close()
+        responses_queue.put_nowait(b"")
+        await go_tester.close()
 
     assert len(go_results) == 2
     go_res_ok = go_results[0]

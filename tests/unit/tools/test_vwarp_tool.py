@@ -91,9 +91,9 @@ def test_build_vwarp_config_full():
 
     # Robust check for I1
     an = config["wireguard"]["atomicnoize"]
-    assert "I1" in an, (
-        f"I1 missing from atomicnoize preset 'medium'. Available keys: {list(an.keys())}"
-    )
+    assert (
+        "I1" in an
+    ), f"I1 missing from atomicnoize preset 'medium'. Available keys: {list(an.keys())}"
     assert an["I1"] == "<b 0c0d0e0f>"
 
     assert config["psiphon"]["country"] == "JP"

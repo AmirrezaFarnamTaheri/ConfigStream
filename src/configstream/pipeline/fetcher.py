@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 try:
     MAX_RESPONSE_SIZE = AppSettings().MAX_RESPONSE_SIZE
 except Exception:
-    logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+    logging.getLogger(__name__).debug("Suppressed broad exception")
     MAX_RESPONSE_SIZE = 10 * 1024 * 1024
 
 USER_AGENTS = [
@@ -199,9 +199,7 @@ async def fetch_from_source(
             host = parsed.netloc
             key = host
         except Exception:
-            logging.getLogger(__name__).debug(
-                "Suppressed broad exception", exc_info=True
-            )
+            logging.getLogger(__name__).debug("Suppressed broad exception")
             key = source
 
         breaker = await breaker_manager.get_breaker(key)

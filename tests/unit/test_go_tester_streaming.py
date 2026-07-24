@@ -36,15 +36,23 @@ async def test_go_tester_streaming():
     proc.stderr.at_eof.return_value = False
     proc.stderr.readline = AsyncMock(return_value=b"")  # No logs
 
-    with patch("asyncio.create_subprocess_exec", new=AsyncMock(return_value=proc)):
-        tester = GoBatchTester(binary_path="/bin/true")
-        tester.available = True
+    import sys
 
-        # Mock self_test to succeed since we are mocking process anyway
-        with patch.object(GoBatchTester, "self_test", new=AsyncMock(return_value=True)):
-            # Start (implicit or explicit)
-            await tester.start()
-            assert tester._proc is not None
+    with (
+        patch("asyncio.create_subprocess_exec", new=AsyncMock(return_value=proc)),
+        patch(
+            "configstream.testers.go_tester.secure_manager.GoBatchTester._initialize_binary_identity"
+        ),
+        patch(
+            "configstream.testers.go_tester.secure_manager.GoBatchTester._verify_binary_integrity",
+            return_value=True,
+        ),
+        patch.object(GoBatchTester, "self_test", new=AsyncMock(return_value=True)),
+    ):
+        tester = GoBatchTester(binary_path=sys.executable)
+        tester.available = True
+        await tester.start()
+        assert tester._proc is not None
 
         proxies = [
             Proxy(

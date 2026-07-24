@@ -145,9 +145,9 @@ def test_split_uniquifies_duplicate_chain_tags(tmp_path):
     tags = [o.get("tag") for o in data["outbounds"] if o.get("tag")]
     # Duplicate tag must be uniquified (no two outbounds with same tag)
     dup_count = sum(1 for t in tags if t == dup_tag)
-    assert dup_count <= 1, (
-        f"Duplicate tag must be uniquified, got {dup_count} occurrences"
-    )
+    assert (
+        dup_count <= 1
+    ), f"Duplicate tag must be uniquified, got {dup_count} occurrences"
     # Selector must list both chains (uniquified tags)
     selector = next(
         (

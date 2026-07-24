@@ -1,6 +1,20 @@
 
 ## [Unreleased]
 
+## [3.2.0] - 2026-07-24
+
+- **Full-Scope PR #526 Audit Remediation**:
+  - **Go Batch Tester Positional Result Mapping**: Replaced positional array indexing during timeout recovery with explicit `(req_id, result_or_exc)` tuple pairs in `src/configstream/testers/go_tester/manager.py`, preventing out-of-order completed futures from misattributing proxy test results.
+  - **Consecutive Timeout Threshold Safeguard**: Wrapped `_restart_daemon()` in an `else:` branch in `GoBatchTester.test_batch()`, ensuring the daemon is disabled cleanly when consecutive timeouts exceed threshold without attempting an invalid restart.
+  - **Infrastructure Failure Routing (`infra_failure=True`)**: Marked `infra_failure=True` on all Go tester IPC drain timeouts, daemon crashes, and write failures so consumer workers route affected proxies to Python fallback testing rather than marking endpoints dead.
+  - **Laboratory Document Boundary & SSRF Hardening**: Enforced strict 5.0s resolution deadline (`asyncio.wait_for`), fail CLOSED error handling, pinned resolved global IP addresses to prevent DNS rebinding, and constructed server-owned minimal sing-box document `{"outbounds": [...]}` in `src/configstream/server/routes/lab.py`.
+  - **Hysteria3 Sing-Box Converter Parity**: Added `hysteria3`/`hy3` protocol support to `to_singbox_outbound()` converter (`src/configstream/converters/singbox.py`), updated `docs/protocol_matrix.json`, regenerated `docs/wiki/project/03-protocols.md`, and added `hysteria3` to `LAB_ALLOWED_OUTBOUND_TYPES`.
+  - **Canonical Proxy Identity Standardization**: Created single canonical credential helper `get_proxy_credential(p)` with standardized key precedence across `Proxy.id` (`src/configstream/models.py`), `proxy_unique_key()`, and `filter_unique_endpoints()` (`src/configstream/filtering.py`).
+  - **Deterministic Topology Generator**: Gated machine-dependent local SQLite DB enrichment in `scripts/generate_project_graph.py` behind `--include-local-db` (defaulting to False for clean builds), pinned `vis-network@9.1.2`, and regenerated `docs/project_tree_graph.html`.
+  - **Manifest Signing Fail-Closed Hardening**: Updated `_attach_manifest_signature()` in `src/configstream/output/metadata.py` to raise `RuntimeError` on any signing error when `CS_SIGNING_PRIVATE_KEY_HEX` is set in environment, aborting artifact generation fail-closed.
+  - **Strict Binary Trust Mode**: Enforced mandatory SHA-256 digest pinning (`CONFIGSTREAM_TESTER_SHA256` or `.sha256` sidecar) in `src/configstream/testers/go_tester/binary_security.py` when `CS_STRICT_BINARY_TRUST=1` or `ENVIRONMENT=production`.
+  - **Status & Matrix Synchronization**: Updated `STATUS.md` to v3.2.0 release posture.
+
 - **Bypass Evasion Hardening, ECH support, and Laboratory Presets GUI**:
   - Implemented new censorship evasion capabilities in the intelligence layer (`src/configstream/intelligence/evasion.py`), adding support for TCP Fast Open (TFO), Multipath TCP (MPTCP), TLS Padding, and Encrypted Client Hello (ECH) configurations.
   - Updated configuration generators (`src/configstream/generators/split.py`) to automatically apply TFO, Multipath TCP, and TLS padding to outbounds when running in aggressive/stealth evasion modes.

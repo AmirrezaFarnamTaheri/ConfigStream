@@ -26,6 +26,7 @@ from configstream.parsers import (
     parse_generic_url_scheme,
     parse_hysteria,
     parse_hysteria2,
+    parse_hysteria3,
     parse_juicity,
     parse_naive,
     parse_openvpn,
@@ -489,3 +490,40 @@ def test_public_protocol_parsers_fail_closed_on_malformed_inputs():
     ) in PARSER_TO_FRONTEND_FIXTURES.items():
         for config in (*generic_junk, *MALFORMED_PARSER_FIXTURES[protocol]):
             assert parser(config) is None, f"{protocol} accepted malformed input"
+
+
+def test_public_alias_protocol_fixtures():
+    """Verify public alias protocol fixtures (hysteria3:// and hy3://) independently."""
+    # 1. Test hysteria3:// URI
+    p_hy3 = parse_hysteria3(
+        "hysteria3://secretpass@fixture.example:443?sni=fixture.example#fixture-hy3"
+    )
+    assert p_hy3 is not None
+    assert p_hy3.address == "fixture.example"
+    assert p_hy3.port == 443
+    assert p_hy3.details.get("auth") == "secretpass"
+
+    sb_out_hy3 = to_singbox_outbound(p_hy3)
+    assert sb_out_hy3 is not None
+    assert sb_out_hy3["type"] == "hysteria2"
+    assert sb_out_hy3["tls"]["alpn"] == ["h3"]
+
+    # 2. Test hy3:// URI
+    p_hy3_alias = parse_hysteria3(
+        "hy3://secretpass@fixture.example:443?sni=fixture.example#fixture-hy3"
+    )
+    assert p_hy3_alias is not None
+    assert p_hy3_alias.address == "fixture.example"
+    assert p_hy3_alias.port == 443
+    assert p_hy3_alias.details.get("auth") == "secretpass"
+
+    sb_out_alias = to_singbox_outbound(p_hy3_alias)
+    assert sb_out_alias is not None
+    assert sb_out_alias["type"] == "hysteria2"
+    assert sb_out_alias["tls"]["alpn"] == ["h3"]
+
+    # 3. Test malformed inputs for both schemes
+    assert parse_hysteria3("hysteria3://") is None
+    assert parse_hysteria3("hysteria3://@fixture.example:443") is None
+    assert parse_hysteria3("hy3://") is None
+    assert parse_hysteria3("hy3://@fixture.example:443") is None

@@ -96,7 +96,7 @@ def validate_address(
         encoded = idna.encode(normalized).decode("ascii")
         address_check = encoded
     except Exception:
-        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+        logging.getLogger(__name__).debug("Suppressed broad exception")
         address_check = address_lower
 
     try:

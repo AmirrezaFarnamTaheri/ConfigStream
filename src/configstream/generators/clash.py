@@ -128,7 +128,7 @@ def _origin_proxy_from_revived(proxy: Proxy) -> Optional[Proxy]:
         try:
             return Proxy(**origin_obj)
         except Exception:  # nosec B110
-            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+            logging.getLogger(__name__).debug("Suppressed broad exception")
             pass
 
     origin_cfg = details.get("origin_config")
@@ -145,7 +145,7 @@ def _origin_proxy_from_revived(proxy: Proxy) -> Optional[Proxy]:
                 is_working=True,
             )
         except Exception:
-            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+            logging.getLogger(__name__).debug("Suppressed broad exception")
             return None
     return None
 

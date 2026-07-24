@@ -57,6 +57,7 @@
                 const doc = parser.parseFromString(icons[iconName], 'image/svg+xml');
                 const svg = doc.querySelector('svg');
                 if (svg) {
+                    svg.querySelectorAll('animate, set, animateTransform, script, foreignObject').forEach(node => node.remove());
                     el.replaceChildren(svg);
                     el.classList.add('inline-icon');
                 }

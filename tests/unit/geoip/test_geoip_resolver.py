@@ -117,6 +117,6 @@ def test_singleton_is_thread_safe():
     assert not errors, f"Errors during concurrent init: {errors}"
     # All threads must have received the same singleton instance.
     first = instances[0]
-    assert all(inst is first for inst in instances), (
-        "GeoIPResolver singleton broken: multiple instances created"
-    )
+    assert all(
+        inst is first for inst in instances
+    ), "GeoIPResolver singleton broken: multiple instances created"

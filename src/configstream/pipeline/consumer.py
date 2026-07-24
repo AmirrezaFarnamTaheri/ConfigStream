@@ -376,7 +376,7 @@ async def processing_consumer(
                     0.0,
                 )
             except Exception:  # nosec B110
-                logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+                logging.getLogger(__name__).debug("Suppressed broad exception")
                 pass
             try:
                 batch_number = str(getattr(settings, "BATCH_NUMBER", "")).strip()
@@ -396,7 +396,7 @@ async def processing_consumer(
                     },
                 )
             except Exception:  # nosec B110
-                logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+                logging.getLogger(__name__).debug("Suppressed broad exception")
                 pass
 
         work_queue.task_done()
@@ -544,6 +544,50 @@ async def _test_candidates(
             else:
                 chunk_size = max(1, int(settings.GO_TESTER_BATCH_SIZE))
 
+            async def _fallback_test(p: Proxy) -> Proxy:
+                sem = concurrency.get_semaphore()
+                async with sem:
+                    try:
+                        test_cache.invalidate(p)
+                        for key in (
+                            "infra_failure",
+                            "error",
+                            "failure_category",
+                            "tester_error_category",
+                        ):
+                            p.details.pop(key, None)
+                        if (p.protocol or "").lower() in (
+                            "http",
+                            "https",
+                            "socks",
+                            "socks5",
+                            "socks4",
+                        ):
+                            res = await tester.python_tester.test_direct(p)
+                        else:
+                            res = await tester.python_tester.test_via_singbox(p)
+                        if res.is_working:
+                            for key in (
+                                "infra_failure",
+                                "error",
+                                "failure_category",
+                                "tester_error_category",
+                            ):
+                                res.details.pop(key, None)
+                            test_cache.set(res)
+                        return res
+                    except asyncio.CancelledError:
+                        raise
+                    except Exception as e:
+                        logger.error(
+                            SecurityValidator.sanitize_log_message(
+                                f"Fallback test failed for proxy {p.id}: {e}"
+                            )
+                        )
+                        p.is_working = False
+                        p.details["error"] = "FALLBACK_TEST_FAILED"
+                        return p
+
             for i in range(0, len(proxies_to_actually_test), chunk_size):
                 chunk = proxies_to_actually_test[i : i + chunk_size]
                 try:
@@ -559,24 +603,6 @@ async def _test_candidates(
                         stats.drop_reasons["tester_error"] = stats.drop_reasons.get(
                             "tester_error", 0
                         ) + len(chunk)
-
-                    # Fallback to Python tester for this chunk
-                    async def _fallback_test(p: Proxy):
-                        sem = concurrency.get_semaphore()
-                        async with sem:
-                            try:
-                                return await tester.test(p)
-                            except asyncio.CancelledError:
-                                raise
-                            except Exception as e:
-                                logger.error(
-                                    SecurityValidator.sanitize_log_message(
-                                        f"Fallback test failed for proxy {p.id}: {e}"
-                                    )
-                                )
-                                p.is_working = False
-                                p.details["error"] = "FALLBACK_TEST_FAILED"
-                                return p
 
                     results = await asyncio.gather(
                         *[_fallback_test(x) for x in chunk],
@@ -597,6 +623,47 @@ async def _test_candidates(
                                     f"Fallback test for proxy {p.id} raised an exception: {res}"
                                 )
                             )
+
+                # Check for proxies marked with infra_failure=True during Go batch test
+                infra_failed = [
+                    p for p in chunk if p.details.get("infra_failure") is True
+                ]
+                if infra_failed:
+                    logger.warning(
+                        "Rerouting %d infrastructure-failed proxies to Python fallback tester",
+                        len(infra_failed),
+                    )
+                    for p in infra_failed:
+                        p.is_working = False
+                        for key in (
+                            "infra_failure",
+                            "error",
+                            "failure_category",
+                            "tester_error_category",
+                        ):
+                            p.details.pop(key, None)
+
+                    fallback_results = await asyncio.gather(
+                        *[_fallback_test(p) for p in infra_failed],
+                        return_exceptions=True,
+                    )
+                    for idx, res in enumerate(fallback_results):
+                        orig_p = infra_failed[idx]
+                        if isinstance(res, Proxy):
+                            orig_p.is_working = res.is_working
+                            orig_p.latency = res.latency
+                            if res.is_working:
+                                for key in (
+                                    "infra_failure",
+                                    "error",
+                                    "failure_category",
+                                    "tester_error_category",
+                                ):
+                                    orig_p.details.pop(key, None)
+                            orig_p.details.update(res.details)
+                        elif isinstance(res, Exception):
+                            orig_p.is_working = False
+                            orig_p.details["error"] = "PYTHON_FALLBACK_EXCEPTION"
 
                 # Batch history update in executor to prevent blocking loop
                 if chunk:
@@ -712,14 +779,28 @@ async def _revive_failed_proxies(
             if "revived-vwarp" not in p.tags:
                 p.tags.append("revived-vwarp")
             origin = p.details.get("origin_proxy")
-            if origin:
+            if origin and isinstance(origin, dict):
                 p.country_code = origin.get("country_code", "")
                 p.country = origin.get("country", "")
+                try:
+                    orig_p = Proxy.model_validate(origin)
+                    if p.is_working:
+                        vwarp_success_ids.add(str(orig_p.id))
+                        vwarp_success_ids.add(str(proxy_unique_key(orig_p)))
+                except Exception as exc:  # nosec B110
+                    logger.debug(
+                        "Suppressed origin Proxy model_validate error in revival: %s",
+                        SecurityValidator.sanitize_log_message(str(exc)),
+                    )
             origin_id = p.details.get("origin_id")
             if not origin_id and isinstance(origin, dict):
                 origin_id = origin.get("uuid") or origin.get("id")
-            if origin_id and p.is_working:
-                vwarp_success_ids.add(str(origin_id))
+            origin_key = p.details.get("_origin_key")
+            if p.is_working:
+                if origin_id:
+                    vwarp_success_ids.add(str(origin_id))
+                if origin_key:
+                    vwarp_success_ids.add(str(origin_key))
             final_batch_for_this_source.append(p)
             if p.is_working:
                 async with seen_lock:
@@ -727,8 +808,15 @@ async def _revive_failed_proxies(
                     stats.vwarp_success += 1
 
     # 2. Attempt Standard Warp Revival (Fallback)
+    from ..filtering import proxy_unique_key
+
     remaining_failed = (
-        [fp for fp in failed_proxies if str(fp.id) not in vwarp_success_ids]
+        [
+            fp
+            for fp in failed_proxies
+            if str(fp.id) not in vwarp_success_ids
+            and str(proxy_unique_key(fp)) not in vwarp_success_ids
+        ]
         if vwarp_success_ids
         else list(failed_proxies)
     )

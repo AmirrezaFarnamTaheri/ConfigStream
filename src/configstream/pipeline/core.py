@@ -22,6 +22,7 @@ from configstream.geoip import GeoIPResolver
 from configstream.source_quality import SourceQualityTracker
 from configstream.anomaly import AnomalyDetector
 from configstream.security.blocklist import DEFAULT_BLOCKLIST
+from configstream.security_validator import SecurityValidator
 from configstream.performance import PerformanceTracker
 from configstream.history.tracker import ProxyHistoryTracker
 from configstream.event_stream import EventStream
@@ -47,7 +48,10 @@ async def _cancel_all(
     except asyncio.CancelledError:
         pass
     except BaseException as e:
-        logger.debug(f"Producer task ended with exception during cancellation: {e}")
+        safe_msg = SecurityValidator.sanitize_log_message(str(e))
+        logger.debug(
+            f"Producer task ended with exception during cancellation: {safe_msg}"
+        )
 
 
 class StandardPipeline(IPipeline):
@@ -285,7 +289,8 @@ class StandardPipeline(IPipeline):
                 await _cancel_all(producer_task, consumer_tasks)
                 raise
             except Exception as e:
-                logger.exception(f"Pipeline error: {e}")
+                safe_err = SecurityValidator.sanitize_log_message(str(e))
+                logger.error(f"Pipeline error: {safe_err}")
                 await _cancel_all(producer_task, consumer_tasks)
                 raise
 
@@ -327,8 +332,6 @@ class StandardPipeline(IPipeline):
                     limit=5
                 )
                 if failing_sources:
-                    from configstream.security_validator import SecurityValidator
-
                     log_lines = []
                     for s_data in failing_sources:
                         safe_url = SecurityValidator.sanitize_log_message(s_data["url"])
@@ -366,16 +369,19 @@ class StandardPipeline(IPipeline):
             if self.context.anomaly_detector:
                 self.context.anomaly_detector.get_statistics()
 
-            history.save()
+            loop = asyncio.get_running_loop()
+            await loop.run_in_executor(None, history.save)
             try:
-                await asyncio.get_running_loop().run_in_executor(
+                await loop.run_in_executor(
                     None, lambda: history.cleanup_old_data(days=30)
                 )
             except Exception as e:
-                logger.warning(f"History cleanup failed: {e}")
+                logger.warning(
+                    f"History cleanup failed: {SecurityValidator.sanitize_log_message(str(e))}"
+                )
 
             if self.context.test_cache:
-                self.context.test_cache.save()
+                await loop.run_in_executor(None, self.context.test_cache.save)
 
             # Server notify
             notify_url = self.context.settings.NOTIFY_UPDATE_URL

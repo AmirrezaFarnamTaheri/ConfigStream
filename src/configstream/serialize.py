@@ -3,6 +3,7 @@
 Serialization Helpers.
 Converts Proxy objects to dictionary/JSON-safe formats.
 """
+
 import logging
 
 import json
@@ -50,10 +51,23 @@ def _sanitize_source(raw_source: Optional[str]) -> Optional[str]:
             return parsed.netloc
     except Exception:
         # Fall through to deterministic hash fallback
-        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+        logging.getLogger(__name__).debug("Suppressed broad exception")
         return hashlib.sha256(raw_source.encode("utf-8")).hexdigest()[:12]
     # Fallback to a short hash if it's not a parsable URL
     return hashlib.sha256(raw_source.encode("utf-8")).hexdigest()[:12]
+
+
+def _strip_internal_keys(obj: Any) -> Any:
+    """Recursively remove keys starting with '_' or 'has_' from all nested dicts."""
+    if isinstance(obj, dict):
+        return {
+            k: _strip_internal_keys(v)
+            for k, v in obj.items()
+            if not (isinstance(k, str) and (k.startswith("_") or k.startswith("has_")))
+        }
+    elif isinstance(obj, list):
+        return [_strip_internal_keys(item) for item in obj]
+    return obj
 
 
 def serialize_proxy(
@@ -71,7 +85,9 @@ def serialize_proxy(
     details_value = proxy.details
     if isinstance(details_value, dict):
         details_value = {
-            k: v for k, v in details_value.items() if not k.startswith("has_")
+            k: v
+            for k, v in details_value.items()
+            if not k.startswith("has_") and not k.startswith("_")
         }
         if isinstance(details_value.get("chain"), list):
             serialized_chain: List[Dict[str, Any]] = []
@@ -139,7 +155,7 @@ def serialize_proxy(
         if hist:
             data["history"] = hist
 
-    return data
+    return _strip_internal_keys(data)
 
 
 def _build_chain_config(chain_outbounds: List[Dict[str, Any]]) -> str:

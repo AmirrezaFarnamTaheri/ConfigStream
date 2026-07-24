@@ -34,9 +34,11 @@ User-supplied resources:
 Designed to run on Python 3.7+ with zero external dependencies.
 Works on Linux, macOS, and Windows.
 """
+
 import logging
 
 import argparse
+import binascii
 import concurrent.futures
 import json
 import os
@@ -49,6 +51,20 @@ import time
 import urllib.request
 import urllib.error
 from typing import List, Tuple, Optional, Dict, Any
+
+try:
+    from configstream.security_validator import SecurityValidator
+except ImportError:
+
+    class SecurityValidator:  # type: ignore[no-redef]
+        @staticmethod
+        def sanitize_log_message(msg: str) -> str:
+            import re
+
+            return re.sub(
+                r"(?i)(token|password|secret|key|uuid)=[^&\s]+", r"\1=***", str(msg)
+            )
+
 
 # ============================================================
 # Constants
@@ -2120,8 +2136,18 @@ def _parse_proxy_uri(uri: str) -> Optional[Dict[str, Any]]:
                 "tls": obj.get("tls", "") == "tls",
                 "sni": obj.get("sni", obj.get("host", obj.get("add", ""))),
             }
-        except Exception:
-            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+        except (
+            json.JSONDecodeError,
+            KeyError,
+            ValueError,
+            TypeError,
+            binascii.Error,
+            UnicodeDecodeError,
+        ) as exc:
+            logging.getLogger(__name__).debug(
+                "VMess parse error: %s",
+                SecurityValidator.sanitize_log_message(str(exc)),
+            )
             return None
 
     if scheme == "ss":

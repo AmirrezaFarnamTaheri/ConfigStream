@@ -1,4 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import hashlib
+import json
 import struct
 import time
 from typing import Dict, Any, Optional
@@ -6,25 +8,27 @@ from cryptography.hazmat.primitives.asymmetric import ed25519
 from cryptography.hazmat.primitives import serialization
 from cryptography.exceptions import InvalidSignature
 
-# Maximum age (seconds) of a valid signed payload. Signatures older than this
-# window are rejected regardless of cryptographic validity, preventing replays.
+# Maximum age (seconds) of a valid signed payload.
 SIGNATURE_MAX_AGE_SECONDS: int = 300  # 5 minutes
 
-# Tolerance for NTP clock drift between signer and verifier hosts. A signature
-# whose timestamp is at most this many seconds *in the future* (negative age)
-# is still accepted.  30 s covers normal NTP drift; the test_future_timestamp
-# case uses +3 600 s which still exceeds this tolerance and is correctly rejected.
+# Tolerance for NTP clock drift between signer and verifier hosts.
 CLOCK_SKEW_TOLERANCE_SECONDS: int = 30
 
 
 def _build_signed_payload(content_bytes: bytes, timestamp_int: int) -> bytes:
-    """Return the canonical byte string that is actually signed/verified.
-
-    Layout: big-endian uint64 timestamp || content bytes.
-    Embedding the timestamp inside the signed payload means an attacker cannot
-    re-use a captured signature with an altered or stripped timestamp.
-    """
+    """Return the canonical byte string that is actually signed/verified."""
     return struct.pack(">Q", timestamp_int) + content_bytes
+
+
+def _canonical_manifest_payload(manifest: Dict[str, Any], timestamp_int: int) -> bytes:
+    """Return canonical JSON bytes prefixed with big-endian uint64 timestamp."""
+    canonical_json = json.dumps(
+        manifest,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    ).encode("utf-8")
+    return _build_signed_payload(canonical_json, timestamp_int)
 
 
 class Signer:
@@ -87,6 +91,77 @@ class Signer:
             # Integer seconds so the verifier can round-trip via struct.pack(">Q").
             "timestamp": timestamp_int,
         }
+
+    def sign_manifest(self, manifest: Dict[str, Any]) -> Dict[str, Any]:
+        """Sign an artifact manifest dictionary with Ed25519 and timestamp.
+
+        Returns a manifest_signature dictionary to attach to the manifest.
+        """
+        if not self._private_key:
+            raise ValueError("Private key not configured for signing.")
+
+        timestamp_int = int(time.time())
+        payload = dict(manifest)
+        payload.pop("manifest_signature", None)
+
+        canonical_bytes = _canonical_manifest_payload(payload, timestamp_int)
+        signature_bytes = self._private_key.sign(canonical_bytes)
+
+        public_key_bytes = bytes.fromhex(self.get_public_key_hex())
+        key_id = hashlib.sha256(public_key_bytes).hexdigest()[:16]
+
+        return {
+            "algorithm": "ed25519",
+            "signature": signature_bytes.hex(),
+            "key_id": f"sha256:{key_id}",
+            "timestamp": timestamp_int,
+        }
+
+    @staticmethod
+    def verify_manifest_signature(
+        manifest: Dict[str, Any],
+        public_key_hex: str,
+        max_age_seconds: int = SIGNATURE_MAX_AGE_SECONDS,
+    ) -> bool:
+        """Verify an artifact manifest's signature and timestamp freshness."""
+        try:
+            sig_info = manifest.get("manifest_signature")
+            if not isinstance(sig_info, dict):
+                return False
+
+            if sig_info.get("algorithm") != "ed25519":
+                return False
+
+            signature_hex = sig_info.get("signature")
+            if not isinstance(signature_hex, str):
+                return False
+
+            key_id = sig_info.get("key_id")
+            pub_bytes = bytes.fromhex(public_key_hex)
+            expected_key_id = f"sha256:{hashlib.sha256(pub_bytes).hexdigest()[:16]}"
+            if key_id != expected_key_id:
+                return False
+
+            timestamp = sig_info.get("timestamp")
+            if timestamp is None:
+                return False
+            timestamp_int = int(timestamp)
+            if timestamp_int < 0:
+                return False
+
+            age = int(time.time()) - timestamp_int
+            if age < -CLOCK_SKEW_TOLERANCE_SECONDS or age > max_age_seconds:
+                return False
+
+            payload = dict(manifest)
+            payload.pop("manifest_signature", None)
+
+            canonical_bytes = _canonical_manifest_payload(payload, timestamp_int)
+            public_key = ed25519.Ed25519PublicKey.from_public_bytes(pub_bytes)
+            public_key.verify(bytes.fromhex(signature_hex), canonical_bytes)
+            return True
+        except (InvalidSignature, ValueError, TypeError, struct.error):
+            return False
 
     @staticmethod
     def verify_signature(

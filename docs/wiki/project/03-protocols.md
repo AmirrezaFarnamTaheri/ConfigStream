@@ -37,6 +37,8 @@ ConfigStream supports **26+ protocols** with comprehensive parsing and validatio
 | **exclave** | alias | `parse_wireguard` | yes | no | Input alias handled by the WireGuard parser. |
 | **https** | alias | `parse_generic_url_scheme` | yes | yes | Input normalized to http with tls=true. |
 | **hy2** | alias | `parse_hysteria2` | yes | yes | Input alias normalized to hysteria2. |
+| **hy3** | alias | `parse_hysteria3` | yes | no | Input alias normalized to hysteria2. |
+| **hysteria3** | alias | `parse_hysteria3` | yes | no | Hysteria2-compatible input URI alias normalized to native hysteria2 outbounds with ALPN h3. |
 | **naive+http** | alias | `parse_naive` | yes | no | Naive HTTP input alias. |
 | **naive+https** | alias | `parse_naive` | yes | no | Naive HTTPS input alias. |
 | **socks** | alias | `parse_generic_url_scheme` | yes | yes | Input normalized to socks5. |

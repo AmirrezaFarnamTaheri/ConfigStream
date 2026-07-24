@@ -266,7 +266,7 @@ def extract_config_lines(
             # If standard V2Ray, return as is
             return [payload_str], {}
         except Exception:
-            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+            logging.getLogger(__name__).debug("Suppressed broad exception")
             return [payload_str], {}  # Let parser fail later if invalid
 
     # 3. Check for YAML (Clash)

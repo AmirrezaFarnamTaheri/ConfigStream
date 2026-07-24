@@ -88,6 +88,8 @@ dev = [
     "mypy",
     "respx",
     "hypothesis>=6.0.0",
+    "jsonschema>=4.20.0",
+    "types-jsonschema",
     "types-aiofiles",
     "types-orjson"
 ]
@@ -106,6 +108,7 @@ asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 markers = [
     "e2e: End to End tests",
+    "playwright: Playwright E2E tests",
     "frontend_browser: browser-backed frontend tests",
     "degraded: degraded/no-JS behavior tests",
     "slow: Slow tests",

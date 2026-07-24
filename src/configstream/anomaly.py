@@ -13,7 +13,7 @@ import statistics
 import threading
 import time
 from pathlib import Path
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 from .constants import Z_SCORE_NORMAL_CONSTANT
 from .security_validator import _safe_log_text
@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS history (
                     try:
                         self._init_db()
                     except Exception as e:
-                        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+                        logging.getLogger(__name__).debug("Suppressed broad exception")
                         return True, f"DB Init Error (Fail Open): {_safe_log_text(e)}"
 
                 # Mypy safety: ensure _conn is not None before usage
@@ -385,3 +385,14 @@ CREATE TABLE IF NOT EXISTS history (
                         _safe_log_text(close_exc),
                     )
                 self._conn = None
+
+    def __enter__(self) -> "AnomalyDetector":
+        return self
+
+    def __exit__(
+        self,
+        exc_type: Optional[type],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[Any],
+    ) -> None:
+        self.close()

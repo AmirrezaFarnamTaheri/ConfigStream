@@ -569,7 +569,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
                     return key
                 except Exception:
                     # Return empty string on invalid Base64 to prevent passing illegal data to Go
-                    logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+                    logging.getLogger(__name__).debug("Suppressed broad exception")
                     return ""
             return key
 
@@ -625,27 +625,39 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         else:
             out["mtu"] = 1280
 
-    elif protocol == "hysteria2":
+    elif protocol in ("hysteria2", "hysteria3", "hy3"):
+        pwd = (
+            proxy.uuid
+            or str(proxy.details.get("auth", ""))
+            or str(proxy.details.get("password", ""))
+        )
         out = {
             "type": "hysteria2",
             **base,
-            "password": proxy.uuid or str(proxy.details.get("password", "")),
+            "password": pwd,
         }
         is_insecure = parse_bool(proxy.details.get("allowInsecure")) or parse_bool(
             proxy.details.get("skip_cert_verify")
         )
 
+        alpn_val = proxy.details.get("alpn", [])
+        if not alpn_val and protocol in ("hysteria3", "hy3"):
+            alpn_val = ["h3"]
+
         out["tls"] = {
             "enabled": True,
             "server_name": str(proxy.details.get("sni") or proxy.address),
             "insecure": is_insecure,
-            "alpn": proxy.details.get("alpn", []),
+            "alpn": alpn_val,
         }
         obfs_type = proxy.details.get("obfs-type") or proxy.details.get("obfs")
-        if obfs_type == "salamander":
+        obfs_pwd = proxy.details.get("obfs-password") or proxy.details.get(
+            "obfs_password", ""
+        )
+        if obfs_type:
             out["obfs"] = {
-                "type": "salamander",
-                "password": str(proxy.details.get("obfs-password", "")),
+                "type": str(obfs_type),
+                "password": str(obfs_pwd),
             }
 
     elif protocol == "tuic":

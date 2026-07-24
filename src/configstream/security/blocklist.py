@@ -37,7 +37,9 @@ class BlocklistManager:
     def __init__(self) -> None:
         if getattr(self, "_initialized", False):
             return
-        self.blocked_networks: Set[ipaddress.IPv4Network | ipaddress.IPv6Network] = set()
+        self.blocked_networks: Set[ipaddress.IPv4Network | ipaddress.IPv6Network] = (
+            set()
+        )
         self._v4_index: dict[int, Set[ipaddress.IPv4Network]] = {}
         self._v6_index: dict[int, Set[ipaddress.IPv6Network]] = {}
         self._data_lock: Optional[asyncio.Lock] = None
@@ -85,7 +87,9 @@ class BlocklistManager:
             headers["If-Modified-Since"] = metadata["last_modified"]
 
         try:
-            async with httpx.AsyncClient(trust_env=False, follow_redirects=False) as client:
+            async with httpx.AsyncClient(
+                trust_env=False, follow_redirects=False
+            ) as client:
                 response = await client.get(BLOCKLIST_URL, timeout=30, headers=headers)
 
             if response.status_code == 304:
@@ -134,7 +138,9 @@ class BlocklistManager:
         v6_index: dict[int, Set[ipaddress.IPv6Network]] = {}
         for network in new_networks:
             if isinstance(network, ipaddress.IPv4Network):
-                v4_index.setdefault(int(network.network_address.packed[0]), set()).add(network)
+                v4_index.setdefault(int(network.network_address.packed[0]), set()).add(
+                    network
+                )
             else:
                 first_segment = (int(network.network_address.packed[0]) << 8) | int(
                     network.network_address.packed[1]
@@ -145,7 +151,9 @@ class BlocklistManager:
             self.blocked_networks = new_networks
             self._v4_index = v4_index
             self._v6_index = v6_index
-        logger.info("Loaded %d blocked networks from FireHol Level 1", len(new_networks))
+        logger.info(
+            "Loaded %d blocked networks from FireHol Level 1", len(new_networks)
+        )
 
     def is_blocked(self, address: str) -> bool:
         try:

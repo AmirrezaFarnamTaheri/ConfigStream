@@ -194,9 +194,14 @@ class WarpScraper:
 
                     if kind == "singbox":
                         data = json.loads(content)
-                        outbounds = data.get("outbounds", []) if isinstance(data, dict) else []
+                        outbounds = (
+                            data.get("outbounds", []) if isinstance(data, dict) else []
+                        )
                         for outbound in outbounds:
-                            if not isinstance(outbound, dict) or outbound.get("type") != "wireguard":
+                            if (
+                                not isinstance(outbound, dict)
+                                or outbound.get("type") != "wireguard"
+                            ):
                                 continue
                             local_address = outbound.get("local_address", [])
                             if not isinstance(local_address, list):
@@ -218,7 +223,9 @@ class WarpScraper:
                             try:
                                 decoded_bytes = base64.b64decode(compact, validate=True)
                                 if len(decoded_bytes) <= MAX_SOURCE_BYTES:
-                                    decoded = decoded_bytes.decode("utf-8", errors="replace")
+                                    decoded = decoded_bytes.decode(
+                                        "utf-8", errors="replace"
+                                    )
                             except (binascii.Error, ValueError) as exc:
                                 logger.debug(
                                     "WARP source was not base64 text; parsing as plain text (%s)",
@@ -251,7 +258,12 @@ class WarpScraper:
                             min(len(entries), max_entries),
                             SecurityValidator.sanitize_log_message(name),
                         )
-                except (httpx.HTTPError, json.JSONDecodeError, ValueError, TypeError) as exc:
+                except (
+                    httpx.HTTPError,
+                    json.JSONDecodeError,
+                    ValueError,
+                    TypeError,
+                ) as exc:
                     logger.warning(
                         "Failed to process WARP source %s: %s",
                         SecurityValidator.sanitize_log_message(name),

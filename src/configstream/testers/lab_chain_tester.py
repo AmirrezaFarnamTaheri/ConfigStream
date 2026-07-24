@@ -15,6 +15,67 @@ from aiohttp_socks import ProxyConnector
 from ..security_validator import SecurityValidator
 from .utils import SecureConfigContext
 
+import ipaddress
+import socket
+
+_PRIVATE_NETWORKS = [
+    ipaddress.ip_network("10.0.0.0/8"),
+    ipaddress.ip_network("172.16.0.0/12"),
+    ipaddress.ip_network("192.168.0.0/16"),
+    ipaddress.ip_network("127.0.0.0/8"),
+    ipaddress.ip_network("::1/128"),
+    ipaddress.ip_network("fc00::/7"),
+    ipaddress.ip_network("fe80::/10"),
+    ipaddress.ip_network("169.254.0.0/16"),  # link-local / metadata
+    ipaddress.ip_network("100.64.0.0/10"),  # CGNAT
+    ipaddress.ip_network("0.0.0.0/8"),
+]
+
+
+def _is_private_or_local(host: str) -> bool:
+    """Return True if host resolves to or IS a private/local/loopback address."""
+    try:
+        addr = ipaddress.ip_address(host)
+        return any(addr in net for net in _PRIVATE_NETWORKS)
+    except ValueError:
+        pass
+    try:
+        resolved = socket.getaddrinfo(host, None, socket.AF_UNSPEC, socket.SOCK_STREAM)
+        for _family, _type, _proto, _canonname, sockaddr in resolved:
+            ip = sockaddr[0]
+            try:
+                addr = ipaddress.ip_address(ip)
+                if any(addr in net for net in _PRIVATE_NETWORKS):
+                    return True
+            except ValueError:
+                continue
+    except (socket.gaierror, OSError):
+        pass
+    return False
+
+
+def _validate_outbound_no_ssrf(outbound: Any, depth: int = 0) -> None:
+    """Recursively validate outbound entries for SSRF targets."""
+    if depth > 10:
+        return
+    if not isinstance(outbound, dict):
+        raise ValueError(f"outbound entry is not a dict at depth {depth}")
+    server = outbound.get("server") or outbound.get("address") or ""
+    if server and _is_private_or_local(str(server)):
+        raise ValueError(
+            f"SSRF rejected: outbound server '{SecurityValidator.sanitize_log_message(str(server))}' "
+            "resolves to a private/local address"
+        )
+    for key in ("outbound", "detour", "next"):
+        child = outbound.get(key)
+        if isinstance(child, dict):
+            _validate_outbound_no_ssrf(child, depth + 1)
+        elif isinstance(child, list):
+            for item in child:
+                if isinstance(item, dict):
+                    _validate_outbound_no_ssrf(item, depth + 1)
+
+
 logger = logging.getLogger(__name__)
 
 _SINGBOX_AVAILABLE: Optional[bool] = None
@@ -75,6 +136,11 @@ async def test_chain_config(
         return {"success": False, "error": "singbox2proxy not installed"}
 
     try:
+        if isinstance(config, dict):
+            outbounds = config.get("outbounds", [])
+            if isinstance(outbounds, list):
+                for ob in outbounds:
+                    _validate_outbound_no_ssrf(ob)
         ready_config = _ensure_config_ready(config)
         config_content = json.dumps(ready_config)
     except ValueError as e:
@@ -141,14 +207,19 @@ async def test_chain_config(
                                 exit_ip = (
                                     data.get("ip") if isinstance(data, dict) else None
                                 )
-                    except Exception:  # nosec B110
-                        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
-                        pass
+                    except Exception as sub_exc:
+                        logging.getLogger(__name__).debug(
+                            "Ipify check error: %s",
+                            SecurityValidator.sanitize_log_message(str(sub_exc)),
+                        )
 
         except asyncio.TimeoutError:
             return {"success": False, "error": "Connection test timed out"}
         except Exception as e:
-            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+            logging.getLogger(__name__).debug(
+                "Chain test exception: %s",
+                SecurityValidator.sanitize_log_message(str(e)),
+            )
             return {
                 "success": False,
                 "error": SecurityValidator.sanitize_log_message(str(e)),

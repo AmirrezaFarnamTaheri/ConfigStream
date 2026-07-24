@@ -2,6 +2,7 @@
 """
 ConfigStream: High-Performance VPN Aggregator & Tester
 """
+
 import logging
 
 import sys
@@ -70,7 +71,7 @@ def _patch_sniffio_for_asyncio() -> None:
     try:
         import sniffio  # type: ignore
     except Exception:
-        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+        logging.getLogger(__name__).debug("Suppressed broad exception")
         return
 
     import asyncio
@@ -103,7 +104,7 @@ def _patch_anyio_current_task() -> None:
     try:
         import anyio._backends._asyncio as anyio_asyncio  # type: ignore
     except Exception:
-        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+        logging.getLogger(__name__).debug("Suppressed broad exception")
         return
 
     import asyncio
@@ -113,7 +114,9 @@ def _patch_anyio_current_task() -> None:
         return
 
     _orig_current_task = anyio_asyncio.current_task
-    _sentinel_tasks: "weakref.WeakKeyDictionary[asyncio.AbstractEventLoop, asyncio.Task]" = weakref.WeakKeyDictionary()
+    _sentinel_tasks: (
+        "weakref.WeakKeyDictionary[asyncio.AbstractEventLoop, asyncio.Task]"
+    ) = weakref.WeakKeyDictionary()
 
     async def _keepalive() -> None:
         await asyncio.Event().wait()

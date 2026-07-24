@@ -94,7 +94,9 @@ class KeyGenerator:
             }
 
             async with httpx.AsyncClient(timeout=10.0, trust_env=False) as client:
-                response = await client.post(self.API_URL, json=payload, headers=headers)
+                response = await client.post(
+                    self.API_URL, json=payload, headers=headers
+                )
 
             if response.status_code != 200:
                 logger.warning(
@@ -120,7 +122,9 @@ class KeyGenerator:
             endpoint = peer.get("endpoint") or {}
             endpoint_value = None
             if isinstance(endpoint, dict):
-                endpoint_value = endpoint.get("v4") or endpoint.get("v6") or endpoint.get("host")
+                endpoint_value = (
+                    endpoint.get("v4") or endpoint.get("v6") or endpoint.get("host")
+                )
             elif isinstance(endpoint, str):
                 endpoint_value = endpoint
             host, port = self._parse_endpoint(endpoint_value)

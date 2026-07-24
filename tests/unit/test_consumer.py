@@ -104,6 +104,8 @@ async def test_processing_consumer_revival_crash(mock_dependencies_fix):
                 details={"origin_proxy": origin_dict},
             )
 
+            deps["washer"].is_vwarp_available_async = AsyncMock(return_value=True)
+            deps["washer"].warp_keys = ["test-key"]
             # washer.wash_failed returns (candidates, count)
             deps["washer"].wash_failed.return_value = ([revived_proxy], 1)
 

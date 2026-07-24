@@ -37,7 +37,7 @@
     },
     "manifest_signature": {
       "type": "object",
-      "required": ["algorithm", "signature", "key_id"],
+      "required": ["algorithm", "signature", "key_id", "timestamp"],
       "properties": {
         "algorithm": {
           "type": "string",
@@ -50,6 +50,10 @@
         "key_id": {
           "type": "string",
           "pattern": "^sha256:[a-f0-9]{16}$"
+        },
+        "timestamp": {
+          "type": "integer",
+          "minimum": 0
         }
       },
       "additionalProperties": false

@@ -10,7 +10,7 @@ import re
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import List, Dict, Any, Optional, cast, Set
+from typing import List, Dict, Any, Optional, cast, Set, Tuple
 
 from ...config import AppSettings
 from ...models import Proxy
@@ -18,6 +18,7 @@ from ...converters import to_singbox_outbound
 from ...constants import VWARP_SOCKS5_PORT, VWARP_BIND_ADDRESS
 from ...async_utils import safe_wait_for
 from ...intelligence.evasion import enrich_outbound_with_evasion
+from ...security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +44,7 @@ class GoBatchTester:
         try:
             w = int(workers)
         except Exception:
-            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+            logging.getLogger(__name__).debug("Suppressed broad exception")
             w = 20
         self.workers = max(1, w)
         self.timeout = timeout
@@ -247,7 +248,7 @@ class GoBatchTester:
             try:
                 await safe_wait_for(self._restart_task, timeout=15.0)
             except Exception:  # nosec B110
-                logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+                logging.getLogger(__name__).debug("Suppressed broad exception")
                 pass
             self._restart_task = None
 
@@ -352,7 +353,7 @@ class GoBatchTester:
             await asyncio.gather(*futures, return_exceptions=True)
         except Exception:  # nosec B110
             # Swallow any unexpected errors during cleanup
-            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+            logging.getLogger(__name__).debug("Suppressed broad exception")
             pass
 
     @staticmethod
@@ -464,7 +465,7 @@ class GoBatchTester:
         except asyncio.CancelledError:
             pass
         except Exception:  # nosec B110
-            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+            logging.getLogger(__name__).debug("Suppressed broad exception")
             pass
 
     async def test_batch(
@@ -537,10 +538,38 @@ class GoBatchTester:
 
         # Send batch to daemon
         try:
-            # Use NDJSON
             payload_str = "\n".join(_json_str(i) for i in inputs) + "\n"
             self._proc.stdin.write(payload_str.encode())
-            await self._proc.stdin.drain()
+            # Bounded drain: a full kernel buffer can block indefinitely.
+            # 15 s is generous for any reasonable batch; on timeout we treat
+            # this the same as a batch timeout (increment counter, restart/disable).
+            await safe_wait_for(self._proc.stdin.drain(), timeout=15.0)
+        except asyncio.TimeoutError:
+            self._consecutive_timeouts += 1
+            logger.error(
+                f"IPC drain timed out writing to Go Tester Daemon "
+                f"(consecutive: {self._consecutive_timeouts}/{self._max_consecutive_timeouts})."
+            )
+            await self._cleanup_pending(list(req_id_map.keys()), futures)
+            for p in req_id_map.values():
+                if p.is_working is not True:
+                    p.is_working = False
+                    if not isinstance(p.details, dict):
+                        p.details = {}
+                    p.details.setdefault("error", "DRAIN_TIMEOUT")
+                    p.details.setdefault("failure_category", "TIMEOUT")
+                    p.details["infra_failure"] = True
+                    p.tested_at = batch_tested_at
+            if self._consecutive_timeouts >= self._max_consecutive_timeouts:
+                logger.error(
+                    f"Go Tester Daemon exceeded {self._max_consecutive_timeouts} "
+                    f"consecutive timeouts on drain. Disabling to preserve pipeline time budget."
+                )
+                self.available = False
+                await self.close()
+            else:
+                await self._restart_daemon()
+            return proxies
         except asyncio.CancelledError:
             await self._cleanup_pending(list(req_id_map.keys()), futures)
             raise
@@ -557,6 +586,7 @@ class GoBatchTester:
                         proxy_obj.details = {}
                     proxy_obj.details.setdefault("error", "DAEMON_CRASHED")
                     proxy_obj.details.setdefault("failure_category", "CRASH")
+                    proxy_obj.details["infra_failure"] = True
                     proxy_obj.tested_at = batch_tested_at
 
             # Process might be dead, ensure restart next time
@@ -574,6 +604,7 @@ class GoBatchTester:
                         p.details = {}
                     p.details.setdefault("error", "DAEMON_WRITE_FAILED")
                     p.details.setdefault("failure_category", "CRASH")
+                    p.details["infra_failure"] = True
                     p.tested_at = batch_tested_at
 
             # Process might be dead, ensure restart next time
@@ -586,27 +617,30 @@ class GoBatchTester:
         # and gives Python breathing room, especially for WireGuard-heavy batches
         total_timeout = min(300, len(inputs) * 2 + 60)
 
+        completed_pairs: List[Tuple[str, Any]] = []
+        timed_out = False
         try:
-            completed_results = await safe_wait_for(
+            raw_results = await safe_wait_for(
                 asyncio.gather(*futures, return_exceptions=True), timeout=total_timeout
             )
+            completed_pairs = list(zip(req_id_order, raw_results))
         except asyncio.CancelledError:
             await self._cleanup_pending(list(req_id_map.keys()), futures)
             raise
         except asyncio.TimeoutError:
+            timed_out = True
             self._consecutive_timeouts += 1
             logger.error(
-                f"Timed out waiting for {len(inputs)} results from Go Tester Daemon "
+                f"Timed out waiting for results from Go Tester Daemon "
                 f"(consecutive: {self._consecutive_timeouts}/{self._max_consecutive_timeouts}). "
                 f"Restarting daemon..."
             )
-            # Cleanup and mark incomplete proxies as unknown/failed
-            # Collect keys to remove under lock, then mark proxies outside lock
+            # Collect done vs pending futures
             async with self._lock:
                 keys_to_remove = [
                     req_id
                     for f, req_id in zip(futures, req_id_map.keys())
-                    if not f.done()
+                    if not f.done() or f.cancelled()
                 ]
                 for req_id in keys_to_remove:
                     self._pending_futures.pop(req_id, None)
@@ -616,8 +650,23 @@ class GoBatchTester:
                     po.is_working = False
                     po.details["error"] = "BATCH_TIMEOUT"
                     po.details["failure_category"] = "TIMEOUT"
+                    po.details["infra_failure"] = True
                     po.tested_at = batch_tested_at
-            # Cancel futures after cleanup
+
+            # Preserve results from futures that completed before timeout with exact req_id mapping
+            for req_id, f in zip(req_id_order, futures):
+                if f.done() and not f.cancelled():
+                    try:
+                        completed_pairs.append((req_id, f.result()))
+                    except Exception as exc:
+                        safe_msg = SecurityValidator.sanitize_log_message(str(exc))
+                        logger.debug(
+                            "Go tester future exception during timeout recovery for %s: %s",
+                            req_id,
+                            safe_msg,
+                        )
+                        completed_pairs.append((req_id, exc))
+
             for f in futures:
                 if not f.done():
                     f.cancel()
@@ -631,35 +680,34 @@ class GoBatchTester:
                     f"consecutive timeouts. Disabling to preserve pipeline time budget."
                 )
                 self.available = False
-                await self._restart_daemon()
-                return proxies
-
-            # Restart daemon and AWAIT completion before returning,
-            # so the next batch doesn't arrive before the daemon is ready
-            try:
-                await safe_wait_for(self._restart_daemon(), timeout=30.0)
-            except Exception as re_err:
-                logger.warning(f"Daemon restart failed: {re_err}")
-            return proxies
+                await self.close()
+            else:
+                # Restart daemon and AWAIT completion before processing results,
+                # so the next batch doesn't arrive before the daemon is ready
+                try:
+                    await safe_wait_for(self._restart_daemon(), timeout=30.0)
+                except Exception as re_err:
+                    safe_re_msg = SecurityValidator.sanitize_log_message(str(re_err))
+                    logger.warning("Daemon restart failed: %s", safe_re_msg)
 
         # Process Results
         working_count = 0
         failure_reasons: Dict[str, int] = {}
 
         seen_req_ids: Set[str] = set()
-        for idx, res in enumerate(completed_results):
+        for req_id, res in completed_pairs:
+            seen_req_ids.add(req_id)
+            tp = req_id_map.get(req_id)
+            if tp is None:
+                continue
+
             if isinstance(res, BaseException):
-                logger.debug(f"Go Tester result error: {res}")
-                # Map exception to corresponding proxy (by request order)
-                if idx < len(req_id_order):
-                    req_id = req_id_order[idx]
-                    seen_req_ids.add(req_id)
-                    tp = req_id_map.get(req_id)
-                    if tp:
-                        tp.is_working = False
-                        tp.details["error"] = "GO_TESTER_EXCEPTION"
-                        tp.details["failure_category"] = "IPC_ERROR"
-                        tp.tested_at = batch_tested_at
+                logger.debug(f"Go Tester result error for {req_id}: {res}")
+                tp.is_working = False
+                tp.details["error"] = "GO_TESTER_EXCEPTION"
+                tp.details["failure_category"] = "IPC_ERROR"
+                tp.details["infra_failure"] = True
+                tp.tested_at = batch_tested_at
                 continue
 
             # res is the JSON dict
@@ -709,19 +757,21 @@ class GoBatchTester:
                     continue
 
                 target_proxy.is_working = False
-                target_proxy.details["error"] = error_msg
+                target_proxy.latency = None
                 target_proxy.tested_at = batch_tested_at
+                target_proxy.details["error"] = error_msg
 
-                # Categorize error
-                if "HONEYPOT" in error_msg:
-                    error_cat = "HONEYPOT"
-                elif "DIRTY_IP" in error_msg:
-                    error_cat = "DIRTY_IP"
-                elif "PANIC" in error_msg:
-                    error_cat = "PANIC"
-                elif "timeout" in error_msg.lower():
+                if "timeout" in error_msg.lower():
                     error_cat = "TIMEOUT"
-                elif "bind" in error_msg.lower() and "in use" in error_msg.lower():
+                elif "refused" in error_msg.lower():
+                    error_cat = "REFUSED"
+                elif "reset" in error_msg.lower():
+                    error_cat = "RESET"
+                elif "tls" in error_msg.lower() or "certificate" in error_msg.lower():
+                    error_cat = "TLS_ERROR"
+                elif "dns" in error_msg.lower():
+                    error_cat = "DNS_ERROR"
+                elif "bind" in error_msg.lower():
                     error_cat = "BIND_ERROR"
                 elif "handshake" in error_msg.lower():
                     error_cat = "HANDSHAKE_FAIL"
@@ -743,8 +793,9 @@ class GoBatchTester:
                 tp.details["failure_category"] = "IPC_ERROR"
                 tp.tested_at = batch_tested_at
 
-        # Reset consecutive timeout counter on successful batch completion
-        self._consecutive_timeouts = 0
+        # Reset consecutive timeout counter ONLY on clean batch completion (no timeout)
+        if not timed_out:
+            self._consecutive_timeouts = 0
 
         # Log summary
         failure_summary = ", ".join([f"{k}: {v}" for k, v in failure_reasons.items()])
@@ -824,17 +875,25 @@ class GoBatchTester:
                     lines.append(dumped)
 
             payload_str = "\n".join(lines) + "\n"
-            # Capture proc reference under lock to prevent race with close()
+            # Read process references safely under lock, releasing lock before IPC write/drain
             async with self._lock:
                 proc = self._proc
-                if proc is None or proc.stdin is None:
-                    logger.error(
-                        "Go Tester process is dead, cannot send custom configs."
-                    )
-                    await self._cleanup_pending(list(reverse_map.keys()), futures)
-                    return {}
-                proc.stdin.write(payload_str.encode())
-                await proc.stdin.drain()
+                stdin = proc.stdin if proc else None
+
+            if proc is None or stdin is None:
+                logger.error("Go Tester process is dead, cannot send custom configs.")
+                await self._cleanup_pending(list(reverse_map.keys()), futures)
+                return {}
+
+            stdin.write(payload_str.encode())
+            await safe_wait_for(stdin.drain(), timeout=15.0)
+        except asyncio.TimeoutError:
+            logger.error(
+                "IPC drain timed out writing custom configs to Go Tester Daemon."
+            )
+            await self._cleanup_pending(list(reverse_map.keys()), futures)
+            await self._restart_daemon()
+            return {}
         except asyncio.CancelledError:
             await self._cleanup_pending(list(reverse_map.keys()), futures)
             raise

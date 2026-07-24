@@ -96,5 +96,5 @@ def parse_retry_after(header: str | None) -> float | None:
         now = datetime.now(timezone.utc)
         return max(0.0, (parsed - now).total_seconds())
     except Exception:
-        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+        logging.getLogger(__name__).debug("Suppressed broad exception")
         return None

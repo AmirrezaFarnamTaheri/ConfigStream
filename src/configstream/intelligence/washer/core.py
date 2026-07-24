@@ -110,7 +110,7 @@ class ProxyWasher:
             try:
                 decoded = base64.b64decode(cleaned, validate=False)
             except Exception:
-                logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+                logging.getLogger(__name__).debug("Suppressed broad exception")
                 return None
         if len(decoded) != 32:
             return None
@@ -321,7 +321,7 @@ class ProxyWasher:
                                     )
                                     break  # Stop after one success
                     except Exception:  # nosec B110
-                        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+                        logging.getLogger(__name__).debug("Suppressed broad exception")
                         pass
 
             # --- STRATEGY 3: DEFAULTS ---
@@ -526,7 +526,7 @@ class ProxyWasher:
             _ = reader  # keep reference for type checkers
             return True
         except Exception:
-            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+            logging.getLogger(__name__).debug("Suppressed broad exception")
             return False
 
     def wash_failed(
@@ -678,6 +678,8 @@ class ProxyWasher:
             chain_proxies = (
                 [warp_chain, relay_chain] if use_vwarp else [relay_chain, warp_chain]
             )
+            from ...filtering import proxy_unique_key
+
             revived_details: Dict[str, Any] = {
                 # Canonical chain data model (protocol-agnostic Proxy objects).
                 "chain": chain_proxies,
@@ -686,6 +688,7 @@ class ProxyWasher:
                 "vwarp_mode": vwarp_mode if use_vwarp else None,
                 "origin_proxy": origin_dict,
                 "origin_id": relay.id,
+                "_origin_key": str(proxy_unique_key(relay)),
             }
             # Keep legacy chain in sync for downstream compatibility.
             update_chain_details(revived_details, chain_order)
@@ -801,7 +804,7 @@ class ProxyWasher:
                         if float(res.get("total_distance", 99999)) < 15000:
                             is_optimal = True
             except Exception:  # nosec B110
-                logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+                logging.getLogger(__name__).debug("Suppressed broad exception")
                 pass
 
             flag = get_flag_emoji(relay.country_code or "XX")

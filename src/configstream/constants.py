@@ -103,6 +103,8 @@ VALID_PROTOCOLS = [
     "hysteria",
     "hysteria2",
     "hy2",
+    "hysteria3",
+    "hy3",
     "husi",  # Hysteria2/Sing-box URI scheme used in the wild
     "tuic",
     "wireguard",
@@ -198,6 +200,7 @@ _OUTPUT_PROTOCOL_ALIASES = {
     "ss": "shadowsocks",
     "wg": "wireguard",
     "hy2": "hysteria2",
+    "hy3": "hysteria3",
     "husi": "hysteria2",
     "socks": "socks5",
 }

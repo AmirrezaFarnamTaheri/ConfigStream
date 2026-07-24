@@ -14,6 +14,7 @@ from .parsers import (
     parse_generic_url_scheme,
     parse_hysteria,
     parse_hysteria2,
+    parse_hysteria3,
     parse_naive,
     parse_ss,
     parse_trojan,
@@ -60,7 +61,7 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
             if result:
                 return result
         except Exception:  # nosec B110
-            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+            logging.getLogger(__name__).debug("Suppressed broad exception")
             pass
 
     # Try Naked IP:PORT
@@ -85,6 +86,8 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
                 "hysteria": parse_hysteria,
                 "hy2": parse_hysteria2,
                 "hysteria2": parse_hysteria2,
+                "hy3": parse_hysteria3,
+                "hysteria3": parse_hysteria3,
                 "tuic": parse_tuic,
                 "wg": parse_wireguard,
                 "wireguard": parse_wireguard,

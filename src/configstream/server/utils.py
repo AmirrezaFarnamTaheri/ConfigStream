@@ -2,6 +2,7 @@
 import os
 import json
 import asyncio
+from collections import defaultdict
 import hashlib
 import logging
 import re
@@ -57,6 +58,10 @@ FRONTEND_DIR = DynamicPathProxy(
 )
 
 _json_cache: dict[Path, tuple[float, Any]] = {}
+# Per-path locks prevent cache stampede (thundering herd) on concurrent
+# cache misses: only one coroutine reads from disk; others wait and then
+# pick up the cached value via the double-check inside the lock.
+_cache_locks: defaultdict[Path, asyncio.Lock] = defaultdict(asyncio.Lock)
 
 
 def _json_snapshot_sha256(payload: Any) -> str:
@@ -77,18 +82,41 @@ def _read_json_file(path: Path) -> Any:
 async def _read_json_file_async(path: Path) -> Any:
     try:
         current_mtime = await asyncio.to_thread(os.path.getmtime, path)
-    except FileNotFoundError:
-        if path in _json_cache:
-            del _json_cache[path]
+    except (FileNotFoundError, OSError):
+        _json_cache.pop(path, None)
         raise
 
+    # Fast path: cache hit before acquiring the lock
     cached = _json_cache.get(path)
     if cached and cached[0] == current_mtime:
         return cached[1]
 
-    data = await asyncio.to_thread(_read_json_file, path)
-    _json_cache[path] = (current_mtime, data)
-    return data
+    # Slow path: serialise concurrent cache-miss readers with a per-path lock.
+    async with _cache_locks[path]:
+        # Re-read mtime inside the lock to prevent TOCTOU races if file changed while waiting for lock
+        try:
+            current_mtime = await asyncio.to_thread(os.path.getmtime, path)
+        except (FileNotFoundError, OSError):
+            _json_cache.pop(path, None)
+            raise
+
+        cached = _json_cache.get(path)
+        if cached and cached[0] == current_mtime:
+            return cached[1]
+
+        try:
+            data = await asyncio.to_thread(_read_json_file, path)
+        except (FileNotFoundError, OSError, json.JSONDecodeError):
+            _json_cache.pop(path, None)
+            raise
+
+        # Bound cache size to 100 entries to prevent memory growth.
+        # Note: Do NOT clear _cache_locks as active waiters would acquire a split lock.
+        if len(_json_cache) > 100:
+            _json_cache.clear()
+
+        _json_cache[path] = (current_mtime, data)
+        return data
 
 
 try:

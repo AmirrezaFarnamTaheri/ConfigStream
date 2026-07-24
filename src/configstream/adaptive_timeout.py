@@ -51,7 +51,9 @@ class AdaptiveTimeout:
             data = json.loads(self.history_file.read_text(encoding="utf-8"))
             value = float(data.get("last_timeout", self.current_timeout))
             if math.isfinite(value):
-                self.current_timeout = max(self.min_timeout, min(self.max_timeout, value))
+                self.current_timeout = max(
+                    self.min_timeout, min(self.max_timeout, value)
+                )
         except (OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
             logger.debug("Failed to load timeout history: %s", type(exc).__name__)
 
@@ -59,7 +61,9 @@ class AdaptiveTimeout:
         del source
         return self.current_timeout
 
-    async def record_attempt(self, source: str, duration: float, success: bool = True) -> None:
+    async def record_attempt(
+        self, source: str, duration: float, success: bool = True
+    ) -> None:
         del success
         await self.record(source, duration)
 
@@ -108,7 +112,9 @@ class AdaptiveTimeout:
         async with lock:
             alpha = 0.2
             smoothed = (alpha * target) + ((1 - alpha) * self.current_timeout)
-            self.current_timeout = max(self.min_timeout, min(self.max_timeout, smoothed))
+            self.current_timeout = max(
+                self.min_timeout, min(self.max_timeout, smoothed)
+            )
             logger.debug("Adaptive timeout adjusted to %.2fs", self.current_timeout)
 
     async def get_jitter(self, source: str) -> float:
