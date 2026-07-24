@@ -2121,17 +2121,8 @@ def _parse_proxy_uri(uri: str) -> Optional[Dict[str, Any]]:
                 "tls": obj.get("tls", "") == "tls",
                 "sni": obj.get("sni", obj.get("host", obj.get("add", ""))),
             }
-        except (
-            json.JSONDecodeError,
-            KeyError,
-            ValueError,
-            TypeError,
-            binascii.Error,
-        ) as exc:
-            logging.getLogger(__name__).debug(
-                "VMess parse error: %s",
-                SecurityValidator.sanitize_log_message(str(exc)),
-            )
+        except Exception as exc:
+            logging.getLogger(__name__).debug("VMess parse error: %s", str(exc)[:100])
             return None
 
     if scheme == "ss":

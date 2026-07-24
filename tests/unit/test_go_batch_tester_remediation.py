@@ -158,8 +158,26 @@ async def test_fifth_consecutive_drain_timeout_disables_tester():
 # ---------------------------------------------------------------------------
 
 
+class _DyingConfig(dict):
+    """Dict wrapper that simulates process termination during config processing."""
+
+    def __init__(self, tester: Any, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self._tester = tester
+
+    def get(self, key: str, default: Any = None) -> Any:
+        if key == "outbounds":
+            self._tester._proc = None
+        return super().get(key, default)
+
+
+# ---------------------------------------------------------------------------
+# Test 3: test_custom_configs deadlock-free when process is None
+# ---------------------------------------------------------------------------
+
+
 @pytest.mark.asyncio
-async def test_custom_configs_deadlock_free_when_proc_none():
+async def test_custom_configs_deadlock_free_when_proc_none() -> None:
     """test_custom_configs must complete without self-deadlock when _proc becomes None after initial check."""
     tester = _make_tester()
 
@@ -167,16 +185,15 @@ async def test_custom_configs_deadlock_free_when_proc_none():
     mock_proc.stdin = MagicMock()
     tester._proc = mock_proc
 
-    class DyingConfig(dict):
-        def get(self, key, default=None):
-            if key == "outbounds":
-                tester._proc = None
-            return super().get(key, default)
-
-    custom_config = DyingConfig({
-        "id": "chain-1",
-        "outbounds": [{"type": "selector", "tag": "select", "outbounds": ["direct"]}],
-    })
+    custom_config = _DyingConfig(
+        tester,
+        {
+            "id": "chain-1",
+            "outbounds": [
+                {"type": "selector", "tag": "select", "outbounds": ["direct"]}
+            ],
+        },
+    )
 
     with patch.object(tester, "_ensure_process", new_callable=AsyncMock):
         res = await tester.test_custom_configs([custom_config])
