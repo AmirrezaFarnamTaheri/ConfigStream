@@ -43,6 +43,8 @@ def _make_tester() -> Any:
     tester.available = True
     tester._proc = None
     tester._lock = asyncio.Lock()
+    tester._log_lock = asyncio.Lock()
+    tester._recent_errors = {}
     tester._pending_futures = {}
     tester._stopping = False
     tester._consecutive_timeouts = 0
@@ -256,34 +258,29 @@ async def test_go_batch_tester_partial_timeout_index_mapping():
     p1 = _make_proxy("2.2.2.2", 443)
     proxies = [p0, p1]
 
-    # Create dummy futures where index 1 completes first, index 0 is timed out
-    f0 = asyncio.Future()
-    f1 = asyncio.Future()
-    f1.set_result(
-        {
-            "req_id": "req-1",
-            "working": True,
-            "latency_ms": 120,
-        }
-    )
-
-    req_id_map = {}
-    futures = [f0, f1]
-    for idx, p in enumerate(proxies):
-        r_id = f"req-{idx}"
-        req_id_map[r_id] = p
-        tester._pending_futures[r_id] = futures[idx]
-
     mock_proc = MagicMock()
     mock_proc.stdin = MagicMock()
     mock_proc.stdin.write = MagicMock()
-    mock_proc.stdin.drain = AsyncMock()
+    mock_proc.stdin.drain = AsyncMock(return_value=None)
     tester._proc = mock_proc
 
     async def fake_wait_for(coro, timeout=None):
-        if timeout in (5.0, 30.0):
+        if timeout in (5.0, 15.0, 30.0):
             return None
-        # Simulate asyncio.gather timeout
+        # This is the main gather timeout call (timeout > 30.0)
+        # Complete index 1's future before gather times out
+        req_ids = list(tester._pending_futures.keys())
+        if len(req_ids) >= 2:
+            req_id_1 = req_ids[1]
+            f1 = tester._pending_futures[req_id_1]
+            if not f1.done():
+                f1.set_result(
+                    {
+                        "id": req_id_1,
+                        "is_working": True,
+                        "latency": 120,
+                    }
+                )
         try:
             coro.close()
         except Exception:
@@ -307,8 +304,8 @@ async def test_go_batch_tester_partial_timeout_index_mapping():
     # p0 timed out -> working False, infra_failure True
     assert p0.is_working is False
     assert p0.details.get("infra_failure") is True
-    assert p0.details.get("error") == "BATCH_TIMEOUT"
+    assert p0.details.get("error") == "MISSING_RESULT"
 
-    # p1 completed before timeout -> working True, latency_ms 120
+    # p1 completed before timeout -> working True, latency 120
     assert p1.is_working is True
     assert p1.latency == 120

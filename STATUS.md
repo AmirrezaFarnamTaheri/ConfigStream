@@ -12,7 +12,7 @@ The modular architecture, artifact contracts, and pipeline engine are fully reme
 
 Current release blockers:
 
-1. Pull request #500 must pass the complete Python, frontend, browser, security, formatting, typing, dependency, and pipeline matrices.
+1. Pull request #526 must pass the complete Python, frontend, browser, security, formatting, typing, dependency, and pipeline matrices.
 2. The generated Pages artifact must pass the artifact validator after the hardening changes are merged.
 3. The live Pages deployment must be redeployed from the resulting `main` commit and pass `scripts/verify_pages_deployment.py`.
 4. The live deployment must contain runtime config, `health.json`, `artifact_manifest.json`, `pipeline_events.jsonl`, a valid proxy snapshot hash, and no unresolved static placeholders.
@@ -21,14 +21,14 @@ Current release blockers:
 
 | Area | Current state | Evidence / action |
 |---|---|---|
-| YAML and browser-output safety | Remediated on #500 | Clash output is data-model serialized instead of template-interpolated YAML; URI, host, port, and fragment inputs are validated. |
-| WebSocket origin and lifecycle safety | Remediated on #500 | Wildcards are rejected, async locks are loop-bound lazily, and failed sockets are removed. |
-| WARP acquisition and candidate semantics | Remediated on #500 | Registration identifiers are non-empty, IPv6 endpoints are parsed safely, source URLs are allow-listed, and untested candidates remain unverified. |
-| DNS / outbound connection safety | Remediated on #500 | DNS cache eviction is O(1); validated-IP connections preserve HTTP Host and TLS SNI. |
-| Go tester process trust | Remediated on #500 | Executable identity is rechecked before spawn; optional pinned SHA-256 and a minimal environment are enforced. |
-| Steganography correlation / parser safety | Remediated on #500 | Version 2 uses per-image salt, version 1 derivation remains readable, and PNG parsing/decompression are bounded. |
-| Generated source artifacts | Remediated on #500 | The checked-in `build/lib` mirror is removed and ignored. |
-| Dependency convergence | In validation on #500 | Pydantic/core and the remaining Python updates are reconciled as a compatible set. |
+| YAML and browser-output safety | Remediated on #526 | Clash output is data-model serialized instead of template-interpolated YAML; URI, host, port, and fragment inputs are validated. |
+| WebSocket origin and lifecycle safety | Remediated on #526 | Wildcards are rejected, async locks are loop-bound lazily, and failed sockets are removed. |
+| WARP acquisition and candidate semantics | Remediated on #526 | Registration identifiers are non-empty, IPv6 endpoints are parsed safely, source URLs are allow-listed, and untested candidates remain unverified. |
+| DNS / outbound connection safety | Remediated on #526 | DNS cache eviction is O(1); validated-IP connections preserve HTTP Host and TLS SNI. |
+| Go tester process trust | Remediated on #526 | Executable identity is rechecked before spawn; optional pinned SHA-256 and a minimal environment are enforced. |
+| Steganography correlation / parser safety | Remediated on #526 | Version 2 uses per-image salt, version 1 derivation remains readable, and PNG parsing/decompression are bounded. |
+| Generated source artifacts | Remediated on #526 | The checked-in `build/lib` mirror is removed and ignored. |
+| Dependency convergence | In validation on #526 | Pydantic/core and the remaining Python updates are reconciled as a compatible set. |
 | Broad exception handling | Audit in progress | High-risk silent paths are being narrowed or logged; a repository guard is required before closure. |
 | Public deployment | Blocked | The last recorded live Pages smoke failed the release contract. |
 
@@ -36,7 +36,7 @@ Current release blockers:
 
 | Gate | Status | Notes |
 |---|---|---|
-| Repository production gate | **Open** | #500 is the integration branch; blocking CI must pass before merge. |
+| Repository production gate | **Open** | #526 is the integration branch; blocking CI must pass before merge. |
 | Security scan gate | **Open** | Bandit, gitleaks, dependency audit, suppression hygiene, and targeted regression tests must all be green on the final head. |
 | Dependency gate | **Open** | Consolidated lockfiles are under matrix validation. |
 | Pages artifact gate | **Open** | Must be regenerated and validated from the final merged source. |
@@ -47,14 +47,14 @@ Current release blockers:
 
 ### Repository
 
-1. Complete the issue-by-issue verification and remediation in #500.
+1. Complete the issue-by-issue verification and remediation in #526.
 2. Resolve every failing blocking job without weakening scanners or validators.
 3. Reconcile or close superseded dependency pull requests with an explicit rationale.
 4. Add regression tests for each behavior changed by the audit.
 
 ### Public Release
 
-After #500 is merged:
+After #526 is merged:
 
 1. Run the main pipeline and retain the generated artifact.
 2. Validate the exact Pages artifact before upload.

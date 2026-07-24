@@ -42,24 +42,7 @@ def proxy_unique_key(
     # Normalize address by removing trailing dot (DNS root)
     addr = p.address.lower().strip().rstrip(".")
     port = int(p.port)
-    uuid = (p.uuid or "").lower().strip()
-    if not uuid:
-        details = p.details or {}
-        for key in (
-            "uuid",
-            "password",
-            "auth",
-            "private_key",
-            "public_key",
-            "peer_public_key",
-            "psk",
-            "key",
-            "token",
-        ):
-            candidate = details.get(key)
-            if isinstance(candidate, str) and candidate.strip():
-                uuid = candidate.strip().lower()
-                break
+    cred = get_proxy_credential(p)
 
     # Transport details
     sni = (p.sni or "").lower().strip().rstrip(".")
@@ -83,7 +66,7 @@ def proxy_unique_key(
         proto,
         addr,
         port,
-        uuid,
+        cred,
         sni,
         path,
         service_name,
@@ -145,7 +128,7 @@ def filter_unique_endpoints(proxies: List[Proxy]) -> List[Proxy]:
         # 1. Gather Core Identity Fields
         addr = (p.resolved_ip or p.address).lower().strip()
         port = str(p.port)
-        cred = get_proxy_credential(p).lower().strip()
+        cred = get_proxy_credential(p).strip()
 
         # 2. Gather Transport Specifics (critical for differentiation)
         path = (p.path or "").strip()

@@ -815,9 +815,17 @@ def generate_html(data: Dict[str, Any]) -> str:
         .legend-grid {{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 16px; }}
         .legend-item {{ display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-main); }}
         .legend-dot {{ width: 10px; height: 10px; border-radius: 50%; }}
-    </style>
-    <script type="text/javascript" src="https://unpkg.com/vis-network@9.1.2/standalone/umd/vis-network.min.js"></script>
-</head>
+    <script type="text/javascript" src="https://unpkg.com/vis-network@9.1.2/standalone/umd/vis-network.min.js" crossorigin="anonymous"></script>
+    <script>
+        if (typeof vis === 'undefined') {{
+            window.addEventListener('DOMContentLoaded', function() {{
+                const netEl = document.getElementById('network');
+                if (netEl) {{
+                    netEl.innerHTML = '<div style="color:#ef4444;padding:40px;text-align:center;font-family:sans-serif;"><h2>Visualization Engine Unavailable</h2><p>vis-network CDN failed to load or is offline. Please check network connectivity or vendor assets locally.</p></div>';
+                }}
+            }});
+        }}
+    </script>
 <body>
     <div id="network"></div>
 

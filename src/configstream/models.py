@@ -159,7 +159,7 @@ class Proxy(BaseModel):
         proto = canonical_protocol_name(self.protocol)
         addr = (self.address or "").strip().lower()
         port = str(self.port or "")
-        composite = f"{proto}|{addr}|{port}|{credential.lower()}"
+        composite = f"{proto}|{addr}|{port}|{credential}"
         key = composite if composite.strip(" |") else (self.config or "").strip()
 
         if not key:

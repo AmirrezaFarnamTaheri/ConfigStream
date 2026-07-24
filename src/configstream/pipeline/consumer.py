@@ -598,6 +598,34 @@ async def _test_candidates(
                                 )
                             )
 
+                # Check for proxies marked with infra_failure=True during Go batch test
+                infra_failed = [
+                    p for p in chunk if p.details.get("infra_failure") is True
+                ]
+                if infra_failed:
+                    logger.warning(
+                        "Rerouting %d infrastructure-failed proxies to Python fallback tester",
+                        len(infra_failed),
+                    )
+                    for p in infra_failed:
+                        p.is_working = False
+                        p.details.pop("infra_failure", None)
+                        p.details.pop("error", None)
+
+                    fallback_results = await asyncio.gather(
+                        *[_fallback_test(p) for p in infra_failed],
+                        return_exceptions=True,
+                    )
+                    for idx, res in enumerate(fallback_results):
+                        orig_p = infra_failed[idx]
+                        if isinstance(res, Proxy):
+                            orig_p.is_working = res.is_working
+                            orig_p.latency = res.latency
+                            orig_p.details.update(res.details)
+                        elif isinstance(res, Exception):
+                            orig_p.is_working = False
+                            orig_p.details["error"] = "PYTHON_FALLBACK_EXCEPTION"
+
                 # Batch history update in executor to prevent blocking loop
                 if chunk:
                     await loop.run_in_executor(None, history.update_history, chunk)

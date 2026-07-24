@@ -111,6 +111,19 @@ async def _validate_lab_destination(host: object, path: str) -> str:
         return pinned_ip
 
 
+def _is_hostname(host: Any) -> bool:
+    if not isinstance(host, str):
+        return False
+    clean_h = host.strip()
+    if not clean_h:
+        return False
+    try:
+        ipaddress.ip_address(clean_h)
+        return False
+    except ValueError:
+        return True
+
+
 async def _sanitize_and_pin_outbound(outbound: Any, path: str) -> Dict[str, Any]:
     """Recursively validate outbound types, endpoints, detours, and pin resolved IPs."""
     if not isinstance(outbound, dict):
@@ -119,7 +132,8 @@ async def _sanitize_and_pin_outbound(outbound: Any, path: str) -> Dict[str, Any]
     outbound_type = outbound.get("type")
     if not isinstance(outbound_type, str):
         raise HTTPException(status_code=400, detail=f"{path}.type is required")
-    if outbound_type.lower() not in LAB_ALLOWED_OUTBOUND_TYPES:
+    lower_type = outbound_type.lower()
+    if lower_type not in LAB_ALLOWED_OUTBOUND_TYPES:
         raise HTTPException(
             status_code=400,
             detail=f"{path}.type is not allowed for live lab testing",
@@ -127,18 +141,38 @@ async def _sanitize_and_pin_outbound(outbound: Any, path: str) -> Dict[str, Any]
 
     clean_outbound = dict(outbound)
 
+    # Normalize Hysteria3 / hy3 input aliases to official native Hysteria2 outbound type
+    if lower_type in ("hysteria3", "hy3"):
+        clean_outbound["type"] = "hysteria2"
+        tls_cfg = clean_outbound.setdefault("tls", {})
+        if isinstance(tls_cfg, dict):
+            tls_cfg.setdefault("enabled", True)
+            tls_cfg.setdefault("alpn", ["h3"])
+
     # Validate and pin server/address fields
     for key in LAB_DESTINATION_KEYS:
         if key in clean_outbound:
             original_host = clean_outbound[key]
             pinned_ip = await _validate_lab_destination(original_host, f"{path}.{key}")
             clean_outbound[key] = pinned_ip
-            # Ensure SNI preserves original hostname if server_name is not explicitly set
-            if (
-                isinstance(original_host, str)
-                and not original_host.strip().replace(".", "").isdigit()
-            ):
-                clean_outbound.setdefault("server_name", original_host.strip())
+            # Ensure SNI preserves original hostname in tls.server_name for TLS outbounds
+            if _is_hostname(original_host):
+                orig_clean = str(original_host).strip()
+                if "tls" in clean_outbound and isinstance(clean_outbound["tls"], dict):
+                    clean_outbound["tls"].setdefault("server_name", orig_clean)
+                elif clean_outbound.get("type") in (
+                    "vless",
+                    "vmess",
+                    "trojan",
+                    "hysteria2",
+                    "tuic",
+                    "shadowsocks",
+                ):
+                    tls_obj = clean_outbound.setdefault("tls", {})
+                    if isinstance(tls_obj, dict):
+                        tls_obj.setdefault("server_name", orig_clean)
+                else:
+                    clean_outbound.setdefault("server_name", orig_clean)
 
     # Recursively check nested outbounds/detours/next
     for key in ("detour", "next", "outbounds"):
