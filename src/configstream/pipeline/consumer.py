@@ -712,10 +712,19 @@ async def _revive_failed_proxies(
             if "revived-vwarp" not in p.tags:
                 p.tags.append("revived-vwarp")
             origin = p.details.get("origin_proxy")
-            if origin:
+            if origin and isinstance(origin, dict):
                 p.country_code = origin.get("country_code", "")
                 p.country = origin.get("country", "")
+                try:
+                    orig_p = Proxy.model_validate(origin)
+                    if p.is_working:
+                        vwarp_success_ids.add(str(orig_p.id))
+                        vwarp_success_ids.add(str(proxy_unique_key(orig_p)))
+                except Exception:
+                    pass
             origin_id = p.details.get("origin_id")
+            if not origin_id and isinstance(origin, dict):
+                origin_id = origin.get("uuid") or origin.get("id")
             origin_key = p.details.get("_origin_key")
             if p.is_working:
                 if origin_id:
@@ -729,7 +738,7 @@ async def _revive_failed_proxies(
                     stats.vwarp_success += 1
 
     # 2. Attempt Standard Warp Revival (Fallback)
-    from ...filtering import proxy_unique_key
+    from ..filtering import proxy_unique_key
 
     remaining_failed = (
         [

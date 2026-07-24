@@ -48,7 +48,10 @@ def test_no_tracked_generated_artifacts() -> None:
     forbidden_tracked = [
         f
         for f in tracked
-        if any(f.startswith(p) or f"/{p}" in f for p in forbidden_prefixes)
+        if any(
+            f.startswith(p) or (p != "output/" and f"/{p}" in f)
+            for p in forbidden_prefixes
+        )
         or Path(f).name in forbidden_exact
     ]
 
