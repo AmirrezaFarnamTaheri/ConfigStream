@@ -558,6 +558,7 @@ class GoBatchTester:
                         p.details = {}
                     p.details.setdefault("error", "DRAIN_TIMEOUT")
                     p.details.setdefault("failure_category", "TIMEOUT")
+                    p.details["infra_failure"] = True
                     p.tested_at = batch_tested_at
             if self._consecutive_timeouts >= self._max_consecutive_timeouts:
                 logger.error(
@@ -585,6 +586,7 @@ class GoBatchTester:
                         proxy_obj.details = {}
                     proxy_obj.details.setdefault("error", "DAEMON_CRASHED")
                     proxy_obj.details.setdefault("failure_category", "CRASH")
+                    proxy_obj.details["infra_failure"] = True
                     proxy_obj.tested_at = batch_tested_at
 
             # Process might be dead, ensure restart next time
@@ -602,6 +604,7 @@ class GoBatchTester:
                         p.details = {}
                     p.details.setdefault("error", "DAEMON_WRITE_FAILED")
                     p.details.setdefault("failure_category", "CRASH")
+                    p.details["infra_failure"] = True
                     p.tested_at = batch_tested_at
 
             # Process might be dead, ensure restart next time
@@ -614,11 +617,12 @@ class GoBatchTester:
         # and gives Python breathing room, especially for WireGuard-heavy batches
         total_timeout = min(300, len(inputs) * 2 + 60)
 
-        completed_results = []
+        completed_pairs: List[Tuple[str, Any]] = []
         try:
-            completed_results = await safe_wait_for(
+            raw_results = await safe_wait_for(
                 asyncio.gather(*futures, return_exceptions=True), timeout=total_timeout
             )
+            completed_pairs = list(zip(req_id_order, raw_results))
         except asyncio.CancelledError:
             await self._cleanup_pending(list(req_id_map.keys()), futures)
             raise
@@ -647,18 +651,19 @@ class GoBatchTester:
                     po.details["infra_failure"] = True
                     po.tested_at = batch_tested_at
 
-            # Preserve results from futures that completed before timeout
-            for f in futures:
+            # Preserve results from futures that completed before timeout with exact req_id mapping
+            for req_id, f in zip(req_id_order, futures):
                 if f.done() and not f.cancelled():
                     try:
-                        completed_results.append(f.result())
+                        completed_pairs.append((req_id, f.result()))
                     except Exception as exc:
                         safe_msg = SecurityValidator.sanitize_log_message(str(exc))
                         logger.debug(
-                            "Go tester future exception during timeout recovery: %s",
+                            "Go tester future exception during timeout recovery for %s: %s",
+                            req_id,
                             safe_msg,
                         )
-                        completed_results.append(exc)
+                        completed_pairs.append((req_id, exc))
 
             for f in futures:
                 if not f.done():
@@ -674,33 +679,33 @@ class GoBatchTester:
                 )
                 self.available = False
                 await self.close()
-
-            # Restart daemon and AWAIT completion before processing results,
-            # so the next batch doesn't arrive before the daemon is ready
-            try:
-                await safe_wait_for(self._restart_daemon(), timeout=30.0)
-            except Exception as re_err:
-                safe_re_msg = SecurityValidator.sanitize_log_message(str(re_err))
-                logger.warning("Daemon restart failed: %s", safe_re_msg)
+            else:
+                # Restart daemon and AWAIT completion before processing results,
+                # so the next batch doesn't arrive before the daemon is ready
+                try:
+                    await safe_wait_for(self._restart_daemon(), timeout=30.0)
+                except Exception as re_err:
+                    safe_re_msg = SecurityValidator.sanitize_log_message(str(re_err))
+                    logger.warning("Daemon restart failed: %s", safe_re_msg)
 
         # Process Results
         working_count = 0
         failure_reasons: Dict[str, int] = {}
 
         seen_req_ids: Set[str] = set()
-        for idx, res in enumerate(completed_results):
+        for req_id, res in completed_pairs:
+            seen_req_ids.add(req_id)
+            tp = req_id_map.get(req_id)
+            if tp is None:
+                continue
+
             if isinstance(res, BaseException):
-                logger.debug(f"Go Tester result error: {res}")
-                # Map exception to corresponding proxy (by request order)
-                if idx < len(req_id_order):
-                    req_id = req_id_order[idx]
-                    seen_req_ids.add(req_id)
-                    tp = req_id_map.get(req_id)
-                    if tp:
-                        tp.is_working = False
-                        tp.details["error"] = "GO_TESTER_EXCEPTION"
-                        tp.details["failure_category"] = "IPC_ERROR"
-                        tp.tested_at = batch_tested_at
+                logger.debug(f"Go Tester result error for {req_id}: {res}")
+                tp.is_working = False
+                tp.details["error"] = "GO_TESTER_EXCEPTION"
+                tp.details["failure_category"] = "IPC_ERROR"
+                tp.details["infra_failure"] = True
+                tp.tested_at = batch_tested_at
                 continue
 
             # res is the JSON dict

@@ -469,18 +469,19 @@ def _attach_manifest_signature(manifest: Dict[str, Any]) -> None:
         return
 
     from ..signer import Signer
+    from ..security_validator import SecurityValidator
 
     try:
         signer = Signer(private_key_hex)
         manifest["manifest_signature"] = signer.sign_manifest(manifest)
     except Exception as exc:
-        from ..security_validator import SecurityValidator
-
+        safe_msg = SecurityValidator.sanitize_log_message(str(exc))
         logger.error(
             "Failed to sign manifest [%s]: %s",
             type(exc).__name__,
-            SecurityValidator.sanitize_log_message(str(exc)),
+            safe_msg,
         )
+        raise RuntimeError(f"Configured manifest signing failed: {safe_msg}") from exc
 
 
 def write_public_artifact_contract(output_dir: Path) -> Dict[str, Any]:

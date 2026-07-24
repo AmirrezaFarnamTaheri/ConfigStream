@@ -19,6 +19,30 @@ from .constants import (
 )
 
 
+def get_proxy_credential(p: Any) -> str:
+    """Extract primary credential string across proxy models using strict key precedence."""
+    cred = (getattr(p, "uuid", "") or "").strip()
+    if not cred:
+        details = getattr(p, "details", {}) or {}
+        if isinstance(details, dict):
+            for key in (
+                "uuid",
+                "password",
+                "auth",
+                "private_key",
+                "public_key",
+                "peer_public_key",
+                "psk",
+                "key",
+                "token",
+            ):
+                val = details.get(key)
+                if isinstance(val, str) and val.strip():
+                    cred = val.strip()
+                    break
+    return cred
+
+
 class Proxy(BaseModel):
     """
     Represents a proxy with its configuration and test results.
@@ -127,35 +151,15 @@ class Proxy(BaseModel):
 
         All proxies go through the same SHA-256 hash path so the ID format is
         consistent (always 16 hex chars) regardless of whether the proxy has a
-        UUID field.  Previously, proxies with a non-empty ``uuid`` returned the
-        raw UUID string (up to 36 chars), which broke deduplication and keying
-        against hash-based IDs produced for other proxy types.
+        UUID field.
 
         Composite key: (protocol, host/address, port, credential).
         """
-        # Collect the best available credential in priority order.
-        credential = (self.uuid or "").strip()
-        if not credential:
-            for key in (
-                "uuid",
-                "password",
-                "private_key",
-                "public_key",
-                "peer_public_key",
-                "psk",
-                "key",
-                "token",
-                "auth",
-            ):
-                candidate = self.details.get(key)
-                if isinstance(candidate, str) and candidate.strip():
-                    credential = candidate.strip()
-                    break
-
+        credential = get_proxy_credential(self)
         proto = canonical_protocol_name(self.protocol)
         addr = (self.address or "").strip().lower()
         port = str(self.port or "")
-        composite = f"{proto}|{addr}|{port}|{credential}"
+        composite = f"{proto}|{addr}|{port}|{credential.lower()}"
         key = composite if composite.strip(" |") else (self.config or "").strip()
 
         if not key:

@@ -80,11 +80,12 @@ def _validate_file_metadata(path: Path) -> Path:
     metadata = resolved.stat()
     if not stat.S_ISREG(metadata.st_mode):
         raise ValueError("tester binary is not a regular file")
-    if os.name != "nt" and (metadata.st_mode & (stat.S_IWGRP | stat.S_IWOTH)):
-        raise ValueError("tester binary is group/world writable")
-    euid = getattr(os, "geteuid", lambda: 0)()
-    if os.name != "nt" and metadata.st_uid not in {0, euid}:
-        raise ValueError("tester binary has an unexpected owner")
+    if os.name != "nt":
+        if metadata.st_mode & (stat.S_IWGRP | stat.S_IWOTH):
+            raise ValueError("tester binary is group/world writable")
+        euid = getattr(os, "geteuid", lambda: 0)()
+        if metadata.st_uid not in {0, euid}:
+            raise ValueError("tester binary has an unexpected owner")
     if not os.access(resolved, os.X_OK):
         raise ValueError("tester binary is not executable")
     return resolved
@@ -97,6 +98,17 @@ def initialize_binary_identity(path: Path | str) -> BinaryIdentity:
     if configured and expected is None:
         raise ValueError(f"{_DIGEST_ENV} is not a valid SHA-256 digest")
     expected = expected or _sidecar_digest(resolved)
+
+    strict_mode = (
+        os.environ.get("CS_STRICT_BINARY_TRUST", "").strip() in ("1", "true", "yes")
+        or os.environ.get("ENVIRONMENT", "").strip().lower() == "production"
+    )
+    if strict_mode and expected is None:
+        raise ValueError(
+            "Strict binary trust requires a pinned SHA-256 digest "
+            "(via CONFIGSTREAM_TESTER_SHA256 environment variable or .sha256 sidecar file)"
+        )
+
     baseline = _sha256_file(resolved)
     if expected and not hmac.compare_digest(baseline, expected):
         raise ValueError("tester binary checksum does not match the pinned digest")

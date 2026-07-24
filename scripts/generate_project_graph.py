@@ -120,9 +120,8 @@ def safe_json_dumps(data: Any) -> str:
     )
 
 
-def build_graph_data() -> Dict[str, Any]:
-    nodes = []
-    edges = []
+def build_graph_data(include_local_db: bool = False) -> Dict[str, Any]:
+    nodes: List[Dict[str, Any]] = []
     seen_nodes = set()
     seen_edges = set()
 
@@ -641,8 +640,8 @@ def build_graph_data() -> Dict[str, Any]:
     for src, dst, label, edge_type in flows:
         add_edge(src, dst, label, edge_type)
 
-    # Optional SQLite MCP Code-Review-Graph Enrichment (if database present)
-    if GRAPH_DB_PATH.exists():
+    # Optional SQLite MCP Code-Review-Graph Enrichment (only when explicitly requested via --include-local-db)
+    if include_local_db and GRAPH_DB_PATH.exists():
         try:
             conn = sqlite3.connect(str(GRAPH_DB_PATH))
             c = conn.cursor()
@@ -816,7 +815,7 @@ def generate_html(data: Dict[str, Any]) -> str:
         .legend-item {{ display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-main); }}
         .legend-dot {{ width: 10px; height: 10px; border-radius: 50%; }}
     </style>
-    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/vis-network@9.1.2/standalone/umd/vis-network.min.js"></script>
 </head>
 <body>
     <div id="network"></div>
@@ -1086,7 +1085,8 @@ def generate_html(data: Dict[str, Any]) -> str:
 def main():
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
-    graph_data = build_graph_data()
+    include_db = "--include-local-db" in sys.argv
+    graph_data = build_graph_data(include_local_db=include_db)
     html_content = generate_html(graph_data)
 
     OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)

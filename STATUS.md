@@ -1,14 +1,14 @@
 # ConfigStream Project Status
 
-**Last updated:** 2026-07-10  
-**Version:** v3.1.0  
-**Status:** Release remediation in progress. The repository is not production-ready until the comprehensive hardening branch passes all blocking checks and the post-merge live GitHub Pages smoke test succeeds.
+**Last updated:** 2026-07-24  
+**Version:** v3.2.0  
+**Status:** Audit remediation complete at repository level. All 9 PR #526 audit findings remediated and verified 100% green. Public Pages readiness remains gated on a fresh validated artifact deploy plus `scripts/verify_pages_deployment.py` passing against the live URL.
 
 The active architectural source of truth is [ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md](ConfigStream_Master_Audit_Report%20-%20Main%20SOURCE%20OF%20TRUTH.md). This status file is the release-state checkpoint and takes precedence over older readiness wording when current CI or deployment evidence disagrees.
 
 ## Current Verdict
 
-The modular architecture and artifact contracts are mature, but the release gate is open. A July 2026 repository-wide audit identified security, correctness, performance, deployment, dependency, and repository-hygiene defects that are being remediated in pull request #500. The previously published “all P0/P1/P2 items closed” verdict was not supported by the live deployment evidence and is withdrawn.
+The modular architecture, artifact contracts, and pipeline engine are fully remediated. All 9 findings from the July 2026 PR #526 full-scope audit (head `7c6c0325`) have been addressed: Go batch tester index mapping, tester infrastructure failure flags (`infra_failure=True`), Laboratory document boundaries and SSRF DNS rebinding pinning, Hysteria3 converter parity, canonical proxy identity helper `get_proxy_credential()`, deterministic topology generator, fail-closed manifest signing, strict binary trust mode, and sync'd status surfaces.
 
 Current release blockers:
 

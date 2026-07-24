@@ -5,7 +5,7 @@ import ipaddress
 import re
 import secrets
 import socket
-from typing import Optional
+from typing import Any, Dict, Optional
 from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import JSONResponse
 from ..utils import (
@@ -21,6 +21,8 @@ LAB_ALLOWED_OUTBOUND_TYPES = {
     "direct",
     "hysteria",
     "hysteria2",
+    "hysteria3",
+    "hy3",
     "http",
     "https",
     "shadowsocks",
@@ -38,7 +40,12 @@ LAB_DESTINATION_KEYS = {"server", "address"}
 LAB_INTERNAL_HOST_SUFFIXES = (".local", ".localhost", ".lan", ".internal")
 
 
-async def _validate_lab_destination(host: object, path: str) -> None:
+async def _validate_lab_destination(host: object, path: str) -> str:
+    """Validate host for SSRF safety.
+
+    Resolves hostnames asynchronously with a 5s deadline, fails CLOSED on resolution failure,
+    and returns a pinned global IP address string to prevent DNS rebinding attacks.
+    """
     if not isinstance(host, str) or not host.strip():
         raise HTTPException(status_code=400, detail=f"{path} must be a non-empty host")
 
@@ -67,46 +74,91 @@ async def _validate_lab_destination(host: object, path: str) -> None:
                 status_code=400,
                 detail=f"{path} must not target private or non-global addresses",
             )
+        return cleaned
     else:
-        # Resolve the hostname asynchronously (asyncio.to_thread keeps the event
-        # loop unblocked) and validate every returned address.
-        #
-        # TOCTOU note: the resolved IP addresses are only used for the allow/deny
-        # check here.  The downstream connection test receives the *same* validated
-        # config object; the actual TCP connection will re-resolve the hostname, but
-        # that second resolution is outside our control.  To fully prevent
-        # DNS-rebinding the caller should pass the pinned IP directly rather than a
-        # hostname, or the tester must re-validate the resolved address at connect
-        # time — documented as a known residual risk for hostname-based configs.
+        # Resolve hostname with a strict 5.0s deadline and fail closed
         try:
-            addr_infos = await asyncio.to_thread(socket.getaddrinfo, cleaned, None)
-            for _family, _socktype, _proto, _canonname, sockaddr in addr_infos:
-                ip_str = sockaddr[0]
-                try:
-                    resolved_ip = ipaddress.ip_address(ip_str)
-                    if not resolved_ip.is_global:
-                        raise HTTPException(
-                            status_code=400,
-                            detail=f"{path} resolves to private or non-global address: {ip_str}",
-                        )
-                except ValueError:
-                    pass
-        except socket.gaierror:
-            # Allow unresolved hosts to fail at connection test time.
-            pass
+            addr_infos = await asyncio.wait_for(
+                asyncio.to_thread(socket.getaddrinfo, cleaned, None),
+                timeout=5.0,
+            )
+        except (asyncio.TimeoutError, socket.gaierror, Exception) as exc:
+            raise HTTPException(
+                status_code=400,
+                detail=f"{path} hostname resolution failed or timed out: {cleaned}",
+            ) from exc
+
+        pinned_ip: Optional[str] = None
+        for _family, _socktype, _proto, _canonname, sockaddr in addr_infos:
+            ip_str = sockaddr[0]
+            try:
+                resolved_ip = ipaddress.ip_address(ip_str)
+                if not resolved_ip.is_global:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"{path} resolves to private or non-global address: {ip_str}",
+                    )
+                if pinned_ip is None:
+                    pinned_ip = str(resolved_ip)
+            except ValueError:
+                pass
+
+        if not pinned_ip:
+            raise HTTPException(
+                status_code=400,
+                detail=f"{path} produced no valid global IP address",
+            )
+        return pinned_ip
 
 
-async def _validate_lab_config(config: object) -> None:
-    if not isinstance(config, dict):
-        raise HTTPException(status_code=400, detail="Config must be JSON object")
+async def _sanitize_and_pin_outbound(outbound: Any, path: str) -> Dict[str, Any]:
+    """Recursively validate outbound types, endpoints, detours, and pin resolved IPs."""
+    if not isinstance(outbound, dict):
+        raise HTTPException(status_code=400, detail=f"{path} must be an object")
 
-    forbidden_keys = {"inbounds", "experimental", "api", "stats"}
-    found_forbidden = forbidden_keys.intersection(config.keys())
-    if found_forbidden:
+    outbound_type = outbound.get("type")
+    if not isinstance(outbound_type, str):
+        raise HTTPException(status_code=400, detail=f"{path}.type is required")
+    if outbound_type.lower() not in LAB_ALLOWED_OUTBOUND_TYPES:
         raise HTTPException(
             status_code=400,
-            detail=f"Forbidden top-level keys in lab test config: {', '.join(sorted(found_forbidden))}",
+            detail=f"{path}.type is not allowed for live lab testing",
         )
+
+    clean_outbound = dict(outbound)
+
+    # Validate and pin server/address fields
+    for key in LAB_DESTINATION_KEYS:
+        if key in clean_outbound:
+            original_host = clean_outbound[key]
+            pinned_ip = await _validate_lab_destination(original_host, f"{path}.{key}")
+            clean_outbound[key] = pinned_ip
+            # Ensure SNI preserves original hostname if server_name is not explicitly set
+            if isinstance(original_host, str) and not original_host.strip().replace(".", "").isdigit():
+                clean_outbound.setdefault("server_name", original_host.strip())
+
+    # Recursively check nested outbounds/detours/next
+    for key in ("detour", "next", "outbounds"):
+        if key in clean_outbound:
+            val = clean_outbound[key]
+            if isinstance(val, dict):
+                clean_outbound[key] = await _sanitize_and_pin_outbound(val, f"{path}.{key}")
+            elif isinstance(val, list):
+                clean_list = []
+                for sub_idx, sub_item in enumerate(val):
+                    if isinstance(sub_item, dict):
+                        clean_list.append(await _sanitize_and_pin_outbound(sub_item, f"{path}.{key}[{sub_idx}]"))
+                    else:
+                        clean_list.append(sub_item)
+                clean_outbound[key] = clean_list
+
+    return clean_outbound
+
+
+async def _validate_and_build_lab_config(config: object) -> Dict[str, Any]:
+    """Constructs a server-owned minimal sing-box document containing ONLY sanitized outbounds."""
+    if not isinstance(config, dict):
+        raise HTTPException(status_code=400, detail="Config must be JSON object")
 
     outbounds = config.get("outbounds")
     if not isinstance(outbounds, list) or not outbounds:
@@ -115,23 +167,14 @@ async def _validate_lab_config(config: object) -> None:
             detail="Config must include a non-empty outbounds array",
         )
 
+    clean_outbounds = []
     for index, outbound in enumerate(outbounds):
         path = f"outbounds[{index}]"
-        if not isinstance(outbound, dict):
-            raise HTTPException(status_code=400, detail=f"{path} must be an object")
+        clean_outbound = await _sanitize_and_pin_outbound(outbound, path)
+        clean_outbounds.append(clean_outbound)
 
-        outbound_type = outbound.get("type")
-        if not isinstance(outbound_type, str):
-            raise HTTPException(status_code=400, detail=f"{path}.type is required")
-        if outbound_type.lower() not in LAB_ALLOWED_OUTBOUND_TYPES:
-            raise HTTPException(
-                status_code=400,
-                detail=f"{path}.type is not allowed for live lab testing",
-            )
-
-        for key in LAB_DESTINATION_KEYS:
-            if key in outbound:
-                await _validate_lab_destination(outbound[key], f"{path}.{key}")
+    # Build server-owned minimal sing-box document
+    return {"outbounds": clean_outbounds}
 
 
 def _require_payload_api_key(payload: dict, api_key: Optional[str]) -> None:
@@ -175,7 +218,7 @@ async def lab_test_chain(request: Request, payload: dict):
         raise HTTPException(
             status_code=413, detail="Config exceeds lab test size limit"
         )
-    await _validate_lab_config(config)
+    clean_config = await _validate_and_build_lab_config(config)
 
     try:
         from configstream.testers.lab_chain_tester import test_chain_config
@@ -185,7 +228,7 @@ async def lab_test_chain(request: Request, payload: dict):
             detail="Live chain testing is not available. Use manual testing: save config to file and run 'sing-box run -c chain.json'.",
         ) from None
 
-    result = await test_chain_config(config, timeout=settings.LAB_TEST_TIMEOUT_SECONDS)
+    result = await test_chain_config(clean_config, timeout=settings.LAB_TEST_TIMEOUT_SECONDS)
     if result["success"]:
         return JSONResponse(content=result)
 

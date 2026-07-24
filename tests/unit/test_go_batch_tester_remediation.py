@@ -240,3 +240,67 @@ async def test_custom_configs_drain_timeout_restarts_daemon():
 
     mock_restart.assert_called_once()
     assert res == {}
+
+
+# ---------------------------------------------------------------------------
+# Test 5: Partial timeout result mapping alignment (no positional shift)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_go_batch_tester_partial_timeout_index_mapping():
+    """When futures complete out-of-order before timeout, results must be assigned to exact req_ids."""
+    tester = _make_tester()
+
+    p0 = _make_proxy("1.1.1.1", 443)
+    p1 = _make_proxy("2.2.2.2", 443)
+    proxies = [p0, p1]
+
+    # Create dummy futures where index 1 completes first, index 0 is timed out
+    f0 = asyncio.Future()
+    f1 = asyncio.Future()
+    f1.set_result({
+        "req_id": "req-1",
+        "working": True,
+        "latency_ms": 120,
+    })
+
+    req_id_map = {}
+    futures = [f0, f1]
+    for idx, p in enumerate(proxies):
+        r_id = f"req-{idx}"
+        req_id_map[r_id] = p
+        tester._pending_futures[r_id] = futures[idx]
+
+    mock_proc = MagicMock()
+    mock_proc.stdin = MagicMock()
+    mock_proc.stdin.write = MagicMock()
+    mock_proc.stdin.drain = AsyncMock()
+    tester._proc = mock_proc
+
+    async def fake_wait_for(coro, timeout=None):
+        if timeout == 30.0:
+            return None
+        # Simulate asyncio.gather timeout
+        try:
+            coro.close()
+        except Exception:
+            pass
+        raise asyncio.TimeoutError()
+
+    with (
+        patch.object(tester, "_ensure_process", new_callable=AsyncMock),
+        patch.object(tester, "_restart_daemon", new_callable=AsyncMock),
+        patch("configstream.testers.go_tester.manager.to_singbox_outbound", return_value=_MOCK_OUTBOUND),
+        patch("configstream.testers.go_tester.manager.safe_wait_for", side_effect=fake_wait_for),
+    ):
+        await tester.test_batch(proxies)
+
+    # p0 timed out -> working False, infra_failure True
+    assert p0.is_working is False
+    assert p0.details.get("infra_failure") is True
+    assert p0.details.get("error") in ("BATCH_TIMEOUT", "DRAIN_TIMEOUT")
+
+    # p1 completed before timeout -> working True, latency_ms 120
+    assert p1.is_working is True
+    assert p1.latency == 120
