@@ -544,6 +544,23 @@ async def _test_candidates(
             else:
                 chunk_size = max(1, int(settings.GO_TESTER_BATCH_SIZE))
 
+            async def _fallback_test(p: Proxy) -> Proxy:
+                sem = concurrency.get_semaphore()
+                async with sem:
+                    try:
+                        return await tester.test(p)
+                    except asyncio.CancelledError:
+                        raise
+                    except Exception as e:
+                        logger.error(
+                            SecurityValidator.sanitize_log_message(
+                                f"Fallback test failed for proxy {p.id}: {e}"
+                            )
+                        )
+                        p.is_working = False
+                        p.details["error"] = "FALLBACK_TEST_FAILED"
+                        return p
+
             for i in range(0, len(proxies_to_actually_test), chunk_size):
                 chunk = proxies_to_actually_test[i : i + chunk_size]
                 try:
@@ -559,24 +576,6 @@ async def _test_candidates(
                         stats.drop_reasons["tester_error"] = stats.drop_reasons.get(
                             "tester_error", 0
                         ) + len(chunk)
-
-                    # Fallback to Python tester for this chunk
-                    async def _fallback_test(p: Proxy):
-                        sem = concurrency.get_semaphore()
-                        async with sem:
-                            try:
-                                return await tester.test(p)
-                            except asyncio.CancelledError:
-                                raise
-                            except Exception as e:
-                                logger.error(
-                                    SecurityValidator.sanitize_log_message(
-                                        f"Fallback test failed for proxy {p.id}: {e}"
-                                    )
-                                )
-                                p.is_working = False
-                                p.details["error"] = "FALLBACK_TEST_FAILED"
-                                return p
 
                     results = await asyncio.gather(
                         *[_fallback_test(x) for x in chunk],

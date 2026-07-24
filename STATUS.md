@@ -2,13 +2,13 @@
 
 **Last updated:** 2026-07-24  
 **Version:** v3.2.0  
-**Status:** Release remediation in progress. The repository is not production-ready until the post-merge live GitHub Pages smoke test succeeds. Audit remediation complete at repository level (v3.2.0); all 9 PR #526 audit findings remediated and verified 100% green.
+**Status:** Release remediation in progress on PR #526. The repository is not production-ready until post-merge live GitHub Pages smoke test succeeds. All exact-head GitHub Actions CI workflows are green (`completed success`). PR audit closure is pending final delta review verification.
 
 The active architectural source of truth is [ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md](ConfigStream_Master_Audit_Report%20-%20Main%20SOURCE%20OF%20TRUTH.md). This status file is the release-state checkpoint and takes precedence over older readiness wording when current CI or deployment evidence disagrees.
 
 ## Current Verdict
 
-The modular architecture, artifact contracts, and pipeline engine are fully remediated. All 9 findings from the July 2026 PR #526 full-scope audit (head `7c6c0325`) have been addressed: Go batch tester index mapping, tester infrastructure failure flags (`infra_failure=True`), Laboratory document boundaries and SSRF DNS rebinding pinning, Hysteria3 converter parity, canonical proxy identity helper `get_proxy_credential()`, deterministic topology generator, fail-closed manifest signing, strict binary trust mode, and sync'd status surfaces.
+The modular architecture, artifact contracts, and pipeline engine are remediated on PR #526. All audit findings (Go batch tester index mapping, tester infrastructure failure flags with Python fallback rerouting, Laboratory document boundaries and SSRF DNS rebinding pinning, Hysteria3 converter normalization, canonical proxy identity helper `get_proxy_credential()`, deterministic topology generator with HTML structure validation, fail-closed manifest signing, strict binary trust mode, and sync'd status surfaces) have been addressed and validated.
 
 Current release blockers:
 

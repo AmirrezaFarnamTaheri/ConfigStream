@@ -132,6 +132,7 @@
         .legend-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 16px; }
         .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-main); }
         .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+    </style>
     <script type="text/javascript" src="https://unpkg.com/vis-network@9.1.2/standalone/umd/vis-network.min.js" crossorigin="anonymous"></script>
     <script>
         if (typeof vis === 'undefined') {
@@ -143,6 +144,7 @@
             });
         }
     </script>
+</head>
 <body>
     <div id="network"></div>
 
@@ -610,7 +612,7 @@
     "group": "pipeline",
     "id": "mod:pipeline:consumer",
     "label": "consumer.py",
-    "lines": 861,
+    "lines": 860,
     "path": "src/configstream/pipeline/consumer.py",
     "shape": "box",
     "signatures": [
@@ -624,7 +626,7 @@
       "def _to_bloom_key(unique_key"
     ],
     "size": 22,
-    "snippet": "# SPDX-License-Identifier: AGPL-3.0-or-later\nimport asyncio\nimport logging\nimport inspect\nimport time\nimport hashlib\nfrom pathlib import Path\nimport orjson as json\nfrom typing import List, Optional, Any, TYPE_CHECKING, cast, Dict\n\nfrom rich.progress import Progress, TaskID\n\nfrom configstream.models import Proxy\nimport configstream.consumer as consumer_mod\nfrom configstream.security_validator import (\n    STRICT_POLICY,\n    TEST_POLICY,\n    SecurityValidator,\n)\nfrom configstream.filtering import proxy_unique_key\nfrom configstream.testers import SingBoxTester\nfrom configstream.test_cache import TestResultCache\nfrom configstream.scheduler import SmartRetestScheduler\nfrom configstream.concurrency_manager import ConcurrencyManager\nfrom configstream.geoip import GeoIPResolver\n... [836 more lines]",
+    "snippet": "# SPDX-License-Identifier: AGPL-3.0-or-later\nimport asyncio\nimport logging\nimport inspect\nimport time\nimport hashlib\nfrom pathlib import Path\nimport orjson as json\nfrom typing import List, Optional, Any, TYPE_CHECKING, cast, Dict\n\nfrom rich.progress import Progress, TaskID\n\nfrom configstream.models import Proxy\nimport configstream.consumer as consumer_mod\nfrom configstream.security_validator import (\n    STRICT_POLICY,\n    TEST_POLICY,\n    SecurityValidator,\n)\nfrom configstream.filtering import proxy_unique_key\nfrom configstream.testers import SingBoxTester\nfrom configstream.test_cache import TestResultCache\nfrom configstream.scheduler import SmartRetestScheduler\nfrom configstream.concurrency_manager import ConcurrencyManager\nfrom configstream.geoip import GeoIPResolver\n... [835 more lines]",
     "subsystemColor": "#a855f7",
     "type": "module"
   },

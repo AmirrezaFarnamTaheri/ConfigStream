@@ -618,6 +618,7 @@ class GoBatchTester:
         total_timeout = min(300, len(inputs) * 2 + 60)
 
         completed_pairs: List[Tuple[str, Any]] = []
+        timed_out = False
         try:
             raw_results = await safe_wait_for(
                 asyncio.gather(*futures, return_exceptions=True), timeout=total_timeout
@@ -627,6 +628,7 @@ class GoBatchTester:
             await self._cleanup_pending(list(req_id_map.keys()), futures)
             raise
         except asyncio.TimeoutError:
+            timed_out = True
             self._consecutive_timeouts += 1
             logger.error(
                 f"Timed out waiting for results from Go Tester Daemon "
@@ -791,8 +793,9 @@ class GoBatchTester:
                 tp.details["failure_category"] = "IPC_ERROR"
                 tp.tested_at = batch_tested_at
 
-        # Reset consecutive timeout counter on successful batch completion
-        self._consecutive_timeouts = 0
+        # Reset consecutive timeout counter ONLY on clean batch completion (no timeout)
+        if not timed_out:
+            self._consecutive_timeouts = 0
 
         # Log summary
         failure_summary = ", ".join([f"{k}: {v}" for k, v in failure_reasons.items()])

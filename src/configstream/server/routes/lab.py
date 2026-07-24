@@ -111,10 +111,13 @@ async def _validate_lab_destination(host: object, path: str) -> str:
         return pinned_ip
 
 
+INHERENT_TLS_TYPES = {"hysteria", "hysteria2", "tuic", "https"}
+
+
 def _is_hostname(host: Any) -> bool:
     if not isinstance(host, str):
         return False
-    clean_h = host.strip()
+    clean_h = host.strip().strip("[]")
     if not clean_h:
         return False
     try:
@@ -155,23 +158,18 @@ async def _sanitize_and_pin_outbound(outbound: Any, path: str) -> Dict[str, Any]
             original_host = clean_outbound[key]
             pinned_ip = await _validate_lab_destination(original_host, f"{path}.{key}")
             clean_outbound[key] = pinned_ip
-            # Ensure SNI preserves original hostname in tls.server_name for TLS outbounds
+            # Ensure SNI preserves original hostname in tls.server_name for TLS-enabled outbounds
             if _is_hostname(original_host):
-                orig_clean = str(original_host).strip()
-                if "tls" in clean_outbound and isinstance(clean_outbound["tls"], dict):
-                    clean_outbound["tls"].setdefault("server_name", orig_clean)
-                elif clean_outbound.get("type") in (
-                    "vless",
-                    "vmess",
-                    "trojan",
-                    "hysteria2",
-                    "tuic",
-                    "shadowsocks",
-                ):
+                orig_clean = str(original_host).strip().strip("[]")
+                has_tls_block = "tls" in clean_outbound and isinstance(
+                    clean_outbound["tls"], dict
+                )
+                if has_tls_block or clean_outbound.get("type") in INHERENT_TLS_TYPES:
                     tls_obj = clean_outbound.setdefault("tls", {})
                     if isinstance(tls_obj, dict):
                         tls_obj.setdefault("server_name", orig_clean)
                 else:
+                    # Do not implicitly add a tls block to plaintext outbounds
                     clean_outbound.setdefault("server_name", orig_clean)
 
     # Recursively check nested outbounds/detours/next

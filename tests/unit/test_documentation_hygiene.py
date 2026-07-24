@@ -144,6 +144,20 @@ def test_readme_describes_proxies_json_as_array_not_metadata_envelope() -> None:
     assert "metadata lives in metadata.json" in readme
 
 
+def test_project_tree_graph_html_structure() -> None:
+    """docs/project_tree_graph.html must have valid HTML structure with style, head, and body tags in order."""
+    html = _read("docs/project_tree_graph.html")
+    assert "</style>" in html
+    assert "</head>" in html
+    assert "<body>" in html
+    style_end = html.find("</style>")
+    head_end = html.find("</head>")
+    body_start = html.find("<body>")
+    assert -1 < style_end < head_end < body_start
+    assert "vis-network@9.1.2" in html
+    assert "Visualization Engine Unavailable" in html
+
+
 def test_docs_match_runtime_security_defaults() -> None:
     readme = _read("README.md")
     config_doc = _read("docs/wiki/project/Configuration.md")
