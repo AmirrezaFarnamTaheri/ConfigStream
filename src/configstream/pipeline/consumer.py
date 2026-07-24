@@ -720,8 +720,11 @@ async def _revive_failed_proxies(
                     if p.is_working:
                         vwarp_success_ids.add(str(orig_p.id))
                         vwarp_success_ids.add(str(proxy_unique_key(orig_p)))
-                except Exception:
-                    pass
+                except Exception as exc:  # nosec B110
+                    logger.debug(
+                        "Suppressed origin Proxy model_validate error in revival: %s",
+                        SecurityValidator.sanitize_log_message(str(exc)),
+                    )
             origin_id = p.details.get("origin_id")
             if not origin_id and isinstance(origin, dict):
                 origin_id = origin.get("uuid") or origin.get("id")
