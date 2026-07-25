@@ -59,6 +59,20 @@ VALID_CORE_FORMATS = {
     )
 
     replace_once(
+        "scripts/finalize_release_outputs.py",
+        '''        outbound["outbounds"] = unique
+        if outbound.get("default") not in unique:
+            outbound.pop("default", None)
+''',
+        '''        if not unique and "direct" in known:
+            unique = ["direct"]
+        outbound["outbounds"] = unique
+        if outbound.get("default") not in unique:
+            outbound.pop("default", None)
+''',
+    )
+
+    replace_once(
         "tests/unit/test_validate_pages_artifact.py",
         '''        elif rel_path.startswith("clash") and rel_path.endswith(".yaml"):
             _write_text(path, _clash_payload())
