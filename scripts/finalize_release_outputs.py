@@ -16,6 +16,8 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
+from configstream.output.client_formats import generate_xray_config
+
 try:
     import yaml  # type: ignore
 except ImportError:  # pragma: no cover
@@ -30,6 +32,9 @@ INTERNAL_KEYS = {
     "origin_url",
     "fetch_url",
     "raw_source",
+    "tester_error_category",
+    "infra_failure",
+    "failure_category",
 }
 MAX_SELECTOR_MEMBERS = int(os.environ.get("MAX_SELECTOR_MEMBERS", "96"))
 
@@ -652,7 +657,7 @@ def finalize(root: Path, repo_root: Path, threshold: float) -> None:
             _write(path, modernize_singbox(payload))
             modernized.append(path.name)
 
-    xray, xray_report = generate_xray(records)
+    xray, xray_report = generate_xray_config(records)
     _write(root / "xray.json", xray)
     clash_report = _repair_clash(root, records)
     copied_wasm: list[str] = []

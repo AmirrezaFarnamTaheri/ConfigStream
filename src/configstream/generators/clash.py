@@ -216,15 +216,7 @@ def _convert_revived(
             generated.append(warp_dict)
 
         if relay_name and warp_name:
-            relay_group_name = _unique_name(f"{base}-chain", seen_names)
-            groups.append(
-                {
-                    "name": relay_group_name,
-                    "type": "relay",
-                    "proxies": [relay_name, warp_name],
-                }
-            )
-            selected_name = relay_group_name
+            selected_name = warp_name
         elif warp_name:
             selected_name = warp_name
         elif relay_name:
@@ -257,10 +249,8 @@ def generate_clash_config(
     Generates a Clash YAML configuration.
 
     Added `extra_outbounds` argument to prevent crash when pipeline passes it.
-    However, Clash/Mihomo generator currently only supports standard proxies.
-    Chains (WARP-wrapped, revived, shielded) are sing-box only — use
-    singbox.json or singbox-chains.json. Mihomo relay does not support
-    WireGuard as a hop; use sing-box for chain profiles.
+    Revived chains use Mihomo `dialer-proxy` relationships; deprecated relay
+    groups are never emitted.
     """
     if not yaml:
         # PyYAML is a normal dependency, but keep a resilient fallback.
