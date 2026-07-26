@@ -12,7 +12,6 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
 
-
 _URI_SCHEME_RE = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*$")
 _XRAY_BUILTIN_TAGS = {"direct", "block"}
 
@@ -148,9 +147,7 @@ def _xray_stream_settings(outbound: dict[str, Any]) -> dict[str, Any] | None:
     elif security == "tls" or tls_obj.get("enabled"):
         stream["security"] = "tls"
         tls_settings: dict[str, Any] = {
-            "serverName": str(
-                tls_obj.get("server_name") or outbound.get("sni") or ""
-            ),
+            "serverName": str(tls_obj.get("server_name") or outbound.get("sni") or ""),
             "allowInsecure": bool(
                 tls_obj.get("insecure")
                 or outbound.get("allow_insecure")
@@ -340,8 +337,7 @@ def _candidate_from_record(record: dict[str, Any]) -> dict[str, Any]:
             "type": network,
             "path": details.get("path"),
             "host": details.get("host"),
-            "service_name": details.get("serviceName")
-            or details.get("service_name"),
+            "service_name": details.get("serviceName") or details.get("service_name"),
         }
     security = str(details.get("security") or "").lower()
     tls_enabled = bool(details.get("tls")) or security in {"tls", "reality"}
@@ -351,8 +347,7 @@ def _candidate_from_record(record: dict[str, Any]) -> dict[str, Any]:
             "server_name": details.get("sni"),
             "alpn": details.get("alpn"),
             "fingerprint": details.get("fp"),
-            "insecure": details.get("allowInsecure")
-            or details.get("skip_cert_verify"),
+            "insecure": details.get("allowInsecure") or details.get("skip_cert_verify"),
         }
         if security == "reality":
             tls["reality"] = {
@@ -400,9 +395,7 @@ def generate_xray_config(
 
         before = len(outbounds)
         for candidate in candidates:
-            base = _clean_tag(
-                candidate.get("tag"), f"{protocol}-{len(seen) + 1}"
-            )
+            base = _clean_tag(candidate.get("tag"), f"{protocol}-{len(seen) + 1}")
             tag = _unique_tag(base, seen)
             converted = _xray_outbound(candidate, tag)
             if converted:

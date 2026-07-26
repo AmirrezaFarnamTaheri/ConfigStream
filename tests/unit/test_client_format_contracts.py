@@ -32,21 +32,44 @@ def test_mihomo_accepts_dialer_proxy_and_rejects_relay() -> None:
     valid = {
         "proxies": [
             {"name": "relay", "type": "socks5"},
-            {"name": "warp", "type": "wireguard", "server": "198.51.100.1", "port": 2408, "ip": "172.16.0.2", "private-key": "private", "public-key": "public", "dialer-proxy": "relay"},
+            {
+                "name": "warp",
+                "type": "wireguard",
+                "server": "198.51.100.1",
+                "port": 2408,
+                "ip": "172.16.0.2",
+                "private-key": "private",
+                "public-key": "public",
+                "dialer-proxy": "relay",
+            },
         ],
         "proxy-groups": [{"name": "PROXY", "type": "select", "proxies": ["warp"]}],
     }
     assert validate_mihomo_config(valid, "clash.yaml") == []
-    invalid = {"proxies": [{"name": "a", "type": "socks5"}], "proxy-groups": [{"name": "chain", "type": "relay", "proxies": ["a"]}]}
+    invalid = {
+        "proxies": [{"name": "a", "type": "socks5"}],
+        "proxy-groups": [{"name": "chain", "type": "relay", "proxies": ["a"]}],
+    }
     assert validate_mihomo_config(invalid, "clash.yaml") == [
         "clash.yaml proxy-groups[0] uses deprecated relay type"
     ]
 
 
 def test_xray_generator_emits_modern_vless_shape() -> None:
-    config, report = generate_xray_config([
-        {"id": "node-1", "protocol": "vless", "address": "example.com", "port": 443, "uuid": "00000000-0000-0000-0000-000000000001", "remarks": "node", "is_working": True, "details": {"tls": True, "sni": "example.com"}}
-    ])
+    config, report = generate_xray_config(
+        [
+            {
+                "id": "node-1",
+                "protocol": "vless",
+                "address": "example.com",
+                "port": 443,
+                "uuid": "00000000-0000-0000-0000-000000000001",
+                "remarks": "node",
+                "is_working": True,
+                "details": {"tls": True, "sni": "example.com"},
+            }
+        ]
+    )
     outbound = config["outbounds"][0]
     assert outbound["settings"]["address"] == "example.com"
     assert "vnext" not in outbound["settings"]
@@ -55,7 +78,13 @@ def test_xray_generator_emits_modern_vless_shape() -> None:
 
 
 def test_xray_rejects_obsolete_vnext_layout() -> None:
-    errors = validate_xray_config({"outbounds": [{"tag": "vless", "protocol": "vless", "settings": {"vnext": []}}]})
+    errors = validate_xray_config(
+        {
+            "outbounds": [
+                {"tag": "vless", "protocol": "vless", "settings": {"vnext": []}}
+            ]
+        }
+    )
     assert "xray.json outbounds[0] uses obsolete vnext settings" in errors
     assert "xray.json outbounds[0] missing modern vless address" in errors
     assert "xray.json outbounds[0] missing modern vless port" in errors
