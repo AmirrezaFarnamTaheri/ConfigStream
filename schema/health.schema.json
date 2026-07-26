@@ -10,13 +10,12 @@
     "total_working",
     "total_tested",
     "schema_validated",
-    "native_clients_validated",
-    "release_blockers",
     "notes"
   ],
   "properties": {
     "schema_version": {
-      "type": "string"
+      "type": "string",
+      "enum": ["1.0", "2.0"]
     },
     "status": {
       "type": "string",
@@ -60,7 +59,8 @@
     "release_blockers": {
       "type": "array",
       "items": {
-        "type": "string"
+        "type": "string",
+        "minLength": 1
       }
     },
     "native_report": {
@@ -78,5 +78,54 @@
       }
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "schema_version": {"const": "2.0"}
+        },
+        "required": ["schema_version"]
+      },
+      "then": {
+        "required": [
+          "source_coverage",
+          "native_clients_validated",
+          "release_blockers"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "schema_version": {"const": "2.0"},
+          "status": {"const": "ok"}
+        },
+        "required": ["schema_version", "status"]
+      },
+      "then": {
+        "required": ["native_report", "native_report_sha256"],
+        "properties": {
+          "schema_validated": {"const": true},
+          "native_clients_validated": {"const": true},
+          "release_blockers": {"maxItems": 0},
+          "total_working": {"minimum": 1}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "schema_version": {"const": "2.0"},
+          "status": {"const": "failed"}
+        },
+        "required": ["schema_version", "status"]
+      },
+      "then": {
+        "properties": {
+          "release_blockers": {"minItems": 1}
+        }
+      }
+    }
+  ],
   "additionalProperties": false
 }
