@@ -10,8 +10,8 @@ from configstream.fetcher_worker import FetchResult
 
 
 @pytest.fixture
-def mock_dependencies():
-    queue = asyncio.Queue()
+def mock_dependencies() -> dict:
+    queue: asyncio.Queue = asyncio.Queue()
     quality = MagicMock()
     quality.should_fetch.return_value = True
     anomaly = MagicMock()
@@ -83,7 +83,7 @@ def mock_dependencies():
 
 
 @pytest.mark.asyncio
-async def test_pipeline_stats():
+async def test_pipeline_stats() -> None:
     s = PipelineStats()
     d = s.to_dict()
     assert d["fetched_sources"] == 0
@@ -93,7 +93,7 @@ async def test_pipeline_stats():
 
 
 @pytest.mark.asyncio
-async def test_source_producer_supplied_proxies(mock_dependencies):
+async def test_source_producer_supplied_proxies(mock_dependencies) -> None:
     queue = mock_dependencies["queue"]
     p = Proxy(protocol="vmess", address="1.1.1.1", port=80, config="vmess://test")
 
@@ -114,7 +114,7 @@ async def test_source_producer_supplied_proxies(mock_dependencies):
 
 
 @pytest.mark.asyncio
-async def test_source_producer_local_files(mock_dependencies):
+async def test_source_producer_local_files(mock_dependencies) -> None:
     queue = mock_dependencies["queue"]
     sources = ["sources/batch_1.txt"]
 
@@ -138,7 +138,7 @@ async def test_source_producer_local_files(mock_dependencies):
 
 
 @pytest.mark.asyncio
-async def test_source_producer_remote_urls(mock_dependencies):
+async def test_source_producer_remote_urls(mock_dependencies) -> None:
     queue = mock_dependencies["queue"]
     sources = [
         "http://web.com/sub",
@@ -191,7 +191,7 @@ async def test_source_producer_remote_urls(mock_dependencies):
 
 
 @pytest.mark.asyncio
-async def test_source_producer_anomaly_block(mock_dependencies):
+async def test_source_producer_anomaly_block(mock_dependencies) -> None:
     queue = mock_dependencies["queue"]
     sources = ["http://bad.com"]
 
@@ -220,11 +220,11 @@ async def test_source_producer_anomaly_block(mock_dependencies):
 
 
 @pytest.mark.asyncio
-async def test_processing_consumer_basic_flow(mock_dependencies):
+async def test_processing_consumer_basic_flow(mock_dependencies) -> None:
     queue = mock_dependencies["queue"]
     stats = PipelineStats()
-    seen_keys = set()
-    final_proxies = []
+    seen_keys: set = set()
+    final_proxies: list = []
 
     # Add work item
     await queue.put(("test-source", ["vmess://test"]))
@@ -273,11 +273,11 @@ async def test_processing_consumer_basic_flow(mock_dependencies):
 
 
 @pytest.mark.asyncio
-async def test_processing_consumer_cached_hit(mock_dependencies):
+async def test_processing_consumer_cached_hit(mock_dependencies) -> None:
     queue = mock_dependencies["queue"]
     stats = PipelineStats()
-    seen_keys = set()
-    final_proxies = []
+    seen_keys: set = set()
+    final_proxies: list = []
 
     await queue.put(("test-source", ["vmess://test"]))
     await queue.put(None)
@@ -323,11 +323,11 @@ async def test_processing_consumer_cached_hit(mock_dependencies):
 
 
 @pytest.mark.asyncio
-async def test_processing_consumer_cache_miss(mock_dependencies):
+async def test_processing_consumer_cache_miss(mock_dependencies) -> None:
     queue = mock_dependencies["queue"]
     stats = PipelineStats()
-    seen_keys = set()
-    final_proxies = []
+    seen_keys: set = set()
+    final_proxies: list = []
 
     await queue.put(("test-source", ["vmess://test"]))
     await queue.put(None)
@@ -375,11 +375,11 @@ async def test_processing_consumer_cache_miss(mock_dependencies):
 
 
 @pytest.mark.asyncio
-async def test_processing_consumer_go_tester(mock_dependencies):
+async def test_processing_consumer_go_tester(mock_dependencies) -> None:
     queue = mock_dependencies["queue"]
     stats = PipelineStats()
-    seen_keys = set()
-    final_proxies = []
+    seen_keys: set = set()
+    final_proxies: list = []
 
     await queue.put(("test-source", ["vmess://test"]))
     await queue.put(None)
@@ -390,7 +390,7 @@ async def test_processing_consumer_go_tester(mock_dependencies):
     mock_dependencies["tester"].go_tester.available = True
 
     # Mock test_batch updates objects in place
-    async def side_effect(batch):
+    async def side_effect(batch) -> None:
         for x in batch:
             x.is_working = True
             x.latency = 20
@@ -428,11 +428,11 @@ async def test_processing_consumer_go_tester(mock_dependencies):
 
 
 @pytest.mark.asyncio
-async def test_processing_consumer_filters(mock_dependencies):
+async def test_processing_consumer_filters(mock_dependencies) -> None:
     queue = mock_dependencies["queue"]
     stats = PipelineStats()
-    seen_keys = set()
-    final_proxies = []
+    seen_keys: set = set()
+    final_proxies: list = []
 
     await queue.put(("test-source", ["vmess://test"]))
     await queue.put(None)
@@ -476,11 +476,11 @@ async def test_processing_consumer_filters(mock_dependencies):
 
 
 @pytest.mark.asyncio
-async def test_processing_consumer_country_filter(mock_dependencies):
+async def test_processing_consumer_country_filter(mock_dependencies) -> None:
     queue = mock_dependencies["queue"]
     stats = PipelineStats()
-    seen_keys = set()
-    final_proxies = []
+    seen_keys: set = set()
+    final_proxies: list = []
 
     await queue.put(("test-source", ["vmess://test"]))
     await queue.put(None)
@@ -528,3 +528,94 @@ async def test_processing_consumer_country_filter(mock_dependencies):
             )
 
     assert len(final_proxies) == 0  # Filtered by latency
+
+
+@pytest.mark.asyncio
+async def test_source_producer_sentinel_survives_transient_backpressure(
+    mock_dependencies,
+) -> None:
+    """Every consumer must receive its shutdown sentinel on normal completion.
+
+    Consumers only exit their loop on the ``None`` marker and otherwise await
+    ``work_queue.get()`` forever, and the pipeline awaits every consumer task.
+    If the queue is merely full because live consumers haven't drained it yet
+    (not because they're gone), the producer must keep retrying rather than
+    give up -- giving up here would silently strand a healthy consumer.
+    """
+    work_queue: asyncio.Queue = asyncio.Queue(maxsize=1)
+    await work_queue.put("placeholder")  # Force the first sentinel put to wait.
+    stop_event = asyncio.Event()  # Not set: normal (non-forced) completion.
+
+    delivered: list = []
+
+    async def _live_consumer() -> None:
+        """Stand-in for a real consumer: keeps draining, so room keeps opening."""
+        await asyncio.sleep(0.05)  # Hold the queue full briefly.
+        while True:
+            item = await work_queue.get()
+            delivered.append(item)
+
+    drain_task = asyncio.create_task(_live_consumer())
+    try:
+        await source_producer(
+            sources=[],
+            work_queue=work_queue,
+            proxies=None,
+            quality_tracker=mock_dependencies["quality"],
+            anomaly_detector=mock_dependencies["anomaly"],
+            event_stream=None,
+            progress=None,
+            task_fetch=None,
+            num_consumers=2,
+            stop_event=stop_event,
+        )
+        # Let the consumer drain anything still queued.
+        await asyncio.sleep(0.05)
+    finally:
+        drain_task.cancel()
+        try:
+            await drain_task
+        except asyncio.CancelledError:
+            pass
+
+    while not work_queue.empty():
+        delivered.append(work_queue.get_nowait())
+    assert delivered.count(None) == 2, (
+        "Both consumers must receive a sentinel once backpressure clears; "
+        f"got {delivered!r}"
+    )
+
+
+@pytest.mark.asyncio
+async def test_source_producer_sentinel_gives_up_during_forced_teardown(
+    mock_dependencies,
+) -> None:
+    """During a forced teardown, sentinel delivery must not hang forever.
+
+    core.py's ``_cancel_all`` sets ``stop_event`` and cancels every consumer
+    task directly -- so a queue that stays full because consumers are gone
+    (not merely busy) must not be waited on indefinitely; that would wedge
+    the whole pipeline's shutdown path.
+    """
+    work_queue: asyncio.Queue = asyncio.Queue(maxsize=1)
+    await work_queue.put("placeholder")  # Stays full: nobody will ever drain it.
+    stop_event = asyncio.Event()
+    stop_event.set()  # Forced teardown already flagged.
+
+    # Must return promptly (well under the 5s per-attempt backoff) instead of
+    # blocking on a queue that will never have room again.
+    await asyncio.wait_for(
+        source_producer(
+            sources=[],
+            work_queue=work_queue,
+            proxies=None,
+            quality_tracker=mock_dependencies["quality"],
+            anomaly_detector=mock_dependencies["anomaly"],
+            event_stream=None,
+            progress=None,
+            task_fetch=None,
+            num_consumers=3,
+            stop_event=stop_event,
+        ),
+        timeout=2.0,
+    )

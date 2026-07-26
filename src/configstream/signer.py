@@ -178,12 +178,17 @@ class Signer:
             signature_hex: Hex-encoded Ed25519 signature.
             public_key_hex: Hex-encoded 32-byte Ed25519 public key.
             timestamp: Integer seconds (UTC) that was embedded when signing.
-                       If None the age check is skipped (legacy callers only).
+                       Required: every signature produced by this class embeds
+                       one, so ``None`` is treated as malformed input and is
+                       rejected outright. It remains ``Optional`` in the
+                       signature only so that callers forwarding a missing
+                       field fail closed (``False``) instead of raising.
             max_age_seconds: Maximum acceptable age of the signature in seconds.
 
         Returns:
-            True only when the signature is cryptographically valid *and*
-            the timestamp is within the acceptable window.
+            True only when a timestamp is supplied, the signature is
+            cryptographically valid, *and* the timestamp is within the
+            acceptable window. False in every other case.
         """
         try:
             # --- Replay / freshness check ----------------------------------------

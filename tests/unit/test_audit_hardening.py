@@ -16,28 +16,28 @@ from configstream.parsers.generic import parse_v2ray_json
 
 
 class TestCoerceLatency:
-    def test_valid_numeric(self):
+    def test_valid_numeric(self) -> None:
         assert _coerce_latency(12) == 12.0
         assert _coerce_latency(3.5) == 3.5
         assert _coerce_latency("42") == 42.0
 
-    def test_none_returns_none(self):
+    def test_none_returns_none(self) -> None:
         assert _coerce_latency(None) is None
 
-    def test_non_numeric_string_returns_none(self):
+    def test_non_numeric_string_returns_none(self) -> None:
         # Previously float("n/a") raised ValueError and aborted the whole batch.
         assert _coerce_latency("n/a") is None
 
-    def test_bool_is_not_latency(self):
+    def test_bool_is_not_latency(self) -> None:
         assert _coerce_latency(True) is None
         assert _coerce_latency(False) is None
 
-    def test_nan_and_inf_rejected(self):
+    def test_nan_and_inf_rejected(self) -> None:
         assert _coerce_latency(float("nan")) is None
         assert _coerce_latency(float("inf")) is None
         assert _coerce_latency("inf") is None
 
-    def test_container_returns_none(self):
+    def test_container_returns_none(self) -> None:
         assert _coerce_latency([1, 2]) is None
         assert _coerce_latency({"a": 1}) is None
 
@@ -57,7 +57,7 @@ def _vless_proxy(address: str, uuid: str, remarks: str) -> Proxy:
 
 
 class TestSingboxUrltestTagUniqueness:
-    def test_duplicate_remarks_get_unique_urltest_members(self):
+    def test_duplicate_remarks_get_unique_urltest_members(self) -> None:
         from configstream.generators.singbox import SingBoxGenerator
 
         # Two proxies with an identical remark force tag uniquification.
@@ -84,7 +84,7 @@ class TestSingboxUrltestTagUniqueness:
 
 
 class TestV2rayJsonRobustness:
-    def test_non_string_cipher_does_not_raise(self):
+    def test_non_string_cipher_does_not_raise(self) -> None:
         # A non-string method/cipher previously raised AttributeError at
         # method.lower() and escaped the dispatcher's narrow except clause.
         config = (
@@ -95,15 +95,15 @@ class TestV2rayJsonRobustness:
         result = parse_v2ray_json(config)
         assert result is None or isinstance(result, Proxy)
 
-    def test_non_object_top_level_returns_none(self):
+    def test_non_object_top_level_returns_none(self) -> None:
         assert parse_v2ray_json("[1, 2, 3]") is None
 
-    def test_garbage_returns_none(self):
+    def test_garbage_returns_none(self) -> None:
         assert parse_v2ray_json("{not json") is None
 
 
 class TestAtomicWriteDurability:
-    def test_write_text_fsyncs_parent_dir(self, tmp_path, monkeypatch):
+    def test_write_text_fsyncs_parent_dir(self, tmp_path, monkeypatch) -> None:
         # The rename must be made durable by fsyncing the parent directory,
         # not just the file contents.
         import configstream.utils as utils
@@ -114,7 +114,7 @@ class TestAtomicWriteDurability:
 
         opened_dir_fds = {}
 
-        def tracking_open(path, flags, *args, **kwargs):
+        def tracking_open(path, flags, *args, **kwargs) -> int:
             fd = real_open(path, flags, *args, **kwargs)
             opened_dir_fds[fd] = path
             return fd
@@ -134,7 +134,7 @@ class TestAtomicWriteDurability:
         # The parent directory must have been fsynced at least once.
         assert str(target.parent) in fsynced_dirs
 
-    def test_write_text_content_roundtrip(self, tmp_path):
+    def test_write_text_content_roundtrip(self, tmp_path) -> None:
         import configstream.utils as utils
 
         target = tmp_path / "data.txt"
@@ -144,7 +144,7 @@ class TestAtomicWriteDurability:
 
 class TestLabConfigBounds:
     @pytest.mark.asyncio
-    async def test_too_many_outbounds_rejected(self):
+    async def test_too_many_outbounds_rejected(self) -> None:
         from fastapi import HTTPException
         from configstream.server.routes.lab import (
             _validate_and_build_lab_config,
@@ -162,7 +162,7 @@ class TestLabConfigBounds:
         assert exc.value.status_code == 400
 
     @pytest.mark.asyncio
-    async def test_excessive_nesting_rejected(self):
+    async def test_excessive_nesting_rejected(self) -> None:
         from fastapi import HTTPException
         from configstream.server.routes.lab import (
             _validate_and_build_lab_config,
@@ -179,3 +179,72 @@ class TestLabConfigBounds:
         with pytest.raises(HTTPException) as exc:
             await _validate_and_build_lab_config(config)
         assert exc.value.status_code == 400
+
+
+class TestOversizedLineDrain:
+    """`_drain_oversized_line` must always make forward progress.
+
+    A `readline()` that overruns the stream limit is recovered by discarding
+    bytes up to the next newline. Retrying `readuntil` blindly would hit the
+    identical stuck buffer forever; `LimitOverrunError.consumed` reports how
+    many leading bytes are confirmed separator-free, so discarding exactly
+    those bytes guarantees the loop advances.
+    """
+
+    @pytest.mark.asyncio
+    async def test_drain_consumes_bytes_and_stops_spinning(self) -> None:
+        import asyncio
+        from configstream.testers.go_tester.manager import GoBatchTester
+
+        calls: dict[str, int] = {"readuntil": 0, "readexactly": 0}
+
+        class FakeStream:
+            """Overruns twice (reporting consumable bytes), then succeeds."""
+
+            async def readuntil(self, sep: bytes) -> bytes:
+                calls["readuntil"] += 1
+                if calls["readuntil"] <= 2:
+                    raise asyncio.LimitOverrunError("too long", 64)
+                return b"tail\n"
+
+            async def readexactly(self, n: int) -> bytes:
+                calls["readexactly"] += 1
+                assert n == 64, "must discard exactly the consumed-byte count"
+                return b"x" * n
+
+        tester = GoBatchTester.__new__(GoBatchTester)
+        tester._proc = type("P", (), {"stdout": FakeStream()})()
+
+        assert await tester._drain_oversized_line() is True
+        # Both overruns discarded bytes rather than spinning on the same buffer.
+        assert calls["readexactly"] == 2
+        assert calls["readuntil"] == 3
+
+    @pytest.mark.asyncio
+    async def test_drain_reports_eof(self) -> None:
+        import asyncio
+        from configstream.testers.go_tester.manager import GoBatchTester
+
+        class EofStream:
+            async def readuntil(self, sep: bytes) -> bytes:
+                raise asyncio.IncompleteReadError(b"", None)
+
+        tester = GoBatchTester.__new__(GoBatchTester)
+        tester._proc = type("P", (), {"stdout": EofStream()})()
+
+        assert await tester._drain_oversized_line() is False
+
+    @pytest.mark.asyncio
+    async def test_drain_bails_out_when_nothing_consumable(self) -> None:
+        """A zero `consumed` count must not loop forever."""
+        import asyncio
+        from configstream.testers.go_tester.manager import GoBatchTester
+
+        class StuckStream:
+            async def readuntil(self, sep: bytes) -> bytes:
+                raise asyncio.LimitOverrunError("stuck", 0)
+
+        tester = GoBatchTester.__new__(GoBatchTester)
+        tester._proc = type("P", (), {"stdout": StuckStream()})()
+
+        assert await tester._drain_oversized_line() is False

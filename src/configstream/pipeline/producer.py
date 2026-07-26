@@ -592,18 +592,39 @@ async def source_producer(
                 "No sources or pre-supplied proxies provided - pipeline will produce zero results"
             )
 
-        # Signal all consumers to exit. Never block unboundedly here: during a
-        # cancelled shutdown the consumers are already gone and the queue can be
-        # full, so a plain `await put(None)` would hang forever and wedge the
-        # whole pipeline teardown. Try non-blocking first, then fall back to a
-        # short bounded wait for the normal (draining) path.
+        # Signal all consumers to exit. Every consumer only terminates on this
+        # None sentinel and otherwise awaits work_queue.get() forever, and the
+        # pipeline awaits every consumer task -- so in the normal (healthy)
+        # completion path we must NOT give up early: consumers are alive and
+        # draining, so a transiently full queue always clears given patience,
+        # and abandoning a sentinel would strand that consumer permanently.
+        #
+        # During a *forced* teardown (batch time limit, cancellation, or an
+        # unhandled error), core.py's `_cancel_all` sets `stop_event` and then
+        # cancels every consumer task directly -- so consumers may already be
+        # gone and the queue can stay full forever with nobody left to drain
+        # it. In that case sentinel delivery is redundant (consumers are being
+        # torn down via cancel(), not via this marker) and must be bounded, or
+        # this finally block would hang the whole shutdown indefinitely.
+        forced_teardown = stop_event is not None and stop_event.is_set()
         for _ in range(num_consumers):
-            try:
-                work_queue.put_nowait(None)
-            except asyncio.QueueFull:
+            while True:
                 try:
-                    await asyncio.wait_for(work_queue.put(None), timeout=5.0)
-                except asyncio.TimeoutError:
+                    work_queue.put_nowait(None)
                     break
-                except asyncio.CancelledError:
-                    break
+                except asyncio.QueueFull:
+                    if forced_teardown:
+                        logger.warning(
+                            "Skipping sentinel delivery during forced teardown; "
+                            "consumers are being cancelled directly."
+                        )
+                        break
+                    try:
+                        await asyncio.wait_for(work_queue.put(None), timeout=5.0)
+                        break
+                    except asyncio.TimeoutError:
+                        logger.debug(
+                            "Sentinel enqueue still blocked after 5s; retrying "
+                            "(consumers are expected to be draining)."
+                        )
+                        continue

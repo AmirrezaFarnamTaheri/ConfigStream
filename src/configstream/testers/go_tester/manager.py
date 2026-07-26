@@ -408,6 +408,40 @@ class GoBatchTester:
                     self._pending_futures.pop(req_id, None)
         await self._consume_futures(futures)
 
+    async def _drain_oversized_line(self) -> bool:
+        """Discard buffered bytes up to and including the next newline.
+
+        Called after a ``readline()`` overruns the stream's buffer limit.
+        ``LimitOverrunError.consumed`` reports how many leading bytes are
+        confirmed not to contain the separator, so repeatedly discarding
+        exactly that many bytes and retrying is guaranteed to make forward
+        progress -- unlike a bare retry, which would hit the identical stuck
+        buffer again and spin without ever consuming the oversized record.
+
+        Returns True if a newline was found and discarded, False on EOF.
+        """
+        stream = self._proc.stdout if self._proc else None
+        if stream is None:
+            return False
+        while True:
+            try:
+                await stream.readuntil(b"\n")
+                return True
+            except asyncio.IncompleteReadError:
+                return False
+            except asyncio.LimitOverrunError as exc:
+                consumed = getattr(exc, "consumed", 0) or 0
+                if consumed <= 0:
+                    # No confirmed-safe bytes to discard; nothing more we can
+                    # do without risking an infinite loop.
+                    return False
+                await stream.readexactly(consumed)
+            except ValueError:
+                # Separator not found and buffer already at/over its limit
+                # with no LimitOverrunError raised (e.g. reader misconfigured);
+                # bail out rather than spin.
+                return False
+
     async def _read_loop(self) -> None:
         """Background task to read results from stdout."""
         try:
@@ -422,11 +456,7 @@ class GoBatchTester:
                         "Go Tester emitted an oversized line; skipping: %s",
                         type(exc).__name__,
                     )
-                    try:
-                        await self._proc.stdout.readuntil(b"\n")
-                    except (asyncio.LimitOverrunError, ValueError):
-                        continue
-                    except asyncio.IncompleteReadError:
+                    if not await self._drain_oversized_line():
                         break
                     continue
                 if not line:

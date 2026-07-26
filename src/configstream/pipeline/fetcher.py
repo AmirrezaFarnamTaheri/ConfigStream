@@ -538,7 +538,9 @@ async def fetch_from_source(
                 if reset_probe is not None:
                     try:
                         await reset_probe()
-                    except Exception:  # nosec B110 - best-effort cleanup
+                    except Exception:  # nosec B110
+                        # Best-effort cleanup: releasing the probe token must
+                        # never mask the CancelledError being propagated below.
                         pass
             # Propagate cancellation to abort fetch immediately
             raise

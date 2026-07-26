@@ -10,14 +10,14 @@ from configstream.circuit_breaker import (
 
 class TestCircuitBreaker:
     @pytest.mark.asyncio
-    async def test_initial_state(self):
-        cb = CircuitBreaker(failure_threshold=3, recovery_timeout=1)
+    async def test_initial_state(self) -> None:
+        cb = CircuitBreaker(failure_threshold=3, recovery_timeout=0.1)
         assert cb.state == CircuitBreakerState.CLOSED
         assert not await cb.is_open()
 
     @pytest.mark.asyncio
-    async def test_state_transition(self):
-        cb = CircuitBreaker(failure_threshold=2, recovery_timeout=1)
+    async def test_state_transition(self) -> None:
+        cb = CircuitBreaker(failure_threshold=2, recovery_timeout=0.1)
         await cb.record_failure()
         assert cb.state == CircuitBreakerState.CLOSED
         assert not await cb.is_open()
@@ -28,7 +28,7 @@ class TestCircuitBreaker:
         assert await cb.is_open()
 
     @pytest.mark.asyncio
-    async def test_recovery(self):
+    async def test_recovery(self) -> None:
         cb = CircuitBreaker(failure_threshold=1, recovery_timeout=0.1)
         await cb.record_failure()
         assert await cb.is_open()
@@ -46,7 +46,7 @@ class TestCircuitBreaker:
         assert cb.failure_count == 0
 
     @pytest.mark.asyncio
-    async def test_half_open_failure(self):
+    async def test_half_open_failure(self) -> None:
         cb = CircuitBreaker(failure_threshold=1, recovery_timeout=0.1)
         await cb.record_failure()
         await asyncio.sleep(0.15)
@@ -59,7 +59,7 @@ class TestCircuitBreaker:
         assert await cb.is_open()
 
     @pytest.mark.asyncio
-    async def test_cancelled_probe_does_not_wedge_breaker(self):
+    async def test_cancelled_probe_does_not_wedge_breaker(self) -> None:
         """A HALF_OPEN probe that is cancelled must release the probe token.
 
         Without reset_probe(), _probe_in_flight would stay True forever and
@@ -87,8 +87,8 @@ class TestCircuitBreaker:
         assert cb.state == CircuitBreakerState.HALF_OPEN
 
     @pytest.mark.asyncio
-    async def test_reset_probe_noop_when_no_probe(self):
-        cb = CircuitBreaker(failure_threshold=2, recovery_timeout=1)
+    async def test_reset_probe_noop_when_no_probe(self) -> None:
+        cb = CircuitBreaker(failure_threshold=2, recovery_timeout=0.1)
         # No probe in flight; reset must be a harmless no-op.
         await cb.reset_probe()
         assert cb.state == CircuitBreakerState.CLOSED
@@ -97,7 +97,7 @@ class TestCircuitBreaker:
 
 class TestCircuitBreakerManager:
     @pytest.mark.asyncio
-    async def test_get_breaker(self):
+    async def test_get_breaker(self) -> None:
         manager = CircuitBreakerManager()
         cb1 = await manager.get_breaker("host1")
         cb2 = await manager.get_breaker("host1")

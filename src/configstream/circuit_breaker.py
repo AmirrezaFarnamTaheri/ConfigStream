@@ -12,7 +12,9 @@ class CircuitBreakerState(Enum):
 
 
 class CircuitBreaker:
-    def __init__(self, failure_threshold: int, recovery_timeout: int):
+    def __init__(self, failure_threshold: int, recovery_timeout: float):
+        # recovery_timeout is compared against time.monotonic() deltas, so it is
+        # inherently a float quantity of seconds; ints remain valid callers.
         self.failure_threshold = failure_threshold
         self.recovery_timeout = recovery_timeout
         self.failure_count = 0
