@@ -149,6 +149,15 @@ from scripts.validate_pages_artifact import validate_pages_artifact
     api_dir = tmp_path / "api"
 ''',
     )
+    replace_once(
+        "tests/unit/test_output.py",
+        '''    api_dir = tmp_path / "api"
+    api_dir.mkdir()
+''',
+        '''    api_dir = tmp_path / "api"
+    api_dir.mkdir(exist_ok=True)
+''',
+    )
 
     replace_once(
         "tests/unit/test_output_generators.py",
