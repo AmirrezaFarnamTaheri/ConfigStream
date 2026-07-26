@@ -266,3 +266,63 @@ class TestOversizedLineResync:
         reader.feed_eof()
 
         await asyncio.wait_for(tester._read_loop(), timeout=5.0)
+
+
+class TestResourceBudgetDefaults:
+    """The shipped defaults must be finite, and the parsers must see them.
+
+    Every size guard in the parser layer is written as
+    ``if LIMIT > 0 and len(x) > LIMIT``, so a zero default silently disables
+    it. These budgets were 0 (unbounded) and are now finite; this pins that,
+    because a regression would reopen an unbounded-allocation path on fully
+    untrusted subscription input without failing any other test.
+
+    The values are read from ``configstream.constants`` deliberately: that is
+    the module the parsers import from, and it derives from AppSettings. A
+    change to AppSettings that failed to propagate here would be invisible.
+    """
+
+    LIMITS = (
+        "MAX_B64_INPUT_SIZE",
+        "MAX_B64_OUTPUT_SIZE",
+        "MAX_CONFIG_LINE_LENGTH",
+        "MAX_LINES_PER_SOURCE",
+        "MAX_OPENVPN_CONFIG_SIZE",
+    )
+
+    def test_parser_visible_limits_are_finite(self) -> None:
+        from configstream import constants
+
+        for name in self.LIMITS:
+            value = getattr(constants, name)
+            assert isinstance(value, int), f"{name} must be an int"
+            assert value > 0, f"{name} is {value}; 0 disables the guard entirely"
+
+    def test_settings_and_constants_agree(self) -> None:
+        """constants must mirror AppSettings, or a config fix would not apply."""
+        from configstream import constants
+        from configstream.config import AppSettings
+
+        settings = AppSettings()
+        for name in self.LIMITS:
+            assert getattr(constants, name) == int(
+                getattr(settings, name)
+            ), f"{name} drifted between AppSettings and constants"
+
+    def test_oversized_base64_payload_is_rejected(self) -> None:
+        """The finite budget is actually enforced, not merely declared."""
+        from configstream import constants
+        from configstream.parsers.decoders import safe_b64_decode
+
+        oversized = "A" * (constants.MAX_B64_INPUT_SIZE + 1024)
+        assert not safe_b64_decode(oversized)
+        # A normal payload still decodes.
+        assert safe_b64_decode("aGVsbG8=") == "hello"
+
+    def test_insecure_proxy_inclusion_is_off_by_default(self) -> None:
+        """Shipping INCLUDE_INSECURE_PROXIES=True defeated the safety filters."""
+        from configstream.config import AppSettings
+
+        settings = AppSettings()
+        assert settings.INCLUDE_INSECURE_PROXIES is False
+        assert settings.STRICT_SECURITY is True
