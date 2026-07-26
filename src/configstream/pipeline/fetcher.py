@@ -541,6 +541,7 @@ async def fetch_from_source(
                     except Exception:  # nosec B110
                         # Best-effort cleanup: releasing the probe token must
                         # never mask the CancelledError being propagated below.
+                        logger.debug("Suppressed broad exception")
                         pass
             # Propagate cancellation to abort fetch immediately
             raise

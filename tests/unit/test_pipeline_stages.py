@@ -587,26 +587,24 @@ async def test_source_producer_sentinel_survives_transient_backpressure(
 
 
 @pytest.mark.asyncio
-async def test_source_producer_sentinel_gives_up_during_forced_teardown(
+async def test_source_producer_sentinel_gives_up_when_cancelled(
     mock_dependencies,
 ) -> None:
-    """During a forced teardown, sentinel delivery must not hang forever.
+    """A cancelled producer must not hang delivering sentinels.
 
-    core.py's ``_cancel_all`` sets ``stop_event`` and cancels every consumer
-    task directly -- so a queue that stays full because consumers are gone
-    (not merely busy) must not be waited on indefinitely; that would wedge
-    the whole pipeline's shutdown path.
+    core.py's ``_cancel_all`` cancels the producer *and* every consumer, so a
+    queue that stays full because consumers are gone (not merely busy) must
+    not be waited on indefinitely -- that would wedge the whole shutdown path.
     """
     work_queue: asyncio.Queue = asyncio.Queue(maxsize=1)
     await work_queue.put("placeholder")  # Stays full: nobody will ever drain it.
-    stop_event = asyncio.Event()
-    stop_event.set()  # Forced teardown already flagged.
 
-    # Must return promptly (well under the 5s per-attempt backoff) instead of
-    # blocking on a queue that will never have room again.
-    await asyncio.wait_for(
-        source_producer(
-            sources=[],
+    started = asyncio.Event()
+
+    async def _run() -> None:
+        started.set()
+        await source_producer(
+            sources=["http://example.invalid/never-finishes"],
             work_queue=work_queue,
             proxies=None,
             quality_tracker=mock_dependencies["quality"],
@@ -615,7 +613,54 @@ async def test_source_producer_sentinel_gives_up_during_forced_teardown(
             progress=None,
             task_fetch=None,
             num_consumers=3,
-            stop_event=stop_event,
-        ),
-        timeout=2.0,
+            stop_event=asyncio.Event(),
+        )
+
+    async def _never_returns(*args, **kwargs):
+        await asyncio.Event().wait()  # Block until cancelled.
+
+    with patch("configstream.producer.fetch_multiple_sources", _never_returns):
+        with patch("configstream.producer.read_multiple_files_async", return_value=[]):
+            task = asyncio.create_task(_run())
+            await started.wait()
+            await asyncio.sleep(0.05)  # Let it reach the blocking fetch.
+            task.cancel()
+            # The finally block must complete promptly rather than blocking on
+            # a queue that will never have room again.
+            with pytest.raises(asyncio.CancelledError):
+                await asyncio.wait_for(task, timeout=3.0)
+
+
+@pytest.mark.asyncio
+async def test_source_producer_delivers_sentinels_after_time_limit(
+    mock_dependencies,
+) -> None:
+    """A set ``stop_event`` alone must NOT suppress sentinel delivery.
+
+    The batch time-limit watcher sets ``stop_event`` to stop *intake* while
+    consumers keep running and draining. Treating that as a teardown would
+    strand those live consumers, which only ever exit on the None marker.
+    """
+    work_queue: asyncio.Queue = asyncio.Queue(maxsize=10)
+    stop_event = asyncio.Event()
+    stop_event.set()  # Time limit reached; consumers still alive.
+
+    await source_producer(
+        sources=[],
+        work_queue=work_queue,
+        proxies=None,
+        quality_tracker=mock_dependencies["quality"],
+        anomaly_detector=mock_dependencies["anomaly"],
+        event_stream=None,
+        progress=None,
+        task_fetch=None,
+        num_consumers=3,
+        stop_event=stop_event,
     )
+
+    delivered = []
+    while not work_queue.empty():
+        delivered.append(work_queue.get_nowait())
+    assert (
+        delivered.count(None) == 3
+    ), "Live consumers must still receive their sentinels after a time limit"

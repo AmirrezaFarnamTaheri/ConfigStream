@@ -37,17 +37,11 @@ logger = logging.getLogger(__name__)
 
 
 async def _cancel_all(
-    producer_task: asyncio.Task,
-    consumer_tasks: List[asyncio.Task],
-    stop_event: Optional[asyncio.Event] = None,
+    producer_task: asyncio.Task, consumer_tasks: List[asyncio.Task]
 ) -> None:
-    # Signal forced teardown before cancelling anything. The producer's
-    # sentinel-delivery loop (its finally block) checks this flag to know
-    # that consumers are being torn down directly via cancel() below and it
-    # must not block indefinitely trying to deliver queue sentinels that
-    # will never be drained.
-    if stop_event is not None:
-        stop_event.set()
+    # Cancelling the producer is what tells its sentinel-delivery loop that
+    # consumers are being torn down directly here and that it must not block
+    # waiting to hand off markers nobody will ever drain.
     for t in consumer_tasks:
         t.cancel()
     producer_task.cancel()
@@ -293,21 +287,15 @@ class StandardPipeline(IPipeline):
                 logger.warning(
                     "Hard batch time limit reached. Cancelling pipeline tasks."
                 )
-                await _cancel_all(
-                    producer_task, consumer_tasks, self.context.stop_event
-                )
+                await _cancel_all(producer_task, consumer_tasks)
             except (asyncio.CancelledError, KeyboardInterrupt, SystemExit) as e:
                 logger.info(f"Pipeline interrupted: {type(e).__name__}")
-                await _cancel_all(
-                    producer_task, consumer_tasks, self.context.stop_event
-                )
+                await _cancel_all(producer_task, consumer_tasks)
                 raise
             except Exception as e:
                 safe_err = SecurityValidator.sanitize_log_message(str(e))
                 logger.error(f"Pipeline error: {safe_err}")
-                await _cancel_all(
-                    producer_task, consumer_tasks, self.context.stop_event
-                )
+                await _cancel_all(producer_task, consumer_tasks)
                 raise
 
             # 5. Final Cleanup & Output

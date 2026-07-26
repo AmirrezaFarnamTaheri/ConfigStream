@@ -299,6 +299,10 @@ async def source_producer(
             )
         return False
 
+    # Set when this coroutine is cancelled, so the sentinel-delivery loop in the
+    # finally block can tell a forced teardown from a normal completion.
+    producer_cancelled = False
+
     try:
         # A. Handle Pre-supplied Proxies
         if proxies:
@@ -580,6 +584,15 @@ async def source_producer(
                             duration_ms=(res.response_time or 0.0) * 1000,
                             failure_modes={"fetch_error": safe_error},
                         )
+    except asyncio.CancelledError:
+        # Cancellation is the one signal that consumers are being torn down
+        # directly (core.py's `_cancel_all` cancels producer and consumers
+        # together). The sentinel loop below uses this to avoid blocking on a
+        # queue nobody will drain again. Note `stop_event` alone is NOT that
+        # signal: the batch time-limit watcher sets it to stop intake while
+        # consumers keep running and draining normally.
+        producer_cancelled = True
+        raise
     except Exception as e:
         safe_error = SecurityValidator.sanitize_log_message(str(e))
         logger.error(f"Producer failed: {safe_error}")
@@ -599,21 +612,18 @@ async def source_producer(
         # draining, so a transiently full queue always clears given patience,
         # and abandoning a sentinel would strand that consumer permanently.
         #
-        # During a *forced* teardown (batch time limit, cancellation, or an
-        # unhandled error), core.py's `_cancel_all` sets `stop_event` and then
-        # cancels every consumer task directly -- so consumers may already be
-        # gone and the queue can stay full forever with nobody left to drain
-        # it. In that case sentinel delivery is redundant (consumers are being
-        # torn down via cancel(), not via this marker) and must be bounded, or
-        # this finally block would hang the whole shutdown indefinitely.
-        forced_teardown = stop_event is not None and stop_event.is_set()
+        # When this producer is *cancelled*, core.py's `_cancel_all` is tearing
+        # the pipeline down and has cancelled every consumer too -- so the queue
+        # may stay full forever with nobody left to drain it. Sentinel delivery
+        # is then redundant (consumers exit via cancel(), not via this marker)
+        # and must not block, or this finally would wedge the whole shutdown.
         for _ in range(num_consumers):
             while True:
                 try:
                     work_queue.put_nowait(None)
                     break
                 except asyncio.QueueFull:
-                    if forced_teardown:
+                    if producer_cancelled:
                         logger.warning(
                             "Skipping sentinel delivery during forced teardown; "
                             "consumers are being cancelled directly."
