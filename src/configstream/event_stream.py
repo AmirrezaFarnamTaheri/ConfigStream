@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Sanitized, batched JSONL pipeline event persistence."""
+"""Sanitized, bounded, batched JSONL pipeline event persistence."""
 
 import asyncio
 import json
@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 class EventStream:
     FLUSH_BATCH_SIZE = 128
     FLUSH_INTERVAL_SECONDS = 0.1
+    DEFAULT_QUEUE_CAPACITY = 4096
 
     def __init__(
         self,
@@ -28,15 +29,20 @@ class EventStream:
         *,
         persist: bool = True,
         max_message_chars: int = 2000,
+        queue_capacity: int = DEFAULT_QUEUE_CAPACITY,
     ):
+        if queue_capacity <= 0:
+            raise ValueError("queue_capacity must be positive")
         self.output_dir = Path(output_dir)
         self.persist = bool(persist)
         self.max_message_chars = max(256, int(max_message_chars))
         self.event_log_path = self.output_dir / EVENT_LOG_FILENAME
-        self.queue: queue.Queue[Any] = queue.Queue()
+        self.queue: queue.Queue[Any] = queue.Queue(maxsize=int(queue_capacity))
         self._shutdown_sentinel = object()
         self._closed = False
         self._writer_thread: threading.Thread | None = None
+        self._dropped_events = 0
+        self._drop_lock = threading.Lock()
         if self.persist:
             self._writer_thread = threading.Thread(
                 target=self._write_loop,
@@ -44,6 +50,15 @@ class EventStream:
                 daemon=True,
             )
             self._writer_thread.start()
+
+    @property
+    def dropped_events(self) -> int:
+        with self._drop_lock:
+            return self._dropped_events
+
+    def _record_drop(self) -> None:
+        with self._drop_lock:
+            self._dropped_events += 1
 
     def _flush(self, records: list[Dict[str, str]]) -> None:
         if not records:
@@ -87,7 +102,7 @@ class EventStream:
             try:
                 self._flush(records)
             except OSError as exc:
-                logger.warning(
+                logger.error(
                     "Failed to append pipeline event batch: %s",
                     SecurityValidator.sanitize_log_message(str(exc)),
                 )
@@ -109,13 +124,21 @@ class EventStream:
             "message": message,
         }
 
-    def _append_event_record(self, record: Dict[str, str]) -> None:
-        if self.persist and not self._closed:
-            self.queue.put(record)
+    def _append_event_record(self, record: Dict[str, str]) -> bool:
+        if not self.persist or self._closed:
+            return False
+        try:
+            self.queue.put_nowait(record)
+            return True
+        except queue.Full:
+            self._record_drop()
+            return False
 
-    def emit(self, event_type: str, message: Any) -> None:
+    def emit(self, event_type: str, message: Any) -> bool:
         safe_message = self._sanitize_message(message)
-        self._append_event_record(self._event_record(event_type, safe_message))
+        persisted = self._append_event_record(
+            self._event_record(event_type, safe_message)
+        )
         rendered = f"[{event_type}] {safe_message}"
         if event_type in {"error", "critical"}:
             logger.error(rendered)
@@ -125,17 +148,38 @@ class EventStream:
             logger.debug(rendered)
         else:
             logger.info(rendered)
+        if self.persist and not persisted and not self._closed:
+            logger.warning(
+                "Event queue full; dropped telemetry event (total dropped=%d)",
+                self.dropped_events,
+            )
+        return persisted
 
-    async def aclose(self) -> None:
+    async def aclose(self, *, timeout_seconds: float = 5.0) -> None:
         if self._closed:
             return
+        if timeout_seconds <= 0:
+            raise ValueError("timeout_seconds must be positive")
+
         self.emit("stream_close", "Event stream closing.")
         self._closed = True
-        if self.persist and self._writer_thread:
-            self.queue.put(self._shutdown_sentinel)
-            try:
-                await asyncio.get_running_loop().run_in_executor(
-                    None, self._writer_thread.join
-                )
-            except RuntimeError:
-                self._writer_thread.join()
+        if not self.persist or not self._writer_thread:
+            return
+
+        # Ensure the shutdown marker is delivered even when the queue is full.
+        loop = asyncio.get_running_loop()
+        try:
+            await asyncio.wait_for(
+                loop.run_in_executor(None, self.queue.put, self._shutdown_sentinel),
+                timeout=timeout_seconds,
+            )
+            await asyncio.wait_for(
+                loop.run_in_executor(None, self._writer_thread.join),
+                timeout=timeout_seconds,
+            )
+        except (asyncio.TimeoutError, RuntimeError):
+            logger.error(
+                "Event stream shutdown exceeded %.2fs; %d event(s) were dropped",
+                timeout_seconds,
+                self.dropped_events,
+            )

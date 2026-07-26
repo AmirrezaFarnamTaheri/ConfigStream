@@ -25,7 +25,7 @@ def sample_proxies():
             protocol="vmess",
             address="1.1.1.1",
             port=443,
-            uuid="dummy",  # Add UUID for valid conversion
+            uuid="dummy",
             is_working=True,
             latency=50,
             country_code="US",
@@ -35,7 +35,7 @@ def sample_proxies():
             protocol="shadowsocks",
             address="2.2.2.2",
             port=8388,
-            password="dummy",  # Add password
+            password="dummy",
             is_working=True,
             latency=200,
             country_code="IR",
@@ -62,7 +62,7 @@ def test_atomic_write_json(tmp_path, sample_proxies):
 def test_metadata_generation(tmp_path, sample_proxies, mock_storage):
     """Verify metadata generation."""
     stats = PipelineStats(fetched_lines=10, scanner_ips_found=5)
-    stats.working = 2  # Set working count explicitly for test
+    stats.working = 2
 
     save_metadata(stats, sample_proxies, tmp_path)
 
@@ -70,8 +70,8 @@ def test_metadata_generation(tmp_path, sample_proxies, mock_storage):
     assert meta_file.exists()
     data = json.loads(meta_file.read_text())
     assert data["total_working"] == 2
-    assert data["latency_distribution"]["fast"] == 1  # 50ms
-    assert data["latency_distribution"]["medium"] == 1  # 200ms
+    assert data["latency_distribution"]["fast"] == 1
+    assert data["latency_distribution"]["medium"] == 1
     assert len(data["proxies_snapshot_hash"]) == 64
     assert data["previous_proxies_snapshot_hash"] is None
 
@@ -172,7 +172,6 @@ def test_split_outputs_atomic(tmp_path, sample_proxies):
         {"intranet": [], "ipv6": [], "streamer": []},
     )
 
-    # v2.0 file names
     assert (tmp_path / "singbox.json").exists()
     assert (tmp_path / "clash.yaml").exists()
     assert (tmp_path / "chains.json").read_text(encoding="utf-8") == (
@@ -206,34 +205,28 @@ def test_generated_public_artifact_fixture_matches_pages_contract(tmp_path):
             details={"security": "tls", "sni": "example.com"},
         ),
         Proxy(
-            config="ss://YWVzLTEyOC1nY206cGFzcw==@8.8.8.8:8388#fixture-ss",
-            protocol="shadowsocks",
+            config="http://8.8.8.8:8388#fixture-http",
+            protocol="http",
             address="8.8.8.8",
             port=8388,
             is_working=True,
             latency=88,
             country_code="US",
             resolved_ip="8.8.8.8",
-            remarks="fixture-ss",
-            password="pass",
-            details={"method": "aes-128-gcm", "password": "pass"},
+            remarks="fixture-http",
+            details={},
         ),
         Proxy(
-            config="wireguard://fixture@162.159.192.1:2408#fixture-wg",
-            protocol="wireguard",
+            config="socks5://162.159.192.1:2408#fixture-socks",
+            protocol="socks5",
             address="162.159.192.1",
             port=2408,
             is_working=True,
             latency=120,
             country_code="US",
             resolved_ip="162.159.192.1",
-            remarks="fixture-wg",
-            details={
-                "private_key": "6M6tfYfQ6B0fLF8A3XJ2Z2z8jz4Yb9k+f0z8xN2aM0E=",
-                "peer_public_key": "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=",
-                "local_address": ["10.0.0.2/32"],
-                "mtu": 1280,
-            },
+            remarks="fixture-socks",
+            details={},
         ),
         Proxy(
             config="client\nremote 9.9.9.9 1194 udp\n<ca>\nfixture\n</ca>\n",
@@ -285,7 +278,7 @@ def test_generated_public_artifact_fixture_matches_pages_contract(tmp_path):
     runtime_config_dir = tmp_path / "assets" / "js"
     runtime_config_dir.mkdir(parents=True)
     (runtime_config_dir / "runtime-config.js").write_text(
-        "window.CS_RUNTIME_CONFIG = { PUBLIC_KEY: 'x', STEGO_KEY: 'x' };",
+        "window.CS_RUNTIME_CONFIG = { PUBLIC_KEY: 'x' };",
         encoding="utf-8",
     )
     (tmp_path / "pipeline_events.jsonl").write_text(
