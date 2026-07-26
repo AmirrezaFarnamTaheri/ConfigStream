@@ -94,13 +94,28 @@ jobs:
       - name: Check generated output documentation
         run: python scripts/generate_output_docs.py --check
       - name: Run focused contract tests
+        id: focused_tests
+        continue-on-error: true
         run: |
+          set -o pipefail
           pytest -q \
             tests/unit/test_validate_pages_artifact.py \
             tests/unit/test_validate_output_matrix.py \
             tests/unit/test_output_generators.py \
             tests/unit/test_output.py \
-            --disable-warnings --maxfail=1
+            --disable-warnings --maxfail=1 \
+            --junitxml=focused-tests.xml 2>&1 | tee focused-tests.log
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: focused-contract-tests-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            focused-tests.log
+            focused-tests.xml
+          if-no-files-found: error
+      - name: Enforce focused test result
+        if: steps.focused_tests.outcome != 'success'
+        run: exit 1
       - name: Check patch whitespace
         run: git diff --check
       - name: Commit validated changes through GitHub API
