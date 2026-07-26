@@ -81,61 +81,29 @@ jobs:
             tests/unit/test_output_generators.py \
             tests/unit/test_validate_pages_artifact.py
       - name: Compile focused Python files
-        id: focused_compile
-        continue-on-error: true
         run: |
-          set -o pipefail
           python -m py_compile \
             scripts/finalize_release_outputs.py \
             scripts/validate_output_matrix.py \
             src/configstream/output/singbox_contract.py \
             tests/unit/test_output.py \
             tests/unit/test_output_generators.py \
-            tests/unit/test_validate_pages_artifact.py 2>&1 | tee focused-compile.log
+            tests/unit/test_validate_pages_artifact.py
       - name: Validate output matrix
-        id: focused_matrix
-        continue-on-error: true
-        run: |
-          set -o pipefail
-          python scripts/validate_output_matrix.py 2>&1 | tee focused-matrix.log
+        run: python scripts/validate_output_matrix.py
       - name: Check generated output documentation
-        id: focused_docs
-        continue-on-error: true
-        run: |
-          set -o pipefail
-          python scripts/generate_output_docs.py --check 2>&1 | tee focused-docs.log
+        run: python scripts/generate_output_docs.py --check
       - name: Run focused contract tests
-        id: focused_tests
-        continue-on-error: true
         run: |
-          set -o pipefail
           pytest -q \
             tests/unit/test_validate_pages_artifact.py \
             tests/unit/test_validate_output_matrix.py \
             tests/unit/test_output_generators.py \
             tests/unit/test_output.py \
-            --disable-warnings --maxfail=1 \
-            --junitxml=focused-tests.xml 2>&1 | tee focused-tests.log
+            --disable-warnings --maxfail=1
       - name: Check patch whitespace
-        id: focused_diff
-        continue-on-error: true
-        run: |
-          set -o pipefail
-          git diff --check 2>&1 | tee focused-diff.log
-      - uses: actions/upload-artifact@v7
-        if: always()
-        with:
-          name: client-contract-diagnostics-${{ github.sha }}-${{ github.run_attempt }}
-          path: |
-            focused-compile.log
-            focused-matrix.log
-            focused-docs.log
-            focused-tests.log
-            focused-tests.xml
-            focused-diff.log
-          if-no-files-found: error
+        run: git diff --check
       - name: Commit validated changes through GitHub API
-        if: ${{ steps.focused_compile.outcome == 'success' && steps.focused_matrix.outcome == 'success' && steps.focused_docs.outcome == 'success' && steps.focused_tests.outcome == 'success' && steps.focused_diff.outcome == 'success' }}
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
