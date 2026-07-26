@@ -10,6 +10,8 @@
     "total_working",
     "total_tested",
     "schema_validated",
+    "native_clients_validated",
+    "release_blockers",
     "notes"
   ],
   "properties": {
@@ -18,7 +20,7 @@
     },
     "status": {
       "type": "string",
-      "enum": ["ok", "degraded"]
+      "enum": ["ok", "degraded", "failed"]
     },
     "generated_at": {
       "type": "string",
@@ -44,8 +46,30 @@
       "type": "integer",
       "minimum": 0
     },
+    "source_coverage": {
+      "type": ["number", "null"],
+      "minimum": 0,
+      "maximum": 1
+    },
     "schema_validated": {
       "type": "boolean"
+    },
+    "native_clients_validated": {
+      "type": "boolean"
+    },
+    "release_blockers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "native_report": {
+      "type": "string",
+      "minLength": 1
+    },
+    "native_report_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
     },
     "notes": {
       "type": "array",
