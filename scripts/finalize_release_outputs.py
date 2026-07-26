@@ -283,6 +283,8 @@ def modernize_singbox(payload: Any) -> Any:
                 unique.append(tag)
             if len(unique) >= MAX_SELECTOR_MEMBERS:
                 break
+        if not unique and "direct" in known:
+            unique = ["direct"]
         outbound["outbounds"] = unique
         if outbound.get("default") not in unique:
             outbound.pop("default", None)

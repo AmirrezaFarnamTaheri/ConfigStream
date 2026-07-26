@@ -38,16 +38,12 @@ def _collect_tagged_items(
             item_type = item.get("type")
             tag = item.get("tag")
             if not isinstance(item_type, str) or not item_type:
-                errors.append(
-                    f"{file_name} {collection_name}[{index}] missing type"
-                )
+                errors.append(f"{file_name} {collection_name}[{index}] missing type")
             if not isinstance(tag, str) or not tag:
                 errors.append(f"{file_name} {collection_name}[{index}] missing tag")
                 continue
             if tag in tags:
-                errors.append(
-                    f"{file_name} duplicate outbound/endpoint tag: {tag}"
-                )
+                errors.append(f"{file_name} duplicate outbound/endpoint tag: {tag}")
             tags.add(tag)
     return outbounds, endpoints, tags
 
@@ -61,7 +57,9 @@ def _validate_detour(
     if not isinstance(detour, str) or not detour:
         errors.append(f"{location} has invalid detour")
     elif detour not in tags:
-        errors.append(f"{location} references unknown detour: {detour}")
+        item_kind = "endpoint" if " endpoints[" in location else "outbound"
+        file_name = location.split(" ", 1)[0]
+        errors.append(f"{file_name} unknown {item_kind} detour: {detour}")
 
 
 def validate_singbox_config(payload: object, file_name: str) -> list[str]:
@@ -91,9 +89,7 @@ def validate_singbox_config(payload: object, file_name: str) -> list[str]:
             continue
         refs = outbound.get("outbounds")
         if not isinstance(refs, list) or not refs:
-            errors.append(
-                f"{file_name} outbounds[{index}] missing outbound references"
-            )
+            errors.append(f"{file_name} outbounds[{index}] missing outbound references")
             continue
         for ref in refs:
             if not isinstance(ref, str) or not ref:

@@ -13,6 +13,7 @@ from configstream.output_logic import (
 from configstream.models import Proxy
 from configstream.pipeline_stats import PipelineStats
 from configstream.quality.storage import QualityStorage
+from scripts.finalize_release_outputs import finalize
 from scripts.validate_pages_artifact import validate_pages_artifact
 
 
@@ -254,9 +255,10 @@ def test_generated_public_artifact_fixture_matches_pages_contract(tmp_path):
     stats.tested = len(proxies)
     stats.working = len(proxies)
     save_metadata(stats, proxies, tmp_path)
+    finalize(tmp_path, tmp_path, 0.0)
 
     api_dir = tmp_path / "api"
-    api_dir.mkdir()
+    api_dir.mkdir(exist_ok=True)
     (api_dir / "proxies").write_text(
         (tmp_path / "proxies.json").read_text(encoding="utf-8"), encoding="utf-8"
     )
