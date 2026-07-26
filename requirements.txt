@@ -95,7 +95,7 @@ pytest-playwright==0.8.0
 pytest==9.1.1
 python-dotenv==1.2.2
 python-slugify==8.0.4
-python-socks==2.8.0
+python-socks==2.8.2
 python-telegram-bot==22.5
 pytokens==0.4.1
 requests==2.34.2

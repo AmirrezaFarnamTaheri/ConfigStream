@@ -55,7 +55,7 @@ pydantic_core==2.46.4
 pyparsing==3.3.2
 python-dotenv==1.2.2
 python-slugify==8.0.4
-python-socks==2.8.0
+python-socks==2.8.2
 python-telegram-bot==22.5
 requests==2.34.2
 rich==14.2.0
