@@ -134,15 +134,8 @@ jobs:
             focused-tests.xml
             focused-diff.log
           if-no-files-found: error
-      - name: Enforce focused validation
-        if: >-
-          steps.focused_compile.outcome != 'success' ||
-          steps.focused_matrix.outcome != 'success' ||
-          steps.focused_docs.outcome != 'success' ||
-          steps.focused_tests.outcome != 'success' ||
-          steps.focused_diff.outcome != 'success'
-        run: exit 1
       - name: Commit validated changes through GitHub API
+        if: ${{ steps.focused_compile.outcome == 'success' && steps.focused_matrix.outcome == 'success' && steps.focused_docs.outcome == 'success' && steps.focused_tests.outcome == 'success' && steps.focused_diff.outcome == 'success' }}
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
