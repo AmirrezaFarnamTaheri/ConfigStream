@@ -21,7 +21,7 @@ wrapt==2.2.2
 
 # Testing
 backports.asyncio.runner==1.0.0; python_version < "3.11"
-coverage==7.14.3
+coverage==7.15.1
 hypothesis==6.156.1
 iniconfig==2.3.0
 playwright==1.61.0
