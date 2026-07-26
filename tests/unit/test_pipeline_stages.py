@@ -664,3 +664,58 @@ async def test_source_producer_delivers_sentinels_after_time_limit(
     assert (
         delivered.count(None) == 3
     ), "Live consumers must still receive their sentinels after a time limit"
+
+
+@pytest.mark.asyncio
+async def test_python_fallback_test_exception_does_not_kill_consumer(
+    mock_dependencies,
+) -> None:
+    """One proxy whose test raises must not tear down the whole pipeline.
+
+    The Python-fallback gather previously omitted return_exceptions=True, so a
+    single raising tester.test() propagated out of processing_consumer, through
+    the consumer task and the top-level gather, abandoning every other source
+    still queued. It must now be normalised into a failed Proxy instead.
+    """
+    queue = mock_dependencies["queue"]
+    stats = PipelineStats()
+    seen_keys: set = set()
+    final_proxies: list = []
+
+    p = Proxy(protocol="vmess", address="9.9.9.9", port=443, config="vmess://boom")
+
+    # Python fallback path, with a tester that raises for this proxy.
+    mock_dependencies["tester"].go_tester.available = False
+    mock_dependencies["tester"].test = AsyncMock(side_effect=RuntimeError("boom"))
+
+    await queue.put(("test-source", ["vmess://boom"]))
+    await queue.put(None)  # Sentinel
+
+    with patch("configstream.consumer.parse_config", return_value=p):
+        with patch("configstream.consumer.validate_batch_configs", return_value=[p]):
+            # Must return normally rather than raising RuntimeError.
+            await processing_consumer(
+                work_queue=queue,
+                stats=stats,
+                seen_keys=seen_keys,
+                final_proxies=final_proxies,
+                tester=mock_dependencies["tester"],
+                scheduler=mock_dependencies["scheduler"],
+                test_cache=mock_dependencies["test_cache"],
+                concurrency=mock_dependencies["concurrency"],
+                geoip=mock_dependencies["geoip"],
+                tracker=mock_dependencies["tracker"],
+                event_stream=None,
+                quality_tracker=mock_dependencies["quality"],
+                history=mock_dependencies["history"],
+                progress=None,
+                task_process=None,
+                max_latency=None,
+                country_filter=None,
+                leniency=False,
+            )
+
+    # The failing proxy is recorded as not working, not propagated as an error.
+    assert p.is_working is False
+    assert p.details.get("error") == "PY_TEST_EXCEPTION"
+    assert p not in final_proxies
