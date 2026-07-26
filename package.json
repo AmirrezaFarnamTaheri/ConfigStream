@@ -28,7 +28,7 @@
   "devDependencies": {
     "picomatch": "^4.0.5",
     "playwright": "^1.61.1",
-    "postcss": "^8.5.17",
+    "postcss": "^8.5.20",
     "vite": "^8.1.4"
   }
 }
