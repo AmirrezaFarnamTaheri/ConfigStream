@@ -5,7 +5,7 @@ import ipaddress
 import re
 import secrets
 import socket
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import JSONResponse
 from ..utils import (
@@ -38,6 +38,14 @@ LAB_ALLOWED_OUTBOUND_TYPES = {
 
 LAB_DESTINATION_KEYS = {"server", "address"}
 LAB_INTERNAL_HOST_SUFFIXES = (".local", ".localhost", ".lan", ".internal")
+
+# Bounds that keep a single lab request from turning into a DoS: each hostname
+# destination triggers a blocking, up-to-5s DNS resolution, so an unbounded
+# outbound count could serialize thousands of resolutions and saturate the
+# worker-thread pool. Nesting depth is bounded separately to prevent
+# RecursionError from deeply nested attacker JSON.
+LAB_MAX_OUTBOUND_NODES = 64
+LAB_MAX_NESTING_DEPTH = 8
 
 
 async def _validate_lab_destination(host: object, path: str) -> str:
@@ -127,8 +135,26 @@ def _is_hostname(host: Any) -> bool:
         return True
 
 
-async def _sanitize_and_pin_outbound(outbound: Any, path: str) -> Dict[str, Any]:
+async def _sanitize_and_pin_outbound(
+    outbound: Any,
+    path: str,
+    depth: int = 0,
+    budget: Optional[List[int]] = None,
+) -> Dict[str, Any]:
     """Recursively validate outbound types, endpoints, detours, and pin resolved IPs."""
+    if budget is None:
+        budget = [LAB_MAX_OUTBOUND_NODES]
+    if depth > LAB_MAX_NESTING_DEPTH:
+        raise HTTPException(
+            status_code=400,
+            detail=f"{path} exceeds the maximum nesting depth",
+        )
+    budget[0] -= 1
+    if budget[0] < 0:
+        raise HTTPException(
+            status_code=400,
+            detail="Config contains too many outbound nodes for live lab testing",
+        )
     if not isinstance(outbound, dict):
         raise HTTPException(status_code=400, detail=f"{path} must be an object")
 
@@ -175,7 +201,7 @@ async def _sanitize_and_pin_outbound(outbound: Any, path: str) -> Dict[str, Any]
             val = clean_outbound[key]
             if isinstance(val, dict):
                 clean_outbound[key] = await _sanitize_and_pin_outbound(
-                    val, f"{path}.{key}"
+                    val, f"{path}.{key}", depth + 1, budget
                 )
             elif isinstance(val, list):
                 clean_list = []
@@ -183,7 +209,7 @@ async def _sanitize_and_pin_outbound(outbound: Any, path: str) -> Dict[str, Any]
                     if isinstance(sub_item, dict):
                         clean_list.append(
                             await _sanitize_and_pin_outbound(
-                                sub_item, f"{path}.{key}[{sub_idx}]"
+                                sub_item, f"{path}.{key}[{sub_idx}]", depth + 1, budget
                             )
                         )
                     else:
@@ -205,10 +231,19 @@ async def _validate_and_build_lab_config(config: object) -> Dict[str, Any]:
             detail="Config must include a non-empty outbounds array",
         )
 
+    if len(outbounds) > LAB_MAX_OUTBOUND_NODES:
+        raise HTTPException(
+            status_code=400,
+            detail="Config contains too many outbounds for live lab testing",
+        )
+
+    # Shared budget bounds the total number of (possibly nested) outbound nodes,
+    # and therefore the number of blocking DNS resolutions, per request.
+    budget = [LAB_MAX_OUTBOUND_NODES]
     clean_outbounds = []
     for index, outbound in enumerate(outbounds):
         path = f"outbounds[{index}]"
-        clean_outbound = await _sanitize_and_pin_outbound(outbound, path)
+        clean_outbound = await _sanitize_and_pin_outbound(outbound, path, 0, budget)
         clean_outbounds.append(clean_outbound)
 
     # Build server-owned minimal sing-box document

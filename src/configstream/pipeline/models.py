@@ -53,6 +53,9 @@ class PipelineContext:
     washer: Optional[ProxyWasher] = None
     seen_bloom: Optional[BloomFilter] = None
     hard_stop_watcher: Optional[HardStopWatcher] = None
+    # The VwarpTool instance that actually started the tunnel, if any. Must be
+    # the same instance so shutdown can terminate the child it spawned.
+    vwarp_tool: Optional[Any] = None
 
     # UI / Flow control
     progress: Optional[Any] = None

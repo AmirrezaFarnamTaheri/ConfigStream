@@ -29,8 +29,33 @@ def _json_str(obj: Any) -> str:
     return raw.decode() if isinstance(raw, bytes) else raw
 
 
+def _coerce_latency(value: Any) -> Optional[float]:
+    """Coerce an untrusted latency value from the Go tester to a finite float.
+
+    The subprocess output is not schema-validated, so a malformed record (a
+    non-numeric string, ``null``, ``NaN``/``Infinity``, or a nested container)
+    must never abort processing of the whole batch. Anything that is not a
+    finite number is treated as "no measurement" (``None``).
+    """
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        latency = float(value)
+    except (TypeError, ValueError):
+        return None
+    if latency != latency or latency in (float("inf"), float("-inf")):
+        return None
+    return latency
+
+
 # Pre-compiled pattern for stripping ANSI colour codes from Go tester output (per-line hot path)
 _ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-9;]*m")
+
+# StreamReader line buffer for the Go tester's stdout. asyncio's 64 KiB default
+# raises LimitOverrunError on a single oversized JSON result line (many issues,
+# long echoed error strings), which would otherwise tear down the read loop and
+# hang every pending future until the batch timeout. 8 MiB gives ample headroom.
+GO_TESTER_STREAM_LIMIT = 8 * 1024 * 1024
 
 
 class GoBatchTester:
@@ -216,6 +241,12 @@ class GoBatchTester:
                         await safe_wait_for(self._proc.wait(), timeout=2.0)
                     except asyncio.TimeoutError:
                         self._proc.kill()
+                        # Reap the killed child so its transport is released and
+                        # no defunct/zombie process accumulates across restarts.
+                        try:
+                            await safe_wait_for(self._proc.wait(), timeout=2.0)
+                        except asyncio.TimeoutError:
+                            logger.debug("Go tester did not exit after SIGKILL")
                 except Exception as e:
                     logger.debug(f"Error closing Go tester process: {e}")
                 finally:
@@ -319,6 +350,7 @@ class GoBatchTester:
                     stdout=asyncio.subprocess.PIPE,
                     stderr=asyncio.subprocess.PIPE,
                     env=env,
+                    limit=GO_TESTER_STREAM_LIMIT,
                 )
 
                 # Start background readers
@@ -380,7 +412,23 @@ class GoBatchTester:
         """Background task to read results from stdout."""
         try:
             while self._proc and self._proc.stdout and not self._proc.stdout.at_eof():
-                line = await self._proc.stdout.readline()
+                try:
+                    line = await self._proc.stdout.readline()
+                except (asyncio.LimitOverrunError, ValueError) as exc:
+                    # A single result line exceeded the stream buffer. Skip the
+                    # oversized record instead of tearing down the loop (which
+                    # would strand every pending future until the batch timeout).
+                    logger.warning(
+                        "Go Tester emitted an oversized line; skipping: %s",
+                        type(exc).__name__,
+                    )
+                    try:
+                        await self._proc.stdout.readuntil(b"\n")
+                    except (asyncio.LimitOverrunError, ValueError):
+                        continue
+                    except asyncio.IncompleteReadError:
+                        break
+                    continue
                 if not line:
                     break
                 try:
@@ -721,12 +769,7 @@ class GoBatchTester:
 
             if res_data.get("is_working"):
                 target_proxy.is_working = True
-                # Cast to float or None to satisfy type checker
-                lat = res_data.get("latency")
-                if lat is not None:
-                    target_proxy.latency = float(lat)
-                else:
-                    target_proxy.latency = None
+                target_proxy.latency = _coerce_latency(res_data.get("latency"))
                 target_proxy.tested_at = batch_tested_at
                 working_count += 1
                 if res_data.get("issues"):
@@ -741,9 +784,7 @@ class GoBatchTester:
                 security_tokens = ("DIRTY_IP", "HONEYPOT", "BLOCKLIST", "SUSPICIOUS")
                 if any(token in error_msg for token in security_tokens):
                     target_proxy.is_working = True
-                    lat = res_data.get("latency")
-                    if lat is not None:
-                        target_proxy.latency = float(lat)
+                    target_proxy.latency = _coerce_latency(res_data.get("latency"))
                     target_proxy.tested_at = batch_tested_at
                     target_proxy.security_issues.setdefault("go_check", []).append(
                         error_msg

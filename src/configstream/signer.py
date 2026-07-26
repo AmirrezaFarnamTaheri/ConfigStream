@@ -187,13 +187,18 @@ class Signer:
         """
         try:
             # --- Replay / freshness check ----------------------------------------
-            if timestamp is not None:
-                age = int(time.time()) - int(timestamp)
-                # Allow up to CLOCK_SKEW_TOLERANCE_SECONDS of negative age to
-                # tolerate normal NTP drift between signer and verifier hosts.
-                # Clearly future timestamps (beyond tolerance) are still rejected.
-                if age < -CLOCK_SKEW_TOLERANCE_SECONDS or age > max_age_seconds:
-                    return False
+            # Fail closed when no timestamp is supplied: a signature verified over
+            # raw content with no age binding would be replayable forever. Every
+            # signature this class produces embeds a timestamp, so a missing one
+            # is a malformed/legacy input, not a valid case.
+            if timestamp is None:
+                return False
+            age = int(time.time()) - int(timestamp)
+            # Allow up to CLOCK_SKEW_TOLERANCE_SECONDS of negative age to
+            # tolerate normal NTP drift between signer and verifier hosts.
+            # Clearly future timestamps (beyond tolerance) are still rejected.
+            if age < -CLOCK_SKEW_TOLERANCE_SECONDS or age > max_age_seconds:
+                return False
 
             # --- Cryptographic verification --------------------------------------
             public_key = ed25519.Ed25519PublicKey.from_public_bytes(
@@ -201,12 +206,8 @@ class Signer:
             )
             content_bytes = content.encode("utf-8")
 
-            if timestamp is not None:
-                # Verify against the same canonical payload used during signing.
-                payload = _build_signed_payload(content_bytes, int(timestamp))
-            else:
-                # Legacy path: signature was produced over raw content bytes only.
-                payload = content_bytes
+            # Verify against the same canonical payload used during signing.
+            payload = _build_signed_payload(content_bytes, int(timestamp))
 
             public_key.verify(bytes.fromhex(signature_hex), payload)
             return True

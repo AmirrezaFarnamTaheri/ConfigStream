@@ -531,6 +531,15 @@ async def fetch_from_source(
 
         except asyncio.CancelledError:
             logger.warning(f"Fetch for {safe_source} cancelled by outer signal.")
+            # If this request held the breaker's HALF_OPEN probe token, release
+            # it so the breaker is not wedged HALF_OPEN for the rest of the run.
+            if breaker:
+                reset_probe = getattr(breaker, "reset_probe", None)
+                if reset_probe is not None:
+                    try:
+                        await reset_probe()
+                    except Exception:  # nosec B110 - best-effort cleanup
+                        pass
             # Propagate cancellation to abort fetch immediately
             raise
         except Exception as e:
@@ -602,6 +611,28 @@ class _SimpleRateLimiter:
             if tokens >= 1.0:
                 return 0.0
             return (1.0 - tokens) / self._rate
+
+
+def _collect_fetch_results(
+    completed: List[Any], results: Dict[str, "FetchResult"]
+) -> None:
+    """Fold gather(return_exceptions=True) output into the results map.
+
+    Cancellation is propagated so an outer shutdown still aborts the batch;
+    any other stray worker exception is logged and skipped rather than losing
+    every sibling result.
+    """
+    for item in completed:
+        if isinstance(item, asyncio.CancelledError):
+            raise item
+        if isinstance(item, BaseException):
+            logger.error(
+                "Fetch worker raised: %s",
+                SecurityValidator.sanitize_log_message(str(item)),
+            )
+            continue
+        src, res = item
+        results[src] = res
 
 
 async def fetch_multiple_sources(
@@ -678,27 +709,25 @@ async def fetch_multiple_sources(
         start_time = asyncio.get_running_loop().time()
         if client:
             tasks = [_worker(client, s) for s in sources]
-            try:
-                completed = await asyncio.gather(*tasks)
-                for src, res in completed:
-                    results[src] = res
-            except Exception as e:
-                logger.error(f"Error during fetch gather: {e}")
-                # Note: If client was passed in, caller is responsible for cleanup
-                raise
+            completed = await asyncio.gather(*tasks, return_exceptions=True)
+            _collect_fetch_results(completed, results)
         else:
             async with get_client() as new_client:
                 tasks = [_worker(new_client, s) for s in sources]
-                completed = await asyncio.gather(*tasks)
-                for src, res in completed:
-                    results[src] = res
+                # return_exceptions=True so a single raising worker cannot
+                # orphan its siblings and close the shared client out from
+                # under them while they are still in flight.
+                completed = await asyncio.gather(*tasks, return_exceptions=True)
+                _collect_fetch_results(completed, results)
 
         duration = asyncio.get_running_loop().time() - start_time
         logger.info(f"Batch fetch completed in {duration:.2f}s")
     finally:
         await controller.stop_tuner()
         if timeout_tracker:
-            timeout_tracker.save()
+            # Offload the blocking disk write so it does not stall the event
+            # loop (and every concurrent coroutine) at each batch boundary.
+            await asyncio.get_running_loop().run_in_executor(None, timeout_tracker.save)
 
     success_count = sum(1 for r in results.values() if r.success)
     total_bytes = sum(

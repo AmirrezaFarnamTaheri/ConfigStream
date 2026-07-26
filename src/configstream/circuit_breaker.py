@@ -41,6 +41,23 @@ class CircuitBreaker:
             self._logged_open = False  # Reset logged state on recovery
             self._probe_in_flight = False  # Reset probe flag
 
+    async def reset_probe(self) -> None:
+        """Release an in-flight HALF_OPEN probe without recording an outcome.
+
+        Called when the elected probe request is cancelled before it can
+        succeed or fail (e.g. the batch hits its time limit). Without this the
+        probe token leaks: ``_probe_in_flight`` stays ``True`` and ``is_open()``
+        blocks every future request to this host for the rest of the run. The
+        breaker returns to OPEN and the recovery window restarts so a fresh
+        probe is elected after the next timeout.
+        """
+        async with self._lock:
+            if self._probe_in_flight:
+                self._probe_in_flight = False
+                if self.state == CircuitBreakerState.HALF_OPEN:
+                    self.state = CircuitBreakerState.OPEN
+                    self.last_failure_time = time.monotonic()
+
     async def is_open(self) -> bool:
         """Check if circuit breaker is open (async-safe with lock).
 

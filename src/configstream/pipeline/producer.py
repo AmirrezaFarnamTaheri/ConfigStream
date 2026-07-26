@@ -592,6 +592,18 @@ async def source_producer(
                 "No sources or pre-supplied proxies provided - pipeline will produce zero results"
             )
 
-        # Signal all consumers to exit
+        # Signal all consumers to exit. Never block unboundedly here: during a
+        # cancelled shutdown the consumers are already gone and the queue can be
+        # full, so a plain `await put(None)` would hang forever and wedge the
+        # whole pipeline teardown. Try non-blocking first, then fall back to a
+        # short bounded wait for the normal (draining) path.
         for _ in range(num_consumers):
-            await work_queue.put(None)
+            try:
+                work_queue.put_nowait(None)
+            except asyncio.QueueFull:
+                try:
+                    await asyncio.wait_for(work_queue.put(None), timeout=5.0)
+                except asyncio.TimeoutError:
+                    break
+                except asyncio.CancelledError:
+                    break
