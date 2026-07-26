@@ -102,6 +102,46 @@ class TestV2rayJsonRobustness:
         assert parse_v2ray_json("{not json") is None
 
 
+class TestAtomicWriteDurability:
+    def test_write_text_fsyncs_parent_dir(self, tmp_path, monkeypatch):
+        # The rename must be made durable by fsyncing the parent directory,
+        # not just the file contents.
+        import configstream.utils as utils
+
+        fsynced_dirs = []
+        real_fsync = utils.os.fsync
+        real_open = utils.os.open
+
+        opened_dir_fds = {}
+
+        def tracking_open(path, flags, *args, **kwargs):
+            fd = real_open(path, flags, *args, **kwargs)
+            opened_dir_fds[fd] = path
+            return fd
+
+        def tracking_fsync(fd):
+            if fd in opened_dir_fds:
+                fsynced_dirs.append(opened_dir_fds[fd])
+            return real_fsync(fd)
+
+        monkeypatch.setattr(utils.os, "open", tracking_open)
+        monkeypatch.setattr(utils.os, "fsync", tracking_fsync)
+
+        target = tmp_path / "sub" / "out.json"
+        utils.AtomicFileWriter.write_text(target, '{"ok": true}')
+
+        assert target.read_text() == '{"ok": true}'
+        # The parent directory must have been fsynced at least once.
+        assert str(target.parent) in fsynced_dirs
+
+    def test_write_text_content_roundtrip(self, tmp_path):
+        import configstream.utils as utils
+
+        target = tmp_path / "data.txt"
+        utils.AtomicFileWriter.write_text(target, "héllo\nworld")
+        assert target.read_text(encoding="utf-8") == "héllo\nworld"
+
+
 class TestLabConfigBounds:
     @pytest.mark.asyncio
     async def test_too_many_outbounds_rejected(self):

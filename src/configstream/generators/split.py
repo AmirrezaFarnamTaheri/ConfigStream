@@ -37,7 +37,7 @@ def _chain_entry_tag(chain: List[Dict[str, Any]]) -> Optional[str]:
     for item in reversed(chain):
         tag = item.get("tag")
         if tag:
-            return tag
+            return str(tag)
     return None
 
 

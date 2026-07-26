@@ -17,7 +17,9 @@ SCHEMA_PATH = Path(__file__).resolve().parents[2] / "schema" / "proxy.schema.jso
 
 
 def _load_schema() -> dict:
-    return json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
+    data = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
+    assert isinstance(data, dict)
+    return data
 
 
 def _validator():

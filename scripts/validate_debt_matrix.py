@@ -16,7 +16,10 @@ WINDOWS_ABSOLUTE_RE = re.compile(r"^[A-Za-z]:/")
 
 
 def _load_json() -> dict:
-    return json.loads(DEBT_JSON.read_text(encoding="utf-8"))
+    data = json.loads(DEBT_JSON.read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise TypeError("debt matrix JSON must be an object")
+    return data
 
 
 def validate_debt_matrix() -> list[str]:

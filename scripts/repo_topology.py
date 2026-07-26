@@ -81,18 +81,18 @@ SINK_PATTERNS = {
 def normalize_path(value: Any) -> str:
     if not value:
         return ""
-    value = str(value).replace("\\", "/")
+    text = str(value).replace("\\", "/")
     # Strip drive letters (Windows)
-    if len(value) >= 2 and value[1] == ":":
-        value = value[2:]
-    while value.startswith("./"):
-        value = value[2:]
-    value = value.lstrip("/")
-    while "//" in value:
-        value = value.replace("//", "/")
-    if not value.startswith("repo://"):
-        value = "repo://" + value
-    return value
+    if len(text) >= 2 and text[1] == ":":
+        text = text[2:]
+    while text.startswith("./"):
+        text = text[2:]
+    text = text.lstrip("/")
+    while "//" in text:
+        text = text.replace("//", "/")
+    if not text.startswith("repo://"):
+        text = "repo://" + text
+    return text
 
 
 def detect_workspace_roots(repo_path: Path) -> list[Path]:

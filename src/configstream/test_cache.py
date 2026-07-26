@@ -186,7 +186,7 @@ class TestResultCache:
             return False
 
         tested_at = entry.get("tested_at", 0.0)
-        return tested_at >= (time.time() - self.ttl_seconds)
+        return bool(tested_at >= (time.time() - self.ttl_seconds))
 
     def invalidate(self, proxy: Proxy) -> None:
         """Invalidate/remove a cached result for a proxy."""

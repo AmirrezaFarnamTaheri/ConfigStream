@@ -5,7 +5,7 @@ import logging
 import socket
 from secrets import choice as secure_choice
 from urllib.parse import urlparse, urljoin
-from typing import Any, Dict, Optional, Tuple, List, Union
+from typing import Any, Dict, Optional, Tuple, List, Union, cast
 import httpx
 
 from configstream.concurrency_manager import ConcurrencyManager
@@ -753,10 +753,15 @@ class HttpFetcher(IFetcher):
         self.timeout_tracker = timeout_tracker
 
     async def fetch(self, source: str) -> FetchResult:
-        return await fetch_from_source(
-            self.client,
-            source,
-            app_settings=self.settings,
-            breaker_manager=self.breaker_manager,
-            timeout_tracker=self.timeout_tracker,
+        # fetch_from_source is annotated -> Any for caller flexibility, but it
+        # always produces a FetchResult on every return path.
+        return cast(
+            FetchResult,
+            await fetch_from_source(
+                self.client,
+                source,
+                app_settings=self.settings,
+                breaker_manager=self.breaker_manager,
+                timeout_tracker=self.timeout_tracker,
+            ),
         )

@@ -113,7 +113,7 @@ vm.runInContext(source, context);
         capture_output=True,
         check=True,
     )
-    return json.loads(completed.stdout)
+    return cast("dict[str, object]", json.loads(completed.stdout))
 
 
 def test_failover_probe_uses_static_same_origin_asset(tmp_path: Path) -> None:
