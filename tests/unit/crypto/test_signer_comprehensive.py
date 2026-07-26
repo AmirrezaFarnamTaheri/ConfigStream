@@ -73,15 +73,40 @@ def test_timestamp_is_included_in_signed_payload():
     pub_hex = s.get_public_key_hex()
 
     signed = s.sign_subscription("hello")
-    # A caller that passes no timestamp falls back to legacy (content-only) path.
-    # The signature was produced over (timestamp || content), so verifying
-    # against content-only bytes must fail.
+    # Omitting the timestamp is rejected outright: verification fails closed
+    # rather than falling back to any content-only payload.
     assert not Signer.verify_signature(
         "hello",
         signed["signature"],
         pub_hex,
-        timestamp=None,  # legacy path — should reject because payload differs
+        timestamp=None,
     )
+
+
+def test_missing_timestamp_rejects_even_a_valid_raw_content_signature():
+    """A signature genuinely valid over raw content must still be rejected.
+
+    The removed legacy branch verified `content.encode()` directly when no
+    timestamp was supplied, so such a signature stayed valid forever with no
+    age binding -- indefinitely replayable. Signing the raw bytes here proves
+    the fail-closed check, not merely a payload mismatch.
+    """
+    from cryptography.hazmat.primitives.asymmetric import ed25519
+
+    private_key = ed25519.Ed25519PrivateKey.generate()
+    public_key = private_key.public_key()
+    pub_hex = public_key.public_bytes_raw().hex()
+
+    content = "replay-me"
+    # A signature over the exact bytes the old legacy path would have verified.
+    legacy_signature = private_key.sign(content.encode("utf-8")).hex()
+
+    assert not Signer.verify_signature(
+        content,
+        legacy_signature,
+        pub_hex,
+        timestamp=None,
+    ), "a timestamp-less signature must never verify (replay protection)"
 
 
 def test_fresh_signature_accepted():

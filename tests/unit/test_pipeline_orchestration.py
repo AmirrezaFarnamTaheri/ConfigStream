@@ -114,3 +114,63 @@ async def test_pipeline_time_limit_zero_working(tmp_path):
         assert res.stats.time_limited
         assert res.stats.working == 0
         assert mock_gen.called
+
+
+@pytest.mark.asyncio
+async def test_vwarp_tunnel_stopped_on_the_instance_that_started_it(
+    tmp_path, monkeypatch
+):
+    """Shutdown must stop the VwarpTool that actually spawned the tunnel.
+
+    The previous code called ``VwarpTool().stop_tunnel()`` on a brand-new
+    instance whose ``VwarpTunnel._proc`` is None, so ``stop()`` returned
+    immediately and the real child process (and its SOCKS5 port) leaked on
+    every run. Distinct mock instances per construction are essential here:
+    a shared MagicMock return_value would make the buggy version pass too.
+    """
+    from configstream.pipeline import run_full_pipeline
+
+    monkeypatch.setenv("USE_VWARP_TUNNEL", "true")
+    instances = []
+
+    def _make_tool(*args, **kwargs):
+        tool = MagicMock()
+        tool.is_available = AsyncMock(return_value=True)
+        tool.start_tunnel = AsyncMock(return_value=True)
+        tool.stop_tunnel = AsyncMock(return_value=None)
+        instances.append(tool)
+        return tool
+
+    with (
+        patch("configstream.pipeline.source_producer", new_callable=AsyncMock),
+        patch("configstream.pipeline.processing_consumer", new_callable=AsyncMock),
+        patch(
+            "configstream.output_handler.generate_pipeline_outputs",
+            new_callable=AsyncMock,
+        ),
+        patch("configstream.pipeline.DEFAULT_BLOCKLIST.update", new_callable=AsyncMock),
+        patch("configstream.pipeline.SingBoxTester") as mock_tester_cls,
+        patch("configstream.pipeline.GeoIPResolver"),
+        patch("configstream.pipeline.EventStream") as mock_event_stream,
+        patch("configstream.tools.vwarp.manager.VwarpTool", side_effect=_make_tool),
+    ):
+        mock_tester = mock_tester_cls.return_value
+        mock_tester.go_tester = MagicMock()
+        mock_tester.go_tester.available = False
+        mock_tester.close = AsyncMock()
+        mock_event_stream.return_value.aclose = AsyncMock()
+
+        await run_full_pipeline(
+            sources=["http://test"],
+            output_dir=str(tmp_path / "output"),
+            max_workers=2,
+            dry_run=True,
+        )
+
+    assert instances, "VwarpTool was never constructed"
+    starter = instances[0]
+    assert starter.start_tunnel.await_count == 1, "tunnel was not started"
+    # The instance that started the tunnel is the one that must be stopped.
+    assert (
+        starter.stop_tunnel.await_count == 1
+    ), "stop_tunnel was not called on the VwarpTool that started the tunnel"
