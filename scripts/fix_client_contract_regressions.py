@@ -113,6 +113,23 @@ VALID_CORE_FORMATS = {
     )
 
     replace_once(
+        "tests/unit/test_validate_pages_artifact.py",
+        '''def test_write_pages_contract_refreshes_mutated_artifact(tmp_path: Path) -> None:
+    _write_valid_artifact(tmp_path)
+    _write_text(tmp_path / "base64.txt", "changed after initial manifest")
+''',
+        '''def test_write_pages_contract_refreshes_mutated_artifact(tmp_path: Path) -> None:
+    _write_valid_artifact(tmp_path)
+    updated_subscription = "ss://changed@example.com:443#manifest-refresh\\n"
+    _write_text(tmp_path / "proxies.txt", updated_subscription)
+    _write_text(
+        tmp_path / "base64.txt",
+        base64.b64encode(updated_subscription.encode("utf-8")).decode("ascii"),
+    )
+''',
+    )
+
+    replace_once(
         "tests/unit/test_output.py",
         '''from scripts.validate_pages_artifact import validate_pages_artifact
 ''',
