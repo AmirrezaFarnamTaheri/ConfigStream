@@ -8,6 +8,8 @@ Each test pins a specific defect that was fixed:
   * lab config outbound-count and nesting-depth DoS bounds.
 """
 
+from typing import Any
+
 import pytest
 
 from configstream.models import Proxy
@@ -181,70 +183,86 @@ class TestLabConfigBounds:
         assert exc.value.status_code == 400
 
 
-class TestOversizedLineDrain:
-    """`_drain_oversized_line` must always make forward progress.
+class TestOversizedLineResync:
+    """An oversized Go-tester line must not cost us the *next* valid record.
 
-    A `readline()` that overruns the stream limit is recovered by discarding
-    bytes up to the next newline. Retrying `readuntil` blindly would hit the
-    identical stuck buffer forever; `LimitOverrunError.consumed` reports how
-    many leading bytes are confirmed separator-free, so discarding exactly
-    those bytes guarantees the loop advances.
+    These drive the real ``_read_loop`` against a real ``asyncio.StreamReader``
+    rather than a mock, because the defect being pinned lives in StreamReader's
+    own overrun semantics: ``readline()`` resynchronises the buffer *before*
+    raising (deleting through the separator when the newline was inside the
+    buffer, clearing the buffer when it was not). Draining on top of that would
+    swallow the following record -- which a hand-rolled fake stream cannot show.
     """
 
-    @pytest.mark.asyncio
-    async def test_drain_consumes_bytes_and_stops_spinning(self) -> None:
-        import asyncio
+    @staticmethod
+    def _tester(reader) -> "Any":
+        import asyncio as _asyncio
         from configstream.testers.go_tester.manager import GoBatchTester
 
-        calls: dict[str, int] = {"readuntil": 0, "readexactly": 0}
-
-        class FakeStream:
-            """Overruns twice (reporting consumable bytes), then succeeds."""
-
-            async def readuntil(self, sep: bytes) -> bytes:
-                calls["readuntil"] += 1
-                if calls["readuntil"] <= 2:
-                    raise asyncio.LimitOverrunError("too long", 64)
-                return b"tail\n"
-
-            async def readexactly(self, n: int) -> bytes:
-                calls["readexactly"] += 1
-                assert n == 64, "must discard exactly the consumed-byte count"
-                return b"x" * n
-
-        tester = GoBatchTester.__new__(GoBatchTester)
-        tester._proc = type("P", (), {"stdout": FakeStream()})()
-
-        assert await tester._drain_oversized_line() is True
-        # Both overruns discarded bytes rather than spinning on the same buffer.
-        assert calls["readexactly"] == 2
-        assert calls["readuntil"] == 3
+        t = GoBatchTester.__new__(GoBatchTester)
+        t._proc = type("P", (), {"stdout": reader})()
+        t._lock = _asyncio.Lock()
+        t._pending_futures = {}
+        t._stopping = False
+        return t
 
     @pytest.mark.asyncio
-    async def test_drain_reports_eof(self) -> None:
+    async def test_record_after_oversized_line_is_still_delivered(self) -> None:
+        """Separator inside the buffer: the next record must survive."""
         import asyncio
-        from configstream.testers.go_tester.manager import GoBatchTester
 
-        class EofStream:
-            async def readuntil(self, sep: bytes) -> bytes:
-                raise asyncio.IncompleteReadError(b"", None)
+        limit = 64
+        reader = asyncio.StreamReader(limit=limit)
+        tester = self._tester(reader)
 
-        tester = GoBatchTester.__new__(GoBatchTester)
-        tester._proc = type("P", (), {"stdout": EofStream()})()
+        loop = asyncio.get_running_loop()
+        fut: asyncio.Future = loop.create_future()
+        tester._pending_futures["good"] = fut
 
-        assert await tester._drain_oversized_line() is False
+        # Oversized record, then a normal one that must still be parsed.
+        reader.feed_data(b"X" * (limit * 5) + b"\n")
+        reader.feed_data(b'{"id":"good","is_working":true,"latency":12}\n')
+        reader.feed_eof()
+
+        await asyncio.wait_for(tester._read_loop(), timeout=5.0)
+
+        assert fut.done(), "record following an oversized line was swallowed"
+        assert fut.result()["id"] == "good"
 
     @pytest.mark.asyncio
-    async def test_drain_bails_out_when_nothing_consumable(self) -> None:
-        """A zero `consumed` count must not loop forever."""
+    async def test_record_after_unterminated_oversized_line(self) -> None:
+        """Separator *not* yet in the buffer: still recovers, loses no record."""
         import asyncio
-        from configstream.testers.go_tester.manager import GoBatchTester
 
-        class StuckStream:
-            async def readuntil(self, sep: bytes) -> bytes:
-                raise asyncio.LimitOverrunError("stuck", 0)
+        limit = 64
+        reader = asyncio.StreamReader(limit=limit)
+        tester = self._tester(reader)
 
-        tester = GoBatchTester.__new__(GoBatchTester)
-        tester._proc = type("P", (), {"stdout": StuckStream()})()
+        loop = asyncio.get_running_loop()
+        fut: asyncio.Future = loop.create_future()
+        tester._pending_futures["good2"] = fut
 
-        assert await tester._drain_oversized_line() is False
+        # Oversized chunk with no newline, then its tail, then a valid record.
+        reader.feed_data(b"Y" * (limit * 5))
+        reader.feed_data(b"TAIL\n")
+        reader.feed_data(b'{"id":"good2","is_working":true,"latency":7}\n')
+        reader.feed_eof()
+
+        await asyncio.wait_for(tester._read_loop(), timeout=5.0)
+
+        assert fut.done(), "record after an unterminated oversized line was lost"
+        assert fut.result()["id"] == "good2"
+
+    @pytest.mark.asyncio
+    async def test_read_loop_terminates_on_oversized_line_at_eof(self) -> None:
+        """An oversized final line must not spin the loop forever."""
+        import asyncio
+
+        limit = 64
+        reader = asyncio.StreamReader(limit=limit)
+        tester = self._tester(reader)
+
+        reader.feed_data(b"Z" * (limit * 5))  # never terminated
+        reader.feed_eof()
+
+        await asyncio.wait_for(tester._read_loop(), timeout=5.0)

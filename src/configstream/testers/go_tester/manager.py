@@ -408,40 +408,6 @@ class GoBatchTester:
                     self._pending_futures.pop(req_id, None)
         await self._consume_futures(futures)
 
-    async def _drain_oversized_line(self) -> bool:
-        """Discard buffered bytes up to and including the next newline.
-
-        Called after a ``readline()`` overruns the stream's buffer limit.
-        ``LimitOverrunError.consumed`` reports how many leading bytes are
-        confirmed not to contain the separator, so repeatedly discarding
-        exactly that many bytes and retrying is guaranteed to make forward
-        progress -- unlike a bare retry, which would hit the identical stuck
-        buffer again and spin without ever consuming the oversized record.
-
-        Returns True if a newline was found and discarded, False on EOF.
-        """
-        stream = self._proc.stdout if self._proc else None
-        if stream is None:
-            return False
-        while True:
-            try:
-                await stream.readuntil(b"\n")
-                return True
-            except asyncio.IncompleteReadError:
-                return False
-            except asyncio.LimitOverrunError as exc:
-                consumed = getattr(exc, "consumed", 0) or 0
-                if consumed <= 0:
-                    # No confirmed-safe bytes to discard; nothing more we can
-                    # do without risking an infinite loop.
-                    return False
-                await stream.readexactly(consumed)
-            except ValueError:
-                # Separator not found and buffer already at/over its limit
-                # with no LimitOverrunError raised (e.g. reader misconfigured);
-                # bail out rather than spin.
-                return False
-
     async def _read_loop(self) -> None:
         """Background task to read results from stdout."""
         try:
@@ -449,15 +415,23 @@ class GoBatchTester:
                 try:
                     line = await self._proc.stdout.readline()
                 except (asyncio.LimitOverrunError, ValueError) as exc:
-                    # A single result line exceeded the stream buffer. Skip the
-                    # oversized record instead of tearing down the loop (which
-                    # would strand every pending future until the batch timeout).
+                    # A single result line exceeded the stream buffer. Skip just
+                    # that record rather than tearing down the loop, which would
+                    # strand every pending future until the batch timeout.
+                    #
+                    # No manual draining here, deliberately: StreamReader.readline
+                    # already resynchronises the buffer before raising -- it either
+                    # deletes through the separator (when the newline was inside
+                    # the buffer) or clears the buffer entirely (when it was not).
+                    # Either way it has made forward progress, so the next
+                    # readline() resumes at a record boundary. Draining on top of
+                    # that would consume the *following* valid record; any leftover
+                    # tail of the oversized record simply fails the JSON decode
+                    # below and is skipped.
                     logger.warning(
                         "Go Tester emitted an oversized line; skipping: %s",
                         type(exc).__name__,
                     )
-                    if not await self._drain_oversized_line():
-                        break
                     continue
                 if not line:
                     break
