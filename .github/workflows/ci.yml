@@ -59,8 +59,7 @@ jobs:
         uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          config-path: .gitleaks.toml
+          GITLEAKS_CONFIG: .gitleaks.toml
       - name: Validate Versions
         run: python scripts/validate_versions.py
       - name: Validate capability registry
@@ -142,7 +141,7 @@ jobs:
           set -o pipefail
           python -m mypy . 2>&1 | tee mypy-output.txt
       - name: Upload mypy diagnostics
-        if: always()
+        if: always() && steps.mypy.outcome != 'skipped'
         uses: actions/upload-artifact@v7
         with:
           name: mypy-diagnostics-py${{ matrix.python-version }}-${{ github.run_id }}
@@ -168,7 +167,7 @@ jobs:
           fi
           python -m black --check --fast --target-version py310 "${python_files[@]}"
       - name: Enforce mypy
-        if: always()
+        if: always() && steps.mypy.outcome != 'skipped'
         shell: bash
         env:
           MYPY_OUTCOME: ${{ steps.mypy.outcome }}
