@@ -20,6 +20,13 @@ import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import cast
+
+from configstream.output.client_formats import (
+    validate_mihomo_config,
+    validate_nekobox_subscriptions,
+    validate_xray_config,
+)
+from configstream.output.singbox_contract import validate_singbox_config
 from cryptography.hazmat.primitives.asymmetric import ed25519
 from cryptography.hazmat.primitives import serialization
 
@@ -51,6 +58,7 @@ REQUIRED_EXISTS: tuple[str, ...] = (
     "clash.yaml",
     "clash-dns-safe.yaml",
     "clash-dns-hardened.yaml",
+    "xray.json",
     "singbox-chains.json",
     "singbox-chains-dns-safe.json",
     "singbox-chains-dns-hardened.json",
@@ -89,6 +97,7 @@ REQUIRED_NONEMPTY: tuple[str, ...] = (
     "clash.yaml",
     "clash-dns-safe.yaml",
     "clash-dns-hardened.yaml",
+    "xray.json",
     "singbox-chains.json",
     "singbox-chains-dns-safe.json",
     "singbox-chains-dns-hardened.json",
@@ -128,6 +137,7 @@ CLASH_FILES: tuple[str, ...] = tuple(
     for name in REQUIRED_EXISTS
     if name.startswith("clash") and name.endswith(".yaml")
 )
+XRAY_FILES: tuple[str, ...] = ("xray.json",)
 SING_BOX_BINARY_NAMES: tuple[str, ...] = ("sing-box", "sing-box.exe")
 MIHOMO_BINARY_NAMES: tuple[str, ...] = (
     "mihomo",
@@ -1269,7 +1279,7 @@ def validate_pages_artifact(
         payload, error = _load_json(target)
         if error:
             continue
-        errors.extend(_validate_singbox_config(payload, rel_path))
+        errors.extend(validate_singbox_config(payload, rel_path))
 
     for rel_path in CLASH_FILES:
         target = root / rel_path
@@ -1280,6 +1290,18 @@ def validate_pages_artifact(
             errors.append(error.replace(target.name, rel_path, 1))
             continue
         errors.extend(_validate_clash_config(payload, rel_path))
+        errors.extend(validate_mihomo_config(payload, rel_path))
+
+    for rel_path in XRAY_FILES:
+        target = root / rel_path
+        if not target.is_file():
+            continue
+        payload, error = _load_json(target)
+        if error:
+            continue
+        errors.extend(validate_xray_config(payload, rel_path))
+
+    errors.extend(validate_nekobox_subscriptions(root))
 
     manifest_path = root / "artifact_manifest.json"
     if manifest_path.is_file():

@@ -68,6 +68,7 @@ def test_generate_clash_includes_revived_chain_entries():
 
     output = generate_clash_config([revived], ignore_status=True)
 
-    # Revival chains should survive Clash generation via relay/dialer-proxy links.
+    # Revival chains use Mihomo dialer-proxy links without deprecated relay groups.
     assert "dialer-proxy:" in output
-    assert "type: relay" in output
+    assert "type: relay" not in output
+    assert "Revived Chain-warp" in output

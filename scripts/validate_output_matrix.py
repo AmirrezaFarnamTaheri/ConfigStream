@@ -49,10 +49,12 @@ CLIENT_CONFIG_FAMILIES = {
     "clash",
     "singbox",
     "singbox-vpn",
+    "xray",
 }
 VALID_CORE_FORMATS = {
     "clash",
     "sing-box",
+    "xray",
 }
 VALID_ARTIFACT_TYPES = {
     "full_config",

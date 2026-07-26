@@ -127,6 +127,7 @@ Capability status is tracked in `docs/capability_registry.json`, and client-core
 | `base64.txt` | universal | base64 | no | presence | May be empty when no usable subscription lines exist. |
 | `proxies.json` | universal | json | yes | schema, json | Canonical public proxy JSON list. |
 | `proxies.txt` | universal | text | no | presence | URI subscription lines. |
+| `xray.json` | xray | json | yes | json | Xray full configuration with modern VMess/VLESS settings, structural reference validation, and pinned native release checks. |
 | `side_products-dns-hardened.zip` | side-products | zip | yes | zip, zip members | DNS-hardened side-product bundle; ZIP integrity, safe member paths, required proxies.txt, optional OpenVPN/WireGuard member patterns, and deploy-secret markers are validated. |
 | `side_products-dns-safe.zip` | side-products | zip | yes | zip, zip members | DNS-safe side-product bundle; ZIP integrity, safe member paths, required proxies.txt, optional OpenVPN/WireGuard member patterns, and deploy-secret markers are validated. |
 | `side_products.zip` | side-products | zip | yes | zip, zip members | Side-product bundle; ZIP integrity, safe member paths, required proxies.txt, optional OpenVPN/WireGuard member patterns, and deploy-secret markers are validated. |

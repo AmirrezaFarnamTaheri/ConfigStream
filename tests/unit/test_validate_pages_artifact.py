@@ -231,6 +231,28 @@ def _write_valid_artifact(root: Path) -> None:
             _write_text(path, json.dumps(_singbox_payload()))
         elif rel_path.startswith("clash") and rel_path.endswith(".yaml"):
             _write_text(path, _clash_payload())
+        elif rel_path == "xray.json":
+            _write_text(
+                path,
+                json.dumps(
+                    {
+                        "outbounds": [
+                            {"tag": "direct", "protocol": "freedom", "settings": {}},
+                            {"tag": "block", "protocol": "blackhole", "settings": {}},
+                        ],
+                        "routing": {"rules": []},
+                    }
+                ),
+            )
+        elif rel_path in {
+            "proxies.txt",
+            "proxies-dns-safe.txt",
+            "proxies-dns-hardened.txt",
+            "base64.txt",
+            "base64-dns-safe.txt",
+            "base64-dns-hardened.txt",
+        }:
+            _write_text(path, "")
         elif rel_path.endswith(".json"):
             _write_text(path, "{}")
         else:
@@ -789,7 +811,12 @@ def test_write_native_client_report_records_passed_checks(
 
 def test_write_pages_contract_refreshes_mutated_artifact(tmp_path: Path) -> None:
     _write_valid_artifact(tmp_path)
-    _write_text(tmp_path / "base64.txt", "changed after initial manifest")
+    updated_subscription = "ss://changed@example.com:443#manifest-refresh\n"
+    _write_text(tmp_path / "proxies.txt", updated_subscription)
+    _write_text(
+        tmp_path / "base64.txt",
+        base64.b64encode(updated_subscription.encode("utf-8")).decode("ascii"),
+    )
 
     assert any(
         "artifact_manifest.json sha256 mismatch: base64.txt" in error
