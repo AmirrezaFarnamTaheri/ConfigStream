@@ -87,7 +87,9 @@ def run(
     }
 
 
-def missing_validator_check(core: str, target: Path, artifact_root: Path) -> dict[str, Any]:
+def missing_validator_check(
+    core: str, target: Path, artifact_root: Path
+) -> dict[str, Any]:
     """Return deterministic failed evidence for a missing required validator."""
     return {
         "core": core,
