@@ -4,7 +4,9 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import os
 import shutil
 
 # Native validators are resolved with shutil.which and invoked with fixed
@@ -14,8 +16,44 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+REQUIRED_TARGETS = {
+    "sing-box": "singbox.json",
+    "mihomo": "clash.yaml",
+    "xray": "xray.json",
+}
 
-def run(command: list[str], core: str, path: Path) -> dict[str, Any]:
+
+def sha256_file(path: Path) -> str | None:
+    """Return the SHA-256 digest for *path*, or ``None`` when it is absent."""
+    if not path.is_file() or path.is_symlink():
+        return None
+    value = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            value.update(chunk)
+    return value.hexdigest()
+
+
+def artifact_path(path: Path, root: Path) -> str:
+    """Return a stable POSIX path relative to the validated artifact root."""
+    resolved_root = root.resolve()
+    resolved_path = path.resolve()
+    try:
+        return resolved_path.relative_to(resolved_root).as_posix()
+    except ValueError as exc:
+        raise ValueError(f"native-check target escapes artifact root: {path}") from exc
+
+
+def run(
+    command: list[str],
+    display_command: list[str],
+    core: str,
+    path: Path,
+    artifact_root: Path,
+) -> dict[str, Any]:
+    """Run one native check and bind the result to the exact artifact bytes."""
+    relative = artifact_path(path, artifact_root)
+    artifact_sha256 = sha256_file(path)
     try:
         # Commands are assembled exclusively from shutil.which results, fixed
         # flags, and repository-controlled artifact paths. shell=False is the
@@ -30,9 +68,10 @@ def run(command: list[str], core: str, path: Path) -> dict[str, Any]:
     except (OSError, subprocess.TimeoutExpired) as exc:
         return {
             "core": core,
-            "path": path.name,
+            "path": relative,
+            "artifact_sha256": artifact_sha256,
             "status": "failed",
-            "command": command,
+            "command": display_command,
             "error": str(exc),
         }
     output = (result.stderr or result.stdout or "").strip()
@@ -40,10 +79,23 @@ def run(command: list[str], core: str, path: Path) -> dict[str, Any]:
         output = output[:1000] + "...[truncated]"
     return {
         "core": core,
-        "path": path.name,
+        "path": relative,
+        "artifact_sha256": artifact_sha256,
         "status": "passed" if result.returncode == 0 else "failed",
-        "command": command,
+        "command": display_command,
         "error": None if result.returncode == 0 else output,
+    }
+
+
+def missing_validator_check(core: str, target: Path, artifact_root: Path) -> dict[str, Any]:
+    """Return deterministic failed evidence for a missing required validator."""
+    return {
+        "core": core,
+        "path": artifact_path(target, artifact_root),
+        "artifact_sha256": sha256_file(target),
+        "status": "failed",
+        "command": None,
+        "error": "required native validator binary is unavailable",
     }
 
 
@@ -53,65 +105,101 @@ def main() -> int:
     parser.add_argument("--report", type=Path, required=True)
     args = parser.parse_args()
 
+    artifact_root = args.artifact_dir.resolve()
     binaries = {
         "sing-box": shutil.which("sing-box"),
         "mihomo": shutil.which("mihomo") or shutil.which("clash-meta"),
         "xray": shutil.which("xray"),
     }
-    missing = [name for name, path in binaries.items() if not path]
     checks: list[dict[str, Any]] = []
-    if missing:
-        for core in missing:
-            checks.append(
-                {
-                    "core": core,
-                    "path": None,
-                    "status": "failed",
-                    "command": None,
-                    "error": "required native validator binary is unavailable",
-                }
-            )
-    if binaries["sing-box"]:
-        for path in sorted(args.artifact_dir.glob("singbox*.json")):
+
+    sing_box = binaries["sing-box"]
+    if sing_box:
+        sing_box_name = Path(sing_box).name
+        for path in sorted(artifact_root.glob("singbox*.json")):
+            relative = artifact_path(path, artifact_root)
             checks.append(
                 run(
-                    [binaries["sing-box"], "check", "-c", str(path)],
+                    [sing_box, "check", "-c", str(path)],
+                    [sing_box_name, "check", "-c", relative],
                     "sing-box",
                     path,
+                    artifact_root,
                 )
             )
-    if binaries["mihomo"]:
-        for path in sorted(args.artifact_dir.glob("clash*.yaml")):
-            checks.append(
-                run([binaries["mihomo"], "-t", "-f", str(path)], "mihomo", path)
-            )
-    xray_config = args.artifact_dir / "xray.json"
-    if binaries["xray"] and xray_config.is_file():
+    else:
         checks.append(
-            run(
-                [
-                    binaries["xray"],
-                    "run",
-                    "-test",
-                    "-config",
-                    str(xray_config),
-                ],
-                "xray",
-                xray_config,
+            missing_validator_check(
+                "sing-box", artifact_root / REQUIRED_TARGETS["sing-box"], artifact_root
             )
         )
 
+    mihomo = binaries["mihomo"]
+    if mihomo:
+        mihomo_name = Path(mihomo).name
+        for path in sorted(artifact_root.glob("clash*.yaml")):
+            relative = artifact_path(path, artifact_root)
+            checks.append(
+                run(
+                    [mihomo, "-t", "-f", str(path)],
+                    [mihomo_name, "-t", "-f", relative],
+                    "mihomo",
+                    path,
+                    artifact_root,
+                )
+            )
+    else:
+        checks.append(
+            missing_validator_check(
+                "mihomo", artifact_root / REQUIRED_TARGETS["mihomo"], artifact_root
+            )
+        )
+
+    xray = binaries["xray"]
+    xray_config = artifact_root / REQUIRED_TARGETS["xray"]
+    if xray and xray_config.is_file():
+        xray_name = Path(xray).name
+        relative = artifact_path(xray_config, artifact_root)
+        checks.append(
+            run(
+                [xray, "run", "-test", "-config", str(xray_config)],
+                [xray_name, "run", "-test", "-config", relative],
+                "xray",
+                xray_config,
+                artifact_root,
+            )
+        )
+    elif not xray:
+        checks.append(missing_validator_check("xray", xray_config, artifact_root))
+    else:
+        checks.append(
+            {
+                "core": "xray",
+                "path": REQUIRED_TARGETS["xray"],
+                "artifact_sha256": None,
+                "status": "failed",
+                "command": [Path(xray).name, "run", "-test", "-config", "xray.json"],
+                "error": "required native validation target is unavailable",
+            }
+        )
+
     summary = {
-        "passed": sum(item["status"] == "passed" for item in checks),
-        "failed": sum(item["status"] == "failed" for item in checks),
-        "skipped": sum(item["status"] == "skipped" for item in checks),
+        "passed": sum(item.get("status") == "passed" for item in checks),
+        "failed": sum(item.get("status") == "failed" for item in checks),
+        "skipped": sum(item.get("status") == "skipped" for item in checks),
     }
     report = {
         "schema_version": 2,
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "source_commit": os.environ.get("GITHUB_SHA", ""),
+        "run_id": os.environ.get("GITHUB_RUN_ID", ""),
+        "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
         "tools": {
-            name: {"available": bool(path), "binary": path}
-            for name, path in binaries.items()
+            name: {
+                "available": bool(binary),
+                "command": Path(binary).name if binary else None,
+            }
+            for name, binary in binaries.items()
         },
         "checks": checks,
         "summary": summary,
