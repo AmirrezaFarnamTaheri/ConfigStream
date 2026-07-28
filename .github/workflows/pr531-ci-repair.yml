@@ -32,114 +32,65 @@ jobs:
           python - <<'PY'
           from pathlib import Path
 
-          def replace_once(path: str, old: str, new: str) -> None:
+          def replace_or_verify(path: str, old: str, new: str) -> None:
               target = Path(path)
-              text = target.read_text(encoding='utf-8')
+              text = target.read_text(encoding="utf-8")
               if old in text:
-                  target.write_text(text.replace(old, new, 1), encoding='utf-8')
-                  return
-              if new in text:
-                  return
-              raise SystemExit(f'expected repair pattern missing in {path}')
+                  target.write_text(text.replace(old, new, 1), encoding="utf-8")
+              elif new not in text:
+                  raise SystemExit(f"expected repair pattern missing in {path}")
 
-          replace_once(
-              'scripts/release_gate.py',
-              '''    for key, expected in (
-                  ("source_commit", os.environ.get("GITHUB_SHA")),
-                  ("run_id", os.environ.get("GITHUB_RUN_ID")),
-                  ("run_attempt", os.environ.get("GITHUB_RUN_ATTEMPT")),
-              ):
-                  if expected and str(report.get(key) or "") != expected:
-                      errors.append(f"native client report provenance mismatch: {key}")
-          ''',
-              '''    for provenance_key, expected in (
-                  ("source_commit", os.environ.get("GITHUB_SHA")),
-                  ("run_id", os.environ.get("GITHUB_RUN_ID")),
-                  ("run_attempt", os.environ.get("GITHUB_RUN_ATTEMPT")),
-              ):
-                  if expected and str(report.get(provenance_key) or "") != expected:
-                      errors.append(
-                          f"native client report provenance mismatch: {provenance_key}"
-                      )
-          ''',
+          replace_or_verify(
+              "src/configstream/quality/storage.py",
+              (
+                  "            with src:\n"
+                  "                source_rows = src.execute(\"SELECT * FROM source_stats\")\n"
+                  "                try:\n"
+                  "                    run_rows = src.execute(\"SELECT * FROM source_runs\")\n"
+                  "                except sqlite3.OperationalError:\n"
+                  "                    run_rows = []\n"
+                  "                try:\n"
+                  "                    history_rows = src.execute(\"SELECT * FROM proxy_history\")\n"
+                  "                except sqlite3.OperationalError:\n"
+                  "                    history_rows = []\n"
+              ),
+              (
+                  "            with src:\n"
+                  "                source_rows: list[sqlite3.Row] = src.execute(\n"
+                  "                    \"SELECT * FROM source_stats\"\n"
+                  "                ).fetchall()\n"
+                  "                try:\n"
+                  "                    run_rows: list[sqlite3.Row] = src.execute(\n"
+                  "                        \"SELECT * FROM source_runs\"\n"
+                  "                    ).fetchall()\n"
+                  "                except sqlite3.OperationalError:\n"
+                  "                    run_rows = []\n"
+                  "                try:\n"
+                  "                    history_rows: list[sqlite3.Row] = src.execute(\n"
+                  "                        \"SELECT * FROM proxy_history\"\n"
+                  "                    ).fetchall()\n"
+                  "                except sqlite3.OperationalError:\n"
+                  "                    history_rows = []\n"
+              ),
           )
-          replace_once(
-              'scripts/release_gate.py',
-              '''        key = (core, relative)
-                  if key in seen:
-                      errors.append(f"duplicate native client check: {core}:{relative}")
-                  seen.add(key)
-          ''',
-              '''        check_key = (core, relative)
-                  if check_key in seen:
-                      errors.append(f"duplicate native client check: {core}:{relative}")
-                  seen.add(check_key)
-          ''',
+
+          replace_or_verify(
+              "src/configstream/server/routes/lab.py",
+              (
+                  "    try:\n"
+                  "        async with asyncio.timeout(settings.LAB_TEST_TIMEOUT_SECONDS):\n"
+                  "            clean_config = await _validate_and_build_lab_config(config)\n"
+                  "    except TimeoutError as exc:\n"
+              ),
+              (
+                  "    try:\n"
+                  "        clean_config = await asyncio.wait_for(\n"
+                  "            _validate_and_build_lab_config(config),\n"
+                  "            timeout=settings.LAB_TEST_TIMEOUT_SECONDS,\n"
+                  "        )\n"
+                  "    except asyncio.TimeoutError as exc:\n"
+              ),
           )
-          replace_once(
-              'src/configstream/quality/storage.py',
-              '''            with src:
-                  source_rows = src.execute("SELECT * FROM source_stats")
-                  try:
-                      run_rows = src.execute("SELECT * FROM source_runs")
-                  except sqlite3.OperationalError:
-                      run_rows = []
-                  try:
-                      history_rows = src.execute("SELECT * FROM proxy_history")
-                  except sqlite3.OperationalError:
-                      history_rows = []
-          ''',
-              '''            with src:
-                  source_rows: list[sqlite3.Row] = src.execute(
-                      "SELECT * FROM source_stats"
-                  ).fetchall()
-                  try:
-                      run_rows: list[sqlite3.Row] = src.execute(
-                          "SELECT * FROM source_runs"
-                      ).fetchall()
-                  except sqlite3.OperationalError:
-                      run_rows = []
-                  try:
-                      history_rows: list[sqlite3.Row] = src.execute(
-                          "SELECT * FROM proxy_history"
-                      ).fetchall()
-                  except sqlite3.OperationalError:
-                      history_rows = []
-          ''',
-          )
-          replace_once(
-              'src/configstream/server/routes/lab.py',
-              '''    try:
-                  async with asyncio.timeout(settings.LAB_TEST_TIMEOUT_SECONDS):
-                      clean_config = await _validate_and_build_lab_config(config)
-              except TimeoutError as exc:
-          ''',
-              '''    try:
-                  clean_config = await asyncio.wait_for(
-                      _validate_and_build_lab_config(config),
-                      timeout=settings.LAB_TEST_TIMEOUT_SECONDS,
-                  )
-              except asyncio.TimeoutError as exc:
-          ''',
-          )
-          test_path = Path('tests/unit/test_client_format_contracts.py')
-          test_text = test_path.read_text(encoding='utf-8')
-          broken = '''    matrix = json.loads(
-                  Path(__file__).resolve().parents[2]
-                  / "docs"
-                  / "output_matrix.json".read_text(encoding="utf-8")
-              )
-          '''
-          fixed = '''    matrix_path = (
-                  Path(__file__).resolve().parents[2] / "docs" / "output_matrix.json"
-              )
-              matrix = json.loads(matrix_path.read_text(encoding="utf-8"))
-          '''
-          if broken in test_text:
-              test_text = test_text.replace(broken, fixed, 1)
-          elif 'matrix_path' not in test_text:
-              raise SystemExit('expected output-matrix test pattern missing')
-          test_path.write_text(test_text, encoding='utf-8')
           PY
       - name: Format repaired Python files
         run: |
@@ -156,11 +107,15 @@ jobs:
             tests/unit/test_server.py \
             tests/unit/test_client_format_contracts.py \
             tests/unit/quality/test_quality_components.py
-      - name: Publish validated repairs
+      - name: Publish validated source repairs
         run: |
           set -euo pipefail
-          if git diff --quiet; then
-            echo 'No repair changes remain.'
+          if git diff --quiet -- \
+            scripts/release_gate.py \
+            src/configstream/quality/storage.py \
+            src/configstream/server/routes/lab.py \
+            tests/unit/test_client_format_contracts.py; then
+            echo 'No source repair changes remain.'
             exit 0
           fi
           git config user.name 'github-actions[bot]'
