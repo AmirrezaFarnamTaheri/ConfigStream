@@ -25,7 +25,7 @@ def sample_proxies():
             protocol="vmess",
             address="1.1.1.1",
             port=443,
-            uuid="6ba7b810-9dad-11d1-80b4-00c04fd430c8",  # noqa: S106
+            uuid="3cc26273-917e-4268-a438-b181cf790d62",  # noqa: S106
             is_working=True,
             latency=50,
             country_code="US",
@@ -35,7 +35,7 @@ def sample_proxies():
             protocol="shadowsocks",
             address="2.2.2.2",
             port=8388,
-            password="dummy",
+            password="dummy",  # noqa: S106
             is_working=True,
             latency=200,
             country_code="IR",

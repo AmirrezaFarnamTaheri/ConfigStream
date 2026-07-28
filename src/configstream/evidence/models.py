@@ -109,6 +109,21 @@ class ValidationEvidence(BaseModel):
         validity_seconds = (self.expires_at - self.tested_at).total_seconds()
         if validity_seconds > MAX_EVIDENCE_TTL_SECONDS:
             raise ValueError("evidence validity window exceeds the maximum TTL")
+        if self.selected_address is not None:
+            try:
+                ip_address(self.selected_address)
+            except ValueError as exc:
+                raise ValueError("selected_address must be a valid IP address") from exc
+        if self.egress_ip is not None:
+            try:
+                ip_address(self.egress_ip)
+            except ValueError as exc:
+                raise ValueError("egress_ip must be a valid IP address") from exc
+        if self.public_address_validated and (
+            self.selected_address is None
+            or self.selected_address not in self.resolved_addresses
+        ):
+            raise ValueError("validated public evidence must select a resolved address")
         if self.outcome is ValidationOutcome.PASSED:
             required = (
                 self.public_address_validated,

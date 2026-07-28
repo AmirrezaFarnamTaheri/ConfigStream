@@ -88,9 +88,14 @@ def normalize_path(value: Any) -> str:
     while text.startswith("./"):
         text = text[2:]
     text = text.lstrip("/")
-    while "//" in text:
-        text = text.replace("//", "/")
-    if not text.startswith("repo://"):
+    if text.startswith("repo://"):
+        suffix = text[len("repo://") :]
+        while "//" in suffix:
+            suffix = suffix.replace("//", "/")
+        text = "repo://" + suffix.lstrip("/")
+    else:
+        while "//" in text:
+            text = text.replace("//", "/")
         text = "repo://" + text
     return text
 

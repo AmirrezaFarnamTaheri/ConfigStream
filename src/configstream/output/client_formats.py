@@ -178,6 +178,10 @@ def _xray_outbound(outbound: dict[str, Any], tag: str) -> dict[str, Any] | None:
         port = int(outbound.get("server_port") or 0)
     except (TypeError, ValueError):
         return None
+    if kind != "wireguard" and (
+        not isinstance(address, str) or not address.strip() or not 1 <= port <= 65535
+    ):
+        return None
     result: dict[str, Any] = {"tag": tag}
 
     if kind in {"http", "socks", "socks5"}:
@@ -189,6 +193,8 @@ def _xray_outbound(outbound: dict[str, Any], tag: str) -> dict[str, Any] | None:
             settings["pass"] = str(outbound.get("password") or "")
         result["settings"] = settings
     elif kind in {"shadowsocks", "ss"}:
+        if not outbound.get("method") or not outbound.get("password"):
+            return None
         result.update(
             {
                 "protocol": "shadowsocks",
@@ -394,11 +400,28 @@ def generate_xray_config(
                 candidates.append(candidate)
 
         before = len(outbounds)
+        tag_map: dict[str, str] = {}
+        pending: list[tuple[dict[str, Any], str]] = []
         for candidate in candidates:
+            original = str(candidate.get("tag") or "")
             base = _clean_tag(candidate.get("tag"), f"{protocol}-{len(seen) + 1}")
-            tag = _unique_tag(base, seen)
+            if base in _XRAY_BUILTIN_TAGS:
+                base = f"proxy-{base}"
+            tag = base
+            suffix = 2
+            while tag in seen or any(item[1] == tag for item in pending):
+                tag = f"{base}-{suffix}"
+                suffix += 1
+            pending.append((candidate, tag))
+            if original:
+                tag_map[original] = tag
+        for candidate, tag in pending:
+            detour = candidate.get("detour")
+            if detour and str(detour) in tag_map:
+                candidate = {**candidate, "detour": tag_map[str(detour)]}
             converted = _xray_outbound(candidate, tag)
             if converted:
+                seen.add(tag)
                 outbounds.append(converted)
         if len(outbounds) == before:
             unsupported[protocol] += 1

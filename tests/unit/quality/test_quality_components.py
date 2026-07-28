@@ -165,3 +165,27 @@ def test_storage_write_failure_is_fatal(tmp_path):
     ):
         with pytest.raises(QualityStorageError, match="failed to update stats"):
             storage.upsert_stats("url", {})
+
+
+def test_record_run_without_explicit_key_is_idempotent(tmp_path):
+    storage = QualityStorage(tmp_path / "quality.db")
+    event = {
+        "timestamp": 123,
+        "duration_ms": 4.5,
+        "fetched_count": 2,
+        "working_count": 1,
+        "geoip_json": "{}",
+        "failure_modes_json": "{}",
+        "batch_source": "unit",
+    }
+    try:
+        assert storage.record_run("https://example.com/sub", event) is True
+        assert storage.record_run("https://example.com/sub", event) is False
+        count = (
+            storage.get_connection()
+            .execute("SELECT COUNT(*) FROM source_runs")
+            .fetchone()[0]
+        )
+        assert count == 1
+    finally:
+        storage.close()

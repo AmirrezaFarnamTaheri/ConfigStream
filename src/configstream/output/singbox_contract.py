@@ -3,12 +3,12 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Dict, List, Set, Tuple
 
 
 def _collect_tagged_items(
-    payload: dict[str, Any], file_name: str, errors: list[str]
-) -> tuple[list[dict[str, Any]], list[dict[str, Any]], set[str]]:
+    payload: Dict[str, Any], file_name: str, errors: List[str]
+) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], Set[str]]:
     outbounds_raw = payload.get("outbounds")
     if not isinstance(outbounds_raw, list) or not outbounds_raw:
         errors.append(f"{file_name} outbounds must be a non-empty list")
@@ -21,9 +21,9 @@ def _collect_tagged_items(
         errors.append(f"{file_name} endpoints must be a list")
         endpoints_raw = []
 
-    tags: set[str] = set()
-    outbounds: list[dict[str, Any]] = []
-    endpoints: list[dict[str, Any]] = []
+    tags: Set[str] = set()
+    outbounds: List[Dict[str, Any]] = []
+    endpoints: List[Dict[str, Any]] = []
     for collection_name, values, target in (
         ("outbounds", outbounds_raw, outbounds),
         ("endpoints", endpoints_raw, endpoints),
@@ -49,10 +49,10 @@ def _collect_tagged_items(
 
 
 def _validate_detour(
-    item: dict[str, Any],
+    item: Dict[str, Any],
     location: str,
-    tags: set[str],
-    errors: list[str],
+    tags: Set[str],
+    errors: List[str],
     file_name: str = "",
     item_kind: str = "outbound",
 ) -> None:
@@ -65,12 +65,12 @@ def _validate_detour(
         errors.append(f"{file_name} unknown {item_kind} detour: {detour}")
 
 
-def validate_singbox_config(payload: object, file_name: str) -> list[str]:
+def validate_singbox_config(payload: object, file_name: str) -> List[str]:
     """Validate tags and references across Sing-box outbounds and endpoints."""
     if not isinstance(payload, dict):
         return [f"{file_name} must be a JSON object"]
 
-    errors: list[str] = []
+    errors: List[str] = []
     outbounds, endpoints, tags = _collect_tagged_items(payload, file_name, errors)
 
     for index, endpoint in enumerate(endpoints):

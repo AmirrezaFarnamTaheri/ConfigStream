@@ -107,5 +107,17 @@ def validate_snapshot(
             )
         )
 
+    if (
+        snapshot.protocol_claim is not None
+        and provider.declared_protocols
+        and snapshot.protocol_claim not in provider.declared_protocols
+    ):
+        violations.append(
+            SourcePolicyViolation(
+                "protocol_not_declared",
+                f"protocol claim {snapshot.protocol_claim!r} is not declared by provider",
+            )
+        )
+
     if violations:
         raise SourcePolicyError(violations)

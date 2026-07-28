@@ -14,17 +14,12 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
-from configstream.publication import validate_public_artifact, write_release_manifest
-
-PRIVATE_NAMES = {
-    "test_cache.json",
-    "source_quality.db",
-    "anomaly.db",
-    "history.db",
-    "pipeline_events.jsonl",
-    "consolidated_pipeline.log",
-}
-PRIVATE_SUFFIXES = {".db", ".sqlite", ".sqlite3", ".log", ".lock", ".tmp"}
+from configstream.publication import (
+    PUBLIC_PRIVATE_BASENAMES as PRIVATE_NAMES,
+    PUBLIC_PRIVATE_SUFFIXES as PRIVATE_SUFFIXES,
+    validate_public_artifact,
+    write_release_manifest,
+)
 
 
 def _purge_private_state(root: Path) -> None:
@@ -74,6 +69,15 @@ def _is_verified_stable_record(record: object) -> bool:
     return not is_candidate or is_verified
 
 
+def _sort_port(item: dict[str, Any]) -> int:
+    try:
+        return int(item.get("port") or 0)
+    except (TypeError, ValueError) as exc:
+        raise SystemExit(
+            "release rejected: proxy record has a non-numeric port"
+        ) from exc
+
+
 def _partition_and_normalize_public_records(
     root: Path,
 ) -> tuple[list[dict], list[dict]]:
@@ -110,7 +114,7 @@ def _partition_and_normalize_public_records(
             str(item.get("protocol") or ""),
             str(item.get("country_code") or ""),
             str(item.get("address") or ""),
-            int(item.get("port") or 0),
+            _sort_port(item),
             str(item.get("id") or ""),
         )
     )
@@ -148,7 +152,7 @@ def _recompute_metadata(
         and bool(item["details"].get("shielded_verified"))
     )
 
-    tested = int(metadata.get("total_tested", metadata.get("tested", 0)) or 0)
+    tested = int(metadata.get("total_tested") or metadata.get("tested") or 0)
     if tested <= 0:
         raise SystemExit("release rejected: no proxy test evidence")
     if tested < len(stable):
@@ -201,9 +205,63 @@ def main() -> int:
     stable, experimental = _partition_and_normalize_public_records(root)
     _recompute_metadata(root, stable, experimental)
 
-    allowed = {
-        path.relative_to(root).as_posix() for path in root.rglob("*") if path.is_file()
+    contract_path = Path(__file__).resolve().parents[1] / "docs" / "output_matrix.json"
+    contract = _load_json(contract_path)
+    declared = (
+        {
+            str(item["path"])
+            for item in contract.get("outputs", [])
+            if isinstance(item, dict) and isinstance(item.get("path"), str)
+        }
+        if isinstance(contract, dict)
+        else set()
+    )
+    exact_known = {
+        "proxies.json",
+        "metadata.json",
+        "health.json",
+        "format_compatibility.json",
+        "artifact_manifest.json",
+        "pipeline_events.jsonl",
+        ".nojekyll",
     }
+    approved_prefixes = (
+        "api/",
+        "assets/",
+        "data/",
+        "docs/",
+        "evidence/",
+        "experimental/",
+        "tools/",
+    )
+    approved_suffixes = {
+        ".css",
+        ".html",
+        ".ico",
+        ".js",
+        ".json",
+        ".jsonl",
+        ".map",
+        ".md",
+        ".png",
+        ".svg",
+        ".txt",
+        ".wasm",
+        ".webmanifest",
+        ".yaml",
+        ".yml",
+        ".zip",
+    }
+    allowed = declared | exact_known
+    for path in root.rglob("*"):
+        if not path.is_file() or path.is_symlink():
+            continue
+        rel = path.relative_to(root).as_posix()
+        if (
+            rel.startswith(approved_prefixes)
+            and path.suffix.lower() in approved_suffixes
+        ):
+            allowed.add(rel)
     digests = validate_public_artifact(
         root,
         allowed_paths=allowed,

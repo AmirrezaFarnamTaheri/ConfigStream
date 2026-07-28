@@ -149,14 +149,14 @@ async def _sanitize_and_pin_outbound(
             status_code=400,
             detail=f"{path} exceeds the maximum nesting depth",
         )
+    if not isinstance(outbound, dict):
+        raise HTTPException(status_code=400, detail=f"{path} must be an object")
     budget[0] -= 1
     if budget[0] < 0:
         raise HTTPException(
             status_code=400,
             detail="Config contains too many outbound nodes for live lab testing",
         )
-    if not isinstance(outbound, dict):
-        raise HTTPException(status_code=400, detail=f"{path} must be an object")
 
     outbound_type = outbound.get("type")
     if not isinstance(outbound_type, str):
@@ -291,7 +291,14 @@ async def lab_test_chain(request: Request, payload: dict):
         raise HTTPException(
             status_code=413, detail="Config exceeds lab test size limit"
         )
-    clean_config = await _validate_and_build_lab_config(config)
+    try:
+        async with asyncio.timeout(settings.LAB_TEST_TIMEOUT_SECONDS):
+            clean_config = await _validate_and_build_lab_config(config)
+    except TimeoutError as exc:
+        raise HTTPException(
+            status_code=408,
+            detail="Lab configuration validation exceeded the request deadline",
+        ) from exc
 
     try:
         from configstream.testers.lab_chain_tester import test_chain_config

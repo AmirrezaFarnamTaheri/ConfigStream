@@ -30,23 +30,19 @@ def evaluate_eligibility(
 ) -> EligibilityDecision:
     items = tuple(evidence)
     current = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
+    current_items = tuple(item for item in items if current < item.expires_at)
     active = tuple(
-        item
-        for item in items
-        if item.outcome is ValidationOutcome.PASSED and current < item.expires_at
+        item for item in current_items if item.outcome is ValidationOutcome.PASSED
     )
     reasons: list[str] = []
 
     if not active:
         reasons.append("no_current_passing_evidence")
 
-    # Evaluate trust-boundary failures over all supplied evidence. Filtering to
-    # active passing evidence hides precisely the failures operators need to see.
-    for item in items:
-        if item.outcome is not ValidationOutcome.PASSED:
-            reasons.append("non_passing_evidence_present")
-        if current >= item.expires_at:
-            reasons.append("expired_evidence_present")
+    # Expired historical failures are retained for audit/scoring history but
+    # cannot permanently poison a fresh decision. Current failed or unsafe
+    # observations remain visible to operators and block eligibility.
+    for item in current_items:
         if not item.public_address_validated:
             reasons.append("address_not_proven_global")
         if not item.dns_rebinding_guarded:

@@ -617,6 +617,10 @@ async def source_producer(
         # may stay full forever with nobody left to drain it. Sentinel delivery
         # is then redundant (consumers exit via cancel(), not via this marker)
         # and must not block, or this finally would wedge the whole shutdown.
+        loop = asyncio.get_running_loop()
+        sentinel_deadline = loop.time() + max(
+            5.0, float(settings.SHUTDOWN_GRACE_SECONDS)
+        )
         for _ in range(num_consumers):
             while True:
                 try:
@@ -633,8 +637,14 @@ async def source_producer(
                         await asyncio.wait_for(work_queue.put(None), timeout=5.0)
                         break
                     except asyncio.TimeoutError:
+                        if loop.time() >= sentinel_deadline:
+                            logger.error(
+                                "Sentinel delivery deadline exceeded; abandoning "
+                                "remaining marker after consumer failure or stall."
+                            )
+                            break
                         logger.debug(
                             "Sentinel enqueue still blocked after 5s; retrying "
-                            "(consumers are expected to be draining)."
+                            "within the bounded shutdown deadline."
                         )
                         continue

@@ -80,14 +80,29 @@ jobs:
           EXPECTED_SOURCE_SHA: ${{ steps.source.outputs.head_sha }}
         run: |
           set -euo pipefail
-          python - <<'PY'
+          python3 - <<'PY'
           import json
           import os
           from datetime import datetime, timezone
           from pathlib import Path
 
-          manifest = json.loads(Path("output/release_manifest.json").read_text(encoding="utf-8"))
-          expires = datetime.fromisoformat(str(manifest["expires_at"]).replace("Z", "+00:00"))
+          try:
+              manifest = json.loads(
+                  Path("output/release_manifest.json").read_text(encoding="utf-8")
+              )
+          except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+              raise SystemExit(f"release manifest is unreadable: {type(exc).__name__}") from exc
+          if not isinstance(manifest, dict):
+              raise SystemExit("release manifest must be a JSON object")
+          raw_expiry = manifest.get("expires_at")
+          if not isinstance(raw_expiry, str) or not raw_expiry.strip():
+              raise SystemExit("release manifest is missing a valid expires_at")
+          try:
+              expires = datetime.fromisoformat(raw_expiry.replace("Z", "+00:00"))
+          except ValueError as exc:
+              raise SystemExit("release manifest has an invalid expires_at") from exc
+          if expires.tzinfo is None or expires.utcoffset() is None:
+              raise SystemExit("release manifest expires_at must be timezone-aware")
           if datetime.now(timezone.utc) >= expires:
               raise SystemExit("refusing to deploy expired release")
           source_sha = (

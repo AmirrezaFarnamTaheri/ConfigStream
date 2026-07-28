@@ -8,7 +8,6 @@ import json
 import logging
 import sqlite3
 import threading
-import uuid
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Tuple, cast
@@ -16,7 +15,7 @@ from typing import Any, Dict, Iterator, List, Optional, Tuple, cast
 from configstream.security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 4
 
 
 class QualityStorageError(RuntimeError):
@@ -34,6 +33,7 @@ class QualityStorage:
         self._thread_local = threading.local()
         self._lock = threading.RLock()
         self._all_connections: set[sqlite3.Connection] = set()
+        self._generation = 0
         self._init_db()
 
     def get_connection(self) -> sqlite3.Connection:
@@ -41,6 +41,12 @@ class QualityStorage:
 
     def _get_conn(self) -> sqlite3.Connection:
         conn = getattr(self._thread_local, "conn", None)
+        if (
+            conn is not None
+            and getattr(self._thread_local, "generation", -1) != self._generation
+        ):
+            self._thread_local.conn = None
+            conn = None
         if conn is None:
             try:
                 conn = sqlite3.connect(
@@ -59,6 +65,7 @@ class QualityStorage:
                     f"failed to open quality database {self.db_path}: {_safe_message(exc)}"
                 ) from exc
             self._thread_local.conn = conn
+            self._thread_local.generation = self._generation
             with self._lock:
                 self._all_connections.add(conn)
         return cast(sqlite3.Connection, conn)
@@ -67,13 +74,20 @@ class QualityStorage:
     def _transaction(self) -> Iterator[sqlite3.Connection]:
         with self._lock:
             conn = self._get_conn()
+            depth = int(getattr(self._thread_local, "transaction_depth", 0))
+            self._thread_local.transaction_depth = depth + 1
             try:
-                conn.execute("BEGIN IMMEDIATE")
+                if depth == 0:
+                    conn.execute("BEGIN IMMEDIATE")
                 yield conn
-                conn.commit()
+                if depth == 0:
+                    conn.commit()
             except Exception:
-                conn.rollback()
+                if depth == 0:
+                    conn.rollback()
                 raise
+            finally:
+                self._thread_local.transaction_depth = depth
 
     @staticmethod
     def _columns(conn: sqlite3.Connection, table: str) -> set[str]:
@@ -88,6 +102,17 @@ class QualityStorage:
                         value TEXT NOT NULL
                     )
                     """)
+                stored_version = conn.execute(
+                    "SELECT value FROM schema_meta WHERE key = 'schema_version'"
+                ).fetchone()
+                if (
+                    stored_version is not None
+                    and int(stored_version[0]) > SCHEMA_VERSION
+                ):
+                    raise QualityStorageError(
+                        "quality database schema is newer than this application"
+                    )
+
                 conn.execute("""
                     CREATE TABLE IF NOT EXISTS source_stats (
                         url TEXT PRIMARY KEY,
@@ -98,7 +123,8 @@ class QualityStorage:
                         reliability_score REAL NOT NULL DEFAULT 100.0,
                         diversity_score REAL NOT NULL DEFAULT 0.0,
                         trust_score REAL NOT NULL DEFAULT 50.0,
-                        status TEXT NOT NULL DEFAULT 'active'
+                        status TEXT NOT NULL DEFAULT 'active',
+                        state_sequence INTEGER NOT NULL DEFAULT 0
                     )
                     """)
                 source_columns = self._columns(conn, "source_stats")
@@ -109,6 +135,10 @@ class QualityStorage:
                 if "status" not in source_columns:
                     conn.execute(
                         "ALTER TABLE source_stats ADD COLUMN status TEXT NOT NULL DEFAULT 'active'"
+                    )
+                if "state_sequence" not in source_columns:
+                    conn.execute(
+                        "ALTER TABLE source_stats ADD COLUMN state_sequence INTEGER NOT NULL DEFAULT 0"
                     )
 
                 conn.execute("""
@@ -183,6 +213,7 @@ class QualityStorage:
             conn.close()
             self._thread_local.conn = None
         with self._lock:
+            self._generation += 1
             for tracked in self._all_connections:
                 try:
                     tracked.close()
@@ -257,6 +288,7 @@ class QualityStorage:
             "diversity_score": 0.0,
             "trust_score": 50.0,
             "status": "active",
+            "state_sequence": 0,
         }
         try:
             with self._transaction() as conn:
@@ -264,7 +296,7 @@ class QualityStorage:
                     """
                     SELECT total_fetched, total_working, consecutive_failures,
                            last_checked, reliability_score, diversity_score,
-                           trust_score, status
+                           trust_score, status, state_sequence
                     FROM source_stats WHERE url = ?
                     """,
                     (url,),
@@ -279,18 +311,26 @@ class QualityStorage:
                         "diversity_score": existing[5],
                         "trust_score": existing[6],
                         "status": existing[7],
+                        "state_sequence": existing[8],
                     }
                     merged = {**current, **stats}
+                    merged["state_sequence"] = max(
+                        int(current["state_sequence"]) + 1,
+                        int(stats.get("state_sequence", 0)),
+                    )
                 else:
                     merged = {**defaults, **stats}
+                    merged["state_sequence"] = max(
+                        1, int(stats.get("state_sequence", 0))
+                    )
 
                 conn.execute(
                     """
                     INSERT INTO source_stats(
                         url, total_fetched, total_working, consecutive_failures,
                         last_checked, reliability_score, diversity_score,
-                        trust_score, status
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        trust_score, status, state_sequence
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ON CONFLICT(url) DO UPDATE SET
                         total_fetched=excluded.total_fetched,
                         total_working=excluded.total_working,
@@ -299,7 +339,8 @@ class QualityStorage:
                         reliability_score=excluded.reliability_score,
                         diversity_score=excluded.diversity_score,
                         trust_score=excluded.trust_score,
-                        status=excluded.status
+                        status=excluded.status,
+                        state_sequence=excluded.state_sequence
                     """,
                     (
                         url,
@@ -311,6 +352,7 @@ class QualityStorage:
                         float(merged["diversity_score"]),
                         float(merged["trust_score"]),
                         str(merged["status"]),
+                        int(merged["state_sequence"]),
                     ),
                 )
         except Exception as exc:
@@ -331,8 +373,13 @@ class QualityStorage:
                 "run_id": run_data.get("run_id"),
                 "shard_id": run_data.get("shard_id"),
                 "timestamp": run_data.get("timestamp"),
+                "duration_ms": run_data.get("duration_ms", 0.0),
+                "fetched_count": run_data.get("fetched_count", 0),
+                "working_count": run_data.get("working_count", 0),
+                "geoip_json": run_data.get("geoip_json", "{}"),
+                "failure_modes_json": run_data.get("failure_modes_json", "{}"),
                 "batch_source": run_data.get("batch_source"),
-                "nonce": run_data.get("consumer_id", uuid.uuid4().hex),
+                "consumer_id": run_data.get("consumer_id"),
             },
             sort_keys=True,
             separators=(",", ":"),
@@ -345,6 +392,11 @@ class QualityStorage:
         run_key = self._run_key(url, run_data)
         try:
             with self._transaction() as conn:
+                conn.execute(
+                    "INSERT INTO source_stats(url) VALUES (?) "
+                    "ON CONFLICT(url) DO NOTHING",
+                    (url,),
+                )
                 cursor = conn.execute(
                     """
                     INSERT OR IGNORE INTO source_runs(
@@ -414,35 +466,48 @@ class QualityStorage:
         other = Path(other_db_path)
         if not other.exists():
             return
+        src: sqlite3.Connection | None = None
         try:
             src = sqlite3.connect(other)
             src.row_factory = sqlite3.Row
             with src:
-                source_rows = src.execute("SELECT * FROM source_stats").fetchall()
+                source_rows = src.execute("SELECT * FROM source_stats")
                 try:
-                    run_rows = src.execute("SELECT * FROM source_runs").fetchall()
+                    run_rows = src.execute("SELECT * FROM source_runs")
                 except sqlite3.OperationalError:
                     run_rows = []
                 try:
-                    history_rows = src.execute("SELECT * FROM proxy_history").fetchall()
+                    history_rows = src.execute("SELECT * FROM proxy_history")
                 except sqlite3.OperationalError:
                     history_rows = []
 
             with self._transaction() as dst:
                 for row in source_rows:
                     existing = dst.execute(
-                        "SELECT last_checked FROM source_stats WHERE url = ?",
+                        "SELECT state_sequence, last_checked FROM source_stats WHERE url = ?",
                         (row["url"],),
                     ).fetchone()
-                    if existing and int(existing[0]) >= int(row["last_checked"] or 0):
-                        continue
+                    source_sequence = (
+                        int(row["state_sequence"] or 0)
+                        if "state_sequence" in row.keys()
+                        else 0
+                    )
+                    source_checked = int(row["last_checked"] or 0)
+                    if existing:
+                        destination_order = (
+                            int(existing[0] or 0),
+                            int(existing[1] or 0),
+                        )
+                        source_order = (source_sequence, source_checked)
+                        if source_order <= destination_order:
+                            continue
                     dst.execute(
                         """
                         INSERT INTO source_stats(
                             url, total_fetched, total_working, consecutive_failures,
                             last_checked, reliability_score, diversity_score,
-                            trust_score, status
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            trust_score, status, state_sequence
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         ON CONFLICT(url) DO UPDATE SET
                             total_fetched=excluded.total_fetched,
                             total_working=excluded.total_working,
@@ -451,7 +516,8 @@ class QualityStorage:
                             reliability_score=excluded.reliability_score,
                             diversity_score=excluded.diversity_score,
                             trust_score=excluded.trust_score,
-                            status=excluded.status
+                            status=excluded.status,
+                            state_sequence=excluded.state_sequence
                         """,
                         (
                             row["url"],
@@ -463,14 +529,21 @@ class QualityStorage:
                             row["diversity_score"],
                             row["trust_score"] if "trust_score" in row.keys() else 50.0,
                             row["status"] if "status" in row.keys() else "active",
+                            source_sequence,
                         ),
                     )
 
                 for row in run_rows:
                     data = dict(row)
-                    run_key = data.get("run_key") or self._run_key(
-                        str(data.get("url", "")), data
+                    run_url = str(data.get("url") or "")
+                    if not run_url:
+                        continue
+                    dst.execute(
+                        "INSERT INTO source_stats(url) VALUES (?) "
+                        "ON CONFLICT(url) DO NOTHING",
+                        (run_url,),
                     )
+                    run_key = data.get("run_key") or self._run_key(run_url, data)
                     dst.execute(
                         """
                         INSERT OR IGNORE INTO source_runs(
@@ -480,7 +553,7 @@ class QualityStorage:
                         """,
                         (
                             run_key,
-                            data.get("url"),
+                            run_url,
                             data.get("timestamp"),
                             data.get("duration_ms", 0.0),
                             data.get("fetched_count", 0),
@@ -535,7 +608,10 @@ class QualityStorage:
                 f"failed to merge source quality DB {other}: {_safe_message(exc)}"
             ) from exc
         finally:
-            try:
-                src.close()
-            except UnboundLocalError:
-                pass
+            if src is not None:
+                try:
+                    src.close()
+                except sqlite3.Error:
+                    logger.debug(
+                        "Failed to close merged source database", exc_info=True
+                    )

@@ -38,4 +38,4 @@ Each plaintext file must be valid UTF-8 and contain syntactically valid share-li
 
 ## Compatibility and regression evidence
 
-Fixtures and regression tests exercise valid and invalid endpoint references, selector fallback, Mihomo chaining, Xray structure, subscription parity, metadata schema compliance, public sanitisation, and complete generated Pages artifacts. The pre-fix CI runs demonstrated the previous contract mismatches; the repaired focused suite passes only after the generator, validator, fixture, matrix, and documentation assumptions are aligned.
+Fixtures and regression tests exercise valid and invalid endpoint references, selector fallback, Mihomo chaining, Xray structure, subscription parity, metadata schema compliance, public sanitisation, and complete generated Pages artifacts. The pre-fix CI runs demonstrated the previous contract mismatches; the repair-focused suite passes only after the generator, validator, fixture, matrix, and documentation assumptions are aligned.

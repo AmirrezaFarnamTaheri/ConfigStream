@@ -6,23 +6,37 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-from pathlib import Path
+import os
+import shutil
+import uuid
+from datetime import datetime, timezone
+from pathlib import Path, PurePosixPath
 from typing import Any
 
-REQUIRED_NATIVE_CORES = {"sing-box", "mihomo", "xray"}
+from configstream.output.client_formats import validate_xray_config
+from configstream.output.singbox_contract import validate_singbox_config
+
+REQUIRED_NATIVE_TARGETS = {
+    "sing-box": "singbox.json",
+    "mihomo": "clash.yaml",
+    "xray": "xray.json",
+}
+REQUIRED_FILES = (
+    "proxies.json",
+    "metadata.json",
+    "health.json",
+    "artifact_manifest.json",
+    "format_compatibility.json",
+    "singbox.json",
+    "clash.yaml",
+    "xray.json",
+)
 TRANSIENT_SUFFIXES = (".lock", ".tmp", ".log", ".pyc", ".pyo", ".swp")
-
-
-def load(path: Path) -> Any:
-    return json.loads(path.read_text(encoding="utf-8"))
-
-
-def load_checked(path: Path, errors: list[str]) -> Any:
-    try:
-        return load(path)
-    except (OSError, UnicodeError, ValueError) as exc:
-        errors.append(f"{path.name} is not readable JSON: {type(exc).__name__}")
-        return None
+NATIVE_REPORT_RELATIVE_PATH = "evidence/native_client_check_report.json"
+MAX_FILES = 10000
+MAX_FILE_BYTES = 128 * 1024 * 1024
+MAX_TOTAL_BYTES = 1024 * 1024 * 1024
+MAX_CHECKS = 1000
 
 
 def digest(path: Path) -> str:
@@ -33,27 +47,218 @@ def digest(path: Path) -> str:
     return value.hexdigest()
 
 
+def load_checked(path: Path, errors: list[str]) -> Any:
+    try:
+        if path.stat().st_size > MAX_FILE_BYTES:
+            errors.append(f"{path.name} exceeds the control-file size limit")
+            return None
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        errors.append(f"{path.name} is not readable JSON: {type(exc).__name__}")
+        return None
+
+
 def safe_int(value: Any) -> int:
-    return int(value) if isinstance(value, (int, float)) and not isinstance(value, bool) else 0
+    return (
+        int(value)
+        if isinstance(value, (int, float)) and not isinstance(value, bool)
+        else 0
+    )
 
 
 def safe_float(value: Any) -> float:
-    return float(value) if isinstance(value, (int, float)) and not isinstance(value, bool) else 0.0
+    return (
+        float(value)
+        if isinstance(value, (int, float)) and not isinstance(value, bool)
+        else 0.0
+    )
+
+
+def safe_path(root: Path, relative: str) -> Path:
+    if not relative or "\\" in relative or "\x00" in relative:
+        raise ValueError(f"unsafe manifest path: {relative!r}")
+    pure = PurePosixPath(relative)
+    if pure.is_absolute() or any(part in {"", ".", ".."} for part in pure.parts):
+        raise ValueError(f"unsafe manifest path: {relative!r}")
+    candidate = root.joinpath(*pure.parts)
+    if not candidate.resolve(strict=False).is_relative_to(root.resolve()):
+        raise ValueError(f"manifest path escapes artifact root: {relative}")
+    return candidate
+
+
+def manifest_entries(root: Path) -> list[dict[str, Any]]:
+    entries: list[dict[str, Any]] = []
+    total = 0
+    for path in sorted(root.rglob("*")):
+        if path.is_symlink():
+            raise ValueError(
+                f"public artifact contains symlink: {path.relative_to(root).as_posix()}"
+            )
+        if not path.is_file() or path.name == "artifact_manifest.json":
+            continue
+        relative = path.relative_to(root).as_posix()
+        if path.name.endswith(TRANSIENT_SUFFIXES):
+            raise ValueError(f"transient file is public: {relative}")
+        size = path.stat().st_size
+        if size > MAX_FILE_BYTES:
+            raise ValueError(f"public file exceeds size limit: {relative}")
+        total += size
+        if total > MAX_TOTAL_BYTES:
+            raise ValueError("public artifact exceeds aggregate size limit")
+        entries.append({"path": relative, "size_bytes": size, "sha256": digest(path)})
+        if len(entries) > MAX_FILES:
+            raise ValueError("public artifact exceeds file-count limit")
+    return entries
+
+
+def validate_manifest(root: Path, manifest: Any) -> list[str]:
+    if not isinstance(manifest, dict):
+        return ["artifact manifest must be an object"]
+    files = manifest.get("files")
+    if not isinstance(files, list):
+        return ["artifact manifest files must be a list"]
+    if len(files) > MAX_FILES:
+        return ["artifact manifest exceeds file-count limit"]
+    errors: list[str] = []
+    listed: set[str] = set()
+    total = 0
+    for item in files:
+        if not isinstance(item, dict) or not isinstance(item.get("path"), str):
+            errors.append("malformed artifact manifest entry")
+            continue
+        relative = item["path"]
+        if relative in listed:
+            errors.append(f"duplicate manifest path: {relative}")
+            continue
+        listed.add(relative)
+        try:
+            path = safe_path(root, relative)
+        except ValueError as exc:
+            errors.append(str(exc))
+            continue
+        if path.is_symlink():
+            errors.append(f"manifest file is a symlink: {relative}")
+            continue
+        if not path.is_file():
+            errors.append(f"manifest file missing: {relative}")
+            continue
+        try:
+            size = path.stat().st_size
+            total += size
+            if size > MAX_FILE_BYTES:
+                errors.append(f"manifest file exceeds size limit: {relative}")
+            if item.get("size_bytes") != size:
+                errors.append(f"manifest size mismatch: {relative}")
+            if item.get("sha256") != digest(path):
+                errors.append(f"manifest hash mismatch: {relative}")
+        except OSError as exc:
+            errors.append(f"manifest file unreadable: {relative}: {type(exc).__name__}")
+    if manifest.get("file_count") not in (None, len(files)):
+        errors.append("artifact manifest file_count does not match files")
+    if manifest.get("total_size_bytes") not in (None, total):
+        errors.append("artifact manifest total_size_bytes does not match files")
+    try:
+        actual = {item["path"] for item in manifest_entries(root)}
+    except (OSError, ValueError) as exc:
+        errors.append(str(exc))
+        actual = set()
+    for relative in sorted(actual - listed):
+        errors.append(f"public file omitted from manifest: {relative}")
+    return errors
+
+
+def validate_native_report(root: Path, report: Any) -> list[str]:
+    if not isinstance(report, dict):
+        return ["native client report must be an object"]
+    errors: list[str] = []
+    if report.get("schema_version") != 2:
+        errors.append("native client report schema_version must be 2")
+    for key, expected in (
+        ("source_commit", os.environ.get("GITHUB_SHA")),
+        ("run_id", os.environ.get("GITHUB_RUN_ID")),
+        ("run_attempt", os.environ.get("GITHUB_RUN_ATTEMPT")),
+    ):
+        if expected and str(report.get(key) or "") != expected:
+            errors.append(f"native client report provenance mismatch: {key}")
+    checks = report.get("checks")
+    if not isinstance(checks, list) or not checks:
+        return errors + ["native client report has no checks"]
+    if len(checks) > MAX_CHECKS:
+        return errors + ["native client report exceeds check-count limit"]
+    seen: set[tuple[str, str]] = set()
+    counts = {"passed": 0, "failed": 0, "skipped": 0}
+    for check in checks:
+        if not isinstance(check, dict):
+            errors.append("native client report contains malformed check")
+            continue
+        core = str(check.get("core") or "")
+        relative = check.get("path")
+        status = check.get("status")
+        if not core or not isinstance(relative, str) or not relative:
+            errors.append("native client report check is missing core/path")
+            continue
+        key = (core, relative)
+        if key in seen:
+            errors.append(f"duplicate native client check: {core}:{relative}")
+        seen.add(key)
+        if status in counts:
+            counts[status] += 1
+        else:
+            errors.append(
+                f"unknown native validation status: {core}:{relative}={status}"
+            )
+        if status != "passed":
+            errors.append(f"native validation did not pass: {core}:{relative}={status}")
+        try:
+            artifact = safe_path(root, relative)
+        except ValueError as exc:
+            errors.append(str(exc))
+            continue
+        if not artifact.is_file() or artifact.is_symlink():
+            errors.append(
+                f"native validation references invalid artifact: {core}:{relative}"
+            )
+            continue
+        expected_digest = check.get("artifact_sha256")
+        if not isinstance(expected_digest, str) or len(expected_digest) != 64:
+            errors.append(f"native validation lacks artifact digest: {core}:{relative}")
+        elif expected_digest != digest(artifact):
+            errors.append(
+                f"native validation artifact digest mismatch: {core}:{relative}"
+            )
+    for core, relative in REQUIRED_NATIVE_TARGETS.items():
+        if (core, relative) not in seen:
+            errors.append(f"missing required native validation: {core}:{relative}")
+    summary = report.get("summary")
+    if not isinstance(summary, dict):
+        errors.append("native client report has no summary")
+    else:
+        for key, value in counts.items():
+            if summary.get(key) != value:
+                errors.append(f"native client report summary mismatch: {key}")
+    return errors
 
 
 def validate(root: Path, native_report: Path, min_coverage: float) -> list[str]:
     errors: list[str] = []
-    for name in ("proxies.json", "metadata.json", "health.json", "artifact_manifest.json", "format_compatibility.json", "singbox.json", "clash.yaml", "xray.json"):
-        if not (root / name).is_file():
-            errors.append(f"missing required release file: {name}")
+    if not root.is_dir():
+        return ["artifact directory does not exist"]
+    for name in REQUIRED_FILES:
+        path = root / name
+        if not path.is_file() or path.is_symlink():
+            errors.append(f"missing or invalid required release file: {name}")
+    if not native_report.is_file() or native_report.is_symlink():
+        errors.append(f"missing native client report: {native_report.name}")
     if errors:
         return errors
-
     metadata = load_checked(root / "metadata.json", errors)
     health = load_checked(root / "health.json", errors)
     manifest = load_checked(root / "artifact_manifest.json", errors)
     records = load_checked(root / "proxies.json", errors)
     compatibility = load_checked(root / "format_compatibility.json", errors)
+    report = load_checked(native_report, errors)
+    xray = load_checked(root / "xray.json", errors)
+    singbox = load_checked(root / "singbox.json", errors)
     if errors:
         return errors
     if not isinstance(records, list) or not records:
@@ -64,29 +269,195 @@ def validate(root: Path, native_report: Path, min_coverage: float) -> list[str]:
     coverage = safe_float(metadata.get("source_coverage"))
     if coverage < min_coverage:
         errors.append(f"source coverage {coverage:.4f} is below {min_coverage:.4f}")
-    if metadata.get("time_limited"):
+    if metadata.get("time_limited") is True:
         errors.append("pipeline was time-limited")
-    if safe_int(metadata.get("logical_total_working") or metadata.get("total_working")) <= 0:
+    if (
+        safe_int(metadata.get("logical_total_working") or metadata.get("total_working"))
+        <= 0
+    ):
         errors.append("no logical working proxies")
+    candidates = safe_int(
+        metadata.get("shielded_candidate_count") or metadata.get("shielded_count")
+    )
+    verified = safe_int(metadata.get("shielded_verified_count"))
+    if candidates > verified:
+        errors.append(f"{candidates - verified} shielded candidates are unverified")
     drop_reasons = metadata.get("drop_reasons")
-    if isinstance(drop_reasons, dict):
+    if drop_reasons is not None and not isinstance(drop_reasons, dict):
+        errors.append("metadata drop_reasons must be an object")
+    elif isinstance(drop_reasons, dict):
         for key, value in drop_reasons.items():
-            if ("nonetype" in str(key).lower() or "sequence item" in str(key).lower()) and safe_int(value):
+            lowered = str(key).lower()
+            if any(
+                marker in lowered for marker in ("nonetype", "sequence item", "tester")
+            ) and safe_int(value):
                 errors.append(f"tester infrastructure errors remain: {key}={value}")
-
-    report = load_checked(native_report, errors)
-    checks = report.get("checks") if isinstance(report, dict) else None
-    if not isinstance(checks, list):
-        errors.append("native client report has no checks")
-        checks = []
-    cores_seen: set[str] = set()
-    for check in checks:
-        if isinstance(check, dict):
-            core = str(check.get("core") or "")
-            cores_seen.add(core)
-            if check.get("status") != "passed":
-                errors.append(f"native validation did not pass: {core}:{check.get('path')}={check.get('status')}")
-    missing = REQUIRED_NATIVE_CORES - cores_seen
-    if missing:
-        errors.append("missing native validators: " + ", ".join(sorted(missing)))
+    if not isinstance(health, dict):
+        errors.append("health.json must be an object")
+    else:
+        blockers = health.get("release_blockers", [])
+        if not isinstance(blockers, list):
+            errors.append("health release_blockers must be a list")
+        else:
+            errors.extend(f"health blocker: {item}" for item in blockers)
+    if not isinstance(compatibility, dict):
+        errors.append("format_compatibility.json must be an object")
+    else:
+        targets = compatibility.get("targets")
+        if not isinstance(targets, dict):
+            errors.append("compatibility targets must be an object")
+        else:
+            for target in REQUIRED_NATIVE_TARGETS:
+                item = targets.get(target)
+                if not isinstance(item, dict) or item.get("status") not in {
+                    "generated",
+                    "passed",
+                }:
+                    errors.append(f"compatibility target is not generated: {target}")
+    errors.extend(validate_native_report(root, report))
+    try:
+        errors.extend(validate_xray_config(xray, "xray.json"))
+    except (TypeError, ValueError, KeyError) as exc:
+        errors.append(f"xray validation failed safely: {type(exc).__name__}")
+    try:
+        errors.extend(validate_singbox_config(singbox, "singbox.json"))
+    except (TypeError, ValueError, KeyError) as exc:
+        errors.append(f"sing-box validation failed safely: {type(exc).__name__}")
+    errors.extend(validate_manifest(root, manifest))
     return errors
+
+
+def promote(root: Path, native_report: Path, min_coverage: float) -> None:
+    manifest = load_checked(root / "artifact_manifest.json", [])
+    had_signature = isinstance(manifest, dict) and "manifest_signature" in manifest
+    signing_key = os.environ.get("CS_SIGNING_PRIVATE_KEY_HEX")
+    if had_signature and not signing_key:
+        raise ValueError(
+            "promotion would invalidate manifest_signature but no signing key is configured"
+        )
+    stage = root.parent / f".{root.name}.promote-{uuid.uuid4().hex}"
+    backup = root.parent / f".{root.name}.backup-{uuid.uuid4().hex}"
+    shutil.copytree(root, stage, symlinks=True)
+    try:
+        evidence = stage / NATIVE_REPORT_RELATIVE_PATH
+        evidence.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(native_report, evidence)
+        metadata = load_checked(stage / "metadata.json", [])
+        health = load_checked(stage / "health.json", [])
+        staged_manifest = load_checked(stage / "artifact_manifest.json", [])
+        if not isinstance(metadata, dict) or not isinstance(health, dict):
+            raise ValueError("metadata.json and health.json must be objects")
+        health.update(
+            {
+                "schema_version": "2.0",
+                "status": "ok",
+                "total_working": safe_int(
+                    metadata.get("logical_total_working")
+                    or metadata.get("total_working")
+                ),
+                "total_tested": safe_int(
+                    metadata.get("total_tested") or metadata.get("tested")
+                ),
+                "source_coverage": safe_float(metadata.get("source_coverage")),
+                "schema_validated": True,
+                "native_clients_validated": True,
+                "release_blockers": [],
+                "native_report": NATIVE_REPORT_RELATIVE_PATH,
+                "native_report_sha256": digest(evidence),
+            }
+        )
+        (stage / "health.json").write_text(
+            json.dumps(health, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+        )
+        entries = manifest_entries(stage)
+        if not isinstance(staged_manifest, dict):
+            staged_manifest = {}
+        staged_manifest.pop("manifest_signature", None)
+        staged_manifest.update(
+            {
+                "schema_version": "2.0",
+                "generated_at": staged_manifest.get("generated_at")
+                or datetime.now(timezone.utc).isoformat(),
+                "source_commit": os.environ.get(
+                    "GITHUB_SHA", str(staged_manifest.get("source_commit") or "")
+                ),
+                "run_id": os.environ.get(
+                    "GITHUB_RUN_ID", str(staged_manifest.get("run_id") or "")
+                ),
+                "run_attempt": os.environ.get(
+                    "GITHUB_RUN_ATTEMPT", str(staged_manifest.get("run_attempt") or "")
+                ),
+                "file_count": len(entries),
+                "total_size_bytes": sum(int(item["size_bytes"]) for item in entries),
+                "files": entries,
+            }
+        )
+        if signing_key:
+            from configstream.signer import Signer
+
+            staged_manifest["manifest_signature"] = Signer(signing_key).sign_manifest(
+                staged_manifest
+            )
+        (stage / "artifact_manifest.json").write_text(
+            json.dumps(staged_manifest, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+        errors = validate(stage, evidence, min_coverage)
+        if errors:
+            raise ValueError("post-promotion validation failed: " + "; ".join(errors))
+        os.replace(root, backup)
+        try:
+            os.replace(stage, root)
+        except OSError:
+            os.replace(backup, root)
+            raise
+        shutil.rmtree(backup)
+    finally:
+        if stage.exists():
+            shutil.rmtree(stage, ignore_errors=True)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("artifact_dir", type=Path)
+    parser.add_argument("--native-report", type=Path, required=True)
+    parser.add_argument("--min-source-coverage", type=float, default=0.80)
+    parser.add_argument("--promote", action="store_true")
+    args = parser.parse_args()
+    root = args.artifact_dir.resolve()
+    native_report = args.native_report.resolve()
+    try:
+        errors = validate(root, native_report, args.min_source_coverage)
+    except (
+        OSError,
+        UnicodeError,
+        ValueError,
+        TypeError,
+        KeyError,
+        AttributeError,
+    ) as exc:
+        errors = [f"release validation failed safely: {type(exc).__name__}"]
+    if errors:
+        print("ERROR: release gate failed")
+        for error in errors:
+            print(f"  - {error}")
+        return 1
+    if args.promote:
+        try:
+            promote(root, native_report, args.min_source_coverage)
+        except (
+            OSError,
+            UnicodeError,
+            ValueError,
+            TypeError,
+            KeyError,
+            RuntimeError,
+        ) as exc:
+            print(f"ERROR: release promotion failed: {type(exc).__name__}: {exc}")
+            return 1
+    print("OK: release gate passed")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

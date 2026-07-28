@@ -4,7 +4,6 @@
 import gzip
 import json
 import logging
-import os
 import re
 from pathlib import Path
 from typing import List, Optional
@@ -46,14 +45,11 @@ def save_json(
 
     if compress:
         gz_path = Path(str(path) + ".gz")
-        temporary = gz_path.with_suffix(gz_path.suffix + ".tmp")
         try:
-            with gzip.open(temporary, "wt", encoding="utf-8") as handle:
-                handle.write(json_content)
-            os.replace(temporary, gz_path)
+            compressed = gzip.compress(json_content.encode("utf-8"), mtime=0)
+            AtomicFileWriter.write_bytes(gz_path, compressed)
         except Exception as exc:
             logger.error("Gzip compression failed for %s: %s", path, exc)
-            temporary.unlink(missing_ok=True)
             raise
 
 

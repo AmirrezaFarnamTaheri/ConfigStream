@@ -1,50 +1,102 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Run mandatory native client validation and emit structured evidence."""
+"""Run mandatory native client validation and emit bounded evidence."""
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import os
+import platform
 import shutil
-
-# Native validators are resolved with shutil.which and invoked with fixed
-# argument lists. No shell or user-controlled command text is used.
 import subprocess  # nosec B404
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+MAX_OUTPUT_CHARS = 1000
 
-def run(command: list[str], core: str, path: Path) -> dict[str, Any]:
+
+def digest(path: Path) -> str:
+    value = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            value.update(chunk)
+    return value.hexdigest()
+
+
+def safe_artifact(root: Path, path: Path) -> tuple[Path | None, str | None]:
     try:
-        # Commands are assembled exclusively from shutil.which results, fixed
-        # flags, and repository-controlled artifact paths. shell=False is the
-        # subprocess default and no user-provided command text is evaluated.
-        result = subprocess.run(  # nosec B603
-            command,
-            capture_output=True,
-            check=False,
-            text=True,
-            timeout=60,
-        )
-    except (OSError, subprocess.TimeoutExpired) as exc:
-        return {
-            "core": core,
-            "path": path.name,
-            "status": "failed",
-            "command": command,
-            "error": str(exc),
-        }
-    output = (result.stderr or result.stdout or "").strip()
-    if len(output) > 1000:
-        output = output[:1000] + "...[truncated]"
-    return {
+        resolved = path.resolve(strict=True)
+    except OSError as exc:
+        return None, f"artifact is unavailable: {type(exc).__name__}"
+    if not resolved.is_relative_to(root):
+        return None, "artifact path escapes the release root"
+    if path.is_symlink():
+        return None, "artifact path is a symlink"
+    return resolved, None
+
+
+def run(
+    root: Path,
+    command: list[str],
+    core: str,
+    path: Path,
+    binary: Path,
+) -> dict[str, Any]:
+    resolved, path_error = safe_artifact(root, path)
+    relative = (
+        path.relative_to(root).as_posix() if path.is_relative_to(root) else path.name
+    )
+    base: dict[str, Any] = {
         "core": core,
-        "path": path.name,
-        "status": "passed" if result.returncode == 0 else "failed",
-        "command": command,
-        "error": None if result.returncode == 0 else output,
+        "path": relative,
+        "status": "failed",
+        "command": [
+            Path(command[0]).name,
+            *[relative if item == str(path) else item for item in command[1:]],
+        ],
+        "artifact_sha256": None,
+        "binary_sha256": digest(binary),
+        "error": path_error,
     }
+    if resolved is None:
+        return base
+    before = digest(resolved)
+    base["artifact_sha256"] = before
+    with tempfile.TemporaryDirectory(prefix=f"configstream-{core}-") as home:
+        env = {
+            "PATH": os.environ.get("PATH", ""),
+            "HOME": home,
+            "LANG": "C.UTF-8",
+            "LC_ALL": "C.UTF-8",
+            "TZ": "UTC",
+            "NO_COLOR": "1",
+        }
+        try:
+            result = subprocess.run(  # nosec B603
+                command,
+                capture_output=True,
+                check=False,
+                text=True,
+                timeout=60,
+                cwd=root,
+                env=env,
+            )
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            base["error"] = type(exc).__name__
+            return base
+    after = digest(resolved)
+    if before != after:
+        base["error"] = "artifact changed during native validation"
+        return base
+    output = (result.stderr or result.stdout or "").strip()
+    if len(output) > MAX_OUTPUT_CHARS:
+        output = output[:MAX_OUTPUT_CHARS] + "...[truncated]"
+    base["status"] = "passed" if result.returncode == 0 else "failed"
+    base["error"] = None if result.returncode == 0 else output
+    return base
 
 
 def main() -> int:
@@ -52,55 +104,63 @@ def main() -> int:
     parser.add_argument("artifact_dir", type=Path)
     parser.add_argument("--report", type=Path, required=True)
     args = parser.parse_args()
-
-    binaries = {
+    root = args.artifact_dir.resolve()
+    checks: list[dict[str, Any]] = []
+    binary_values = {
         "sing-box": shutil.which("sing-box"),
         "mihomo": shutil.which("mihomo") or shutil.which("clash-meta"),
         "xray": shutil.which("xray"),
     }
-    missing = [name for name, path in binaries.items() if not path]
-    checks: list[dict[str, Any]] = []
-    if missing:
-        for core in missing:
+    binaries = {
+        name: Path(value).resolve() if value else None
+        for name, value in binary_values.items()
+    }
+    for core, binary in binaries.items():
+        if binary is None:
             checks.append(
                 {
                     "core": core,
                     "path": None,
                     "status": "failed",
                     "command": None,
+                    "artifact_sha256": None,
+                    "binary_sha256": None,
                     "error": "required native validator binary is unavailable",
                 }
             )
     if binaries["sing-box"]:
-        for path in sorted(args.artifact_dir.glob("singbox*.json")):
+        for path in sorted(root.glob("singbox*.json")):
             checks.append(
                 run(
-                    [binaries["sing-box"], "check", "-c", str(path)],
+                    root,
+                    [str(binaries["sing-box"]), "check", "-c", str(path)],
                     "sing-box",
                     path,
+                    binaries["sing-box"],
                 )
             )
     if binaries["mihomo"]:
-        for path in sorted(args.artifact_dir.glob("clash*.yaml")):
+        for path in sorted(root.glob("clash*.yaml")):
             checks.append(
-                run([binaries["mihomo"], "-t", "-f", str(path)], "mihomo", path)
+                run(
+                    root,
+                    [str(binaries["mihomo"]), "-t", "-f", str(path)],
+                    "mihomo",
+                    path,
+                    binaries["mihomo"],
+                )
             )
-    xray_config = args.artifact_dir / "xray.json"
-    if binaries["xray"] and xray_config.is_file():
+    xray_path = root / "xray.json"
+    if binaries["xray"] and xray_path.is_file():
         checks.append(
             run(
-                [
-                    binaries["xray"],
-                    "run",
-                    "-test",
-                    "-config",
-                    str(xray_config),
-                ],
+                root,
+                [str(binaries["xray"]), "run", "-test", "-config", str(xray_path)],
                 "xray",
-                xray_config,
+                xray_path,
+                binaries["xray"],
             )
         )
-
     summary = {
         "passed": sum(item["status"] == "passed" for item in checks),
         "failed": sum(item["status"] == "failed" for item in checks),
@@ -109,9 +169,17 @@ def main() -> int:
     report = {
         "schema_version": 2,
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "source_commit": os.environ.get("GITHUB_SHA"),
+        "run_id": os.environ.get("GITHUB_RUN_ID"),
+        "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT"),
+        "platform": {"system": platform.system(), "machine": platform.machine()},
         "tools": {
-            name: {"available": bool(path), "binary": path}
-            for name, path in binaries.items()
+            name: {
+                "available": binary is not None,
+                "binary": binary.name if binary else None,
+                "binary_sha256": digest(binary) if binary else None,
+            }
+            for name, binary in binaries.items()
         },
         "checks": checks,
         "summary": summary,
@@ -120,11 +188,8 @@ def main() -> int:
     args.report.write_text(
         json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
-    if summary["failed"] or summary["skipped"] or not checks:
-        print(json.dumps(summary))
-        return 1
     print(json.dumps(summary))
-    return 0
+    return 1 if summary["failed"] or summary["skipped"] or not checks else 0
 
 
 if __name__ == "__main__":

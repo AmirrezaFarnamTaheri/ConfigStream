@@ -44,7 +44,7 @@ def _coerce_latency(value: Any) -> Optional[float]:
         latency = float(value)
     except (TypeError, ValueError):
         return None
-    if not math.isfinite(latency):
+    if not math.isfinite(latency) or latency < 0:
         return None
     return latency
 

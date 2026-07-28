@@ -87,3 +87,16 @@ def test_release_manifest_is_content_addressed(tmp_path):
     written = json.loads((tmp_path / "release.json").read_text(encoding="utf-8"))
     assert written == first
     assert len(first["release_id"]) == 64
+
+
+def test_symlink_is_rejected(tmp_path):
+    target = tmp_path / "target.txt"
+    target.write_text("secret", encoding="utf-8")
+    link = tmp_path / "link.txt"
+    try:
+        link.symlink_to(target)
+    except (OSError, NotImplementedError):
+        pytest.skip("symlinks unavailable on this platform")
+    with pytest.raises(ArtifactPolicyError) as raised:
+        validate_public_artifact(tmp_path, allowed_paths={"link.txt"})
+    assert "symlink_forbidden" in violation_codes(raised.value)

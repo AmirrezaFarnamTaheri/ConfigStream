@@ -101,7 +101,11 @@ def test_nekobox_subscription_roundtrip(tmp_path: Path) -> None:
 
 
 def test_output_matrix_declares_xray_contract() -> None:
-    matrix = json.loads(Path("docs/output_matrix.json").read_text(encoding="utf-8"))
+    matrix = json.loads(
+        Path(__file__).resolve().parents[2]
+        / "docs"
+        / "output_matrix.json".read_text(encoding="utf-8")
+    )
     xray = next(item for item in matrix["outputs"] if item["path"] == "xray.json")
     assert xray["core_format"] == "xray"
     assert xray["artifact_type"] == "full_config"

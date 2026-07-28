@@ -97,19 +97,18 @@ class GitHubBlobAdapter:
             url,
             follow_redirects=False,
             headers={"Accept": "text/plain, application/octet-stream"},
+            timeout=httpx.Timeout(20.0, connect=10.0, read=15.0, write=10.0),
         ) as response:
             if 300 <= response.status_code < 400:
                 raise ValueError("source acquisition refused an HTTP redirect")
             response.raise_for_status()
-            content = b"".join(
-                [
-                    chunk
-                    async for chunk in self._bounded_chunks(
-                        response,
-                        max_bytes=self.provider.max_response_bytes,
-                    )
-                ]
-            )
+            content_buffer = bytearray()
+            async for chunk in self._bounded_chunks(
+                response,
+                max_bytes=self.provider.max_response_bytes,
+            ):
+                content_buffer.extend(chunk)
+            content = bytes(content_buffer)
 
         # Empty lines do not represent records; malformed records remain the
         # parser's responsibility after the snapshot itself passes policy.

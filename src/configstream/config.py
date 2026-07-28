@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -180,7 +180,7 @@ class AppSettings(BaseSettings):
     SCORE_SIGMOID_CENTER_RATIO: float = 0.6
     SCORE_SIGMOID_SLOPE_RATIO: float = 0.2
 
-    def model_post_init(self, __context):
+    def model_post_init(self, __context: Any) -> None:
         self.SECURITY = self.SECURITY.copy()
         self.SECURITY["blocked_countries"] = (
             self.BLOCKED_COUNTRIES.split(",") if self.BLOCKED_COUNTRIES else []
@@ -198,6 +198,7 @@ class AppSettings(BaseSettings):
             "GO_TESTER_BATCH_SIZE",
             "PY_TESTER_BATCH_SIZE",
             "MAX_SEEN_KEYS",
+            "SEEN_BLOOM_EXPECTED_ITEMS",
             "MAX_WORKERS",
             "MAX_B64_INPUT_SIZE",
             "MAX_B64_OUTPUT_SIZE",

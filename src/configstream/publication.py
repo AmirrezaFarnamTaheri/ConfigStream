@@ -12,19 +12,24 @@ from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 from typing import Iterable, Mapping
 
-_PRIVATE_BASENAMES = {
-    "test_cache.json",
-    "source_quality.db",
-    "anomaly.db",
-    "history.db",
-    "pipeline_events.jsonl",
-    "consolidated_pipeline.log",
-}
-_PRIVATE_SUFFIXES = {".db", ".sqlite", ".sqlite3", ".log", ".lock", ".tmp"}
-# Deliberately high-confidence patterns. Public frontend code legitimately
-# contains field names such as `password` or `apiKey`; those identifiers alone
-# are not secrets. These rules target credential-bearing URLs, literal Bearer
-# values, private-key blocks, and common long token formats.
+PUBLIC_PRIVATE_BASENAMES = frozenset(
+    {
+        "test_cache.json",
+        "source_quality.db",
+        "anomaly.db",
+        "history.db",
+        "pipeline_events.jsonl",
+        "consolidated_pipeline.log",
+    }
+)
+PUBLIC_PRIVATE_SUFFIXES = frozenset(
+    {".db", ".sqlite", ".sqlite3", ".log", ".lock", ".tmp"}
+)
+_PRIVATE_BASENAMES = PUBLIC_PRIVATE_BASENAMES
+_PRIVATE_SUFFIXES = PUBLIC_PRIVATE_SUFFIXES
+_HEX40 = re.compile(r"^[0-9a-f]{40}$")
+_HEX64 = re.compile(r"^[0-9a-f]{64}$")
+_IMAGE_DIGEST = re.compile(r"^(?:[^@\s]+@)?sha256:[0-9a-f]{64}$")
 _SECRET_PATTERNS = (
     re.compile(
         r"(?i)https?://[^\s\"']+[?&](?:token|api[_-]?key|key|auth|signature|sig)="
@@ -45,7 +50,7 @@ class ArtifactViolation:
 
 
 class ArtifactPolicyError(ValueError):
-    def __init__(self, violations: Iterable[ArtifactViolation]):
+    def __init__(self, violations: Iterable[ArtifactViolation]) -> None:
         self.violations = tuple(violations)
         rendered = "; ".join(
             f"{item.code}({item.path}): {item.message}" for item in self.violations
@@ -53,9 +58,9 @@ class ArtifactPolicyError(ValueError):
         super().__init__(rendered or "public artifact rejected")
 
 
-def _relative_files(root: Path) -> list[Path]:
+def _relative_entries(root: Path) -> list[Path]:
     return sorted(
-        path for path in root.rglob("*") if path.is_file() and not path.is_symlink()
+        path for path in root.rglob("*") if path.is_file() or path.is_symlink()
     )
 
 
@@ -75,7 +80,7 @@ def validate_public_artifact(
     required_paths: Iterable[str] = (),
     max_file_bytes: int = 64 * 1024 * 1024,
 ) -> Mapping[str, str]:
-    """Validate exact public file membership, sizes, secrets and produce hashes."""
+    """Validate exact public membership, symlinks, size, secrets, and hashes."""
 
     root = Path(public_root)
     if not root.is_dir():
@@ -95,11 +100,19 @@ def validate_public_artifact(
     digests: dict[str, str] = {}
     violations: list[ArtifactViolation] = []
 
-    for path in _relative_files(root):
+    for path in _relative_entries(root):
         relative = PurePosixPath(path.relative_to(root).as_posix())
         rel = relative.as_posix()
         actual.add(rel)
-
+        if path.is_symlink():
+            violations.append(
+                ArtifactViolation(
+                    "symlink_forbidden",
+                    rel,
+                    "symbolic links are forbidden in public artifacts",
+                )
+            )
+            continue
         if _is_private_path(relative):
             violations.append(
                 ArtifactViolation(
@@ -112,8 +125,13 @@ def validate_public_artifact(
                     "unexpected_file", rel, "path is not in public allowlist"
                 )
             )
-
-        size = path.stat().st_size
+        try:
+            size = path.stat().st_size
+        except OSError as exc:
+            violations.append(
+                ArtifactViolation("unreadable_file", rel, type(exc).__name__)
+            )
+            continue
         if size > max_file_bytes:
             violations.append(
                 ArtifactViolation(
@@ -121,8 +139,13 @@ def validate_public_artifact(
                 )
             )
             continue
-
-        content = path.read_bytes()
+        try:
+            content = path.read_bytes()
+        except OSError as exc:
+            violations.append(
+                ArtifactViolation("unreadable_file", rel, type(exc).__name__)
+            )
+            continue
         digests[rel] = hashlib.sha256(content).hexdigest()
         if b"\x00" not in content:
             text = content.decode("utf-8", errors="replace")
@@ -143,10 +166,29 @@ def validate_public_artifact(
                 "missing_required_file", missing, "required public file absent"
             )
         )
-
     if violations:
         raise ArtifactPolicyError(violations)
     return dict(sorted(digests.items()))
+
+
+def _validate_identity(
+    source_commit_sha: str,
+    workflow_sha: str,
+    image_digest: str,
+    policy_digest: str,
+    artifact_digests: Mapping[str, str],
+) -> None:
+    if not _HEX40.fullmatch(source_commit_sha):
+        raise ValueError("source_commit_sha must be a lowercase 40-character Git SHA")
+    if not _HEX40.fullmatch(workflow_sha):
+        raise ValueError("workflow_sha must be a lowercase 40-character Git SHA")
+    if not _IMAGE_DIGEST.fullmatch(image_digest):
+        raise ValueError("image_digest must be an immutable sha256 digest")
+    if not _HEX64.fullmatch(policy_digest):
+        raise ValueError("policy_digest must be a lowercase SHA-256 hex digest")
+    for path, value in artifact_digests.items():
+        if not path or not _HEX64.fullmatch(value):
+            raise ValueError(f"invalid artifact digest for {path!r}")
 
 
 def write_release_manifest(
@@ -160,13 +202,24 @@ def write_release_manifest(
     expires_at: datetime,
     parent_release_digest: str | None = None,
 ) -> dict[str, object]:
-    """Write a canonical, content-addressed release manifest."""
+    """Write a validated canonical, content-addressed release manifest."""
 
+    _validate_identity(
+        source_commit_sha,
+        workflow_sha,
+        image_digest,
+        policy_digest,
+        artifact_digests,
+    )
     now = datetime.now(timezone.utc)
     if expires_at.tzinfo is None or expires_at.utcoffset() is None:
         raise ValueError("expires_at must be timezone-aware")
     if expires_at <= now:
         raise ValueError("expires_at must be in the future")
+    if parent_release_digest is not None and not _HEX64.fullmatch(
+        parent_release_digest
+    ):
+        raise ValueError("parent_release_digest must be a SHA-256 hex digest")
 
     payload: dict[str, object] = {
         "schema_version": "1",
@@ -181,7 +234,6 @@ def write_release_manifest(
     }
     canonical = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
     payload["release_id"] = hashlib.sha256(canonical).hexdigest()
-
     destination = Path(destination)
     destination.parent.mkdir(parents=True, exist_ok=True)
     temporary = destination.with_name(f".{destination.name}.{os.getpid()}.tmp")

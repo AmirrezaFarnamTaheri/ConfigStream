@@ -3,8 +3,10 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Iterable
+
+from configstream.signer import CLOCK_SKEW_TOLERANCE_SECONDS
 
 from .models import ValidationEvidence, ValidationOutcome
 
@@ -21,55 +23,53 @@ def score_evidence(
     longitudinal_stability: float = 0.0,
     source_prior: float = 0.0,
 ) -> float:
-    """Score current independent evidence without allowing unsafe overrides.
-
-    A failed integrity, rebinding, address-safety, or critical-reputation check
-    returns zero immediately.  Positive priors can never compensate for a
-    current safety failure.
-    """
+    """Score current independent evidence without unsafe compensation."""
 
     items = tuple(evidence)
     if not items:
         return 0.0
     current = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
+    future_limit = current + timedelta(seconds=CLOCK_SKEW_TOLERANCE_SECONDS)
+    current_items = tuple(
+        item
+        for item in items
+        if current < item.expires_at and item.tested_at <= future_limit
+    )
+    if not current_items:
+        return 0.0
 
-    active: list[ValidationEvidence] = []
-    for item in items:
-        if current >= item.expires_at:
-            continue
-        if item.outcome is not ValidationOutcome.PASSED:
-            continue
-        if (
-            not item.public_address_validated
-            or not item.dns_rebinding_guarded
-            or not item.protocol_confirmed
-            or item.interception_detected is True
-            or item.content_integrity_valid is False
-            or item.critical_reputation_flags
-        ):
-            return 0.0
-        active.append(item)
-
+    active = tuple(
+        item
+        for item in current_items
+        if item.outcome is ValidationOutcome.PASSED
+        and item.public_address_validated
+        and item.dns_rebinding_guarded
+        and item.protocol_confirmed
+        and item.interception_detected is not True
+        and item.content_integrity_valid is not False
+        and not item.critical_reputation_flags
+    )
     if not active:
         return 0.0
 
-    freshest_age = min((current - item.tested_at).total_seconds() for item in active)
+    freshest_age = max(
+        0.0,
+        min((current - item.tested_at).total_seconds() for item in active),
+    )
     freshness = _clamp(1.0 - freshest_age / 3600.0)
-    recent_success_ratio = len(active) / max(1, len(items))
-    vantages = len({item.network_vantage_id for item in active})
-    vantage_diversity = _clamp(vantages / 2.0)
-    protocol_certainty = sum(1 for item in active if item.protocol_confirmed) / len(
-        active
+    recent_success_ratio = len(active) / len(current_items)
+    vantage_diversity = _clamp(len({item.network_vantage_id for item in active}) / 2.0)
+    protocol_certainty = sum(item.protocol_confirmed for item in current_items) / len(
+        current_items
     )
     integrity = sum(
-        1
-        for item in active
-        if item.content_integrity_valid is not False
+        item.content_integrity_valid is not False
         and item.interception_detected is not True
-    ) / len(active)
-    reputation = sum(1 for item in active if not item.critical_reputation_flags) / len(
-        active
-    )
+        for item in current_items
+    ) / len(current_items)
+    reputation = sum(
+        not item.critical_reputation_flags for item in current_items
+    ) / len(current_items)
 
     score = (
         0.20 * freshness
@@ -81,7 +81,5 @@ def score_evidence(
         + 0.05 * _clamp(source_prior)
         + 0.05 * _clamp(reputation)
     )
-    # Historical success is deliberately a small bounded modifier and cannot
-    # overcome a failed current trust-boundary check.
     score += 0.05 * (_clamp(historical_success_ratio) - 0.5)
     return round(_clamp(score), 6)
