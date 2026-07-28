@@ -28,7 +28,7 @@ jobs:
       - name: Install development dependencies
         run: python -m pip install -e '.[dev]'
       - name: Apply reviewed production fixes
-        run: python scripts/pr531_final_review_patch.py
+        run: python scripts/pr531_final_review_patch
       - name: Format reviewed files
         run: |
           python -m black \
@@ -54,7 +54,7 @@ jobs:
           cp src/configstream/quality/storage.py pr531-reviewed-tree/src/configstream/quality/
           cp tests/unit/test_pr531_review_regressions.py pr531-reviewed-tree/tests/unit/
       - name: Upload validated source files
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0 # v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: pr531-reviewed-tree
           path: pr531-reviewed-tree
