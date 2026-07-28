@@ -243,3 +243,5 @@ jobs:
           )
           print(f"Published finalizer commit {commit['sha']}")
           PY
+
+# Triggered after the workflow became active on the branch.
