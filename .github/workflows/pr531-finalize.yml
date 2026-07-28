@@ -1,12 +1,9 @@
 name: PR531 Finalize
 
 on:
-  push:
-    branches: [unify-all-prs]
-    paths:
-      - '.github/workflows/pr531-finalize.yml'
-      - 'scripts/pr531_finalize.py'
-      - 'scripts/pr531_finalize_extra.py'
+  pull_request:
+    branches: [main]
+    types: [synchronize, reopened]
   workflow_dispatch:
 
 concurrency:
@@ -20,6 +17,7 @@ permissions:
 
 jobs:
   finalize:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.number == 531
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -133,6 +131,7 @@ jobs:
         if: steps.install.outcome == 'success' && steps.apply.outcome == 'success' && steps.validate.outcome == 'success'
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           set -euo pipefail
           git add -A
@@ -151,7 +150,7 @@ jobs:
 
           repository = os.environ['GITHUB_REPOSITORY']
           token = os.environ['GITHUB_TOKEN']
-          parent = os.environ['GITHUB_SHA']
+          parent = os.environ['HEAD_SHA']
           api_root = f'https://api.github.com/repos/{repository}'
 
           def call(method: str, path: str, payload=None):
@@ -243,5 +242,3 @@ jobs:
           )
           print(f"Published finalizer commit {commit['sha']}")
           PY
-
-# Triggered after the workflow became active on the branch.
