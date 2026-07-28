@@ -10,6 +10,8 @@ from typing import Optional, Tuple
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+MAX_EVIDENCE_TTL_SECONDS = 3600
+
 
 class PublicationChannel(str, Enum):
     EXPERIMENTAL = "experimental"
@@ -104,6 +106,9 @@ class ValidationEvidence(BaseModel):
     def _validate_contract(self) -> "ValidationEvidence":
         if self.expires_at <= self.tested_at:
             raise ValueError("expires_at must be after tested_at")
+        validity_seconds = (self.expires_at - self.tested_at).total_seconds()
+        if validity_seconds > MAX_EVIDENCE_TTL_SECONDS:
+            raise ValueError("evidence validity window exceeds the maximum TTL")
         if self.outcome is ValidationOutcome.PASSED:
             required = (
                 self.public_address_validated,
