@@ -2,13 +2,13 @@ name: Deploy Sealed Mirrors
 
 on:
   workflow_run:
-    workflows: ["ConfigStream Pipeline"]
+    workflows: ["Config's Stream"]
     types: [completed]
     branches: [main]
   workflow_dispatch:
     inputs:
       run_id:
-        description: "Exact successful ConfigStream Pipeline run ID"
+        description: "Exact successful Config's Stream run ID"
         required: true
         type: string
 
@@ -55,7 +55,7 @@ jobs:
           case "$run_id" in (*[!0-9]*|'') echo 'Invalid run ID' >&2; exit 1;; esac
           metadata=$(gh api "repos/$REPOSITORY/actions/runs/$run_id")
           test "$(jq -r '.conclusion' <<<"$metadata")" = success
-          test "$(jq -r '.name' <<<"$metadata")" = 'ConfigStream Pipeline'
+          test "$(jq -r '.name' <<<"$metadata")" = "Config's Stream"
           test "$(jq -r '.head_branch' <<<"$metadata")" = main
           test "$(jq -r '.event' <<<"$metadata")" != pull_request
           test "$(jq -r '.head_repository.full_name' <<<"$metadata")" = "$REPOSITORY"
@@ -90,7 +90,11 @@ jobs:
           expires = datetime.fromisoformat(str(manifest["expires_at"]).replace("Z", "+00:00"))
           if datetime.now(timezone.utc) >= expires:
               raise SystemExit("refusing to deploy expired release")
-          source_sha = manifest.get("source_commit") or manifest.get("source_sha")
+          source_sha = (
+              manifest.get("source_commit_sha")
+              or manifest.get("source_commit")
+              or manifest.get("source_sha")
+          )
           expected = os.environ["EXPECTED_SOURCE_SHA"]
           if source_sha != expected:
               raise SystemExit(
