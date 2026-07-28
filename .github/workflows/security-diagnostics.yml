@@ -36,16 +36,19 @@ jobs:
             --json exception-audit.json \
             --fail-on-unlogged
       - name: Prepare reviewable exception-hardening patch
+        id: hardening
         if: always()
         shell: bash
         run: |
           set -euo pipefail
           test -s exception-audit.json || printf '{"findings": []}\n' > exception-audit.json
           : > exception-hardening.patch
-          python scripts/harden_exception_handlers.py \
+          if ! python scripts/harden_exception_handlers.py \
             --report exception-audit.json \
-            --patch-file exception-hardening.patch \
-            || printf '# hardening helper could not generate a patch; inspect exception-audit.json\n' > exception-hardening.patch
+            --patch-file exception-hardening.patch; then
+            printf '# hardening helper failed; inspect exception-audit.json\n' > exception-hardening.patch
+            exit 1
+          fi
       - name: Upload Bandit report
         if: always()
         uses: actions/upload-artifact@v7
@@ -71,5 +74,5 @@ jobs:
           if-no-files-found: error
           retention-days: 14
       - name: Enforce security diagnostics
-        if: steps.bandit.outcome == 'failure' || steps.exceptions.outcome == 'failure'
+        if: steps.bandit.outcome == 'failure' || steps.exceptions.outcome == 'failure' || steps.hardening.outcome == 'failure'
         run: exit 1
