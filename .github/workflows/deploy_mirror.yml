@@ -64,7 +64,7 @@ jobs:
         run: |
           set -euo pipefail
           gh run download "$RUN_ID" \
-            --name "pipeline-output-$RUN_ID" \
+            --name "pipeline-output" \
             --dir output
           test -s output/release_manifest.json
       - name: Verify release has not expired
@@ -88,10 +88,9 @@ jobs:
         run: |
           set -euo pipefail
           for value in "$VERCEL_CLI_VERSION" "$NETLIFY_CLI_VERSION" "$PINATA_CLI_VERSION"; do
-            case "$value" in
-              [0-9]*.[0-9]*.[0-9]*) ;;
-              *) echo 'Mirror CLI versions must be pinned in repository variables' >&2; exit 1;;
-            esac
+            if ! echo "$value" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+              echo 'Mirror CLI versions must be pinned in repository variables' >&2; exit 1
+            fi
           done
       - name: Deploy exact bytes to Vercel
         if: env.VERCEL_TOKEN != ''

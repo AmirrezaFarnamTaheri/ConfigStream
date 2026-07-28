@@ -54,7 +54,9 @@ class ArtifactPolicyError(ValueError):
 
 
 def _relative_files(root: Path) -> list[Path]:
-    return sorted(path for path in root.rglob("*") if path.is_file())
+    return sorted(
+        path for path in root.rglob("*") if path.is_file() and not path.is_symlink()
+    )
 
 
 def _is_private_path(relative: PurePosixPath) -> bool:

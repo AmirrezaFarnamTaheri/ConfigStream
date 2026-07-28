@@ -382,9 +382,7 @@ def parse_v2ray_json(config: str) -> Optional[Proxy]:
             details["password"] = server_info.get("password", "")
             method = server_info.get("method") or server_info.get("cipher")
             if method is not None and not isinstance(method, str):
-                # The value comes from untrusted JSON; a non-string cipher would
-                # otherwise raise AttributeError at method.lower() below.
-                method = str(method)
+                return None
             if method:
                 details["method"] = method
             if not details["password"]:

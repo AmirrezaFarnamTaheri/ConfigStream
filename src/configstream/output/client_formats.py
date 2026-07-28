@@ -592,7 +592,11 @@ def validate_nekobox_subscriptions(root: Path) -> list[str]:
         except (OSError, UnicodeDecodeError) as exc:
             errors.append(f"{text_name} is not valid UTF-8: {exc}")
             continue
-        encoded = encoded_path.read_text(encoding="utf-8").strip()
+        try:
+            encoded = encoded_path.read_text(encoding="utf-8").strip()
+        except (OSError, UnicodeDecodeError) as exc:
+            errors.append(f"{base64_name} is not valid UTF-8: {exc}")
+            continue
         try:
             decoded = (
                 base64.b64decode(encoded, validate=True).decode("utf-8")

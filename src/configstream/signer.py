@@ -216,7 +216,7 @@ class Signer:
 
             public_key.verify(bytes.fromhex(signature_hex), payload)
             return True
-        except (InvalidSignature, ValueError, struct.error):
+        except (InvalidSignature, TypeError, ValueError, struct.error):
             return False
 
     def get_public_key_hex(self) -> str:

@@ -49,7 +49,12 @@ def _collect_tagged_items(
 
 
 def _validate_detour(
-    item: dict[str, Any], location: str, tags: set[str], errors: list[str]
+    item: dict[str, Any],
+    location: str,
+    tags: set[str],
+    errors: list[str],
+    file_name: str = "",
+    item_kind: str = "outbound",
 ) -> None:
     detour = item.get("detour")
     if detour is None:
@@ -57,8 +62,6 @@ def _validate_detour(
     if not isinstance(detour, str) or not detour:
         errors.append(f"{location} has invalid detour")
     elif detour not in tags:
-        item_kind = "endpoint" if " endpoints[" in location else "outbound"
-        file_name = location.split(" ", 1)[0]
         errors.append(f"{file_name} unknown {item_kind} detour: {detour}")
 
 
@@ -76,6 +79,8 @@ def validate_singbox_config(payload: object, file_name: str) -> list[str]:
             f"{file_name} endpoints[{index}]",
             tags,
             errors,
+            file_name=file_name,
+            item_kind="endpoint",
         )
 
     for index, outbound in enumerate(outbounds):
@@ -84,6 +89,8 @@ def validate_singbox_config(payload: object, file_name: str) -> list[str]:
             f"{file_name} outbounds[{index}]",
             tags,
             errors,
+            file_name=file_name,
+            item_kind="outbound",
         )
         if outbound.get("type") not in {"selector", "urltest"}:
             continue

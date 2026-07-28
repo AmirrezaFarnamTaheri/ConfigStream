@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import asyncio
 import logging
+import math
 import orjson as json
 import shutil
 import uuid
@@ -43,7 +44,7 @@ def _coerce_latency(value: Any) -> Optional[float]:
         latency = float(value)
     except (TypeError, ValueError):
         return None
-    if latency != latency or latency in (float("inf"), float("-inf")):
+    if not math.isfinite(latency):
         return None
     return latency
 

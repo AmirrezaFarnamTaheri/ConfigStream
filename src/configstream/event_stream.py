@@ -43,6 +43,7 @@ class EventStream:
         self._writer_thread: threading.Thread | None = None
         self._dropped_events = 0
         self._drop_lock = threading.Lock()
+        self._last_drop_warning = 0.0
         if self.persist:
             self._writer_thread = threading.Thread(
                 target=self._write_loop,
@@ -149,10 +150,13 @@ class EventStream:
         else:
             logger.info(rendered)
         if self.persist and not persisted and not self._closed:
-            logger.warning(
-                "Event queue full; dropped telemetry event (total dropped=%d)",
-                self.dropped_events,
-            )
+            now = monotonic()
+            if now - self._last_drop_warning >= 5.0:
+                logger.warning(
+                    "Event queue full; dropped telemetry event (total dropped=%d)",
+                    self.dropped_events,
+                )
+                self._last_drop_warning = now
         return persisted
 
     async def aclose(self, *, timeout_seconds: float = 5.0) -> None:
@@ -170,8 +174,10 @@ class EventStream:
         loop = asyncio.get_running_loop()
         try:
             await asyncio.wait_for(
-                loop.run_in_executor(None, self.queue.put, self._shutdown_sentinel),
-                timeout=timeout_seconds,
+                loop.run_in_executor(
+                    None, self.queue.put, self._shutdown_sentinel, True, timeout_seconds
+                ),
+                timeout=timeout_seconds + 0.5,
             )
             await asyncio.wait_for(
                 loop.run_in_executor(None, self._writer_thread.join),

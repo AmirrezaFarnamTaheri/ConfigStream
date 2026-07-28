@@ -5,9 +5,9 @@ from .models import SourceProvider, SourceSnapshotManifest, TrustClass
 from .policy import SourcePolicyError, validate_snapshot
 
 __all__ = [
+    "SourcePolicyError",
     "SourceProvider",
     "SourceSnapshotManifest",
-    "SourcePolicyError",
     "TrustClass",
     "validate_snapshot",
 ]

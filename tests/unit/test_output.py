@@ -25,7 +25,7 @@ def sample_proxies():
             protocol="vmess",
             address="1.1.1.1",
             port=443,
-            uuid="dummy",
+            uuid="6ba7b810-9dad-11d1-80b4-00c04fd430c8",  # noqa: S106
             is_working=True,
             latency=50,
             country_code="US",

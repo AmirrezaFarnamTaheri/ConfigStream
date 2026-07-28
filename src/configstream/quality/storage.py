@@ -8,6 +8,7 @@ import json
 import logging
 import sqlite3
 import threading
+import uuid
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Tuple, cast
@@ -32,6 +33,7 @@ class QualityStorage:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._thread_local = threading.local()
         self._lock = threading.RLock()
+        self._all_connections: set[sqlite3.Connection] = set()
         self._init_db()
 
     def get_connection(self) -> sqlite3.Connection:
@@ -57,6 +59,8 @@ class QualityStorage:
                     f"failed to open quality database {self.db_path}: {_safe_message(exc)}"
                 ) from exc
             self._thread_local.conn = conn
+            with self._lock:
+                self._all_connections.add(conn)
         return cast(sqlite3.Connection, conn)
 
     @contextmanager
@@ -178,6 +182,13 @@ class QualityStorage:
         if conn is not None:
             conn.close()
             self._thread_local.conn = None
+        with self._lock:
+            for tracked in self._all_connections:
+                try:
+                    tracked.close()
+                except sqlite3.Error:
+                    pass
+            self._all_connections.clear()
 
     def execute_write(self, sql: str, params: Tuple = ()) -> None:
         try:
@@ -321,6 +332,7 @@ class QualityStorage:
                 "shard_id": run_data.get("shard_id"),
                 "timestamp": run_data.get("timestamp"),
                 "batch_source": run_data.get("batch_source"),
+                "nonce": run_data.get("consumer_id", uuid.uuid4().hex),
             },
             sort_keys=True,
             separators=(",", ":"),
