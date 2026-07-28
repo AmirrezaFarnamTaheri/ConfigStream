@@ -700,15 +700,36 @@ async def _test_candidates(
                     async with sem:
                         return await tester.test(p)
 
-                results = await asyncio.gather(*[_test_wrap(x) for x in chunk])
+                raw_results = await asyncio.gather(
+                    *[_test_wrap(x) for x in chunk],
+                    return_exceptions=True,
+                )
+                # Normalize into Proxy objects so a single failing test cannot
+                # tear down the whole consumer (and the rest of the pipeline).
+                py_results: List[Proxy] = []
+                for idx, res in enumerate(raw_results):
+                    if isinstance(res, Proxy):
+                        py_results.append(res)
+                        continue
+                    if isinstance(res, asyncio.CancelledError):
+                        raise res
+                    p = chunk[idx]
+                    p.is_working = False
+                    p.details["error"] = "PY_TEST_EXCEPTION"
+                    logger.error(
+                        SecurityValidator.sanitize_log_message(
+                            f"Python test for proxy {p.id} raised an exception: {res}"
+                        )
+                    )
+                    py_results.append(p)
 
                 # Batch history update in executor
-                if results:
+                if py_results:
                     await loop.run_in_executor(
-                        None, history.update_history, list(results)
+                        None, history.update_history, list(py_results)
                     )
 
-                for res in results:
+                for res in py_results:
                     if res.is_working:
                         res.process = "native"
                         await concurrency.record("default", res.latency or 0, True)

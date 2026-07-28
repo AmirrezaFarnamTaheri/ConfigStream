@@ -14,7 +14,9 @@ services:
     environment:
       - OUTPUT_DIR=/app/output
     deploy:
-      replicas: 2
+      # A single dashboard instance: a fixed container_name and a static
+      # 8000:8000 host bind cannot be satisfied by more than one replica.
+      replicas: 1
       resources:
         limits:
           memory: 1G

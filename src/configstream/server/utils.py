@@ -10,7 +10,7 @@ import mimetypes
 import secrets
 import importlib.metadata
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, cast
 from fastapi import HTTPException, Request
 from fastapi.responses import FileResponse
 from slowapi import Limiter
@@ -180,12 +180,14 @@ ROOT_OUTPUT_FILES = {
 
 def _resolve_output_path(rel_path: str) -> Path:
     base = OUTPUT_DIR.resolve()
-    target = (OUTPUT_DIR / rel_path).resolve()
+    # OUTPUT_DIR is a DynamicPathProxy, so the arithmetic is untyped; the
+    # resolved result is always a concrete Path.
+    target = cast(Path, (OUTPUT_DIR / rel_path).resolve())
     try:
         target.relative_to(base)
     except ValueError as exc:
         raise HTTPException(400, "Invalid path") from exc
-    return target
+    return cast(Path, target)
 
 
 def _serve_output_file(rel_path: str, media_type: Optional[str] = None) -> FileResponse:

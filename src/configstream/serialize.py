@@ -10,7 +10,7 @@ import json
 import re
 import hashlib
 from urllib.parse import urlparse
-from typing import Dict, Any, List, Optional, Union
+from typing import Dict, Any, List, Optional, Union, cast
 
 from .models import Proxy
 from .converters.chains import chain_outbounds_from_details
@@ -155,7 +155,7 @@ def serialize_proxy(
         if hist:
             data["history"] = hist
 
-    return _strip_internal_keys(data)
+    return cast(Dict[str, Any], _strip_internal_keys(data))
 
 
 def _build_chain_config(chain_outbounds: List[Dict[str, Any]]) -> str:

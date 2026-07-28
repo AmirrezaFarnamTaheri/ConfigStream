@@ -75,9 +75,13 @@ def validate_core_compatibility(path: Path = REPORT_PATH) -> list[str]:
                 errors.append(
                     f"{prefix}.pipeline_outputs references missing output: {output}"
                 )
-            elif core in {"clash", "sing-box"}:
+            elif core in {"clash", "sing-box", "xray"}:
                 item = outputs[output]
-                expected_core = "sing-box" if core == "sing-box" else "clash"
+                expected_core = (
+                    "sing-box"
+                    if core == "sing-box"
+                    else "clash" if core == "clash" else "xray"
+                )
                 if item.get("core_format") != expected_core:
                     errors.append(
                         f"{prefix}.pipeline_outputs has mismatched core_format "

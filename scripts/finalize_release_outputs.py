@@ -16,6 +16,8 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
+from configstream.output.client_formats import generate_xray_config
+
 try:
     import yaml  # type: ignore
 except ImportError:  # pragma: no cover
@@ -30,6 +32,9 @@ INTERNAL_KEYS = {
     "origin_url",
     "fetch_url",
     "raw_source",
+    "tester_error_category",
+    "infra_failure",
+    "failure_category",
 }
 MAX_SELECTOR_MEMBERS = int(os.environ.get("MAX_SELECTOR_MEMBERS", "96"))
 
@@ -265,8 +270,10 @@ def modernize_singbox(payload: Any) -> Any:
     config["route"] = route
 
     known = set(tags)
+    retained_outbounds: list[dict[str, Any]] = []
     for outbound in outbounds:
         if outbound.get("type") not in {"selector", "urltest"}:
+            retained_outbounds.append(outbound)
             continue
         members = outbound.get("outbounds")
         if not isinstance(members, list):
@@ -278,224 +285,16 @@ def modernize_singbox(payload: Any) -> Any:
                 unique.append(tag)
             if len(unique) >= MAX_SELECTOR_MEMBERS:
                 break
+        if not unique and "direct" in known:
+            unique = ["direct"]
+        if not unique:
+            continue
         outbound["outbounds"] = unique
         if outbound.get("default") not in unique:
             outbound.pop("default", None)
+        retained_outbounds.append(outbound)
+    config["outbounds"] = retained_outbounds
     return config
-
-
-def _xray_outbound(outbound: dict[str, Any], tag: str) -> dict[str, Any] | None:
-    kind = str(outbound.get("type") or "").lower()
-    address = outbound.get("server")
-    port = int(outbound.get("server_port") or 0)
-    result: dict[str, Any] = {"tag": tag}
-    if kind in {"http", "socks", "socks5"}:
-        result["protocol"] = "socks" if kind.startswith("socks") else "http"
-        settings: dict[str, Any] = {"address": address, "port": port}
-        if outbound.get("username"):
-            settings["user"] = str(outbound["username"])
-            settings["pass"] = str(outbound.get("password") or "")
-        result["settings"] = settings
-    elif kind in {"shadowsocks", "ss"}:
-        result.update(
-            {
-                "protocol": "shadowsocks",
-                "settings": {
-                    "address": address,
-                    "port": port,
-                    "method": outbound.get("method"),
-                    "password": outbound.get("password"),
-                },
-            }
-        )
-    elif kind == "trojan":
-        result.update(
-            {
-                "protocol": "trojan",
-                "settings": {
-                    "address": address,
-                    "port": port,
-                    "password": outbound.get("password"),
-                },
-            }
-        )
-    elif kind in {"vless", "vmess"}:
-        user: dict[str, Any] = {"id": outbound.get("uuid")}
-        if kind == "vless":
-            user["encryption"] = "none"
-        else:
-            user.update(
-                {
-                    "alterId": int(outbound.get("alter_id") or 0),
-                    "security": outbound.get("security") or "auto",
-                }
-            )
-        result.update(
-            {
-                "protocol": kind,
-                "settings": {
-                    "vnext": [{"address": address, "port": port, "users": [user]}]
-                },
-            }
-        )
-    elif kind == "wireguard":
-        peers = outbound.get("peers") or []
-        if not peers or not isinstance(peers[0], dict):
-            return None
-        peer = peers[0]
-        settings = {
-            "secretKey": outbound.get("private_key"),
-            "address": _string_list(outbound.get("address")),
-            "peers": [
-                {
-                    "endpoint": f"{peer.get('address')}:{int(peer.get('port') or 0)}",
-                    "publicKey": peer.get("public_key"),
-                }
-            ],
-            "noKernelTun": True,
-            "mtu": int(outbound.get("mtu") or 1420),
-        }
-        if peer.get("reserved") is not None:
-            settings["reserved"] = peer["reserved"]
-        result.update({"protocol": "wireguard", "settings": settings})
-    else:
-        return None
-    tls = outbound.get("tls")
-    if isinstance(tls, dict) and tls.get("enabled"):
-        result["streamSettings"] = {
-            "security": "tls",
-            "tlsSettings": {"serverName": tls.get("server_name") or ""},
-        }
-    if outbound.get("detour"):
-        result["proxySettings"] = {"tag": str(outbound["detour"])}
-    return result
-
-
-def generate_xray(
-    records: list[dict[str, Any]],
-) -> tuple[dict[str, Any], dict[str, Any]]:
-    outbounds: list[dict[str, Any]] = []
-    seen: set[str] = set()
-    unsupported: Counter[str] = Counter()
-    emitted = 0
-    for record in records:
-        if not record.get("is_working"):
-            continue
-        protocol = str(record.get("protocol") or "unknown").lower()
-        candidates: list[dict[str, Any]] = []
-        if protocol in {"chain", "revived"}:
-            try:
-                modernized = modernize_singbox(
-                    json.loads(str(record.get("config") or ""))
-                )
-            except json.JSONDecodeError:
-                modernized = {}
-            mini: dict[str, Any] = modernized if isinstance(modernized, dict) else {}
-            candidates.extend(
-                item for item in mini.get("outbounds", []) if isinstance(item, dict)
-            )
-            candidates.extend(
-                item for item in mini.get("endpoints", []) if isinstance(item, dict)
-            )
-        else:
-            raw_details = record.get("details")
-            details: dict[str, Any] = (
-                raw_details if isinstance(raw_details, dict) else {}
-            )
-            kind = {"socks5": "socks", "ss": "shadowsocks"}.get(protocol, protocol)
-            candidate: dict[str, Any] = {
-                "type": kind,
-                "tag": record.get("remarks") or record.get("id"),
-                "server": record.get("address"),
-                "server_port": int(record.get("port") or 0),
-            }
-            if kind in {"http", "socks"}:
-                candidate["username"] = (
-                    record.get("uuid") or details.get("username") or details.get("user")
-                )
-                candidate["password"] = details.get("password")
-            elif kind == "shadowsocks":
-                candidate["method"] = details.get("method") or details.get("cipher")
-                candidate["password"] = details.get("password") or record.get("uuid")
-            elif kind == "trojan":
-                candidate["password"] = details.get("password") or record.get("uuid")
-            elif kind in {"vless", "vmess"}:
-                candidate["uuid"] = record.get("uuid")
-            else:
-                candidate = {}
-            if candidate:
-                if details.get("sni") or details.get("tls"):
-                    candidate["tls"] = {
-                        "enabled": True,
-                        "server_name": details.get("sni"),
-                    }
-                candidates.append(candidate)
-        before = len(outbounds)
-        for candidate in candidates:
-            base = _clean_text(
-                str(candidate.get("tag") or f"{protocol}-{len(seen) + 1}")
-            )
-            tag = base
-            suffix = 2
-            while tag in seen:
-                tag = f"{base} #{suffix}"
-                suffix += 1
-            converted = _xray_outbound(candidate, tag)
-            if converted:
-                seen.add(tag)
-                outbounds.append(converted)
-        if len(outbounds) == before:
-            unsupported[protocol] += 1
-        else:
-            emitted += 1
-    outbounds.extend(
-        [
-            {"tag": "direct", "protocol": "freedom", "settings": {}},
-            {"tag": "block", "protocol": "blackhole", "settings": {}},
-        ]
-    )
-    config = {
-        "log": {"loglevel": "warning"},
-        "inbounds": [
-            {
-                "tag": "socks-in",
-                "listen": "127.0.0.1",
-                "port": 10808,
-                "protocol": "socks",
-                "settings": {"udp": True},
-            },
-            {
-                "tag": "http-in",
-                "listen": "127.0.0.1",
-                "port": 10809,
-                "protocol": "http",
-                "settings": {},
-            },
-        ],
-        "outbounds": outbounds,
-        "routing": {
-            "domainStrategy": "AsIs",
-            "rules": [
-                {
-                    "type": "field",
-                    "ip": ["geoip:private"],
-                    "outboundTag": "direct",
-                },
-                {
-                    "type": "field",
-                    "protocol": ["bittorrent"],
-                    "outboundTag": "block",
-                },
-            ],
-        },
-    }
-    return config, {
-        "status": "generated",
-        "target": "Xray-core v26.3.27",
-        "emitted_records": emitted,
-        "outbound_count": len(outbounds),
-        "unsupported": dict(unsupported),
-    }
 
 
 def _repair_clash(root: Path, records: list[dict[str, Any]]) -> dict[str, Any]:
@@ -652,7 +451,7 @@ def finalize(root: Path, repo_root: Path, threshold: float) -> None:
             _write(path, modernize_singbox(payload))
             modernized.append(path.name)
 
-    xray, xray_report = generate_xray(records)
+    xray, xray_report = generate_xray_config(records)
     _write(root / "xray.json", xray)
     clash_report = _repair_clash(root, records)
     copied_wasm: list[str] = []

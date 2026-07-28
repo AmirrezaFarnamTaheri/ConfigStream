@@ -84,6 +84,28 @@ def save_json_file(data: Any, path: str) -> None:
     AtomicFileWriter.write_text(path, json.dumps(data, indent=2))
 
 
+def _fsync_parent_dir(path: Path) -> None:
+    """fsync the directory holding *path* so a rename survives a crash.
+
+    os.replace makes the swap atomic, but the directory entry it creates is
+    not guaranteed durable until the directory itself is fsynced. Best-effort:
+    platforms that cannot open a directory for fsync (notably Windows) are
+    silently skipped, since durability there is provided differently.
+    """
+    if sys.platform == "win32":
+        return
+    try:
+        dir_fd = os.open(str(path.parent), os.O_RDONLY)
+    except OSError:
+        return
+    try:
+        os.fsync(dir_fd)
+    except OSError as exc:  # pragma: no cover - filesystem-specific
+        logger.debug("Directory fsync skipped for %s: %s", path.parent, exc)
+    finally:
+        os.close(dir_fd)
+
+
 class AtomicFileWriter:
     """
     Helper for atomic file writes.
@@ -126,6 +148,8 @@ class AtomicFileWriter:
                         raise
                 else:
                     raise OSError("Atomic replace failed after retries")
+                # Make the rename itself durable, not just the file contents.
+                _fsync_parent_dir(path)
             except Exception as e:
                 logger.error(f"Failed to write atomically to {path}: {e}")
                 # Cleanup temp file if it exists
@@ -169,6 +193,8 @@ class AtomicFileWriter:
                         raise
                 else:
                     raise OSError("Atomic replace failed after retries")
+                # Make the rename itself durable, not just the file contents.
+                _fsync_parent_dir(path)
             except Exception as e:
                 logger.error(f"Failed to write atomically to {path}: {e}")
                 if temp_path and os.path.exists(temp_path):

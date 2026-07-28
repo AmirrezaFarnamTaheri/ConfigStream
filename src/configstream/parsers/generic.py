@@ -221,7 +221,11 @@ def parse_v2ray_json(config: str) -> Optional[Proxy]:
         return None
     try:
         data = json.loads(stripped)
-    except json.JSONDecodeError:
+    except (json.JSONDecodeError, RecursionError):
+        # RecursionError guards against deeply nested attacker JSON; the
+        # dispatcher only catches ValueError/KeyError/JSONDecodeError.
+        return None
+    if not isinstance(data, dict):
         return None
 
     outbound = data.get("outbound")
@@ -377,6 +381,8 @@ def parse_v2ray_json(config: str) -> Optional[Proxy]:
             protocol = "shadowsocks"
             details["password"] = server_info.get("password", "")
             method = server_info.get("method") or server_info.get("cipher")
+            if method is not None and not isinstance(method, str):
+                return None
             if method:
                 details["method"] = method
             if not details["password"]:

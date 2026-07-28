@@ -1,18 +1,18 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-from typing import Optional
+from typing import Any, Optional
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class AppSettings(BaseSettings):
-    """Centralized configuration for all proxy operations"""
+    """Centralized configuration for all proxy operations."""
 
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
-        extra="ignore",  # Allow extra env vars
+        extra="ignore",
     )
 
-    # Test URLs and timeouts
     TEST_URLS: dict[str, str] = {
         "google": "https://www.google.com/generate_204",
         "cloudflare": "https://www.cloudflare.com/cdn-cgi/trace",
@@ -29,18 +29,13 @@ class AppSettings(BaseSettings):
     SECURITY_CHECK_TIMEOUT: int = 8
     RETEST_TIMEOUT: int = 6
     GEOIP_TIMEOUT: int = 5
-    # Soft time limit for a batch run (0 disables). Default 3h45m.
-    # After this, stop_event fires → producer stops fetching new sources.
     BATCH_TIME_LIMIT_SECONDS: int = 14400
-    # Grace period after soft stop for consumers to finish revival, then
-    # output generation (DNS, chaining, washing) runs after gather completes.
     BATCH_TIME_LIMIT_GRACE_SECONDS: int = 2700
     SHUTDOWN_GRACE_SECONDS: float = 5.0
     EVENT_STREAM_FLUSH_TIMEOUT_SECONDS: float = 2.0
     GEOIP_CITY_DB_PATH: str = "data/GeoLite2-City.mmdb"
     GEOIP_ASN_DB_PATH: str = "data/GeoLite2-ASN.mmdb"
 
-    # Latency thresholds
     MIN_LATENCY: int = 10
     MAX_LATENCY: int = 10000
     LAT_CONNECT_TIMEOUT_MS: int = 3500
@@ -48,46 +43,37 @@ class AppSettings(BaseSettings):
     LAT_PER_PROXY_BUDGET_MS: int = 6000
     LAT_SOFT_CAP_MS: int = 1800
 
-    # Rate limiting
     RATE_LIMIT_REQUESTS: int = 100
     RATE_LIMIT_WINDOW: int = 60
 
-    # Producer Concurrency
     PRODUCER_MAX_CONCURRENCY: int = 100
-    # Queue/backpressure controls
     QUEUE_PUT_TIMEOUT_SECONDS: float = 0.75
     QUEUE_OVERLOAD_THRESHOLD: float = 0.8
     QUEUE_OVERLOAD_KEEP_RATIO: float = 0.6
     INGEST_MICRO_CHUNK_LINES: int = 500
 
-    # Tester Concurrency Limits
-    GO_TESTER_BATCH_SIZE: int = 0
-    PY_TESTER_BATCH_SIZE: int = 0
+    # Finite defaults are mandatory in production. Operators can tune these
+    # values, but zero no longer silently means unbounded.
+    GO_TESTER_BATCH_SIZE: int = 500
+    PY_TESTER_BATCH_SIZE: int = 100
 
-    # Intelligence Layer
     WARP_KEY_POOL: str = "[]"
     INTRANET_ORIGIN: str = "IR"
     OPTIMAL_RELAY_ORIGIN: str = "IR"
-    WARP_PEER_KEY: Optional[str] = None  # Added for washer/core.py
+    WARP_PEER_KEY: Optional[str] = None
 
-    # Evasion Configuration
-    EVASION_MODE: str = "aggressive"  # Options: "standard", "stealth", "aggressive"
-    # Standard: No evasion features
-    # Stealth: TLS fragmentation + uTLS only
-    # Aggressive: All evasion features (uTLS, ALPN, fragmentation, multiplexing)
+    EVASION_MODE: str = "aggressive"
 
-    # Memory management
     BATCH_SIZE: int = 50
-    MAX_SEEN_KEYS: int = 0
+    MAX_SEEN_KEYS: int = 2_000_000
     CACHE_TTL: int = 1800
-    MAX_WORKERS: int = 0
-    MAX_B64_INPUT_SIZE: int = 0
-    MAX_B64_OUTPUT_SIZE: int = 0
-    MAX_CONFIG_LINE_LENGTH: int = 0
-    MAX_LINES_PER_SOURCE: int = 0
-    MAX_OPENVPN_CONFIG_SIZE: int = 0
+    MAX_WORKERS: int = 128
+    MAX_B64_INPUT_SIZE: int = 8 * 1024 * 1024
+    MAX_B64_OUTPUT_SIZE: int = 32 * 1024 * 1024
+    MAX_CONFIG_LINE_LENGTH: int = 256 * 1024
+    MAX_LINES_PER_SOURCE: int = 250_000
+    MAX_OPENVPN_CONFIG_SIZE: int = 2 * 1024 * 1024
 
-    # Scoring weights
     SCORE_WEIGHTS: dict[str, float] = {
         "historical_success": 40.0,
         "latency": 30.0,
@@ -95,13 +81,7 @@ class AppSettings(BaseSettings):
         "current_status": 10.0,
     }
 
-    # Security
     BLOCKED_COUNTRIES: str = ""
-
-    # Malicious node detection
-    # Pydantic doesn't easily map nested dicts with defaults from env unless using JSON
-    # We'll define the complex dict as a property or field with default factory
-    # For now, we keep it as a class attribute since it's rarely env-overridden in detail
     SECURITY: dict = {
         "content_injection_threshold": 5,
         "header_strip_threshold": 2,
@@ -110,27 +90,23 @@ class AppSettings(BaseSettings):
         "malicious_asn_list": [],
     }
 
-    # Logging
     MASK_SENSITIVE_DATA: bool = True
     LOG_LEVEL: str = "INFO"
     CANARY_URL: str = ""
 
-    # Feature flags
     DNS_CACHE_ENABLED: bool = True
     DNS_SAFE_OUTPUTS: bool = True
     DNS_HARDENED_OUTPUTS: bool = True
-    # Fail the pipeline (exit non-zero) when 0 working proxies were found.
-    # Outputs are still generated before final status is returned.
-    FAIL_ON_ZERO_WORKING: bool = False
+    FAIL_ON_ZERO_WORKING: bool = True
     DNS_SAFE_RESOLVE_TIMEOUT: float = 4.0
     DNS_SAFE_RESOLVE_BATCH: int = 500
-    DNS_SAFE_RESOLVE_LIMIT: int = 0
+    DNS_SAFE_RESOLVE_LIMIT: int = 100_000
     CIRCUIT_BREAKER_ENABLED: bool = True
     HEDGING_ENABLED: bool = True
     AIMD_ENABLED: bool = True
     AIMD_P50_MS: int = 400
     AIMD_P95_MS: int = 1500
-    PER_HOST_MAX_CONCURRENCY: int = 32
+    PER_HOST_MAX_CONCURRENCY: int = 16
     HEDGE_AFTER_MS: int = 800
     HEDGE_MAX_EXTRA: int = 1
     CIRCUIT_TRIP_CONN_ERRORS: int = 5
@@ -139,34 +115,20 @@ class AppSettings(BaseSettings):
     QUEUE_MAX_TRIES: int = 5
     TLS_TESTS_ENABLED: bool = True
 
-    # Optional pipeline toggles (default to enabled)
     ENABLE_CACHE_WARMING: bool = True
     ENABLE_SMART_CHAINING: bool = True
     ENABLE_ANOMALY_DETECTION: bool = True
+    STRICT_SECURITY: bool = True
 
-    # Strict tester security mode (honeypot + extra checks)
-    STRICT_SECURITY: bool = False
-
-    # Proxy renaming
     RENAME_TEMPLATE: Optional[str] = None
-
-    # Update Interval
     UPDATE_INTERVAL_HOURS: int = 4
     BATCH_NUMBER: str = ""
 
-    # Security Validator
     ALLOW_PRIVATE_IPS: bool = False
-    INCLUDE_INSECURE_PROXIES: bool = True
-
-    # Shuffle
+    INCLUDE_INSECURE_PROXIES: bool = False
     CONFIGSTREAM_SHUFFLE_SEED: Optional[str] = None
 
-    # Secrets (Optional)
     TELEGRAM_BOT_TOKEN: Optional[str] = None
-    # Comma-separated list of authorized Telegram user IDs allowed to invoke bot
-    # commands. Empty/unset means the bot is locked down (no users authorized) so
-    # an unconfigured bot cannot be abused to consume WARP-account quota. Set to
-    # "*" to explicitly allow all users (NOT recommended for public bots).
     TELEGRAM_ALLOWED_USERS: str = ""
     VT_API_KEY: Optional[str] = None
     ADMIN_API_KEY: Optional[str] = None
@@ -174,28 +136,24 @@ class AppSettings(BaseSettings):
     CONFIG_STREAM_KEY: Optional[str] = None
     MAXMIND_LICENSE_KEY: Optional[str] = None
 
-    # Binary Paths
     CONFIGSTREAM_TESTER_BIN: Optional[str] = None
     SS_LIB_SHA256: Optional[str] = None
 
-    # Flags
     USE_VWARP_TUNNEL: bool = True
     VWARP_SOCKS5_PORT: int = 10808
     VWARP_BIND_ADDRESS: str = "127.0.0.1"
-    VWARP_MASQUE_ENABLED: bool = True  # Enable Masque by default
+    VWARP_MASQUE_ENABLED: bool = True
     PSIPHON_ENABLED: bool = False
     PSIPHON_COUNTRY: str = "US"
     FORCE_SCANNER: bool = False
     ALLOW_ACTIVE_SCANNING: bool = False
 
-    # Deduplication behavior
     DEDUP_IGNORE_PROTOCOL: bool = False
     ENABLE_ENDPOINT_FILTERING: bool = True
     SEEN_BLOOM_ENABLED: bool = True
-    SEEN_BLOOM_EXPECTED_ITEMS: int = 2000000
+    SEEN_BLOOM_EXPECTED_ITEMS: int = 2_000_000
     SEEN_BLOOM_FALSE_POSITIVE_RATE: float = 0.001
 
-    # Server Config
     FRONTEND_DIR: Optional[str] = None
     ALLOWED_ORIGINS: str = (
         "http://localhost:8000,http://localhost:3000,http://127.0.0.1:8000"
@@ -209,14 +167,9 @@ class AppSettings(BaseSettings):
     LAB_TEST_TIMEOUT_SECONDS: float = 15.0
     LAB_MAX_CONFIG_BYTES: int = 65536
     ENVIRONMENT: str = "production"
-    # Default is None so deployments that do not explicitly set this env var do
-    # NOT send internal notifications over plain-HTTP to a hardcoded localhost
-    # address. Set to a valid HTTPS URL (e.g. via the NOTIFY_UPDATE_URL env var)
-    # to enable the feature.
     NOTIFY_UPDATE_URL: Optional[str] = None
 
-    # Fetcher
-    MAX_RESPONSE_SIZE: int = 0
+    MAX_RESPONSE_SIZE: int = 16 * 1024 * 1024
     FETCH_MAX_REDIRECTS: int = 5
     FETCH_BLOCK_PRIVATE_NETWORKS: bool = True
     FETCH_VALIDATE_DNS: bool = True
@@ -224,25 +177,48 @@ class AppSettings(BaseSettings):
     SOURCE_PROBATION_FAILURES: int = 3
     SOURCE_DEAD_FAILURES: int = 10
 
-    # Score Tuning (Advanced)
     SCORE_SIGMOID_CENTER_RATIO: float = 0.6
     SCORE_SIGMOID_SLOPE_RATIO: float = 0.2
 
-    def model_post_init(self, __context):
-        """Update nested security settings from env vars if needed."""
-        # Create a copy to avoid modifying the class attribute for all instances
+    def model_post_init(self, __context: Any) -> None:
         self.SECURITY = self.SECURITY.copy()
-        if self.BLOCKED_COUNTRIES:
-            self.SECURITY["blocked_countries"] = self.BLOCKED_COUNTRIES.split(",")
-        else:
-            self.SECURITY["blocked_countries"] = []
+        self.SECURITY["blocked_countries"] = (
+            self.BLOCKED_COUNTRIES.split(",") if self.BLOCKED_COUNTRIES else []
+        )
+        self.validate_settings()
 
     def validate_settings(self) -> None:
-        """Validate configuration settings."""
-        if self.TEST_TIMEOUT <= 0:
-            raise ValueError("TEST_TIMEOUT must be positive")
-        if self.FETCH_TIMEOUT <= 0:
-            raise ValueError("FETCH_TIMEOUT must be positive")
+        positive_int_fields = (
+            "TEST_TIMEOUT",
+            "FETCH_TIMEOUT",
+            "BATCH_SIZE",
+            "INGEST_MICRO_CHUNK_LINES",
+            "RATE_LIMIT_REQUESTS",
+            "PRODUCER_MAX_CONCURRENCY",
+            "GO_TESTER_BATCH_SIZE",
+            "PY_TESTER_BATCH_SIZE",
+            "MAX_SEEN_KEYS",
+            "SEEN_BLOOM_EXPECTED_ITEMS",
+            "MAX_WORKERS",
+            "MAX_B64_INPUT_SIZE",
+            "MAX_B64_OUTPUT_SIZE",
+            "MAX_CONFIG_LINE_LENGTH",
+            "MAX_LINES_PER_SOURCE",
+            "MAX_OPENVPN_CONFIG_SIZE",
+            "DNS_SAFE_RESOLVE_BATCH",
+            "DNS_SAFE_RESOLVE_LIMIT",
+            "PER_HOST_MAX_CONCURRENCY",
+            "MAX_RESPONSE_SIZE",
+            "SOURCE_PROBATION_FAILURES",
+        )
+        for field_name in positive_int_fields:
+            if int(getattr(self, field_name)) <= 0:
+                raise ValueError(f"{field_name} must be > 0")
+
+        if self.MAX_B64_OUTPUT_SIZE < self.MAX_B64_INPUT_SIZE:
+            raise ValueError("MAX_B64_OUTPUT_SIZE must be >= MAX_B64_INPUT_SIZE")
+        if self.MAX_RESPONSE_SIZE < self.MAX_CONFIG_LINE_LENGTH:
+            raise ValueError("MAX_RESPONSE_SIZE must be >= MAX_CONFIG_LINE_LENGTH")
         if self.BATCH_TIME_LIMIT_SECONDS < 0:
             raise ValueError("BATCH_TIME_LIMIT_SECONDS must be >= 0")
         if self.BATCH_TIME_LIMIT_GRACE_SECONDS < 0:
@@ -251,26 +227,14 @@ class AppSettings(BaseSettings):
             raise ValueError("SHUTDOWN_GRACE_SECONDS must be > 0")
         if self.EVENT_STREAM_FLUSH_TIMEOUT_SECONDS <= 0:
             raise ValueError("EVENT_STREAM_FLUSH_TIMEOUT_SECONDS must be > 0")
-        if self.MAX_WORKERS < 0:
-            raise ValueError("MAX_WORKERS must be >= 0")
-        if self.BATCH_SIZE <= 0:
-            raise ValueError("BATCH_SIZE must be > 0")
-        if self.INGEST_MICRO_CHUNK_LINES <= 0:
-            raise ValueError("INGEST_MICRO_CHUNK_LINES must be > 0")
         if self.QUEUE_PUT_TIMEOUT_SECONDS <= 0:
             raise ValueError("QUEUE_PUT_TIMEOUT_SECONDS must be > 0")
         if not 0 < self.QUEUE_OVERLOAD_THRESHOLD <= 1:
             raise ValueError("QUEUE_OVERLOAD_THRESHOLD must be in (0, 1]")
         if not 0 < self.QUEUE_OVERLOAD_KEEP_RATIO <= 1:
             raise ValueError("QUEUE_OVERLOAD_KEEP_RATIO must be in (0, 1]")
-        if self.SEEN_BLOOM_EXPECTED_ITEMS <= 0:
-            raise ValueError("SEEN_BLOOM_EXPECTED_ITEMS must be > 0")
         if not 0 < self.SEEN_BLOOM_FALSE_POSITIVE_RATE < 1:
             raise ValueError("SEEN_BLOOM_FALSE_POSITIVE_RATE must be in (0, 1)")
-        if self.RATE_LIMIT_REQUESTS <= 0:
-            raise ValueError("RATE_LIMIT_REQUESTS must be positive")
-        if self.SOURCE_PROBATION_FAILURES <= 0:
-            raise ValueError("SOURCE_PROBATION_FAILURES must be positive")
         if self.SOURCE_DEAD_FAILURES < self.SOURCE_PROBATION_FAILURES:
             raise ValueError(
                 "SOURCE_DEAD_FAILURES must be >= SOURCE_PROBATION_FAILURES"

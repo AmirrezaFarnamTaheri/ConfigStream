@@ -36,30 +36,44 @@
       ],
       "structural_validator": "scripts/validate_pages_artifact.py",
       "optional_native_validator": "mihomo -t -f <artifact>",
-      "native_validation_status": "optional-local",
-      "notes": "Clash-family YAML configs are structurally validated; native validation is optional when a local compatible binary is available."
+      "native_validation_status": "mandatory-release-ci",
+      "notes": "Uses dialer-proxy for supported chains; deprecated relay groups and unresolved references are rejected.",
+      "display_name": "Mihomo / Clash Meta"
     },
     {
       "core": "xray",
-      "status": "planned",
-      "artifact_type": "not_pipeline_generated",
-      "pipeline_outputs": [],
-      "structural_validator": null,
+      "status": "stable",
+      "artifact_type": "full_config",
+      "pipeline_outputs": [
+        "xray.json"
+      ],
+      "structural_validator": "scripts/validate_pages_artifact.py",
       "optional_native_validator": "xray run -test -config <artifact>",
-      "native_validation_status": "not-applicable",
-      "notes": "Xray is not a pipeline output contract today. Lab-only Xray export becomes eligible for docs/output_matrix.json after generator, validator, tests, docs, and native-check semantics exist."
+      "native_validation_status": "mandatory-release-ci",
+      "notes": "Modern flat VMess/VLESS settings with outbound, chaining, and routing reference validation."
     }
   ],
-  "planned_pipeline_outputs_requiring_implementation": [
-    "xray.json",
-    "xray-lite.json",
-    "xray-reality.json",
-    "xray-worker.json",
-    "xray-outbounds.json",
-    "xray-routing-fragments.json"
-  ],
+  "planned_pipeline_outputs_requiring_implementation": [],
   "remaining_work": [
     "Pin zero-budget native client binaries when available so optional checks can move from local/CI opportunistic evidence to reproducible pinned evidence.",
     "Add offline/lite Sing-box variants only after output_matrix, generator, validator, docs, and tests are updated together."
+  ],
+  "subscription_clients": [
+    {
+      "client": "NekoBox / NekoRay",
+      "status": "stable",
+      "pipeline_outputs": [
+        "proxies.txt",
+        "base64.txt",
+        "proxies-dns-safe.txt",
+        "base64-dns-safe.txt",
+        "proxies-dns-hardened.txt",
+        "base64-dns-hardened.txt",
+        "clash.yaml",
+        "singbox.json"
+      ],
+      "structural_validator": "scripts/validate_pages_artifact.py",
+      "notes": "Plain subscriptions are UTF-8 share-link checked; Base64 subscriptions must decode exactly to their plaintext counterpart."
+    }
   ]
 }

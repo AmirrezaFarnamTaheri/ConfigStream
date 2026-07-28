@@ -511,13 +511,34 @@
       "minimum": 0
     },
     "record_semantics": {
-      "type": "string"
+      "type": "object",
+      "required": [
+        "total_proxies",
+        "total_working",
+        "exported_record_count"
+      ],
+      "properties": {
+        "total_proxies": {
+          "type": "string"
+        },
+        "total_working": {
+          "type": "string"
+        },
+        "exported_record_count": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
     },
     "shard_summary": {
       "type": "object"
     },
     "source_coverage": {
-      "type": ["object", "number", "string"]
+      "type": [
+        "object",
+        "number",
+        "string"
+      ]
     }
   },
   "additionalProperties": false
