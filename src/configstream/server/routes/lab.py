@@ -292,9 +292,11 @@ async def lab_test_chain(request: Request, payload: dict):
             status_code=413, detail="Config exceeds lab test size limit"
         )
     try:
-        async with asyncio.timeout(settings.LAB_TEST_TIMEOUT_SECONDS):
-            clean_config = await _validate_and_build_lab_config(config)
-    except TimeoutError as exc:
+        clean_config = await asyncio.wait_for(
+            _validate_and_build_lab_config(config),
+            timeout=settings.LAB_TEST_TIMEOUT_SECONDS,
+        )
+    except asyncio.TimeoutError as exc:
         raise HTTPException(
             status_code=408,
             detail="Lab configuration validation exceeded the request deadline",

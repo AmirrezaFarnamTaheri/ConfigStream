@@ -179,9 +179,7 @@ def validate_native_report(root: Path, report: Any) -> list[str]:
         ("run_attempt", os.environ.get("GITHUB_RUN_ATTEMPT")),
     ):
         if expected and str(report.get(provenance_key) or "") != expected:
-            errors.append(
-                f"native client report provenance mismatch: {provenance_key}"
-            )
+            errors.append(f"native client report provenance mismatch: {provenance_key}")
     checks = report.get("checks")
     if not isinstance(checks, list) or not checks:
         return errors + ["native client report has no checks"]

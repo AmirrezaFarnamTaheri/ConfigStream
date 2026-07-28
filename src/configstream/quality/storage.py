@@ -471,13 +471,19 @@ class QualityStorage:
             src = sqlite3.connect(other)
             src.row_factory = sqlite3.Row
             with src:
-                source_rows = src.execute("SELECT * FROM source_stats")
+                source_rows: list[sqlite3.Row] = src.execute(
+                    "SELECT * FROM source_stats"
+                ).fetchall()
                 try:
-                    run_rows = src.execute("SELECT * FROM source_runs")
+                    run_rows: list[sqlite3.Row] = src.execute(
+                        "SELECT * FROM source_runs"
+                    ).fetchall()
                 except sqlite3.OperationalError:
                     run_rows = []
                 try:
-                    history_rows = src.execute("SELECT * FROM proxy_history")
+                    history_rows: list[sqlite3.Row] = src.execute(
+                        "SELECT * FROM proxy_history"
+                    ).fetchall()
                 except sqlite3.OperationalError:
                     history_rows = []
 
