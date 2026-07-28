@@ -183,7 +183,7 @@ class EventStream:
                 loop.run_in_executor(None, self._writer_thread.join),
                 timeout=timeout_seconds,
             )
-        except (asyncio.TimeoutError, RuntimeError):
+        except (asyncio.TimeoutError, RuntimeError, queue.Full):
             logger.error(
                 "Event stream shutdown exceeded %.2fs; %d event(s) were dropped",
                 timeout_seconds,
