@@ -173,13 +173,15 @@ def validate_native_report(root: Path, report: Any) -> list[str]:
     errors: list[str] = []
     if report.get("schema_version") != 2:
         errors.append("native client report schema_version must be 2")
-    for key, expected in (
+    for provenance_key, expected in (
         ("source_commit", os.environ.get("GITHUB_SHA")),
         ("run_id", os.environ.get("GITHUB_RUN_ID")),
         ("run_attempt", os.environ.get("GITHUB_RUN_ATTEMPT")),
     ):
-        if expected and str(report.get(key) or "") != expected:
-            errors.append(f"native client report provenance mismatch: {key}")
+        if expected and str(report.get(provenance_key) or "") != expected:
+            errors.append(
+                f"native client report provenance mismatch: {provenance_key}"
+            )
     checks = report.get("checks")
     if not isinstance(checks, list) or not checks:
         return errors + ["native client report has no checks"]
@@ -197,10 +199,10 @@ def validate_native_report(root: Path, report: Any) -> list[str]:
         if not core or not isinstance(relative, str) or not relative:
             errors.append("native client report check is missing core/path")
             continue
-        key = (core, relative)
-        if key in seen:
+        check_key = (core, relative)
+        if check_key in seen:
             errors.append(f"duplicate native client check: {core}:{relative}")
-        seen.add(key)
+        seen.add(check_key)
         if status in counts:
             counts[status] += 1
         else:
