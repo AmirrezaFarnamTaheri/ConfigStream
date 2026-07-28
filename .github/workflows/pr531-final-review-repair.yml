@@ -1,0 +1,278 @@
+name: PR531 Final Review Repair
+
+on:
+  pull_request:
+    branches: [main]
+    types: [synchronize, reopened]
+
+concurrency:
+  group: pr531-final-review-repair
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: github.event.pull_request.number == 531 && github.event.pull_request.head.ref == 'unify-all-prs'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: '3.10'
+      - name: Install development dependencies
+        run: python -m pip install -e '.[dev]'
+      - name: Apply reviewed production fixes
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              target = Path(path)
+              text = target.read_text(encoding="utf-8")
+              if old in text:
+                  target.write_text(text.replace(old, new, 1), encoding="utf-8")
+                  return
+              if new in text:
+                  return
+              raise SystemExit(f"required repair anchor missing in {path}: {old[:80]!r}")
+
+          native_path = Path("scripts/native_client_checks.py")
+          native = native_path.read_text(encoding="utf-8")
+          replace_once(
+              str(native_path),
+              "from typing import Any\n",
+              "from typing import Any\n\nfrom configstream.security_validator import SecurityValidator\n",
+          )
+          native = native_path.read_text(encoding="utf-8")
+          native = native.replace("    binary: Path,\n) -> dict[str, Any]:", "    binary_digest: str,\n) -> dict[str, Any]:", 1)
+          native = native.replace('        "binary_sha256": digest(binary),', '        "binary_sha256": binary_digest,', 1)
+          native = native.replace(
+              '    output = (result.stderr or result.stdout or "").strip()\n    if len(output) > MAX_OUTPUT_CHARS:',
+              '    output = (result.stderr or result.stdout or "").strip()\n    output = SecurityValidator.sanitize_log_message(output)\n    if len(output) > MAX_OUTPUT_CHARS:',
+              1,
+          )
+          helper_anchor = "\n\ndef main() -> int:\n"
+          helper = '''
+
+
+def missing_artifact(
+    core: str, relative: str, binary_digest: str
+) -> dict[str, Any]:
+    return {
+        "core": core,
+        "path": relative,
+        "status": "failed",
+        "command": None,
+        "artifact_sha256": None,
+        "binary_sha256": binary_digest,
+        "error": "required native artifact is unavailable",
+    }
+'''
+          if "def missing_artifact(" not in native:
+              if helper_anchor not in native:
+                  raise SystemExit("native helper insertion anchor missing")
+              native = native.replace(helper_anchor, helper + helper_anchor, 1)
+          start = native.index('    if binaries["sing-box"]:')
+          end = native.index("    summary = {", start)
+          replacement = '''    binary_digests = {
+        name: digest(binary) if binary is not None else None
+        for name, binary in binaries.items()
+    }
+
+    singbox_binary = binaries["sing-box"]
+    singbox_digest = binary_digests["sing-box"]
+    if singbox_binary is not None and singbox_digest is not None:
+        singbox_paths = sorted(root.glob("singbox*.json"))
+        if not singbox_paths:
+            checks.append(missing_artifact("sing-box", "singbox.json", singbox_digest))
+        for path in singbox_paths:
+            checks.append(
+                run(
+                    root,
+                    [str(singbox_binary), "check", "-c", str(path)],
+                    "sing-box",
+                    path,
+                    singbox_digest,
+                )
+            )
+
+    mihomo_binary = binaries["mihomo"]
+    mihomo_digest = binary_digests["mihomo"]
+    if mihomo_binary is not None and mihomo_digest is not None:
+        mihomo_paths = sorted(root.glob("clash*.yaml"))
+        if not mihomo_paths:
+            checks.append(missing_artifact("mihomo", "clash.yaml", mihomo_digest))
+        for path in mihomo_paths:
+            checks.append(
+                run(
+                    root,
+                    [str(mihomo_binary), "-t", "-f", str(path)],
+                    "mihomo",
+                    path,
+                    mihomo_digest,
+                )
+            )
+
+    xray_binary = binaries["xray"]
+    xray_digest = binary_digests["xray"]
+    xray_path = root / "xray.json"
+    if xray_binary is not None and xray_digest is not None:
+        if xray_path.is_file() and not xray_path.is_symlink():
+            checks.append(
+                run(
+                    root,
+                    [str(xray_binary), "run", "-test", "-config", str(xray_path)],
+                    "xray",
+                    xray_path,
+                    xray_digest,
+                )
+            )
+        else:
+            checks.append(missing_artifact("xray", "xray.json", xray_digest))
+'''
+          native = native[:start] + replacement + native[end:]
+          native = native.replace(
+              '                "binary_sha256": digest(binary) if binary else None,',
+              '                "binary_sha256": binary_digests[name],',
+              1,
+          )
+          native_path.write_text(native, encoding="utf-8")
+
+          gate_path = Path("scripts/release_gate.py")
+          gate = gate_path.read_text(encoding="utf-8")
+          gate = gate.replace(
+              "from typing import Any\n",
+              "from typing import Any, Optional, Union\n",
+              1,
+          )
+          gate = gate.replace(
+              "def safe_int(value: Any) -> int:",
+              "def safe_int(value: Optional[Union[int, float]]) -> int:",
+              1,
+          )
+          gate = gate.replace(
+              "def safe_float(value: Any) -> float:",
+              "def safe_float(value: Optional[Union[int, float]]) -> float:",
+              1,
+          )
+          gate = gate.replace(
+              '        if not path.is_file() or path.name == "artifact_manifest.json":\n            continue\n        relative = path.relative_to(root).as_posix()',
+              '        relative = path.relative_to(root).as_posix()\n        if not path.is_file() or relative == "artifact_manifest.json":\n            continue',
+              1,
+          )
+          start = gate.index("def validate_manifest(")
+          end = gate.index("\n\ndef validate_native_report", start)
+          manifest_function = '''def validate_manifest(root: Path, manifest: Any) -> list[str]:
+    if not isinstance(manifest, dict):
+        return ["artifact manifest must be an object"]
+    files = manifest.get("files")
+    if not isinstance(files, list):
+        return ["artifact manifest files must be a list"]
+    if len(files) > MAX_FILES:
+        return ["artifact manifest exceeds file-count limit"]
+
+    errors: list[str] = []
+    try:
+        actual_entries = manifest_entries(root)
+    except (OSError, ValueError) as exc:
+        return [str(exc)]
+    actual = {str(item["path"]): item for item in actual_entries}
+
+    listed: set[str] = set()
+    total = 0
+    for item in files:
+        if not isinstance(item, dict) or not isinstance(item.get("path"), str):
+            errors.append("malformed artifact manifest entry")
+            continue
+        relative = item["path"]
+        if relative in listed:
+            errors.append(f"duplicate manifest path: {relative}")
+            continue
+        listed.add(relative)
+        try:
+            path = safe_path(root, relative)
+        except ValueError as exc:
+            errors.append(str(exc))
+            continue
+        if path.is_symlink():
+            errors.append(f"manifest file is a symlink: {relative}")
+            continue
+        actual_item = actual.get(relative)
+        if actual_item is None:
+            if not path.is_file():
+                errors.append(f"manifest file missing: {relative}")
+            else:
+                errors.append(f"manifest path is not public payload: {relative}")
+            continue
+        size = int(actual_item["size_bytes"])
+        total += size
+        if item.get("size_bytes") != size:
+            errors.append(f"manifest size mismatch: {relative}")
+        if item.get("sha256") != actual_item["sha256"]:
+            errors.append(f"manifest hash mismatch: {relative}")
+    if manifest.get("file_count") not in (None, len(files)):
+        errors.append("artifact manifest file_count does not match files")
+    if manifest.get("total_size_bytes") not in (None, total):
+        errors.append("artifact manifest total_size_bytes does not match files")
+    for relative in sorted(set(actual) - listed):
+        errors.append(f"public file omitted from manifest: {relative}")
+    return errors
+'''
+          gate = gate[:start] + manifest_function + gate[end:]
+          gate_path.write_text(gate, encoding="utf-8")
+
+          storage_path = Path("src/configstream/quality/storage.py")
+          storage = storage_path.read_text(encoding="utf-8")
+          storage = storage.replace(
+              "        src: sqlite3.Connection | None = None\n",
+              "        src: Optional[sqlite3.Connection] = None\n",
+              1,
+          )
+          storage = storage.replace(
+              "            src = sqlite3.connect(other)\n",
+              "            src = sqlite3.connect(other, timeout=20)\n",
+              1,
+          )
+          storage_path.write_text(storage, encoding="utf-8")
+          PY
+      - name: Format reviewed files
+        run: |
+          python -m black \
+            scripts/native_client_checks.py \
+            scripts/release_gate.py \
+            src/configstream/quality/storage.py \
+            tests/unit/test_pr531_review_regressions.py
+      - name: Validate typing
+        run: python -m mypy .
+      - name: Validate focused review regressions
+        run: |
+          pytest -q \
+            tests/unit/test_pr531_review_regressions.py \
+            tests/unit/test_client_format_contracts.py \
+            tests/unit/quality/test_quality_components.py
+      - name: Publish validated review fixes
+        run: |
+          set -euo pipefail
+          git diff --check
+          if git diff --quiet -- \
+            scripts/native_client_checks.py \
+            scripts/release_gate.py \
+            src/configstream/quality/storage.py \
+            tests/unit/test_pr531_review_regressions.py; then
+            echo 'No reviewed source changes remain.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            scripts/native_client_checks.py \
+            scripts/release_gate.py \
+            src/configstream/quality/storage.py \
+            tests/unit/test_pr531_review_regressions.py
+          git commit -m 'fix: close final native validation review findings'
+          git push origin HEAD:unify-all-prs
