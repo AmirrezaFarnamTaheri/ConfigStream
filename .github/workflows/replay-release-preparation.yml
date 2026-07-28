@@ -6,7 +6,11 @@ on:
       source_run:
         description: Source Config's Stream run ID
         required: true
-        default: "29435689792"
+        type: string
+      expected_sha:
+        description: Exact 40-character main-branch commit SHA for the source run
+        required: true
+        type: string
 
 permissions:
   actions: read
@@ -20,10 +24,37 @@ jobs:
       MIN_SOURCE_COVERAGE: "0.80"
       SOURCE_SHARD_PARTS: "4"
     steps:
+      - name: Resolve trusted source run
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RUN: ${{ inputs.source_run }}
+          EXPECTED_SHA: ${{ inputs.expected_sha }}
+          REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "$SOURCE_RUN" in (*[!0-9]*|'') echo 'Invalid source run ID' >&2; exit 1;; esac
+          case "$EXPECTED_SHA" in (*[!0-9a-f]*|'') echo 'Invalid expected SHA' >&2; exit 1;; esac
+          test "${#EXPECTED_SHA}" -eq 40
+
+          metadata=$(gh api "repos/$REPOSITORY/actions/runs/$SOURCE_RUN")
+          test "$(jq -r '.conclusion' <<<"$metadata")" = success
+          test "$(jq -r '.name' <<<"$metadata")" = "Config's Stream"
+          test "$(jq -r '.head_branch' <<<"$metadata")" = main
+          test "$(jq -r '.event' <<<"$metadata")" != pull_request
+          test "$(jq -r '.head_repository.full_name' <<<"$metadata")" = "$REPOSITORY"
+          actual_sha=$(jq -r '.head_sha' <<<"$metadata")
+          test "$actual_sha" = "$EXPECTED_SHA"
+
+          echo "run_id=$SOURCE_RUN" >> "$GITHUB_OUTPUT"
+          echo "head_sha=$actual_sha" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v7
         with:
+          ref: ${{ steps.source.outputs.head_sha }}
+          fetch-depth: 1
           persist-credentials: false
-      - uses: actions/setup-python@v7
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           python-version: "3.11"
           cache: pip
@@ -33,7 +64,7 @@ jobs:
       - name: Download source-run artifacts
         env:
           GH_TOKEN: ${{ github.token }}
-          SOURCE_RUN: ${{ inputs.source_run }}
+          SOURCE_RUN: ${{ steps.source.outputs.run_id }}
         run: |
           set -euo pipefail
           mkdir -p artifacts
