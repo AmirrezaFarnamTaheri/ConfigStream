@@ -40,7 +40,13 @@ def evaluate_eligibility(
     if not active:
         reasons.append("no_current_passing_evidence")
 
-    for item in active:
+    # Evaluate trust-boundary failures over all supplied evidence. Filtering to
+    # active passing evidence hides precisely the failures operators need to see.
+    for item in items:
+        if item.outcome is not ValidationOutcome.PASSED:
+            reasons.append("non_passing_evidence_present")
+        if current >= item.expires_at:
+            reasons.append("expired_evidence_present")
         if not item.public_address_validated:
             reasons.append("address_not_proven_global")
         if not item.dns_rebinding_guarded:
