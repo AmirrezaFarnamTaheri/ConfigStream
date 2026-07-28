@@ -466,9 +466,9 @@ class QualityStorage:
         other = Path(other_db_path)
         if not other.exists():
             return
-        src: sqlite3.Connection | None = None
+        src: Optional[sqlite3.Connection] = None
         try:
-            src = sqlite3.connect(other)
+            src = sqlite3.connect(other, timeout=20)
             src.row_factory = sqlite3.Row
             with src:
                 source_rows: list[sqlite3.Row] = src.execute(

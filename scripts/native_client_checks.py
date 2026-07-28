@@ -15,6 +15,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from configstream.security_validator import SecurityValidator
+
 MAX_OUTPUT_CHARS = 1000
 
 
@@ -43,7 +45,7 @@ def run(
     command: list[str],
     core: str,
     path: Path,
-    binary: Path,
+    binary_digest: str,
 ) -> dict[str, Any]:
     resolved, path_error = safe_artifact(root, path)
     relative = (
@@ -58,7 +60,7 @@ def run(
             *[relative if item == str(path) else item for item in command[1:]],
         ],
         "artifact_sha256": None,
-        "binary_sha256": digest(binary),
+        "binary_sha256": binary_digest,
         "error": path_error,
     }
     if resolved is None:
@@ -92,11 +94,24 @@ def run(
         base["error"] = "artifact changed during native validation"
         return base
     output = (result.stderr or result.stdout or "").strip()
+    output = SecurityValidator.sanitize_log_message(output)
     if len(output) > MAX_OUTPUT_CHARS:
         output = output[:MAX_OUTPUT_CHARS] + "...[truncated]"
     base["status"] = "passed" if result.returncode == 0 else "failed"
     base["error"] = None if result.returncode == 0 else output
     return base
+
+
+def missing_artifact(core: str, relative: str, binary_digest: str) -> dict[str, Any]:
+    return {
+        "core": core,
+        "path": relative,
+        "status": "failed",
+        "command": None,
+        "artifact_sha256": None,
+        "binary_sha256": binary_digest,
+        "error": "required native artifact is unavailable",
+    }
 
 
 def main() -> int:
@@ -128,39 +143,61 @@ def main() -> int:
                     "error": "required native validator binary is unavailable",
                 }
             )
-    if binaries["sing-box"]:
-        for path in sorted(root.glob("singbox*.json")):
+    binary_digests = {
+        name: digest(binary) if binary is not None else None
+        for name, binary in binaries.items()
+    }
+
+    singbox_binary = binaries["sing-box"]
+    singbox_digest = binary_digests["sing-box"]
+    if singbox_binary is not None and singbox_digest is not None:
+        singbox_paths = sorted(root.glob("singbox*.json"))
+        if not singbox_paths:
+            checks.append(missing_artifact("sing-box", "singbox.json", singbox_digest))
+        for path in singbox_paths:
             checks.append(
                 run(
                     root,
-                    [str(binaries["sing-box"]), "check", "-c", str(path)],
+                    [str(singbox_binary), "check", "-c", str(path)],
                     "sing-box",
                     path,
-                    binaries["sing-box"],
+                    singbox_digest,
                 )
             )
-    if binaries["mihomo"]:
-        for path in sorted(root.glob("clash*.yaml")):
+
+    mihomo_binary = binaries["mihomo"]
+    mihomo_digest = binary_digests["mihomo"]
+    if mihomo_binary is not None and mihomo_digest is not None:
+        mihomo_paths = sorted(root.glob("clash*.yaml"))
+        if not mihomo_paths:
+            checks.append(missing_artifact("mihomo", "clash.yaml", mihomo_digest))
+        for path in mihomo_paths:
             checks.append(
                 run(
                     root,
-                    [str(binaries["mihomo"]), "-t", "-f", str(path)],
+                    [str(mihomo_binary), "-t", "-f", str(path)],
                     "mihomo",
                     path,
-                    binaries["mihomo"],
+                    mihomo_digest,
                 )
             )
+
+    xray_binary = binaries["xray"]
+    xray_digest = binary_digests["xray"]
     xray_path = root / "xray.json"
-    if binaries["xray"] and xray_path.is_file():
-        checks.append(
-            run(
-                root,
-                [str(binaries["xray"]), "run", "-test", "-config", str(xray_path)],
-                "xray",
-                xray_path,
-                binaries["xray"],
+    if xray_binary is not None and xray_digest is not None:
+        if xray_path.is_file() and not xray_path.is_symlink():
+            checks.append(
+                run(
+                    root,
+                    [str(xray_binary), "run", "-test", "-config", str(xray_path)],
+                    "xray",
+                    xray_path,
+                    xray_digest,
+                )
             )
-        )
+        else:
+            checks.append(missing_artifact("xray", "xray.json", xray_digest))
     summary = {
         "passed": sum(item["status"] == "passed" for item in checks),
         "failed": sum(item["status"] == "failed" for item in checks),
@@ -177,7 +214,7 @@ def main() -> int:
             name: {
                 "available": binary is not None,
                 "binary": binary.name if binary else None,
-                "binary_sha256": digest(binary) if binary else None,
+                "binary_sha256": binary_digests[name],
             }
             for name, binary in binaries.items()
         },

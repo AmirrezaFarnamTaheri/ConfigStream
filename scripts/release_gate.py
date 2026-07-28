@@ -11,7 +11,7 @@ import shutil
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
-from typing import Any
+from typing import Any, Optional, Union
 
 from configstream.output.client_formats import validate_xray_config
 from configstream.output.singbox_contract import validate_singbox_config
@@ -58,7 +58,7 @@ def load_checked(path: Path, errors: list[str]) -> Any:
         return None
 
 
-def safe_int(value: Any) -> int:
+def safe_int(value: Optional[Union[int, float]]) -> int:
     return (
         int(value)
         if isinstance(value, (int, float)) and not isinstance(value, bool)
@@ -66,7 +66,7 @@ def safe_int(value: Any) -> int:
     )
 
 
-def safe_float(value: Any) -> float:
+def safe_float(value: Optional[Union[int, float]]) -> float:
     return (
         float(value)
         if isinstance(value, (int, float)) and not isinstance(value, bool)
@@ -94,9 +94,9 @@ def manifest_entries(root: Path) -> list[dict[str, Any]]:
             raise ValueError(
                 f"public artifact contains symlink: {path.relative_to(root).as_posix()}"
             )
-        if not path.is_file() or path.name == "artifact_manifest.json":
-            continue
         relative = path.relative_to(root).as_posix()
+        if not path.is_file() or relative == "artifact_manifest.json":
+            continue
         if path.name.endswith(TRANSIENT_SUFFIXES):
             raise ValueError(f"transient file is public: {relative}")
         size = path.stat().st_size
@@ -119,7 +119,14 @@ def validate_manifest(root: Path, manifest: Any) -> list[str]:
         return ["artifact manifest files must be a list"]
     if len(files) > MAX_FILES:
         return ["artifact manifest exceeds file-count limit"]
+
     errors: list[str] = []
+    try:
+        actual_entries = manifest_entries(root)
+    except (OSError, ValueError) as exc:
+        return [str(exc)]
+    actual = {str(item["path"]): item for item in actual_entries}
+
     listed: set[str] = set()
     total = 0
     for item in files:
@@ -139,30 +146,24 @@ def validate_manifest(root: Path, manifest: Any) -> list[str]:
         if path.is_symlink():
             errors.append(f"manifest file is a symlink: {relative}")
             continue
-        if not path.is_file():
-            errors.append(f"manifest file missing: {relative}")
+        actual_item = actual.get(relative)
+        if actual_item is None:
+            if not path.is_file():
+                errors.append(f"manifest file missing: {relative}")
+            else:
+                errors.append(f"manifest path is not public payload: {relative}")
             continue
-        try:
-            size = path.stat().st_size
-            total += size
-            if size > MAX_FILE_BYTES:
-                errors.append(f"manifest file exceeds size limit: {relative}")
-            if item.get("size_bytes") != size:
-                errors.append(f"manifest size mismatch: {relative}")
-            if item.get("sha256") != digest(path):
-                errors.append(f"manifest hash mismatch: {relative}")
-        except OSError as exc:
-            errors.append(f"manifest file unreadable: {relative}: {type(exc).__name__}")
+        size = int(actual_item["size_bytes"])
+        total += size
+        if item.get("size_bytes") != size:
+            errors.append(f"manifest size mismatch: {relative}")
+        if item.get("sha256") != actual_item["sha256"]:
+            errors.append(f"manifest hash mismatch: {relative}")
     if manifest.get("file_count") not in (None, len(files)):
         errors.append("artifact manifest file_count does not match files")
     if manifest.get("total_size_bytes") not in (None, total):
         errors.append("artifact manifest total_size_bytes does not match files")
-    try:
-        actual = {item["path"] for item in manifest_entries(root)}
-    except (OSError, ValueError) as exc:
-        errors.append(str(exc))
-        actual = set()
-    for relative in sorted(actual - listed):
+    for relative in sorted(set(actual) - listed):
         errors.append(f"public file omitted from manifest: {relative}")
     return errors
 
