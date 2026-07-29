@@ -11,6 +11,9 @@ from scripts.validate_frontend_placeholders import (
 )
 
 
+SYMMETRIC_SECRET_FIELDS = ("STEGO_KEY", "CONFIG_STREAM_KEY")
+
+
 def _write_frontend(root: Path) -> None:
     js_dir = root / "assets" / "js"
     js_dir.mkdir(parents=True)
@@ -38,17 +41,28 @@ def test_validate_frontend_placeholders_detects_public_and_stego_keys(tmp_path: 
 
 def test_inject_frontend_keys_generates_public_only_runtime_config(tmp_path: Path) -> None:
     _write_frontend(tmp_path)
-    changed = inject_frontend_keys(tmp_path, {"CS_PUBLIC_KEY": "real-public-key-material", "CS_IPNS_KEY": "real-ipns-key"})
+    changed = inject_frontend_keys(
+        tmp_path,
+        {"CS_PUBLIC_KEY": "real-public-key-material", "CS_IPNS_KEY": "real-ipns-key"},
+    )
     assert len(changed) == 1
     assert validate_frontend_placeholders(tmp_path, strict=True) == []
 
 
-def test_inject_frontend_keys_ignores_ambient_symmetric_secrets(tmp_path: Path) -> None:
+def test_inject_frontend_keys_ignores_all_ambient_symmetric_secrets(tmp_path: Path) -> None:
     _write_frontend(tmp_path)
-    inject_frontend_keys(tmp_path, {"CS_PUBLIC_KEY": "public", "CS_IPNS_KEY": "ipns", "STEGO_KEY": "private"})
-    runtime = (tmp_path / "assets" / "js" / "runtime-config.js").read_text(encoding="utf-8")
-    assert "private" not in runtime
-    assert "STEGO_KEY" not in runtime
+    env = {
+        "CS_PUBLIC_KEY": "public",
+        "CS_IPNS_KEY": "ipns",
+        **{field: "private-value-must-never-ship" for field in SYMMETRIC_SECRET_FIELDS},
+    }
+    inject_frontend_keys(tmp_path, env)
+    runtime = (tmp_path / "assets" / "js" / "runtime-config.js").read_text(
+        encoding="utf-8"
+    )
+    for field in SYMMETRIC_SECRET_FIELDS:
+        assert field not in runtime
+    assert "private-value-must-never-ship" not in runtime
 
 
 def test_validate_frontend_placeholders_allows_missing_stego_when_not_strict(tmp_path: Path) -> None:
