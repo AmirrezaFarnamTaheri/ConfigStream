@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import os
 import platform
 import queue
@@ -37,6 +38,7 @@ INLINE_SECRET_RE = re.compile(
 )
 BEARER_RE = re.compile(r"(?i)\bbearer\s+[A-Za-z0-9._~+/=-]+")
 URL_USERINFO_RE = re.compile(r"(?P<prefix>://[^/?#\s:@]+):([^/?#\s:@]+)@")
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -109,7 +111,11 @@ def _project_sanitize(value: str) -> str:
         from configstream.security_validator import SecurityValidator
 
         return SecurityValidator.sanitize_log_message(value)
-    except Exception:
+    except Exception as exc:
+        logger.warning(
+            "Project log sanitizer unavailable; using local fallback (%s)",
+            type(exc).__name__,
+        )
         sanitized = URL_USERINFO_RE.sub(r"\g<prefix>:[MASKED]@", value)
         sanitized = BEARER_RE.sub("Bearer [MASKED]", sanitized)
         return INLINE_SECRET_RE.sub(r"\1=[MASKED]", sanitized)
@@ -209,6 +215,7 @@ def _stream_output(
             sys.stdout.write(safe_line)
             sys.stdout.flush()
     except BaseException as exc:  # pragma: no cover - defensive reader boundary
+        logger.error("Stage output reader failed (%s)", type(exc).__name__)
         errors.put(exc)
     finally:
         stream.close()
