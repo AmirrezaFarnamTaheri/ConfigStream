@@ -97,7 +97,9 @@ class AppSettings(BaseSettings):
     DNS_CACHE_ENABLED: bool = True
     DNS_SAFE_OUTPUTS: bool = True
     DNS_HARDENED_OUTPUTS: bool = True
-    FAIL_ON_ZERO_WORKING: bool = True
+    # Individual shards and normal CLI runs are evidence producers. The final
+    # aggregate release gate owns the production availability decision.
+    FAIL_ON_ZERO_WORKING: bool = False
     DNS_SAFE_RESOLVE_TIMEOUT: float = 4.0
     DNS_SAFE_RESOLVE_BATCH: int = 500
     DNS_SAFE_RESOLVE_LIMIT: int = 100_000
