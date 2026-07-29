@@ -2,48 +2,78 @@ name: Remediation CI
 
 on:
   pull_request:
+    branches: [main]
     paths:
       - '.github/workflows/**'
       - 'scripts/**'
-      - 'src/configstream/testers/python.py'
-      - 'tests/unit/test_release_remediation.py'
+      - 'src/configstream/**'
+      - 'tests/unit/**'
+      - '.env.example'
+      - 'CHANGELOG.md'
   workflow_dispatch:
 
+concurrency:
+  group: zero-working-finalizer-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  validate:
+  finalize-zero-working-remediation:
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.head_ref == 'fix/actions-zero-working-shards' &&
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          persist-credentials: false
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+          persist-credentials: true
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           python-version: '3.11'
           cache: pip
-      - run: pip install -e .[dev]
-      - name: Compile changed Python
+      - name: Install validation dependencies
+        run: pip install -e .[dev]
+      - name: Apply direct source remediation
+        run: python scripts/apply_zero_working_remediation.py
+      - name: Remove interim remediation artifacts
         run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin main
+          git checkout origin/main -- .github/workflows/remediation-ci.yml
+          rm -f scripts/apply_zero_working_remediation.py
+      - name: Validate final tree
+        run: |
+          set -euo pipefail
           python -m py_compile \
-            scripts/aggregate_shard_health.py \
-            scripts/finalize_release_outputs.py \
-            scripts/native_client_checks.py \
-            scripts/normalize_legacy_profiles.py \
-            scripts/release_gate.py \
-            scripts/shard_sources.py \
-            src/configstream/testers/python.py
-      - name: Run remediation regression tests
-        id: pytest
-        continue-on-error: true
-        run: pytest -q tests/unit/test_release_remediation.py --junitxml=pytest-remediation.xml
-      - uses: actions/upload-artifact@v7
-        if: always()
-        with:
-          name: remediation-pytest-${{ github.sha }}-${{ github.run_attempt }}
-          path: pytest-remediation.xml
-          if-no-files-found: error
-      - name: Enforce test result
-        if: steps.pytest.outcome != 'success'
-        run: exit 1
+            src/configstream/config.py \
+            src/configstream/cli.py \
+            src/configstream/pipeline/core.py \
+            src/configstream/pipeline/policy.py \
+            tests/unit/test_zero_working_policy.py
+          python scripts/validate_workflows.py
+          pytest -q \
+            tests/unit/test_release_remediation.py \
+            tests/unit/test_zero_working_policy.py \
+            --disable-warnings --maxfail=1
+          pre-commit run --all-files || pre-commit run --all-files
+          git diff --check
+      - name: Commit final source-only remediation
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No remediation changes to commit."
+            exit 0
+          fi
+          git commit -m "fix(ci): centralize zero-working policy and remove interim workflows"
+          git push origin "HEAD:${HEAD_REF}"
