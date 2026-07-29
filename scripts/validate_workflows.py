@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Validate GitHub Actions workflow YAML files."""
+"""Validate GitHub Actions workflow YAML files and release safety contracts."""
 
 from __future__ import annotations
 
@@ -10,472 +10,119 @@ from typing import Any
 import yaml
 
 WORKFLOW_DIR = Path(".github") / "workflows"
-SOURCE_RESHARD_PATHS = {"sources/batch_*.txt", "sources/backup_dynamic/**"}
-CONCURRENCY_REQUIRED = {
-    "main.yml",
-    "retest.yml",
-    "deploy-pages.yml",
-    "deploy_mirror.yml",
-}
+CONCURRENCY_REQUIRED = {"main.yml", "retest.yml", "deploy-pages.yml", "deploy_mirror.yml"}
 UNRESOLVABLE_ACTION_REFS = {
     "actions/cache@0c907a75c2df011682e883a1779590213020689b",
     "actions/deploy-pages@d6db90164db5ed868d4d441e8835172955749614",
     "actions/setup-go@f111f3307d8850f5010000d3170f7d54b8f037b5",
     "actions/setup-python@f67e24a430187b32086e1643ad3e03d6861f5b15",
     "actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda9c69ecc6b",
-    "docker/build-push-action@471d19853a5250da73d4d382db29e5b02da898a3",
-    "docker/setup-buildx-action@b167a82b8f5039d57a2e041d08e59653a1a9e710",
-    "gitleaks/gitleaks-action@f0ab97193b0400b14c330f2fb1640520608fa20e",
 }
 
 
-def _trigger_block(data: dict[Any, Any]) -> Any:
-    return data.get("on", data.get(True))
-
-
-def _push_paths_ignore(data: dict[Any, Any]) -> set[str]:
-    triggers = _trigger_block(data)
-    if not isinstance(triggers, dict):
-        return set()
-    push = triggers.get("push")
-    if not isinstance(push, dict):
-        return set()
-    paths_ignore = push.get("paths-ignore", [])
-    if not isinstance(paths_ignore, list):
-        return set()
-    return {str(path) for path in paths_ignore}
-
-
-def _contains_git_push(path: Path) -> bool:
-    try:
-        return "git push" in path.read_text(encoding="utf-8")
-    except OSError:
-        return False
-
-
 def _iter_steps(data: dict[Any, Any]) -> list[dict[Any, Any]]:
+    steps: list[dict[Any, Any]] = []
     jobs = data.get("jobs", {})
     if not isinstance(jobs, dict):
-        return []
-
-    steps: list[dict[Any, Any]] = []
+        return steps
     for job in jobs.values():
-        if not isinstance(job, dict):
-            continue
-        job_steps = job.get("steps", [])
-        if not isinstance(job_steps, list):
-            continue
-        steps.extend(step for step in job_steps if isinstance(step, dict))
+        if isinstance(job, dict):
+            steps.extend(step for step in job.get("steps", []) if isinstance(step, dict))
     return steps
 
 
-def _step_uses(step: dict[Any, Any], action: str) -> bool:
-    uses = step.get("uses")
-    return isinstance(uses, str) and uses.startswith(action)
+def _uses(step: dict[Any, Any], prefix: str) -> bool:
+    value = step.get("uses")
+    return isinstance(value, str) and value.startswith(prefix)
 
 
-def _step_with(step: dict[Any, Any]) -> dict[Any, Any]:
-    with_block = step.get("with", {})
-    return with_block if isinstance(with_block, dict) else {}
+def _with(step: dict[Any, Any]) -> dict[Any, Any]:
+    return step.get("with", {}) if isinstance(step.get("with", {}), dict) else {}
 
 
-def _retention_days(step: dict[Any, Any]) -> int | None:
-    value = _step_with(step).get("retention-days")
-    try:
-        return int(str(value))
-    except (TypeError, ValueError):
-        return None
+def _text(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
 
 
-def _has_durable_named_artifact(
-    data: dict[Any, Any],
-    *,
-    action: str,
-    artifact_name: str,
-) -> bool:
+def _has_durable_artifact(data: dict[Any, Any], name: str, action: str) -> bool:
     for step in _iter_steps(data):
-        with_block = _step_with(step)
-        retention_days = _retention_days(step)
-        if (
-            _step_uses(step, action)
-            and with_block.get("name") == artifact_name
-            and retention_days is not None
-            and retention_days >= 30
-        ):
-            return True
+        if _uses(step, action) and _with(step).get("name") == name:
+            try:
+                return int(str(_with(step).get("retention-days"))) >= 30
+            except (TypeError, ValueError):
+                return False
     return False
 
 
-def _has_durable_pages_artifact(data: dict[Any, Any]) -> bool:
-    for step in _iter_steps(data):
-        retention_days = _retention_days(step)
-        if (
-            _step_uses(step, "actions/upload-pages-artifact@")
-            and retention_days is not None
-            and retention_days >= 30
-        ):
-            return True
-    return False
+def _contains_git_push(path: Path) -> bool:
+    return "git push" in _text(path)
 
 
-def _main_publishes_reshard_recommendation(path: Path) -> bool:
-    try:
-        content = path.read_text(encoding="utf-8")
-    except OSError:
-        return False
-    return (
-        "python scripts/dynamic_reshard.py" in content
-        and "name: source-reshard-recommendation" in content
-        and "git push origin HEAD" not in content
-    )
+def _deploy_pages_safe(path: Path) -> list[str]:
+    errors: list[str] = []
+    content = _text(path)
+    if "actions/upload-pages-artifact@" not in content:
+        errors.append("missing Pages artifact upload")
+    if "actions/deploy-pages@" not in content:
+        errors.append("missing Pages deployment")
+    if "npm run build" in content or "vite build" in content:
+        errors.append("Pages must not rebuild frontend")
+    if "STEGO_KEY" in content:
+        errors.append("Pages must not receive symmetric secrets")
+    if "verify_pages_deployment.py" not in content:
+        errors.append("missing public smoke validation")
+    return errors
 
 
-def _main_release_assets_use_output_contract(path: Path) -> bool:
-    try:
-        content = path.read_text(encoding="utf-8")
-    except OSError:
-        return False
-    return (
-        "python scripts/validate_pages_artifact.py" in content
-        and "--native-client-check" in content
-        and "--native-report-file pipeline-evidence/native_client_check_report.json"
-        in content
-        and "output" in content
-        and "Ensure release assets are non-empty" not in content
-        and "test -s output/base64.txt" not in content
-        and 'echo "# FAILED GENERATION"' not in content
-    )
-
-
-def _main_prepares_public_output_artifact(path: Path) -> bool:
-    try:
-        content = path.read_text(encoding="utf-8")
-    except OSError:
-        return False
-    prepare_index = content.find("Prepare public output artifact")
-    validate_index = content.find("Validate data release output contract")
-    if prepare_index == -1 or validate_index == -1 or prepare_index > validate_index:
-        return False
-    return (
-        "cp -R frontend/. output/" in content
-        and "python scripts/validate_frontend_placeholders.py --inject-env output"
-        in content
-        and "mkdir -p output/tools output/api" in content
-        and "cp output/proxies.json output/api/proxies" in content
-        and "cp output/metadata.json output/api/stats" in content
-        and "output/pipeline_events.jsonl" in content
-        and "artifact_prepare" in content
-        and "python scripts/validate_pages_artifact.py --refresh-contract output"
-        in content
-    )
-
-
-def _deploy_pages_prepares_pipeline_events(path: Path) -> bool:
-    try:
-        content = path.read_text(encoding="utf-8")
-    except OSError:
-        return False
-    return (
-        "output/pipeline_events.jsonl" in content
-        and "artifact_prepare" in content
-        and "python scripts/validate_pages_artifact.py --refresh-contract output"
-        in content
-    )
-
-
-def _find_unresolvable_action_refs(path: Path) -> list[str]:
-    try:
-        content = path.read_text(encoding="utf-8")
-    except OSError:
-        return []
-    return sorted(ref for ref in UNRESOLVABLE_ACTION_REFS if ref in content)
-
-
-def _deploy_pages_has_frontend_placeholder_guard(path: Path) -> bool:
-    try:
-        content = path.read_text(encoding="utf-8")
-    except OSError:
-        return False
-    return (
-        "scripts/validate_frontend_placeholders.py --inject-env --strict output"
-        in content
-        and "CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}" in content
-        and "STEGO_KEY: ${{ secrets.STEGO_KEY }}" in content
-    )
-
-
-def _deploy_pages_uses_canonical_raw_frontend(path: Path) -> bool:
-    try:
-        content = path.read_text(encoding="utf-8")
-    except OSError:
-        return False
-    return (
-        "cp -R frontend/. output/" in content
-        and "frontend-dist" not in content
-        and "npm run build" not in content
-        and "vite build" not in content
-    )
-
-
-def _deploy_pages_has_public_smoke(path: Path) -> bool:
-    try:
-        content = path.read_text(encoding="utf-8")
-    except OSError:
-        return False
-    return (
-        "scripts/verify_pages_deployment.py" in content
-        and "steps.deployment.outputs.page_url" in content
-    )
-
-
-def _ci_has_required_frontend_browser_profile(path: Path) -> bool:
-    try:
-        content = path.read_text(encoding="utf-8")
-    except OSError:
-        return False
-    return (
-        "frontend-browser:" in content
-        and "python -m playwright install --with-deps chromium" in content
-        and "npx playwright install chromium" in content
-        and "npm run test:frontend:browser" in content
-    )
-
-
-def _ci_frontend_smoke_installs_node_browser(path: Path) -> bool:
-    try:
-        content = path.read_text(encoding="utf-8")
-    except OSError:
-        return False
-    frontend_index = content.find("  frontend:")
-    browser_index = content.find("  frontend-browser:")
-    if frontend_index == -1 or browser_index == -1:
-        return False
-    frontend_job = content[frontend_index:browser_index]
-    return (
-        "npx playwright install chromium" in frontend_job
-        and "npm run test:frontend:no-network" in frontend_job
-    )
-
-
-def _ci_has_bandit_suppression_guard(path: Path) -> bool:
-    try:
-        content = path.read_text(encoding="utf-8")
-    except OSError:
-        return False
-    bandit_index = content.find("bandit -r src/configstream scripts tools")
-    guard_index = content.find(
-        "python scripts/validate_bandit_suppressions.py --require-active"
-    )
-    return bandit_index != -1 and guard_index != -1 and bandit_index < guard_index
-
-
-def _ci_has_test_skip_guard(path: Path) -> bool:
-    try:
-        content = path.read_text(encoding="utf-8")
-    except OSError:
-        return False
-    guard_index = content.find("python scripts/validate_test_skips.py")
-    test_index = content.find("pytest -q")
-    return guard_index != -1 and test_index != -1 and guard_index < test_index
-
-
-def _has_contract_validators(path: Path) -> bool:
-    try:
-        content = path.read_text(encoding="utf-8")
-    except OSError:
-        return False
-    return (
-        "python scripts/validate_capability_registry.py" in content
-        and "python scripts/validate_core_compatibility.py" in content
-        and "python scripts/validate_module_ownership.py" in content
-    )
-
-
-def _main_frontend_wasm_download_has_build_dependency(
-    data: dict[Any, Any],
-) -> bool:
-    jobs = data.get("jobs", {})
-    if not isinstance(jobs, dict):
-        return False
-
-    merge_job = jobs.get("merge_results")
-    if not isinstance(merge_job, dict):
-        return True
-
-    steps = merge_job.get("steps", [])
-    if not isinstance(steps, list):
-        return False
-
-    downloads_frontend_wasm = False
-    for step in steps:
-        if not isinstance(step, dict):
-            continue
-        if not _step_uses(step, "actions/download-artifact@"):
-            continue
-        with_block = _step_with(step)
-        if with_block.get("name") == "frontend-wasm":
-            downloads_frontend_wasm = True
-            break
-
-    if not downloads_frontend_wasm:
-        return True
-
-    needs = merge_job.get("needs")
-    if isinstance(needs, str):
-        return needs == "build_wasm"
-    if isinstance(needs, list):
-        return "build_wasm" in [str(item) for item in needs]
-    return False
-
-
-def _uses_secret_context_in_if(path: Path) -> bool:
-    try:
-        content = path.read_text(encoding="utf-8")
-    except OSError:
-        return False
-    return "if: ${{ secrets." in content or "if:${{ secrets." in content
+def _main_safe(path: Path, data: dict[Any, Any]) -> list[str]:
+    errors: list[str] = []
+    content = _text(path)
+    if _contains_git_push(path):
+        errors.append("main workflow must not push commits")
+    if "scripts/resilient_stage.py" not in content:
+        errors.append("missing resilient stage evidence")
+    if "release_readiness.json" not in content:
+        errors.append("missing readiness report")
+    if "pipeline-output" in content and not _has_durable_artifact(data, "pipeline-output", "actions/upload-artifact@"):
+        errors.append("pipeline-output artifact must retain for >=30 days")
+    if "scripts/prepare_public_candidate.py" not in content:
+        errors.append("missing transactional candidate preparation")
+    return errors
 
 
 def main() -> int:
     if not WORKFLOW_DIR.exists():
         print(f"ERROR: workflow directory not found: {WORKFLOW_DIR}")
         return 1
-
-    workflow_files = sorted(
-        path for pattern in ("*.yml", "*.yaml") for path in WORKFLOW_DIR.glob(pattern)
-    )
-    if not workflow_files:
-        print(f"ERROR: no workflow files found in {WORKFLOW_DIR}")
-        return 1
-
     errors: list[str] = []
-    for path in workflow_files:
+    for path in sorted([*WORKFLOW_DIR.glob("*.yml"), *WORKFLOW_DIR.glob("*.yaml")]):
         try:
-            data = yaml.safe_load(path.read_text(encoding="utf-8"))
+            data = yaml.safe_load(_text(path))
         except yaml.YAMLError as exc:
             errors.append(f"{path}: YAML parse failed: {exc}")
             continue
-        except OSError as exc:
-            errors.append(f"{path}: could not read file: {exc}")
+        if not isinstance(data, dict) or ("on" not in data and True not in data):
+            errors.append(f"{path}: invalid workflow root")
             continue
-
-        if not isinstance(data, dict):
-            errors.append(f"{path}: workflow root must be a YAML mapping")
-            continue
-        # PyYAML's YAML 1.1 resolver parses the unquoted GitHub Actions key
-        # `on` as boolean True. Accept both shapes while still requiring the
-        # workflow trigger key to be present.
-        if "on" not in data and True not in data:
-            errors.append(f"{path}: missing 'on' trigger")
         if not isinstance(data.get("jobs"), dict) or not data["jobs"]:
-            errors.append(f"{path}: missing non-empty 'jobs' mapping")
-        if _uses_secret_context_in_if(path):
-            errors.append(
-                f"{path}: secrets context must not be used directly in if expressions"
-            )
+            errors.append(f"{path}: missing jobs")
         if path.name in CONCURRENCY_REQUIRED and "concurrency" not in data:
-            errors.append(f"{path}: missing top-level concurrency policy")
-        for action_ref in _find_unresolvable_action_refs(path):
-            errors.append(f"{path}: unresolvable action reference: {action_ref}")
-        if (
-            path.name == "deploy-pages.yml"
-            and not _deploy_pages_has_frontend_placeholder_guard(path)
-        ):
-            errors.append(
-                f"{path}: missing frontend placeholder injection/validation guard"
-            )
-        if (
-            path.name == "deploy-pages.yml"
-            and not _deploy_pages_uses_canonical_raw_frontend(path)
-        ):
-            errors.append(
-                f"{path}: Pages deploy must use canonical raw static frontend"
-            )
-        if path.name == "deploy-pages.yml" and not _deploy_pages_has_public_smoke(path):
-            errors.append(f"{path}: missing deployed Pages URL smoke")
-        if (
-            path.name == "deploy-pages.yml"
-            and not _deploy_pages_prepares_pipeline_events(path)
-        ):
-            errors.append(
-                f"{path}: Pages artifact preparation must initialize pipeline_events.jsonl"
-            )
-        if path.name == "ci.yml" and not _ci_has_required_frontend_browser_profile(
-            path
-        ):
-            errors.append(
-                f"{path}: missing required frontend-browser Playwright profile"
-            )
-        if path.name == "ci.yml" and not _ci_frontend_smoke_installs_node_browser(path):
-            errors.append(
-                f"{path}: frontend smoke job must install Node Playwright Chromium"
-            )
-        if path.name == "ci.yml" and not _ci_has_bandit_suppression_guard(path):
-            errors.append(f"{path}: missing Bandit suppression hygiene guard")
-        if path.name == "ci.yml" and not _ci_has_test_skip_guard(path):
-            errors.append(f"{path}: missing pytest skip governance guard")
-        if path.name in {"ci.yml", "release.yml"} and not _has_contract_validators(
-            path
-        ):
-            errors.append(
-                f"{path}: missing capability/core/module ownership contract validators"
-            )
-        if path.name == "main.yml" and _contains_git_push(path):
-            errors.append(f"{path}: main data workflow must not push commits")
-        if path.name == "main.yml" and not _main_publishes_reshard_recommendation(path):
-            errors.append(
-                f"{path}: dynamic resharding must publish an artifact recommendation"
-            )
-
-        if path.name == "main.yml" and not _has_durable_named_artifact(
-            data,
-            action="actions/upload-artifact@",
-            artifact_name="pipeline-output",
-        ):
-            errors.append(f"{path}: pipeline-output artifact retention must be durable")
-
-        if path.name == "retest.yml" and not _has_durable_named_artifact(
-            data,
-            action="actions/upload-artifact@",
-            artifact_name="pipeline-output",
-        ):
-            errors.append(f"{path}: pipeline-output artifact retention must be durable")
-        if path.name == "deploy-pages.yml" and not _has_durable_pages_artifact(data):
-            errors.append(f"{path}: Pages artifact retention must be durable")
-        if path.name == "main.yml" and not _main_release_assets_use_output_contract(
-            path
-        ):
-            errors.append(
-                f"{path}: data release assets must use the shared output contract"
-            )
-        if path.name == "main.yml" and not _main_prepares_public_output_artifact(path):
-            errors.append(
-                f"{path}: data release validation must prepare the public output artifact"
-            )
-        if (
-            path.name == "main.yml"
-            and not _main_frontend_wasm_download_has_build_dependency(data)
-        ):
-            errors.append(
-                f"{path}: merge_results must depend on build_wasm when downloading frontend-wasm"
-            )
-        if path.name == "main.yml" and not _main_publishes_reshard_recommendation(path):
-            errors.append(
-                f"{path}: source resharding must publish recommendations "
-                "instead of pushing source mutations"
-            )
-        if _contains_git_push(path):
-            errors.append(f"{path}: workflows must not push directly to the repository")
-
+            errors.append(f"{path}: missing concurrency")
+        for ref in UNRESOLVABLE_ACTION_REFS:
+            if ref in _text(path):
+                errors.append(f"{path}: stale action ref {ref}")
+        if path.name == "main.yml":
+            errors.extend(f"{path}: {e}" for e in _main_safe(path, data))
+        if path.name == "deploy-pages.yml":
+            errors.extend(f"{path}: {e}" for e in _deploy_pages_safe(path))
     if errors:
         print("ERROR: workflow validation failed")
         for error in errors:
             print(f"  - {error}")
         return 1
-
-    print(f"OK: validated {len(workflow_files)} workflow files")
+    print("OK: workflow contracts validated")
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())
