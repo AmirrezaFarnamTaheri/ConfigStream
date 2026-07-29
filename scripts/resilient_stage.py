@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Run workflow stages without losing evidence, then evaluate publish readiness.
 
-The CLI deliberately separates command execution from publication policy.  A
+The CLI deliberately separates command execution from publication policy. A
 stage command may fail while later diagnostic steps continue; the final
 ``evaluate`` command is the fail-closed authority for canonical publication.
 """
@@ -16,17 +16,25 @@ import platform
 import queue
 import re
 import shlex
-import subprocess  # nosec B404 - command execution is this tool's explicit purpose
+# Command execution is this tool's explicit purpose.
+import subprocess  # nosec B404
 import sys
 import threading
 import time
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Iterable, Mapping, Sequence
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, TextIO, Tuple
 
 SCHEMA_VERSION = 3
 DEFAULT_TIMEOUT_SECONDS = 900.0
+REPO_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_REPORT_DIR = REPO_ROOT / "pipeline-evidence" / "stages"
+DEFAULT_CONTEXT_OUTPUT = REPO_ROOT / "pipeline-evidence" / "workflow_context.json"
+DEFAULT_SUMMARY_OUTPUT = REPO_ROOT / "pipeline-evidence" / "stage_summary.json"
+DEFAULT_READINESS_OUTPUT = REPO_ROOT / "pipeline-evidence" / "release_readiness.json"
+SAFE_STAGE_NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$")
+CANONICAL_STATUSES = frozenset({"success", "failed", "skipped"})
 SECRET_NAME_RE = re.compile(
     r"(?:TOKEN|SECRET|PASSWORD|PASS|API_KEY|PRIVATE_KEY|SIGNING|STEGO_KEY|"
     r"CONFIG_STREAM_KEY|JWT|CREDENTIAL|GDRIVE|SA_JSON|AUTH|COOKIE|SESSION|KEY)",
@@ -56,10 +64,10 @@ class StageResult:
     started_at: str
     completed_at: str
     duration_seconds: float
-    command: list[str]
-    attempts: list[dict[str, Any]]
-    failure_class: str | None = None
-    error: str | None = None
+    command: List[str]
+    attempts: List[Dict[str, Any]]
+    failure_class: Optional[str] = None
+    error: Optional[str] = None
 
 
 def now() -> str:
@@ -69,12 +77,13 @@ def now() -> str:
 
 
 def safe_name(value: str) -> str:
-    """Convert a stage name into a stable filesystem-safe stem."""
+    """Validate and return a collision-free filesystem-safe stage name."""
 
-    return "".join(
-        character if character.isalnum() or character in "-_" else "-"
-        for character in value
-    ).strip("-") or "stage"
+    if not SAFE_STAGE_NAME_RE.fullmatch(value):
+        raise ValueError(
+            "stage names must match ^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+        )
+    return value
 
 
 def atomic_json(path: Path, payload: object) -> None:
@@ -88,7 +97,7 @@ def atomic_json(path: Path, payload: object) -> None:
     temporary.replace(path)
 
 
-def secrets_from_env(env: Mapping[str, str]) -> tuple[str, ...]:
+def secrets_from_env(env: Mapping[str, str]) -> Tuple[str, ...]:
     """Collect non-empty environment values whose names are credential-shaped."""
 
     return tuple(
@@ -152,6 +161,28 @@ def normalize_status(status: str) -> str:
     raise ValueError(f"unsupported stage status: {status!r}")
 
 
+def validate_stage_report(payload: object, expected_name: str) -> Tuple[bool, str]:
+    """Validate evidence identity, schema, status, and exit-code consistency."""
+
+    if not isinstance(payload, dict):
+        return False, "payload-not-object"
+    if payload.get("schema_version") != SCHEMA_VERSION:
+        return False, "schema-version"
+    if payload.get("name") != expected_name:
+        return False, "stage-name"
+    status = payload.get("status")
+    if not isinstance(status, str) or status not in CANONICAL_STATUSES:
+        return False, "status"
+    exit_code = payload.get("exit_code")
+    if isinstance(exit_code, bool) or not isinstance(exit_code, int):
+        return False, "exit-code-type"
+    if status in {"success", "skipped"} and exit_code != 0:
+        return False, "contradictory-exit-code"
+    if status == "failed" and exit_code == 0:
+        return False, "contradictory-exit-code"
+    return True, status
+
+
 def write_result(report_dir: Path, result: StageResult) -> None:
     """Persist one result and print a concise, non-sensitive status line."""
 
@@ -169,15 +200,20 @@ def record_stage(
     description: str = "",
     remediation: str = "",
     exit_code: int = 0,
-    failure_class: str | None = None,
-    error: str | None = None,
+    failure_class: Optional[str] = None,
+    error: Optional[str] = None,
 ) -> StageResult:
     """Record an externally executed action or an intentional skip."""
 
+    safe_name(name)
     normalized = normalize_status(status)
     effective_exit_code = int(exit_code)
     if normalized == "failed" and effective_exit_code == 0:
         effective_exit_code = 1
+    if normalized in {"success", "skipped"} and effective_exit_code != 0:
+        raise ValueError(
+            f"{normalized} evidence requires exit_code=0, got {effective_exit_code}"
+        )
     result = StageResult(
         schema_version=SCHEMA_VERSION,
         name=name,
@@ -200,8 +236,8 @@ def record_stage(
 
 
 def _stream_output(
-    stream: Any,
-    log_handle: Any,
+    stream: TextIO,
+    log_handle: TextIO,
     secrets: Sequence[str],
     errors: "queue.Queue[BaseException]",
 ) -> None:
@@ -227,7 +263,7 @@ def _run_attempt(
     env: Mapping[str, str],
     secrets: Sequence[str],
     timeout: float,
-) -> tuple[int, str | None, str | None]:
+) -> Tuple[int, Optional[str], Optional[str]]:
     """Execute one bounded attempt while preserving sanitized live output."""
 
     reader_errors: "queue.Queue[BaseException]" = queue.Queue()
@@ -239,7 +275,8 @@ def _run_attempt(
             log_handle.write(command_line + "\n")
             log_handle.flush()
             print(command_line)
-            process = subprocess.Popen(  # nosec B603 - argv is intentionally executed without a shell
+            # argv is intentionally executed without a shell.
+            process = subprocess.Popen(  # nosec B603
                 list(command),
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
@@ -297,6 +334,7 @@ def run_stage(
 ) -> StageResult:
     """Run a bounded command, retain every attempt, and always return evidence."""
 
+    safe_name(name)
     if not command:
         raise ValueError("stage command must not be empty")
     if timeout <= 0:
@@ -311,10 +349,10 @@ def run_stage(
     secrets = secrets_from_env(env)
     started = time.monotonic()
     started_at = now()
-    attempts: list[dict[str, Any]] = []
+    attempts: List[Dict[str, Any]] = []
     code = 127
-    failure: str | None = "execution_error"
-    error: str | None = "stage was not attempted"
+    failure: Optional[str] = "execution_error"
+    error: Optional[str] = "stage was not attempted"
 
     for attempt_number in range(1, retries + 2):
         attempt_started = now()
@@ -369,34 +407,41 @@ def evaluate_readiness(
     required_stages: Iterable[str],
     required_files: Iterable[Path],
     output: Path,
-) -> dict[str, Any]:
+) -> Dict[str, Any]:
     """Evaluate canonical publication readiness from explicit evidence only."""
 
-    blockers: list[str] = []
-    stage_states: dict[str, str] = {}
+    blockers: List[str] = []
+    stage_states: Dict[str, str] = {}
+    invalid_stage_reports: Dict[str, str] = {}
     for stage in required_stages:
         path = report_dir / f"{safe_name(stage)}.json"
-        payload: dict[str, Any] | None = None
+        payload: object = None
         if path.is_file():
             try:
-                loaded = json.loads(path.read_text(encoding="utf-8"))
-                if isinstance(loaded, dict):
-                    payload = loaded
+                payload = json.loads(path.read_text(encoding="utf-8"))
             except (OSError, json.JSONDecodeError):
                 payload = None
-        status = str(payload.get("status")) if payload else "missing"
+        if payload is None:
+            status = "missing"
+        else:
+            valid, detail = validate_stage_report(payload, stage)
+            if valid:
+                status = detail
+            else:
+                status = "invalid"
+                invalid_stage_reports[stage] = detail
         stage_states[stage] = status
         if status != "success":
             blockers.append(f"stage:{stage}:{status}")
 
-    file_states: dict[str, str] = {}
+    file_states: Dict[str, str] = {}
     for path in required_files:
         state = "present" if path.is_file() and path.stat().st_size > 0 else "missing"
         file_states[str(path)] = state
         if state != "present":
             blockers.append(f"file:{path}:{state}")
 
-    result = {
+    result: Dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
         "evaluated_at": now(),
         "publish_ready": not blockers,
@@ -404,6 +449,7 @@ def evaluate_readiness(
         "blockers": blockers,
         "required_stages": stage_states,
         "required_files": file_states,
+        "invalid_stage_reports": invalid_stage_reports,
     }
     atomic_json(output, result)
     print(json.dumps(result, indent=2, sort_keys=True))
@@ -433,7 +479,7 @@ def context(output: Path) -> None:
 def summary(report_dir: Path, output: Path) -> None:
     """Aggregate all stage JSON files into a deterministic summary."""
 
-    stages: list[dict[str, Any]] = []
+    stages: List[Dict[str, Any]] = []
     for path in sorted(report_dir.glob("*.json")):
         try:
             payload = json.loads(path.read_text(encoding="utf-8"))
@@ -466,9 +512,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     run_parser = subparsers.add_parser("run")
     run_parser.add_argument("--name", required=True)
-    run_parser.add_argument(
-        "--report-dir", type=Path, default=Path("pipeline-evidence/stages")
-    )
+    run_parser.add_argument("--report-dir", type=Path, default=DEFAULT_REPORT_DIR)
     run_parser.add_argument("--timeout", type=float, default=DEFAULT_TIMEOUT_SECONDS)
     run_parser.add_argument("--retries", type=int, default=0)
     run_parser.add_argument("--retry-backoff", type=float, default=5.0)
@@ -479,41 +523,25 @@ def build_parser() -> argparse.ArgumentParser:
     record_parser.add_argument("--name", required=True)
     record_parser.add_argument("--status", required=True)
     record_parser.add_argument("--exit-code", type=int, default=0)
-    record_parser.add_argument(
-        "--report-dir", type=Path, default=Path("pipeline-evidence/stages")
-    )
+    record_parser.add_argument("--report-dir", type=Path, default=DEFAULT_REPORT_DIR)
     _add_common_metadata_arguments(record_parser)
 
     context_parser = subparsers.add_parser("context")
-    context_parser.add_argument(
-        "--output",
-        type=Path,
-        default=Path("pipeline-evidence/workflow_context.json"),
-    )
+    context_parser.add_argument("--output", type=Path, default=DEFAULT_CONTEXT_OUTPUT)
 
     summary_parser = subparsers.add_parser("summary")
-    summary_parser.add_argument(
-        "--report-dir", type=Path, default=Path("pipeline-evidence/stages")
-    )
-    summary_parser.add_argument(
-        "--output", type=Path, default=Path("pipeline-evidence/stage_summary.json")
-    )
+    summary_parser.add_argument("--report-dir", type=Path, default=DEFAULT_REPORT_DIR)
+    summary_parser.add_argument("--output", type=Path, default=DEFAULT_SUMMARY_OUTPUT)
 
     evaluate_parser = subparsers.add_parser("evaluate")
-    evaluate_parser.add_argument(
-        "--report-dir", type=Path, default=Path("pipeline-evidence/stages")
-    )
+    evaluate_parser.add_argument("--report-dir", type=Path, default=DEFAULT_REPORT_DIR)
     evaluate_parser.add_argument("--required-stage", action="append", default=[])
-    evaluate_parser.add_argument(
-        "--required-file", type=Path, action="append", default=[]
-    )
-    evaluate_parser.add_argument(
-        "--output", type=Path, default=Path("pipeline-evidence/release_readiness.json")
-    )
+    evaluate_parser.add_argument("--required-file", type=Path, action="append", default=[])
+    evaluate_parser.add_argument("--output", type=Path, default=DEFAULT_READINESS_OUTPUT)
     return parser
 
 
-def main(argv: Sequence[str] | None = None) -> int:
+def main(argv: Optional[Sequence[str]] = None) -> int:
     """Execute the requested evidence command."""
 
     args = build_parser().parse_args(argv)
