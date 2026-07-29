@@ -1,11 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Run workflow stages without masking later diagnostics.
+"""Resilient workflow stage execution and release readiness evidence.
 
-A stage failure is recorded as structured evidence and returned to the caller as
-an output, while this helper itself exits successfully.  A separate evaluation
-step decides whether a candidate is safe to publish.  This keeps GitHub Actions
-running through partial and environmental failures without weakening release
-integrity: failed mandatory gates block publication, not evidence collection.
+This helper separates execution evidence from publication policy. Stage failures
+are recorded; readiness decides whether canonical artifacts may be published.
 """
 
 from __future__ import annotations
@@ -13,248 +10,173 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import platform
 import shlex
 import subprocess
 import sys
 import time
+import re
 from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Iterable, Sequence
+from typing import Any, Iterable, Mapping, Sequence
 
+SCHEMA_VERSION = 2
+SECRET_RE = re.compile(r"(?:TOKEN|SECRET|PASSWORD|API_KEY|PRIVATE_KEY|STEGO_KEY|CONFIG_STREAM_KEY|JWT|CREDENTIAL|KEY)", re.I)
 
 @dataclass(frozen=True)
 class StageResult:
+    schema_version: int
     name: str
+    category: str
+    criticality: str
+    description: str
+    remediation: str
     status: str
     exit_code: int
+    started_at: str
+    completed_at: str
     duration_seconds: float
     command: list[str]
-    log_file: str
+    attempts: list[dict[str, Any]]
+    failure_class: str | None = None
     error: str | None = None
 
 
-def _atomic_json(path: Path, payload: object) -> None:
+def now() -> str:
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def safe_name(value: str) -> str:
+    return "".join(c if c.isalnum() or c in "-_" else "-" for c in value).strip("-") or "stage"
+
+
+def atomic_json(path: Path, payload: object) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text(
-        json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
-        encoding="utf-8",
-    )
-    temporary.replace(path)
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    tmp.replace(path)
 
 
-def _append_github_output(values: dict[str, str]) -> None:
-    output_path = os.environ.get("GITHUB_OUTPUT")
-    if not output_path:
-        return
-    with Path(output_path).open("a", encoding="utf-8") as handle:
-        for key, value in values.items():
-            handle.write(f"{key}={value}\n")
+def secrets_from_env(env: Mapping[str, str]) -> tuple[str, ...]:
+    return tuple(sorted({v for k, v in env.items() if v and SECRET_RE.search(k)}, key=len, reverse=True))
 
 
-def _append_summary(markdown: str) -> None:
-    summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
-    if not summary_path:
-        return
-    with Path(summary_path).open("a", encoding="utf-8") as handle:
-        handle.write(markdown.rstrip() + "\n")
+def redact(value: str, secrets: Sequence[str]) -> str:
+    for secret in secrets:
+        value = value.replace(secret, "***REDACTED***")
+    return value
 
 
-def _safe_name(value: str) -> str:
-    cleaned = "".join(character if character.isalnum() or character in "-_" else "-" for character in value)
-    cleaned = cleaned.strip("-")
-    return cleaned or "stage"
+def write_result(report_dir: Path, result: StageResult) -> None:
+    atomic_json(report_dir / f"{safe_name(result.name)}.json", asdict(result))
+    print(f"{result.status}: {result.name} exit={result.exit_code}")
 
 
-def run_stage(
-    name: str,
-    command: Sequence[str],
-    report_dir: Path,
-    *,
-    timeout: float | None = None,
-    cwd: Path | None = None,
-) -> StageResult:
-    report_dir.mkdir(parents=True, exist_ok=True)
-    safe_name = _safe_name(name)
-    log_path = report_dir / f"{safe_name}.log"
-    report_path = report_dir / f"{safe_name}.json"
-    started = time.monotonic()
-    exit_code = 127
-    error: str | None = None
-
-    try:
-        with log_path.open("w", encoding="utf-8") as log_handle:
-            log_handle.write(f"$ {shlex.join(command)}\n")
-            log_handle.flush()
-            completed = subprocess.run(
-                list(command),
-                cwd=str(cwd) if cwd else None,
-                stdout=log_handle,
-                stderr=subprocess.STDOUT,
-                text=True,
-                timeout=timeout,
-                check=False,
-                env=os.environ.copy(),
-            )
-            exit_code = int(completed.returncode)
-    except subprocess.TimeoutExpired:
-        exit_code = 124
-        error = f"stage exceeded timeout of {timeout} seconds"
-        with log_path.open("a", encoding="utf-8") as log_handle:
-            log_handle.write(f"\nTIMEOUT: {error}\n")
-    except OSError as exc:
-        exit_code = 127
-        error = f"could not execute stage: {exc}"
-        with log_path.open("a", encoding="utf-8") as log_handle:
-            log_handle.write(f"\nEXECUTION ERROR: {error}\n")
-
-    duration = round(time.monotonic() - started, 3)
-    status = "success" if exit_code == 0 else "failed"
+def record_stage(name: str, status: str, report_dir: Path, **kwargs: Any) -> StageResult:
+    exit_code = int(kwargs.pop("exit_code", 0))
+    if status == "failed" and exit_code == 0:
+        exit_code = 1
     result = StageResult(
+        schema_version=SCHEMA_VERSION,
         name=name,
+        category=kwargs.pop("category", "external"),
+        criticality=kwargs.pop("criticality", "diagnostic"),
+        description=kwargs.pop("description", ""),
+        remediation=kwargs.pop("remediation", ""),
         status=status,
         exit_code=exit_code,
-        duration_seconds=duration,
-        command=list(command),
-        log_file=str(log_path),
-        error=error,
+        started_at=now(),
+        completed_at=now(),
+        duration_seconds=0.0,
+        command=[],
+        attempts=[],
+        failure_class=kwargs.pop("failure_class", None),
+        error=kwargs.pop("error", None),
     )
-    _atomic_json(report_path, asdict(result))
-    _append_github_output(
-        {
-            "status": status,
-            "exit_code": str(exit_code),
-            "report": str(report_path),
-            "log": str(log_path),
-        }
-    )
-    icon = "✅" if status == "success" else "⚠️"
-    _append_summary(
-        f"- {icon} **{name}**: `{status}` (exit `{exit_code}`, {duration:.3f}s)"
-    )
-    print(f"{icon} {name}: {status} (exit={exit_code}, duration={duration:.3f}s)")
-    if error:
-        print(error)
+    write_result(report_dir, result)
     return result
 
 
-def _load_stage(report_dir: Path, name: str) -> dict[str, object] | None:
-    path = report_dir / f"{_safe_name(name)}.json"
+def run_stage(name: str, command: Sequence[str], report_dir: Path, **kwargs: Any) -> StageResult:
+    report_dir.mkdir(parents=True, exist_ok=True)
+    env = os.environ.copy()
+    secrets = secrets_from_env(env)
+    started = time.monotonic()
+    started_at = now()
+    log = report_dir / f"{safe_name(name)}.log"
     try:
-        payload = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return None
-    return payload if isinstance(payload, dict) else None
-
-
-def evaluate_readiness(
-    report_dir: Path,
-    required_stages: Iterable[str],
-    required_files: Iterable[Path],
-    output_path: Path,
-) -> dict[str, object]:
-    required = list(dict.fromkeys(required_stages))
-    files = list(dict.fromkeys(required_files))
-    blockers: list[str] = []
-    stages: dict[str, dict[str, object] | None] = {}
-
-    for name in required:
-        stage = _load_stage(report_dir, name)
-        stages[name] = stage
-        if stage is None:
-            blockers.append(f"missing stage report: {name}")
-        elif stage.get("status") != "success":
-            blockers.append(
-                f"stage failed: {name} (exit {stage.get('exit_code', 'unknown')})"
-            )
-
-    for path in files:
-        if not path.is_file() or path.stat().st_size <= 0:
-            blockers.append(f"required release file missing or empty: {path}")
-
-    publish_ready = not blockers
-    payload: dict[str, object] = {
-        "publish_ready": publish_ready,
-        "status": "ready" if publish_ready else "degraded",
-        "required_stages": required,
-        "required_files": [str(path) for path in files],
-        "blockers": blockers,
-        "stages": stages,
-    }
-    _atomic_json(output_path, payload)
-    _append_github_output(
-        {
-            "publish_ready": "true" if publish_ready else "false",
-            "status": str(payload["status"]),
-            "report": str(output_path),
-        }
+        with log.open("w", encoding="utf-8") as handle:
+            handle.write("$ " + shlex.join(redact(str(x), secrets) for x in command) + "\n")
+            proc = subprocess.run(list(command), stdout=handle, stderr=subprocess.STDOUT, text=True, check=False, env=env, timeout=kwargs.get("timeout"))
+        code = int(proc.returncode)
+        failure = None if code == 0 else "nonzero_exit"
+        error = None if code == 0 else f"command exited with status {code}"
+    except subprocess.TimeoutExpired:
+        code, failure, error = 124, "timeout", "stage timeout"
+    except OSError as exc:
+        code, failure, error = 127, "execution_error", str(exc)
+    result = StageResult(
+        schema_version=SCHEMA_VERSION,
+        name=name,
+        category=kwargs.get("category", "general"),
+        criticality=kwargs.get("criticality", "required"),
+        description=kwargs.get("description", ""),
+        remediation=kwargs.get("remediation", ""),
+        status="success" if code == 0 else "failed",
+        exit_code=code,
+        started_at=started_at,
+        completed_at=now(),
+        duration_seconds=round(time.monotonic() - started, 3),
+        command=[redact(str(x), secrets) for x in command],
+        attempts=[{"log": str(log), "exit_code": code}],
+        failure_class=failure,
+        error=error,
     )
-
-    if publish_ready:
-        _append_summary("\n### Release readiness\n✅ Candidate passed every mandatory gate and may be published.")
-        print("✅ release candidate is ready for publication")
-    else:
-        lines = "\n".join(f"- {blocker}" for blocker in blockers)
-        _append_summary(
-            "\n### Release readiness\n"
-            "⚠️ Candidate is degraded. Publication was skipped, but diagnostics and evidence remain available.\n"
-            f"{lines}"
-        )
-        print("⚠️ release candidate is degraded; publication must be skipped")
-        for blocker in blockers:
-            print(f"  - {blocker}")
-    return payload
+    write_result(report_dir, result)
+    return result
 
 
-def _build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description=__doc__)
-    subparsers = parser.add_subparsers(dest="action", required=True)
-
-    run_parser = subparsers.add_parser("run", help="Run one stage and always preserve a report")
-    run_parser.add_argument("--name", required=True)
-    run_parser.add_argument("--report-dir", type=Path, default=Path("pipeline-evidence/stages"))
-    run_parser.add_argument("--timeout", type=float)
-    run_parser.add_argument("--cwd", type=Path)
-    run_parser.add_argument("command", nargs=argparse.REMAINDER)
-
-    evaluate_parser = subparsers.add_parser(
-        "evaluate", help="Evaluate whether mandatory stages produced a publishable candidate"
-    )
-    evaluate_parser.add_argument("--report-dir", type=Path, default=Path("pipeline-evidence/stages"))
-    evaluate_parser.add_argument("--required-stage", action="append", default=[])
-    evaluate_parser.add_argument("--required-file", type=Path, action="append", default=[])
-    evaluate_parser.add_argument(
-        "--output", type=Path, default=Path("pipeline-evidence/release_readiness.json")
-    )
-    return parser
+def evaluate_readiness(report_dir: Path, required_stages: Iterable[str], required_files: Iterable[Path], output: Path) -> dict[str, Any]:
+    blockers=[]
+    for stage in required_stages:
+        payload=json.loads((report_dir / f"{safe_name(stage)}.json").read_text()) if (report_dir / f"{safe_name(stage)}.json").exists() else None
+        if not payload or payload.get("status") != "success":
+            blockers.append(stage)
+    for path in required_files:
+        if not path.is_file() or path.stat().st_size == 0:
+            blockers.append(str(path))
+    result={"schema_version": SCHEMA_VERSION, "publish_ready": not blockers, "status": "ready" if not blockers else "degraded", "blockers": blockers}
+    atomic_json(output, result)
+    print(json.dumps(result, indent=2))
+    return result
 
 
-def main(argv: list[str] | None = None) -> int:
-    parser = _build_parser()
-    args = parser.parse_args(argv)
-    if args.action == "run":
-        command = list(args.command)
-        if command and command[0] == "--":
-            command = command[1:]
-        if not command:
-            parser.error("run requires a command after --")
-        run_stage(
-            args.name,
-            command,
-            args.report_dir,
-            timeout=args.timeout,
-            cwd=args.cwd,
-        )
-        return 0
+def context(output: Path) -> None:
+    atomic_json(output, {"schema_version": SCHEMA_VERSION, "generated_at": now(), "python": platform.python_version(), "repository": os.getenv("GITHUB_REPOSITORY")})
 
-    evaluate_readiness(
-        args.report_dir,
-        args.required_stage,
-        args.required_file,
-        args.output,
-    )
+
+def summary(report_dir: Path, output: Path) -> None:
+    stages=[json.loads(p.read_text()) for p in report_dir.glob("*.json")]
+    atomic_json(output, {"schema_version": SCHEMA_VERSION, "stages": stages})
+
+
+def main(argv=None) -> int:
+    parser=argparse.ArgumentParser()
+    sub=parser.add_subparsers(dest="cmd", required=True)
+    run=sub.add_parser("run"); run.add_argument("--name", required=True); run.add_argument("--report-dir", type=Path, default=Path("pipeline-evidence/stages")); run.add_argument("command", nargs=argparse.REMAINDER)
+    rec=sub.add_parser("record"); rec.add_argument("--name", required=True); rec.add_argument("--status", required=True); rec.add_argument("--report-dir", type=Path, default=Path("pipeline-evidence/stages"))
+    ctx=sub.add_parser("context"); ctx.add_argument("--output", type=Path, default=Path("pipeline-evidence/workflow_context.json"))
+    summ=sub.add_parser("summary"); summ.add_argument("--report-dir", type=Path, default=Path("pipeline-evidence/stages")); summ.add_argument("--output", type=Path, default=Path("pipeline-evidence/stage_summary.json"))
+    ev=sub.add_parser("evaluate"); ev.add_argument("--report-dir", type=Path, default=Path("pipeline-evidence/stages")); ev.add_argument("--required-stage", action="append", default=[]); ev.add_argument("--required-file", type=Path, action="append", default=[]); ev.add_argument("--output", type=Path, default=Path("pipeline-evidence/release_readiness.json"))
+    a=parser.parse_args(argv)
+    if a.cmd=="run":
+        run_stage(a.name, a.command[1:] if a.command and a.command[0]=="--" else a.command, a.report_dir)
+    elif a.cmd=="record": record_stage(a.name, a.status, a.report_dir)
+    elif a.cmd=="context": context(a.output)
+    elif a.cmd=="summary": summary(a.report_dir, a.output)
+    else: evaluate_readiness(a.report_dir, a.required_stage, a.required_file, a.output)
     return 0
 
-
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())
