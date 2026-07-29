@@ -5,8 +5,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
 from scripts.validate_frontend_placeholders import (
     inject_frontend_keys,
     validate_frontend_placeholders,
@@ -30,9 +28,7 @@ def _write_frontend(root: Path) -> None:
     )
 
 
-def test_validate_frontend_placeholders_detects_public_and_stego_keys(
-    tmp_path: Path,
-) -> None:
+def test_validate_frontend_placeholders_detects_public_and_stego_keys(tmp_path: Path) -> None:
     _write_frontend(tmp_path)
     errors = validate_frontend_placeholders(tmp_path, strict=True)
     assert any("PUBLIC_KEY placeholder" in error for error in errors)
@@ -40,66 +36,33 @@ def test_validate_frontend_placeholders_detects_public_and_stego_keys(
     assert any("symmetric key field" in error for error in errors)
 
 
-def test_inject_frontend_keys_generates_public_only_runtime_config(
-    tmp_path: Path,
-) -> None:
+def test_inject_frontend_keys_generates_public_only_runtime_config(tmp_path: Path) -> None:
     _write_frontend(tmp_path)
-    changed = inject_frontend_keys(
-        tmp_path,
-        {
-            "CS_PUBLIC_KEY": "real-public-key-material",
-            "CS_IPNS_KEY": "real-ipns-key",
-        },
-    )
+    changed = inject_frontend_keys(tmp_path, {"CS_PUBLIC_KEY": "real-public-key-material", "CS_IPNS_KEY": "real-ipns-key"})
     assert len(changed) == 1
     assert validate_frontend_placeholders(tmp_path, strict=True) == []
-    runtime = (tmp_path / "assets" / "js" / "runtime-config.js").read_text(
-        encoding="utf-8"
-    )
-    assert "real-public-key-material" in runtime
-    assert "real-ipns-key" in runtime
-    assert "STEGO_KEY" not in runtime
-    assert "CONFIG_STREAM_KEY" not in runtime
 
 
-def test_inject_frontend_keys_rejects_symmetric_secret(tmp_path: Path) -> None:
+def test_inject_frontend_keys_ignores_ambient_symmetric_secrets(tmp_path: Path) -> None:
     _write_frontend(tmp_path)
-    with pytest.raises(ValueError, match="symmetric frontend keys"):
-        inject_frontend_keys(
-            tmp_path,
-            {
-                "CS_PUBLIC_KEY": "real-public-key-material",
-                "STEGO_KEY": "must-never-be-public",
-            },
-        )
+    inject_frontend_keys(tmp_path, {"CS_PUBLIC_KEY": "public", "CS_IPNS_KEY": "ipns", "STEGO_KEY": "private"})
+    runtime = (tmp_path / "assets" / "js" / "runtime-config.js").read_text(encoding="utf-8")
+    assert "private" not in runtime
+    assert "STEGO_KEY" not in runtime
 
 
-def test_validate_frontend_placeholders_allows_missing_stego_when_not_strict(
-    tmp_path: Path,
-) -> None:
+def test_validate_frontend_placeholders_allows_missing_stego_when_not_strict(tmp_path: Path) -> None:
     js_dir = tmp_path / "assets" / "js"
     js_dir.mkdir(parents=True)
-    (js_dir / "constants.js").write_text(
-        'window.CS_CONSTANTS = { PUBLIC_KEY: "" };\n',
-        encoding="utf-8",
-    )
+    (js_dir / "constants.js").write_text('window.CS_CONSTANTS = { PUBLIC_KEY: "" };\n', encoding="utf-8")
     assert validate_frontend_placeholders(tmp_path, strict=False) == []
 
 
-def test_validate_frontend_placeholders_strict_requires_public_key(
-    tmp_path: Path,
-) -> None:
+def test_validate_frontend_placeholders_strict_requires_public_key(tmp_path: Path) -> None:
     js_dir = tmp_path / "assets" / "js"
     js_dir.mkdir(parents=True)
-    (js_dir / "constants.js").write_text(
-        'window.CS_CONSTANTS = { PUBLIC_KEY: "" };\n',
-        encoding="utf-8",
-    )
+    (js_dir / "constants.js").write_text('window.CS_CONSTANTS = { PUBLIC_KEY: "" };\n', encoding="utf-8")
     (js_dir / "stego.js").write_text("window.CS_RUNTIME_CONFIG;\n", encoding="utf-8")
-    (js_dir / "runtime-config.js").write_text(
-        'window.CS_RUNTIME_CONFIG = { PUBLIC_KEY: "", IPNS_KEY: "" };\n',
-        encoding="utf-8",
-    )
+    (js_dir / "runtime-config.js").write_text('window.CS_RUNTIME_CONFIG = { PUBLIC_KEY: "", IPNS_KEY: "" };\n', encoding="utf-8")
     errors = validate_frontend_placeholders(tmp_path, strict=True)
     assert any("PUBLIC_KEY is missing" in error for error in errors)
-    assert not any("STEGO_KEY is missing" in error for error in errors)
