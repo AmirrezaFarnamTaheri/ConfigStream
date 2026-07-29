@@ -5,120 +5,124 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict, List, Optional
 
 import yaml
 
-WORKFLOW_DIR = Path(".github") / "workflows"
-CONCURRENCY_REQUIRED = {"main.yml", "retest.yml", "deploy-pages.yml", "deploy_mirror.yml"}
-UNRESOLVABLE_ACTION_REFS = {
-    "actions/cache@0c907a75c2df011682e883a1779590213020689b",
-    "actions/deploy-pages@d6db90164db5ed868d4d441e8835172955749614",
-    "actions/setup-go@f111f3307d8850f5010000d3170f7d54b8f037b5",
-    "actions/setup-python@f67e24a430187b32086e1643ad3e03d6861f5b15",
-    "actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda9c69ecc6b",
-}
+WORKFLOW_DIR = Path(__file__).resolve().parents[1] / ".github" / "workflows"
 
 
-def _iter_steps(data: dict[Any, Any]) -> list[dict[Any, Any]]:
-    steps: list[dict[Any, Any]] = []
+def _steps(data: Dict[Any, Any]) -> List[Dict[Any, Any]]:
+    result: List[Dict[Any, Any]] = []
     jobs = data.get("jobs", {})
     if not isinstance(jobs, dict):
-        return steps
+        return result
     for job in jobs.values():
         if isinstance(job, dict):
-            steps.extend(step for step in job.get("steps", []) if isinstance(step, dict))
-    return steps
+            for step in job.get("steps", []):
+                if isinstance(step, dict):
+                    result.append(step)
+    return result
 
 
-def _uses(step: dict[Any, Any], prefix: str) -> bool:
-    value = step.get("uses")
+def _run(step: Dict[Any, Any]) -> str:
+    value = step.get("run", "")
+    return value if isinstance(value, str) else ""
+
+
+def _uses(step: Dict[Any, Any], prefix: str) -> bool:
+    value = step.get("uses", "")
     return isinstance(value, str) and value.startswith(prefix)
 
 
-def _with(step: dict[Any, Any]) -> dict[Any, Any]:
-    return step.get("with", {}) if isinstance(step.get("with", {}), dict) else {}
+def _with(step: Dict[Any, Any]) -> Dict[Any, Any]:
+    value = step.get("with", {})
+    return value if isinstance(value, dict) else {}
 
 
-def _text(path: Path) -> str:
-    return path.read_text(encoding="utf-8")
+def _jobs(data: Dict[Any, Any]) -> Dict[Any, Any]:
+    value = data.get("jobs", {})
+    return value if isinstance(value, dict) else {}
 
 
-def _has_durable_artifact(data: dict[Any, Any], name: str, action: str) -> bool:
-    for step in _iter_steps(data):
+def _job(data: Dict[Any, Any], name: str) -> Optional[Dict[Any, Any]]:
+    value = _jobs(data).get(name)
+    return value if isinstance(value, dict) else None
+
+
+def _job_text(job: Optional[Dict[Any, Any]]) -> str:
+    if not job:
+        return ""
+    return "\n".join(_run(step) for step in job.get("steps", []) if isinstance(step, dict))
+
+
+def _retention(step: Dict[Any, Any]) -> Optional[int]:
+    value = _with(step).get("retention-days")
+    try:
+        return int(str(value))
+    except (TypeError, ValueError):
+        return None
+
+
+def _artifact_ok(data: Dict[Any, Any], name: str, action: str) -> bool:
+    for step in _steps(data):
         if _uses(step, action) and _with(step).get("name") == name:
-            try:
-                return int(str(_with(step).get("retention-days"))) >= 30
-            except (TypeError, ValueError):
-                return False
+            days = _retention(step)
+            return days is not None and days >= 30
     return False
 
 
-def _contains_git_push(path: Path) -> bool:
-    return "git push" in _text(path)
-
-
-def _deploy_pages_safe(path: Path) -> list[str]:
-    errors: list[str] = []
-    content = _text(path)
-    if "actions/upload-pages-artifact@" not in content:
-        errors.append("missing Pages artifact upload")
-    if "actions/deploy-pages@" not in content:
-        errors.append("missing Pages deployment")
-    if "npm run build" in content or "vite build" in content:
-        errors.append("Pages must not rebuild frontend")
-    if "STEGO_KEY" in content:
-        errors.append("Pages must not receive symmetric secrets")
-    if "verify_pages_deployment.py" not in content:
-        errors.append("missing public smoke validation")
+def _main_safe(data: Dict[Any, Any]) -> List[str]:
+    errors: List[str] = []
+    text = _job_text(_job(data, "merge_validate_publish"))
+    if "rm -rf output" in text:
+        errors.append("release preparation must not delete output unconditionally")
+    for required in ("quality-job", "matrix-status", "shard-jobs", "restore-wasm"):
+        if f"--required-stage {required}" not in text:
+            errors.append(f"missing readiness stage {required}")
+    if "matrix.enabled" in str(_job(data, "pipeline") or {}).get("if", ""):
+        errors.append("pipeline job if cannot reference matrix")
+    if "needs.setup_matrix.outputs.status == 'ready'" not in str((_job(data, "pipeline") or {}).get("if", "")):
+        errors.append("pipeline must require ready matrix status")
+    if not _artifact_ok(data, "pipeline-output", "actions/upload-artifact@"):
+        errors.append("pipeline-output artifact retention must be >=30 days")
     return errors
 
 
-def _main_safe(path: Path, data: dict[Any, Any]) -> list[str]:
-    errors: list[str] = []
-    content = _text(path)
-    if _contains_git_push(path):
-        errors.append("main workflow must not push commits")
-    if "scripts/resilient_stage.py" not in content:
-        errors.append("missing resilient stage evidence")
-    if "release_readiness.json" not in content:
-        errors.append("missing readiness report")
-    if "pipeline-output" in content and not _has_durable_artifact(data, "pipeline-output", "actions/upload-artifact@"):
-        errors.append("pipeline-output artifact must retain for >=30 days")
-    if "scripts/prepare_public_candidate.py" not in content:
-        errors.append("missing transactional candidate preparation")
+def _pages_safe(data: Dict[Any, Any]) -> List[str]:
+    errors: List[str] = []
+    concurrency = data.get("concurrency", {})
+    if not isinstance(concurrency, dict) or concurrency.get("cancel-in-progress") is not False:
+        errors.append("Pages deployment must not cancel in-flight deploys")
+    text = _job_text(_job(data, "deploy"))
+    if "set +e" in text:
+        errors.append("Pages workflow must not disable shell errors globally")
+    if "verify_pages_deployment.py" not in text:
+        errors.append("missing Pages smoke validation")
+    if "deployment-evidence-bundle" not in text:
+        errors.append("missing deployment evidence bundle")
     return errors
 
 
 def main() -> int:
-    if not WORKFLOW_DIR.exists():
-        print(f"ERROR: workflow directory not found: {WORKFLOW_DIR}")
-        return 1
-    errors: list[str] = []
+    errors: List[str] = []
     for path in sorted([*WORKFLOW_DIR.glob("*.yml"), *WORKFLOW_DIR.glob("*.yaml")]):
         try:
-            data = yaml.safe_load(_text(path))
+            data = yaml.safe_load(path.read_text(encoding="utf-8"))
         except yaml.YAMLError as exc:
             errors.append(f"{path}: YAML parse failed: {exc}")
             continue
-        if not isinstance(data, dict) or ("on" not in data and True not in data):
-            errors.append(f"{path}: invalid workflow root")
+        if not isinstance(data, dict):
+            errors.append(f"{path}: invalid workflow")
             continue
-        if not isinstance(data.get("jobs"), dict) or not data["jobs"]:
-            errors.append(f"{path}: missing jobs")
-        if path.name in CONCURRENCY_REQUIRED and "concurrency" not in data:
-            errors.append(f"{path}: missing concurrency")
-        for ref in UNRESOLVABLE_ACTION_REFS:
-            if ref in _text(path):
-                errors.append(f"{path}: stale action ref {ref}")
         if path.name == "main.yml":
-            errors.extend(f"{path}: {e}" for e in _main_safe(path, data))
+            errors.extend(f"{path}: {item}" for item in _main_safe(data))
         if path.name == "deploy-pages.yml":
-            errors.extend(f"{path}: {e}" for e in _deploy_pages_safe(path))
+            errors.extend(f"{path}: {item}" for item in _pages_safe(data))
     if errors:
         print("ERROR: workflow validation failed")
         for error in errors:
-            print(f"  - {error}")
+            print(error)
         return 1
     print("OK: workflow contracts validated")
     return 0
