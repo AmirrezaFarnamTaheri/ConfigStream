@@ -20,9 +20,12 @@ def test_prepare_public_candidate_preserves_previous_on_failed_swap(
     (destination / "old.txt").write_text("old", encoding="utf-8")
 
     original_replace = Path.replace
+    replace_count = 0
 
-    def fail_second_replace(self: Path, target: Path):
-        if self.name == "output":
+    def fail_second_replace(self: Path, target: Path) -> Path:
+        nonlocal replace_count
+        replace_count += 1
+        if replace_count == 2:
             raise OSError("simulated swap failure")
         return original_replace(self, target)
 
