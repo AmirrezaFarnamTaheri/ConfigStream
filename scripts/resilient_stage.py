@@ -247,7 +247,10 @@ def _run_attempt(
                 env=dict(env),
                 bufsize=1,
             )
-            assert process.stdout is not None
+            if process.stdout is None:
+                process.kill()
+                process.wait(timeout=10)
+                return 125, "log_stream_error", "subprocess stdout pipe was not created"
             reader = threading.Thread(
                 target=_stream_output,
                 args=(process.stdout, log_handle, secrets, reader_errors),
