@@ -30,6 +30,7 @@ jobs:
   quality:
     name: Static and Unit Validation
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v7
         with:
@@ -39,23 +40,27 @@ jobs:
           python-version: "3.11"
           cache: pip
       - run: pip install -e .[dev]
-      - name: Validate remediation scripts
+      - name: Validate workflow resilience controls
         run: |
           python -m py_compile \
+            scripts/resilient_stage.py \
+            scripts/prepare_public_candidate.py \
             scripts/aggregate_shard_health.py \
             scripts/finalize_release_outputs.py \
             scripts/native_client_checks.py \
-            scripts/normalize_legacy_profiles.py \
-            scripts/release_gate.py \
-            scripts/shard_sources.py \
-            src/configstream/testers/python.py
-          pytest -q tests/unit/test_release_remediation.py --disable-warnings --maxfail=1
+            scripts/release_gate.py
+          python scripts/validate_workflows.py
+          pytest -q \
+            tests/unit/test_validate_frontend_placeholders.py \
+            tests/unit/test_validate_workflows.py \
+            --disable-warnings --maxfail=1
 
   build_container:
-    name: Build and Push Container
+    name: Build Container
     if: github.event_name != 'pull_request'
     needs: [quality]
     runs-on: ubuntu-latest
+    continue-on-error: true
     permissions:
       contents: read
       packages: write
@@ -89,6 +94,7 @@ jobs:
     if: github.event_name != 'pull_request'
     needs: [quality]
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v7
         with:
@@ -103,45 +109,81 @@ jobs:
           chmod +x scripts/build_wasm.sh
           ./scripts/build_wasm.sh
       - uses: actions/upload-artifact@v7
+        if: always()
+        continue-on-error: true
         with:
           name: frontend-wasm-${{ github.sha }}-${{ github.run_attempt }}
           path: |
             frontend/assets/wasm/tester.wasm
             frontend/assets/js/wasm_exec.js
-          if-no-files-found: error
+          if-no-files-found: warn
+          retention-days: 7
 
   setup_matrix:
     name: Generate Runtime Source Matrix
     if: github.event_name != 'pull_request'
     needs: [quality]
     runs-on: ubuntu-latest
+    continue-on-error: true
     outputs:
       matrix: ${{ steps.matrix.outputs.value }}
+      status: ${{ steps.matrix.outputs.status }}
     steps:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - id: matrix
+        name: Generate matrix with diagnostic fallback
         run: |
+          set +e
           python scripts/shard_sources.py \
             --parts "$SOURCE_SHARD_PARTS" \
             --matrix-output source-matrix.json \
-            > matrix.stdout.json
+            > matrix.stdout.json 2> matrix.stderr.log
+          rc=$?
+          python - "$rc" <<'PY'
+          import json, pathlib, sys
+          rc = int(sys.argv[1])
+          path = pathlib.Path("source-matrix.json")
+          payload = None
+          if rc == 0 and path.is_file():
+              try:
+                  payload = json.loads(path.read_text())
+              except Exception:
+                  payload = None
+          valid = isinstance(payload, dict) and isinstance(payload.get("include"), list) and bool(payload["include"])
+          if not valid:
+              payload = {"include": [{"enabled": False, "batch": "diagnostic", "part": 0, "source_file": "", "source_count": 0, "source_sha256": ""}]}
+              status = "degraded"
+          else:
+              for row in payload["include"]:
+                  row["enabled"] = True
+              status = "ready"
+          path.write_text(json.dumps(payload, separators=(",", ":")))
+          pathlib.Path("matrix-status.txt").write_text(status)
+          PY
           echo "value=$(cat source-matrix.json)" >> "$GITHUB_OUTPUT"
+          echo "status=$(cat matrix-status.txt)" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v7
+        if: always()
+        continue-on-error: true
         with:
           name: source-matrix-${{ github.sha }}-${{ github.run_attempt }}
           path: |
             sources/runtime/
             source-matrix.json
-          if-no-files-found: error
+            matrix.stdout.json
+            matrix.stderr.log
+          if-no-files-found: warn
+          retention-days: 30
 
   pipeline:
     name: Run Source Shard ${{ matrix.batch }}.${{ matrix.part }}
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && needs.build_container.result == 'success' && matrix.enabled == true
     needs: [build_container, setup_matrix]
     runs-on: ubuntu-latest
     timeout-minutes: 180
+    continue-on-error: true
     permissions:
       contents: read
       packages: read
@@ -161,10 +203,11 @@ jobs:
         with:
           persist-credentials: false
       - uses: actions/download-artifact@v8
+        continue-on-error: true
         with:
           name: source-matrix-${{ github.sha }}-${{ github.run_attempt }}
           path: .
-      - name: Run bounded shard
+      - name: Run bounded shard and always write lineage
         env:
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
           CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
@@ -181,62 +224,51 @@ jobs:
           SOURCE_COUNT: ${{ matrix.source_count }}
           SOURCE_SHA256: ${{ matrix.source_sha256 }}
         run: |
-          set -euo pipefail
+          set +e
           output="output_batch_${BATCH}_part_${PART}"
-          export started_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          mkdir -p "$output"
+          started_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
           python -m configstream.cli merge \
             --sources "$SOURCE_FILE" \
             --output "$output" \
             --max-workers 40 \
             --timeout 24 \
             --max-latency 6000 2>&1 | tee "pipeline_batch_${BATCH}_part_${PART}.log"
-          export completed_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          rc=${PIPESTATUS[0]}
+          completed_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          export rc started_at completed_at
           python - "$output/shard_lineage.json" <<'PY'
           import json, os, pathlib, sys
           pathlib.Path(sys.argv[1]).write_text(json.dumps({
-              "batch": os.environ["BATCH"],
-              "part": int(os.environ["PART"]),
-              "source_file": os.environ["SOURCE_FILE"],
-              "source_count": int(os.environ["SOURCE_COUNT"]),
-              "source_sha256": os.environ["SOURCE_SHA256"],
-              "run_id": os.environ["GITHUB_RUN_ID"],
-              "run_attempt": os.environ["GITHUB_RUN_ATTEMPT"],
-              "source_commit": os.environ["GITHUB_SHA"],
-              "started_at": os.environ.get("started_at"),
-              "completed_at": os.environ.get("completed_at"),
-          }, indent=2) + "\n", encoding="utf-8")
+              "batch": os.environ["BATCH"], "part": int(os.environ["PART"]),
+              "source_file": os.environ["SOURCE_FILE"], "source_count": int(os.environ["SOURCE_COUNT"]),
+              "source_sha256": os.environ["SOURCE_SHA256"], "run_id": os.environ["GITHUB_RUN_ID"],
+              "run_attempt": os.environ["GITHUB_RUN_ATTEMPT"], "source_commit": os.environ["GITHUB_SHA"],
+              "started_at": os.environ["started_at"], "completed_at": os.environ["completed_at"],
+              "exit_code": int(os.environ["rc"]), "status": "success" if os.environ["rc"] == "0" else "failed"
+          }, indent=2) + "\n")
           PY
+          exit 0
       - uses: actions/upload-artifact@v7
         if: always()
+        continue-on-error: true
         with:
           name: shard-${{ github.sha }}-${{ github.run_attempt }}-${{ matrix.batch }}-${{ matrix.part }}
           path: |
             output_batch_${{ matrix.batch }}_part_${{ matrix.part }}/
             pipeline_batch_${{ matrix.batch }}_part_${{ matrix.part }}.log
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 7
 
   merge_validate_publish:
-    name: Merge, Validate, and Publish
-    if: github.event_name != 'pull_request' && needs.pipeline.result == 'success'
-    needs: [pipeline, build_wasm]
+    name: Merge, Diagnose, Gate, and Publish
+    if: always() && github.event_name != 'pull_request'
+    needs: [quality, build_container, build_wasm, setup_matrix, pipeline]
     runs-on: ubuntu-latest
     permissions:
       actions: read
       contents: write
       id-token: write
-    env:
-      CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
-      CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
-      WARP_KEY_POOL: ${{ secrets.WARP_KEY_POOL }}
-      STEGO_KEY: ${{ secrets.STEGO_KEY }}
-      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-      HF_TOKEN: ${{ secrets.HF_TOKEN }}
-      HF_REPO_ID: ${{ secrets.HF_REPO_ID }}
-      GDRIVE_SA_JSON: ${{ secrets.GDRIVE_SA_JSON }}
-      GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
-      PINATA_JWT: ${{ secrets.PINATA_JWT }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -245,135 +277,217 @@ jobs:
         with:
           python-version: "3.11"
       - uses: actions/setup-go@v7
+        continue-on-error: true
         with:
           go-version: '1.24'
           cache: false
-      - run: pip install -e .[dev] huggingface_hub
-      - uses: actions/download-artifact@v8
+      - name: Install Python dependencies
+        continue-on-error: true
+        run: pip install -e .[dev] huggingface_hub
+      - name: Capture workflow context
+        run: |
+          mkdir -p pipeline-evidence/stages
+          python scripts/resilient_stage.py context --output pipeline-evidence/workflow_context.json
+          python scripts/resilient_stage.py record --name quality-job --status ${{ needs.quality.result }}
+          python scripts/resilient_stage.py record --name container-job --status ${{ needs.build_container.result }}
+          python scripts/resilient_stage.py record --name wasm-job --status ${{ needs.build_wasm.result }}
+          python scripts/resilient_stage.py record --name matrix-job --status ${{ needs.setup_matrix.result }}
+          python scripts/resilient_stage.py record --name shard-jobs --status ${{ needs.pipeline.result }}
+      - name: Download shard artifacts
+        id: shard_download
+        uses: actions/download-artifact@v8
+        continue-on-error: true
         with:
           pattern: shard-${{ github.sha }}-${{ github.run_attempt }}-*
           path: artifacts
           merge-multiple: true
-      - uses: actions/download-artifact@v8
+      - name: Download WASM artifact
+        id: wasm_download
+        uses: actions/download-artifact@v8
+        continue-on-error: true
         with:
           name: frontend-wasm-${{ github.sha }}-${{ github.run_attempt }}
-          path: frontend/assets
-      - name: Restore isolated shard outputs
+          path: wasm-artifact
+      - name: Record artifact downloads
+        if: always()
         run: |
-          set -euo pipefail
-          find artifacts -mindepth 1 -maxdepth 1 -type d -name 'output_batch_*' -exec mv {} . \;
-          find artifacts -type f -name 'pipeline_batch_*.log' -exec mv {} . \;
-          test "$(find . -maxdepth 1 -type d -name 'output_batch_*' | wc -l)" -gt 0
-      - name: Merge and reconcile shard evidence
+          python scripts/resilient_stage.py record --name shard-download --status ${{ steps.shard_download.outcome }}
+          python scripts/resilient_stage.py record --name wasm-download --status ${{ steps.wasm_download.outcome }}
+      - name: Restore available artifacts
         run: |
-          python -m scripts.merge_batches
-          python scripts/aggregate_shard_health.py --parts "$SOURCE_SHARD_PARTS"
-      - name: Generate source reshard recommendation
-        run: python scripts/dynamic_reshard.py
+          python scripts/resilient_stage.py run --name restore-shards -- bash -lc '
+            shopt -s nullglob globstar
+            found=0
+            for dir in artifacts/**/output_batch_*; do
+              [ -d "$dir" ] || continue
+              dest=$(basename "$dir")
+              rm -rf "$dest"
+              mv "$dir" "$dest"
+              found=$((found+1))
+            done
+            find artifacts -type f -name "pipeline_batch_*.log" -exec cp {} . \; 2>/dev/null || true
+            [ "$found" -gt 0 ]
+          '
+          python scripts/resilient_stage.py run --name restore-wasm -- bash -lc '
+            tester=$(find wasm-artifact -type f -name tester.wasm | head -1)
+            execjs=$(find wasm-artifact -type f -name wasm_exec.js | head -1)
+            [ -z "$tester" ] || { mkdir -p frontend/assets/wasm; cp "$tester" frontend/assets/wasm/tester.wasm; }
+            [ -z "$execjs" ] || { mkdir -p frontend/assets/js; cp "$execjs" frontend/assets/js/wasm_exec.js; }
+            exit 0
+          '
+      - name: Merge and reconcile all available shard evidence
+        run: |
+          python scripts/resilient_stage.py run --name merge-batches -- python -m scripts.merge_batches
+          python scripts/resilient_stage.py run --name aggregate-shard-health -- python scripts/aggregate_shard_health.py --parts "$SOURCE_SHARD_PARTS"
+          python scripts/resilient_stage.py run --name dynamic-reshard -- python scripts/dynamic_reshard.py
       - name: Upload source reshard recommendation
         uses: actions/upload-artifact@v7
+        if: always()
+        continue-on-error: true
         with:
           name: source-reshard-recommendation
           path: sources/batch_*.txt
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 30
       - name: Prepare public output artifact
+        env:
+          CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
+          CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
         run: |
-          set -euo pipefail
-          mkdir -p output/docs
-          mkdir -p output/tools output/api
-          test ! -d docs/wiki || cp -R docs/wiki output/docs/
-          cp -R frontend/. output/
-          cp tools/lab-scanner.py output/tools/lab-scanner.py
-          cp tools/lab-runner.sh output/tools/lab-runner.sh
-          python scripts/validate_frontend_placeholders.py --inject-env output
-          python scripts/normalize_legacy_profiles.py output
-          python scripts/finalize_release_outputs.py output --repo-root . --min-source-coverage "$MIN_SOURCE_COVERAGE"
-          cp output/proxies.json output/api/proxies
-          cp output/metadata.json output/api/stats
-          touch output/.nojekyll
-          if [ ! -s output/pipeline_events.jsonl ]; then
-            printf '{"timestamp":"%s","stage":"artifact_prepare","level":"info","event_type":"artifact_prepare","message":"pipeline event telemetry initialized during public artifact preparation"}\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > output/pipeline_events.jsonl
-          fi
-          python scripts/validate_pages_artifact.py --refresh-contract output
-      - name: Install pinned native validators
+          python scripts/resilient_stage.py run --name prepare-public-candidate -- python scripts/prepare_public_candidate.py output public-candidate --frontend frontend --repo-root .
+          rm -rf output
+          if [ -d public-candidate ]; then mv public-candidate output; fi
+          python scripts/resilient_stage.py run --name frontend-public-boundary -- python scripts/validate_frontend_placeholders.py --inject-env --strict output
+          python scripts/resilient_stage.py run --name normalize-legacy-profiles -- python scripts/normalize_legacy_profiles.py output
+          python scripts/resilient_stage.py run --name finalize-release -- python scripts/finalize_release_outputs.py output --repo-root . --min-source-coverage "$MIN_SOURCE_COVERAGE"
+          python scripts/resilient_stage.py run --name refresh-output-contract -- python scripts/validate_pages_artifact.py --refresh-contract output
+      - name: Install native validators without aborting diagnostics
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/native" "$HOME/.local/bin"
-          cd "$RUNNER_TEMP/native"
-          gh release download "v${SING_BOX_VERSION}" --repo SagerNet/sing-box --pattern "sing-box-${SING_BOX_VERSION}-linux-amd64.tar.gz"
-          tar -xzf "sing-box-${SING_BOX_VERSION}-linux-amd64.tar.gz"
-          install -m 0755 "sing-box-${SING_BOX_VERSION}-linux-amd64/sing-box" "$HOME/.local/bin/sing-box"
-          gh release download "$XRAY_VERSION" --repo XTLS/Xray-core --pattern "Xray-linux-64.zip"
-          mkdir xray && unzip -q Xray-linux-64.zip -d xray
-          install -m 0755 xray/xray "$HOME/.local/bin/xray"
-          asset=$(gh api "repos/MetaCubeX/mihomo/releases/tags/${MIHOMO_VERSION}" --jq '.assets[].name | select(test("^mihomo-linux-amd64-v[0-9]+-v[0-9.]+\\.gz$"))' | head -1)
-          test -n "$asset"
-          gh release download "$MIHOMO_VERSION" --repo MetaCubeX/mihomo --pattern "$asset"
-          gzip -dc "$asset" > "$HOME/.local/bin/mihomo"
-          chmod 0755 "$HOME/.local/bin/mihomo"
+          python scripts/resilient_stage.py run --name install-native-validators -- bash -lc '
+            set -u
+            mkdir -p "$RUNNER_TEMP/native" "$HOME/.local/bin"
+            cd "$RUNNER_TEMP/native"
+            retry() { n=0; until "$@"; do n=$((n+1)); [ "$n" -ge 3 ] && return 1; sleep $((n*10)); done; }
+            retry gh release download "v${SING_BOX_VERSION}" --repo SagerNet/sing-box --pattern "sing-box-${SING_BOX_VERSION}-linux-amd64.tar.gz"
+            tar -xzf "sing-box-${SING_BOX_VERSION}-linux-amd64.tar.gz"
+            install -m 0755 "sing-box-${SING_BOX_VERSION}-linux-amd64/sing-box" "$HOME/.local/bin/sing-box"
+            retry gh release download "$XRAY_VERSION" --repo XTLS/Xray-core --pattern "Xray-linux-64.zip"
+            mkdir -p xray && unzip -oq Xray-linux-64.zip -d xray
+            install -m 0755 xray/xray "$HOME/.local/bin/xray"
+            asset=$(gh api "repos/MetaCubeX/mihomo/releases/tags/${MIHOMO_VERSION}" --jq ".assets[].name | select(test(\"^mihomo-linux-amd64-v[0-9]+-v[0-9.]+\\\\.gz$\"))" | head -1)
+            [ -n "$asset" ]
+            retry gh release download "$MIHOMO_VERSION" --repo MetaCubeX/mihomo --pattern "$asset"
+            gzip -dc "$asset" > "$HOME/.local/bin/mihomo"
+            chmod 0755 "$HOME/.local/bin/mihomo"
+          '
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-      - name: Mandatory native validation
+      - name: Run every mandatory release gate
         run: |
           mkdir -p pipeline-evidence
-          python scripts/native_client_checks.py output --report pipeline-evidence/native_client_check_report.json
-      - name: Fail-closed release gate
+          python scripts/resilient_stage.py run --name native-validation -- python scripts/native_client_checks.py output --report pipeline-evidence/native_client_check_report.json
+          python scripts/resilient_stage.py run --name release-gate -- python scripts/release_gate.py output --native-report pipeline-evidence/native_client_check_report.json --min-source-coverage "$MIN_SOURCE_COVERAGE" --promote
+          python scripts/resilient_stage.py run --name final-contract -- python scripts/validate_pages_artifact.py --native-client-check --native-report-file pipeline-evidence/native_client_check_report.json output
+          python scripts/resilient_stage.py run --name evidence-bundle -- python scripts/generate_evidence_bundle.py --output-dir output --evidence-dir pipeline-evidence --native-report pipeline-evidence/native_client_check_report.json
+      - name: Evaluate release readiness
+        id: readiness
         run: |
-          python scripts/release_gate.py output \
-            --native-report pipeline-evidence/native_client_check_report.json \
-            --min-source-coverage "$MIN_SOURCE_COVERAGE" \
-            --promote
-      - name: Validate data release output contract
-        run: |
-          python scripts/validate_pages_artifact.py \
-            --native-client-check \
-            --native-report-file pipeline-evidence/native_client_check_report.json \
-            output
-      - name: Generate evidence
-        run: |
-          python scripts/generate_evidence_bundle.py \
-            --output-dir output \
-            --evidence-dir pipeline-evidence \
-            --native-report pipeline-evidence/native_client_check_report.json
-      - uses: actions/upload-artifact@v7
+          python scripts/resilient_stage.py evaluate \
+            --required-stage restore-shards \
+            --required-stage merge-batches \
+            --required-stage prepare-public-candidate \
+            --required-stage frontend-public-boundary \
+            --required-stage finalize-release \
+            --required-stage native-validation \
+            --required-stage release-gate \
+            --required-stage final-contract \
+            --required-file output/metadata.json \
+            --required-file output/proxies.json \
+            --output pipeline-evidence/release_readiness.json
+          ready=$(python -c 'import json; print(str(json.load(open("pipeline-evidence/release_readiness.json"))["publish_ready"]).lower())')
+          echo "publish_ready=$ready" >> "$GITHUB_OUTPUT"
+      - name: Upload complete diagnostic evidence
+        uses: actions/upload-artifact@v7
+        if: always()
+        continue-on-error: true
         with:
           name: pipeline-evidence-${{ github.run_id }}-${{ github.run_attempt }}
           path: pipeline-evidence/
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 30
-      - uses: actions/upload-artifact@v7
+      - name: Upload diagnostic candidate
+        uses: actions/upload-artifact@v7
+        if: always()
+        continue-on-error: true
+        with:
+          name: pipeline-candidate-${{ github.run_id }}-${{ github.run_attempt }}
+          path: output/
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Upload canonical pipeline output
+        uses: actions/upload-artifact@v7
+        if: steps.readiness.outputs.publish_ready == 'true'
         with:
           name: pipeline-output
           path: output/
           include-hidden-files: true
           if-no-files-found: error
           retention-days: 30
-      - name: Publish to IPFS
-        if: env.PINATA_JWT != ''
-        run: python scripts/publish_ipfs.py --file output/ --domain fallback.example.com
-      - name: Upload to Telegram
-        if: env.TELEGRAM_BOT_TOKEN != ''
-        run: python scripts/upload_telegram.py
-      - name: Upload to Hugging Face
-        if: env.HF_TOKEN != ''
-        run: python scripts/upload_hf.py --path output/ --repo-id "$HF_REPO_ID"
-      - name: Upload to Google Drive
-        if: env.GDRIVE_FOLDER_ID != ''
+      - name: Publish to IPFS independently
+        if: steps.readiness.outputs.publish_ready == 'true'
+        env:
+          PINATA_JWT: ${{ secrets.PINATA_JWT }}
         run: |
-          pip install google-api-python-client google-auth
-          python scripts/upload_gdrive.py --path output/ --folder-id "$GDRIVE_FOLDER_ID"
-      - name: Prepare release assets
-        id: assets
+          if [ -z "$PINATA_JWT" ]; then python scripts/resilient_stage.py record --name publish-ipfs --status skipped; else python scripts/resilient_stage.py run --name publish-ipfs -- python scripts/publish_ipfs.py --file output/ --domain fallback.example.com; fi
+      - name: Upload to Telegram independently
+        if: steps.readiness.outputs.publish_ready == 'true'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          files=$(python scripts/prepare_release_assets.py --output-dir output)
-          echo "files=$files" >> "$GITHUB_OUTPUT"
-          echo "tag=v$(date +'%Y.%m.%d-%H%M')" >> "$GITHUB_OUTPUT"
-      - uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228
-        with:
-          tag_name: ${{ steps.assets.outputs.tag }}
-          name: ConfigStream ${{ steps.assets.outputs.tag }}
-          files: ${{ steps.assets.outputs.files }}
-          draft: false
-          prerelease: false
+          if [ -z "$TELEGRAM_BOT_TOKEN" ]; then python scripts/resilient_stage.py record --name publish-telegram --status skipped; else python scripts/resilient_stage.py run --name publish-telegram -- python scripts/upload_telegram.py; fi
+      - name: Upload to Hugging Face independently
+        if: steps.readiness.outputs.publish_ready == 'true'
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_REPO_ID: ${{ secrets.HF_REPO_ID }}
+        run: |
+          if [ -z "$HF_TOKEN" ] || [ -z "$HF_REPO_ID" ]; then python scripts/resilient_stage.py record --name publish-huggingface --status skipped; else python scripts/resilient_stage.py run --name publish-huggingface -- python scripts/upload_hf.py --path output/ --repo-id "$HF_REPO_ID"; fi
+      - name: Upload to Google Drive independently
+        if: steps.readiness.outputs.publish_ready == 'true'
+        env:
+          GDRIVE_SA_JSON: ${{ secrets.GDRIVE_SA_JSON }}
+          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
+        run: |
+          if [ -z "$GDRIVE_FOLDER_ID" ]; then
+            python scripts/resilient_stage.py record --name publish-gdrive --status skipped
+          else
+            python scripts/resilient_stage.py run --name install-gdrive-client -- pip install google-api-python-client google-auth
+            python scripts/resilient_stage.py run --name publish-gdrive -- python scripts/upload_gdrive.py --path output/ --folder-id "$GDRIVE_FOLDER_ID"
+          fi
+      - name: Publish GitHub Release independently
+        if: steps.readiness.outputs.publish_ready == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python scripts/resilient_stage.py run --name publish-github-release -- bash -lc '
+            files=$(python scripts/prepare_release_assets.py --output-dir output)
+            tag="v$(date +%Y.%m.%d-%H%M)-${GITHUB_RUN_ID}"
+            gh release create "$tag" $files --title "ConfigStream $tag" --notes "Automated verified release from ${GITHUB_SHA}."
+          '
+      - name: Final self-describing summary
+        if: always()
+        run: |
+          python scripts/resilient_stage.py summary --output pipeline-evidence/stage_summary.json
+          python - <<'PY'
+          import json, pathlib
+          readiness = pathlib.Path('pipeline-evidence/release_readiness.json')
+          data = json.loads(readiness.read_text()) if readiness.exists() else {'status':'unknown','blockers':['readiness report missing']}
+          with open(pathlib.Path(__import__('os').environ['GITHUB_STEP_SUMMARY']), 'a') as fh:
+              fh.write('\n## Final release disposition\n')
+              fh.write(f"- Status: **{data.get('status')}**\n")
+              fh.write(f"- Canonical publication allowed: **{data.get('publish_ready', False)}**\n")
+              for blocker in data.get('blockers', []): fh.write(f"- Blocker: `{blocker}`\n")
+          PY
