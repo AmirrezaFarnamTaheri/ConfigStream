@@ -15,7 +15,7 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -30,25 +30,21 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Checkout validation code
-        uses: actions/checkout@v7
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
           fetch-depth: 1
           persist-credentials: false
-
-      - name: Set up Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
-
       - name: Initialise deployment evidence
         run: |
+          set -euo pipefail
           mkdir -p deploy-evidence/stages
           python scripts/resilient_stage.py context --output deploy-evidence/workflow_context.json
           echo "HAS_OUTPUT=false" >> "$GITHUB_ENV"
           echo "DEPLOY_READY=false" >> "$GITHUB_ENV"
-
       - name: Locate and download exact canonical artifact
         id: locate
         env:
@@ -56,152 +52,83 @@ jobs:
           REPOSITORY: ${{ github.repository }}
           TRIGGER_RUN_ID: ${{ github.event.workflow_run.id }}
         run: |
-          set +e
-          rm -rf output
+          set -euo pipefail
           selected=""
+          rc=1
           if [ "${{ github.event_name }}" = "workflow_run" ]; then
             selected="$TRIGGER_RUN_ID"
-            gh run download "$selected" --repo "$REPOSITORY" --name pipeline-output --dir output
-            rc=$?
-          else
-            rc=1
-            while IFS= read -r candidate; do
-              [ -n "$candidate" ] || continue
-              rm -rf output
-              if gh run download "$candidate" --repo "$REPOSITORY" --name pipeline-output --dir output; then
-                selected="$candidate"
-                rc=0
-                break
-              fi
-            done < <(gh run list --repo "$REPOSITORY" --workflow main.yml --branch main --status success --limit 20 --json databaseId --jq '.[].databaseId')
+            if gh run download "$selected" --repo "$REPOSITORY" --name pipeline-output --dir output; then rc=0; fi
           fi
-
           if [ "$rc" -eq 0 ] && [ -s output/metadata.json ] && [ -s output/proxies.json ]; then
             echo "HAS_OUTPUT=true" >> "$GITHUB_ENV"
             echo "source_run_id=$selected" >> "$GITHUB_OUTPUT"
-            python scripts/resilient_stage.py record --name locate-pipeline-output --status success --description "Downloaded canonical pipeline-output from run $selected"
+            python scripts/resilient_stage.py record --name locate-pipeline-output --status success
           else
             rm -rf output
             echo "source_run_id=${selected:-none}" >> "$GITHUB_OUTPUT"
-            python scripts/resilient_stage.py record --name locate-pipeline-output --status skipped --description "No canonical pipeline-output was available; deployment intentionally skipped"
+            python scripts/resilient_stage.py record --name locate-pipeline-output --status failed --description "Canonical pipeline output unavailable"
           fi
-          exit 0
-
       - name: Verify artifact without mutation
         id: verify
         if: env.HAS_OUTPUT == 'true'
         run: |
-          python scripts/resilient_stage.py run \
-            --name verify-sealed-pages-artifact \
-            --description "Validate the exact canonical artifact without rebuilding or injecting secrets" \
-            --remediation "Fix the producing release workflow; Pages never mutates release bytes" \
-            --timeout 600 \
-            -- bash -lc '
-              set -euo pipefail
-              before=$(find output -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d" " -f1)
-              python scripts/validate_frontend_placeholders.py --strict output
-              python scripts/validate_pages_artifact.py output
-              after=$(find output -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d" " -f1)
-              test "$before" = "$after"
-              printf "%s\n" "$before" > deploy-evidence/artifact-tree.sha256
-            '
-          status=$(python -c 'import json; print(json.load(open("deploy-evidence/stages/verify-sealed-pages-artifact.json"))["status"])')
-          if [ "$status" = success ]; then
-            echo "DEPLOY_READY=true" >> "$GITHUB_ENV"
-            echo "ready=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "ready=false" >> "$GITHUB_OUTPUT"
-          fi
-
+          set -euo pipefail
+          python scripts/resilient_stage.py run --name verify-sealed-pages-artifact --timeout 600 -- bash -lc '
+            set -euo pipefail
+            before=$(find output -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d" " -f1)
+            python scripts/validate_frontend_placeholders.py --strict output
+            python scripts/validate_pages_artifact.py output
+            after=$(find output -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d" " -f1)
+            test "$before" = "$after"
+          '
+          echo "DEPLOY_READY=true" >> "$GITHUB_ENV"
       - name: Upload sealed Pages artifact
         id: pages_artifact
         if: env.DEPLOY_READY == 'true'
-        continue-on-error: true
         uses: actions/upload-pages-artifact@v5
         with:
           path: output
           retention-days: 30
-
-      - name: Record Pages artifact upload
-        if: always()
-        run: |
-          status="${{ steps.pages_artifact.outcome }}"
-          if [ "$status" = "" ]; then status=skipped; fi
-          python scripts/resilient_stage.py record --name upload-pages-artifact --status "$status" --description "Upload the already-sealed canonical artifact"
-
       - name: Deploy to GitHub Pages
         id: deployment
         if: env.DEPLOY_READY == 'true' && steps.pages_artifact.outcome == 'success'
-        continue-on-error: true
-        timeout-minutes: 10
         uses: actions/deploy-pages@v5
-
-      - name: Record deployment outcome
-        if: always()
-        run: |
-          status="${{ steps.deployment.outcome }}"
-          if [ "$status" = "" ]; then status=skipped; fi
-          python scripts/resilient_stage.py record --name deploy-pages --status "$status" --description "Deploy sealed artifact from source run ${{ steps.locate.outputs.source_run_id }}"
-
       - name: Smoke deployed Pages URL
         if: steps.deployment.outcome == 'success'
         run: |
-          python scripts/resilient_stage.py run \
-            --name smoke-pages \
-            --description "Verify the deployed URL and public contract" \
-            --timeout 600 \
-            -- python scripts/verify_pages_deployment.py "${{ steps.deployment.outputs.page_url }}" --report-file deploy-evidence/smoke-report.json
-
-      - name: Install Playwright for visual evidence
-        if: steps.deployment.outcome == 'success'
-        run: |
-          python scripts/resilient_stage.py run --name install-playwright --timeout 900 -- bash -lc 'pip install playwright && playwright install chromium --with-deps'
-
-      - name: Capture deployment screenshots
-        if: steps.deployment.outcome == 'success'
-        run: |
-          python scripts/resilient_stage.py run \
-            --name deployment-screenshots \
-            --timeout 600 \
-            -- python scripts/take_deployment_screenshots.py "${{ steps.deployment.outputs.page_url }}"
-
+          set -euo pipefail
+          python scripts/resilient_stage.py run --name smoke-pages --timeout 600 -- python scripts/verify_pages_deployment.py "${{ steps.deployment.outputs.page_url }}" --report-file deploy-evidence/smoke-report.json
       - name: Generate deployment evidence bundle
         if: always()
         run: |
-          python scripts/resilient_stage.py summary --report-dir deploy-evidence/stages --output deploy-evidence/stage_summary.json
+          set -euo pipefail
           if [ -d output ]; then
-            python scripts/resilient_stage.py run \
-              --name deployment-evidence-bundle \
-              --report-dir deploy-evidence/stages \
-              -- python scripts/generate_evidence_bundle.py --output-dir output --evidence-dir deploy-evidence --smoke-report deploy-evidence/smoke-report.json
+            python scripts/resilient_stage.py run --name deployment-evidence-bundle --report-dir deploy-evidence/stages -- python scripts/generate_evidence_bundle.py --output-dir output --evidence-dir deploy-evidence --smoke-report deploy-evidence/smoke-report.json
           fi
-
+          python scripts/resilient_stage.py summary --report-dir deploy-evidence/stages --output deploy-evidence/stage_summary.json
       - name: Upload deployment diagnostics
         if: always()
-        continue-on-error: true
         uses: actions/upload-artifact@v7
         with:
           name: deploy-evidence-${{ github.run_id }}-${{ github.run_attempt }}
           path: deploy-evidence/
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 30
-
       - name: Deployment disposition
         if: always()
         run: |
+          set -euo pipefail
           python - <<'PY'
+          from pathlib import Path
           import json
           import os
-          from pathlib import Path
 
-          summary = Path("deploy-evidence/stage_summary.json")
-          payload = json.loads(summary.read_text()) if summary.exists() else {"stages": []}
+          path = Path("deploy-evidence/stage_summary.json")
+          summary = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {"stages": []}
           with Path(os.environ["GITHUB_STEP_SUMMARY"]).open("a", encoding="utf-8") as handle:
               handle.write("## Pages deployment disposition\n")
-              handle.write(f"- Source run: `{os.environ.get('SOURCE_RUN_ID', '${{ steps.locate.outputs.source_run_id }}')}`\n")
-              handle.write(f"- Canonical artifact found: **{os.environ.get('HAS_OUTPUT', 'false')}**\n")
-              handle.write(f"- Artifact verified and immutable: **{os.environ.get('DEPLOY_READY', 'false')}**\n")
-              handle.write(f"- Deployment action: **${{ steps.deployment.outcome || 'skipped' }}**\n")
-              for stage in payload.get("stages", []):
+              for stage in summary.get("stages", []):
                   handle.write(f"- `{stage.get('name')}`: **{stage.get('status')}**\n")
+          if any(stage.get("status") == "failed" for stage in summary.get("stages", [])):
+              raise SystemExit("Pages deployment failed closed")
           PY
