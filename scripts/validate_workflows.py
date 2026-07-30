@@ -176,9 +176,7 @@ def _ci_safe(data: dict[Any, Any]) -> list[str]:
     browser = _find_job(data, "frontend-browser")
     browser_commands = (
         "\n".join(
-            _run(step)
-            for step in browser.get("steps", [])
-            if isinstance(step, dict)
+            _run(step) for step in browser.get("steps", []) if isinstance(step, dict)
         )
         if browser
         else ""
@@ -194,9 +192,7 @@ def _ci_safe(data: dict[Any, Any]) -> list[str]:
         errors.append("missing required frontend-browser Playwright profile")
     frontend_commands = (
         "\n".join(
-            _run(step)
-            for step in frontend.get("steps", [])
-            if isinstance(step, dict)
+            _run(step) for step in frontend.get("steps", []) if isinstance(step, dict)
         )
         if frontend
         else ""
@@ -403,9 +399,7 @@ def main() -> int:
         print(f"ERROR: workflow directory not found: {WORKFLOW_DIR}")
         return 1
     workflow_files = sorted(
-        path
-        for pattern in ("*.yml", "*.yaml")
-        for path in WORKFLOW_DIR.glob(pattern)
+        path for pattern in ("*.yml", "*.yaml") for path in WORKFLOW_DIR.glob(pattern)
     )
     if not workflow_files:
         print(f"ERROR: no workflow files found in {WORKFLOW_DIR}")
