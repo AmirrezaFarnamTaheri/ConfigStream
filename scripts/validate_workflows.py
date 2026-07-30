@@ -262,7 +262,9 @@ def _main_wasm_download_has_dependency(data: dict[Any, Any]) -> bool:
 
 def _main_resilient_contract(data: dict[Any, Any]) -> list[str]:
     if not _has_command(data, "scripts/resilient_stage.py"):
-        return []
+        return [
+            "main workflow must orchestrate stages through scripts/resilient_stage.py"
+        ]
     errors: list[str] = []
     quality = _find_job(data, "quality")
     matrix = _find_job(data, "setup_matrix")
