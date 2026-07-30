@@ -42,12 +42,16 @@ def prepare(
         shutil.copytree(merged_output, staging)
         shutil.copytree(frontend, staging, dirs_exist_ok=True)
         copied_optional = {
-            "wiki": _copy_optional(repo_root / "docs" / "wiki", staging / "docs" / "wiki"),
+            "wiki": _copy_optional(
+                repo_root / "docs" / "wiki", staging / "docs" / "wiki"
+            ),
             "lab_scanner": _copy_optional(
-                repo_root / "tools" / "lab-scanner.py", staging / "tools" / "lab-scanner.py"
+                repo_root / "tools" / "lab-scanner.py",
+                staging / "tools" / "lab-scanner.py",
             ),
             "lab_runner": _copy_optional(
-                repo_root / "tools" / "lab-runner.sh", staging / "tools" / "lab-runner.sh"
+                repo_root / "tools" / "lab-runner.sh",
+                staging / "tools" / "lab-runner.sh",
             ),
         }
         (staging / "api").mkdir(parents=True, exist_ok=True)
