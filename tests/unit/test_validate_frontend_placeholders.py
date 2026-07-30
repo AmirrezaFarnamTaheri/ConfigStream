@@ -10,7 +10,6 @@ from scripts.validate_frontend_placeholders import (
     validate_frontend_placeholders,
 )
 
-
 SYMMETRIC_SECRET_FIELDS = ("STEGO_KEY", "CONFIG_STREAM_KEY")
 
 
@@ -31,7 +30,9 @@ def _write_frontend(root: Path) -> None:
     )
 
 
-def test_validate_frontend_placeholders_detects_public_and_stego_keys(tmp_path: Path) -> None:
+def test_validate_frontend_placeholders_detects_public_and_stego_keys(
+    tmp_path: Path,
+) -> None:
     _write_frontend(tmp_path)
     errors = validate_frontend_placeholders(tmp_path, strict=True)
     assert any("PUBLIC_KEY placeholder" in error for error in errors)
@@ -39,7 +40,9 @@ def test_validate_frontend_placeholders_detects_public_and_stego_keys(tmp_path: 
     assert any("symmetric key field" in error for error in errors)
 
 
-def test_inject_frontend_keys_generates_public_only_runtime_config(tmp_path: Path) -> None:
+def test_inject_frontend_keys_generates_public_only_runtime_config(
+    tmp_path: Path,
+) -> None:
     _write_frontend(tmp_path)
     changed = inject_frontend_keys(
         tmp_path,
@@ -49,7 +52,9 @@ def test_inject_frontend_keys_generates_public_only_runtime_config(tmp_path: Pat
     assert validate_frontend_placeholders(tmp_path, strict=True) == []
 
 
-def test_inject_frontend_keys_ignores_all_ambient_symmetric_secrets(tmp_path: Path) -> None:
+def test_inject_frontend_keys_ignores_all_ambient_symmetric_secrets(
+    tmp_path: Path,
+) -> None:
     _write_frontend(tmp_path)
     env = {
         "CS_PUBLIC_KEY": "public",
@@ -65,18 +70,29 @@ def test_inject_frontend_keys_ignores_all_ambient_symmetric_secrets(tmp_path: Pa
     assert "private-value-must-never-ship" not in runtime
 
 
-def test_validate_frontend_placeholders_allows_missing_stego_when_not_strict(tmp_path: Path) -> None:
+def test_validate_frontend_placeholders_allows_missing_stego_when_not_strict(
+    tmp_path: Path,
+) -> None:
     js_dir = tmp_path / "assets" / "js"
     js_dir.mkdir(parents=True)
-    (js_dir / "constants.js").write_text('window.CS_CONSTANTS = { PUBLIC_KEY: "" };\n', encoding="utf-8")
+    (js_dir / "constants.js").write_text(
+        'window.CS_CONSTANTS = { PUBLIC_KEY: "" };\n', encoding="utf-8"
+    )
     assert validate_frontend_placeholders(tmp_path, strict=False) == []
 
 
-def test_validate_frontend_placeholders_strict_requires_public_key(tmp_path: Path) -> None:
+def test_validate_frontend_placeholders_strict_requires_public_key(
+    tmp_path: Path,
+) -> None:
     js_dir = tmp_path / "assets" / "js"
     js_dir.mkdir(parents=True)
-    (js_dir / "constants.js").write_text('window.CS_CONSTANTS = { PUBLIC_KEY: "" };\n', encoding="utf-8")
+    (js_dir / "constants.js").write_text(
+        'window.CS_CONSTANTS = { PUBLIC_KEY: "" };\n', encoding="utf-8"
+    )
     (js_dir / "stego.js").write_text("window.CS_RUNTIME_CONFIG;\n", encoding="utf-8")
-    (js_dir / "runtime-config.js").write_text('window.CS_RUNTIME_CONFIG = { PUBLIC_KEY: "", IPNS_KEY: "" };\n', encoding="utf-8")
+    (js_dir / "runtime-config.js").write_text(
+        'window.CS_RUNTIME_CONFIG = { PUBLIC_KEY: "", IPNS_KEY: "" };\n',
+        encoding="utf-8",
+    )
     errors = validate_frontend_placeholders(tmp_path, strict=True)
     assert any("PUBLIC_KEY is missing" in error for error in errors)
