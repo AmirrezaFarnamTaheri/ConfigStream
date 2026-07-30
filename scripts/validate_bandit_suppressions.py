@@ -114,7 +114,11 @@ def _collect_active_bandit_findings(scan_roots: tuple[str, ...]) -> FindingMap:
                 "Bandit active-finding scan failed with exit code "
                 f"{completed.returncode}: {completed.stderr.strip()}"
             )
-        report = json.loads(report_path.read_text(encoding="utf-8"))
+        try:
+            content = report_path.read_text(encoding="utf-8").strip()
+            report = json.loads(content) if content else {"results": []}
+        except json.JSONDecodeError as exc:
+            raise RuntimeError(f"Bandit returned invalid JSON: {exc}") from exc
     finally:
         report_path.unlink(missing_ok=True)
     findings: FindingMap = {}
@@ -128,15 +132,11 @@ def _collect_active_bandit_findings(scan_roots: tuple[str, ...]) -> FindingMap:
 
 
 def _inert_exception_suppression(path: Path, line_no: int, token: str) -> bool:
-    """Allow legacy B110/B112 comments only when the handler is no longer silent."""
     if path.suffix != ".py" or token not in {"B110", "B112"}:
         return False
     lines = path.read_text(encoding="utf-8").splitlines()
-    start = max(0, line_no - 1)
-    window = "\n".join(lines[start : min(len(lines), start + 8)])
-    return any(
-        marker in window for marker in ("logger.", "logging.", "raise", "print(")
-    )
+    window = "\n".join(lines[max(0, line_no - 1) : min(len(lines), line_no + 7)])
+    return any(marker in window for marker in ("logger.", "logging.", "raise", "print("))
 
 
 def validate_bandit_suppressions(
@@ -154,21 +154,14 @@ def validate_bandit_suppressions(
         for line_no, match in _nosec_comments(path, source):
             tokens = _rule_tokens(match.group("body"))
             if not tokens:
-                errors.append(
-                    f"{rel_path}:{line_no}: bare Bandit suppression is forbidden; "
-                    "pin exact rule IDs"
-                )
+                errors.append(f"{rel_path}:{line_no}: bare Bandit suppression is forbidden; pin exact rule IDs")
                 continue
             invalid = [token for token in tokens if not RULE_RE.fullmatch(token)]
             if invalid:
-                errors.append(
-                    f"{rel_path}:{line_no}: invalid nosec rule token(s): {', '.join(invalid)}"
-                )
+                errors.append(f"{rel_path}:{line_no}: invalid nosec rule token(s): {', '.join(invalid)}")
             duplicates = sorted({token for token in tokens if tokens.count(token) > 1})
             if duplicates:
-                errors.append(
-                    f"{rel_path}:{line_no}: duplicate nosec rule token(s): {', '.join(duplicates)}"
-                )
+                errors.append(f"{rel_path}:{line_no}: duplicate nosec rule token(s): {', '.join(duplicates)}")
             if active_findings is None:
                 continue
             active_tokens = active_findings.get((rel_path, line_no), set())
@@ -180,28 +173,17 @@ def validate_bandit_suppressions(
                 and not _inert_exception_suppression(path, line_no, token)
             ]
             if stale_tokens:
-                errors.append(
-                    f"{rel_path}:{line_no}: stale or misplaced nosec rule token(s): "
-                    f"{', '.join(stale_tokens)}"
-                )
+                errors.append(f"{rel_path}:{line_no}: stale or misplaced nosec rule token(s): {', '.join(stale_tokens)}")
     return errors
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "paths", nargs="*", help="Repository-relative files or directories."
-    )
-    parser.add_argument(
-        "--require-active",
-        action="store_true",
-        help="Require each suppression to match a live Bandit finding or an audited inert handler.",
-    )
+    parser.add_argument("paths", nargs="*")
+    parser.add_argument("--require-active", action="store_true")
     args = parser.parse_args(argv)
     scan_roots = tuple(args.paths) if args.paths else DEFAULT_SCAN_ROOTS
-    active_findings = (
-        _collect_active_bandit_findings(scan_roots) if args.require_active else None
-    )
+    active_findings = _collect_active_bandit_findings(scan_roots) if args.require_active else None
     errors = validate_bandit_suppressions(scan_roots, active_findings)
     if errors:
         print("\n".join(errors))
