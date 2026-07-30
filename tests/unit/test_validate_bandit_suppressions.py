@@ -1,7 +1,10 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from __future__ import annotations
 
+import subprocess
 from pathlib import Path
+
+import pytest
 
 from scripts import validate_bandit_suppressions as validator
 
@@ -123,3 +126,42 @@ def test_main_require_active_uses_active_bandit_findings(
     )
 
     assert validator.main(["--require-active", "scripts"]) == 0
+
+
+def test_collect_active_findings_rejects_empty_report(
+    tmp_path: Path, monkeypatch
+) -> None:
+    monkeypatch.setattr(validator, "ROOT", tmp_path)
+    (tmp_path / "scripts").mkdir()
+
+    def fake_run(command, **kwargs):
+        return subprocess.CompletedProcess(
+            command,
+            1,
+            stdout="",
+            stderr="No module named bandit",
+        )
+
+    monkeypatch.setattr(validator.subprocess, "run", fake_run)
+
+    with pytest.raises(RuntimeError, match="empty JSON report") as error:
+        validator._collect_active_bandit_findings(("scripts",))
+
+    assert "No module named bandit" in str(error.value)
+
+
+def test_collect_active_findings_requires_results_list(
+    tmp_path: Path, monkeypatch
+) -> None:
+    monkeypatch.setattr(validator, "ROOT", tmp_path)
+    (tmp_path / "scripts").mkdir()
+
+    def fake_run(command, **kwargs):
+        report_path = Path(command[command.index("-o") + 1])
+        report_path.write_text('{"results": {}}', encoding="utf-8")
+        return subprocess.CompletedProcess(command, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(validator.subprocess, "run", fake_run)
+
+    with pytest.raises(RuntimeError, match="results list"):
+        validator._collect_active_bandit_findings(("scripts",))
