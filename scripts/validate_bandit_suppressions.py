@@ -174,7 +174,9 @@ def _inert_exception_suppression(path: Path, line_no: int, token: str) -> bool:
         return False
     lines = path.read_text(encoding="utf-8").splitlines()
     window = "\n".join(lines[max(0, line_no - 1) : min(len(lines), line_no + 7)])
-    return any(marker in window for marker in ("logger.", "logging.", "raise", "print("))
+    return any(
+        marker in window for marker in ("logger.", "logging.", "raise", "print(")
+    )
 
 
 def validate_bandit_suppressions(
