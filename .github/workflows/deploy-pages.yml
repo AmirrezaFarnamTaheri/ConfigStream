@@ -28,7 +28,7 @@ env:
 jobs:
   deploy:
     name: Locate, Verify, and Deploy Sealed Artifact
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     environment:
@@ -37,7 +37,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+          ref: main
           fetch-depth: 1
           persist-credentials: false
       - uses: actions/setup-python@v7
