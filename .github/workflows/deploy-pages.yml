@@ -6,6 +6,11 @@ on:
     types: [completed]
     branches: [main]
   workflow_dispatch:
+    inputs:
+      run_id:
+        description: Successful main-branch workflow run containing pipeline-output
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -50,41 +55,94 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
-          TRIGGER_RUN_ID: ${{ github.event.workflow_run.id }}
+          TRIGGER_RUN_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || inputs.run_id }}
         run: |
           set -euo pipefail
-          selected=""
-          rc=1
-          if [ "${{ github.event_name }}" = "workflow_run" ]; then
-            selected="$TRIGGER_RUN_ID"
-            if gh run download "$selected" --repo "$REPOSITORY" --name pipeline-output --dir output; then rc=0; fi
+          rm -rf output
+          selected="${TRIGGER_RUN_ID:-}"
+          source_valid=false
+          download_rc=1
+
+          if [[ "$selected" =~ ^[0-9]+$ ]] && \
+             gh api "repos/${REPOSITORY}/actions/runs/${selected}" > deploy-evidence/source-run.json; then
+            if python - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(Path("deploy-evidence/source-run.json").read_text(encoding="utf-8"))
+          allowed_workflows = {"Config's Stream", "Retest"}
+          if payload.get("conclusion") != "success":
+              raise SystemExit("source run did not succeed")
+          if payload.get("head_branch") != "main":
+              raise SystemExit("source run is not from main")
+          if payload.get("name") not in allowed_workflows:
+              raise SystemExit("source workflow is not approved")
+          PY
+            then
+              source_valid=true
+            fi
           fi
-          if [ "$rc" -eq 0 ] && [ -s output/metadata.json ] && [ -s output/proxies.json ]; then
+
+          if [ "$source_valid" = true ]; then
+            if gh run download "$selected" --repo "$REPOSITORY" --name pipeline-output --dir output; then
+              download_rc=0
+            else
+              download_rc=$?
+            fi
+          fi
+
+          if [ "$download_rc" -eq 0 ] && [ -s output/metadata.json ] && [ -s output/proxies.json ]; then
             echo "HAS_OUTPUT=true" >> "$GITHUB_ENV"
             echo "source_run_id=$selected" >> "$GITHUB_OUTPUT"
-            python scripts/resilient_stage.py record --name locate-pipeline-output --status success
+            python scripts/resilient_stage.py record \
+              --name locate-pipeline-output \
+              --status success \
+              --report-dir deploy-evidence/stages \
+              --description "Downloaded canonical pipeline-output from trusted run $selected"
           else
             rm -rf output
             echo "source_run_id=${selected:-none}" >> "$GITHUB_OUTPUT"
-            python scripts/resilient_stage.py record --name locate-pipeline-output --status failed --description "Canonical pipeline output unavailable"
+            python scripts/resilient_stage.py record \
+              --name locate-pipeline-output \
+              --status failed \
+              --exit-code "${download_rc:-1}" \
+              --report-dir deploy-evidence/stages \
+              --description "Trusted canonical pipeline-output was unavailable"
           fi
       - name: Verify artifact without mutation
-        id: verify
-        if: env.HAS_OUTPUT == 'true'
+        if: always()
         run: |
           set -euo pipefail
-          python scripts/resilient_stage.py run --name verify-sealed-pages-artifact --timeout 600 -- bash -lc '
-            set -euo pipefail
-            before=$(find output -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d" " -f1)
-            python scripts/validate_frontend_placeholders.py --strict output
-            python scripts/validate_pages_artifact.py output
-            after=$(find output -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d" " -f1)
-            test "$before" = "$after"
-          '
-          echo "DEPLOY_READY=true" >> "$GITHUB_ENV"
+          if [ "${HAS_OUTPUT:-false}" != true ]; then
+            python scripts/resilient_stage.py record \
+              --name verify-sealed-pages-artifact \
+              --status failed \
+              --exit-code 1 \
+              --report-dir deploy-evidence/stages \
+              --description "Verification could not run because no canonical artifact was located"
+            exit 0
+          fi
+
+          python scripts/resilient_stage.py run \
+            --name verify-sealed-pages-artifact \
+            --report-dir deploy-evidence/stages \
+            --timeout 600 \
+            -- bash -lc '
+              set -euo pipefail
+              before=$(find output -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d" " -f1)
+              python scripts/validate_frontend_placeholders.py --strict output
+              python scripts/validate_pages_artifact.py output
+              after=$(find output -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d" " -f1)
+              test "$before" = "$after"
+            '
+          verify_status=$(python -c 'import json; print(json.load(open("deploy-evidence/stages/verify-sealed-pages-artifact.json", encoding="utf-8"))["status"])')
+          if [ "$verify_status" = success ]; then
+            echo "DEPLOY_READY=true" >> "$GITHUB_ENV"
+          fi
       - name: Upload sealed Pages artifact
         id: pages_artifact
         if: env.DEPLOY_READY == 'true'
+        continue-on-error: true
         uses: actions/upload-pages-artifact@v5
         with:
           path: output
@@ -92,20 +150,79 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         if: env.DEPLOY_READY == 'true' && steps.pages_artifact.outcome == 'success'
+        continue-on-error: true
         uses: actions/deploy-pages@v5
-      - name: Smoke deployed Pages URL
-        if: steps.deployment.outcome == 'success'
+      - name: Record Pages action outcomes
+        if: always()
+        env:
+          ARTIFACT_OUTCOME: ${{ steps.pages_artifact.outcome }}
+          DEPLOY_OUTCOME: ${{ steps.deployment.outcome }}
         run: |
           set -euo pipefail
-          python scripts/resilient_stage.py run --name smoke-pages --timeout 600 -- python scripts/verify_pages_deployment.py "${{ steps.deployment.outputs.page_url }}" --report-file deploy-evidence/smoke-report.json
+          python scripts/resilient_stage.py record \
+            --name upload-pages-artifact \
+            --status "${ARTIFACT_OUTCOME:-skipped}" \
+            --report-dir deploy-evidence/stages
+          python scripts/resilient_stage.py record \
+            --name deploy-pages \
+            --status "${DEPLOY_OUTCOME:-skipped}" \
+            --report-dir deploy-evidence/stages
+      - name: Smoke deployed Pages URL
+        if: always()
+        env:
+          DEPLOY_OUTCOME: ${{ steps.deployment.outcome }}
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          set -euo pipefail
+          if [ "${DEPLOY_OUTCOME:-skipped}" = success ] && [ -n "${PAGE_URL:-}" ]; then
+            python scripts/resilient_stage.py run \
+              --name smoke-pages \
+              --report-dir deploy-evidence/stages \
+              --timeout 600 \
+              -- python scripts/verify_pages_deployment.py "$PAGE_URL" --report-file deploy-evidence/smoke-report.json
+          else
+            python scripts/resilient_stage.py record \
+              --name smoke-pages \
+              --status skipped \
+              --report-dir deploy-evidence/stages \
+              --description "Smoke validation skipped because Pages deployment did not succeed"
+          fi
       - name: Generate deployment evidence bundle
         if: always()
         run: |
           set -euo pipefail
           if [ -d output ]; then
-            python scripts/resilient_stage.py run --name deployment-evidence-bundle --report-dir deploy-evidence/stages -- python scripts/generate_evidence_bundle.py --output-dir output --evidence-dir deploy-evidence --smoke-report deploy-evidence/smoke-report.json
+            python scripts/resilient_stage.py run \
+              --name deployment-evidence-bundle \
+              --report-dir deploy-evidence/stages \
+              -- python scripts/generate_evidence_bundle.py \
+                --output-dir output \
+                --evidence-dir deploy-evidence \
+                --smoke-report deploy-evidence/smoke-report.json
+          else
+            python scripts/resilient_stage.py record \
+              --name deployment-evidence-bundle \
+              --status failed \
+              --exit-code 1 \
+              --report-dir deploy-evidence/stages \
+              --description "Evidence bundle could not be generated because output is absent"
           fi
-          python scripts/resilient_stage.py summary --report-dir deploy-evidence/stages --output deploy-evidence/stage_summary.json
+      - name: Evaluate deployment readiness
+        if: always()
+        run: |
+          set -euo pipefail
+          python scripts/resilient_stage.py evaluate \
+            --report-dir deploy-evidence/stages \
+            --required-stage locate-pipeline-output \
+            --required-stage verify-sealed-pages-artifact \
+            --required-stage upload-pages-artifact \
+            --required-stage deploy-pages \
+            --required-stage smoke-pages \
+            --required-stage deployment-evidence-bundle \
+            --output deploy-evidence/deployment_readiness.json
+          python scripts/resilient_stage.py summary \
+            --report-dir deploy-evidence/stages \
+            --output deploy-evidence/stage_summary.json
       - name: Upload deployment diagnostics
         if: always()
         uses: actions/upload-artifact@v7
@@ -119,16 +236,30 @@ jobs:
         run: |
           set -euo pipefail
           python - <<'PY'
-          from pathlib import Path
           import json
           import os
+          from pathlib import Path
 
-          path = Path("deploy-evidence/stage_summary.json")
-          summary = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {"stages": []}
+          readiness_path = Path("deploy-evidence/deployment_readiness.json")
+          summary_path = Path("deploy-evidence/stage_summary.json")
+          readiness = (
+              json.loads(readiness_path.read_text(encoding="utf-8"))
+              if readiness_path.exists()
+              else {"status": "unknown", "publish_ready": False, "blockers": ["readiness report missing"]}
+          )
+          summary = (
+              json.loads(summary_path.read_text(encoding="utf-8"))
+              if summary_path.exists()
+              else {"stages": []}
+          )
           with Path(os.environ["GITHUB_STEP_SUMMARY"]).open("a", encoding="utf-8") as handle:
               handle.write("## Pages deployment disposition\n")
+              handle.write(f"- Status: **{readiness.get('status')}**\n")
+              handle.write(f"- Deployment accepted: **{readiness.get('publish_ready', False)}**\n")
+              for blocker in readiness.get("blockers", []):
+                  handle.write(f"- Blocker: `{blocker}`\n")
               for stage in summary.get("stages", []):
                   handle.write(f"- `{stage.get('name')}`: **{stage.get('status')}**\n")
-          if any(stage.get("status") == "failed" for stage in summary.get("stages", [])):
+          if not readiness.get("publish_ready", False):
               raise SystemExit("Pages deployment failed closed")
           PY
