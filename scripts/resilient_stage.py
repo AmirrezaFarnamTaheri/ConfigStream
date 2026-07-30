@@ -16,6 +16,7 @@ import platform
 import queue
 import re
 import shlex
+
 # Command execution is this tool's explicit purpose.
 import subprocess  # nosec B404
 import sys
@@ -80,9 +81,7 @@ def safe_name(value: str) -> str:
     """Validate and return a collision-free filesystem-safe stage name."""
 
     if not SAFE_STAGE_NAME_RE.fullmatch(value):
-        raise ValueError(
-            "stage names must match ^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
-        )
+        raise ValueError("stage names must match ^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$")
     return value
 
 
@@ -358,9 +357,7 @@ def run_stage(
         attempt_started = now()
         suffix = "" if retries == 0 else f"-attempt-{attempt_number}"
         log_path = report_dir / f"{safe_name(name)}{suffix}.log"
-        code, failure, error = _run_attempt(
-            command, log_path, env, secrets, timeout
-        )
+        code, failure, error = _run_attempt(command, log_path, env, secrets, timeout)
         attempts.append(
             {
                 "attempt": attempt_number,
@@ -536,8 +533,12 @@ def build_parser() -> argparse.ArgumentParser:
     evaluate_parser = subparsers.add_parser("evaluate")
     evaluate_parser.add_argument("--report-dir", type=Path, default=DEFAULT_REPORT_DIR)
     evaluate_parser.add_argument("--required-stage", action="append", default=[])
-    evaluate_parser.add_argument("--required-file", type=Path, action="append", default=[])
-    evaluate_parser.add_argument("--output", type=Path, default=DEFAULT_READINESS_OUTPUT)
+    evaluate_parser.add_argument(
+        "--required-file", type=Path, action="append", default=[]
+    )
+    evaluate_parser.add_argument(
+        "--output", type=Path, default=DEFAULT_READINESS_OUTPUT
+    )
     return parser
 
 
