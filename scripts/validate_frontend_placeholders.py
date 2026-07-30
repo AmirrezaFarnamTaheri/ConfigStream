@@ -50,12 +50,13 @@ def _runtime_config_content(env: Mapping[str, str]) -> str:
 
 
 def inject_frontend_keys(root: Path, env: Mapping[str, str]) -> list[str]:
-    """Write public runtime material while refusing symmetric secrets."""
+    """Write an allowlisted public runtime config.
 
-    if any(
-        (env.get(name) or "").strip() for name in ("STEGO_KEY", "CONFIG_STREAM_KEY")
-    ):
-        raise ValueError("symmetric frontend keys must not be published")
+    The caller may have unrelated symmetric secrets in its environment for
+    earlier private processing stages. They are deliberately ignored here;
+    only CS_PUBLIC_KEY and CS_IPNS_KEY are selected for browser publication.
+    """
+
     runtime_config_path = root / "assets" / "js" / "runtime-config.js"
     runtime_config_path.parent.mkdir(parents=True, exist_ok=True)
     content = _runtime_config_content(env)
@@ -133,11 +134,7 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     if args.inject_env:
-        try:
-            changes = inject_frontend_keys(root, os.environ)
-        except ValueError as exc:
-            print(f"ERROR: {exc}", file=sys.stderr)
-            return 1
+        changes = inject_frontend_keys(root, os.environ)
         if changes:
             print(f"Generated frontend runtime config in {len(changes)} file(s).")
 

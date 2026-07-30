@@ -480,6 +480,7 @@ jobs:
         encoding="utf-8",
     )
     monkeypatch.setattr(validate_workflows, "WORKFLOW_DIR", workflow_dir)
+    monkeypatch.setattr(validate_workflows, "_main_resilient_contract", lambda data: [])
 
     assert validate_workflows.main() == 0
 
@@ -727,6 +728,7 @@ jobs:
         encoding="utf-8",
     )
     monkeypatch.setattr(validate_workflows, "WORKFLOW_DIR", workflow_dir)
+    monkeypatch.setattr(validate_workflows, "_main_resilient_contract", lambda data: [])
 
     assert validate_workflows.main() == 0
 

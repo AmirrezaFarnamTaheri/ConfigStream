@@ -4,7 +4,6 @@
     global.CS_RUNTIME_CONFIG = Object.assign(
         {
             PUBLIC_KEY: "",
-            STEGO_KEY: "",
             IPNS_KEY: ""
         },
         global.CS_RUNTIME_CONFIG || {}

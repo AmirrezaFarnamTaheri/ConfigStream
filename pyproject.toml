@@ -24,7 +24,6 @@ classifiers = [
 ]
 
 dependencies = [
-    # Network Core
     "tenacity",
     "cachetools>=5.3.3",
     "httpx[http2]>=0.27.0",
@@ -35,39 +34,25 @@ dependencies = [
     "aiodns>=3.6.1",
     "pycares<5.0.0",
     "aiohttp-proxy",
-
-    # Parsing & Logic
     "PyYAML>=6.0",
     "pydantic>=2.12.4",
     "pydantic-settings",
     "singbox2proxy~=0.2.4",
-
-    # I/O & Async
     "aiofiles>=23.2.0",
     "orjson>=3.9.0",
     "nest-asyncio",
     "wasmtime>=40.0.0",
     "slowapi>=0.1.9",
-
-    # CLI & UI
     "click>=8.3.3",
     "rich",
     "python-telegram-bot>=20.0",
-
-    # Geo & Sys
     "geoip2",
     "geopy>=2.3.0",
     "psutil>=5.9.0; sys_platform != 'win32'",
-
-    # Web Server
     "fastapi>=0.109.0",
     "uvicorn[standard]>=0.27.0",
-
-    # Crypto (for WARP)
     "cryptography",
-
-    # HTML Parsing (Security)
-    "beautifulsoup4"
+    "beautifulsoup4",
 ]
 
 [project.optional-dependencies]
@@ -91,7 +76,8 @@ dev = [
     "jsonschema>=4.20.0",
     "types-jsonschema",
     "types-aiofiles",
-    "types-orjson"
+    "types-orjson",
+    "bandit==1.8.6",
 ]
 
 [project.scripts]
