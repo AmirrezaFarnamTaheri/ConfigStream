@@ -1,0 +1,35 @@
+name: Black Format Diagnostic
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  black-diff:
+    name: Emit canonical Black diff
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Install exact CI formatter
+        run: pip install 'black==26.5.1'
+      - name: Emit formatting patch
+        run: |
+          python -m black \
+            --diff \
+            --fast \
+            --target-version py310 \
+            scripts/prepare_public_candidate.py \
+            scripts/validate_bandit_suppressions.py \
+            tests/unit/test_resilient_stage.py \
+            tests/unit/test_validate_frontend_placeholders.py \
+            tests/unit/test_validate_workflows_resilient.py \
+            scripts/validate_workflows.py \
+            scripts/resilient_stage.py
