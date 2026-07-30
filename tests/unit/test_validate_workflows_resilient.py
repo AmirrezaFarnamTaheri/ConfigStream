@@ -20,6 +20,23 @@ def test_resilient_main_contract_accepts_hardened_workflow() -> None:
     assert validate_workflows._main_safe(_load_local_workflow("main.yml")) == []
 
 
+def test_resilient_main_contract_requires_stage_orchestration() -> None:
+    data = deepcopy(_load_local_workflow("main.yml"))
+    for job in data["jobs"].values():
+        if not isinstance(job, dict):
+            continue
+        for step in job.get("steps", []):
+            if isinstance(step, dict) and isinstance(step.get("run"), str):
+                step["run"] = step["run"].replace(
+                    "scripts/resilient_stage.py", "scripts/legacy_stage.py"
+                )
+
+    assert (
+        "main workflow must orchestrate stages through scripts/resilient_stage.py"
+        in validate_workflows._main_safe(data)
+    )
+
+
 def test_pipeline_job_if_is_read_without_string_conversion_crash() -> None:
     data = _load_local_workflow("main.yml")
     pipeline = data["jobs"]["pipeline"]
