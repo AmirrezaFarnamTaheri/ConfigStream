@@ -67,6 +67,18 @@ def test_run_stage_retries_and_succeeds(tmp_path: Path) -> None:
     assert len(result.attempts) == 2
 
 
+def test_record_stage_rejects_unsafe_name(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="stage names must match"):
+        resilient_stage.record_stage("build/unit", "success", tmp_path)
+
+
+def test_record_stage_normalizes_failed_exit_code(tmp_path: Path) -> None:
+    result = resilient_stage.record_stage("failed-stage", "failure", tmp_path)
+
+    assert result.status == "failed"
+    assert result.exit_code == 1
+
+
 def test_evaluate_readiness_is_fail_closed(tmp_path: Path) -> None:
     report_dir = tmp_path / "stages"
     resilient_stage.record_stage("good", "success", report_dir)
@@ -79,3 +91,60 @@ def test_evaluate_readiness_is_fail_closed(tmp_path: Path) -> None:
     assert result["publish_ready"] is False
     assert "stage:missing:missing" in result["blockers"]
     assert json.loads(output.read_text(encoding="utf-8")) == result
+
+
+def test_evaluate_readiness_rejects_contradictory_success(tmp_path: Path) -> None:
+    report_dir = tmp_path / "stages"
+    report_dir.mkdir()
+    (report_dir / "contradictory.json").write_text(
+        json.dumps(
+            {
+                "schema_version": resilient_stage.SCHEMA_VERSION,
+                "name": "contradictory",
+                "status": "success",
+                "exit_code": 9,
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    result = resilient_stage.evaluate_readiness(
+        report_dir,
+        ["contradictory"],
+        [],
+        tmp_path / "readiness.json",
+    )
+
+    assert result["publish_ready"] is False
+    assert "stage:contradictory:invalid" in result["blockers"]
+    assert (
+        result["invalid_stage_reports"]["contradictory"]
+        == "contradictory-exit-code"
+    )
+
+
+def test_evaluate_readiness_rejects_wrong_schema(tmp_path: Path) -> None:
+    report_dir = tmp_path / "stages"
+    report_dir.mkdir()
+    (report_dir / "wrong-schema.json").write_text(
+        json.dumps(
+            {
+                "schema_version": resilient_stage.SCHEMA_VERSION - 1,
+                "name": "wrong-schema",
+                "status": "success",
+                "exit_code": 0,
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    result = resilient_stage.evaluate_readiness(
+        report_dir,
+        ["wrong-schema"],
+        [],
+        tmp_path / "readiness.json",
+    )
+
+    assert result["publish_ready"] is False
+    assert "stage:wrong-schema:invalid" in result["blockers"]
+    assert result["invalid_stage_reports"]["wrong-schema"] == "schema-version"
