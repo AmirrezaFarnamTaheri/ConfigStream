@@ -117,10 +117,7 @@ def test_evaluate_readiness_rejects_contradictory_success(tmp_path: Path) -> Non
 
     assert result["publish_ready"] is False
     assert "stage:contradictory:invalid" in result["blockers"]
-    assert (
-        result["invalid_stage_reports"]["contradictory"]
-        == "contradictory-exit-code"
-    )
+    assert result["invalid_stage_reports"]["contradictory"] == "contradictory-exit-code"
 
 
 def test_evaluate_readiness_rejects_wrong_schema(tmp_path: Path) -> None:
