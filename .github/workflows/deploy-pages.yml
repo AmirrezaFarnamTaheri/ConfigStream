@@ -171,15 +171,15 @@ jobs:
         if: always()
         env:
           DEPLOY_OUTCOME: ${{ steps.deployment.outcome }}
-          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
         run: |
           set -euo pipefail
-          if [ "${DEPLOY_OUTCOME:-skipped}" = success ] && [ -n "${PAGE_URL:-}" ]; then
+          page_url="${{ steps.deployment.outputs.page_url }}"
+          if [ "${DEPLOY_OUTCOME:-skipped}" = success ] && [ -n "$page_url" ]; then
             python scripts/resilient_stage.py run \
               --name smoke-pages \
               --report-dir deploy-evidence/stages \
               --timeout 600 \
-              -- python scripts/verify_pages_deployment.py "$PAGE_URL" --report-file deploy-evidence/smoke-report.json
+              -- python scripts/verify_pages_deployment.py "$page_url" --report-file deploy-evidence/smoke-report.json
           else
             python scripts/resilient_stage.py record \
               --name smoke-pages \
