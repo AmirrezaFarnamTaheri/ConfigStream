@@ -7,8 +7,8 @@ permissions:
   contents: read
 
 jobs:
-  black-diff:
-    name: Emit canonical Black diff
+  black-format:
+    name: Package canonical Black output
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -20,10 +20,9 @@ jobs:
           python-version: '3.12'
       - name: Install exact CI formatter
         run: pip install 'black==26.5.1'
-      - name: Emit formatting patch
+      - name: Format changed Python files
         run: |
           python -m black \
-            --diff \
             --fast \
             --target-version py310 \
             scripts/prepare_public_candidate.py \
@@ -33,3 +32,17 @@ jobs:
             tests/unit/test_validate_workflows_resilient.py \
             scripts/validate_workflows.py \
             scripts/resilient_stage.py
+      - name: Upload canonical formatted files
+        uses: actions/upload-artifact@v7
+        with:
+          name: black-formatted-files
+          path: |
+            scripts/prepare_public_candidate.py
+            scripts/validate_bandit_suppressions.py
+            tests/unit/test_resilient_stage.py
+            tests/unit/test_validate_frontend_placeholders.py
+            tests/unit/test_validate_workflows_resilient.py
+            scripts/validate_workflows.py
+            scripts/resilient_stage.py
+          if-no-files-found: error
+          retention-days: 1
