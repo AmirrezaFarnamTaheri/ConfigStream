@@ -58,9 +58,7 @@ def test_resilient_main_contract_requires_matrix_status_evidence() -> None:
     merge = data["jobs"]["merge_validate_publish"]
     for step in merge["steps"]:
         if isinstance(step, dict) and isinstance(step.get("run"), str):
-            step["run"] = step["run"].replace(
-                "--required-stage matrix-status \\\n", ""
-            )
+            step["run"] = step["run"].replace("--required-stage matrix-status \\\n", "")
 
     assert (
         "release readiness must require matrix-status"
@@ -70,8 +68,6 @@ def test_resilient_main_contract_requires_matrix_status_evidence() -> None:
 
 def test_pages_contract_accepts_hardened_workflow() -> None:
     assert (
-        validate_workflows._deploy_pages_safe(
-            _load_local_workflow("deploy-pages.yml")
-        )
+        validate_workflows._deploy_pages_safe(_load_local_workflow("deploy-pages.yml"))
         == []
     )
