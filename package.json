@@ -29,6 +29,6 @@
     "picomatch": "^4.0.5",
     "playwright": "^1.62.0",
     "postcss": "^8.5.23",
-    "vite": "^8.1.5"
+    "vite": "^8.2.0"
   }
 }
