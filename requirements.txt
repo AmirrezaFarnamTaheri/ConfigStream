@@ -75,7 +75,7 @@ platformdirs==4.10.0
 playwright==1.61.0
 pluggy==1.6.0
 propcache==0.4.1
-psutil==7.2.1
+psutil==7.2.2
 py-serializable==2.1.0
 pycodestyle==2.14.0
 pycares==4.11.0
