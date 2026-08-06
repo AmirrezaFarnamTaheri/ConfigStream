@@ -135,6 +135,7 @@ jobs:
           if [[ "${{ runner.os }}" == "Windows" ]]; then
             mv dist/configstream.exe dist/ConfigStream-windows-x86_64.exe
           elif [[ "${{ runner.os }}" == "macOS" ]]; then
+            # DMG already produced with stable name.
             ls -l dist/ConfigStream-macos-universal.dmg
           else
             ls -l dist/ConfigStream-linux-x86_64.AppImage
