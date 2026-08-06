@@ -170,6 +170,18 @@ def _has_contract_validators(data: dict[Any, Any]) -> bool:
     )
 
 
+def _canonical_source_paths() -> tuple[Path, ...]:
+    source_dir = REPO_ROOT / "sources"
+    discovered = tuple(
+        path.relative_to(REPO_ROOT)
+        for path in sorted(source_dir.glob("batch_*.txt"))
+        if re.fullmatch(r"batch_[1-9]\d*\.txt", path.name)
+    )
+    if discovered:
+        return discovered
+    return tuple(Path(f"sources/batch_{index}.txt") for index in range(1, 18))
+
+
 def _ci_ignores_canonical_sources(data: dict[Any, Any]) -> bool:
     triggers = data.get("on")
     if triggers is None:
@@ -186,10 +198,7 @@ def _ci_ignores_canonical_sources(data: dict[Any, Any]) -> bool:
         patterns = [str(item) for item in ignored]
     else:
         return False
-    canonical_sources = (
-        Path("sources/batch_1.txt"),
-        Path("sources/batch_17.txt"),
-    )
+    canonical_sources = _canonical_source_paths()
     return any(
         any(source.match(pattern) for source in canonical_sources)
         for pattern in patterns
