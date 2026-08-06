@@ -1,0 +1,664 @@
+name: PR 545 Review Remediation
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  actions: write
+
+jobs:
+  remediate:
+    if: >-
+      github.repository == 'AmirrezaFarnamTaheri/ConfigStream' &&
+      github.event.issue.pull_request &&
+      github.event.issue.number == 545 &&
+      github.event.comment.user.login == 'AmirrezaFarnamTaheri' &&
+      github.event.comment.body == '/remediate-pr545-reviews-20260807-b1'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: feat/post-audit-remediation-v3.1.0
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Apply review remediations
+        shell: bash
+        env:
+          EXPECTED_HEAD: 6bdfe930f00f3287f7e098693bbe20eb7c81d2dd
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              target = Path(path)
+              text = target.read_text(encoding="utf-8")
+              if text.count(old) != 1:
+                  raise SystemExit(f"Expected one replacement in {path}: {old!r}")
+              target.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+          # Remove unjustified type ignores by using Pydantic's typed mapping API.
+          policy_test = Path("tests/unit/sources/test_source_policy.py")
+          text = policy_test.read_text(encoding="utf-8")
+          text = text.replace("from typing import Any, Dict\n", "from typing import Any\n")
+          if text.count("    values = {\n") != 2:
+              raise SystemExit("Unexpected source policy helper layout")
+          text = text.replace("    values = {\n", "    values: dict[str, Any] = {\n")
+          text = text.replace(
+              "    return SourceProvider(**values)  # type: ignore[arg-type]\n",
+              "    return SourceProvider.model_validate(values)\n",
+          )
+          text = text.replace(
+              "    return SourceSnapshotManifest(**values)  # type: ignore[arg-type]\n",
+              "    return SourceSnapshotManifest.model_validate(values)\n",
+          )
+          if "type: ignore[arg-type]" in text:
+              raise SystemExit("arg-type suppression remains in source policy tests")
+          policy_test.write_text(text, encoding="utf-8")
+
+          # Resolve relative cache paths against a stable project root, falling
+          # back to the platform cache directory for installed distributions.
+          cache_path = Path("src/configstream/test_cache.py")
+          text = cache_path.read_text(encoding="utf-8")
+          text = text.replace(
+              "from typing import Any, Dict, Optional\n",
+              "from typing import Any, Dict, Optional\n\nfrom platformdirs import user_cache_path\n",
+              1,
+          )
+          marker = "logger = logging.getLogger(__name__)\n\n\ndef _safe_proxy_ref"
+          helpers = '''logger = logging.getLogger(__name__)
+
+
+def _find_project_root() -> Optional[Path]:
+    """Return the checkout root when running from a source tree."""
+
+    for parent in Path(__file__).resolve().parents:
+        if (parent / "pyproject.toml").is_file():
+            return parent
+    return None
+
+
+def _resolve_cache_path(db_path: str | Path) -> Path:
+    """Resolve cache storage independently of the process working directory."""
+
+    candidate = Path(db_path).expanduser()
+    if candidate.is_absolute():
+        return candidate.resolve()
+    project_root = _find_project_root()
+    base = project_root if project_root is not None else user_cache_path("configstream")
+    return (base / candidate).resolve()
+
+
+def _safe_proxy_ref'''
+          if text.count(marker) != 1:
+              raise SystemExit("Unexpected test_cache logger layout")
+          text = text.replace(marker, helpers, 1)
+          text = text.replace(
+              '        self, db_path: str = "data/test_cache.json", ttl_seconds: Optional[int] = None\n',
+              '        self,\n        db_path: str | Path = "data/test_cache.json",\n        ttl_seconds: Optional[int] = None,\n',
+              1,
+          )
+          text = text.replace(
+              "        self.db_path = Path(db_path)\n",
+              "        self.db_path = _resolve_cache_path(db_path)\n",
+              1,
+          )
+          cache_path.write_text(text, encoding="utf-8")
+
+          remediation_test = Path("tests/unit/test_pipeline_remediation.py")
+          text = remediation_test.read_text(encoding="utf-8")
+          text = text.replace(
+              "from unittest.mock import AsyncMock, MagicMock\n",
+              "from unittest.mock import AsyncMock, MagicMock, patch\n",
+              1,
+          )
+          marker = "\n\ndef test_persistent_cache_invalidation_sequence(tmp_path):\n"
+          tests = '''
+
+def test_relative_cache_path_resolves_against_project_root(tmp_path):
+    project_root = tmp_path / "checkout"
+    project_root.mkdir()
+    with patch(
+        "configstream.test_cache._find_project_root", return_value=project_root
+    ):
+        cache = TestResultCache("data/test_cache.json", ttl_seconds=60)
+    assert cache.db_path == (project_root / "data/test_cache.json").resolve()
+
+
+def test_relative_cache_path_uses_platform_cache_without_checkout(tmp_path):
+    cache_root = tmp_path / "user-cache"
+    with (
+        patch("configstream.test_cache._find_project_root", return_value=None),
+        patch("configstream.test_cache.user_cache_path", return_value=cache_root),
+    ):
+        cache = TestResultCache("data/test_cache.json", ttl_seconds=60)
+    assert cache.db_path == (cache_root / "data/test_cache.json").resolve()
+
+
+def test_persistent_cache_invalidation_sequence(tmp_path):
+'''
+          if text.count(marker) != 1:
+              raise SystemExit("Unexpected pipeline remediation test layout")
+          remediation_test.write_text(text.replace(marker, tests, 1), encoding="utf-8")
+
+          # Make secret cleanup best-effort and avoid logging refusal when no
+          # embedded literal exists.
+          output_transport = Path("src/configstream/output_transport.py")
+          text = output_transport.read_text(encoding="utf-8")
+          pattern = re.compile(r"def inject_stego_key_into_frontend\(.*\Z", re.S)
+          replacement = '''def inject_stego_key_into_frontend(secret_key: str, js_file_path: Path) -> None:
+    """Remove legacy embedded keys without interrupting output generation."""
+
+    if not js_file_path.exists():
+        logger.warning(
+            "Frontend JS not found at %s; no key cleanup required", js_file_path
+        )
+        return
+
+    try:
+        content = js_file_path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as exc:
+        logger.warning(
+            "Unable to inspect frontend JS %s for embedded secrets (%s); "
+            "continuing without cleanup",
+            js_file_path,
+            type(exc).__name__,
+        )
+        return
+
+    pattern = r'(const\\s+SECRET_KEY\\s*=\\s*")([^"]*)(")'
+    new_content, replacements = re.subn(pattern, r"\\1\\3", content)
+    if not replacements:
+        return
+
+    if secret_key:
+        logger.warning(
+            "Refusing to embed a symmetric secret in public frontend %s",
+            js_file_path.name,
+        )
+
+    try:
+        AtomicFileWriter.write_text(js_file_path, new_content)
+    except (OSError, UnicodeError) as exc:
+        logger.warning(
+            "Unable to remove embedded frontend secret from %s (%s); "
+            "continuing without cleanup",
+            js_file_path,
+            type(exc).__name__,
+        )
+        return
+    logger.info("Removed %d embedded frontend secret key(s)", replacements)
+'''
+          new_text, count = pattern.subn(replacement, text)
+          if count != 1:
+              raise SystemExit("Unable to replace stego cleanup function")
+          output_transport.write_text(new_text, encoding="utf-8")
+
+          output_test = Path("tests/test_output_transport.py")
+          text = output_test.read_text(encoding="utf-8")
+          text = text.replace("import json\n", "import json\nimport logging\n", 1)
+          text += '''
+
+
+def test_frontend_secret_cleanup_is_best_effort_for_non_utf8(tmp_path, caplog):
+    js_file = tmp_path / "app.js"
+    js_file.write_bytes(b"\\xff\\xfe")
+
+    with caplog.at_level(logging.WARNING):
+        inject_stego_key_into_frontend("NEW_SECRET", js_file)
+
+    assert "UnicodeDecodeError" in caplog.text
+    assert "NEW_SECRET" not in caplog.text
+
+
+def test_frontend_secret_cleanup_is_best_effort_for_write_errors(
+    tmp_path, caplog
+):
+    js_file = tmp_path / "app.js"
+    original = 'const SECRET_KEY = "OLD";'
+    js_file.write_text(original, encoding="utf-8")
+
+    with (
+        patch(
+            "configstream.output_transport.AtomicFileWriter.write_text",
+            side_effect=OSError("permission denied"),
+        ),
+        caplog.at_level(logging.WARNING),
+    ):
+        inject_stego_key_into_frontend("NEW_SECRET", js_file)
+
+    assert js_file.read_text(encoding="utf-8") == original
+    assert "OSError" in caplog.text
+    assert "NEW_SECRET" not in caplog.text
+'''
+          output_test.write_text(text, encoding="utf-8")
+
+          # Add an explicit downstream HTTP transport seam so tests do not
+          # monkeypatch HTTPX class internals globally.
+          transport_path = Path("src/configstream/security/transport.py")
+          text = transport_path.read_text(encoding="utf-8")
+          text = text.replace(
+              "        dns_cache_enabled: bool = True,\n        **kwargs: Any,\n",
+              "        dns_cache_enabled: bool = True,\n"
+              "        network_transport: Optional[httpx.AsyncBaseTransport] = None,\n"
+              "        **kwargs: Any,\n",
+              1,
+          )
+          text = text.replace(
+              "        self._dns_cache_enabled = bool(dns_cache_enabled)\n"
+              "        self._pin_lock: Optional[asyncio.Lock] = None\n",
+              "        self._dns_cache_enabled = bool(dns_cache_enabled)\n"
+              "        self._network_transport = network_transport\n"
+              "        self._pin_lock: Optional[asyncio.Lock] = None\n",
+              1,
+          )
+          text = text.replace(
+              "        return await super().handle_async_request(request)\n\n"
+              "    async def _resolve_and_cache(\n",
+              "        if self._network_transport is not None:\n"
+              "            return await self._network_transport.handle_async_request(request)\n"
+              "        return await super().handle_async_request(request)\n\n"
+              "    async def aclose(self) -> None:\n"
+              "        if self._network_transport is not None:\n"
+              "            await self._network_transport.aclose()\n"
+              "        await super().aclose()\n\n"
+              "    async def _resolve_and_cache(\n",
+              1,
+          )
+          transport_path.write_text(text, encoding="utf-8")
+
+          Path("tests/unit/security/test_transport.py").write_text(
+              '''# SPDX-License-Identifier: AGPL-3.0-or-later
+"""SecurityTransport DNS pinning tests."""
+
+from __future__ import annotations
+
+from unittest.mock import AsyncMock, patch
+
+import httpx
+import pytest
+
+from configstream.security.transport import SecurityTransport
+
+
+def _capturing_transport(captured: dict[str, httpx.Request]) -> httpx.MockTransport:
+    async def handler(request: httpx.Request) -> httpx.Response:
+        captured["request"] = request
+        return httpx.Response(200, request=request)
+
+    return httpx.MockTransport(handler)
+
+
+def _unused_transport() -> httpx.MockTransport:
+    async def handler(request: httpx.Request) -> httpx.Response:
+        raise AssertionError(f"Downstream transport unexpectedly called for {request.url}")
+
+    return httpx.MockTransport(handler)
+
+
+@pytest.mark.asyncio
+async def test_https_rewrites_to_pinned_ip_and_preserves_sni_and_host():
+    captured: dict[str, httpx.Request] = {}
+    transport = SecurityTransport(
+        dns_cache_enabled=False,
+        network_transport=_capturing_transport(captured),
+    )
+    resolver = AsyncMock(return_value={"93.184.216.34"})
+
+    with patch.object(transport, "_resolve_host", new=resolver):
+        request = httpx.Request("GET", "https://example.com/resource")
+        response = await transport.handle_async_request(request)
+
+    resolver.assert_awaited_once()
+    rewritten = captured["request"]
+    assert response.status_code == 200
+    assert rewritten.url.host == "93.184.216.34"
+    assert rewritten.headers["Host"] == "example.com"
+    assert rewritten.extensions["sni_hostname"] == "example.com"
+    await transport.aclose()
+
+
+@pytest.mark.asyncio
+async def test_disjoint_dns_resolution_is_rejected_as_rebinding():
+    transport = SecurityTransport(
+        dns_cache_enabled=False,
+        pinned_ips={"example.com": {"93.184.216.34"}},
+        network_transport=_unused_transport(),
+    )
+    resolver = AsyncMock(return_value={"8.8.8.8"})
+
+    with patch.object(transport, "_resolve_host", new=resolver):
+        request = httpx.Request("GET", "https://example.com/resource")
+        with pytest.raises(httpx.ConnectError, match="DNS rebinding detected"):
+            await transport.handle_async_request(request)
+    await transport.aclose()
+
+
+@pytest.mark.asyncio
+async def test_security_transport_rejects_private_ips_dual_stack():
+    transport = SecurityTransport(
+        dns_cache_enabled=False,
+        network_transport=_unused_transport(),
+    )
+    resolver = AsyncMock(return_value={"1.1.1.1", "127.0.0.1", "::1"})
+
+    with patch.object(transport, "_resolve_host", new=resolver):
+        request = httpx.Request("GET", "https://example.com/resource")
+        with pytest.raises(httpx.ConnectError, match="resolved to non-global IP"):
+            await transport.handle_async_request(request)
+    await transport.aclose()
+
+
+@pytest.mark.asyncio
+async def test_security_transport_allows_all_global_ips_dual_stack():
+    captured: dict[str, httpx.Request] = {}
+    transport = SecurityTransport(
+        dns_cache_enabled=False,
+        network_transport=_capturing_transport(captured),
+    )
+    resolver = AsyncMock(return_value={"1.1.1.1", "2606:4700:4700::1111"})
+
+    with patch.object(transport, "_resolve_host", new=resolver):
+        request = httpx.Request("GET", "https://example.com/resource")
+        response = await transport.handle_async_request(request)
+
+    assert response.status_code == 200
+    assert captured["request"].url.host in {"1.1.1.1", "2606:4700:4700::1111"}
+    await transport.aclose()
+
+
+def test_rewrite_request_to_pinned_ip_formats_ipv6_and_nondefault_port():
+    from configstream.security.transport import rewrite_request_to_pinned_ip
+
+    request = httpx.Request("GET", "https://example.com:8443/resource")
+    rewritten = rewrite_request_to_pinned_ip(
+        request,
+        {"2606:4700:4700::1111"},
+        logical_host="example.com",
+    )
+    assert rewritten.url.host == "2606:4700:4700::1111"
+    assert rewritten.url.port == 8443
+    assert rewritten.headers["Host"] == "example.com:8443"
+    assert rewritten.extensions["sni_hostname"] == "example.com"
+
+
+def test_rewrite_request_brackets_literal_ipv6_host_header():
+    from configstream.security.transport import rewrite_request_to_pinned_ip
+
+    request = httpx.Request("GET", "https://[2606:4700:4700::1111]:8443/resource")
+    rewritten = rewrite_request_to_pinned_ip(
+        request,
+        {"2606:4700:4700::1111"},
+    )
+
+    assert rewritten.headers["Host"] == "[2606:4700:4700::1111]:8443"
+    assert rewritten.extensions["sni_hostname"] == "2606:4700:4700::1111"
+
+
+@pytest.mark.asyncio
+async def test_overlapping_dns_answer_uses_only_originally_pinned_address():
+    captured: dict[str, httpx.Request] = {}
+    transport = SecurityTransport(
+        dns_cache_enabled=False,
+        pinned_ips={"example.com": {"93.184.216.34"}},
+        network_transport=_capturing_transport(captured),
+    )
+    resolver = AsyncMock(return_value={"93.184.216.34", "8.8.8.8"})
+
+    with patch.object(transport, "_resolve_host", new=resolver):
+        response = await transport.handle_async_request(
+            httpx.Request("GET", "https://example.com/resource")
+        )
+
+    assert response.status_code == 200
+    assert captured["request"].url.host == "93.184.216.34"
+    await transport.aclose()
+''',
+              encoding="utf-8",
+          )
+
+          # Route CLI HTTP requests through respx rather than patching
+          # httpx.stream or response internals.
+          cli_test = Path("tests/unit/test_cli_extended.py")
+          text = cli_test.read_text(encoding="utf-8")
+          text = text.replace("import io\n", "import io\nimport re\n", 1)
+          text = text.replace("import httpx\n", "import httpx\nimport respx\n", 1)
+          text = re.sub(
+              r"\nclass FakeResponse:.*?\n\ndef _tar_payload",
+              "\n\ndef _tar_payload",
+              text,
+              flags=re.S,
+          )
+          text = re.sub(
+              r"def test_update_databases_prefers_maxmind\(.*?\n\ndef test_update_databases_mirror_fallback",
+              '''def test_update_databases_prefers_maxmind(runner):
+    maxmind_payloads = {
+        "GeoLite2-City": _tar_payload("GeoLite2-City"),
+        "GeoLite2-ASN": _tar_payload("GeoLite2-ASN"),
+    }
+    singbox_payload = b"db-bytes"
+
+    def respond(request: httpx.Request) -> httpx.Response:
+        url = str(request.url)
+        if "edition_id=GeoLite2-City" in url:
+            return httpx.Response(200, content=maxmind_payloads["GeoLite2-City"])
+        if "edition_id=GeoLite2-ASN" in url:
+            return httpx.Response(200, content=maxmind_payloads["GeoLite2-ASN"])
+        if url.endswith("/geosite.db") or url.endswith("/geoip.db"):
+            return httpx.Response(200, content=singbox_payload)
+        raise AssertionError(f"Unexpected download URL: {url}")
+
+    with respx.mock(assert_all_called=False) as router:
+        router.get(re.compile(r"https://.*")).mock(side_effect=respond)
+        with runner.isolated_filesystem():
+            result = runner.invoke(
+                main, ["update-databases"], env={"MAXMIND_LICENSE_KEY": "abc123"}
+            )
+            assert result.exit_code == 0
+            assert Path("data/GeoLite2-City.mmdb").is_file()
+            assert Path("data/GeoLite2-ASN.mmdb").is_file()
+
+
+def test_update_databases_mirror_fallback''',
+              text,
+              count=1,
+              flags=re.S,
+          )
+          text = re.sub(
+              r"def test_update_databases_mirror_fallback\(.*?\n\ndef test_generate_warp",
+              '''def test_update_databases_mirror_fallback(runner):
+    def respond(request: httpx.Request) -> httpx.Response:
+        url = str(request.url)
+        if url.endswith("/GeoLite2-City.mmdb"):
+            return httpx.Response(200, content=b"city-bytes")
+        if url.endswith("/GeoLite2-ASN.mmdb"):
+            return httpx.Response(200, content=b"asn-bytes")
+        if url.endswith("/geosite.db") or url.endswith("/geoip.db"):
+            return httpx.Response(200, content=b"db-bytes")
+        raise AssertionError(f"Unexpected download URL: {url}")
+
+    with respx.mock(assert_all_called=False) as router:
+        router.get(re.compile(r"https://.*")).mock(side_effect=respond)
+        with runner.isolated_filesystem():
+            result = runner.invoke(main, ["update-databases"])
+            assert result.exit_code == 0
+            assert Path("data/GeoLite2-City.mmdb").read_bytes() == b"city-bytes"
+            assert Path("data/GeoLite2-ASN.mmdb").read_bytes() == b"asn-bytes"
+
+
+def test_generate_warp''',
+              text,
+              count=1,
+              flags=re.S,
+          )
+          text = re.sub(
+              r"\nclass PartialFailureResponse.*\Z",
+              '''
+
+class PartialFailureStream(httpx.SyncByteStream):
+    def __iter__(self):
+        yield b"partial"
+        raise httpx.ReadError("connection interrupted")
+
+
+def test_update_databases_does_not_publish_partial_downloads(runner):
+    def respond(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, stream=PartialFailureStream())
+
+    with respx.mock(assert_all_called=False) as router:
+        router.get(re.compile(r"https://.*")).mock(side_effect=respond)
+        with runner.isolated_filesystem():
+            result = runner.invoke(main, ["update-databases"])
+
+            assert result.exit_code == 1
+            assert not Path("data/GeoLite2-City.mmdb").exists()
+            assert not Path("data/GeoLite2-ASN.mmdb").exists()
+            assert not Path("data/singbox/geosite.db").exists()
+            assert not Path("data/singbox/geoip.db").exists()
+            assert not list(Path("data").rglob(".*.tmp"))
+''',
+              text,
+              count=1,
+              flags=re.S,
+          )
+          if "monkeypatch.setattr(\"configstream.cli.httpx.stream\"" in text:
+              raise SystemExit("CLI HTTPX monkeypatch remains")
+          cli_test.write_text(text, encoding="utf-8")
+
+          # Add a deterministic screenshot smoke assertion to the existing
+          # browser test. This verifies rendered pixels without introducing an
+          # unreviewed binary baseline into the PR.
+          frontend_test = Path("tests/e2e/test_frontend.py")
+          text = frontend_test.read_text(encoding="utf-8")
+          marker = '''    except AssertionError:
+        print(f"DEBUG: Page Content: {page.content()}")
+        raise
+'''
+          replacement = marker + '''
+    screenshot = page.screenshot(full_page=True, animations="disabled")
+    assert screenshot.startswith(b"\\x89PNG\\r\\n\\x1a\\n")
+    assert len(screenshot) > 10_000
+'''
+          if text.count(marker) != 1:
+              raise SystemExit("Unexpected frontend homepage test layout")
+          frontend_test.write_text(text.replace(marker, replacement, 1), encoding="utf-8")
+          PY
+
+      - name: Install development environment
+        run: python -m pip install --disable-pip-version-check -e '.[dev]'
+
+      - name: Format and validate changed Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m black \
+            src/configstream/test_cache.py \
+            src/configstream/output_transport.py \
+            src/configstream/security/transport.py \
+            tests/unit/sources/test_source_policy.py \
+            tests/unit/test_pipeline_remediation.py \
+            tests/test_output_transport.py \
+            tests/unit/security/test_transport.py \
+            tests/unit/test_cli_extended.py \
+            tests/e2e/test_frontend.py
+          python -m py_compile \
+            src/configstream/test_cache.py \
+            src/configstream/output_transport.py \
+            src/configstream/security/transport.py
+          python -m flake8 \
+            src/configstream/test_cache.py \
+            src/configstream/output_transport.py \
+            src/configstream/security/transport.py \
+            tests/unit/sources/test_source_policy.py \
+            tests/unit/test_pipeline_remediation.py \
+            tests/test_output_transport.py \
+            tests/unit/security/test_transport.py \
+            tests/unit/test_cli_extended.py
+
+      - name: Run targeted unit tests
+        run: |
+          pytest -q \
+            tests/unit/sources/test_source_policy.py \
+            tests/unit/test_pipeline_remediation.py \
+            tests/test_output_transport.py \
+            tests/unit/security/test_transport.py \
+            tests/unit/test_cli_extended.py \
+            --disable-warnings --maxfail=1
+
+      - name: Run browser screenshot smoke
+        env:
+          CONFIGSTREAM_REQUIRE_PLAYWRIGHT: "1"
+        run: |
+          python -m playwright install --with-deps chromium
+          pytest -q tests/e2e/test_frontend.py::test_homepage_loads \
+            --disable-warnings --maxfail=1
+
+      - name: Commit and push remediation
+        shell: bash
+        env:
+          TARGET_BRANCH: feat/post-audit-remediation-v3.1.0
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            src/configstream/test_cache.py \
+            src/configstream/output_transport.py \
+            src/configstream/security/transport.py \
+            tests/unit/sources/test_source_policy.py \
+            tests/unit/test_pipeline_remediation.py \
+            tests/test_output_transport.py \
+            tests/unit/security/test_transport.py \
+            tests/unit/test_cli_extended.py \
+            tests/e2e/test_frontend.py
+          git diff --cached --check
+          git commit -m "fix(review): address PR 545 reliability and testability findings"
+          git push origin "HEAD:refs/heads/${TARGET_BRANCH}"
+
+      - name: Dispatch full pipeline on remediated branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_BRANCH: feat/post-audit-remediation-v3.1.0
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh workflow run main.yml --ref "$TARGET_BRANCH"
+          sleep 10
+          gh run list \
+            --workflow main.yml \
+            --branch "$TARGET_BRANCH" \
+            --event workflow_dispatch \
+            --limit 1 \
+            --json databaseId,url,status,headSha > /tmp/dispatched-run.json
+          cat /tmp/dispatched-run.json
+
+      - name: Report completion
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          run_url=$(python - <<'PY'
+          import json
+          from pathlib import Path
+          rows = json.loads(Path('/tmp/dispatched-run.json').read_text(encoding='utf-8'))
+          print(rows[0]['url'] if rows else 'workflow dispatch accepted')
+          PY
+          )
+          gh pr comment 545 --body "Review remediation completed and targeted tests passed. Full Config's Stream workflow dispatched on the PR branch: ${run_url}"
+
+      - name: Report failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr comment 545 --body "Review remediation workflow failed. Inspect: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
