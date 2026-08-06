@@ -4,7 +4,6 @@ on:
   push:
     branches: [ main ]
     paths-ignore:
-      - 'sources/batch_*.txt'
       - 'sources/backup_dynamic/**'
   pull_request:
 
