@@ -1,0 +1,183 @@
+name: PR 545 Owner Reconciliation
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  reconcile:
+    if: >-
+      github.repository == 'AmirrezaFarnamTaheri/ConfigStream' &&
+      github.event.issue.pull_request &&
+      github.event.issue.number == 545 &&
+      github.event.comment.user.login == 'AmirrezaFarnamTaheri' &&
+      github.event.comment.body == '/reconcile-pr545-20260807-a1'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: feat/post-audit-remediation-v3.1.0
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Merge current main and resolve approved conflicts
+        shell: bash
+        env:
+          EXPECTED_HEAD: af9488e108b3aa5fae164fe1b10e9440c0141f44
+          TARGET_BRANCH: feat/post-audit-remediation-v3.1.0
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch --no-tags origin main
+
+          set +e
+          git merge --no-commit --no-ff origin/main
+          merge_rc=$?
+          set -e
+          if [[ "$merge_rc" -ne 0 ]] && [[ -z "$(git diff --name-only --diff-filter=U)" ]]; then
+            echo "Merge failed without file conflicts." >&2
+            exit "$merge_rc"
+          fi
+
+          allowed_conflict() {
+            case "$1" in
+              .github/workflows/ci.yml|\
+              .github/workflows/deploy-pages.yml|\
+              .github/workflows/deploy_mirror.yml|\
+              .github/workflows/main.yml|\
+              .github/workflows/release.yml|\
+              .github/workflows/remediation-ci.yml|\
+              .github/workflows/replay-release-preparation.yml|\
+              docs/readiness.json|\
+              package.json|\
+              pyproject.toml|\
+              requirements-prod.txt|\
+              requirements.txt|\
+              scripts/finalize_release_outputs.py|\
+              scripts/native_client_checks.py|\
+              scripts/release_gate.py|\
+              scripts/repo_topology.py|\
+              scripts/validate_debt_matrix.py|\
+              scripts/validate_pages_artifact.py|\
+              scripts/validate_workflows.py|\
+              src/configstream/config.py|\
+              src/configstream/pipeline/__init__.py|\
+              src/configstream/pipeline/fetcher.py|\
+              src/configstream/quality/storage.py|\
+              src/configstream/server/routes/lab.py|\
+              src/configstream/test_cache.py)
+                return 0
+                ;;
+              *)
+                return 1
+                ;;
+            esac
+          }
+
+          mapfile -t conflicts < <(git diff --name-only --diff-filter=U)
+          printf 'Conflicts detected (%s):\n' "${#conflicts[@]}"
+          printf '  %s\n' "${conflicts[@]}"
+          for path in "${conflicts[@]}"; do
+            if ! allowed_conflict "$path"; then
+              echo "Unexpected conflict: $path" >&2
+              exit 1
+            fi
+            if git ls-files -u -- "$path" | awk '$3 == 3 { found = 1 } END { exit(found ? 0 : 1) }'; then
+              git checkout --theirs -- "$path"
+              git add -- "$path"
+            else
+              git rm -f --ignore-unmatch -- "$path"
+            fi
+          done
+          test -z "$(git diff --name-only --diff-filter=U)"
+
+          python - <<'PY'
+          from pathlib import Path
+
+          dockerfile = Path("Dockerfile")
+          docker = dockerfile.read_text(encoding="utf-8")
+          marker = "RUN apt-get update && apt-get install -y --no-install-recommends \\\n"
+          if marker not in docker:
+              raise SystemExit("Dockerfile apt install block not found")
+          block_start = docker.index(marker) + len(marker)
+          block_end = docker.find("    && rm -rf /var/lib/apt/lists/*", block_start)
+          if block_end < 0:
+              raise SystemExit("Dockerfile apt install terminator not found")
+          if "    bash \\\n" not in docker[block_start:block_end]:
+              docker = docker[:block_start] + "    bash \\\n" + docker[block_start:]
+              dockerfile.write_text(docker, encoding="utf-8")
+
+          workflow = Path(".github/workflows/main.yml")
+          text = workflow.read_text(encoding="utf-8")
+          anchor = (
+              "      - name: Run bounded shard and always write lineage\n"
+              "        if: matrix.enabled == true\n"
+          )
+          replacement = anchor + "        shell: bash\n"
+          if replacement not in text:
+              if text.count(anchor) != 1:
+                  raise SystemExit("Expected one shard step anchor")
+              workflow.write_text(text.replace(anchor, replacement, 1), encoding="utf-8")
+          PY
+
+          for path in \
+            scripts/aggregate_shard_health.py \
+            scripts/build_wasm.sh \
+            scripts/shard_sources.py \
+            scripts/normalize_legacy_profiles.py \
+            scripts/publish_ipfs.py \
+            scripts/upload_telegram.py \
+            scripts/upload_hf.py \
+            scripts/upload_gdrive.py; do
+            test -s "$path"
+          done
+
+          git add -A
+          git diff --cached --check
+
+          python -m pip install --disable-pip-version-check -e '.[dev]'
+          python -m py_compile \
+            scripts/aggregate_shard_health.py \
+            scripts/finalize_release_outputs.py \
+            scripts/native_client_checks.py \
+            scripts/normalize_legacy_profiles.py \
+            scripts/release_gate.py \
+            scripts/shard_sources.py \
+            scripts/validate_pages_artifact.py \
+            scripts/validate_workflows.py \
+            src/configstream/config.py \
+            src/configstream/pipeline/fetcher.py \
+            src/configstream/quality/storage.py \
+            src/configstream/server/routes/lab.py \
+            src/configstream/test_cache.py
+          bash -n scripts/build_wasm.sh
+          python scripts/validate_workflows.py
+          python scripts/validate_action_pins.py
+          pytest -q \
+            tests/unit/test_validate_workflows.py \
+            tests/unit/test_validate_workflows_resilient.py \
+            tests/unit/test_release_remediation.py \
+            --disable-warnings --maxfail=1
+
+          docker build --build-arg TARGETARCH=amd64 --target ci-runner -t configstream-pr545-ci .
+          docker run --rm --entrypoint bash configstream-pr545-ci -lc 'set -euo pipefail; false | true; rc=${PIPESTATUS[0]}; test "$rc" -eq 1'
+
+          git add -A
+          git diff --cached --check
+          git commit -m "merge(main): reconcile PR 545 and fix shard shell"
+          git push origin "HEAD:refs/heads/${TARGET_BRANCH}"
+
+      - name: Report completion
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr comment 545 --body "PR 545 reconciliation completed: current main merged, approved conflicts resolved to main, active pipeline entry points retained, and the Bash shard-shell fix validated."
