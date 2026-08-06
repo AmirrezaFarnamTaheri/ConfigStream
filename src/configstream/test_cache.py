@@ -15,12 +15,32 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+from platformdirs import user_cache_path
+
 from .models import Proxy
 from .utils import AtomicFileWriter, _FileLock
 from .config import AppSettings
 from .security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
+
+
+def _find_project_root() -> Optional[Path]:
+    """Return the checkout root when running from a source tree."""
+    for parent in Path(__file__).resolve().parents:
+        if (parent / "pyproject.toml").is_file():
+            return parent
+    return None
+
+
+def _resolve_cache_path(db_path: str | Path) -> Path:
+    """Resolve cache storage independently of the process working directory."""
+    candidate = Path(db_path).expanduser()
+    if candidate.is_absolute():
+        return candidate.resolve()
+    project_root = _find_project_root()
+    base = project_root if project_root is not None else user_cache_path("configstream")
+    return (base / candidate).resolve()
 
 
 def _safe_proxy_ref(proxy: Proxy) -> str:
@@ -33,7 +53,9 @@ class TestResultCache:
     __test__ = False
 
     def __init__(
-        self, db_path: str = "data/test_cache.json", ttl_seconds: Optional[int] = None
+        self,
+        db_path: str | Path = "data/test_cache.json",
+        ttl_seconds: Optional[int] = None,
     ):
         """
         Initialize the test result cache.
@@ -42,7 +64,7 @@ class TestResultCache:
             db_path: Path to the JSON cache file.
             ttl_seconds: Time-to-live for cached results (default: 1 hour).
         """
-        self.db_path = Path(db_path)
+        self.db_path = _resolve_cache_path(db_path)
         if ttl_seconds is None:
             ttl_seconds = AppSettings().CACHE_TTL
         self.ttl_seconds = ttl_seconds

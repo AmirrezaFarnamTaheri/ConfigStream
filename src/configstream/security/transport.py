@@ -111,12 +111,14 @@ class SecurityTransport(httpx.AsyncHTTPTransport):
         block_private_networks: bool = True,
         pinned_ips: Optional[Dict[str, Set[str]]] = None,
         dns_cache_enabled: bool = True,
+        network_transport: Optional[httpx.AsyncBaseTransport] = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
         self._block_private_networks = bool(block_private_networks)
         self._pinned_ips: Dict[str, Set[str]] = pinned_ips or {}
         self._dns_cache_enabled = bool(dns_cache_enabled)
+        self._network_transport = network_transport
         self._pin_lock: Optional[asyncio.Lock] = None
 
     def _get_pin_lock(self) -> asyncio.Lock:
@@ -178,7 +180,14 @@ class SecurityTransport(httpx.AsyncHTTPTransport):
                 connection_candidates,
                 logical_host=logical_host,
             )
+        if self._network_transport is not None:
+            return await self._network_transport.handle_async_request(request)
         return await super().handle_async_request(request)
+
+    async def aclose(self) -> None:
+        if self._network_transport is not None:
+            await self._network_transport.aclose()
+        await super().aclose()
 
     async def _resolve_and_cache(
         self,

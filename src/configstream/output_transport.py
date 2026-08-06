@@ -69,15 +69,36 @@ def inject_stego_key_into_frontend(secret_key: str, js_file_path: Path) -> None:
         )
         return
 
+    try:
+        content = js_file_path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as exc:
+        logger.warning(
+            "Unable to inspect frontend JS %s for embedded secrets (%s); "
+            "continuing without cleanup",
+            js_file_path,
+            type(exc).__name__,
+        )
+        return
+
+    pattern = r'(const\s+SECRET_KEY\s*=\s*")([^"]*)(")'
+    new_content, replacements = re.subn(pattern, r"\1\3", content)
+    if not replacements:
+        return
+
     if secret_key:
         logger.warning(
             "Refusing to embed a symmetric secret in public frontend %s",
             js_file_path.name,
         )
 
-    content = js_file_path.read_text(encoding="utf-8")
-    pattern = r'(const\s+SECRET_KEY\s*=\s*")([^"]*)(")'
-    new_content, replacements = re.subn(pattern, r"\1\3", content)
-    if replacements:
+    try:
         AtomicFileWriter.write_text(js_file_path, new_content)
-        logger.info("Removed %d embedded frontend secret key(s)", replacements)
+    except (OSError, UnicodeError) as exc:
+        logger.warning(
+            "Unable to remove embedded frontend secret from %s (%s); "
+            "continuing without cleanup",
+            js_file_path,
+            type(exc).__name__,
+        )
+        return
+    logger.info("Removed %d embedded frontend secret key(s)", replacements)

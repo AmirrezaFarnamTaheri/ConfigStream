@@ -37,6 +37,7 @@ dependencies = [
     "PyYAML>=6.0",
     "pydantic>=2.12.4",
     "pydantic-settings",
+    "platformdirs>=4.0.0",
     "singbox2proxy~=0.2.4",
     "aiofiles>=23.2.0",
     "orjson>=3.9.0",
