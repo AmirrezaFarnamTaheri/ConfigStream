@@ -48,7 +48,6 @@ class AppSettings(BaseSettings):
 
     PRODUCER_MAX_CONCURRENCY: int = 100
     QUEUE_PUT_TIMEOUT_SECONDS: float = 0.75
-    QUEUE_DEGRADATION_MODE: str = "lossless"
     QUEUE_OVERLOAD_THRESHOLD: float = 0.8
     QUEUE_OVERLOAD_KEEP_RATIO: float = 0.6
     INGEST_MICRO_CHUNK_LINES: int = 500
@@ -68,7 +67,6 @@ class AppSettings(BaseSettings):
     BATCH_SIZE: int = 50
     MAX_SEEN_KEYS: int = 2_000_000
     CACHE_TTL: int = 1800
-    CACHE_MAX_ENTRIES: int = 100_000
     MAX_WORKERS: int = 128
     MAX_B64_INPUT_SIZE: int = 8 * 1024 * 1024
     MAX_B64_OUTPUT_SIZE: int = 32 * 1024 * 1024
@@ -180,8 +178,6 @@ class AppSettings(BaseSettings):
     QUALITY_DB_PATH: str = "data/source_quality.db"
     SOURCE_PROBATION_FAILURES: int = 3
     SOURCE_DEAD_FAILURES: int = 10
-    ENFORCE_SOURCE_ADMISSION: bool = True
-    SOURCE_ADMISSION_MANIFEST: str = "bundled"
 
     SCORE_SIGMOID_CENTER_RATIO: float = 0.6
     SCORE_SIGMOID_SLOPE_RATIO: float = 0.2
@@ -206,7 +202,6 @@ class AppSettings(BaseSettings):
             "MAX_SEEN_KEYS",
             "SEEN_BLOOM_EXPECTED_ITEMS",
             "MAX_WORKERS",
-            "CACHE_MAX_ENTRIES",
             "MAX_B64_INPUT_SIZE",
             "MAX_B64_OUTPUT_SIZE",
             "MAX_CONFIG_LINE_LENGTH",
@@ -215,7 +210,6 @@ class AppSettings(BaseSettings):
             "DNS_SAFE_RESOLVE_BATCH",
             "DNS_SAFE_RESOLVE_LIMIT",
             "PER_HOST_MAX_CONCURRENCY",
-            "QUEUE_MAX_TRIES",
             "MAX_RESPONSE_SIZE",
             "SOURCE_PROBATION_FAILURES",
         )
@@ -237,10 +231,6 @@ class AppSettings(BaseSettings):
             raise ValueError("EVENT_STREAM_FLUSH_TIMEOUT_SECONDS must be > 0")
         if self.QUEUE_PUT_TIMEOUT_SECONDS <= 0:
             raise ValueError("QUEUE_PUT_TIMEOUT_SECONDS must be > 0")
-        if self.QUEUE_DEGRADATION_MODE not in {"lossless", "shed-longest"}:
-            raise ValueError(
-                "QUEUE_DEGRADATION_MODE must be 'lossless' or 'shed-longest'"
-            )
         if not 0 < self.QUEUE_OVERLOAD_THRESHOLD <= 1:
             raise ValueError("QUEUE_OVERLOAD_THRESHOLD must be in (0, 1]")
         if not 0 < self.QUEUE_OVERLOAD_KEEP_RATIO <= 1:
