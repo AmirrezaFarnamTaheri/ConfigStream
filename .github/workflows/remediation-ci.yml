@@ -1,0 +1,49 @@
+name: Remediation CI
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+      - 'scripts/**'
+      - 'src/configstream/testers/python.py'
+      - 'tests/unit/test_release_remediation.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: '3.11'
+          cache: pip
+      - run: pip install -e .[dev]
+      - name: Compile changed Python
+        run: |
+          python -m py_compile \
+            scripts/aggregate_shard_health.py \
+            scripts/finalize_release_outputs.py \
+            scripts/native_client_checks.py \
+            scripts/normalize_legacy_profiles.py \
+            scripts/release_gate.py \
+            scripts/shard_sources.py \
+            src/configstream/testers/python.py
+      - name: Run remediation regression tests
+        id: pytest
+        continue-on-error: true
+        run: pytest -q tests/unit/test_release_remediation.py --junitxml=pytest-remediation.xml
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: remediation-pytest-${{ github.sha }}-${{ github.run_attempt }}
+          path: pytest-remediation.xml
+          if-no-files-found: error
+      - name: Enforce test result
+        if: steps.pytest.outcome != 'success'
+        run: exit 1
