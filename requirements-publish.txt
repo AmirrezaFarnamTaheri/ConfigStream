@@ -1,6 +1,9 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Publisher-only entry-point pins. Install after requirements-dev.txt.
 # Shared runtime dependencies are constrained by requirements-prod.txt.
+# These clients enable optional Hugging Face and Google Drive publishing only.
+# The core pipeline, GitHub artifacts, and GitHub Pages require no paid provider;
+# omit publisher credentials to keep those external destinations disabled.
 huggingface-hub==1.24.0
 google-api-python-client==2.198.0
 google-auth==2.56.0

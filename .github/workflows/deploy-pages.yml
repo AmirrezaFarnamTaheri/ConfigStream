@@ -180,6 +180,8 @@ jobs:
               --report-dir deploy-evidence/stages \
               --timeout 600 \
               -- python scripts/verify_pages_deployment.py "$page_url" --report-file deploy-evidence/smoke-report.json
+            smoke_status=$(python -c 'import json; print(json.load(open("deploy-evidence/stages/smoke-pages.json", encoding="utf-8"))["status"])')
+            test "$smoke_status" = success
           else
             python scripts/resilient_stage.py record \
               --name smoke-pages \
