@@ -27,44 +27,13 @@ def _safe_proxy_ref(proxy: Proxy) -> str:
     return SecurityValidator.sanitize_log_message(f"{proxy.address}:{proxy.port}")
 
 
-def _tested_at(entry: Dict[str, Any]) -> float:
-    try:
-        return float(entry.get("tested_at", 0.0))
-    except (TypeError, ValueError):
-        return 0.0
-
-
-def _nonnegative_int(value: object) -> int:
-    try:
-        return max(0, int(value))
-    except (TypeError, ValueError, OverflowError):
-        return 0
-
-
-def _health_counts(entry: Dict[str, Any]) -> tuple[int, int]:
-    tests = _nonnegative_int(entry.get("test_count", 0))
-    successes = min(tests, _nonnegative_int(entry.get("success_count", 0)))
-    return tests, successes
-
-
-def _without_sensitive_config(entry: Dict[str, Any]) -> Dict[str, Any]:
-    """Return a cache entry without the original credential-bearing URI."""
-
-    sanitized = dict(entry)
-    sanitized.pop("config", None)
-    return sanitized
-
-
 class TestResultCache:
     """JSON-file-backed cache for proxy test results."""
 
     __test__ = False
 
     def __init__(
-        self,
-        db_path: str = "data/test_cache.json",
-        ttl_seconds: Optional[int] = None,
-        max_entries: Optional[int] = None,
+        self, db_path: str = "data/test_cache.json", ttl_seconds: Optional[int] = None
     ):
         """
         Initialize the test result cache.
@@ -74,15 +43,9 @@ class TestResultCache:
             ttl_seconds: Time-to-live for cached results (default: 1 hour).
         """
         self.db_path = Path(db_path)
-        settings = AppSettings()
         if ttl_seconds is None:
-            ttl_seconds = settings.CACHE_TTL
-        if max_entries is None:
-            max_entries = settings.CACHE_MAX_ENTRIES
-        if int(max_entries) <= 0:
-            raise ValueError("max_entries must be > 0")
+            ttl_seconds = AppSettings().CACHE_TTL
         self.ttl_seconds = ttl_seconds
-        self.max_entries = int(max_entries)
         self._cache: Dict[str, Dict[str, Any]] = {}
         self._tombstones: Dict[str, float] = {}
         self.load()
@@ -97,15 +60,7 @@ class TestResultCache:
             return
         try:
             with self.db_path.open("r", encoding="utf-8") as f:
-                payload = json.load(f)
-            if not isinstance(payload, dict):
-                raise json.JSONDecodeError("cache root must be an object", "", 0)
-            self._cache = {
-                str(key): _without_sensitive_config(value)
-                for key, value in payload.items()
-                if isinstance(value, dict)
-            }
-            self._compact()
+                self._cache = json.load(f)
             logger.info(
                 "Loaded %d entries from cache file: %s",
                 len(self._cache),
@@ -140,13 +95,6 @@ class TestResultCache:
             try:
                 with open(self.db_path, "r", encoding="utf-8") as f:
                     disk_cache = json.load(f)
-                    if not isinstance(disk_cache, dict):
-                        raise ValueError("cache root must be an object")
-                    disk_cache = {
-                        str(key): _without_sensitive_config(value)
-                        for key, value in disk_cache.items()
-                        if isinstance(value, dict)
-                    }
                     # Apply only tombstones that are at least as new as the
                     # corresponding disk entry. A newer result from another
                     # writer must survive an older invalidation.
@@ -162,26 +110,13 @@ class TestResultCache:
                             disk_tested_at = 0.0
                         if disk_tested_at <= invalidated_at:
                             disk_cache.pop(tombstone, None)
-                    # Prefer the newest result per key. A long-lived process
-                    # may still hold the entry it loaded at startup; blindly
-                    # applying it would overwrite a newer result written by a
-                    # concurrent process despite holding the file lock here.
-                    for key, memory_entry in self._cache.items():
-                        disk_entry = disk_cache.get(key)
-                        if not isinstance(disk_entry, dict) or _tested_at(
-                            memory_entry
-                        ) >= _tested_at(disk_entry):
-                            disk_cache[key] = _without_sensitive_config(memory_entry)
+                    # Merge in-memory cache into disk cache (in-memory takes precedence)
+                    disk_cache.update(self._cache)
                     self._cache = disk_cache
-            except (json.JSONDecodeError, IOError, ValueError):
+            except (json.JSONDecodeError, IOError):
                 pass
 
-        self._compact()
-        self._cache = {
-            key: _without_sensitive_config(entry)
-            for key, entry in self._cache.items()
-        }
-        content = json.dumps(self._cache, indent=2, sort_keys=True)
+        content = json.dumps(self._cache, indent=2)
         AtomicFileWriter.write_text(self.db_path, content)
         # Tombstones describe pending deletions. Once the atomic write succeeds,
         # retaining them would let a later unrelated save delete newer results.
@@ -191,34 +126,6 @@ class TestResultCache:
             len(self._cache),
             self.db_path,
         )
-
-    def _compact(self) -> int:
-        """Bound the JSON snapshot by TTL and newest-entry retention."""
-        now = time.time()
-        cutoff = now - self.ttl_seconds
-        before = len(self._cache)
-        valid = {
-            key: entry
-            for key, entry in self._cache.items()
-            if _tested_at(entry) >= cutoff
-        }
-        if len(valid) > self.max_entries:
-            ordered = sorted(
-                valid.items(),
-                key=lambda item: (_tested_at(item[1]), item[0]),
-                reverse=True,
-            )
-            valid = dict(ordered[: self.max_entries])
-        self._cache = valid
-        removed = before - len(valid)
-        if removed:
-            logger.info(
-                "Compacted %d cache entries; retained %d (limit=%d)",
-                removed,
-                len(valid),
-                self.max_entries,
-            )
-        return removed
 
     def get(self, proxy: Proxy) -> Optional[Proxy]:
         """
@@ -242,7 +149,7 @@ class TestResultCache:
 
         current_time = time.time()
         cutoff_time = current_time - self.ttl_seconds
-        tested_at = _tested_at(entry)
+        tested_at = entry.get("tested_at", 0.0)
 
         if tested_at < cutoff_time:
             logger.debug("Cache MISS for %s (expired)", _safe_proxy_ref(proxy))
@@ -278,8 +185,8 @@ class TestResultCache:
         if not entry:
             return False
 
-        tested_at = _tested_at(entry)
-        return tested_at >= (time.time() - self.ttl_seconds)
+        tested_at = entry.get("tested_at", 0.0)
+        return bool(tested_at >= (time.time() - self.ttl_seconds))
 
     def invalidate(self, proxy: Proxy) -> None:
         """Invalidate/remove a cached result for a proxy."""
@@ -304,11 +211,13 @@ class TestResultCache:
         current_time = time.time()
 
         existing_entry = self._cache.get(config_hash, {})
-        test_count, success_count = _health_counts(existing_entry)
-        test_count += 1
-        success_count += 1 if proxy.is_working else 0
+        test_count = existing_entry.get("test_count", 0) + 1
+        success_count = existing_entry.get("success_count", 0) + (
+            1 if proxy.is_working else 0
+        )
 
         self._cache[config_hash] = {
+            "config": proxy.config,
             "is_working": int(proxy.is_working),
             "latency": proxy.latency,
             "country": proxy.country,
@@ -335,10 +244,8 @@ class TestResultCache:
         config_hash = self._compute_hash(proxy.config)
         entry = self._cache.get(config_hash)
 
-        if entry:
-            test_count, success_count = _health_counts(entry)
-            if test_count > 0:
-                return success_count / test_count
+        if entry and entry.get("test_count", 0) > 0:
+            return float(entry["success_count"]) / float(entry["test_count"])
 
         return 0.5  # Default neutral score for new proxies
 
@@ -362,7 +269,7 @@ class TestResultCache:
         self._cache = {
             h: entry
             for h, entry in self._cache.items()
-            if _tested_at(entry) >= cutoff_time
+            if entry.get("tested_at", 0.0) >= cutoff_time
         }
         deleted = initial_count - len(self._cache)
 
@@ -386,11 +293,12 @@ class TestResultCache:
         valid_health_count = 0
 
         for entry in self._cache.values():
-            if _tested_at(entry) >= cutoff_time:
+            if entry.get("tested_at", 0.0) >= cutoff_time:
                 valid_entries += 1
-                test_count, success_count = _health_counts(entry)
-                if test_count > 0:
-                    total_health += success_count / test_count
+                if entry.get("test_count", 0) > 0:
+                    total_health += float(entry["success_count"]) / float(
+                        entry["test_count"]
+                    )
                     valid_health_count += 1
 
         avg_health = (
@@ -412,5 +320,7 @@ class TestResultCache:
         # pylint: disable=protected-access
         for config_hash, other_entry in other_cache._cache.items():
             existing_entry = self._cache.get(config_hash)
-            if not existing_entry or _tested_at(other_entry) > _tested_at(existing_entry):
+            if not existing_entry or other_entry.get(
+                "tested_at", 0
+            ) > existing_entry.get("tested_at", 0):
                 self._cache[config_hash] = other_entry

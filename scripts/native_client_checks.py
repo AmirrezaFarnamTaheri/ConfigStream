@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import platform
@@ -14,11 +15,17 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from configstream.hashing import sha256_file
 from configstream.security_validator import SecurityValidator
 
 MAX_OUTPUT_CHARS = 1000
 
+
+def digest(path: Path) -> str:
+    value = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            value.update(chunk)
+    return value.hexdigest()
 
 
 def safe_artifact(root: Path, path: Path) -> tuple[Path | None, str | None]:
@@ -58,7 +65,7 @@ def run(
     }
     if resolved is None:
         return base
-    before = sha256_file(resolved)
+    before = digest(resolved)
     base["artifact_sha256"] = before
     with tempfile.TemporaryDirectory(prefix=f"configstream-{core}-") as home:
         env = {
@@ -82,7 +89,7 @@ def run(
         except (OSError, subprocess.TimeoutExpired) as exc:
             base["error"] = type(exc).__name__
             return base
-    after = sha256_file(resolved)
+    after = digest(resolved)
     if before != after:
         base["error"] = "artifact changed during native validation"
         return base
@@ -137,7 +144,7 @@ def main() -> int:
                 }
             )
     binary_digests = {
-        name: sha256_file(binary) if binary is not None else None
+        name: digest(binary) if binary is not None else None
         for name, binary in binaries.items()
     }
 

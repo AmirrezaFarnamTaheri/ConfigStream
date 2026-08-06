@@ -5,7 +5,7 @@ import logging
 import socket
 from secrets import choice as secure_choice
 from urllib.parse import urlparse, urljoin
-from typing import Any, Dict, Optional, Tuple, List, cast
+from typing import Any, Dict, Optional, Tuple, List, Union, cast
 import httpx
 
 from configstream.concurrency_manager import ConcurrencyManager
@@ -17,7 +17,6 @@ from configstream.adaptive_timeout import AdaptiveTimeout
 from configstream.http_client import get_client
 from configstream.source_quality import SourceQualityTracker
 from configstream.security_validator import SecurityValidator
-from configstream.security.transport import rewrite_request_to_pinned_ip
 from configstream.fetcher_worker import FetchResult
 
 from .interfaces import IFetcher
@@ -27,8 +26,8 @@ logger = logging.getLogger(__name__)
 # Use AppSettings if available, otherwise default
 try:
     MAX_RESPONSE_SIZE = AppSettings().MAX_RESPONSE_SIZE
-except (TypeError, ValueError):
-    logger.debug("Invalid settings while resolving MAX_RESPONSE_SIZE")
+except Exception:
+    logging.getLogger(__name__).debug("Suppressed broad exception")
     MAX_RESPONSE_SIZE = 10 * 1024 * 1024
 
 USER_AGENTS = [
@@ -199,8 +198,8 @@ async def fetch_from_source(
             parsed = urlparse(source)
             host = parsed.netloc
             key = host
-        except ValueError:
-            logger.debug("Malformed source URL while selecting circuit-breaker key")
+        except Exception:
+            logging.getLogger(__name__).debug("Suppressed broad exception")
             key = source
 
         breaker = await breaker_manager.get_breaker(key)
@@ -285,15 +284,21 @@ async def fetch_from_source(
                     response_time=response_time,
                 )
 
-            # Pin the validated IP in the request itself. This keeps Host and
-            # TLS SNI correct even when a caller injects a different HTTPX client.
-            pinned_request = httpx.Request("GET", current_url, headers=headers)
+            # SECURITY FIX (#493): Pin the validated IP to prevent DNS-rebinding
+            # TOCTOU attacks. Replace hostname with validated IP in URL and set
+            # Host header so the TLS SNI remains correct.
+            pinned_url = current_url
+            host_header = None
             if validated_ip:
-                pinned_request = rewrite_request_to_pinned_ip(
-                    pinned_request,
-                    {validated_ip},
-                    logical_host=urlparse(current_url).hostname,
-                )
+                parsed = urlparse(current_url)
+                original_host = parsed.hostname
+                if original_host and original_host != validated_ip:
+                    # Build URL with IP literal, preserving port and path
+                    netloc = validated_ip
+                    if parsed.port:
+                        netloc = f"{validated_ip}:{parsed.port}"
+                    pinned_url = parsed._replace(netloc=netloc).geturl()
+                    host_header = original_host
 
             # Jitter / Timeout Tracking
             effective_timeout = float(timeout) if timeout is not None else 30.0
@@ -306,11 +311,14 @@ async def fetch_from_source(
                 if jitter > 2.0:
                     logger.info(f"High Jitter detected for {safe_source}: {jitter}s")
 
+            request_headers = dict(headers)
+            if host_header:
+                request_headers["Host"] = host_header
+
             async with client.stream(
                 "GET",
-                str(pinned_request.url),
-                headers=dict(pinned_request.headers),
-                extensions=dict(pinned_request.extensions),
+                pinned_url,
+                headers=request_headers,
                 timeout=effective_timeout,
                 follow_redirects=False,
             ) as response:

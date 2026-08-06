@@ -12,7 +12,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Tuple, cast
 
-from configstream.security_validator import safe_log_text
+from configstream.security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
 SCHEMA_VERSION = 4
@@ -20,6 +20,10 @@ SCHEMA_VERSION = 4
 
 class QualityStorageError(RuntimeError):
     """Raised when quality state cannot be read or committed safely."""
+
+
+def _safe_message(value: object) -> str:
+    return SecurityValidator.sanitize_log_message(str(value))
 
 
 class QualityStorage:
@@ -58,7 +62,7 @@ class QualityStorage:
                 conn.execute("PRAGMA busy_timeout=20000")
             except sqlite3.Error as exc:
                 raise QualityStorageError(
-                    f"failed to open quality database {self.db_path}: {safe_log_text(exc)}"
+                    f"failed to open quality database {self.db_path}: {_safe_message(exc)}"
                 ) from exc
             self._thread_local.conn = conn
             self._thread_local.generation = self._generation
@@ -200,7 +204,7 @@ class QualityStorage:
             if isinstance(exc, QualityStorageError):
                 raise
             raise QualityStorageError(
-                f"failed to initialize quality database {self.db_path}: {safe_log_text(exc)}"
+                f"failed to initialize quality database {self.db_path}: {_safe_message(exc)}"
             ) from exc
 
     def close(self) -> None:
@@ -223,7 +227,7 @@ class QualityStorage:
                 conn.execute(sql, params)
         except Exception as exc:
             raise QualityStorageError(
-                f"quality DB write failed: {safe_log_text(exc)}"
+                f"quality DB write failed: {_safe_message(exc)}"
             ) from exc
 
     def execute_write_many(self, sql: str, params_list: List[Tuple]) -> None:
@@ -234,7 +238,7 @@ class QualityStorage:
                 conn.executemany(sql, params_list)
         except Exception as exc:
             raise QualityStorageError(
-                f"quality DB batch write failed: {safe_log_text(exc)}"
+                f"quality DB batch write failed: {_safe_message(exc)}"
             ) from exc
 
     def get_source_state(self, url: str) -> Optional[Tuple[Any, ...]]:
@@ -255,7 +259,7 @@ class QualityStorage:
             return tuple(row) if row is not None else None
         except sqlite3.Error as exc:
             raise QualityStorageError(
-                f"failed to read source state for {safe_log_text(url)}: {safe_log_text(exc)}"
+                f"failed to read source state for {_safe_message(url)}: {_safe_message(exc)}"
             ) from exc
 
     def get_trust_score(self, url: str) -> float:
@@ -271,7 +275,7 @@ class QualityStorage:
             return float(row[0]) if row else 50.0
         except sqlite3.Error as exc:
             raise QualityStorageError(
-                f"failed to read trust score for {safe_log_text(url)}: {safe_log_text(exc)}"
+                f"failed to read trust score for {_safe_message(url)}: {_safe_message(exc)}"
             ) from exc
 
     def upsert_stats(self, url: str, stats: Dict[str, Any]) -> None:
@@ -355,7 +359,7 @@ class QualityStorage:
             if isinstance(exc, QualityStorageError):
                 raise
             raise QualityStorageError(
-                f"failed to update stats for {safe_log_text(url)}: {safe_log_text(exc)}"
+                f"failed to update stats for {_safe_message(url)}: {_safe_message(exc)}"
             ) from exc
 
     @staticmethod
@@ -417,7 +421,7 @@ class QualityStorage:
             if isinstance(exc, QualityStorageError):
                 raise
             raise QualityStorageError(
-                f"failed to record run for {safe_log_text(url)}: {safe_log_text(exc)}"
+                f"failed to record run for {_safe_message(url)}: {_safe_message(exc)}"
             ) from exc
 
     def get_worst_performing(self, limit: int = 5) -> list[Dict[str, Any]]:
@@ -441,7 +445,7 @@ class QualityStorage:
                 )
         except sqlite3.Error as exc:
             raise QualityStorageError(
-                f"failed to query worst sources: {safe_log_text(exc)}"
+                f"failed to query worst sources: {_safe_message(exc)}"
             ) from exc
         return [
             {
@@ -607,7 +611,7 @@ class QualityStorage:
             if isinstance(exc, QualityStorageError):
                 raise
             raise QualityStorageError(
-                f"failed to merge source quality DB {other}: {safe_log_text(exc)}"
+                f"failed to merge source quality DB {other}: {_safe_message(exc)}"
             ) from exc
         finally:
             if src is not None:

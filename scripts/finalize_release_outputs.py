@@ -16,8 +16,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
-from configstream.hashing import sha256_file
-from configstream.output.client_formats import generate_xray_config, normalize_string_list
+from configstream.output.client_formats import generate_xray_config
 
 try:
     import yaml  # type: ignore
@@ -54,6 +53,13 @@ def _write(path: Path, payload: Any) -> None:
     )
 
 
+def _sha256(path: Path) -> str:
+    value = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            value.update(chunk)
+    return value.hexdigest()
+
 
 def _clean_text(value: str) -> str:
     return CONTROL_RE.sub("", unicodedata.normalize("NFC", value))
@@ -87,11 +93,17 @@ def _sanitize(value: Any, *, key: str | None = None) -> Any:
     return value
 
 
+def _string_list(value: Any) -> list[str]:
+    if value in (None, ""):
+        return []
+    if isinstance(value, list):
+        return [str(item) for item in value if item not in (None, "")]
+    return [str(value)]
+
+
 def _wireguard_endpoint(outbound: dict[str, Any]) -> dict[str, Any]:
-    local = normalize_string_list(
-        outbound.get("address") or outbound.get("local_address")
-    )
-    allowed = normalize_string_list(outbound.get("allowed_ips")) or ["0.0.0.0/0"]
+    local = _string_list(outbound.get("address") or outbound.get("local_address"))
+    allowed = _string_list(outbound.get("allowed_ips")) or ["0.0.0.0/0"]
     if any(":" in item for item in local) and "::/0" not in allowed:
         allowed.append("::/0")
     peer: dict[str, Any] = {
@@ -179,12 +191,12 @@ def modernize_singbox(payload: Any) -> Any:
     for inbound in config.get("inbounds", []):
         if not isinstance(inbound, dict) or inbound.get("type") != "tun":
             continue
-        addresses = normalize_string_list(inbound.pop("inet4_address", None))
-        addresses.extend(normalize_string_list(inbound.pop("inet6_address", None)))
+        addresses = _string_list(inbound.pop("inet4_address", None))
+        addresses.extend(_string_list(inbound.pop("inet6_address", None)))
         if addresses:
             inbound["address"] = addresses
-        routes = normalize_string_list(inbound.pop("inet4_route_address", None))
-        routes.extend(normalize_string_list(inbound.pop("inet6_route_address", None)))
+        routes = _string_list(inbound.pop("inet4_route_address", None))
+        routes.extend(_string_list(inbound.pop("inet6_route_address", None)))
         if routes:
             inbound["route_address"] = routes
 
@@ -220,7 +232,7 @@ def modernize_singbox(payload: Any) -> Any:
             continue
         sanitized_rule = _sanitize(item)
         rule = sanitized_rule if isinstance(sanitized_rule, dict) else {}
-        protocols = normalize_string_list(rule.get("protocol"))
+        protocols = _string_list(rule.get("protocol"))
         if rule.get("outbound") == "block":
             rule.pop("outbound", None)
             rule["action"] = "reject"
@@ -552,7 +564,7 @@ def finalize(root: Path, repo_root: Path, threshold: float) -> None:
             {
                 "path": rel,
                 "size_bytes": path.stat().st_size,
-                "sha256": sha256_file(path),
+                "sha256": _sha256(path),
                 "category": (
                     "control"
                     if rel

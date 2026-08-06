@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import argparse
+import base64
+import binascii
 import hashlib
 import json
 import logging
@@ -24,9 +26,7 @@ from configstream.output.client_formats import (
     validate_nekobox_subscriptions,
     validate_xray_config,
 )
-from configstream.hashing import sha256_file
 from configstream.output.singbox_contract import validate_singbox_config
-from configstream.signer import normalize_public_key_hex
 from cryptography.hazmat.primitives.asymmetric import ed25519
 from cryptography.hazmat.primitives import serialization
 
@@ -183,8 +183,45 @@ _MANIFEST_PRIVATE_KEY_ENV = (
 )
 
 
+def _public_key_from_runtime_env() -> ed25519.Ed25519PublicKey | None:
+    value = (os.environ.get("CS_PUBLIC_KEY") or "").strip()
+    if not value:
+        return None
+    if "PLACEHOLDER" in value or "79e/79e/" in value:
+        return None
+    try:
+        key_bytes = base64.b64decode(value, validate=True)
+    except (ValueError, binascii.Error):  # type: ignore[name-defined]
+        key_bytes = b""
+
+    if key_bytes:
+        try:
+            parsed = serialization.load_der_public_key(key_bytes)
+            if isinstance(parsed, ed25519.Ed25519PublicKey):
+                return parsed
+        except (ValueError, TypeError):
+            pass
+        try:
+            return ed25519.Ed25519PublicKey.from_public_bytes(key_bytes)
+        except ValueError:
+            pass
+    try:
+        raw = bytes.fromhex(value)
+    except ValueError:
+        return None
+    try:
+        return ed25519.Ed25519PublicKey.from_public_bytes(raw)
+    except ValueError:
+        return None
+
+
 def _public_key_hex_from_env() -> str:
-    return normalize_public_key_hex(os.environ.get("CS_PUBLIC_KEY", ""))
+    key = _public_key_from_runtime_env()
+    if not key:
+        return ""
+    return key.public_bytes(
+        encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
+    ).hex()
 
 
 def _manifest_signer_from_env() -> ed25519.Ed25519PrivateKey | None:
@@ -237,6 +274,14 @@ def _load_yaml(path: Path) -> tuple[object | None, str | None]:
         return None, f"invalid YAML in {path.name}: {exc}"
     except OSError as exc:
         return None, f"could not read {path.name}: {exc}"
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def _first_available_binary(names: tuple[str, ...]) -> str | None:
@@ -693,7 +738,7 @@ def _validate_manifest(root: Path, manifest: object) -> list[str]:
         actual_size = target.stat().st_size
         if item.get("size_bytes") != actual_size:
             errors.append(f"artifact_manifest.json size mismatch: {rel_path}")
-        actual_hash = sha256_file(target)
+        actual_hash = _sha256(target)
         if item.get("sha256") != actual_hash:
             errors.append(f"artifact_manifest.json sha256 mismatch: {rel_path}")
 
@@ -1021,7 +1066,7 @@ def _validate_api_alias_parity(root: Path) -> list[str]:
         alias_path = root / alias
         if not canonical_path.is_file() or not alias_path.is_file():
             continue
-        if sha256_file(canonical_path) != sha256_file(alias_path):
+        if _sha256(canonical_path) != _sha256(alias_path):
             errors.append(f"{alias} must match {canonical}")
     return errors
 
@@ -1132,7 +1177,7 @@ def write_pages_contract(root: Path) -> None:
             {
                 "path": rel_path,
                 "size_bytes": path.stat().st_size,
-                "sha256": sha256_file(path),
+                "sha256": _sha256(path),
                 "category": _artifact_category(rel_path),
             }
         )

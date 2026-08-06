@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import shutil
@@ -12,7 +13,6 @@ from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 from typing import Any, Optional, Union
 
-from configstream.hashing import sha256_file
 from configstream.output.client_formats import validate_xray_config
 from configstream.output.singbox_contract import validate_singbox_config
 
@@ -38,6 +38,13 @@ MAX_FILE_BYTES = 128 * 1024 * 1024
 MAX_TOTAL_BYTES = 1024 * 1024 * 1024
 MAX_CHECKS = 1000
 
+
+def digest(path: Path) -> str:
+    value = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            value.update(chunk)
+    return value.hexdigest()
 
 
 def load_checked(path: Path, errors: list[str]) -> Any:
@@ -98,7 +105,7 @@ def manifest_entries(root: Path) -> list[dict[str, Any]]:
         total += size
         if total > MAX_TOTAL_BYTES:
             raise ValueError("public artifact exceeds aggregate size limit")
-        entries.append({"path": relative, "size_bytes": size, "sha256": sha256_file(path)})
+        entries.append({"path": relative, "size_bytes": size, "sha256": digest(path)})
         if len(entries) > MAX_FILES:
             raise ValueError("public artifact exceeds file-count limit")
     return entries
@@ -216,7 +223,7 @@ def validate_native_report(root: Path, report: Any) -> list[str]:
         expected_digest = check.get("artifact_sha256")
         if not isinstance(expected_digest, str) or len(expected_digest) != 64:
             errors.append(f"native validation lacks artifact digest: {core}:{relative}")
-        elif expected_digest != sha256_file(artifact):
+        elif expected_digest != digest(artifact):
             errors.append(
                 f"native validation artifact digest mismatch: {core}:{relative}"
             )
@@ -357,7 +364,7 @@ def promote(root: Path, native_report: Path, min_coverage: float) -> None:
                 "native_clients_validated": True,
                 "release_blockers": [],
                 "native_report": NATIVE_REPORT_RELATIVE_PATH,
-                "native_report_sha256": sha256_file(evidence),
+                "native_report_sha256": digest(evidence),
             }
         )
         (stage / "health.json").write_text(

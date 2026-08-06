@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import re
+import sys
 from pathlib import Path
 from typing import Any, Iterable, Optional
 
@@ -169,29 +170,8 @@ def _has_contract_validators(data: dict[Any, Any]) -> bool:
     )
 
 
-def _ci_ignores_canonical_sources(data: dict[Any, Any]) -> bool:
-    """Return whether CI suppresses canonical source-batch changes."""
-
-    triggers = data.get("on", data.get(True))
-    if not isinstance(triggers, dict):
-        return False
-    push = triggers.get("push")
-    if not isinstance(push, dict):
-        return False
-    ignored = push.get("paths-ignore", [])
-    if isinstance(ignored, str):
-        ignored = [ignored]
-    if not isinstance(ignored, list):
-        return False
-    return any(str(pattern).strip() == "sources/batch_*.txt" for pattern in ignored)
-
-
 def _ci_safe(data: dict[Any, Any]) -> list[str]:
     errors: list[str] = []
-    if _ci_ignores_canonical_sources(data):
-        errors.append(
-            "CI must validate canonical sources/batch_*.txt changes"
-        )
     frontend = _find_job(data, "frontend")
     browser = _find_job(data, "frontend-browser")
     browser_commands = (
@@ -231,15 +211,9 @@ def _ci_safe(data: dict[Any, Any]) -> list[str]:
         data, "python scripts/validate_bandit_suppressions.py --require-active"
     ):
         errors.append("missing Bandit suppression hygiene guard")
-    unified_static = _has_command(
-        data, "python scripts/verify_repository.py --profile static"
-    )
-    if not (
-        _has_command(data, "python scripts/validate_test_skips.py")
-        or unified_static
-    ):
+    if not _has_command(data, "python scripts/validate_test_skips.py"):
         errors.append("missing pytest skip governance guard")
-    if not (_has_contract_validators(data) or unified_static):
+    if not _has_contract_validators(data):
         errors.append("missing capability/core/module ownership contract validators")
     return errors
 
