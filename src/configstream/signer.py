@@ -1,4 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import base64
+import binascii
 import hashlib
 import json
 import struct
@@ -13,6 +15,55 @@ SIGNATURE_MAX_AGE_SECONDS: int = 300  # 5 minutes
 
 # Tolerance for NTP clock drift between signer and verifier hosts.
 CLOCK_SKEW_TOLERANCE_SECONDS: int = 30
+
+
+def normalize_public_key_hex(value: str) -> str:
+    """Normalize a supported Ed25519 public-key encoding to raw hex.
+
+    Browser deployment uses Base64-encoded SPKI, while Python verification
+    consumes the 32-byte raw key.  Keeping the conversion here prevents the
+    release validator and rollback snapshotter from implementing different
+    trust rules.
+    """
+
+    candidate = (value or "").strip()
+    if not candidate or "PLACEHOLDER" in candidate or "79e/79e/" in candidate:
+        return ""
+
+    try:
+        key_bytes = base64.b64decode(candidate, validate=True)
+    except (ValueError, binascii.Error):
+        key_bytes = b""
+
+    if key_bytes:
+        try:
+            parsed = serialization.load_der_public_key(key_bytes)
+            if isinstance(parsed, ed25519.Ed25519PublicKey):
+                return parsed.public_bytes(
+                    encoding=serialization.Encoding.Raw,
+                    format=serialization.PublicFormat.Raw,
+                ).hex()
+        except (ValueError, TypeError):
+            pass
+        if len(key_bytes) == 32:
+            try:
+                ed25519.Ed25519PublicKey.from_public_bytes(key_bytes)
+            except ValueError:
+                pass
+            else:
+                return key_bytes.hex()
+
+    try:
+        raw = bytes.fromhex(candidate)
+    except ValueError:
+        return ""
+    if len(raw) != 32:
+        return ""
+    try:
+        ed25519.Ed25519PublicKey.from_public_bytes(raw)
+    except ValueError:
+        return ""
+    return raw.hex()
 
 
 def _build_signed_payload(content_bytes: bytes, timestamp_int: int) -> bytes:
@@ -178,22 +229,32 @@ class Signer:
             signature_hex: Hex-encoded Ed25519 signature.
             public_key_hex: Hex-encoded 32-byte Ed25519 public key.
             timestamp: Integer seconds (UTC) that was embedded when signing.
-                       If None the age check is skipped (legacy callers only).
+                       Required: every signature produced by this class embeds
+                       one, so ``None`` is treated as malformed input and is
+                       rejected outright. It remains ``Optional`` in the
+                       signature only so that callers forwarding a missing
+                       field fail closed (``False``) instead of raising.
             max_age_seconds: Maximum acceptable age of the signature in seconds.
 
         Returns:
-            True only when the signature is cryptographically valid *and*
-            the timestamp is within the acceptable window.
+            True only when a timestamp is supplied, the signature is
+            cryptographically valid, *and* the timestamp is within the
+            acceptable window. False in every other case.
         """
         try:
             # --- Replay / freshness check ----------------------------------------
-            if timestamp is not None:
-                age = int(time.time()) - int(timestamp)
-                # Allow up to CLOCK_SKEW_TOLERANCE_SECONDS of negative age to
-                # tolerate normal NTP drift between signer and verifier hosts.
-                # Clearly future timestamps (beyond tolerance) are still rejected.
-                if age < -CLOCK_SKEW_TOLERANCE_SECONDS or age > max_age_seconds:
-                    return False
+            # Fail closed when no timestamp is supplied: a signature verified over
+            # raw content with no age binding would be replayable forever. Every
+            # signature this class produces embeds a timestamp, so a missing one
+            # is a malformed/legacy input, not a valid case.
+            if timestamp is None:
+                return False
+            age = int(time.time()) - int(timestamp)
+            # Allow up to CLOCK_SKEW_TOLERANCE_SECONDS of negative age to
+            # tolerate normal NTP drift between signer and verifier hosts.
+            # Clearly future timestamps (beyond tolerance) are still rejected.
+            if age < -CLOCK_SKEW_TOLERANCE_SECONDS or age > max_age_seconds:
+                return False
 
             # --- Cryptographic verification --------------------------------------
             public_key = ed25519.Ed25519PublicKey.from_public_bytes(
@@ -201,16 +262,12 @@ class Signer:
             )
             content_bytes = content.encode("utf-8")
 
-            if timestamp is not None:
-                # Verify against the same canonical payload used during signing.
-                payload = _build_signed_payload(content_bytes, int(timestamp))
-            else:
-                # Legacy path: signature was produced over raw content bytes only.
-                payload = content_bytes
+            # Verify against the same canonical payload used during signing.
+            payload = _build_signed_payload(content_bytes, int(timestamp))
 
             public_key.verify(bytes.fromhex(signature_hex), payload)
             return True
-        except (InvalidSignature, ValueError, struct.error):
+        except (InvalidSignature, TypeError, ValueError, struct.error):
             return False
 
     def get_public_key_hex(self) -> str:

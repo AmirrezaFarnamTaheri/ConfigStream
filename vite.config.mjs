@@ -19,6 +19,7 @@ export default defineConfig({
         index: resolve(frontendRoot, "index.html"),
         about: resolve(frontendRoot, "about.html"),
         analytics: resolve(frontendRoot, "analytics.html"),
+        evidence: resolve(frontendRoot, "evidence.html"),
         lab: resolve(frontendRoot, "lab.html"),
         proxies: resolve(frontendRoot, "proxies.html"),
         wiki: resolve(frontendRoot, "wiki.html")

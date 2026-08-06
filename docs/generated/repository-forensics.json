@@ -1,0 +1,31 @@
+{
+  "current_tree_secret_scan": {
+    "finding_count": 0,
+    "findings": [],
+    "limitations": "Pattern scan only; findings include locations and categories, never secret values.",
+    "status": "complete-high-signal-regex"
+  },
+  "remediation_checkout": {
+    "history_origin": "local baseline created from the archive for remediation; not upstream history",
+    "upstream_history_available": false
+  },
+  "schema_version": 1,
+  "source": {
+    "archive_entry_count": 1207,
+    "archive_name": "ConfigStream-main.zip",
+    "archive_sha256": "26c31b19f7f24c43c1c4a20ab0e337489e6f64b55f8e2346be2db9dcd4c2a365",
+    "archive_uncompressed_bytes": 31067728,
+    "notes": "Verified against the supplied source archive before remediation. The local Git repository is a rollback mechanism, not upstream history.",
+    "schema_version": 1,
+    "source_kind": "archive-snapshot",
+    "upstream_git_history_included": false
+  },
+  "unavailable_claims": {
+    "branch_protection": "requires authenticated GitHub repository metadata",
+    "code_ownership": "requires original authorship history",
+    "deleted_secret_history": "requires a full upstream Git clone and history scanner",
+    "github_project_state": "requires trusted ProjectV2 binding and authenticated metadata",
+    "remote_ci_head": "requires a pushed commit and exact-head GitHub Actions results",
+    "upstream_commit_history": "not present in the supplied archive"
+  }
+}

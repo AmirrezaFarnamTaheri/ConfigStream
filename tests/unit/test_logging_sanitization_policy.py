@@ -72,6 +72,7 @@ SENSITIVE_LOG_NAMES = {
 }
 SAFE_LOG_CALLS = {
     "SecurityValidator.sanitize_log_message",
+    "safe_log_text",
     "_safe_log_text",
     "_safe_proxy_ref",
     "_safe_source_ref",

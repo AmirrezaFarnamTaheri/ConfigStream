@@ -322,9 +322,13 @@ def validate_batch_configs(
     return safe_proxies
 
 
-def _safe_log_text(value: object) -> str:
+def safe_log_text(value: object) -> str:
     """Sanitize arbitrary text for logging."""
     return SecurityValidator.sanitize_log_message(str(value))
+
+
+# Backward-compatible alias for older imports. New code uses safe_log_text.
+_safe_log_text = safe_log_text
 
 
 def _safe_proxy_ref(proxy: "Proxy") -> str:

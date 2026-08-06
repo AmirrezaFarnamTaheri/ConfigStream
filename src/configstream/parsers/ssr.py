@@ -5,13 +5,9 @@ from urllib.parse import parse_qs
 from ..models import Proxy
 from .base import safe_b64_decode, validate_b64_input, normalize_proxy_details
 from ..constants import MAX_CONFIG_LINE_LENGTH
-from ..security_validator import SecurityValidator
+from ..security_validator import safe_log_text
 
 logger = logging.getLogger(__name__)
-
-
-def _safe_log_text(value: object) -> str:
-    return SecurityValidator.sanitize_log_message(str(value))
 
 
 def _b64_normalize(s: str) -> str:
@@ -47,7 +43,7 @@ def parse_ssr(config: str) -> Optional[Proxy]:
             logger.debug(
                 "Invalid SSR payload: expected 6 colon-separated parts, got %d (%s)",
                 len(parts),
-                _safe_log_text(main[:120]),
+                safe_log_text(main[:120]),
             )
             return None
 
@@ -60,7 +56,7 @@ def parse_ssr(config: str) -> Optional[Proxy]:
         except (ValueError, TypeError):
             logger.debug(
                 "Invalid port in shadowsocksr config: %s",
-                _safe_log_text(port_str),
+                safe_log_text(port_str),
             )
             return None
         if not (1 <= port <= 65535):
@@ -94,8 +90,8 @@ def parse_ssr(config: str) -> Optional[Proxy]:
             elif decoded_val == v_norm and validate_b64_input(v_norm) is None:
                 logger.debug(
                     "SSR param %s not valid base64: %s; leaving as-is.",
-                    _safe_log_text(k),
-                    _safe_log_text(val),
+                    safe_log_text(k),
+                    safe_log_text(val),
                 )
                 decoded_val = val
 
@@ -121,5 +117,5 @@ def parse_ssr(config: str) -> Optional[Proxy]:
         normalize_proxy_details(proxy)
         return proxy
     except (ValueError, IndexError) as e:
-        logger.debug("Failed to parse SSR: %s", _safe_log_text(e))
+        logger.debug("Failed to parse SSR: %s", safe_log_text(e))
         return None

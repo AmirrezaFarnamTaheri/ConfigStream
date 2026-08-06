@@ -10,7 +10,7 @@ from ..models import Proxy
 from .base import normalize_proxy_details
 from ..constants import MAX_CONFIG_LINE_LENGTH
 from ..config import AppSettings
-from ..security_validator import SecurityValidator
+from ..security_validator import safe_log_text
 
 logger = logging.getLogger(__name__)
 
@@ -24,10 +24,6 @@ _IPV4_PATTERN = re.compile(
 _HOSTNAME_PATTERN = re.compile(
     r"^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$"
 )
-
-
-def _safe_log_text(value: object) -> str:
-    return SecurityValidator.sanitize_log_message(str(value))
 
 
 def parse_generic_url_scheme(config: str) -> Optional[Proxy]:
@@ -68,7 +64,7 @@ def parse_generic_url_scheme(config: str) -> Optional[Proxy]:
                 if not (is_valid_ip or is_valid_hostname):
                     logger.debug(
                         "Naked IP:PORT rejected: invalid host format %s",
-                        _safe_log_text(host),
+                        safe_log_text(host),
                     )
                     return None
 
@@ -172,7 +168,7 @@ def parse_generic_url_scheme(config: str) -> Optional[Proxy]:
         normalize_proxy_details(proxy)
         return proxy
     except (ValueError, IndexError) as e:
-        logger.debug("Failed to parse Generic config: %s", _safe_log_text(str(e)[:50]))
+        logger.debug("Failed to parse Generic config: %s", safe_log_text(str(e)[:50]))
         return None
 
 
@@ -207,7 +203,7 @@ def parse_naive(config: str) -> Optional[Proxy]:
         normalize_proxy_details(proxy)
         return proxy
     except (ValueError, IndexError) as e:
-        logger.debug("Failed to parse Naive config: %s", _safe_log_text(str(e)[:50]))
+        logger.debug("Failed to parse Naive config: %s", safe_log_text(str(e)[:50]))
         return None
 
 
@@ -221,7 +217,11 @@ def parse_v2ray_json(config: str) -> Optional[Proxy]:
         return None
     try:
         data = json.loads(stripped)
-    except json.JSONDecodeError:
+    except (json.JSONDecodeError, RecursionError):
+        # RecursionError guards against deeply nested attacker JSON; the
+        # dispatcher only catches ValueError/KeyError/JSONDecodeError.
+        return None
+    if not isinstance(data, dict):
         return None
 
     outbound = data.get("outbound")
@@ -377,6 +377,8 @@ def parse_v2ray_json(config: str) -> Optional[Proxy]:
             protocol = "shadowsocks"
             details["password"] = server_info.get("password", "")
             method = server_info.get("method") or server_info.get("cipher")
+            if method is not None and not isinstance(method, str):
+                return None
             if method:
                 details["method"] = method
             if not details["password"]:
@@ -415,7 +417,7 @@ def parse_v2ray_json(config: str) -> Optional[Proxy]:
     try:
         port_int = int(port)
     except (ValueError, TypeError):
-        logger.debug("Invalid port in v2ray config: %s", _safe_log_text(port))
+        logger.debug("Invalid port in v2ray config: %s", safe_log_text(port))
         return None
 
     remarks = outbound.get("tag", data.get("remark", ""))

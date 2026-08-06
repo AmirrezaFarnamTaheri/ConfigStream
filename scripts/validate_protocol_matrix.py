@@ -9,8 +9,14 @@ import sys
 from pathlib import Path
 from typing import Any
 
-ENCODING = "utf-8"
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from scripts.validation_utils import load_json_object
+
+
+ENCODING = "utf-8"
 MATRIX_PATH = ROOT / "docs" / "protocol_matrix.json"
 SCHEMA_PATH = ROOT / "schema" / "proxy.schema.json"
 PARSERS_INIT = ROOT / "src" / "configstream" / "parsers" / "__init__.py"
@@ -38,16 +44,9 @@ README_PROTOCOL_NAMES = {
 }
 
 
-def _read_json(path: Path) -> dict[str, Any]:
-    with path.open("r", encoding=ENCODING) as handle:
-        data = json.load(handle)
-    if not isinstance(data, dict):
-        raise ValueError(f"{path} root must be an object")
-    return data
-
 
 def _schema_protocols() -> set[str]:
-    schema = _read_json(SCHEMA_PATH)
+    schema = load_json_object(SCHEMA_PATH)
     values = schema["properties"]["protocol"]["enum"]
     return set(values)
 
@@ -60,7 +59,7 @@ def _parser_exports() -> set[str]:
 def validate_protocol_matrix(path: Path = MATRIX_PATH) -> list[str]:
     errors: list[str] = []
     try:
-        matrix = _read_json(path)
+        matrix = load_json_object(path)
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         return [f"protocol matrix cannot be read: {exc}"]
 

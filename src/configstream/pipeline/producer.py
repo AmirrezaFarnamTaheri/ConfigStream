@@ -11,6 +11,11 @@ from urllib.parse import urlparse
 
 from configstream.models import Proxy
 from configstream.config import AppSettings
+from configstream.backpressure import (
+    BackpressurePolicy,
+    enqueue as enqueue_with_policy,
+    select_candidates,
+)
 import configstream.producer as producer_mod
 from configstream.circuit_breaker import CircuitBreakerManager
 from configstream.parsers import extract_config_lines
@@ -33,8 +38,6 @@ class StreamingProducer(IProducer):
         self.context = context
 
     async def produce(self) -> None:
-        import configstream.pipeline
-
         # Contract: the pipeline core always provides these trackers.
         if (
             self.context.quality_tracker is None
@@ -46,7 +49,7 @@ class StreamingProducer(IProducer):
             )
 
         try:
-            await configstream.pipeline.source_producer(
+            await source_producer(
                 self.sources,
                 self.context.work_queue,
                 None,  # Pre-supplied proxies are queued separately, not via results list.
@@ -160,13 +163,18 @@ async def source_producer(
         stop_event = asyncio.Event()
     enable_anomaly_detection = settings.ENABLE_ANOMALY_DETECTION
     loop = asyncio.get_running_loop()
-    queue_put_timeout = max(
-        0.05, float(getattr(settings, "QUEUE_PUT_TIMEOUT_SECONDS", 0.75))
+    queue_policy = BackpressurePolicy(
+        mode=str(getattr(settings, "QUEUE_DEGRADATION_MODE", "lossless")),
+        put_timeout_seconds=max(
+            0.05, float(getattr(settings, "QUEUE_PUT_TIMEOUT_SECONDS", 0.75))
+        ),
+        overload_threshold=float(
+            getattr(settings, "QUEUE_OVERLOAD_THRESHOLD", 0.8)
+        ),
+        keep_ratio=float(getattr(settings, "QUEUE_OVERLOAD_KEEP_RATIO", 0.6)),
+        max_tries=max(1, int(getattr(settings, "QUEUE_MAX_TRIES", 5))),
     )
     ingest_chunk_size = max(1, int(getattr(settings, "INGEST_MICRO_CHUNK_LINES", 500)))
-    overload_threshold = float(getattr(settings, "QUEUE_OVERLOAD_THRESHOLD", 0.8))
-    keep_ratio = float(getattr(settings, "QUEUE_OVERLOAD_KEEP_RATIO", 0.6))
-    keep_ratio = min(1.0, max(0.05, keep_ratio))
     breaker_manager = CircuitBreakerManager(
         failure_threshold=max(1, int(getattr(settings, "CIRCUIT_TRIP_CONN_ERRORS", 5))),
         recovery_timeout=max(1, int(getattr(settings, "CIRCUIT_OPEN_SEC", 120))),
@@ -198,21 +206,6 @@ async def source_producer(
             _queue_pressure(),
         )
 
-    def _drop_slowest_testing(lines: List[str]) -> tuple[List[str], int]:
-        """
-        Approximate slow-test candidates by URI length and drop them when queue
-        pressure exceeds threshold. Shorter URIs/configs are kept first.
-        """
-        if len(lines) <= 1:
-            return lines, 0
-        if _queue_pressure() < overload_threshold:
-            return lines, 0
-        keep_count = max(1, int(len(lines) * keep_ratio))
-        ranked = sorted(enumerate(lines), key=lambda item: len(item[1]))
-        keep_indexes = {idx for idx, _ in ranked[:keep_count]}
-        kept = [line for idx, line in enumerate(lines) if idx in keep_indexes]
-        return kept, max(0, len(lines) - len(kept))
-
     async def _queue_payload(
         source: str, lines: List[str], metadata: Optional[Dict[str, Any]] = None
     ) -> int:
@@ -233,32 +226,47 @@ async def source_producer(
                 chunk_meta["chunk_index"] = idx
                 chunk_meta["chunk_total"] = len(chunks)
 
-            candidate_lines, dropped = _drop_slowest_testing(chunk)
+            candidate_lines, dropped = select_candidates(
+                chunk, pressure=_queue_pressure(), policy=queue_policy
+            )
             if dropped:
                 _record_backpressure_drop(source, chunk_meta, dropped)
             if not candidate_lines:
                 continue
 
-            try:
-                await asyncio.wait_for(
-                    work_queue.put((source, candidate_lines, chunk_meta)),
-                    timeout=queue_put_timeout,
-                )
+            result = await enqueue_with_policy(
+                work_queue,
+                (source, candidate_lines, chunk_meta),
+                policy=queue_policy,
+                stop_event=stop_event,
+            )
+            if result.enqueued:
                 queued_chunks += 1
-            except asyncio.TimeoutError:
+                if result.attempts > 1:
+                    logger.info(
+                        "Queue capacity recovered after %d attempts; lossless payload retained",
+                        result.attempts,
+                    )
+                continue
+            if result.dropped:
                 _record_backpressure_drop(source, chunk_meta, len(candidate_lines))
                 safe_source = SecurityValidator.sanitize_log_message(source)
                 logger.warning(
-                    "Queue put timeout: dropping chunk from %s (size=%d, pressure=%.2f)",
+                    "Explicit shed-longest policy dropped chunk from %s "
+                    "(size=%d, attempts=%d, pressure=%.2f)",
                     safe_source,
                     len(candidate_lines),
+                    result.attempts,
                     _queue_pressure(),
                 )
                 if event_stream:
                     event_stream.emit(
                         "warning",
-                        f"Backpressure dropped {len(candidate_lines)} lines from {safe_source}",
+                        f"Explicit overload policy dropped {len(candidate_lines)} lines "
+                        f"from {safe_source}",
                     )
+            if result.stopped:
+                break
 
         return queued_chunks
 
@@ -298,6 +306,10 @@ async def source_producer(
                 and not parsed.fragment
             )
         return False
+
+    # Set when this coroutine is cancelled, so the sentinel-delivery loop in the
+    # finally block can tell a forced teardown from a normal completion.
+    producer_cancelled = False
 
     try:
         # A. Handle Pre-supplied Proxies
@@ -580,6 +592,15 @@ async def source_producer(
                             duration_ms=(res.response_time or 0.0) * 1000,
                             failure_modes={"fetch_error": safe_error},
                         )
+    except asyncio.CancelledError:
+        # Cancellation is the one signal that consumers are being torn down
+        # directly (core.py's `_cancel_all` cancels producer and consumers
+        # together). The sentinel loop below uses this to avoid blocking on a
+        # queue nobody will drain again. Note `stop_event` alone is NOT that
+        # signal: the batch time-limit watcher sets it to stop intake while
+        # consumers keep running and draining normally.
+        producer_cancelled = True
+        raise
     except Exception as e:
         safe_error = SecurityValidator.sanitize_log_message(str(e))
         logger.error(f"Producer failed: {safe_error}")
@@ -592,6 +613,46 @@ async def source_producer(
                 "No sources or pre-supplied proxies provided - pipeline will produce zero results"
             )
 
-        # Signal all consumers to exit
+        # Signal all consumers to exit. Every consumer only terminates on this
+        # None sentinel and otherwise awaits work_queue.get() forever, and the
+        # pipeline awaits every consumer task -- so in the normal (healthy)
+        # completion path we must NOT give up early: consumers are alive and
+        # draining, so a transiently full queue always clears given patience,
+        # and abandoning a sentinel would strand that consumer permanently.
+        #
+        # When this producer is *cancelled*, core.py's `_cancel_all` is tearing
+        # the pipeline down and has cancelled every consumer too -- so the queue
+        # may stay full forever with nobody left to drain it. Sentinel delivery
+        # is then redundant (consumers exit via cancel(), not via this marker)
+        # and must not block, or this finally would wedge the whole shutdown.
+        loop = asyncio.get_running_loop()
+        sentinel_deadline = loop.time() + max(
+            5.0, float(settings.SHUTDOWN_GRACE_SECONDS)
+        )
         for _ in range(num_consumers):
-            await work_queue.put(None)
+            while True:
+                try:
+                    work_queue.put_nowait(None)
+                    break
+                except asyncio.QueueFull:
+                    if producer_cancelled:
+                        logger.warning(
+                            "Skipping sentinel delivery during forced teardown; "
+                            "consumers are being cancelled directly."
+                        )
+                        break
+                    try:
+                        await asyncio.wait_for(work_queue.put(None), timeout=5.0)
+                        break
+                    except asyncio.TimeoutError:
+                        if loop.time() >= sentinel_deadline:
+                            logger.error(
+                                "Sentinel delivery deadline exceeded; abandoning "
+                                "remaining marker after consumer failure or stall."
+                            )
+                            break
+                        logger.debug(
+                            "Sentinel enqueue still blocked after 5s; retrying "
+                            "within the bounded shutdown deadline."
+                        )
+                        continue

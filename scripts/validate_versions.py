@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import json
 import re
 import sys
 from pathlib import Path
@@ -31,6 +32,18 @@ def main() -> None:
             f"frontend/assets/js/cache-config.js version mismatch. "
             f"Expected 'v{truth_version}'"
         )
+
+    readiness = json.loads((root / "docs/readiness.json").read_text(encoding=ENCODING))
+    if readiness.get("project_version") != truth_version:
+        errors.append("docs/readiness.json project_version mismatch")
+
+    dockerfile = (root / "Dockerfile").read_text(encoding=ENCODING)
+    if f'org.opencontainers.image.version="{truth_version}"' not in dockerfile:
+        errors.append("Dockerfile OCI image version mismatch")
+
+    revival = (root / "src/configstream_revival/__init__.py").read_text(encoding=ENCODING)
+    if f'__version__ = "{truth_version}"' not in revival:
+        errors.append("configstream_revival version mismatch")
 
     if errors:
         print("ERROR: Version Validation Failed:")

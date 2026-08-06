@@ -6,255 +6,344 @@ on:
     types: [completed]
     branches: [main]
   workflow_dispatch:
+    inputs:
+      run_id:
+        description: Successful main-branch workflow run containing pipeline-output
+        required: true
+        type: string
 
 permissions:
   contents: read
+  actions: read
   pages: write
   id-token: write
 
 concurrency:
-  group: "pages"
-  cancel-in-progress: true
+  group: pages
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   deploy:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    name: Locate, Verify, and Deploy Sealed Artifact
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') }}
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: main
           fetch-depth: 1
           persist-credentials: false
-
-      - name: Init deploy flags
-        run: |
-          echo "HAS_OUTPUT=false" >> "$GITHUB_ENV"
-
-      - name: Download Pipeline Output (from workflow_run)
-        if: github.event_name == 'workflow_run'
-        env:
-          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          # Download artifact from the triggering workflow run using GitHub CLI
-          if ! gh run download ${{ github.event.workflow_run.id }} \
-              --name pipeline-output \
-              --dir output; then
-            if [ "${{ github.event.workflow_run.name }}" = "Retest" ]; then
-              echo "⚠️ No pipeline-output artifact found for Retest run; skipping Pages deploy."
-              exit 0
-            fi
-            echo "Error: Failed to download pipeline-output artifact"
-            exit 1
-          fi
-
-          # Verify download succeeded
-          if [ ! -d "output" ] || [ -z "$(ls -A output)" ]; then
-            if [ "${{ github.event.workflow_run.name }}" = "Retest" ]; then
-              echo "⚠️ output directory is missing/empty for Retest run; skipping Pages deploy."
-              exit 0
-            fi
-            echo "Error: output directory is missing or empty after download"
-            exit 1
-          fi
-
-          echo "HAS_OUTPUT=true" >> "$GITHUB_ENV"
-
-      - name: Download Pipeline Output (from workflow_dispatch)
-        if: github.event_name == 'workflow_dispatch'
-        env:
-          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          # For manual dispatch, download from the latest successful pipeline run
-          LATEST_RUN=$(gh run list --workflow=main.yml --status=success --limit=1 --json databaseId --jq '.[0].databaseId')
-
-          if [ -z "$LATEST_RUN" ]; then
-            echo "Error: No successful pipeline run found"
-            exit 1
-          fi
-
-          echo "Downloading artifact from run: $LATEST_RUN"
-          gh run download $LATEST_RUN \
-            --name pipeline-output \
-            --dir output
-
-          # Verify download succeeded
-          if [ ! -d "output" ] || [ -z "$(ls -A output)" ]; then
-            echo "Error: Failed to download pipeline-output artifact"
-            exit 1
-          fi
-
-          echo "HAS_OUTPUT=true" >> "$GITHUB_ENV"
-
-      - name: Verify output directory exists
-        if: env.HAS_OUTPUT == 'true'
-        run: |
-          if [ ! -d "output" ] || [ -z "$(ls -A output)" ]; then
-            echo "Error: output directory is missing or empty"
-            exit 1
-          fi
-          # Verify critical files exist
-          test -f output/metadata.json
-          test -f output/proxies.json
-
-      - name: Setup Python
-        if: env.HAS_OUTPUT == 'true'
-        uses: actions/setup-python@v6
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           python-version: '3.12'
-
-
-      - name: Build Pages artifact
-        if: env.HAS_OUTPUT == 'true'
+      - name: Install rollback signature verifier
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check --no-input cryptography==49.0.0
+      - name: Initialise deployment evidence
+        run: |
+          set -euo pipefail
+          mkdir -p deploy-evidence/stages
+          python scripts/resilient_stage.py context --output deploy-evidence/workflow_context.json
+          echo "HAS_OUTPUT=false" >> "$GITHUB_ENV"
+          echo "DEPLOY_READY=false" >> "$GITHUB_ENV"
+          echo "HAS_LKG=false" >> "$GITHUB_ENV"
+          echo "SMOKE_OK=false" >> "$GITHUB_ENV"
+      - name: Snapshot current verified Pages release
         env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
-          STEGO_KEY: ${{ secrets.STEGO_KEY }}
+          PYTHONPATH: src
         run: |
-          set -euxo pipefail
-
-          # The pipeline output artifact contains data outputs; we add frontend assets,
-          # API simulation, and ensure .nojekyll for a complete Pages site.
-          
-          # Merge frontend assets into output for GitHub Pages
-          if [ -d "frontend" ]; then
-            cp -R frontend/. output/
+          set -euo pipefail
+          rm -rf last-known-good
+          page_url="$(gh api "repos/${REPOSITORY}/pages" --jq .html_url 2>/dev/null || true)"
+          if [ -n "$page_url" ]; then
+            python scripts/resilient_stage.py run \
+              --name snapshot-last-known-good \
+              --report-dir deploy-evidence/stages \
+              --timeout 600 \
+              -- python scripts/snapshot_pages_release.py \
+                "$page_url" last-known-good \
+                --report-file deploy-evidence/last-known-good.json
+          else
+            python scripts/resilient_stage.py record \
+              --name snapshot-last-known-good \
+              --status skipped \
+              --report-dir deploy-evidence/stages \
+              --description "Repository has no resolvable current Pages URL"
           fi
-
-          # Self-host user-facing offline Lab helper scripts so the frontend
-          # does not depend on raw.githubusercontent.com at runtime.
-          mkdir -p output/tools
-          cp tools/lab-scanner.py output/tools/lab-scanner.py
-          cp tools/lab-runner.sh output/tools/lab-runner.sh
-
-          python scripts/validate_frontend_placeholders.py --inject-env --strict output
-
-          # Create API simulation structure
-          mkdir -p output/api
-
-          cp output/proxies.json output/api/proxies
-          cp output/metadata.json output/api/stats
-
-          # Ensure .nojekyll exists
-          touch output/.nojekyll
-
-          # Exclude test_cache.json from deploy (audit: ~18 MB, not needed for static site)
-          rm -f output/data/test_cache.json
-          if [ ! -s output/pipeline_events.jsonl ]; then
-            printf '{"timestamp":"%s","stage":"artifact_prepare","level":"info","event_type":"artifact_prepare","message":"pipeline event telemetry initialized during Pages artifact preparation"}\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > output/pipeline_events.jsonl
+          snapshot_status="$(python -c 'import json; from pathlib import Path; p=Path("deploy-evidence/stages/snapshot-last-known-good.json"); print(json.loads(p.read_text(encoding="utf-8"))["status"] if p.exists() else "skipped")')"
+          if [ "$snapshot_status" = success ]; then
+            echo "HAS_LKG=true" >> "$GITHUB_ENV"
           fi
-
-          # Update cache version
-          ts=$(date +%Y%m%d%H%M%S)
-          cache_version="v${ts}"
-          if [ -f output/assets/js/cache-config.js ]; then
-             sed -i "s/VERSION: '[^']*'/VERSION: '${cache_version}'/" output/assets/js/cache-config.js
-             sed -i "s/CACHE_NAME: 'configstream-cache-[^']*'/CACHE_NAME: 'configstream-cache-${cache_version}'/" output/assets/js/cache-config.js
-          fi
-
-          # Required artifact validation is centralized in Python so the deploy
-          # contract can be tested and evolved without duplicating shell arrays.
-          # Refresh after frontend/API/cache-busting mutations so the manifest
-          # describes the exact Pages artifact being uploaded.
-          python scripts/validate_pages_artifact.py --refresh-contract output
-
-      - name: List deployment files
-        if: env.HAS_OUTPUT == 'true'
+      - name: Locate and download exact canonical artifact
+        id: locate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          TRIGGER_RUN_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || inputs.run_id }}
         run: |
-          echo "=== Files to be deployed ==="
-          find output -type f | head -20
-          echo ""
-          echo "=== Critical files verification ==="
-          ls -lh output/proxies.json output/metadata.json
-          echo ""
-          echo "=== Total size ==="
-          du -sh output
+          set -euo pipefail
+          rm -rf output
+          selected="${TRIGGER_RUN_ID:-}"
+          source_valid=false
+          download_rc=1
 
-      - name: Upload pages artifact
-        if: env.HAS_OUTPUT == 'true'
-        uses: actions/upload-pages-artifact@v5
+          if [[ "$selected" =~ ^[0-9]+$ ]] && \
+             gh api "repos/${REPOSITORY}/actions/runs/${selected}" > deploy-evidence/source-run.json; then
+            if python - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(Path("deploy-evidence/source-run.json").read_text(encoding="utf-8"))
+          allowed_workflows = {"Config's Stream", "Retest"}
+          if payload.get("conclusion") != "success":
+              raise SystemExit("source run did not succeed")
+          if payload.get("head_branch") != "main":
+              raise SystemExit("source run is not from main")
+          if payload.get("name") not in allowed_workflows:
+              raise SystemExit("source workflow is not approved")
+          PY
+            then
+              source_valid=true
+            fi
+          fi
+
+          if [ "$source_valid" = true ]; then
+            if gh run download "$selected" --repo "$REPOSITORY" --name pipeline-output --dir output; then
+              download_rc=0
+            else
+              download_rc=$?
+            fi
+          fi
+
+          if [ "$download_rc" -eq 0 ] && [ -s output/metadata.json ] && [ -s output/proxies.json ]; then
+            echo "HAS_OUTPUT=true" >> "$GITHUB_ENV"
+            echo "source_run_id=$selected" >> "$GITHUB_OUTPUT"
+            python scripts/resilient_stage.py record \
+              --name locate-pipeline-output \
+              --status success \
+              --report-dir deploy-evidence/stages \
+              --description "Downloaded canonical pipeline-output from trusted run $selected"
+          else
+            rm -rf output
+            echo "source_run_id=${selected:-none}" >> "$GITHUB_OUTPUT"
+            python scripts/resilient_stage.py record \
+              --name locate-pipeline-output \
+              --status failed \
+              --exit-code "${download_rc:-1}" \
+              --report-dir deploy-evidence/stages \
+              --description "Trusted canonical pipeline-output was unavailable"
+          fi
+      - name: Verify artifact without mutation
+        if: always()
+        run: |
+          set -euo pipefail
+          if [ "${HAS_OUTPUT:-false}" != true ]; then
+            python scripts/resilient_stage.py record \
+              --name verify-sealed-pages-artifact \
+              --status failed \
+              --exit-code 1 \
+              --report-dir deploy-evidence/stages \
+              --description "Verification could not run because no canonical artifact was located"
+            exit 0
+          fi
+
+          python scripts/resilient_stage.py run \
+            --name verify-sealed-pages-artifact \
+            --report-dir deploy-evidence/stages \
+            --timeout 600 \
+            -- bash -lc '
+              set -euo pipefail
+              before=$(find output -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d" " -f1)
+              python scripts/validate_frontend_placeholders.py --strict output
+              python scripts/validate_pages_artifact.py output
+              after=$(find output -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d" " -f1)
+              test "$before" = "$after"
+            '
+          verify_status=$(python -c 'import json; print(json.load(open("deploy-evidence/stages/verify-sealed-pages-artifact.json", encoding="utf-8"))["status"])')
+          if [ "$verify_status" = success ]; then
+            echo "DEPLOY_READY=true" >> "$GITHUB_ENV"
+          fi
+      - name: Upload sealed Pages artifact
+        id: pages_artifact
+        if: env.DEPLOY_READY == 'true'
+        continue-on-error: true
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
         with:
+          name: github-pages-candidate
           path: output
           retention-days: 30
-
       - name: Deploy to GitHub Pages
-        if: env.HAS_OUTPUT == 'true'
         id: deployment
-        uses: actions/deploy-pages@v5
-        timeout-minutes: 10
-
-      - name: Verify deployment
-        if: env.HAS_OUTPUT == 'true'
-        run: |
-          echo "✅ Pages deployed successfully!"
-          echo "URL: ${{ steps.deployment.outputs.page_url }}"
-          echo "Deployment completed at: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
-
-          # Output deployment details
-          echo ""
-          echo "=== Deployment Summary ==="
-          echo "Workflow: ${{ github.workflow }}"
-          echo "Run ID: ${{ github.run_id }}"
-          echo "Commit: ${{ github.sha }}"
-
-      - name: Smoke deployed Pages URL
-        if: env.HAS_OUTPUT == 'true'
-        run: |
-          python scripts/verify_pages_deployment.py "${{ steps.deployment.outputs.page_url }}" --report-file smoke-report.json
-
-      - name: Install Playwright for Evidence
-        if: env.HAS_OUTPUT == 'true'
-        run: |
-          pip install playwright
-          playwright install chromium --with-deps
-
-      - name: Take Deployment Screenshots
-        if: env.HAS_OUTPUT == 'true'
-        run: |
-          python scripts/take_deployment_screenshots.py "${{ steps.deployment.outputs.page_url }}"
-
-      - name: Generate Evidence Bundle
-        if: env.HAS_OUTPUT == 'true'
-        run: |
-          python scripts/generate_evidence_bundle.py --output-dir output --evidence-dir evidence --smoke-report smoke-report.json
-
-      - name: Upload Evidence Bundle
-        if: env.HAS_OUTPUT == 'true'
-        uses: actions/upload-artifact@v7
+        if: env.DEPLOY_READY == 'true' && steps.pages_artifact.outcome == 'success'
+        continue-on-error: true
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5
         with:
-          name: deploy-evidence-${{ github.run_id }}
-          path: evidence/
-          retention-days: 30
-
-      - name: Trigger CDN cache purge
-        if: always() && env.HAS_OUTPUT == 'true'
+          artifact_name: github-pages-candidate
+      - name: Record Pages action outcomes
+        if: always()
+        env:
+          ARTIFACT_OUTCOME: ${{ steps.pages_artifact.outcome }}
+          DEPLOY_OUTCOME: ${{ steps.deployment.outcome }}
         run: |
-          # GitHub Pages uses Fastly CDN with automatic cache invalidation on deploy.
-          # The actions/deploy-pages@v5 step above already triggers a full CDN purge.
-          # However, browser caches (Service Worker, Cache-Control headers) may still
-          # serve stale content. We apply cache-busting via a versioned URL query
-          # parameter injected into cache-config.js during the Build step above.
-          #
-          # If you use a custom CDN (Cloudflare, CloudFront, Fastly) in front of
-          # GitHub Pages, uncomment and configure the appropriate purge API call:
-          #
-          # Cloudflare example:
-          #   curl -X POST "https://api.cloudflare.com/client/v4/zones/${{ secrets.CF_ZONE_ID }}/purge_cache" \
-          #     -H "Authorization: Bearer ${{ secrets.CF_API_TOKEN }}" \
-          #     -H "Content-Type: application/json" \
-          #     --data '{"purge_everything":true}'
-          #
-          # Fastly example:
-          #   curl -X POST "https://api.fastly.com/service/${{ secrets.FASTLY_SERVICE_ID }}/purge_all" \
-          #     -H "Fastly-Key: ${{ secrets.FASTLY_API_KEY }}"
-          
-          echo "✅ CDN cache purge triggered via GitHub Pages deploy (automatic)."
-          echo "📌 Custom CDN: If using a third-party CDN, configure secrets and uncomment the purge API call above."
-          echo "📌 Browser cache: Versioned cache-config.js provides cache-busting for Service Worker caches."
+          set -euo pipefail
+          python scripts/resilient_stage.py record \
+            --name upload-pages-artifact \
+            --status "${ARTIFACT_OUTCOME:-skipped}" \
+            --report-dir deploy-evidence/stages
+          python scripts/resilient_stage.py record \
+            --name deploy-pages \
+            --status "${DEPLOY_OUTCOME:-skipped}" \
+            --report-dir deploy-evidence/stages
+      - name: Smoke deployed Pages URL
+        if: always()
+        env:
+          DEPLOY_OUTCOME: ${{ steps.deployment.outcome }}
+        run: |
+          set -euo pipefail
+          page_url="${{ steps.deployment.outputs.page_url }}"
+          if [ "${DEPLOY_OUTCOME:-skipped}" = success ] && [ -n "$page_url" ]; then
+            python scripts/resilient_stage.py run \
+              --name smoke-pages \
+              --report-dir deploy-evidence/stages \
+              --timeout 600 \
+              -- python scripts/verify_pages_deployment.py "$page_url" --report-file deploy-evidence/smoke-report.json
+          else
+            python scripts/resilient_stage.py record \
+              --name smoke-pages \
+              --status skipped \
+              --report-dir deploy-evidence/stages \
+              --description "Smoke validation skipped because Pages deployment did not succeed"
+          fi
+          smoke_status="$(python -c 'import json; from pathlib import Path; p=Path("deploy-evidence/stages/smoke-pages.json"); print(json.loads(p.read_text(encoding="utf-8"))["status"] if p.exists() else "skipped")')"
+          if [ "$smoke_status" = success ]; then
+            echo "SMOKE_OK=true" >> "$GITHUB_ENV"
+          fi
+      - name: Upload last-known-good rollback artifact
+        id: rollback_artifact
+        if: always() && env.HAS_LKG == 'true' && steps.deployment.outcome == 'success' && env.SMOKE_OK != 'true'
+        continue-on-error: true
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
+        with:
+          name: github-pages-last-known-good
+          path: last-known-good
+          retention-days: 30
+      - name: Restore last-known-good Pages release
+        id: rollback_deployment
+        if: always() && steps.rollback_artifact.outcome == 'success'
+        continue-on-error: true
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5
+        with:
+          artifact_name: github-pages-last-known-good
+      - name: Verify rollback restoration
+        if: always()
+        env:
+          ROLLBACK_UPLOAD_OUTCOME: ${{ steps.rollback_artifact.outcome }}
+          ROLLBACK_DEPLOY_OUTCOME: ${{ steps.rollback_deployment.outcome }}
+        run: |
+          set -euo pipefail
+          python scripts/resilient_stage.py record \
+            --name upload-rollback-artifact \
+            --status "${ROLLBACK_UPLOAD_OUTCOME:-skipped}" \
+            --report-dir deploy-evidence/stages
+          if [ "${ROLLBACK_DEPLOY_OUTCOME:-skipped}" = success ]; then
+            rollback_url="${{ steps.rollback_deployment.outputs.page_url }}"
+            python scripts/resilient_stage.py run \
+              --name verify-rollback \
+              --report-dir deploy-evidence/stages \
+              --timeout 600 \
+              -- python scripts/verify_pages_deployment.py \
+                "$rollback_url" --report-file deploy-evidence/rollback-smoke-report.json
+          else
+            python scripts/resilient_stage.py record \
+              --name verify-rollback \
+              --status "${ROLLBACK_DEPLOY_OUTCOME:-skipped}" \
+              --report-dir deploy-evidence/stages \
+              --description "Rollback was not required or could not be deployed"
+          fi
+      - name: Generate deployment evidence bundle
+        if: always()
+        run: |
+          set -euo pipefail
+          if [ -d output ]; then
+            python scripts/resilient_stage.py run \
+              --name deployment-evidence-bundle \
+              --report-dir deploy-evidence/stages \
+              -- python scripts/generate_evidence_bundle.py \
+                --output-dir output \
+                --evidence-dir deploy-evidence \
+                --smoke-report deploy-evidence/smoke-report.json
+          else
+            python scripts/resilient_stage.py record \
+              --name deployment-evidence-bundle \
+              --status failed \
+              --exit-code 1 \
+              --report-dir deploy-evidence/stages \
+              --description "Evidence bundle could not be generated because output is absent"
+          fi
+      - name: Evaluate deployment readiness
+        if: always()
+        run: |
+          set -euo pipefail
+          python scripts/resilient_stage.py evaluate \
+            --report-dir deploy-evidence/stages \
+            --required-stage locate-pipeline-output \
+            --required-stage verify-sealed-pages-artifact \
+            --required-stage upload-pages-artifact \
+            --required-stage deploy-pages \
+            --required-stage smoke-pages \
+            --required-stage deployment-evidence-bundle \
+            --output deploy-evidence/deployment_readiness.json
+          python scripts/resilient_stage.py summary \
+            --report-dir deploy-evidence/stages \
+            --output deploy-evidence/stage_summary.json
+      - name: Upload deployment diagnostics
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: deploy-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: deploy-evidence/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Deployment disposition
+        if: always()
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
 
+          readiness_path = Path("deploy-evidence/deployment_readiness.json")
+          summary_path = Path("deploy-evidence/stage_summary.json")
+          readiness = (
+              json.loads(readiness_path.read_text(encoding="utf-8"))
+              if readiness_path.exists()
+              else {"status": "unknown", "publish_ready": False, "blockers": ["readiness report missing"]}
+          )
+          summary = (
+              json.loads(summary_path.read_text(encoding="utf-8"))
+              if summary_path.exists()
+              else {"stages": []}
+          )
+          with Path(os.environ["GITHUB_STEP_SUMMARY"]).open("a", encoding="utf-8") as handle:
+              handle.write("## Pages deployment disposition\n")
+              handle.write(f"- Status: **{readiness.get('status')}**\n")
+              handle.write(f"- Deployment accepted: **{readiness.get('publish_ready', False)}**\n")
+              for blocker in readiness.get("blockers", []):
+                  handle.write(f"- Blocker: `{blocker}`\n")
+              for stage in summary.get("stages", []):
+                  handle.write(f"- `{stage.get('name')}`: **{stage.get('status')}**\n")
+          if not readiness.get("publish_ready", False):
+              raise SystemExit("Pages deployment failed closed")
+          PY

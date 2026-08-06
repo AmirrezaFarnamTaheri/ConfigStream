@@ -6,7 +6,7 @@ We welcome contributions! This guide will help you get started.
 
 ### Prerequisites
 *   Python 3.10+
-*   Go 1.21+ (for the Go Tester sidecar)
+*   Go 1.24.3+ (for the Go Tester sidecar)
 *   Docker (optional, for local containerized runs)
 
 ### Setup

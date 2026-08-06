@@ -17,14 +17,18 @@ ConfigStream operates in a high-risk environment. Dynamic rendering of untrusted
 *   **Credentials**: Non-UUID credentials (usernames, passwords, hashes) MUST be stored in `proxy.details`. Parsers MUST enforce this separation to prevent downstream schema validation failures.
 
 ## 4. Source of Truth
-*   **Canonical Source**: `consolidated_sources.txt` is the single canonical source of truth for proxy subscription URLs.
+*   **Canonical Source**: `sources/batch_*.txt` are the authored operational source lists. Do not create a duplicate root mirror.
 *   **Deprecated**: Never use or recreate `sources/backup_dynamic/`.
 
-## 5. Legacy Pipeline Retirement
-The repository has completed the migration from legacy monolithic pipeline orchestrators (`pipeline.py`, `fetcher.py`, `producer.py`, `consumer.py`) to a domain-driven `StandardPipeline` within the `src/configstream/pipeline/` package.
-*   **Mandate**: All new pipeline development MUST utilize `StandardPipeline`, `StreamingProducer`, and `WorkerConsumer` within the `src/configstream/pipeline/` package.
-*   **Deletion**: Legacy files `pipeline.py`, `fetcher.py`, `producer.py`, `consumer.py` have been removed. Do not reintroduce them.
+## 5. Canonical Pipeline and Compatibility Shims
+The canonical pipeline implementation lives in `src/configstream/pipeline/`. All new pipeline development MUST use `StandardPipeline`, `StreamingProducer`, `WorkerConsumer`, and `src/configstream/pipeline/fetcher.py`.
+*   Root `src/configstream/producer.py` and `src/configstream/consumer.py` remain thin compatibility shims.
+*   Root `pipeline.py` and `fetcher.py` are absent; do not recreate them.
+*   Optional network, GeoIP, and native-tester integrations must remain lazy so dry-run and orchestration imports do not require unused extras.
 
+## 6. Verification and Release Truth
+*   `docs/readiness.json` and generated `STATUS.md` remain `CONDITIONAL` until exact-head CI, sealed artifacts, and live Pages checks pass for the same commit.
+*   Run `python scripts/verify_repository.py --profile full` before any release-readiness claim. Report unavailable checks separately.
 
 ## 7. Truth Hierarchy
 When status surfaces disagree, use this hierarchy:
@@ -32,4 +36,4 @@ When status surfaces disagree, use this hierarchy:
 2.  Machine-readable contracts (`docs/*.json`, `docs/DEBT_MATRIX.md`)
 3.  `AGENTS.md` (Contributor constraints)
 4.  `CHANGELOG.md` (Implementation history)
-5.  Removed historical source-of-truth ledgers (git-history provenance only; durable value is absorbed into the active master/status chain)
+5.  Historical point-in-time audit reports (provenance only; never current operational truth)

@@ -1,91 +1,150 @@
-name: Deploy Mirror
+name: Deploy Sealed Mirrors
 
 on:
-  push:
+  workflow_run:
+    workflows: ["Config's Stream"]
+    types: [completed]
     branches: [main]
-    paths-ignore:
-      - 'sources/batch_*.txt'
-      - 'sources/backup_dynamic/**'
   workflow_dispatch:
+    inputs:
+      run_id:
+        description: "Exact successful Config's Stream run ID"
+        required: true
+        type: string
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
-# Least-privilege: mirror only reads repo contents and downloads run
-# artifacts (actions: read is required by `gh run download`).
 permissions:
   contents: read
   actions: read
 
+concurrency:
+  group: mirror-production
+  cancel-in-progress: true
+
 jobs:
   mirror:
+    if: >-
+      ${{
+        (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') ||
+        github.event_name == 'workflow_dispatch'
+      }}
     runs-on: ubuntu-latest
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      PINATA_JWT: ${{ secrets.PINATA_JWT }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
+          ref: main
           fetch-depth: 1
           persist-credentials: false
-
-      - name: Download latest pipeline output
+      - name: Resolve exact successful source run
+        id: source
         env:
-          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
           GH_TOKEN: ${{ github.token }}
+          EVENT_RUN_ID: ${{ github.event.workflow_run.id }}
+          MANUAL_RUN_ID: ${{ inputs.run_id }}
+          REPOSITORY: ${{ github.repository }}
+        shell: bash
         run: |
-          LATEST_RUN=$(gh run list --workflow=main.yml --status=success --limit=1 --json databaseId --jq '.[0].databaseId')
-          if [ -z "$LATEST_RUN" ]; then
-            echo "No successful pipeline run found; skipping mirror deploy."
-            exit 0
+          set -euo pipefail
+          run_id="$EVENT_RUN_ID"
+          if [ '${{ github.event_name }}' = 'workflow_dispatch' ]; then
+            run_id="$MANUAL_RUN_ID"
           fi
-          if ! gh run download "$LATEST_RUN" \
-            --name pipeline-output \
-            --dir output; then
-            echo "⚠️ Failed to download pipeline-output artifact; skipping mirror deploy."
-            exit 0
-          fi
-
-          if [ ! -d "output" ] || [ -z "$(ls -A output)" ]; then
-            echo "No output directory found after download; skipping mirror deploy."
-            exit 0
-          fi
-
-      - name: Deploy to Vercel
+          case "$run_id" in (*[!0-9]*|'') echo 'Invalid run ID' >&2; exit 1;; esac
+          metadata=$(gh api "repos/$REPOSITORY/actions/runs/$run_id")
+          test "$(jq -r '.conclusion' <<<"$metadata")" = success
+          test "$(jq -r '.name' <<<"$metadata")" = "Config's Stream"
+          test "$(jq -r '.head_branch' <<<"$metadata")" = main
+          test "$(jq -r '.event' <<<"$metadata")" != pull_request
+          test "$(jq -r '.head_repository.full_name' <<<"$metadata")" = "$REPOSITORY"
+          head_sha=$(jq -r '.head_sha' <<<"$metadata")
+          case "$head_sha" in (*[!0-9a-f]*|'') echo 'Invalid source SHA' >&2; exit 1;; esac
+          test "${#head_sha}" -eq 40
+          echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
+          echo "head_sha=$head_sha" >> "$GITHUB_OUTPUT"
+      - name: Download exact sealed release
         env:
-          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ steps.source.outputs.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh run download "$RUN_ID" \
+            --name "pipeline-output" \
+            --dir output
+          test -s output/release_manifest.json
+      - name: Verify release provenance and expiry
+        env:
+          EXPECTED_SOURCE_SHA: ${{ steps.source.outputs.head_sha }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import os
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          try:
+              manifest = json.loads(
+                  Path("output/release_manifest.json").read_text(encoding="utf-8")
+              )
+          except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+              raise SystemExit(f"release manifest is unreadable: {type(exc).__name__}") from exc
+          if not isinstance(manifest, dict):
+              raise SystemExit("release manifest must be a JSON object")
+          raw_expiry = manifest.get("expires_at")
+          if not isinstance(raw_expiry, str) or not raw_expiry.strip():
+              raise SystemExit("release manifest is missing a valid expires_at")
+          try:
+              expires = datetime.fromisoformat(raw_expiry.replace("Z", "+00:00"))
+          except ValueError as exc:
+              raise SystemExit("release manifest has an invalid expires_at") from exc
+          if expires.tzinfo is None or expires.utcoffset() is None:
+              raise SystemExit("release manifest expires_at must be timezone-aware")
+          if datetime.now(timezone.utc) >= expires:
+              raise SystemExit("refusing to deploy expired release")
+          source_sha = (
+              manifest.get("source_commit_sha")
+              or manifest.get("source_commit")
+              or manifest.get("source_sha")
+          )
+          expected = os.environ["EXPECTED_SOURCE_SHA"]
+          if source_sha != expected:
+              raise SystemExit(
+                  f"release provenance mismatch: manifest={source_sha!r}, expected={expected!r}"
+              )
+          PY
+      - name: Require explicitly pinned deployment CLIs
+        env:
+          VERCEL_CLI_VERSION: ${{ vars.VERCEL_CLI_VERSION }}
+          NETLIFY_CLI_VERSION: ${{ vars.NETLIFY_CLI_VERSION }}
+          PINATA_CLI_VERSION: ${{ vars.PINATA_CLI_VERSION }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for value in "$VERCEL_CLI_VERSION" "$NETLIFY_CLI_VERSION" "$PINATA_CLI_VERSION"; do
+            if ! [[ "$value" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo 'Mirror CLI versions must be pinned in repository variables' >&2
+              exit 1
+            fi
+          done
+      - name: Deploy exact bytes to Vercel
+        if: env.VERCEL_TOKEN != ''
+        env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        run: |
-          if [ -z "$VERCEL_TOKEN" ]; then
-            echo "⏭️ Vercel deployment skipped (VERCEL_TOKEN not set)"
-            exit 0
-          fi
-          npm install -g vercel
-          vercel --cwd output deploy --prod --token=$VERCEL_TOKEN
-
-      - name: Deploy to Netlify
+          CLI_VERSION: ${{ vars.VERCEL_CLI_VERSION }}
+        run: npx --yes "vercel@$CLI_VERSION" --cwd output deploy --prod --token="$VERCEL_TOKEN"
+      - name: Deploy exact bytes to Netlify
+        if: env.NETLIFY_AUTH_TOKEN != ''
         env:
-          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-        run: |
-          if [ -z "$NETLIFY_AUTH_TOKEN" ]; then
-            echo "⏭️ Netlify deployment skipped (NETLIFY_AUTH_TOKEN not set)"
-            exit 0
-          fi
-          npm install -g netlify-cli
-          netlify deploy --prod --dir=output --site=$NETLIFY_SITE_ID --auth=$NETLIFY_AUTH_TOKEN
-
-      - name: Deploy to IPFS
+          CLI_VERSION: ${{ vars.NETLIFY_CLI_VERSION }}
+        run: npx --yes "netlify-cli@$CLI_VERSION" deploy --prod --dir=output --site="$NETLIFY_SITE_ID" --auth="$NETLIFY_AUTH_TOKEN"
+      - name: Deploy exact bytes to IPFS
+        if: env.PINATA_JWT != ''
         env:
-          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-          PINATA_JWT: ${{ secrets.PINATA_JWT }}
-        run: |
-          if [ -z "$PINATA_JWT" ]; then
-            echo "⏭️ IPFS deployment skipped (PINATA_JWT not set)"
-            exit 0
-          fi
-          npm install -g @pinata/cli
-          pinata upload output/ --jwt=$PINATA_JWT
-
+          CLI_VERSION: ${{ vars.PINATA_CLI_VERSION }}
+        run: npx --yes "@pinata/cli@$CLI_VERSION" upload output/ --jwt="$PINATA_JWT"

@@ -6,13 +6,9 @@ from urllib.parse import parse_qs, unquote
 from ..models import Proxy
 from .base import normalize_proxy_details, safe_b64_decode
 from ..constants import MAX_CONFIG_LINE_LENGTH
-from ..security_validator import SecurityValidator
+from ..security_validator import safe_log_text
 
 logger = logging.getLogger(__name__)
-
-
-def _safe_log_text(value: object) -> str:
-    return SecurityValidator.sanitize_log_message(str(value))
 
 
 def parse_ss(config: str) -> Optional[Proxy]:
@@ -123,7 +119,7 @@ def parse_ss(config: str) -> Optional[Proxy]:
         except (ValueError, TypeError):
             logger.debug(
                 "Invalid port in shadowsocks config: %s",
-                _safe_log_text(port_str),
+                safe_log_text(port_str),
             )
             return None
         if not (1 <= port <= 65535) or not host:
@@ -144,7 +140,7 @@ def parse_ss(config: str) -> Optional[Proxy]:
         if method.lower() in invalid_methods or len(method) < 2:
             logger.debug(
                 "Invalid Shadowsocks method detected: %s",
-                _safe_log_text(method),
+                safe_log_text(method),
             )
             return None
 
@@ -188,7 +184,7 @@ def parse_ss(config: str) -> Optional[Proxy]:
     except (ValueError, IndexError, binascii.Error) as e:
         logger.debug(
             "Failed to parse Shadowsocks config: %s",
-            _safe_log_text(str(e)[:100]),
+            safe_log_text(str(e)[:100]),
         )
         return None
 
@@ -214,5 +210,5 @@ def parse_ss2022(config: str) -> Optional[Proxy]:
 
         return proxy
     except Exception as e:
-        logger.debug("Failed to parse Shadowsocks 2022: %s", _safe_log_text(e))
+        logger.debug("Failed to parse Shadowsocks 2022: %s", safe_log_text(e))
         return None

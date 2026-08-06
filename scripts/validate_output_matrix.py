@@ -8,17 +8,21 @@ import sys
 from pathlib import Path
 from typing import Any
 
-ENCODING = "utf-8"
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
+SRC = ROOT / "src"
+if str(SRC) not in sys.path:
+    sys.path.insert(0, str(SRC))
 
+from scripts.validation_utils import load_json_object, is_nonempty_string
 from scripts.validate_pages_artifact import (
     REQUIRED_EXISTS,
     REQUIRED_NONEMPTY,
     REQUIRED_ZIP_MEMBERS,
 )
 
+ENCODING = "utf-8"
 MATRIX_PATH = ROOT / "docs" / "output_matrix.json"
 VALID_CATEGORIES = {
     "control",
@@ -49,10 +53,12 @@ CLIENT_CONFIG_FAMILIES = {
     "clash",
     "singbox",
     "singbox-vpn",
+    "xray",
 }
 VALID_CORE_FORMATS = {
     "clash",
     "sing-box",
+    "xray",
 }
 VALID_ARTIFACT_TYPES = {
     "full_config",
@@ -75,16 +81,6 @@ ALLOWED_GLOB_OUTPUTS = {
 }
 
 
-def _load_json(path: Path) -> dict[str, Any]:
-    with path.open("r", encoding=ENCODING) as handle:
-        data = json.load(handle)
-    if not isinstance(data, dict):
-        raise ValueError("output matrix root must be an object")
-    return data
-
-
-def _is_nonempty_string(value: object) -> bool:
-    return isinstance(value, str) and bool(value.strip())
 
 
 def _is_safe_zip_member_pattern(value: str) -> bool:
@@ -104,7 +100,7 @@ def _is_safe_zip_member_pattern(value: str) -> bool:
 def validate_output_matrix(path: Path = MATRIX_PATH) -> list[str]:
     errors: list[str] = []
     try:
-        data = _load_json(path)
+        data = load_json_object(path, root_label="output matrix")
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         return [f"output matrix cannot be read: {exc}"]
 
@@ -131,7 +127,7 @@ def validate_output_matrix(path: Path = MATRIX_PATH) -> list[str]:
             errors.append(f"{prefix} missing fields: {', '.join(sorted(missing))}")
 
         rel_path = item.get("path")
-        if not _is_nonempty_string(rel_path):
+        if not is_nonempty_string(rel_path):
             errors.append(f"{prefix}.path must be a non-empty string")
             continue
         rel_path_str = str(rel_path)
@@ -146,13 +142,13 @@ def validate_output_matrix(path: Path = MATRIX_PATH) -> list[str]:
         seen_paths.add(rel_path_str)
         matrix_paths.add(rel_path_str)
 
-        if not _is_nonempty_string(item.get("family")):
+        if not is_nonempty_string(item.get("family")):
             errors.append(f"{prefix}.family must be a non-empty string")
         if item.get("category") not in VALID_CATEGORIES:
             errors.append(f"{prefix}.category is invalid: {item.get('category')}")
         if item.get("format") not in VALID_FORMATS:
             errors.append(f"{prefix}.format is invalid: {item.get('format')}")
-        if not _is_nonempty_string(item.get("notes")):
+        if not is_nonempty_string(item.get("notes")):
             errors.append(f"{prefix}.notes must be a non-empty string")
 
         family = str(item.get("family", ""))
@@ -180,7 +176,7 @@ def validate_output_matrix(path: Path = MATRIX_PATH) -> list[str]:
         if zip_members is not None:
             if not (
                 isinstance(zip_members, list)
-                and all(_is_nonempty_string(member) for member in zip_members)
+                and all(is_nonempty_string(member) for member in zip_members)
             ):
                 errors.append(f"{prefix}.zip_required_members must be a string list")
             else:
@@ -192,7 +188,7 @@ def validate_output_matrix(path: Path = MATRIX_PATH) -> list[str]:
         if zip_patterns is not None:
             if not (
                 isinstance(zip_patterns, list)
-                and all(_is_nonempty_string(pattern) for pattern in zip_patterns)
+                and all(is_nonempty_string(pattern) for pattern in zip_patterns)
             ):
                 errors.append(
                     f"{prefix}.zip_optional_member_patterns must be a string list"

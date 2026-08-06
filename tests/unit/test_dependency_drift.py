@@ -34,7 +34,7 @@ psutil==7.2.1
 """.strip(),
     )
     req_dev = _write(
-        tmp_path / "requirements.txt",
+        tmp_path / "requirements-dev.txt",
         """
 httpx==0.28.1
 aiohttp==3.13.2
@@ -68,7 +68,7 @@ httpx==0.27.0
 """.strip(),
     )
     req_dev = _write(
-        tmp_path / "requirements.txt",
+        tmp_path / "requirements-dev.txt",
         """
 httpx==0.27.0
 """.strip(),
@@ -83,3 +83,77 @@ httpx==0.27.0
     assert errors
     assert any("httpx" in e and "below pyproject minimum" in e for e in errors)
     assert any("aiohttp" in e and "missing pin" in e for e in errors)
+
+
+def test_dependency_drift_resolves_local_requirement_includes(tmp_path: Path) -> None:
+    pyproject = _write(
+        tmp_path / "pyproject.toml",
+        '[project]\ndependencies = [\n  "httpx>=0.28.0",\n]\n',
+    )
+    req_prod = _write(tmp_path / "requirements-prod.txt", "httpx==0.28.1\n")
+    req_dev = _write(
+        tmp_path / "requirements-dev.txt",
+        "-r requirements-prod.txt\npytest==9.1.1\n",
+    )
+
+    assert check_dependency_drift(
+        pyproject_path=pyproject,
+        requirements_prod_path=req_prod,
+        requirements_dev_path=req_dev,
+    ) == []
+
+
+def test_dependency_drift_requires_optional_dev_dependency_pins(tmp_path: Path) -> None:
+    pyproject = _write(
+        tmp_path / "pyproject.toml",
+        """
+[project]
+dependencies = ["httpx>=0.28.0"]
+
+[project.optional-dependencies]
+dev = ["bandit==1.8.6"]
+""".strip(),
+    )
+    req_prod = _write(tmp_path / "requirements-prod.txt", "httpx==0.28.1\n")
+    req_dev = _write(
+        tmp_path / "requirements-dev.txt",
+        "-r requirements-prod.txt\npytest==9.1.1\n",
+    )
+
+    errors = check_dependency_drift(
+        pyproject_path=pyproject,
+        requirements_prod_path=req_prod,
+        requirements_dev_path=req_dev,
+    )
+
+    assert errors == [
+        "requirements-dev.txt missing pin for optional dev dependency 'bandit'"
+    ]
+
+
+def test_dependency_drift_requires_exact_aligned_build_dependencies(tmp_path: Path) -> None:
+    pyproject = _write(
+        tmp_path / "pyproject.toml",
+        """
+[build-system]
+requires = ["setuptools>=70", "wheel==0.47.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+dependencies = ["httpx>=0.28.0"]
+""".strip(),
+    )
+    req_prod = _write(tmp_path / "requirements-prod.txt", "httpx==0.28.1\n")
+    req_dev = _write(
+        tmp_path / "requirements-dev.txt",
+        "-r requirements-prod.txt\nsetuptools==83.0.0\nwheel==0.46.0\n",
+    )
+
+    errors = check_dependency_drift(
+        pyproject_path=pyproject,
+        requirements_prod_path=req_prod,
+        requirements_dev_path=req_dev,
+    )
+
+    assert any("setuptools" in error and "exact pin" in error for error in errors)
+    assert any("wheel" in error and "must match" in error for error in errors)

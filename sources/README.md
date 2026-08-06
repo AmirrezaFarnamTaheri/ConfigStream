@@ -3,7 +3,7 @@
 This directory contains the source lists for the ConfigStream pipeline.
 
 ## Structure
-Sources are distributed across 14 batch files (`batch_*.txt`) to allow parallel
+Sources are distributed across 17 batch files (`batch_*.txt`) to allow parallel
 processing while keeping links from the same project spread across shards.
 
 ## Policy: One Canonical Link Per Provider
@@ -16,7 +16,15 @@ To avoid duplication and wasted bandwidth, we strictly enforce a **Canonical Lin
 ## Adding New Sources
 1.  Verify the source provides a list of proxies (Text, JSON, Base64, etc.).
 2.  Check if it's already in the list (grep for the domain).
-3.  Add it to `consolidated_sources.txt` or run `scripts/deduplicate_sources.py` to redistribute.
+3.  Add it to one `sources/batch_*.txt` file, then run `python scripts/deduplicate_sources.py` to deduplicate and rebalance all 17 shards.
+4.  Regenerate the reviewed locator manifest with
+    `python scripts/generate_source_admission.py` and commit the changed
+    the bundled `src/configstream/data/source-admission.json` manifest from the batch files.
+
+The CLI rejects locators absent from this manifest. Admitted plain-HTTP
+locators remain visible as `insecure-transport` evidence but are skipped by
+secure-default runs. `--allow-unadmitted-sources` is an explicit local
+experiment override; CI and production workflows must not use it.
 
 ## Automated Optimization
 Run `python scripts/deduplicate_sources.py` to:

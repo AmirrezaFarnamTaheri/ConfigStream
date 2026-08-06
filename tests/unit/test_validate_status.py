@@ -1,116 +1,103 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Tests for STATUS.md production-readiness guardrails."""
+"""Tests for machine-readable release-state guardrails."""
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
+from scripts.release_state import render_status
 from scripts import validate_status
 
 
-def _write_repo(root: Path, status: str, pyproject: str | None = None) -> None:
-    (root / "STATUS.md").write_text(status, encoding="utf-8")
+def _readiness(**overrides):
+    data = {
+        "schema_version": "2",
+        "project_version": "3.1.0",
+        "evaluated_at": "2026-08-01T00:00:00+00:00",
+        "verdict": "CONDITIONAL",
+        "release_gate": "external_verification_required",
+        "production_ready": False,
+        "required_gates": {
+            "local_release_contract": {"status": "passing", "evidence": ["local.json"]},
+            "blocking_ci_green": {"status": "unverified", "evidence": []},
+            "live_pages_digest_and_smoke_verified": {"status": "unverified", "evidence": []},
+        },
+        "release_invariant": "A release is prohibited unless every required gate is passing.",
+        "evidence_boundary": "Local verification does not prove remote CI or live deployment state.",
+    }
+    data.update(overrides)
+    return data
+
+
+def _write_repo(root: Path, readiness: dict, *, classifier: str = "4 - Beta") -> None:
+    (root / "docs").mkdir()
+    (root / "docs" / "readiness.json").write_text(json.dumps(readiness), encoding="utf-8")
     (root / "pyproject.toml").write_text(
-        pyproject or 'classifiers = ["Development Status :: 5 - Production/Stable"]\n',
+        "[project]\nversion = \"3.1.0\"\nclassifiers = "
+        f"[\"Development Status :: {classifier}\"]\n",
         encoding="utf-8",
     )
+    (root / "STATUS.md").write_text(render_status(readiness), encoding="utf-8")
 
 
-def _valid_status() -> str:
-    return """
-# ConfigStream Project Status
-
-**Status:** Repository production-ready. All P0, P1, and P2 audit items closed. Live Pages deployment currently fails smoke and requires a fresh deploy from this repository state.
-**Version:** v3.1.0
-
-ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md
-Historical source-of-truth ledgers were fully absorbed into the master report and removed
-
-## Absorbed Archive Value
-
-## Closed Audit Items
-
-## Validation Snapshot
-- `python -m pytest -q`: 1094 passed, 5 skipped
-"""
-
-
-def test_validate_status_accepts_current_production_contract(
-    tmp_path: Path, monkeypatch
-) -> None:
-    _write_repo(tmp_path, _valid_status())
+def _patch_paths(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setattr(validate_status, "ROOT", tmp_path)
     monkeypatch.setattr(validate_status, "STATUS_PATH", tmp_path / "STATUS.md")
+    monkeypatch.setattr(validate_status, "READINESS_PATH", tmp_path / "docs" / "readiness.json")
     monkeypatch.setattr(validate_status, "PYPROJECT_PATH", tmp_path / "pyproject.toml")
 
-    assert validate_status.validate_status() == []
+
+def test_accepts_generated_conditional_release_state(tmp_path: Path, monkeypatch) -> None:
+    _write_repo(tmp_path, _readiness())
+    _patch_paths(tmp_path, monkeypatch)
+    assert validate_status.validate_status(now="2026-08-01T00:01:00+00:00") == []
 
 
-def test_validate_status_rejects_stale_full_pytest_count(
+def test_rejects_version_drift(tmp_path: Path, monkeypatch) -> None:
+    _write_repo(tmp_path, _readiness(project_version="3.2.0"))
+    _patch_paths(tmp_path, monkeypatch)
+    assert any("project_version" in e for e in validate_status.validate_status())
+
+
+def test_rejects_hand_edited_status(tmp_path: Path, monkeypatch) -> None:
+    _write_repo(tmp_path, _readiness())
+    (tmp_path / "STATUS.md").write_text("hand edited\n", encoding="utf-8")
+    _patch_paths(tmp_path, monkeypatch)
+    assert any("regenerate" in e for e in validate_status.validate_status())
+
+
+def test_pass_requires_every_gate_to_pass(tmp_path: Path, monkeypatch) -> None:
+    state = _readiness(verdict="PASS", release_gate="ready", production_ready=True)
+    _write_repo(tmp_path, state, classifier="5 - Production/Stable")
+    _patch_paths(tmp_path, monkeypatch)
+    assert any("all required gates" in e for e in validate_status.validate_status())
+
+
+def test_conditional_state_rejects_production_stable_classifier(
     tmp_path: Path, monkeypatch
 ) -> None:
-    _write_repo(tmp_path, _valid_status().replace("1094 passed", "899 passed"))
-    monkeypatch.setattr(validate_status, "STATUS_PATH", tmp_path / "STATUS.md")
-    monkeypatch.setattr(validate_status, "PYPROJECT_PATH", tmp_path / "pyproject.toml")
-
-    errors = validate_status.validate_status()
-
-    assert any("899 passed" in error or "stale" in error for error in errors)
+    _write_repo(tmp_path, _readiness(), classifier="5 - Production/Stable")
+    _patch_paths(tmp_path, monkeypatch)
+    assert any("Production/Stable" in e for e in validate_status.validate_status())
 
 
-def test_validate_status_rejects_previous_full_pytest_count(
+def test_pass_accepts_production_stable_when_all_gates_pass(
     tmp_path: Path, monkeypatch
 ) -> None:
-    _write_repo(tmp_path, _valid_status().replace("1094 passed", "1032 passed"))
-    monkeypatch.setattr(validate_status, "STATUS_PATH", tmp_path / "STATUS.md")
-    monkeypatch.setattr(validate_status, "PYPROJECT_PATH", tmp_path / "pyproject.toml")
-
-    errors = validate_status.validate_status()
-
-    assert any("1032 passed" in error for error in errors)
-
-
-def test_validate_status_rejects_beta_classifier(tmp_path: Path, monkeypatch) -> None:
-    _write_repo(
-        tmp_path,
-        _valid_status(),
-        'classifiers = ["Development Status :: 4 - Beta"]\n',
+    state = _readiness(
+        verdict="PASS",
+        release_gate="ready",
+        production_ready=True,
+        required_gates={
+            "local_release_contract": {"status": "passing", "evidence": ["local.json"]},
+            "blocking_ci_green": {"status": "passing", "evidence": ["ci.json"]},
+            "live_pages_digest_and_smoke_verified": {
+                "status": "passing",
+                "evidence": ["deploy.json"],
+            },
+        },
     )
-    monkeypatch.setattr(validate_status, "STATUS_PATH", tmp_path / "STATUS.md")
-    monkeypatch.setattr(validate_status, "PYPROJECT_PATH", tmp_path / "pyproject.toml")
-
-    errors = validate_status.validate_status()
-
-    assert any("Production/Stable" in error for error in errors)
-
-
-def test_validate_status_rejects_pending_full_suite(
-    tmp_path: Path, monkeypatch
-) -> None:
-    status = _valid_status().replace(
-        "- `python -m pytest -q`: 1094 passed, 5 skipped",
-        "- `python -m pytest -q`: pending after the 2026-06-13 frontend/governance refresh.",
-    )
-    _write_repo(tmp_path, status)
-    monkeypatch.setattr(validate_status, "STATUS_PATH", tmp_path / "STATUS.md")
-    monkeypatch.setattr(validate_status, "PYPROJECT_PATH", tmp_path / "pyproject.toml")
-
-    errors = validate_status.validate_status()
-
-    assert any("pending after" in error for error in errors)
-
-
-def test_validate_status_rejects_active_truth_from_history(
-    tmp_path: Path, monkeypatch
-) -> None:
-    status = _valid_status().replace(
-        "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md",
-        "The active current source of truth is [docs/history/source-of-truth/ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md]",
-    )
-    _write_repo(tmp_path, status)
-    monkeypatch.setattr(validate_status, "STATUS_PATH", tmp_path / "STATUS.md")
-    monkeypatch.setattr(validate_status, "PYPROJECT_PATH", tmp_path / "pyproject.toml")
-
-    errors = validate_status.validate_status()
-
-    assert any("docs/history/source-of-truth" in error for error in errors)
+    _write_repo(tmp_path, state, classifier="5 - Production/Stable")
+    _patch_paths(tmp_path, monkeypatch)
+    assert validate_status.validate_status(now="2026-08-01T00:01:00+00:00") == []

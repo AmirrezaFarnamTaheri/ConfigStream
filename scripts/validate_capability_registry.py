@@ -8,8 +8,14 @@ import sys
 from pathlib import Path
 from typing import Any
 
-ENCODING = "utf-8"
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from scripts.validation_utils import load_json_object, is_nonempty_string
+
+
+ENCODING = "utf-8"
 REGISTRY_PATH = ROOT / "docs" / "capability_registry.json"
 CLAIM_LEDGER_PATH = ROOT / "docs" / "claim_ledger.json"
 
@@ -38,20 +44,10 @@ VALID_STATUSES = {
 }
 
 
-def _load_json(path: Path) -> dict[str, Any]:
-    with path.open("r", encoding=ENCODING) as handle:
-        data = json.load(handle)
-    if not isinstance(data, dict):
-        raise ValueError(f"{path} root must be an object")
-    return data
-
-
-def _is_nonempty_string(value: object) -> bool:
-    return isinstance(value, str) and bool(value.strip())
 
 
 def _is_string_list(value: object) -> bool:
-    return isinstance(value, list) and all(_is_nonempty_string(item) for item in value)
+    return isinstance(value, list) and all(is_nonempty_string(item) for item in value)
 
 
 def _path_exists(path_text: str) -> bool:
@@ -62,7 +58,7 @@ def _path_exists(path_text: str) -> bool:
 
 
 def _complete_claim_ids() -> set[str]:
-    ledger = _load_json(CLAIM_LEDGER_PATH)
+    ledger = load_json_object(CLAIM_LEDGER_PATH)
     claims = ledger.get("claims", [])
     if not isinstance(claims, list):
         return set()
@@ -71,14 +67,14 @@ def _complete_claim_ids() -> set[str]:
         for claim in claims
         if isinstance(claim, dict)
         and claim.get("status") == "complete"
-        and _is_nonempty_string(claim.get("id"))
+        and is_nonempty_string(claim.get("id"))
     }
 
 
 def validate_capability_registry(path: Path = REGISTRY_PATH) -> list[str]:
     errors: list[str] = []
     try:
-        data = _load_json(path)
+        data = load_json_object(path)
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         return [f"capability registry cannot be read: {exc}"]
 
@@ -101,7 +97,7 @@ def validate_capability_registry(path: Path = REGISTRY_PATH) -> list[str]:
             errors.append(f"{prefix} missing fields: {', '.join(sorted(missing))}")
 
         capability_id = capability.get("id")
-        if not _is_nonempty_string(capability_id):
+        if not is_nonempty_string(capability_id):
             errors.append(f"{prefix}.id must be a non-empty string")
         elif capability_id in seen_ids:
             errors.append(f"duplicate capability id: {capability_id}")
@@ -109,7 +105,7 @@ def validate_capability_registry(path: Path = REGISTRY_PATH) -> list[str]:
             seen_ids.add(str(capability_id))
 
         for field in ("title", "product_area", "owner", "cleanup_decision"):
-            if not _is_nonempty_string(capability.get(field)):
+            if not is_nonempty_string(capability.get(field)):
                 errors.append(f"{prefix}.{field} must be a non-empty string")
 
         status = capability.get("status")

@@ -2,15 +2,17 @@
 import asyncio
 import copy
 import logging
-from typing import List, Optional, Dict
+from typing import TYPE_CHECKING, Dict, List, Optional
 from datetime import datetime, timezone
 
 from ..config import AppSettings
 from ..models import Proxy
 from ..test_cache import TestResultCache
-from ..converters.chains import chain_outbounds_from_details
+from ..converters.chain_outbounds import chain_outbounds_from_details
 from .go import GoBatchTester
-from .python import PythonTester
+
+if TYPE_CHECKING:
+    from .python import PythonTester
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +33,22 @@ class SingBoxTester:
         self.dry_run = dry_run
         self.max_workers = max_workers
         self.go_tester = GoBatchTester(workers=max_workers, timeout=int(timeout))
-        self.python_tester = PythonTester(self.settings, timeout, strict_security)
+        self._python_tester: Optional["PythonTester"] = None
+
+    @property
+    def python_tester(self) -> "PythonTester":
+        """Create the optional Python fallback only when a code path needs it.
+
+        Core pipeline imports and dry-run execution must not require the
+        ``aiohttp-socks`` dependency used solely by the Python proxy fallback.
+        """
+        if self._python_tester is None:
+            from .python import PythonTester
+
+            self._python_tester = PythonTester(
+                self.settings, self.timeout, self.strict_security
+            )
+        return self._python_tester
 
     async def test(self, proxy: Proxy) -> Proxy:
         if self.dry_run:
@@ -50,6 +67,22 @@ class SingBoxTester:
         if self.cache:
             self._finalize_result(result)
         return result
+
+    async def _test_python_batch(self, proxies: List[Proxy]) -> List[Proxy]:
+        """Test a batch through the Python fallback with bounded concurrency."""
+        max_concurrent = max(1, int(self.max_workers) if self.max_workers else 1)
+        semaphore = asyncio.Semaphore(max_concurrent)
+
+        async def guarded_test(proxy: Proxy) -> Proxy:
+            async with semaphore:
+                return await self.test(proxy)
+
+        results: List[Proxy] = []
+        chunk_size = max_concurrent * 10
+        for index in range(0, len(proxies), chunk_size):
+            chunk = proxies[index : index + chunk_size]
+            results.extend(await asyncio.gather(*(guarded_test(proxy) for proxy in chunk)))
+        return results
 
     async def test_batch(self, proxies: List[Proxy]) -> List[Proxy]:
         if self.dry_run:
@@ -84,21 +117,11 @@ class SingBoxTester:
                     if self.cache:
                         for p in to_test:
                             self._finalize_result(p)
-                except (RuntimeError, Exception) as e:
+                except Exception as e:
                     logger.warning(
                         f"Go Tester failed for batch ({len(to_test)} proxies): {e}. Falling back to Python."
                     )
-                    # Fallback to Python for this batch
-                    max_concurrent = max(
-                        1, int(self.max_workers) if self.max_workers else 1
-                    )
-                    sem = asyncio.Semaphore(max_concurrent)
-
-                    async def _guarded_test(p: Proxy) -> Proxy:
-                        async with sem:
-                            return await self.test(p)
-
-                    await asyncio.gather(*[_guarded_test(p) for p in to_test])
+                    await self._test_python_batch(to_test)
                     # Proxies updated in place via list reference
 
             # Test revived chains using custom config testing
@@ -176,21 +199,7 @@ class SingBoxTester:
             logger.info(
                 f"Fallback: Testing batch of {len(proxies)} proxies using Python tester"
             )
-            max_concurrent = max(1, int(self.max_workers) if self.max_workers else 1)
-            sem = asyncio.Semaphore(max_concurrent)
-
-            async def _guarded_test(p: Proxy) -> Proxy:
-                async with sem:
-                    return await self.test(p)
-
-            py_tester_results: List[Proxy] = []
-            chunk_size = max(1, max_concurrent * 10)
-            for i in range(0, len(proxies), chunk_size):
-                chunk = proxies[i : i + chunk_size]
-                chunk_tasks = [_guarded_test(p) for p in chunk]
-                chunk_results = await asyncio.gather(*chunk_tasks)
-                py_tester_results.extend(chunk_results)
-            return py_tester_results
+            return await self._test_python_batch(proxies)
 
     def _finalize_result(self, proxy: Proxy):
         # proxy.tested_at is set in python_tester methods, or go tester response

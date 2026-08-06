@@ -10,7 +10,8 @@ from ..security_validator import _safe_proxy_ref
 from .common import Adapter
 from ..utils.bool_parser import parse_tls_flag
 from ..utils.net import is_ip_literal as _is_ip_literal
-from ..converters.chains import chain_outbounds_from_details
+from ..converters.chain_outbounds import chain_outbounds_from_details
+from ..converters.outbound_proxy import proxy_from_outbound
 
 logger = logging.getLogger(__name__)
 
@@ -61,12 +62,10 @@ class ShadowrocketAdapter(Adapter):
         def _extract_from_chain() -> Optional[str]:
             chain_obs = chain_outbounds_from_details(details)
             if chain_obs:
-                from ..generators.plaintext import _proxy_from_outbound
-
                 for ob in chain_obs:
                     if not isinstance(ob, dict) or ob.get("type") == "wireguard":
                         continue
-                    relay_proxy = _proxy_from_outbound(ob, remark_prefix=f"[{tag}] ")
+                    relay_proxy = proxy_from_outbound(ob, remark_prefix=f"[{tag}] ")
                     if relay_proxy:
                         uri_value = self._reconstruct_uri(relay_proxy)
                         if uri_value:
@@ -74,7 +73,7 @@ class ShadowrocketAdapter(Adapter):
                 for ob in chain_obs:
                     if not isinstance(ob, dict):
                         continue
-                    wg_proxy = _proxy_from_outbound(ob, remark_prefix=f"[{tag}] ")
+                    wg_proxy = proxy_from_outbound(ob, remark_prefix=f"[{tag}] ")
                     if wg_proxy:
                         uri_value = self._reconstruct_uri(wg_proxy)
                         if uri_value:
@@ -135,12 +134,10 @@ class ShadowrocketAdapter(Adapter):
                     cfg = json.loads(raw_cfg)
                     outbounds = cfg.get("outbounds", [])
                     if isinstance(outbounds, list):
-                        from ..generators.plaintext import _proxy_from_outbound
-
                         for ob in outbounds:
                             if not isinstance(ob, dict):
                                 continue
-                            ob_proxy = _proxy_from_outbound(
+                            ob_proxy = proxy_from_outbound(
                                 ob, remark_prefix="[Chain] "
                             )
                             if ob_proxy:

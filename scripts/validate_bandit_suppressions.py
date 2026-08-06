@@ -12,6 +12,7 @@ import sys
 import tempfile
 import tokenize
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SCAN_ROOTS = (
@@ -82,6 +83,45 @@ def _nosec_comments(path: Path, source: str) -> list[tuple[int, re.Match[str]]]:
     ]
 
 
+def _diagnostic_excerpt(completed: subprocess.CompletedProcess[str]) -> str:
+    diagnostic = "\n".join(
+        value.strip()
+        for value in (completed.stderr, completed.stdout)
+        if value and value.strip()
+    )
+    return diagnostic[:2000] if diagnostic else "no diagnostic output"
+
+
+def _load_bandit_report(
+    report_path: Path, completed: subprocess.CompletedProcess[str]
+) -> dict[str, Any]:
+    try:
+        content = report_path.read_text(encoding="utf-8").strip()
+    except OSError as exc:
+        raise RuntimeError(
+            "Bandit report could not be read: "
+            f"{exc}; diagnostic: {_diagnostic_excerpt(completed)}"
+        ) from exc
+    if not content:
+        raise RuntimeError(
+            "Bandit produced an empty JSON report; diagnostic: "
+            f"{_diagnostic_excerpt(completed)}"
+        )
+    try:
+        report: object = json.loads(content)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(
+            "Bandit returned invalid JSON: "
+            f"{exc}; diagnostic: {_diagnostic_excerpt(completed)}"
+        ) from exc
+    if not isinstance(report, dict):
+        raise RuntimeError("Bandit JSON report root must be an object")
+    results = report.get("results")
+    if not isinstance(results, list):
+        raise RuntimeError("Bandit JSON report must contain a results list")
+    return report
+
+
 def _collect_active_bandit_findings(scan_roots: tuple[str, ...]) -> FindingMap:
     python_roots = tuple(root for root in scan_roots if (ROOT / root).suffix != ".js")
     if not python_roots:
@@ -112,13 +152,15 @@ def _collect_active_bandit_findings(scan_roots: tuple[str, ...]) -> FindingMap:
         if completed.returncode not in {0, 1}:
             raise RuntimeError(
                 "Bandit active-finding scan failed with exit code "
-                f"{completed.returncode}: {completed.stderr.strip()}"
+                f"{completed.returncode}: {_diagnostic_excerpt(completed)}"
             )
-        report = json.loads(report_path.read_text(encoding="utf-8"))
+        report = _load_bandit_report(report_path, completed)
     finally:
         report_path.unlink(missing_ok=True)
     findings: FindingMap = {}
-    for result in report.get("results", []):
+    for result in report["results"]:
+        if not isinstance(result, dict):
+            raise RuntimeError("Bandit results must contain only objects")
         filename = _repo_relative(str(result.get("filename", "")))
         line_number = int(result.get("line_number", 0) or 0)
         test_id = str(result.get("test_id", "")).strip()
@@ -128,12 +170,10 @@ def _collect_active_bandit_findings(scan_roots: tuple[str, ...]) -> FindingMap:
 
 
 def _inert_exception_suppression(path: Path, line_no: int, token: str) -> bool:
-    """Allow legacy B110/B112 comments only when the handler is no longer silent."""
     if path.suffix != ".py" or token not in {"B110", "B112"}:
         return False
     lines = path.read_text(encoding="utf-8").splitlines()
-    start = max(0, line_no - 1)
-    window = "\n".join(lines[start : min(len(lines), start + 8)])
+    window = "\n".join(lines[max(0, line_no - 1) : min(len(lines), line_no + 7)])
     return any(
         marker in window for marker in ("logger.", "logging.", "raise", "print(")
     )
@@ -162,12 +202,14 @@ def validate_bandit_suppressions(
             invalid = [token for token in tokens if not RULE_RE.fullmatch(token)]
             if invalid:
                 errors.append(
-                    f"{rel_path}:{line_no}: invalid nosec rule token(s): {', '.join(invalid)}"
+                    f"{rel_path}:{line_no}: invalid nosec rule token(s): "
+                    f"{', '.join(invalid)}"
                 )
             duplicates = sorted({token for token in tokens if tokens.count(token) > 1})
             if duplicates:
                 errors.append(
-                    f"{rel_path}:{line_no}: duplicate nosec rule token(s): {', '.join(duplicates)}"
+                    f"{rel_path}:{line_no}: duplicate nosec rule token(s): "
+                    f"{', '.join(duplicates)}"
                 )
             if active_findings is None:
                 continue
@@ -189,14 +231,8 @@ def validate_bandit_suppressions(
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "paths", nargs="*", help="Repository-relative files or directories."
-    )
-    parser.add_argument(
-        "--require-active",
-        action="store_true",
-        help="Require each suppression to match a live Bandit finding or an audited inert handler.",
-    )
+    parser.add_argument("paths", nargs="*")
+    parser.add_argument("--require-active", action="store_true")
     args = parser.parse_args(argv)
     scan_roots = tuple(args.paths) if args.paths else DEFAULT_SCAN_ROOTS
     active_findings = (

@@ -79,3 +79,35 @@ async def test_fetch_rate_limit(respx_mock):
 
     assert result.success is True
     assert route.call_count == 2
+
+
+def test_collect_fetch_results_skips_worker_exceptions() -> None:
+    """One raising worker must not discard its siblings' results.
+
+    The gather now uses return_exceptions=True so a stray worker error cannot
+    orphan in-flight siblings and close the shared client out from under them;
+    this folds the mixed results back into the map.
+    """
+    from configstream.pipeline.fetcher import _collect_fetch_results, FetchResult
+
+    ok = FetchResult(True, "https://good.example", content="line")
+    results: dict = {}
+
+    _collect_fetch_results(
+        [("https://good.example", ok), RuntimeError("worker blew up")],
+        results,
+    )
+
+    assert list(results) == ["https://good.example"]
+    assert results["https://good.example"].content == "line"
+
+
+def test_collect_fetch_results_propagates_cancellation() -> None:
+    """Cancellation must still abort the batch rather than be swallowed."""
+    import asyncio
+
+    from configstream.pipeline.fetcher import _collect_fetch_results
+
+    results: dict = {}
+    with pytest.raises(asyncio.CancelledError):
+        _collect_fetch_results([asyncio.CancelledError()], results)

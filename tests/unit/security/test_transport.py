@@ -98,3 +98,62 @@ async def test_security_transport_allows_all_global_ips_dual_stack(monkeypatch):
     response = await transport.handle_async_request(request)
     assert response.status_code == 200
     assert captured["request"].url.host in {"1.1.1.1", "2606:4700:4700::1111"}
+
+
+def test_rewrite_request_to_pinned_ip_formats_ipv6_and_nondefault_port():
+    from configstream.security.transport import rewrite_request_to_pinned_ip
+
+    request = httpx.Request("GET", "https://example.com:8443/resource")
+    rewritten = rewrite_request_to_pinned_ip(
+        request,
+        {"2606:4700:4700::1111"},
+        logical_host="example.com",
+    )
+    assert rewritten.url.host == "2606:4700:4700::1111"
+    assert rewritten.url.port == 8443
+    assert rewritten.headers["Host"] == "example.com:8443"
+    assert rewritten.extensions["sni_hostname"] == "example.com"
+
+
+def test_rewrite_request_brackets_literal_ipv6_host_header():
+    from configstream.security.transport import rewrite_request_to_pinned_ip
+
+    request = httpx.Request("GET", "https://[2606:4700:4700::1111]:8443/resource")
+    rewritten = rewrite_request_to_pinned_ip(
+        request,
+        {"2606:4700:4700::1111"},
+    )
+
+    assert rewritten.headers["Host"] == "[2606:4700:4700::1111]:8443"
+    assert rewritten.extensions["sni_hostname"] == "2606:4700:4700::1111"
+
+
+@pytest.mark.asyncio
+async def test_overlapping_dns_answer_uses_only_originally_pinned_address(monkeypatch):
+    transport = SecurityTransport(
+        dns_cache_enabled=False,
+        pinned_ips={"example.com": {"93.184.216.34"}},
+    )
+
+    async def fake_resolve_host(host, port, request):
+        return {"93.184.216.34", "8.8.8.8"}
+
+    captured = {}
+
+    async def fake_handle_async_request(self, request):
+        captured["request"] = request
+        return httpx.Response(200, request=request)
+
+    monkeypatch.setattr(transport, "_resolve_host", fake_resolve_host)
+    monkeypatch.setattr(
+        httpx.AsyncHTTPTransport,
+        "handle_async_request",
+        fake_handle_async_request,
+    )
+
+    response = await transport.handle_async_request(
+        httpx.Request("GET", "https://example.com/resource")
+    )
+
+    assert response.status_code == 200
+    assert captured["request"].url.host == "93.184.216.34"

@@ -1,0 +1,1874 @@
+{
+  "schema_version": 1,
+  "source_digest": "211ec705ce9d9578bd8dae246d83fec715f17c27e4758b9efffc131bc46a6fc4",
+  "variable_count": 163,
+  "variables": [
+    {
+      "declared_in_settings": true,
+      "default": null,
+      "name": "ADMIN_API_KEY",
+      "required": false,
+      "sensitive": true,
+      "sources": [
+        "src/configstream/config.py:138"
+      ],
+      "type": "Optional[str]"
+    },
+    {
+      "declared_in_settings": true,
+      "default": true,
+      "name": "AIMD_ENABLED",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:110"
+      ],
+      "type": "bool"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 400,
+      "name": "AIMD_P50_MS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:111"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 1500,
+      "name": "AIMD_P95_MS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:112"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": "http://localhost:8000,http://localhost:3000,http://127.0.0.1:8000",
+      "name": "ALLOWED_ORIGINS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:162"
+      ],
+      "type": "str"
+    },
+    {
+      "declared_in_settings": true,
+      "default": "",
+      "name": "ALLOWED_ORIGIN_REGEX",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:165"
+      ],
+      "type": "str"
+    },
+    {
+      "declared_in_settings": true,
+      "default": false,
+      "name": "ALLOW_ACTIVE_SCANNING",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:153"
+      ],
+      "type": "bool"
+    },
+    {
+      "declared_in_settings": true,
+      "default": false,
+      "name": "ALLOW_PRIVATE_IPS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:131"
+      ],
+      "type": "bool"
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "ALLOW_UNAUTHENTICATED_ADMIN",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/server/utils.py:220"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": true,
+      "default": "",
+      "name": "BATCH_NUMBER",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:129"
+      ],
+      "type": "str"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 50,
+      "name": "BATCH_SIZE",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:68"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 2700,
+      "name": "BATCH_TIME_LIMIT_GRACE_SECONDS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:33"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 14400,
+      "name": "BATCH_TIME_LIMIT_SECONDS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:32"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": "",
+      "name": "BLOCKED_COUNTRIES",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:86"
+      ],
+      "type": "str"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 100000,
+      "name": "CACHE_MAX_ENTRIES",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:71"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 1800,
+      "name": "CACHE_TTL",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:70"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": "",
+      "name": "CANARY_URL",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:97"
+      ],
+      "type": "str"
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "CF_TOKEN",
+      "required": false,
+      "sensitive": true,
+      "sources": [
+        "scripts/publish_ipfs.py:205"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "CF_ZONE_ID",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "scripts/publish_ipfs.py:210"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "CI",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/testers/go_tester/manager.py:306",
+        "src/configstream/testers/go_tester/secure_manager.py:107",
+        "src/configstream/warp_scanner.py:41",
+        "src/configstream/warp_scanner.py:64"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": true,
+      "default": true,
+      "name": "CIRCUIT_BREAKER_ENABLED",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:108"
+      ],
+      "type": "bool"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 120,
+      "name": "CIRCUIT_OPEN_SEC",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:118"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 0.2,
+      "name": "CIRCUIT_TRIP_5XX_RATE",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:117"
+      ],
+      "type": "float"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 5,
+      "name": "CIRCUIT_TRIP_CONN_ERRORS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:116"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "CONFIGSTREAM_COMPAT_PATCHES",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/__init__.py:158"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "CONFIGSTREAM_HEALTHCHECK_HTTP",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/container_healthcheck.py:47"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": true,
+      "default": null,
+      "name": "CONFIGSTREAM_SHUFFLE_SEED",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:133"
+      ],
+      "type": "Optional[str]"
+    },
+    {
+      "declared_in_settings": true,
+      "default": null,
+      "name": "CONFIGSTREAM_TESTER_BIN",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:143",
+        "src/configstream/testers/go_tester/process.py:20"
+      ],
+      "type": "Optional[str]"
+    },
+    {
+      "declared_in_settings": true,
+      "default": null,
+      "name": "CONFIG_STREAM_KEY",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "scripts/audit_pipeline_outputs.py:323",
+        "src/configstream/config.py:140"
+      ],
+      "type": "Optional[str]"
+    },
+    {
+      "declared_in_settings": true,
+      "default": false,
+      "name": "CORS_ALLOW_CREDENTIALS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:166"
+      ],
+      "type": "bool"
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "CS_PUBLIC_KEY",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "scripts/snapshot_pages_release.py:389",
+        "scripts/validate_pages_artifact.py:187"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "CS_SIGNING_PRIVATE_KEY_HEX",
+      "required": false,
+      "sensitive": true,
+      "sources": [
+        "scripts/release_gate.py:327"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "CS_STRICT_BINARY_TRUST",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/testers/go_tester/binary_security.py:103"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": true,
+      "default": false,
+      "name": "DEDUP_IGNORE_PROTOCOL",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:155"
+      ],
+      "type": "bool"
+    },
+    {
+      "declared_in_settings": true,
+      "default": true,
+      "name": "DNS_CACHE_ENABLED",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:99"
+      ],
+      "type": "bool"
+    },
+    {
+      "declared_in_settings": true,
+      "default": true,
+      "name": "DNS_HARDENED_OUTPUTS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:101"
+      ],
+      "type": "bool"
+    },
+    {
+      "declared_in_settings": true,
+      "default": true,
+      "name": "DNS_SAFE_OUTPUTS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:100"
+      ],
+      "type": "bool"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 500,
+      "name": "DNS_SAFE_RESOLVE_BATCH",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:106"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 100000,
+      "name": "DNS_SAFE_RESOLVE_LIMIT",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:107"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 4.0,
+      "name": "DNS_SAFE_RESOLVE_TIMEOUT",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:105"
+      ],
+      "type": "float"
+    },
+    {
+      "declared_in_settings": true,
+      "default": true,
+      "name": "ENABLE_ANOMALY_DETECTION",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:124"
+      ],
+      "type": "bool"
+    },
+    {
+      "declared_in_settings": true,
+      "default": true,
+      "name": "ENABLE_CACHE_WARMING",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:122"
+      ],
+      "type": "bool"
+    },
+    {
+      "declared_in_settings": true,
+      "default": true,
+      "name": "ENABLE_ENDPOINT_FILTERING",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:156"
+      ],
+      "type": "bool"
+    },
+    {
+      "declared_in_settings": true,
+      "default": true,
+      "name": "ENABLE_SMART_CHAINING",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:123"
+      ],
+      "type": "bool"
+    },
+    {
+      "declared_in_settings": true,
+      "default": true,
+      "name": "ENFORCE_SOURCE_ADMISSION",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:183"
+      ],
+      "type": "bool"
+    },
+    {
+      "declared_in_settings": true,
+      "default": "production",
+      "name": "ENVIRONMENT",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:173",
+        "src/configstream/testers/go_tester/binary_security.py:104"
+      ],
+      "type": "str"
+    },
+    {
+      "declared_in_settings": true,
+      "default": "aggressive",
+      "name": "EVASION_MODE",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:66"
+      ],
+      "type": "str"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 2.0,
+      "name": "EVENT_STREAM_FLUSH_TIMEOUT_SECONDS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:35"
+      ],
+      "type": "float"
+    },
+    {
+      "declared_in_settings": true,
+      "default": false,
+      "name": "FAIL_ON_ZERO_WORKING",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:104"
+      ],
+      "type": "bool"
+    },
+    {
+      "declared_in_settings": true,
+      "default": true,
+      "name": "FETCH_BLOCK_PRIVATE_NETWORKS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:178"
+      ],
+      "type": "bool"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 5,
+      "name": "FETCH_MAX_REDIRECTS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:177"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 15,
+      "name": "FETCH_TIMEOUT",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:28"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": true,
+      "name": "FETCH_VALIDATE_DNS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:179"
+      ],
+      "type": "bool"
+    },
+    {
+      "declared_in_settings": true,
+      "default": false,
+      "name": "FORCE_SCANNER",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:152"
+      ],
+      "type": "bool"
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "FORWARDED_ALLOW_IPS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/server/__main__.py:24"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": true,
+      "default": null,
+      "name": "FRONTEND_DIR",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:161"
+      ],
+      "type": "Optional[str]"
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "GDRIVE_CLIENT_ID",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "scripts/upload_gdrive.py:44"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "GDRIVE_CLIENT_SECRET",
+      "required": false,
+      "sensitive": true,
+      "sources": [
+        "scripts/upload_gdrive.py:196",
+        "scripts/upload_gdrive.py:45"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "GDRIVE_REFRESH_TOKEN",
+      "required": false,
+      "sensitive": true,
+      "sources": [
+        "scripts/upload_gdrive.py:195",
+        "scripts/upload_gdrive.py:43"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "GDRIVE_SA_JSON",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "scripts/upload_gdrive.py:197",
+        "scripts/upload_gdrive.py:33"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": true,
+      "default": "data/GeoLite2-ASN.mmdb",
+      "name": "GEOIP_ASN_DB_PATH",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:37"
+      ],
+      "type": "str"
+    },
+    {
+      "declared_in_settings": true,
+      "default": "data/GeoLite2-City.mmdb",
+      "name": "GEOIP_CITY_DB_PATH",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:36"
+      ],
+      "type": "str"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 5,
+      "name": "GEOIP_TIMEOUT",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:31"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "GITHUB_EVENT_NAME",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "scripts/generate_evidence_bundle.py:22"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "GITHUB_REF",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "scripts/resilient_stage.py:471"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "GITHUB_REPOSITORY",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "scripts/generate_evidence_bundle.py:24",
+        "scripts/resilient_stage.py:466"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "GITHUB_RUN_ATTEMPT",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "scripts/finalize_release_outputs.py:528",
+        "scripts/finalize_release_outputs.py:571",
+        "scripts/generate_evidence_bundle.py:20",
+        "scripts/native_client_checks.py:204",
+        "scripts/release_gate.py:173",
+        "scripts/release_gate.py:381",
+        "scripts/resilient_stage.py:469",
+        "scripts/validate_pages_artifact.py:1114",
+        "scripts/validate_pages_artifact.py:1147"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "GITHUB_RUN_ID",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "scripts/finalize_release_outputs.py:527",
+        "scripts/finalize_release_outputs.py:570",
+        "scripts/generate_evidence_bundle.py:19",
+        "scripts/native_client_checks.py:203",
+        "scripts/release_gate.py:172",
+        "scripts/release_gate.py:378",
+        "scripts/resilient_stage.py:468",
+        "scripts/validate_pages_artifact.py:1113",
+        "scripts/validate_pages_artifact.py:1146"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "GITHUB_SHA",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "scripts/finalize_release_outputs.py:526",
+        "scripts/finalize_release_outputs.py:569",
+        "scripts/generate_evidence_bundle.py:21",
+        "scripts/native_client_checks.py:202",
+        "scripts/release_gate.py:171",
+        "scripts/release_gate.py:375",
+        "scripts/resilient_stage.py:470",
+        "scripts/validate_pages_artifact.py:1112",
+        "scripts/validate_pages_artifact.py:1145"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "GITHUB_WORKFLOW",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "scripts/resilient_stage.py:467"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": true,
+      "default": 500,
+      "name": "GO_TESTER_BATCH_SIZE",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:58"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 800,
+      "name": "HEDGE_AFTER_MS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:114"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 1,
+      "name": "HEDGE_MAX_EXTRA",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:115"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": true,
+      "name": "HEDGING_ENABLED",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:109"
+      ],
+      "type": "bool"
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "HF_TOKEN",
+      "required": false,
+      "sensitive": true,
+      "sources": [
+        "scripts/upload_hf.py:216"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": true,
+      "default": false,
+      "name": "INCLUDE_INSECURE_PROXIES",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:132"
+      ],
+      "type": "bool"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 500,
+      "name": "INGEST_MICRO_CHUNK_LINES",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:54"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": "IR",
+      "name": "INTRANET_ORIGIN",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:62"
+      ],
+      "type": "str"
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "IPNS_KEY",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "scripts/publish_ipfs.py:200"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": true,
+      "default": false,
+      "name": "LAB_LIVE_TEST_ENABLED",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:170"
+      ],
+      "type": "bool"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 65536,
+      "name": "LAB_MAX_CONFIG_BYTES",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:172"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 15.0,
+      "name": "LAB_TEST_TIMEOUT_SECONDS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:171"
+      ],
+      "type": "float"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 3500,
+      "name": "LAT_CONNECT_TIMEOUT_MS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:41"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 3500,
+      "name": "LAT_HTTP_TIMEOUT_MS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:42"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 6000,
+      "name": "LAT_PER_PROXY_BUDGET_MS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:43"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 1800,
+      "name": "LAT_SOFT_CAP_MS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:44"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": "INFO",
+      "name": "LOG_LEVEL",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:96"
+      ],
+      "type": "str"
+    },
+    {
+      "declared_in_settings": true,
+      "default": true,
+      "name": "MASK_SENSITIVE_DATA",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:95"
+      ],
+      "type": "bool"
+    },
+    {
+      "declared_in_settings": true,
+      "default": null,
+      "name": "MAXMIND_LICENSE_KEY",
+      "required": false,
+      "sensitive": true,
+      "sources": [
+        "src/configstream/config.py:141"
+      ],
+      "type": "Optional[str]"
+    },
+    {
+      "declared_in_settings": true,
+      "default": "<computed>",
+      "name": "MAX_B64_INPUT_SIZE",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:73"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": "<computed>",
+      "name": "MAX_B64_OUTPUT_SIZE",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:74"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": "<computed>",
+      "name": "MAX_CONFIG_LINE_LENGTH",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:75"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 10000,
+      "name": "MAX_LATENCY",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:40"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 250000,
+      "name": "MAX_LINES_PER_SOURCE",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:76"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": "<computed>",
+      "name": "MAX_OPENVPN_CONFIG_SIZE",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:77"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": "<computed>",
+      "name": "MAX_RESPONSE_SIZE",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:176"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 2000000,
+      "name": "MAX_SEEN_KEYS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:69"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "MAX_SELECTOR_MEMBERS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "scripts/finalize_release_outputs.py:40"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": true,
+      "default": 128,
+      "name": "MAX_WORKERS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:72"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 10,
+      "name": "MIN_LATENCY",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:39"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "MIN_SOURCE_COVERAGE",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "scripts/finalize_release_outputs.py:586"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": true,
+      "default": null,
+      "name": "NOTIFY_UPDATE_URL",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:174"
+      ],
+      "type": "Optional[str]"
+    },
+    {
+      "declared_in_settings": true,
+      "default": "IR",
+      "name": "OPTIMAL_RELAY_ORIGIN",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:63"
+      ],
+      "type": "str"
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "OUTPUT_DIR",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/server/utils.py:54"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "PARENT_RELEASE_DIGEST",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "scripts/finalize_release.py:292"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "PATH",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "scripts/native_client_checks.py:65",
+        "src/configstream/testers/go_tester/manager.py:324",
+        "src/configstream/testers/go_tester/manager.py:91"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": true,
+      "default": 16,
+      "name": "PER_HOST_MAX_CONCURRENCY",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:113"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "PINATA_JWT",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "scripts/publish_ipfs.py:195"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "PORT",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/container_healthcheck.py:28",
+        "src/configstream/server/__main__.py:13"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": true,
+      "default": 100,
+      "name": "PRODUCER_MAX_CONCURRENCY",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:49"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": "US",
+      "name": "PSIPHON_COUNTRY",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:151"
+      ],
+      "type": "str"
+    },
+    {
+      "declared_in_settings": true,
+      "default": false,
+      "name": "PSIPHON_ENABLED",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:150"
+      ],
+      "type": "bool"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 100,
+      "name": "PY_TESTER_BATCH_SIZE",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:59"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": "data/source_quality.db",
+      "name": "QUALITY_DB_PATH",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:180"
+      ],
+      "type": "str"
+    },
+    {
+      "declared_in_settings": true,
+      "default": "lossless",
+      "name": "QUEUE_DEGRADATION_MODE",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:51"
+      ],
+      "type": "str"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 5,
+      "name": "QUEUE_MAX_TRIES",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:119"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 0.6,
+      "name": "QUEUE_OVERLOAD_KEEP_RATIO",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:53"
+      ],
+      "type": "float"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 0.8,
+      "name": "QUEUE_OVERLOAD_THRESHOLD",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:52"
+      ],
+      "type": "float"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 0.75,
+      "name": "QUEUE_PUT_TIMEOUT_SECONDS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:50"
+      ],
+      "type": "float"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 100,
+      "name": "RATE_LIMIT_REQUESTS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:46"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 60,
+      "name": "RATE_LIMIT_WINDOW",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:47"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": null,
+      "name": "RENAME_TEMPLATE",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:127"
+      ],
+      "type": "Optional[str]"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 6,
+      "name": "RETEST_TIMEOUT",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:30"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 0.6,
+      "name": "SCORE_SIGMOID_CENTER_RATIO",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:186"
+      ],
+      "type": "float"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 0.2,
+      "name": "SCORE_SIGMOID_SLOPE_RATIO",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:187"
+      ],
+      "type": "float"
+    },
+    {
+      "declared_in_settings": true,
+      "default": {
+        "current_status": 10.0,
+        "historical_success": 40.0,
+        "latency": 30.0,
+        "security": 20.0
+      },
+      "name": "SCORE_WEIGHTS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:79"
+      ],
+      "type": "dict[str, float]"
+    },
+    {
+      "declared_in_settings": true,
+      "default": {
+        "content_injection_threshold": 5,
+        "header_strip_threshold": 2,
+        "malicious_asn_list": [],
+        "redirect_follow_limit": 3,
+        "suspicious_port_range": [
+          [
+            0,
+            1024
+          ],
+          [
+            5000,
+            5999
+          ],
+          [
+            8000,
+            8999
+          ]
+        ]
+      },
+      "name": "SECURITY",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:87"
+      ],
+      "type": "dict"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 8,
+      "name": "SECURITY_CHECK_TIMEOUT",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:29"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": true,
+      "name": "SEEN_BLOOM_ENABLED",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:157"
+      ],
+      "type": "bool"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 2000000,
+      "name": "SEEN_BLOOM_EXPECTED_ITEMS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:158"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 0.001,
+      "name": "SEEN_BLOOM_FALSE_POSITIVE_RATE",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:159"
+      ],
+      "type": "float"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 5.0,
+      "name": "SHUTDOWN_GRACE_SECONDS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:34"
+      ],
+      "type": "float"
+    },
+    {
+      "declared_in_settings": true,
+      "default": "bundled",
+      "name": "SOURCE_ADMISSION_MANIFEST",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:184"
+      ],
+      "type": "str"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 10,
+      "name": "SOURCE_DEAD_FAILURES",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:182"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 3,
+      "name": "SOURCE_PROBATION_FAILURES",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:181"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": null,
+      "name": "SS_LIB_SHA256",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:144"
+      ],
+      "type": "Optional[str]"
+    },
+    {
+      "declared_in_settings": true,
+      "default": null,
+      "name": "STEGO_KEY",
+      "required": false,
+      "sensitive": true,
+      "sources": [
+        "scripts/audit_pipeline_outputs.py:323",
+        "src/configstream/config.py:139"
+      ],
+      "type": "Optional[str]"
+    },
+    {
+      "declared_in_settings": true,
+      "default": true,
+      "name": "STRICT_SECURITY",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:125"
+      ],
+      "type": "bool"
+    },
+    {
+      "declared_in_settings": true,
+      "default": "",
+      "name": "TELEGRAM_ALLOWED_USERS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:136"
+      ],
+      "type": "str"
+    },
+    {
+      "declared_in_settings": true,
+      "default": null,
+      "name": "TELEGRAM_BOT_TOKEN",
+      "required": false,
+      "sensitive": true,
+      "sources": [
+        "scripts/upload_telegram.py:29",
+        "src/configstream/config.py:135"
+      ],
+      "type": "Optional[str]"
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "TELEGRAM_CHAT_ID",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "scripts/upload_telegram.py:30"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": true,
+      "default": 15,
+      "name": "TEST_TIMEOUT",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:27"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": "<structured default>",
+      "name": "TEST_URLS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:16"
+      ],
+      "type": "dict[str, str]"
+    },
+    {
+      "declared_in_settings": true,
+      "default": true,
+      "name": "TLS_TESTS_ENABLED",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:120"
+      ],
+      "type": "bool"
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "TMPDIR",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/testers/go_tester/binary_security.py:152",
+        "src/configstream/testers/go_tester/manager.py:323"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": true,
+      "default": 4,
+      "name": "UPDATE_INTERVAL_HOURS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:128"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": true,
+      "name": "USE_VWARP_TUNNEL",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:146",
+        "src/configstream/pipeline/core.py:133",
+        "src/configstream/pipeline/core.py:138",
+        "src/configstream/pipeline/core.py:143",
+        "src/configstream/testers/go_tester/manager.py:331",
+        "src/configstream/testers/go_tester/secure_manager.py:71"
+      ],
+      "type": "bool"
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "UTLS_CLIENT_SHA256",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/security/utls_wrapper.py:47"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "VERSION_TAG",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "scripts/upload_telegram.py:47"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": true,
+      "default": null,
+      "name": "VT_API_KEY",
+      "required": false,
+      "sensitive": true,
+      "sources": [
+        "src/configstream/config.py:137"
+      ],
+      "type": "Optional[str]"
+    },
+    {
+      "declared_in_settings": true,
+      "default": "127.0.0.1",
+      "name": "VWARP_BIND_ADDRESS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:148"
+      ],
+      "type": "str"
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "VWARP_FORCE_MASQUE",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/tools/vwarp/config.py:88"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": true,
+      "default": true,
+      "name": "VWARP_MASQUE_ENABLED",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:149"
+      ],
+      "type": "bool"
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "VWARP_SHA256",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/tools/vwarp/binary.py:66"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": true,
+      "default": 10808,
+      "name": "VWARP_SOCKS5_PORT",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:147"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "VWARP_TUNNEL_ARGS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/tools/vwarp/tunnel.py:172"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "VWARP_URL",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/tools/vwarp/binary.py:65"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "VWARP_VERSION",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/tools/vwarp/binary.py:64",
+        "src/configstream/tools/vwarp/config.py:143"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": true,
+      "default": "[]",
+      "name": "WARP_KEY_POOL",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "scripts/performance_report.py:46",
+        "scripts/performance_report.py:48",
+        "scripts/performance_report.py:61",
+        "src/configstream/config.py:61"
+      ],
+      "type": "str"
+    },
+    {
+      "declared_in_settings": true,
+      "default": null,
+      "name": "WARP_PEER_KEY",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:64"
+      ],
+      "type": "Optional[str]"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 60.0,
+      "name": "WS_IDLE_TIMEOUT_SECONDS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:168"
+      ],
+      "type": "float"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 100,
+      "name": "WS_MAX_CONNECTIONS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:167"
+      ],
+      "type": "int"
+    },
+    {
+      "declared_in_settings": true,
+      "default": 5.0,
+      "name": "WS_SEND_TIMEOUT_SECONDS",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "src/configstream/config.py:169"
+      ],
+      "type": "float"
+    }
+  ]
+}

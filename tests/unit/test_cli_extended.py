@@ -5,6 +5,7 @@ from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+import httpx
 from click.testing import CliRunner
 
 from configstream.cli import main
@@ -53,7 +54,7 @@ def test_merge_success(runner):
         }
         mock_pipeline.return_value = mock_result
 
-        result = runner.invoke(main, ["merge", "--sources", "sources.txt", "--dry-run"])
+        result = runner.invoke(main, ["merge", "--sources", "sources.txt", "--dry-run", "--allow-unadmitted-sources"])
 
         assert result.exit_code == 0
         assert "Pipeline Completed Successfully" in result.output
@@ -73,7 +74,7 @@ def test_merge_failure(runner):
         mock_result.error = "Test Failure"
         mock_pipeline.return_value = mock_result
 
-        result = runner.invoke(main, ["merge", "--sources", "sources.txt"])
+        result = runner.invoke(main, ["merge", "--sources", "sources.txt", "--allow-unadmitted-sources"])
 
         assert result.exit_code == 1
         assert "Pipeline Failed" in result.output
@@ -177,3 +178,25 @@ def test_bot_command(runner):
         result = runner.invoke(main, ["bot", "--token", "FAKE"])
         assert result.exit_code == 0
         mock_run.assert_called_with("FAKE")
+
+class PartialFailureResponse(FakeResponse):
+    def iter_bytes(self, chunk_size=8192):
+        yield b"partial"
+        raise httpx.ReadError("connection interrupted")
+
+
+def test_update_databases_does_not_publish_partial_downloads(monkeypatch, runner):
+    def fake_stream(method, url, timeout=120.0, follow_redirects=True):
+        return PartialFailureResponse(b"")
+
+    monkeypatch.setattr("configstream.cli.httpx.stream", fake_stream)
+
+    with runner.isolated_filesystem():
+        result = runner.invoke(main, ["update-databases"])
+
+        assert result.exit_code == 1
+        assert not Path("data/GeoLite2-City.mmdb").exists()
+        assert not Path("data/GeoLite2-ASN.mmdb").exists()
+        assert not Path("data/singbox/geosite.db").exists()
+        assert not Path("data/singbox/geoip.db").exists()
+        assert not list(Path("data").rglob(".*.tmp"))

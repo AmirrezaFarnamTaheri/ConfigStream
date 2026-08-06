@@ -11,7 +11,10 @@ from typing import Optional
 from ...config import AppSettings
 from ...constants import VWARP_BIND_ADDRESS, VWARP_SOCKS5_PORT
 from ...async_utils import safe_wait_for
-from .manager import GoBatchTester as _StreamingGoBatchTester
+from .manager import (
+    GO_TESTER_STREAM_LIMIT,
+    GoBatchTester as _StreamingGoBatchTester,
+)
 
 from .binary_security import (
     BinaryIdentity,
@@ -121,6 +124,7 @@ class GoBatchTester(_StreamingGoBatchTester):
                     stdout=asyncio.subprocess.PIPE,
                     stderr=asyncio.subprocess.PIPE,
                     env=self._minimal_environment(settings),
+                    limit=GO_TESTER_STREAM_LIMIT,
                 )
                 loop = asyncio.get_running_loop()
                 self._read_task = loop.create_task(self._read_loop())

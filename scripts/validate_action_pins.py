@@ -1,222 +1,217 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Validate that GitHub Actions are pinned to a specific SHA for supply-chain security.
+"""Enforce immutable references for every external GitHub Action.
 
-Best practice is to pin actions to a full commit SHA instead of a mutable version
-tag (e.g., @v6). Version tags can be force-pushed, creating a supply-chain risk.
-This script audits all workflow files and reports whether each action is SHA-pinned
-or tag-pinned, so contributors can make informed pinning decisions.
-
-See: https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-third-party-actions
+GitHub documents a full-length commit SHA as the only immutable GitHub Action
+reference.  Human-readable version comments are required beside each SHA so
+reviewers can evaluate upgrades without giving up immutability.
 """
 
 from __future__ import annotations
 
+import json
 import re
 import sys
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
-
-import yaml
+from typing import Mapping
 
 WORKFLOW_DIR = Path(".github") / "workflows"
-
-# Actions that are known to be published by GitHub and are acceptable
-# as version-tag references for CI convenience. These are first-party
-# actions whose tags are signed and less likely to be compromised.
-ALLOWED_TAG_ONLY_ACTIONS: set[str] = {
-    "actions/",
-    "gitleaks/gitleaks-action@",
-}
-
-# Actions that must be SHA-pinned due to their security sensitivity.
-# This list can grow over time as we audit more actions.
-REQUIRE_SHA_PIN_ACTIONS: set[str] = {
-    "docker/login-action@",
-    "docker/build-push-action@",
-    "docker/setup-buildx-action@",
-    "pypa/gh-action-pypi-publish@",
-    "softprops/action-gh-release@",
-    "actions/attest-build-provenance@",
-}
+PIN_MANIFEST = Path("config") / "github-action-pins.json"
+SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+DIGEST_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
+VERSION_COMMENT_RE = re.compile(r"(?:^|\s)(?P<version>v?\d+(?:\.\d+)*)(?:\s|$)")
+USES_RE = re.compile(
+    r"^\s*(?:-\s*)?uses:\s*(?P<uses>[^\s#]+)(?:\s+#\s*(?P<comment>.*))?$"
+)
 
 
-def _is_sha_pinned(uses: str) -> bool:
-    """Check if an action reference is pinned to a full commit SHA."""
-    # SHA references are 40-character hex strings
-    match = re.search(r"@([0-9a-f]{40})$", uses)
-    return match is not None
+@dataclass(frozen=True)
+class ActionPinAudit:
+    errors: list[str]
+    external_references: int
+    sha_pinned: int
+    container_digest_pinned: int
 
 
-def _is_tag_ref(uses: str) -> bool:
-    """Check if an action reference uses a version tag (e.g., @v3, @v3.1.0)."""
-    match = re.search(r"@v?\d+(\.\d+)*$", uses)
-    return match is not None
+def _load_verified_pins(
+    manifest_path: Path | None,
+) -> tuple[dict[tuple[str, str], str], list[str]]:
+    if manifest_path is None:
+        return {}, []
+    try:
+        payload = json.loads(Path(manifest_path).read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        return {}, [f"{manifest_path}: could not load verified action pins: {exc}"]
+    if payload.get("schema_version") != 1 or not isinstance(payload.get("entries"), list):
+        return {}, [f"{manifest_path}: unsupported verified action pin schema"]
+
+    pins: dict[tuple[str, str], str] = {}
+    errors: list[str] = []
+    for index, item in enumerate(payload["entries"], start=1):
+        if not isinstance(item, dict):
+            errors.append(f"{manifest_path}: entry {index} must be an object")
+            continue
+        action = str(item.get("action", "")).strip()
+        version = str(item.get("version", "")).strip()
+        commit_sha = str(item.get("commit_sha", "")).strip()
+        key = (action, version)
+        if not action or not version or not SHA_RE.fullmatch(commit_sha):
+            errors.append(f"{manifest_path}: entry {index} is incomplete or invalid")
+            continue
+        if key in pins:
+            errors.append(f"{manifest_path}: duplicate verified pin for {action} {version}")
+            continue
+        pins[key] = commit_sha
+    return pins, errors
 
 
-def _is_branch_ref(uses: str) -> bool:
-    """Check if an action reference uses a branch name."""
-    # A ref that is not SHA and not a semver/docker tag
-    match = re.search(r"@(main|master|latest|stable|develop|next)$", uses)
-    return match is not None
+def _validate_uses(
+    *,
+    path: Path,
+    line_number: int,
+    uses: str,
+    comment: str | None,
+    verified_pins: Mapping[tuple[str, str], str],
+    require_verified_pin: bool,
+) -> tuple[list[str], bool, bool]:
+    if uses.startswith("./"):
+        return [], False, False
+
+    if uses.startswith("docker://"):
+        image = uses.removeprefix("docker://")
+        digest = image.rsplit("@", 1)[-1] if "@" in image else ""
+        if DIGEST_RE.fullmatch(digest):
+            return [], False, True
+        return [
+            f"{path}:{line_number}: container action '{uses}' must use an immutable sha256 digest"
+        ], False, False
+
+    if "@" not in uses:
+        return [
+            f"{path}:{line_number}: external action '{uses}' is missing an immutable full commit SHA"
+        ], False, False
+
+    name, ref = uses.rsplit("@", 1)
+    if not SHA_RE.fullmatch(ref):
+        return [
+            f"{path}:{line_number}: external action '{uses}' must be pinned to a full commit SHA"
+        ], False, False
+
+    errors: list[str] = []
+    version_match = VERSION_COMMENT_RE.search(comment or "")
+    if version_match is None:
+        errors.append(
+            f"{path}:{line_number}: SHA-pinned action '{uses}' requires an inline version comment such as '# v4.2.0'"
+        )
+    elif require_verified_pin:
+        version = version_match.group("version")
+        expected = verified_pins.get((name, version))
+        if expected is None:
+            errors.append(
+                f"{path}:{line_number}: action '{name}' version '{version}' is absent from the verified pin manifest"
+            )
+        elif ref != expected:
+            errors.append(
+                f"{path}:{line_number}: action '{name}' version '{version}' uses unverified SHA {ref}; expected {expected}"
+            )
+    return errors, True, False
 
 
-def _is_docker_ref(uses: str) -> bool:
-    """Check if an action reference is a Docker image (not a GitHub Action)."""
-    return "docker://" in uses
+def validate_action_pins(
+    workflow_dir: Path = WORKFLOW_DIR,
+    manifest_path: Path | None = PIN_MANIFEST,
+) -> ActionPinAudit:
+    verified_pins, errors = _load_verified_pins(manifest_path)
+    require_verified_pin = manifest_path is not None and not errors
+    external_references = 0
+    sha_pinned = 0
+    container_digest_pinned = 0
+    observed_verified_pins: set[tuple[str, str]] = set()
 
-
-def _action_name(uses: str) -> str:
-    """Extract the action name from a uses line (without version)."""
-    if "@" in uses:
-        return uses.split("@")[0]
-    return uses
-
-
-def main() -> int:
-    if not WORKFLOW_DIR.exists():
-        print(f"ERROR: workflow directory not found: {WORKFLOW_DIR}")
-        return 1
+    if not workflow_dir.exists():
+        return ActionPinAudit(
+            errors=[f"workflow directory not found: {workflow_dir}"],
+            external_references=0,
+            sha_pinned=0,
+            container_digest_pinned=0,
+        )
 
     workflow_files = sorted(
-        path for pattern in ("*.yml", "*.yaml") for path in WORKFLOW_DIR.glob(pattern)
+        path
+        for pattern in ("*.yml", "*.yaml")
+        for path in workflow_dir.glob(pattern)
     )
     if not workflow_files:
-        print(f"ERROR: no workflow files found in {WORKFLOW_DIR}")
-        return 1
-
-    all_actions: dict[str, list[dict[str, Any]]] = {}  # action_name -> [info]
-    warnings: list[str] = []
-    errors: list[str] = []
+        return ActionPinAudit(
+            errors=[f"no workflow files found in {workflow_dir}"],
+            external_references=0,
+            sha_pinned=0,
+            container_digest_pinned=0,
+        )
 
     for path in workflow_files:
         try:
-            data = yaml.safe_load(path.read_text(encoding="utf-8"))
-        except (yaml.YAMLError, OSError) as exc:
-            errors.append(f"{path}: could not read/parse: {exc}")
+            lines = path.read_text(encoding="utf-8").splitlines()
+        except OSError as exc:
+            errors.append(f"{path}: could not read workflow: {exc}")
             continue
 
-        if not isinstance(data, dict):
-            continue
-
-        jobs = data.get("jobs", {})
-        if not isinstance(jobs, dict):
-            continue
-
-        for job_name, job in jobs.items():
-            if not isinstance(job, dict):
+        for line_number, line in enumerate(lines, start=1):
+            match = USES_RE.match(line)
+            if match is None:
                 continue
-            steps = job.get("steps", [])
-            if not isinstance(steps, list):
+            uses = match.group("uses")
+            comment = match.group("comment")
+            line_errors, is_sha, is_digest = _validate_uses(
+                path=path,
+                line_number=line_number,
+                uses=uses,
+                comment=comment,
+                verified_pins=verified_pins,
+                require_verified_pin=require_verified_pin,
+            )
+            if uses.startswith("./"):
                 continue
-
-            for step_idx, step in enumerate(steps):
-                if not isinstance(step, dict):
-                    continue
-                uses = step.get("uses")
-                if not isinstance(uses, str):
-                    continue
-
-                # Skip local actions (./path/to/action) and Docker references
-                if uses.startswith("./") or _is_docker_ref(uses):
-                    continue
-
-                name = _action_name(uses)
-                pin_info = {
-                    "file": str(path),
-                    "job": job_name,
-                    "step": step_idx,
-                    "uses": uses,
-                    "sha_pinned": _is_sha_pinned(uses),
-                    "tag_pinned": _is_tag_ref(uses),
-                    "branch_pinned": _is_branch_ref(uses),
-                }
-
-                if name not in all_actions:
-                    all_actions[name] = []
-                all_actions[name].append(pin_info)
-
-                # Check if this action should be SHA-pinned
-                requires_sha = any(
-                    uses.startswith(req) for req in REQUIRE_SHA_PIN_ACTIONS
-                )
-                is_allowed_tag = any(
-                    uses.startswith(allowed) for allowed in ALLOWED_TAG_ONLY_ACTIONS
-                )
-
-                if requires_sha and not pin_info["sha_pinned"]:
-                    warnings.append(
-                        f"{path}:{job_name}: action '{uses}' should be SHA-pinned "
-                        f"(supply-chain sensitive action)"
+            if uses.startswith("docker://") and is_digest:
+                container_digest_pinned += 1
+                continue
+            external_references += 1
+            sha_pinned += int(is_sha)
+            errors.extend(line_errors)
+            if require_verified_pin and "@" in uses:
+                version_match = VERSION_COMMENT_RE.search(comment or "")
+                if version_match is not None:
+                    observed_verified_pins.add(
+                        (uses.rsplit("@", 1)[0], version_match.group("version"))
                     )
-                elif pin_info["branch_pinned"]:
-                    warnings.append(
-                        f"{path}:{job_name}: action '{uses}' is pinned to a mutable branch "
-                        f"— pin to a version tag or SHA instead"
-                    )
-                elif not pin_info["sha_pinned"] and not is_allowed_tag:
-                    if pin_info["tag_pinned"]:
-                        warnings.append(
-                            f"{path}:{job_name}: action '{uses}' uses a mutable version tag "
-                            f"— consider pinning to a full commit SHA for supply-chain security"
-                        )
-                    else:
-                        warnings.append(
-                            f"{path}:{job_name}: action '{uses}' uses an atypical reference "
-                            f"(not SHA, semver tag, or known prefix)"
-                        )
 
-    # Print summary
-    print("=== GitHub Actions Version Pinning Audit ===")
+    if require_verified_pin:
+        for action, version in sorted(set(verified_pins) - observed_verified_pins):
+            errors.append(
+                f"{manifest_path}: verified pin is unused by workflows: {action} {version}"
+            )
+
+    return ActionPinAudit(
+        errors=errors,
+        external_references=external_references,
+        sha_pinned=sha_pinned,
+        container_digest_pinned=container_digest_pinned,
+    )
+
+
+def main() -> int:
+    result = validate_action_pins()
+    print("=== GitHub Actions Immutable Reference Audit ===")
+    print(f"External GitHub Actions: {result.external_references}")
+    print(f"Full-SHA pinned:         {result.sha_pinned}")
+    print(f"Container digests:       {result.container_digest_pinned}")
     print()
 
-    sha_count = sum(
-        1 for infos in all_actions.values() for info in infos if info["sha_pinned"]
-    )
-    tag_count = sum(
-        1
-        for infos in all_actions.values()
-        for info in infos
-        if not info["sha_pinned"] and info["tag_pinned"]
-    )
-    branch_count = sum(
-        1 for infos in all_actions.values() for info in infos if info["branch_pinned"]
-    )
-    total = sha_count + tag_count + branch_count
-
-    print(f"Total actions referenced: {total}")
-    print(f"  ✅ SHA-pinned:           {sha_count}")
-    print(f"  ⚠️  Tag-pinned:           {tag_count}")
-    print(f"  ❌ Branch-pinned:        {branch_count}")
-    print()
-
-    # Detailed per-action breakdown
-    print("--- Per-Action Detail ---")
-    for name in sorted(all_actions.keys()):
-        infos = all_actions[name]
-        refs = [info["uses"] for info in infos]
-        unique_refs = sorted(set(refs))
-        files = sorted(set(info["file"] for info in infos))
-        print(f"\n  {name}")
-        for ref in unique_refs:
-            sha = _is_sha_pinned(ref)
-            branch = _is_branch_ref(ref)
-            status = "✅ SHA" if sha else ("❌ Branch" if branch else "⚠️  Tag")
-            print(f"    {status}  {ref}")
-        print(f"    Files: {', '.join(files)}")
-
-    print()
-    if warnings:
-        print("--- Warnings ---")
-        for w in warnings:
-            print(f"  ⚠️  {w}")
-        print()
-
-    if errors:
+    if result.errors:
         print("--- Errors ---")
-        for e in errors:
-            print(f"  ❌ {e}")
-        print()
-        print("ACTION PIN AUDIT FAILED")
+        for error in result.errors:
+            print(f"  - {error}")
+        print("\nACTION PIN AUDIT FAILED")
         return 1
 
     print("ACTION PIN AUDIT PASSED")

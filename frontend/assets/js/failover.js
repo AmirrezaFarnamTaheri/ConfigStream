@@ -40,48 +40,50 @@
             }
         },
 
-        triggerFailover: function() {
+        triggerFailover: async function() {
             if (!global.CS_CONSTANTS) return;
             if (Failover._hasAttemptedThisSession()) return;
             Failover._markAttemptedThisSession();
 
             console.warn("Triggering IPFS Failover...");
-            // Logic to redirect or swap asset URLs
-            if (global.CS_CONSTANTS.IPFS_GATEWAYS) {
-                const gateways = global.CS_CONSTANTS.IPFS_GATEWAYS;
-                const ipnsKey = global.CS_CONSTANTS.IPNS_KEY;
-                if (!ipnsKey || String(ipnsKey).includes('...')) {
-                    console.warn("IPFS failover skipped: IPNS_KEY not configured.");
-                    return;
-                }
-
-                // Preserve the leaf page when switching origins (GitHub Pages is usually hosted under /<repo>/,
-                // while IPNS gateways are typically rooted at /ipns/<key>/).
-                const pathname = window.location.pathname || '/';
-                const parts = pathname.split('/').filter(Boolean);
-                const leaf = parts.length ? parts[parts.length - 1] : 'index.html';
-                const page = (leaf && leaf.includes('.')) ? leaf : 'index.html';
-
-                const suffix = page + window.location.search + window.location.hash;
-
-                for (const gw of gateways) {
-                    // Gateways might be provided as ".../ipfs/" or just host. Normalize and build /ipns/ URL.
-                    let base = String(gw).replace(/\/+$/, '');
-                    base = base.replace(/\/ipfs$/, '').replace(/\/ipns$/, '');
-                    const altURL = `${base}/ipns/${encodeURIComponent(String(ipnsKey))}/${suffix.replace(/^\/+/, '')}`;
-                    // Attempt to fetch an asset (e.g., a small icon or HEAD of current page) from the gateway to test connectivity
-                    // Use mode: 'no-cors' since we just want to see if it's reachable (opaque response is fine vs network error)
-                    fetch(altURL, { method: 'HEAD', mode: 'no-cors' }).then(() => {
-                        console.warn(`Failover: switching to IPFS gateway ${gw}`);
-                        window.location.href = altURL;
-                    }).catch(() => {/* try next gateway */});
-                }
-            } else {
+            const gateways = global.CS_CONSTANTS.IPFS_GATEWAYS;
+            const ipnsKey = global.CS_CONSTANTS.IPNS_KEY;
+            if (!Array.isArray(gateways) || gateways.length === 0) {
                 console.warn("IPFS Gateways not configured.");
+                return;
+            }
+            if (!ipnsKey || String(ipnsKey).includes('...')) {
+                console.warn("IPFS failover skipped: IPNS_KEY not configured.");
+                return;
             }
 
-            // Audit: Providing user-friendly message
-            // alert("Connection lost. Switching to decentralized network...");
+            // Preserve only the leaf page. Query strings and fragments can contain
+            // user state or tokens and must not be disclosed to third-party gateways.
+            const pathname = window.location.pathname || '/';
+            const parts = pathname.split('/').filter(Boolean);
+            const leaf = parts.length ? parts[parts.length - 1] : 'index.html';
+            const page = (leaf && leaf.includes('.')) ? leaf : 'index.html';
+
+            for (const gateway of gateways) {
+                try {
+                    const parsed = new URL(String(gateway));
+                    if (parsed.protocol !== 'https:') {
+                        console.warn(`Failover: rejected non-HTTPS gateway ${gateway}`);
+                        continue;
+                    }
+                    parsed.pathname = `${parsed.pathname.replace(/\/(?:ipfs|ipns)\/?$/, '').replace(/\/$/, '')}/ipns/${encodeURIComponent(String(ipnsKey))}/${encodeURIComponent(page)}`;
+                    parsed.search = '';
+                    parsed.hash = '';
+                    const altURL = parsed.toString();
+                    await fetch(altURL, { method: 'HEAD', mode: 'no-cors' });
+                    console.warn(`Failover: switching to IPFS gateway ${parsed.origin}`);
+                    window.location.href = altURL;
+                    return;
+                } catch (error) {
+                    console.warn(`Failover: gateway unavailable ${gateway}: ${error.message || error}`);
+                }
+            }
+            console.warn("IPFS failover failed: no configured gateway was reachable.");
         }
     };
 

@@ -3,14 +3,13 @@ import os
 import json
 import asyncio
 from collections import defaultdict
-import hashlib
 import logging
 import re
 import mimetypes
 import secrets
 import importlib.metadata
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, cast
 from fastapi import HTTPException, Request
 from fastapi.responses import FileResponse
 from slowapi import Limiter
@@ -64,16 +63,6 @@ _json_cache: dict[Path, tuple[float, Any]] = {}
 _cache_locks: defaultdict[Path, asyncio.Lock] = defaultdict(asyncio.Lock)
 
 
-def _json_snapshot_sha256(payload: Any) -> str:
-    canonical = json.dumps(
-        payload,
-        sort_keys=True,
-        separators=(",", ":"),
-        ensure_ascii=False,
-    ).encode("utf-8")
-    return hashlib.sha256(canonical).hexdigest()
-
-
 def _read_json_file(path: Path) -> Any:
     """Read and parse a JSON file from a worker thread."""
     return json.loads(path.read_text(encoding="utf-8"))
@@ -112,7 +101,7 @@ async def _read_json_file_async(path: Path) -> Any:
 
         # Bound cache size to 100 entries to prevent memory growth.
         # Note: Do NOT clear _cache_locks as active waiters would acquire a split lock.
-        if len(_json_cache) > 100:
+        if len(_json_cache) >= 100:
             _json_cache.clear()
 
         _json_cache[path] = (current_mtime, data)
@@ -180,12 +169,14 @@ ROOT_OUTPUT_FILES = {
 
 def _resolve_output_path(rel_path: str) -> Path:
     base = OUTPUT_DIR.resolve()
-    target = (OUTPUT_DIR / rel_path).resolve()
+    # OUTPUT_DIR is a DynamicPathProxy, so the arithmetic is untyped; the
+    # resolved result is always a concrete Path.
+    target = cast(Path, (OUTPUT_DIR / rel_path).resolve())
     try:
         target.relative_to(base)
     except ValueError as exc:
         raise HTTPException(400, "Invalid path") from exc
-    return target
+    return cast(Path, target)
 
 
 def _serve_output_file(rel_path: str, media_type: Optional[str] = None) -> FileResponse:

@@ -192,7 +192,7 @@
     "about.credits.frontend": "前端与可视化",
     "about.credits.frontend_desc": "• <strong>Globe.gl:</strong> 3D 地球可视化<br>• <strong>Chart.js:</strong> 分析图表<br>• <strong>Feather Icons:</strong> 现代图标系统",
     "about.credits.fonts": "字体与排版",
-    "about.credits.fonts_desc": "• <strong>Be Vietnam Pro:</strong> 主 UI 字体<br>• <strong>Vazirmatn:</strong> 波斯语/阿拉伯语 UI 字体<br>• <strong>Mikhak:</strong> 波斯语/阿拉伯语展示字体",
+    "about.credits.fonts_desc": "系统字体栈：不发起远程字体请求，也不捆绑字体文件。",
     "about.credits.thanks": "<strong>特别感谢：</strong>所有开源代理列表维护者及社区贡献者，让此平台成为可能。",
     "about.opensource.title": "开源与许可",
     "about.opensource.text": "ConfigStream 采用 <strong>AGPLv3 许可证</strong>发布，确保永远免费与开源。我们相信透明、社区驱动与信息自由。",

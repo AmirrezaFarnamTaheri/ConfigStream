@@ -43,7 +43,7 @@ def _run_many(commands: list[tuple[list[str], dict[str, str] | None]]) -> int:
 
 def run_profile(profile: str) -> int:
     python = sys.executable
-    npm = _npm()
+    npm = shutil.which("npm") or "npm"
 
     profiles: dict[str, list[tuple[list[str], dict[str, str] | None]]] = {
         "unit": [
@@ -77,50 +77,7 @@ def run_profile(profile: str) -> int:
             ([npm, "run", "test:frontend:no-network"], None),
             ([npm, "run", "test:frontend:degraded"], None),
         ],
-        "production-smoke": [
-            ([python, "scripts/validate_workflows.py"], None),
-            ([python, "scripts/validate_versions.py"], None),
-            ([python, "scripts/validate_status.py"], None),
-            ([python, "scripts/validate_docs_sync.py"], None),
-            ([python, "scripts/validate_debt_matrix.py"], None),
-            ([python, "scripts/validate_assets.py"], None),
-            ([python, "scripts/validate_optional_mirrors.py"], None),
-            ([python, "scripts/validate_claim_ledger.py"], None),
-            ([python, "scripts/validate_protocol_matrix.py"], None),
-            ([python, "scripts/validate_output_matrix.py"], None),
-            ([python, "scripts/generate_output_docs.py", "--check"], None),
-            ([npm, "run", "build"], None),
-            ([npm, "run", "test:frontend:no-network"], None),
-            ([npm, "run", "test:frontend:degraded"], None),
-            ([npm, "run", "test:frontend:pages-artifact"], None),
-            (
-                [
-                    python,
-                    "-m",
-                    "pytest",
-                    "-q",
-                    "tests/unit/test_frontend_local_first.py",
-                    "tests/unit/test_frontend_cache_snapshot.py",
-                    "tests/unit/test_frontend_failover.py",
-                    "tests/unit/test_frontend_trust_labels.py",
-                    "tests/unit/test_frontend_verifier.py",
-                    "tests/unit/test_validate_frontend_placeholders.py",
-                    "tests/unit/test_validate_pages_artifact.py",
-                    "tests/unit/test_documentation_hygiene.py",
-                    "tests/unit/test_validate_status.py",
-                    "tests/unit/test_validate_docs_sync.py",
-                    "tests/unit/test_debt_matrix.py",
-                    "tests/unit/test_validate_assets.py",
-                    "tests/unit/test_validate_optional_mirrors.py",
-                    "tests/unit/test_validate_claim_ledger.py",
-                    "tests/unit/test_protocol_output_golden.py",
-                    "tests/unit/test_validate_protocol_matrix.py",
-                    "tests/unit/test_validate_output_matrix.py",
-                    "tests/unit/test_verify_pages_deployment.py",
-                ],
-                {"ENVIRONMENT": "test"},
-            ),
-        ],
+
     }
 
     if profile not in profiles:
@@ -133,7 +90,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "profile",
-        choices=("unit", "integration", "frontend-browser", "production-smoke"),
+        choices=("unit", "integration", "frontend-browser"),
         help="Validation profile to run.",
     )
     args = parser.parse_args(argv)

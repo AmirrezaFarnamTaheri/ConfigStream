@@ -1,30 +1,18 @@
+# Render deployment is an ephemeral demonstration surface only.
+# GitHub Pages remains the supported publication target. Generated output is
+# not durable on this free web service and no cross-service filesystem is used.
 services:
-  # Web Service
   - type: web
-    name: configstream-web
-    env: docker
+    name: configstream-demo
+    runtime: docker
     plan: free
-    buildCommand: docker build -t configstream .
-    startCommand: uvicorn configstream.server:app --host 0.0.0.0 --port $PORT
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /live
+    dockerCommand: python -m configstream.server
     envVars:
-      - key: PORT
-        value: 10000
+      - key: CONFIGSTREAM_DEPLOYMENT_MODE
+        value: ephemeral-demo
       - key: OUTPUT_DIR
-        value: /var/data/output
-    disk:
-      name: configstream-data
-      mountPath: /var/data
-      sizeGB: 1
-
-  # Worker Service (Background)
-  # Note: On free tier, you might just run the pipeline ONCE inside the web service using a startup script
-  # or use a Cron Job. Below is a Background Worker definition.
-  - type: worker
-    name: configstream-worker
-    env: docker
-    plan: free
-    # Uses the same Docker image
-    startCommand: configstream merge --sources sources/batch_1.txt --output /var/data/output --max-workers 15
-    disk:
-      name: configstream-data
-      mountPath: /var/data
+        value: /tmp/configstream-output
+      - key: CONFIGSTREAM_HEALTHCHECK_HTTP
+        value: "1"

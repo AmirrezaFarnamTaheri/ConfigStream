@@ -5,7 +5,7 @@ import logging
 import socket
 from secrets import choice as secure_choice
 from urllib.parse import urlparse, urljoin
-from typing import Any, Dict, Optional, Tuple, List, Union
+from typing import Any, Dict, Optional, Tuple, List, cast
 import httpx
 
 from configstream.concurrency_manager import ConcurrencyManager
@@ -17,6 +17,7 @@ from configstream.adaptive_timeout import AdaptiveTimeout
 from configstream.http_client import get_client
 from configstream.source_quality import SourceQualityTracker
 from configstream.security_validator import SecurityValidator
+from configstream.security.transport import rewrite_request_to_pinned_ip
 from configstream.fetcher_worker import FetchResult
 
 from .interfaces import IFetcher
@@ -26,8 +27,8 @@ logger = logging.getLogger(__name__)
 # Use AppSettings if available, otherwise default
 try:
     MAX_RESPONSE_SIZE = AppSettings().MAX_RESPONSE_SIZE
-except Exception:
-    logging.getLogger(__name__).debug("Suppressed broad exception")
+except (TypeError, ValueError):
+    logger.debug("Invalid settings while resolving MAX_RESPONSE_SIZE")
     MAX_RESPONSE_SIZE = 10 * 1024 * 1024
 
 USER_AGENTS = [
@@ -198,8 +199,8 @@ async def fetch_from_source(
             parsed = urlparse(source)
             host = parsed.netloc
             key = host
-        except Exception:
-            logging.getLogger(__name__).debug("Suppressed broad exception")
+        except ValueError:
+            logger.debug("Malformed source URL while selecting circuit-breaker key")
             key = source
 
         breaker = await breaker_manager.get_breaker(key)
@@ -284,21 +285,15 @@ async def fetch_from_source(
                     response_time=response_time,
                 )
 
-            # SECURITY FIX (#493): Pin the validated IP to prevent DNS-rebinding
-            # TOCTOU attacks. Replace hostname with validated IP in URL and set
-            # Host header so the TLS SNI remains correct.
-            pinned_url = current_url
-            host_header = None
+            # Pin the validated IP in the request itself. This keeps Host and
+            # TLS SNI correct even when a caller injects a different HTTPX client.
+            pinned_request = httpx.Request("GET", current_url, headers=headers)
             if validated_ip:
-                parsed = urlparse(current_url)
-                original_host = parsed.hostname
-                if original_host and original_host != validated_ip:
-                    # Build URL with IP literal, preserving port and path
-                    netloc = validated_ip
-                    if parsed.port:
-                        netloc = f"{validated_ip}:{parsed.port}"
-                    pinned_url = parsed._replace(netloc=netloc).geturl()
-                    host_header = original_host
+                pinned_request = rewrite_request_to_pinned_ip(
+                    pinned_request,
+                    {validated_ip},
+                    logical_host=urlparse(current_url).hostname,
+                )
 
             # Jitter / Timeout Tracking
             effective_timeout = float(timeout) if timeout is not None else 30.0
@@ -311,14 +306,11 @@ async def fetch_from_source(
                 if jitter > 2.0:
                     logger.info(f"High Jitter detected for {safe_source}: {jitter}s")
 
-            request_headers = dict(headers)
-            if host_header:
-                request_headers["Host"] = host_header
-
             async with client.stream(
                 "GET",
-                pinned_url,
-                headers=request_headers,
+                str(pinned_request.url),
+                headers=dict(pinned_request.headers),
+                extensions=dict(pinned_request.extensions),
                 timeout=effective_timeout,
                 follow_redirects=False,
             ) as response:
@@ -531,6 +523,18 @@ async def fetch_from_source(
 
         except asyncio.CancelledError:
             logger.warning(f"Fetch for {safe_source} cancelled by outer signal.")
+            # If this request held the breaker's HALF_OPEN probe token, release
+            # it so the breaker is not wedged HALF_OPEN for the rest of the run.
+            if breaker:
+                reset_probe = getattr(breaker, "reset_probe", None)
+                if reset_probe is not None:
+                    try:
+                        await reset_probe()
+                    except Exception:  # nosec B110
+                        # Best-effort cleanup: releasing the probe token must
+                        # never mask the CancelledError being propagated below.
+                        logger.debug("Suppressed broad exception")
+                        pass
             # Propagate cancellation to abort fetch immediately
             raise
         except Exception as e:
@@ -602,6 +606,28 @@ class _SimpleRateLimiter:
             if tokens >= 1.0:
                 return 0.0
             return (1.0 - tokens) / self._rate
+
+
+def _collect_fetch_results(
+    completed: List[Any], results: Dict[str, "FetchResult"]
+) -> None:
+    """Fold gather(return_exceptions=True) output into the results map.
+
+    Cancellation is propagated so an outer shutdown still aborts the batch;
+    any other stray worker exception is logged and skipped rather than losing
+    every sibling result.
+    """
+    for item in completed:
+        if isinstance(item, asyncio.CancelledError):
+            raise item
+        if isinstance(item, BaseException):
+            logger.error(
+                "Fetch worker raised: %s",
+                SecurityValidator.sanitize_log_message(str(item)),
+            )
+            continue
+        src, res = item
+        results[src] = res
 
 
 async def fetch_multiple_sources(
@@ -678,27 +704,25 @@ async def fetch_multiple_sources(
         start_time = asyncio.get_running_loop().time()
         if client:
             tasks = [_worker(client, s) for s in sources]
-            try:
-                completed = await asyncio.gather(*tasks)
-                for src, res in completed:
-                    results[src] = res
-            except Exception as e:
-                logger.error(f"Error during fetch gather: {e}")
-                # Note: If client was passed in, caller is responsible for cleanup
-                raise
+            completed = await asyncio.gather(*tasks, return_exceptions=True)
+            _collect_fetch_results(completed, results)
         else:
             async with get_client() as new_client:
                 tasks = [_worker(new_client, s) for s in sources]
-                completed = await asyncio.gather(*tasks)
-                for src, res in completed:
-                    results[src] = res
+                # return_exceptions=True so a single raising worker cannot
+                # orphan its siblings and close the shared client out from
+                # under them while they are still in flight.
+                completed = await asyncio.gather(*tasks, return_exceptions=True)
+                _collect_fetch_results(completed, results)
 
         duration = asyncio.get_running_loop().time() - start_time
         logger.info(f"Batch fetch completed in {duration:.2f}s")
     finally:
         await controller.stop_tuner()
         if timeout_tracker:
-            timeout_tracker.save()
+            # Offload the blocking disk write so it does not stall the event
+            # loop (and every concurrent coroutine) at each batch boundary.
+            await asyncio.get_running_loop().run_in_executor(None, timeout_tracker.save)
 
     success_count = sum(1 for r in results.values() if r.success)
     total_bytes = sum(
@@ -724,10 +748,15 @@ class HttpFetcher(IFetcher):
         self.timeout_tracker = timeout_tracker
 
     async def fetch(self, source: str) -> FetchResult:
-        return await fetch_from_source(
-            self.client,
-            source,
-            app_settings=self.settings,
-            breaker_manager=self.breaker_manager,
-            timeout_tracker=self.timeout_tracker,
+        # fetch_from_source is annotated -> Any for caller flexibility, but it
+        # always produces a FetchResult on every return path.
+        return cast(
+            FetchResult,
+            await fetch_from_source(
+                self.client,
+                source,
+                app_settings=self.settings,
+                breaker_manager=self.breaker_manager,
+                timeout_tracker=self.timeout_tracker,
+            ),
         )

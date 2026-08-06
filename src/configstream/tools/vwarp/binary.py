@@ -4,10 +4,12 @@ import hashlib
 import logging
 import os
 import platform
+import re
 import shutil
 import stat
 import sys
 import tempfile
+import urllib.parse
 import zipfile
 from io import BytesIO
 from pathlib import Path
@@ -26,13 +28,18 @@ from .constants import (
 
 logger = logging.getLogger(__name__)
 
+MAX_VWARP_ARCHIVE_BYTES = 64 * 1024 * 1024
+MAX_VWARP_BINARY_BYTES = 64 * 1024 * 1024
+VERIFY_TIMEOUT_SECONDS = 10.0
+_SHA256_RE = re.compile(r"^[0-9a-fA-F]{64}$")
+
 
 def _is_supported_platform() -> bool:
     """Vwarp binary is currently only available for Linux."""
     return sys.platform.startswith("linux")
 
 
-def _platform_asset() -> Tuple[str, Optional[str]]:
+def _platform_asset() -> Tuple[Optional[str], Optional[str]]:
     """
     Resolve the appropriate asset and checksum for this platform.
     Returns (asset_name, sha256_or_none).
@@ -43,8 +50,7 @@ def _platform_asset() -> Tuple[str, Optional[str]]:
     if machine in ("aarch64", "arm64"):
         # SHA256 unknown for arm64 unless provided via env override.
         return VWARP_ASSET_ARM64, None
-    # Default to amd64 asset for unknown Linux machines.
-    return VWARP_ASSET_AMD64, VWARP_SHA256_AMD64
+    return None, None
 
 
 def _get_download_spec() -> Tuple[str, Optional[str], str]:
@@ -62,11 +68,70 @@ def _get_download_spec() -> Tuple[str, Optional[str], str]:
 
     if env_url:
         url = env_url
-    else:
+    elif asset_name:
         url = f"{VWARP_RELEASE_BASE}/{version}/{asset_name}"
+    else:
+        raise ValueError(
+            f"unsupported Vwarp architecture: {platform.machine() or 'unknown'}"
+        )
+
+    parsed = urllib.parse.urlparse(url)
+    if parsed.scheme != "https" or not parsed.hostname:
+        raise ValueError("Vwarp download URL must be an absolute HTTPS URL")
+    if parsed.username or parsed.password:
+        raise ValueError("Vwarp download URL must not contain credentials")
 
     checksum = env_sha or default_sha
     return url, checksum or None, version
+
+
+
+def _validate_download_digest(content: bytes, expected: Optional[str]) -> bool:
+    """Require a well-formed SHA-256 pin and an exact archive digest match."""
+    if not expected or not _SHA256_RE.fullmatch(expected):
+        return False
+    return hashlib.sha256(content).hexdigest() == expected.lower()
+
+
+async def _download_archive(client: httpx.AsyncClient, url: str) -> bytes:
+    """Download the release archive without buffering beyond the safety limit."""
+
+    async with client.stream("GET", url) as response:
+        response.raise_for_status()
+        declared = response.headers.get("content-length")
+        if declared:
+            try:
+                declared_size = int(declared)
+            except ValueError as exc:
+                raise ValueError("Vwarp archive Content-Length is invalid") from exc
+            if declared_size < 0 or declared_size > MAX_VWARP_ARCHIVE_BYTES:
+                raise ValueError("Vwarp archive exceeds the download safety limit")
+
+        content = bytearray()
+        async for chunk in response.aiter_bytes():
+            content.extend(chunk)
+            if len(content) > MAX_VWARP_ARCHIVE_BYTES:
+                raise ValueError("Vwarp archive exceeds the download safety limit")
+        return bytes(content)
+
+
+def _prepare_install_dir() -> Path:
+    """Return a writable install directory without trusting shared temp paths."""
+
+    preferred = Path.home() / ".local" / "bin"
+    try:
+        preferred.mkdir(parents=True, exist_ok=True)
+        if os.access(preferred, os.W_OK):
+            return preferred
+    except OSError:
+        pass
+
+    fallback = Path(tempfile.mkdtemp(prefix="configstream-bin-"))
+    logger.warning(
+        "Cannot use ~/.local/bin; installing Vwarp in temporary directory %s",
+        fallback,
+    )
+    return fallback
 
 
 def find_binary() -> Optional[str]:
@@ -100,7 +165,15 @@ async def verify_binary(binary_path: str) -> bool:
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
-        stdout, stderr = await proc.communicate()
+        try:
+            stdout, stderr = await asyncio.wait_for(
+                proc.communicate(), timeout=VERIFY_TIMEOUT_SECONDS
+            )
+        except asyncio.TimeoutError:
+            proc.kill()
+            await proc.wait()
+            logger.error("Vwarp version check timed out")
+            return False
         if proc.returncode == 0:
             return True
         if stderr:
@@ -114,7 +187,7 @@ async def verify_binary(binary_path: str) -> bool:
                 SecurityValidator.sanitize_log_message(stdout.decode(errors="ignore")),
             )
         return False
-    except Exception as exc:
+    except OSError as exc:
         logger.error(
             "Vwarp version check error: %s",
             SecurityValidator.sanitize_log_message(str(exc)),
@@ -142,22 +215,30 @@ async def ensure_installed() -> Optional[str]:
 
     binary = find_binary()
     if binary and Path(binary).exists():
-        return binary
+        if await verify_binary(binary):
+            return binary
+        logger.warning("Existing Vwarp binary failed verification; reinstalling")
 
-    url, checksum, version = _get_download_spec()
+    try:
+        url, checksum, version = _get_download_spec()
+    except ValueError as exc:
+        logger.error(
+            "Vwarp download configuration is invalid: %s",
+            SecurityValidator.sanitize_log_message(str(exc)),
+        )
+        return None
+    if not checksum or not _SHA256_RE.fullmatch(checksum):
+        logger.error(
+            "No valid SHA-256 checksum is configured for Vwarp %s. "
+            "Set VWARP_SHA256 to the exact 64-hex release digest.",
+            version,
+        )
+        return None
     logger.info(f"Vwarp binary not found. Attempting to download {version}...")
 
     try:
-        home = Path.home()
-        install_dir = home / ".local" / "bin"
-        install_dir.mkdir(parents=True, exist_ok=True)
+        install_dir = _prepare_install_dir()
         target_path = install_dir / "vwarp"
-
-        if not os.access(install_dir, os.W_OK):
-            install_dir = Path(tempfile.gettempdir()) / "configstream-bin"
-            install_dir.mkdir(parents=True, exist_ok=True)
-            target_path = install_dir / "vwarp"
-            logger.warning(f"Cannot write to ~/.local/bin, installing to {target_path}")
 
         logger.info(
             "Downloading Vwarp from %s",
@@ -167,55 +248,12 @@ async def ensure_installed() -> Optional[str]:
         async with httpx.AsyncClient(
             follow_redirects=True, timeout=60.0, trust_env=False
         ) as client:
-            resp = await client.get(url)
-            resp.raise_for_status()
-            content = resp.content
+            content = await _download_archive(client, url)
+        if not _validate_download_digest(content, checksum):
+            logger.error("Vwarp checksum mismatch; refusing to install downloaded binary.")
+            return None
 
-        if checksum:
-            digest = hashlib.sha256(content).hexdigest()
-            if digest != checksum:
-                if os.environ.get("VWARP_SKIP_CHECKSUM", "").lower() in (
-                    "1",
-                    "true",
-                    "yes",
-                ):
-                    logger.warning(
-                        "Vwarp checksum mismatch but VWARP_SKIP_CHECKSUM=true; continuing install."
-                    )
-                else:
-                    logger.error(
-                        "Vwarp checksum mismatch! Expected %s, got %s. "
-                        "Set VWARP_SKIP_CHECKSUM=true to bypass (not recommended).",
-                        checksum,
-                        digest,
-                    )
-                    return None
-        else:
-            # No checksum is available for this platform (e.g. ARM64 without an
-            # explicit VWARP_SHA256 env override).  Refuse to install an
-            # unverified binary unless the operator has explicitly opted out of
-            # integrity checks.
-            if os.environ.get("VWARP_SKIP_CHECKSUM", "").lower() in (
-                "1",
-                "true",
-                "yes",
-            ):
-                logger.warning(
-                    "No checksum available for this platform's vwarp binary (%s). "
-                    "VWARP_SKIP_CHECKSUM=true — installing without verification. "
-                    "Set VWARP_SHA256=<expected-sha256> to enforce integrity.",
-                    platform.machine(),
-                )
-            else:
-                logger.error(
-                    "No checksum available for vwarp on this platform (%s). "
-                    "Refusing to install an unverified binary. "
-                    "Provide VWARP_SHA256=<expected-sha256> or set "
-                    "VWARP_SKIP_CHECKSUM=true to bypass (not recommended).",
-                    platform.machine(),
-                )
-                return None
-
+        temporary_path: Path | None = None
         with zipfile.ZipFile(BytesIO(content)) as zf:
             vwarp_member_info = None
             for member_info in zf.infolist():
@@ -230,26 +268,45 @@ async def ensure_installed() -> Optional[str]:
                 logger.error("Vwarp binary not found in zip archive.")
                 return None
 
-            with (
-                zf.open(vwarp_member_info) as source,
-                open(target_path, "wb") as target,
+            if (
+                vwarp_member_info.file_size <= 0
+                or vwarp_member_info.file_size > MAX_VWARP_BINARY_BYTES
             ):
-                shutil.copyfileobj(source, target)
+                logger.error("Vwarp binary size is outside the allowed bounds.")
+                return None
 
-        st = os.stat(target_path)
-        os.chmod(target_path, st.st_mode | stat.S_IEXEC)
+            handle, temporary_name = tempfile.mkstemp(
+                prefix=".vwarp-", dir=install_dir
+            )
+            os.close(handle)
+            temporary_path = Path(temporary_name)
+            try:
+                copied = 0
+                with zf.open(vwarp_member_info) as source, temporary_path.open("wb") as target:
+                    while chunk := source.read(1024 * 1024):
+                        copied += len(chunk)
+                        if copied > MAX_VWARP_BINARY_BYTES:
+                            raise ValueError("Vwarp binary exceeds the extraction safety limit")
+                        target.write(chunk)
 
-        if await verify_binary(str(target_path)):
-            logger.info(f"✅ Vwarp successfully installed to {target_path}")
-            return str(target_path)
-        else:
-            logger.error("Vwarp installed but failed execution check")
-            return None
+                st = temporary_path.stat()
+                temporary_path.chmod(st.st_mode | stat.S_IEXEC)
+                if not await verify_binary(str(temporary_path)):
+                    logger.error("Downloaded Vwarp binary failed execution check")
+                    return None
+                os.replace(temporary_path, target_path)
+                temporary_path = None
+            finally:
+                if temporary_path is not None:
+                    temporary_path.unlink(missing_ok=True)
 
-    except Exception as e:
+        logger.info(f"✅ Vwarp successfully installed to {target_path}")
+        return str(target_path)
+
+    except (httpx.HTTPError, OSError, zipfile.BadZipFile, ValueError) as exc:
         logger.error(
             "Failed to install Vwarp: %s",
-            SecurityValidator.sanitize_log_message(str(e)),
+            SecurityValidator.sanitize_log_message(str(exc)),
         )
         return None
 

@@ -1,3 +1,9 @@
+import hashlib
+import asyncio
+from pathlib import Path
+
+import pytest
+
 from configstream.tools.vwarp import (
     VwarpTool,
     PSIPHON_COUNTRY_CODES,
@@ -6,6 +12,8 @@ from configstream.tools.vwarp import (
     DEFAULT_WARP_ENDPOINT,
 )
 from configstream.tools.vwarp.tunnel import VwarpTunnel
+from configstream.tools.vwarp import binary as vwarp_binary
+from configstream.tools.vwarp.binary import _validate_download_digest
 
 
 def test_key_validation():
@@ -106,3 +114,127 @@ def test_psiphon_country_codes_completeness():
     assert "JP" in PSIPHON_COUNTRY_CODES
     assert "IR" not in PSIPHON_COUNTRY_CODES
     assert len(PSIPHON_COUNTRY_CODES) >= 29
+
+
+def test_download_digest_requires_exact_sha256_pin():
+    content = b"verified vwarp archive"
+    digest = hashlib.sha256(content).hexdigest()
+
+    assert _validate_download_digest(content, digest) is True
+    assert _validate_download_digest(content + b"tampered", digest) is False
+    assert _validate_download_digest(content, None) is False
+    assert _validate_download_digest(content, "not-a-digest") is False
+
+
+def test_unknown_architecture_does_not_fall_back_to_amd64(monkeypatch):
+    monkeypatch.setattr(vwarp_binary.platform, "machine", lambda: "riscv64")
+    monkeypatch.delenv("VWARP_URL", raising=False)
+    monkeypatch.delenv("VWARP_SHA256", raising=False)
+
+    with pytest.raises(ValueError, match="unsupported Vwarp architecture"):
+        vwarp_binary._get_download_spec()
+
+
+def test_download_override_requires_https(monkeypatch):
+    monkeypatch.setenv("VWARP_URL", "http://example.test/vwarp.zip")
+    monkeypatch.setenv("VWARP_SHA256", "a" * 64)
+
+    with pytest.raises(ValueError, match="absolute HTTPS"):
+        vwarp_binary._get_download_spec()
+
+
+class _StreamResponse:
+    def __init__(self, chunks: list[bytes], content_length: str | None = None):
+        self._chunks = chunks
+        self.headers = {}
+        if content_length is not None:
+            self.headers["content-length"] = content_length
+
+    def raise_for_status(self) -> None:
+        return None
+
+    async def aiter_bytes(self):
+        for chunk in self._chunks:
+            yield chunk
+
+
+class _StreamContext:
+    def __init__(self, response: _StreamResponse):
+        self.response = response
+
+    async def __aenter__(self):
+        return self.response
+
+    async def __aexit__(self, exc_type, exc, tb):
+        return False
+
+
+class _StreamClient:
+    def __init__(self, response: _StreamResponse):
+        self.response = response
+
+    def stream(self, method: str, url: str):
+        assert method == "GET"
+        assert url == "https://example.test/vwarp.zip"
+        return _StreamContext(self.response)
+
+
+@pytest.mark.asyncio
+async def test_vwarp_download_enforces_streaming_size_limit(monkeypatch):
+    monkeypatch.setattr(vwarp_binary, "MAX_VWARP_ARCHIVE_BYTES", 4)
+    client = _StreamClient(_StreamResponse([b"123", b"45"]))
+
+    with pytest.raises(ValueError, match="safety limit"):
+        await vwarp_binary._download_archive(client, "https://example.test/vwarp.zip")
+
+
+@pytest.mark.asyncio
+async def test_vwarp_verification_kills_timed_out_process(monkeypatch):
+    class _Process:
+        returncode = None
+        killed = False
+        waited = False
+
+        async def communicate(self):
+            await asyncio.sleep(1)
+            return b"", b""
+
+        def kill(self):
+            self.killed = True
+
+        async def wait(self):
+            self.waited = True
+
+    process = _Process()
+
+    async def _create(*args, **kwargs):
+        return process
+
+    monkeypatch.setattr(vwarp_binary.asyncio, "create_subprocess_exec", _create)
+    monkeypatch.setattr(vwarp_binary, "VERIFY_TIMEOUT_SECONDS", 0.001)
+
+    assert await vwarp_binary.verify_binary("/tmp/vwarp") is False
+    assert process.killed is True
+    assert process.waited is True
+
+
+def test_install_directory_falls_back_when_user_bin_creation_fails(
+    monkeypatch, tmp_path
+):
+    home = tmp_path / "home"
+    preferred = home / ".local" / "bin"
+    original_mkdir = Path.mkdir
+
+    monkeypatch.setattr(vwarp_binary.Path, "home", classmethod(lambda cls: home))
+
+    def guarded_mkdir(self, *args, **kwargs):
+        if self == preferred:
+            raise PermissionError("read-only home")
+        return original_mkdir(self, *args, **kwargs)
+
+    monkeypatch.setattr(vwarp_binary.Path, "mkdir", guarded_mkdir)
+    fallback = vwarp_binary._prepare_install_dir()
+
+    assert fallback.is_dir()
+    assert fallback != preferred
+    assert fallback.name.startswith("configstream-bin-")

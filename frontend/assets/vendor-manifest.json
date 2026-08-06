@@ -69,23 +69,6 @@
       "local": "assets/js/utils/qrcode.js"
     }
   ],
-  "fonts": [
-    {
-      "name": "Be Vietnam Pro and DM Serif Display",
-      "source": "https://fonts.googleapis.com/css2?family=Be%20Vietnam%20Pro:wght@400%3B500%3B700%3B800&family=DM%20Serif%20Display&display=swap",
-      "localDirectory": "assets/fonts/vendor/"
-    },
-    {
-      "name": "Vazirmatn",
-      "source": "https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css",
-      "localDirectory": "assets/fonts/vendor/"
-    },
-    {
-      "name": "Mikhak",
-      "source": "https://github.com/aminabedi68/Mikhak/tree/master/fonts/webfonts/statics",
-      "localDirectory": "assets/fonts/vendor/"
-    }
-  ],
   "images": [
     {
       "name": "three-globe example textures",

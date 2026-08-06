@@ -13,12 +13,12 @@ Welcome to the **ConfigStream** documentation. ConfigStream is an automated, hig
 ## Getting Started
 
 ### For End Users
-1.  **Download:** Visit the [Home Page](../index.html) to get the latest subscription links.
+1.  **Download:** Visit the [Home Page](../../../frontend/index.html) to get the latest subscription links.
 2.  **Import:** Use a compatible client like **V2RayNG**, **Hiddify**, **Shadowrocket**, **Streisand**, or **Sing-box**.
 3.  **Connect:** Select a proxy and connect. Use the "Auto" group for automatic best-node selection.
 
 ### For Users Behind Heavy Censorship
-1.  **Use the Lab:** Visit the [Chain Laboratory](../lab.html) to build a custom multi-layer chain.
+1.  **Use the Lab:** Visit the [Chain Laboratory](../../../frontend/lab.html) to build a custom multi-layer chain.
 2.  **Run the Scanner:** Download `tools/lab-scanner.py` and run `python tools/lab-scanner.py --auto-chain` to automatically discover the best path (tries 6 strategies).
 3.  **Try Pre-Tested Proxies:** The Lab page offers working proxies from ConfigStream's pipeline output — use them directly or as building blocks in your chain.
 
@@ -58,7 +58,7 @@ Welcome to the **ConfigStream** documentation. ConfigStream is an automated, hig
 ### Feature Documentation
 *   **[Censorship Evasion](../../CENSORSHIP_EVASION.md):** DNS hardening, shielding, TLS fingerprinting, evasion modes (Standard/Stealth/Aggressive), DNS profiles, BYOW.
 *   **[Smart Chains](04-engineering.md):** 9 chain types, multi-criteria relay scoring, censorship-aware routing (Section 8).
-*   **[Output Formats](../../OUTPUT_VARIATIONS.md):** All subscription formats (Sing-box, Clash, Surge, Loon, QX, SIP008, Base64).
+*   **[Output Formats](08-api-reference.md#download-files-matrix):** All subscription formats (Sing-box, Clash, Surge, Loon, QX, SIP008, Base64).
 
 ## Legal & Security
 

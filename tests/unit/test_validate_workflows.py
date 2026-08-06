@@ -12,6 +12,31 @@ def test_validate_workflows_accepts_current_repo_workflows() -> None:
     assert validate_workflows.main() == 0
 
 
+def test_ci_cannot_ignore_canonical_source_batches() -> None:
+    workflow = {
+        "on": {
+            "push": {
+                "paths-ignore": [
+                    "sources/batch_*.txt",
+                    "sources/backup_dynamic/**",
+                ]
+            }
+        }
+    }
+
+    assert validate_workflows._ci_ignores_canonical_sources(workflow)
+
+
+def test_ci_may_ignore_dynamic_source_backups() -> None:
+    workflow = {
+        "on": {
+            "push": {"paths-ignore": ["sources/backup_dynamic/**"]}
+        }
+    }
+
+    assert not validate_workflows._ci_ignores_canonical_sources(workflow)
+
+
 def test_validate_workflows_reports_yaml_errors(tmp_path: Path, monkeypatch) -> None:
     workflow_dir = tmp_path / ".github" / "workflows"
     workflow_dir.mkdir(parents=True)
@@ -480,6 +505,7 @@ jobs:
         encoding="utf-8",
     )
     monkeypatch.setattr(validate_workflows, "WORKFLOW_DIR", workflow_dir)
+    monkeypatch.setattr(validate_workflows, "_main_resilient_contract", lambda data: [])
 
     assert validate_workflows.main() == 0
 
@@ -727,6 +753,7 @@ jobs:
         encoding="utf-8",
     )
     monkeypatch.setattr(validate_workflows, "WORKFLOW_DIR", workflow_dir)
+    monkeypatch.setattr(validate_workflows, "_main_resilient_contract", lambda data: [])
 
     assert validate_workflows.main() == 0
 

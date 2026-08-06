@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import asyncio
 import logging
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Awaitable, Callable, List
 
 from contextlib import asynccontextmanager
@@ -38,6 +40,7 @@ from .ws import websocket_endpoint, ConnectionManager as ConnectionManager
 from .routes.admin import router as admin_router
 from .routes.proxies import router as proxies_router
 from .routes.lab import router as lab_router
+from configstream.runtime_health import evaluate_runtime_health
 
 __all__ = [
     "app",
@@ -172,8 +175,8 @@ def create_app() -> FastAPI:
             StaticFiles(directory=str(OUTPUT_DIR), check_dir=False),
             name="output",
         )
-    except Exception as e:
-        logger.warning(f"Warning: Failed to mount /output static files: {e}")
+    except (OSError, RuntimeError) as exc:
+        logger.warning("Failed to mount /output static files: %s", exc)
 
         @app.get("/output/{path:path}")
         async def output_fallback(path: str):
@@ -201,23 +204,43 @@ def create_app() -> FastAPI:
             }
         )
 
-    @app.get("/health")
-    async def health_check():
-        files_count = len(list(OUTPUT_DIR.glob("*"))) if OUTPUT_DIR.exists() else 0
-        return {
-            "status": "ok",
-            "output_available": OUTPUT_DIR.exists(),
-            "files_present": files_count,
-            "version": VERSION,
-        }
+    async def _runtime_health_payload() -> tuple[dict[str, object], int]:
+        max_age_hours = max(12.0, float(settings.UPDATE_INTERVAL_HOURS) * 2.0)
+        snapshot = await asyncio.to_thread(
+            evaluate_runtime_health,
+            Path(OUTPUT_DIR),
+            max_age_hours=max_age_hours,
+        )
+        payload = snapshot.to_dict()
+        payload["version"] = VERSION
+        return payload, 200 if snapshot.ready else 503
 
-    @app.get("/api/keepalive")
-    async def keep_alive():
+    def _liveness_payload() -> dict[str, str]:
         return {
             "status": "alive",
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "version": VERSION,
         }
+
+    async def _readiness_response() -> JSONResponse:
+        payload, status_code = await _runtime_health_payload()
+        return JSONResponse(payload, status_code=status_code)
+
+    @app.get("/live")
+    async def liveness_check():
+        return _liveness_payload()
+
+    @app.get("/ready")
+    async def readiness_check():
+        return await _readiness_response()
+
+    @app.get("/health")
+    async def health_check():
+        return await _readiness_response()
+
+    @app.get("/api/keepalive")
+    async def keep_alive():
+        return _liveness_payload()
 
     @app.get("/{page}")
     async def read_page(page: str):

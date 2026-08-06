@@ -73,7 +73,7 @@ def test_no_tokens_in_tracked_sources() -> None:
     source_files = [
         f
         for f in tracked
-        if f.startswith("sources/") or f == "consolidated_sources.txt"
+        if f.startswith("sources/")
     ]
 
     leaks = []

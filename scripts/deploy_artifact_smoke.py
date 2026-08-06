@@ -4,13 +4,14 @@
 The deploy workflow mutates the pipeline output directory by copying raw static
 frontend files, generating runtime config, adding API aliases, and refreshing
 the public artifact contract. This script mirrors that shape in a temporary
-directory so production-smoke can prove the browser tests run against the same
+directory so release verification can prove browser tests run against the same
 kind of artifact Pages uploads, without committing generated output.
 """
 
 from __future__ import annotations
 
 import argparse
+import base64
 import hashlib
 import json
 import os
@@ -73,6 +74,27 @@ def _clash_payload() -> str:
             "",
         ]
     )
+
+
+def _xray_payload() -> dict[str, object]:
+    return {
+        "outbounds": [
+            {"tag": "direct", "protocol": "freedom", "settings": {}},
+            {"tag": "block", "protocol": "blackhole", "settings": {}},
+        ],
+        "routing": {"rules": []},
+    }
+
+
+def _proxy_fixture() -> str:
+    return (
+        "vless://00000000-0000-4000-8000-000000000000@"
+        "example.com:443?security=tls&type=tcp#deploy-smoke"
+    )
+
+
+def _base64_fixture() -> str:
+    return base64.b64encode(_proxy_fixture().encode("utf-8")).decode("ascii")
 
 
 def _metadata_payload() -> dict[str, object]:
@@ -200,6 +222,16 @@ def _write_output_fixture(root: Path) -> None:
             _write_text(target, json.dumps(_singbox_payload(), ensure_ascii=False))
         elif rel_path.startswith("clash") and rel_path.endswith(".yaml"):
             _write_text(target, _clash_payload())
+        elif rel_path == "xray.json":
+            _write_text(target, json.dumps(_xray_payload(), ensure_ascii=False))
+        elif Path(rel_path).name.startswith("base64") and rel_path.endswith(".txt"):
+            _write_text(target, _base64_fixture())
+        elif rel_path in {
+            "proxies.txt",
+            "proxies-dns-safe.txt",
+            "proxies-dns-hardened.txt",
+        }:
+            _write_text(target, _proxy_fixture())
         elif rel_path.endswith(".json"):
             _write_text(target, "{}")
         else:

@@ -5,13 +5,13 @@
 from __future__ import annotations
 
 import argparse
+import ast
 import json
 import re
 import shutil
 import subprocess  # nosec B404
 import sys
 from collections import defaultdict
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterable
 
@@ -19,10 +19,10 @@ ROOT = Path(__file__).resolve().parents[1]
 PATTERN = r"(?i)(TODO|FIXME|XXX|MOCK|@mock|placeholder|assuming)"
 OUT_MD = ROOT / "docs" / "DEBT_MATRIX.md"
 OUT_JSON = ROOT / "docs" / "debt_matrix.json"
+WINDOWS_ABSOLUTE_RE = re.compile(r"^[A-Za-z]:/")
 GENERATED_PATHS = {
     "docs/DEBT_MATRIX.md",
     "docs/debt_matrix.json",
-    "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md",
 }
 # Files that are excluded from scanning because they are either:
 # - The debt scanner itself (self-referential)
@@ -31,7 +31,6 @@ GENERATED_PATHS = {
 EXCLUDED_FILES = {
     "CHANGELOG.md",
     "scripts/generate_debt_matrix.py",
-    "scripts/validate_debt_matrix.py",
     "scripts/validate_frontend_placeholders.py",
     "scripts/validate_workflows.py",
     "scripts/verify_pages_deployment.py",
@@ -47,9 +46,7 @@ EXCLUDED_PREFIXES = (
     ".pytest_cache/",
     ".mypy_cache/",
     "__pycache__/",
-    "docs/encyclopedia/",
     "docs/wiki/",
-    "frontend/assets/fonts/vendor/",
     "frontend/assets/images/flags/",
     "frontend/assets/libs/",
     "node_modules/",
@@ -104,7 +101,7 @@ def _tracked_files() -> list[Path]:
     git_bin = shutil.which("git")
     if git_bin:
         proc = subprocess.run(  # nosec B603
-            [git_bin, "ls-files"],
+            [git_bin, "ls-files", "--cached", "--others", "--exclude-standard"],
             cwd=ROOT,
             capture_output=True,
             text=True,
@@ -386,6 +383,60 @@ def _scan_files(paths: Iterable[Path]) -> list[dict[str, str | int]]:
     return entries
 
 
+def _scan_structural_debt(paths: Iterable[Path]) -> list[dict[str, str | int]]:
+    """Measure structural debt that cannot be represented by TODO markers."""
+    entries: list[dict[str, str | int]] = []
+    for path in paths:
+        rel_path = _repo_path(path)
+        if path.suffix != ".py" or rel_path.startswith("tests/"):
+            continue
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
+        except (OSError, SyntaxError):
+            continue
+        category = _classify_path(rel_path)
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Try):
+                for handler in node.handlers:
+                    broad = handler.type is None
+                    if isinstance(handler.type, ast.Name):
+                        broad = handler.type.id in {"Exception", "BaseException"}
+                    if broad:
+                        entries.append(
+                            {
+                                "path": rel_path,
+                                "line": int(getattr(handler, "lineno", node.lineno)),
+                                "marker": "BROAD_EXCEPTION",
+                                "category": category,
+                                "priority": (
+                                    "P1 - High"
+                                    if category in {"production", "ci"}
+                                    else "P2 - Routine"
+                                ),
+                                "text": "Broad exception boundary requires semantic review and structured outcome.",
+                            }
+                        )
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                end_line = int(getattr(node, "end_lineno", node.lineno))
+                length = end_line - int(node.lineno) + 1
+                if length >= 300:
+                    entries.append(
+                        {
+                            "path": rel_path,
+                            "line": int(node.lineno),
+                            "marker": "LARGE_FUNCTION",
+                            "category": category,
+                            "priority": (
+                                "P1 - High"
+                                if category == "production"
+                                else "P2 - Routine"
+                            ),
+                            "text": f"Function {node.name} spans {length} lines (threshold: 300).",
+                        }
+                    )
+    return entries
+
+
 def _write_outputs(entries: list[dict[str, str | int]]) -> None:
     by_file: dict[str, list[dict[str, str | int]]] = defaultdict(list)
     marker_counts: dict[str, int] = defaultdict(int)
@@ -395,11 +446,8 @@ def _write_outputs(entries: list[dict[str, str | int]]) -> None:
         marker_counts[str(entry["marker"])] += 1
         category_counts[str(entry["category"])] += 1
 
-    timestamp = datetime.now(timezone.utc).isoformat()
     md_lines = [
         "# Debt Matrix (Triage Filtered)",
-        "",
-        f"Generated: `{timestamp}`",
         "",
         "## Executive Summary",
         "This matrix represents **actionable** technical debt. Noise from test mocks, documentation placeholders, and historical reports has been filtered out.",
@@ -463,7 +511,7 @@ def _write_outputs(entries: list[dict[str, str | int]]) -> None:
     OUT_JSON.write_text(
         json.dumps(
             {
-                "generated_at": timestamp,
+                "generated_from": "current tracked tree",
                 "summary": {
                     "total": len(entries),
                     "markers": dict(sorted(marker_counts.items())),
@@ -477,6 +525,59 @@ def _write_outputs(entries: list[dict[str, str | int]]) -> None:
     )
 
 
+
+def validate_artifacts() -> list[str]:
+    """Validate generated debt artifacts are portable and non-self-referential."""
+    errors: list[str] = []
+    try:
+        data = json.loads(OUT_JSON.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError, TypeError) as exc:
+        return [f"could not read debt matrix JSON: {exc}"]
+    if not isinstance(data, dict):
+        return ["docs/debt_matrix.json must contain an object"]
+
+    entries = data.get("entries")
+    if not isinstance(entries, list):
+        return ["docs/debt_matrix.json missing entries list"]
+
+    summary = data.get("summary")
+    if not isinstance(summary, dict):
+        errors.append("docs/debt_matrix.json missing summary object")
+    elif "categories" not in summary:
+        errors.append("docs/debt_matrix.json missing category summary")
+
+    for index, entry in enumerate(entries):
+        if not isinstance(entry, dict):
+            errors.append(f"entry {index} is not an object")
+            continue
+        path = str(entry.get("path", ""))
+        if not path:
+            errors.append(f"entry {index} missing path")
+            continue
+        if WINDOWS_ABSOLUTE_RE.match(path) or path.startswith("/"):
+            errors.append(f"entry {index} has absolute path: {path}")
+        if "\\" in path:
+            errors.append(f"entry {index} uses backslashes: {path}")
+        if path in GENERATED_PATHS:
+            errors.append(f"entry {index} self-references generated artifact: {path}")
+        if "category" not in entry:
+            errors.append(f"entry {index} missing category")
+
+    try:
+        md_text = OUT_MD.read_text(encoding="utf-8")
+    except OSError as exc:
+        errors.append(f"could not read debt matrix Markdown: {exc}")
+        return errors
+    root_text = str(ROOT).replace("\\", "/")
+    if "D:/GitHub/ConfigStream" in md_text or root_text in md_text:
+        errors.append("docs/DEBT_MATRIX.md contains machine-local absolute paths")
+    if "## Categories" not in md_text:
+        errors.append("docs/DEBT_MATRIX.md missing category summary")
+    for generated in GENERATED_PATHS:
+        if f"`{generated}`" in md_text:
+            errors.append(f"docs/DEBT_MATRIX.md self-references {generated}")
+    return errors
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -486,7 +587,9 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    entries = _scan_files(_tracked_files())
+    files = _tracked_files()
+    entries = _scan_files(files) + _scan_structural_debt(files)
+    entries.sort(key=lambda entry: (str(entry["path"]), int(entry["line"]), str(entry["marker"])))
 
     if args.check:
         if not OUT_JSON.exists():
@@ -499,17 +602,23 @@ def main() -> int:
             print(f"Error: Could not read/parse {OUT_JSON}")
             return 1
 
-        # Compare entries (excluding generated_at timestamp)
-        if existing.get("entries") == entries:
-            print("Debt matrix is up to date.")
-            return 0
-        else:
+        # Entries are the exact reproducible source-of-truth payload.
+        if existing.get("entries") != entries:
             print(
                 "Error: Debt matrix is out of date. Run without --check to regenerate."
             )
             print(f"Current actionable markers: {len(entries)}")
             print(f"Existing actionable markers: {len(existing.get('entries', []))}")
             return 1
+
+        errors = validate_artifacts()
+        if errors:
+            print("Error: Debt matrix artifact validation failed:")
+            for error in errors:
+                print(f"  - {error}")
+            return 1
+        print("Debt matrix is up to date and portable.")
+        return 0
 
     _write_outputs(entries)
     print(f"Wrote {OUT_MD.relative_to(ROOT)}")

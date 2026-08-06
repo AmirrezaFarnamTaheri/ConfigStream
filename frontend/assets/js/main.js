@@ -396,8 +396,8 @@ document.addEventListener('DOMContentLoaded', () => {
         window.stateManager.setLoading(true, 'Fetching latest data...');
 
         // Define defaults and updater function outside try/catch to ensure availability
-        let sourceCount = 0;
-        let updateFreq = 6;
+        let sourceCount = null;
+        let updateFreq = null;
 
         const updateHeroSubtitle = () => {
              const heroSubtitle = document.getElementById('heroSubtitle');
@@ -429,7 +429,7 @@ document.addEventListener('DOMContentLoaded', () => {
              }
         };
 
-        // Initialize immediately with defaults to avoid "--" flash before data loads
+        // Render an explicit unavailable state until artifact verification succeeds
         updateHeroSubtitle();
         window.addEventListener('languageChanged', updateHeroSubtitle);
         // i18n may finish loading translations before this module evaluates
@@ -440,6 +440,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
+            if (window.ConfigStreamArtifactState) {
+                const artifactState = await (window.ConfigStreamArtifactState.ready || window.ConfigStreamArtifactState.verify());
+                if (!artifactState.canDistribute) {
+                    throw new Error(artifactState.reason || 'Artifact distribution is disabled');
+                }
+            }
+
             // Verify artifact manifest signature when available.
             // If a signature is present, verification is fail-closed.
             // Unsigned manifests remain allowed in local/dev environments.
@@ -561,6 +568,11 @@ document.addEventListener('DOMContentLoaded', () => {
             updateElement('#footerUpdate', 'N/A');
             updateElement('#totalConfigs', 'N/A');
             updateElement('#workingConfigs', 'N/A');
+            sourceCount = null;
+            updateFreq = null;
+            updateHeroSubtitle();
+            const freshnessText = document.getElementById('freshnessText');
+            if (freshnessText) freshnessText.textContent = 'Distribution disabled until artifact verification succeeds';
         } finally {
             window.stateManager.setLoading(false);
             // Hide preloader after data fetching is complete

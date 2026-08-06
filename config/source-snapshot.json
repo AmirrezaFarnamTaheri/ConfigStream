@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "source_kind": "archive-snapshot",
+  "archive_name": "ConfigStream-main.zip",
+  "archive_sha256": "26c31b19f7f24c43c1c4a20ab0e337489e6f64b55f8e2346be2db9dcd4c2a365",
+  "archive_entry_count": 1207,
+  "archive_uncompressed_bytes": 31067728,
+  "upstream_git_history_included": false,
+  "notes": "Verified against the supplied source archive before remediation. The local Git repository is a rollback mechanism, not upstream history."
+}

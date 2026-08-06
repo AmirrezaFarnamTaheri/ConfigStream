@@ -18,7 +18,6 @@ from configstream.testers import SingBoxTester
 from configstream.test_cache import TestResultCache
 from configstream.scheduler import SmartRetestScheduler
 from configstream.concurrency_manager import ConcurrencyManager
-from configstream.geoip import GeoIPResolver
 from configstream.source_quality import SourceQualityTracker
 from configstream.anomaly import AnomalyDetector
 from configstream.security.blocklist import DEFAULT_BLOCKLIST
@@ -36,9 +35,19 @@ from configstream.adaptive_workers import calculate_optimal_workers
 logger = logging.getLogger(__name__)
 
 
+class _NoOpGeoIPResolver:
+    """Dry-run resolver that avoids loading optional GeoIP database bindings."""
+
+    async def lookup(self, _address: str):
+        return None
+
+
 async def _cancel_all(
     producer_task: asyncio.Task, consumer_tasks: List[asyncio.Task]
 ) -> None:
+    # Cancelling the producer is what tells its sentinel-delivery loop that
+    # consumers are being torn down directly here and that it must not block
+    # waiting to hand off markers nobody will ever drain.
     for t in consumer_tasks:
         t.cancel()
     producer_task.cancel()
@@ -147,7 +156,11 @@ class StandardPipeline(IPipeline):
         logger.info("Initializing security blocklists...")
         await DEFAULT_BLOCKLIST.update()
 
-        geoip = GeoIPResolver()
+        import configstream.pipeline as pipeline_api
+
+        geoip = (
+            _NoOpGeoIPResolver() if dry_run else pipeline_api.GeoIPResolver()
+        )
         washer = ProxyWasher(settings.WARP_KEY_POOL)
         if not dry_run:
             await washer.fetch_clean_ips()
@@ -199,6 +212,7 @@ class StandardPipeline(IPipeline):
                     getattr(settings, "EVENT_STREAM_FLUSH_TIMEOUT_SECONDS", 2.0)
                 ),
             ),
+            vwarp_tool=vwarp_tool,
             progress=progress,
             max_latency=max_latency,
             country_filter=country_filter,
@@ -284,6 +298,10 @@ class StandardPipeline(IPipeline):
                     "Hard batch time limit reached. Cancelling pipeline tasks."
                 )
                 await _cancel_all(producer_task, consumer_tasks)
+                # ``gather_task`` owns the aggregate cancellation result.
+                # Retrieve it explicitly so forced timeouts do not leak an
+                # unhandled ``CancelledError`` warning after cleanup.
+                await asyncio.gather(gather_task, return_exceptions=True)
             except (asyncio.CancelledError, KeyboardInterrupt, SystemExit) as e:
                 logger.info(f"Pipeline interrupted: {type(e).__name__}")
                 await _cancel_all(producer_task, consumer_tasks)
@@ -441,9 +459,10 @@ class StandardPipeline(IPipeline):
             if self.context.hard_stop_watcher and self.context.tester:
                 await self.context.hard_stop_watcher.stop_tester(self.context.tester)
 
-            from configstream.tools.vwarp.manager import VwarpTool
-
-            await VwarpTool().stop_tunnel()
+            # Stop the exact VwarpTool instance that started the tunnel; a fresh
+            # instance has no handle to the spawned child and would leak it.
+            if self.context.vwarp_tool is not None:
+                await self.context.vwarp_tool.stop_tunnel()
 
             if self.context.anomaly_detector:
                 self.context.anomaly_detector.close()

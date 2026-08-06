@@ -22,7 +22,6 @@ LOG_PATTERNS = [
 ]  # Patterns to match pipeline logs
 SOURCES_DIR = Path("sources")  # Directory containing batch_*.txt files
 BACKUP_DIR = SOURCES_DIR / "backup_dynamic"
-CONSOLIDATED_SOURCES = Path("consolidated_sources.txt")
 DB_PATH = Path("data/source_quality.db")
 FINGERPRINT_DIR = Path("data/fingerprints")
 DEFAULT_WEIGHT = 130  # Fallback weight for sources not found in logs (deciseconds)
@@ -385,31 +384,6 @@ def get_existing_sources() -> List[str]:
     return list(urls)
 
 
-def get_consolidated_sources() -> List[str]:
-    """
-    Reads URLs from consolidated_sources.txt to ensure new sources are included.
-    """
-    urls = set()
-    if not CONSOLIDATED_SOURCES.exists():
-        return []
-    invalid_count = 0
-    try:
-        content = CONSOLIDATED_SOURCES.read_text(encoding="utf-8").splitlines()
-    except Exception as e:
-        print(f"[WARN] Could not read {CONSOLIDATED_SOURCES}: {e}")
-        return []
-    for line in content:
-        line = line.strip()
-        if not line or line.startswith("#"):
-            continue
-        if line.startswith("http://") or line.startswith("https://"):
-            urls.add(line)
-        else:
-            invalid_count += 1
-    if invalid_count:
-        print(f"[WARN] Skipped {invalid_count} invalid lines in {CONSOLIDATED_SOURCES}")
-    return list(urls)
-
 
 def analyze_similarity(observed_metrics: Dict[str, Tuple[int, float]]) -> Set[str]:
     """
@@ -541,9 +515,6 @@ def main() -> None:
 
     # 3. Gather Data
     all_urls = set(get_existing_sources())
-    consolidated_urls = get_consolidated_sources()
-    if consolidated_urls:
-        all_urls.update(consolidated_urls)
     if not all_urls:
         print("[ERROR] No sources found in sources/batch_*.txt")
         return

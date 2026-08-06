@@ -1,11 +1,9 @@
-@import url('fonts.css');
-
 /*
     ConfigStream - The "Perfect" UI/UX Redesign v4.0
     ------------------------------------------------
     - **UI/UX:** Neumorphic Glassmorphism, Liquid Animations, AR/VR-inspired Depth
-    - **Typography:** Vendored Be Vietnam Pro (UI), DM Serif Display (Headlines)
-    - **Farsi Typography:** Vendored Mikhak (Headlines), Vazirmatn (UI)
+    - **Typography:** Local system font stacks; no remote or bundled font binaries
+    - **RTL Typography:** Platform Arabic/Persian-capable system fonts
     - **Layout:** 8px Grid, Fluid & Asymmetric
     - **Motion:** Fluid Transitions, Delightful Microinteractions
     - **Themeing:** Vibrant Light & Deep Dark Modes
@@ -14,8 +12,10 @@
 /* 1. Root & Theming */
 :root {
     /* Typography */
-    --font-sans: 'Be Vietnam Pro', "Microsoft YaHei", "SimHei", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    --font-display: 'DM Serif Display', serif;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans", "Helvetica Neue", Arial, sans-serif;
+    --font-display: Georgia, "Times New Roman", serif;
+    --font-rtl-sans: Tahoma, "Segoe UI", Arial, sans-serif;
+    --font-rtl-display: Tahoma, "Segoe UI", Arial, sans-serif;
 
     /* Spacing & Sizing */
     --space-unit: 8px;
@@ -145,7 +145,7 @@ body {
 html[dir="rtl"] body,
 html[lang="fa"] body,
 html[lang="ar"] body {
-    font-family: 'Vazirmatn', var(--font-sans);
+    font-family: var(--font-rtl-sans);
 }
 
 html[dir="rtl"] h1, html[dir="rtl"] h2, html[dir="rtl"] h3,
@@ -157,7 +157,7 @@ html[lang="fa"] .hero h1, html[lang="fa"] .hero .subtitle,
 html[lang="ar"] h1, html[lang="ar"] h2, html[lang="ar"] h3,
 html[lang="ar"] h4, html[lang="ar"] h5, html[lang="ar"] h6,
 html[lang="ar"] .hero h1, html[lang="ar"] .hero .subtitle {
-    font-family: 'Mikhak', 'Vazirmatn', var(--font-display);
+    font-family: var(--font-rtl-display);
     font-weight: 700;
 }
 
@@ -4544,13 +4544,13 @@ body.dark .client-select {
     flex-direction: row-reverse;
 }
 
-/* ===== Farsi and Arabic Font Support ===== */
-/* Apply Vazirmatn for Farsi UI text */
+/* ===== Farsi and Arabic system font support ===== */
+/* Use platform fonts with Arabic/Persian glyph coverage. */
 [lang="fa"] body {
-    font-family: 'Vazirmatn', var(--font-sans);
+    font-family: var(--font-rtl-sans);
 }
 
-/* Apply Mikhak for Farsi headings */
+/* Use the RTL display stack for headings. */
 [lang="fa"] h1,
 [lang="fa"] h2,
 [lang="fa"] h3,
@@ -4560,25 +4560,25 @@ body.dark .client-select {
 [lang="fa"] .hero-title,
 [lang="fa"] .card-header h2,
 [lang="fa"] .font-display {
-    font-family: 'Mikhak', var(--font-display);
+    font-family: var(--font-rtl-display);
 }
 
-/* Ensure Logo Text uses Mikhak for Farsi/Arabic */
+/* Keep logo text aligned with the RTL display stack. */
 [lang="fa"] .header-logo-text {
-    font-family: 'Mikhak', var(--font-display) !important;
+    font-family: var(--font-rtl-display) !important;
 }
 
 [lang="ar"] .header-logo-text {
-    font-family: 'Mikhak', var(--font-display) !important;
+    font-family: var(--font-rtl-display) !important;
 }
 
-/* Apply Vazirmatn for Arabic UI text */
+/* Apply the RTL UI stack to Arabic text. */
 [lang="ar"] body,
 [lang="ar"] * {
-    font-family: 'Vazirmatn', var(--font-sans) !important;
+    font-family: var(--font-rtl-sans) !important;
 }
 
-/* Apply Mikhak for Arabic headings */
+/* Apply the RTL display stack to Arabic headings. */
 [lang="ar"] h1,
 [lang="ar"] h2,
 [lang="ar"] h3,
@@ -4588,7 +4588,7 @@ body.dark .client-select {
 [lang="ar"] .hero-title,
 [lang="ar"] .card-header h2,
 [lang="ar"] .font-display {
-    font-family: 'Mikhak', var(--font-display) !important;
+    font-family: var(--font-rtl-display) !important;
 }
 
 /* Better line-height for Persian/Arabic scripts */
@@ -4622,7 +4622,7 @@ body.dark .client-select {
 /* Specific fix for Analytics page hero title */
 [lang="fa"] .analytics-hero-title,
 [lang="ar"] .analytics-hero-title {
-    font-family: 'Mikhak', var(--font-display) !important;
+    font-family: var(--font-rtl-display) !important;
     text-align: center !important;
 }
 

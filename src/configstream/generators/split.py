@@ -8,7 +8,7 @@ from typing import List, Dict, Any, Set, Optional, Tuple
 from ..models import Proxy
 from .clash import generate_clash_config
 from ..converters import to_singbox_outbound
-from ..converters.chains import chain_outbounds_from_details
+from ..converters.chain_outbounds import chain_outbounds_from_details
 from ..utils import AtomicFileWriter
 
 logger = logging.getLogger(__name__)
@@ -37,7 +37,7 @@ def _chain_entry_tag(chain: List[Dict[str, Any]]) -> Optional[str]:
     for item in reversed(chain):
         tag = item.get("tag")
         if tag:
-            return tag
+            return str(tag)
     return None
 
 

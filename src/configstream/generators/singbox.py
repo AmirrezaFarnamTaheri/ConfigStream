@@ -59,7 +59,7 @@ class SingBoxGenerator:
 
         def _append_outbound(
             outbound: Dict[str, Any], *, add_to_selector: bool
-        ) -> bool:
+        ) -> Optional[str]:
             self._clean_outbound(outbound)
             # Resolve detour if target was uniquified
             detour = outbound.get("detour")
@@ -86,7 +86,9 @@ class SingBoxGenerator:
                 added_tags.add(tag)
                 if add_to_selector:
                     cast(List[str], selector_outbound["outbounds"]).append(tag)
-            return True
+            # Return the final (possibly uniquified) tag so callers reference the
+            # tag actually written, not the stale pre-uniquification value.
+            return tag
 
         # Add Extra Outbounds First (if any)
         # Build a set of tags referenced as detour targets (inner hops)
@@ -108,9 +110,9 @@ class SingBoxGenerator:
                 # and does NOT itself chain further — should NOT be selectable.
                 is_inner_hop = bool(tag and tag in _detour_targets)
                 is_entry_point = not is_inner_hop
-                added = _append_outbound(extra, add_to_selector=is_entry_point)
-                if added and is_entry_point and tag:
-                    cast(List[str], urltest_outbound["outbounds"]).append(tag)
+                final_tag = _append_outbound(extra, add_to_selector=is_entry_point)
+                if is_entry_point and final_tag:
+                    cast(List[str], urltest_outbound["outbounds"]).append(final_tag)
 
         # Add Proxy Outbounds
         for p in proxies:
@@ -136,10 +138,9 @@ class SingBoxGenerator:
                 # Strip internal metadata
                 self._clean_outbound(outbound_config)
 
-                added = _append_outbound(outbound_config, add_to_selector=True)
-                tag = outbound_config.get("tag")
-                if added and tag:
-                    cast(List[str], urltest_outbound["outbounds"]).append(tag)
+                final_tag = _append_outbound(outbound_config, add_to_selector=True)
+                if final_tag:
+                    cast(List[str], urltest_outbound["outbounds"]).append(final_tag)
             except Exception:  # nosec B112
                 logging.getLogger(__name__).debug("Suppressed broad exception")
                 continue

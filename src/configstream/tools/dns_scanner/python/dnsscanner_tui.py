@@ -18,7 +18,7 @@ import time
 from collections import deque
 from datetime import datetime
 from pathlib import Path
-from typing import Set, AsyncGenerator, Optional, Deque
+from typing import Set, AsyncGenerator, Optional, Deque, cast
 
 import aiodns
 import httpx
@@ -113,7 +113,7 @@ class SlipstreamManager:
     def get_platform_dir(self) -> Path:
         """Get the platform-specific directory."""
         dir_name = self.PLATFORM_DIRS.get(self.system, self.system.lower())
-        return self.base_dir / dir_name
+        return cast(Path, self.base_dir / dir_name)
 
     def get_executable_path(self) -> Path:
         """Get the path to the slipstream executable.

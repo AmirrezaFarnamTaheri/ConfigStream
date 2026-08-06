@@ -77,9 +77,9 @@ These are the primary endpoints used by the frontend. They are flat files, not d
 | `fetchMetadata()` | `metadata.json` | `/api/stats` | `utils/network.js` |
 | `fetchProxies()` | `proxies.json` | `/api/proxies` | `utils/network.js` |
 | `fetchStatistics()` | `metadata.json` | `/api/stats` | `utils/network.js` |
-| `fetchProxyHistory()` | `data/active_proxy_trend.json` | — | `statistics.js` |
-| `fetchEvasionTrend()` | `data/evasion_trend.json` | — | `statistics.js` |
-| `loadCountryData()` | `assets/data/countries.json` | — | `statistics.js` |
+| `ProxyHistoryChart.loadHistoryData()` | `data/proxy_history_viz.json` | — | `proxy-history-chart.js` |
+| analytics page startup | `data/evasion_trend.json` | — | `analytics.js` |
+| external/static consumers | `data/active_proxy_trend.json` | — | no first-party browser consumer |
 
 #### API Simulation (created by `deploy-pages.yml`)
 
@@ -127,6 +127,7 @@ Capability status is tracked in `docs/capability_registry.json`, and client-core
 | `base64.txt` | universal | base64 | no | presence | May be empty when no usable subscription lines exist. |
 | `proxies.json` | universal | json | yes | schema, json | Canonical public proxy JSON list. |
 | `proxies.txt` | universal | text | no | presence | URI subscription lines. |
+| `xray.json` | xray | json | yes | json | Xray full configuration with modern VMess/VLESS settings, structural reference validation, and pinned native release checks. |
 | `side_products-dns-hardened.zip` | side-products | zip | yes | zip, zip members | DNS-hardened side-product bundle; ZIP integrity, safe member paths, required proxies.txt, optional OpenVPN/WireGuard member patterns, and deploy-secret markers are validated. |
 | `side_products-dns-safe.zip` | side-products | zip | yes | zip, zip members | DNS-safe side-product bundle; ZIP integrity, safe member paths, required proxies.txt, optional OpenVPN/WireGuard member patterns, and deploy-secret markers are validated. |
 | `side_products.zip` | side-products | zip | yes | zip, zip members | Side-product bundle; ZIP integrity, safe member paths, required proxies.txt, optional OpenVPN/WireGuard member patterns, and deploy-secret markers are validated. |
@@ -410,6 +411,6 @@ Tags are appended in this order: `PROTO` → `TRANS` → `SEC` → `PROC` → `R
 
 *   **[Protocols & Parsing](03-protocols.md)** — How proxy URIs are parsed and validated.
 *   **[Configuration Reference](Configuration.md)** — All environment variables.
-*   **[Output Variations](../../OUTPUT_VARIATIONS.md)** — All 60+ output file variants.
+*   **[Download files matrix](#download-files-matrix)** — All 60+ output file variants.
 *   **[Censorship Evasion](../../CENSORSHIP_EVASION.md)** — Evasion modes, techniques, tagging, metrics, troubleshooting.
 *   **[Sing-box Configuration Guide](../encyclopedia/tools/singbox_configuration_guide.md)** — How outbound configs are structured.

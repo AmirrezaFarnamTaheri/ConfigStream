@@ -1,7 +1,7 @@
 # ConfigStream Agents & Contributors Guidelines
 
 ## 1. Project Philosophy & Directives
-**Current Status**: Remediation complete at repository level as of v3.1.0 (2026-05-28). [ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md](ConfigStream_Master_Audit_Report%20-%20Main%20SOURCE%20OF%20TRUTH.md) and `STATUS.md` are the active human-readable status surfaces, with canonical matrices under `docs/` providing machine-checkable contracts. Historical audit/source-of-truth ledgers were fully absorbed into the master report and removed from active repository documentation; raw provenance is git-history only. Public Pages readiness remains gated on a fresh validated artifact deploy plus `scripts/verify_pages_deployment.py` passing against the live URL.
+**Current Status**: `docs/readiness.json` is the canonical release checkpoint and `STATUS.md` is its generated human-readable view. Historical point-in-time audit reports are not active repository truth. Public Pages readiness remains gated on a fresh validated artifact deploy plus `scripts/verify_pages_deployment.py` passing against the live URL.
 
 ConfigStream is a **sovereignty-grade, zero-budget anti-censorship platform**. Every line of code must align with these core tenets:
 1.  **Zero Budget**: Do not introduce dependencies on paid APIs, databases, or infrastructure. We rely exclusively on free GitHub Actions/Pages, public APIs, and user-provided resources.
@@ -68,7 +68,7 @@ The system follows a **Streaming Pipeline Architecture** (`Producer-Consumer`):
     *   `socks://` -> `socks5`.
     *   `socks4://` -> `socks4` (supported).
 
-### Fetcher (`src/configstream/fetcher.py`)
+### Fetcher (`src/configstream/pipeline/fetcher.py`)
 *   **Resilience**:
     *   Use `AdaptiveTimeout` to prevent stalling.
     *   Respect `CircuitBreaker` states to avoid hammering dead hosts.
@@ -162,12 +162,12 @@ Before submitting ANY code:
 
 ## 9. Module Layout & Canonical Locations
 *   **Pipeline Stats**: `PipelineStats` and `PipelineResult` live in `pipeline_stats.py`.
-*   **Producer / Consumer**: `source_producer` in `producer.py`, `processing_consumer` in `consumer.py`.
+*   **Producer / Consumer**: `source_producer` in `src/configstream/pipeline/producer.py` and `processing_consumer` in `src/configstream/pipeline/consumer.py`. Root `src/configstream/producer.py` and `src/configstream/consumer.py` remain thin compatibility shims.
 *   **ProxyWasher**: Canonical class in `intelligence/washer/core.py`. Import directly.
 *   **Parsers**: All public parser functions (`parse_vmess`, `parse_vless`, `parse_ss`, etc.) are exported from `parsers/__init__.py` with explicit `__all__`.
 *   **DNS Cache**: `prewarm_dns_cache` lives in `dns_cache.py`.
 *   **Haversine / Country Centroids**: Canonical location is `intelligence/chaining.py`.
-*   **Fetcher**: `fetch_from_source`, `fetch_multiple_sources` in `fetcher.py`, models in `fetcher_worker.py`.
+*   **Fetcher**: network fetching lives in `src/configstream/pipeline/fetcher.py`; legacy fetch result helpers remain in `fetcher_worker.py`.
 *   **Signer**: `Signer` class lives in `signer.py`.
 *   **Steganography**: `StegoPacker` and `generate_stego_assets` live in `stego.py`.
 *   **WARP Scanner**: `WarpScannerWorker` lives in `warp_scanner.py`.
@@ -182,9 +182,13 @@ Before submitting ANY code:
 *   `pipeline_stages.py` — consolidated into `producer.py` and `consumer.py`.
 
 ### Source & Ingestion Contract
-*   **Canonical Source**: `consolidated_sources.txt` is the single canonical source of truth.
+*   **Canonical Source**: `sources/batch_*.txt` are the authored operational source lists. No root-level mirror is maintained.
 *   **Token Safety**: Tracked source lists MUST NOT contain live-looking user tokens, subscription credentials, or private query strings.
-*   **Fetch Safety**: Remote source fetches must defend against SSRF and private-network abuse (enforced in `fetcher.py`).
+*   **Fetch Safety**: Remote source fetches must enforce source admission and pinned-IP/Host/SNI protection in `src/configstream/pipeline/fetcher.py` and `src/configstream/security/transport.py`.
+
+### Verification Contract
+*   Run `python scripts/verify_repository.py --profile static` for repository contracts.
+*   Run `python scripts/verify_repository.py --profile full` before claiming release readiness; unavailable toolchains must be reported, not treated as passing.
 
 ### Completion Doctrine
 A feature is NOT complete because code exists. It is complete only when:
@@ -205,7 +209,7 @@ A feature is NOT complete because code exists. It is complete only when:
 *   `workers/` — flattened to `warp_scanner.py`.
 
 ### Superseded Documentation
-Do NOT recreate standalone source-of-truth history ledgers. The previous full master, compact master, amendment, Part 2, Part 3, and history README files were read completely, absorbed into the active master/status surfaces, fingerprinted in the master report, and removed from active repository documentation. Future durable value must be promoted into the root master report, `STATUS.md`, `CHANGELOG.md`, or canonical matrices instead of creating parallel truth files.
+Do NOT recreate standalone point-in-time source-of-truth ledgers. Durable status belongs in generated `STATUS.md`, `CHANGELOG.md`, or canonical machine-readable matrices under `docs/`. Detailed audits belong outside the active source tree or under a dated `docs/audits/` directory when they remain operationally relevant.
 *   `KNOWN_ISSUES.md`
 *   `CLOSURE_REPORT.md`
 *   `docs/FINALIZATION_REPORT_2026.md`

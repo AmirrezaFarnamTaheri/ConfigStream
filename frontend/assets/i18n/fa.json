@@ -192,7 +192,7 @@
     "about.credits.frontend": "فرانت‌اند و بصری‌سازی",
     "about.credits.frontend_desc": "• <strong>Globe.gl:</strong> کره سه‌بعدی<br>• <strong>Chart.js:</strong> نمودارهای تحلیلی<br>• <strong>Feather Icons:</strong> سیستم آیکون مدرن",
     "about.credits.fonts": "فونت و تایپوگرافی",
-    "about.credits.fonts_desc": "• <strong>Be Vietnam Pro:</strong> فونت اصلی رابط کاربری<br>• <strong>Vazirmatn:</strong> فونت رابط کاربری فارسی/عربی<br>• <strong>Mikhak:</strong> فونت نمایشی فارسی/عربی",
+    "about.credits.fonts_desc": "فونت‌های سیستمی: بدون درخواست از راه دور یا فایل فونت همراه.",
     "about.credits.thanks": "<strong>تشکر ویژه:</strong> از تمام نگهدارندگان فهرست‌های پروکسی متن‌باز و مشارکت‌کنندگان جامعه.",
     "about.opensource.title": "متن‌باز و مجوز",
     "about.opensource.text": "ConfigStream تحت <strong>مجوز AGPLv3</strong> منتشر می‌شود و برای همیشه آزاد و متن‌باز می‌ماند. ما به شفافیت، توسعه مبتنی بر جامعه و دسترسی آزاد به اطلاعات باور داریم.",

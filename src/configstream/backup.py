@@ -15,7 +15,7 @@ from pathlib import Path
 from datetime import datetime, timedelta
 from typing import Dict, List, Tuple
 
-from .security_validator import _safe_log_text
+from .security_validator import safe_log_text
 
 logger = logging.getLogger(__name__)
 
@@ -134,9 +134,9 @@ def backup_databases(
                 logger.debug(
                     "Failed to remove partial backup files for %s: %s",
                     db_file.name,
-                    _safe_log_text(cleanup_exc),
+                    safe_log_text(cleanup_exc),
                 )
-            logger.error(f"Failed to backup {db_file}: {_safe_log_text(e)}")
+            logger.error(f"Failed to backup {db_file}: {safe_log_text(e)}")
 
     # Cleanup old backups
     if retention_days > 0:
@@ -210,7 +210,7 @@ def cleanup_old_backups(backup_dir: Path, retention_days: int) -> int:
 
         except Exception as e:
             logger.warning(
-                f"Failed to process backup {backup_file}: {_safe_log_text(e)}"
+                f"Failed to process backup {backup_file}: {safe_log_text(e)}"
             )
 
     # Process thinning groups (keep only 1 per day per DB)
@@ -227,7 +227,7 @@ def cleanup_old_backups(backup_dir: Path, retention_days: int) -> int:
                 logger.debug(
                     "Failed to delete old backup %s: %s",
                     fpath.name,
-                    _safe_log_text(cleanup_exc),
+                    safe_log_text(cleanup_exc),
                 )
 
     if deleted > 0:
@@ -276,7 +276,7 @@ def restore_database(backup_file: Path, target_file: Path) -> bool:
         return True
 
     except Exception as e:
-        logger.error(f"Failed to restore database: {_safe_log_text(e)}")
+        logger.error(f"Failed to restore database: {safe_log_text(e)}")
         return False
 
 
@@ -334,7 +334,7 @@ def list_backups(backup_dir: Path | str = Path("data/backups")) -> List[dict]:
             )
         except Exception as e:
             logger.warning(
-                f"Failed to get metadata for {backup_file}: {_safe_log_text(e)}"
+                f"Failed to get metadata for {backup_file}: {safe_log_text(e)}"
             )
 
     # Always return newest-first by actual creation time

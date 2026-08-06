@@ -1,0 +1,36 @@
+{
+  "schema_version": "2",
+  "project_version": "3.2.0",
+  "evaluated_at": "2026-08-01T01:30:00.508369+00:00",
+  "verdict": "CONDITIONAL",
+  "release_gate": "external_verification_required",
+  "production_ready": false,
+  "required_gates": {
+    "blocking_ci_green": {
+      "status": "unverified",
+      "evidence": []
+    },
+    "historical_secret_exposure_investigated": {
+      "status": "operator_action_required",
+      "evidence": []
+    },
+    "live_pages_digest_and_smoke_verified": {
+      "status": "unverified",
+      "evidence": []
+    },
+    "local_release_contract": {
+      "status": "pending",
+      "evidence": [
+        "Static verifier: 30 success, 0 failed, 0 unavailable.",
+        "Release-tail verifier: 6 success, 0 failed, 1 unavailable (frontend build tool not installed).",
+        "Changed/new regression surface is executed in bounded isolated processes; see finalization evidence bundle."
+      ]
+    },
+    "sealed_pipeline_artifact_generated": {
+      "status": "unverified",
+      "evidence": []
+    }
+  },
+  "release_invariant": "A production release is prohibited unless every required gate is passing for the same source commit and artifact digest.",
+  "evidence_boundary": "This source snapshot can prove local repository checks only. It cannot prove current GitHub branch protection, exact-head CI, retained release artifacts, Git history, or the live GitHub Pages deployment."
+}

@@ -2,7 +2,7 @@
 import logging
 from typing import List, Optional, Dict, Any
 from ..models import Proxy
-from ..security_validator import _safe_log_text, _safe_proxy_ref
+from ..security_validator import safe_log_text, _safe_proxy_ref
 from ..adapters_base import (
     format_singbox_chain_for_surge,
     format_shielded_chain_for_surge,
@@ -34,7 +34,7 @@ class SurgeAdapter(Adapter):
                     exported_count += 1
             except Exception as e:
                 logger.debug(
-                    f"Failed to export {_safe_proxy_ref(p)} to Surge: {_safe_log_text(e)}"
+                    f"Failed to export {_safe_proxy_ref(p)} to Surge: {safe_log_text(e)}"
                 )
                 failed_count += 1
 
@@ -65,7 +65,7 @@ class SurgeAdapter(Adapter):
                                 chain_count += 1
                 except Exception as e:
                     logger.debug(
-                        f"Failed to export chain to Surge: {_safe_log_text(e)}"
+                        f"Failed to export chain to Surge: {safe_log_text(e)}"
                     )
                     failed_count += 1
 

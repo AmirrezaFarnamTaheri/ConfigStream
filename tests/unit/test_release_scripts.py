@@ -74,16 +74,18 @@ def test_prepare_release_assets_uses_output_matrix_without_legacy_fallback(tmp_p
         script.get_release_assets(str(output_dir), str(tmp_path / "missing.json"))
 
 
-def test_consolidated_sources_mirror_matches_canonical_batches() -> None:
-    consolidated = _read_urls(REPO_ROOT / "consolidated_sources.txt")
-    batch_urls: set[str] = set()
+def test_canonical_source_batches_are_unique() -> None:
+    owners: dict[str, Path] = {}
     batch_files = sorted((REPO_ROOT / "sources").glob("batch_*.txt"))
 
     assert len(batch_files) == 17
     for batch_file in batch_files:
-        batch_urls.update(_read_urls(batch_file))
+        for url in _read_urls(batch_file):
+            assert url not in owners, f"{url} appears in {owners[url]} and {batch_file}"
+            owners[url] = batch_file
 
-    assert consolidated == batch_urls
+    assert owners
+    assert not (REPO_ROOT / "consolidated_sources.txt").exists()
 
 
 def test_generate_evidence_bundle_embeds_native_client_report(tmp_path) -> None:

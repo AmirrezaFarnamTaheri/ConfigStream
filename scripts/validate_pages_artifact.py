@@ -4,8 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import base64
-import binascii
 import hashlib
 import json
 import logging
@@ -20,6 +18,15 @@ import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import cast
+
+from configstream.output.client_formats import (
+    validate_mihomo_config,
+    validate_nekobox_subscriptions,
+    validate_xray_config,
+)
+from configstream.hashing import sha256_file
+from configstream.output.singbox_contract import validate_singbox_config
+from configstream.signer import normalize_public_key_hex
 from cryptography.hazmat.primitives.asymmetric import ed25519
 from cryptography.hazmat.primitives import serialization
 
@@ -51,6 +58,7 @@ REQUIRED_EXISTS: tuple[str, ...] = (
     "clash.yaml",
     "clash-dns-safe.yaml",
     "clash-dns-hardened.yaml",
+    "xray.json",
     "singbox-chains.json",
     "singbox-chains-dns-safe.json",
     "singbox-chains-dns-hardened.json",
@@ -89,6 +97,7 @@ REQUIRED_NONEMPTY: tuple[str, ...] = (
     "clash.yaml",
     "clash-dns-safe.yaml",
     "clash-dns-hardened.yaml",
+    "xray.json",
     "singbox-chains.json",
     "singbox-chains-dns-safe.json",
     "singbox-chains-dns-hardened.json",
@@ -128,6 +137,7 @@ CLASH_FILES: tuple[str, ...] = tuple(
     for name in REQUIRED_EXISTS
     if name.startswith("clash") and name.endswith(".yaml")
 )
+XRAY_FILES: tuple[str, ...] = ("xray.json",)
 SING_BOX_BINARY_NAMES: tuple[str, ...] = ("sing-box", "sing-box.exe")
 MIHOMO_BINARY_NAMES: tuple[str, ...] = (
     "mihomo",
@@ -173,45 +183,8 @@ _MANIFEST_PRIVATE_KEY_ENV = (
 )
 
 
-def _public_key_from_runtime_env() -> ed25519.Ed25519PublicKey | None:
-    value = (os.environ.get("CS_PUBLIC_KEY") or "").strip()
-    if not value:
-        return None
-    if "PLACEHOLDER" in value or "79e/79e/" in value:
-        return None
-    try:
-        key_bytes = base64.b64decode(value, validate=True)
-    except (ValueError, binascii.Error):  # type: ignore[name-defined]
-        key_bytes = b""
-
-    if key_bytes:
-        try:
-            parsed = serialization.load_der_public_key(key_bytes)
-            if isinstance(parsed, ed25519.Ed25519PublicKey):
-                return parsed
-        except (ValueError, TypeError):
-            pass
-        try:
-            return ed25519.Ed25519PublicKey.from_public_bytes(key_bytes)
-        except ValueError:
-            pass
-    try:
-        raw = bytes.fromhex(value)
-    except ValueError:
-        return None
-    try:
-        return ed25519.Ed25519PublicKey.from_public_bytes(raw)
-    except ValueError:
-        return None
-
-
 def _public_key_hex_from_env() -> str:
-    key = _public_key_from_runtime_env()
-    if not key:
-        return ""
-    return key.public_bytes(
-        encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
-    ).hex()
+    return normalize_public_key_hex(os.environ.get("CS_PUBLIC_KEY", ""))
 
 
 def _manifest_signer_from_env() -> ed25519.Ed25519PrivateKey | None:
@@ -264,14 +237,6 @@ def _load_yaml(path: Path) -> tuple[object | None, str | None]:
         return None, f"invalid YAML in {path.name}: {exc}"
     except OSError as exc:
         return None, f"could not read {path.name}: {exc}"
-
-
-def _sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
 
 
 def _first_available_binary(names: tuple[str, ...]) -> str | None:
@@ -728,7 +693,7 @@ def _validate_manifest(root: Path, manifest: object) -> list[str]:
         actual_size = target.stat().st_size
         if item.get("size_bytes") != actual_size:
             errors.append(f"artifact_manifest.json size mismatch: {rel_path}")
-        actual_hash = _sha256(target)
+        actual_hash = sha256_file(target)
         if item.get("sha256") != actual_hash:
             errors.append(f"artifact_manifest.json sha256 mismatch: {rel_path}")
 
@@ -1056,7 +1021,7 @@ def _validate_api_alias_parity(root: Path) -> list[str]:
         alias_path = root / alias
         if not canonical_path.is_file() or not alias_path.is_file():
             continue
-        if _sha256(canonical_path) != _sha256(alias_path):
+        if sha256_file(canonical_path) != sha256_file(alias_path):
             errors.append(f"{alias} must match {canonical}")
     return errors
 
@@ -1167,7 +1132,7 @@ def write_pages_contract(root: Path) -> None:
             {
                 "path": rel_path,
                 "size_bytes": path.stat().st_size,
-                "sha256": _sha256(path),
+                "sha256": sha256_file(path),
                 "category": _artifact_category(rel_path),
             }
         )
@@ -1269,7 +1234,7 @@ def validate_pages_artifact(
         payload, error = _load_json(target)
         if error:
             continue
-        errors.extend(_validate_singbox_config(payload, rel_path))
+        errors.extend(validate_singbox_config(payload, rel_path))
 
     for rel_path in CLASH_FILES:
         target = root / rel_path
@@ -1280,6 +1245,18 @@ def validate_pages_artifact(
             errors.append(error.replace(target.name, rel_path, 1))
             continue
         errors.extend(_validate_clash_config(payload, rel_path))
+        errors.extend(validate_mihomo_config(payload, rel_path))
+
+    for rel_path in XRAY_FILES:
+        target = root / rel_path
+        if not target.is_file():
+            continue
+        payload, error = _load_json(target)
+        if error:
+            continue
+        errors.extend(validate_xray_config(payload, rel_path))
+
+    errors.extend(validate_nekobox_subscriptions(root))
 
     manifest_path = root / "artifact_manifest.json"
     if manifest_path.is_file():

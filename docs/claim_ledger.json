@@ -48,27 +48,26 @@
         ".github/workflows/ci.yml"
       ],
       "changelog": "CHANGELOG.md",
-      "cleanup_decision": "Keep browser-required semantics in CI and production-smoke profile separation."
+      "cleanup_decision": "Keep browser-required semantics explicit in the frontend-browser profile and CI; release verification reports missing browser tooling as unavailable."
     },
     {
       "id": "claim.docs.encyclopedia_single_source",
-      "claim": "The encyclopedia has one canonical source, with docs/encyclopedia kept as a byte-identical mirror of docs/wiki/encyclopedia.",
+      "claim": "The encyclopedia has one authored source tree at docs/wiki/encyclopedia.",
       "source": "STATUS.md",
       "product_area": "docs",
       "status": "complete",
       "owner": "docs/wiki/encyclopedia/",
       "tests": [
-        "scripts/validate_docs_sync.py",
-        "tests/unit/test_validate_docs_sync.py"
+        "scripts/validate_repository_hygiene.py",
+        "tests/unit/test_validate_repository_hygiene.py"
       ],
       "frontend_surface": null,
       "output_artifact": null,
       "docs": [
-        "docs/wiki/encyclopedia/",
-        "docs/encyclopedia/"
+        "docs/wiki/encyclopedia/"
       ],
       "changelog": "CHANGELOG.md",
-      "cleanup_decision": "Treat docs/encyclopedia as a synced mirror until it is generated or removed."
+      "cleanup_decision": "The redundant docs/encyclopedia mirror and its drift validator were removed."
     },
     {
       "id": "claim.governance.debt_matrix_portable",
@@ -78,7 +77,7 @@
       "status": "complete",
       "owner": "scripts/generate_debt_matrix.py",
       "tests": [
-        "scripts/validate_debt_matrix.py",
+        "scripts/generate_debt_matrix.py",
         "tests/unit/test_debt_matrix.py"
       ],
       "frontend_surface": null,
@@ -93,7 +92,7 @@
     {
       "id": "claim.assets.tracked_static_assets_validated",
       "claim": "Tracked concrete frontend image references exist and are non-empty, while only intentional marker files may be zero bytes.",
-      "source": "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md",
+      "source": "STATUS.md",
       "product_area": "frontend",
       "status": "complete",
       "owner": "scripts/validate_assets.py",
@@ -104,7 +103,6 @@
       "frontend_surface": "frontend/manifest.json and frontend/assets/",
       "output_artifact": null,
       "docs": [
-        "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md",
         "STATUS.md"
       ],
       "changelog": "CHANGELOG.md",
@@ -135,7 +133,7 @@
     {
       "id": "claim.outputs.artifact_manifest_complete",
       "claim": "Every public output is covered by artifact_manifest.json and validated before Pages deployment.",
-      "source": "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md",
+      "source": "STATUS.md",
       "product_area": "outputs",
       "status": "complete",
       "owner": "scripts/validate_pages_artifact.py",
@@ -164,7 +162,7 @@
     {
       "id": "claim.protocols.complete_matrix",
       "claim": "Every schema-recognized protocol is inventoried with parser, export, alias/internal status, frontend-display, and known limitation metadata.",
-      "source": "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md",
+      "source": "STATUS.md",
       "product_area": "protocols",
       "status": "complete",
       "owner": "docs/protocol_matrix.json",
@@ -187,13 +185,13 @@
     {
       "id": "claim.frontend.ipfs_failover",
       "claim": "The frontend provides proven IPFS/failover behavior when GitHub Pages is blocked.",
-      "source": "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md",
+      "source": "STATUS.md",
       "product_area": "frontend",
       "status": "complete",
       "owner": "frontend/assets/js/failover.js",
       "tests": [
         "tests/unit/test_frontend_failover.py",
-        "scripts/run_test_profile.py production-smoke"
+        "npm run test:frontend:no-network"
       ],
       "frontend_surface": "frontend/failover behavior",
       "output_artifact": null,
@@ -237,7 +235,7 @@
       "frontend_surface": null,
       "output_artifact": null,
       "docs": [
-        "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md"
+        "STATUS.md"
       ],
       "changelog": "CHANGELOG.md",
       "cleanup_decision": "Data artifacts must have 30 day retention across standard and retest workflows."
@@ -245,7 +243,7 @@
     {
       "id": "claim.governance.capability_registry_contract",
       "claim": "Stable capability claims are tracked in a capability registry and must have implementation, complete claim-ledger proof, tests, docs, limitations, and cleanup decisions.",
-      "source": "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md",
+      "source": "STATUS.md",
       "product_area": "governance",
       "status": "complete",
       "owner": "docs/capability_registry.json",
@@ -261,8 +259,7 @@
       "docs": [
         "docs/capability_registry.json",
         "docs/core_compatibility_report.json",
-        "STATUS.md",
-        "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md"
+        "STATUS.md"
       ],
       "changelog": "CHANGELOG.md",
       "cleanup_decision": "Keep stable capabilities machine-validated; downgrade or remove stale capability claims instead of preserving backward-compatible overclaims."
@@ -270,7 +267,7 @@
     {
       "id": "claim.governance.module_ownership_contract",
       "claim": "Major modules and removed-module replacements are mapped in a validated ownership contract, and stale removed-module imports fail CI.",
-      "source": "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md",
+      "source": "STATUS.md",
       "product_area": "governance",
       "status": "complete",
       "owner": "docs/module_ownership.json",
@@ -285,8 +282,7 @@
         "docs/module_ownership.json",
         "docs/MODULE_OWNERSHIP.md",
         "AGENTS.md",
-        "STATUS.md",
-        "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md"
+        "STATUS.md"
       ],
       "changelog": "CHANGELOG.md",
       "cleanup_decision": "Keep removed-module paths absent and fail validation when stale imports, duplicate ownership boundaries, or legacy module locations reappear."
@@ -294,7 +290,7 @@
     {
       "id": "claim.outputs.native_client_check_report",
       "claim": "Optional native Sing-box and Clash client checks produce structured evidence reports that are archived with pipeline evidence without polluting public output artifacts.",
-      "source": "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md",
+      "source": "STATUS.md",
       "product_area": "outputs",
       "status": "complete",
       "owner": "scripts/validate_pages_artifact.py",
@@ -307,12 +303,10 @@
       "output_artifact": "pipeline-evidence/native_client_check_report.json",
       "docs": [
         "docs/core_compatibility_report.json",
-        "STATUS.md",
-        "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md"
+        "STATUS.md"
       ],
       "changelog": "CHANGELOG.md",
       "cleanup_decision": "Keep native checks optional and evidence-only until pinned zero-budget binaries are available; native reports remain pipeline-evidence artifacts outside public output_matrix artifacts."
     }
   ]
 }
-

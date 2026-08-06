@@ -1,0 +1,4643 @@
+{
+  "$schema": "https://cyclonedx.org/schema/bom-1.6.schema.json",
+  "bomFormat": "CycloneDX",
+  "components": [
+    {
+      "bom-ref": "pkg:cargo/libc@0.2",
+      "name": "libc",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "cargo"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/rust/ss_checker/Cargo.toml"
+        }
+      ],
+      "purl": "pkg:cargo/libc@0.2",
+      "scope": "required",
+      "type": "library",
+      "version": "0.2"
+    },
+    {
+      "bom-ref": "pkg:golang/berty.tech/go-libtor@1.0.385",
+      "name": "berty.tech/go-libtor",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/berty.tech/go-libtor@1.0.385",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.0.385"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/ajg/form@1.5.1",
+      "name": "github.com/ajg/form",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/ajg/form@1.5.1",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.5.1"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/andybalholm/brotli@1.0.6",
+      "name": "github.com/andybalholm/brotli",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/andybalholm/brotli@1.0.6",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.0.6"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/caddyserver/certmagic@0.20.0",
+      "name": "github.com/caddyserver/certmagic",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/caddyserver/certmagic@0.20.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.20.0"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/cloudflare/circl@1.3.7",
+      "name": "github.com/cloudflare/circl",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/cloudflare/circl@1.3.7",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.3.7"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/cretz/bine@0.2.0",
+      "name": "github.com/cretz/bine",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/cretz/bine@0.2.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.2.0"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/fsnotify/fsnotify@1.7.0",
+      "name": "github.com/fsnotify/fsnotify",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/fsnotify/fsnotify@1.7.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.7.0"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/gaukas/godicttls@0.0.4",
+      "name": "github.com/gaukas/godicttls",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/gaukas/godicttls@0.0.4",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.0.4"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/go-chi/chi/v5@5.0.12",
+      "name": "github.com/go-chi/chi/v5",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/go-chi/chi/v5@5.0.12",
+      "scope": "optional",
+      "type": "library",
+      "version": "5.0.12"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/go-chi/cors@1.2.1",
+      "name": "github.com/go-chi/cors",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/go-chi/cors@1.2.1",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.2.1"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/go-chi/render@1.0.3",
+      "name": "github.com/go-chi/render",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/go-chi/render@1.0.3",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.0.3"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/go-ole/go-ole@1.3.0",
+      "name": "github.com/go-ole/go-ole",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/go-ole/go-ole@1.3.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.3.0"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/go-task/slim-sprig@0.0.0-20230315185526-52ccab3ef572",
+      "name": "github.com/go-task/slim-sprig",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/go-task/slim-sprig@0.0.0-20230315185526-52ccab3ef572",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.0.0-20230315185526-52ccab3ef572"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/gobwas/httphead@0.1.0",
+      "name": "github.com/gobwas/httphead",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/gobwas/httphead@0.1.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.1.0"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/gobwas/pool@0.2.1",
+      "name": "github.com/gobwas/pool",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/gobwas/pool@0.2.1",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.2.1"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/gofrs/uuid/v5@5.1.0",
+      "name": "github.com/gofrs/uuid/v5",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/gofrs/uuid/v5@5.1.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "5.1.0"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/google/btree@1.1.2",
+      "name": "github.com/google/btree",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/google/btree@1.1.2",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.1.2"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/google/pprof@0.0.0-20231101202521-4ca4178f5c7a",
+      "name": "github.com/google/pprof",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/google/pprof@0.0.0-20231101202521-4ca4178f5c7a",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.0.0-20231101202521-4ca4178f5c7a"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/hashicorp/yamux@0.1.1",
+      "name": "github.com/hashicorp/yamux",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/hashicorp/yamux@0.1.1",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.1.1"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/insomniacslk/dhcp@0.0.0-20231206064809-8c70d406f6d2",
+      "name": "github.com/insomniacslk/dhcp",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/insomniacslk/dhcp@0.0.0-20231206064809-8c70d406f6d2",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.0.0-20231206064809-8c70d406f6d2"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/josharian/native@1.1.0",
+      "name": "github.com/josharian/native",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/josharian/native@1.1.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.1.0"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/klauspost/compress@1.17.4",
+      "name": "github.com/klauspost/compress",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/klauspost/compress@1.17.4",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.17.4"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/klauspost/cpuid/v2@2.2.5",
+      "name": "github.com/klauspost/cpuid/v2",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/klauspost/cpuid/v2@2.2.5",
+      "scope": "optional",
+      "type": "library",
+      "version": "2.2.5"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/libdns/alidns@1.0.3",
+      "name": "github.com/libdns/alidns",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/libdns/alidns@1.0.3",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.0.3"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/libdns/cloudflare@0.1.1",
+      "name": "github.com/libdns/cloudflare",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/libdns/cloudflare@0.1.1",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.1.1"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/libdns/libdns@0.2.2",
+      "name": "github.com/libdns/libdns",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/libdns/libdns@0.2.2",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.2.2"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/logrusorgru/aurora@2.0.3+incompatible",
+      "name": "github.com/logrusorgru/aurora",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/logrusorgru/aurora@2.0.3+incompatible",
+      "scope": "optional",
+      "type": "library",
+      "version": "2.0.3+incompatible"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/mholt/acmez@1.2.0",
+      "name": "github.com/mholt/acmez",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/mholt/acmez@1.2.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.2.0"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/miekg/dns@1.1.59",
+      "name": "github.com/miekg/dns",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/miekg/dns@1.1.59",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.1.59"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/onsi/ginkgo/v2@2.9.7",
+      "name": "github.com/onsi/ginkgo/v2",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/onsi/ginkgo/v2@2.9.7",
+      "scope": "optional",
+      "type": "library",
+      "version": "2.9.7"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/ooni/go-libtor@1.1.8",
+      "name": "github.com/ooni/go-libtor",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/ooni/go-libtor@1.1.8",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.1.8"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/oschwald/maxminddb-golang@1.12.0",
+      "name": "github.com/oschwald/maxminddb-golang",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/oschwald/maxminddb-golang@1.12.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.12.0"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/pierrec/lz4/v4@4.1.14",
+      "name": "github.com/pierrec/lz4/v4",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/pierrec/lz4/v4@4.1.14",
+      "scope": "optional",
+      "type": "library",
+      "version": "4.1.14"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/quic-go/qpack@0.4.0",
+      "name": "github.com/quic-go/qpack",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/quic-go/qpack@0.4.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.4.0"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/quic-go/qtls-go1-20@0.4.1",
+      "name": "github.com/quic-go/qtls-go1-20",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/quic-go/qtls-go1-20@0.4.1",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.4.1"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/sagernet/bbolt@0.0.0-20231014093535-ea5cb2fe9f0a",
+      "name": "github.com/sagernet/bbolt",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/sagernet/bbolt@0.0.0-20231014093535-ea5cb2fe9f0a",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.0.0-20231014093535-ea5cb2fe9f0a"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/sagernet/cloudflare-tls@0.0.0-20231208171750-a4483c1b7cd1",
+      "name": "github.com/sagernet/cloudflare-tls",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/sagernet/cloudflare-tls@0.0.0-20231208171750-a4483c1b7cd1",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.0.0-20231208171750-a4483c1b7cd1"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/sagernet/gvisor@0.0.0-20231209105102-8d27a30e436e",
+      "name": "github.com/sagernet/gvisor",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/sagernet/gvisor@0.0.0-20231209105102-8d27a30e436e",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.0.0-20231209105102-8d27a30e436e"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/sagernet/netlink@0.0.0-20220905062125-8043b4a9aa97",
+      "name": "github.com/sagernet/netlink",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/sagernet/netlink@0.0.0-20220905062125-8043b4a9aa97",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.0.0-20220905062125-8043b4a9aa97"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/sagernet/quic-go@0.40.1",
+      "name": "github.com/sagernet/quic-go",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/sagernet/quic-go@0.40.1",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.40.1"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/sagernet/reality@0.0.0-20230406110435-ee17307e7691",
+      "name": "github.com/sagernet/reality",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/sagernet/reality@0.0.0-20230406110435-ee17307e7691",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.0.0-20230406110435-ee17307e7691"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/sagernet/sing@0.3.8",
+      "name": "github.com/sagernet/sing",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/sagernet/sing@0.3.8",
+      "scope": "required",
+      "type": "library",
+      "version": "0.3.8"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/sagernet/sing-box@1.8.14",
+      "name": "github.com/sagernet/sing-box",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/sagernet/sing-box@1.8.14",
+      "scope": "required",
+      "type": "library",
+      "version": "1.8.14"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/sagernet/sing-dns@0.1.14",
+      "name": "github.com/sagernet/sing-dns",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/sagernet/sing-dns@0.1.14",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.1.14"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/sagernet/sing-mux@0.2.0",
+      "name": "github.com/sagernet/sing-mux",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/sagernet/sing-mux@0.2.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.2.0"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/sagernet/sing-quic@0.1.15",
+      "name": "github.com/sagernet/sing-quic",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/sagernet/sing-quic@0.1.15",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.1.15"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/sagernet/sing-shadowsocks@0.2.6",
+      "name": "github.com/sagernet/sing-shadowsocks",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/sagernet/sing-shadowsocks@0.2.6",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.2.6"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/sagernet/sing-shadowsocks2@0.2.0",
+      "name": "github.com/sagernet/sing-shadowsocks2",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/sagernet/sing-shadowsocks2@0.2.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.2.0"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/sagernet/sing-shadowtls@0.1.4",
+      "name": "github.com/sagernet/sing-shadowtls",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/sagernet/sing-shadowtls@0.1.4",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.1.4"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/sagernet/sing-tun@0.2.7",
+      "name": "github.com/sagernet/sing-tun",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/sagernet/sing-tun@0.2.7",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.2.7"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/sagernet/sing-vmess@0.1.8",
+      "name": "github.com/sagernet/sing-vmess",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/sagernet/sing-vmess@0.1.8",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.1.8"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/sagernet/smux@0.0.0-20231208180855-7041f6ea79e7",
+      "name": "github.com/sagernet/smux",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/sagernet/smux@0.0.0-20231208180855-7041f6ea79e7",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.0.0-20231208180855-7041f6ea79e7"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/sagernet/tfo-go@0.0.0-20231209031829-7b5343ac1dc6",
+      "name": "github.com/sagernet/tfo-go",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/sagernet/tfo-go@0.0.0-20231209031829-7b5343ac1dc6",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.0.0-20231209031829-7b5343ac1dc6"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/sagernet/utls@1.5.4",
+      "name": "github.com/sagernet/utls",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/sagernet/utls@1.5.4",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.5.4"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/sagernet/wireguard-go@0.0.0-20231215174105-89dec3b2f3e8",
+      "name": "github.com/sagernet/wireguard-go",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/sagernet/wireguard-go@0.0.0-20231215174105-89dec3b2f3e8",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.0.0-20231215174105-89dec3b2f3e8"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/sagernet/ws@0.0.0-20231204124109-acfe8907c854",
+      "name": "github.com/sagernet/ws",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/sagernet/ws@0.0.0-20231204124109-acfe8907c854",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.0.0-20231204124109-acfe8907c854"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/u-root/uio@0.0.0-20230220225925-ffce2a382923",
+      "name": "github.com/u-root/uio",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/u-root/uio@0.0.0-20230220225925-ffce2a382923",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.0.0-20230220225925-ffce2a382923"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/vishvananda/netns@0.0.0-20211101163701-50045581ed74",
+      "name": "github.com/vishvananda/netns",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/vishvananda/netns@0.0.0-20211101163701-50045581ed74",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.0.0-20211101163701-50045581ed74"
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/zeebo/blake3@0.2.3",
+      "name": "github.com/zeebo/blake3",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/github.com/zeebo/blake3@0.2.3",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.2.3"
+    },
+    {
+      "bom-ref": "pkg:golang/go.uber.org/multierr@1.11.0",
+      "name": "go.uber.org/multierr",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/go.uber.org/multierr@1.11.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.11.0"
+    },
+    {
+      "bom-ref": "pkg:golang/go.uber.org/zap@1.27.0",
+      "name": "go.uber.org/zap",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/go.uber.org/zap@1.27.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.27.0"
+    },
+    {
+      "bom-ref": "pkg:golang/go4.org/netipx@0.0.0-20231129151722-fdeea329fbba",
+      "name": "go4.org/netipx",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/go4.org/netipx@0.0.0-20231129151722-fdeea329fbba",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.0.0-20231129151722-fdeea329fbba"
+    },
+    {
+      "bom-ref": "pkg:golang/golang.org/x/crypto@0.45.0",
+      "name": "golang.org/x/crypto",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/golang.org/x/crypto@0.45.0",
+      "scope": "required",
+      "type": "library",
+      "version": "0.45.0"
+    },
+    {
+      "bom-ref": "pkg:golang/golang.org/x/exp@0.0.0-20240416160154-fe59bbe5cc7f",
+      "name": "golang.org/x/exp",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/golang.org/x/exp@0.0.0-20240416160154-fe59bbe5cc7f",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.0.0-20240416160154-fe59bbe5cc7f"
+    },
+    {
+      "bom-ref": "pkg:golang/golang.org/x/mod@0.29.0",
+      "name": "golang.org/x/mod",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/golang.org/x/mod@0.29.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.29.0"
+    },
+    {
+      "bom-ref": "pkg:golang/golang.org/x/net@0.47.0",
+      "name": "golang.org/x/net",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/golang.org/x/net@0.47.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.47.0"
+    },
+    {
+      "bom-ref": "pkg:golang/golang.org/x/sync@0.18.0",
+      "name": "golang.org/x/sync",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/golang.org/x/sync@0.18.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.18.0"
+    },
+    {
+      "bom-ref": "pkg:golang/golang.org/x/sys@0.38.0",
+      "name": "golang.org/x/sys",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/golang.org/x/sys@0.38.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.38.0"
+    },
+    {
+      "bom-ref": "pkg:golang/golang.org/x/text@0.31.0",
+      "name": "golang.org/x/text",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/golang.org/x/text@0.31.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.31.0"
+    },
+    {
+      "bom-ref": "pkg:golang/golang.org/x/time@0.5.0",
+      "name": "golang.org/x/time",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/golang.org/x/time@0.5.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.5.0"
+    },
+    {
+      "bom-ref": "pkg:golang/golang.org/x/tools@0.38.0",
+      "name": "golang.org/x/tools",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/golang.org/x/tools@0.38.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.38.0"
+    },
+    {
+      "bom-ref": "pkg:golang/google.golang.org/genproto/googleapis/rpc@0.0.0-20240227224415-6ceb2ff114de",
+      "name": "google.golang.org/genproto/googleapis/rpc",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/google.golang.org/genproto/googleapis/rpc@0.0.0-20240227224415-6ceb2ff114de",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.0.0-20240227224415-6ceb2ff114de"
+    },
+    {
+      "bom-ref": "pkg:golang/google.golang.org/grpc@1.63.2",
+      "name": "google.golang.org/grpc",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/google.golang.org/grpc@1.63.2",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.63.2"
+    },
+    {
+      "bom-ref": "pkg:golang/google.golang.org/protobuf@1.33.0",
+      "name": "google.golang.org/protobuf",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/google.golang.org/protobuf@1.33.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.33.0"
+    },
+    {
+      "bom-ref": "pkg:golang/lukechampine.com/blake3@1.2.1",
+      "name": "lukechampine.com/blake3",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "go"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "src/go/tester/go.mod"
+        }
+      ],
+      "purl": "pkg:golang/lukechampine.com/blake3@1.2.1",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.2.1"
+    },
+    {
+      "bom-ref": "pkg:npm/@emnapi/core@1.11.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "@emnapi/core",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "optional"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/@emnapi/core@1.11.1",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.11.1"
+    },
+    {
+      "bom-ref": "pkg:npm/@emnapi/runtime@1.11.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "@emnapi/runtime",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "optional"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/@emnapi/runtime@1.11.1",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.11.1"
+    },
+    {
+      "bom-ref": "pkg:npm/@emnapi/wasi-threads@1.2.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "@emnapi/wasi-threads",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "optional"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/@emnapi/wasi-threads@1.2.2",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.2.2"
+    },
+    {
+      "bom-ref": "pkg:npm/@napi-rs/wasm-runtime@1.1.6",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "@napi-rs/wasm-runtime",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "optional"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/@napi-rs/wasm-runtime@1.1.6",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.1.6"
+    },
+    {
+      "bom-ref": "pkg:npm/@oxc-project/types@0.139.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "@oxc-project/types",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/@oxc-project/types@0.139.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.139.0"
+    },
+    {
+      "bom-ref": "pkg:npm/@rolldown/binding-android-arm64@1.1.5",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "@rolldown/binding-android-arm64",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "optional"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/@rolldown/binding-android-arm64@1.1.5",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.1.5"
+    },
+    {
+      "bom-ref": "pkg:npm/@rolldown/binding-darwin-arm64@1.1.5",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "@rolldown/binding-darwin-arm64",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "optional"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/@rolldown/binding-darwin-arm64@1.1.5",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.1.5"
+    },
+    {
+      "bom-ref": "pkg:npm/@rolldown/binding-darwin-x64@1.1.5",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "@rolldown/binding-darwin-x64",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "optional"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/@rolldown/binding-darwin-x64@1.1.5",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.1.5"
+    },
+    {
+      "bom-ref": "pkg:npm/@rolldown/binding-freebsd-x64@1.1.5",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "@rolldown/binding-freebsd-x64",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "optional"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/@rolldown/binding-freebsd-x64@1.1.5",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.1.5"
+    },
+    {
+      "bom-ref": "pkg:npm/@rolldown/binding-linux-arm-gnueabihf@1.1.5",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "@rolldown/binding-linux-arm-gnueabihf",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "optional"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/@rolldown/binding-linux-arm-gnueabihf@1.1.5",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.1.5"
+    },
+    {
+      "bom-ref": "pkg:npm/@rolldown/binding-linux-arm64-gnu@1.1.5",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "@rolldown/binding-linux-arm64-gnu",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "optional"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/@rolldown/binding-linux-arm64-gnu@1.1.5",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.1.5"
+    },
+    {
+      "bom-ref": "pkg:npm/@rolldown/binding-linux-arm64-musl@1.1.5",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "@rolldown/binding-linux-arm64-musl",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "optional"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/@rolldown/binding-linux-arm64-musl@1.1.5",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.1.5"
+    },
+    {
+      "bom-ref": "pkg:npm/@rolldown/binding-linux-ppc64-gnu@1.1.5",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "@rolldown/binding-linux-ppc64-gnu",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "optional"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/@rolldown/binding-linux-ppc64-gnu@1.1.5",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.1.5"
+    },
+    {
+      "bom-ref": "pkg:npm/@rolldown/binding-linux-s390x-gnu@1.1.5",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "@rolldown/binding-linux-s390x-gnu",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "optional"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/@rolldown/binding-linux-s390x-gnu@1.1.5",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.1.5"
+    },
+    {
+      "bom-ref": "pkg:npm/@rolldown/binding-linux-x64-gnu@1.1.5",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "@rolldown/binding-linux-x64-gnu",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "optional"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/@rolldown/binding-linux-x64-gnu@1.1.5",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.1.5"
+    },
+    {
+      "bom-ref": "pkg:npm/@rolldown/binding-linux-x64-musl@1.1.5",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "@rolldown/binding-linux-x64-musl",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "optional"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/@rolldown/binding-linux-x64-musl@1.1.5",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.1.5"
+    },
+    {
+      "bom-ref": "pkg:npm/@rolldown/binding-openharmony-arm64@1.1.5",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "@rolldown/binding-openharmony-arm64",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "optional"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/@rolldown/binding-openharmony-arm64@1.1.5",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.1.5"
+    },
+    {
+      "bom-ref": "pkg:npm/@rolldown/binding-wasm32-wasi@1.1.5",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "@rolldown/binding-wasm32-wasi",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "optional"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/@rolldown/binding-wasm32-wasi@1.1.5",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.1.5"
+    },
+    {
+      "bom-ref": "pkg:npm/@rolldown/binding-win32-arm64-msvc@1.1.5",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "@rolldown/binding-win32-arm64-msvc",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "optional"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/@rolldown/binding-win32-arm64-msvc@1.1.5",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.1.5"
+    },
+    {
+      "bom-ref": "pkg:npm/@rolldown/binding-win32-x64-msvc@1.1.5",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "@rolldown/binding-win32-x64-msvc",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "optional"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/@rolldown/binding-win32-x64-msvc@1.1.5",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.1.5"
+    },
+    {
+      "bom-ref": "pkg:npm/@rolldown/pluginutils@1.0.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "@rolldown/pluginutils",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/@rolldown/pluginutils@1.0.1",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.0.1"
+    },
+    {
+      "bom-ref": "pkg:npm/@tybys/wasm-util@0.10.3",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "@tybys/wasm-util",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "optional"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/@tybys/wasm-util@0.10.3",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.10.3"
+    },
+    {
+      "bom-ref": "pkg:npm/detect-libc@2.1.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "detect-libc",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/detect-libc@2.1.2",
+      "scope": "optional",
+      "type": "library",
+      "version": "2.1.2"
+    },
+    {
+      "bom-ref": "pkg:npm/fdir@6.5.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "fdir",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/fdir@6.5.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "6.5.0"
+    },
+    {
+      "bom-ref": "pkg:npm/fsevents@2.3.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "fsevents",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "optional"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/fsevents@2.3.2",
+      "scope": "optional",
+      "type": "library",
+      "version": "2.3.2"
+    },
+    {
+      "bom-ref": "pkg:npm/lightningcss@1.32.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "name": "lightningcss",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/lightningcss@1.32.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.32.0"
+    },
+    {
+      "bom-ref": "pkg:npm/lightningcss-android-arm64@1.32.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "name": "lightningcss-android-arm64",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "optional"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/lightningcss-android-arm64@1.32.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.32.0"
+    },
+    {
+      "bom-ref": "pkg:npm/lightningcss-darwin-arm64@1.32.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "name": "lightningcss-darwin-arm64",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "optional"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/lightningcss-darwin-arm64@1.32.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.32.0"
+    },
+    {
+      "bom-ref": "pkg:npm/lightningcss-darwin-x64@1.32.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "name": "lightningcss-darwin-x64",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "optional"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/lightningcss-darwin-x64@1.32.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.32.0"
+    },
+    {
+      "bom-ref": "pkg:npm/lightningcss-freebsd-x64@1.32.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "name": "lightningcss-freebsd-x64",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "optional"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/lightningcss-freebsd-x64@1.32.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.32.0"
+    },
+    {
+      "bom-ref": "pkg:npm/lightningcss-linux-arm-gnueabihf@1.32.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "name": "lightningcss-linux-arm-gnueabihf",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "optional"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/lightningcss-linux-arm-gnueabihf@1.32.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.32.0"
+    },
+    {
+      "bom-ref": "pkg:npm/lightningcss-linux-arm64-gnu@1.32.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "name": "lightningcss-linux-arm64-gnu",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "optional"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/lightningcss-linux-arm64-gnu@1.32.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.32.0"
+    },
+    {
+      "bom-ref": "pkg:npm/lightningcss-linux-arm64-musl@1.32.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "name": "lightningcss-linux-arm64-musl",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "optional"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/lightningcss-linux-arm64-musl@1.32.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.32.0"
+    },
+    {
+      "bom-ref": "pkg:npm/lightningcss-linux-x64-gnu@1.32.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "name": "lightningcss-linux-x64-gnu",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "optional"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/lightningcss-linux-x64-gnu@1.32.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.32.0"
+    },
+    {
+      "bom-ref": "pkg:npm/lightningcss-linux-x64-musl@1.32.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "name": "lightningcss-linux-x64-musl",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "optional"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/lightningcss-linux-x64-musl@1.32.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.32.0"
+    },
+    {
+      "bom-ref": "pkg:npm/lightningcss-win32-arm64-msvc@1.32.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "name": "lightningcss-win32-arm64-msvc",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "optional"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/lightningcss-win32-arm64-msvc@1.32.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.32.0"
+    },
+    {
+      "bom-ref": "pkg:npm/lightningcss-win32-x64-msvc@1.32.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "name": "lightningcss-win32-x64-msvc",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "optional"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/lightningcss-win32-x64-msvc@1.32.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.32.0"
+    },
+    {
+      "bom-ref": "pkg:npm/nanoid@3.3.16",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "nanoid",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/nanoid@3.3.16",
+      "scope": "optional",
+      "type": "library",
+      "version": "3.3.16"
+    },
+    {
+      "bom-ref": "pkg:npm/picocolors@1.1.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ],
+      "name": "picocolors",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/picocolors@1.1.1",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.1.1"
+    },
+    {
+      "bom-ref": "pkg:npm/picomatch@4.0.5",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "picomatch",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/picomatch@4.0.5",
+      "scope": "optional",
+      "type": "library",
+      "version": "4.0.5"
+    },
+    {
+      "bom-ref": "pkg:npm/playwright@1.62.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "playwright",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/playwright@1.62.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.62.0"
+    },
+    {
+      "bom-ref": "pkg:npm/playwright-core@1.62.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "playwright-core",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/playwright-core@1.62.0",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.62.0"
+    },
+    {
+      "bom-ref": "pkg:npm/postcss@8.5.23",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "postcss",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/postcss@8.5.23",
+      "scope": "optional",
+      "type": "library",
+      "version": "8.5.23"
+    },
+    {
+      "bom-ref": "pkg:npm/rolldown@1.1.5",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "rolldown",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/rolldown@1.1.5",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.1.5"
+    },
+    {
+      "bom-ref": "pkg:npm/source-map-js@1.2.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "name": "source-map-js",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/source-map-js@1.2.1",
+      "scope": "optional",
+      "type": "library",
+      "version": "1.2.1"
+    },
+    {
+      "bom-ref": "pkg:npm/tinyglobby@0.2.17",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "tinyglobby",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/tinyglobby@0.2.17",
+      "scope": "optional",
+      "type": "library",
+      "version": "0.2.17"
+    },
+    {
+      "bom-ref": "pkg:npm/tslib@2.8.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "0BSD"
+          }
+        }
+      ],
+      "name": "tslib",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "optional"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/tslib@2.8.1",
+      "scope": "optional",
+      "type": "library",
+      "version": "2.8.1"
+    },
+    {
+      "bom-ref": "pkg:npm/vite@2.3.3",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "vite",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "optional"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/vite@2.3.3",
+      "scope": "optional",
+      "type": "library",
+      "version": "2.3.3"
+    },
+    {
+      "bom-ref": "pkg:npm/vite@8.1.5",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "vite",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "development"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "package-lock.json"
+        }
+      ],
+      "purl": "pkg:npm/vite@8.1.5",
+      "scope": "optional",
+      "type": "library",
+      "version": "8.1.5"
+    },
+    {
+      "bom-ref": "pkg:pypi/aiodns@3.6.1",
+      "name": "aiodns",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/aiodns@3.6.1",
+      "scope": "required",
+      "type": "library",
+      "version": "3.6.1"
+    },
+    {
+      "bom-ref": "pkg:pypi/aiofiles@25.1.0",
+      "name": "aiofiles",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/aiofiles@25.1.0",
+      "scope": "required",
+      "type": "library",
+      "version": "25.1.0"
+    },
+    {
+      "bom-ref": "pkg:pypi/aiohappyeyeballs@2.7.1",
+      "name": "aiohappyeyeballs",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/aiohappyeyeballs@2.7.1",
+      "scope": "required",
+      "type": "library",
+      "version": "2.7.1"
+    },
+    {
+      "bom-ref": "pkg:pypi/aiohttp@3.14.1",
+      "name": "aiohttp",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/aiohttp@3.14.1",
+      "scope": "required",
+      "type": "library",
+      "version": "3.14.1"
+    },
+    {
+      "bom-ref": "pkg:pypi/aiohttp_socks@0.11.0",
+      "name": "aiohttp_socks",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/aiohttp_socks@0.11.0",
+      "scope": "required",
+      "type": "library",
+      "version": "0.11.0"
+    },
+    {
+      "bom-ref": "pkg:pypi/aiosignal@1.4.0",
+      "name": "aiosignal",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/aiosignal@1.4.0",
+      "scope": "required",
+      "type": "library",
+      "version": "1.4.0"
+    },
+    {
+      "bom-ref": "pkg:pypi/anyio@4.12.0",
+      "name": "anyio",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/anyio@4.12.0",
+      "scope": "required",
+      "type": "library",
+      "version": "4.12.0"
+    },
+    {
+      "bom-ref": "pkg:pypi/async-timeout@5.0.1",
+      "name": "async-timeout",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/async-timeout@5.0.1",
+      "scope": "required",
+      "type": "library",
+      "version": "5.0.1"
+    },
+    {
+      "bom-ref": "pkg:pypi/attrs@25.4.0",
+      "name": "attrs",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/attrs@25.4.0",
+      "scope": "required",
+      "type": "library",
+      "version": "25.4.0"
+    },
+    {
+      "bom-ref": "pkg:pypi/cachetools@7.1.4",
+      "name": "cachetools",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/cachetools@7.1.4",
+      "scope": "required",
+      "type": "library",
+      "version": "7.1.4"
+    },
+    {
+      "bom-ref": "pkg:pypi/certifi@2025.11.12",
+      "name": "certifi",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/certifi@2025.11.12",
+      "scope": "required",
+      "type": "library",
+      "version": "2025.11.12"
+    },
+    {
+      "bom-ref": "pkg:pypi/charset-normalizer@3.4.4",
+      "name": "charset-normalizer",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/charset-normalizer@3.4.4",
+      "scope": "required",
+      "type": "library",
+      "version": "3.4.4"
+    },
+    {
+      "bom-ref": "pkg:pypi/click@8.3.3",
+      "name": "click",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/click@8.3.3",
+      "scope": "required",
+      "type": "library",
+      "version": "8.3.3"
+    },
+    {
+      "bom-ref": "pkg:pypi/cryptography@49.0.0",
+      "name": "cryptography",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/cryptography@49.0.0",
+      "scope": "required",
+      "type": "library",
+      "version": "49.0.0"
+    },
+    {
+      "bom-ref": "pkg:pypi/defusedxml@0.7.1",
+      "name": "defusedxml",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/defusedxml@0.7.1",
+      "scope": "required",
+      "type": "library",
+      "version": "0.7.1"
+    },
+    {
+      "bom-ref": "pkg:pypi/exceptiongroup@1.3.1",
+      "name": "exceptiongroup",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/exceptiongroup@1.3.1",
+      "scope": "required",
+      "type": "library",
+      "version": "1.3.1"
+    },
+    {
+      "bom-ref": "pkg:pypi/fastapi@0.139.0",
+      "name": "fastapi",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/fastapi@0.139.0",
+      "scope": "required",
+      "type": "library",
+      "version": "0.139.0"
+    },
+    {
+      "bom-ref": "pkg:pypi/filelock@3.29.4",
+      "name": "filelock",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/filelock@3.29.4",
+      "scope": "required",
+      "type": "library",
+      "version": "3.29.4"
+    },
+    {
+      "bom-ref": "pkg:pypi/frozenlist@1.8.0",
+      "name": "frozenlist",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/frozenlist@1.8.0",
+      "scope": "required",
+      "type": "library",
+      "version": "1.8.0"
+    },
+    {
+      "bom-ref": "pkg:pypi/geographiclib@2.1",
+      "name": "geographiclib",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/geographiclib@2.1",
+      "scope": "required",
+      "type": "library",
+      "version": "2.1"
+    },
+    {
+      "bom-ref": "pkg:pypi/geoip2@5.2.0",
+      "name": "geoip2",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/geoip2@5.2.0",
+      "scope": "required",
+      "type": "library",
+      "version": "5.2.0"
+    },
+    {
+      "bom-ref": "pkg:pypi/geopy@2.4.1",
+      "name": "geopy",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/geopy@2.4.1",
+      "scope": "required",
+      "type": "library",
+      "version": "2.4.1"
+    },
+    {
+      "bom-ref": "pkg:pypi/h11@0.16.0",
+      "name": "h11",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/h11@0.16.0",
+      "scope": "required",
+      "type": "library",
+      "version": "0.16.0"
+    },
+    {
+      "bom-ref": "pkg:pypi/h2@4.3.0",
+      "name": "h2",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/h2@4.3.0",
+      "scope": "required",
+      "type": "library",
+      "version": "4.3.0"
+    },
+    {
+      "bom-ref": "pkg:pypi/hpack@4.2.0",
+      "name": "hpack",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/hpack@4.2.0",
+      "scope": "required",
+      "type": "library",
+      "version": "4.2.0"
+    },
+    {
+      "bom-ref": "pkg:pypi/httpcore@1.0.9",
+      "name": "httpcore",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/httpcore@1.0.9",
+      "scope": "required",
+      "type": "library",
+      "version": "1.0.9"
+    },
+    {
+      "bom-ref": "pkg:pypi/httptools@0.8.0",
+      "name": "httptools",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/httptools@0.8.0",
+      "scope": "required",
+      "type": "library",
+      "version": "0.8.0"
+    },
+    {
+      "bom-ref": "pkg:pypi/httpx@0.28.1",
+      "name": "httpx",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/httpx@0.28.1",
+      "scope": "required",
+      "type": "library",
+      "version": "0.28.1"
+    },
+    {
+      "bom-ref": "pkg:pypi/hyperframe@6.1.0",
+      "name": "hyperframe",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/hyperframe@6.1.0",
+      "scope": "required",
+      "type": "library",
+      "version": "6.1.0"
+    },
+    {
+      "bom-ref": "pkg:pypi/idna@3.15",
+      "name": "idna",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/idna@3.15",
+      "scope": "required",
+      "type": "library",
+      "version": "3.15"
+    },
+    {
+      "bom-ref": "pkg:pypi/limits@5.8.0",
+      "name": "limits",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/limits@5.8.0",
+      "scope": "required",
+      "type": "library",
+      "version": "5.8.0"
+    },
+    {
+      "bom-ref": "pkg:pypi/markdown-it-py@4.0.0",
+      "name": "markdown-it-py",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/markdown-it-py@4.0.0",
+      "scope": "required",
+      "type": "library",
+      "version": "4.0.0"
+    },
+    {
+      "bom-ref": "pkg:pypi/maxminddb@3.1.1",
+      "name": "maxminddb",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/maxminddb@3.1.1",
+      "scope": "required",
+      "type": "library",
+      "version": "3.1.1"
+    },
+    {
+      "bom-ref": "pkg:pypi/mdurl@0.1.2",
+      "name": "mdurl",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/mdurl@0.1.2",
+      "scope": "required",
+      "type": "library",
+      "version": "0.1.2"
+    },
+    {
+      "bom-ref": "pkg:pypi/msgpack@1.2.1",
+      "name": "msgpack",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/msgpack@1.2.1",
+      "scope": "required",
+      "type": "library",
+      "version": "1.2.1"
+    },
+    {
+      "bom-ref": "pkg:pypi/multidict@6.7.1",
+      "name": "multidict",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/multidict@6.7.1",
+      "scope": "required",
+      "type": "library",
+      "version": "6.7.1"
+    },
+    {
+      "bom-ref": "pkg:pypi/orjson@3.11.9",
+      "name": "orjson",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/orjson@3.11.9",
+      "scope": "required",
+      "type": "library",
+      "version": "3.11.9"
+    },
+    {
+      "bom-ref": "pkg:pypi/packaging@26.2",
+      "name": "packaging",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/packaging@26.2",
+      "scope": "required",
+      "type": "library",
+      "version": "26.2"
+    },
+    {
+      "bom-ref": "pkg:pypi/pathspec@1.1.1",
+      "name": "pathspec",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pathspec@1.1.1",
+      "scope": "required",
+      "type": "library",
+      "version": "1.1.1"
+    },
+    {
+      "bom-ref": "pkg:pypi/platformdirs@4.10.0",
+      "name": "platformdirs",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/platformdirs@4.10.0",
+      "scope": "required",
+      "type": "library",
+      "version": "4.10.0"
+    },
+    {
+      "bom-ref": "pkg:pypi/propcache@0.4.1",
+      "name": "propcache",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/propcache@0.4.1",
+      "scope": "required",
+      "type": "library",
+      "version": "0.4.1"
+    },
+    {
+      "bom-ref": "pkg:pypi/psutil@7.2.1",
+      "name": "psutil",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/psutil@7.2.1",
+      "scope": "required",
+      "type": "library",
+      "version": "7.2.1"
+    },
+    {
+      "bom-ref": "pkg:pypi/pycares@4.11.0",
+      "name": "pycares",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pycares@4.11.0",
+      "scope": "required",
+      "type": "library",
+      "version": "4.11.0"
+    },
+    {
+      "bom-ref": "pkg:pypi/pycparser@2.23",
+      "name": "pycparser",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pycparser@2.23",
+      "scope": "required",
+      "type": "library",
+      "version": "2.23"
+    },
+    {
+      "bom-ref": "pkg:pypi/pydantic@2.13.4",
+      "name": "pydantic",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pydantic@2.13.4",
+      "scope": "required",
+      "type": "library",
+      "version": "2.13.4"
+    },
+    {
+      "bom-ref": "pkg:pypi/pydantic-settings@2.14.2",
+      "name": "pydantic-settings",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pydantic-settings@2.14.2",
+      "scope": "required",
+      "type": "library",
+      "version": "2.14.2"
+    },
+    {
+      "bom-ref": "pkg:pypi/pydantic_core@2.46.4",
+      "name": "pydantic_core",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pydantic_core@2.46.4",
+      "scope": "required",
+      "type": "library",
+      "version": "2.46.4"
+    },
+    {
+      "bom-ref": "pkg:pypi/Pygments@2.20.0",
+      "name": "Pygments",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/Pygments@2.20.0",
+      "scope": "required",
+      "type": "library",
+      "version": "2.20.0"
+    },
+    {
+      "bom-ref": "pkg:pypi/pyparsing@3.3.2",
+      "name": "pyparsing",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pyparsing@3.3.2",
+      "scope": "required",
+      "type": "library",
+      "version": "3.3.2"
+    },
+    {
+      "bom-ref": "pkg:pypi/python-dotenv@1.2.2",
+      "name": "python-dotenv",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/python-dotenv@1.2.2",
+      "scope": "required",
+      "type": "library",
+      "version": "1.2.2"
+    },
+    {
+      "bom-ref": "pkg:pypi/python-slugify@8.0.4",
+      "name": "python-slugify",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/python-slugify@8.0.4",
+      "scope": "required",
+      "type": "library",
+      "version": "8.0.4"
+    },
+    {
+      "bom-ref": "pkg:pypi/python-socks@2.8.2",
+      "name": "python-socks",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/python-socks@2.8.2",
+      "scope": "required",
+      "type": "library",
+      "version": "2.8.2"
+    },
+    {
+      "bom-ref": "pkg:pypi/python-telegram-bot@22.5",
+      "name": "python-telegram-bot",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/python-telegram-bot@22.5",
+      "scope": "required",
+      "type": "library",
+      "version": "22.5"
+    },
+    {
+      "bom-ref": "pkg:pypi/PyYAML@6.0.3",
+      "name": "PyYAML",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/PyYAML@6.0.3",
+      "scope": "required",
+      "type": "library",
+      "version": "6.0.3"
+    },
+    {
+      "bom-ref": "pkg:pypi/requests@2.34.2",
+      "name": "requests",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/requests@2.34.2",
+      "scope": "required",
+      "type": "library",
+      "version": "2.34.2"
+    },
+    {
+      "bom-ref": "pkg:pypi/rich@14.2.0",
+      "name": "rich",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/rich@14.2.0",
+      "scope": "required",
+      "type": "library",
+      "version": "14.2.0"
+    },
+    {
+      "bom-ref": "pkg:pypi/singbox2proxy@0.2.7",
+      "name": "singbox2proxy",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/singbox2proxy@0.2.7",
+      "scope": "required",
+      "type": "library",
+      "version": "0.2.7"
+    },
+    {
+      "bom-ref": "pkg:pypi/slowapi@0.1.9",
+      "name": "slowapi",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/slowapi@0.1.9",
+      "scope": "required",
+      "type": "library",
+      "version": "0.1.9"
+    },
+    {
+      "bom-ref": "pkg:pypi/sniffio@1.3.1",
+      "name": "sniffio",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/sniffio@1.3.1",
+      "scope": "required",
+      "type": "library",
+      "version": "1.3.1"
+    },
+    {
+      "bom-ref": "pkg:pypi/starlette@1.3.1",
+      "name": "starlette",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/starlette@1.3.1",
+      "scope": "required",
+      "type": "library",
+      "version": "1.3.1"
+    },
+    {
+      "bom-ref": "pkg:pypi/text-unidecode@1.3",
+      "name": "text-unidecode",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/text-unidecode@1.3",
+      "scope": "required",
+      "type": "library",
+      "version": "1.3"
+    },
+    {
+      "bom-ref": "pkg:pypi/tomli@2.4.1",
+      "name": "tomli",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/tomli@2.4.1",
+      "scope": "required",
+      "type": "library",
+      "version": "2.4.1"
+    },
+    {
+      "bom-ref": "pkg:pypi/typing_extensions@4.16.0",
+      "name": "typing_extensions",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/typing_extensions@4.16.0",
+      "scope": "required",
+      "type": "library",
+      "version": "4.16.0"
+    },
+    {
+      "bom-ref": "pkg:pypi/urllib3@2.7.0",
+      "name": "urllib3",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/urllib3@2.7.0",
+      "scope": "required",
+      "type": "library",
+      "version": "2.7.0"
+    },
+    {
+      "bom-ref": "pkg:pypi/uvicorn@0.40.0",
+      "name": "uvicorn",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/uvicorn@0.40.0",
+      "scope": "required",
+      "type": "library",
+      "version": "0.40.0"
+    },
+    {
+      "bom-ref": "pkg:pypi/uvloop@0.22.1",
+      "name": "uvloop",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/uvloop@0.22.1",
+      "scope": "required",
+      "type": "library",
+      "version": "0.22.1"
+    },
+    {
+      "bom-ref": "pkg:pypi/watchfiles@1.2.0",
+      "name": "watchfiles",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/watchfiles@1.2.0",
+      "scope": "required",
+      "type": "library",
+      "version": "1.2.0"
+    },
+    {
+      "bom-ref": "pkg:pypi/websockets@16.0",
+      "name": "websockets",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/websockets@16.0",
+      "scope": "required",
+      "type": "library",
+      "version": "16.0"
+    },
+    {
+      "bom-ref": "pkg:pypi/yarl@1.24.2",
+      "name": "yarl",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/yarl@1.24.2",
+      "scope": "required",
+      "type": "library",
+      "version": "1.24.2"
+    }
+  ],
+  "metadata": {
+    "component": {
+      "licenses": [
+        {
+          "license": {
+            "id": "AGPL-3.0-or-later"
+          }
+        }
+      ],
+      "name": "ConfigStream",
+      "type": "application",
+      "version": "3.2.0"
+    },
+    "properties": [
+      {
+        "name": "configstream:generation-mode",
+        "value": "offline-manifest-derived"
+      },
+      {
+        "name": "configstream:license-confidence",
+        "value": "manifest-declared-only"
+      }
+    ]
+  },
+  "specVersion": "1.6",
+  "version": 1
+}

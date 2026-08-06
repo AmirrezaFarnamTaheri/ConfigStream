@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "tiers": ["stable", "beta", "experimental"],
+  "surfaces": [
+    {
+      "id": "python-core",
+      "tier": "stable",
+      "paths": ["src/configstream", "scripts/release_gate.py", "scripts/finalize_release.py"],
+      "required_release": true,
+      "verification": ["python scripts/verify_repository.py --profile release"]
+    },
+    {
+      "id": "go-native-tester",
+      "tier": "stable",
+      "paths": ["src/go/tester/main.go", "src/go/tester/scanner/scanner.go"],
+      "required_release": true,
+      "verification": ["cd src/go/tester && go test -race ./..."]
+    },
+    {
+      "id": "public-pages",
+      "tier": "stable",
+      "paths": ["frontend", ".github/workflows/deploy-pages.yml"],
+      "required_release": true,
+      "verification": ["npm run build", "npm run test:frontend:pages-artifact"]
+    },
+    {
+      "id": "http-demo-server",
+      "tier": "beta",
+      "paths": ["src/configstream/server", "render.yaml"],
+      "required_release": false,
+      "verification": ["pytest -q tests/unit/test_server_health_contract_static.py"]
+    },
+    {
+      "id": "browser-reachability-wasm",
+      "tier": "experimental",
+      "paths": ["src/go/tester/wasm_main.go", "frontend/assets/js/wasm_loader.js"],
+      "required_release": false,
+      "limitations": ["browser reachability only", "cannot perform native TCP or UDP proxy validation"],
+      "verification": ["GOOS=js GOARCH=wasm go test ./..."]
+    },
+    {
+      "id": "rust-ss-checker",
+      "tier": "experimental",
+      "paths": ["src/rust/ss_checker"],
+      "required_release": false,
+      "limitations": ["not part of the required publication path", "no production SLO or release gate"],
+      "verification": ["cd src/rust/ss_checker && cargo test --locked"]
+    }
+  ]
+}
