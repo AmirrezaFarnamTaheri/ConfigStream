@@ -20,7 +20,7 @@ jobs:
       id-token: write
       attestations: write
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 1
           persist-credentials: false
@@ -30,8 +30,8 @@ jobs:
           cache: pip
       - name: Install build dependencies
         run: |
-          python -m pip install -r requirements-dev.txt
-          python -m pip install -e . --no-deps
+          pip install -e ".[dev]"
+          pip install build
       - name: Verify Version Consistency
         run: python scripts/validate_versions.py
       - name: Validate capability registry
@@ -43,14 +43,14 @@ jobs:
       - name: Run tests
         run: pytest -q
       - name: Build source and wheel distributions
-        run: python -m build --no-isolation
+        run: python -m build
       - name: Upload Python distribution artifacts
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7
         with:
           name: python-dist
           path: dist/*
       - name: Attest Python distributions
-        uses: actions/attest-build-provenance@520d128f165991a6c774bcb264f323e3d70747f4 # v2.2.0
+        uses: actions/attest-build-provenance@c07444704da0babd85e546bc4553b5e43a85db9a # v2.2.0
         with:
           subject-path: dist/*
 
@@ -66,7 +66,7 @@ jobs:
       id-token: write
       attestations: write
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 1
           persist-credentials: false
@@ -76,8 +76,8 @@ jobs:
           cache: pip
       - name: Install native packaging dependencies
         run: |
-          python -m pip install -r requirements-dev.txt
-          python -m pip install . --no-deps
+          pip install .
+          pip install pyinstaller
       - name: Build single-file binary with PyInstaller
         run: |
           python - <<'PY'
@@ -135,13 +135,12 @@ jobs:
           if [[ "${{ runner.os }}" == "Windows" ]]; then
             mv dist/configstream.exe dist/ConfigStream-windows-x86_64.exe
           elif [[ "${{ runner.os }}" == "macOS" ]]; then
-            # DMG already produced with stable name.
             ls -l dist/ConfigStream-macos-universal.dmg
           else
             ls -l dist/ConfigStream-linux-x86_64.AppImage
           fi
       - name: Upload native artifacts
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7
         with:
           name: native-${{ matrix.os }}
           path: |
@@ -151,17 +150,17 @@ jobs:
           if-no-files-found: ignore
       - name: Attest Linux AppImage
         if: runner.os == 'Linux'
-        uses: actions/attest-build-provenance@520d128f165991a6c774bcb264f323e3d70747f4 # v2.2.0
+        uses: actions/attest-build-provenance@c07444704da0babd85e546bc4553b5e43a85db9a # v2.2.0
         with:
           subject-path: dist/ConfigStream-linux-x86_64.AppImage
       - name: Attest Windows binary
         if: runner.os == 'Windows'
-        uses: actions/attest-build-provenance@520d128f165991a6c774bcb264f323e3d70747f4 # v2.2.0
+        uses: actions/attest-build-provenance@c07444704da0babd85e546bc4553b5e43a85db9a # v2.2.0
         with:
           subject-path: dist/ConfigStream-windows-x86_64.exe
       - name: Attest macOS DMG
         if: runner.os == 'macOS'
-        uses: actions/attest-build-provenance@520d128f165991a6c774bcb264f323e3d70747f4 # v2.2.0
+        uses: actions/attest-build-provenance@c07444704da0babd85e546bc4553b5e43a85db9a # v2.2.0
         with:
           subject-path: dist/ConfigStream-macos-universal.dmg
 
@@ -173,12 +172,12 @@ jobs:
       id-token: write
     steps:
       - name: Download Python distribution artifacts
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@v8
         with:
           name: python-dist
           path: dist
       - name: Publish package distributions to PyPI
-        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
+        uses: pypa/gh-action-pypi-publish@ba38be9e461d3875417946c167d0b5f3d385a247 # v1.14.1
         with:
           skip-existing: true
 
@@ -189,7 +188,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+      - uses: actions/download-artifact@v8
         with:
           path: artifacts
       - name: Collect release files
