@@ -231,7 +231,6 @@ jobs:
           path: .
       - name: Run bounded shard and always write lineage
         if: matrix.enabled == true
-        shell: bash
         env:
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
           CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
