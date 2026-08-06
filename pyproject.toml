@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools==83.0.0", "wheel==0.47.0"]
+requires = ["setuptools>=70.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "configstream"
-version = "3.2.0"
+version = "3.1.0"
 description = "High-performance VPN configuration aggregator with smart scheduling"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -14,7 +14,7 @@ authors = [
 ]
 keywords = ["vpn", "v2ray", "clash", "sing-box", "proxy", "aggregator", "asyncio"]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Topic :: Internet :: Proxy Servers",
     "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
@@ -24,6 +24,7 @@ classifiers = [
 ]
 
 dependencies = [
+    "tenacity",
     "cachetools>=5.3.3",
     "httpx[http2]>=0.27.0",
     "h2>=4.1.0",
@@ -32,12 +33,15 @@ dependencies = [
     "aiohttp-socks>=0.8.0",
     "aiodns>=3.6.1",
     "pycares<5.0.0",
+    "aiohttp-proxy",
     "PyYAML>=6.0",
     "pydantic>=2.12.4",
     "pydantic-settings",
     "singbox2proxy~=0.2.4",
     "aiofiles>=23.2.0",
     "orjson>=3.9.0",
+    "nest-asyncio",
+    "wasmtime>=40.0.0",
     "slowapi>=0.1.9",
     "click>=8.3.3",
     "rich",
@@ -48,6 +52,7 @@ dependencies = [
     "fastapi>=0.109.0",
     "uvicorn[standard]>=0.27.0",
     "cryptography",
+    "beautifulsoup4",
 ]
 
 [project.optional-dependencies]
@@ -72,8 +77,6 @@ dev = [
     "types-jsonschema",
     "types-aiofiles",
     "types-orjson",
-    "beautifulsoup4",
-    "nest-asyncio",
     "bandit==1.8.6",
 ]
 
@@ -82,9 +85,6 @@ configstream = "configstream.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
-
-[tool.setuptools.package-data]
-configstream = ["data/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
