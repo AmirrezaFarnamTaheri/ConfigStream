@@ -32,7 +32,6 @@ LABEL org.opencontainers.image.version="3.2.0"
 # Install build/runtime dependencies. The production stage removes download
 # tools after the verified Vwarp binary and Python environment are installed.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    bash \
     curl \
     unzip \
     tini \
@@ -104,6 +103,9 @@ ENV ENABLE_DEPRECATED_WIREGUARD_OUTBOUND=true
 
 # CI target: includes Node because JavaScript GitHub Actions execute inside job containers.
 FROM app-base AS ci-runner
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends bash \
+    && rm -rf /var/lib/apt/lists/*
 COPY --from=node-runtime /usr/local/bin/node /usr/local/bin/node
 COPY --from=node-runtime /usr/local/include/node /usr/local/include/node
 COPY --from=node-runtime /usr/local/lib/node_modules /usr/local/lib/node_modules
