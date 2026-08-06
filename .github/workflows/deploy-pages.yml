@@ -35,18 +35,14 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@v7
         with:
           ref: main
           fetch-depth: 1
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
-      - name: Install rollback signature verifier
-        run: |
-          set -euo pipefail
-          python -m pip install --disable-pip-version-check --no-input cryptography==49.0.0
       - name: Initialise deployment evidence
         run: |
           set -euo pipefail
@@ -54,37 +50,6 @@ jobs:
           python scripts/resilient_stage.py context --output deploy-evidence/workflow_context.json
           echo "HAS_OUTPUT=false" >> "$GITHUB_ENV"
           echo "DEPLOY_READY=false" >> "$GITHUB_ENV"
-          echo "HAS_LKG=false" >> "$GITHUB_ENV"
-          echo "SMOKE_OK=false" >> "$GITHUB_ENV"
-      - name: Snapshot current verified Pages release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPOSITORY: ${{ github.repository }}
-          CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
-          PYTHONPATH: src
-        run: |
-          set -euo pipefail
-          rm -rf last-known-good
-          page_url="$(gh api "repos/${REPOSITORY}/pages" --jq .html_url 2>/dev/null || true)"
-          if [ -n "$page_url" ]; then
-            python scripts/resilient_stage.py run \
-              --name snapshot-last-known-good \
-              --report-dir deploy-evidence/stages \
-              --timeout 600 \
-              -- python scripts/snapshot_pages_release.py \
-                "$page_url" last-known-good \
-                --report-file deploy-evidence/last-known-good.json
-          else
-            python scripts/resilient_stage.py record \
-              --name snapshot-last-known-good \
-              --status skipped \
-              --report-dir deploy-evidence/stages \
-              --description "Repository has no resolvable current Pages URL"
-          fi
-          snapshot_status="$(python -c 'import json; from pathlib import Path; p=Path("deploy-evidence/stages/snapshot-last-known-good.json"); print(json.loads(p.read_text(encoding="utf-8"))["status"] if p.exists() else "skipped")')"
-          if [ "$snapshot_status" = success ]; then
-            echo "HAS_LKG=true" >> "$GITHUB_ENV"
-          fi
       - name: Locate and download exact canonical artifact
         id: locate
         env:
@@ -178,18 +143,15 @@ jobs:
         id: pages_artifact
         if: env.DEPLOY_READY == 'true'
         continue-on-error: true
-        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
+        uses: actions/upload-pages-artifact@v5
         with:
-          name: github-pages-candidate
           path: output
           retention-days: 30
       - name: Deploy to GitHub Pages
         id: deployment
         if: env.DEPLOY_READY == 'true' && steps.pages_artifact.outcome == 'success'
         continue-on-error: true
-        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5
-        with:
-          artifact_name: github-pages-candidate
+        uses: actions/deploy-pages@v5
       - name: Record Pages action outcomes
         if: always()
         env:
@@ -224,52 +186,6 @@ jobs:
               --status skipped \
               --report-dir deploy-evidence/stages \
               --description "Smoke validation skipped because Pages deployment did not succeed"
-          fi
-          smoke_status="$(python -c 'import json; from pathlib import Path; p=Path("deploy-evidence/stages/smoke-pages.json"); print(json.loads(p.read_text(encoding="utf-8"))["status"] if p.exists() else "skipped")')"
-          if [ "$smoke_status" = success ]; then
-            echo "SMOKE_OK=true" >> "$GITHUB_ENV"
-          fi
-      - name: Upload last-known-good rollback artifact
-        id: rollback_artifact
-        if: always() && env.HAS_LKG == 'true' && steps.deployment.outcome == 'success' && env.SMOKE_OK != 'true'
-        continue-on-error: true
-        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
-        with:
-          name: github-pages-last-known-good
-          path: last-known-good
-          retention-days: 30
-      - name: Restore last-known-good Pages release
-        id: rollback_deployment
-        if: always() && steps.rollback_artifact.outcome == 'success'
-        continue-on-error: true
-        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5
-        with:
-          artifact_name: github-pages-last-known-good
-      - name: Verify rollback restoration
-        if: always()
-        env:
-          ROLLBACK_UPLOAD_OUTCOME: ${{ steps.rollback_artifact.outcome }}
-          ROLLBACK_DEPLOY_OUTCOME: ${{ steps.rollback_deployment.outcome }}
-        run: |
-          set -euo pipefail
-          python scripts/resilient_stage.py record \
-            --name upload-rollback-artifact \
-            --status "${ROLLBACK_UPLOAD_OUTCOME:-skipped}" \
-            --report-dir deploy-evidence/stages
-          if [ "${ROLLBACK_DEPLOY_OUTCOME:-skipped}" = success ]; then
-            rollback_url="${{ steps.rollback_deployment.outputs.page_url }}"
-            python scripts/resilient_stage.py run \
-              --name verify-rollback \
-              --report-dir deploy-evidence/stages \
-              --timeout 600 \
-              -- python scripts/verify_pages_deployment.py \
-                "$rollback_url" --report-file deploy-evidence/rollback-smoke-report.json
-          else
-            python scripts/resilient_stage.py record \
-              --name verify-rollback \
-              --status "${ROLLBACK_DEPLOY_OUTCOME:-skipped}" \
-              --report-dir deploy-evidence/stages \
-              --description "Rollback was not required or could not be deployed"
           fi
       - name: Generate deployment evidence bundle
         if: always()
@@ -309,7 +225,7 @@ jobs:
             --output deploy-evidence/stage_summary.json
       - name: Upload deployment diagnostics
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7
         with:
           name: deploy-evidence-${{ github.run_id }}-${{ github.run_attempt }}
           path: deploy-evidence/
