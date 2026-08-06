@@ -32,6 +32,7 @@ LABEL org.opencontainers.image.version="3.2.0"
 # Install build/runtime dependencies. The production stage removes download
 # tools after the verified Vwarp binary and Python environment are installed.
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    bash \
     curl \
     unzip \
     tini \
