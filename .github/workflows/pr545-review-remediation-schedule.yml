@@ -48,8 +48,13 @@ jobs:
           lines = []
           for line in body.splitlines():
               lines.append(line[10:] if line.startswith("          ") else line)
+          script = "\n".join(lines) + "\n"
+          script = script.replace(
+              "new_text, count = pattern.subn(replacement, text)",
+              "new_text, count = pattern.subn(lambda _match: replacement, text)",
+          )
           Path("/tmp/apply-pr545-review-remediation.py").write_text(
-              "\n".join(lines) + "\n", encoding="utf-8"
+              script, encoding="utf-8"
           )
           PY
           python /tmp/apply-pr545-review-remediation.py
