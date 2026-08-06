@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths-ignore:
       - 'sources/runtime/**'
+  pull_request:
   schedule:
     - cron: "0 */4 * * *"
   workflow_dispatch:
@@ -30,17 +31,14 @@ jobs:
     name: Static and Unit Validation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           python-version: "3.11"
           cache: pip
-      - name: Install locked development environment
-        run: |
-          python -m pip install -r requirements-dev.txt
-          python -m pip install -e . --no-deps
+      - run: pip install -e .[dev]
       - name: Validate workflow resilience controls
         run: |
           set -euo pipefail
@@ -74,11 +72,11 @@ jobs:
     outputs:
       image: ${{ steps.image.outputs.value }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
-      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+      - uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -88,7 +86,6 @@ jobs:
       - uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           context: .
-          target: ci-runner
           push: true
           platforms: linux/amd64
           tags: ${{ steps.image.outputs.value }}
@@ -103,12 +100,12 @@ jobs:
     needs: [quality]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+      - uses: actions/setup-go@v7
         with:
-          go-version: '1.24.3'
+          go-version: '1.24'
           cache-dependency-path: src/go/tester/go.sum
       - run: |
           set -euo pipefail
@@ -116,7 +113,7 @@ jobs:
           sudo apt-get install -y binaryen
           chmod +x scripts/build_wasm.sh
           ./scripts/build_wasm.sh
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: frontend-wasm-${{ github.sha }}-${{ github.run_attempt }}
@@ -135,7 +132,7 @@ jobs:
       matrix: ${{ steps.matrix.outputs.value }}
       status: ${{ steps.matrix.outputs.status }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - id: matrix
@@ -190,7 +187,7 @@ jobs:
           PY
           echo "value=$(cat source-matrix.json)" >> "$GITHUB_OUTPUT"
           echo "status=$(cat matrix-status.txt)" >> "$GITHUB_OUTPUT"
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: source-matrix-${{ github.sha }}-${{ github.run_attempt }}
@@ -223,17 +220,18 @@ jobs:
       env:
         PYTHONPATH: /app/src
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@v7
         if: matrix.enabled == true
         with:
           persist-credentials: false
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+      - uses: actions/download-artifact@v8
         if: matrix.enabled == true
         with:
           name: source-matrix-${{ github.sha }}-${{ github.run_attempt }}
           path: .
       - name: Run bounded shard and always write lineage
         if: matrix.enabled == true
+        shell: bash
         env:
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
           CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
@@ -320,7 +318,7 @@ jobs:
             rc=125
           fi
           exit "$rc"
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@v7
         if: always() && matrix.enabled == true
         with:
           name: shard-${{ github.sha }}-${{ github.run_attempt }}-${{ matrix.batch }}-${{ matrix.part }}
@@ -340,7 +338,7 @@ jobs:
       contents: write
       id-token: write
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
@@ -351,7 +349,7 @@ jobs:
           python scripts/resilient_stage.py run \
             --name install-python-dependencies \
             --timeout 900 \
-            -- bash -lc 'python -m pip install -r requirements-dev.txt && python -m pip install -r requirements-publish.txt && python -m pip install -e . --no-deps'
+            -- python -m pip install -e .[dev] huggingface_hub
       - name: Capture workflow context
         run: |
           set -euo pipefail
@@ -367,7 +365,7 @@ jobs:
           python scripts/resilient_stage.py record --name shard-jobs --status "${{ needs.pipeline.result }}"
       - name: Download shard artifacts
         id: shard_download
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@v8
         continue-on-error: true
         with:
           pattern: shard-${{ github.sha }}-${{ github.run_attempt }}-*
@@ -375,7 +373,7 @@ jobs:
           merge-multiple: true
       - name: Download WASM artifact
         id: wasm_download
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@v8
         continue-on-error: true
         with:
           name: frontend-wasm-${{ github.sha }}-${{ github.run_attempt }}
@@ -416,7 +414,7 @@ jobs:
           python scripts/resilient_stage.py run --name aggregate-shard-health -- python scripts/aggregate_shard_health.py --parts "$SOURCE_SHARD_PARTS"
           python scripts/resilient_stage.py run --name dynamic-reshard -- python scripts/dynamic_reshard.py
       - name: Upload source reshard recommendation
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7
         if: always()
         continue-on-error: true
         with:
@@ -503,7 +501,7 @@ jobs:
           ready=$(python -c 'import json; print(str(json.load(open("pipeline-evidence/release_readiness.json", encoding="utf-8"))["publish_ready"]).lower())')
           echo "publish_ready=$ready" >> "$GITHUB_OUTPUT"
       - name: Upload complete diagnostic evidence
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7
         if: always()
         continue-on-error: true
         with:
@@ -512,7 +510,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 30
       - name: Upload diagnostic candidate
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7
         if: always()
         continue-on-error: true
         with:
@@ -522,7 +520,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 30
       - name: Upload canonical pipeline output
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7
         if: steps.readiness.outputs.publish_ready == 'true'
         with:
           name: pipeline-output
@@ -575,6 +573,7 @@ jobs:
           if [ -z "$GDRIVE_FOLDER_ID" ] || [ -z "$GDRIVE_SA_JSON" ]; then
             python scripts/resilient_stage.py record --name publish-gdrive --status skipped
           else
+            python scripts/resilient_stage.py run --name install-gdrive-client -- pip install google-api-python-client google-auth
             python scripts/resilient_stage.py run --name publish-gdrive -- python scripts/upload_gdrive.py --path output/ --folder-id "$GDRIVE_FOLDER_ID"
           fi
       - name: Publish GitHub Release independently
