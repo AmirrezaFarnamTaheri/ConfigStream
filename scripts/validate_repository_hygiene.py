@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-import subprocess
 
 FORBIDDEN_PATHS = (
     "MagicMock",
@@ -110,20 +109,38 @@ def _stale_top_level_review_docs(root: Path) -> list[str]:
     ]
 
 
-def _tracked_runtime_state(root: Path) -> list[str]:
-    """Return runtime-state paths that Git currently tracks under *root*."""
+def _git_dir(root: Path) -> Path | None:
+    """Resolve the Git metadata directory for a checkout or worktree."""
+    marker = root / ".git"
+    if marker.is_dir():
+        return marker
+    if not marker.is_file():
+        return None
     try:
-        result = subprocess.run(
-            ["git", "-C", str(root), "ls-files", "--", *RUNTIME_STATE_PATHS],
-            check=False,
-            capture_output=True,
-            text=True,
-        )
+        text = marker.read_text(encoding="utf-8").strip()
+    except OSError:
+        return None
+    prefix = "gitdir:"
+    if not text.lower().startswith(prefix):
+        return None
+    candidate = Path(text[len(prefix) :].strip())
+    if not candidate.is_absolute():
+        candidate = (root / candidate).resolve()
+    return candidate
+
+
+def _tracked_runtime_state(root: Path) -> list[str]:
+    """Return bounded runtime-state paths recorded in the Git index."""
+    git_dir = _git_dir(root)
+    if git_dir is None:
+        return []
+    try:
+        index_bytes = (git_dir / "index").read_bytes()
     except OSError:
         return []
-    if result.returncode != 0:
-        return []
-    return sorted(line.strip() for line in result.stdout.splitlines() if line.strip())
+    return sorted(
+        path for path in RUNTIME_STATE_PATHS if path.encode("utf-8") in index_bytes
+    )
 
 
 def validate(root: Path) -> list[str]:
