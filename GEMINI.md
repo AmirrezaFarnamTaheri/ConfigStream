@@ -28,12 +28,13 @@ The canonical pipeline implementation lives in `src/configstream/pipeline/`. All
 
 ## 6. Verification and Release Truth
 *   `docs/readiness.json` and generated `STATUS.md` remain `CONDITIONAL` until exact-head CI, sealed artifacts, and live Pages checks pass for the same commit.
+*   `docs/readiness.json` is the canonical release checkpoint; `STATUS.md` is its generated human-readable projection.
 *   Run `python scripts/verify_repository.py --profile full` before any release-readiness claim. Report unavailable checks separately.
 
 ## 7. Truth Hierarchy
 When status surfaces disagree, use this hierarchy:
-1.  `STATUS.md` (Current operational posture)
-2.  Machine-readable contracts (`docs/*.json`, `docs/DEBT_MATRIX.md`)
+1.  Canonical machine-readable contracts (`docs/readiness.json` for release posture and the other maintained `docs/*.json` contracts for their domains)
+2.  Generated `STATUS.md` (human-readable projection of release posture)
 3.  `AGENTS.md` (Contributor constraints)
 4.  `CHANGELOG.md` (Implementation history)
 5.  Historical point-in-time audit reports (provenance only; never current operational truth)
