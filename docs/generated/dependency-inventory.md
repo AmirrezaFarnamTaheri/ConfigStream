@@ -3,7 +3,7 @@
 Direct declarations from checked-in manifests; latest-version resolution is delegated to Dependabot and is not inferred offline.
 
 Ecosystems: **6**
-Direct declarations: **63**
+Direct declarations: **67**
 
 ## Dependabot coverage
 
@@ -21,6 +21,7 @@ Direct declarations: **63**
 
 | Group | Name | Constraint | Source |
 |---|---|---|---|
+| python | `tenacity` | `tenacity` | `pyproject.toml` |
 | python | `cachetools` | `cachetools>=5.3.3` | `pyproject.toml` |
 | python | `httpx` | `httpx[http2]>=0.27.0` | `pyproject.toml` |
 | python | `h2` | `h2>=4.1.0` | `pyproject.toml` |
@@ -29,12 +30,16 @@ Direct declarations: **63**
 | python | `aiohttp-socks` | `aiohttp-socks>=0.8.0` | `pyproject.toml` |
 | python | `aiodns` | `aiodns>=3.6.1` | `pyproject.toml` |
 | python | `pycares` | `pycares<5.0.0` | `pyproject.toml` |
+| python | `aiohttp-proxy` | `aiohttp-proxy` | `pyproject.toml` |
 | python | `PyYAML` | `PyYAML>=6.0` | `pyproject.toml` |
 | python | `pydantic` | `pydantic>=2.12.4` | `pyproject.toml` |
 | python | `pydantic-settings` | `pydantic-settings` | `pyproject.toml` |
+| python | `platformdirs` | `platformdirs>=4.0.0` | `pyproject.toml` |
 | python | `singbox2proxy` | `singbox2proxy~=0.2.4` | `pyproject.toml` |
 | python | `aiofiles` | `aiofiles>=23.2.0` | `pyproject.toml` |
 | python | `orjson` | `orjson>=3.9.0` | `pyproject.toml` |
+| python | `nest-asyncio` | `nest-asyncio` | `pyproject.toml` |
+| python | `wasmtime` | `wasmtime>=40.0.0` | `pyproject.toml` |
 | python | `slowapi` | `slowapi>=0.1.9` | `pyproject.toml` |
 | python | `click` | `click>=8.3.3` | `pyproject.toml` |
 | python | `rich` | `rich` | `pyproject.toml` |
@@ -45,6 +50,7 @@ Direct declarations: **63**
 | python | `fastapi` | `fastapi>=0.109.0` | `pyproject.toml` |
 | python | `uvicorn` | `uvicorn[standard]>=0.27.0` | `pyproject.toml` |
 | python | `cryptography` | `cryptography` | `pyproject.toml` |
+| python | `beautifulsoup4` | `beautifulsoup4` | `pyproject.toml` |
 | python | `playwright` | `playwright` | `pyproject.toml` |
 | python | `pytest` | `pytest>=8.0.0` | `pyproject.toml` |
 | python | `pytest-asyncio` | `pytest-asyncio>=0.23.0` | `pyproject.toml` |
@@ -65,8 +71,6 @@ Direct declarations: **63**
 | python | `types-jsonschema` | `types-jsonschema` | `pyproject.toml` |
 | python | `types-aiofiles` | `types-aiofiles` | `pyproject.toml` |
 | python | `types-orjson` | `types-orjson` | `pyproject.toml` |
-| python | `beautifulsoup4` | `beautifulsoup4` | `pyproject.toml` |
-| python | `nest-asyncio` | `nest-asyncio` | `pyproject.toml` |
 | python | `bandit` | `bandit==1.8.6` | `pyproject.toml` |
 | python | `huggingface-hub` | `==1.24.0` | `requirements-publish.txt` |
 | python | `google-api-python-client` | `==2.198.0` | `requirements-publish.txt` |
