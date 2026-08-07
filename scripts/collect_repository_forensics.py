@@ -6,6 +6,7 @@ import argparse
 import json
 import re
 from pathlib import Path
+from typing import TypedDict, cast
 
 SOURCE_METADATA = Path('config/source-snapshot.json')
 OUTPUT_JSON = Path('docs/generated/repository-forensics.json')
@@ -19,8 +20,34 @@ _PATTERNS = {
 _EXCLUDED = {'.git', '.venv', 'node_modules', 'frontend-dist', 'output', 'data', '__pycache__'}
 
 
-def _current_tree_findings(root: Path) -> list[dict[str, object]]:
-    findings: list[dict[str, object]] = []
+class SourceSnapshot(TypedDict):
+    archive_sha256: str
+    archive_entry_count: int
+
+
+class SecretFinding(TypedDict):
+    path: str
+    kind: str
+    match_count: int
+
+
+class SecretScan(TypedDict):
+    status: str
+    finding_count: int
+    findings: list[SecretFinding]
+    limitations: str
+
+
+class ForensicsReport(TypedDict):
+    schema_version: int
+    source: SourceSnapshot
+    remediation_checkout: dict[str, str | bool]
+    current_tree_secret_scan: SecretScan
+    unavailable_claims: dict[str, str]
+
+
+def _current_tree_findings(root: Path) -> list[SecretFinding]:
+    findings: list[SecretFinding] = []
     for path in sorted(root.rglob('*')):
         if not path.is_file() or any(part in _EXCLUDED for part in path.parts):
             continue
@@ -43,8 +70,11 @@ def _current_tree_findings(root: Path) -> list[dict[str, object]]:
     return findings
 
 
-def build(root: Path) -> dict[str, object]:
-    source = json.loads((root / SOURCE_METADATA).read_text(encoding='utf-8'))
+def build(root: Path) -> ForensicsReport:
+    source = cast(
+        SourceSnapshot,
+        json.loads((root / SOURCE_METADATA).read_text(encoding='utf-8')),
+    )
     current_findings = _current_tree_findings(root)
     return {
         'schema_version': 1,
@@ -70,7 +100,7 @@ def build(root: Path) -> dict[str, object]:
     }
 
 
-def _markdown(payload: dict[str, object]) -> str:
+def _markdown(payload: ForensicsReport) -> str:
     source = payload['source']
     scan = payload['current_tree_secret_scan']
     lines = [
