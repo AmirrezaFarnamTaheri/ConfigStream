@@ -24,12 +24,8 @@ from .interfaces import IFetcher
 
 logger = logging.getLogger(__name__)
 
-# Use AppSettings if available, otherwise default
-try:
-    MAX_RESPONSE_SIZE = AppSettings().MAX_RESPONSE_SIZE
-except Exception:
-    logging.getLogger(__name__).debug("Suppressed broad exception")
-    MAX_RESPONSE_SIZE = 10 * 1024 * 1024
+# Conservative module fallback; per-run settings remain authoritative.
+MAX_RESPONSE_SIZE = 10 * 1024 * 1024
 
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
@@ -187,14 +183,7 @@ async def fetch_from_source(
 
     breaker = None
     if breaker_manager:
-        try:
-            parsed = urlparse(source)
-            host = parsed.netloc
-            key = host
-        except Exception:
-            logging.getLogger(__name__).debug("Suppressed broad exception")
-            key = source
-
+        key = urlparse(source).netloc or source
         breaker = await breaker_manager.get_breaker(key)
 
         is_open = breaker.is_open()
