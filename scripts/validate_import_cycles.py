@@ -26,7 +26,7 @@ def build_graph(source_root: Path) -> dict[str, set[str]]:
     paths = sorted(source_root.rglob("*.py"))
     names = {path: module_name(path, source_parent) for path in paths}
     known = set(names.values())
-    graph = {name: set() for name in known}
+    graph: dict[str, set[str]] = {name: set() for name in known}
 
     for path, current in names.items():
         try:
