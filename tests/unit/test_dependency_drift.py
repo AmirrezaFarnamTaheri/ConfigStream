@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from scripts.check_dependency_drift import check_dependency_drift
+from scripts.check_dependency_drift import check_dependency_drift, check_publisher_pins
 
 
 def _write(path: Path, content: str) -> Path:
@@ -157,3 +157,36 @@ dependencies = ["httpx>=0.28.0"]
 
     assert any("setuptools" in error and "exact pin" in error for error in errors)
     assert any("wheel" in error and "must match" in error for error in errors)
+
+
+def test_publisher_lock_owns_versions_without_checker_duplication(tmp_path: Path) -> None:
+    path = _write(
+        tmp_path / "requirements-publish.txt",
+        """
+huggingface-hub==9.9.9
+google-api-python-client==8.8.8
+google-auth==7.7.7
+""".strip(),
+    )
+
+    assert check_publisher_pins(path) == []
+
+
+def test_publisher_lock_rejects_missing_unpinned_and_unreviewed_entries(
+    tmp_path: Path,
+) -> None:
+    path = _write(
+        tmp_path / "requirements-publish.txt",
+        """
+huggingface-hub==1.0.0
+google-auth>=2.0.0
+extra-sdk==3.0.0
+""".strip(),
+    )
+
+    errors = check_publisher_pins(path)
+
+    assert any("google-api-python-client" in error for error in errors)
+    assert any("google-auth" in error and "exact-pin" in error for error in errors)
+    assert any("unreviewed packages: extra-sdk" in error for error in errors)
+    assert any("non-exact dependency entries: google-auth>=2.0.0" in error for error in errors)
