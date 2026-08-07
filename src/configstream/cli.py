@@ -3,7 +3,6 @@ import sys
 import asyncio
 import logging
 import os
-import shutil
 import tarfile
 import tempfile
 from pathlib import Path
@@ -476,7 +475,6 @@ def generate_warp(count):
             console.print(f"\n[bold green]Config #{i + 1}:[/bold green]")
             console.print(f"Protocol: {p.protocol}")
             console.print(f"Details: {p.details}")
-            console.print(f"[dim]{p.config}[/dim]")
 
     coro = _gen()
     try:
