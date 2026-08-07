@@ -236,10 +236,12 @@ def _license_markdown(payload: dict[str, object]) -> str:
         "| Ecosystem | Package | Version | Scope | License evidence |",
         "|---|---|---|---|---|",
     ]
-    components = payload["components"]
-    assert isinstance(components, list)
+    components = payload.get("components")
+    if not isinstance(components, list):
+        raise TypeError("dependency license components must be a list")
     for item in components:
-        assert isinstance(item, dict)
+        if not isinstance(item, dict):
+            raise TypeError("dependency license component entries must be objects")
         licenses = item["licenses"]
         license_text = ", ".join(f"`{value}`" for value in licenses) if licenses else "unknown"
         lines.append(
