@@ -1,14 +1,18 @@
 /**
  * Utils Wrapper
- * Connects the split utility modules to the global window.api
+ * Connects the split utility modules to the global window.api.
  */
 
+const missingArtifactNetwork = async () => {
+  throw new Error('Verified artifact network API is unavailable');
+};
+
 window.api = {
-  fetchProxies: typeof fetchProxies !== 'undefined' ? fetchProxies : null,
-  fetchMetadata: typeof fetchMetadata !== 'undefined' ? fetchMetadata : null,
-  fetchStatistics: typeof fetchStatistics !== 'undefined' ? fetchStatistics : null,
-  fetchVerifiedArtifactJson: typeof fetchVerifiedArtifactJson !== 'undefined' ? fetchVerifiedArtifactJson : null,
-  requireVerifiedArtifact: typeof requireVerifiedArtifact !== 'undefined' ? requireVerifiedArtifact : null,
+  fetchProxies: typeof fetchProxies !== 'undefined' ? fetchProxies : missingArtifactNetwork,
+  fetchMetadata: typeof fetchMetadata !== 'undefined' ? fetchMetadata : missingArtifactNetwork,
+  fetchStatistics: typeof fetchStatistics !== 'undefined' ? fetchStatistics : missingArtifactNetwork,
+  fetchVerifiedArtifactJson: typeof fetchVerifiedArtifactJson !== 'undefined' ? fetchVerifiedArtifactJson : missingArtifactNetwork,
+  requireVerifiedArtifact: typeof requireVerifiedArtifact !== 'undefined' ? requireVerifiedArtifact : missingArtifactNetwork,
   clearCache: typeof clearCache !== 'undefined' ? clearCache : null,
   initMobileNav: typeof initMobileNav !== 'undefined' ? initMobileNav : null,
   initTheme: typeof initTheme !== 'undefined' ? initTheme : null,
