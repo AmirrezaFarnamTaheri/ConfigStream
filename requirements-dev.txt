@@ -60,7 +60,6 @@ pytokens==0.4.1
 # Build and packaging tools
 altgraph==0.17.5
 build==1.5.0
-packaging==26.2
 pyinstaller==6.21.0
 pyinstaller-hooks-contrib==2026.6
 pyproject-hooks==1.2.0
