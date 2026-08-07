@@ -6,16 +6,17 @@
 **Verdict:** CONDITIONAL
 **Release gate:** `external_verification_required`
 **Production ready:** No
-**Evaluated at:** 2026-08-01T01:30:00.508369+00:00
+**Evaluated at:** 2026-08-07T00:00:00Z
 
 ## Required Gates
 
 | Gate | Status | Evidence |
 |---|---|---|
 | `blocking_ci_green` | `unverified` | - |
+| `frontend_visual_regression` | `unavailable` | `tests/e2e/test_frontend_visual.py`<br>`A committed golden screenshot from a browser-capable exact-head run is still required before this gate can pass.` |
 | `historical_secret_exposure_investigated` | `operator_action_required` | - |
 | `live_pages_digest_and_smoke_verified` | `unverified` | - |
-| `local_release_contract` | `pending` | `Static verifier: 30 success, 0 failed, 0 unavailable.`<br>`Release-tail verifier: 6 success, 0 failed, 1 unavailable (frontend build tool not installed).`<br>`Changed/new regression surface is executed in bounded isolated processes; see finalization evidence bundle.` |
+| `local_release_contract` | `pending` | `scripts/verify_repository.py --profile static`<br>`scripts/verify_repository.py --profile release-tail`<br>`Exact-head validation evidence must be produced after the remediation changes land.` |
 | `sealed_pipeline_artifact_generated` | `unverified` | - |
 
 ## Release Invariant
