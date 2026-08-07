@@ -1,23 +1,51 @@
 /**
  * Network and Caching utilities
- * Integrates with CacheManager if available, otherwise falls back to LocalStorage
+ * Integrates with CacheManager if available, otherwise falls back to LocalStorage.
+ * Public artifact reads are fail-closed through ConfigStreamArtifactState.
  */
 
-// Centralized prefix
 const CACHE_PREFIX = 'configstream_cache_';
 
 function getCacheBust() {
   return `?cb=${Date.now()}`;
 }
 
+function isLocalArtifactContext() {
+  const hostname = String(window.location?.hostname || '').replace(/^\[|\]$/g, '').toLowerCase();
+  if (!hostname || hostname === 'localhost' || hostname.endsWith('.localhost') || hostname === '::1') {
+    return true;
+  }
+  const parts = hostname.split('.').map(Number);
+  return parts.length === 4 && parts.every(Number.isInteger) && parts[0] === 127;
+}
+
+async function requireVerifiedArtifact() {
+  const artifact = window.ConfigStreamArtifactState;
+  if (!artifact) {
+    if (isLocalArtifactContext()) return null;
+    throw new Error('Artifact verifier unavailable in public context');
+  }
+
+  const state = await (artifact.ready || artifact.verify());
+  if (!state || state.canDistribute !== true) {
+    if (isLocalArtifactContext()) return null;
+    throw new Error(state?.reason || 'Artifact verification failed');
+  }
+  return artifact;
+}
+
+async function fetchVerifiedArtifactJson(path) {
+  const artifact = await requireVerifiedArtifact();
+  if (!artifact) return null;
+  return artifact.fetchVerifiedJson(path);
+}
+
 async function getFromStorage(key) {
-  // Use CacheManager (IndexedDB) if available for better performance
   if (window.cacheManager && window.cacheManager.cacheAvailable) {
       const url = getUrlForKey(key);
       const cached = await window.cacheManager.getCachedData(url);
       if (!cached) return null;
 
-      // Respect CacheManager expiry semantics when IndexedDB is used
       const expiryMs = cached.expiry ?? window.cacheManager.getExpiryForUrl(url);
       if (window.cacheManager.isExpired(cached, expiryMs)) {
         return null;
@@ -26,7 +54,6 @@ async function getFromStorage(key) {
       return cached.data;
   }
 
-  // Fallback to LocalStorage
   try {
     const item = localStorage.getItem(CACHE_PREFIX + key);
     if (!item) return null;
@@ -44,14 +71,11 @@ async function getFromStorage(key) {
 }
 
 async function saveToStorage(key, data, expiryDuration) {
-  // Use CacheManager if available
   if (window.cacheManager && window.cacheManager.cacheAvailable) {
       const url = getUrlForKey(key);
-      // CacheManager handles expiry internally via its own config
       await window.cacheManager.cacheData(url, data);
       return;
   }
-  // Fallback
   try {
     const payload = {
       data: data,
@@ -67,7 +91,6 @@ function getUrlForKey(key) {
     const root = window.ROOT_PATH || '';
     if (key === 'metadata') return root + 'metadata.json';
     if (key === 'proxies') return root + 'proxies.json';
-    // [UNIFIED] statistics now points to metadata.json - single source of truth
     if (key === 'statistics') return root + 'metadata.json';
     return key;
 }
@@ -123,13 +146,14 @@ async function getStaleFromStorage(key) {
 }
 
 async function fetchMetadata() {
+  const verified = await fetchVerifiedArtifactJson('metadata.json');
+  if (verified !== null) return verified;
+
   const cached = await getFromStorage('metadata');
   if (cached) return cached;
 
   try {
     const root = window.ROOT_PATH || '';
-    // Prefer static file first as this is a static site by default
-    // API fallback removed or secondary as per Zero Budget model
     let url = `${root}metadata.json${getCacheBust()}`;
 
     try {
@@ -138,16 +162,14 @@ async function fetchMetadata() {
       await saveToStorage('metadata', data, 120000);
       return data;
     } catch (staticError) {
-      // Try API if static fails (e.g. running locally with backend server)
       url = `${root}api/stats${getCacheBust()}`;
       const response = await fetchWithRetry(url, 3, 1000);
       const data = await response.json();
-      await saveToStorage('metadata', data, 120000); // Default expiry if fallback
+      await saveToStorage('metadata', data, 120000);
       return data;
     }
   } catch (error) {
     console.error('❌ Failed to fetch metadata:', error);
-    // Return stale cache if available as last resort
     const stale = await getStaleFromStorage('metadata');
     if (stale) return stale;
     throw error;
@@ -175,6 +197,12 @@ function enrichProxyList(data, { fallback = false } = {}) {
 }
 
 async function fetchFallbackSnapshot() {
+  const verified = await fetchVerifiedArtifactJson('proxies.json');
+  if (verified !== null) {
+    if (!Array.isArray(verified)) throw new Error('Invalid verified proxy payload: expected array');
+    return enrichProxyList(verified, { fallback: true });
+  }
+
   const root = window.ROOT_PATH || '';
   const fallbackUrl = `${root}proxies.json${getCacheBust()}`;
   console.warn('⚠️ Falling back to tested proxy snapshot');
@@ -185,13 +213,18 @@ async function fetchFallbackSnapshot() {
 }
 
 async function fetchProxies() {
+  const verified = await fetchVerifiedArtifactJson('proxies.json');
+  if (verified !== null) {
+    if (!Array.isArray(verified)) throw new Error('Invalid verified proxy payload: expected array');
+    return enrichProxyList(verified);
+  }
+
   const cached = await getFromStorage('proxies');
   if (cached) return cached;
 
   let enrichedProxies;
   try {
     const root = window.ROOT_PATH || '';
-    // Prefer static file first (proxies.json)
     const url = `${root}proxies.json${getCacheBust()}`;
     const response = await fetchWithRetry(url, 2, 500);
     const data = await response.json();
@@ -202,7 +235,6 @@ async function fetchProxies() {
       enrichedProxies = await fetchFallbackSnapshot();
     }
   } catch (primaryError) {
-    // Try API fallback
     try {
         const root = window.ROOT_PATH || '';
         const url = `${root}api/proxies${getCacheBust()}`;
@@ -216,7 +248,6 @@ async function fetchProxies() {
           enrichedProxies = await fetchFallbackSnapshot();
         } catch (fallbackError) {
           console.error('❌ Fallback snapshot also failed:', fallbackError);
-          // Return stale cache if available
           const stale = await getStaleFromStorage('proxies');
           if (stale) return stale;
           throw primaryError;
@@ -228,7 +259,9 @@ async function fetchProxies() {
 }
 
 async function fetchStatistics() {
-  // [UNIFIED] Statistics now fetches from metadata.json - single source of truth
+  const verified = await fetchVerifiedArtifactJson('metadata.json');
+  if (verified !== null) return verified;
+
   const cached = await getFromStorage('statistics');
   if (cached) return cached;
 
