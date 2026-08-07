@@ -43,9 +43,30 @@ def test_guard_scopes_controls_and_verifies_each_distributed_file() -> None:
     assert "Copy blocked:" in common
 
 
+def test_public_data_fetches_are_forced_through_verified_bytes() -> None:
+    guard = (ROOT / "frontend/assets/js/artifact-state.js").read_text(encoding="utf-8")
+    network = (ROOT / "frontend/assets/js/utils/network.js").read_text(encoding="utf-8")
+    utils = (ROOT / "frontend/assets/js/utils.js").read_text(encoding="utf-8")
+    main = (ROOT / "frontend/assets/js/main.js").read_text(encoding="utf-8")
+
+    assert "const nativeFetch = global.fetch.bind(global)" in guard
+    assert "global.fetch = guardedFetch" in guard
+    assert "['api/proxies', 'proxies.json']" in guard
+    assert "['api/stats', 'metadata.json']" in guard
+    assert "Unsigned dynamic proxy diffs are disabled" in guard
+    assert "fetchVerifiedArtifactJson('metadata.json')" in network
+    assert "fetchVerifiedArtifactJson('proxies.json')" in network
+    assert "Artifact verifier unavailable in public context" in network
+    assert "missingArtifactNetwork" in utils
+    assert "window.api.requireVerifiedArtifact" in main
+    assert "return await window.api.fetchProxies()" in main
+    assert "window.api.fetchMetadata()" in main
+    assert "window.api.fetchStatistics()" in main
+
+
 def test_home_page_does_not_claim_auto_updating_before_verification() -> None:
     html = (ROOT / "frontend/index.html").read_text(encoding="utf-8")
     main = (ROOT / "frontend/assets/js/main.js").read_text(encoding="utf-8")
     assert "Release data is unavailable until" in html
     assert "let sourceCount = null" in main
-    assert "Artifact distribution is disabled" in main
+    assert "artifact verification succeeds" in main.lower()
