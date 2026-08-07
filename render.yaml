@@ -12,6 +12,8 @@ services:
     envVars:
       - key: CONFIGSTREAM_DEPLOYMENT_MODE
         value: ephemeral-demo
+      - key: CONFIGSTREAM_HOST
+        value: 0.0.0.0
       - key: OUTPUT_DIR
         value: /tmp/configstream-output
       - key: CONFIGSTREAM_HEALTHCHECK_HTTP
