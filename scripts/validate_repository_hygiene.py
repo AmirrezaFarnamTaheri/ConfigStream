@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import subprocess
 
 FORBIDDEN_PATHS = (
     "MagicMock",
@@ -34,6 +35,10 @@ FORBIDDEN_PATHS = (
     "scripts/generate_favicons.py",
     "scripts/security_audit.sh",
     "scripts/run_cycle.sh",
+)
+RUNTIME_STATE_PATHS = (
+    "data/test_cache.json",
+    "data/source_quality.db",
 )
 EXPECTED_BATCH_COUNT = 17
 FORBIDDEN_FONT_SUFFIXES = {".eot", ".otf", ".ttf", ".woff", ".woff2"}
@@ -105,6 +110,22 @@ def _stale_top_level_review_docs(root: Path) -> list[str]:
     ]
 
 
+def _tracked_runtime_state(root: Path) -> list[str]:
+    """Return runtime-state paths that Git currently tracks under *root*."""
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(root), "ls-files", "--", *RUNTIME_STATE_PATHS],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except OSError:
+        return []
+    if result.returncode != 0:
+        return []
+    return sorted(line.strip() for line in result.stdout.splitlines() if line.strip())
+
+
 def validate(root: Path) -> list[str]:
     root = Path(root)
     errors = [
@@ -128,6 +149,12 @@ def validate(root: Path) -> list[str]:
         errors.append(
             "point-in-time review artifacts must live under dated docs/audits directories: "
             + ", ".join(stale_docs)
+        )
+    tracked_runtime = _tracked_runtime_state(root)
+    if tracked_runtime:
+        errors.append(
+            "runtime state must remain ignored and untracked: "
+            + ", ".join(tracked_runtime)
         )
     return errors
 
