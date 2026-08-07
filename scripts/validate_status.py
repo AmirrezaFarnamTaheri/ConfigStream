@@ -4,9 +4,13 @@
 from __future__ import annotations
 
 import sys
-import tomllib
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+
+try:
+    import tomllib
+except ModuleNotFoundError:  # Python 3.10 compatibility
+    import tomli as tomllib
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
