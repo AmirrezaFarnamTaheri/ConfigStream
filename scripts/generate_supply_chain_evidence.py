@@ -6,10 +6,14 @@ from __future__ import annotations
 import argparse
 import json
 import re
-import tomllib
 from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import quote
+
+try:
+    import tomllib
+except ModuleNotFoundError:  # Python 3.10 compatibility
+    import tomli as tomllib
 
 _REQUIREMENT = re.compile(r"^([A-Za-z0-9_.-]+)==([^;\s]+)")
 _GO_REQUIREMENT = re.compile(r"^\s*([^\s()]+)\s+v([^\s]+)(?:\s+//\s+indirect)?\s*$")
