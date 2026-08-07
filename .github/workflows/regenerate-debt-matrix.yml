@@ -1,0 +1,70 @@
+name: Regenerate Debt Matrix Evidence
+
+on:
+  push:
+    branches:
+      - feat/post-audit-remediation-v3.1.0
+    paths:
+      - .github/workflows/regenerate-debt-matrix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+      - name: Regenerate and verify debt evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp docs/debt_matrix.json /tmp/debt-matrix-before.json
+          python scripts/generate_debt_matrix.py
+          python scripts/generate_debt_matrix.py --check
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          before = json.loads(Path('/tmp/debt-matrix-before.json').read_text(encoding='utf-8'))
+          after = json.loads(Path('docs/debt_matrix.json').read_text(encoding='utf-8'))
+          if before.get('summary') != after.get('summary'):
+              raise SystemExit('Debt summary changed unexpectedly during lint-only regeneration')
+
+          expected = {
+              ('src/configstream/cli.py', 249, 248),
+              ('src/configstream/security/rules.py', 95, 94),
+              ('src/configstream/security/rules.py', 180, 179),
+          }
+          changed = set()
+          before_entries = before.get('entries', [])
+          after_entries = after.get('entries', [])
+          if len(before_entries) != len(after_entries):
+              raise SystemExit('Debt entry count changed unexpectedly')
+          for old, new in zip(before_entries, after_entries):
+              old_rest = {k: v for k, v in old.items() if k != 'line'}
+              new_rest = {k: v for k, v in new.items() if k != 'line'}
+              if old_rest != new_rest:
+                  raise SystemExit(f'Debt entry semantics changed unexpectedly: {old!r} -> {new!r}')
+              if old.get('line') != new.get('line'):
+                  changed.add((str(old.get('path')), int(old.get('line')), int(new.get('line'))))
+          if changed != expected:
+              raise SystemExit(f'Unexpected debt location delta: {sorted(changed)!r}')
+          PY
+          changed_paths="$(git diff --name-only)"
+          if [ "$changed_paths" != $'docs/DEBT_MATRIX.md\ndocs/debt_matrix.json' ]; then
+            printf 'Unexpected generated paths:\n%s\n' "$changed_paths" >&2
+            exit 1
+          fi
+      - name: Commit regenerated evidence and remove helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/regenerate-debt-matrix.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/DEBT_MATRIX.md docs/debt_matrix.json .github/workflows/regenerate-debt-matrix.yml
+          git commit -m "chore: regenerate debt matrix evidence"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
