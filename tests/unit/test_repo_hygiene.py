@@ -31,12 +31,11 @@ def test_no_tracked_generated_artifacts() -> None:
         "invvest/",
         "Latest Outputs to investigate/",
         "output/",
-        "data/",
-        "src/data/",
         ".cocoindex_code/",
         ".codebase-memory/",
         "scratch_",
     )
+    runtime_state_prefixes = ("data/", "src/data/")
     forbidden_exact = (
         "all_pr_comments.txt",
         "all_tests_results.txt",
@@ -54,6 +53,7 @@ def test_no_tracked_generated_artifacts() -> None:
             f.startswith(p) or (p != "output/" and f"/{p}" in f)
             for p in forbidden_prefixes
         )
+        or any(f.startswith(p) for p in runtime_state_prefixes)
         or Path(f).name in forbidden_exact
     ]
 
