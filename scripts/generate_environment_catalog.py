@@ -123,7 +123,7 @@ def _direct_environment_references(paths: list[Path]) -> dict[str, set[str]]:
                     and owner.attr == "environ"
                 ):
                     name = _constant_string(node.slice)
-            if name:
+            if name and isinstance(node, (ast.Call, ast.Subscript)):
                 references.setdefault(name, set()).add(f"{path.as_posix()}:{node.lineno}")
     return references
 
