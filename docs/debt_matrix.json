@@ -568,7 +568,7 @@
     },
     {
       "path": "src/configstream/cli.py",
-      "line": 249,
+      "line": 248,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1520,7 +1520,7 @@
     },
     {
       "path": "src/configstream/security/rules.py",
-      "line": 95,
+      "line": 94,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1528,7 +1528,7 @@
     },
     {
       "path": "src/configstream/security/rules.py",
-      "line": 180,
+      "line": 179,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
