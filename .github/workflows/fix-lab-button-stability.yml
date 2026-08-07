@@ -1,0 +1,47 @@
+name: Fix Lab Button Stability
+
+on:
+  push:
+    branches:
+      - feat/post-audit-remediation-v3.1.0
+    paths:
+      - .github/workflows/fix-lab-button-stability.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+      - name: Patch unstable hover motion
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('frontend/lab.html')
+          text = path.read_text(encoding='utf-8')
+          old_transition = "            cursor: pointer; transition: all 0.2s;"
+          new_transition = "            cursor: pointer; transition: opacity 0.2s, box-shadow 0.2s, background-color 0.2s, border-color 0.2s;"
+          old_hover = "        .lab-btn-primary:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(var(--brand-primary-rgb), 0.3); }"
+          new_hover = "        .lab-btn-primary:hover { opacity: 0.9; box-shadow: 0 4px 12px rgba(var(--brand-primary-rgb), 0.3); }"
+          if text.count(old_transition) != 1:
+              raise SystemExit(f'expected one lab button transition, found {text.count(old_transition)}')
+          if text.count(old_hover) != 1:
+              raise SystemExit(f'expected one primary hover rule, found {text.count(old_hover)}')
+          text = text.replace(old_transition, new_transition).replace(old_hover, new_hover)
+          path.write_text(text, encoding='utf-8')
+          PY
+          git diff --check
+      - name: Commit fix
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add frontend/lab.html
+          git commit -m "fix(frontend): keep lab buttons stable on hover"
+          git push origin HEAD:feat/post-audit-remediation-v3.1.0
