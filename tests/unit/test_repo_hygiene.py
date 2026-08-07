@@ -24,13 +24,15 @@ def _tracked_files() -> list[str]:
 
 
 def test_no_tracked_generated_artifacts() -> None:
-    """Ensure generated artifact mirrors are not tracked by Git."""
+    """Ensure generated artifact mirrors and runtime state are not tracked by Git."""
     tracked = _tracked_files()
 
     forbidden_prefixes = (
         "invvest/",
         "Latest Outputs to investigate/",
         "output/",
+        "data/",
+        "src/data/",
         ".cocoindex_code/",
         ".codebase-memory/",
         "scratch_",
@@ -57,7 +59,7 @@ def test_no_tracked_generated_artifacts() -> None:
 
     assert (
         not forbidden_tracked
-    ), f"Generated artifacts or local review state are being tracked: {forbidden_tracked[:10]}..."
+    ), f"Generated artifacts, runtime state, or local review state are being tracked: {forbidden_tracked[:10]}..."
 
 
 def test_no_tokens_in_tracked_sources() -> None:
@@ -66,15 +68,9 @@ def test_no_tokens_in_tracked_sources() -> None:
     if not tracked:
         return
 
-    # Pattern for likely subscription tokens: ?token=..., /sub/..., etc.
-    # We look for high-entropy strings or common token parameter names
     token_pattern = re.compile(r"(?:token|key|secret|auth|sub|id)=[a-zA-Z0-9]{16,}")
 
-    source_files = [
-        f
-        for f in tracked
-        if f.startswith("sources/")
-    ]
+    source_files = [f for f in tracked if f.startswith("sources/")]
 
     leaks = []
     for rel_path in source_files:
