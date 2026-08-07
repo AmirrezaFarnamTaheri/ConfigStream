@@ -1,0 +1,105 @@
+name: Refresh Generated Evidence
+
+on:
+  push:
+    branches:
+      - feat/post-audit-remediation-v3.1.0
+    paths:
+      - .github/workflows/refresh-generated-evidence.yml
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - name: Install reviewed development dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install -r requirements-dev.txt
+          python -m pip install -e . --no-deps
+      - name: Remove helper before evidence generation
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/refresh-generated-evidence.yml
+      - name: Regenerate deterministic evidence
+        run: |
+          set -euo pipefail
+          python scripts/generate_environment_catalog.py
+          python scripts/generate_supply_chain_evidence.py
+          python scripts/generate_dependency_inventory.py
+          python scripts/generate_source_admission.py
+          python scripts/generate_debt_matrix.py
+          python scripts/generate_triage_report.py
+          python scripts/collect_repository_forensics.py
+      - name: Validate regenerated evidence
+        run: |
+          set -euo pipefail
+          python scripts/generate_environment_catalog.py --check
+          python scripts/generate_supply_chain_evidence.py --check
+          python scripts/generate_dependency_inventory.py --check
+          python scripts/generate_source_admission.py --check
+          python scripts/generate_debt_matrix.py --check
+          python scripts/generate_triage_report.py --check
+          python scripts/collect_repository_forensics.py --check
+          git diff --check
+      - name: Enforce generated-file allowlist
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import subprocess
+          allowed = {
+              '.github/workflows/refresh-generated-evidence.yml',
+              'docs/generated/environment-variables.json',
+              'docs/generated/environment-variables.md',
+              'docs/generated/sbom.cdx.json',
+              'docs/generated/dependency-licenses.json',
+              'docs/generated/dependency-licenses.md',
+              'docs/generated/dependency-inventory.json',
+              'docs/generated/dependency-inventory.md',
+              'src/configstream/data/source-admission.json',
+              'docs/DEBT_MATRIX.md',
+              'docs/debt_matrix.json',
+              'TRIAGE_REPORT.md',
+              'docs/generated/repository-forensics.json',
+              'docs/generated/repository-forensics.md',
+          }
+          changed = set(subprocess.check_output(['git', 'diff', '--name-only', 'HEAD'], text=True).splitlines())
+          unexpected = sorted(changed - allowed)
+          if unexpected:
+              raise SystemExit('unexpected generated-evidence changes: ' + ', '.join(unexpected))
+          print('Changed evidence files:', ', '.join(sorted(changed)))
+          PY
+      - name: Commit refreshed evidence and helper removal
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A -- \
+            .github/workflows/refresh-generated-evidence.yml \
+            docs/generated/environment-variables.json \
+            docs/generated/environment-variables.md \
+            docs/generated/sbom.cdx.json \
+            docs/generated/dependency-licenses.json \
+            docs/generated/dependency-licenses.md \
+            docs/generated/dependency-inventory.json \
+            docs/generated/dependency-inventory.md \
+            src/configstream/data/source-admission.json \
+            docs/DEBT_MATRIX.md \
+            docs/debt_matrix.json \
+            TRIAGE_REPORT.md \
+            docs/generated/repository-forensics.json \
+            docs/generated/repository-forensics.md
+          git commit -m "chore: refresh deterministic repository evidence"
+          git push origin HEAD:feat/post-audit-remediation-v3.1.0
