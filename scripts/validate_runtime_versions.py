@@ -6,9 +6,13 @@ from __future__ import annotations
 import argparse
 import json
 import re
-import tomllib
 from pathlib import Path
 from typing import Any
+
+try:
+    import tomllib
+except ModuleNotFoundError:  # Python 3.10
+    import tomli as tomllib
 
 
 def _load_json(path: Path) -> dict[str, Any]:
