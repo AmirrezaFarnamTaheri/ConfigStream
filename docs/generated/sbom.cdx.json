@@ -3162,7 +3162,7 @@
       "version": "2.7.1"
     },
     {
-      "bom-ref": "pkg:pypi/aiohttp@3.14.1",
+      "bom-ref": "pkg:pypi/aiohttp@3.14.3",
       "name": "aiohttp",
       "properties": [
         {
@@ -3178,10 +3178,32 @@
           "value": "requirements-prod.txt"
         }
       ],
-      "purl": "pkg:pypi/aiohttp@3.14.1",
+      "purl": "pkg:pypi/aiohttp@3.14.3",
       "scope": "required",
       "type": "library",
-      "version": "3.14.1"
+      "version": "3.14.3"
+    },
+    {
+      "bom-ref": "pkg:pypi/aiohttp-proxy@0.1.2",
+      "name": "aiohttp-proxy",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/aiohttp-proxy@0.1.2",
+      "scope": "required",
+      "type": "library",
+      "version": "0.1.2"
     },
     {
       "bom-ref": "pkg:pypi/aiohttp_socks@0.11.0",
@@ -3294,6 +3316,28 @@
       "version": "25.4.0"
     },
     {
+      "bom-ref": "pkg:pypi/beautifulsoup4@4.14.3",
+      "name": "beautifulsoup4",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/beautifulsoup4@4.14.3",
+      "scope": "required",
+      "type": "library",
+      "version": "4.14.3"
+    },
+    {
       "bom-ref": "pkg:pypi/cachetools@7.1.4",
       "name": "cachetools",
       "properties": [
@@ -3382,7 +3426,7 @@
       "version": "8.3.3"
     },
     {
-      "bom-ref": "pkg:pypi/cryptography@49.0.0",
+      "bom-ref": "pkg:pypi/cryptography@50.0.0",
       "name": "cryptography",
       "properties": [
         {
@@ -3398,10 +3442,10 @@
           "value": "requirements-prod.txt"
         }
       ],
-      "purl": "pkg:pypi/cryptography@49.0.0",
+      "purl": "pkg:pypi/cryptography@50.0.0",
       "scope": "required",
       "type": "library",
-      "version": "49.0.0"
+      "version": "50.0.0"
     },
     {
       "bom-ref": "pkg:pypi/defusedxml@0.7.1",
@@ -3602,7 +3646,7 @@
       "version": "0.16.0"
     },
     {
-      "bom-ref": "pkg:pypi/h2@4.3.0",
+      "bom-ref": "pkg:pypi/h2@4.4.1",
       "name": "h2",
       "properties": [
         {
@@ -3618,10 +3662,10 @@
           "value": "requirements-prod.txt"
         }
       ],
-      "purl": "pkg:pypi/h2@4.3.0",
+      "purl": "pkg:pypi/h2@4.4.1",
       "scope": "required",
       "type": "library",
-      "version": "4.3.0"
+      "version": "4.4.1"
     },
     {
       "bom-ref": "pkg:pypi/hpack@4.2.0",
@@ -3888,6 +3932,28 @@
       "version": "6.7.1"
     },
     {
+      "bom-ref": "pkg:pypi/nest-asyncio@1.6.0",
+      "name": "nest-asyncio",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/nest-asyncio@1.6.0",
+      "scope": "required",
+      "type": "library",
+      "version": "1.6.0"
+    },
+    {
       "bom-ref": "pkg:pypi/orjson@3.11.9",
       "name": "orjson",
       "properties": [
@@ -3910,7 +3976,7 @@
       "version": "3.11.9"
     },
     {
-      "bom-ref": "pkg:pypi/packaging@26.2",
+      "bom-ref": "pkg:pypi/packaging@25.0",
       "name": "packaging",
       "properties": [
         {
@@ -3926,10 +3992,10 @@
           "value": "requirements-prod.txt"
         }
       ],
-      "purl": "pkg:pypi/packaging@26.2",
+      "purl": "pkg:pypi/packaging@25.0",
       "scope": "required",
       "type": "library",
-      "version": "26.2"
+      "version": "25.0"
     },
     {
       "bom-ref": "pkg:pypi/pathspec@1.1.1",
@@ -4394,6 +4460,28 @@
       "version": "1.3.1"
     },
     {
+      "bom-ref": "pkg:pypi/soupsieve@2.8.4",
+      "name": "soupsieve",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/soupsieve@2.8.4",
+      "scope": "required",
+      "type": "library",
+      "version": "2.8.4"
+    },
+    {
       "bom-ref": "pkg:pypi/starlette@1.3.1",
       "name": "starlette",
       "properties": [
@@ -4414,6 +4502,28 @@
       "scope": "required",
       "type": "library",
       "version": "1.3.1"
+    },
+    {
+      "bom-ref": "pkg:pypi/tenacity@9.1.4",
+      "name": "tenacity",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/tenacity@9.1.4",
+      "scope": "required",
+      "type": "library",
+      "version": "9.1.4"
     },
     {
       "bom-ref": "pkg:pypi/text-unidecode@1.3",
@@ -4546,6 +4656,28 @@
       "scope": "required",
       "type": "library",
       "version": "0.22.1"
+    },
+    {
+      "bom-ref": "pkg:pypi/wasmtime@45.0.0",
+      "name": "wasmtime",
+      "properties": [
+        {
+          "name": "configstream:ecosystem",
+          "value": "python"
+        },
+        {
+          "name": "configstream:dependency-scope",
+          "value": "required"
+        },
+        {
+          "name": "configstream:source-manifest",
+          "value": "requirements-prod.txt"
+        }
+      ],
+      "purl": "pkg:pypi/wasmtime@45.0.0",
+      "scope": "required",
+      "type": "library",
+      "version": "45.0.0"
     },
     {
       "bom-ref": "pkg:pypi/watchfiles@1.2.0",

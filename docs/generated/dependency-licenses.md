@@ -2,9 +2,9 @@
 
 Only licenses declared in checked-in package manifests/locks are reported. Unknown does not imply unlicensed.
 
-Components: **194**
+Components: **200**
 Manifest-declared licenses: **49**
-Unknown licenses requiring external resolution: **145**
+Unknown licenses requiring external resolution: **151**
 
 | Ecosystem | Package | Version | Scope | License evidence |
 |---|---|---|---|---|
@@ -136,17 +136,19 @@ Unknown licenses requiring external resolution: **145**
 | python | `aiodns` | `3.6.1` | required | unknown |
 | python | `aiofiles` | `25.1.0` | required | unknown |
 | python | `aiohappyeyeballs` | `2.7.1` | required | unknown |
-| python | `aiohttp` | `3.14.1` | required | unknown |
+| python | `aiohttp` | `3.14.3` | required | unknown |
+| python | `aiohttp-proxy` | `0.1.2` | required | unknown |
 | python | `aiohttp_socks` | `0.11.0` | required | unknown |
 | python | `aiosignal` | `1.4.0` | required | unknown |
 | python | `anyio` | `4.12.0` | required | unknown |
 | python | `async-timeout` | `5.0.1` | required | unknown |
 | python | `attrs` | `25.4.0` | required | unknown |
+| python | `beautifulsoup4` | `4.14.3` | required | unknown |
 | python | `cachetools` | `7.1.4` | required | unknown |
 | python | `certifi` | `2025.11.12` | required | unknown |
 | python | `charset-normalizer` | `3.4.4` | required | unknown |
 | python | `click` | `8.3.3` | required | unknown |
-| python | `cryptography` | `49.0.0` | required | unknown |
+| python | `cryptography` | `50.0.0` | required | unknown |
 | python | `defusedxml` | `0.7.1` | required | unknown |
 | python | `exceptiongroup` | `1.3.1` | required | unknown |
 | python | `fastapi` | `0.139.0` | required | unknown |
@@ -156,7 +158,7 @@ Unknown licenses requiring external resolution: **145**
 | python | `geoip2` | `5.2.0` | required | unknown |
 | python | `geopy` | `2.4.1` | required | unknown |
 | python | `h11` | `0.16.0` | required | unknown |
-| python | `h2` | `4.3.0` | required | unknown |
+| python | `h2` | `4.4.1` | required | unknown |
 | python | `hpack` | `4.2.0` | required | unknown |
 | python | `httpcore` | `1.0.9` | required | unknown |
 | python | `httptools` | `0.8.0` | required | unknown |
@@ -169,8 +171,9 @@ Unknown licenses requiring external resolution: **145**
 | python | `mdurl` | `0.1.2` | required | unknown |
 | python | `msgpack` | `1.2.1` | required | unknown |
 | python | `multidict` | `6.7.1` | required | unknown |
+| python | `nest-asyncio` | `1.6.0` | required | unknown |
 | python | `orjson` | `3.11.9` | required | unknown |
-| python | `packaging` | `26.2` | required | unknown |
+| python | `packaging` | `25.0` | required | unknown |
 | python | `pathspec` | `1.1.1` | required | unknown |
 | python | `platformdirs` | `4.10.0` | required | unknown |
 | python | `propcache` | `0.4.1` | required | unknown |
@@ -192,13 +195,16 @@ Unknown licenses requiring external resolution: **145**
 | python | `singbox2proxy` | `0.2.7` | required | unknown |
 | python | `slowapi` | `0.1.9` | required | unknown |
 | python | `sniffio` | `1.3.1` | required | unknown |
+| python | `soupsieve` | `2.8.4` | required | unknown |
 | python | `starlette` | `1.3.1` | required | unknown |
+| python | `tenacity` | `9.1.4` | required | unknown |
 | python | `text-unidecode` | `1.3` | required | unknown |
 | python | `tomli` | `2.4.1` | required | unknown |
 | python | `typing_extensions` | `4.16.0` | required | unknown |
 | python | `urllib3` | `2.7.0` | required | unknown |
 | python | `uvicorn` | `0.40.0` | required | unknown |
 | python | `uvloop` | `0.22.1` | required | unknown |
+| python | `wasmtime` | `45.0.0` | required | unknown |
 | python | `watchfiles` | `1.2.0` | required | unknown |
 | python | `websockets` | `16.0` | required | unknown |
 | python | `yarl` | `1.24.2` | required | unknown |

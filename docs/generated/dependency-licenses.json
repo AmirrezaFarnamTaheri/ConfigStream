@@ -1,5 +1,5 @@
 {
-  "component_count": 194,
+  "component_count": 200,
   "components": [
     {
       "ecosystem": "cargo",
@@ -1258,7 +1258,16 @@
       "name": "aiohttp",
       "scope": "required",
       "source": "requirements-prod.txt",
-      "version": "3.14.1"
+      "version": "3.14.3"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "aiohttp-proxy",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "0.1.2"
     },
     {
       "ecosystem": "python",
@@ -1309,6 +1318,15 @@
       "ecosystem": "python",
       "license_status": "unknown",
       "licenses": [],
+      "name": "beautifulsoup4",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "4.14.3"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
       "name": "cachetools",
       "scope": "required",
       "source": "requirements-prod.txt",
@@ -1348,7 +1366,7 @@
       "name": "cryptography",
       "scope": "required",
       "source": "requirements-prod.txt",
-      "version": "49.0.0"
+      "version": "50.0.0"
     },
     {
       "ecosystem": "python",
@@ -1438,7 +1456,7 @@
       "name": "h2",
       "scope": "required",
       "source": "requirements-prod.txt",
-      "version": "4.3.0"
+      "version": "4.4.1"
     },
     {
       "ecosystem": "python",
@@ -1552,6 +1570,15 @@
       "ecosystem": "python",
       "license_status": "unknown",
       "licenses": [],
+      "name": "nest-asyncio",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "1.6.0"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
       "name": "orjson",
       "scope": "required",
       "source": "requirements-prod.txt",
@@ -1564,7 +1591,7 @@
       "name": "packaging",
       "scope": "required",
       "source": "requirements-prod.txt",
-      "version": "26.2"
+      "version": "25.0"
     },
     {
       "ecosystem": "python",
@@ -1759,10 +1786,28 @@
       "ecosystem": "python",
       "license_status": "unknown",
       "licenses": [],
+      "name": "soupsieve",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "2.8.4"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
       "name": "starlette",
       "scope": "required",
       "source": "requirements-prod.txt",
       "version": "1.3.1"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "tenacity",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "9.1.4"
     },
     {
       "ecosystem": "python",
@@ -1822,6 +1867,15 @@
       "ecosystem": "python",
       "license_status": "unknown",
       "licenses": [],
+      "name": "wasmtime",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "45.0.0"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
       "name": "watchfiles",
       "scope": "required",
       "source": "requirements-prod.txt",
@@ -1849,5 +1903,5 @@
   "evidence_basis": "Only licenses declared in checked-in package manifests/locks are reported. Unknown does not imply unlicensed.",
   "known_license_count": 49,
   "schema_version": 1,
-  "unknown_license_count": 145
+  "unknown_license_count": 151
 }
