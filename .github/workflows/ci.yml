@@ -21,7 +21,7 @@ jobs:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       PYTHONPATH: src
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -29,9 +29,16 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
-          cache-dependency-path: pyproject.toml
-      - name: Install pinned shift-left security tooling
-        run: pip install "bandit==1.8.6" "pip-audit==2.9.0"
+          cache-dependency-path: |
+            pyproject.toml
+            requirements-prod.txt
+            requirements-dev.txt
+            requirements-publish.txt
+      - name: Install pinned development and audit dependencies
+        run: |
+          python -m pip install -r requirements-dev.txt
+          python -m pip install -e . --no-deps
+          python -m pip install "pip-audit==2.9.0"
       - name: Shift-left security scan (dependency audit)
         id: dependency-audit
         shell: bash
@@ -43,7 +50,7 @@ jobs:
           exit 0
       - name: Upload dependency audit report
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: pip-audit-py${{ matrix.python-version }}-${{ github.run_id }}
           path: pip-audit-report.json
@@ -54,7 +61,7 @@ jobs:
       - name: Validate Bandit suppression hygiene
         run: python scripts/validate_bandit_suppressions.py --require-active
       - name: Shift-left security scan (gitleaks)
-        uses: gitleaks/gitleaks-action@v3
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_CONFIG: .gitleaks.toml
@@ -70,18 +77,18 @@ jobs:
         run: python scripts/check_license_headers.py
       - name: Check dependency drift
         run: python scripts/check_dependency_drift.py
-      - name: Install dependencies
-        run: pip install -e .[dev]
       - name: Validate workflow syntax
         run: python scripts/validate_workflows.py
       - name: Validate action version pinning
         run: python scripts/validate_action_pins.py
       - name: Validate pytest skip governance
         run: python scripts/validate_test_skips.py
+      - name: Run unified static repository verification
+        run: python scripts/verify_repository.py --profile static
       - name: Update routing databases
         run: python -m configstream.cli update-databases || echo "Database update failed (non-fatal)"
       - name: Cache Playwright browsers
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
@@ -96,7 +103,7 @@ jobs:
           pytest -q --junitxml=pytest-report.xml 2>&1 | tee pytest-output.txt
       - name: Upload pytest diagnostics
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: pytest-diagnostics-py${{ matrix.python-version }}-${{ github.run_id }}
           path: |
@@ -122,7 +129,7 @@ jobs:
           fi
       - name: Upload forensic audit report
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: pipeline-audit-report-py${{ matrix.python-version }}
           path: pipeline-audit-report.json
@@ -138,7 +145,7 @@ jobs:
           python -m mypy . 2>&1 | tee mypy-output.txt
       - name: Upload mypy diagnostics
         if: always() && steps.mypy.outcome != 'skipped'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: mypy-diagnostics-py${{ matrix.python-version }}-${{ github.run_id }}
           path: mypy-output.txt
@@ -186,11 +193,11 @@ jobs:
   frontend:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 1
           persist-credentials: false
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: '24'
           cache: 'npm'
@@ -212,7 +219,7 @@ jobs:
       PYTHONPATH: src
       ENVIRONMENT: test
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 1
           persist-credentials: false
@@ -220,13 +227,15 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
-          cache-dependency-path: pyproject.toml
-      - uses: actions/setup-node@v7
+          cache-dependency-path: requirements-dev.txt
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: '24'
           cache: 'npm'
       - name: Install Python dependencies
-        run: pip install -e .[dev]
+        run: |
+          python -m pip install -r requirements-dev.txt
+          python -m pip install -e . --no-deps
       - name: Install frontend dependencies
         run: npm ci
       - name: Install Playwright browsers
@@ -235,3 +244,37 @@ jobs:
           npx playwright install chromium
       - name: Run required frontend browser profile
         run: npm run test:frontend:browser
+
+  go-quality:
+    name: Go unit race fuzz and benchmark gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version: '1.24.3'
+          cache-dependency-path: |
+            src/go/tester/go.sum
+            src/go/utls_client/go.sum
+      - name: Run Go unit tests
+        run: |
+          cd src/go/tester
+          go test ./...
+          cd ../utls_client
+          go test ./...
+      - name: Run Go race detector
+        run: |
+          cd src/go/tester
+          go test -race ./...
+      - name: Run bounded Go fuzz targets
+        run: |
+          cd src/go/tester
+          go test ./... -run=^$ -fuzz=FuzzParseConfig -fuzztime=5s
+          go test ./scanner -run=^$ -fuzz=FuzzParseTarget -fuzztime=5s
+      - name: Run Go benchmarks
+        run: |
+          cd src/go/tester
+          go test ./... -run=^$ -bench=. -benchtime=1x
