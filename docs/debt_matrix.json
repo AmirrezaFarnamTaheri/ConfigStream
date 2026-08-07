@@ -1,27 +1,19 @@
 {
   "generated_from": "current tracked tree",
   "summary": {
-    "total": 276,
+    "total": 280,
     "markers": {
-      "BROAD_EXCEPTION": 265,
-      "LARGE_FUNCTION": 9,
+      "BROAD_EXCEPTION": 268,
+      "LARGE_FUNCTION": 10,
       "PLACEHOLDER": 2
     },
     "categories": {
       "other": 14,
-      "production": 219,
-      "tooling": 43
+      "production": 224,
+      "tooling": 42
     }
   },
   "entries": [
-    {
-      "path": "scripts/add_license_headers.py",
-      "line": 35,
-      "marker": "BROAD_EXCEPTION",
-      "category": "tooling",
-      "priority": "P2 - Routine",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
     {
       "path": "scripts/check_license_headers.py",
       "line": 30,
@@ -256,7 +248,7 @@
     },
     {
       "path": "scripts/publish_ipfs.py",
-      "line": 107,
+      "line": 96,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -264,7 +256,7 @@
     },
     {
       "path": "scripts/publish_ipfs.py",
-      "line": 134,
+      "line": 122,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -272,7 +264,7 @@
     },
     {
       "path": "scripts/publish_ipfs.py",
-      "line": 268,
+      "line": 248,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -352,7 +344,7 @@
     },
     {
       "path": "scripts/validate_pages_artifact.py",
-      "line": 790,
+      "line": 835,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -935,6 +927,46 @@
       "text": "Broad exception boundary requires semantic review and structured outcome."
     },
     {
+      "path": "src/configstream/output/metadata.py",
+      "line": 70,
+      "marker": "LARGE_FUNCTION",
+      "category": "production",
+      "priority": "P1 - High",
+      "text": "Function save_metadata spans 394 lines (threshold: 300)."
+    },
+    {
+      "path": "src/configstream/output/metadata.py",
+      "line": 326,
+      "marker": "BROAD_EXCEPTION",
+      "category": "production",
+      "priority": "P1 - High",
+      "text": "Broad exception boundary requires semantic review and structured outcome."
+    },
+    {
+      "path": "src/configstream/output/metadata.py",
+      "line": 477,
+      "marker": "BROAD_EXCEPTION",
+      "category": "production",
+      "priority": "P1 - High",
+      "text": "Broad exception boundary requires semantic review and structured outcome."
+    },
+    {
+      "path": "src/configstream/output/subscriptions.py",
+      "line": 41,
+      "marker": "BROAD_EXCEPTION",
+      "category": "production",
+      "priority": "P1 - High",
+      "text": "Broad exception boundary requires semantic review and structured outcome."
+    },
+    {
+      "path": "src/configstream/output/subscriptions.py",
+      "line": 166,
+      "marker": "BROAD_EXCEPTION",
+      "category": "production",
+      "priority": "P1 - High",
+      "text": "Broad exception boundary requires semantic review and structured outcome."
+    },
+    {
       "path": "src/configstream/output_handler.py",
       "line": 114,
       "marker": "BROAD_EXCEPTION",
@@ -1304,15 +1336,15 @@
     },
     {
       "path": "src/configstream/pipeline/fetcher.py",
-      "line": 146,
+      "line": 140,
       "marker": "LARGE_FUNCTION",
       "category": "production",
       "priority": "P1 - High",
-      "text": "Function fetch_from_source spans 426 lines (threshold: 300)."
+      "text": "Function fetch_from_source spans 403 lines (threshold: 300)."
     },
     {
       "path": "src/configstream/pipeline/fetcher.py",
-      "line": 533,
+      "line": 507,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1320,7 +1352,7 @@
     },
     {
       "path": "src/configstream/pipeline/fetcher.py",
-      "line": 540,
+      "line": 511,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1328,7 +1360,7 @@
     },
     {
       "path": "src/configstream/pipeline/fetcher.py",
-      "line": 547,
+      "line": 518,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1336,7 +1368,7 @@
     },
     {
       "path": "src/configstream/pipeline/fetcher.py",
-      "line": 556,
+      "line": 527,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1416,7 +1448,7 @@
     },
     {
       "path": "src/configstream/quality/storage.py",
-      "line": 81,
+      "line": 85,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1424,7 +1456,7 @@
     },
     {
       "path": "src/configstream/quality/storage.py",
-      "line": 199,
+      "line": 203,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1432,7 +1464,7 @@
     },
     {
       "path": "src/configstream/quality/storage.py",
-      "line": 224,
+      "line": 228,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1440,7 +1472,7 @@
     },
     {
       "path": "src/configstream/quality/storage.py",
-      "line": 235,
+      "line": 239,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1448,7 +1480,7 @@
     },
     {
       "path": "src/configstream/quality/storage.py",
-      "line": 354,
+      "line": 358,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1456,7 +1488,7 @@
     },
     {
       "path": "src/configstream/quality/storage.py",
-      "line": 416,
+      "line": 420,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1464,7 +1496,7 @@
     },
     {
       "path": "src/configstream/quality/storage.py",
-      "line": 606,
+      "line": 610,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
