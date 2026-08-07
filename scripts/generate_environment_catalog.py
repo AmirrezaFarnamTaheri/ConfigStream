@@ -178,8 +178,9 @@ def build_catalog(root: Path) -> dict[str, object]:
 
 
 def render_markdown(payload: dict[str, object]) -> str:
-    variables = payload["variables"]
-    assert isinstance(variables, list)
+    variables = payload.get("variables")
+    if not isinstance(variables, list):
+        raise TypeError("environment catalog variables must be a list")
     lines = [
         "# Environment variable catalog",
         "",
@@ -192,7 +193,8 @@ def render_markdown(payload: dict[str, object]) -> str:
         "|---|---:|---|---|---:|---:|---|",
     ]
     for item in variables:
-        assert isinstance(item, dict)
+        if not isinstance(item, dict):
+            raise TypeError("environment catalog variable entries must be objects")
         default = item["default"]
         if item["sensitive"]:
             default_text = "`<redacted>`"
