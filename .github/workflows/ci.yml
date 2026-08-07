@@ -272,9 +272,12 @@ jobs:
       - name: Run bounded Go fuzz targets
         run: |
           cd src/go/tester
-          go test ./... -run=^$ -fuzz=FuzzParseConfig -fuzztime=5s
-          go test ./scanner -run=^$ -fuzz=FuzzParseTarget -fuzztime=5s
+          go test . -run=^$ -fuzz=FuzzParseConfig -fuzztime=5s
+          cd ../utls_client
+          go test . -run=^$ -fuzz=FuzzParseTarget -fuzztime=5s
       - name: Run Go benchmarks
         run: |
           cd src/go/tester
-          go test ./... -run=^$ -bench=. -benchtime=1x
+          go test . -run=^$ -bench=. -benchtime=1x
+          cd ../utls_client
+          go test . -run=^$ -bench=. -benchtime=1x
