@@ -16,9 +16,13 @@ def main() -> None:
     if not 1 <= port <= 65535:
         raise SystemExit("PORT must be between 1 and 65535")
 
+    host = os.getenv("CONFIGSTREAM_HOST", "127.0.0.1").strip()
+    if not host:
+        raise SystemExit("CONFIGSTREAM_HOST must not be empty")
+
     uvicorn.run(
         "configstream.server:app",
-        host="0.0.0.0",
+        host=host,
         port=port,
         proxy_headers=True,
         forwarded_allow_ips=os.getenv("FORWARDED_ALLOW_IPS", "127.0.0.1"),
