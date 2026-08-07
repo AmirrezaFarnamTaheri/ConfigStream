@@ -7,24 +7,16 @@ on:
   workflow_dispatch:
 
 # Concurrency: only one retest run active at a time.
-# cancel-in-progress: false → queues ONE pending run; GitHub automatically
-# drops any further queued runs, so at most 1 running + 1 waiting.
+# cancel-in-progress: false -> queues one pending run.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
-# Least-privilege: retest never pushes commits — it only reads the repo,
-# queries workflow runs, and downloads/uploads artifacts.
 permissions:
   contents: read
   actions: read
 
 jobs:
-  # --- Schedule Gate ---
-  # Enforces smart scheduling for cron-triggered runs:
-  #   • After a SUCCESS (main OR retest): wait at least 2 h since last run finished.
-  #   • After a FAILURE (main OR retest): if 4 h have elapsed, start instantly; otherwise wait.
-  #   • workflow_dispatch: always proceed.
   schedule_gate:
     name: Schedule Gate
     runs-on: ubuntu-latest
@@ -37,21 +29,18 @@ jobs:
           FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
           GH_TOKEN: ${{ github.token }}
         run: |
-          # Non-schedule triggers always proceed
           if [ "${{ github.event_name }}" != "schedule" ]; then
             echo "proceed=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          # Query the last completed run of BOTH main and retest workflows on this branch
           MAIN_RUN=$(gh api \
-            "repos/${{ github.repository }}/actions/workflows/main.yml/runs?branch=${{ github.ref_name }}&status=completed&per_page=1" \
+            "repos/${{ github.repository }}/actions/workflows/main.yml/runs?branch=main&status=completed&per_page=1" \
             --jq '.workflow_runs[0] // empty' 2>/dev/null || true)
           RETEST_RUN=$(gh api \
-            "repos/${{ github.repository }}/actions/workflows/retest.yml/runs?branch=${{ github.ref_name }}&status=completed&per_page=1" \
+            "repos/${{ github.repository }}/actions/workflows/retest.yml/runs?branch=main&status=completed&per_page=1" \
             --jq '.workflow_runs[0] // empty' 2>/dev/null || true)
 
-          # Find the most recent of the two
           if [ -n "$MAIN_RUN" ] && [ -n "$RETEST_RUN" ]; then
             MAIN_TIME=$(echo "$MAIN_RUN" | jq -r '.updated_at')
             RETEST_TIME=$(echo "$RETEST_RUN" | jq -r '.updated_at')
@@ -65,7 +54,7 @@ jobs:
           elif [ -n "$RETEST_RUN" ]; then
             LAST_RUN="$RETEST_RUN"
           else
-            echo "No previous run found — proceeding"
+            echo "No previous run found - proceeding"
             echo "proceed=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -80,22 +69,20 @@ jobs:
           echo "Elapsed since last run: ${ELAPSED}s"
 
           if [ "$CONCLUSION" = "success" ]; then
-            # After success: require at least 2 h (7200 s) gap
             if [ "$ELAPSED" -lt 7200 ]; then
-              echo "Success cooldown active (${ELAPSED}s < 7200s) — skipping"
+              echo "Success cooldown active (${ELAPSED}s < 7200s) - skipping"
               echo "proceed=false" >> "$GITHUB_OUTPUT"
               exit 0
             fi
           elif [ "$CONCLUSION" = "failure" ] || [ "$CONCLUSION" = "cancelled" ]; then
-            # After failure: require 4 h (14400 s) before retry
             if [ "$ELAPSED" -lt 14400 ]; then
-              echo "Failure retry cooldown (${ELAPSED}s < 14400s) — skipping"
+              echo "Failure retry cooldown (${ELAPSED}s < 14400s) - skipping"
               echo "proceed=false" >> "$GITHUB_OUTPUT"
               exit 0
             fi
           fi
 
-          echo "Gate passed — proceeding"
+          echo "Gate passed - proceeding"
           echo "proceed=true" >> "$GITHUB_OUTPUT"
 
   retest:
@@ -125,69 +112,72 @@ jobs:
           python -m pip install -r requirements-dev.txt
           python -m pip install -e . --no-deps
 
-      - name: Check for concurrent pipeline run
+      - name: Check for concurrent main pipeline run
         id: check_pipeline
         env:
           FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
           GH_TOKEN: ${{ github.token }}
         run: |
-          echo "Checking for active pipeline runs..."
-
-          # Check if main pipeline workflow is running
+          echo "Checking for active main-branch pipeline runs..."
           ACTIVE_RUN=$(gh run list \
             --workflow="main.yml" \
+            --branch=main \
             --status="in_progress" \
             --json databaseId,startedAt,status \
             --limit 1 \
             --jq '.[0] | select(.status == "in_progress")')
 
           if [ -z "$ACTIVE_RUN" ]; then
-            echo "No active pipeline run found. Proceeding with retest."
-            echo "should_cancel=false" >> $GITHUB_OUTPUT
+            echo "No active main pipeline run found. Proceeding with retest."
+            echo "should_cancel=false" >> "$GITHUB_OUTPUT"
           else
-            # Extract start time
             START_TIME=$(echo "$ACTIVE_RUN" | jq -r '.startedAt')
             START_EPOCH=$(date -d "$START_TIME" +%s)
             NOW_EPOCH=$(date +%s)
             ELAPSED=$((NOW_EPOCH - START_EPOCH))
             ELAPSED_HOURS=$((ELAPSED / 3600))
 
-            echo "Active pipeline found. Started at: $START_TIME"
+            echo "Active main pipeline found. Started at: $START_TIME"
             echo "Elapsed time: ${ELAPSED}s (${ELAPSED_HOURS}h)"
 
-            # Check if pipeline started less than 1.5 hours ago (5400 seconds)
             if [ $ELAPSED -lt 5400 ]; then
               echo "Pipeline started less than 1.5 hours ago. Cancelling retest to avoid conflicts."
-              echo "should_cancel=true" >> $GITHUB_OUTPUT
+              echo "should_cancel=true" >> "$GITHUB_OUTPUT"
             else
               echo "Pipeline has been running for more than 1.5 hours. Proceeding with retest."
-              echo "should_cancel=false" >> $GITHUB_OUTPUT
+              echo "should_cancel=false" >> "$GITHUB_OUTPUT"
             fi
           fi
 
       - name: Exit if pipeline is running
         if: steps.check_pipeline.outputs.should_cancel == 'true'
         run: |
-          echo "⚠️ Retest cancelled: Main pipeline is currently running and started less than 1.5 hours ago."
-          echo "ℹ️ Note: Dynamic cron rescheduling is not supported by GitHub Actions."
-          echo "ℹ️ The next retest will run according to the standard 3-hour schedule."
+          echo "Retest cancelled: main pipeline is currently running and started less than 1.5 hours ago."
+          echo "The next retest will run at the next scheduled window."
           exit 0
 
-      - name: Download latest pipeline output
+      - name: Download latest successful main pipeline output
         if: steps.check_pipeline.outputs.should_cancel != 'true'
         env:
           FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
           GH_TOKEN: ${{ github.token }}
         run: |
-          LATEST_RUN=$(gh run list --workflow=main.yml --status=success --limit=1 --json databaseId --jq '.[0].databaseId')
+          set -euo pipefail
+          LATEST_RUN=$(gh run list \
+            --workflow=main.yml \
+            --branch=main \
+            --status=success \
+            --limit=1 \
+            --json databaseId,headBranch,event \
+            --jq '.[0] | select(.headBranch == "main" and .event != "pull_request") | .databaseId')
           if [ -z "$LATEST_RUN" ]; then
-            echo "No successful pipeline run found; skipping retest."
+            echo "No successful main-branch pipeline run found; skipping retest."
             exit 0
           fi
           if ! gh run download "$LATEST_RUN" \
             --name pipeline-output \
             --dir output; then
-            echo "⚠️ Failed to download pipeline-output artifact; skipping retest."
+            echo "Failed to download pipeline-output artifact; skipping retest."
             exit 0
           fi
 
@@ -206,13 +196,14 @@ jobs:
           else
             echo "skip=false" >> $GITHUB_OUTPUT
           fi
+
       - name: Retest last export
         if: steps.check_pipeline.outputs.should_cancel != 'true' && steps.check_output.outputs.skip != 'true'
         run: python -m configstream.cli retest --input output/proxies.json --output output --timeout 310 --max-workers 50 --leniency
-      - name: Validate JSON (non-blocking)
-        if: steps.check_pipeline.outputs.should_cancel != 'true'
-        run: |
-          python -m jsonschema -i output/proxies.json schema/proxy.schema.json || echo "::warning ::schema validation failed"
+
+      - name: Validate retested proxy schema
+        if: steps.check_pipeline.outputs.should_cancel != 'true' && steps.check_output.outputs.skip != 'true'
+        run: python -m jsonschema -i output/proxies.json schema/proxy.schema.json
 
       - name: Verify output directory for upload
         id: verify_output
@@ -232,4 +223,3 @@ jobs:
           name: pipeline-output
           path: output/
           retention-days: 30
-
