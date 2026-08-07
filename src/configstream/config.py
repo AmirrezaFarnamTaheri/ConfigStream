@@ -175,6 +175,8 @@ class AppSettings(BaseSettings):
     FETCH_MAX_REDIRECTS: int = 5
     FETCH_BLOCK_PRIVATE_NETWORKS: bool = True
     FETCH_VALIDATE_DNS: bool = True
+    ENFORCE_SOURCE_ADMISSION: bool = True
+    SOURCE_ADMISSION_MANIFEST: str = "bundled"
     QUALITY_DB_PATH: str = "data/source_quality.db"
     SOURCE_PROBATION_FAILURES: int = 3
     SOURCE_DEAD_FAILURES: int = 10
