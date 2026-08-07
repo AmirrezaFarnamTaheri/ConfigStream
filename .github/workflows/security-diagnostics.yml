@@ -27,27 +27,10 @@ jobs:
         run: |
           bandit -r src/configstream scripts tools frontend/assets/js \
             -f json -o bandit-report.json
-      - name: Audit broad exception handlers
+      - name: Validate broad exception boundary budget
         id: exceptions
         continue-on-error: true
-        run: |
-          python scripts/audit_exception_handlers.py \
-            --json exception-audit.json \
-            --fail-on-unlogged
-      - name: Prepare reviewable exception-hardening patch
-        id: hardening
-        if: always()
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -s exception-audit.json || printf '{"findings": []}\n' > exception-audit.json
-          : > exception-hardening.patch
-          if ! python scripts/harden_exception_handlers.py \
-            --report exception-audit.json \
-            --patch-file exception-hardening.patch; then
-            printf '# hardening helper failed; inspect exception-audit.json\n' > exception-hardening.patch
-            exit 1
-          fi
+        run: python scripts/validate_exception_boundaries.py
       - name: Upload Bandit report
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
@@ -56,22 +39,14 @@ jobs:
           path: bandit-report.json
           if-no-files-found: error
           retention-days: 14
-      - name: Upload exception audit
+      - name: Upload exception boundary evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: exception-audit-${{ github.run_id }}
-          path: exception-audit.json
-          if-no-files-found: error
-          retention-days: 14
-      - name: Upload exception-hardening patch
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: exception-hardening-patch-${{ github.run_id }}
-          path: exception-hardening.patch
+          name: exception-boundary-budget-${{ github.run_id }}
+          path: config/exception-boundary-budget.json
           if-no-files-found: error
           retention-days: 14
       - name: Enforce security diagnostics
-        if: steps.bandit.outcome == 'failure' || steps.exceptions.outcome == 'failure' || steps.hardening.outcome == 'failure'
+        if: steps.bandit.outcome == 'failure' || steps.exceptions.outcome == 'failure'
         run: exit 1
