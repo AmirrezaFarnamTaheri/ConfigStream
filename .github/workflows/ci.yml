@@ -134,7 +134,30 @@ jobs:
           path: pipeline-audit-report.json
           if-no-files-found: ignore
       - name: Run flake8
-        run: python -m flake8 src/ tests/
+        id: flake8
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          python -m flake8 src/ tests/ 2>&1 | tee flake8-output.txt
+      - name: Upload flake8 diagnostics
+        if: always() && steps.flake8.outcome != 'skipped'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: flake8-diagnostics-py${{ matrix.python-version }}-${{ github.run_id }}
+          path: flake8-output.txt
+          if-no-files-found: error
+          retention-days: 14
+      - name: Enforce flake8
+        if: always() && steps.flake8.outcome != 'skipped'
+        shell: bash
+        env:
+          FLAKE8_OUTCOME: ${{ steps.flake8.outcome }}
+        run: |
+          if [ "$FLAKE8_OUTCOME" != "success" ]; then
+            echo "flake8 found lint errors; inspect the uploaded diagnostics artifact."
+            exit 1
+          fi
       - name: Run mypy
         id: mypy
         continue-on-error: true
