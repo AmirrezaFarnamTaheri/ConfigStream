@@ -61,6 +61,7 @@ def _extract_dev_dependencies(pyproject_text: str) -> List[str]:
     values = optional.get("dev", [])
     return [str(value) for value in values] if isinstance(values, list) else []
 
+
 def _parse_project_dependency(entry: str) -> Optional[ProjectDependency]:
     dep_part = entry.split(";", 1)[0].strip()
     if not dep_part:
@@ -90,8 +91,9 @@ def _parse_requirements_pins(text: str) -> Dict[str, str]:
     return pins
 
 
-
-def _load_requirements_pins(path: Path, seen: Optional[set[Path]] = None) -> Dict[str, str]:
+def _load_requirements_pins(
+    path: Path, seen: Optional[set[Path]] = None
+) -> Dict[str, str]:
     """Load exact pins from a requirements file and its local ``-r`` includes."""
     resolved = path.resolve()
     visited = set() if seen is None else seen
@@ -108,6 +110,7 @@ def _load_requirements_pins(path: Path, seen: Optional[set[Path]] = None) -> Dic
         include_path = (path.parent / include_name).resolve()
         pins.update(_load_requirements_pins(include_path, visited))
     return pins
+
 
 def _minimum_version_from_specifier(specifier: str) -> Optional[str]:
     if not specifier:
@@ -228,30 +231,45 @@ def _render_errors(errors: Iterable[str]) -> str:
     return "\n".join(f"- {e}" for e in errors)
 
 
-
-_EXPECTED_PUBLISHER_PINS = {
-    "huggingface-hub": "1.24.0",
-    "google-api-python-client": "2.198.0",
-    "google-auth": "2.56.0",
+_REQUIRED_PUBLISHER_PACKAGES = {
+    "huggingface-hub",
+    "google-api-python-client",
+    "google-auth",
 }
 
 
 def check_publisher_pins(path: Path) -> List[str]:
-    """Require exact, reviewed entry-point pins for optional publisher SDKs."""
+    """Require an exact, reviewed publisher lock without duplicating its versions."""
     if not path.exists():
         return ["Missing dependency file: requirements-publish.txt"]
-    pins = _load_requirements_pins(path)
+
+    text = path.read_text(encoding="utf-8")
+    pins = _parse_requirements_pins(text)
     errors: List[str] = []
-    for name, expected in _EXPECTED_PUBLISHER_PINS.items():
-        actual = pins.get(name)
-        if actual != expected:
+
+    for name in sorted(_REQUIRED_PUBLISHER_PACKAGES):
+        if name not in pins:
             errors.append(
-                f"requirements-publish.txt must pin '{name}' to {expected}; found {actual or 'missing'}"
+                f"requirements-publish.txt must exact-pin required publisher package '{name}'"
             )
-    unexpected = sorted(set(pins) - set(_EXPECTED_PUBLISHER_PINS))
+
+    unexpected = sorted(set(pins) - _REQUIRED_PUBLISHER_PACKAGES)
     if unexpected:
         errors.append(
-            "requirements-publish.txt contains unreviewed packages: " + ", ".join(unexpected)
+            "requirements-publish.txt contains unreviewed packages: "
+            + ", ".join(unexpected)
+        )
+
+    non_comment_entries = [
+        line.strip()
+        for line in text.splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    ]
+    malformed = [line for line in non_comment_entries if not _REQ_PIN_RE.match(line)]
+    if malformed:
+        errors.append(
+            "requirements-publish.txt contains non-exact dependency entries: "
+            + ", ".join(malformed)
         )
     return errors
 
@@ -296,6 +314,7 @@ def check_workflow_dependency_installs(workflow_dir: Path) -> List[str]:
             errors.append(f"{path}: missing requirements-publish.txt installation")
     return errors
 
+
 def main() -> None:
     root = Path(".")
     pyproject_path = root / "pyproject.toml"
@@ -319,7 +338,12 @@ def main() -> None:
 
     missing_files = [
         str(p)
-        for p in (pyproject_path, requirements_prod_path, requirements_dev_path, requirements_publish_path)
+        for p in (
+            pyproject_path,
+            requirements_prod_path,
+            requirements_dev_path,
+            requirements_publish_path,
+        )
         if not p.exists()
     ]
     if missing_files:
