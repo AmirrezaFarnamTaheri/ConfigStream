@@ -48,6 +48,7 @@ export function parseProxyUri(input) {
             try {
                 remark = decodeURIComponent(uri.substring(fragIdx + 1));
             } catch {
+                console.debug('[lab parser] Rejected malformed proxy URI fragment');
                 return null;
             }
             uri = uri.substring(0, fragIdx);
