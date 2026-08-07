@@ -110,6 +110,7 @@ def merge(
     if timeout is None:
         timeout = settings.TEST_TIMEOUT
 
+    # Load sources
     source_path = Path(sources)
     if not source_path.exists():
         console.print(f"[red]Error: Sources file not found: {sources}[/red]")
@@ -156,7 +157,7 @@ def merge(
             TaskProgressColumn(),
             console=console,
         ) as progress:
-            return await run_full_pipeline(
+            result = await run_full_pipeline(
                 sources=valid_sources,
                 output_dir=output,
                 max_workers=max_workers,
@@ -169,7 +170,10 @@ def merge(
                 time_limit_seconds=settings.BATCH_TIME_LIMIT_SECONDS,
             )
 
+            return result
+
     try:
+        # Windows specific loop policy for asyncio + subprocesses
         if sys.platform == "win32":
             asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
@@ -191,6 +195,7 @@ def merge(
 
         if result.success:
             stats_obj = result.stats
+            # Handle both object and dict (depending on pipeline run type)
 
             def _get(key):
                 if hasattr(stats_obj, key):
@@ -217,6 +222,8 @@ def merge(
                     "[yellow]Time limit reached; output contains partial results.[/yellow]"
                 )
 
+            # CRITICAL: Fail pipeline if zero working proxies found
+            # This ensures GitHub Actions workflow fails instead of silently passing with empty results.
             working = _get("working")
             if working == 0:
                 console.print(
@@ -226,9 +233,11 @@ def merge(
                     strict or getattr(settings, "FAIL_ON_ZERO_WORKING", False)
                 ) and not time_limited:
                     sys.exit(1)
-                console.print(
-                    "[yellow]Continuing despite 0 working proxies (strict=False or time_limited=True)[/yellow]"
-                )
+                else:
+                    console.print(
+                        "[yellow]Continuing despite 0 working proxies (strict=False or time_limited=True)[/yellow]"
+                    )
+
         else:
             console.print(f"\n[bold red]Pipeline Failed: {result.error}[/bold red]")
             sys.exit(1)
@@ -242,6 +251,8 @@ def merge(
             console.print_exception()
         sys.exit(1)
     finally:
+        # GeoIP support is optional for commands such as ``update-databases``.
+        # Import it only after the merge path has used the resolver.
         try:
             from .geoip import DEFAULT_RESOLVER
         except ImportError:
@@ -255,23 +266,29 @@ def update_databases():
     """Download latest GeoIP databases."""
     data_dir = Path("data")
     data_dir.mkdir(parents=True, exist_ok=True)
+
     console.print("[yellow]Downloading GeoIP databases...[/yellow]")
 
     from .config import AppSettings
     from .security_validator import SecurityValidator
 
     license_key = AppSettings().MAXMIND_LICENSE_KEY
+
+    # Prefer official MaxMind downloads when a license key is provided, fall back to public mirror otherwise.
     mirror_base_urls = [
         "https://github.com/FyraLabs/geolite2/releases/latest/download",
         "https://github.com/P3TERX/GeoLite.mmdb/raw/download",
     ]
+
     maxmind_editions = {
         "GeoLite2-City.mmdb": "GeoLite2-City",
         "GeoLite2-ASN.mmdb": "GeoLite2-ASN",
     }
+
     max_download_bytes = 256 * 1024 * 1024
 
     def stream_download(url: str, target: Path) -> bool:
+        """Download to a sibling temporary file and publish only on completion."""
         safe_url = SecurityValidator.sanitize_log_message(url)
         target.parent.mkdir(parents=True, exist_ok=True)
         fd, temp_name = tempfile.mkstemp(prefix=f".{target.name}.", dir=target.parent)
@@ -280,7 +297,9 @@ def update_databases():
         try:
             with httpx.stream("GET", url, timeout=120.0, follow_redirects=True) as resp:
                 if resp.status_code != 200:
-                    console.print(f"[red]HTTP {resp.status_code} while fetching {safe_url}[/red]")
+                    console.print(
+                        f"[red]HTTP {resp.status_code} while fetching {safe_url}[/red]"
+                    )
                     return False
                 content_length = getattr(resp, "headers", {}).get("content-length")
                 if content_length:
@@ -312,18 +331,25 @@ def update_databases():
     def download_from_maxmind(edition: str, target: Path) -> bool:
         if not license_key:
             return False
+
         tar_path = target.with_suffix(".tar.gz")
         url = (
             "https://download.maxmind.com/app/geoip_download"
             f"?edition_id={edition}&license_key={license_key}&suffix=tar.gz"
         )
         console.print(f"[cyan]Fetching {edition} from MaxMind...[/cyan]")
+
         if not stream_download(url, tar_path):
             return False
+
         try:
             with tarfile.open(tar_path, "r:gz") as archive:
                 member = next(
-                    (m for m in archive.getmembers() if m.name.endswith(f"{edition}.mmdb")),
+                    (
+                        m
+                        for m in archive.getmembers()
+                        if m.name.endswith(f"{edition}.mmdb")
+                    ),
                     None,
                 )
                 if not member:
@@ -336,7 +362,9 @@ def update_databases():
                 if member.size > max_download_bytes:
                     console.print(f"[red]Archive entry for {edition} is too large[/red]")
                     return False
-                fd, temp_name = tempfile.mkstemp(prefix=f".{target.name}.", dir=target.parent)
+                fd, temp_name = tempfile.mkstemp(
+                    prefix=f".{target.name}.", dir=target.parent
+                )
                 os.close(fd)
                 temp_target = Path(temp_name)
                 try:
@@ -362,11 +390,14 @@ def update_databases():
     success = True
     for name, edition in maxmind_editions.items():
         target = data_dir / name
+
         if target.exists() and target.stat().st_size > 0:
             size_mb = target.stat().st_size / (1024 * 1024)
             console.print(f"[green]OK {name} already exists ({size_mb:.1f} MB)[/green]")
             continue
+
         downloaded = download_from_maxmind(edition, target)
+
         if not downloaded:
             for base_url in mirror_base_urls:
                 mirror_url = f"{base_url}/{name}"
@@ -374,6 +405,7 @@ def update_databases():
                 if stream_download(mirror_url, target):
                     downloaded = True
                     break
+
         if downloaded and target.stat().st_size > 0:
             size_mb = target.stat().st_size / (1024 * 1024)
             console.print(f"[green]OK {name} ({size_mb:.1f} MB)[/green]")
@@ -381,24 +413,37 @@ def update_databases():
             console.print(f"[red]Failed to download {name}[/red]")
             success = False
 
-    console.print("[yellow]Downloading Sing-box databases (geosite.db, geoip.db)...[/yellow]")
+    # Download Sing-box databases (geosite.db and geoip.db) for routing rules
+    console.print(
+        "[yellow]Downloading Sing-box databases (geosite.db, geoip.db)...[/yellow]"
+    )
     singbox_data_dir = data_dir / "singbox"
     singbox_data_dir.mkdir(parents=True, exist_ok=True)
+
     singbox_databases = {
         "geosite.db": "https://github.com/SagerNet/sing-geosite/releases/latest/download/geosite.db",
         "geoip.db": "https://github.com/SagerNet/sing-geoip/releases/latest/download/geoip.db",
     }
+
     singbox_success = True
     for db_name, db_url in singbox_databases.items():
         target = singbox_data_dir / db_name
+
         if target.exists() and target.stat().st_size > 0:
             size_mb = target.stat().st_size / (1024 * 1024)
-            console.print(f"[green]OK {db_name} already exists ({size_mb:.1f} MB)[/green]")
+            console.print(
+                f"[green]OK {db_name} already exists ({size_mb:.1f} MB)[/green]"
+            )
             continue
+
         console.print(f"[cyan]Downloading {db_name}...[/cyan]")
-        if stream_download(db_url, target) and target.stat().st_size > 0:
-            size_mb = target.stat().st_size / (1024 * 1024)
-            console.print(f"[green]OK {db_name} ({size_mb:.1f} MB)[/green]")
+        if stream_download(db_url, target):
+            if target.stat().st_size > 0:
+                size_mb = target.stat().st_size / (1024 * 1024)
+                console.print(f"[green]OK {db_name} ({size_mb:.1f} MB)[/green]")
+            else:
+                console.print(f"[red]Failed to download {db_name} (empty file)[/red]")
+                singbox_success = False
         else:
             console.print(f"[red]Failed to download {db_name}[/red]")
             singbox_success = False
@@ -406,11 +451,14 @@ def update_databases():
     if success and singbox_success:
         console.print("[bold green]All databases updated successfully[/bold green]")
         sys.exit(0)
-    if success:
-        console.print("[yellow]GeoIP databases updated, but Sing-box databases failed[/yellow]")
-        sys.exit(0)
-    console.print("[bold red]Failed to download one or more databases[/bold red]")
-    sys.exit(1)
+    elif success:
+        console.print(
+            "[yellow]GeoIP databases updated, but Sing-box databases failed[/yellow]"
+        )
+        sys.exit(0)  # Non-fatal for Sing-box DBs
+    else:
+        console.print("[bold red]Failed to download one or more databases[/bold red]")
+        sys.exit(1)
 
 
 @main.command()
@@ -418,6 +466,7 @@ def update_databases():
 def generate_warp(count):
     """Generate Cloudflare WARP configuration templates."""
     console.print(f"[yellow]Generating {count} WARP config template(s)...[/yellow]")
+
     import asyncio
 
     async def _gen():
@@ -443,14 +492,20 @@ def generate_warp(count):
                 asyncio.set_event_loop(None)
         else:
             raise
-    console.print("\n[dim]Note: Real key generation requires the 'cryptography' library.[/dim]")
+
+    console.print(
+        "\n[dim]Note: Real key generation requires the 'cryptography' library.[/dim]"
+    )
 
 
 @main.command()
-@click.option("--token", required=True, envvar="TELEGRAM_BOT_TOKEN", help="Telegram Bot Token")
+@click.option(
+    "--token", required=True, envvar="TELEGRAM_BOT_TOKEN", help="Telegram Bot Token"
+)
 def bot(token):
     """Start the Telegram Bot (Polling Mode)."""
     from .bot_cli import run_bot
+
     console.print("[bold green]🤖 Starting Telegram Bot...[/bold green]")
     run_bot(token)
 
@@ -461,6 +516,7 @@ def bot(token):
 def backup(days, dir):
     """Backup databases."""
     from .backup import backup_databases
+
     console.print("[yellow]Backing up databases...[/yellow]")
     backups = backup_databases(data_dir=dir, retention_days=days)
     for b in backups:
@@ -476,7 +532,12 @@ def backup(days, dir):
     ),
 )
 def scan_dns():
-    """[DEPRECATED] Launch the interactive DNS Scanner TUI."""
+    """[DEPRECATED] Launch the interactive DNS Scanner TUI.
+
+    This command no longer performs any scanning. It is retained only for
+    backwards-compatibility with existing scripts and will be removed in the
+    next major release (S-4 governance).
+    """
     console.print(
         "[bold yellow]scan_dns is deprecated and does nothing.[/bold yellow]\n"
         "[yellow]Active DNS scanning has been disabled to comply with the "
