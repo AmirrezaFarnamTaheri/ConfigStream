@@ -1,12 +1,27 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+from importlib import import_module
+
 from .interfaces import IFetcher, IProducer, IConsumer, IPipeline, FetchResult
 from .models import WorkItem, PipelineContext
 from .outcomes import PublicationDecision, RunDisposition, RunStatsView, classify_run
 from .fetcher import HttpFetcher
 from .producer import StreamingProducer
 from .consumer import WorkerConsumer
-from .core import StandardPipeline, run_full_pipeline
-from . import core  # noqa: F401
+
+# Preserve legacy public imports on configstream.pipeline without eagerly importing
+# the orchestration core back into the package facade. core.py imports this facade
+# for patchable public collaborators, so eager re-exporting core creates a cycle.
+_CORE_EXPORTS = {"StandardPipeline", "run_full_pipeline"}
+
+
+def __getattr__(name: str):
+    if name in _CORE_EXPORTS:
+        core_module = import_module(".core", __name__)
+        value = getattr(core_module, name)
+        globals()[name] = value
+        return value
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 
 # Support legacy test patching on configstream.pipeline
 from configstream.testers import SingBoxTester
