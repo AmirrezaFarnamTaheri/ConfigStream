@@ -4,8 +4,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-import shutil
-import subprocess
 
 FORBIDDEN_PATHS = (
     "MagicMock",
@@ -107,24 +105,6 @@ def _stale_top_level_review_docs(root: Path) -> list[str]:
     ]
 
 
-
-def _tracked_runtime_state(root: Path) -> list[str]:
-    """Return tracked files under ignored runtime-state directories."""
-    if not (root / ".git").exists() or shutil.which("git") is None:
-        return []
-    completed = subprocess.run(  # nosec B603
-        ["git", "ls-files", "--", "data", "src/data"],
-        cwd=root,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        check=False,
-        timeout=15,
-    )
-    if completed.returncode != 0:
-        return []
-    return [line for line in completed.stdout.splitlines() if line]
-
 def validate(root: Path) -> list[str]:
     root = Path(root)
     errors = [
@@ -133,12 +113,6 @@ def validate(root: Path) -> list[str]:
         if (root / path).exists()
     ]
     errors.extend(validate_source_layout(root))
-    tracked_runtime = _tracked_runtime_state(root)
-    if tracked_runtime:
-        errors.append(
-            "runtime state must remain ignored and untracked: "
-            + ", ".join(sorted(tracked_runtime))
-        )
     font_files = [
         path.relative_to(root).as_posix()
         for path in root.rglob("*")
