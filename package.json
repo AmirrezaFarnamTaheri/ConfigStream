@@ -21,6 +21,9 @@
     "url": "git+https://github.com/AmirrezaFarnamTaheri/ConfigStream.git"
   },
   "license": "AGPL-3.0-or-later",
+  "engines": {
+    "node": ">=24"
+  },
   "bugs": {
     "url": "https://github.com/AmirrezaFarnamTaheri/ConfigStream/issues"
   },
