@@ -236,7 +236,13 @@ def create_app() -> FastAPI:
 
     @app.get("/health")
     async def health_check():
-        return await _readiness_response()
+        files_count = len(list(OUTPUT_DIR.glob("*"))) if OUTPUT_DIR.exists() else 0
+        return {
+            "status": "ok",
+            "output_available": OUTPUT_DIR.exists(),
+            "files_present": files_count,
+            "version": VERSION,
+        }
 
     @app.get("/api/keepalive")
     async def keep_alive():
