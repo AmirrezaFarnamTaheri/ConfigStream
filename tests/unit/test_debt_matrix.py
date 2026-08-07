@@ -138,7 +138,7 @@ def test_debt_matrix_outputs_are_reproducible(tmp_path: Path, monkeypatch) -> No
     out_md = docs / "DEBT_MATRIX.md"
     monkeypatch.setattr(generate_debt_matrix, "OUT_JSON", out_json)
     monkeypatch.setattr(generate_debt_matrix, "OUT_MD", out_md)
-    entries = [
+    entries: list[dict[str, str | int]] = [
         {
             "path": "src/example.py",
             "line": 1,
