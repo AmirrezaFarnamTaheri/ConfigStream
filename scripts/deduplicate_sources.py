@@ -18,13 +18,20 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-from scripts.source_utils import batch_sort_key
-
 from configstream.source_admission import normalize_source_locator
 
 SOURCES_DIR = Path("sources")
 BATCH_PATTERN = "batch_*.txt"
 NUM_BATCHES = 17
+
+
+def batch_sort_key(path: Path) -> tuple[int, str]:
+    """Sort canonical batch paths by numeric shard index, then by name."""
+    try:
+        index = int(path.stem.rsplit("_", 1)[1])
+    except (IndexError, ValueError):
+        index = sys.maxsize
+    return index, path.name
 
 
 def _read_url_lines(path: Path) -> set[str]:
