@@ -203,13 +203,13 @@
             padding: 0.7rem 1.5rem;
             border: none; border-radius: 10px;
             font-weight: 600; font-size: 0.9rem;
-            cursor: pointer; transition: all 0.2s;
+            cursor: pointer; transition: opacity 0.2s, box-shadow 0.2s, background-color 0.2s, border-color 0.2s;
         }
         .lab-btn-primary {
             background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
             color: #fff;
         }
-        .lab-btn-primary:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(var(--brand-primary-rgb), 0.3); }
+        .lab-btn-primary:hover { opacity: 0.9; box-shadow: 0 4px 12px rgba(var(--brand-primary-rgb), 0.3); }
         .lab-btn-secondary {
             background: var(--bg-secondary);
             color: var(--text-primary);
