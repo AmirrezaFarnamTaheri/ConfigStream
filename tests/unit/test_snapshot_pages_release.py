@@ -188,12 +188,12 @@ def test_snapshot_rejects_cross_origin_redirect() -> None:
 
 
 @pytest.mark.parametrize(
-    "base_url",
+    "candidate_url",
     ["https://example.com/?candidate=1", "https://example.com/#ignored"],
 )
-def test_snapshot_rejects_base_url_query_or_fragment(base_url: str) -> None:
+def test_snapshot_rejects_base_url_query_or_fragment(candidate_url: str) -> None:
     with pytest.raises(ValueError, match="must not contain a query or fragment"):
-        snapshot_pages_release.snapshot(base_url, Path("unused"))
+        snapshot_pages_release.snapshot(candidate_url, Path("unused"))
 
 
 def test_snapshot_recovers_interrupted_directory_swap(
