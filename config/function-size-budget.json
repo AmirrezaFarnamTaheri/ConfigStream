@@ -7,7 +7,7 @@
     "src/configstream/output_handler.py::generate_pipeline_outputs": 393,
     "src/configstream/parsers/extraction.py::extract_config_lines": 398,
     "src/configstream/pipeline/consumer.py::processing_consumer": 303,
-    "src/configstream/pipeline/fetcher.py::fetch_from_source": 426,
+    "src/configstream/pipeline/fetcher.py::fetch_from_source": 403,
     "src/configstream/pipeline/producer.py::source_producer": 511,
     "src/configstream/testers/go_tester/manager.py::test_batch": 333
   },
