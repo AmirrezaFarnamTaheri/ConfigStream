@@ -8,6 +8,11 @@
 
   const GUARDED_CONTROL_SELECTOR = '[data-file]';
   const REQUIRED_CONTROL_FILES = ['metadata.json', 'health.json'];
+  const ARTIFACT_ALIASES = new Map([
+    ['api/proxies', 'proxies.json'],
+    ['api/stats', 'metadata.json'],
+  ]);
+  const nativeFetch = global.fetch.bind(global);
   const verifiedFilePromises = new Map();
   const state = {
     status: 'checking',
@@ -112,7 +117,7 @@
   }
 
   async function fetchBytes(path, accept = '*/*') {
-    const response = await fetch(artifactUrl(path), {
+    const response = await nativeFetch(artifactUrl(path), {
       cache: 'no-store',
       headers: { Accept: accept },
     });
@@ -228,6 +233,67 @@
     return parseJson(result.bytes, result.path);
   }
 
+  function guardedArtifactPath(input) {
+    const rawUrl = typeof input === 'string' || input instanceof URL ? String(input) : input?.url;
+    if (!rawUrl) return null;
+    let url;
+    try {
+      url = new URL(rawUrl, global.location.href);
+    } catch (_error) {
+      return null;
+    }
+    if (url.origin !== global.location.origin) return null;
+
+    const rootUrl = new URL(global.ROOT_PATH || './', global.location.href);
+    if (!url.pathname.startsWith(rootUrl.pathname)) return null;
+    const relative = url.pathname.slice(rootUrl.pathname.length).replace(/^\/+/, '');
+    if (!relative) return null;
+
+    if (ARTIFACT_ALIASES.has(relative)) return ARTIFACT_ALIASES.get(relative);
+    if (relative === 'api/diff/proxies') return '__unsigned_dynamic_proxy_diff__';
+    if (['metadata.json', 'health.json', 'proxies.json'].includes(relative)) return relative;
+    if (relative.startsWith('data/') && relative.endsWith('.json')) return relative;
+    return null;
+  }
+
+  async function guardedFetch(input, init = undefined) {
+    const method = String(init?.method || input?.method || 'GET').toUpperCase();
+    const path = method === 'GET' ? guardedArtifactPath(input) : null;
+    if (!path) return nativeFetch(input, init);
+
+    if (state.status === 'checking' && api.ready) {
+      await api.ready;
+    }
+
+    if (path === '__unsigned_dynamic_proxy_diff__') {
+      if (isPublicContext()) {
+        throw new Error('Unsigned dynamic proxy diffs are disabled in public artifact mode');
+      }
+      return nativeFetch(input, init);
+    }
+
+    if (!state.canDistribute) {
+      if (isPublicContext()) throw new Error(state.reason || 'Artifact verification failed');
+      return nativeFetch(input, init);
+    }
+
+    const result = await fetchVerified(path);
+    return new Response(result.bytes, {
+      status: 200,
+      headers: {
+        'content-type': result.contentType,
+        'cache-control': 'no-store',
+        'x-configstream-artifact-verified': '1',
+      },
+    });
+  }
+
+  function installVerifiedFetchGuard() {
+    if (global.__CONFIGSTREAM_VERIFIED_FETCH_GUARD__) return;
+    global.__CONFIGSTREAM_VERIFIED_FETCH_GUARD__ = true;
+    global.fetch = guardedFetch;
+  }
+
   async function downloadVerifiedArtifact(control) {
     const path = normalizeArtifactPath(control.dataset.file || '');
     const result = await fetchVerified(path);
@@ -311,6 +377,7 @@
   const start = () => {
     renderState();
     api.ready = verify();
+    installVerifiedFetchGuard();
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
   else start();
