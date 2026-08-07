@@ -393,13 +393,13 @@ def snapshot(
         stage = Path(temporary) / destination.name
         stage.mkdir()
         for relative, expected_size, expected_digest in planned:
-            body = prefetched.get(relative)
-            if body is None:
-                body = _fetch(_join(base_url, relative), timeout, pins)
-                _validate_body(relative, body, expected_size, expected_digest)
+            file_body = prefetched.get(relative)
+            if file_body is None:
+                file_body = _fetch(_join(base_url, relative), timeout, pins)
+                _validate_body(relative, file_body, expected_size, expected_digest)
             target = stage.joinpath(*PurePosixPath(relative).parts)
             target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_bytes(body)
+            target.write_bytes(file_body)
         (stage / "artifact_manifest.json").write_bytes(manifest_body)
         report = {
             "schema_version": 2,
