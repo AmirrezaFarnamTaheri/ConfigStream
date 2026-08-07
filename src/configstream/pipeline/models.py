@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Protocol, Tuple
 import asyncio
 from configstream.models import Proxy
 from configstream.pipeline_stats import PipelineStats
@@ -21,7 +21,11 @@ from configstream.hard_stop import HardStopWatcher
 from configstream.config import AppSettings
 
 if TYPE_CHECKING:
-    from configstream.geoip import GeoIPResolver
+    from configstream.geoip import GeoData
+
+
+class GeoIPLookup(Protocol):
+    async def lookup(self, ip: str) -> Optional["GeoData"]: ...
 
 
 @dataclass
@@ -46,7 +50,7 @@ class PipelineContext:
     scheduler: Optional[SmartRetestScheduler] = None
     test_cache: Optional[TestResultCache] = None
     concurrency: Optional[ConcurrencyManager] = None
-    geoip: Optional["GeoIPResolver"] = None
+    geoip: Optional[GeoIPLookup] = None
     tracker: Optional[PerformanceTracker] = None
     event_stream: Optional[EventStream] = None
     quality_tracker: Optional[SourceQualityTracker] = None
