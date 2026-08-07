@@ -6,9 +6,18 @@ import argparse
 import ast
 import json
 from pathlib import Path
+from typing import TypedDict
 
 THRESHOLD = 300
 BUDGET_PATH = Path("config/function-size-budget.json")
+
+
+class FunctionSizeBudget(TypedDict):
+    schema_version: int
+    threshold_lines: int
+    policy: str
+    target_oversized_function_count: int
+    functions: dict[str, int]
 
 
 def scan(root: Path) -> dict[str, int]:
@@ -32,7 +41,7 @@ def scan(root: Path) -> dict[str, int]:
     return dict(sorted(result.items()))
 
 
-def generate(root: Path) -> dict[str, object]:
+def generate(root: Path) -> FunctionSizeBudget:
     functions = scan(root)
     return {
         "schema_version": 1,
