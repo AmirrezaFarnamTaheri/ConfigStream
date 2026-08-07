@@ -20,7 +20,6 @@ from configstream.constants import (
 )
 from configstream.security_validator import (
     LOCAL_IP_RANGES as _SPECIAL_ADDRESS_PATTERNS_BASE,
-    SecurityValidator,
     safe_log_text,
 )
 
