@@ -6,6 +6,7 @@ import argparse
 import json
 import re
 from pathlib import Path
+from typing import TypedDict
 
 try:
     import tomllib
@@ -24,6 +25,15 @@ _REQUIRED_COVERAGE = {
     ("gomod", "/src/go/utls_client"),
     ("cargo", "/src/rust/ss_checker"),
 }
+
+
+class DependencyInventory(TypedDict):
+    schema_version: int
+    evidence_basis: str
+    ecosystem_count: int
+    direct_dependency_count: int
+    dependabot_coverage: list[dict[str, str]]
+    ecosystems: dict[str, list[dict[str, str]]]
 
 
 def _python(root: Path) -> list[dict[str, str]]:
@@ -144,7 +154,7 @@ def _dependabot(root: Path) -> tuple[list[dict[str, str]], list[str]]:
     return sorted(coverage, key=lambda item: (item["ecosystem"], item["directory"])), errors
 
 
-def build(root: Path) -> tuple[dict[str, object], list[str]]:
+def build(root: Path) -> tuple[DependencyInventory, list[str]]:
     coverage, errors = _dependabot(root)
     ecosystems = {
         "python": _python(root),
@@ -154,7 +164,7 @@ def build(root: Path) -> tuple[dict[str, object], list[str]]:
         "cargo": _cargo(root),
         "container": _containers(root),
     }
-    payload = {
+    payload: DependencyInventory = {
         "schema_version": 1,
         "evidence_basis": "Direct declarations from checked-in manifests; latest-version resolution is delegated to Dependabot and is not inferred offline.",
         "ecosystem_count": len(ecosystems),
@@ -165,11 +175,11 @@ def build(root: Path) -> tuple[dict[str, object], list[str]]:
     return payload, errors
 
 
-def _markdown(payload: dict[str, object]) -> str:
+def _markdown(payload: DependencyInventory) -> str:
     lines = [
         "# Direct dependency inventory",
         "",
-        str(payload["evidence_basis"]),
+        payload["evidence_basis"],
         "",
         f"Ecosystems: **{payload['ecosystem_count']}**",
         f"Direct declarations: **{payload['direct_dependency_count']}**",
@@ -184,7 +194,7 @@ def _markdown(payload: dict[str, object]) -> str:
     lines.extend(["", "## Direct declarations", "", "| Group | Name | Constraint | Source |", "|---|---|---|---|"])
     for group, items in payload["ecosystems"].items():
         for item in items:
-            constraint = str(item["constraint"]).replace("|", "\\|")
+            constraint = item["constraint"].replace("|", "\\|")
             lines.append(f"| {group} | `{item['name']}` | `{constraint}` | `{item['source']}` |")
     return "\n".join(lines) + "\n"
 
