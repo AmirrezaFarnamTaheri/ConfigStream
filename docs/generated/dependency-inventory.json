@@ -29,7 +29,7 @@
       "ecosystem": "pip"
     }
   ],
-  "direct_dependency_count": 63,
+  "direct_dependency_count": 67,
   "ecosystem_count": 6,
   "ecosystems": {
     "cargo": [
@@ -113,6 +113,12 @@
     ],
     "python": [
       {
+        "constraint": "tenacity",
+        "name": "tenacity",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
         "constraint": "cachetools>=5.3.3",
         "name": "cachetools",
         "scope": "runtime",
@@ -161,6 +167,12 @@
         "source": "pyproject.toml"
       },
       {
+        "constraint": "aiohttp-proxy",
+        "name": "aiohttp-proxy",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
         "constraint": "PyYAML>=6.0",
         "name": "PyYAML",
         "scope": "runtime",
@@ -179,6 +191,12 @@
         "source": "pyproject.toml"
       },
       {
+        "constraint": "platformdirs>=4.0.0",
+        "name": "platformdirs",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
         "constraint": "singbox2proxy~=0.2.4",
         "name": "singbox2proxy",
         "scope": "runtime",
@@ -193,6 +211,18 @@
       {
         "constraint": "orjson>=3.9.0",
         "name": "orjson",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "nest-asyncio",
+        "name": "nest-asyncio",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "wasmtime>=40.0.0",
+        "name": "wasmtime",
         "scope": "runtime",
         "source": "pyproject.toml"
       },
@@ -253,6 +283,12 @@
       {
         "constraint": "cryptography",
         "name": "cryptography",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "beautifulsoup4",
+        "name": "beautifulsoup4",
         "scope": "runtime",
         "source": "pyproject.toml"
       },
@@ -373,18 +409,6 @@
       {
         "constraint": "types-orjson",
         "name": "types-orjson",
-        "scope": "development",
-        "source": "pyproject.toml"
-      },
-      {
-        "constraint": "beautifulsoup4",
-        "name": "beautifulsoup4",
-        "scope": "development",
-        "source": "pyproject.toml"
-      },
-      {
-        "constraint": "nest-asyncio",
-        "name": "nest-asyncio",
         "scope": "development",
         "source": "pyproject.toml"
       },
