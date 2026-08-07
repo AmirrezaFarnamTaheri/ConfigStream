@@ -20,7 +20,9 @@ class _QuietHandler(SimpleHTTPRequestHandler):
 
 
 def _serve(root: Path):
-    handler = lambda *args, **kwargs: _QuietHandler(*args, directory=str(root), **kwargs)
+    def handler(*args, **kwargs):
+        return _QuietHandler(*args, directory=str(root), **kwargs)
+
     server = ThreadingHTTPServer(("127.0.0.1", 0), handler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
