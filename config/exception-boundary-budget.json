@@ -1,6 +1,6 @@
 {
   "path_ceilings": {
-    "scripts/add_license_headers.py": 1,
+    "scripts/add_license_headers.py": 0,
     "scripts/check_license_headers.py": 1,
     "scripts/dynamic_reshard.py": 13,
     "scripts/generate_evidence_bundle.py": 5,
@@ -88,5 +88,5 @@
     "target_total": 0
   },
   "schema_version": 1,
-  "total_ceiling": 255
+  "total_ceiling": 254
 }
