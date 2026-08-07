@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import json
-import logging
 import re
 import secrets
 from typing import Optional
@@ -50,7 +49,6 @@ async def get_proxy_diff(request: Request, base_version: str):
     ):
         raise HTTPException(503, "Current proxy data has an invalid schema")
 
-    # If client has specific version matching our backup
     if old_path.exists():
         try:
             old_data = await _read_json_file_async(old_path)
@@ -70,7 +68,6 @@ async def get_proxy_diff(request: Request, base_version: str):
                 "expected_base_version": expected_base_version,
             }
 
-        # Prefer stable proxy IDs; fallback to index for legacy payloads.
         current_ids = {p.get("id", str(i)): p for i, p in enumerate(current_data)}
         old_ids = {p.get("id", str(i)): p for i, p in enumerate(old_data)}
 
@@ -85,7 +82,6 @@ async def get_proxy_diff(request: Request, base_version: str):
             "removed": removed,
         }
 
-    # Fallback: Tell client to fetch full
     return {"type": "full_reload_required"}
 
 
@@ -94,7 +90,6 @@ async def get_stats():
     """Return the latest pipeline metadata and statistics."""
     metadata_path = OUTPUT_DIR / "metadata.json"
     if not metadata_path.exists():
-        # Return initializing status if first run hasn't finished
         return JSONResponse(
             content={
                 "status": "initializing",
@@ -103,7 +98,6 @@ async def get_stats():
         )
 
     try:
-        # Read and return JSON content directly to ensure proper content-type and parsing
         content = await _read_json_file_async(metadata_path)
         return JSONResponse(content=content)
     except (OSError, json.JSONDecodeError) as exc:
@@ -164,7 +158,6 @@ async def get_proxies(
             return FileResponse(fpath, media_type="application/json")
         raise HTTPException(404, "Protocol not found")
 
-    # Default: return the master list
     master_path = OUTPUT_DIR / "proxies.json"
     if not master_path.exists():
         raise HTTPException(503, "Proxies data not available yet")
@@ -192,7 +185,7 @@ async def download_subscription(request: Request, fmt: str):
         "shadowrocket-dns-safe": "shadowrocket-dns-safe.txt",
         "shadowrocket-dns-hardened": "shadowrocket-dns-hardened.txt",
         "quantumult": "quantumult.conf",
-        "quantumultx": "quantumult.conf",  # Alias for quantumult
+        "quantumultx": "quantumult.conf",
         "quantumult-dns-safe": "quantumult-dns-safe.conf",
         "quantumultx-dns-safe": "quantumult-dns-safe.conf",
         "quantumult-dns-hardened": "quantumult-dns-hardened.conf",
