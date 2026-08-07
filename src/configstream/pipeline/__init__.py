@@ -22,9 +22,14 @@ from configstream.history.tracker import ProxyHistoryTracker
 # core.py imports this facade for patchable public collaborators, so eager
 # re-exporting the orchestration core here creates a first-party import cycle.
 _CORE_EXPORTS = {"StandardPipeline", "run_full_pipeline"}
+_PATCH_TARGET_MODULES = {"core", "producer", "consumer"}
 
 
 def __getattr__(name: str) -> Any:
+    if name in _PATCH_TARGET_MODULES:
+        module = import_module(f".{name}", __name__)
+        globals()[name] = module
+        return module
     if name in _CORE_EXPORTS:
         core_module = import_module(".core", __name__)
         value = getattr(core_module, name)
