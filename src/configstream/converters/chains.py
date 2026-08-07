@@ -43,16 +43,6 @@ def extract_chain_proxies(details: Dict[str, Any]) -> List[Proxy]:
     return proxies
 
 
-def chain_obs_from_details(details: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """Compatibility shim for the resolver now owned by ``chain_outbounds``."""
-    from .chain_outbounds import chain_outbounds_from_details
-
-    return chain_outbounds_from_details(details)
-
-
-chain_outbounds_from_details = chain_obs_from_details
-
-
 def _safe_port(value: Any) -> Optional[int]:
     try:
         port = int(value)
