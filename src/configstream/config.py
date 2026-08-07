@@ -175,8 +175,6 @@ class AppSettings(BaseSettings):
     FETCH_MAX_REDIRECTS: int = 5
     FETCH_BLOCK_PRIVATE_NETWORKS: bool = True
     FETCH_VALIDATE_DNS: bool = True
-    ENFORCE_SOURCE_ADMISSION: bool = True
-    SOURCE_ADMISSION_MANIFEST: str = "bundled"
     QUALITY_DB_PATH: str = "data/source_quality.db"
     SOURCE_PROBATION_FAILURES: int = 3
     SOURCE_DEAD_FAILURES: int = 10
@@ -243,3 +241,13 @@ class AppSettings(BaseSettings):
             raise ValueError(
                 "SOURCE_DEAD_FAILURES must be >= SOURCE_PROBATION_FAILURES"
             )
+
+    @property
+    def ENFORCE_SOURCE_ADMISSION(self) -> bool:
+        """Keep reviewed-source admission enabled unless the CLI explicitly bypasses it."""
+        return True
+
+    @property
+    def SOURCE_ADMISSION_MANIFEST(self) -> str:
+        """Use the bundled reviewed-source manifest as the trust root."""
+        return "bundled"
