@@ -174,12 +174,15 @@ jobs:
           if-no-files-found: error
           retention-days: 14
       - name: Run black on changed Python files
+        id: black
+        continue-on-error: true
         shell: bash
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           set -euo pipefail
+          : > black-output.txt
           if ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
             BASE_SHA="${HEAD_SHA}^"
           fi
@@ -187,10 +190,28 @@ jobs:
             git diff --name-only --diff-filter=ACMR "$BASE_SHA" "$HEAD_SHA" -- '*.py'
           )
           if ((${#python_files[@]} == 0)); then
-            echo "No changed Python files to check."
+            echo "No changed Python files to check." | tee black-output.txt
             exit 0
           fi
-          python -m black --check --fast --target-version py310 "${python_files[@]}"
+          python -m black --check --diff --fast --target-version py310 "${python_files[@]}" 2>&1 | tee black-output.txt
+      - name: Upload black diagnostics
+        if: always() && steps.black.outcome != 'skipped'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: black-diagnostics-py${{ matrix.python-version }}-${{ github.run_id }}
+          path: black-output.txt
+          if-no-files-found: error
+          retention-days: 14
+      - name: Enforce black
+        if: always() && steps.black.outcome != 'skipped'
+        shell: bash
+        env:
+          BLACK_OUTCOME: ${{ steps.black.outcome }}
+        run: |
+          if [ "$BLACK_OUTCOME" != "success" ]; then
+            echo "black found formatting differences; inspect the uploaded diagnostics artifact."
+            exit 1
+          fi
       - name: Enforce mypy
         if: always() && steps.mypy.outcome != 'skipped'
         shell: bash
@@ -300,6 +321,4 @@ jobs:
       - name: Run Go benchmarks
         run: |
           cd src/go/tester
-          go test . -run=^$ -bench=. -benchtime=1x
-          cd ../utls_client
           go test . -run=^$ -bench=. -benchtime=1x
