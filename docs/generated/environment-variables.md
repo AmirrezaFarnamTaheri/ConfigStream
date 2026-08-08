@@ -37,7 +37,7 @@ Variables: **160**
 | `CONFIGSTREAM_TESTER_BIN` | yes | `Optional[str]` |  | no | no | `src/configstream/config.py:141`<br>`src/configstream/testers/go_tester/process.py:20` |
 | `CONFIG_STREAM_KEY` | yes | `Optional[str]` |  | no | no | `scripts/audit_pipeline_outputs.py:323`<br>`src/configstream/config.py:138` |
 | `CORS_ALLOW_CREDENTIALS` | yes | `bool` | `false` | no | no | `src/configstream/config.py:164` |
-| `CS_PUBLIC_KEY` | no | `direct-only` |  | no | no | `scripts/snapshot_pages_release.py:389`<br>`scripts/validate_pages_artifact.py:187` |
+| `CS_PUBLIC_KEY` | no | `direct-only` |  | no | no | `scripts/snapshot_pages_release.py:417`<br>`scripts/validate_pages_artifact.py:187` |
 | `CS_SIGNING_PRIVATE_KEY_HEX` | no | `direct-only` | `<redacted>` | no | yes | `scripts/release_gate.py:334`<br>`src/configstream/output/metadata.py:467` |
 | `CS_STRICT_BINARY_TRUST` | no | `direct-only` |  | no | no | `src/configstream/testers/go_tester/binary_security.py:103` |
 | `DEDUP_IGNORE_PROTOCOL` | yes | `bool` | `false` | no | no | `src/configstream/config.py:153` |
