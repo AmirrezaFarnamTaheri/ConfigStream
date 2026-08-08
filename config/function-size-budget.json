@@ -8,7 +8,7 @@
     "src/configstream/parsers/extraction.py::extract_config_lines": 398,
     "src/configstream/pipeline/consumer.py::processing_consumer": 303,
     "src/configstream/pipeline/fetcher.py::fetch_from_source": 403,
-    "src/configstream/pipeline/producer.py::source_producer": 511,
+    "src/configstream/pipeline/producer.py::source_producer": 509,
     "src/configstream/testers/go_tester/manager.py::test_batch": 333
   },
   "policy": "No new oversized functions; existing entries may only shrink until removed.",
