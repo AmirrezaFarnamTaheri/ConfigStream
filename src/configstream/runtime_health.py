@@ -122,7 +122,9 @@ def evaluate_runtime_health(
         reasons.append("manifest_unreadable")
         manifest = {}
 
-    total_working_raw = metadata.get("total_working", public_health.get("total_working", 0))
+    total_working_raw = metadata.get(
+        "total_working", public_health.get("total_working", 0)
+    )
     try:
         total_working = int(total_working_raw or 0)
     except (TypeError, ValueError):
@@ -178,7 +180,10 @@ def evaluate_runtime_health(
                 continue
             if expected_size != actual_size:
                 reasons.append(f"manifest_size_mismatch:{filename}")
-            if not isinstance(expected_digest, str) or sha256_file(path) != expected_digest:
+            if (
+                not isinstance(expected_digest, str)
+                or sha256_file(path) != expected_digest
+            ):
                 reasons.append(f"manifest_hash_mismatch:{filename}")
 
     unique_reasons = tuple(dict.fromkeys(reasons))

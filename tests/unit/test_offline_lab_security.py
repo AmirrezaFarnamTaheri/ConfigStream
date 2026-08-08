@@ -5,7 +5,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-
 LAB = Path(__file__).resolve().parents[2] / "frontend" / "lab-offline.html"
 
 

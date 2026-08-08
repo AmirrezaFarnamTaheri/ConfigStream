@@ -19,7 +19,10 @@ async def test_ensure_binary_async_builds_committed_module_without_mutation(tmp_
     with (
         patch("configstream.security.utls_wrapper.BINARY_PATH", binary),
         patch("configstream.security.utls_wrapper.SOURCE_DIR", source),
-        patch("configstream.security.utls_wrapper.shutil.which", return_value="/usr/bin/go"),
+        patch(
+            "configstream.security.utls_wrapper.shutil.which",
+            return_value="/usr/bin/go",
+        ),
         patch("configstream.security.utls_wrapper._run_cmd", run),
     ):
         result = await ensure_binary_async()
@@ -28,7 +31,13 @@ async def test_ensure_binary_async_builds_committed_module_without_mutation(tmp_
     run.assert_awaited_once()
     command = run.await_args.args[0]
     assert command == [
-        "go", "build", "-trimpath", "-mod=readonly", "-o", str(binary), "."
+        "go",
+        "build",
+        "-trimpath",
+        "-mod=readonly",
+        "-o",
+        str(binary),
+        ".",
     ]
     assert run.await_args.kwargs == {"cwd": source}
 
@@ -94,7 +103,7 @@ async def test_bounded_communicate_kills_timed_out_child():
     from configstream.security.utls_wrapper import _communicate_bounded
 
     process = MagicMock()
-    process.communicate = AsyncMock(side_effect=__import__('asyncio').TimeoutError)
+    process.communicate = AsyncMock(side_effect=__import__("asyncio").TimeoutError)
     process.wait = AsyncMock(return_value=0)
 
     result = await _communicate_bounded(process, timeout_seconds=0.01)

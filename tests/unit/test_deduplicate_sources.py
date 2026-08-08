@@ -15,9 +15,7 @@ def test_deduplicator_reads_only_canonical_batches(tmp_path: Path) -> None:
     (source_dir / "batch_1.txt").write_text(
         "https://canonical.example/list\n", encoding="utf-8"
     )
-    assert load_canonical_sources(source_dir) == {
-        "https://canonical.example/list"
-    }
+    assert load_canonical_sources(source_dir) == {"https://canonical.example/list"}
 
 
 def test_source_layout_is_deterministic(tmp_path: Path) -> None:
@@ -65,5 +63,7 @@ def test_minimal_rebalance_moves_only_excess_entries() -> None:
     assert {url for batch in balanced for url in batch} == {
         url for batch in batches for url in batch
     }
-    moved = sum(len(set(before) - set(after)) for before, after in zip(batches, balanced))
+    moved = sum(
+        len(set(before) - set(after)) for before, after in zip(batches, balanced)
+    )
     assert moved == 1

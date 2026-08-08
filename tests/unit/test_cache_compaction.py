@@ -25,7 +25,9 @@ def test_save_compacts_to_newest_bounded_entries(tmp_path):
         proxy = _proxy(index)
         proxy.is_working = True
         cache.set(proxy)
-        cache._cache[cache._compute_hash(proxy.config)]["tested_at"] = time.time() + index
+        cache._cache[cache._compute_hash(proxy.config)]["tested_at"] = (
+            time.time() + index
+        )
     cache.save()
 
     payload = json.loads(path.read_text(encoding="utf-8"))

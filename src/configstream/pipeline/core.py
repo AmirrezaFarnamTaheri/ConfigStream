@@ -158,9 +158,7 @@ class StandardPipeline(IPipeline):
 
         import configstream.pipeline as pipeline_api
 
-        geoip = (
-            _NoOpGeoIPResolver() if dry_run else pipeline_api.GeoIPResolver()
-        )
+        geoip = _NoOpGeoIPResolver() if dry_run else pipeline_api.GeoIPResolver()
         washer = ProxyWasher(settings.WARP_KEY_POOL)
         if not dry_run:
             await washer.fetch_clean_ips()

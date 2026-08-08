@@ -2,5 +2,6 @@
 from pathlib import Path
 from scripts.validate_release_controls import validate
 
+
 def test_required_release_controls_are_preserved() -> None:
-    assert validate(Path('.')) == []
+    assert validate(Path(".")) == []

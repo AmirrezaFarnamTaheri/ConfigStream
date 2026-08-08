@@ -15,7 +15,6 @@ if str(ROOT) not in sys.path:
 
 from scripts.validation_utils import load_json_object, is_nonempty_string
 
-
 ENCODING = "utf-8"
 MAP_PATH = ROOT / "docs" / "module_ownership.json"
 SCAN_DIRS = ("src", "scripts", "tests", "tools")
@@ -31,8 +30,6 @@ REQUIRED_MODULE_FIELDS = {
     "docs",
 }
 REQUIRED_REMOVED_FIELDS = {"path", "import_names", "replacement"}
-
-
 
 
 def _is_string_list(value: object, *, allow_empty: bool = True) -> bool:

@@ -11,7 +11,11 @@ ROOT = Path(__file__).resolve().parents[2] / "frontend"
 
 
 def _has_accessible_name(soup: BeautifulSoup, control) -> bool:
-    if control.get("aria-label") or control.get("aria-labelledby") or control.get("title"):
+    if (
+        control.get("aria-label")
+        or control.get("aria-labelledby")
+        or control.get("title")
+    ):
         return True
     control_id = control.get("id")
     if control_id and soup.find("label", attrs={"for": control_id}):

@@ -168,9 +168,7 @@ async def source_producer(
         put_timeout_seconds=max(
             0.05, float(getattr(settings, "QUEUE_PUT_TIMEOUT_SECONDS", 0.75))
         ),
-        overload_threshold=float(
-            getattr(settings, "QUEUE_OVERLOAD_THRESHOLD", 0.8)
-        ),
+        overload_threshold=float(getattr(settings, "QUEUE_OVERLOAD_THRESHOLD", 0.8)),
         keep_ratio=float(getattr(settings, "QUEUE_OVERLOAD_KEEP_RATIO", 0.6)),
         max_tries=max(1, int(getattr(settings, "QUEUE_MAX_TRIES", 5))),
     )

@@ -525,7 +525,6 @@ def _write_outputs(entries: list[dict[str, str | int]]) -> None:
     )
 
 
-
 def validate_artifacts() -> list[str]:
     """Validate generated debt artifacts are portable and non-self-referential."""
     errors: list[str] = []
@@ -578,6 +577,7 @@ def validate_artifacts() -> list[str]:
             errors.append(f"docs/DEBT_MATRIX.md self-references {generated}")
     return errors
 
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -589,7 +589,9 @@ def main() -> int:
 
     files = _tracked_files()
     entries = _scan_files(files) + _scan_structural_debt(files)
-    entries.sort(key=lambda entry: (str(entry["path"]), int(entry["line"]), str(entry["marker"])))
+    entries.sort(
+        key=lambda entry: (str(entry["path"]), int(entry["line"]), str(entry["marker"]))
+    )
 
     if args.check:
         if not OUT_JSON.exists():

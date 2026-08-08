@@ -8,9 +8,7 @@ from typing import Any, Dict, Optional
 from ..models import Proxy
 
 
-def proxy_from_outbound(
-    ob: Dict[str, Any], remark_prefix: str = ""
-) -> Optional[Proxy]:
+def proxy_from_outbound(ob: Dict[str, Any], remark_prefix: str = "") -> Optional[Proxy]:
     """Attempt to build a minimal Proxy from a sing-box outbound dict."""
     ob_type = ob.get("type", "")
     server = ob.get("server", "")

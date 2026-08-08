@@ -81,7 +81,9 @@ def test_policy_blocks_plain_http_sources_from_default_fetch_set():
 def test_cli_keeps_admission_secure_by_default_with_explicit_local_override():
     source = (ROOT / "src" / "configstream" / "cli.py").read_text(encoding="utf-8")
     assert '"--allow-unadmitted-sources"' in source
-    assert "settings.ENFORCE_SOURCE_ADMISSION and not allow_unadmitted_sources" in source
+    assert (
+        "settings.ENFORCE_SOURCE_ADMISSION and not allow_unadmitted_sources" in source
+    )
     assert "source admission was explicitly bypassed" in source
     assert "insecure-transport source(s)" in source
 
@@ -90,7 +92,9 @@ def test_policy_rejects_manifest_that_mislabels_plain_http_as_safe(tmp_path):
     url = "http://example.com/subscription.txt"
     payload = {
         "schema_version": 1,
-        "source_set_sha256": __import__("hashlib").sha256((url + "\n").encode()).hexdigest(),
+        "source_set_sha256": __import__("hashlib")
+        .sha256((url + "\n").encode())
+        .hexdigest(),
         "entries": [
             {
                 "url": url,
@@ -115,7 +119,9 @@ def test_policy_rejects_manifest_url_metadata_mismatch(tmp_path):
     url = "https://example.com/subscription.txt"
     payload = {
         "schema_version": 1,
-        "source_set_sha256": __import__("hashlib").sha256((url + "\n").encode()).hexdigest(),
+        "source_set_sha256": __import__("hashlib")
+        .sha256((url + "\n").encode())
+        .hexdigest(),
         "entries": [
             {
                 "url": url,
@@ -140,7 +146,9 @@ def test_policy_rejects_overstated_immutable_reference(tmp_path):
     url = "https://raw.githubusercontent.com/example/project/main/list.txt"
     payload = {
         "schema_version": 1,
-        "source_set_sha256": __import__("hashlib").sha256((url + "\n").encode()).hexdigest(),
+        "source_set_sha256": __import__("hashlib")
+        .sha256((url + "\n").encode())
+        .hexdigest(),
         "entries": [
             {
                 "url": url,
@@ -190,7 +198,9 @@ def test_policy_entries_mapping_is_read_only():
 def test_policy_rejects_secret_bearing_or_invalid_locators(tmp_path, url, message):
     payload = {
         "schema_version": 1,
-        "source_set_sha256": __import__("hashlib").sha256((url + "\n").encode()).hexdigest(),
+        "source_set_sha256": __import__("hashlib")
+        .sha256((url + "\n").encode())
+        .hexdigest(),
         "entries": [
             {
                 "url": url,
@@ -212,22 +222,27 @@ def test_policy_rejects_secret_bearing_or_invalid_locators(tmp_path, url, messag
 
 
 def test_locator_normalization_removes_client_only_fragment_and_default_port():
-    assert normalize_source_locator(
-        "HTTPS://Example.COM:443/list.txt?x=1#client-label"
-    ) == "https://example.com/list.txt?x=1"
+    assert (
+        normalize_source_locator("HTTPS://Example.COM:443/list.txt?x=1#client-label")
+        == "https://example.com/list.txt?x=1"
+    )
 
 
-def test_policy_rejects_noncanonical_manifest_url_but_normalizes_runtime_input(tmp_path):
+def test_policy_rejects_noncanonical_manifest_url_but_normalizes_runtime_input(
+    tmp_path,
+):
     canonical = "https://example.com/list.txt"
     payload = {
         "schema_version": 1,
-        "source_set_sha256": __import__("hashlib").sha256(
-            (canonical + "\n").encode()
-        ).hexdigest(),
+        "source_set_sha256": __import__("hashlib")
+        .sha256((canonical + "\n").encode())
+        .hexdigest(),
         "entries": [
             {
                 "url": canonical,
-                "url_sha256": __import__("hashlib").sha256(canonical.encode()).hexdigest(),
+                "url_sha256": __import__("hashlib")
+                .sha256(canonical.encode())
+                .hexdigest(),
                 "host": "example.com",
                 "scheme": "https",
                 "locator_type": "opaque-http",
@@ -244,16 +259,15 @@ def test_policy_rejects_noncanonical_manifest_url_but_normalizes_runtime_input(t
 
     fragment_url = canonical + "#client-label"
     payload["entries"][0]["url"] = fragment_url
-    payload["entries"][0]["url_sha256"] = __import__("hashlib").sha256(
-        fragment_url.encode()
-    ).hexdigest()
-    payload["source_set_sha256"] = __import__("hashlib").sha256(
-        (fragment_url + "\n").encode()
-    ).hexdigest()
+    payload["entries"][0]["url_sha256"] = (
+        __import__("hashlib").sha256(fragment_url.encode()).hexdigest()
+    )
+    payload["source_set_sha256"] = (
+        __import__("hashlib").sha256((fragment_url + "\n").encode()).hexdigest()
+    )
     manifest.write_text(json.dumps(payload), encoding="utf-8")
     with pytest.raises(SourceAdmissionError, match="not canonical"):
         SourceAdmissionPolicy(manifest)
-
 
 
 def test_githubusercontent_classification_rejects_suffix_spoofing():

@@ -14,11 +14,9 @@ if str(ROOT) not in sys.path:
 
 from scripts.validation_utils import load_json_object
 
-
 ENCODING = "utf-8"
 REPORT_PATH = ROOT / "docs" / "core_compatibility_report.json"
 OUTPUT_MATRIX_PATH = ROOT / "docs" / "output_matrix.json"
-
 
 
 def _output_items() -> dict[str, dict[str, Any]]:

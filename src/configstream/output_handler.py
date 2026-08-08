@@ -54,9 +54,7 @@ def _log_geoip_enrichment_stats(proxies: List[Proxy]) -> Dict[str, int]:
         ),
         "with_asn": sum(1 for proxy in proxies if proxy.asn),
     }
-    coverage = (
-        stats["with_country"] / stats["total"] * 100 if stats["total"] else 0.0
-    )
+    coverage = stats["with_country"] / stats["total"] * 100 if stats["total"] else 0.0
     logger.info(
         "GeoIP enrichment: %d/%d (%.1f%%) countries resolved, %d cities, %d ASNs",
         stats["with_country"],

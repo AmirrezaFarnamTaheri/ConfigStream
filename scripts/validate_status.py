@@ -40,7 +40,9 @@ def _project_metadata() -> tuple[str, list[str]]:
     classifiers = project.get("classifiers", [])
     if not isinstance(version, str) or not version:
         raise TypeError("pyproject.toml project.version must be a non-empty string")
-    if not isinstance(classifiers, list) or not all(isinstance(v, str) for v in classifiers):
+    if not isinstance(classifiers, list) or not all(
+        isinstance(v, str) for v in classifiers
+    ):
         raise TypeError("pyproject.toml project.classifiers must be a string list")
     return version, classifiers
 
@@ -83,7 +85,9 @@ def validate_status(*, now: str | None = None) -> list[str]:
     release_gate = state.get("release_gate")
     production_ready = state.get("production_ready")
     if verdict not in ALLOWED_VERDICTS:
-        errors.append(f"docs/readiness.json verdict must be one of {sorted(ALLOWED_VERDICTS)}")
+        errors.append(
+            f"docs/readiness.json verdict must be one of {sorted(ALLOWED_VERDICTS)}"
+        )
     if release_gate not in ALLOWED_RELEASE_GATES:
         errors.append(
             f"docs/readiness.json release_gate must be one of {sorted(ALLOWED_RELEASE_GATES)}"
@@ -119,9 +123,13 @@ def validate_status(*, now: str | None = None) -> list[str]:
 
     is_pass = verdict == "PASS" and release_gate == "ready" and production_ready is True
     if is_pass and not all_gates_passing:
-        errors.append("PASS/ready/production_ready requires all required gates to be passing")
+        errors.append(
+            "PASS/ready/production_ready requires all required gates to be passing"
+        )
     if production_ready is True and not is_pass:
-        errors.append("production_ready may be true only for a PASS verdict with release_gate=ready")
+        errors.append(
+            "production_ready may be true only for a PASS verdict with release_gate=ready"
+        )
     if all_gates_passing and not is_pass:
         errors.append("all required gates pass but the release state is not PASS/ready")
 
@@ -132,7 +140,9 @@ def validate_status(*, now: str | None = None) -> list[str]:
             errors.append("PASS releases require the Production/Stable classifier")
     else:
         if stable_classifier in classifiers:
-            errors.append("non-PASS releases must not use the Production/Stable classifier")
+            errors.append(
+                "non-PASS releases must not use the Production/Stable classifier"
+            )
         if beta_classifier not in classifiers:
             errors.append("non-PASS releases require the Beta classifier")
 

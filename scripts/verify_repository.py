@@ -61,8 +61,13 @@ def build_plan(profile: str) -> list[Stage]:
         Stage("container-pins", (python, "scripts/validate_container_pins.py")),
         Stage("dependency-drift", (python, "scripts/check_dependency_drift.py")),
         Stage("repository-hygiene", (python, "scripts/validate_repository_hygiene.py")),
-        Stage("instruction-consistency", (python, "scripts/validate_instruction_consistency.py")),
-        Stage("documentation-links", (python, "scripts/validate_documentation_links.py")),
+        Stage(
+            "instruction-consistency",
+            (python, "scripts/validate_instruction_consistency.py"),
+        ),
+        Stage(
+            "documentation-links", (python, "scripts/validate_documentation_links.py")
+        ),
         Stage("maturity-tiers", (python, "scripts/validate_maturity_tiers.py")),
         Stage("go-quality-contract", (python, "scripts/validate_go_quality.py")),
         Stage("release-controls", (python, "scripts/validate_release_controls.py")),
@@ -83,15 +88,23 @@ def build_plan(profile: str) -> list[Stage]:
             (python, "scripts/generate_source_admission.py", "--check"),
         ),
         Stage("debt-matrix", (python, "scripts/generate_debt_matrix.py", "--check")),
-        Stage("triage-report", (python, "scripts/generate_triage_report.py", "--check")),
-        Stage("capability-registry", (python, "scripts/validate_capability_registry.py")),
+        Stage(
+            "triage-report", (python, "scripts/generate_triage_report.py", "--check")
+        ),
+        Stage(
+            "capability-registry", (python, "scripts/validate_capability_registry.py")
+        ),
         Stage("core-compatibility", (python, "scripts/validate_core_compatibility.py")),
         Stage("module-ownership", (python, "scripts/validate_module_ownership.py")),
         Stage("license-headers", (python, "scripts/check_license_headers.py")),
         Stage("test-skip-policy", (python, "scripts/validate_test_skips.py")),
         Stage("import-cycles", (python, "scripts/validate_import_cycles.py")),
-        Stage("function-size-budget", (python, "scripts/validate_function_size_budget.py")),
-        Stage("exception-boundaries", (python, "scripts/validate_exception_boundaries.py")),
+        Stage(
+            "function-size-budget", (python, "scripts/validate_function_size_budget.py")
+        ),
+        Stage(
+            "exception-boundaries", (python, "scripts/validate_exception_boundaries.py")
+        ),
         Stage(
             "repository-forensics",
             (python, "scripts/collect_repository_forensics.py", "--check"),
@@ -107,8 +120,17 @@ def build_plan(profile: str) -> list[Stage]:
         Stage("claim-ledger", (python, "scripts/validate_claim_ledger.py")),
         Stage("protocol-matrix", (python, "scripts/validate_protocol_matrix.py")),
         Stage("output-matrix", (python, "scripts/validate_output_matrix.py")),
-        Stage("generated-output-docs", (python, "scripts/generate_output_docs.py", "--check")),
-        Stage("frontend-build", ("npm", "run", "build"), required_tool="npm", timeout_seconds=900, required_paths=("node_modules/.bin/vite",)),
+        Stage(
+            "generated-output-docs",
+            (python, "scripts/generate_output_docs.py", "--check"),
+        ),
+        Stage(
+            "frontend-build",
+            ("npm", "run", "build"),
+            required_tool="npm",
+            timeout_seconds=900,
+            required_paths=("node_modules/.bin/vite",),
+        ),
         Stage(
             "focused-regressions",
             (
@@ -236,7 +258,7 @@ def build_plan(profile: str) -> list[Stage]:
             workdir="src/rust/ss_checker",
         ),
     ]
-    extended = full[len(release):]
+    extended = full[len(release) :]
     plans = {
         "static": static,
         "release-tail": release_tail,
@@ -287,10 +309,14 @@ def _run_process(
 def _run_stage(root: Path, stage: Stage, env: dict[str, str]) -> StageResult:
     tool = stage.required_tool or stage.command[0]
     missing_paths = [
-        path for path in stage.required_paths if not (root / stage.workdir / path).exists()
+        path
+        for path in stage.required_paths
+        if not (root / stage.workdir / path).exists()
     ]
     missing_modules = [
-        module for module in stage.required_python_modules if importlib.util.find_spec(module) is None
+        module
+        for module in stage.required_python_modules
+        if importlib.util.find_spec(module) is None
     ]
     if missing_modules:
         return StageResult(
@@ -299,7 +325,8 @@ def _run_stage(root: Path, stage: Stage, env: dict[str, str]) -> StageResult:
             status="unavailable",
             exit_code=None,
             duration_seconds=0.0,
-            output="required Python modules not installed: " + ", ".join(missing_modules),
+            output="required Python modules not installed: "
+            + ", ".join(missing_modules),
         )
     if missing_paths:
         return StageResult(
@@ -328,17 +355,36 @@ def _run_stage(root: Path, stage: Stage, env: dict[str, str]) -> StageResult:
         )
         if version_timed_out or version_code != 0:
             return StageResult(
-                stage.name, stage.command, "unavailable", version_code, 0.0,
+                stage.name,
+                stage.command,
+                "unavailable",
+                version_code,
+                0.0,
                 "could not run required tool version command",
             )
-        match = re.search(r"(?:go|node |v)(\d+)\.(\d+)(?:\.(\d+))?", version_output or "")
+        match = re.search(
+            r"(?:go|node |v)(\d+)\.(\d+)(?:\.(\d+))?", version_output or ""
+        )
         if not match:
-            return StageResult(stage.name, stage.command, "unavailable", None, 0.0, "could not determine required tool version")
+            return StageResult(
+                stage.name,
+                stage.command,
+                "unavailable",
+                None,
+                0.0,
+                "could not determine required tool version",
+            )
         observed = tuple(int(value or 0) for value in match.groups())
-        required = tuple(stage.minimum_tool_version) + (0,) * (3 - len(stage.minimum_tool_version))
+        required = tuple(stage.minimum_tool_version) + (0,) * (
+            3 - len(stage.minimum_tool_version)
+        )
         if observed < required:
             return StageResult(
-                stage.name, stage.command, "unavailable", None, 0.0,
+                stage.name,
+                stage.command,
+                "unavailable",
+                None,
+                0.0,
                 f"tool version {observed} is below required {required}",
             )
     stage_env = env.copy()
@@ -368,7 +414,6 @@ def _run_stage(root: Path, stage: Stage, env: dict[str, str]) -> StageResult:
     )
 
 
-
 def _build_stage_environment(root: Path) -> dict[str, str]:
     """Build a deterministic child environment without parent test instrumentation."""
     env = os.environ.copy()
@@ -390,6 +435,7 @@ def _build_stage_environment(root: Path) -> dict[str, str]:
     env.setdefault("ENVIRONMENT", "test")
     env.setdefault("GOTOOLCHAIN", "local")
     return env
+
 
 def verify(
     root: Path,
@@ -425,14 +471,20 @@ def verify(
         "results": [result.to_dict() for result in results],
     }
     report_path.parent.mkdir(parents=True, exist_ok=True)
-    report_path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    report_path.write_text(
+        json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     return counts["failed"] == 0 and counts["unavailable"] == 0 and omitted == 0
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path("."))
-    parser.add_argument("--profile", choices=("static", "release-tail", "release", "extended", "full"), default="release")
+    parser.add_argument(
+        "--profile",
+        choices=("static", "release-tail", "release", "extended", "full"),
+        default="release",
+    )
     parser.add_argument(
         "--report",
         type=Path,

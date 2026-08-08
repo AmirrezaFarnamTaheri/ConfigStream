@@ -18,11 +18,13 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
+
 def batch_sort_key(path: Path) -> tuple[int, str]:
     name = path.stem
     if name.startswith("batch_") and name[6:].isdigit():
         return (int(name[6:]), path.name)
     return (999999, path.name)
+
 
 from configstream.source_admission import (
     SourceAdmissionError,
@@ -54,7 +56,9 @@ def load_urls() -> dict[str, list[str]]:
                     f"{path}: non-canonical fetch source locator: {url!r}; "
                     f"use {canonical_url!r}"
                 )
-            origins.setdefault(canonical_url, []).append(path.relative_to(ROOT).as_posix())
+            origins.setdefault(canonical_url, []).append(
+                path.relative_to(ROOT).as_posix()
+            )
     return origins
 
 

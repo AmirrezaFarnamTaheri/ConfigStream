@@ -164,8 +164,12 @@ async def test_get_stats_rejects_malformed_metadata(mock_output_dir, async_clien
 
 
 @pytest.mark.asyncio
-async def test_get_proxy_diff_rejects_invalid_current_schema(mock_output_dir, async_client):
-    (mock_output_dir / "proxies.json").write_text(json.dumps({"not": "a list"}), encoding="utf-8")
+async def test_get_proxy_diff_rejects_invalid_current_schema(
+    mock_output_dir, async_client
+):
+    (mock_output_dir / "proxies.json").write_text(
+        json.dumps({"not": "a list"}), encoding="utf-8"
+    )
     with patch("configstream.server.OUTPUT_DIR", mock_output_dir):
         response = await async_client.get("/api/diff/proxies?base_version=valid-token")
 
@@ -174,14 +178,21 @@ async def test_get_proxy_diff_rejects_invalid_current_schema(mock_output_dir, as
 
 
 @pytest.mark.asyncio
-async def test_get_proxy_diff_requests_full_reload_for_invalid_old_schema(mock_output_dir, async_client):
+async def test_get_proxy_diff_requests_full_reload_for_invalid_old_schema(
+    mock_output_dir, async_client
+):
     (mock_output_dir / "proxies.json").write_text(json.dumps([]), encoding="utf-8")
-    (mock_output_dir / "proxies.old.json").write_text(json.dumps({"not": "a list"}), encoding="utf-8")
+    (mock_output_dir / "proxies.old.json").write_text(
+        json.dumps({"not": "a list"}), encoding="utf-8"
+    )
     with patch("configstream.server.OUTPUT_DIR", mock_output_dir):
         response = await async_client.get("/api/diff/proxies?base_version=valid-token")
 
     assert response.status_code == 200
-    assert response.json() == {"type": "full_reload_required", "reason": "base_snapshot_invalid"}
+    assert response.json() == {
+        "type": "full_reload_required",
+        "reason": "base_snapshot_invalid",
+    }
 
 
 @pytest.mark.asyncio

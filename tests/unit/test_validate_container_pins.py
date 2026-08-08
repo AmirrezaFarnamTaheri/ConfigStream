@@ -4,8 +4,11 @@ import shutil
 
 from scripts.validate_container_pins import validate
 
-def test_repository_container_images_are_digest_pinned_and_targets_are_separated() -> None:
-    assert validate(Path('.')) == []
+
+def test_repository_container_images_are_digest_pinned_and_targets_are_separated() -> (
+    None
+):
+    assert validate(Path(".")) == []
 
 
 def test_container_validation_rejects_missing_bundled_source_admission_manifest(

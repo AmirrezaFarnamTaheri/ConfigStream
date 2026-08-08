@@ -20,7 +20,9 @@ STATUS_PATH = ROOT / "STATUS.md"
 def main() -> None:
     state = load_release_state(READINESS_PATH)
     STATUS_PATH.write_text(render_status(state), encoding="utf-8", newline="\n")
-    print(f"OK: generated {STATUS_PATH.relative_to(ROOT)} from {READINESS_PATH.relative_to(ROOT)}")
+    print(
+        f"OK: generated {STATUS_PATH.relative_to(ROOT)} from {READINESS_PATH.relative_to(ROOT)}"
+    )
 
 
 if __name__ == "__main__":

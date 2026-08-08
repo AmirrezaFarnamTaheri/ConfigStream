@@ -64,8 +64,16 @@ def validate_repository(root: Path) -> list[str]:
     try:
         package = _load_json(root / "package.json")
         node_engine = str(package.get("engines", {}).get("node", ""))
-    except (OSError, UnicodeError, json.JSONDecodeError, ValueError, AttributeError) as exc:
-        errors.append(f"package.json runtime declaration unreadable: {type(exc).__name__}")
+    except (
+        OSError,
+        UnicodeError,
+        json.JSONDecodeError,
+        ValueError,
+        AttributeError,
+    ) as exc:
+        errors.append(
+            f"package.json runtime declaration unreadable: {type(exc).__name__}"
+        )
     else:
         _expect(
             errors,
@@ -101,7 +109,11 @@ def validate_repository(root: Path) -> list[str]:
             f"FROM node:{node_container}-slim@sha256:",
             f"FROM python:{python_container}-slim@sha256:",
         ):
-            _expect(errors, required in dockerfile, f"Dockerfile missing canonical base: {required}")
+            _expect(
+                errors,
+                required in dockerfile,
+                f"Dockerfile missing canonical base: {required}",
+            )
 
     workflow_text = "\n".join(
         path.read_text(encoding="utf-8")

@@ -73,15 +73,23 @@ def validate() -> list[str]:
         observed = actual.get(path, 0)
         ceiling = normalized.get(path)
         if ceiling is None:
-            errors.append(f"unreviewed broad exception boundary path: {path} ({observed})")
+            errors.append(
+                f"unreviewed broad exception boundary path: {path} ({observed})"
+            )
         elif observed > ceiling:
-            errors.append(f"broad exception budget increased: {path}: {observed} > {ceiling}")
+            errors.append(
+                f"broad exception budget increased: {path}: {observed} > {ceiling}"
+            )
         elif observed < ceiling:
-            errors.append(f"stale broad exception ceiling must be ratcheted down: {path}: {observed} < {ceiling}")
+            errors.append(
+                f"stale broad exception ceiling must be ratcheted down: {path}: {observed} < {ceiling}"
+            )
     total = sum(actual.values())
     ceiling_total = int(budget.get("total_ceiling", -1))
     if total != ceiling_total:
-        errors.append(f"total broad exception budget is stale: actual={total}, ceiling={ceiling_total}")
+        errors.append(
+            f"total broad exception budget is stale: actual={total}, ceiling={ceiling_total}"
+        )
     return errors
 
 
@@ -91,7 +99,10 @@ def main() -> int:
     args = parser.parse_args()
     if args.write:
         BUDGET.parent.mkdir(parents=True, exist_ok=True)
-        BUDGET.write_text(json.dumps(build_budget(), indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        BUDGET.write_text(
+            json.dumps(build_budget(), indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
         print(f"wrote {BUDGET.relative_to(ROOT)}")
         return 0
     errors = validate()
@@ -100,7 +111,9 @@ def main() -> int:
         for error in errors:
             print(f"  - {error}", file=sys.stderr)
         return 1
-    print(f"OK: exception boundary budget exact ({sum(count_boundaries().values())} boundaries).")
+    print(
+        f"OK: exception boundary budget exact ({sum(count_boundaries().values())} boundaries)."
+    )
     return 0
 
 

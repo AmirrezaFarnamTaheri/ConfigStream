@@ -145,10 +145,7 @@ def test_failover_preserves_leaf_page_and_prevents_session_loop(
     assert "private-state" not in str(result["href"])
     assert result["calls"] == [
         {
-            "url": (
-                "https://ipfs.io/ipns/k51qzi5uqu5d-real-key/"
-                "proxies.html"
-            ),
+            "url": ("https://ipfs.io/ipns/k51qzi5uqu5d-real-key/" "proxies.html"),
             "method": "HEAD",
             "mode": "no-cors",
         }
@@ -167,5 +164,9 @@ def test_failover_skips_placeholder_ipns_key(tmp_path: Path) -> None:
 
 def test_failover_gateways_are_allowed_by_page_csp() -> None:
     html = (ROOT / "frontend" / "proxies.html").read_text(encoding="utf-8")
-    for origin in ("https://ipfs.io", "https://cloudflare-ipfs.com", "https://dweb.link"):
+    for origin in (
+        "https://ipfs.io",
+        "https://cloudflare-ipfs.com",
+        "https://dweb.link",
+    ):
         assert origin in html

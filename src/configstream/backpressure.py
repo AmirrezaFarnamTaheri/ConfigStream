@@ -69,9 +69,7 @@ async def enqueue(
     while not stop_event.is_set():
         attempts += 1
         try:
-            await asyncio.wait_for(
-                queue.put(item), timeout=policy.put_timeout_seconds
-            )
+            await asyncio.wait_for(queue.put(item), timeout=policy.put_timeout_seconds)
         except asyncio.TimeoutError:
             if policy.mode == "shed-longest" and attempts >= policy.max_tries:
                 return EnqueueResult(

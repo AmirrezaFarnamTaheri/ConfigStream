@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Validate immutable container bases and target separation."""
+
 from __future__ import annotations
 import json
 import re
@@ -12,14 +13,19 @@ DIGEST_RE = re.compile(r"@sha256:[0-9a-f]{64}$")
 def validate(root: Path) -> list[str]:
     root = Path(root)
     errors: list[str] = []
-    manifest = json.loads((root / "config/container-images.json").read_text(encoding="utf-8"))
+    manifest = json.loads(
+        (root / "config/container-images.json").read_text(encoding="utf-8")
+    )
     dockerfile = (root / "Dockerfile").read_text(encoding="utf-8")
     dockerignore = (root / ".dockerignore").read_text(encoding="utf-8")
-    refs = {match.group(1) for match in FROM_RE.finditer(dockerfile) if match.group(1) not in {"app-base"}}
+    refs = {
+        match.group(1)
+        for match in FROM_RE.finditer(dockerfile)
+        if match.group(1) not in {"app-base"}
+    }
     refs.update(re.findall(r"--from=([^\s]+)", dockerfile))
     expected = {
-        f"{item['reference']}@{item['digest']}"
-        for item in manifest["images"].values()
+        f"{item['reference']}@{item['digest']}" for item in manifest["images"].values()
     }
     missing = sorted(expected - refs)
     if missing:
@@ -27,12 +33,19 @@ def validate(root: Path) -> list[str]:
     for ref in refs:
         if ":latest" in ref:
             errors.append(f"mutable latest tag: {ref}")
-        if ref.startswith(("golang:", "node:", "python:", "ghcr.io/")) and not DIGEST_RE.search(ref):
+        if ref.startswith(
+            ("golang:", "node:", "python:", "ghcr.io/")
+        ) and not DIGEST_RE.search(ref):
             errors.append(f"external image not digest-pinned: {ref}")
-    if "FROM app-base AS runtime" not in dockerfile or "FROM app-base AS ci-runner" not in dockerfile:
+    if (
+        "FROM app-base AS runtime" not in dockerfile
+        or "FROM app-base AS ci-runner" not in dockerfile
+    ):
         errors.append("Dockerfile must expose distinct runtime and ci-runner targets")
     if "uv pip install --no-cache-dir --no-deps ." not in dockerfile:
-        errors.append("application install must not re-resolve pinned production dependencies")
+        errors.append(
+            "application install must not re-resolve pinned production dependencies"
+        )
     runtime_tail = dockerfile.split("FROM app-base AS runtime", 1)[-1]
     if "/usr/local/lib/node_modules" in runtime_tail:
         errors.append("production runtime target must not copy Node/npm")
@@ -60,10 +73,12 @@ def main() -> int:
     errors = validate(Path("."))
     if errors:
         print("ERROR: container pin validation failed")
-        for error in errors: print(f"  - {error}")
+        for error in errors:
+            print(f"  - {error}")
         return 1
     print("OK: container images and build targets are immutable and separated")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

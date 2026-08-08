@@ -38,7 +38,9 @@ def normalize_source_locator(url: str) -> str:
     try:
         port = parsed.port
     except ValueError as exc:
-        raise SourceAdmissionError("source admission entry has an invalid port") from exc
+        raise SourceAdmissionError(
+            "source admission entry has an invalid port"
+        ) from exc
 
     scheme = parsed.scheme.lower()
     if scheme not in {"http", "https"} or not parsed.hostname:
@@ -50,8 +52,12 @@ def normalize_source_locator(url: str) -> str:
 
     host = parsed.hostname.lower()
     rendered_host = f"[{host}]" if ":" in host and not host.startswith("[") else host
-    default_port = (scheme == "https" and port == 443) or (scheme == "http" and port == 80)
-    netloc = rendered_host if port is None or default_port else f"{rendered_host}:{port}"
+    default_port = (scheme == "https" and port == 443) or (
+        scheme == "http" and port == 80
+    )
+    netloc = (
+        rendered_host if port is None or default_port else f"{rendered_host}:{port}"
+    )
     return urlunsplit((scheme, netloc, parsed.path, parsed.query, ""))
 
 
@@ -139,7 +145,11 @@ class SourceAdmissionEntry:
             host=str(expected["host"]),
             scheme=str(expected["scheme"]),
             locator_type=str(expected["locator_type"]),
-            reference=(str(expected["reference"]) if expected["reference"] is not None else None),
+            reference=(
+                str(expected["reference"])
+                if expected["reference"] is not None
+                else None
+            ),
             immutable_reference=bool(expected["immutable_reference"]),
             trust_class=str(expected["trust_class"]),
         )
@@ -164,7 +174,9 @@ class SourceAdmissionPolicy:
         entries = tuple(entries_list)
         urls = [entry.url for entry in entries]
         if len(urls) != len(set(urls)):
-            raise SourceAdmissionError("source admission manifest contains duplicate URLs")
+            raise SourceAdmissionError(
+                "source admission manifest contains duplicate URLs"
+            )
         computed_set_digest = hashlib.sha256(
             ("\n".join(sorted(urls)) + "\n").encode("utf-8")
         ).hexdigest()
@@ -183,7 +195,9 @@ class SourceAdmissionPolicy:
             if value:
                 normalized_values.append(normalize_source_locator(value))
         normalized = tuple(dict.fromkeys(normalized_values))
-        missing = sorted({source for source in normalized if source not in self._entries})
+        missing = sorted(
+            {source for source in normalized if source not in self._entries}
+        )
         if missing:
             preview = ", ".join(missing[:3])
             suffix = "" if len(missing) <= 3 else f" (+{len(missing) - 3} more)"
@@ -206,7 +220,6 @@ class SourceAdmissionPolicy:
             entry for entry in entries if entry.trust_class not in blocked_trust_classes
         )
         return accepted, blocked
-
 
 
 def resolve_source_admission_manifest(value: str | Path) -> Path:

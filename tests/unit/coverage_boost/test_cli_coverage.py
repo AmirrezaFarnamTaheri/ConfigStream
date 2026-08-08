@@ -71,7 +71,15 @@ def test_cli_merge_command(mock_pipeline, runner):
             f.write("https://example.com/subs")
 
         result = runner.invoke(
-            cli, ["merge", "--sources", "sources.txt", "--max-workers", "10", "--allow-unadmitted-sources"]
+            cli,
+            [
+                "merge",
+                "--sources",
+                "sources.txt",
+                "--max-workers",
+                "10",
+                "--allow-unadmitted-sources",
+            ],
         )
 
         if result.exit_code != 0:
@@ -93,6 +101,8 @@ def test_cli_merge_command_fail(mock_pipeline, runner):
         with open("sources.txt", "w") as f:
             f.write("https://example.com")
 
-        result = runner.invoke(cli, ["merge", "--sources", "sources.txt", "--allow-unadmitted-sources"])
+        result = runner.invoke(
+            cli, ["merge", "--sources", "sources.txt", "--allow-unadmitted-sources"]
+        )
         assert result.exit_code == 1
         assert "Simulated Failure" in result.output

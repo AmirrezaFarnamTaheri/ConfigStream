@@ -51,8 +51,7 @@ def test_homepage_screenshot_smoke(page: Page, http_server):
             body='{"last_updated_utc":"2023-01-01T12:00:00Z","total_proxies":100}',
         ),
     )
-    page.add_init_script(
-        """
+    page.add_init_script("""
         const style = document.createElement('style');
         style.innerHTML = `
             *, *::before, *::after {
@@ -62,8 +61,7 @@ def test_homepage_screenshot_smoke(page: Page, http_server):
             }
         `;
         document.head.appendChild(style);
-        """
-    )
+        """)
 
     page.set_viewport_size({"width": 1440, "height": 1000})
     page.goto(f"{http_server}/index.html", wait_until="networkidle", timeout=10000)

@@ -8,8 +8,14 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def test_xray_pipeline_capability_matches_stable_output_contract():
-    registry = json.loads((ROOT / "docs/capability_registry.json").read_text(encoding="utf-8"))
-    capability = next(item for item in registry["capabilities"] if item["id"] == "cap.core.xray_pipeline_export")
+    registry = json.loads(
+        (ROOT / "docs/capability_registry.json").read_text(encoding="utf-8")
+    )
+    capability = next(
+        item
+        for item in registry["capabilities"]
+        if item["id"] == "cap.core.xray_pipeline_export"
+    )
     assert capability["status"] == "stable"
     assert "xray.json" in capability["outputs"]
     assert capability["implementation"]
@@ -42,5 +48,9 @@ def test_triage_report_uses_exact_debt_ratchets():
     )
     text = (ROOT / "TRIAGE_REPORT.md").read_text(encoding="utf-8")
 
-    assert f"Exact broad exception boundaries: **{exceptions['total_ceiling']}**" in text
-    assert f"Oversized functions (300+ lines): **{len(functions['functions'])}**" in text
+    assert (
+        f"Exact broad exception boundaries: **{exceptions['total_ceiling']}**" in text
+    )
+    assert (
+        f"Oversized functions (300+ lines): **{len(functions['functions'])}**" in text
+    )

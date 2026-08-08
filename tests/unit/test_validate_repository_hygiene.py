@@ -41,9 +41,7 @@ def test_hygiene_rejects_mock_path_debris(tmp_path: Path) -> None:
 
     errors = validate(tmp_path)
 
-    assert errors == [
-        "generated, redundant, or one-off artifact present: MagicMock"
-    ]
+    assert errors == ["generated, redundant, or one-off artifact present: MagicMock"]
 
 
 def test_hygiene_rejects_removed_consolidated_mirror(tmp_path: Path) -> None:
@@ -107,8 +105,12 @@ def test_hygiene_rejects_tracked_runtime_state(tmp_path: Path) -> None:
     runtime = tmp_path / "data" / "test_cache.json"
     runtime.parent.mkdir()
     runtime.write_text("{}\n", encoding="utf-8")
-    subprocess.run(["git", "add", "-f", "data/test_cache.json"], cwd=tmp_path, check=True)
+    subprocess.run(
+        ["git", "add", "-f", "data/test_cache.json"], cwd=tmp_path, check=True
+    )
 
     errors = validate(tmp_path)
 
-    assert any("runtime state must remain ignored and untracked" in error for error in errors)
+    assert any(
+        "runtime state must remain ignored and untracked" in error for error in errors
+    )

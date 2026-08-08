@@ -81,7 +81,9 @@ class SingBoxTester:
         chunk_size = max_concurrent * 10
         for index in range(0, len(proxies), chunk_size):
             chunk = proxies[index : index + chunk_size]
-            results.extend(await asyncio.gather(*(guarded_test(proxy) for proxy in chunk)))
+            results.extend(
+                await asyncio.gather(*(guarded_test(proxy) for proxy in chunk))
+            )
         return results
 
     async def test_batch(self, proxies: List[Proxy]) -> List[Proxy]:

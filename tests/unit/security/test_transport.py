@@ -21,7 +21,9 @@ def _capturing_transport(captured: dict[str, httpx.Request]) -> httpx.MockTransp
 
 def _unused_transport() -> httpx.MockTransport:
     async def handler(request: httpx.Request) -> httpx.Response:
-        raise AssertionError(f"Downstream transport unexpectedly called for {request.url}")
+        raise AssertionError(
+            f"Downstream transport unexpectedly called for {request.url}"
+        )
 
     return httpx.MockTransport(handler)
 

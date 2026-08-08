@@ -14,7 +14,9 @@ def load_json_object(path: Path, root_label: str = "") -> dict[str, Any]:
         raise FileNotFoundError(f"{label}JSON file not found: {path}")
     data = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(data, dict):
-        raise TypeError(f"Expected {label}JSON object in {path}, got {type(data).__name__}")
+        raise TypeError(
+            f"Expected {label}JSON object in {path}, got {type(data).__name__}"
+        )
     return data
 
 

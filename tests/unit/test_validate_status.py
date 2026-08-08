@@ -21,7 +21,10 @@ def _readiness(**overrides):
         "required_gates": {
             "local_release_contract": {"status": "passing", "evidence": ["local.json"]},
             "blocking_ci_green": {"status": "unverified", "evidence": []},
-            "live_pages_digest_and_smoke_verified": {"status": "unverified", "evidence": []},
+            "live_pages_digest_and_smoke_verified": {
+                "status": "unverified",
+                "evidence": [],
+            },
         },
         "release_invariant": "A release is prohibited unless every required gate is passing.",
         "evidence_boundary": "Local verification does not prove remote CI or live deployment state.",
@@ -32,10 +35,12 @@ def _readiness(**overrides):
 
 def _write_repo(root: Path, readiness: dict, *, classifier: str = "4 - Beta") -> None:
     (root / "docs").mkdir()
-    (root / "docs" / "readiness.json").write_text(json.dumps(readiness), encoding="utf-8")
+    (root / "docs" / "readiness.json").write_text(
+        json.dumps(readiness), encoding="utf-8"
+    )
     (root / "pyproject.toml").write_text(
-        "[project]\nversion = \"3.1.0\"\nclassifiers = "
-        f"[\"Development Status :: {classifier}\"]\n",
+        '[project]\nversion = "3.1.0"\nclassifiers = '
+        f'["Development Status :: {classifier}"]\n',
         encoding="utf-8",
     )
     (root / "STATUS.md").write_text(render_status(readiness), encoding="utf-8")
@@ -44,11 +49,15 @@ def _write_repo(root: Path, readiness: dict, *, classifier: str = "4 - Beta") ->
 def _patch_paths(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setattr(validate_status, "ROOT", tmp_path)
     monkeypatch.setattr(validate_status, "STATUS_PATH", tmp_path / "STATUS.md")
-    monkeypatch.setattr(validate_status, "READINESS_PATH", tmp_path / "docs" / "readiness.json")
+    monkeypatch.setattr(
+        validate_status, "READINESS_PATH", tmp_path / "docs" / "readiness.json"
+    )
     monkeypatch.setattr(validate_status, "PYPROJECT_PATH", tmp_path / "pyproject.toml")
 
 
-def test_accepts_generated_conditional_release_state(tmp_path: Path, monkeypatch) -> None:
+def test_accepts_generated_conditional_release_state(
+    tmp_path: Path, monkeypatch
+) -> None:
     _write_repo(tmp_path, _readiness())
     _patch_paths(tmp_path, monkeypatch)
     assert validate_status.validate_status(now="2026-08-01T00:01:00+00:00") == []

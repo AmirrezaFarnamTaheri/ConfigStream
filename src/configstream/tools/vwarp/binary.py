@@ -85,7 +85,6 @@ def _get_download_spec() -> Tuple[str, Optional[str], str]:
     return url, checksum or None, version
 
 
-
 def _validate_download_digest(content: bytes, expected: Optional[str]) -> bool:
     """Require a well-formed SHA-256 pin and an exact archive digest match."""
     if not expected or not _SHA256_RE.fullmatch(expected):
@@ -250,7 +249,9 @@ async def ensure_installed() -> Optional[str]:
         ) as client:
             content = await _download_archive(client, url)
         if not _validate_download_digest(content, checksum):
-            logger.error("Vwarp checksum mismatch; refusing to install downloaded binary.")
+            logger.error(
+                "Vwarp checksum mismatch; refusing to install downloaded binary."
+            )
             return None
 
         temporary_path: Path | None = None
@@ -275,18 +276,21 @@ async def ensure_installed() -> Optional[str]:
                 logger.error("Vwarp binary size is outside the allowed bounds.")
                 return None
 
-            handle, temporary_name = tempfile.mkstemp(
-                prefix=".vwarp-", dir=install_dir
-            )
+            handle, temporary_name = tempfile.mkstemp(prefix=".vwarp-", dir=install_dir)
             os.close(handle)
             temporary_path = Path(temporary_name)
             try:
                 copied = 0
-                with zf.open(vwarp_member_info) as source, temporary_path.open("wb") as target:
+                with (
+                    zf.open(vwarp_member_info) as source,
+                    temporary_path.open("wb") as target,
+                ):
                     while chunk := source.read(1024 * 1024):
                         copied += len(chunk)
                         if copied > MAX_VWARP_BINARY_BYTES:
-                            raise ValueError("Vwarp binary exceeds the extraction safety limit")
+                            raise ValueError(
+                                "Vwarp binary exceeds the extraction safety limit"
+                            )
                         target.write(chunk)
 
                 st = temporary_path.stat()

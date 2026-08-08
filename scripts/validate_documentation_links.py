@@ -51,7 +51,9 @@ def main() -> int:
         for error in errors:
             print(f"  - {error}")
         return 1
-    print(f"OK: local links validated across {len(markdown_files(ROOT))} Markdown files")
+    print(
+        f"OK: local links validated across {len(markdown_files(ROOT))} Markdown files"
+    )
     return 0
 
 

@@ -14,7 +14,6 @@ if str(ROOT) not in sys.path:
 
 from scripts.validation_utils import load_json_object, is_nonempty_string
 
-
 ENCODING = "utf-8"
 REGISTRY_PATH = ROOT / "docs" / "capability_registry.json"
 CLAIM_LEDGER_PATH = ROOT / "docs" / "claim_ledger.json"
@@ -42,8 +41,6 @@ VALID_STATUSES = {
     "deprecated",
     "removed",
 }
-
-
 
 
 def _is_string_list(value: object) -> bool:

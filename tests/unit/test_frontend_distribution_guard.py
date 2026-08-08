@@ -9,11 +9,18 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def test_primary_pages_load_distribution_guard_before_common_ui() -> None:
-    for rel in ["index.html", "about.html", "analytics.html", "proxies.html", "lab.html", "wiki.html"]:
+    for rel in [
+        "index.html",
+        "about.html",
+        "analytics.html",
+        "proxies.html",
+        "lab.html",
+        "wiki.html",
+    ]:
         text = (ROOT / "frontend" / rel).read_text(encoding="utf-8")
-        guard = text.index('assets/js/artifact-state.js')
-        common = text.find('assets/js/common-ui.js')
-        main = text.find('assets/js/main.js')
+        guard = text.index("assets/js/artifact-state.js")
+        common = text.find("assets/js/common-ui.js")
+        main = text.find("assets/js/main.js")
         next_consumer = min(value for value in [common, main] if value >= 0)
         assert guard < next_consumer, rel
 

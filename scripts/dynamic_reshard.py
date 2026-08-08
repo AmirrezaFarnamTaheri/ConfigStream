@@ -384,7 +384,6 @@ def get_existing_sources() -> List[str]:
     return list(urls)
 
 
-
 def analyze_similarity(observed_metrics: Dict[str, Tuple[int, float]]) -> Set[str]:
     """
     Analyzes source fingerprints to find duplicates/redundancies.

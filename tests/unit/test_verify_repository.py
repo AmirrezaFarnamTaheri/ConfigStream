@@ -77,7 +77,9 @@ def test_all_verification_profiles_have_unique_stage_names() -> None:
         assert len(names) == len(set(names)), profile
 
 
-def test_stage_environment_drops_parent_test_instrumentation(monkeypatch, tmp_path: Path) -> None:
+def test_stage_environment_drops_parent_test_instrumentation(
+    monkeypatch, tmp_path: Path
+) -> None:
     monkeypatch.setenv("PYTEST_CURRENT_TEST", "parent")
     monkeypatch.setenv("COVERAGE_PROCESS_START", "coverage.ini")
     monkeypatch.setenv("COV_CORE_SOURCE", "src")

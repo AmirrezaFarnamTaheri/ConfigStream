@@ -77,7 +77,6 @@ def run_profile(profile: str) -> int:
             ([npm, "run", "test:frontend:no-network"], None),
             ([npm, "run", "test:frontend:degraded"], None),
         ],
-
     }
 
     if profile not in profiles:

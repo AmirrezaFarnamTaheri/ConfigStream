@@ -96,11 +96,14 @@ def test_dependency_drift_resolves_local_requirement_includes(tmp_path: Path) ->
         "-r requirements-prod.txt\npytest==9.1.1\n",
     )
 
-    assert check_dependency_drift(
-        pyproject_path=pyproject,
-        requirements_prod_path=req_prod,
-        requirements_dev_path=req_dev,
-    ) == []
+    assert (
+        check_dependency_drift(
+            pyproject_path=pyproject,
+            requirements_prod_path=req_prod,
+            requirements_dev_path=req_dev,
+        )
+        == []
+    )
 
 
 def test_dependency_drift_requires_optional_dev_dependency_pins(tmp_path: Path) -> None:
@@ -131,7 +134,9 @@ dev = ["bandit==1.8.6"]
     ]
 
 
-def test_dependency_drift_requires_exact_aligned_build_dependencies(tmp_path: Path) -> None:
+def test_dependency_drift_requires_exact_aligned_build_dependencies(
+    tmp_path: Path,
+) -> None:
     pyproject = _write(
         tmp_path / "pyproject.toml",
         """
@@ -159,7 +164,9 @@ dependencies = ["httpx>=0.28.0"]
     assert any("wheel" in error and "must match" in error for error in errors)
 
 
-def test_publisher_lock_owns_versions_without_checker_duplication(tmp_path: Path) -> None:
+def test_publisher_lock_owns_versions_without_checker_duplication(
+    tmp_path: Path,
+) -> None:
     path = _write(
         tmp_path / "requirements-publish.txt",
         """
@@ -189,4 +196,6 @@ extra-sdk==3.0.0
     assert any("google-api-python-client" in error for error in errors)
     assert any("google-auth" in error and "exact-pin" in error for error in errors)
     assert any("unreviewed packages: extra-sdk" in error for error in errors)
-    assert any("non-exact dependency entries: google-auth>=2.0.0" in error for error in errors)
+    assert any(
+        "non-exact dependency entries: google-auth>=2.0.0" in error for error in errors
+    )

@@ -42,7 +42,9 @@ def _load_verified_pins(
         payload = json.loads(Path(manifest_path).read_text(encoding="utf-8"))
     except (OSError, UnicodeError, json.JSONDecodeError) as exc:
         return {}, [f"{manifest_path}: could not load verified action pins: {exc}"]
-    if payload.get("schema_version") != 1 or not isinstance(payload.get("entries"), list):
+    if payload.get("schema_version") != 1 or not isinstance(
+        payload.get("entries"), list
+    ):
         return {}, [f"{manifest_path}: unsupported verified action pin schema"]
 
     pins: dict[tuple[str, str], str] = {}
@@ -59,7 +61,9 @@ def _load_verified_pins(
             errors.append(f"{manifest_path}: entry {index} is incomplete or invalid")
             continue
         if key in pins:
-            errors.append(f"{manifest_path}: duplicate verified pin for {action} {version}")
+            errors.append(
+                f"{manifest_path}: duplicate verified pin for {action} {version}"
+            )
             continue
         pins[key] = commit_sha
     return pins, errors
@@ -82,20 +86,32 @@ def _validate_uses(
         digest = image.rsplit("@", 1)[-1] if "@" in image else ""
         if DIGEST_RE.fullmatch(digest):
             return [], False, True
-        return [
-            f"{path}:{line_number}: container action '{uses}' must use an immutable sha256 digest"
-        ], False, False
+        return (
+            [
+                f"{path}:{line_number}: container action '{uses}' must use an immutable sha256 digest"
+            ],
+            False,
+            False,
+        )
 
     if "@" not in uses:
-        return [
-            f"{path}:{line_number}: external action '{uses}' is missing an immutable full commit SHA"
-        ], False, False
+        return (
+            [
+                f"{path}:{line_number}: external action '{uses}' is missing an immutable full commit SHA"
+            ],
+            False,
+            False,
+        )
 
     name, ref = uses.rsplit("@", 1)
     if not SHA_RE.fullmatch(ref):
-        return [
-            f"{path}:{line_number}: external action '{uses}' must be pinned to a full commit SHA"
-        ], False, False
+        return (
+            [
+                f"{path}:{line_number}: external action '{uses}' must be pinned to a full commit SHA"
+            ],
+            False,
+            False,
+        )
 
     errors: list[str] = []
     version_match = VERSION_COMMENT_RE.search(comment or "")
@@ -137,9 +153,7 @@ def validate_action_pins(
         )
 
     workflow_files = sorted(
-        path
-        for pattern in ("*.yml", "*.yaml")
-        for path in workflow_dir.glob(pattern)
+        path for pattern in ("*.yml", "*.yaml") for path in workflow_dir.glob(pattern)
     )
     if not workflow_files:
         return ActionPinAudit(

@@ -4,8 +4,9 @@ from scripts.validate_go_quality import validate
 
 ROOT = Path(__file__).resolve().parents[2]
 
+
 def test_native_go_quality_gates_are_present() -> None:
-    assert validate(Path('.')) == []
+    assert validate(Path(".")) == []
 
 
 def test_utls_client_cannot_disable_certificate_verification() -> None:

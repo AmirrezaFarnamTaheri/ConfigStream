@@ -13,7 +13,9 @@ def _write_json(path: Path, payload: object) -> None:
     path.write_text(json.dumps(payload), encoding="utf-8")
 
 
-def _build_artifact(root: Path, *, generated_at: datetime, total_working: int = 2) -> None:
+def _build_artifact(
+    root: Path, *, generated_at: datetime, total_working: int = 2
+) -> None:
     root.mkdir(parents=True, exist_ok=True)
     generated = generated_at.isoformat()
     _write_json(
@@ -104,7 +106,9 @@ def test_runtime_health_rejects_non_schema_healthy_alias(tmp_path: Path) -> None
     _write_json(health_path, health)
     manifest_path = tmp_path / "artifact_manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    health_entry = next(item for item in manifest["files"] if item["path"] == "health.json")
+    health_entry = next(
+        item for item in manifest["files"] if item["path"] == "health.json"
+    )
     body = health_path.read_bytes()
     health_entry["size_bytes"] = len(body)
     health_entry["sha256"] = hashlib.sha256(body).hexdigest()
@@ -125,7 +129,9 @@ def test_runtime_health_requires_explicit_schema_validation(tmp_path: Path) -> N
     _write_json(health_path, health)
     manifest_path = tmp_path / "artifact_manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    health_entry = next(item for item in manifest["files"] if item["path"] == "health.json")
+    health_entry = next(
+        item for item in manifest["files"] if item["path"] == "health.json"
+    )
     body = health_path.read_bytes()
     health_entry["size_bytes"] = len(body)
     health_entry["sha256"] = hashlib.sha256(body).hexdigest()

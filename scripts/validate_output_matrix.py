@@ -81,8 +81,6 @@ ALLOWED_GLOB_OUTPUTS = {
 }
 
 
-
-
 def _is_safe_zip_member_pattern(value: str) -> bool:
     parts = [part for part in value.replace("\\", "/").split("/") if part]
     return (

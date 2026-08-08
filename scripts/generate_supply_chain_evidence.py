@@ -30,7 +30,9 @@ class Component:
 
     @property
     def purl(self) -> str:
-        kind = {"python": "pypi", "npm": "npm", "go": "golang", "cargo": "cargo"}[self.ecosystem]
+        kind = {"python": "pypi", "npm": "npm", "go": "golang", "cargo": "cargo"}[
+            self.ecosystem
+        ]
         return f"pkg:{kind}/{quote(self.name, safe='@/')}@{quote(self.version, safe='.+_-')}"
 
     @property
@@ -45,7 +47,13 @@ def _python_components(root: Path) -> list[Component]:
         match = _REQUIREMENT.match(line.strip())
         if match:
             components.append(
-                Component("python", match.group(1), match.group(2), "required", source="requirements-prod.txt")
+                Component(
+                    "python",
+                    match.group(1),
+                    match.group(2),
+                    "required",
+                    source="requirements-prod.txt",
+                )
             )
     return components
 
@@ -57,7 +65,7 @@ def _npm_name(package_path: str, payload: dict[str, object]) -> str | None:
     prefix = "node_modules/"
     if not package_path.startswith(prefix):
         return None
-    remainder = package_path[len(prefix):]
+    remainder = package_path[len(prefix) :]
     if remainder.startswith("@"):
         parts = remainder.split("/")
         return "/".join(parts[:2]) if len(parts) >= 2 else None
@@ -85,7 +93,11 @@ def _npm_components(root: Path) -> list[Component]:
         version = raw.get("version")
         if not name or not isinstance(version, str):
             continue
-        scope = "optional" if raw.get("optional") else ("development" if raw.get("dev") else "required")
+        scope = (
+            "optional"
+            if raw.get("optional")
+            else ("development" if raw.get("dev") else "required")
+        )
         components.append(
             Component(
                 "npm",
@@ -111,7 +123,11 @@ def _go_components(root: Path) -> list[Component]:
         if in_require and stripped == ")":
             in_require = False
             continue
-        candidate = stripped.removeprefix("require ") if stripped.startswith("require ") else stripped
+        candidate = (
+            stripped.removeprefix("require ")
+            if stripped.startswith("require ")
+            else stripped
+        )
         if not in_require and not stripped.startswith("require "):
             continue
         match = _GO_REQUIREMENT.match(candidate)
@@ -119,7 +135,13 @@ def _go_components(root: Path) -> list[Component]:
             continue
         scope = "development" if "// indirect" in raw_line else "required"
         components.append(
-            Component("go", match.group(1), match.group(2), scope, source="src/go/tester/go.mod")
+            Component(
+                "go",
+                match.group(1),
+                match.group(2),
+                scope,
+                source="src/go/tester/go.mod",
+            )
         )
     return components
 
@@ -128,7 +150,10 @@ def _cargo_components(root: Path) -> list[Component]:
     path = root / "src/rust/ss_checker/Cargo.toml"
     payload = tomllib.loads(path.read_text(encoding="utf-8"))
     components: list[Component] = []
-    for section, scope in (("dependencies", "required"), ("dev-dependencies", "development")):
+    for section, scope in (
+        ("dependencies", "required"),
+        ("dev-dependencies", "development"),
+    ):
         deps = payload.get(section, {})
         if not isinstance(deps, dict):
             continue
@@ -139,19 +164,37 @@ def _cargo_components(root: Path) -> list[Component]:
                 version = str(raw.get("version") or "unversioned")
             else:
                 continue
-            components.append(Component("cargo", str(name), version, scope, source="src/rust/ss_checker/Cargo.toml"))
+            components.append(
+                Component(
+                    "cargo",
+                    str(name),
+                    version,
+                    scope,
+                    source="src/rust/ss_checker/Cargo.toml",
+                )
+            )
     return components
 
 
 def build_components(root: Path) -> list[Component]:
-    components = _python_components(root) + _npm_components(root) + _go_components(root) + _cargo_components(root)
+    components = (
+        _python_components(root)
+        + _npm_components(root)
+        + _go_components(root)
+        + _cargo_components(root)
+    )
     unique: dict[tuple[str, str, str], Component] = {}
     for component in components:
         key = (component.ecosystem, component.name.lower(), component.version)
         previous = unique.get(key)
-        if previous is None or (previous.scope == "development" and component.scope == "required"):
+        if previous is None or (
+            previous.scope == "development" and component.scope == "required"
+        ):
             unique[key] = component
-    return sorted(unique.values(), key=lambda item: (item.ecosystem, item.name.lower(), item.version))
+    return sorted(
+        unique.values(),
+        key=lambda item: (item.ecosystem, item.name.lower(), item.version),
+    )
 
 
 def _project_version(root: Path) -> str:
@@ -196,8 +239,14 @@ def _sbom(root: Path, components: list[Component]) -> dict[str, object]:
                 "licenses": [{"license": {"id": "AGPL-3.0-or-later"}}],
             },
             "properties": [
-                {"name": "configstream:generation-mode", "value": "offline-manifest-derived"},
-                {"name": "configstream:license-confidence", "value": "manifest-declared-only"},
+                {
+                    "name": "configstream:generation-mode",
+                    "value": "offline-manifest-derived",
+                },
+                {
+                    "name": "configstream:license-confidence",
+                    "value": "manifest-declared-only",
+                },
             ],
         },
         "components": rendered,
@@ -247,7 +296,9 @@ def _license_markdown(payload: dict[str, object]) -> str:
         if not isinstance(item, dict):
             raise TypeError("dependency license component entries must be objects")
         licenses = item["licenses"]
-        license_text = ", ".join(f"`{value}`" for value in licenses) if licenses else "unknown"
+        license_text = (
+            ", ".join(f"`{value}`" for value in licenses) if licenses else "unknown"
+        )
         lines.append(
             f"| {item['ecosystem']} | `{item['name']}` | `{item['version']}` | {item['scope']} | {license_text} |"
         )
@@ -271,10 +322,14 @@ def generate(root: Path, *, check: bool = False) -> list[str]:
             try:
                 current = path.read_text(encoding="utf-8")
             except OSError:
-                errors.append(f"missing supply-chain evidence: {path.relative_to(root)}")
+                errors.append(
+                    f"missing supply-chain evidence: {path.relative_to(root)}"
+                )
             else:
                 if current != content:
-                    errors.append(f"stale supply-chain evidence: {path.relative_to(root)}")
+                    errors.append(
+                        f"stale supply-chain evidence: {path.relative_to(root)}"
+                    )
         else:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(content, encoding="utf-8")
@@ -291,7 +346,11 @@ def main() -> int:
         for error in errors:
             print(f"ERROR: {error}")
         return 1
-    print("OK: supply-chain evidence is current" if args.check else "OK: supply-chain evidence generated")
+    print(
+        "OK: supply-chain evidence is current"
+        if args.check
+        else "OK: supply-chain evidence generated"
+    )
     return 0
 
 

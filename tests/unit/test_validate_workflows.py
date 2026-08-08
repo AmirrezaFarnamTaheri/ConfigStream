@@ -28,11 +28,7 @@ def test_ci_cannot_ignore_canonical_source_batches() -> None:
 
 
 def test_ci_may_ignore_dynamic_source_backups() -> None:
-    workflow = {
-        "on": {
-            "push": {"paths-ignore": ["sources/backup_dynamic/**"]}
-        }
-    }
+    workflow = {"on": {"push": {"paths-ignore": ["sources/backup_dynamic/**"]}}}
 
     assert not validate_workflows._ci_ignores_canonical_sources(workflow)
 

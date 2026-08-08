@@ -7,7 +7,6 @@ from pathlib import Path
 
 import yaml
 
-
 BLUEPRINT = Path(__file__).resolve().parents[2] / "render.yaml"
 
 

@@ -8,9 +8,7 @@ def test_relative_cache_path_resolves_against_project_root(tmp_path):
     project_root = tmp_path / "checkout"
     project_root.mkdir()
 
-    with patch(
-        "configstream.test_cache._find_project_root", return_value=project_root
-    ):
+    with patch("configstream.test_cache._find_project_root", return_value=project_root):
         cache = TestResultCache("data/test_cache.json", ttl_seconds=60)
 
     assert cache.db_path == (project_root / "data/test_cache.json").resolve()

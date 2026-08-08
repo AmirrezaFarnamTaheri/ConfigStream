@@ -19,7 +19,7 @@ def test_render_uses_process_liveness_not_artifact_readiness() -> None:
 
 def test_server_package_has_an_executable_container_entrypoint() -> None:
     source = Path("src/configstream/server/__main__.py").read_text(encoding="utf-8")
-    assert 'uvicorn.run(' in source
+    assert "uvicorn.run(" in source
     assert '"configstream.server:app"' in source
     assert 'os.getenv("PORT", "8000")' in source
     assert 'if __name__ == "__main__":' in source

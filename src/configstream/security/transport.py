@@ -59,7 +59,9 @@ def _valid_dns_hostname(value: str) -> bool:
 def _host_header_authority(host: str, port: int | None, default_port: int) -> str:
     parsed = _parse_ip(host)
     authority_host = f"[{host}]" if isinstance(parsed, ipaddress.IPv6Address) else host
-    return f"{authority_host}:{port}" if port and port != default_port else authority_host
+    return (
+        f"{authority_host}:{port}" if port and port != default_port else authority_host
+    )
 
 
 def rewrite_request_to_pinned_ip(

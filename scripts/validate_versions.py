@@ -41,7 +41,9 @@ def main() -> None:
     if f'org.opencontainers.image.version="{truth_version}"' not in dockerfile:
         errors.append("Dockerfile OCI image version mismatch")
 
-    revival = (root / "src/configstream_revival/__init__.py").read_text(encoding=ENCODING)
+    revival = (root / "src/configstream_revival/__init__.py").read_text(
+        encoding=ENCODING
+    )
     if f'__version__ = "{truth_version}"' not in revival:
         errors.append("configstream_revival version mismatch")
 

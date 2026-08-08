@@ -26,7 +26,10 @@ async def test_run_full_pipeline_dry_run(tmp_path):
             "configstream.output_handler.generate_pipeline_outputs",
             new_callable=AsyncMock,
         ) as mock_gen,
-        patch("configstream.pipeline.core.DEFAULT_BLOCKLIST.update", new_callable=AsyncMock),
+        patch(
+            "configstream.pipeline.core.DEFAULT_BLOCKLIST.update",
+            new_callable=AsyncMock,
+        ),
         patch("configstream.pipeline.core.SingBoxTester") as mock_tester_cls,
         patch("configstream.pipeline.GeoIPResolver"),
         patch("configstream.pipeline.core.EventStream") as mock_event_stream,
@@ -63,12 +66,17 @@ async def test_pipeline_auto_scaling(tmp_path):
 
     with (
         patch("configstream.pipeline.producer.source_producer", new_callable=AsyncMock),
-        patch("configstream.pipeline.consumer.processing_consumer", new_callable=AsyncMock),
+        patch(
+            "configstream.pipeline.consumer.processing_consumer", new_callable=AsyncMock
+        ),
         patch(
             "configstream.output_handler.generate_pipeline_outputs",
             new_callable=AsyncMock,
         ),
-        patch("configstream.pipeline.core.DEFAULT_BLOCKLIST.update", new_callable=AsyncMock),
+        patch(
+            "configstream.pipeline.core.DEFAULT_BLOCKLIST.update",
+            new_callable=AsyncMock,
+        ),
         patch("configstream.pipeline.core.SingBoxTester") as mock_tester_cls,
         patch("configstream.pipeline.GeoIPResolver"),
         patch("multiprocessing.cpu_count", return_value=8),
@@ -81,7 +89,9 @@ async def test_pipeline_auto_scaling(tmp_path):
         mock_event_stream.return_value.aclose = AsyncMock()
         mock_event_stream.return_value.output_dir = tmp_path / "output"
 
-        await run_full_pipeline(["s1"], str(tmp_path / "out"), max_workers=0, dry_run=True)
+        await run_full_pipeline(
+            ["s1"], str(tmp_path / "out"), max_workers=0, dry_run=True
+        )
 
 
 @pytest.mark.asyncio
@@ -91,12 +101,17 @@ async def test_pipeline_time_limit_zero_working(tmp_path):
 
     with (
         patch("configstream.pipeline.producer.source_producer", new_callable=AsyncMock),
-        patch("configstream.pipeline.consumer.processing_consumer", new_callable=AsyncMock),
+        patch(
+            "configstream.pipeline.consumer.processing_consumer", new_callable=AsyncMock
+        ),
         patch(
             "configstream.output_handler.generate_pipeline_outputs",
             new_callable=AsyncMock,
         ) as mock_gen,
-        patch("configstream.pipeline.core.DEFAULT_BLOCKLIST.update", new_callable=AsyncMock),
+        patch(
+            "configstream.pipeline.core.DEFAULT_BLOCKLIST.update",
+            new_callable=AsyncMock,
+        ),
         patch("configstream.pipeline.core.SingBoxTester") as mock_tester_cls,
         patch("configstream.pipeline.GeoIPResolver"),
         patch("configstream.pipeline.core.EventStream") as mock_event_stream,
@@ -152,12 +167,17 @@ async def test_vwarp_tunnel_stopped_on_the_instance_that_started_it(
 
     with (
         patch("configstream.pipeline.producer.source_producer", new_callable=AsyncMock),
-        patch("configstream.pipeline.consumer.processing_consumer", new_callable=AsyncMock),
+        patch(
+            "configstream.pipeline.consumer.processing_consumer", new_callable=AsyncMock
+        ),
         patch(
             "configstream.output_handler.generate_pipeline_outputs",
             new_callable=AsyncMock,
         ),
-        patch("configstream.pipeline.core.DEFAULT_BLOCKLIST.update", new_callable=AsyncMock),
+        patch(
+            "configstream.pipeline.core.DEFAULT_BLOCKLIST.update",
+            new_callable=AsyncMock,
+        ),
         patch("configstream.pipeline.core.SingBoxTester") as mock_tester_cls,
         patch("configstream.pipeline.GeoIPResolver"),
         patch("configstream.pipeline.core.EventStream") as mock_event_stream,

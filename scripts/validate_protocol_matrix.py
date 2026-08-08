@@ -15,7 +15,6 @@ if str(ROOT) not in sys.path:
 
 from scripts.validation_utils import load_json_object
 
-
 ENCODING = "utf-8"
 MATRIX_PATH = ROOT / "docs" / "protocol_matrix.json"
 SCHEMA_PATH = ROOT / "schema" / "proxy.schema.json"
@@ -42,7 +41,6 @@ README_PROTOCOL_NAMES = {
     "Brook": "brook",
     "Juicity": "juicity",
 }
-
 
 
 def _schema_protocols() -> set[str]:

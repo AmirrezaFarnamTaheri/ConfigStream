@@ -123,7 +123,9 @@ async def _run_cmd(
             return False
         _, stderr = result
         if proc.returncode != 0:
-            logger.debug("Command failed: %s -> %s", cmd, stderr.decode(errors="replace").strip())
+            logger.debug(
+                "Command failed: %s -> %s", cmd, stderr.decode(errors="replace").strip()
+            )
             return False
         return True
     except (OSError, ValueError) as exc:
@@ -147,7 +149,9 @@ async def ensure_binary_async() -> bool:
         return False
 
     if not (src_dir / "go.mod").is_file() or not (src_dir / "go.sum").is_file():
-        logger.error("uTLS source module is incomplete; go.mod and go.sum are required.")
+        logger.error(
+            "uTLS source module is incomplete; go.mod and go.sum are required."
+        )
         return False
 
     output_dir = BINARY_PATH.parent

@@ -30,6 +30,7 @@ def _chain_obs_from_details(details: Dict[str, Any]) -> list[Dict[str, Any]]:
         return [item for item in stored if isinstance(item, dict)]
     return []
 
+
 # --- Strict Whitelists (Sing-box compatible ciphers) ---
 # Official Sing-box supported Shadowsocks methods
 VALID_SS_METHODS: Set[str] = {

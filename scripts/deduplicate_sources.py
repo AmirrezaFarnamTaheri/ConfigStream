@@ -93,7 +93,11 @@ def rebalance_existing_layout(batches: list[list[str]]) -> list[list[str]]:
 
     while True:
         recipient = next(
-            (index for index, target in enumerate(targets) if len(result[index]) < target),
+            (
+                index
+                for index, target in enumerate(targets)
+                if len(result[index]) < target
+            ),
             None,
         )
         if recipient is None:

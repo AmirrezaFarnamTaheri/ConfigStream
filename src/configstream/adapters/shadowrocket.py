@@ -137,9 +137,7 @@ class ShadowrocketAdapter(Adapter):
                         for ob in outbounds:
                             if not isinstance(ob, dict):
                                 continue
-                            ob_proxy = proxy_from_outbound(
-                                ob, remark_prefix="[Chain] "
-                            )
+                            ob_proxy = proxy_from_outbound(ob, remark_prefix="[Chain] ")
                             if ob_proxy:
                                 uri = self._reconstruct_uri(ob_proxy)
                                 if uri:
