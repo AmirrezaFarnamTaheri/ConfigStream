@@ -51,6 +51,7 @@ const pages = [
   "index.html",
   "about.html",
   "analytics.html",
+  "evidence.html",
   "proxies.html",
   "lab.html",
   "wiki.html",

@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from datetime import datetime, timedelta, timezone
-
-from typing import Any, Dict
+from typing import Any
 
 import pytest
 
@@ -17,7 +16,7 @@ NOW = datetime(2026, 7, 12, 12, 0, tzinfo=timezone.utc)
 
 
 def provider(**overrides: Any) -> SourceProvider:
-    values = {
+    values: dict[str, Any] = {
         "provider_id": "databay",
         "display_name": "Databay",
         "canonical_owner": "databay-labs",
@@ -32,11 +31,11 @@ def provider(**overrides: Any) -> SourceProvider:
         "minimum_records": 1,
     }
     values.update(overrides)
-    return SourceProvider(**values)  # type: ignore[arg-type]
+    return SourceProvider.model_validate(values)
 
 
 def snapshot(**overrides: Any) -> SourceSnapshotManifest:
-    values = {
+    values: dict[str, Any] = {
         "run_id": "run-1",
         "provider_id": "databay",
         "requested_locator": "https://github.com/databay-labs/free-proxy-list",
@@ -56,7 +55,7 @@ def snapshot(**overrides: Any) -> SourceSnapshotManifest:
         "protocol_claim": "http",
     }
     values.update(overrides)
-    return SourceSnapshotManifest(**values)  # type: ignore[arg-type]
+    return SourceSnapshotManifest.model_validate(values)
 
 
 def violation_codes(exc: SourcePolicyError) -> set[str]:

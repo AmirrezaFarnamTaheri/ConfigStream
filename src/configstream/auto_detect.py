@@ -8,7 +8,7 @@ from typing import Optional, Protocol, cast
 from urllib.parse import urlparse
 
 from .models import Proxy
-from .security_validator import _safe_log_text
+from .security_validator import safe_log_text
 from .constants import VWARP_SOCKS5_PORT
 from .parsers import (
     parse_generic_url_scheme,
@@ -117,7 +117,7 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
                 if result:
                     return result
             except (ValueError, KeyError, binascii.Error, json.JSONDecodeError) as exc:
-                logger.debug(f"Parser {scheme} failed: {_safe_log_text(exc)}")
+                logger.debug(f"Parser {scheme} failed: {safe_log_text(exc)}")
 
     # Try JSON parsing (V2Ray JSON or Clash JSON format)
     if config.startswith("{"):
@@ -128,7 +128,7 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
             if result:
                 return result
         except (ValueError, KeyError, json.JSONDecodeError) as exc:
-            logger.debug(f"v2ray json parser skipped: {_safe_log_text(exc)}")
+            logger.debug(f"v2ray json parser skipped: {safe_log_text(exc)}")
 
         try:
             from .parsers.clash_json import parse_clash_json
@@ -137,7 +137,7 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
             if result:
                 return result
         except Exception as exc:
-            logger.debug(f"clash json parser skipped: {_safe_log_text(exc)}")
+            logger.debug(f"clash json parser skipped: {safe_log_text(exc)}")
 
     # Port-based heuristics
     try:
@@ -160,7 +160,7 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
                             return result
                     except (ValueError, KeyError) as exc:
                         logger.debug(
-                            f"TLS candidate parser {parser.__name__} skipped: {_safe_log_text(exc)}"  # type: ignore[attr-defined]
+                            f"TLS candidate parser {parser.__name__} skipped: {safe_log_text(exc)}"  # type: ignore[attr-defined]
                         )
                         continue
 
@@ -169,7 +169,7 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
                     return parse_generic_url_scheme(config)
                 except ValueError as exc:
                     logger.debug(
-                        f"SOCKS candidate parser skipped: {_safe_log_text(exc)}"
+                        f"SOCKS candidate parser skipped: {safe_log_text(exc)}"
                     )
 
     except (ValueError, AttributeError):
@@ -237,7 +237,7 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
                 return result
         except (ValueError, KeyError, binascii.Error, json.JSONDecodeError) as exc:
             logger.debug(
-                f"Fallback parser {parser.__name__} skipped: {_safe_log_text(exc)}"  # type: ignore[attr-defined]
+                f"Fallback parser {parser.__name__} skipped: {safe_log_text(exc)}"  # type: ignore[attr-defined]
             )
             continue
 

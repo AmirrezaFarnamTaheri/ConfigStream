@@ -4,6 +4,11 @@ from unittest.mock import MagicMock, AsyncMock, patch
 from configstream.pipeline_stats import PipelineResult
 
 
+@pytest.fixture(autouse=True)
+def _disable_vwarp(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("USE_VWARP_TUNNEL", "false")
+
+
 @pytest.mark.asyncio
 async def test_run_full_pipeline_dry_run(tmp_path):
 
@@ -12,19 +17,22 @@ async def test_run_full_pipeline_dry_run(tmp_path):
 
     with (
         patch(
-            "configstream.pipeline.source_producer", new_callable=AsyncMock
+            "configstream.pipeline.producer.source_producer", new_callable=AsyncMock
         ) as mock_prod,
         patch(
-            "configstream.pipeline.processing_consumer", new_callable=AsyncMock
+            "configstream.pipeline.consumer.processing_consumer", new_callable=AsyncMock
         ) as mock_cons,
         patch(
             "configstream.output_handler.generate_pipeline_outputs",
             new_callable=AsyncMock,
         ) as mock_gen,
-        patch("configstream.pipeline.DEFAULT_BLOCKLIST.update", new_callable=AsyncMock),
-        patch("configstream.pipeline.SingBoxTester") as mock_tester_cls,
+        patch(
+            "configstream.pipeline.core.DEFAULT_BLOCKLIST.update",
+            new_callable=AsyncMock,
+        ),
+        patch("configstream.pipeline.core.SingBoxTester") as mock_tester_cls,
         patch("configstream.pipeline.GeoIPResolver"),
-        patch("configstream.pipeline.EventStream") as mock_event_stream,
+        patch("configstream.pipeline.core.EventStream") as mock_event_stream,
     ):
         mock_tester = mock_tester_cls.return_value
         mock_tester.go_tester = MagicMock()
@@ -32,6 +40,7 @@ async def test_run_full_pipeline_dry_run(tmp_path):
         mock_tester.close = AsyncMock()
 
         mock_event_stream.return_value.aclose = AsyncMock()
+        mock_event_stream.return_value.output_dir = tmp_path / "output"
 
         output_dir = tmp_path / "output"
 
@@ -56,25 +65,33 @@ async def test_pipeline_auto_scaling(tmp_path):
     from configstream.pipeline import run_full_pipeline
 
     with (
-        patch("configstream.pipeline.source_producer", new_callable=AsyncMock),
-        patch("configstream.pipeline.processing_consumer", new_callable=AsyncMock),
+        patch("configstream.pipeline.producer.source_producer", new_callable=AsyncMock),
+        patch(
+            "configstream.pipeline.consumer.processing_consumer", new_callable=AsyncMock
+        ),
         patch(
             "configstream.output_handler.generate_pipeline_outputs",
             new_callable=AsyncMock,
         ),
-        patch("configstream.pipeline.DEFAULT_BLOCKLIST.update", new_callable=AsyncMock),
-        patch("configstream.pipeline.SingBoxTester") as mock_tester_cls,
+        patch(
+            "configstream.pipeline.core.DEFAULT_BLOCKLIST.update",
+            new_callable=AsyncMock,
+        ),
+        patch("configstream.pipeline.core.SingBoxTester") as mock_tester_cls,
         patch("configstream.pipeline.GeoIPResolver"),
         patch("multiprocessing.cpu_count", return_value=8),
-        patch("configstream.pipeline.EventStream") as mock_event_stream,
+        patch("configstream.pipeline.core.EventStream") as mock_event_stream,
     ):
         mock_tester = mock_tester_cls.return_value
         mock_tester.go_tester = MagicMock()
         mock_tester.go_tester.available = False
         mock_tester.close = AsyncMock()
         mock_event_stream.return_value.aclose = AsyncMock()
+        mock_event_stream.return_value.output_dir = tmp_path / "output"
 
-        await run_full_pipeline(["s1"], str(tmp_path / "out"), max_workers=0)
+        await run_full_pipeline(
+            ["s1"], str(tmp_path / "out"), max_workers=0, dry_run=True
+        )
 
 
 @pytest.mark.asyncio
@@ -83,16 +100,21 @@ async def test_pipeline_time_limit_zero_working(tmp_path):
     from configstream.pipeline import run_full_pipeline
 
     with (
-        patch("configstream.pipeline.source_producer", new_callable=AsyncMock),
-        patch("configstream.pipeline.processing_consumer", new_callable=AsyncMock),
+        patch("configstream.pipeline.producer.source_producer", new_callable=AsyncMock),
+        patch(
+            "configstream.pipeline.consumer.processing_consumer", new_callable=AsyncMock
+        ),
         patch(
             "configstream.output_handler.generate_pipeline_outputs",
             new_callable=AsyncMock,
         ) as mock_gen,
-        patch("configstream.pipeline.DEFAULT_BLOCKLIST.update", new_callable=AsyncMock),
-        patch("configstream.pipeline.SingBoxTester") as mock_tester_cls,
+        patch(
+            "configstream.pipeline.core.DEFAULT_BLOCKLIST.update",
+            new_callable=AsyncMock,
+        ),
+        patch("configstream.pipeline.core.SingBoxTester") as mock_tester_cls,
         patch("configstream.pipeline.GeoIPResolver"),
-        patch("configstream.pipeline.EventStream") as mock_event_stream,
+        patch("configstream.pipeline.core.EventStream") as mock_event_stream,
         patch(
             "configstream.pipeline.core.safe_wait_for", side_effect=asyncio.TimeoutError
         ),
@@ -102,12 +124,14 @@ async def test_pipeline_time_limit_zero_working(tmp_path):
         mock_tester.go_tester.available = False
         mock_tester.close = AsyncMock()
         mock_event_stream.return_value.aclose = AsyncMock()
+        mock_event_stream.return_value.output_dir = tmp_path / "output"
 
         res = await run_full_pipeline(
             sources=["s1"],
             output_dir=str(tmp_path / "out"),
             max_workers=5,
             time_limit_seconds=1,
+            dry_run=True,
         )
 
         assert res.success
@@ -142,16 +166,21 @@ async def test_vwarp_tunnel_stopped_on_the_instance_that_started_it(
         return tool
 
     with (
-        patch("configstream.pipeline.source_producer", new_callable=AsyncMock),
-        patch("configstream.pipeline.processing_consumer", new_callable=AsyncMock),
+        patch("configstream.pipeline.producer.source_producer", new_callable=AsyncMock),
+        patch(
+            "configstream.pipeline.consumer.processing_consumer", new_callable=AsyncMock
+        ),
         patch(
             "configstream.output_handler.generate_pipeline_outputs",
             new_callable=AsyncMock,
         ),
-        patch("configstream.pipeline.DEFAULT_BLOCKLIST.update", new_callable=AsyncMock),
-        patch("configstream.pipeline.SingBoxTester") as mock_tester_cls,
+        patch(
+            "configstream.pipeline.core.DEFAULT_BLOCKLIST.update",
+            new_callable=AsyncMock,
+        ),
+        patch("configstream.pipeline.core.SingBoxTester") as mock_tester_cls,
         patch("configstream.pipeline.GeoIPResolver"),
-        patch("configstream.pipeline.EventStream") as mock_event_stream,
+        patch("configstream.pipeline.core.EventStream") as mock_event_stream,
         patch("configstream.tools.vwarp.manager.VwarpTool", side_effect=_make_tool),
     ):
         mock_tester = mock_tester_cls.return_value
@@ -159,6 +188,7 @@ async def test_vwarp_tunnel_stopped_on_the_instance_that_started_it(
         mock_tester.go_tester.available = False
         mock_tester.close = AsyncMock()
         mock_event_stream.return_value.aclose = AsyncMock()
+        mock_event_stream.return_value.output_dir = tmp_path / "output"
 
         await run_full_pipeline(
             sources=["http://test"],

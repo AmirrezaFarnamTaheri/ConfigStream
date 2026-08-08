@@ -12,15 +12,11 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  build_python:
-    name: Build Python Distributions
+  verify_release_state:
+    name: Verify Canonical Release State
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
-      attestations: write
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 1
           persist-credentials: false
@@ -28,10 +24,60 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - name: Install validation dependencies
+        run: |
+          python -m pip install -r requirements-dev.txt
+          python -m pip install -e . --no-deps
+      - name: Validate repository contracts and release state
+        run: |
+          set -euo pipefail
+          python scripts/verify_repository.py --profile static
+          python scripts/validate_status.py
+          python scripts/validate_versions.py
+          python - <<'PY'
+          import json
+          import os
+          import tomllib
+          from pathlib import Path
+
+          tag = os.environ["GITHUB_REF_NAME"]
+          project = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
+          version = str(project["project"]["version"])
+          if tag != f"v{version}":
+              raise SystemExit(f"release tag {tag!r} does not match project version v{version}")
+
+          readiness = json.loads(Path("docs/readiness.json").read_text(encoding="utf-8"))
+          if not (
+              readiness.get("verdict") == "PASS"
+              and readiness.get("release_gate") == "ready"
+              and readiness.get("production_ready") is True
+          ):
+              raise SystemExit("canonical readiness state does not authorize a production release")
+          PY
+
+  build_python:
+    name: Build Python Distributions
+    runs-on: ubuntu-latest
+    needs: [verify_release_state]
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
       - name: Install build dependencies
         run: |
-          pip install -e ".[dev]"
-          pip install build
+          python -m pip install -r requirements-dev.txt
+          python -m pip install -e . --no-deps
       - name: Verify Version Consistency
         run: python scripts/validate_versions.py
       - name: Validate capability registry
@@ -45,18 +91,19 @@ jobs:
       - name: Build source and wheel distributions
         run: python -m build
       - name: Upload Python distribution artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: python-dist
           path: dist/*
       - name: Attest Python distributions
-        uses: actions/attest-build-provenance@c07444704da0babd85e546bc4553b5e43a85db9a # v2.2.0
+        uses: actions/attest-build-provenance@520d128f165991a6c774bcb264f323e3d70747f4 # v2.2.0
         with:
           subject-path: dist/*
 
   build_native:
     name: Build Native Binary (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    needs: [verify_release_state]
     strategy:
       fail-fast: false
       matrix:
@@ -66,7 +113,7 @@ jobs:
       id-token: write
       attestations: write
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 1
           persist-credentials: false
@@ -74,10 +121,11 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
+          cache-dependency-path: requirements-dev.txt
       - name: Install native packaging dependencies
         run: |
-          pip install .
-          pip install pyinstaller
+          python -m pip install -r requirements-dev.txt
+          python -m pip install . --no-deps
       - name: Build single-file binary with PyInstaller
         run: |
           python - <<'PY'
@@ -94,8 +142,6 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           set -euxo pipefail
-          sudo apt-get update
-          sudo apt-get install -y desktop-file-utils
           mkdir -p AppDir/usr/bin
           cp dist/configstream AppDir/usr/bin/configstream
           cp frontend/assets/images/icon-192x192.png AppDir/configstream.png
@@ -114,7 +160,8 @@ jobs:
           EOF
           chmod +x AppDir/AppRun
           curl -fSsL -o appimagetool \
-            https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+            https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          echo "a6d71e2b6cd66f8e8d16c37ad164658985e0cf5fcaa950c90a482890cb9d13e0  appimagetool" | sha256sum -c -
           chmod +x appimagetool
           APPIMAGE_EXTRACT_AND_RUN=1 ./appimagetool AppDir dist/ConfigStream-linux-x86_64.AppImage
       - name: Package DMG (macOS)
@@ -127,7 +174,7 @@ jobs:
             -srcfolder dmg-root \
             -ov \
             -format UDZO \
-            dist/ConfigStream-macos-universal.dmg
+            dist/ConfigStream-macos.dmg
       - name: Normalize native artifact names
         shell: bash
         run: |
@@ -135,35 +182,34 @@ jobs:
           if [[ "${{ runner.os }}" == "Windows" ]]; then
             mv dist/configstream.exe dist/ConfigStream-windows-x86_64.exe
           elif [[ "${{ runner.os }}" == "macOS" ]]; then
-            # DMG already produced with stable name.
-            ls -l dist/ConfigStream-macos-universal.dmg
+            ls -l dist/ConfigStream-macos.dmg
           else
             ls -l dist/ConfigStream-linux-x86_64.AppImage
           fi
       - name: Upload native artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: native-${{ matrix.os }}
           path: |
             dist/ConfigStream-windows-x86_64.exe
-            dist/ConfigStream-macos-universal.dmg
+            dist/ConfigStream-macos.dmg
             dist/ConfigStream-linux-x86_64.AppImage
           if-no-files-found: ignore
       - name: Attest Linux AppImage
         if: runner.os == 'Linux'
-        uses: actions/attest-build-provenance@c07444704da0babd85e546bc4553b5e43a85db9a # v2.2.0
+        uses: actions/attest-build-provenance@520d128f165991a6c774bcb264f323e3d70747f4 # v2.2.0
         with:
           subject-path: dist/ConfigStream-linux-x86_64.AppImage
       - name: Attest Windows binary
         if: runner.os == 'Windows'
-        uses: actions/attest-build-provenance@c07444704da0babd85e546bc4553b5e43a85db9a # v2.2.0
+        uses: actions/attest-build-provenance@520d128f165991a6c774bcb264f323e3d70747f4 # v2.2.0
         with:
           subject-path: dist/ConfigStream-windows-x86_64.exe
       - name: Attest macOS DMG
         if: runner.os == 'macOS'
-        uses: actions/attest-build-provenance@c07444704da0babd85e546bc4553b5e43a85db9a # v2.2.0
+        uses: actions/attest-build-provenance@520d128f165991a6c774bcb264f323e3d70747f4 # v2.2.0
         with:
-          subject-path: dist/ConfigStream-macos-universal.dmg
+          subject-path: dist/ConfigStream-macos.dmg
 
   publish_pypi:
     name: Publish to PyPI (Trusted Publishing)
@@ -173,7 +219,7 @@ jobs:
       id-token: write
     steps:
       - name: Download Python distribution artifacts
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: python-dist
           path: dist
@@ -189,7 +235,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           path: artifacts
       - name: Collect release files
@@ -203,4 +249,3 @@ jobs:
         with:
           generate_release_notes: true
           files: dist/*
-

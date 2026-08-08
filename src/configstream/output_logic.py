@@ -24,7 +24,7 @@ from .constants import (
     CHOSEN_TOTAL_TARGET,
     CHOSEN_TOP_PER_PROTOCOL,
 )
-from .converters.chains import chain_obs_from_details
+from .converters.chain_outbounds import chain_obs_from_details
 
 # Re-exports for backward compatibility (consumed by output_handler, scripts,
 # and the unit-test contract surface).

@@ -36,10 +36,10 @@ async def test_max_response_size_behavior():
     mock_stream.__aexit__.return_value = None
     mock_client.stream.return_value = mock_stream
 
-    # Mock _reject_source_dns to pass DNS validation without network call
+    # This test isolates response-size behavior; DNS pinning has its own test.
     with patch(
         "configstream.pipeline.fetcher._reject_source_dns",
-        new=AsyncMock(return_value=(None, "93.184.216.34")),
+        new=AsyncMock(return_value=(None, None)),
     ):
         result = await fetch_from_source(
             mock_client, "http://example.com", app_settings=app_settings

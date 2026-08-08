@@ -2,7 +2,7 @@
 import logging
 from typing import List, Optional, Dict, Any
 from ..models import Proxy
-from ..security_validator import _safe_log_text, _safe_proxy_ref
+from ..security_validator import safe_log_text, _safe_proxy_ref
 from .common import Adapter, _extract_sni
 
 logger = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ class QuantumultXAdapter(Adapter):
                     lines.append(line)
             except Exception as e:
                 logger.debug(
-                    f"Failed to export {_safe_proxy_ref(p)} to QuantumultX: {_safe_log_text(e)}"
+                    f"Failed to export {_safe_proxy_ref(p)} to QuantumultX: {safe_log_text(e)}"
                 )
                 failed_count += 1
 

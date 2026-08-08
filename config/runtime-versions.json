@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "python": {
+    "minimum": "3.10",
+    "ci_supported": ["3.10", "3.11", "3.12"],
+    "default": "3.11",
+    "deployment": "3.12",
+    "container": "3.12"
+  },
+  "node": {
+    "minimum_major": 24,
+    "ci": "24",
+    "container": "24"
+  },
+  "go": {
+    "language": "1.24.0",
+    "toolchain": "1.24.3",
+    "ci": "1.24.3",
+    "container": "1.24"
+  },
+  "rust": {
+    "edition": "2021",
+    "maturity": "experimental"
+  }
+}

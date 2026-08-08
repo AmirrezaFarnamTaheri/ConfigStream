@@ -34,7 +34,6 @@ def main():
         print("Missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID")
         return
 
-    # Files to upload
     files = [
         output_dir / "singbox.json",
         output_dir / "clash.yaml",

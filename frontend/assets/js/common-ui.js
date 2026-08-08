@@ -92,7 +92,7 @@ function initCopyButtons() {
         if (config) {
             textToCopy = decodeURIComponent(config);
         } else if (file) {
-             const FILE_MAP = {
+            const FILE_MAP = {
                 'subscribe/singbox': 'singbox.json',
                 'subscribe/singbox-vpn': 'singbox-vpn.json',
                 'subscribe/clash': 'clash.yaml',
@@ -107,24 +107,37 @@ function initCopyButtons() {
                 'chosen/base64-dns-hardened.txt': 'chosen/base64-dns-hardened.txt'
             };
             let targetFile = FILE_MAP[file] || file;
+            try {
+                const artifact = window.ConfigStreamArtifactState;
+                if (!artifact) throw new Error('artifact verifier unavailable');
+                await artifact.ready;
+                if (!artifact.canDistribute()) {
+                    throw new Error(artifact.state.reason || 'artifact verification failed');
+                }
+                await artifact.verifyFile(targetFile);
+            } catch (error) {
+                console.warn('[Copy] Subscription link blocked:', error);
+                button.setAttribute('title', `Copy blocked: ${error.message || error}`);
+                return;
+            }
             if (window.getFullUrl) {
                 textToCopy = window.getFullUrl(targetFile);
             } else if (window.api && window.api.getFullUrl) {
-                 textToCopy = window.api.getFullUrl(targetFile);
+                textToCopy = window.api.getFullUrl(targetFile);
             } else if (typeof getFullUrl === 'function') {
-                 textToCopy = getFullUrl(targetFile);
+                textToCopy = getFullUrl(targetFile);
             }
         } else {
             return;
         }
 
         if (textToCopy) {
-             // Use global copyToClipboard utility
-             if (window.copyToClipboard) {
-                 await window.copyToClipboard(textToCopy, button);
-             } else {
-                 console.warn('copyToClipboard utility not found');
-             }
+            // Use global copyToClipboard utility
+            if (window.copyToClipboard) {
+                await window.copyToClipboard(textToCopy, button);
+            } else {
+                console.warn('copyToClipboard utility not found');
+            }
         }
     });
 

@@ -5,7 +5,7 @@ from typing import Optional
 
 from ..constants import MAX_OPENVPN_CONFIG_SIZE
 from ..models import Proxy
-from ..security_validator import SecurityValidator
+from ..security_validator import safe_log_text
 
 logger = logging.getLogger(__name__)
 
@@ -15,10 +15,6 @@ _REMOTE_LINE_RE = re.compile(r"^[ \t]*remote\s+(\S+)\s+(\d+)", re.MULTILINE)
 _REMOTE_FALLBACK_RE = re.compile(r"remote\s+(\S+)\s+(\d+)")
 _HOSTNAME_FORMAT_RE = re.compile(r"^[\w.\-\[\]:]+$")
 _PROTO_RE = re.compile(r"^[ \t]*proto\s+([\w-]+)", re.MULTILINE)
-
-
-def _safe_log_text(value: object) -> str:
-    return SecurityValidator.sanitize_log_message(str(value))
 
 
 def _validate_remote(host: str, port_str: str) -> Optional[tuple[str, int]]:
@@ -32,7 +28,7 @@ def _validate_remote(host: str, port_str: str) -> Optional[tuple[str, int]]:
     if not _HOSTNAME_FORMAT_RE.match(host):
         logger.debug(
             "OpenVPN remote skipped: invalid hostname format %s",
-            _safe_log_text(host),
+            safe_log_text(host),
         )
         return None
 
@@ -41,7 +37,7 @@ def _validate_remote(host: str, port_str: str) -> Optional[tuple[str, int]]:
     except (ValueError, TypeError):
         logger.debug(
             "OpenVPN remote skipped: invalid port %s",
-            _safe_log_text(port_str),
+            safe_log_text(port_str),
         )
         return None
 
@@ -100,8 +96,8 @@ def parse_openvpn(config: str) -> Optional[Proxy]:
             logger.warning(
                 "OpenVPN config rejected: no valid remote endpoint found; "
                 "first rejected remote=%s:%s",
-                _safe_log_text(first_host),
-                _safe_log_text(first_port),
+                safe_log_text(first_host),
+                safe_log_text(first_port),
             )
             return None
         host, port = selected_remote
@@ -114,7 +110,7 @@ def parse_openvpn(config: str) -> Optional[Proxy]:
         if transport.lower() not in ["tcp", "udp", "tcp-client", "udp-client"]:
             logger.debug(
                 "Unknown OpenVPN transport: %s, defaulting to udp",
-                _safe_log_text(transport),
+                safe_log_text(transport),
             )
             transport = "udp"
 
@@ -133,18 +129,18 @@ def parse_openvpn(config: str) -> Optional[Proxy]:
     except ValueError as e:
         logger.debug(
             "Failed to parse OpenVPN (validation error): %s",
-            _safe_log_text(e),
+            safe_log_text(e),
         )
         return None
     except re.error as e:
         logger.warning(
             "Failed to parse OpenVPN (regex error): %s",
-            _safe_log_text(e),
+            safe_log_text(e),
         )
         return None
     except Exception as e:
         logger.warning(
             "Failed to parse OpenVPN (unexpected error): %s",
-            _safe_log_text(e),
+            safe_log_text(e),
         )
         return None

@@ -24,6 +24,7 @@ concurrency:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  PYTHONPATH: src
 
 jobs:
   deploy:
@@ -35,14 +36,16 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: main
           fetch-depth: 1
           persist-credentials: false
-      - uses: actions/setup-python@v7
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           python-version: '3.12'
+      - name: Install rollback verification dependencies
+        run: python -m pip install "httpx==0.28.1" "cryptography==50.0.0"
       - name: Initialise deployment evidence
         run: |
           set -euo pipefail
@@ -50,6 +53,8 @@ jobs:
           python scripts/resilient_stage.py context --output deploy-evidence/workflow_context.json
           echo "HAS_OUTPUT=false" >> "$GITHUB_ENV"
           echo "DEPLOY_READY=false" >> "$GITHUB_ENV"
+          echo "HAS_LKG=false" >> "$GITHUB_ENV"
+          echo "SMOKE_OK=false" >> "$GITHUB_ENV"
       - name: Locate and download exact canonical artifact
         id: locate
         env:
@@ -67,6 +72,7 @@ jobs:
              gh api "repos/${REPOSITORY}/actions/runs/${selected}" > deploy-evidence/source-run.json; then
             if python - <<'PY'
           import json
+          import os
           from pathlib import Path
 
           payload = json.loads(Path("deploy-evidence/source-run.json").read_text(encoding="utf-8"))
@@ -77,6 +83,14 @@ jobs:
               raise SystemExit("source run is not from main")
           if payload.get("name") not in allowed_workflows:
               raise SystemExit("source workflow is not approved")
+          if payload.get("event") == "pull_request":
+              raise SystemExit("pull-request runs are not deployable")
+          repository = payload.get("head_repository") or {}
+          if repository.get("full_name") != os.environ["REPOSITORY"]:
+              raise SystemExit("source run came from an untrusted repository")
+          head_sha = payload.get("head_sha")
+          if not isinstance(head_sha, str) or len(head_sha) != 40 or any(c not in "0123456789abcdef" for c in head_sha):
+              raise SystemExit("source run has an invalid head SHA")
           PY
             then
               source_valid=true
@@ -84,6 +98,8 @@ jobs:
           fi
 
           if [ "$source_valid" = true ]; then
+            head_sha=$(python -c 'import json; print(json.load(open("deploy-evidence/source-run.json", encoding="utf-8"))["head_sha"])')
+            echo "source_head_sha=$head_sha" >> "$GITHUB_OUTPUT"
             if gh run download "$selected" --repo "$REPOSITORY" --name pipeline-output --dir output; then
               download_rc=0
             else
@@ -111,6 +127,8 @@ jobs:
           fi
       - name: Verify artifact without mutation
         if: always()
+        env:
+          EXPECTED_SOURCE_SHA: ${{ steps.locate.outputs.source_head_sha }}
         run: |
           set -euo pipefail
           if [ "${HAS_OUTPUT:-false}" != true ]; then
@@ -132,6 +150,25 @@ jobs:
               before=$(find output -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d" " -f1)
               python scripts/validate_frontend_placeholders.py --strict output
               python scripts/validate_pages_artifact.py output
+              python - <<"PY"
+              import json
+              import os
+              from pathlib import Path
+
+              manifest_path = Path("output/release_manifest.json")
+              if manifest_path.exists():
+                  manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+                  source_sha = (
+                      manifest.get("source_commit_sha")
+                      or manifest.get("source_commit")
+                      or manifest.get("source_sha")
+                  )
+                  expected = os.environ.get("EXPECTED_SOURCE_SHA", "")
+                  if source_sha and expected and source_sha != expected:
+                      raise SystemExit(
+                          f"release provenance mismatch: manifest={source_sha!r}, expected={expected!r}"
+                      )
+              PY
               after=$(find output -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d" " -f1)
               test "$before" = "$after"
             '
@@ -139,19 +176,57 @@ jobs:
           if [ "$verify_status" = success ]; then
             echo "DEPLOY_READY=true" >> "$GITHUB_ENV"
           fi
+      - name: Snapshot current verified Pages release
+        id: snapshot_lkg
+        if: always()
+        continue-on-error: true
+        env:
+          CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          rm -rf last-known-good
+          page_url=$(gh api "repos/${{ github.repository }}/pages" --jq '.html_url // empty' 2>/dev/null || true)
+          if [ -z "$page_url" ]; then
+            repo_name="${GITHUB_REPOSITORY#*/}"
+            page_url="https://${GITHUB_REPOSITORY_OWNER}.github.io/${repo_name}/"
+          fi
+          python scripts/snapshot_pages_release.py \
+            "$page_url" \
+            last-known-good \
+            --report-file deploy-evidence/last-known-good-snapshot.json
+      - name: Record last-known-good availability
+        if: always()
+        run: |
+          if [ "${{ steps.snapshot_lkg.outcome }}" = success ] && [ -s last-known-good/artifact_manifest.json ]; then
+            echo "HAS_LKG=true" >> "$GITHUB_ENV"
+          else
+            echo "HAS_LKG=false" >> "$GITHUB_ENV"
+          fi
+      - name: Upload last-known-good rollback artifact
+        id: rollback_artifact
+        if: env.HAS_LKG == 'true'
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
+        with:
+          name: github-pages-last-known-good
+          path: last-known-good
+          retention-days: 30
       - name: Upload sealed Pages artifact
         id: pages_artifact
         if: env.DEPLOY_READY == 'true'
         continue-on-error: true
-        uses: actions/upload-pages-artifact@v5
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
         with:
+          name: github-pages-candidate
           path: output
           retention-days: 30
       - name: Deploy to GitHub Pages
         id: deployment
         if: env.DEPLOY_READY == 'true' && steps.pages_artifact.outcome == 'success'
         continue-on-error: true
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5
+        with:
+          artifact_name: github-pages-candidate
       - name: Record Pages action outcomes
         if: always()
         env:
@@ -168,7 +243,9 @@ jobs:
             --status "${DEPLOY_OUTCOME:-skipped}" \
             --report-dir deploy-evidence/stages
       - name: Smoke deployed Pages URL
+        id: candidate_smoke
         if: always()
+        continue-on-error: true
         env:
           DEPLOY_OUTCOME: ${{ steps.deployment.outcome }}
         run: |
@@ -180,13 +257,60 @@ jobs:
               --report-dir deploy-evidence/stages \
               --timeout 600 \
               -- python scripts/verify_pages_deployment.py "$page_url" --report-file deploy-evidence/smoke-report.json
+            smoke_status=$(python -c 'import json; print(json.load(open("deploy-evidence/stages/smoke-pages.json", encoding="utf-8"))["status"])')
+            test "$smoke_status" = success
           else
             python scripts/resilient_stage.py record \
               --name smoke-pages \
               --status skipped \
               --report-dir deploy-evidence/stages \
               --description "Smoke validation skipped because Pages deployment did not succeed"
+            exit 1
           fi
+      - name: Record candidate smoke disposition
+        if: always()
+        run: |
+          if [ "${{ steps.candidate_smoke.outcome }}" = success ]; then
+            echo "SMOKE_OK=true" >> "$GITHUB_ENV"
+          else
+            echo "SMOKE_OK=false" >> "$GITHUB_ENV"
+          fi
+      - name: Restore last-known-good Pages release
+        id: rollback_deployment
+        if: always() && env.SMOKE_OK != 'true' && env.HAS_LKG == 'true' && steps.rollback_artifact.outcome == 'success'
+        continue-on-error: true
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5
+        with:
+          artifact_name: github-pages-last-known-good
+      - name: Verify rollback restoration
+        id: verify_rollback
+        if: always() && env.SMOKE_OK != 'true' && env.HAS_LKG == 'true' && steps.rollback_artifact.outcome == 'success'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          page_url="${{ steps.rollback_deployment.outputs.page_url }}"
+          if [ -z "$page_url" ]; then
+            repo_name="${GITHUB_REPOSITORY#*/}"
+            page_url="https://${GITHUB_REPOSITORY_OWNER}.github.io/${repo_name}/"
+          fi
+          python scripts/resilient_stage.py run \
+            --name verify-rollback \
+            --report-dir deploy-evidence/stages \
+            --timeout 600 \
+            -- python scripts/verify_pages_deployment.py "$page_url" --report-file deploy-evidence/rollback-smoke-report.json
+          rollback_status=$(python -c 'import json; print(json.load(open("deploy-evidence/stages/verify-rollback.json", encoding="utf-8"))["status"])')
+          test "$rollback_status" = success
+      - name: Record rollback action outcomes
+        if: always()
+        run: |
+          python scripts/resilient_stage.py record \
+            --name rollback-snapshot \
+            --status "${{ steps.snapshot_lkg.outcome }}" \
+            --report-dir deploy-evidence/stages
+          python scripts/resilient_stage.py record \
+            --name rollback-restore \
+            --status "${{ steps.rollback_deployment.outcome }}" \
+            --report-dir deploy-evidence/stages
       - name: Generate deployment evidence bundle
         if: always()
         run: |
@@ -225,7 +349,7 @@ jobs:
             --output deploy-evidence/stage_summary.json
       - name: Upload deployment diagnostics
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: deploy-evidence-${{ github.run_id }}-${{ github.run_attempt }}
           path: deploy-evidence/

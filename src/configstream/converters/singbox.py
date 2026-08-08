@@ -11,9 +11,25 @@ from ..security_validator import SecurityValidator
 from .singbox_utils import add_transport_sb, apply_stealth_profile
 from ..utils.bool_parser import parse_bool, parse_tls_flag
 from ..tagging import get_flag_emoji
-from .chains import chain_obs_from_details
+from .chains import extract_chain_proxies
 
 logger = logging.getLogger(__name__)
+
+
+def _chain_obs_from_details(details: Dict[str, Any]) -> list[Dict[str, Any]]:
+    chain_proxies = extract_chain_proxies(details)
+    if chain_proxies:
+        resolved: list[Dict[str, Any]] = []
+        for hop in chain_proxies:
+            outbound = to_singbox_outbound(hop)
+            if isinstance(outbound, dict):
+                resolved.append(outbound)
+        return resolved
+    stored = details.get("chain_outbounds")
+    if isinstance(stored, list):
+        return [item for item in stored if isinstance(item, dict)]
+    return []
+
 
 # --- Strict Whitelists (Sing-box compatible ciphers) ---
 # Official Sing-box supported Shadowsocks methods
@@ -398,7 +414,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             return None
 
     elif protocol == "revived":
-        chain_obs = chain_obs_from_details(proxy.details or {})
+        chain_obs = _chain_obs_from_details(proxy.details or {})
         if not chain_obs:
             return None
 

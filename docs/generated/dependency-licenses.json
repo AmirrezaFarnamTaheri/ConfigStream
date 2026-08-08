@@ -1,0 +1,1907 @@
+{
+  "component_count": 200,
+  "components": [
+    {
+      "ecosystem": "cargo",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "libc",
+      "scope": "required",
+      "source": "src/rust/ss_checker/Cargo.toml",
+      "version": "0.2"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "berty.tech/go-libtor",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "1.0.385"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/ajg/form",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "1.5.1"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/andybalholm/brotli",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "1.0.6"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/caddyserver/certmagic",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.20.0"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/cloudflare/circl",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "1.3.7"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/cretz/bine",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.2.0"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/fsnotify/fsnotify",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "1.7.0"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/gaukas/godicttls",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.0.4"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/go-chi/chi/v5",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "5.0.12"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/go-chi/cors",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "1.2.1"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/go-chi/render",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "1.0.3"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/go-ole/go-ole",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "1.3.0"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/go-task/slim-sprig",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.0.0-20230315185526-52ccab3ef572"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/gobwas/httphead",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.1.0"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/gobwas/pool",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.2.1"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/gofrs/uuid/v5",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "5.1.0"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/google/btree",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "1.1.2"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/google/pprof",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.0.0-20231101202521-4ca4178f5c7a"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/hashicorp/yamux",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.1.1"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/insomniacslk/dhcp",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.0.0-20231206064809-8c70d406f6d2"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/josharian/native",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "1.1.0"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/klauspost/compress",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "1.17.4"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/klauspost/cpuid/v2",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "2.2.5"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/libdns/alidns",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "1.0.3"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/libdns/cloudflare",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.1.1"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/libdns/libdns",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.2.2"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/logrusorgru/aurora",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "2.0.3+incompatible"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/mholt/acmez",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "1.2.0"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/miekg/dns",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "1.1.59"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/onsi/ginkgo/v2",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "2.9.7"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/ooni/go-libtor",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "1.1.8"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/oschwald/maxminddb-golang",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "1.12.0"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/pierrec/lz4/v4",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "4.1.14"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/quic-go/qpack",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.4.0"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/quic-go/qtls-go1-20",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.4.1"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/sagernet/bbolt",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.0.0-20231014093535-ea5cb2fe9f0a"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/sagernet/cloudflare-tls",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.0.0-20231208171750-a4483c1b7cd1"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/sagernet/gvisor",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.0.0-20231209105102-8d27a30e436e"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/sagernet/netlink",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.0.0-20220905062125-8043b4a9aa97"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/sagernet/quic-go",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.40.1"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/sagernet/reality",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.0.0-20230406110435-ee17307e7691"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/sagernet/sing",
+      "scope": "required",
+      "source": "src/go/tester/go.mod",
+      "version": "0.3.8"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/sagernet/sing-box",
+      "scope": "required",
+      "source": "src/go/tester/go.mod",
+      "version": "1.8.14"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/sagernet/sing-dns",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.1.14"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/sagernet/sing-mux",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.2.0"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/sagernet/sing-quic",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.1.15"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/sagernet/sing-shadowsocks",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.2.6"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/sagernet/sing-shadowsocks2",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.2.0"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/sagernet/sing-shadowtls",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.1.4"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/sagernet/sing-tun",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.2.7"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/sagernet/sing-vmess",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.1.8"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/sagernet/smux",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.0.0-20231208180855-7041f6ea79e7"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/sagernet/tfo-go",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.0.0-20231209031829-7b5343ac1dc6"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/sagernet/utls",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "1.5.4"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/sagernet/wireguard-go",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.0.0-20231215174105-89dec3b2f3e8"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/sagernet/ws",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.0.0-20231204124109-acfe8907c854"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/u-root/uio",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.0.0-20230220225925-ffce2a382923"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/vishvananda/netns",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.0.0-20211101163701-50045581ed74"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/zeebo/blake3",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.2.3"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "go.uber.org/multierr",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "1.11.0"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "go.uber.org/zap",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "1.27.0"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "go4.org/netipx",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.0.0-20231129151722-fdeea329fbba"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "golang.org/x/crypto",
+      "scope": "required",
+      "source": "src/go/tester/go.mod",
+      "version": "0.45.0"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "golang.org/x/exp",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.0.0-20240416160154-fe59bbe5cc7f"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "golang.org/x/mod",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.29.0"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "golang.org/x/net",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.47.0"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "golang.org/x/sync",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.18.0"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "golang.org/x/sys",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.38.0"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "golang.org/x/text",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.31.0"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "golang.org/x/time",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.5.0"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "golang.org/x/tools",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.38.0"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "google.golang.org/genproto/googleapis/rpc",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.0.0-20240227224415-6ceb2ff114de"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "google.golang.org/grpc",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "1.63.2"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "google.golang.org/protobuf",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "1.33.0"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "lukechampine.com/blake3",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "1.2.1"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "@emnapi/core",
+      "scope": "optional",
+      "source": "package-lock.json",
+      "version": "1.11.1"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "@emnapi/runtime",
+      "scope": "optional",
+      "source": "package-lock.json",
+      "version": "1.11.1"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "@emnapi/wasi-threads",
+      "scope": "optional",
+      "source": "package-lock.json",
+      "version": "1.2.2"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "@napi-rs/wasm-runtime",
+      "scope": "optional",
+      "source": "package-lock.json",
+      "version": "1.1.6"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "@oxc-project/types",
+      "scope": "development",
+      "source": "package-lock.json",
+      "version": "0.139.0"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "@rolldown/binding-android-arm64",
+      "scope": "optional",
+      "source": "package-lock.json",
+      "version": "1.1.5"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "@rolldown/binding-darwin-arm64",
+      "scope": "optional",
+      "source": "package-lock.json",
+      "version": "1.1.5"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "@rolldown/binding-darwin-x64",
+      "scope": "optional",
+      "source": "package-lock.json",
+      "version": "1.1.5"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "@rolldown/binding-freebsd-x64",
+      "scope": "optional",
+      "source": "package-lock.json",
+      "version": "1.1.5"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "@rolldown/binding-linux-arm-gnueabihf",
+      "scope": "optional",
+      "source": "package-lock.json",
+      "version": "1.1.5"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "@rolldown/binding-linux-arm64-gnu",
+      "scope": "optional",
+      "source": "package-lock.json",
+      "version": "1.1.5"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "@rolldown/binding-linux-arm64-musl",
+      "scope": "optional",
+      "source": "package-lock.json",
+      "version": "1.1.5"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "@rolldown/binding-linux-ppc64-gnu",
+      "scope": "optional",
+      "source": "package-lock.json",
+      "version": "1.1.5"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "@rolldown/binding-linux-s390x-gnu",
+      "scope": "optional",
+      "source": "package-lock.json",
+      "version": "1.1.5"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "@rolldown/binding-linux-x64-gnu",
+      "scope": "optional",
+      "source": "package-lock.json",
+      "version": "1.1.5"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "@rolldown/binding-linux-x64-musl",
+      "scope": "optional",
+      "source": "package-lock.json",
+      "version": "1.1.5"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "@rolldown/binding-openharmony-arm64",
+      "scope": "optional",
+      "source": "package-lock.json",
+      "version": "1.1.5"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "@rolldown/binding-wasm32-wasi",
+      "scope": "optional",
+      "source": "package-lock.json",
+      "version": "1.1.5"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "@rolldown/binding-win32-arm64-msvc",
+      "scope": "optional",
+      "source": "package-lock.json",
+      "version": "1.1.5"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "@rolldown/binding-win32-x64-msvc",
+      "scope": "optional",
+      "source": "package-lock.json",
+      "version": "1.1.5"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "@rolldown/pluginutils",
+      "scope": "development",
+      "source": "package-lock.json",
+      "version": "1.0.1"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "@tybys/wasm-util",
+      "scope": "optional",
+      "source": "package-lock.json",
+      "version": "0.10.3"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "Apache-2.0"
+      ],
+      "name": "detect-libc",
+      "scope": "development",
+      "source": "package-lock.json",
+      "version": "2.1.2"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "fdir",
+      "scope": "development",
+      "source": "package-lock.json",
+      "version": "6.5.0"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "fsevents",
+      "scope": "optional",
+      "source": "package-lock.json",
+      "version": "2.3.2"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MPL-2.0"
+      ],
+      "name": "lightningcss",
+      "scope": "development",
+      "source": "package-lock.json",
+      "version": "1.32.0"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MPL-2.0"
+      ],
+      "name": "lightningcss-android-arm64",
+      "scope": "optional",
+      "source": "package-lock.json",
+      "version": "1.32.0"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MPL-2.0"
+      ],
+      "name": "lightningcss-darwin-arm64",
+      "scope": "optional",
+      "source": "package-lock.json",
+      "version": "1.32.0"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MPL-2.0"
+      ],
+      "name": "lightningcss-darwin-x64",
+      "scope": "optional",
+      "source": "package-lock.json",
+      "version": "1.32.0"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MPL-2.0"
+      ],
+      "name": "lightningcss-freebsd-x64",
+      "scope": "optional",
+      "source": "package-lock.json",
+      "version": "1.32.0"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MPL-2.0"
+      ],
+      "name": "lightningcss-linux-arm-gnueabihf",
+      "scope": "optional",
+      "source": "package-lock.json",
+      "version": "1.32.0"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MPL-2.0"
+      ],
+      "name": "lightningcss-linux-arm64-gnu",
+      "scope": "optional",
+      "source": "package-lock.json",
+      "version": "1.32.0"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MPL-2.0"
+      ],
+      "name": "lightningcss-linux-arm64-musl",
+      "scope": "optional",
+      "source": "package-lock.json",
+      "version": "1.32.0"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MPL-2.0"
+      ],
+      "name": "lightningcss-linux-x64-gnu",
+      "scope": "optional",
+      "source": "package-lock.json",
+      "version": "1.32.0"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MPL-2.0"
+      ],
+      "name": "lightningcss-linux-x64-musl",
+      "scope": "optional",
+      "source": "package-lock.json",
+      "version": "1.32.0"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MPL-2.0"
+      ],
+      "name": "lightningcss-win32-arm64-msvc",
+      "scope": "optional",
+      "source": "package-lock.json",
+      "version": "1.32.0"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MPL-2.0"
+      ],
+      "name": "lightningcss-win32-x64-msvc",
+      "scope": "optional",
+      "source": "package-lock.json",
+      "version": "1.32.0"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "nanoid",
+      "scope": "development",
+      "source": "package-lock.json",
+      "version": "3.3.16"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "ISC"
+      ],
+      "name": "picocolors",
+      "scope": "development",
+      "source": "package-lock.json",
+      "version": "1.1.1"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "picomatch",
+      "scope": "development",
+      "source": "package-lock.json",
+      "version": "4.0.5"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "Apache-2.0"
+      ],
+      "name": "playwright",
+      "scope": "development",
+      "source": "package-lock.json",
+      "version": "1.62.0"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "Apache-2.0"
+      ],
+      "name": "playwright-core",
+      "scope": "development",
+      "source": "package-lock.json",
+      "version": "1.62.0"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "postcss",
+      "scope": "development",
+      "source": "package-lock.json",
+      "version": "8.5.23"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "rolldown",
+      "scope": "development",
+      "source": "package-lock.json",
+      "version": "1.1.5"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "BSD-3-Clause"
+      ],
+      "name": "source-map-js",
+      "scope": "development",
+      "source": "package-lock.json",
+      "version": "1.2.1"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "tinyglobby",
+      "scope": "development",
+      "source": "package-lock.json",
+      "version": "0.2.17"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "0BSD"
+      ],
+      "name": "tslib",
+      "scope": "optional",
+      "source": "package-lock.json",
+      "version": "2.8.1"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "vite",
+      "scope": "optional",
+      "source": "package-lock.json",
+      "version": "2.3.3"
+    },
+    {
+      "ecosystem": "npm",
+      "license_status": "declared",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "vite",
+      "scope": "development",
+      "source": "package-lock.json",
+      "version": "8.1.5"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "aiodns",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "3.6.1"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "aiofiles",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "25.1.0"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "aiohappyeyeballs",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "2.7.1"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "aiohttp",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "3.14.3"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "aiohttp-proxy",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "0.1.2"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "aiohttp_socks",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "0.11.0"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "aiosignal",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "1.4.0"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "anyio",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "4.12.0"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "async-timeout",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "5.0.1"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "attrs",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "25.4.0"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "beautifulsoup4",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "4.14.3"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "cachetools",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "7.1.4"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "certifi",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "2025.11.12"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "charset-normalizer",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "3.4.4"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "click",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "8.3.3"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "cryptography",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "50.0.0"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "defusedxml",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "0.7.1"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "exceptiongroup",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "1.3.1"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "fastapi",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "0.139.0"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "filelock",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "3.29.4"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "frozenlist",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "1.8.0"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "geographiclib",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "2.1"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "geoip2",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "5.2.0"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "geopy",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "2.4.1"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "h11",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "0.16.0"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "h2",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "4.4.1"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "hpack",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "4.2.0"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "httpcore",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "1.0.9"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "httptools",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "0.8.0"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "httpx",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "0.28.1"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "hyperframe",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "6.1.0"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "idna",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "3.15"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "limits",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "5.8.0"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "markdown-it-py",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "4.0.0"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "maxminddb",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "3.1.1"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "mdurl",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "0.1.2"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "msgpack",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "1.2.1"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "multidict",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "6.7.1"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "nest-asyncio",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "1.6.0"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "orjson",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "3.11.9"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "packaging",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "25.0"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "pathspec",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "1.1.1"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "platformdirs",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "4.10.0"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "propcache",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "0.4.1"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "psutil",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "7.2.1"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "pycares",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "4.11.0"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "pycparser",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "2.23"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "pydantic",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "2.13.4"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "pydantic-settings",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "2.14.2"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "pydantic_core",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "2.46.4"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "Pygments",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "2.20.0"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "pyparsing",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "3.3.2"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "python-dotenv",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "1.2.2"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "python-slugify",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "8.0.4"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "python-socks",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "2.8.2"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "python-telegram-bot",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "22.5"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "PyYAML",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "6.0.3"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "requests",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "2.34.2"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "rich",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "14.2.0"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "singbox2proxy",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "0.2.7"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "slowapi",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "0.1.9"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "sniffio",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "1.3.1"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "soupsieve",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "2.8.4"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "starlette",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "1.3.1"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "tenacity",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "9.1.4"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "text-unidecode",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "1.3"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "tomli",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "2.4.1"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "typing_extensions",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "4.16.0"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "urllib3",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "2.7.0"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "uvicorn",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "0.40.0"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "uvloop",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "0.22.1"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "wasmtime",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "45.0.0"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "watchfiles",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "1.2.0"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "websockets",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "16.0"
+    },
+    {
+      "ecosystem": "python",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "yarl",
+      "scope": "required",
+      "source": "requirements-prod.txt",
+      "version": "1.24.2"
+    }
+  ],
+  "evidence_basis": "Only licenses declared in checked-in package manifests/locks are reported. Unknown does not imply unlicensed.",
+  "known_license_count": 49,
+  "schema_version": 1,
+  "unknown_license_count": 151
+}

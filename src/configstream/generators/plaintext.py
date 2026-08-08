@@ -3,14 +3,15 @@ import json
 import logging
 import re
 import urllib.parse
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
-from ..adapters import ShadowrocketAdapter
+from ..adapters.shadowrocket import ShadowrocketAdapter
 from ..constants import canonical_protocol_name, protocol_sort_key
 from ..filtering import proxy_unique_key
 from ..models import Proxy
 from ..utils.net import is_ip_literal as _is_ip_literal
-from ..converters.chains import chain_outbounds_from_details
+from ..converters.chain_outbounds import chain_outbounds_from_details
+from ..converters.outbound_proxy import proxy_from_outbound
 
 logger = logging.getLogger(__name__)
 
@@ -26,111 +27,6 @@ def _dedupe_key(proxy: Proxy, uri: str) -> object:
     if scheme == "vmess":
         return ("vmess", proxy_unique_key(proxy))
     return _normalize_uri_key(uri)
-
-
-def _proxy_from_outbound(
-    ob: Dict[str, Any], remark_prefix: str = ""
-) -> Optional[Proxy]:
-    """Attempt to build a minimal Proxy from a sing-box outbound dict."""
-    ob_type = ob.get("type", "")
-    server = ob.get("server", "")
-    port = ob.get("server_port", 0)
-    if not server or not port:
-        return None
-    try:
-        port = int(port)
-    except (TypeError, ValueError):
-        return None
-    if port <= 0 or port > 65535:
-        return None
-
-    # Map sing-box types to our protocol names
-    proto_map = {
-        "shadowsocks": "shadowsocks",
-        "vmess": "vmess",
-        "vless": "vless",
-        "trojan": "trojan",
-        "hysteria2": "hysteria2",
-        "hysteria": "hysteria",
-        "tuic": "tuic",
-        "wireguard": "wireguard",
-        "http": "http",
-        "socks": "socks5",
-    }
-    protocol = proto_map.get(ob_type)
-    if not protocol:
-        return None
-
-    details: Dict[str, Any] = {}
-    uuid_val = ""
-
-    if protocol == "shadowsocks":
-        details["method"] = ob.get("method", "")
-        details["password"] = ob.get("password", "")
-    elif protocol in ("vmess", "vless"):
-        uuid_val = ob.get("uuid", "")
-        tls_obj = ob.get("tls") if isinstance(ob.get("tls"), dict) else {}
-        if tls_obj:
-            details["sni"] = tls_obj.get("server_name", "")
-            if tls_obj.get("enabled"):
-                details["tls"] = "tls"
-                reality = tls_obj.get("reality")
-                if isinstance(reality, dict) and reality.get("enabled"):
-                    details["security"] = "reality"
-                    details["pbk"] = reality.get("public_key", "")
-                    details["sid"] = reality.get("short_id", "")
-            alpn = tls_obj.get("alpn")
-            if alpn:
-                details["alpn"] = alpn
-            utls = tls_obj.get("utls")
-            if isinstance(utls, dict) and utls.get("fingerprint"):
-                details["fp"] = utls["fingerprint"]
-        transport = ob.get("transport") if isinstance(ob.get("transport"), dict) else {}
-        if transport:
-            details["type"] = transport.get("type", "")
-            if transport.get("path"):
-                details["path"] = transport["path"]
-            if transport.get("host"):
-                details["host"] = transport["host"]
-            if transport.get("service_name"):
-                details["serviceName"] = transport["service_name"]
-        if protocol == "vless":
-            flow = ob.get("flow", "")
-            if flow:
-                details["flow"] = flow
-    elif protocol == "trojan":
-        uuid_val = ob.get("password", "")
-        tls_obj = ob.get("tls") if isinstance(ob.get("tls"), dict) else {}
-        if tls_obj:
-            details["sni"] = tls_obj.get("server_name", "")
-        transport = ob.get("transport") if isinstance(ob.get("transport"), dict) else {}
-        if transport:
-            details["type"] = transport.get("type", "")
-            if transport.get("path"):
-                details["path"] = transport["path"]
-            if transport.get("host"):
-                details["host"] = transport["host"]
-    elif protocol == "hysteria2":
-        uuid_val = ob.get("password", "")
-    elif protocol == "wireguard":
-        details["private_key"] = ob.get("private_key", "")
-        details["peer_public_key"] = ob.get("peer_public_key", "")
-        details["local_address"] = ob.get("local_address", [])
-        details["reserved"] = ob.get("reserved", [])
-        details["mtu"] = ob.get("mtu")
-
-    tag = ob.get("tag", protocol)
-    remarks = f"{remark_prefix}{tag}" if remark_prefix else tag
-
-    return Proxy(
-        config="",
-        protocol=protocol,
-        address=str(server),
-        port=port,
-        uuid=str(uuid_val),
-        remarks=remarks,
-        details=details,
-    )
 
 
 def _extract_uri(proxy: Proxy, adapter: ShadowrocketAdapter) -> Optional[str]:
@@ -154,7 +50,7 @@ def _extract_uri(proxy: Proxy, adapter: ShadowrocketAdapter) -> Optional[str]:
                 # Skip wireguard hops (WARP endpoints) — prefer the relay
                 if ob.get("type") == "wireguard":
                     continue
-                relay_proxy = _proxy_from_outbound(ob, remark_prefix=f"[{tag}] ")
+                relay_proxy = proxy_from_outbound(ob, remark_prefix=f"[{tag}] ")
                 if relay_proxy:
                     uri_value = _extract_uri(relay_proxy, adapter)
                     if uri_value:
@@ -163,7 +59,7 @@ def _extract_uri(proxy: Proxy, adapter: ShadowrocketAdapter) -> Optional[str]:
             for ob in chain_obs:
                 if not isinstance(ob, dict):
                     continue
-                wg_proxy = _proxy_from_outbound(ob, remark_prefix=f"[{tag}] ")
+                wg_proxy = proxy_from_outbound(ob, remark_prefix=f"[{tag}] ")
                 if wg_proxy:
                     uri_value = _extract_uri(wg_proxy, adapter)
                     if uri_value:
@@ -198,9 +94,8 @@ def _extract_uri(proxy: Proxy, adapter: ShadowrocketAdapter) -> Optional[str]:
                     # Force field-based URI reconstruction with overridden address.
                     origin_proxy.config = ""
                 return _extract_uri(origin_proxy, adapter)
-            except Exception:  # nosec B110
-                logging.getLogger(__name__).debug("Suppressed broad exception")
-                pass
+            except (TypeError, ValueError):
+                logger.debug("Skipped invalid revived origin proxy payload")
 
         # Strategy 2: compact origin_config (preserved after serialization)
         origin_cfg = details.get("origin_config")
@@ -230,9 +125,8 @@ def _extract_uri(proxy: Proxy, adapter: ShadowrocketAdapter) -> Optional[str]:
                     # Force field-based URI reconstruction with overridden address.
                     origin_proxy.config = ""
                 return _extract_uri(origin_proxy, adapter)
-            except Exception:  # nosec B110
-                logging.getLogger(__name__).debug("Suppressed broad exception")
-                pass
+            except (TypeError, ValueError):
+                logger.debug("Skipped invalid revived origin proxy payload")
 
         # Strategy 3: extract relay outbound from chain_outbounds
         chain_uri = _extract_from_chain()
@@ -251,7 +145,7 @@ def _extract_uri(proxy: Proxy, adapter: ShadowrocketAdapter) -> Optional[str]:
                 for ob in outbounds:
                     if not isinstance(ob, dict):
                         continue
-                    ob_proxy = _proxy_from_outbound(ob, remark_prefix="[Chain] ")
+                    ob_proxy = proxy_from_outbound(ob, remark_prefix="[Chain] ")
                     if ob_proxy:
                         uri = adapter._reconstruct_uri(ob_proxy)
                         if uri:

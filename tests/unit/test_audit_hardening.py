@@ -148,7 +148,7 @@ class TestLabConfigBounds:
     @pytest.mark.asyncio
     async def test_too_many_outbounds_rejected(self) -> None:
         from fastapi import HTTPException
-        from configstream.server.routes.lab import (
+        from configstream.lab_validation import (
             _validate_and_build_lab_config,
             LAB_MAX_OUTBOUND_NODES,
         )
@@ -166,7 +166,7 @@ class TestLabConfigBounds:
     @pytest.mark.asyncio
     async def test_excessive_nesting_rejected(self) -> None:
         from fastapi import HTTPException
-        from configstream.server.routes.lab import (
+        from configstream.lab_validation import (
             _validate_and_build_lab_config,
             LAB_MAX_NESTING_DEPTH,
         )

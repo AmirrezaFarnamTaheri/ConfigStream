@@ -1,0 +1,443 @@
+{
+  "dependabot_coverage": [
+    {
+      "directory": "/src/rust/ss_checker",
+      "ecosystem": "cargo"
+    },
+    {
+      "directory": "/",
+      "ecosystem": "docker"
+    },
+    {
+      "directory": "/",
+      "ecosystem": "github-actions"
+    },
+    {
+      "directory": "/src/go/tester",
+      "ecosystem": "gomod"
+    },
+    {
+      "directory": "/src/go/utls_client",
+      "ecosystem": "gomod"
+    },
+    {
+      "directory": "/",
+      "ecosystem": "npm"
+    },
+    {
+      "directory": "/",
+      "ecosystem": "pip"
+    }
+  ],
+  "direct_dependency_count": 67,
+  "ecosystem_count": 6,
+  "ecosystems": {
+    "cargo": [
+      {
+        "constraint": "0.2",
+        "name": "libc",
+        "source": "src/rust/ss_checker/Cargo.toml"
+      }
+    ],
+    "container": [
+      {
+        "constraint": "golang:1.24-alpine",
+        "name": "go_builder",
+        "source": "config/container-images.json"
+      },
+      {
+        "constraint": "node:24-slim",
+        "name": "node_ci",
+        "source": "config/container-images.json"
+      },
+      {
+        "constraint": "python:3.12-slim",
+        "name": "python_runtime",
+        "source": "config/container-images.json"
+      },
+      {
+        "constraint": "ghcr.io/astral-sh/uv:0.11.32",
+        "name": "uv",
+        "source": "config/container-images.json"
+      }
+    ],
+    "go-tester": [
+      {
+        "constraint": "v0.3.8",
+        "name": "github.com/sagernet/sing",
+        "source": "src/go/tester/go.mod"
+      },
+      {
+        "constraint": "v1.8.14",
+        "name": "github.com/sagernet/sing-box",
+        "source": "src/go/tester/go.mod"
+      },
+      {
+        "constraint": "v0.45.0",
+        "name": "golang.org/x/crypto",
+        "source": "src/go/tester/go.mod"
+      }
+    ],
+    "go-utls": [
+      {
+        "constraint": "v1.8.1",
+        "name": "github.com/refraction-networking/utls",
+        "source": "src/go/utls_client/go.mod"
+      }
+    ],
+    "npm": [
+      {
+        "constraint": "^4.0.5",
+        "name": "picomatch",
+        "scope": "devDependencies",
+        "source": "package.json"
+      },
+      {
+        "constraint": "^1.62.0",
+        "name": "playwright",
+        "scope": "devDependencies",
+        "source": "package.json"
+      },
+      {
+        "constraint": "^8.5.23",
+        "name": "postcss",
+        "scope": "devDependencies",
+        "source": "package.json"
+      },
+      {
+        "constraint": "^8.1.5",
+        "name": "vite",
+        "scope": "devDependencies",
+        "source": "package.json"
+      }
+    ],
+    "python": [
+      {
+        "constraint": "tenacity",
+        "name": "tenacity",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "cachetools>=5.3.3",
+        "name": "cachetools",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "httpx[http2]>=0.27.0",
+        "name": "httpx",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "h2>=4.1.0",
+        "name": "h2",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "sniffio>=1.3.0",
+        "name": "sniffio",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "aiohttp>=3.9.0",
+        "name": "aiohttp",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "aiohttp-socks>=0.8.0",
+        "name": "aiohttp-socks",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "aiodns>=3.6.1",
+        "name": "aiodns",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "pycares<5.0.0",
+        "name": "pycares",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "aiohttp-proxy",
+        "name": "aiohttp-proxy",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "PyYAML>=6.0",
+        "name": "PyYAML",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "pydantic>=2.12.4",
+        "name": "pydantic",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "pydantic-settings",
+        "name": "pydantic-settings",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "platformdirs>=4.0.0",
+        "name": "platformdirs",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "singbox2proxy~=0.2.4",
+        "name": "singbox2proxy",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "aiofiles>=23.2.0",
+        "name": "aiofiles",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "orjson>=3.9.0",
+        "name": "orjson",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "nest-asyncio",
+        "name": "nest-asyncio",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "wasmtime>=40.0.0",
+        "name": "wasmtime",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "slowapi>=0.1.9",
+        "name": "slowapi",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "click>=8.3.3",
+        "name": "click",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "rich",
+        "name": "rich",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "python-telegram-bot>=20.0",
+        "name": "python-telegram-bot",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "geoip2",
+        "name": "geoip2",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "geopy>=2.3.0",
+        "name": "geopy",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "psutil>=5.9.0; sys_platform != 'win32'",
+        "name": "psutil",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "fastapi>=0.109.0",
+        "name": "fastapi",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "uvicorn[standard]>=0.27.0",
+        "name": "uvicorn",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "cryptography",
+        "name": "cryptography",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "beautifulsoup4",
+        "name": "beautifulsoup4",
+        "scope": "runtime",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "playwright",
+        "name": "playwright",
+        "scope": "development",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "pytest>=8.0.0",
+        "name": "pytest",
+        "scope": "development",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "pytest-asyncio>=0.23.0",
+        "name": "pytest-asyncio",
+        "scope": "development",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "pytest-cov>=4.1.0",
+        "name": "pytest-cov",
+        "scope": "development",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "pytest-aiohttp",
+        "name": "pytest-aiohttp",
+        "scope": "development",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "pytest-playwright",
+        "name": "pytest-playwright",
+        "scope": "development",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "pytest-base-url",
+        "name": "pytest-base-url",
+        "scope": "development",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "pyfakefs",
+        "name": "pyfakefs",
+        "scope": "development",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "types-PyYAML",
+        "name": "types-PyYAML",
+        "scope": "development",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "types-psutil",
+        "name": "types-psutil",
+        "scope": "development",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "types-cachetools",
+        "name": "types-cachetools",
+        "scope": "development",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "flake8",
+        "name": "flake8",
+        "scope": "development",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "black",
+        "name": "black",
+        "scope": "development",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "mypy",
+        "name": "mypy",
+        "scope": "development",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "respx",
+        "name": "respx",
+        "scope": "development",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "hypothesis>=6.0.0",
+        "name": "hypothesis",
+        "scope": "development",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "jsonschema>=4.20.0",
+        "name": "jsonschema",
+        "scope": "development",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "types-jsonschema",
+        "name": "types-jsonschema",
+        "scope": "development",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "types-aiofiles",
+        "name": "types-aiofiles",
+        "scope": "development",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "types-orjson",
+        "name": "types-orjson",
+        "scope": "development",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "bandit==1.8.6",
+        "name": "bandit",
+        "scope": "development",
+        "source": "pyproject.toml"
+      },
+      {
+        "constraint": "==1.24.0",
+        "name": "huggingface-hub",
+        "scope": "publisher",
+        "source": "requirements-publish.txt"
+      },
+      {
+        "constraint": "==2.198.0",
+        "name": "google-api-python-client",
+        "scope": "publisher",
+        "source": "requirements-publish.txt"
+      },
+      {
+        "constraint": "==2.56.0",
+        "name": "google-auth",
+        "scope": "publisher",
+        "source": "requirements-publish.txt"
+      }
+    ]
+  },
+  "evidence_basis": "Direct declarations from checked-in manifests; latest-version resolution is delegated to Dependabot and is not inferred offline.",
+  "schema_version": 1
+}

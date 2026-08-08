@@ -3,7 +3,6 @@ import os
 import json
 import asyncio
 from collections import defaultdict
-import hashlib
 import logging
 import re
 import mimetypes
@@ -64,16 +63,6 @@ _json_cache: dict[Path, tuple[float, Any]] = {}
 _cache_locks: defaultdict[Path, asyncio.Lock] = defaultdict(asyncio.Lock)
 
 
-def _json_snapshot_sha256(payload: Any) -> str:
-    canonical = json.dumps(
-        payload,
-        sort_keys=True,
-        separators=(",", ":"),
-        ensure_ascii=False,
-    ).encode("utf-8")
-    return hashlib.sha256(canonical).hexdigest()
-
-
 def _read_json_file(path: Path) -> Any:
     """Read and parse a JSON file from a worker thread."""
     return json.loads(path.read_text(encoding="utf-8"))
@@ -112,7 +101,7 @@ async def _read_json_file_async(path: Path) -> Any:
 
         # Bound cache size to 100 entries to prevent memory growth.
         # Note: Do NOT clear _cache_locks as active waiters would acquire a split lock.
-        if len(_json_cache) > 100:
+        if len(_json_cache) >= 100:
             _json_cache.clear()
 
         _json_cache[path] = (current_mtime, data)

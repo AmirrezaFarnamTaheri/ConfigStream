@@ -1,11 +1,15 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Unit tests for canonical manifest serialization and signature verification."""
 
-import json
+import base64
 import pytest
 from cryptography.hazmat.primitives.asymmetric import ed25519
 from cryptography.hazmat.primitives import serialization
-from configstream.signer import Signer, _canonical_manifest_payload
+from configstream.signer import (
+    Signer,
+    _canonical_manifest_payload,
+    normalize_public_key_hex,
+)
 from scripts.validate_pages_artifact import _validate_manifest_signature
 
 
@@ -51,6 +55,23 @@ def test_manifest_signature_roundtrip_verification() -> None:
 
     # Verification must succeed via Signer helper
     assert Signer.verify_manifest_signature(manifest, pub_key_hex) is True
+
+
+def test_public_key_normalization_accepts_browser_spki_and_raw_hex() -> None:
+    private_key = ed25519.Ed25519PrivateKey.generate()
+    public_key = private_key.public_key()
+    raw = public_key.public_bytes(
+        encoding=serialization.Encoding.Raw,
+        format=serialization.PublicFormat.Raw,
+    )
+    spki = public_key.public_bytes(
+        encoding=serialization.Encoding.DER,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo,
+    )
+
+    assert normalize_public_key_hex(raw.hex()) == raw.hex()
+    assert normalize_public_key_hex(base64.b64encode(spki).decode()) == raw.hex()
+    assert normalize_public_key_hex("PLACEHOLDER_PUBLIC_KEY") == ""
 
 
 def test_manifest_signature_validation_script_integration(

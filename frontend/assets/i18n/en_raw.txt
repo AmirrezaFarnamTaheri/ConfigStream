@@ -211,7 +211,7 @@
         "about.credits.frontend": "Frontend & Visualization",
         "about.credits.frontend_desc": "• <strong>Globe.gl:</strong> 3D globe visualization<br>• <strong>Chart.js:</strong> Analytics charts<br>• <strong>Feather Icons:</strong> Modern icon system",
         "about.credits.fonts": "Fonts & Typography",
-        "about.credits.fonts_desc": "• <strong>Be Vietnam Pro:</strong> Primary UI font<br>• <strong>Vazirmatn:</strong> Farsi/Arabic UI font<br>• <strong>Mikhak:</strong> Farsi/Arabic display font",
+        "about.credits.fonts_desc": "System font stacks: no remote font requests or bundled font binaries.",
         "about.credits.thanks": "<strong>Special Thanks:</strong> To all the open-source proxy list maintainers and the community contributors who make this platform possible.",
         "about.opensource.title": "Open Source & License",
         "about.opensource.text": "ConfigStream is released under the <strong>AGPLv3 License</strong>, ensuring it remains free and open source forever. We believe in transparency, community-driven development, and unrestricted access to information.",

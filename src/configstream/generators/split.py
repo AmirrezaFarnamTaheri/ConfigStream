@@ -8,7 +8,7 @@ from typing import List, Dict, Any, Set, Optional, Tuple
 from ..models import Proxy
 from .clash import generate_clash_config
 from ..converters import to_singbox_outbound
-from ..converters.chains import chain_outbounds_from_details
+from ..converters.chain_outbounds import chain_outbounds_from_details
 from ..utils import AtomicFileWriter
 
 logger = logging.getLogger(__name__)

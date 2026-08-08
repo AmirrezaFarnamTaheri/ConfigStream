@@ -13,6 +13,8 @@ from scripts import validate_versions
 
 def _write_repo(root: Path, version: str = "3.0.2") -> None:
     (root / "frontend" / "assets" / "js").mkdir(parents=True)
+    (root / "docs").mkdir(parents=True)
+    (root / "src" / "configstream_revival").mkdir(parents=True)
     (root / "pyproject.toml").write_text(
         f'[project]\nversion = "{version}"\n', encoding="utf-8"
     )
@@ -22,6 +24,15 @@ def _write_repo(root: Path, version: str = "3.0.2") -> None:
     (root / "frontend" / "assets" / "js" / "cache-config.js").write_text(
         f"const CACHE_CONFIG = {{ VERSION: 'v{version}' }};\n",
         encoding="utf-8",
+    )
+    (root / "docs" / "readiness.json").write_text(
+        f'{{"project_version": "{version}"}}\n', encoding="utf-8"
+    )
+    (root / "Dockerfile").write_text(
+        f'LABEL org.opencontainers.image.version="{version}"\n', encoding="utf-8"
+    )
+    (root / "src" / "configstream_revival" / "__init__.py").write_text(
+        f'__version__ = "{version}"\n', encoding="utf-8"
     )
 
 

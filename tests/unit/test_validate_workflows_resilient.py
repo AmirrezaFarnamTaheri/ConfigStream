@@ -88,3 +88,17 @@ def test_pages_contract_accepts_hardened_workflow() -> None:
         validate_workflows._deploy_pages_safe(_load_local_workflow("deploy-pages.yml"))
         == []
     )
+
+
+def test_pages_smoke_verification_propagates_failed_stage() -> None:
+    data = _load_local_workflow("deploy-pages.yml")
+    deploy = data["jobs"]["deploy"]
+    smoke_step = next(
+        step
+        for step in deploy["steps"]
+        if isinstance(step, dict) and step.get("name") == "Smoke deployed Pages URL"
+    )
+    command = smoke_step.get("run", "")
+
+    assert "deploy-evidence/stages/smoke-pages.json" in command
+    assert 'test "$smoke_status" = success' in command

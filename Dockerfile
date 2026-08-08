@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 # Stage 1: Build Go Tester
-FROM golang:1.24-alpine AS builder
+FROM golang:1.24-alpine@sha256:8bee1901f1e530bfb4a7850aa7a479d17ae3a18beb6e09064ed54cfd245b7191 AS builder
 
 WORKDIR /app
 # Leverage Docker cache for Go modules
@@ -15,10 +15,10 @@ COPY src/go/tester/ .
 RUN CGO_ENABLED=0 go build -ldflags="-s -w" -tags "with_quic,with_dhcp,with_wireguard,with_ech,with_utls,with_reality_server,with_clash_api,with_gvisor" -o tester main.go
 
 # Stage 2: Node.js (only the binary needed for GitHub Actions JS actions)
-FROM node:22-slim AS node-runtime
+FROM node:24-slim@sha256:24dc26ef1e3c3690f27ebc4136c9c186c3133b25563ae4d7f0692e4d1fe5db0e AS node-runtime
 
 # Stage 3: Python Runtime
-FROM python:3.12-slim
+FROM python:3.12-slim@sha256:a64ac5be6928c6a94f00b16e09cdf3ba3edd44452d10ffa4516a58004873573e AS app-base
 
 # OCI image annotations for traceability
 LABEL org.opencontainers.image.title="ConfigStream"
@@ -27,37 +27,23 @@ LABEL org.opencontainers.image.url="https://github.com/AmirrezaFarnamTaheri/Conf
 LABEL org.opencontainers.image.source="https://github.com/AmirrezaFarnamTaheri/ConfigStream"
 LABEL org.opencontainers.image.licenses="AGPL-3.0-or-later"
 LABEL org.opencontainers.image.vendor="ConfigStream Contributors"
-LABEL org.opencontainers.image.version="3.1.0"
+LABEL org.opencontainers.image.version="3.2.0"
 
-# Install system dependencies
-# Added tini for proper PID 1 signal handling and zombie reaping.
-# Without tini, the Python process runs as PID 1 and cannot properly
-# handle SIGTERM/SIGINT signals, causing unclean container shutdowns.
-ARG CACHE_BUST=1
+# Install build/runtime dependencies. The production stage removes download
+# tools after the verified Vwarp binary and Python environment are installed.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    git \
     curl \
-    wget \
     unzip \
     tini \
     libmaxminddb0 \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy Node.js from official node image (required for GitHub Actions JS actions)
-COPY --from=node-runtime /usr/local/bin/node /usr/local/bin/node
-COPY --from=node-runtime /usr/local/include/node /usr/local/include/node
-COPY --from=node-runtime /usr/local/lib/node_modules /usr/local/lib/node_modules
-RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm && \
-    ln -s /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
-
-# Verify Node.js installation
-RUN node --version
 
 WORKDIR /app
 
 # Install 'uv'
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.11.32@sha256:2381d6aa60c326b71fd40023f921a0a3b8f91b14d5db6b90402e65a635053709 /uv /uvx /bin/
 
 # Match the GitHub-hosted Ubuntu runner UID so bind-mounted workspace and
 # runner command files remain writable when this image is used as a job container.
@@ -67,19 +53,10 @@ RUN useradd -m -u "${RUNNER_UID}" runner
 # Copy Go binary
 COPY --from=builder /app/tester /usr/local/bin/configstream-tester
 
-# --- GO & VWARP INSTALLATION ---
-# 1. Install Go in runtime image (needed for dynamic compilation or tools if needed)
-# Actually, we copied the binary, but the plan asked to COPY Go from golang image.
-# However, for a slim image, copying the whole Go toolchain is heavy (hundreds of MBs).
-# The requirement "Update Dockerfile to install Go" might be for the washer fallback compilation?
-# But we already compile in stage 1.
-# Let's trust the multistage build for the tester.
-# BUT, we need VWARP.
-
-# 3. Install Vwarp
+# Install the prebuilt Vwarp binary with architecture-specific checksum proof.
 ARG TARGETARCH
 ARG VWARP_VERSION=v2.2.2
-# [SECURITY] v2.1.0 checksums pinned per architecture.
+# [SECURITY] Release checksums pinned per architecture.
 ARG VWARP_SHA256_AMD64=90619d5e8ceec07fe09b967904f490d5a45f812951f7fae4cb375b60207b6312
 ARG VWARP_SHA256_ARM64=54adb472363f74dd83be93157b5491189d295bd1318de8637265db4f3b834168
 
@@ -114,8 +91,8 @@ RUN uv pip install --no-cache-dir -r requirements-prod.txt
 COPY . .
 RUN chown -R runner:runner /app
 
-# Install application code (no editable mode, no dev extras)
-RUN uv pip install --no-cache-dir .
+# Install application code without re-resolving the pinned production set.
+RUN uv pip install --no-cache-dir --no-deps .
 
 # Set Environment
 ENV PATH="/home/runner/.local/bin:$PATH"
@@ -124,12 +101,31 @@ ENV PYTHONPATH="/app/src"
 # rejects WG configs without this.  Required for chain proxy testing.
 ENV ENABLE_DEPRECATED_WIREGUARD_OUTBOUND=true
 
+# CI target: includes Node because JavaScript GitHub Actions execute inside job containers.
+FROM app-base AS ci-runner
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends bash \
+    && rm -rf /var/lib/apt/lists/*
+COPY --from=node-runtime /usr/local/bin/node /usr/local/bin/node
+COPY --from=node-runtime /usr/local/include/node /usr/local/include/node
+COPY --from=node-runtime /usr/local/lib/node_modules /usr/local/lib/node_modules
+RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm && \
+    ln -s /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx && \
+    node --version
 USER runner
-
-# Lightweight healthcheck
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-    CMD [ -x "/usr/local/bin/configstream-tester" ] || exit 1
+    CMD ["python", "-m", "configstream.container_healthcheck"]
+ENTRYPOINT ["tini", "--"]
+CMD ["python", "-m", "configstream.cli"]
 
-# Use tini as entrypoint for proper PID 1 signal forwarding
+# Default production target: no Node toolchain or npm dependency tree.
+FROM app-base AS runtime
+USER root
+RUN apt-get purge -y curl unzip && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/* /bin/uv /bin/uvx
+USER runner
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+    CMD ["python", "-m", "configstream.container_healthcheck"]
 ENTRYPOINT ["tini", "--"]
 CMD ["python", "-m", "configstream.cli"]

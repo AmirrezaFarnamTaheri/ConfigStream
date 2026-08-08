@@ -43,8 +43,10 @@ const context = {{
     }},
     location: {{
       pathname: '/ConfigStream/proxies.html',
-      search: '?country=US',
-      hash: '#row-1',
+      search: '?token=must-not-leak',
+      hash: '#private-state',
+      protocol: 'https:',
+      host: 'example.test',
       get href() {{ return href; }},
       set href(value) {{ href = value; }},
     }},
@@ -55,6 +57,7 @@ const context = {{
     setItem: (key, value) => session.set(key, value),
   }},
   console: {{ warn: (message) => warnings.push(String(message)) }},
+  URL,
   AbortController: class {{
     constructor() {{ this.signal = {{}}; }}
     abort() {{}}
@@ -86,8 +89,7 @@ vm.runInContext(source, context);
     return;
   }}
 
-  context.window.Failover.triggerFailover();
-  await Promise.resolve();
+  await context.window.Failover.triggerFailover();
   const firstHref = href;
   context.window.Failover.triggerFailover();
   await Promise.resolve();
@@ -136,26 +138,17 @@ def test_failover_preserves_leaf_page_and_prevents_session_loop(
 
     assert result["attempted"] == "1"
     assert result["firstHref"] == (
-        "https://dweb.link/ipns/k51qzi5uqu5d-real-key/proxies.html?country=US#row-1"
+        "https://ipfs.io/ipns/k51qzi5uqu5d-real-key/proxies.html"
     )
     assert result["href"] == result["firstHref"]
+    assert "token=" not in str(result["href"])
+    assert "private-state" not in str(result["href"])
     assert result["calls"] == [
         {
-            "url": (
-                "https://ipfs.io/ipns/k51qzi5uqu5d-real-key/"
-                "proxies.html?country=US#row-1"
-            ),
+            "url": ("https://ipfs.io/ipns/k51qzi5uqu5d-real-key/" "proxies.html"),
             "method": "HEAD",
             "mode": "no-cors",
-        },
-        {
-            "url": (
-                "https://dweb.link/ipns/k51qzi5uqu5d-real-key/"
-                "proxies.html?country=US#row-1"
-            ),
-            "method": "HEAD",
-            "mode": "no-cors",
-        },
+        }
     ]
 
 
@@ -167,3 +160,13 @@ def test_failover_skips_placeholder_ipns_key(tmp_path: Path) -> None:
     assert result["calls"] == []
     warnings = cast(list[str], result["warnings"])
     assert any("IPNS_KEY not configured" in item for item in warnings)
+
+
+def test_failover_gateways_are_allowed_by_page_csp() -> None:
+    html = (ROOT / "frontend" / "proxies.html").read_text(encoding="utf-8")
+    for origin in (
+        "https://ipfs.io",
+        "https://cloudflare-ipfs.com",
+        "https://dweb.link",
+    ):
+        assert origin in html

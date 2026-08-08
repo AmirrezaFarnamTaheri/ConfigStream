@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=70.0.0", "wheel"]
+requires = ["setuptools==83.0.0", "wheel==0.47.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "configstream"
-version = "3.1.0"
+version = "3.2.0"
 description = "High-performance VPN configuration aggregator with smart scheduling"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -14,7 +14,7 @@ authors = [
 ]
 keywords = ["vpn", "v2ray", "clash", "sing-box", "proxy", "aggregator", "asyncio"]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Topic :: Internet :: Proxy Servers",
     "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
@@ -37,6 +37,7 @@ dependencies = [
     "PyYAML>=6.0",
     "pydantic>=2.12.4",
     "pydantic-settings",
+    "platformdirs>=4.0.0",
     "singbox2proxy~=0.2.4",
     "aiofiles>=23.2.0",
     "orjson>=3.9.0",
@@ -85,6 +86,9 @@ configstream = "configstream.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+configstream = ["data/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

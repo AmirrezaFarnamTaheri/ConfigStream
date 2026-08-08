@@ -1,6 +1,6 @@
 # 05. DevOps & Infrastructure
 
-ConfigStream is repository production-ready at v3.1.0. Workflow files are the executable contract, and the root master report plus `STATUS.md` are the active human-readable status surfaces. If this page conflicts with workflow YAML, validators, the master report, `STATUS.md`, or canonical matrices, treat those active surfaces as authoritative.
+ConfigStream v3.2.0 is a conditional release candidate. `docs/readiness.json` is the machine-readable release authority and `STATUS.md` is generated from it. Workflow YAML remains the executable contract, but production readiness requires exact-head CI, a sealed artifact, and a live deployment smoke for the same commit and digest.
 
 GitHub Pages is the core zero-budget publication target. External mirrors are optional and secret-gated; their absence must not fail the core pipeline or Pages deployment.
 
@@ -14,6 +14,11 @@ GitHub Pages is the core zero-budget publication target. External mirrors are op
 | Deploy to GitHub Pages | `.github/workflows/deploy-pages.yml` | Deploys one completed `pipeline-output` artifact to GitHub Pages after validation. |
 | Deploy Mirror | `.github/workflows/deploy_mirror.yml` | Optional secret-gated mirror deployment from the latest successful `pipeline-output`. |
 | Release | `.github/workflows/release.yml` | Tagged package release, Python distributions, native binaries, attestations, PyPI publish, and GitHub release assets. |
+
+Every external `uses:` reference must match the tag-to-commit resolution in
+`config/github-action-pins.json`. A 40-character value alone is insufficient:
+blob object IDs and arbitrary commits are rejected unless the action name,
+version comment, and verified commit SHA match that manifest.
 
 ## 2. Trigger and Concurrency Model
 
@@ -41,6 +46,9 @@ The production pipeline uses dynamic source batch discovery:
 7. `merge_results` downloads shard artifacts, prepares docs, merges outputs, validates critical release files, uploads a single `pipeline-output`, and optionally publishes external mirrors/releases when configured.
 
 The deploy workflow must consume exactly one `pipeline-output` artifact from exactly one completed run. It must not assemble mixed artifacts from multiple runs.
+Before deployment it snapshots the currently served, manifest-verified release.
+The candidate and rollback uploads use distinct Pages artifact names; a failed
+candidate smoke triggers restoration and still leaves the workflow failed closed.
 
 ## 4. Pages Artifact Contract
 
@@ -67,6 +75,7 @@ Use these commands before changing workflow or deployment behavior:
 
 ```bash
 python scripts/validate_workflows.py
+python scripts/validate_action_pins.py
 python scripts/validate_versions.py
 pytest -q tests/unit/test_validate_workflows.py tests/unit/test_validate_pages_artifact.py tests/unit/test_validate_versions.py
 ```

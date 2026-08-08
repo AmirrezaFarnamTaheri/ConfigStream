@@ -241,3 +241,13 @@ class AppSettings(BaseSettings):
             raise ValueError(
                 "SOURCE_DEAD_FAILURES must be >= SOURCE_PROBATION_FAILURES"
             )
+
+    @property
+    def ENFORCE_SOURCE_ADMISSION(self) -> bool:
+        """Keep reviewed-source admission enabled unless the CLI explicitly bypasses it."""
+        return True
+
+    @property
+    def SOURCE_ADMISSION_MANIFEST(self) -> str:
+        """Use the bundled reviewed-source manifest as the trust root."""
+        return "bundled"

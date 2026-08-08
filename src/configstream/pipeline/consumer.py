@@ -22,7 +22,6 @@ from configstream.testers import SingBoxTester
 from configstream.test_cache import TestResultCache
 from configstream.scheduler import SmartRetestScheduler
 from configstream.concurrency_manager import ConcurrencyManager
-from configstream.geoip import GeoIPResolver
 from configstream.source_quality import SourceQualityTracker, calculate_diversity_score
 from configstream.performance import PerformanceTracker
 from configstream.history.tracker import ProxyHistoryTracker
@@ -33,6 +32,7 @@ from configstream.pipeline.interfaces import IConsumer
 from configstream.pipeline.models import PipelineContext
 
 if TYPE_CHECKING:
+    from configstream.geoip import GeoIPResolver
     from configstream.event_stream import EventStream
     from configstream.utils.bloom import BloomFilter
 
@@ -45,8 +45,6 @@ class WorkerConsumer(IConsumer):
         self.worker_id = worker_id
 
     async def consume(self) -> None:
-        import configstream.pipeline
-
         # Contract: the pipeline core always provides these collaborators.
         ctx = self.context
         required = {
@@ -70,12 +68,12 @@ class WorkerConsumer(IConsumer):
         scheduler = cast(SmartRetestScheduler, ctx.scheduler)
         test_cache = cast(TestResultCache, ctx.test_cache)
         concurrency = cast(ConcurrencyManager, ctx.concurrency)
-        geoip = cast(GeoIPResolver, ctx.geoip)
+        geoip = cast("GeoIPResolver", ctx.geoip)
         tracker = cast(PerformanceTracker, ctx.tracker)
         quality_tracker = cast(SourceQualityTracker, ctx.quality_tracker)
         history = cast(ProxyHistoryTracker, ctx.history)
 
-        await configstream.pipeline.processing_consumer(
+        await processing_consumer(
             ctx.work_queue,
             ctx.stats,
             ctx.seen_keys,
@@ -111,7 +109,7 @@ async def processing_consumer(
     scheduler: SmartRetestScheduler,
     test_cache: TestResultCache,
     concurrency: ConcurrencyManager,
-    geoip: GeoIPResolver,
+    geoip: "GeoIPResolver",
     tracker: PerformanceTracker,
     event_stream: Optional["EventStream"],
     quality_tracker: SourceQualityTracker,
@@ -875,7 +873,7 @@ async def _revive_failed_proxies(
 
 async def _enrich_geoip_and_filter(
     final_batch_for_this_source: List[Proxy],
-    geoip: GeoIPResolver,
+    geoip: "GeoIPResolver",
     tracker: PerformanceTracker,
     stats: PipelineStats,
     seen_lock: asyncio.Lock,

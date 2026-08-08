@@ -10,7 +10,8 @@ from ..utils.net import (
     is_ip_literal as _is_ip_literal,
     is_global_ip as _is_global_ip,
 )
-from ..converters.chains import chain_obs_from_details, update_chain_details
+from ..converters.chain_outbounds import chain_obs_from_details
+from ..converters.chains import update_chain_details
 
 logger = logging.getLogger(__name__)
 

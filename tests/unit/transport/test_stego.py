@@ -83,6 +83,33 @@ class TestStegoPacker:
         decoded = packer.unpack(out)
         assert decoded == payload
 
+    def test_lsb_offsets_are_salted_per_image(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        cover = tmp_path / "cover.png"
+        first_path = tmp_path / "first.png"
+        second_path = tmp_path / "second.png"
+        _make_valid_png(cover)
+
+        packer = StegoPacker(key=Fernet.generate_key())
+        payload = '{"outbounds":[{"type":"vless","tag":"salted"}]}'
+        token = packer._encrypt(payload)
+        salts = iter((b"A" * 16, b"B" * 16))
+
+        def fake_urandom(size: int) -> bytes:
+            assert size == 16
+            return next(salts)
+
+        monkeypatch.setattr("configstream.stego.os.urandom", fake_urandom)
+        first = packer._pack_lsb_png(cover, token)
+        second = packer._pack_lsb_png(cover, token)
+
+        assert first != second
+        first_path.write_bytes(first)
+        second_path.write_bytes(second)
+        assert packer.unpack(first_path) == payload
+        assert packer.unpack(second_path) == payload
+
     def test_pack_cover_image_not_found(self, tmp_path: Path) -> None:
         cover = tmp_path / "missing.png"
         out = tmp_path / "out.png"

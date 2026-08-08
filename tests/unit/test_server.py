@@ -154,6 +154,48 @@ async def test_get_stats(mock_output_dir, async_client):
 
 
 @pytest.mark.asyncio
+async def test_get_stats_rejects_malformed_metadata(mock_output_dir, async_client):
+    (mock_output_dir / "metadata.json").write_text("{", encoding="utf-8")
+    with patch("configstream.server.OUTPUT_DIR", mock_output_dir):
+        response = await async_client.get("/api/stats")
+
+    assert response.status_code == 503
+    assert response.json()["status"] == "unavailable"
+
+
+@pytest.mark.asyncio
+async def test_get_proxy_diff_rejects_invalid_current_schema(
+    mock_output_dir, async_client
+):
+    (mock_output_dir / "proxies.json").write_text(
+        json.dumps({"not": "a list"}), encoding="utf-8"
+    )
+    with patch("configstream.server.OUTPUT_DIR", mock_output_dir):
+        response = await async_client.get("/api/diff/proxies?base_version=valid-token")
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == "Current proxy data has an invalid schema"
+
+
+@pytest.mark.asyncio
+async def test_get_proxy_diff_requests_full_reload_for_invalid_old_schema(
+    mock_output_dir, async_client
+):
+    (mock_output_dir / "proxies.json").write_text(json.dumps([]), encoding="utf-8")
+    (mock_output_dir / "proxies.old.json").write_text(
+        json.dumps({"not": "a list"}), encoding="utf-8"
+    )
+    with patch("configstream.server.OUTPUT_DIR", mock_output_dir):
+        response = await async_client.get("/api/diff/proxies?base_version=valid-token")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "type": "full_reload_required",
+        "reason": "base_snapshot_invalid",
+    }
+
+
+@pytest.mark.asyncio
 async def test_get_stats_reads_metadata_off_event_loop(
     mock_output_dir, async_client, monkeypatch
 ):

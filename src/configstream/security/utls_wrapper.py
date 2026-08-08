@@ -14,10 +14,14 @@ from typing import Optional
 logger = logging.getLogger(__name__)
 
 # Path to the built binary
-BINARY_PATH = Path(__file__).parent.parent.parent.parent / "bin" / "utls-client"
+REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
+BINARY_PATH = REPOSITORY_ROOT / "bin" / "utls-client"
+SOURCE_DIR = REPOSITORY_ROOT / "src" / "go" / "utls_client"
 
 # Track if we've already warned about missing binary
 _warned_missing = False
+BUILD_TIMEOUT_SECONDS = 300
+PROBE_TIMEOUT_SECONDS = 30
 
 
 def _compute_sha256(path: Path) -> str:
@@ -85,8 +89,27 @@ def _verify_binary_checksum(path: Path) -> bool:
     return True
 
 
-async def _run_cmd(cmd: list[str], cwd: Path) -> bool:
-    """Helper to run async subprocess commands."""
+async def _communicate_bounded(
+    proc: asyncio.subprocess.Process,
+    *,
+    timeout_seconds: float,
+) -> tuple[bytes, bytes] | None:
+    """Collect a child process result and kill it if the deadline expires."""
+    try:
+        return await asyncio.wait_for(proc.communicate(), timeout=timeout_seconds)
+    except asyncio.TimeoutError:
+        proc.kill()
+        await proc.wait()
+        return None
+
+
+async def _run_cmd(
+    cmd: list[str],
+    cwd: Path,
+    *,
+    timeout_seconds: float = BUILD_TIMEOUT_SECONDS,
+) -> bool:
+    """Run one fixed argv command without a shell and with a hard deadline."""
     try:
         proc = await asyncio.create_subprocess_exec(
             *cmd,
@@ -94,13 +117,19 @@ async def _run_cmd(cmd: list[str], cwd: Path) -> bool:
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
-        _, stderr = await proc.communicate()
+        result = await _communicate_bounded(proc, timeout_seconds=timeout_seconds)
+        if result is None:
+            logger.warning("Command timed out after %ss: %s", timeout_seconds, cmd[0])
+            return False
+        _, stderr = result
         if proc.returncode != 0:
-            logger.debug(f"Command failed: {cmd} -> {stderr.decode().strip()}")
+            logger.debug(
+                "Command failed: %s -> %s", cmd, stderr.decode(errors="replace").strip()
+            )
             return False
         return True
-    except Exception as e:
-        logger.debug(f"Command execution error: {cmd} -> {e}")
+    except (OSError, ValueError) as exc:
+        logger.debug("Command execution error: %s -> %s", cmd, exc)
         return False
 
 
@@ -114,24 +143,23 @@ async def ensure_binary_async() -> bool:
         logger.warning("Go not found. Cannot build uTLS client.")
         return False
 
-    src_dir = Path(__file__).parent.parent.parent.parent / "src" / "go" / "utls_client"
+    src_dir = SOURCE_DIR
     if not src_dir.exists():
         # Source directory missing (e.g., in packaged distribution).
         return False
 
+    if not (src_dir / "go.mod").is_file() or not (src_dir / "go.sum").is_file():
+        logger.error(
+            "uTLS source module is incomplete; go.mod and go.sum are required."
+        )
+        return False
+
     output_dir = BINARY_PATH.parent
-    # mkdir is sync but fast for FS ops; acceptable here or could run in executor
-    output_dir.mkdir(exist_ok=True)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
-    logger.info("Building uTLS client...")
-
-    # We need to initialize a module first if not present
-    # These steps are sequential
-    await _run_cmd(["go", "mod", "init", "utls-client"], cwd=src_dir)
-    await _run_cmd(["go", "get", "github.com/refraction-networking/utls"], cwd=src_dir)
-
+    logger.info("Building uTLS client from the committed Go module...")
     success = await _run_cmd(
-        ["go", "build", "-o", str(BINARY_PATH), "main.go"],
+        ["go", "build", "-trimpath", "-mod=readonly", "-o", str(BINARY_PATH), "."],
         cwd=src_dir,
     )
 
@@ -181,7 +209,14 @@ async def test_tls_fingerprint(
         proc = await asyncio.create_subprocess_exec(
             *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
         )
-        stdout, stderr = await proc.communicate()
+        result = await _communicate_bounded(
+            proc,
+            timeout_seconds=PROBE_TIMEOUT_SECONDS,
+        )
+        if result is None:
+            logger.error("uTLS client timed out after %ss", PROBE_TIMEOUT_SECONDS)
+            return False
+        stdout, stderr = result
 
         if proc.returncode == 0:
             logger.debug(f"uTLS Success: {stdout.decode().strip()}")
@@ -189,6 +224,6 @@ async def test_tls_fingerprint(
         else:
             logger.debug(f"uTLS Failed: {stderr.decode().strip()}")
             return False
-    except Exception as e:
-        logger.error(f"Error running uTLS client: {e}")
+    except (OSError, ValueError) as exc:
+        logger.error("Error running uTLS client: %s", exc)
         return False

@@ -5,13 +5,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from tests.unit.doc_sources import read_doc, read_first_existing_doc
+from tests.unit.doc_sources import read_doc
 
 ROOT = Path(__file__).resolve().parents[2]
-KNOWN_ISSUES_SOURCES = [
-    "KNOWN_ISSUES.md",
-    "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md",
-]
 
 
 def _read(path: str) -> str:
@@ -44,7 +40,6 @@ def test_docs_do_not_claim_wasm_native_network_testing() -> None:
             _read("docs/wiki/project/01-introduction.md"),
             _read("docs/wiki/project/02-architecture.md"),
             _read("docs/wiki/project/04-engineering.md"),
-            read_first_existing_doc(ROOT, KNOWN_ISSUES_SOURCES),
         ]
     )
 

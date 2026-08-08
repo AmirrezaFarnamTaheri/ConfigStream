@@ -56,6 +56,55 @@ def _valid_dns_hostname(value: str) -> bool:
     )
 
 
+def _host_header_authority(host: str, port: int | None, default_port: int) -> str:
+    parsed = _parse_ip(host)
+    authority_host = f"[{host}]" if isinstance(parsed, ipaddress.IPv6Address) else host
+    return (
+        f"{authority_host}:{port}" if port and port != default_port else authority_host
+    )
+
+
+def rewrite_request_to_pinned_ip(
+    request: httpx.Request,
+    allowed_ips: Set[str],
+    *,
+    logical_host: Optional[str] = None,
+) -> httpx.Request:
+    """Return a request that connects to a validated IP while preserving TLS identity.
+
+    Keeping this transformation at the request layer means the same Host/SNI
+    contract applies to the shared security transport and to explicitly injected
+    HTTPX clients used by the fetch pipeline.
+    """
+
+    if not allowed_ips:
+        raise httpx.ConnectError("No validated IP addresses supplied", request=request)
+    target_ip = sorted(allowed_ips)[0]
+    original_host = logical_host or request.url.host
+    if not original_host:
+        raise httpx.ConnectError("Missing logical request host", request=request)
+
+    extensions = dict(request.extensions)
+    if request.url.scheme == "https":
+        extensions["sni_hostname"] = original_host
+
+    headers = httpx.Headers(request.headers)
+    default_port = 443 if request.url.scheme == "https" else 80
+    headers["Host"] = _host_header_authority(
+        original_host,
+        request.url.port,
+        default_port,
+    )
+
+    return httpx.Request(
+        request.method,
+        request.url.copy_with(host=target_ip),
+        headers=headers,
+        stream=request.stream,
+        extensions=extensions,
+    )
+
+
 class SecurityTransport(httpx.AsyncHTTPTransport):
     """Validate DNS answers and ensure the connector uses only validated IPs."""
 
@@ -64,12 +113,14 @@ class SecurityTransport(httpx.AsyncHTTPTransport):
         block_private_networks: bool = True,
         pinned_ips: Optional[Dict[str, Set[str]]] = None,
         dns_cache_enabled: bool = True,
+        network_transport: Optional[httpx.AsyncBaseTransport] = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
         self._block_private_networks = bool(block_private_networks)
         self._pinned_ips: Dict[str, Set[str]] = pinned_ips or {}
         self._dns_cache_enabled = bool(dns_cache_enabled)
+        self._network_transport = network_transport
         self._pin_lock: Optional[asyncio.Lock] = None
 
     def _get_pin_lock(self) -> asyncio.Lock:
@@ -113,22 +164,32 @@ class SecurityTransport(httpx.AsyncHTTPTransport):
 
         async with self._get_pin_lock():
             previous = self._pinned_ips.get(logical_host)
-            if previous is not None and not (resolved_ips & previous):
-                logger.warning("DNS rebinding detected for %s", logical_host)
-                raise httpx.ConnectError(
-                    f"DNS rebinding detected for {logical_host!r}",
-                    request=request,
-                )
             if previous is None:
                 self._pinned_ips[logical_host] = set(resolved_ips)
+                connection_candidates = set(resolved_ips)
+            else:
+                connection_candidates = resolved_ips & previous
+                if not connection_candidates:
+                    logger.warning("DNS rebinding detected for %s", logical_host)
+                    raise httpx.ConnectError(
+                        f"DNS rebinding detected for {logical_host!r}",
+                        request=request,
+                    )
 
         if request.url.scheme in {"http", "https"}:
             request = self._rewrite_to_pinned_ip(
                 request,
-                resolved_ips,
+                connection_candidates,
                 logical_host=logical_host,
             )
+        if self._network_transport is not None:
+            return await self._network_transport.handle_async_request(request)
         return await super().handle_async_request(request)
+
+    async def aclose(self) -> None:
+        if self._network_transport is not None:
+            await self._network_transport.aclose()
+        await super().aclose()
 
     async def _resolve_and_cache(
         self,
@@ -179,26 +240,8 @@ class SecurityTransport(httpx.AsyncHTTPTransport):
         *,
         logical_host: Optional[str] = None,
     ) -> httpx.Request:
-        target_ip = sorted(allowed_ips)[0]
-        original_host = logical_host or request.url.host
-        if not original_host:
-            raise httpx.ConnectError("Missing logical request host", request=request)
-
-        extensions = dict(request.extensions)
-        if request.url.scheme == "https":
-            extensions["sni_hostname"] = original_host
-
-        headers = httpx.Headers(request.headers)
-        default_port = 443 if request.url.scheme == "https" else 80
-        if request.url.port and request.url.port != default_port:
-            headers["Host"] = f"{original_host}:{request.url.port}"
-        else:
-            headers["Host"] = original_host
-
-        return httpx.Request(
-            request.method,
-            request.url.copy_with(host=target_ip),
-            headers=headers,
-            stream=request.stream,
-            extensions=extensions,
+        return rewrite_request_to_pinned_ip(
+            request,
+            allowed_ips,
+            logical_host=logical_host,
         )

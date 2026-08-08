@@ -39,13 +39,13 @@ When making changes to the frontend, you **must** adhere to these security pract
 ### 4. Dependencies
 *   **Vendor everything**. Do not rely on external CDNs (they can be blocked or compromised).
 *   Keep `assets/libs/` clean. Only minimal, audited libraries.
-*   Production pages load critical JS/CSS, fonts, globe textures, country flags, and Lab helper downloads from same-origin assets (`assets/libs/`, `assets/fonts/`, `assets/images/globe/`, `assets/images/flags/`, and `tools/`). Remote URLs may exist only as user-initiated links or explicitly optional fallbacks, not as runtime dependencies.
+*   Production pages load critical JS/CSS, globe textures, country flags, and Lab helper downloads from same-origin assets (`assets/libs/`, `assets/images/globe/`, `assets/images/flags/`, and `tools/`). Typography uses platform system stacks and does not ship or fetch font binaries. Remote URLs may exist only as user-initiated links or explicitly optional fallbacks, not as runtime dependencies.
 *   Localized assets must preserve the online experience. If an exact local equivalent is not available, keep the original behavior in the online path and add a clearly separate offline fallback instead of silently downgrading the main UI.
 *   Update `assets/vendor-manifest.json` whenever adding, refreshing, or replacing vendored runtime assets.
 
 ### 5. Content Security Policy (CSP)
 *   Primary pages enforce a local-first CSP via meta tag.
-*   Baseline policy: `default-src 'self'; script-src 'self' 'unsafe-inline' blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' ws: wss: data:; worker-src 'self' blob:; object-src 'self'; base-uri 'self'; form-action 'self';`
+*   Baseline policy: `default-src 'self'; script-src 'self' 'unsafe-inline' blob:; style-src 'self' 'unsafe-inline'; font-src 'none'; img-src 'self' data: blob:; connect-src 'self' ws: wss: data:; worker-src 'self' blob:; object-src 'self'; base-uri 'self'; form-action 'self';`
 *   Do not add remote CDN hosts to CSP for production runtime assets.
 
 ## Visualization Components

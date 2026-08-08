@@ -40,10 +40,10 @@ We believe that open-source tools must be transparent. By exposing the internal 
     *   DNS-Hardened proxy count
 *   **Insight**: Tracks the effectiveness of evasion features over time. Increasing trends indicate successful censorship resistance; decreasing trends may signal censor adaptation.
 
-#### 6. Active Proxy Trend (Time-Series) 
-*   **Type**: Line chart.
+#### 6. Active Proxy Trend Dataset
 *   **Data**: `data/active_proxy_trend.json` — hourly buckets over 7 days.
-*   **Insight**: Shows network stability and growth. Dips indicate source outages or increased blocking.
+*   **Current consumer**: Published as a stable static artifact for API and downstream use; the first-party analytics page does not currently render it.
+*   **Insight**: Supports external analysis of network stability and growth without overstating a browser visualization that is not implemented.
 
 #### 7. Rejection Reasons
 *   **Type**: Pie chart.

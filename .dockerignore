@@ -12,7 +12,8 @@ output/
 output*/
 data/
 
-# Source files not needed at build time
+# Canonical source batches are not shipped. The generated admission manifest
+# is bundled as package data under src/configstream/data/.
 sources/
 
 # Build artifacts

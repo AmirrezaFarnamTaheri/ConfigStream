@@ -13,7 +13,7 @@ from urllib.parse import urlparse
 from typing import Dict, Any, List, Optional, Union, cast
 
 from .models import Proxy
-from .converters.chains import chain_outbounds_from_details
+from .converters.chain_outbounds import chain_outbounds_from_details
 
 # Proxy object serialization.
 # Note: History data (latency points) is injected dynamically by the pipeline before serialization,

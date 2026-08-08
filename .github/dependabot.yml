@@ -1,39 +1,57 @@
-# Dependabot configuration for ConfigStream
-# See https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
-
+# Dependabot configuration for ConfigStream.
+# Every checked-in dependency ecosystem is monitored. Patch/minor updates are
+# grouped; major upgrades remain isolated for migration review.
 version: 2
 updates:
   - package-ecosystem: "github-actions"
     directory: "/"
-    schedule:
+    schedule: &weekly
       interval: "weekly"
       day: "monday"
       time: "09:00"
       timezone: "UTC"
-    commit-message:
+    groups: &safe_updates
+      non-major:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+    commit-message: &commit_message
       prefix: "chore"
       include: "scope"
 
   - package-ecosystem: "pip"
     directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-      timezone: "UTC"
+    schedule: *weekly
     allow:
       - dependency-type: "direct"
-    commit-message:
-      prefix: "chore"
-      include: "scope"
+    groups: *safe_updates
+    commit-message: *commit_message
 
   - package-ecosystem: "npm"
     directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-      timezone: "UTC"
-    commit-message:
-      prefix: "chore"
-      include: "scope"
+    schedule: *weekly
+    groups: *safe_updates
+    commit-message: *commit_message
+
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule: *weekly
+    groups: *safe_updates
+    commit-message: *commit_message
+
+  - package-ecosystem: "gomod"
+    directory: "/src/go/tester"
+    schedule: *weekly
+    groups: *safe_updates
+    commit-message: *commit_message
+
+  - package-ecosystem: "gomod"
+    directory: "/src/go/utls_client"
+    schedule: *weekly
+    groups: *safe_updates
+    commit-message: *commit_message
+
+  - package-ecosystem: "cargo"
+    directory: "/src/rust/ss_checker"
+    schedule: *weekly
+    groups: *safe_updates
+    commit-message: *commit_message

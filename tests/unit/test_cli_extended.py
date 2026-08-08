@@ -1,10 +1,13 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import io
+import re
 import tarfile
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import httpx
 import pytest
+import respx
 from click.testing import CliRunner
 
 from configstream.cli import main
@@ -17,7 +20,6 @@ def runner():
 
 def test_version(runner):
     result = runner.invoke(main, ["--version"])
-    # If not installed as package, this might fail. We accept 1 if it prints error about package.
     if result.exit_code != 0:
         assert "not installed" in str(result.exception) or "package_name" in str(
             result.exception
@@ -53,7 +55,16 @@ def test_merge_success(runner):
         }
         mock_pipeline.return_value = mock_result
 
-        result = runner.invoke(main, ["merge", "--sources", "sources.txt", "--dry-run"])
+        result = runner.invoke(
+            main,
+            [
+                "merge",
+                "--sources",
+                "sources.txt",
+                "--dry-run",
+                "--allow-unadmitted-sources",
+            ],
+        )
 
         assert result.exit_code == 0
         assert "Pipeline Completed Successfully" in result.output
@@ -73,30 +84,13 @@ def test_merge_failure(runner):
         mock_result.error = "Test Failure"
         mock_pipeline.return_value = mock_result
 
-        result = runner.invoke(main, ["merge", "--sources", "sources.txt"])
+        result = runner.invoke(
+            main,
+            ["merge", "--sources", "sources.txt", "--allow-unadmitted-sources"],
+        )
 
         assert result.exit_code == 1
         assert "Pipeline Failed" in result.output
-
-
-class FakeResponse:
-    def __init__(self, payload: bytes):
-        self.payload = payload
-        self.status_code = 200
-
-    def iter_content(self, chunk_size=8192):
-        for i in range(0, len(self.payload), chunk_size):
-            yield self.payload[i : i + chunk_size]
-
-    def iter_bytes(self, chunk_size=8192):
-        for i in range(0, len(self.payload), chunk_size):
-            yield self.payload[i : i + chunk_size]
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc, tb):
-        return False
 
 
 def _tar_payload(edition: str):
@@ -110,50 +104,51 @@ def _tar_payload(edition: str):
     return buf.read()
 
 
-def test_update_databases_prefers_maxmind(monkeypatch, runner):
+def test_update_databases_prefers_maxmind(runner):
     maxmind_payloads = {
         "GeoLite2-City": _tar_payload("GeoLite2-City"),
         "GeoLite2-ASN": _tar_payload("GeoLite2-ASN"),
     }
-    singbox_payload = b"db-bytes"
 
-    def fake_stream(method, url, timeout=120.0, follow_redirects=True):
+    def respond(request: httpx.Request) -> httpx.Response:
+        url = str(request.url)
         if "edition_id=GeoLite2-City" in url:
-            return FakeResponse(maxmind_payloads["GeoLite2-City"])
+            return httpx.Response(200, content=maxmind_payloads["GeoLite2-City"])
         if "edition_id=GeoLite2-ASN" in url:
-            return FakeResponse(maxmind_payloads["GeoLite2-ASN"])
+            return httpx.Response(200, content=maxmind_payloads["GeoLite2-ASN"])
         if url.endswith("/geosite.db") or url.endswith("/geoip.db"):
-            return FakeResponse(singbox_payload)
+            return httpx.Response(200, content=b"db-bytes")
         raise AssertionError(f"Unexpected download URL: {url}")
 
-    monkeypatch.setattr("configstream.cli.httpx.stream", fake_stream)
+    with respx.mock(assert_all_called=False) as router:
+        router.get(re.compile(r"https://.*")).mock(side_effect=respond)
+        with runner.isolated_filesystem():
+            result = runner.invoke(
+                main, ["update-databases"], env={"MAXMIND_LICENSE_KEY": "abc123"}
+            )
+            assert result.exit_code == 0
+            assert Path("data/GeoLite2-City.mmdb").is_file()
+            assert Path("data/GeoLite2-ASN.mmdb").is_file()
 
-    with runner.isolated_filesystem():
-        result = runner.invoke(
-            main, ["update-databases"], env={"MAXMIND_LICENSE_KEY": "abc123"}
-        )
-        assert result.exit_code == 0
-        assert Path("data/GeoLite2-City.mmdb").is_file()
-        assert Path("data/GeoLite2-ASN.mmdb").is_file()
 
-
-def test_update_databases_mirror_fallback(monkeypatch, runner):
-    def fake_stream(method, url, timeout=120.0, follow_redirects=True):
+def test_update_databases_mirror_fallback(runner):
+    def respond(request: httpx.Request) -> httpx.Response:
+        url = str(request.url)
         if url.endswith("/GeoLite2-City.mmdb"):
-            return FakeResponse(b"city-bytes")
+            return httpx.Response(200, content=b"city-bytes")
         if url.endswith("/GeoLite2-ASN.mmdb"):
-            return FakeResponse(b"asn-bytes")
+            return httpx.Response(200, content=b"asn-bytes")
         if url.endswith("/geosite.db") or url.endswith("/geoip.db"):
-            return FakeResponse(b"db-bytes")
+            return httpx.Response(200, content=b"db-bytes")
         raise AssertionError(f"Unexpected download URL: {url}")
 
-    monkeypatch.setattr("configstream.cli.httpx.stream", fake_stream)
-
-    with runner.isolated_filesystem():
-        result = runner.invoke(main, ["update-databases"])
-        assert result.exit_code == 0
-        assert Path("data/GeoLite2-City.mmdb").read_bytes() == b"city-bytes"
-        assert Path("data/GeoLite2-ASN.mmdb").read_bytes() == b"asn-bytes"
+    with respx.mock(assert_all_called=False) as router:
+        router.get(re.compile(r"https://.*")).mock(side_effect=respond)
+        with runner.isolated_filesystem():
+            result = runner.invoke(main, ["update-databases"])
+            assert result.exit_code == 0
+            assert Path("data/GeoLite2-City.mmdb").read_bytes() == b"city-bytes"
+            assert Path("data/GeoLite2-ASN.mmdb").read_bytes() == b"asn-bytes"
 
 
 def test_generate_warp(runner):
@@ -172,8 +167,30 @@ def test_generate_warp(runner):
 
 
 def test_bot_command(runner):
-    # Now that bot_cli.py exports run_bot, we can test it
     with patch("configstream.bot_cli.run_bot") as mock_run:
         result = runner.invoke(main, ["bot", "--token", "FAKE"])
         assert result.exit_code == 0
         mock_run.assert_called_with("FAKE")
+
+
+class PartialFailureStream(httpx.SyncByteStream):
+    def __iter__(self):
+        yield b"partial"
+        raise httpx.ReadError("connection interrupted")
+
+
+def test_update_databases_does_not_publish_partial_downloads(runner):
+    def respond(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, stream=PartialFailureStream())
+
+    with respx.mock(assert_all_called=False) as router:
+        router.get(re.compile(r"https://.*")).mock(side_effect=respond)
+        with runner.isolated_filesystem():
+            result = runner.invoke(main, ["update-databases"])
+
+            assert result.exit_code == 1
+            assert not Path("data/GeoLite2-City.mmdb").exists()
+            assert not Path("data/GeoLite2-ASN.mmdb").exists()
+            assert not Path("data/singbox/geosite.db").exists()
+            assert not Path("data/singbox/geoip.db").exists()
+            assert not list(Path("data").rglob(".*.tmp"))

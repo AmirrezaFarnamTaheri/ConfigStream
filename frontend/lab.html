@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="ConfigStream Laboratory - Build, test, and troubleshoot chained proxy routes for free internet access.">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' ws: wss: data: https://cp.cloudflare.com https://connectivitycheck.gstatic.com https://1.1.1.1 https://api.github.com https://en.wikipedia.org https://cloudflare-dns.com; worker-src 'self' blob:; object-src 'self'; base-uri 'self'; form-action 'self';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' blob:; style-src 'self' 'unsafe-inline'; font-src 'none'; img-src 'self' data: blob:; connect-src 'self' ws: wss: data: https://cp.cloudflare.com https://connectivitycheck.gstatic.com https://1.1.1.1 https://api.github.com https://en.wikipedia.org https://cloudflare-dns.com; worker-src 'self' blob:; object-src 'self'; base-uri 'self'; form-action 'self';">
     <title>Laboratory - ConfigStream</title>
 
     <script src="assets/js/init.js"></script>
@@ -203,13 +203,13 @@
             padding: 0.7rem 1.5rem;
             border: none; border-radius: 10px;
             font-weight: 600; font-size: 0.9rem;
-            cursor: pointer; transition: all 0.2s;
+            cursor: pointer; transition: opacity 0.2s, box-shadow 0.2s, background-color 0.2s, border-color 0.2s;
         }
         .lab-btn-primary {
             background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
             color: #fff;
         }
-        .lab-btn-primary:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(var(--brand-primary-rgb), 0.3); }
+        .lab-btn-primary:hover { opacity: 0.9; box-shadow: 0 4px 12px rgba(var(--brand-primary-rgb), 0.3); }
         .lab-btn-secondary {
             background: var(--bg-secondary);
             color: var(--text-primary);
@@ -452,6 +452,7 @@
                 <a href="index.html" class="nav-link">Home</a>
                 <a href="proxies.html" class="nav-link">Proxy List</a>
                 <a href="analytics.html" class="nav-link">Analytics</a>
+                <a href="evidence.html" class="nav-link">Evidence</a>
                 <a href="lab.html" class="nav-link active">Lab</a>
                 <a href="wiki.html" class="nav-link">Wiki</a>
                 <a href="about.html" class="nav-link">About</a>
@@ -591,7 +592,7 @@
                         <button class="lab-btn lab-btn-secondary" id="loadPipelineBtn">Load Pre-Tested Proxies</button>
                     </div>
                     <div id="pipelineProxyPicker" style="display:none;margin-top:0.75rem;">
-                        <select class="lab-select" id="pipelineProxySelect" style="display:none;"></select>
+                        <select class="lab-select" id="pipelineProxySelect" style="display:none;" aria-label="Verified pipeline proxy"></select>
                         <div class="hint" style="margin-top:0.25rem;">These proxies were verified by ConfigStream's pipeline. Select one, or paste your own URI above.</div>
                     </div>
                 </div>
@@ -801,7 +802,7 @@
                             <div class="lab-row" style="align-items:flex-end;">
                                 <div class="lab-form-group" style="flex:0 0 140px;">
                                     <label>Layer 1 Type</label>
-                                    <select class="lab-select relay-layer-type" data-layer="1">
+                                    <select class="lab-select relay-layer-type" data-layer="1" aria-label="Layer 1 proxy type">
                                         <option value="socks5">SOCKS5</option>
                                         <option value="http">HTTP</option>
                                         <option value="uri">Proxy URI</option>
@@ -810,7 +811,7 @@
                                 </div>
                                 <div class="lab-form-group" style="flex:1;">
                                     <label>Address / URI</label>
-                                    <input type="text" class="lab-input relay-layer-addr" data-layer="1" placeholder="127.0.0.1:1080 or vless://...">
+                                    <input type="text" class="lab-input relay-layer-addr" data-layer="1" aria-label="Layer 1 address or proxy URI" placeholder="127.0.0.1:1080 or vless://...">
                                 </div>
                                 <div style="flex:0 0 auto;padding-bottom:0.25rem;">
                                     <button type="button" class="lab-btn lab-btn-secondary lab-btn-sm relay-pipeline-btn" data-layer="1" title="Pick from pipeline proxies">&#128230; Pipeline</button>
@@ -822,7 +823,7 @@
                             <div class="lab-row" style="align-items:flex-end;">
                                 <div class="lab-form-group" style="flex:0 0 140px;">
                                     <label>Layer 2 Type</label>
-                                    <select class="lab-select relay-layer-type" data-layer="2">
+                                    <select class="lab-select relay-layer-type" data-layer="2" aria-label="Layer 2 proxy type">
                                         <option value="">None (skip)</option>
                                         <option value="socks5">SOCKS5</option>
                                         <option value="http">HTTP</option>
@@ -832,7 +833,7 @@
                                 </div>
                                 <div class="lab-form-group" style="flex:1;">
                                     <label>Address / URI</label>
-                                    <input type="text" class="lab-input relay-layer-addr" data-layer="2" placeholder="10.0.0.50:3128 or trojan://...">
+                                    <input type="text" class="lab-input relay-layer-addr" data-layer="2" aria-label="Layer 2 address or proxy URI" placeholder="10.0.0.50:3128 or trojan://...">
                                 </div>
                                 <div style="flex:0 0 auto;padding-bottom:0.25rem;">
                                     <button type="button" class="lab-btn lab-btn-secondary lab-btn-sm relay-pipeline-btn" data-layer="2" title="Pick from pipeline proxies">&#128230; Pipeline</button>
@@ -843,7 +844,7 @@
                             <div class="lab-row" style="align-items:flex-end;">
                                 <div class="lab-form-group" style="flex:0 0 140px;">
                                     <label>Layer 3 Type</label>
-                                    <select class="lab-select relay-layer-type" data-layer="3">
+                                    <select class="lab-select relay-layer-type" data-layer="3" aria-label="Layer 3 proxy type">
                                         <option value="">None (skip)</option>
                                         <option value="socks5">SOCKS5</option>
                                         <option value="http">HTTP</option>
@@ -853,7 +854,7 @@
                                 </div>
                                 <div class="lab-form-group" style="flex:1;">
                                     <label>Address / URI</label>
-                                    <input type="text" class="lab-input relay-layer-addr" data-layer="3" placeholder="162.159.192.1:2408 or vmess://...">
+                                    <input type="text" class="lab-input relay-layer-addr" data-layer="3" aria-label="Layer 3 address or proxy URI" placeholder="162.159.192.1:2408 or vmess://...">
                                 </div>
                                 <div style="flex:0 0 auto;padding-bottom:0.25rem;">
                                     <button type="button" class="lab-btn lab-btn-secondary lab-btn-sm relay-pipeline-btn" data-layer="3" title="Pick from pipeline proxies">&#128230; Pipeline</button>
@@ -864,7 +865,7 @@
                             <div class="lab-row" style="align-items:flex-end;">
                                 <div class="lab-form-group" style="flex:0 0 140px;">
                                     <label>Layer 4 Type</label>
-                                    <select class="lab-select relay-layer-type" data-layer="4">
+                                    <select class="lab-select relay-layer-type" data-layer="4" aria-label="Layer 4 proxy type">
                                         <option value="">None (skip)</option>
                                         <option value="socks5">SOCKS5</option>
                                         <option value="http">HTTP</option>
@@ -874,7 +875,7 @@
                                 </div>
                                 <div class="lab-form-group" style="flex:1;">
                                     <label>Address / URI</label>
-                                    <input type="text" class="lab-input relay-layer-addr" data-layer="4" placeholder="ss://... or socks5://...">
+                                    <input type="text" class="lab-input relay-layer-addr" data-layer="4" aria-label="Layer 4 address or proxy URI" placeholder="ss://... or socks5://...">
                                 </div>
                                 <div style="flex:0 0 auto;padding-bottom:0.25rem;">
                                     <button type="button" class="lab-btn lab-btn-secondary lab-btn-sm relay-pipeline-btn" data-layer="4" title="Pick from pipeline proxies">&#128230; Pipeline</button>
@@ -1202,6 +1203,8 @@ python lab-scanner.py --scan-ips --json > clean-ips.json</code>
     <script src="assets/js/utils/ui.js" defer></script>
     <script src="assets/js/utils.js" defer></script>
     <script src="assets/js/loading-controller.js" defer></script>
+    <script src="assets/js/verifier.js" defer></script>
+    <script src="assets/js/artifact-state.js" defer></script>
     <script src="assets/js/common-ui.js" defer></script>
     <script src="assets/js/inline-icons.js"></script>
     <script src="assets/js/utils/qrcode.js" defer></script>

@@ -1,4 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import base64
+import binascii
 import hashlib
 import json
 import struct
@@ -13,6 +15,55 @@ SIGNATURE_MAX_AGE_SECONDS: int = 300  # 5 minutes
 
 # Tolerance for NTP clock drift between signer and verifier hosts.
 CLOCK_SKEW_TOLERANCE_SECONDS: int = 30
+
+
+def normalize_public_key_hex(value: str) -> str:
+    """Normalize a supported Ed25519 public-key encoding to raw hex.
+
+    Browser deployment uses Base64-encoded SPKI, while Python verification
+    consumes the 32-byte raw key.  Keeping the conversion here prevents the
+    release validator and rollback snapshotter from implementing different
+    trust rules.
+    """
+
+    candidate = (value or "").strip()
+    if not candidate or "PLACEHOLDER" in candidate or "79e/79e/" in candidate:
+        return ""
+
+    try:
+        key_bytes = base64.b64decode(candidate, validate=True)
+    except (ValueError, binascii.Error):
+        key_bytes = b""
+
+    if key_bytes:
+        try:
+            parsed = serialization.load_der_public_key(key_bytes)
+            if isinstance(parsed, ed25519.Ed25519PublicKey):
+                return parsed.public_bytes(
+                    encoding=serialization.Encoding.Raw,
+                    format=serialization.PublicFormat.Raw,
+                ).hex()
+        except (ValueError, TypeError):
+            pass
+        if len(key_bytes) == 32:
+            try:
+                ed25519.Ed25519PublicKey.from_public_bytes(key_bytes)
+            except ValueError:
+                pass
+            else:
+                return key_bytes.hex()
+
+    try:
+        raw = bytes.fromhex(candidate)
+    except ValueError:
+        return ""
+    if len(raw) != 32:
+        return ""
+    try:
+        ed25519.Ed25519PublicKey.from_public_bytes(raw)
+    except ValueError:
+        return ""
+    return raw.hex()
 
 
 def _build_signed_payload(content_bytes: bytes, timestamp_int: int) -> bytes:

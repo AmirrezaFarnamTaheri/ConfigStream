@@ -59,3 +59,12 @@ pr_reviews_full.json
 scratch_*.py
 
 .env.local
+
+# Generated architecture/review artifacts (regenerate locally when needed)
+/repo-topology-out/
+/review-stage/
+# Local verification evidence (packaged separately)
+/verification-evidence/
+# Agent execution state (local, never shipped)
+/.absolute-work/
+/.absolute.config.json

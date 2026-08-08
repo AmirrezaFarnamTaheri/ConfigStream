@@ -9,8 +9,13 @@ import sys
 from pathlib import Path
 from typing import Any, Iterable
 
-ENCODING = "utf-8"
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from scripts.validation_utils import load_json_object, is_nonempty_string
+
+ENCODING = "utf-8"
 MAP_PATH = ROOT / "docs" / "module_ownership.json"
 SCAN_DIRS = ("src", "scripts", "tests", "tools")
 REQUIRED_MODULE_FIELDS = {
@@ -27,23 +32,11 @@ REQUIRED_MODULE_FIELDS = {
 REQUIRED_REMOVED_FIELDS = {"path", "import_names", "replacement"}
 
 
-def _load_json(path: Path) -> dict[str, Any]:
-    with path.open("r", encoding=ENCODING) as handle:
-        data = json.load(handle)
-    if not isinstance(data, dict):
-        raise ValueError("module ownership root must be an object")
-    return data
-
-
-def _is_nonempty_string(value: object) -> bool:
-    return isinstance(value, str) and bool(value.strip())
-
-
 def _is_string_list(value: object, *, allow_empty: bool = True) -> bool:
     return (
         isinstance(value, list)
         and (allow_empty or bool(value))
-        and all(_is_nonempty_string(item) for item in value)
+        and all(is_nonempty_string(item) for item in value)
     )
 
 
@@ -84,7 +77,7 @@ def _matches_removed_import(imported: str, removed: str) -> bool:
 def validate_module_ownership(path: Path = MAP_PATH) -> list[str]:
     errors: list[str] = []
     try:
-        data = _load_json(path)
+        data = load_json_object(path, root_label="module ownership")
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         return [f"module ownership map cannot be read: {exc}"]
 
@@ -106,7 +99,7 @@ def validate_module_ownership(path: Path = MAP_PATH) -> list[str]:
         if missing:
             errors.append(f"{prefix} missing fields: {', '.join(sorted(missing))}")
         path_text = module.get("path")
-        if not _is_nonempty_string(path_text):
+        if not is_nonempty_string(path_text):
             errors.append(f"{prefix}.path must be a non-empty string")
         else:
             if path_text in seen_paths:
@@ -115,7 +108,7 @@ def validate_module_ownership(path: Path = MAP_PATH) -> list[str]:
             if not _path_exists(str(path_text)):
                 errors.append(f"{prefix}.path is missing: {path_text}")
         for field in ("domain", "owner"):
-            if not _is_nonempty_string(module.get(field)):
+            if not is_nonempty_string(module.get(field)):
                 errors.append(f"{prefix}.{field} must be a non-empty string")
         for field in (
             "public_apis",
@@ -143,7 +136,7 @@ def validate_module_ownership(path: Path = MAP_PATH) -> list[str]:
         if missing:
             errors.append(f"{prefix} missing fields: {', '.join(sorted(missing))}")
         removed_path = removed.get("path")
-        if not _is_nonempty_string(removed_path):
+        if not is_nonempty_string(removed_path):
             errors.append(f"{prefix}.path must be a non-empty string")
         elif _path_exists(str(removed_path)):
             errors.append(f"{prefix}.path has been recreated: {removed_path}")
@@ -151,7 +144,7 @@ def validate_module_ownership(path: Path = MAP_PATH) -> list[str]:
             errors.append(f"{prefix}.import_names must be a list of strings")
         else:
             removed_imports.update(str(name) for name in removed["import_names"])
-        if not _is_nonempty_string(removed.get("replacement")):
+        if not is_nonempty_string(removed.get("replacement")):
             errors.append(f"{prefix}.replacement must be a non-empty string")
 
     for py_file in _iter_python_files():

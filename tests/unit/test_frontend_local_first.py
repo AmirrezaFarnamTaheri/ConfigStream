@@ -70,6 +70,7 @@ def test_primary_pages_use_local_csp() -> None:
         assert "default-src 'self'" in html, page_name
         assert "script-src 'self'" in html, page_name
         assert "style-src 'self'" in html, page_name
+        assert "font-src 'none'" in html, page_name
         assert "img-src 'self' data: blob:" in html, page_name
         for host in FORBIDDEN_RUNTIME_HOSTS:
             assert host not in html, f"{page_name} still references {host}"
@@ -119,14 +120,18 @@ def test_vendor_manifest_tracks_local_runtime_assets() -> None:
             digest = hashlib.sha256(local_path.read_bytes()).hexdigest()
             assert digest == library["sha256"], library
 
-    fonts_css = (FRONTEND_DIR / "assets/css/fonts.css").read_text(encoding="utf-8")
-    for family in (
-        "Be Vietnam Pro",
-        "DM Serif Display",
-        "Vazirmatn",
-        "Mikhak",
-    ):
-        assert family in fonts_css
+    assert "fonts" not in manifest
+
+
+def test_frontend_uses_system_fonts_without_binary_font_assets() -> None:
+    style = (FRONTEND_DIR / "assets/css/style.css").read_text(encoding="utf-8")
+
+    assert "fonts.css" not in style
+    assert "../fonts/" not in style
+    assert not (FRONTEND_DIR / "assets/css/fonts.css").exists()
+    assert not (FRONTEND_DIR / "assets/fonts").exists()
+    assert "--font-rtl-sans" in style
+    assert "--font-rtl-display" in style
 
 
 def test_dompurify_vendor_manifest_matches_bundled_asset() -> None:

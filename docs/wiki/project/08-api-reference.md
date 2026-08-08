@@ -77,9 +77,9 @@ These are the primary endpoints used by the frontend. They are flat files, not d
 | `fetchMetadata()` | `metadata.json` | `/api/stats` | `utils/network.js` |
 | `fetchProxies()` | `proxies.json` | `/api/proxies` | `utils/network.js` |
 | `fetchStatistics()` | `metadata.json` | `/api/stats` | `utils/network.js` |
-| `fetchProxyHistory()` | `data/active_proxy_trend.json` | — | `statistics.js` |
-| `fetchEvasionTrend()` | `data/evasion_trend.json` | — | `statistics.js` |
-| `loadCountryData()` | `assets/data/countries.json` | — | `statistics.js` |
+| `ProxyHistoryChart.loadHistoryData()` | `data/proxy_history_viz.json` | — | `proxy-history-chart.js` |
+| analytics page startup | `data/evasion_trend.json` | — | `analytics.js` |
+| external/static consumers | `data/active_proxy_trend.json` | — | no first-party browser consumer |
 
 #### API Simulation (created by `deploy-pages.yml`)
 
@@ -411,6 +411,6 @@ Tags are appended in this order: `PROTO` → `TRANS` → `SEC` → `PROC` → `R
 
 *   **[Protocols & Parsing](03-protocols.md)** — How proxy URIs are parsed and validated.
 *   **[Configuration Reference](Configuration.md)** — All environment variables.
-*   **[Output Variations](../../OUTPUT_VARIATIONS.md)** — All 60+ output file variants.
+*   **[Download files matrix](#download-files-matrix)** — All 60+ output file variants.
 *   **[Censorship Evasion](../../CENSORSHIP_EVASION.md)** — Evasion modes, techniques, tagging, metrics, troubleshooting.
 *   **[Sing-box Configuration Guide](../encyclopedia/tools/singbox_configuration_guide.md)** — How outbound configs are structured.

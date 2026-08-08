@@ -8,22 +8,19 @@ import sys
 from pathlib import Path
 from typing import Any
 
-ENCODING = "utf-8"
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from scripts.validation_utils import load_json_object
+
+ENCODING = "utf-8"
 REPORT_PATH = ROOT / "docs" / "core_compatibility_report.json"
 OUTPUT_MATRIX_PATH = ROOT / "docs" / "output_matrix.json"
 
 
-def _load_json(path: Path) -> dict[str, Any]:
-    with path.open("r", encoding=ENCODING) as handle:
-        data = json.load(handle)
-    if not isinstance(data, dict):
-        raise ValueError(f"{path} root must be an object")
-    return data
-
-
 def _output_items() -> dict[str, dict[str, Any]]:
-    matrix = _load_json(OUTPUT_MATRIX_PATH)
+    matrix = load_json_object(OUTPUT_MATRIX_PATH)
     outputs = matrix.get("outputs", [])
     if not isinstance(outputs, list):
         return {}
@@ -44,7 +41,7 @@ def _core_entries(data: dict[str, Any]) -> list[dict[str, Any]]:
 def validate_core_compatibility(path: Path = REPORT_PATH) -> list[str]:
     errors: list[str] = []
     try:
-        data = _load_json(path)
+        data = load_json_object(path)
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         return [f"core compatibility report cannot be read: {exc}"]
 

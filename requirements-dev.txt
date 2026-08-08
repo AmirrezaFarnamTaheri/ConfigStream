@@ -20,7 +20,10 @@ typing-inspection==0.4.2
 wrapt==2.2.2
 
 # Testing
-backports.asyncio.runner==1.0.0; python_version < "3.11"
+beautifulsoup4==4.14.3
+nest-asyncio==1.6.0
+soupsieve==2.8.4
+backports.asyncio.runner==1.2.0; python_version < "3.11"
 coverage==7.15.1
 hypothesis==6.156.1
 iniconfig==2.3.0
@@ -38,15 +41,10 @@ respx==0.23.1
 sortedcontainers==2.4.0
 tomli_w==1.2.0
 
-# ML / data-science (used only in experimental scoring; not required for production pipeline)
-numpy==2.2.6
-scikit-learn==1.7.2
-scipy==1.15.3
-joblib==1.5.3
-threadpoolctl==3.6.0
 greenlet==3.5.3
 
 # Security audit tools
+bandit==1.8.6
 pip_audit==2.10.1
 cyclonedx-python-lib==11.11.0
 annotated-doc==0.0.4
@@ -59,5 +57,15 @@ pip-requirements-parser==32.0.1
 py-serializable==2.1.0
 pytokens==0.4.1
 
-# WASM build tooling (used by build_wasm.sh; not at runtime)
-wasmtime==45.0.0
+# Build and packaging tools
+altgraph==0.17.5
+build==1.5.0
+pyinstaller==6.21.0
+pyinstaller-hooks-contrib==2026.6
+pyproject-hooks==1.2.0
+setuptools==83.0.0
+wheel==0.47.0
+
+# Schema validation
+jsonschema==4.26.0
+types-jsonschema==4.26.0.20260518

@@ -3,7 +3,11 @@ import pytest
 from unittest.mock import MagicMock, patch, AsyncMock
 from configstream.pipeline import run_full_pipeline
 from configstream.models import Proxy
-from configstream.intelligence.washer.core import ProxyWasher
+
+
+@pytest.fixture(autouse=True)
+def _disable_vwarp(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("USE_VWARP_TUNNEL", "false")
 
 
 @pytest.fixture
@@ -37,31 +41,22 @@ async def test_pipeline_dry_run(tmp_path, mock_proxies):
         return list(mock_proxies)
 
     with (
-        patch("configstream.pipeline.SingBoxTester") as MockTester,
-        patch("configstream.pipeline.SourceQualityTracker"),
-        patch("configstream.pipeline.AnomalyDetector"),
-        patch("configstream.pipeline.EventStream") as MockEventStream,
-        patch("configstream.pipeline.DEFAULT_BLOCKLIST.update", new=AsyncMock()),
-        patch("configstream.pipeline.source_producer") as mock_producer,
-        patch("configstream.pipeline.processing_consumer") as mock_consumer,
+        patch("configstream.pipeline.core.SingBoxTester") as MockTester,
+        patch("configstream.pipeline.core.SourceQualityTracker"),
+        patch("configstream.pipeline.core.AnomalyDetector"),
+        patch("configstream.pipeline.core.EventStream") as MockEventStream,
+        patch("configstream.pipeline.core.DEFAULT_BLOCKLIST.update", new=AsyncMock()),
+        patch("configstream.pipeline.producer.source_producer") as mock_producer,
+        patch("configstream.pipeline.consumer.processing_consumer") as mock_consumer,
         patch(
-            "configstream.pipeline.filter_unique_endpoints",
+            "configstream.filtering.filter_unique_endpoints",
             side_effect=filter_unique_mock,
         ),
         patch(
-            "configstream.output_handler.generate_categorized_outputs",
-            return_value={},
+            "configstream.output_handler.generate_pipeline_outputs",
+            new=AsyncMock(return_value={}),
         ),
-        patch("configstream.output_handler.save_metadata"),
-        patch("configstream.pipeline.ProxyHistoryTracker") as MockHistory,
-        patch(
-            "configstream.output_handler.ProxyWasher",
-            new=MagicMock(spec=ProxyWasher),
-        ) as MockWasher,
-        patch(
-            "configstream.output_handler.generate_smart_chains",
-            return_value={},
-        ),
+        patch("configstream.pipeline.core.ProxyHistoryTracker") as MockHistory,
     ):
         # Configure mocked tester to be awaitable on close
         MockTester.return_value.close = AsyncMock()
@@ -69,17 +64,13 @@ async def test_pipeline_dry_run(tmp_path, mock_proxies):
 
         # Configure EventStream mock
         MockEventStream.return_value.aclose = AsyncMock()
+        MockEventStream.return_value.output_dir = tmp_path
 
         history = MagicMock()
         history.get_reliability_score.return_value = 0.9
         history.get_summary_stats.return_value = {"uptime_percentage": 90}
         history.get_history.return_value = []
         MockHistory.return_value = history
-
-        # Mocking washer methods correctly
-        washer_instance = MockWasher.return_value
-        washer_instance.fetch_clean_ips = AsyncMock()
-        washer_instance.wash_batch = MagicMock(return_value=([], set(), {}))
 
         async def fake_producer(sources, work_queue, proxies, *args, **kwargs):
             if proxies:
@@ -117,34 +108,32 @@ async def test_pipeline_dry_run(tmp_path, mock_proxies):
         )
 
         assert result.success is True
-        if result.stats.final_count > 0:
-            assert result.stats.final_count == 2
-            # Proxies are now saved directly to output_dir, not 'chosen' subdirectory
-            assert (tmp_path / "proxies.json").exists()
+        assert result.stats.final_count == 2
 
 
 @pytest.mark.asyncio
 async def test_pipeline_pareto_sort(tmp_path, mock_proxies):
     # Tests that sorting is applied
     with (
-        patch("configstream.pipeline.SingBoxTester") as MockTester,
-        patch("configstream.pipeline.SourceQualityTracker"),
-        patch("configstream.pipeline.AnomalyDetector"),
-        patch("configstream.pipeline.EventStream") as MockEventStream,
-        patch("configstream.pipeline.DEFAULT_BLOCKLIST.update", new=AsyncMock()),
-        patch("configstream.pipeline.source_producer") as mock_producer,
-        patch("configstream.pipeline.processing_consumer") as mock_consumer,
+        patch("configstream.pipeline.core.SingBoxTester") as MockTester,
+        patch("configstream.pipeline.core.SourceQualityTracker"),
+        patch("configstream.pipeline.core.AnomalyDetector"),
+        patch("configstream.pipeline.core.EventStream") as MockEventStream,
+        patch("configstream.pipeline.core.DEFAULT_BLOCKLIST.update", new=AsyncMock()),
+        patch("configstream.pipeline.producer.source_producer") as mock_producer,
+        patch("configstream.pipeline.consumer.processing_consumer") as mock_consumer,
         patch(
             "configstream.output_handler.generate_pipeline_outputs",
             new=AsyncMock(return_value={}),
         ),
-        patch("configstream.pipeline.ProxyHistoryTracker") as MockHistory,
+        patch("configstream.pipeline.core.ProxyHistoryTracker") as MockHistory,
     ):
         MockTester.return_value.close = AsyncMock()
         MockTester.return_value.go_tester.available = False
 
         # Configure EventStream mock
         MockEventStream.return_value.aclose = AsyncMock()
+        MockEventStream.return_value.output_dir = tmp_path
 
         # Mock history to prefer the higher latency one (reliability > latency scenario)
         history = MagicMock()
@@ -185,24 +174,25 @@ async def test_pipeline_pareto_sort(tmp_path, mock_proxies):
 @pytest.mark.asyncio
 async def test_pipeline_adapter_export_fail(tmp_path, mock_proxies):
     with (
-        patch("configstream.pipeline.SingBoxTester") as MockTester,
-        patch("configstream.pipeline.SourceQualityTracker"),
-        patch("configstream.pipeline.AnomalyDetector"),
-        patch("configstream.pipeline.EventStream") as MockEventStream,
-        patch("configstream.pipeline.DEFAULT_BLOCKLIST.update", new=AsyncMock()),
-        patch("configstream.pipeline.source_producer") as mock_producer,
-        patch("configstream.pipeline.processing_consumer") as mock_consumer,
+        patch("configstream.pipeline.core.SingBoxTester") as MockTester,
+        patch("configstream.pipeline.core.SourceQualityTracker"),
+        patch("configstream.pipeline.core.AnomalyDetector"),
+        patch("configstream.pipeline.core.EventStream") as MockEventStream,
+        patch("configstream.pipeline.core.DEFAULT_BLOCKLIST.update", new=AsyncMock()),
+        patch("configstream.pipeline.producer.source_producer") as mock_producer,
+        patch("configstream.pipeline.consumer.processing_consumer") as mock_consumer,
         patch(
             "configstream.output_handler.generate_pipeline_outputs",
             new=AsyncMock(side_effect=Exception("Export Fail")),
         ),
-        patch("configstream.pipeline.ProxyHistoryTracker"),
+        patch("configstream.pipeline.core.ProxyHistoryTracker"),
     ):
         MockTester.return_value.close = AsyncMock()
         MockTester.return_value.go_tester.available = False
 
         # Configure EventStream mock
         MockEventStream.return_value.aclose = AsyncMock()
+        MockEventStream.return_value.output_dir = tmp_path
 
         async def fake_producer(sources, work_queue, proxies, *args, **kwargs):
             # Put None for ALL consumers

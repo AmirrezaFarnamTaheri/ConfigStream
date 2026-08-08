@@ -16,6 +16,7 @@ from configstream.dns_utils import normalize_socket_address_host
 from configstream.adaptive_timeout import AdaptiveTimeout
 from configstream.http_client import get_client
 from configstream.source_quality import SourceQualityTracker
+from configstream.security.transport import rewrite_request_to_pinned_ip
 from configstream.security_validator import SecurityValidator
 from configstream.fetcher_worker import FetchResult
 
@@ -23,12 +24,8 @@ from .interfaces import IFetcher
 
 logger = logging.getLogger(__name__)
 
-# Use AppSettings if available, otherwise default
-try:
-    MAX_RESPONSE_SIZE = AppSettings().MAX_RESPONSE_SIZE
-except Exception:
-    logging.getLogger(__name__).debug("Suppressed broad exception")
-    MAX_RESPONSE_SIZE = 10 * 1024 * 1024
+# Conservative module fallback; per-run settings remain authoritative.
+MAX_RESPONSE_SIZE = 10 * 1024 * 1024
 
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
@@ -89,8 +86,8 @@ async def _reject_source_dns(
 ) -> Tuple[Optional[str], Optional[str]]:
     """Validate DNS resolution of *url* and return (error, validated_ip).
 
-    SECURITY FIX (#493): Returns the validated IP so callers can pin the
-    connection, preventing DNS-rebinding TOCTOU attacks.
+    Returns the validated IP so callers can pin the connection, preventing
+    DNS-rebinding TOCTOU attacks.
     """
     if not validate_dns or not block_private_networks:
         return None, None
@@ -103,7 +100,6 @@ async def _reject_source_dns(
     host = host.strip("[]")
     try:
         ip = ipaddress.ip_address(host)
-        # Already an IP literal — no DNS needed
         return None, str(ip)
     except ValueError:
         pass
@@ -137,7 +133,6 @@ async def _reject_source_dns(
         if not ip.is_global:
             return "Source URL host resolves to a private or non-global address", None
 
-    # Return the first validated IP for connection pinning
     validated_ip = next(iter(resolved_ips))
     return None, validated_ip
 
@@ -152,12 +147,9 @@ async def fetch_from_source(
     timeout_tracker: Any = None,
     retry_delay: float = 1.0,
     timeout: float | None = None,
-    **kwargs: Any,  # Accept extra kwargs to satisfy Mypy/callers
+    **kwargs: Any,
 ) -> Any:
-    """
-    Robust fetcher implementation handling retries, circuit breaking, rate limiting,
-    and response size limits.
-    """
+    """Fetch one source with retries, resource bounds, and DNS pinning."""
 
     if app_settings is None:
         app_settings = AppSettings()
@@ -165,7 +157,6 @@ async def fetch_from_source(
     loop = asyncio.get_running_loop()
     safe_source = SecurityValidator.sanitize_log_message(source)
 
-    # Validate URL
     url_error = _reject_source_url(
         source,
         block_private_networks=bool(app_settings.FETCH_BLOCK_PRIVATE_NETWORKS),
@@ -179,7 +170,6 @@ async def fetch_from_source(
             status_code=0,
         )
 
-    # Sanitize malformed raw.githubusercontent URLs
     if "raw.githubusercontent" in source and "github.com" not in source:
         parsed = urlparse(source)
         if parsed.netloc.endswith(".raw.githubusercontent.com"):
@@ -191,17 +181,9 @@ async def fetch_from_source(
                 status_code=0,
             )
 
-    # Circuit Breaker Check
     breaker = None
     if breaker_manager:
-        try:
-            parsed = urlparse(source)
-            host = parsed.netloc
-            key = host
-        except Exception:
-            logging.getLogger(__name__).debug("Suppressed broad exception")
-            key = source
-
+        key = urlparse(source).netloc or source
         breaker = await breaker_manager.get_breaker(key)
 
         is_open = breaker.is_open()
@@ -230,22 +212,18 @@ async def fetch_from_source(
                 status_code=0,
             )
 
-    # Rate Limiter Pre-check: retry until a token is available.
-    # Ensures the limiter enforces the per-source cap even under concurrent load.
     if rate_limiter:
         while not await rate_limiter.is_allowed(source):
             wait_time = await rate_limiter.get_wait_time(source)
             if wait_time > 0:
                 await asyncio.sleep(wait_time)
             else:
-                # Avoid busy-spinning if get_wait_time returns 0.
                 await asyncio.sleep(0.01)
 
     headers = {"User-Agent": secure_choice(USER_AGENTS)}
     attempt = 0
     last_error = None
 
-    # Use instance limit if passed, else global default
     max_size_raw = app_settings.MAX_RESPONSE_SIZE if app_settings else MAX_RESPONSE_SIZE
     try:
         max_size = int(max_size_raw)
@@ -284,23 +262,6 @@ async def fetch_from_source(
                     response_time=response_time,
                 )
 
-            # SECURITY FIX (#493): Pin the validated IP to prevent DNS-rebinding
-            # TOCTOU attacks. Replace hostname with validated IP in URL and set
-            # Host header so the TLS SNI remains correct.
-            pinned_url = current_url
-            host_header = None
-            if validated_ip:
-                parsed = urlparse(current_url)
-                original_host = parsed.hostname
-                if original_host and original_host != validated_ip:
-                    # Build URL with IP literal, preserving port and path
-                    netloc = validated_ip
-                    if parsed.port:
-                        netloc = f"{validated_ip}:{parsed.port}"
-                    pinned_url = parsed._replace(netloc=netloc).geturl()
-                    host_header = original_host
-
-            # Jitter / Timeout Tracking
             effective_timeout = float(timeout) if timeout is not None else 30.0
             if timeout_tracker:
                 adaptive_timeout = timeout_tracker.get_timeout(source)
@@ -312,8 +273,23 @@ async def fetch_from_source(
                     logger.info(f"High Jitter detected for {safe_source}: {jitter}s")
 
             request_headers = dict(headers)
-            if host_header:
-                request_headers["Host"] = host_header
+            request_extensions: Dict[str, Any] = {}
+            pinned_url = current_url
+            if validated_ip:
+                parsed = urlparse(current_url)
+                logical_host = parsed.hostname
+                if logical_host:
+                    original_request = client.build_request(
+                        "GET", current_url, headers=request_headers
+                    )
+                    pinned_request = rewrite_request_to_pinned_ip(
+                        original_request,
+                        {validated_ip},
+                        logical_host=logical_host,
+                    )
+                    pinned_url = str(pinned_request.url)
+                    request_headers = dict(pinned_request.headers)
+                    request_extensions = dict(pinned_request.extensions)
 
             async with client.stream(
                 "GET",
@@ -321,6 +297,7 @@ async def fetch_from_source(
                 headers=request_headers,
                 timeout=effective_timeout,
                 follow_redirects=False,
+                extensions=request_extensions,
             ) as response:
                 if response.status_code in {301, 302, 303, 307, 308}:
                     if redirects_followed >= max_redirects:
@@ -366,7 +343,6 @@ async def fetch_from_source(
                     redirects_followed += 1
                     continue
 
-                # Check Status
                 if response.status_code == 429:
                     response_time = loop.time() - start_ts
                     if timeout_tracker:
@@ -376,9 +352,6 @@ async def fetch_from_source(
                     if breaker:
                         await breaker.record_failure()
                     retry_after = response.headers.get("Retry-After")
-                    # Retry-After may be delta-seconds or an HTTP-date; only
-                    # honor numeric values and clamp to a sane ceiling so a
-                    # hostile/buggy server cannot stall the pipeline.
                     wait = 2.0
                     if retry_after:
                         try:
@@ -437,7 +410,6 @@ async def fetch_from_source(
                         response_time=response_time,
                     )
 
-                # Content Length Check
                 content_len = response.headers.get("Content-Length")
                 content_len_int = None
                 if content_len:
@@ -462,7 +434,6 @@ async def fetch_from_source(
                         response_time=response_time,
                     )
 
-                # Stream Content
                 content_parts = []
                 current_size = 0
                 async for chunk in response.aiter_bytes():
@@ -486,11 +457,8 @@ async def fetch_from_source(
                     content_parts.append(chunk)
 
                 content = b"".join(content_parts)
-
-                # Decode
                 text_content = content.decode("utf-8", errors="ignore")
 
-                # Handle empty 200 OK responses gracefully
                 if response.status_code == 200 and (
                     not text_content or not text_content.strip()
                 ):
@@ -505,11 +473,11 @@ async def fetch_from_source(
                     if breaker:
                         await breaker.record_success()
                     return FetchResult(
-                        success=True,  # Valid HTTP transaction
+                        success=True,
                         source=source,
-                        content="",  # Empty
+                        content="",
                         status_code=200,
-                        error="Empty content",  # Informative, not exception
+                        error="Empty content",
                         response_time=response_time,
                     )
 
@@ -531,19 +499,14 @@ async def fetch_from_source(
 
         except asyncio.CancelledError:
             logger.warning(f"Fetch for {safe_source} cancelled by outer signal.")
-            # If this request held the breaker's HALF_OPEN probe token, release
-            # it so the breaker is not wedged HALF_OPEN for the rest of the run.
             if breaker:
                 reset_probe = getattr(breaker, "reset_probe", None)
                 if reset_probe is not None:
                     try:
                         await reset_probe()
                     except Exception:  # nosec B110
-                        # Best-effort cleanup: releasing the probe token must
-                        # never mask the CancelledError being propagated below.
                         logger.debug("Suppressed broad exception")
                         pass
-            # Propagate cancellation to abort fetch immediately
             raise
         except Exception as e:
             last_error = str(e)
@@ -580,18 +543,11 @@ async def fetch_from_source(
 
 
 class _SimpleRateLimiter:
-    """Minimal per-source token-bucket rate limiter.
-
-    Replaces the ``rate_limiter = None`` dead-code assignment in
-    ``fetch_multiple_sources`` (P1-7 fix).  Each source URL gets its own
-    token bucket that replenishes at ``rate_per_second`` tokens per second
-    and bursts up to ``burst`` tokens.
-    """
+    """Minimal per-source token-bucket rate limiter."""
 
     def __init__(self, rate_per_second: float = 2.0, burst: int = 5):
         self._rate = rate_per_second
         self._burst = burst
-        # Map source -> (tokens, last_refill_time) tuple
         self._buckets: Dict[str, Tuple[float, float]] = {}
         self._lock = asyncio.Lock()
 
@@ -619,12 +575,7 @@ class _SimpleRateLimiter:
 def _collect_fetch_results(
     completed: List[Any], results: Dict[str, "FetchResult"]
 ) -> None:
-    """Fold gather(return_exceptions=True) output into the results map.
-
-    Cancellation is propagated so an outer shutdown still aborts the batch;
-    any other stray worker exception is logged and skipped rather than losing
-    every sibling result.
-    """
+    """Fold gather(return_exceptions=True) output into the results map."""
     for item in completed:
         if isinstance(item, asyncio.CancelledError):
             raise item
@@ -648,18 +599,11 @@ async def fetch_multiple_sources(
     quality_tracker: Optional[SourceQualityTracker] = None,
     breaker_manager: Optional[CircuitBreakerManager] = None,
 ) -> Dict[str, FetchResult]:
-    """High-level entry point for batch fetching.
-
-    Orchestrates rate limits, DNS pre-warming, and concurrency.
-    """
+    """High-level entry point for batch fetching."""
     results: Dict[str, FetchResult] = {}
     app_settings = AppSettings()
 
-    # Initialize Components
     timeout_tracker = AdaptiveTimeout() if use_adaptive_timeout else None
-    # Wire a real per-source rate limiter (was dead ``rate_limiter = None``,
-    # P1-7 fix).  Uses a simple token-bucket so that no single source can be
-    # hammered on retries even if the circuit breaker has not opened yet.
     rate_limiter: Optional[_SimpleRateLimiter] = _SimpleRateLimiter(
         rate_per_second=(
             app_settings.FETCH_RATE_LIMIT_RPS
@@ -673,13 +617,11 @@ async def fetch_multiple_sources(
             recovery_timeout=app_settings.CIRCUIT_OPEN_SEC,
         )
 
-    # Setup Concurrency Control
     loop = asyncio.get_running_loop()
     controller = ConcurrencyManager(loop, initial_limit=per_host_limit)
     await controller.start_tuner()
     global_sem = asyncio.Semaphore(max_concurrent)
 
-    # Optimization: Pre-warm DNS (Best effort for HTTP sources)
     logger.info(f"Pre-warming DNS for {len(sources)} sources...")
     loop = asyncio.get_running_loop()
     dns_start = loop.time()
@@ -691,7 +633,6 @@ async def fetch_multiple_sources(
         http_client: httpx.AsyncClient, source: str
     ) -> Tuple[str, FetchResult]:
         async with global_sem:
-            # Use keyword arguments for clarity
             res = await fetch_from_source(
                 http_client,
                 source,
@@ -717,9 +658,6 @@ async def fetch_multiple_sources(
         else:
             async with get_client() as new_client:
                 tasks = [_worker(new_client, s) for s in sources]
-                # return_exceptions=True so a single raising worker cannot
-                # orphan its siblings and close the shared client out from
-                # under them while they are still in flight.
                 completed = await asyncio.gather(*tasks, return_exceptions=True)
                 _collect_fetch_results(completed, results)
 
@@ -728,8 +666,6 @@ async def fetch_multiple_sources(
     finally:
         await controller.stop_tuner()
         if timeout_tracker:
-            # Offload the blocking disk write so it does not stall the event
-            # loop (and every concurrent coroutine) at each batch boundary.
             await asyncio.get_running_loop().run_in_executor(None, timeout_tracker.save)
 
     success_count = sum(1 for r in results.values() if r.success)
@@ -756,8 +692,6 @@ class HttpFetcher(IFetcher):
         self.timeout_tracker = timeout_tracker
 
     async def fetch(self, source: str) -> FetchResult:
-        # fetch_from_source is annotated -> Any for caller flexibility, but it
-        # always produces a FetchResult on every return path.
         return cast(
             FetchResult,
             await fetch_from_source(

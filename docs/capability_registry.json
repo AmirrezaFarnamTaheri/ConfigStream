@@ -164,11 +164,11 @@
         "docs/capability_registry.json",
         "docs/DEBT_MATRIX.md",
         "docs/debt_matrix.json",
+        "scripts/generate_debt_matrix.py",
         "docs/module_ownership.json",
         "docs/MODULE_OWNERSHIP.md",
         "scripts/validate_claim_ledger.py",
         "scripts/validate_capability_registry.py",
-        "scripts/validate_debt_matrix.py",
         "scripts/validate_module_ownership.py",
         "scripts/validate_status.py"
       ],
@@ -188,7 +188,6 @@
       "docs": [
         "README.md",
         "STATUS.md",
-        "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md",
         "docs/capability_registry.json",
         "docs/module_ownership.json",
         "docs/MODULE_OWNERSHIP.md"
@@ -205,20 +204,33 @@
     {
       "id": "cap.core.xray_pipeline_export",
       "title": "Pipeline-generated Xray JSON output",
-      "status": "planned",
+      "status": "stable",
       "product_area": "outputs",
-      "owner": "future/xray-export",
-      "implementation": [],
-      "claim_ids": [],
-      "tests": [],
+      "owner": "src/configstream/converters/singbox.py",
+      "implementation": [
+        "src/configstream/converters/singbox.py",
+        "scripts/finalize_release_outputs.py",
+        "scripts/validate_pages_artifact.py"
+      ],
+      "claim_ids": [
+        "claim.outputs.artifact_manifest_complete"
+      ],
+      "tests": [
+        "tests/unit/test_validate_pages_artifact.py",
+        "tests/unit/test_output_generators.py",
+        "tests/unit/test_validate_output_matrix.py"
+      ],
       "docs": [
-        "docs/core_compatibility_report.json"
+        "docs/output_matrix.json",
+        "README.md"
       ],
-      "outputs": [],
+      "outputs": [
+        "xray.json"
+      ],
       "limitations": [
-        "Xray support is currently parser/import and Lab export surface only; no pipeline-generated xray.json artifact is claimed."
+        "Xray output is release-validated structurally and by the pinned native client check; browser-only checks remain weaker than native validation."
       ],
-      "cleanup_decision": "Add Xray artifacts to docs/output_matrix.json when generator, validator, tests, docs, and native-check semantics land together."
+      "cleanup_decision": "Keep Xray output stable only while generator, structural validator, native client gate, artifact manifest coverage, and documentation remain synchronized."
     },
     {
       "id": "cap.outputs.native_client_evidence",
@@ -241,8 +253,7 @@
       ],
       "docs": [
         "docs/core_compatibility_report.json",
-        "STATUS.md",
-        "ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md"
+        "STATUS.md"
       ],
       "outputs": [
         "pipeline-evidence/native_client_check_report.json"

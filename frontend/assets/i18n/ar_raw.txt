@@ -196,7 +196,7 @@
         "about.credits.frontend": "الواجهة والتصور",
         "about.credits.frontend_desc": "• <strong>Globe.gl:</strong> كرة ثلاثية الأبعاد<br>• <strong>Chart.js:</strong> رسوم تحليلية<br>• <strong>Feather Icons:</strong> نظام أيقونات حديث",
         "about.credits.fonts": "الخطوط والطباعة",
-        "about.credits.fonts_desc": "• <strong>Be Vietnam Pro:</strong> خط واجهة المستخدم الأساسي<br>• <strong>Vazirmatn:</strong> خط واجهة المستخدم للفارسية/العربية<br>• <strong>Mikhak:</strong> خط عرض للفارسية/العربية",
+        "about.credits.fonts_desc": "خطوط النظام: من دون طلبات خطوط خارجية أو ملفات خطوط مضمّنة.",
         "about.credits.thanks": "<strong>شكر خاص:</strong> لكل مُشرفي قوائم البروكسي مفتوحة المصدر ومساهمي المجتمع.",
         "about.opensource.title": "المصدر المفتوح والترخيص",
         "about.opensource.text": "يصدر ConfigStream تحت <strong>ترخيص AGPLv3</strong> ليبقى مجانيًا ومفتوح المصدر للأبد. نحن نؤمن بالشفافية والتطوير المجتمعي والوصول الحر للمعلومات.",

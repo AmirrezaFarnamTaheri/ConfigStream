@@ -2,7 +2,7 @@
 import json
 
 from configstream.adapters import ShadowrocketAdapter
-from configstream.converters.chains import chain_outbounds_from_details
+from configstream.converters.chain_outbounds import chain_outbounds_from_details
 from configstream.generators.split import generate_split_outputs
 from configstream.models import Proxy
 

@@ -192,7 +192,7 @@
     "about.credits.frontend": "Фронтенд и визуализация",
     "about.credits.frontend_desc": "• <strong>Globe.gl:</strong> 3D‑глобус<br>• <strong>Chart.js:</strong> аналитические графики<br>• <strong>Feather Icons:</strong> современная иконография",
     "about.credits.fonts": "Шрифты и типографика",
-    "about.credits.fonts_desc": "• <strong>Be Vietnam Pro:</strong> основной UI‑шрифт<br>• <strong>Vazirmatn:</strong> UI‑шрифт для фарси/арабского<br>• <strong>Mikhak:</strong> дисплейный шрифт фарси/арабского",
+    "about.credits.fonts_desc": "Системные шрифты: без удалённых запросов и встроенных файлов шрифтов.",
     "about.credits.thanks": "<strong>Особая благодарность:</strong> всем поддерживающим открытые списки прокси и участникам сообщества.",
     "about.opensource.title": "Открытый код и лицензия",
     "about.opensource.text": "ConfigStream распространяется под <strong>лицензией AGPLv3</strong>, оставаясь бесплатным и открытым навсегда. Мы верим в прозрачность, развитие сообщества и свободный доступ к информации.",

@@ -11,6 +11,11 @@ from urllib.parse import urlparse
 
 from configstream.models import Proxy
 from configstream.config import AppSettings
+from configstream.backpressure import (
+    BackpressurePolicy,
+    enqueue as enqueue_with_policy,
+    select_candidates,
+)
 import configstream.producer as producer_mod
 from configstream.circuit_breaker import CircuitBreakerManager
 from configstream.parsers import extract_config_lines
@@ -33,8 +38,6 @@ class StreamingProducer(IProducer):
         self.context = context
 
     async def produce(self) -> None:
-        import configstream.pipeline
-
         # Contract: the pipeline core always provides these trackers.
         if (
             self.context.quality_tracker is None
@@ -46,7 +49,7 @@ class StreamingProducer(IProducer):
             )
 
         try:
-            await configstream.pipeline.source_producer(
+            await source_producer(
                 self.sources,
                 self.context.work_queue,
                 None,  # Pre-supplied proxies are queued separately, not via results list.
@@ -160,13 +163,16 @@ async def source_producer(
         stop_event = asyncio.Event()
     enable_anomaly_detection = settings.ENABLE_ANOMALY_DETECTION
     loop = asyncio.get_running_loop()
-    queue_put_timeout = max(
-        0.05, float(getattr(settings, "QUEUE_PUT_TIMEOUT_SECONDS", 0.75))
+    queue_policy = BackpressurePolicy(
+        mode=str(getattr(settings, "QUEUE_DEGRADATION_MODE", "lossless")),
+        put_timeout_seconds=max(
+            0.05, float(getattr(settings, "QUEUE_PUT_TIMEOUT_SECONDS", 0.75))
+        ),
+        overload_threshold=float(getattr(settings, "QUEUE_OVERLOAD_THRESHOLD", 0.8)),
+        keep_ratio=float(getattr(settings, "QUEUE_OVERLOAD_KEEP_RATIO", 0.6)),
+        max_tries=max(1, int(getattr(settings, "QUEUE_MAX_TRIES", 5))),
     )
     ingest_chunk_size = max(1, int(getattr(settings, "INGEST_MICRO_CHUNK_LINES", 500)))
-    overload_threshold = float(getattr(settings, "QUEUE_OVERLOAD_THRESHOLD", 0.8))
-    keep_ratio = float(getattr(settings, "QUEUE_OVERLOAD_KEEP_RATIO", 0.6))
-    keep_ratio = min(1.0, max(0.05, keep_ratio))
     breaker_manager = CircuitBreakerManager(
         failure_threshold=max(1, int(getattr(settings, "CIRCUIT_TRIP_CONN_ERRORS", 5))),
         recovery_timeout=max(1, int(getattr(settings, "CIRCUIT_OPEN_SEC", 120))),
@@ -198,21 +204,6 @@ async def source_producer(
             _queue_pressure(),
         )
 
-    def _drop_slowest_testing(lines: List[str]) -> tuple[List[str], int]:
-        """
-        Approximate slow-test candidates by URI length and drop them when queue
-        pressure exceeds threshold. Shorter URIs/configs are kept first.
-        """
-        if len(lines) <= 1:
-            return lines, 0
-        if _queue_pressure() < overload_threshold:
-            return lines, 0
-        keep_count = max(1, int(len(lines) * keep_ratio))
-        ranked = sorted(enumerate(lines), key=lambda item: len(item[1]))
-        keep_indexes = {idx for idx, _ in ranked[:keep_count]}
-        kept = [line for idx, line in enumerate(lines) if idx in keep_indexes]
-        return kept, max(0, len(lines) - len(kept))
-
     async def _queue_payload(
         source: str, lines: List[str], metadata: Optional[Dict[str, Any]] = None
     ) -> int:
@@ -233,32 +224,47 @@ async def source_producer(
                 chunk_meta["chunk_index"] = idx
                 chunk_meta["chunk_total"] = len(chunks)
 
-            candidate_lines, dropped = _drop_slowest_testing(chunk)
+            candidate_lines, dropped = select_candidates(
+                chunk, pressure=_queue_pressure(), policy=queue_policy
+            )
             if dropped:
                 _record_backpressure_drop(source, chunk_meta, dropped)
             if not candidate_lines:
                 continue
 
-            try:
-                await asyncio.wait_for(
-                    work_queue.put((source, candidate_lines, chunk_meta)),
-                    timeout=queue_put_timeout,
-                )
+            result = await enqueue_with_policy(
+                work_queue,
+                (source, candidate_lines, chunk_meta),
+                policy=queue_policy,
+                stop_event=stop_event,
+            )
+            if result.enqueued:
                 queued_chunks += 1
-            except asyncio.TimeoutError:
+                if result.attempts > 1:
+                    logger.info(
+                        "Queue capacity recovered after %d attempts; lossless payload retained",
+                        result.attempts,
+                    )
+                continue
+            if result.dropped:
                 _record_backpressure_drop(source, chunk_meta, len(candidate_lines))
                 safe_source = SecurityValidator.sanitize_log_message(source)
                 logger.warning(
-                    "Queue put timeout: dropping chunk from %s (size=%d, pressure=%.2f)",
+                    "Explicit shed-longest policy dropped chunk from %s "
+                    "(size=%d, attempts=%d, pressure=%.2f)",
                     safe_source,
                     len(candidate_lines),
+                    result.attempts,
                     _queue_pressure(),
                 )
                 if event_stream:
                     event_stream.emit(
                         "warning",
-                        f"Backpressure dropped {len(candidate_lines)} lines from {safe_source}",
+                        f"Explicit overload policy dropped {len(candidate_lines)} lines "
+                        f"from {safe_source}",
                     )
+            if result.stopped:
+                break
 
         return queued_chunks
 

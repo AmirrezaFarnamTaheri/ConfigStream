@@ -34,30 +34,21 @@ def _pin_to_ipfs_legacy(filepath: str, jwt: str) -> str:
         try:
             for item in path_obj.rglob("*"):
                 if item.is_file():
-                    # Relative path inside the directory
-                    # Pinata expects (file, (filename, content))
                     f = open(item, "rb")
                     open_files.append(f)
-
-                    # Construct relative path string for Pinata folder structure
                     rel_path = str(item.relative_to(path_obj.parent))
-
-                    # ('file', (filename, file_object))
                     files_payload.append(("file", (rel_path, f)))
 
             headers = {"Authorization": f"Bearer {jwt}"}
-            # Note: 'files' is a list of tuples for multiple files
             response = httpx.post(
                 url, files=files_payload, headers=headers, timeout=300
             )
 
         finally:
-            # Close file handles
             for f in open_files:
                 f.close()
 
     else:
-        # Single file
         with open(filepath, "rb") as f:
             single_file_payload = {"file": f}
             headers = {"Authorization": f"Bearer {jwt}"}
@@ -81,7 +72,6 @@ def _pin_single_file_v3(filepath: str, jwt: str) -> str:
 
     with open(filepath, "rb") as f:
         files = {"file": (Path(filepath).name, f)}
-        # Use public network so generated CID is directly consumable in gateway URLs.
         data = {"network": "public"}
         response = httpx.post(url, files=files, data=data, headers=headers, timeout=60)
 
@@ -100,12 +90,10 @@ def pin_to_ipfs(filepath: str, jwt: str) -> str:
     """
     path_obj = Path(filepath)
     if path_obj.is_dir():
-        # Pinata v3 upload endpoint currently does not support folder uploads.
         return _pin_to_ipfs_legacy(filepath, jwt)
     try:
         return _pin_single_file_v3(filepath, jwt)
     except Exception:
-        # Fallback for backwards compatibility and transient v3 issues.
         logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
         return _pin_to_ipfs_legacy(filepath, jwt)
 
@@ -146,7 +134,6 @@ def update_dnslink(cid: str, domain: str, cf_token: str, zone_id: str):
         "Content-Type": "application/json",
     }
 
-    # First, find the record ID for _dnslink.<domain>
     params = {"name": f"_dnslink.{domain}", "type": "TXT"}
     resp = httpx.get(url, headers=headers, params=params, timeout=30)
     records = resp.json().get("result", [])
@@ -156,8 +143,6 @@ def update_dnslink(cid: str, domain: str, cf_token: str, zone_id: str):
         return
 
     record_id = records[0]["id"]
-
-    # Update the record
     update_url = f"{url}/{record_id}"
     payload = {
         "content": f"dnslink=/ipfs/{cid}",
@@ -211,8 +196,6 @@ def main():
         help="Cloudflare Zone ID (default: env CF_ZONE_ID)",
     )
     parser.add_argument("--domain", help="Domain for DNSLink (e.g., fallback.com)")
-
-    # New flags for optional flows
     parser.add_argument(
         "--publish-ipns",
         action="store_true",
@@ -226,12 +209,10 @@ def main():
 
     args = parser.parse_args()
 
-    # Validate file/directory existence
     if not os.path.exists(args.file) or not os.access(args.file, os.R_OK):
         print(f"Error: Path not found or not readable: {args.file}")
         return
 
-    # Sanitize secrets
     args.pinata_jwt = (
         _clean_secret(args.pinata_jwt) if args.pinata_jwt else args.pinata_jwt
     )
@@ -239,7 +220,6 @@ def main():
     args.cf_token = _clean_secret(args.cf_token) if args.cf_token else args.cf_token
     args.cf_zone = _clean_secret(args.cf_zone) if args.cf_zone else args.cf_zone
 
-    # Validate Pinata JWT
     if not args.pinata_jwt:
         print(
             "Error: Missing required Pinata JWT. Provide via --pinata-jwt or PINATA_JWT env."

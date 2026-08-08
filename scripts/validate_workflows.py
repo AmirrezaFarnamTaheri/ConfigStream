@@ -170,6 +170,41 @@ def _has_contract_validators(data: dict[Any, Any]) -> bool:
     )
 
 
+def _canonical_source_paths() -> tuple[Path, ...]:
+    source_dir = REPO_ROOT / "sources"
+    discovered = tuple(
+        path.relative_to(REPO_ROOT)
+        for path in sorted(source_dir.glob("batch_*.txt"))
+        if re.fullmatch(r"batch_[1-9]\d*\.txt", path.name)
+    )
+    if discovered:
+        return discovered
+    return tuple(Path(f"sources/batch_{index}.txt") for index in range(1, 18))
+
+
+def _ci_ignores_canonical_sources(data: dict[Any, Any]) -> bool:
+    triggers = data.get("on")
+    if triggers is None:
+        triggers = data.get(True, {})
+    if not isinstance(triggers, dict):
+        return False
+    push = triggers.get("push", {})
+    if not isinstance(push, dict):
+        return False
+    ignored = push.get("paths-ignore", [])
+    if isinstance(ignored, str):
+        patterns = [ignored]
+    elif isinstance(ignored, list):
+        patterns = [str(item) for item in ignored]
+    else:
+        return False
+    canonical_sources = _canonical_source_paths()
+    return any(
+        any(source.match(pattern) for source in canonical_sources)
+        for pattern in patterns
+    )
+
+
 def _ci_safe(data: dict[Any, Any]) -> list[str]:
     errors: list[str] = []
     frontend = _find_job(data, "frontend")
@@ -215,6 +250,8 @@ def _ci_safe(data: dict[Any, Any]) -> list[str]:
         errors.append("missing pytest skip governance guard")
     if not _has_contract_validators(data):
         errors.append("missing capability/core/module ownership contract validators")
+    if _ci_ignores_canonical_sources(data):
+        errors.append("CI push paths-ignore must not exclude canonical source batches")
     return errors
 
 

@@ -16,7 +16,7 @@ from urllib.parse import parse_qs, unquote, urlparse
 from ..models import Proxy
 from .base import normalize_proxy_details
 from ..constants import MAX_CONFIG_LINE_LENGTH
-from ..security_validator import SecurityValidator
+from ..security_validator import safe_log_text
 
 logger = logging.getLogger(__name__)
 
@@ -26,10 +26,6 @@ _RESERVED_BRACKETED_RE = re.compile(r"^\[[\d\s,]+\]$")
 _RESERVED_CSV_RE = re.compile(r"^[\d\s,]+$")
 _RESERVED_B64_RE = re.compile(r"^[a-zA-Z0-9+/=]+$")
 _SSH_HOSTNAME_RE = re.compile(r"^[a-zA-Z0-9\.\-\_]+$")
-
-
-def _safe_log_text(value: object) -> str:
-    return SecurityValidator.sanitize_log_message(str(value))
 
 
 def _parse_url_scheme(config: str, protocol: str, default_port: int) -> Optional[Proxy]:
@@ -100,7 +96,7 @@ def _parse_url_scheme(config: str, protocol: str, default_port: int) -> Optional
         logger.debug(
             "Failed to parse %s: %s",
             protocol.upper(),
-            _safe_log_text(e),
+            safe_log_text(e),
         )
         return None
 
@@ -134,7 +130,7 @@ def parse_hysteria2(c: str) -> Optional[Proxy]:
             if obfs_type not in ["salamander", "none"]:
                 logger.debug(
                     "Unknown Hysteria2 obfs type: %s",
-                    _safe_log_text(obfs_type),
+                    safe_log_text(obfs_type),
                 )
 
             # Validate obfs-password presence if obfs is set
@@ -152,7 +148,7 @@ def parse_hysteria2(c: str) -> Optional[Proxy]:
             if not _PORT_HOPPING_RE.match(ports_val):
                 logger.warning(
                     "Invalid port hopping format: %s",
-                    _safe_log_text(ports_val),
+                    safe_log_text(ports_val),
                 )
                 del proxy.details["ports"]
 
@@ -282,7 +278,7 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
                 else:
                     logger.debug(
                         "WireGuard %s length invalid (%d).",
-                        _safe_log_text(name),
+                        safe_log_text(name),
                         len(key_clean),
                     )
                     return False
@@ -297,7 +293,7 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
                 if len(decoded) != 32:
                     logger.debug(
                         "WireGuard %s decoded length mismatch (%d != 32).",
-                        _safe_log_text(name),
+                        safe_log_text(name),
                         len(decoded),
                     )
                     return False
@@ -312,7 +308,7 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
             return None
 
     except Exception as e:
-        logger.debug("WireGuard key validation failed: %s", _safe_log_text(e))
+        logger.debug("WireGuard key validation failed: %s", safe_log_text(e))
         return None
 
     # Reserved bytes check (for WARP/WireGuard)
@@ -328,7 +324,7 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
             if not (is_bracketed or is_csv or is_b64):
                 logger.warning(
                     "Invalid reserved bytes format for WireGuard: %s. Removing invalid field.",
-                    _safe_log_text(reserved),
+                    safe_log_text(reserved),
                 )
                 del proxy.details["reserved"]
             elif (
@@ -343,7 +339,7 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
             ):
                 logger.debug(
                     "Invalid reserved bytes type for WireGuard: %s",
-                    _safe_log_text(type(reserved)),
+                    safe_log_text(type(reserved)),
                 )
                 del proxy.details["reserved"]
 
@@ -398,7 +394,7 @@ def parse_ssh(config: str) -> Optional[Proxy]:
         if not _SSH_HOSTNAME_RE.match(proxy.address):
             logger.warning(
                 "Invalid SSH hostname: %s",
-                _safe_log_text(proxy.address),
+                safe_log_text(proxy.address),
             )
             return None
 

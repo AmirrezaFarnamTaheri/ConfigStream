@@ -18,7 +18,6 @@ from configstream.testers import SingBoxTester
 from configstream.test_cache import TestResultCache
 from configstream.scheduler import SmartRetestScheduler
 from configstream.concurrency_manager import ConcurrencyManager
-from configstream.geoip import GeoIPResolver
 from configstream.source_quality import SourceQualityTracker
 from configstream.anomaly import AnomalyDetector
 from configstream.security.blocklist import DEFAULT_BLOCKLIST
@@ -34,6 +33,13 @@ from configstream.async_utils import safe_wait_for
 from configstream.adaptive_workers import calculate_optimal_workers
 
 logger = logging.getLogger(__name__)
+
+
+class _NoOpGeoIPResolver:
+    """Dry-run resolver that avoids loading optional GeoIP database bindings."""
+
+    async def lookup(self, _address: str):
+        return None
 
 
 async def _cancel_all(
@@ -150,7 +156,9 @@ class StandardPipeline(IPipeline):
         logger.info("Initializing security blocklists...")
         await DEFAULT_BLOCKLIST.update()
 
-        geoip = GeoIPResolver()
+        import configstream.pipeline as pipeline_api
+
+        geoip = _NoOpGeoIPResolver() if dry_run else pipeline_api.GeoIPResolver()
         washer = ProxyWasher(settings.WARP_KEY_POOL)
         if not dry_run:
             await washer.fetch_clean_ips()
@@ -288,6 +296,10 @@ class StandardPipeline(IPipeline):
                     "Hard batch time limit reached. Cancelling pipeline tasks."
                 )
                 await _cancel_all(producer_task, consumer_tasks)
+                # ``gather_task`` owns the aggregate cancellation result.
+                # Retrieve it explicitly so forced timeouts do not leak an
+                # unhandled ``CancelledError`` warning after cleanup.
+                await asyncio.gather(gather_task, return_exceptions=True)
             except (asyncio.CancelledError, KeyboardInterrupt, SystemExit) as e:
                 logger.info(f"Pipeline interrupted: {type(e).__name__}")
                 await _cancel_all(producer_task, consumer_tasks)

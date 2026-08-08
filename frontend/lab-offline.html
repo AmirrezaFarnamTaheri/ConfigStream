@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none';">
 <title>ConfigStream Lab - Offline Chain Builder</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -160,7 +161,8 @@ function appendLayerFields(container,type){
     container.appendChild(row(field('Host','host',{value:'127.0.0.1'}),field('Port','port',{type:'number',value:'8080'})));
   }else if(type==='warp'){
     container.appendChild(row(field('Clean IP','ip',{value:'162.159.192.1'}),field('Port','port',{type:'number',value:'2408'})));
-    container.appendChild(field('WARP+ Key (optional)','key',{hint:'Leave blank for free'}));
+    container.appendChild(field('WireGuard Private Key','private_key',{hint:'Required; generated or supplied locally'}));
+    container.appendChild(field('WARP Reserved Bytes (optional)','reserved',{hint:'Example: 0,0,0'}));
   }else if(type==='vless'||type==='vmess'){
     container.appendChild(row(field('Server','host'),field('Port','port',{type:'number',value:'443'})));
     container.appendChild(field('UUID','uuid'));
@@ -314,10 +316,11 @@ function generate(){
     if(d.type==='socks5'){ob.type='socks';ob.server=d.host||'127.0.0.1';ob.server_port=parseInt(d.port)||1080;ob.version='5';}
     else if(d.type==='http'){ob.type='http';ob.server=d.host||'127.0.0.1';ob.server_port=parseInt(d.port)||8080;}
     else if(d.type==='warp'){
+      if(!d.private_key||!d.private_key.trim()){showR('err',`Layer ${i+1}: WireGuard private key is required and must be generated or supplied locally.`);return;}
       ob.type='wireguard';ob.server=d.ip||'162.159.192.1';ob.server_port=parseInt(d.port)||2408;
-      ob.local_address=[`172.16.0.${i+2}/32`];ob.private_key='YNS+CEQE6JIQiVWcOUJd0K8FLFeCQBONJnXCdFnMRlQ=';
+      ob.local_address=[`172.16.0.${i+2}/32`];ob.private_key=d.private_key.trim();
       ob.peer_public_key=WARP_PK;ob.mtu=1280;
-      if(d.key)ob.reserved=[0,0,0];
+      if(d.reserved){const bytes=d.reserved.split(',').map(v=>Number(v.trim()));if(bytes.length!==3||bytes.some(v=>!Number.isInteger(v)||v<0||v>255)){showR('err',`Layer ${i+1}: WARP reserved bytes must be three integers from 0 to 255.`);return;}ob.reserved=bytes;}
     }
     else if(d.type==='vless'){
       ob.type='vless';ob.server=d.host;ob.server_port=parseInt(d.port)||443;ob.uuid=d.uuid||'';ob.flow='';

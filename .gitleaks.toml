@@ -11,4 +11,4 @@
     id = "proxy-subscription-token"
     regex = '''(?i)(?:token|sub|secret|auth|password|client_secret|access_token|api_key)=[^&#\s]{6,}'''
     keywords = ["token", "sub", "secret", "auth", "password", "client_secret", "access_token", "api_key"]
-    path = '''sources/.*|consolidated_sources\.txt'''
+    path = '''sources/.*'''

@@ -2,8 +2,9 @@
 import sys
 import asyncio
 import logging
-import shutil
+import os
 import tarfile
+import tempfile
 from pathlib import Path
 
 import click
@@ -19,11 +20,21 @@ from rich.progress import (
 )
 
 from .pipeline.core import run_full_pipeline
-from .geoip import DEFAULT_RESOLVER
-from .tools.warp import generate_warp_proxy
+from .source_admission import (
+    SourceAdmissionError,
+    partition_fetchable_sources,
+    resolve_source_admission_manifest,
+)
 
 # Initialize Rich Console
 console = Console()
+
+
+async def generate_warp_proxy():
+    """Lazy compatibility seam for WARP generation."""
+    from .tools.warp import generate_warp_proxy as implementation
+
+    return await implementation()
 
 
 def setup_logging(verbose: bool = False):
@@ -65,6 +76,14 @@ def main():
     help="Fail the pipeline strictly if 0 working proxies are found.",
 )
 @click.option(
+    "--allow-unadmitted-sources",
+    is_flag=True,
+    help=(
+        "Allow source URLs that are not present in the reviewed admission manifest. "
+        "Use only for explicit local experiments."
+    ),
+)
+@click.option(
     "--verbose",
     "-v",
     is_flag=True,
@@ -80,6 +99,7 @@ def merge(
     leniency,
     dry_run,
     strict,
+    allow_unadmitted_sources,
     verbose,
 ):
     """Fetch, test, and merge proxies from sources."""
@@ -100,6 +120,31 @@ def merge(
     valid_sources = [
         s.strip() for s in raw_sources if s.strip() and not s.strip().startswith("#")
     ]
+
+    if settings.ENFORCE_SOURCE_ADMISSION and not allow_unadmitted_sources:
+        try:
+            accepted_sources, blocked_sources = partition_fetchable_sources(
+                valid_sources,
+                manifest_path=resolve_source_admission_manifest(
+                    settings.SOURCE_ADMISSION_MANIFEST
+                ),
+            )
+        except (OSError, ValueError, SourceAdmissionError) as exc:
+            console.print(f"[red]Source admission failed: {exc}[/red]")
+            sys.exit(2)
+        valid_sources = [entry.url for entry in accepted_sources]
+        if blocked_sources:
+            console.print(
+                "[yellow]Source admission skipped "
+                f"{len(blocked_sources)} insecure-transport source(s).[/yellow]"
+            )
+        if not valid_sources:
+            console.print("[red]Source admission left no fetchable sources.[/red]")
+            sys.exit(2)
+    elif settings.ENFORCE_SOURCE_ADMISSION:
+        console.print(
+            "[yellow]Warning: source admission was explicitly bypassed for this run.[/yellow]"
+        )
 
     console.print("[bold green]🚀 Starting Config's Stream[/bold green]")
     console.print(f"Sources: {len(valid_sources)} | Output: {output}")
@@ -206,7 +251,12 @@ def merge(
             console.print_exception()
         sys.exit(1)
     finally:
-        # Cleanup singleton resources
+        # GeoIP support is optional for commands such as ``update-databases``.
+        # Import it only after the merge path has used the resolver.
+        try:
+            from .geoip import DEFAULT_RESOLVER
+        except ImportError:
+            DEFAULT_RESOLVER = None
         if DEFAULT_RESOLVER:
             DEFAULT_RESOLVER.close()
 
@@ -235,8 +285,15 @@ def update_databases():
         "GeoLite2-ASN.mmdb": "GeoLite2-ASN",
     }
 
+    max_download_bytes = 256 * 1024 * 1024
+
     def stream_download(url: str, target: Path) -> bool:
+        """Download to a sibling temporary file and publish only on completion."""
         safe_url = SecurityValidator.sanitize_log_message(url)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        fd, temp_name = tempfile.mkstemp(prefix=f".{target.name}.", dir=target.parent)
+        os.close(fd)
+        temp_path = Path(temp_name)
         try:
             with httpx.stream("GET", url, timeout=120.0, follow_redirects=True) as resp:
                 if resp.status_code != 200:
@@ -244,19 +301,32 @@ def update_databases():
                         f"[red]HTTP {resp.status_code} while fetching {safe_url}[/red]"
                     )
                     return False
-                with target.open("wb") as f:
+                content_length = getattr(resp, "headers", {}).get("content-length")
+                if content_length:
+                    try:
+                        if int(content_length) > max_download_bytes:
+                            raise ValueError("download exceeds the database size limit")
+                    except ValueError as exc:
+                        raise ValueError("invalid or excessive Content-Length") from exc
+                total = 0
+                with temp_path.open("wb") as handle:
                     for chunk in resp.iter_bytes(chunk_size=8192):
-                        if chunk:
-                            f.write(chunk)
-            return target.exists() and target.stat().st_size > 0
-        except httpx.HTTPError as exc:
+                        if not chunk:
+                            continue
+                        total += len(chunk)
+                        if total > max_download_bytes:
+                            raise ValueError("download exceeds the database size limit")
+                        handle.write(chunk)
+                if total == 0:
+                    raise ValueError("download produced an empty file")
+            os.replace(temp_path, target)
+            return True
+        except (httpx.HTTPError, OSError, ValueError) as exc:
             safe_exc = SecurityValidator.sanitize_log_message(str(exc))
-            console.print(f"[red]Request error for {safe_url}: {safe_exc}[/red]")
+            console.print(f"[red]Download failed for {safe_url}: {safe_exc}[/red]")
             return False
-        except Exception as exc:  # pragma: no cover - best effort logging
-            safe_exc = SecurityValidator.sanitize_log_message(str(exc))
-            console.print(f"[red]Unexpected error for {safe_url}: {safe_exc}[/red]")
-            return False
+        finally:
+            temp_path.unlink(missing_ok=True)
 
     def download_from_maxmind(edition: str, target: Path) -> bool:
         if not license_key:
@@ -286,13 +356,35 @@ def update_databases():
                     console.print(f"[red]{edition}.mmdb not found in archive[/red]")
                     return False
                 extracted = archive.extractfile(member)
-                if extracted is None:
+                if extracted is None or member.size <= 0:
                     console.print(f"[red]Archive entry for {edition} is empty[/red]")
                     return False
-                with target.open("wb") as dest:
-                    shutil.copyfileobj(extracted, dest)
+                if member.size > max_download_bytes:
+                    console.print(
+                        f"[red]Archive entry for {edition} is too large[/red]"
+                    )
+                    return False
+                fd, temp_name = tempfile.mkstemp(
+                    prefix=f".{target.name}.", dir=target.parent
+                )
+                os.close(fd)
+                temp_target = Path(temp_name)
+                try:
+                    with temp_target.open("wb") as dest:
+                        remaining = member.size
+                        while remaining:
+                            chunk = extracted.read(min(1024 * 1024, remaining))
+                            if not chunk:
+                                raise OSError(
+                                    "archive entry ended before its declared size"
+                                )
+                            dest.write(chunk)
+                            remaining -= len(chunk)
+                    os.replace(temp_target, target)
+                finally:
+                    temp_target.unlink(missing_ok=True)
             return target.exists() and target.stat().st_size > 0
-        except Exception as exc:
+        except (OSError, tarfile.TarError, ValueError) as exc:
             console.print(f"[red]Failed to extract {edition}: {exc}[/red]")
             return False
         finally:

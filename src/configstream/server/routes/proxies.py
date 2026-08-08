@@ -1,16 +1,16 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-import logging
+import json
 import re
 import secrets
 from typing import Optional
 from pathlib import Path
 from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
+from ...hashing import sha256_json
 from ..utils import (
     limiter,
     OUTPUT_DIR,
     _read_json_file_async,
-    _json_snapshot_sha256,
     SAFE_PATH_PATTERN,
     _serve_output_subpath,
     logger,
@@ -41,38 +41,53 @@ async def get_proxy_diff(request: Request, base_version: str):
 
     try:
         current_data = await _read_json_file_async(current_path)
-    except Exception as e:
-        logger.error(f"Failed to read current proxies: {e}")
-        raise HTTPException(500, "Internal Server Error") from e
+    except (OSError, json.JSONDecodeError) as exc:
+        logger.error("Failed to read current proxies: %s", type(exc).__name__)
+        raise HTTPException(503, "Current proxy data is unavailable") from exc
+    if not isinstance(current_data, list) or not all(
+        isinstance(item, dict) for item in current_data
+    ):
+        raise HTTPException(503, "Current proxy data has an invalid schema")
 
     # If client has specific version matching our backup
     if old_path.exists():
         try:
             old_data = await _read_json_file_async(old_path)
-            expected_base_version = _json_snapshot_sha256(old_data)
-            if not secrets.compare_digest(base_version, expected_base_version):
-                return {
-                    "type": "full_reload_required",
-                    "reason": "base_version_mismatch",
-                    "expected_base_version": expected_base_version,
-                }
-
-            # Prefer stable proxy IDs; fallback to index for legacy payloads.
-            current_ids = {p.get("id", str(i)): p for i, p in enumerate(current_data)}
-            old_ids = {p.get("id", str(i)): p for i, p in enumerate(old_data)}
-
-            added = [p for pid, p in current_ids.items() if pid not in old_ids]
-            removed = [pid for pid in old_ids if pid not in current_ids]
-
+        except (OSError, json.JSONDecodeError) as exc:
+            logger.warning(
+                "Previous proxy snapshot is unreadable: %s", type(exc).__name__
+            )
             return {
-                "type": "delta",
-                "base_version": base_version,
-                "current_version": _json_snapshot_sha256(current_data),
-                "added": added,
-                "removed": removed,
+                "type": "full_reload_required",
+                "reason": "base_snapshot_unavailable",
             }
-        except Exception as e:
-            logger.error(f"Diff generation failed: {e}")
+        if not isinstance(old_data, list) or not all(
+            isinstance(item, dict) for item in old_data
+        ):
+            return {"type": "full_reload_required", "reason": "base_snapshot_invalid"}
+
+        expected_base_version = sha256_json(old_data)
+        if not secrets.compare_digest(base_version, expected_base_version):
+            return {
+                "type": "full_reload_required",
+                "reason": "base_version_mismatch",
+                "expected_base_version": expected_base_version,
+            }
+
+        # Prefer stable proxy IDs; fallback to index for legacy payloads.
+        current_ids = {p.get("id", str(i)): p for i, p in enumerate(current_data)}
+        old_ids = {p.get("id", str(i)): p for i, p in enumerate(old_data)}
+
+        added = [p for pid, p in current_ids.items() if pid not in old_ids]
+        removed = [pid for pid in old_ids if pid not in current_ids]
+
+        return {
+            "type": "delta",
+            "base_version": base_version,
+            "current_version": sha256_json(current_data),
+            "added": added,
+            "removed": removed,
+        }
 
     # Fallback: Tell client to fetch full
     return {"type": "full_reload_required"}
@@ -95,9 +110,15 @@ async def get_stats():
         # Read and return JSON content directly to ensure proper content-type and parsing
         content = await _read_json_file_async(metadata_path)
         return JSONResponse(content=content)
-    except Exception as e:
-        logger.error(f"Failed to read metadata.json: {e}")
-        return FileResponse(metadata_path)
+    except (OSError, json.JSONDecodeError) as exc:
+        logger.error("Failed to read metadata.json: %s", type(exc).__name__)
+        return JSONResponse(
+            content={
+                "status": "unavailable",
+                "message": "Metadata is invalid or unreadable.",
+            },
+            status_code=503,
+        )
 
 
 @router.get("/api/proxies")
@@ -115,8 +136,7 @@ async def get_proxies(
             target = requested_path.resolve(strict=False)
             target.relative_to(base_path)
             return True
-        except Exception:
-            logging.getLogger(__name__).debug("Suppressed broad exception")
+        except (OSError, ValueError):
             return False
 
     if country:

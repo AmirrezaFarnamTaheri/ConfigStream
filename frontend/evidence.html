@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Inspect ConfigStream release evidence, provenance signals, and safe transformation previews.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'none'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';">
+  <title>ConfigStream Evidence Explorer</title>
+  <script src="assets/js/init.js" defer></script>
+  <script src="assets/libs/feather.min.js" defer></script>
+  <link rel="icon" type="image/svg+xml" href="assets/svg/favicon.svg">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <style>
+    .evidence-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:1rem}
+    .evidence-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(12rem,1fr));gap:1rem;align-items:end}
+    .evidence-controls label{display:grid;gap:.4rem;font-weight:600}
+    .evidence-controls select,.evidence-controls input{width:100%;padding:.7rem;border:1px solid var(--border);border-radius:.5rem;background:var(--bg-secondary);color:var(--text-primary)}
+    .evidence-table{width:100%;border-collapse:collapse}.evidence-table th,.evidence-table td{padding:.65rem;text-align:left;border-bottom:1px solid var(--border)}
+    .evidence-table button{white-space:nowrap}.evidence-preview{white-space:pre-wrap;overflow-wrap:anywhere;min-height:12rem}
+    .evidence-status{padding:.8rem;border-radius:.5rem;background:var(--bg-secondary)}
+  </style>
+</head>
+<body>
+  <div class="nav-overlay"></div>
+  <header class="header">
+    <div class="container">
+      <div class="header-logo-wrapper"><span class="header-logo-text">ConfigStream</span></div>
+      <nav class="nav" id="main-nav" aria-label="Main navigation">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="proxies.html" class="nav-link">Proxy List</a>
+        <a href="analytics.html" class="nav-link">Analytics</a>
+        <a href="evidence.html" class="nav-link active" aria-current="page">Evidence</a>
+        <a href="lab.html" class="nav-link">Lab</a>
+        <a href="wiki.html" class="nav-link">Wiki</a>
+        <a href="about.html" class="nav-link">About</a>
+      </nav>
+      <div class="header-actions">
+        <button class="mobile-nav-toggle" id="mobile-nav-toggle" aria-label="Open navigation menu" aria-expanded="false" aria-controls="main-nav"><i data-feather="menu"></i></button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+      <section class="hero text-center">
+        <h1>Release Evidence Explorer</h1>
+        <p class="subtitle">Inspect only the artifact that passed integrity, health, and freshness checks. Missing provenance stays labeled unknown.</p>
+      </section>
+      <section class="card" aria-labelledby="evidence-summary-heading">
+        <h2 id="evidence-summary-heading">Verified release summary</h2>
+        <p id="evidenceStatus" class="evidence-status" role="status" aria-live="polite">Waiting for artifact verification…</p>
+        <div class="evidence-grid">
+          <div><strong>Source commit</strong><div id="evidenceCommit">Unavailable</div></div>
+          <div><strong>Generated</strong><div id="evidenceGenerated">Unavailable</div></div>
+          <div><strong>Working records</strong><div id="evidenceWorking">0</div></div>
+          <div><strong>Manifest files</strong><div id="evidenceFiles">0</div></div>
+        </div>
+      </section>
+      <section class="card" aria-labelledby="filter-heading">
+        <h2 id="filter-heading">Filter release records</h2>
+        <div class="evidence-controls">
+          <label>Protocol<select id="protocolFilter"><option value="">All protocols</option></select></label>
+          <label>Source<select id="sourceFilter"><option value="">All sources</option></select></label>
+          <label>Trust<select id="trustFilter"><option value="">All trust states</option></select></label>
+          <label>Working state<select id="workingFilter"><option value="">All states</option><option value="working">Working</option><option value="not-working">Not working</option><option value="unknown">Unknown</option></select></label>
+        </div>
+        <p id="evidenceCount" role="status" aria-live="polite">No records loaded.</p>
+        <div class="table-container">
+          <table class="evidence-table">
+            <thead><tr><th>Protocol</th><th>Endpoint</th><th>Source</th><th>Trust</th><th>Working</th><th>Preview</th></tr></thead>
+            <tbody id="evidenceRows"></tbody>
+          </table>
+        </div>
+      </section>
+      <section class="card" aria-labelledby="preview-heading">
+        <h2 id="preview-heading">Safe transformation preview</h2>
+        <p>This preview never changes or exposes the connection URI. It shows metadata before and after a local label change, plus a SHA-256 fingerprint of the unchanged URI.</p>
+        <label for="previewLabel">Proposed local label</label>
+        <input id="previewLabel" type="text" maxlength="80" value="Reviewed ConfigStream record">
+        <div class="evidence-grid">
+          <div><h3>Before</h3><pre id="previewBefore" class="evidence-preview">Select a record.</pre></div>
+          <div><h3>After</h3><pre id="previewAfter" class="evidence-preview">Select a record.</pre></div>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="footer"><div class="container"><p>Evidence is descriptive. Native client validation remains the release authority.</p></div></footer>
+  <script src="assets/js/inline-icons.js"></script>
+  <script src="assets/js/runtime-config.js"></script>
+  <script src="assets/js/constants.js" defer></script>
+  <script src="assets/js/verifier.js" defer></script>
+  <script src="assets/js/artifact-state.js" defer></script>
+  <script src="assets/js/common-ui.js" defer></script>
+  <script type="module" src="assets/js/evidence-explorer.js"></script>
+</body>
+</html>

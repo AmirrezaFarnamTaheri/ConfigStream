@@ -6,15 +6,15 @@
 
 ConfigStream is a sovereignty-grade, zero-budget anti-censorship platform. It continuously aggregates, validates, and distributes resilient proxy configurations under hostile network conditions.
 
-> **Production status:** ConfigStream is production-ready as of v3.1.0 (2026-05-28) at repository level. The active source of truth is [ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md](ConfigStream_Master_Audit_Report%20-%20Main%20SOURCE%20OF%20TRUTH.md), with `STATUS.md` and canonical matrices tracking current verification state. Historical source-of-truth ledgers were absorbed into the master report and removed from active repository documentation.
+> **Release status:** v3.2.0 is a conditional release candidate, not a verified production release. `docs/readiness.json` is the machine-readable authority and `STATUS.md` is generated from it. Production readiness requires passing exact-head CI, a sealed pipeline artifact, historical secret review, and a live GitHub Pages digest/smoke check for the same commit.
 
 ## Getting Started
 
 ### Prerequisites
 - **Python 3.10+**
 - **Docker** (Recommended for production)
-- **Node.js 20+** (Optional, for frontend development)
-- **Go 1.21+** (Optional, for high-performance tester builds)
+- **Node.js 24+** (Optional, for frontend development)
+- **Go 1.24.3+** (Optional, for high-performance tester builds)
 
 ### 🚀 Quick Start (Docker)
 ```bash
@@ -58,14 +58,13 @@ ConfigStream uses a streaming producer-consumer pipeline.
    Write outputs atomically and publish via GitHub Pages.
 
 See `docs/wiki/project/02-architecture.md` for the full pipeline design and data flow.
-Explore the visual interactive topology: [Interactive Codebase Topology & Tree Graph](docs/project_tree_graph.html)
 
 ## Operational Governance
-- Unified source of truth, integrated roadmap history, release-hardening notes, and historical finalization/closure evidence: `ConfigStream_Master_Audit_Report - Main SOURCE OF TRUTH.md`
-- Current remediation checkpoint: `STATUS.md`
+- Canonical release checkpoint: `docs/readiness.json`
+- Generated human-readable status: `STATUS.md`
 - Chronological implementation history: `CHANGELOG.md`
-- Interactive Codebase Graph: `docs/project_tree_graph.html`
-- Technical debt registry: `docs/DEBT_MATRIX.md`
+- Technical debt registry: `docs/debt_matrix.json` and `docs/DEBT_MATRIX.md`
+- Module boundaries and ownership: `docs/module_ownership.json` and `docs/MODULE_OWNERSHIP.md`
 
 ## Evasion Features
 
@@ -119,8 +118,8 @@ Key points:
 - Revived proxies: previously failing proxies that became usable after washing
 - Smart chains: multi-hop paths built from tested proxies to improve resilience
 
-## Outputs (Updated Every 4 Hours)
-All outputs are served from GitHub Pages in production. Each run writes outputs atomically and includes a `generated_at` timestamp in metadata to make freshness explicit.
+## Outputs and Freshness
+GitHub Pages is the primary publication target. The intended schedule is every four hours, but users must treat `health.json`, `metadata.json`, and `artifact_manifest.json` as the authority for current health, freshness, source commit, and artifact identity. The frontend disables copy/download controls when those checks fail.
 
 Primary outputs:
 - singbox.json: smart routing profile
@@ -275,7 +274,17 @@ revived.json uses the proxy array shape and contains only revived proxies.
 singbox-chains.json contains chain-only outbounds for sing-box.
 
 ## Deployment
-ConfigStream uses GitHub Actions to run the pipeline every 4 hours and GitHub Pages to host outputs. This keeps infrastructure free and globally accessible. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for setup.
+ConfigStream uses GitHub Actions to schedule the pipeline and GitHub Pages to host verified outputs. A schedule trigger does not prove freshness; publication and the live smoke gate must both pass. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for setup.
+
+## Generated operational evidence
+
+- Runtime/toolchain source of truth: [`config/runtime-versions.json`](config/runtime-versions.json)
+- Environment catalog: [`docs/generated/environment-variables.md`](docs/generated/environment-variables.md)
+- CycloneDX SBOM: [`docs/generated/sbom.cdx.json`](docs/generated/sbom.cdx.json)
+- Dependency license evidence: [`docs/generated/dependency-licenses.md`](docs/generated/dependency-licenses.md)
+- Unified verification: `python scripts/verify_repository.py --profile release`
+
+The license report only records declarations present in checked-in manifests and lock files. `unknown` means the license still requires external resolution; it is not treated as evidence of a license.
 
 ## Security
 Security is mandatory. Logs are sanitized, inputs validated, and active scanning disabled by default. See [SECURITY.md](SECURITY.md) for details.
@@ -327,3 +336,17 @@ AGPL-3.0. See LICENSE.
 - Live dashboard: https://amirrezafarnamtaheri.github.io/ConfigStream/
 - Issues: https://github.com/AmirrezaFarnamTaheri/ConfigStream/issues
 - Discussions: https://github.com/AmirrezaFarnamTaheri/ConfigStream/discussions
+
+## Maturity tiers
+
+ConfigStream labels runtime surfaces by operational maturity. The canonical,
+machine-readable inventory is [`docs/maturity_tiers.json`](docs/maturity_tiers.json).
+
+| Tier | Meaning | Current surfaces |
+|---|---|---|
+| Stable | Required release path with blocking verification | Python core, native Go tester, GitHub Pages publication |
+| Beta | Supported demonstration surface without production durability guarantees | HTTP demo server and Render deployment |
+| Experimental | Optional research path; never substitutes for native validation | Browser reachability WASM and Rust Shadowsocks checker |
+
+Browser WASM results are reachability signals only. They cannot prove native
+TCP/UDP proxy behavior and are never promoted into the stable release gate.

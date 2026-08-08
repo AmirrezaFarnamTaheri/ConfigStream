@@ -438,6 +438,6 @@ Coverage includes: TLS fingerprint rotation, ALPN rotation, multiplexing with pa
 *   **[Firewalls & Honeypots](wiki/encyclopedia/security/firewall_honeypot.md)** — GFW, Iran, Russia censorship systems and how ConfigStream defeats them.
 *   **[WARP & Clean IPs](wiki/encyclopedia/networking/warp.md)** — Cloudflare WARP mechanics, scanning, shielding topology.
 *   **[Sing-box Configuration Guide](wiki/encyclopedia/tools/singbox_configuration_guide.md)** — How outbound configs, routing rules, and DNS settings are structured.
-*   **[Output Variations](OUTPUT_VARIATIONS.md)** — All 60+ output file variants.
+*   **[Output files and client formats](wiki/project/08-api-reference.md)** — All 60+ output file variants.
 *   **[Security & Privacy](wiki/project/07-security.md)** — Threat model, blocklists, log sanitization.
 *   **[API Reference — Tagging System](wiki/project/08-api-reference.md)** — Evasion tags (`EVASION:UTLS`, `EVASION:FRAG`, `DNS:SAFE`, etc.).

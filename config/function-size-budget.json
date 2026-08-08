@@ -1,0 +1,18 @@
+{
+  "functions": {
+    "src/configstream/converters/singbox.py::to_singbox_outbound": 569,
+    "src/configstream/generators/split.py::generate_split_outputs": 391,
+    "src/configstream/intelligence/chaining.py::generate_smart_chains": 371,
+    "src/configstream/output/metadata.py::save_metadata": 394,
+    "src/configstream/output_handler.py::generate_pipeline_outputs": 393,
+    "src/configstream/parsers/extraction.py::extract_config_lines": 398,
+    "src/configstream/pipeline/consumer.py::processing_consumer": 303,
+    "src/configstream/pipeline/fetcher.py::fetch_from_source": 403,
+    "src/configstream/pipeline/producer.py::source_producer": 509,
+    "src/configstream/testers/go_tester/manager.py::test_batch": 333
+  },
+  "policy": "No new oversized functions; existing entries may only shrink until removed.",
+  "schema_version": 1,
+  "target_oversized_function_count": 0,
+  "threshold_lines": 300
+}

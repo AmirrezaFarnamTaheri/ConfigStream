@@ -21,12 +21,11 @@ from configstream.stego import generate_stego_assets
 from configstream.intelligence.washer.core import ProxyWasher
 from configstream.intelligence.chaining import generate_smart_chains
 from configstream.intelligence.vectors import generate_vectors
-from configstream.converters.chains import chain_obs_from_details
+from configstream.converters.chain_outbounds import chain_obs_from_details
 from configstream.pipeline_stats import PipelineStats
 from configstream.tagging import ProxyTagger, format_proxy_name
 from configstream.config import AppSettings
 from configstream.dns_batch_resolver import BatchDNSResolver
-from configstream.geoip import GeoIPResolver
 from configstream.utils import AtomicFileWriter
 from configstream.utils.net import (
     normalize_host as _normalize_host,
@@ -41,6 +40,30 @@ if TYPE_CHECKING:
     from configstream.testers.manager import SingBoxTester
 
 logger = logging.getLogger(__name__)
+
+
+def _log_geoip_enrichment_stats(proxies: List[Proxy]) -> Dict[str, int]:
+    """Log enrichment coverage without constructing the optional GeoIP backend."""
+    stats = {
+        "total": len(proxies),
+        "with_country": sum(
+            1 for proxy in proxies if proxy.country_code and proxy.country_code != "XX"
+        ),
+        "with_city": sum(
+            1 for proxy in proxies if proxy.city and proxy.city != "Unknown"
+        ),
+        "with_asn": sum(1 for proxy in proxies if proxy.asn),
+    }
+    coverage = stats["with_country"] / stats["total"] * 100 if stats["total"] else 0.0
+    logger.info(
+        "GeoIP enrichment: %d/%d (%.1f%%) countries resolved, %d cities, %d ASNs",
+        stats["with_country"],
+        stats["total"],
+        coverage,
+        stats["with_city"],
+        stats["with_asn"],
+    )
+    return stats
 
 
 def _is_revived(p: Proxy) -> bool:
@@ -486,9 +509,8 @@ async def generate_pipeline_outputs(
         _cached_dns_hardened = _build_dns_hardened_proxies(optimized_proxies)
         stats.evasion_dns_hardened_count = len(_cached_dns_hardened[0])
 
-    # 0c. Log GeoIP enrichment statistics
-    geoip_resolver = GeoIPResolver()
-    geoip_resolver.log_enrichment_stats(optimized_proxies)
+    # 0c. Log GeoIP enrichment statistics without loading the optional MMDB backend.
+    _log_geoip_enrichment_stats(optimized_proxies)
 
     # 1. Initialize Washer & Scanner (The Intelligence Layer)
     # We load keys from Env. If empty, washer degrades gracefully to no-op.

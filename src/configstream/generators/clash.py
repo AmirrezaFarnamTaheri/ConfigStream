@@ -9,7 +9,7 @@ except ImportError:
 
 from ..models import Proxy
 from ..converters import to_clash_proxy
-from ..converters.chains import chain_obs_from_details
+from ..converters.chain_outbounds import chain_obs_from_details
 
 logger = logging.getLogger(__name__)
 
