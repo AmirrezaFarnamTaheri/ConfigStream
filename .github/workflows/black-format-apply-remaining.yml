@@ -6,6 +6,13 @@ on:
       - feat/post-audit-remediation-v3.1.0
     paths:
       - '.github/workflows/black-format-apply-remaining.yml'
+  pull_request:
+    branches:
+      - main
+    types:
+      - synchronize
+    paths:
+      - '.github/workflows/black-format-apply-remaining.yml'
 
 permissions:
   contents: write
