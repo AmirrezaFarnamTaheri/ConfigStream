@@ -37,7 +37,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          files=(
+          candidates=(
             scripts/collect_repository_forensics.py
             scripts/generate_dependency_inventory.py
             scripts/generate_environment_catalog.py
@@ -69,6 +69,14 @@ jobs:
             tests/unit/test_go_tester_binary_security.py
             tests/unit/test_maintainer_annotations.py
           )
+          files=()
+          for file in "${candidates[@]}"; do
+            if [[ -f "$file" ]]; then
+              files+=("$file")
+            else
+              echo "Skipping absent changed path: $file"
+            fi
+          done
           python -m black --fast --target-version py310 "${files[@]}"
           python -m black --check --fast --target-version py310 "${files[@]}"
           git diff --check -- "${files[@]}"
