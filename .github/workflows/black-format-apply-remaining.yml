@@ -42,7 +42,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          files=(
+          candidates=(
             src/configstream/__init__.py
             src/configstream/security/__init__.py
             src/configstream/security/reporting/__init__.py
@@ -76,6 +76,18 @@ jobs:
             tests/unit/test_trust_verification_workflow.py
             tests/unit/test_visual_regression_gate.py
           )
+          files=()
+          for file in "${candidates[@]}"; do
+            if [[ -f "$file" ]]; then
+              files+=("$file")
+            else
+              echo "Skipping absent changed path: $file"
+            fi
+          done
+          if (( ${#files[@]} == 0 )); then
+            echo 'No existing formatter targets remain.'
+            exit 0
+          fi
           python -m black --fast --target-version py310 "${files[@]}"
           python -m black --check --fast --target-version py310 "${files[@]}"
           git diff --check -- "${files[@]}"
