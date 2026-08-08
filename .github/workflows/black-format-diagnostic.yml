@@ -1,0 +1,59 @@
+name: Black Format Diagnostic
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  black-diff:
+    name: Emit canonical Black diff
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: '3.12'
+      - name: Install exact CI formatter
+        run: python -m pip install 'black==26.5.1'
+      - name: Capture canonical formatting diff
+        shell: bash
+        run: |
+          set +e
+          python -m black \
+            --check \
+            --diff \
+            --fast \
+            --target-version py310 \
+            scripts/collect_repository_forensics.py \
+            scripts/generate_dependency_inventory.py \
+            scripts/generate_environment_catalog.py \
+            scripts/snapshot_pages_release.py \
+            scripts/validate_function_size_budget.py \
+            scripts/validate_import_cycles.py \
+            src/configstream/cli.py \
+            src/configstream/pipeline/models.py \
+            src/configstream/security/rules.py \
+            src/configstream/server/routes/proxies.py \
+            tests/unit/test_debt_matrix.py \
+            tests/unit/test_pages_rollback_workflow.py \
+            tests/unit/test_snapshot_pages_release.py \
+            > black-format-diagnostic.txt 2>&1
+          status=$?
+          cat black-format-diagnostic.txt
+          echo "Black exit code: ${status}" >> "$GITHUB_STEP_SUMMARY"
+          exit 0
+      - name: Upload Black diagnostic
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: black-format-diagnostic-${{ github.run_id }}
+          path: black-format-diagnostic.txt
+          if-no-files-found: error
+          retention-days: 1
