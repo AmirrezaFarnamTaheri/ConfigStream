@@ -73,9 +73,7 @@ def _normalize_entry(value: Any) -> Optional[Dict[str, Any]]:
     normalized = {key: item for key, item in value.items() if key != "config"}
     normalized["tested_at"] = tested_at
     normalized["test_count"] = _coerce_nonnegative_int(value.get("test_count", 0))
-    normalized["success_count"] = _coerce_nonnegative_int(
-        value.get("success_count", 0)
-    )
+    normalized["success_count"] = _coerce_nonnegative_int(value.get("success_count", 0))
     return normalized
 
 
@@ -193,9 +191,9 @@ class TestResultCache:
             if entry is None:
                 continue
             disk_entry = disk_cache.get(config_hash)
-            if disk_entry is None or _coerce_float(entry.get("tested_at")) >= _coerce_float(
-                disk_entry.get("tested_at")
-            ):
+            if disk_entry is None or _coerce_float(
+                entry.get("tested_at")
+            ) >= _coerce_float(disk_entry.get("tested_at")):
                 disk_cache[config_hash] = entry
 
         self._cache = self._compact(self._normalize_cache(disk_cache))

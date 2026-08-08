@@ -12,7 +12,9 @@ def test_generated_supply_chain_evidence_is_current() -> None:
 
 
 def test_sbom_covers_all_repository_ecosystems() -> None:
-    payload = json.loads(Path("docs/generated/sbom.cdx.json").read_text(encoding="utf-8"))
+    payload = json.loads(
+        Path("docs/generated/sbom.cdx.json").read_text(encoding="utf-8")
+    )
     ecosystems = {
         component["properties"][0]["value"]
         for component in payload["components"]
