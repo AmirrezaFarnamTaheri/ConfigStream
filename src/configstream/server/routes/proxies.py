@@ -54,8 +54,13 @@ async def get_proxy_diff(request: Request, base_version: str):
         try:
             old_data = await _read_json_file_async(old_path)
         except (OSError, json.JSONDecodeError) as exc:
-            logger.warning("Previous proxy snapshot is unreadable: %s", type(exc).__name__)
-            return {"type": "full_reload_required", "reason": "base_snapshot_unavailable"}
+            logger.warning(
+                "Previous proxy snapshot is unreadable: %s", type(exc).__name__
+            )
+            return {
+                "type": "full_reload_required",
+                "reason": "base_snapshot_unavailable",
+            }
         if not isinstance(old_data, list) or not all(
             isinstance(item, dict) for item in old_data
         ):
@@ -108,7 +113,10 @@ async def get_stats():
     except (OSError, json.JSONDecodeError) as exc:
         logger.error("Failed to read metadata.json: %s", type(exc).__name__)
         return JSONResponse(
-            content={"status": "unavailable", "message": "Metadata is invalid or unreadable."},
+            content={
+                "status": "unavailable",
+                "message": "Metadata is invalid or unreadable.",
+            },
             status_code=503,
         )
 

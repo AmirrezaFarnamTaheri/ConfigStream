@@ -10,7 +10,15 @@ import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
-SENSITIVE_MARKERS = ("TOKEN", "SECRET", "PASSWORD", "PRIVATE_KEY", "API_KEY", "LICENSE_KEY", "STEGO_KEY")
+SENSITIVE_MARKERS = (
+    "TOKEN",
+    "SECRET",
+    "PASSWORD",
+    "PRIVATE_KEY",
+    "API_KEY",
+    "LICENSE_KEY",
+    "STEGO_KEY",
+)
 
 
 @dataclass
@@ -62,7 +70,9 @@ def _settings_variables(path: Path) -> dict[str, Variable]:
         if not isinstance(node, ast.ClassDef) or node.name != "AppSettings":
             continue
         for statement in node.body:
-            if not isinstance(statement, ast.AnnAssign) or not isinstance(statement.target, ast.Name):
+            if not isinstance(statement, ast.AnnAssign) or not isinstance(
+                statement.target, ast.Name
+            ):
                 continue
             name = statement.target.id
             if not name.isupper():
@@ -84,7 +94,11 @@ def _settings_variables(path: Path) -> dict[str, Variable]:
 
 
 def _constant_string(node: ast.AST) -> str | None:
-    return node.value if isinstance(node, ast.Constant) and isinstance(node.value, str) else None
+    return (
+        node.value
+        if isinstance(node, ast.Constant) and isinstance(node.value, str)
+        else None
+    )
 
 
 def _direct_environment_references(paths: list[Path]) -> dict[str, set[str]]:
@@ -124,14 +138,18 @@ def _direct_environment_references(paths: list[Path]) -> dict[str, set[str]]:
                 ):
                     name = _constant_string(node.slice)
             if name and isinstance(node, (ast.Call, ast.Subscript)):
-                references.setdefault(name, set()).add(f"{path.as_posix()}:{node.lineno}")
+                references.setdefault(name, set()).add(
+                    f"{path.as_posix()}:{node.lineno}"
+                )
     return references
 
 
 def build_catalog(root: Path) -> dict[str, object]:
     root = Path(root)
     config_path = root / "src/configstream/config.py"
-    variables = _settings_variables(config_path.relative_to(root) if False else config_path)
+    variables = _settings_variables(
+        config_path.relative_to(root) if False else config_path
+    )
     # Convert absolute-looking source locations to repository-relative paths.
     for variable in variables.values():
         variable.sources = {
@@ -157,7 +175,9 @@ def build_catalog(root: Path) -> dict[str, object]:
         variable.sources.update(
             f"{path.relative_to(root).as_posix()}:{line}"
             for source in sources
-            for path, line in [(Path(source.rsplit(":", 1)[0]), source.rsplit(":", 1)[1])]
+            for path, line in [
+                (Path(source.rsplit(":", 1)[0]), source.rsplit(":", 1)[1])
+            ]
         )
 
     payloads = [variables[name].payload() for name in sorted(variables)]
@@ -201,7 +221,9 @@ def render_markdown(payload: dict[str, object]) -> str:
         elif default is None:
             default_text = ""
         else:
-            default_text = f"`{json.dumps(default, ensure_ascii=False, sort_keys=True)}`"
+            default_text = (
+                f"`{json.dumps(default, ensure_ascii=False, sort_keys=True)}`"
+            )
         sources = "<br>".join(f"`{source}`" for source in item["sources"])
         lines.append(
             "| `{name}` | {settings} | `{type}` | {default} | {required} | {sensitive} | {sources} |".format(
@@ -236,7 +258,9 @@ def generate(root: Path, *, check: bool = False) -> list[str]:
                 errors.append(f"missing generated catalog: {path.relative_to(root)}")
             else:
                 if current != content:
-                    errors.append(f"generated catalog is stale: {path.relative_to(root)}")
+                    errors.append(
+                        f"generated catalog is stale: {path.relative_to(root)}"
+                    )
         else:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(content, encoding="utf-8")
@@ -253,7 +277,11 @@ def main() -> int:
         for error in errors:
             print(f"ERROR: {error}")
         return 1
-    print("OK: environment catalog is current" if args.check else "OK: environment catalog generated")
+    print(
+        "OK: environment catalog is current"
+        if args.check
+        else "OK: environment catalog generated"
+    )
     return 0
 
 

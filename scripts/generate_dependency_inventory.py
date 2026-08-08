@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Generate direct-dependency and update-automation evidence."""
+
 from __future__ import annotations
 
 import argparse
@@ -41,7 +42,10 @@ def _python(root: Path) -> list[dict[str, str]]:
     result: list[dict[str, str]] = []
     groups = [
         (payload["project"].get("dependencies", []), "runtime"),
-        (payload["project"].get("optional-dependencies", {}).get("dev", []), "development"),
+        (
+            payload["project"].get("optional-dependencies", {}).get("dev", []),
+            "development",
+        ),
     ]
     for values, scope in groups:
         for raw in values:
@@ -54,7 +58,9 @@ def _python(root: Path) -> list[dict[str, str]]:
                     "scope": scope,
                 }
             )
-    for raw_line in (root / "requirements-publish.txt").read_text(encoding="utf-8").splitlines():
+    for raw_line in (
+        (root / "requirements-publish.txt").read_text(encoding="utf-8").splitlines()
+    ):
         line = raw_line.strip()
         match = re.match(r"^([A-Za-z0-9_.-]+)==([^;\s]+)$", line)
         if match:
@@ -75,7 +81,12 @@ def _npm(root: Path) -> list[dict[str, str]]:
     for section in ("dependencies", "devDependencies"):
         for name, constraint in sorted(payload.get(section, {}).items()):
             result.append(
-                {"name": name, "constraint": str(constraint), "source": "package.json", "scope": section}
+                {
+                    "name": name,
+                    "constraint": str(constraint),
+                    "source": "package.json",
+                    "scope": section,
+                }
             )
     return result
 
@@ -115,13 +126,19 @@ def _cargo(root: Path) -> list[dict[str, str]]:
     for name, raw in sorted(payload.get("dependencies", {}).items()):
         constraint = raw if isinstance(raw, str) else raw.get("version", "unversioned")
         result.append(
-            {"name": str(name), "constraint": str(constraint), "source": path.relative_to(root).as_posix()}
+            {
+                "name": str(name),
+                "constraint": str(constraint),
+                "source": path.relative_to(root).as_posix(),
+            }
         )
     return result
 
 
 def _containers(root: Path) -> list[dict[str, str]]:
-    payload = json.loads((root / "config/container-images.json").read_text(encoding="utf-8"))
+    payload = json.loads(
+        (root / "config/container-images.json").read_text(encoding="utf-8")
+    )
     images = payload.get("images", payload)
     result = []
     for name, value in sorted(images.items()):
@@ -129,7 +146,13 @@ def _containers(root: Path) -> list[dict[str, str]]:
             reference = str(value.get("reference") or value.get("image") or "")
         else:
             reference = str(value)
-        result.append({"name": str(name), "constraint": reference, "source": "config/container-images.json"})
+        result.append(
+            {
+                "name": str(name),
+                "constraint": reference,
+                "source": "config/container-images.json",
+            }
+        )
     return result
 
 
@@ -147,11 +170,24 @@ def _dependabot(root: Path) -> tuple[list[dict[str, str]], list[str]]:
             observed.add(pair)
             coverage.append({"ecosystem": pair[0], "directory": pair[1]})
         schedule = item.get("schedule", {})
-        if schedule.get("interval") not in {"daily", "weekly", "monthly", "quarterly", "semiannually", "yearly", "cron"}:
-            errors.append(f"invalid or missing Dependabot schedule for {ecosystem}:{directories}")
+        if schedule.get("interval") not in {
+            "daily",
+            "weekly",
+            "monthly",
+            "quarterly",
+            "semiannually",
+            "yearly",
+            "cron",
+        }:
+            errors.append(
+                f"invalid or missing Dependabot schedule for {ecosystem}:{directories}"
+            )
     for ecosystem, directory in sorted(_REQUIRED_COVERAGE - observed):
         errors.append(f"missing Dependabot coverage: {ecosystem}:{directory}")
-    return sorted(coverage, key=lambda item: (item["ecosystem"], item["directory"])), errors
+    return (
+        sorted(coverage, key=lambda item: (item["ecosystem"], item["directory"])),
+        errors,
+    )
 
 
 def build(root: Path) -> tuple[DependencyInventory, list[str]]:
@@ -191,11 +227,21 @@ def _markdown(payload: DependencyInventory) -> str:
     ]
     for item in payload["dependabot_coverage"]:
         lines.append(f"| `{item['ecosystem']}` | `{item['directory']}` |")
-    lines.extend(["", "## Direct declarations", "", "| Group | Name | Constraint | Source |", "|---|---|---|---|"])
+    lines.extend(
+        [
+            "",
+            "## Direct declarations",
+            "",
+            "| Group | Name | Constraint | Source |",
+            "|---|---|---|---|",
+        ]
+    )
     for group, items in payload["ecosystems"].items():
         for item in items:
             constraint = item["constraint"].replace("|", "\\|")
-            lines.append(f"| {group} | `{item['name']}` | `{constraint}` | `{item['source']}` |")
+            lines.append(
+                f"| {group} | `{item['name']}` | `{constraint}` | `{item['source']}` |"
+            )
     return "\n".join(lines) + "\n"
 
 
@@ -203,7 +249,11 @@ def generate(root: Path, *, check: bool = False) -> list[str]:
     root = Path(root)
     payload, errors = build(root)
     targets = {
-        root / "docs/generated/dependency-inventory.json": json.dumps(payload, indent=2, sort_keys=True) + "\n",
+        root
+        / "docs/generated/dependency-inventory.json": json.dumps(
+            payload, indent=2, sort_keys=True
+        )
+        + "\n",
         root / "docs/generated/dependency-inventory.md": _markdown(payload),
     }
     for path, content in targets.items():
@@ -214,7 +264,9 @@ def generate(root: Path, *, check: bool = False) -> list[str]:
                 errors.append(f"missing dependency inventory: {path.relative_to(root)}")
                 continue
             if current != content:
-                errors.append(f"generated dependency inventory is stale: {path.relative_to(root)}")
+                errors.append(
+                    f"generated dependency inventory is stale: {path.relative_to(root)}"
+                )
         else:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(content, encoding="utf-8")

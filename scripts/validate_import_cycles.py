@@ -33,7 +33,11 @@ def build_graph(source_root: Path) -> dict[str, set[str]]:
             tree = ast.parse(path.read_text(encoding="utf-8"))
         except (OSError, SyntaxError):
             continue
-        package = current.split(".") if path.name == "__init__.py" else current.split(".")[:-1]
+        package = (
+            current.split(".")
+            if path.name == "__init__.py"
+            else current.split(".")[:-1]
+        )
         for node in ast.walk(tree):
             imports: list[str] = []
             if isinstance(node, ast.Import):

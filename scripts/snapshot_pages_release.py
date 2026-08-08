@@ -92,7 +92,9 @@ def _resolve_and_pin(
             if not ipaddress.ip_address(address).is_global
         )
         if non_global:
-            raise ValueError(f"snapshot host resolved to non-global address: {non_global[0]}")
+            raise ValueError(
+                f"snapshot host resolved to non-global address: {non_global[0]}"
+            )
 
     previous = pins.get(host)
     if previous is None:
@@ -114,7 +116,9 @@ def _fetch(
     source_origin = _origin(source)
     current_url = url
 
-    with httpx.Client(follow_redirects=False, trust_env=False, timeout=timeout) as client:
+    with httpx.Client(
+        follow_redirects=False, trust_env=False, timeout=timeout
+    ) as client:
         for _redirect in range(6):
             parsed = urllib.parse.urlparse(current_url)
             if _origin(parsed) != source_origin:
@@ -155,7 +159,9 @@ def _fetch(
                 for chunk in response.iter_bytes():
                     body.extend(chunk)
                     if len(body) > MAX_FILE_BYTES:
-                        raise ValueError(f"snapshot file exceeds size limit: {current_url}")
+                        raise ValueError(
+                            f"snapshot file exceeds size limit: {current_url}"
+                        )
                 return bytes(body)
             finally:
                 response.close()
@@ -233,14 +239,20 @@ def _parse_timestamp(value: object, label: str) -> datetime:
 
 def _rollback_max_age_seconds(metadata: dict[str, Any]) -> int:
     interval = metadata.get("update_interval_hours", 4)
-    if isinstance(interval, bool) or not isinstance(interval, (int, float)) or interval <= 0:
+    if (
+        isinstance(interval, bool)
+        or not isinstance(interval, (int, float))
+        or interval <= 0
+    ):
         raise ValueError("metadata update_interval_hours must be positive")
     max_age_hours = max(MIN_ROLLBACK_MAX_AGE_HOURS, float(interval) * 2)
     max_age_hours = min(MAX_ROLLBACK_MAX_AGE_HOURS, max_age_hours)
     return int(max_age_hours * 60 * 60)
 
 
-def _validate_body(relative: str, body: bytes, expected_size: int, expected_digest: str) -> None:
+def _validate_body(
+    relative: str, body: bytes, expected_size: int, expected_digest: str
+) -> None:
     if len(body) != expected_size:
         raise ValueError(f"size mismatch for {relative}")
     actual_digest = hashlib.sha256(body).hexdigest()
@@ -269,7 +281,9 @@ def _validate_release_eligibility(
     signature_verified = False
     if signature_present or public_key_hex:
         if not public_key_hex:
-            raise ValueError("signed artifact manifest cannot be verified without CS_PUBLIC_KEY")
+            raise ValueError(
+                "signed artifact manifest cannot be verified without CS_PUBLIC_KEY"
+            )
         signature_verified = Signer.verify_manifest_signature(
             manifest,
             public_key_hex,
@@ -280,15 +294,22 @@ def _validate_release_eligibility(
 
     source_commit = manifest.get("source_commit")
     if not is_local and (
-        not isinstance(source_commit, str) or not _SOURCE_COMMIT_RE.fullmatch(source_commit)
+        not isinstance(source_commit, str)
+        or not _SOURCE_COMMIT_RE.fullmatch(source_commit)
     ):
-        raise ValueError("public rollback snapshot requires a 40-character source commit")
+        raise ValueError(
+            "public rollback snapshot requires a 40-character source commit"
+        )
 
     health_status = health.get("status")
     if health_status != "ok":
         raise ValueError(f"rollback source health is {health_status or 'unknown'}")
     working = health.get("total_working", metadata.get("total_working", 0))
-    if isinstance(working, bool) or not isinstance(working, (int, float)) or working <= 0:
+    if (
+        isinstance(working, bool)
+        or not isinstance(working, (int, float))
+        or working <= 0
+    ):
         raise ValueError("rollback source contains no verified working proxies")
     if health.get("schema_validated") is not True:
         raise ValueError("rollback source was not schema validated")
@@ -309,7 +330,6 @@ def _validate_release_eligibility(
             raise ValueError(f"{label} source commit does not match the manifest")
 
     return signature_verified, max_age_seconds, generated_at.isoformat()
-
 
 
 def _recover_interrupted_swap(destination: Path) -> None:
@@ -355,7 +375,12 @@ def snapshot(
             raise ValueError(f"duplicate manifest path: {relative}")
         size = item.get("size_bytes")
         digest = item.get("sha256")
-        if not isinstance(size, int) or isinstance(size, bool) or size < 0 or size > MAX_FILE_BYTES:
+        if (
+            not isinstance(size, int)
+            or isinstance(size, bool)
+            or size < 0
+            or size > MAX_FILE_BYTES
+        ):
             raise ValueError(f"invalid manifest size for {relative}")
         if not isinstance(digest, str) or not re.fullmatch(r"[0-9a-f]{64}", digest):
             raise ValueError(f"invalid manifest hash for {relative}")
@@ -386,10 +411,16 @@ def snapshot(
         metadata,
         health,
         is_local=is_local,
-        public_key_value=public_key if public_key is not None else os.environ.get("CS_PUBLIC_KEY", ""),
+        public_key_value=(
+            public_key
+            if public_key is not None
+            else os.environ.get("CS_PUBLIC_KEY", "")
+        ),
     )
 
-    with tempfile.TemporaryDirectory(prefix=f".{destination.name}-", dir=destination.parent) as temporary:
+    with tempfile.TemporaryDirectory(
+        prefix=f".{destination.name}-", dir=destination.parent
+    ) as temporary:
         stage = Path(temporary) / destination.name
         stage.mkdir()
         for relative, expected_size, expected_digest in planned:

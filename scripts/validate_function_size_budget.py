@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Prevent oversized Python functions from growing or multiplying."""
+
 from __future__ import annotations
 
 import argparse
@@ -70,9 +71,13 @@ def validate(root: Path) -> list[str]:
             errors.append(f"oversized function grew: {key} {limit} -> {size} lines")
     for key, limit in expected.items():
         if key not in current:
-            errors.append(f"function-size budget is stale; remove improved/deleted entry: {key} ({limit} lines)")
+            errors.append(
+                f"function-size budget is stale; remove improved/deleted entry: {key} ({limit} lines)"
+            )
         elif current[key] < int(limit):
-            errors.append(f"function-size budget is stale; lower {key} from {limit} to {current[key]}")
+            errors.append(
+                f"function-size budget is stale; lower {key} from {limit} to {current[key]}"
+            )
     return errors
 
 
@@ -85,8 +90,12 @@ def main() -> int:
         payload = generate(root)
         path = root / BUDGET_PATH
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-        print(f"OK: wrote function-size budget for {len(payload['functions'])} oversized functions")
+        path.write_text(
+            json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
+        print(
+            f"OK: wrote function-size budget for {len(payload['functions'])} oversized functions"
+        )
         return 0
     errors = validate(root)
     if errors:

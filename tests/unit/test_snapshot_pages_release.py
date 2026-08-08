@@ -5,7 +5,11 @@ import hashlib
 import json
 import threading
 from datetime import datetime, timedelta, timezone
-from http.server import BaseHTTPRequestHandler, SimpleHTTPRequestHandler, ThreadingHTTPServer
+from http.server import (
+    BaseHTTPRequestHandler,
+    SimpleHTTPRequestHandler,
+    ThreadingHTTPServer,
+)
 from pathlib import Path
 
 import pytest
@@ -105,7 +109,9 @@ def test_snapshot_downloads_hash_verified_local_release(tmp_path: Path) -> None:
         server.shutdown()
         thread.join(timeout=5)
 
-    assert (destination / "index.html").read_text(encoding="utf-8") == "<html>ConfigStream</html>"
+    assert (destination / "index.html").read_text(
+        encoding="utf-8"
+    ) == "<html>ConfigStream</html>"
     assert (destination / "artifact_manifest.json").is_file()
     assert report["source_commit"] == "a" * 40
     assert report["file_count"] == 3
@@ -217,7 +223,9 @@ def test_snapshot_recovers_interrupted_directory_swap(
             "https://example.com/", destination, public_key="11" * 32
         )
 
-    assert (destination / "last-known-good.txt").read_text(encoding="utf-8") == "verified"
+    assert (destination / "last-known-good.txt").read_text(
+        encoding="utf-8"
+    ) == "verified"
     assert not backup.exists()
 
 
@@ -227,15 +235,21 @@ def test_snapshot_rejects_manifest_paths_with_url_components(value: str) -> None
         snapshot_pages_release._safe_relative(value)
 
 
-def test_public_snapshot_requires_configured_key(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_public_snapshot_requires_configured_key(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     site = tmp_path / "site"
     payloads = _build_site(site)
     monkeypatch.setattr(snapshot_pages_release, "_fetch", _remote_fetcher(payloads))
     with pytest.raises(ValueError, match="configured CS_PUBLIC_KEY"):
-        snapshot_pages_release.snapshot("https://example.com/", tmp_path / "snapshot", public_key="")
+        snapshot_pages_release.snapshot(
+            "https://example.com/", tmp_path / "snapshot", public_key=""
+        )
 
 
-def test_public_snapshot_verifies_signature(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_public_snapshot_verifies_signature(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     signer = Signer("11" * 32)
     site = tmp_path / "site"
     payloads = _build_site(site, signer=signer)
@@ -270,7 +284,9 @@ def test_public_snapshot_rejects_invalid_signature(
         )
 
 
-def test_snapshot_rejects_private_dns_resolution(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_snapshot_rejects_private_dns_resolution(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setattr(
         snapshot_pages_release.socket,
         "getaddrinfo",

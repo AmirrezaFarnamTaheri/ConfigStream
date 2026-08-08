@@ -360,7 +360,9 @@ def update_databases():
                     console.print(f"[red]Archive entry for {edition} is empty[/red]")
                     return False
                 if member.size > max_download_bytes:
-                    console.print(f"[red]Archive entry for {edition} is too large[/red]")
+                    console.print(
+                        f"[red]Archive entry for {edition} is too large[/red]"
+                    )
                     return False
                 fd, temp_name = tempfile.mkstemp(
                     prefix=f".{target.name}.", dir=target.parent
@@ -373,7 +375,9 @@ def update_databases():
                         while remaining:
                             chunk = extracted.read(min(1024 * 1024, remaining))
                             if not chunk:
-                                raise OSError("archive entry ended before its declared size")
+                                raise OSError(
+                                    "archive entry ended before its declared size"
+                                )
                             dest.write(chunk)
                             remaining -= len(chunk)
                     os.replace(temp_target, target)

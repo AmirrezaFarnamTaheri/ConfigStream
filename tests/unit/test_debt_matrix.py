@@ -48,9 +48,7 @@ def test_generate_debt_matrix_classifies_test_mocks() -> None:
     )
 
 
-def test_debt_matrix_check_rejects_absolute_paths(
-    tmp_path: Path, monkeypatch
-) -> None:
+def test_debt_matrix_check_rejects_absolute_paths(tmp_path: Path, monkeypatch) -> None:
     docs = tmp_path / "docs"
     docs.mkdir()
     (docs / "debt_matrix.json").write_text(
@@ -113,7 +111,9 @@ def test_debt_matrix_check_accepts_portable_artifacts(
     assert generate_debt_matrix.validate_artifacts() == []
 
 
-def test_structural_debt_scan_finds_broad_exception_and_large_function(tmp_path, monkeypatch):
+def test_structural_debt_scan_finds_broad_exception_and_large_function(
+    tmp_path, monkeypatch
+):
     root = tmp_path
     source = root / "src" / "configstream"
     source.mkdir(parents=True)
