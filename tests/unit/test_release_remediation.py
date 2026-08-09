@@ -124,6 +124,7 @@ def test_finalize_sanitizes_counts_sources_and_transients(tmp_path: Path) -> Non
             "fetched_sources": 8,
             "total_configured_sources": 10,
             "time_limited": False,
+            "shielded_count": 739,
             "shielded_candidate_count": 0,
             "shielded_verified_count": 0,
         },
@@ -162,6 +163,10 @@ def test_finalize_sanitizes_counts_sources_and_transients(tmp_path: Path) -> Non
     assert metadata["total_working"] == 1
     assert metadata["exported_working_record_count"] == 2
     assert metadata["source_coverage"] == 0.8
+    assert metadata["shard_shielded_candidate_count"] == 739
+    assert metadata["shielded_count"] == 0
+    assert metadata["shielded_candidate_count"] == 0
+    assert metadata["shielded_verified_count"] == 0
     assert not list(output.rglob("*.lock"))
     assert (output / "xray.json").is_file()
     health = json.loads((output / "health.json").read_text(encoding="utf-8"))
