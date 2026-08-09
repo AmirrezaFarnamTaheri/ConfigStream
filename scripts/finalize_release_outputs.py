@@ -36,6 +36,7 @@ INTERNAL_KEYS = {
     "infra_failure",
     "failure_category",
 }
+PUBLIC_PROXY_LIST_DIRS = ("countries", "protocols")
 MAX_SELECTOR_MEMBERS = int(os.environ.get("MAX_SELECTOR_MEMBERS", "96"))
 
 
@@ -91,6 +92,31 @@ def _sanitize(value: Any, *, key: str | None = None) -> Any:
             return _source_host(value)
         return value
     return value
+
+
+def _sanitize_proxy_derivatives(root: Path) -> list[str]:
+    """Sanitize generated country/protocol proxy-list derivatives in place.
+
+    These files are public views of proxy records and must obey the same
+    diagnostic-field boundary as canonical proxies.json. Restrict the sweep to
+    *.list*.json files so unrelated JSON contracts are never rewritten.
+    """
+
+    changed: list[str] = []
+    for directory_name in PUBLIC_PROXY_LIST_DIRS:
+        directory = root / directory_name
+        if not directory.is_dir():
+            continue
+        for path in sorted(directory.glob("*.list*.json")):
+            payload = _load(path)
+            if not isinstance(payload, list):
+                continue
+            sanitized = _sanitize(payload)
+            if sanitized == payload:
+                continue
+            _write(path, sanitized)
+            changed.append(path.relative_to(root).as_posix())
+    return changed
 
 
 def _string_list(value: Any) -> list[str]:
@@ -443,6 +469,7 @@ def finalize(root: Path, repo_root: Path, threshold: float) -> None:
             except json.JSONDecodeError:
                 pass
     _write(root / "proxies.json", records)
+    sanitized_derivatives = _sanitize_proxy_derivatives(root)
 
     modernized: list[str] = []
     for path in sorted({*root.glob("singbox*.json"), *root.glob("chains*.json")}):
@@ -520,7 +547,10 @@ def finalize(root: Path, repo_root: Path, threshold: float) -> None:
             },
         },
         "wasm": {"copied": copied_wasm},
-        "artifact_hygiene": {"removed": removed},
+        "artifact_hygiene": {
+            "removed": removed,
+            "sanitized_proxy_derivatives": sanitized_derivatives,
+        },
     }
     _write(root / "format_compatibility.json", compatibility)
 
