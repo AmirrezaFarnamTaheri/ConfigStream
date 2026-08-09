@@ -13,9 +13,9 @@ from pathlib import Path
 from typing import Iterable
 
 ANSI_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
-SUMMARY_RE = re.compile(
-    r"Source\s+Summary\s+\[(?P<url>.*?)\]\s*:\s*"
-    r"(?P<body>.*?Dur\s*=\s*[\d.]+\s*ms)",
+SUMMARY_START_RE = re.compile(r"Source\s+Summary\s+\[", re.IGNORECASE)
+SUMMARY_HEAD_RE = re.compile(
+    r"Source\s+Summary\s+\[(?P<url>.*?)\]\s*:\s*(?P<body>.*)",
     re.IGNORECASE | re.DOTALL,
 )
 RAW_RE = re.compile(r"\bRaw\s*=\s*(\d+)", re.IGNORECASE)
@@ -40,8 +40,14 @@ def parse_source_timings(text: str, source_log: str = "") -> list[SourceTiming]:
     """Parse source summaries even when Rich wraps one logical record across lines."""
 
     flattened = _flatten(text)
+    starts = list(SUMMARY_START_RE.finditer(flattened))
     records: list[SourceTiming] = []
-    for match in SUMMARY_RE.finditer(flattened):
+    for index, start in enumerate(starts):
+        end = starts[index + 1].start() if index + 1 < len(starts) else len(flattened)
+        segment = flattened[start.start() : end]
+        match = SUMMARY_HEAD_RE.match(segment)
+        if match is None:
+            continue
         url = match.group("url").strip()
         body = match.group("body")
         raw_match = RAW_RE.search(body)
