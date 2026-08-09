@@ -21,7 +21,7 @@ permissions:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   MIN_SOURCE_COVERAGE: "0.80"
-  SOURCE_SHARD_PARTS: "4"
+  SOURCE_SHARD_PARTS: "6"
   SING_BOX_VERSION: "1.13.14"
   XRAY_VERSION: "v26.3.27"
   MIHOMO_VERSION: "v1.19.20"
@@ -43,6 +43,7 @@ jobs:
         run: |
           python -m pip install -r requirements-dev.txt
           python -m pip install -e . --no-deps
+          python -m pip check
       - name: Validate workflow resilience controls
         run: |
           set -euo pipefail
@@ -51,6 +52,9 @@ jobs:
             scripts/prepare_public_candidate.py \
             scripts/aggregate_shard_health.py \
             scripts/finalize_release_outputs.py \
+            scripts/reconcile_release_metadata.py \
+            scripts/preflight_release_inputs.py \
+            scripts/normalize_source_timing_logs.py \
             scripts/native_client_checks.py \
             scripts/release_gate.py \
             scripts/validate_workflows.py
@@ -60,11 +64,21 @@ jobs:
           python scripts/verify_repository.py --profile static
           pytest -q \
             tests/unit/test_validate_frontend_placeholders.py \
+            tests/unit/test_install_native_validators.py \
+            tests/unit/test_preflight_release_inputs.py \
+            tests/unit/test_normalize_source_timing_logs.py \
+            tests/unit/test_release_remediation.py \
             tests/unit/test_validate_workflows.py \
             tests/unit/test_validate_workflows_resilient.py \
             tests/unit/test_prepare_public_candidate.py \
             tests/unit/test_resilient_stage.py \
             --disable-warnings --maxfail=1
+      - name: Validate main release prerequisites
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        env:
+          CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
+          CS_SIGNING_PRIVATE_KEY_HEX: ${{ secrets.CS_SIGNING_PRIVATE_KEY_HEX }}
+        run: python scripts/preflight_release_inputs.py
 
   build_container:
     name: Build Container
@@ -364,6 +378,7 @@ jobs:
               python -m pip install -r requirements-dev.txt
               python -m pip install -r requirements-publish.txt
               python -m pip install -e . --no-deps
+              python -m pip check
             '
       - name: Capture workflow context
         run: |
@@ -427,6 +442,7 @@ jobs:
         run: |
           python scripts/resilient_stage.py run --name merge-batches -- python -m scripts.merge_batches
           python scripts/resilient_stage.py run --name aggregate-shard-health -- python scripts/aggregate_shard_health.py --parts "$SOURCE_SHARD_PARTS"
+          python scripts/resilient_stage.py run --name normalize-source-timings -- python scripts/normalize_source_timing_logs.py --evidence pipeline-evidence/source_timing.jsonl
           python scripts/resilient_stage.py run --name dynamic-reshard -- python scripts/dynamic_reshard.py
       - name: Upload source reshard recommendation
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
@@ -441,6 +457,7 @@ jobs:
         env:
           CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}
           CS_IPNS_KEY: ${{ secrets.CS_IPNS_KEY }}
+          CS_SIGNING_PRIVATE_KEY_HEX: ${{ secrets.CS_SIGNING_PRIVATE_KEY_HEX }}
         run: |
           set -euo pipefail
           python scripts/resilient_stage.py run \
@@ -451,9 +468,10 @@ jobs:
             python scripts/resilient_stage.py run --name frontend-public-boundary -- python scripts/validate_frontend_placeholders.py --inject-env --strict output
             python scripts/resilient_stage.py run --name normalize-legacy-profiles -- python scripts/normalize_legacy_profiles.py output
             python scripts/resilient_stage.py run --name finalize-release -- python scripts/finalize_release_outputs.py output --repo-root . --min-source-coverage "$MIN_SOURCE_COVERAGE"
+            python scripts/resilient_stage.py run --name reconcile-release-metadata -- python scripts/reconcile_release_metadata.py output
             python scripts/resilient_stage.py run --name refresh-output-contract -- python scripts/validate_pages_artifact.py --refresh-contract output
           else
-            for stage in frontend-public-boundary normalize-legacy-profiles finalize-release refresh-output-contract; do
+            for stage in frontend-public-boundary normalize-legacy-profiles finalize-release reconcile-release-metadata refresh-output-contract; do
               python scripts/resilient_stage.py record \
                 --name "$stage" \
                 --status skipped \
@@ -472,12 +490,14 @@ jobs:
             -- bash scripts/install_native_validators.sh
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - name: Run every mandatory release gate
+        env:
+          CS_SIGNING_PRIVATE_KEY_HEX: ${{ secrets.CS_SIGNING_PRIVATE_KEY_HEX }}
         run: |
           set -euo pipefail
           mkdir -p pipeline-evidence
           python scripts/resilient_stage.py run --name native-validation -- python scripts/native_client_checks.py output --report pipeline-evidence/native_client_check_report.json
           python scripts/resilient_stage.py run --name release-gate -- python scripts/release_gate.py output --native-report pipeline-evidence/native_client_check_report.json --min-source-coverage "$MIN_SOURCE_COVERAGE" --promote
-          python scripts/resilient_stage.py run --name final-contract -- python scripts/validate_pages_artifact.py --native-client-check --native-report-file pipeline-evidence/native_client_check_report.json output
+          python scripts/resilient_stage.py run --name final-contract -- python scripts/validate_pages_artifact.py --native-client-check output
           python scripts/resilient_stage.py run --name evidence-bundle -- python scripts/generate_evidence_bundle.py --output-dir output --evidence-dir pipeline-evidence --native-report pipeline-evidence/native_client_check_report.json
       - name: Evaluate release readiness
         id: readiness
@@ -497,17 +517,20 @@ jobs:
             --required-stage restore-wasm \
             --required-stage merge-batches \
             --required-stage aggregate-shard-health \
+            --required-stage normalize-source-timings \
             --required-stage dynamic-reshard \
             --required-stage prepare-public-candidate \
             --required-stage frontend-public-boundary \
             --required-stage normalize-legacy-profiles \
             --required-stage finalize-release \
+            --required-stage reconcile-release-metadata \
             --required-stage refresh-output-contract \
             --required-stage install-native-validators \
             --required-stage native-validation \
             --required-stage release-gate \
             --required-stage final-contract \
             --required-stage evidence-bundle \
+            --required-file pipeline-evidence/source_timing.jsonl \
             --required-file output/metadata.json \
             --required-file output/proxies.json \
             --required-file output/assets/wasm/tester.wasm \
