@@ -20,7 +20,6 @@ PUBLIC_PROXY_ARRAYS = (
     "revived-dns-hardened.json",
 )
 PUBLIC_PROXY_DIRS = ("countries", "protocols")
-PUBLIC_INTERNAL_KEYS = {*INTERNAL_KEYS, "error"}
 
 
 def _load_object(path: Path) -> dict[str, Any]:
@@ -49,20 +48,32 @@ def _public_source(value: str) -> str | None:
     return str(sanitized) if sanitized is not None else None
 
 
-def _sanitize_public(value: Any, *, key: str | None = None) -> Any:
+def _sanitize_public(
+    value: Any,
+    *,
+    key: str | None = None,
+    allow_error: bool = False,
+) -> Any:
     """Apply the public proxy boundary idempotently.
 
     finalize_release_outputs already reduces canonical source URLs to a public
     host/hash. Reconciliation may run over those records again while also
     cleaning derivatives generated before finalization, so source sanitization
     must preserve an already-public scalar instead of hashing it a second time.
+
+    The public proxy schema intentionally permits ``details.error`` for
+    ``protocol: revived`` records. Other protocol-specific detail schemas are
+    closed and must not receive tester error text.
     """
 
     if isinstance(value, dict):
         output: dict[str, Any] = {}
         for raw_key, item in value.items():
             item_key = str(raw_key)
-            if item_key.startswith("_") or item_key.lower() in PUBLIC_INTERNAL_KEYS:
+            lowered = item_key.lower()
+            if item_key.startswith("_") or lowered in INTERNAL_KEYS:
+                continue
+            if lowered == "error" and not allow_error:
                 continue
             output[item_key] = _sanitize_public(item, key=item_key)
         return output
@@ -76,13 +87,32 @@ def _sanitize_public(value: Any, *, key: str | None = None) -> Any:
     return value
 
 
+def _sanitize_proxy_record(record: dict[str, Any]) -> dict[str, Any]:
+    protocol = str(record.get("protocol") or "").lower()
+    output: dict[str, Any] = {}
+    for raw_key, item in record.items():
+        item_key = str(raw_key)
+        if item_key == "details" and isinstance(item, dict):
+            output[item_key] = _sanitize_public(
+                item,
+                key=item_key,
+                allow_error=protocol == "revived",
+            )
+        else:
+            output[item_key] = _sanitize_public(item, key=item_key)
+    return output
+
+
 def _sanitize_proxy_array(path: Path) -> bool:
     if not path.is_file():
         return False
     payload = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(payload, list):
         return False
-    sanitized = _sanitize_public(payload)
+    sanitized = [
+        _sanitize_proxy_record(item) if isinstance(item, dict) else _sanitize_public(item)
+        for item in payload
+    ]
     if sanitized == payload:
         return False
     path.write_text(
