@@ -515,12 +515,12 @@ def analyze_similarity(observed_metrics: Dict[str, Tuple[int, float]]) -> Set[st
     return to_remove
 
 
-def main() -> None:
+def main() -> int:
     try:
         _require_normalized_timing_inputs()
     except RuntimeError as exc:
         print(f"[ERROR] {exc}")
-        raise SystemExit(1) from exc
+        return 1
 
     # 1. Setup Workspace
     log_files: List[str] = []
@@ -530,7 +530,7 @@ def main() -> None:
 
     if not SOURCES_DIR.exists():
         print(f"[ERROR] Sources directory '{SOURCES_DIR}' not found.")
-        return
+        return 1
 
     # Determine batch count dynamically
     num_batches = get_current_batch_count()
@@ -549,7 +549,7 @@ def main() -> None:
     all_urls = set(get_existing_sources())
     if not all_urls:
         print("[ERROR] No sources found in sources/batch_*.txt")
-        return
+        return 1
     normalized_map: Dict[str, List[str]] = defaultdict(list)
     for url in all_urls:
         key = _normalize_source_key(url)
@@ -676,7 +676,7 @@ def main() -> None:
         for tmp, _ in temp_files:
             if tmp.exists():
                 tmp.unlink()
-        return
+        return 1
 
     # 9. Log Performance Metrics
     print("\n[INFO] Time-Based Load Balancing Metrics:")
@@ -699,7 +699,8 @@ def main() -> None:
     print(
         "\n[INFO] Refactor complete. Run the pipeline again to see performance gains."
     )
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
