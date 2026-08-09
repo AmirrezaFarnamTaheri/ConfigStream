@@ -25,6 +25,7 @@ def test_reconcile_sanitizes_root_and_categorized_proxy_arrays(tmp_path: Path) -
         },
     }
     _write(root / "proxies.json", [record])
+    _write(root / "api" / "proxies", [record])
     _write(root / "revived-dns-safe.json", [record])
     _write(root / "countries" / "XX.list-dns-hardened.json", [record])
     _write(
@@ -35,6 +36,7 @@ def test_reconcile_sanitizes_root_and_categorized_proxy_arrays(tmp_path: Path) -
             "shielded_verified_count": 0,
         },
     )
+    _write(root / "api" / "stats", {"stale": True})
 
     result = reconcile(root)
 
@@ -51,3 +53,6 @@ def test_reconcile_sanitizes_root_and_categorized_proxy_arrays(tmp_path: Path) -
     ):
         payload = json.loads(path.read_text(encoding="utf-8"))
         assert payload[0]["details"] == {"safe_public_field": "keep"}
+
+    assert (root / "api" / "proxies").read_bytes() == (root / "proxies.json").read_bytes()
+    assert (root / "api" / "stats").read_bytes() == (root / "metadata.json").read_bytes()
