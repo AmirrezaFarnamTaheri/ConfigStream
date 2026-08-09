@@ -241,7 +241,10 @@ def _write_output_fixture(root: Path) -> None:
 
 def _runtime_env() -> dict[str, str]:
     env = os.environ.copy()
-    env.setdefault("CS_PUBLIC_KEY", "deploy-smoke-public-key")
+    env["CS_PUBLIC_KEY"] = (
+        "d75a980182b10ab7d54bfed3c964073a"
+        "0ee172f3daa62325af021a68f707511a"
+    )
     env.setdefault("STEGO_KEY", "deploy-smoke-stego-key")
     env.setdefault("CS_IPNS_KEY", "deploy-smoke-ipns-key")
     return env
