@@ -9,12 +9,18 @@ shipped to a browser is public information.
 from __future__ import annotations
 
 import argparse
+import base64
 import json
 import os
 import re
 import sys
 from pathlib import Path
 from typing import Mapping
+
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import ed25519
+
+from configstream.signer import Signer
 
 PUBLIC_KEY_PLACEHOLDER_MARKERS = ("79e/79e/", "PLACEHOLDER_PUBLIC_KEY")
 STEGO_KEY_PLACEHOLDER = "PLACEHOLDER_KEY_INJECTED_BY_CI"
@@ -32,8 +38,34 @@ def _js_string(value: str) -> str:
     return json.dumps(value, ensure_ascii=False)
 
 
+def _derive_public_key_spki_base64(private_key_hex: str) -> str:
+    """Derive the browser Ed25519 trust anchor from a configured signing key."""
+
+    raw_public_key = bytes.fromhex(Signer(private_key_hex).get_public_key_hex())
+    public_key = ed25519.Ed25519PublicKey.from_public_bytes(raw_public_key)
+    der = public_key.public_bytes(
+        encoding=serialization.Encoding.DER,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo,
+    )
+    return base64.b64encode(der).decode("ascii")
+
+
+def _resolve_public_key(env: Mapping[str, str]) -> str:
+    explicit = env.get("CS_PUBLIC_KEY", "").strip()
+    if explicit:
+        return explicit
+
+    private_key = (
+        env.get("CS_SIGNING_PRIVATE_KEY_HEX", "").strip()
+        or env.get("CONFIGSTREAM_SIGNING_PRIVATE_KEY_HEX", "").strip()
+    )
+    if not private_key:
+        return ""
+    return _derive_public_key_spki_base64(private_key)
+
+
 def _runtime_config_content(env: Mapping[str, str]) -> str:
-    public_key = env.get("CS_PUBLIC_KEY", "").strip()
+    public_key = _resolve_public_key(env)
     ipns_key = env.get("CS_IPNS_KEY", "").strip()
     return "\n".join(
         [
@@ -54,7 +86,9 @@ def inject_frontend_keys(root: Path, env: Mapping[str, str]) -> list[str]:
 
     The caller may have unrelated symmetric secrets in its environment for
     earlier private processing stages. They are deliberately ignored here;
-    only CS_PUBLIC_KEY and CS_IPNS_KEY are selected for browser publication.
+    only public browser material is selected for publication. When CS_PUBLIC_KEY
+    is omitted, the Ed25519 public key is derived from the configured signing
+    private key and only the derived public SPKI value is written.
     """
 
     runtime_config_path = root / "assets" / "js" / "runtime-config.js"
@@ -119,7 +153,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--inject-env",
         action="store_true",
-        help="Inject public CS_PUBLIC_KEY and CS_IPNS_KEY values from the environment.",
+        help=(
+            "Inject public CS_PUBLIC_KEY/CS_IPNS_KEY values; when CS_PUBLIC_KEY is "
+            "absent, derive the public key from the configured Ed25519 signing key."
+        ),
     )
     parser.add_argument(
         "--strict",
@@ -134,7 +171,11 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     if args.inject_env:
-        changes = inject_frontend_keys(root, os.environ)
+        try:
+            changes = inject_frontend_keys(root, os.environ)
+        except (TypeError, ValueError) as exc:
+            print(f"ERROR: invalid frontend verification key material: {exc}", file=sys.stderr)
+            return 1
         if changes:
             print(f"Generated frontend runtime config in {len(changes)} file(s).")
 
