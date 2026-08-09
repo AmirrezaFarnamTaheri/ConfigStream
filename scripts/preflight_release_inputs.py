@@ -25,8 +25,7 @@ def validate_release_inputs(env: Mapping[str, str]) -> list[str]:
     )
     if not signing_key:
         errors.append(
-            "release signing key is unavailable: configure "
-            "CS_SIGNING_PRIVATE_KEY_HEX or CONFIGSTREAM_SIGNING_PRIVATE_KEY_HEX"
+            "release signing key is unavailable: configure CS_SIGNING_PRIVATE_KEY_HEX"
         )
 
     public_key = ""
