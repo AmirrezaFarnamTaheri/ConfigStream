@@ -18,7 +18,6 @@ jobs:
         with:
           ref: agent/fix-main-release-gates
           fetch-depth: 1
-          persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           python-version: "3.11"
@@ -96,13 +95,10 @@ jobs:
           python scripts/generate_environment_catalog.py --check
           python scripts/generate_debt_matrix.py --check
       - name: Commit verified non-workflow fix
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add scripts/dynamic_reshard.py tests/unit/test_review_fix_regressions.py
           git commit -m "[autofix] fix: reject non-finite timing evidence"
-          git config --local http.https://github.com/.extraheader "AUTHORIZATION: bearer $GH_TOKEN"
-          git push https://github.com/${GITHUB_REPOSITORY}.git HEAD:agent/fix-main-release-gates
+          git push origin HEAD:agent/fix-main-release-gates
