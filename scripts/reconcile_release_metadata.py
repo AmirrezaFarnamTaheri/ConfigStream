@@ -20,6 +20,11 @@ PUBLIC_PROXY_ARRAYS = (
     "revived-dns-hardened.json",
 )
 PUBLIC_PROXY_DIRS = ("countries", "protocols")
+PUBLIC_INTERNAL_DETAIL_KEYS = {
+    *INTERNAL_KEYS,
+    "shielded_candidate",
+    "shielded_verified",
+}
 
 
 def _load_object(path: Path) -> dict[str, Any]:
@@ -63,7 +68,8 @@ def _sanitize_public(
 
     The public proxy schema intentionally permits ``details.error`` for
     ``protocol: revived`` records. Other protocol-specific detail schemas are
-    closed and must not receive tester error text.
+    closed and must not receive tester error text. Shield-verification flags are
+    release bookkeeping and are reduced to metadata counters before this pass.
     """
 
     if isinstance(value, dict):
@@ -71,7 +77,7 @@ def _sanitize_public(
         for raw_key, item in value.items():
             item_key = str(raw_key)
             lowered = item_key.lower()
-            if item_key.startswith("_") or lowered in INTERNAL_KEYS:
+            if item_key.startswith("_") or lowered in PUBLIC_INTERNAL_DETAIL_KEYS:
                 continue
             if lowered == "error" and not allow_error:
                 continue
@@ -168,17 +174,18 @@ def _write_evidence(path: Path, payload: dict[str, Any]) -> None:
 
 
 def reconcile(root: Path, evidence_path: Path | None = None) -> dict[str, Any]:
-    changed_surfaces = _sanitize_public_proxy_surfaces(root)
     metadata_path = root / "metadata.json"
     proxies_path = root / "proxies.json"
     metadata = _load_object(metadata_path)
-    records = _load_records(proxies_path)
+    raw_records = _load_records(proxies_path)
 
     shard_candidates = max(
         int(metadata.get("shielded_count") or 0),
         int(metadata.get("shielded_candidate_count") or 0),
     )
-    public_candidates, public_verified = _public_shielding_counts(records)
+    public_candidates, public_verified = _public_shielding_counts(raw_records)
+
+    changed_surfaces = _sanitize_public_proxy_surfaces(root)
 
     metadata["shielded_count"] = public_candidates
     metadata["shielded_candidate_count"] = public_candidates
@@ -195,11 +202,17 @@ def reconcile(root: Path, evidence_path: Path | None = None) -> dict[str, Any]:
         health = _load_object(health_path)
         blockers = health.get("release_blockers")
         if isinstance(blockers, list):
-            health["release_blockers"] = [
+            reconciled_blockers = [
                 blocker
                 for blocker in blockers
                 if not str(blocker).startswith("unverified_shielded_candidates:")
             ]
+            if public_candidates > public_verified:
+                reconciled_blockers.append(
+                    "unverified_shielded_candidates:"
+                    f"{public_candidates - public_verified}"
+                )
+            health["release_blockers"] = reconciled_blockers
         health_path.write_text(
             json.dumps(health, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
         )
