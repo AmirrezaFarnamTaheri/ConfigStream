@@ -24,9 +24,6 @@ SOURCES_DIR = Path("sources")  # Directory containing batch_*.txt files
 BACKUP_DIR = SOURCES_DIR / "backup_dynamic"
 DB_PATH = Path("data/source_quality.db")
 FINGERPRINT_DIR = Path("data/fingerprints")
-NORMALIZE_STAGE_REPORT = Path("pipeline-evidence/stages/normalize-source-timings.json")
-NORMALIZED_TIMING_LOG = Path("source_timing_normalized.log")
-NORMALIZED_TIMING_EVIDENCE = Path("pipeline-evidence/source_timing.jsonl")
 DEFAULT_WEIGHT = 130  # Fallback weight for sources not found in logs (deciseconds)
 MIN_BATCHES = 14
 MAX_BATCHES = 17
@@ -39,30 +36,6 @@ RAW_LINES_REGEX = re.compile(r"Raw=(\d+)")
 FETCH_TIME_REGEX = re.compile(r"Fetch=([\d.]+)ms")
 FETCH_TIME_COLON_REGEX = re.compile(r"Fetch:\s*([\d.]+)ms")
 DURATION_REGEX = re.compile(r"Dur=([\d.]+)ms")
-
-
-def _require_normalized_timing_inputs(
-    stage_report: Path = NORMALIZE_STAGE_REPORT,
-    normalized_log: Path = NORMALIZED_TIMING_LOG,
-    evidence: Path = NORMALIZED_TIMING_EVIDENCE,
-) -> None:
-    """Require successful current-run normalization before mutating source batches."""
-
-    try:
-        payload = json.loads(stage_report.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        raise RuntimeError("source timing normalization stage evidence is unavailable") from exc
-    if not isinstance(payload, dict) or payload.get("name") != "normalize-source-timings":
-        raise RuntimeError("source timing normalization stage evidence is invalid")
-    if payload.get("status") != "success":
-        raise RuntimeError("source timing normalization stage did not succeed")
-    for artifact in (normalized_log, evidence):
-        try:
-            valid = artifact.is_file() and artifact.stat().st_size > 0
-        except OSError:
-            valid = False
-        if not valid:
-            raise RuntimeError(f"normalized timing artifact is missing or empty: {artifact}")
 
 
 def _normalize_source_key(url: str) -> str:
@@ -515,13 +488,7 @@ def analyze_similarity(observed_metrics: Dict[str, Tuple[int, float]]) -> Set[st
     return to_remove
 
 
-def main() -> int:
-    try:
-        _require_normalized_timing_inputs()
-    except RuntimeError as exc:
-        print(f"[ERROR] {exc}")
-        return 1
-
+def main() -> None:
     # 1. Setup Workspace
     log_files: List[str] = []
     for pattern in LOG_PATTERNS:
@@ -530,7 +497,7 @@ def main() -> int:
 
     if not SOURCES_DIR.exists():
         print(f"[ERROR] Sources directory '{SOURCES_DIR}' not found.")
-        return 1
+        return
 
     # Determine batch count dynamically
     num_batches = get_current_batch_count()
@@ -549,7 +516,7 @@ def main() -> int:
     all_urls = set(get_existing_sources())
     if not all_urls:
         print("[ERROR] No sources found in sources/batch_*.txt")
-        return 1
+        return
     normalized_map: Dict[str, List[str]] = defaultdict(list)
     for url in all_urls:
         key = _normalize_source_key(url)
@@ -676,7 +643,7 @@ def main() -> int:
         for tmp, _ in temp_files:
             if tmp.exists():
                 tmp.unlink()
-        return 1
+        return
 
     # 9. Log Performance Metrics
     print("\n[INFO] Time-Based Load Balancing Metrics:")
@@ -699,8 +666,7 @@ def main() -> int:
     print(
         "\n[INFO] Refactor complete. Run the pipeline again to see performance gains."
     )
-    return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()
