@@ -15,6 +15,7 @@ def _write(path: Path, payload: object) -> None:
 def test_reconcile_sanitizes_root_and_categorized_proxy_arrays(tmp_path: Path) -> None:
     root = tmp_path / "output"
     root.mkdir()
+    evidence_path = tmp_path / "pipeline-evidence" / "shielded_reconciliation.json"
     finalized_record = {
         "id": "candidate",
         "protocol": "vless",
@@ -54,7 +55,7 @@ def test_reconcile_sanitizes_root_and_categorized_proxy_arrays(tmp_path: Path) -
     )
     _write(root / "api" / "stats", {"stale": True})
 
-    result = reconcile(root)
+    result = reconcile(root, evidence_path)
 
     assert result["shard_candidates"] == 4
     assert sorted(result["sanitized_surfaces"]) == [
@@ -80,6 +81,17 @@ def test_reconcile_sanitizes_root_and_categorized_proxy_arrays(tmp_path: Path) -
         "is_revived": True,
         "error": "original transport failed",
     }
+
+    metadata = json.loads((root / "metadata.json").read_text(encoding="utf-8"))
+    assert "shard_shielded_candidate_count" not in metadata
+    assert metadata["shielded_count"] == 0
+    assert metadata["shielded_candidate_count"] == 0
+    assert metadata["shielded_verified_count"] == 0
+    evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
+    assert evidence["schema_version"] == 1
+    assert evidence["shard_candidates"] == 4
+    assert evidence["public_candidates"] == 0
+    assert evidence["public_verified"] == 0
 
     assert (root / "api" / "proxies").read_bytes() == (
         root / "proxies.json"
