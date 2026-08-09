@@ -9,7 +9,7 @@ import shutil
 from pathlib import Path
 from typing import Any
 
-from scripts.finalize_release_outputs import _sanitize
+from scripts.finalize_release_outputs import INTERNAL_KEYS, _clean_text, _source_host
 
 PUBLIC_PROXY_ARRAYS = (
     "proxies.json",
@@ -36,13 +36,52 @@ def _load_records(path: Path) -> list[dict[str, Any]]:
     return [item for item in payload if isinstance(item, dict)]
 
 
+def _public_source(value: str) -> str | None:
+    """Sanitize a source value without changing an already-public host/hash."""
+
+    cleaned = _clean_text(value).strip()
+    if not cleaned:
+        return None
+    if not any(marker in cleaned for marker in ("://", "/", "@", "?", "#")):
+        return cleaned
+    sanitized = _source_host(cleaned)
+    return str(sanitized) if sanitized is not None else None
+
+
+def _sanitize_public(value: Any, *, key: str | None = None) -> Any:
+    """Apply the public proxy boundary idempotently.
+
+    finalize_release_outputs already reduces canonical source URLs to a public
+    host/hash. Reconciliation may run over those records again while also
+    cleaning derivatives generated before finalization, so source sanitization
+    must preserve an already-public scalar instead of hashing it a second time.
+    """
+
+    if isinstance(value, dict):
+        output: dict[str, Any] = {}
+        for raw_key, item in value.items():
+            item_key = str(raw_key)
+            if item_key.startswith("_") or item_key.lower() in INTERNAL_KEYS:
+                continue
+            output[item_key] = _sanitize_public(item, key=item_key)
+        return output
+    if isinstance(value, list):
+        return [_sanitize_public(item, key=key) for item in value]
+    if isinstance(value, str):
+        cleaned = _clean_text(value)
+        if key == "source" or (key and "source" in key.lower()):
+            return _public_source(cleaned)
+        return cleaned
+    return value
+
+
 def _sanitize_proxy_array(path: Path) -> bool:
     if not path.is_file():
         return False
     payload = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(payload, list):
         return False
-    sanitized = _sanitize(payload)
+    sanitized = _sanitize_public(payload)
     if sanitized == payload:
         return False
     path.write_text(
