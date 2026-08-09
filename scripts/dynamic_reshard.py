@@ -2,6 +2,7 @@
 import logging
 import re
 import glob
+import hashlib
 import shutil
 import statistics
 import json
@@ -24,6 +25,7 @@ SOURCES_DIR = Path("sources")  # Directory containing batch_*.txt files
 BACKUP_DIR = SOURCES_DIR / "backup_dynamic"
 DB_PATH = Path("data/source_quality.db")
 FINGERPRINT_DIR = Path("data/fingerprints")
+TIMING_EVIDENCE_PATH = Path("pipeline-evidence/source_timing.jsonl")
 DEFAULT_WEIGHT = 130  # Fallback weight for sources not found in logs (deciseconds)
 MIN_BATCHES = 14
 MAX_BATCHES = 17
@@ -47,6 +49,36 @@ def _normalize_source_key(url: str) -> str:
     cleaned = cleaned.split("#", 1)[0]
     cleaned = cleaned.split("?", 1)[0]
     return cleaned.rstrip()
+
+
+def _source_timing_id(url: str) -> str:
+    return hashlib.sha256(url.strip().encode("utf-8")).hexdigest()
+
+
+def parse_timing_evidence(
+    path: Path, allowed_urls: Set[str]
+) -> Dict[str, Tuple[int, float]]:
+    if not path.exists():
+        return {}
+    by_id = {_source_timing_id(url): url for url in allowed_urls}
+    metrics: Dict[str, Tuple[int, float]] = {}
+    for line in path.read_text(encoding="utf-8", errors="ignore").splitlines():
+        if not line.strip():
+            continue
+        try:
+            payload = json.loads(line)
+            source_url = by_id.get(str(payload.get("source_id", "")))
+            raw = int(payload.get("raw", 0) or 0)
+            duration_ms = float(payload.get("duration_ms", 0.0) or 0.0)
+        except (json.JSONDecodeError, TypeError, ValueError):
+            continue
+        if not source_url or duration_ms <= 0:
+            continue
+        duration = duration_ms / 1000.0
+        existing = metrics.get(source_url, (0, 0.0))
+        if duration > existing[1]:
+            metrics[source_url] = (raw, duration)
+    return metrics
 
 
 def get_current_batch_count() -> int:
@@ -536,6 +568,9 @@ def main() -> None:
                 normalized_map=normalized_map,
             )
         )
+    structured_metrics = parse_timing_evidence(TIMING_EVIDENCE_PATH, all_urls)
+    if structured_metrics:
+        observed_metrics.update(structured_metrics)
     if db_metrics:
         # Prefer DB metrics when available
         observed_metrics.update(db_metrics)

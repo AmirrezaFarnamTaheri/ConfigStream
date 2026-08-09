@@ -311,7 +311,7 @@ def _main_native_output_contract(data: dict[Any, Any]) -> bool:
                 f"generate_evidence_bundle.py --output-dir output --evidence-dir pipeline-evidence --native-report {report}",
             )
         )
-        and f"--native-report-file {report}" not in commands
+        and "--native-report-file" not in commands
     )
     if resilient:
         return modern

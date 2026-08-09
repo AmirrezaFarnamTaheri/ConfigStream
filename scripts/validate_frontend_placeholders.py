@@ -20,6 +20,7 @@ from typing import Mapping
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ed25519
 
+from configstream.security_validator import SecurityValidator
 from configstream.signer import Signer, normalize_public_key_hex
 
 PUBLIC_KEY_PLACEHOLDER_MARKERS = ("79e/79e/", "PLACEHOLDER_PUBLIC_KEY")
@@ -187,7 +188,7 @@ def main(argv: list[str] | None = None) -> int:
             changes = inject_frontend_keys(root, os.environ)
         except (TypeError, ValueError) as exc:
             print(
-                f"ERROR: invalid frontend verification key material: {exc}",
+                f"ERROR: invalid frontend verification key material: {SecurityValidator.sanitize_log_message(str(exc))}",
                 file=sys.stderr,
             )
             return 1

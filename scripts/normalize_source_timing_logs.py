@@ -5,12 +5,15 @@ from __future__ import annotations
 
 import argparse
 import glob
+import hashlib
 import json
 import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
+
+from configstream.security_validator import SecurityValidator
 
 ANSI_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
 SUMMARY_START_RE = re.compile(r"Source\s+Summary\s+\[", re.IGNORECASE)
@@ -112,6 +115,10 @@ def timing_coverage(
     return len(expected_keys & observed_keys) / len(expected_keys)
 
 
+def source_id_for_url(url: str) -> str:
+    return hashlib.sha256(url.strip().encode("utf-8")).hexdigest()
+
+
 def write_outputs(
     records: list[SourceTiming], normalized_log: Path, evidence_jsonl: Path
 ) -> None:
@@ -120,19 +127,22 @@ def write_outputs(
     normalized_lines: list[str] = []
     evidence_lines: list[str] = []
     for record in records:
+        safe_url = SecurityValidator.sanitize_log_message(record.url)
+        safe_source_log = SecurityValidator.sanitize_log_message(record.source_log)
         fetch = f" Fetch={record.fetch_ms:g}ms" if record.fetch_ms is not None else ""
         normalized_lines.append(
-            f"Source Summary [{record.url}]: Raw={record.raw}{fetch} "
+            f"Source Summary [{safe_url}]: Raw={record.raw}{fetch} "
             f"Dur={record.duration_ms:g}ms"
         )
         evidence_lines.append(
             json.dumps(
                 {
-                    "source_url": record.url,
+                    "source_id": source_id_for_url(record.url),
+                    "source_url": safe_url,
                     "raw": record.raw,
                     "fetch_ms": record.fetch_ms,
                     "duration_ms": record.duration_ms,
-                    "source_log": record.source_log,
+                    "source_log": safe_source_log,
                 },
                 ensure_ascii=False,
                 sort_keys=True,
@@ -154,7 +164,7 @@ def _clear_outputs(*paths: Path) -> bool:
             path.unlink(missing_ok=True)
         except OSError as exc:
             print(
-                f"ERROR: could not clear stale timing output {path}: {type(exc).__name__}",
+                f"ERROR: could not clear stale timing output {SecurityValidator.sanitize_log_message(str(path))}: {type(exc).__name__}",
                 file=sys.stderr,
             )
             return False
