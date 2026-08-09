@@ -21,6 +21,7 @@ SUMMARY_HEAD_RE = re.compile(
 RAW_RE = re.compile(r"\bRaw\s*=\s*(\d+)", re.IGNORECASE)
 FETCH_RE = re.compile(r"\bFetch\s*[:=]\s*([\d.]+)\s*ms", re.IGNORECASE)
 DURATION_RE = re.compile(r"\bDur\s*=\s*([\d.]+)\s*ms", re.IGNORECASE)
+DEFAULT_MIN_COVERAGE = 0.80
 
 
 @dataclass(frozen=True)
@@ -34,6 +35,12 @@ class SourceTiming:
 
 def _flatten(text: str) -> str:
     return re.sub(r"\s+", " ", ANSI_RE.sub("", text)).strip()
+
+
+def _source_key(url: str) -> str:
+    cleaned = url.strip().replace("[MASKED]", "").replace("[BASE64]", "")
+    cleaned = cleaned.split("#", 1)[0].split("?", 1)[0]
+    return cleaned.rstrip()
 
 
 def parse_source_timings(text: str, source_log: str = "") -> list[SourceTiming]:
@@ -80,6 +87,27 @@ def collect_timings(log_files: Iterable[Path]) -> list[SourceTiming]:
     return [by_url[url] for url in sorted(by_url)]
 
 
+def load_expected_sources(pattern: str) -> set[str]:
+    sources: set[str] = set()
+    for item in sorted(glob.glob(pattern)):
+        path = Path(item)
+        for line in path.read_text(encoding="utf-8", errors="ignore").splitlines():
+            value = line.strip()
+            if not value or value.startswith("#"):
+                continue
+            if value.startswith(("http://", "https://")):
+                sources.add(value)
+    return sources
+
+
+def timing_coverage(records: Iterable[SourceTiming], expected_sources: Iterable[str]) -> float:
+    expected_keys = {_source_key(url) for url in expected_sources if _source_key(url)}
+    if not expected_keys:
+        return 0.0
+    observed_keys = {_source_key(record.url) for record in records if _source_key(record.url)}
+    return len(expected_keys & observed_keys) / len(expected_keys)
+
+
 def write_outputs(
     records: list[SourceTiming], normalized_log: Path, evidence_jsonl: Path
 ) -> None:
@@ -122,6 +150,17 @@ def main() -> int:
         "--pattern", default="pipeline_batch_*.log", help="Shard log glob pattern"
     )
     parser.add_argument(
+        "--sources-pattern",
+        default="sources/batch_*.txt",
+        help="Canonical source-file glob used to calculate timing coverage",
+    )
+    parser.add_argument(
+        "--min-coverage",
+        type=float,
+        default=DEFAULT_MIN_COVERAGE,
+        help="Minimum fraction of canonical sources requiring real timing evidence",
+    )
+    parser.add_argument(
         "--normalized-log",
         type=Path,
         default=Path("source_timing_normalized.log"),
@@ -143,6 +182,24 @@ def main() -> int:
     if not records:
         print(
             "ERROR: shard logs contained no parseable Source Summary timing records",
+            file=sys.stderr,
+        )
+        return 1
+
+    expected_sources = load_expected_sources(args.sources_pattern)
+    if not expected_sources:
+        print("ERROR: no canonical sources available for timing coverage", file=sys.stderr)
+        return 1
+    coverage = timing_coverage(records, expected_sources)
+    min_coverage = max(0.0, min(float(args.min_coverage), 1.0))
+    print(
+        f"INFO: source timing coverage {coverage:.1%} "
+        f"({len(records)} records, {len(expected_sources)} canonical sources)"
+    )
+    if coverage < min_coverage:
+        print(
+            f"ERROR: source timing coverage {coverage:.1%} is below "
+            f"the required {min_coverage:.1%}",
             file=sys.stderr,
         )
         return 1
