@@ -2,9 +2,13 @@
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
 from pathlib import Path
 
 from scripts.reconcile_release_metadata import reconcile
+
+SCRIPT = Path(__file__).resolve().parents[2] / "scripts" / "reconcile_release_metadata.py"
 
 
 def _write(path: Path, payload: object) -> None:
@@ -166,3 +170,29 @@ def test_reconcile_keeps_unverified_public_shielded_candidate_blocking(
     assert health["release_blockers"] == ["unverified_shielded_candidates:1"]
     public = json.loads((root / "proxies.json").read_text(encoding="utf-8"))
     assert public[0]["details"] == {"processed_by": ["shielding"]}
+
+
+def test_reconcile_runs_as_direct_workflow_script(tmp_path: Path) -> None:
+    root = tmp_path / "output"
+    root.mkdir()
+    _write(root / "proxies.json", [])
+    _write(
+        root / "metadata.json",
+        {
+            "shielded_count": 0,
+            "shielded_candidate_count": 0,
+            "shielded_verified_count": 0,
+        },
+    )
+
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), str(root)],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "Reconciled public artifact" in result.stdout
