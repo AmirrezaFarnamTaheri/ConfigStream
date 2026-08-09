@@ -16,6 +16,14 @@ def _load_local_workflow(name: str) -> dict:
     return data
 
 
+def _step_by_name(job: dict, name: str) -> dict:
+    return next(
+        step
+        for step in job.get("steps", [])
+        if isinstance(step, dict) and step.get("name") == name
+    )
+
+
 def test_resilient_main_contract_accepts_hardened_workflow() -> None:
     assert validate_workflows._main_safe(_load_local_workflow("main.yml")) == []
 
@@ -81,6 +89,40 @@ def test_resilient_main_contract_requires_matrix_status_evidence() -> None:
         "release readiness must require matrix-status"
         in validate_workflows._main_safe(data)
     )
+
+
+def test_main_release_prerequisites_are_checked_before_fanout() -> None:
+    data = _load_local_workflow("main.yml")
+    quality = data["jobs"]["quality"]
+    step = _step_by_name(quality, "Validate main release prerequisites")
+    assert "scripts/preflight_release_inputs.py" in step["run"]
+    assert "CS_PUBLIC_KEY" in step["env"]
+    assert "CS_SIGNING_PRIVATE_KEY_HEX" in step["env"]
+    assert data["jobs"]["build_container"]["needs"] == ["quality"]
+    assert data["jobs"]["setup_matrix"]["needs"] == ["quality"]
+
+
+def test_main_preserves_authoritative_native_report() -> None:
+    data = _load_local_workflow("main.yml")
+    merge = data["jobs"]["merge_validate_publish"]
+    step = _step_by_name(merge, "Run every mandatory release gate")
+    command = step["run"]
+    assert "native_client_checks.py output --report pipeline-evidence/native_client_check_report.json" in command
+    assert "--native-report pipeline-evidence/native_client_check_report.json" in command
+    assert "--native-report-file" not in command
+    assert "CS_SIGNING_PRIVATE_KEY_HEX" in step["env"]
+
+
+def test_main_requires_real_timing_and_reconciled_public_metadata() -> None:
+    data = _load_local_workflow("main.yml")
+    assert str(data["env"]["SOURCE_SHARD_PARTS"]) == "6"
+    merge = data["jobs"]["merge_validate_publish"]
+    timing_step = _step_by_name(merge, "Merge and reconcile all available shard evidence")
+    assert "normalize_source_timing_logs.py" in timing_step["run"]
+    readiness = _step_by_name(merge, "Evaluate release readiness")["run"]
+    assert "--required-stage normalize-source-timings" in readiness
+    assert "--required-stage reconcile-release-metadata" in readiness
+    assert "--required-file pipeline-evidence/source_timing.jsonl" in readiness
 
 
 def test_pages_contract_accepts_hardened_workflow() -> None:
