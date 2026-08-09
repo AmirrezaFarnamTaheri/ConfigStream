@@ -1,0 +1,79 @@
+name: Black Artifact Export
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.11"
+      - name: Install pinned development dependencies
+        run: python -m pip install -r requirements-dev.txt
+      - name: Make native target mapping Black-stable
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("scripts/native_client_checks.py")
+          text = path.read_text(encoding="utf-8")
+          old = '"path": {"sing-box": "singbox.json", "mihomo": "clash.yaml", "xray": "xray.json"}[core],'
+          new = '"path": _required_native_target(core),'
+          if old not in text:
+              raise SystemExit("native target mapping marker not found")
+          text = text.replace(old, new, 1)
+          marker = '\n\nif __name__ == "__main__":\n'
+          helper = '''\n\ndef _required_native_target(core: str) -> str:\n    return {\n        "sing-box": "singbox.json",\n        "mihomo": "clash.yaml",\n        "xray": "xray.json",\n    }[core]\n'''
+          if marker not in text:
+              raise SystemExit("native helper insertion marker not found")
+          path.write_text(text.replace(marker, helper + marker, 1), encoding="utf-8")
+          PY
+      - name: Apply pinned Black
+        run: |
+          python -m black \
+            scripts/normalize_source_timing_logs.py \
+            scripts/native_client_checks.py \
+            scripts/deploy_artifact_smoke.py \
+            scripts/validate_frontend_placeholders.py \
+            scripts/reconcile_release_metadata.py \
+            tests/unit/test_normalize_source_timing_logs.py \
+            scripts/dynamic_reshard.py \
+            tests/unit/test_require_stage_evidence.py \
+            tests/unit/test_reconcile_release_metadata.py \
+            tests/unit/test_release_remediation.py \
+            tests/unit/test_validate_frontend_placeholders.py \
+            scripts/validate_workflows.py \
+            tests/unit/test_validate_workflows_resilient.py
+      - name: Package formatted files
+        run: |
+          zip -q black-formatted.zip \
+            scripts/normalize_source_timing_logs.py \
+            scripts/native_client_checks.py \
+            scripts/deploy_artifact_smoke.py \
+            scripts/validate_frontend_placeholders.py \
+            scripts/reconcile_release_metadata.py \
+            tests/unit/test_normalize_source_timing_logs.py \
+            scripts/dynamic_reshard.py \
+            tests/unit/test_require_stage_evidence.py \
+            tests/unit/test_reconcile_release_metadata.py \
+            tests/unit/test_release_remediation.py \
+            tests/unit/test_validate_frontend_placeholders.py \
+            scripts/validate_workflows.py \
+            tests/unit/test_validate_workflows_resilient.py
+      - name: Upload formatted ZIP
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: black-formatted-${{ github.run_id }}
+          path: black-formatted.zip
+          if-no-files-found: error
+          retention-days: 1
