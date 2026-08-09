@@ -26,6 +26,7 @@ PUBLIC_PROXY_ARRAYS = (
 )
 PUBLIC_PROXY_DIRS = ("countries", "protocols")
 PUBLIC_INTERNAL_KEYS = set(INTERNAL_KEYS)
+DEFAULT_EVIDENCE_PATH = Path("pipeline-evidence/shielded_reconciliation.json")
 
 
 def _load_object(path: Path) -> dict[str, Any]:
@@ -240,7 +241,11 @@ def main() -> int:
     parser.add_argument(
         "--evidence",
         type=Path,
-        help="Optional private evidence file for pre-publication shard diagnostics.",
+        default=DEFAULT_EVIDENCE_PATH,
+        help=(
+            "Private evidence file for pre-publication shard diagnostics "
+            f"(default: {DEFAULT_EVIDENCE_PATH.as_posix()})."
+        ),
     )
     args = parser.parse_args()
     result = reconcile(args.artifact_dir.resolve(), args.evidence)
