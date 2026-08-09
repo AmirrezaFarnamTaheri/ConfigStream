@@ -21,6 +21,17 @@ def test_parse_source_timings_recovers_rich_wrapped_summary() -> None:
     assert records[0].duration_ms == 199631.0
 
 
+def test_parse_source_timings_does_not_borrow_duration_from_next_record() -> None:
+    text = """
+INFO Source Summary [https://broken.example/sub]: Raw=9
+INFO Source Summary [https://good.example/sub]: Raw=10 Dur=2500ms
+"""
+    records = parse_source_timings(text, "pipeline_batch_1_part_1.log")
+    assert [(record.url, record.duration_ms) for record in records] == [
+        ("https://good.example/sub", 2500.0)
+    ]
+
+
 def test_collect_timings_keeps_slowest_duplicate_observation(tmp_path: Path) -> None:
     first = tmp_path / "pipeline_batch_1_part_1.log"
     second = tmp_path / "pipeline_batch_1_part_2.log"
