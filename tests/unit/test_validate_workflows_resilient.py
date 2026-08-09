@@ -111,6 +111,24 @@ def test_main_preserves_authoritative_native_report() -> None:
     assert "--native-report pipeline-evidence/native_client_check_report.json" in command
     assert "--native-report-file" not in command
     assert "CS_SIGNING_PRIVATE_KEY_HEX" in step["env"]
+    assert validate_workflows._main_native_output_contract(data) is True
+
+
+def test_main_contract_rejects_authoritative_native_report_overwrite() -> None:
+    data = deepcopy(_load_local_workflow("main.yml"))
+    merge = data["jobs"]["merge_validate_publish"]
+    step = _step_by_name(merge, "Run every mandatory release gate")
+    step["run"] = step["run"].replace(
+        "validate_pages_artifact.py --native-client-check output",
+        "validate_pages_artifact.py --native-client-check "
+        "--native-report-file pipeline-evidence/native_client_check_report.json output",
+    )
+
+    assert validate_workflows._main_native_output_contract(data) is False
+    assert (
+        "data release assets must use the shared native output contract"
+        in validate_workflows._main_safe(data)
+    )
 
 
 def test_main_requires_real_timing_and_reconciled_public_metadata() -> None:
