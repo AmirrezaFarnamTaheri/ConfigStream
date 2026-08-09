@@ -117,9 +117,7 @@ def test_finalize_sanitizes_counts_sources_and_transients(tmp_path: Path) -> Non
     }
     write_json(output / "proxies.json", records)
     write_json(output / "countries" / "XX.list.json", [leaked_derivative])
-    write_json(
-        output / "protocols" / "revived.list-dns-safe.json", [leaked_derivative]
-    )
+    write_json(output / "protocols" / "revived.list-dns-safe.json", [leaked_derivative])
     write_json(
         output / "metadata.json",
         {

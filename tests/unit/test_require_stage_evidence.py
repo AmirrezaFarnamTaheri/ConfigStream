@@ -96,7 +96,9 @@ def test_dynamic_reshard_stops_before_sources_when_prerequisites_fail(
     def fail_prerequisite() -> None:
         raise SystemExit(1)
 
-    monkeypatch.setattr(dynamic_reshard, "_require_timing_prerequisites", fail_prerequisite)
+    monkeypatch.setattr(
+        dynamic_reshard, "_require_timing_prerequisites", fail_prerequisite
+    )
 
     with pytest.raises(SystemExit) as exc_info:
         dynamic_reshard.main()

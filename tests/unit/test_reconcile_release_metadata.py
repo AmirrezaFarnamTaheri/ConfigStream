@@ -8,7 +8,9 @@ from pathlib import Path
 
 from scripts.reconcile_release_metadata import reconcile
 
-SCRIPT = Path(__file__).resolve().parents[2] / "scripts" / "reconcile_release_metadata.py"
+SCRIPT = (
+    Path(__file__).resolve().parents[2] / "scripts" / "reconcile_release_metadata.py"
+)
 
 
 def _write(path: Path, payload: object) -> None:

@@ -57,7 +57,9 @@ def test_collect_timings_keeps_slowest_duplicate_observation(tmp_path: Path) -> 
     assert records[0].source_log == second.name
 
 
-def test_load_expected_sources_ignores_comments_and_invalid_lines(tmp_path: Path) -> None:
+def test_load_expected_sources_ignores_comments_and_invalid_lines(
+    tmp_path: Path,
+) -> None:
     source_file = tmp_path / "batch_1.txt"
     source_file.write_text(
         "# comment\nhttps://a.example/sub\nnot-a-url\nhttps://b.example/sub\n",

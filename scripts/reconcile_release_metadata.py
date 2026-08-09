@@ -122,7 +122,11 @@ def _sanitize_proxy_array(path: Path) -> bool:
     if not isinstance(payload, list):
         return False
     sanitized = [
-        _sanitize_proxy_record(item) if isinstance(item, dict) else _sanitize_public(item)
+        (
+            _sanitize_proxy_record(item)
+            if isinstance(item, dict)
+            else _sanitize_public(item)
+        )
         for item in payload
     ]
     if sanitized == payload:

@@ -135,7 +135,7 @@ def main() -> int:
             checks.append(
                 {
                     "core": core,
-                    "path": {"sing-box": "singbox.json", "mihomo": "clash.yaml", "xray": "xray.json"}[core],
+                    "path": _required_native_target(core),
                     "status": "failed",
                     "command": None,
                     "artifact_sha256": None,
@@ -227,6 +227,14 @@ def main() -> int:
     )
     print(json.dumps(summary))
     return 1 if summary["failed"] or summary["skipped"] or not checks else 0
+
+
+def _required_native_target(core: str) -> str:
+    return {
+        "sing-box": "singbox.json",
+        "mihomo": "clash.yaml",
+        "xray": "xray.json",
+    }[core]
 
 
 if __name__ == "__main__":

@@ -107,8 +107,13 @@ def test_main_preserves_authoritative_native_report() -> None:
     merge = data["jobs"]["merge_validate_publish"]
     step = _step_by_name(merge, "Run every mandatory release gate")
     command = step["run"]
-    assert "native_client_checks.py output --report pipeline-evidence/native_client_check_report.json" in command
-    assert "--native-report pipeline-evidence/native_client_check_report.json" in command
+    assert (
+        "native_client_checks.py output --report pipeline-evidence/native_client_check_report.json"
+        in command
+    )
+    assert (
+        "--native-report pipeline-evidence/native_client_check_report.json" in command
+    )
     assert "--native-report-file" not in command
     assert "CS_SIGNING_PRIVATE_KEY_HEX" in step["env"]
     assert validate_workflows._main_native_output_contract(data) is True
@@ -135,7 +140,9 @@ def test_main_requires_real_timing_and_reconciled_public_metadata() -> None:
     data = _load_local_workflow("main.yml")
     assert str(data["env"]["SOURCE_SHARD_PARTS"]) == "6"
     merge = data["jobs"]["merge_validate_publish"]
-    timing_step = _step_by_name(merge, "Merge and reconcile all available shard evidence")
+    timing_step = _step_by_name(
+        merge, "Merge and reconcile all available shard evidence"
+    )
     assert "normalize_source_timing_logs.py" in timing_step["run"]
     readiness = _step_by_name(merge, "Evaluate release readiness")["run"]
     assert "--required-stage normalize-source-timings" in readiness

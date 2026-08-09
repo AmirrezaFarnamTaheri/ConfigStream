@@ -100,11 +100,15 @@ def load_expected_sources(pattern: str) -> set[str]:
     return sources
 
 
-def timing_coverage(records: Iterable[SourceTiming], expected_sources: Iterable[str]) -> float:
+def timing_coverage(
+    records: Iterable[SourceTiming], expected_sources: Iterable[str]
+) -> float:
     expected_keys = {_source_key(url) for url in expected_sources if _source_key(url)}
     if not expected_keys:
         return 0.0
-    observed_keys = {_source_key(record.url) for record in records if _source_key(record.url)}
+    observed_keys = {
+        _source_key(record.url) for record in records if _source_key(record.url)
+    }
     return len(expected_keys & observed_keys) / len(expected_keys)
 
 
@@ -190,7 +194,9 @@ def main() -> int:
 
     log_files = [Path(item) for item in sorted(glob.glob(args.pattern))]
     if not log_files:
-        print("ERROR: no shard logs available for timing normalization", file=sys.stderr)
+        print(
+            "ERROR: no shard logs available for timing normalization", file=sys.stderr
+        )
         return 1
 
     records = collect_timings(log_files)
@@ -203,7 +209,9 @@ def main() -> int:
 
     expected_sources = load_expected_sources(args.sources_pattern)
     if not expected_sources:
-        print("ERROR: no canonical sources available for timing coverage", file=sys.stderr)
+        print(
+            "ERROR: no canonical sources available for timing coverage", file=sys.stderr
+        )
         return 1
     coverage = timing_coverage(records, expected_sources)
     min_coverage = max(0.0, min(float(args.min_coverage), 1.0))

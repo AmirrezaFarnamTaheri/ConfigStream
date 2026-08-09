@@ -36,9 +36,7 @@ def _write_frontend(root: Path) -> None:
 
 
 def _runtime_public_key(root: Path) -> str:
-    runtime = (root / "assets" / "js" / "runtime-config.js").read_text(
-        encoding="utf-8"
-    )
+    runtime = (root / "assets" / "js" / "runtime-config.js").read_text(encoding="utf-8")
     marker = "PUBLIC_KEY: "
     value = runtime.split(marker, 1)[1].split(",", 1)[0]
     return str(json.loads(value))
@@ -76,9 +74,9 @@ def test_inject_frontend_keys_canonicalizes_raw_hex_public_key_for_browser(
     inject_frontend_keys(tmp_path, {"CS_PUBLIC_KEY": raw_public_key})
 
     assert _runtime_public_key(tmp_path) == PUBLIC_KEY_SPKI
-    assert raw_public_key not in (tmp_path / "assets" / "js" / "runtime-config.js").read_text(
-        encoding="utf-8"
-    )
+    assert raw_public_key not in (
+        tmp_path / "assets" / "js" / "runtime-config.js"
+    ).read_text(encoding="utf-8")
 
 
 def test_inject_frontend_keys_derives_public_key_from_signing_key(

@@ -186,7 +186,10 @@ def main(argv: list[str] | None = None) -> int:
         try:
             changes = inject_frontend_keys(root, os.environ)
         except (TypeError, ValueError) as exc:
-            print(f"ERROR: invalid frontend verification key material: {exc}", file=sys.stderr)
+            print(
+                f"ERROR: invalid frontend verification key material: {exc}",
+                file=sys.stderr,
+            )
             return 1
         if changes:
             print(f"Generated frontend runtime config in {len(changes)} file(s).")

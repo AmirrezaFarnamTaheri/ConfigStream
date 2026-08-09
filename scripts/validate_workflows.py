@@ -301,15 +301,18 @@ def _main_native_output_contract(data: dict[Any, Any]) -> bool:
     report = "pipeline-evidence/native_client_check_report.json"
     commands = "\n".join(_run_steps(data))
     resilient = _has_command(data, "scripts/resilient_stage.py")
-    modern = all(
-        marker in commands
-        for marker in (
-            f"native_client_checks.py output --report {report}",
-            f"release_gate.py output --native-report {report}",
-            "validate_pages_artifact.py --native-client-check output",
-            f"generate_evidence_bundle.py --output-dir output --evidence-dir pipeline-evidence --native-report {report}",
+    modern = (
+        all(
+            marker in commands
+            for marker in (
+                f"native_client_checks.py output --report {report}",
+                f"release_gate.py output --native-report {report}",
+                "validate_pages_artifact.py --native-client-check output",
+                f"generate_evidence_bundle.py --output-dir output --evidence-dir pipeline-evidence --native-report {report}",
+            )
         )
-    ) and f"--native-report-file {report}" not in commands
+        and f"--native-report-file {report}" not in commands
+    )
     if resilient:
         return modern
 
