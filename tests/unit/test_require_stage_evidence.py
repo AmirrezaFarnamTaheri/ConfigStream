@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from scripts import dynamic_reshard, require_stage_evidence, resilient_stage
 
 
@@ -89,8 +91,14 @@ def test_requirement_passes_only_with_successful_stage_and_evidence(
 
 
 def test_dynamic_reshard_stops_before_sources_when_prerequisites_fail(
-    monkeypatch,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr(dynamic_reshard, "_timing_prerequisites_ready", lambda: False)
+    def fail_prerequisite() -> None:
+        raise SystemExit(1)
 
-    assert dynamic_reshard.main() == 1
+    monkeypatch.setattr(dynamic_reshard, "_require_timing_prerequisites", fail_prerequisite)
+
+    with pytest.raises(SystemExit) as exc_info:
+        dynamic_reshard.main()
+
+    assert exc_info.value.code == 1
