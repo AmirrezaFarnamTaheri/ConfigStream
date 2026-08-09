@@ -21,6 +21,14 @@ def test_preflight_rejects_missing_release_trust_anchor() -> None:
     assert any("verification key is unavailable" in error for error in errors)
 
 
+def test_preflight_rejects_public_key_without_signing_key() -> None:
+    public_key = _resolve_public_key({"CS_SIGNING_PRIVATE_KEY_HEX": "01" * 32})
+
+    errors = validate_release_inputs({"CS_PUBLIC_KEY": public_key})
+
+    assert any("signing key is unavailable" in error for error in errors)
+
+
 def test_preflight_rejects_malformed_explicit_public_key() -> None:
     errors = validate_release_inputs({"CS_PUBLIC_KEY": "not-an-ed25519-key"})
     assert any("not a valid Ed25519 public key" in error for error in errors)
