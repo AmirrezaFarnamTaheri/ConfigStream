@@ -52,6 +52,25 @@ def test_inject_frontend_keys_generates_public_only_runtime_config(
     assert validate_frontend_placeholders(tmp_path, strict=True) == []
 
 
+def test_inject_frontend_keys_derives_public_key_from_signing_key(
+    tmp_path: Path,
+) -> None:
+    _write_frontend(tmp_path)
+    private_key_hex = "01" * 32
+
+    changed = inject_frontend_keys(
+        tmp_path,
+        {"CS_SIGNING_PRIVATE_KEY_HEX": private_key_hex},
+    )
+
+    runtime = (tmp_path / "assets" / "js" / "runtime-config.js").read_text(
+        encoding="utf-8"
+    )
+    assert len(changed) == 1
+    assert private_key_hex not in runtime
+    assert validate_frontend_placeholders(tmp_path, strict=True) == []
+
+
 def test_inject_frontend_keys_ignores_all_ambient_symmetric_secrets(
     tmp_path: Path,
 ) -> None:
