@@ -54,7 +54,10 @@ def test_native_validator_installer_does_not_pipe_gh_api_into_head() -> None:
     assert "first(.assets[].name" in content
 
 
-@pytest.mark.skipif(shutil.which("bash") is None, reason="requires bash")
+@pytest.mark.skipif(
+    shutil.which("bash") is None,
+    reason="Bash tool unavailable on this platform environment",
+)
 def test_native_validator_installer_executes_with_authenticated_release_assets(
     tmp_path: Path,
 ) -> None:
