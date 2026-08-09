@@ -30,9 +30,19 @@ def test_reconcile_sanitizes_root_and_categorized_proxy_arrays(tmp_path: Path) -
         **finalized_record,
         "source": "https://user:secret@example.com/sub?token=secret",
     }
+    revived_record = {
+        "id": "revived",
+        "protocol": "revived",
+        "source": "https://revived.example/sub?token=secret",
+        "details": {
+            "is_revived": True,
+            "error": "original transport failed",
+            "tester_error_category": "IPC_ERROR",
+        },
+    }
     _write(root / "proxies.json", [finalized_record])
     _write(root / "api" / "proxies", [finalized_record])
-    _write(root / "revived-dns-safe.json", [derivative_record])
+    _write(root / "revived-dns-safe.json", [derivative_record, revived_record])
     _write(root / "countries" / "XX.list-dns-hardened.json", [derivative_record])
     _write(
         root / "metadata.json",
@@ -54,12 +64,22 @@ def test_reconcile_sanitizes_root_and_categorized_proxy_arrays(tmp_path: Path) -
     ]
     for path in (
         root / "proxies.json",
-        root / "revived-dns-safe.json",
         root / "countries" / "XX.list-dns-hardened.json",
     ):
         payload = json.loads(path.read_text(encoding="utf-8"))
         assert payload[0]["source"] == "example.com"
         assert payload[0]["details"] == {"safe_public_field": "keep"}
+
+    revived_payload = json.loads(
+        (root / "revived-dns-safe.json").read_text(encoding="utf-8")
+    )
+    assert revived_payload[0]["source"] == "example.com"
+    assert revived_payload[0]["details"] == {"safe_public_field": "keep"}
+    assert revived_payload[1]["source"] == "revived.example"
+    assert revived_payload[1]["details"] == {
+        "is_revived": True,
+        "error": "original transport failed",
+    }
 
     assert (root / "api" / "proxies").read_bytes() == (
         root / "proxies.json"
