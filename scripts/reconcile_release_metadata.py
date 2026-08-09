@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 from pathlib import Path
 from typing import Any
 
@@ -66,6 +67,15 @@ def _sanitize_public_proxy_surfaces(root: Path) -> list[str]:
     return changed
 
 
+def _sync_api_alias(root: Path, canonical: str, alias: str) -> None:
+    source = root / canonical
+    destination = root / alias
+    if not source.is_file():
+        return
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(source, destination)
+
+
 def _public_shielding_counts(records: list[dict[str, Any]]) -> tuple[int, int]:
     candidates = 0
     verified = 0
@@ -99,6 +109,9 @@ def reconcile(root: Path) -> dict[str, Any]:
     metadata_path.write_text(
         json.dumps(metadata, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
+
+    _sync_api_alias(root, "proxies.json", "api/proxies")
+    _sync_api_alias(root, "metadata.json", "api/stats")
 
     health_path = root / "health.json"
     if health_path.is_file():
