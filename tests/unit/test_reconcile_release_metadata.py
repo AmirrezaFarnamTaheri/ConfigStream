@@ -204,3 +204,13 @@ def test_reconcile_runs_as_direct_workflow_script(tmp_path: Path) -> None:
 
     assert result.returncode == 0, result.stdout + result.stderr
     assert "Reconciled public artifact" in result.stdout
+    evidence_path = tmp_path / "pipeline-evidence" / "shielded_reconciliation.json"
+    assert evidence_path.is_file()
+    evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
+    assert evidence == {
+        "public_candidates": 0,
+        "public_verified": 0,
+        "sanitized_surfaces": [],
+        "schema_version": 1,
+        "shard_candidates": 0,
+    }
