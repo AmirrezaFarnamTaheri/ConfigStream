@@ -1,0 +1,108 @@
+name: Review Fix Non-Finite Timing
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  PYTHONPATH: src
+
+jobs:
+  prove-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: agent/fix-main-release-gates
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.11"
+      - name: Install pinned development dependencies
+        run: |
+          python -m pip install -r requirements-dev.txt
+          python -m pip install -e . --no-deps
+      - name: Add regression before implementation
+        run: |
+          if ! grep -q 'test_structured_timing_rejects_non_finite_duration' tests/unit/test_review_fix_regressions.py; then
+            cat >> tests/unit/test_review_fix_regressions.py <<'PYTEST'
+
+          def test_structured_timing_rejects_non_finite_duration(tmp_path: Path) -> None:
+              raw_url = "https://example.com/source"
+              evidence = tmp_path / "source_timing.jsonl"
+              evidence.write_text(
+                  json.dumps(
+                      {
+                          "source_id": hashlib.sha256(raw_url.encode("utf-8")).hexdigest(),
+                          "raw": 10,
+                          "duration_ms": "Infinity",
+                      }
+                  )
+                  + "\n",
+                  encoding="utf-8",
+              )
+
+              assert dynamic_reshard.parse_timing_evidence(evidence, {raw_url}) == {}
+          PYTEST
+          fi
+      - name: RED - non-finite duration must fail before fix
+        id: red
+        continue-on-error: true
+        run: python -m pytest -q tests/unit/test_review_fix_regressions.py -k non_finite_duration
+      - name: Enforce RED
+        env:
+          RED_OUTCOME: ${{ steps.red.outcome }}
+        run: test "$RED_OUTCOME" = failure
+      - name: Reject non-finite timing values
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("scripts/dynamic_reshard.py")
+          text = path.read_text(encoding="utf-8")
+          if "import math\n" not in text:
+              marker = "import logging\n"
+              if marker not in text:
+                  raise SystemExit("logging import marker missing")
+              text = text.replace(marker, marker + "import math\n", 1)
+          old = "        if not source_url or duration_ms <= 0:\n            continue\n"
+          new = (
+              "        if (\n"
+              "            not source_url\n"
+              "            or not math.isfinite(duration_ms)\n"
+              "            or duration_ms <= 0\n"
+              "        ):\n"
+              "            continue\n"
+          )
+          if old not in text:
+              if "not math.isfinite(duration_ms)" not in text:
+                  raise SystemExit("duration validation marker missing")
+          else:
+              text = text.replace(old, new, 1)
+          path.write_text(text, encoding="utf-8")
+          PY
+      - name: GREEN and static verification
+        run: |
+          python -m black scripts/dynamic_reshard.py tests/unit/test_review_fix_regressions.py
+          python -m pytest -q \
+            tests/unit/test_review_fix_regressions.py \
+            tests/unit/test_normalize_source_timing_logs.py \
+            tests/unit/test_require_stage_evidence.py
+          python -m mypy scripts/dynamic_reshard.py tests/unit/test_review_fix_regressions.py
+          python scripts/generate_environment_catalog.py --check
+          python scripts/generate_debt_matrix.py --check
+      - name: Commit verified non-workflow fix
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts/dynamic_reshard.py tests/unit/test_review_fix_regressions.py
+          git commit -m "[autofix] fix: reject non-finite timing evidence"
+          git config --local http.https://github.com/.extraheader "AUTHORIZATION: bearer $GH_TOKEN"
+          git push https://github.com/${GITHUB_REPOSITORY}.git HEAD:agent/fix-main-release-gates
