@@ -62,14 +62,33 @@ jobs:
           python scripts/generate_environment_catalog.py --check
           python scripts/generate_debt_matrix.py --check
       - name: Verify focused regressions
+        id: focused
+        continue-on-error: true
+        shell: bash
         run: |
-          python -m pytest -q \
+          set -o pipefail
+          python -m pytest -q --junitxml=focused-junit.xml \
             tests/unit/test_normalize_source_timing_logs.py \
             tests/unit/test_require_stage_evidence.py \
             tests/unit/test_reconcile_release_metadata.py \
             tests/unit/test_pr531_review_regressions.py \
             tests/unit/test_validate_frontend_placeholders.py \
-            tests/unit/test_validate_workflows_resilient.py
+            tests/unit/test_validate_workflows_resilient.py \
+            2>&1 | tee focused-pytest-output.txt
+      - name: Package focused pytest diagnostics
+        if: always()
+        run: zip -q focused-pytest-diagnostics.zip focused-pytest-output.txt focused-junit.xml
+      - name: Upload focused pytest diagnostics
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: focused-pytest-diagnostics-${{ github.run_id }}
+          path: focused-pytest-diagnostics.zip
+          if-no-files-found: error
+          retention-days: 1
+      - name: Enforce focused regressions
+        if: steps.focused.outcome == 'failure'
+        run: exit 1
       - name: Commit exact formatted files and remove exporter
         run: |
           git config user.name "github-actions[bot]"
