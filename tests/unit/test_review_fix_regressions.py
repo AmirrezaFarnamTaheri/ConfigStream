@@ -139,3 +139,21 @@ def test_native_report_contract_rejects_writer_flag_with_any_path() -> None:
         "pipeline-evidence/other-native-report.json output\n"
     )
     assert validate_workflows._main_native_output_contract(data) is False
+
+
+def test_structured_timing_rejects_non_finite_duration(tmp_path: Path) -> None:
+    raw_url = "https://example.com/source"
+    evidence = tmp_path / "source_timing.jsonl"
+    evidence.write_text(
+        json.dumps(
+            {
+                "source_id": hashlib.sha256(raw_url.encode("utf-8")).hexdigest(),
+                "raw": 10,
+                "duration_ms": "Infinity",
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    assert dynamic_reshard.parse_timing_evidence(evidence, {raw_url}) == {}

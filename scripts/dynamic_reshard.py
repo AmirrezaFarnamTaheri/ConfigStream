@@ -72,7 +72,7 @@ def parse_timing_evidence(
             duration_ms = float(payload.get("duration_ms", 0.0) or 0.0)
         except (json.JSONDecodeError, TypeError, ValueError):
             continue
-        if not source_url or duration_ms <= 0:
+        if not source_url or not math.isfinite(duration_ms) or duration_ms <= 0:
             continue
         duration = duration_ms / 1000.0
         existing = metrics.get(source_url, (0, 0.0))
