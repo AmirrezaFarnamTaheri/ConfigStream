@@ -55,10 +55,14 @@ jobs:
             tests/unit/test_validate_frontend_placeholders.py \
             scripts/validate_workflows.py \
             tests/unit/test_validate_workflows_resilient.py
-      - name: Verify generated registries and focused regressions
+      - name: Regenerate checked-in registries
         run: |
+          python scripts/generate_environment_catalog.py
+          python scripts/generate_debt_matrix.py
           python scripts/generate_environment_catalog.py --check
           python scripts/generate_debt_matrix.py --check
+      - name: Verify focused regressions
+        run: |
           python -m pytest -q \
             tests/unit/test_normalize_source_timing_logs.py \
             tests/unit/test_require_stage_evidence.py \
@@ -83,7 +87,11 @@ jobs:
             tests/unit/test_release_remediation.py \
             tests/unit/test_validate_frontend_placeholders.py \
             scripts/validate_workflows.py \
-            tests/unit/test_validate_workflows_resilient.py
+            tests/unit/test_validate_workflows_resilient.py \
+            docs/generated/environment-variables.json \
+            docs/generated/environment-variables.md \
+            docs/debt_matrix.json \
+            docs/DEBT_MATRIX.md
           git rm .github/workflows/black-artifact-export.yml
           git commit -m "style: apply Black formatting to release-gate fixes"
           git push origin HEAD:agent/fix-main-release-gates
