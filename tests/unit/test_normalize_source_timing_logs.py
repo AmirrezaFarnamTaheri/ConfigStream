@@ -1,12 +1,14 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 from scripts.normalize_source_timing_logs import (
     SourceTiming,
     collect_timings,
     load_expected_sources,
+    main,
     parse_source_timings,
     timing_coverage,
 )
@@ -105,3 +107,45 @@ def test_timing_coverage_rejects_sparse_evidence() -> None:
     ]
     expected = {f"https://source-{index}.example/sub" for index in range(10)}
     assert timing_coverage(records, expected) == 0.7
+
+
+def test_main_removes_partial_outputs_when_coverage_fails(
+    tmp_path: Path, monkeypatch
+) -> None:
+    log = tmp_path / "pipeline_batch_1_part_1.log"
+    log.write_text(
+        "Source Summary [https://a.example/sub]: Raw=1 Dur=1000ms\n",
+        encoding="utf-8",
+    )
+    sources = tmp_path / "sources"
+    sources.mkdir()
+    (sources / "batch_1.txt").write_text(
+        "https://a.example/sub\nhttps://b.example/sub\n",
+        encoding="utf-8",
+    )
+    normalized = tmp_path / "source_timing_normalized.log"
+    evidence = tmp_path / "pipeline-evidence" / "source_timing.jsonl"
+    normalized.write_text("stale\n", encoding="utf-8")
+    evidence.parent.mkdir(parents=True)
+    evidence.write_text("stale\n", encoding="utf-8")
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "normalize_source_timing_logs.py",
+            "--pattern",
+            str(tmp_path / "pipeline_batch_*.log"),
+            "--sources-pattern",
+            str(sources / "batch_*.txt"),
+            "--min-coverage",
+            "0.80",
+            "--normalized-log",
+            str(normalized),
+            "--evidence",
+            str(evidence),
+        ],
+    )
+
+    assert main() == 1
+    assert not normalized.exists()
+    assert not evidence.exists()
