@@ -19,19 +19,27 @@ def validate_release_inputs(env: Mapping[str, str]) -> list[str]:
         or env.get("CONFIGSTREAM_SIGNING_PRIVATE_KEY_HEX", "").strip()
     )
 
-    try:
-        public_key = _resolve_public_key(env)
-    except (TypeError, ValueError):
-        public_key = ""
-        errors.append("configured Ed25519 signing key is invalid")
-
-    normalized_public = normalize_public_key_hex(public_key) if public_key else ""
-    if not public_key:
+    public_key = ""
+    if explicit_public_key:
+        try:
+            public_key = _resolve_public_key({"CS_PUBLIC_KEY": explicit_public_key})
+        except (TypeError, ValueError):
+            errors.append("frontend verification key is not a valid Ed25519 public key")
+    elif signing_key:
+        try:
+            public_key = _resolve_public_key(
+                {"CS_SIGNING_PRIVATE_KEY_HEX": signing_key}
+            )
+        except (TypeError, ValueError):
+            errors.append("configured Ed25519 signing key is invalid")
+    else:
         errors.append(
             "frontend verification key is unavailable: configure CS_PUBLIC_KEY or "
             "CS_SIGNING_PRIVATE_KEY_HEX"
         )
-    elif not normalized_public:
+
+    normalized_public = normalize_public_key_hex(public_key) if public_key else ""
+    if public_key and not normalized_public:
         errors.append("frontend verification key is not a valid Ed25519 public key")
 
     if explicit_public_key and signing_key:
@@ -42,7 +50,12 @@ def validate_release_inputs(env: Mapping[str, str]) -> list[str]:
             normalized_derived = normalize_public_key_hex(derived_public)
         except (TypeError, ValueError):
             normalized_derived = ""
-        if normalized_derived and normalized_public and normalized_derived != normalized_public:
+            errors.append("configured Ed25519 signing key is invalid")
+        if (
+            normalized_derived
+            and normalized_public
+            and normalized_derived != normalized_public
+        ):
             errors.append(
                 "CS_PUBLIC_KEY does not match the public key derived from "
                 "CS_SIGNING_PRIVATE_KEY_HEX"
