@@ -22,6 +22,7 @@ def test_reconcile_sanitizes_root_and_categorized_proxy_arrays(tmp_path: Path) -
         "details": {
             "tester_error_category": "IPC_ERROR",
             "failure_category": "TIMEOUT",
+            "error": "bounded tester failed",
             "safe_public_field": "keep",
         },
     }
@@ -60,5 +61,9 @@ def test_reconcile_sanitizes_root_and_categorized_proxy_arrays(tmp_path: Path) -
         assert payload[0]["source"] == "example.com"
         assert payload[0]["details"] == {"safe_public_field": "keep"}
 
-    assert (root / "api" / "proxies").read_bytes() == (root / "proxies.json").read_bytes()
-    assert (root / "api" / "stats").read_bytes() == (root / "metadata.json").read_bytes()
+    assert (root / "api" / "proxies").read_bytes() == (
+        root / "proxies.json"
+    ).read_bytes()
+    assert (root / "api" / "stats").read_bytes() == (
+        root / "metadata.json"
+    ).read_bytes()
