@@ -8,6 +8,7 @@ permissions:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  PYTHONPATH: src
 
 jobs:
   export:
@@ -21,7 +22,9 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install pinned development dependencies
-        run: python -m pip install -r requirements-dev.txt
+        run: |
+          python -m pip install -r requirements-dev.txt
+          python -m pip install -e . --no-deps
       - name: Make native target mapping Black-stable
         run: |
           python - <<'PY'
