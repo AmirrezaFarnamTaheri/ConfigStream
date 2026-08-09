@@ -110,6 +110,7 @@ def test_finalize_sanitizes_counts_sources_and_transients(tmp_path: Path) -> Non
         "details": {
             "tester_error_category": "IPC_ERROR",
             "failure_category": "TIMEOUT",
+            "error": "bounded tester failed",
             "safe_public_field": "kept",
         },
     }
