@@ -18,11 +18,6 @@ from typing import Any
 from configstream.security_validator import SecurityValidator
 
 MAX_OUTPUT_CHARS = 1000
-REQUIRED_NATIVE_TARGETS = {
-    "sing-box": "singbox.json",
-    "mihomo": "clash.yaml",
-    "xray": "xray.json",
-}
 
 
 def digest(path: Path) -> str:
@@ -140,7 +135,7 @@ def main() -> int:
             checks.append(
                 {
                     "core": core,
-                    "path": REQUIRED_NATIVE_TARGETS[core],
+                    "path": {"sing-box": "singbox.json", "mihomo": "clash.yaml", "xray": "xray.json"}[core],
                     "status": "failed",
                     "command": None,
                     "artifact_sha256": None,
