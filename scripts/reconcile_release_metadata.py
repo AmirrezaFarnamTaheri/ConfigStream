@@ -20,6 +20,7 @@ PUBLIC_PROXY_ARRAYS = (
     "revived-dns-hardened.json",
 )
 PUBLIC_PROXY_DIRS = ("countries", "protocols")
+PUBLIC_INTERNAL_KEYS = {*INTERNAL_KEYS, "error"}
 
 
 def _load_object(path: Path) -> dict[str, Any]:
@@ -61,7 +62,7 @@ def _sanitize_public(value: Any, *, key: str | None = None) -> Any:
         output: dict[str, Any] = {}
         for raw_key, item in value.items():
             item_key = str(raw_key)
-            if item_key.startswith("_") or item_key.lower() in INTERNAL_KEYS:
+            if item_key.startswith("_") or item_key.lower() in PUBLIC_INTERNAL_KEYS:
                 continue
             output[item_key] = _sanitize_public(item, key=item_key)
         return output
