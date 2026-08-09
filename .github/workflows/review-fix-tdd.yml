@@ -48,7 +48,7 @@ jobs:
           replace_once(
               "tests/unit/test_normalize_source_timing_logs.py",
               "import sys\nfrom pathlib import Path\n",
-              "import hashlib\nimport json\nimport sys\nfrom pathlib import Path\n\nimport pytest\n",
+              "import hashlib\nimport json\nimport sys\nfrom pathlib import Path\n\nimport pytest\n\nfrom scripts import dynamic_reshard\n",
           )
           replace_once(
               "tests/unit/test_normalize_source_timing_logs.py",
@@ -90,6 +90,29 @@ jobs:
               assert "[MASKED]" in normalized_text
               payload = json.loads(evidence_text)
               assert payload["source_id"] == hashlib.sha256(raw_url.encode("utf-8")).hexdigest()
+
+
+          def test_structured_timing_evidence_maps_opaque_id_to_configured_url(
+              tmp_path: Path,
+          ) -> None:
+              raw_url = "https://user:super-secret@example.com/sub?token=abc123"
+              evidence = tmp_path / "source_timing.jsonl"
+              evidence.write_text(
+                  json.dumps(
+                      {
+                          "source_id": hashlib.sha256(raw_url.encode("utf-8")).hexdigest(),
+                          "source_url": "https://user:[MASKED]@example.com/sub?token=[MASKED]",
+                          "raw": 10,
+                          "duration_ms": 2500.0,
+                      }
+                  )
+                  + "\n",
+                  encoding="utf-8",
+              )
+
+              assert dynamic_reshard.parse_timing_evidence(evidence, {raw_url}) == {
+                  raw_url: (10, 2.5)
+              }
           ''',
           )
 
@@ -122,15 +145,19 @@ jobs:
           ''',
           )
 
-          # Workflow must not expose signing material to unrelated commands, and overwrite detection is path-agnostic.
+          # Scope the signing key to release-gate only; keep the earlier main preflight key access intact.
           replace_once(
               "tests/unit/test_validate_workflows_resilient.py",
-              '    assert "CS_SIGNING_PRIVATE_KEY_HEX" in step["env"]\n',
-              '''    assert "CS_SIGNING_PRIVATE_KEY_HEX" not in step.get("env", {})
+              '''    assert "--native-report-file" not in command
+              assert "CS_SIGNING_PRIVATE_KEY_HEX" in step["env"]
+              assert validate_workflows._main_native_output_contract(data) is True
+          ''',
+              '''    assert "--native-report-file" not in command
+              assert "CS_SIGNING_PRIVATE_KEY_HEX" not in step.get("env", {})
               release_line = next(
                   line for line in command.splitlines() if "release_gate.py" in line
               )
-              assert 'CS_SIGNING_PRIVATE_KEY_HEX="${{ secrets.CS_SIGNING_PRIVATE_KEY_HEX }}"' in release_line
+              assert "CS_SIGNING_PRIVATE_KEY_HEX=" in release_line
               for marker in (
                   "native_client_checks.py",
                   "validate_pages_artifact.py",
@@ -138,6 +165,7 @@ jobs:
               ):
                   marker_line = next(line for line in command.splitlines() if marker in line)
                   assert "CS_SIGNING_PRIVATE_KEY_HEX" not in marker_line
+              assert validate_workflows._main_native_output_contract(data) is True
           ''',
           )
           append_once(
@@ -148,16 +176,15 @@ jobs:
               data = deepcopy(_load_local_workflow("main.yml"))
               merge = data["jobs"]["merge_validate_publish"]
               step = _step_by_name(merge, "Run every mandatory release gate")
-              step["run"] = step["run"].replace(
-                  "validate_pages_artifact.py --native-client-check output",
-                  "validate_pages_artifact.py --native-client-check "
-                  "--native-report-file pipeline-evidence/other-native-report.json output",
+              step["run"] += (
+                  "\npython scripts/validate_pages_artifact.py --native-report-file "
+                  "pipeline-evidence/other-native-report.json output\n"
               )
               assert validate_workflows._main_native_output_contract(data) is False
           ''',
           )
 
-          # Type fixture parameters that CodeRabbit identified; behavior is unchanged.
+          # Type the touched pytest fixtures; behavior is unchanged.
           replace_once(
               "tests/unit/test_pr531_review_regressions.py",
               "from types import ModuleType\n\n",
@@ -194,10 +221,13 @@ jobs:
         env:
           RED_OUTCOME: ${{ steps.red.outcome }}
         run: |
-          if [ "$RED_OUTCOME" != "failure" ]; then
-            echo "Expected the new regressions to fail before implementation."
-            exit 1
-          fi
+          set -euo pipefail
+          test "$RED_OUTCOME" = failure
+          grep -q "test_write_outputs_sanitizes_source_credentials" review-red.txt
+          grep -q "test_structured_timing_evidence_maps_opaque_id_to_configured_url" review-red.txt
+          grep -q "test_main_sanitizes_invalid_key_error" review-red.txt
+          grep -q "test_main_preserves_authoritative_native_report" review-red.txt
+          grep -q "test_main_contract_rejects_native_report_file_with_different_path" review-red.txt
       - name: Apply minimal verified fixes
         run: |
           python - <<'PY'
@@ -211,24 +241,37 @@ jobs:
               p.write_text(text.replace(old, new, 1), encoding="utf-8")
 
           # Narrow signing-key exposure to the one command that needs it.
-          replace_once(
-              ".github/workflows/main.yml",
-              '''      - name: Run every mandatory release gate
-                  env:
-                    CS_SIGNING_PRIVATE_KEY_HEX: ${{ secrets.CS_SIGNING_PRIVATE_KEY_HEX }}
-                  run: |
-          ''',
-              '''      - name: Run every mandatory release gate
-                  run: |
-          ''',
+          p = Path(".github/workflows/main.yml")
+          text = p.read_text(encoding="utf-8")
+          secret_expr = "$" + "{{ secrets.CS_SIGNING_PRIVATE_KEY_HEX }}"
+          old_step = (
+              "      - name: Run every mandatory release gate\n"
+              "        env:\n"
+              "          CS_SIGNING_PRIVATE_KEY_HEX: " + secret_expr + "\n"
+              "        run: |\n"
           )
-          replace_once(
-              ".github/workflows/main.yml",
-              "          python scripts/resilient_stage.py run --name release-gate -- python scripts/release_gate.py output --native-report pipeline-evidence/native_client_check_report.json --min-source-coverage \"$MIN_SOURCE_COVERAGE\" --promote\n",
-              "          CS_SIGNING_PRIVATE_KEY_HEX=\"${{ secrets.CS_SIGNING_PRIVATE_KEY_HEX }}\" python scripts/resilient_stage.py run --name release-gate -- python scripts/release_gate.py output --native-report pipeline-evidence/native_client_check_report.json --min-source-coverage \"$MIN_SOURCE_COVERAGE\" --promote\n",
+          new_step = "      - name: Run every mandatory release gate\n        run: |\n"
+          if old_step not in text:
+              raise SystemExit("release-gate step secret-scope marker not found")
+          text = text.replace(old_step, new_step, 1)
+          old_command = (
+              "          python scripts/resilient_stage.py run --name release-gate -- "
+              "python scripts/release_gate.py output --native-report "
+              "pipeline-evidence/native_client_check_report.json --min-source-coverage "
+              "\"$MIN_SOURCE_COVERAGE\" --promote\n"
           )
+          new_command = (
+              "          CS_SIGNING_PRIVATE_KEY_HEX=\"" + secret_expr + "\" "
+              "python scripts/resilient_stage.py run --name release-gate -- "
+              "python scripts/release_gate.py output --native-report "
+              "pipeline-evidence/native_client_check_report.json --min-source-coverage "
+              "\"$MIN_SOURCE_COVERAGE\" --promote\n"
+          )
+          if old_command not in text:
+              raise SystemExit("release-gate command marker not found")
+          p.write_text(text.replace(old_command, new_command, 1), encoding="utf-8")
 
-          # Sanitize timing evidence while retaining an opaque mapping ID for resharding.
+          # Sanitize timing evidence and add an opaque source ID for lossless reshard mapping.
           replace_once(
               "scripts/normalize_source_timing_logs.py",
               "import glob\nimport json\n",
@@ -304,33 +347,32 @@ jobs:
           ''',
           )
 
-          # Structured evidence maps sanitized records back to configured URLs without exposing raw secrets.
+          # Prefer structured timing evidence for exact raw-source mapping after sanitization.
           replace_once(
               "scripts/dynamic_reshard.py",
-              "import logging\nimport re\n",
-              "import logging\nimport re\n",
-          )
-          replace_once(
-              "scripts/dynamic_reshard.py",
-              "from itertools import combinations\n\n# --- Configuration ---",
-              "from itertools import combinations\n\nfrom scripts.normalize_source_timing_logs import source_id_for_url\n\n# --- Configuration ---",
+              "import glob\nimport shutil\n",
+              "import glob\nimport hashlib\nimport shutil\n",
           )
           replace_once(
               "scripts/dynamic_reshard.py",
               'FINGERPRINT_DIR = Path("data/fingerprints")\n',
               'FINGERPRINT_DIR = Path("data/fingerprints")\nTIMING_EVIDENCE_PATH = Path("pipeline-evidence/source_timing.jsonl")\n',
           )
-          marker = "\ndef get_current_batch_count() -> int:\n"
           p = Path("scripts/dynamic_reshard.py")
           text = p.read_text(encoding="utf-8")
+          marker = "\ndef get_current_batch_count() -> int:\n"
           helper = '''
+
+          def _source_timing_id(url: str) -> str:
+              return hashlib.sha256(url.strip().encode("utf-8")).hexdigest()
+
 
           def parse_timing_evidence(
               path: Path, allowed_urls: Set[str]
           ) -> Dict[str, Tuple[int, float]]:
               if not path.exists():
                   return {}
-              by_id = {source_id_for_url(url): url for url in allowed_urls}
+              by_id = {_source_timing_id(url): url for url in allowed_urls}
               metrics: Dict[str, Tuple[int, float]] = {}
               for line in path.read_text(encoding="utf-8", errors="ignore").splitlines():
                   if not line.strip():
@@ -406,7 +448,7 @@ jobs:
           ''',
           )
 
-          # Any use of the deprecated writer flag violates the modern native-report contract.
+          # Any deprecated native-report writer flag violates the modern contract.
           replace_once(
               "scripts/validate_workflows.py",
               '        and f"--native-report-file {report}" not in commands\n',
