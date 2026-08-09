@@ -15,19 +15,24 @@ def _write(path: Path, payload: object) -> None:
 def test_reconcile_sanitizes_root_and_categorized_proxy_arrays(tmp_path: Path) -> None:
     root = tmp_path / "output"
     root.mkdir()
-    record = {
+    finalized_record = {
         "id": "candidate",
         "protocol": "vless",
+        "source": "example.com",
         "details": {
             "tester_error_category": "IPC_ERROR",
             "failure_category": "TIMEOUT",
             "safe_public_field": "keep",
         },
     }
-    _write(root / "proxies.json", [record])
-    _write(root / "api" / "proxies", [record])
-    _write(root / "revived-dns-safe.json", [record])
-    _write(root / "countries" / "XX.list-dns-hardened.json", [record])
+    derivative_record = {
+        **finalized_record,
+        "source": "https://user:secret@example.com/sub?token=secret",
+    }
+    _write(root / "proxies.json", [finalized_record])
+    _write(root / "api" / "proxies", [finalized_record])
+    _write(root / "revived-dns-safe.json", [derivative_record])
+    _write(root / "countries" / "XX.list-dns-hardened.json", [derivative_record])
     _write(
         root / "metadata.json",
         {
@@ -52,6 +57,7 @@ def test_reconcile_sanitizes_root_and_categorized_proxy_arrays(tmp_path: Path) -
         root / "countries" / "XX.list-dns-hardened.json",
     ):
         payload = json.loads(path.read_text(encoding="utf-8"))
+        assert payload[0]["source"] == "example.com"
         assert payload[0]["details"] == {"safe_public_field": "keep"}
 
     assert (root / "api" / "proxies").read_bytes() == (root / "proxies.json").read_bytes()
