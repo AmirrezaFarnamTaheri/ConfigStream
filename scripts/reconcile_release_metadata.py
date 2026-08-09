@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Reconcile shard diagnostics with the shielded candidates in the final public artifact."""
+"""Reconcile final public proxy surfaces and release metadata."""
 
 from __future__ import annotations
 
@@ -7,6 +7,18 @@ import argparse
 import json
 from pathlib import Path
 from typing import Any
+
+from scripts.finalize_release_outputs import _sanitize
+
+PUBLIC_PROXY_ARRAYS = (
+    "proxies.json",
+    "proxies-dns-safe.json",
+    "proxies-dns-hardened.json",
+    "revived.json",
+    "revived-dns-safe.json",
+    "revived-dns-hardened.json",
+)
+PUBLIC_PROXY_DIRS = ("countries", "protocols")
 
 
 def _load_object(path: Path) -> dict[str, Any]:
@@ -23,6 +35,37 @@ def _load_records(path: Path) -> list[dict[str, Any]]:
     return [item for item in payload if isinstance(item, dict)]
 
 
+def _sanitize_proxy_array(path: Path) -> bool:
+    if not path.is_file():
+        return False
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, list):
+        return False
+    sanitized = _sanitize(payload)
+    if sanitized == payload:
+        return False
+    path.write_text(
+        json.dumps(sanitized, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
+    return True
+
+
+def _sanitize_public_proxy_surfaces(root: Path) -> list[str]:
+    changed: list[str] = []
+    for relative in PUBLIC_PROXY_ARRAYS:
+        path = root / relative
+        if _sanitize_proxy_array(path):
+            changed.append(relative)
+    for directory_name in PUBLIC_PROXY_DIRS:
+        directory = root / directory_name
+        if not directory.is_dir():
+            continue
+        for path in sorted(directory.glob("*.list*.json")):
+            if _sanitize_proxy_array(path):
+                changed.append(path.relative_to(root).as_posix())
+    return changed
+
+
 def _public_shielding_counts(records: list[dict[str, Any]]) -> tuple[int, int]:
     candidates = 0
     verified = 0
@@ -36,7 +79,8 @@ def _public_shielding_counts(records: list[dict[str, Any]]) -> tuple[int, int]:
     return candidates, verified
 
 
-def reconcile(root: Path) -> dict[str, int]:
+def reconcile(root: Path) -> dict[str, Any]:
+    changed_surfaces = _sanitize_public_proxy_surfaces(root)
     metadata_path = root / "metadata.json"
     proxies_path = root / "proxies.json"
     metadata = _load_object(metadata_path)
@@ -74,6 +118,7 @@ def reconcile(root: Path) -> dict[str, int]:
         "shard_candidates": shard_candidates,
         "public_candidates": public_candidates,
         "public_verified": public_verified,
+        "sanitized_surfaces": changed_surfaces,
     }
 
 
@@ -81,12 +126,13 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("artifact_dir", type=Path)
     args = parser.parse_args()
-    counts = reconcile(args.artifact_dir.resolve())
+    result = reconcile(args.artifact_dir.resolve())
     print(
-        "Reconciled shielded candidates: "
-        f"shard={counts['shard_candidates']} "
-        f"public={counts['public_candidates']} "
-        f"verified={counts['public_verified']}"
+        "Reconciled public artifact: "
+        f"shard_candidates={result['shard_candidates']} "
+        f"public_candidates={result['public_candidates']} "
+        f"verified={result['public_verified']} "
+        f"sanitized_surfaces={len(result['sanitized_surfaces'])}"
     )
     return 0
 
