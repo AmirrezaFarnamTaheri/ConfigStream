@@ -25,3 +25,11 @@ def test_native_validator_installer_stages_before_atomic_replacement() -> None:
     assert 'mihomo_temp="$(mktemp "${staging_dir}/.mihomo.XXXXXX")"' in content
     assert 'mv -f "$mihomo_temp" "$staging_dir/mihomo"' in content
     assert 'atomic_install "$staging_dir/$executable" "$executable"' in content
+
+
+def test_native_validator_installer_does_not_pipe_gh_api_into_head() -> None:
+    content = INSTALLER.read_text(encoding="utf-8")
+
+    assert "| head -n 1" not in content
+    assert "first(.assets[]" in content
+    assert "first(.assets[].name" in content
