@@ -27,6 +27,16 @@ def test_reconcile_sanitizes_root_and_categorized_proxy_arrays(tmp_path: Path) -
             "safe_public_field": "keep",
         },
     }
+    shielded_record = {
+        "id": "shielded",
+        "protocol": "chain",
+        "source": "shield.example",
+        "details": {
+            "shielded_candidate": True,
+            "shielded_verified": True,
+            "processed_by": ["shielding"],
+        },
+    }
     derivative_record = {
         **finalized_record,
         "source": "https://user:secret@example.com/sub?token=secret",
@@ -41,16 +51,16 @@ def test_reconcile_sanitizes_root_and_categorized_proxy_arrays(tmp_path: Path) -
             "tester_error_category": "IPC_ERROR",
         },
     }
-    _write(root / "proxies.json", [finalized_record])
-    _write(root / "api" / "proxies", [finalized_record])
+    _write(root / "proxies.json", [finalized_record, shielded_record])
+    _write(root / "api" / "proxies", [finalized_record, shielded_record])
     _write(root / "revived-dns-safe.json", [derivative_record, revived_record])
     _write(root / "countries" / "XX.list-dns-hardened.json", [derivative_record])
     _write(
         root / "metadata.json",
         {
             "shielded_count": 4,
-            "shielded_candidate_count": 0,
-            "shielded_verified_count": 0,
+            "shielded_candidate_count": 4,
+            "shielded_verified_count": 2,
         },
     )
     _write(root / "api" / "stats", {"stale": True})
@@ -58,18 +68,23 @@ def test_reconcile_sanitizes_root_and_categorized_proxy_arrays(tmp_path: Path) -
     result = reconcile(root, evidence_path)
 
     assert result["shard_candidates"] == 4
+    assert result["public_candidates"] == 1
+    assert result["public_verified"] == 1
     assert sorted(result["sanitized_surfaces"]) == [
         "countries/XX.list-dns-hardened.json",
         "proxies.json",
         "revived-dns-safe.json",
     ]
-    for path in (
-        root / "proxies.json",
-        root / "countries" / "XX.list-dns-hardened.json",
-    ):
-        payload = json.loads(path.read_text(encoding="utf-8"))
-        assert payload[0]["source"] == "example.com"
-        assert payload[0]["details"] == {"safe_public_field": "keep"}
+    proxies = json.loads((root / "proxies.json").read_text(encoding="utf-8"))
+    assert proxies[0]["source"] == "example.com"
+    assert proxies[0]["details"] == {"safe_public_field": "keep"}
+    assert proxies[1]["details"] == {"processed_by": ["shielding"]}
+
+    country_payload = json.loads(
+        (root / "countries" / "XX.list-dns-hardened.json").read_text(encoding="utf-8")
+    )
+    assert country_payload[0]["source"] == "example.com"
+    assert country_payload[0]["details"] == {"safe_public_field": "keep"}
 
     revived_payload = json.loads(
         (root / "revived-dns-safe.json").read_text(encoding="utf-8")
@@ -84,14 +99,14 @@ def test_reconcile_sanitizes_root_and_categorized_proxy_arrays(tmp_path: Path) -
 
     metadata = json.loads((root / "metadata.json").read_text(encoding="utf-8"))
     assert "shard_shielded_candidate_count" not in metadata
-    assert metadata["shielded_count"] == 0
-    assert metadata["shielded_candidate_count"] == 0
-    assert metadata["shielded_verified_count"] == 0
+    assert metadata["shielded_count"] == 1
+    assert metadata["shielded_candidate_count"] == 1
+    assert metadata["shielded_verified_count"] == 1
     evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
     assert evidence["schema_version"] == 1
     assert evidence["shard_candidates"] == 4
-    assert evidence["public_candidates"] == 0
-    assert evidence["public_verified"] == 0
+    assert evidence["public_candidates"] == 1
+    assert evidence["public_verified"] == 1
 
     assert (root / "api" / "proxies").read_bytes() == (
         root / "proxies.json"
@@ -99,3 +114,49 @@ def test_reconcile_sanitizes_root_and_categorized_proxy_arrays(tmp_path: Path) -
     assert (root / "api" / "stats").read_bytes() == (
         root / "metadata.json"
     ).read_bytes()
+
+
+def test_reconcile_keeps_unverified_public_shielded_candidate_blocking(
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "output"
+    root.mkdir()
+    _write(
+        root / "proxies.json",
+        [
+            {
+                "id": "shielded",
+                "protocol": "chain",
+                "details": {
+                    "shielded_candidate": True,
+                    "shielded_verified": False,
+                    "processed_by": ["shielding"],
+                },
+            }
+        ],
+    )
+    _write(
+        root / "metadata.json",
+        {
+            "shielded_count": 9,
+            "shielded_candidate_count": 9,
+            "shielded_verified_count": 8,
+        },
+    )
+    _write(
+        root / "health.json",
+        {"release_blockers": ["unverified_shielded_candidates:9"]},
+    )
+
+    result = reconcile(root)
+
+    assert result["shard_candidates"] == 9
+    assert result["public_candidates"] == 1
+    assert result["public_verified"] == 0
+    metadata = json.loads((root / "metadata.json").read_text(encoding="utf-8"))
+    assert metadata["shielded_candidate_count"] == 1
+    assert metadata["shielded_verified_count"] == 0
+    health = json.loads((root / "health.json").read_text(encoding="utf-8"))
+    assert health["release_blockers"] == ["unverified_shielded_candidates:1"]
+    public = json.loads((root / "proxies.json").read_text(encoding="utf-8"))
+    assert public[0]["details"] == {"processed_by": ["shielding"]}
