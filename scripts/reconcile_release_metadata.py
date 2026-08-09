@@ -98,6 +98,9 @@ def _sanitize_proxy_record(record: dict[str, Any]) -> dict[str, Any]:
     output: dict[str, Any] = {}
     for raw_key, item in record.items():
         item_key = str(raw_key)
+        lowered = item_key.lower()
+        if item_key.startswith("_") or lowered in PUBLIC_INTERNAL_DETAIL_KEYS:
+            continue
         if item_key == "details" and isinstance(item, dict):
             output[item_key] = _sanitize_public(
                 item,
