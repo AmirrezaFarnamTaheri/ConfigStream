@@ -1,0 +1,489 @@
+name: Review Fix TDD
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  PYTHONPATH: src
+
+jobs:
+  prove-and-apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: agent/fix-main-release-gates
+          fetch-depth: 1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.11"
+      - name: Install pinned development dependencies
+        run: |
+          python -m pip install -r requirements-dev.txt
+          python -m pip install -e . --no-deps
+      - name: Patch test imports and release-scope assertion
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              p = Path(path)
+              text = p.read_text(encoding="utf-8")
+              if old not in text:
+                  raise SystemExit(f"marker not found in {path}: {old!r}")
+              p.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+          replace_once(
+              "tests/unit/test_normalize_source_timing_logs.py",
+              "import sys\nfrom pathlib import Path\n",
+              "import hashlib\nimport json\nimport sys\nfrom pathlib import Path\n\nimport pytest\n\nfrom scripts import dynamic_reshard\n",
+          )
+          replace_once(
+              "tests/unit/test_normalize_source_timing_logs.py",
+              "    timing_coverage,\n)",
+              "    timing_coverage,\n    write_outputs,\n)",
+          )
+          replace_once(
+              "tests/unit/test_normalize_source_timing_logs.py",
+              "    tmp_path: Path, monkeypatch\n) -> None:",
+              "    tmp_path: Path, monkeypatch: pytest.MonkeyPatch\n) -> None:",
+          )
+
+          replace_once(
+              "tests/unit/test_validate_frontend_placeholders.py",
+              "import json\nfrom pathlib import Path\n\nfrom configstream.signer import Signer\n",
+              "import json\nfrom pathlib import Path\n\nimport pytest\n\nfrom configstream.signer import Signer\nfrom scripts import validate_frontend_placeholders as frontend_validator\n",
+          )
+
+          replace_once(
+              "tests/unit/test_validate_workflows_resilient.py",
+              '''    assert "--native-report-file" not in command
+              assert "CS_SIGNING_PRIVATE_KEY_HEX" in step["env"]
+              assert validate_workflows._main_native_output_contract(data) is True
+          ''',
+              '''    assert "--native-report-file" not in command
+              assert "CS_SIGNING_PRIVATE_KEY_HEX" not in step.get("env", {})
+              release_line = next(
+                  line for line in command.splitlines() if "release_gate.py" in line
+              )
+              assert "CS_SIGNING_PRIVATE_KEY_HEX=" in release_line
+              for marker in (
+                  "native_client_checks.py",
+                  "validate_pages_artifact.py",
+                  "generate_evidence_bundle.py",
+              ):
+                  marker_line = next(line for line in command.splitlines() if marker in line)
+                  assert "CS_SIGNING_PRIVATE_KEY_HEX" not in marker_line
+              assert validate_workflows._main_native_output_contract(data) is True
+          ''',
+          )
+          PY
+      - name: Append review regression tests
+        run: |
+          cat >> tests/unit/test_normalize_source_timing_logs.py <<'PYTEST'
+
+          def test_write_outputs_sanitizes_source_credentials(tmp_path: Path) -> None:
+              raw_url = "https://user:super-secret@example.com/sub?token=abc123"
+              records = [
+                  SourceTiming(
+                      url=raw_url,
+                      raw=10,
+                      duration_ms=2500.0,
+                      fetch_ms=250.0,
+                      source_log="pipeline_batch.log?token=log-secret",
+                  )
+              ]
+              normalized = tmp_path / "source_timing_normalized.log"
+              evidence = tmp_path / "source_timing.jsonl"
+
+              write_outputs(records, normalized, evidence)
+
+              normalized_text = normalized.read_text(encoding="utf-8")
+              evidence_text = evidence.read_text(encoding="utf-8")
+              assert "super-secret" not in normalized_text
+              assert "abc123" not in normalized_text
+              assert "super-secret" not in evidence_text
+              assert "abc123" not in evidence_text
+              assert "log-secret" not in evidence_text
+              assert "[MASKED]" in normalized_text
+              payload = json.loads(evidence_text)
+              assert payload["source_id"] == hashlib.sha256(raw_url.encode("utf-8")).hexdigest()
+
+
+          def test_structured_timing_evidence_maps_opaque_id_to_configured_url(
+              tmp_path: Path,
+          ) -> None:
+              raw_url = "https://user:super-secret@example.com/sub?token=abc123"
+              evidence = tmp_path / "source_timing.jsonl"
+              evidence.write_text(
+                  json.dumps(
+                      {
+                          "source_id": hashlib.sha256(raw_url.encode("utf-8")).hexdigest(),
+                          "source_url": "https://user:[MASKED]@example.com/sub?token=[MASKED]",
+                          "raw": 10,
+                          "duration_ms": 2500.0,
+                      }
+                  )
+                  + "\n",
+                  encoding="utf-8",
+              )
+
+              assert dynamic_reshard.parse_timing_evidence(evidence, {raw_url}) == {
+                  raw_url: (10, 2.5)
+              }
+          PYTEST
+
+          cat >> tests/unit/test_validate_frontend_placeholders.py <<'PYTEST'
+
+          def test_main_sanitizes_invalid_key_error(
+              tmp_path: Path,
+              monkeypatch: pytest.MonkeyPatch,
+              capsys: pytest.CaptureFixture[str],
+          ) -> None:
+              _write_frontend(tmp_path)
+
+              def fail_injection(*_args: object, **_kwargs: object) -> list[str]:
+                  raise ValueError("token=frontend-super-secret")
+
+              monkeypatch.setattr(frontend_validator, "inject_frontend_keys", fail_injection)
+
+              assert frontend_validator.main([str(tmp_path), "--inject-env"]) == 1
+              error = capsys.readouterr().err
+              assert "frontend-super-secret" not in error
+              assert "token=[MASKED]" in error
+          PYTEST
+
+          cat >> tests/unit/test_validate_workflows_resilient.py <<'PYTEST'
+
+          def test_main_contract_rejects_native_report_file_with_different_path() -> None:
+              data = deepcopy(_load_local_workflow("main.yml"))
+              merge = data["jobs"]["merge_validate_publish"]
+              step = _step_by_name(merge, "Run every mandatory release gate")
+              step["run"] += (
+                  "\npython scripts/validate_pages_artifact.py --native-report-file "
+                  "pipeline-evidence/other-native-report.json output\n"
+              )
+              assert validate_workflows._main_native_output_contract(data) is False
+          PYTEST
+      - name: RED - prove review findings against current implementation
+        id: red
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          python -m pytest -q \
+            tests/unit/test_normalize_source_timing_logs.py \
+            tests/unit/test_validate_frontend_placeholders.py \
+            tests/unit/test_validate_workflows_resilient.py \
+            2>&1 | tee review-red.txt
+      - name: Enforce meaningful RED
+        env:
+          RED_OUTCOME: ${{ steps.red.outcome }}
+        run: |
+          set -euo pipefail
+          test "$RED_OUTCOME" = failure
+          grep -q "test_write_outputs_sanitizes_source_credentials" review-red.txt
+          grep -q "test_structured_timing_evidence_maps_opaque_id_to_configured_url" review-red.txt
+          grep -q "test_main_sanitizes_invalid_key_error" review-red.txt
+          grep -q "test_main_preserves_authoritative_native_report" review-red.txt
+          grep -q "test_main_contract_rejects_native_report_file_with_different_path" review-red.txt
+      - name: Apply minimal verified fixes
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              p = Path(path)
+              text = p.read_text(encoding="utf-8")
+              if old not in text:
+                  raise SystemExit(f"marker not found in {path}: {old!r}")
+              p.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+          # Scope the signing private key only to the release-gate process.
+          p = Path(".github/workflows/main.yml")
+          text = p.read_text(encoding="utf-8")
+          secret_expr = "$" + "{{ secrets.CS_SIGNING_PRIVATE_KEY_HEX }}"
+          old_step = (
+              "      - name: Run every mandatory release gate\n"
+              "        env:\n"
+              "          CS_SIGNING_PRIVATE_KEY_HEX: " + secret_expr + "\n"
+              "        run: |\n"
+          )
+          new_step = "      - name: Run every mandatory release gate\n        run: |\n"
+          if old_step not in text:
+              raise SystemExit("release-gate step secret-scope marker not found")
+          text = text.replace(old_step, new_step, 1)
+          old_command = (
+              "          python scripts/resilient_stage.py run --name release-gate -- "
+              "python scripts/release_gate.py output --native-report "
+              "pipeline-evidence/native_client_check_report.json --min-source-coverage "
+              "\"$MIN_SOURCE_COVERAGE\" --promote\n"
+          )
+          new_command = (
+              "          CS_SIGNING_PRIVATE_KEY_HEX=\"" + secret_expr + "\" "
+              "python scripts/resilient_stage.py run --name release-gate -- "
+              "python scripts/release_gate.py output --native-report "
+              "pipeline-evidence/native_client_check_report.json --min-source-coverage "
+              "\"$MIN_SOURCE_COVERAGE\" --promote\n"
+          )
+          if old_command not in text:
+              raise SystemExit("release-gate command marker not found")
+          p.write_text(text.replace(old_command, new_command, 1), encoding="utf-8")
+
+          # Sanitize timing evidence and retain a non-secret opaque source ID.
+          replace_once(
+              "scripts/normalize_source_timing_logs.py",
+              "import glob\nimport json\n",
+              "import glob\nimport hashlib\nimport json\n",
+          )
+          replace_once(
+              "scripts/normalize_source_timing_logs.py",
+              "from typing import Iterable\n\nANSI_RE",
+              "from typing import Iterable\n\nfrom configstream.security_validator import SecurityValidator\n\nANSI_RE",
+          )
+          replace_once(
+              "scripts/normalize_source_timing_logs.py",
+              "def write_outputs(\n",
+              '''def source_id_for_url(url: str) -> str:
+              return hashlib.sha256(url.strip().encode("utf-8")).hexdigest()
+
+
+          def write_outputs(
+          ''',
+          )
+          replace_once(
+              "scripts/normalize_source_timing_logs.py",
+              '''    for record in records:
+                  fetch = f" Fetch={record.fetch_ms:g}ms" if record.fetch_ms is not None else ""
+                  normalized_lines.append(
+                      f"Source Summary [{record.url}]: Raw={record.raw}{fetch} "
+                      f"Dur={record.duration_ms:g}ms"
+                  )
+                  evidence_lines.append(
+                      json.dumps(
+                          {
+                              "source_url": record.url,
+                              "raw": record.raw,
+                              "fetch_ms": record.fetch_ms,
+                              "duration_ms": record.duration_ms,
+                              "source_log": record.source_log,
+                          },
+          ''',
+              '''    for record in records:
+                  safe_url = SecurityValidator.sanitize_log_message(record.url)
+                  safe_source_log = SecurityValidator.sanitize_log_message(record.source_log)
+                  fetch = f" Fetch={record.fetch_ms:g}ms" if record.fetch_ms is not None else ""
+                  normalized_lines.append(
+                      f"Source Summary [{safe_url}]: Raw={record.raw}{fetch} "
+                      f"Dur={record.duration_ms:g}ms"
+                  )
+                  evidence_lines.append(
+                      json.dumps(
+                          {
+                              "source_id": source_id_for_url(record.url),
+                              "source_url": safe_url,
+                              "raw": record.raw,
+                              "fetch_ms": record.fetch_ms,
+                              "duration_ms": record.duration_ms,
+                              "source_log": safe_source_log,
+                          },
+          ''',
+          )
+          replace_once(
+              "scripts/normalize_source_timing_logs.py",
+              '''        except OSError as exc:
+                  print(
+                      f"ERROR: could not clear stale timing output {path}: {type(exc).__name__}",
+                      file=sys.stderr,
+                  )
+          ''',
+              '''        except OSError as exc:
+                  safe_path = SecurityValidator.sanitize_log_message(str(path))
+                  print(
+                      f"ERROR: could not clear stale timing output {safe_path}: {type(exc).__name__}",
+                      file=sys.stderr,
+                  )
+          ''',
+          )
+
+          # Map sanitized evidence back to configured sources only by opaque source ID.
+          replace_once(
+              "scripts/dynamic_reshard.py",
+              "import glob\nimport shutil\n",
+              "import glob\nimport hashlib\nimport shutil\n",
+          )
+          replace_once(
+              "scripts/dynamic_reshard.py",
+              'FINGERPRINT_DIR = Path("data/fingerprints")\n',
+              'FINGERPRINT_DIR = Path("data/fingerprints")\nTIMING_EVIDENCE_PATH = Path("pipeline-evidence/source_timing.jsonl")\n',
+          )
+          p = Path("scripts/dynamic_reshard.py")
+          text = p.read_text(encoding="utf-8")
+          marker = "\ndef get_current_batch_count() -> int:\n"
+          helper = '''
+
+          def _source_timing_id(url: str) -> str:
+              return hashlib.sha256(url.strip().encode("utf-8")).hexdigest()
+
+
+          def parse_timing_evidence(
+              path: Path, allowed_urls: Set[str]
+          ) -> Dict[str, Tuple[int, float]]:
+              if not path.exists():
+                  return {}
+              by_id = {_source_timing_id(url): url for url in allowed_urls}
+              metrics: Dict[str, Tuple[int, float]] = {}
+              for line in path.read_text(encoding="utf-8", errors="ignore").splitlines():
+                  if not line.strip():
+                      continue
+                  try:
+                      payload = json.loads(line)
+                      source_url = by_id.get(str(payload.get("source_id", "")))
+                      raw = int(payload.get("raw", 0) or 0)
+                      duration_ms = float(payload.get("duration_ms", 0.0) or 0.0)
+                  except (json.JSONDecodeError, TypeError, ValueError):
+                      continue
+                  if not source_url or duration_ms <= 0:
+                      continue
+                  duration = duration_ms / 1000.0
+                  existing = metrics.get(source_url, (0, 0.0))
+                  if duration > existing[1]:
+                      metrics[source_url] = (raw, duration)
+              return metrics
+          '''
+          if "def parse_timing_evidence(" not in text:
+              if marker not in text:
+                  raise SystemExit("dynamic timing evidence insertion marker missing")
+              p.write_text(text.replace(marker, helper + marker, 1), encoding="utf-8")
+          replace_once(
+              "scripts/dynamic_reshard.py",
+              '''    if log_files:
+                  observed_metrics.update(
+                      parse_logs(
+                          log_files,
+                          test_time_per_proxy=TEST_TIME_PER_PROXY,
+                          allowed_urls=all_urls,
+                          normalized_map=normalized_map,
+                      )
+                  )
+              if db_metrics:
+          ''',
+              '''    if log_files:
+                  observed_metrics.update(
+                      parse_logs(
+                          log_files,
+                          test_time_per_proxy=TEST_TIME_PER_PROXY,
+                          allowed_urls=all_urls,
+                          normalized_map=normalized_map,
+                      )
+                  )
+              structured_metrics = parse_timing_evidence(TIMING_EVIDENCE_PATH, all_urls)
+              if structured_metrics:
+                  observed_metrics.update(structured_metrics)
+              if db_metrics:
+          ''',
+          )
+
+          # Sanitize invalid key exception text before stderr emission.
+          replace_once(
+              "scripts/validate_frontend_placeholders.py",
+              "from configstream.signer import Signer, normalize_public_key_hex\n",
+              "from configstream.security_validator import SecurityValidator\nfrom configstream.signer import Signer, normalize_public_key_hex\n",
+          )
+          replace_once(
+              "scripts/validate_frontend_placeholders.py",
+              '''        except (TypeError, ValueError) as exc:
+                  print(
+                      f"ERROR: invalid frontend verification key material: {exc}",
+                      file=sys.stderr,
+                  )
+          ''',
+              '''        except (TypeError, ValueError) as exc:
+                  safe_error = SecurityValidator.sanitize_log_message(str(exc))
+                  print(
+                      f"ERROR: invalid frontend verification key material: {safe_error}",
+                      file=sys.stderr,
+                  )
+          ''',
+          )
+
+          # Any deprecated native-report writer option violates the single-writer contract.
+          replace_once(
+              "scripts/validate_workflows.py",
+              '        and f"--native-report-file {report}" not in commands\n',
+              '        and "--native-report-file" not in commands\n',
+          )
+          PY
+      - name: Apply pinned Black
+        run: |
+          python -m black \
+            scripts/normalize_source_timing_logs.py \
+            scripts/dynamic_reshard.py \
+            scripts/validate_frontend_placeholders.py \
+            scripts/validate_workflows.py \
+            tests/unit/test_normalize_source_timing_logs.py \
+            tests/unit/test_validate_frontend_placeholders.py \
+            tests/unit/test_validate_workflows_resilient.py
+      - name: Regenerate checked-in registries
+        run: |
+          python scripts/generate_environment_catalog.py
+          python scripts/generate_debt_matrix.py
+          python scripts/generate_environment_catalog.py --check
+          python scripts/generate_debt_matrix.py --check
+      - name: GREEN - run focused regressions
+        shell: bash
+        run: |
+          set -o pipefail
+          python -m pytest -q \
+            tests/unit/test_normalize_source_timing_logs.py \
+            tests/unit/test_validate_frontend_placeholders.py \
+            tests/unit/test_validate_workflows_resilient.py \
+            tests/unit/test_release_remediation.py \
+            tests/unit/test_require_stage_evidence.py \
+            2>&1 | tee review-green.txt
+      - name: Validate static contracts
+        run: |
+          python scripts/validate_workflows.py
+          python -m mypy \
+            scripts/normalize_source_timing_logs.py \
+            scripts/dynamic_reshard.py \
+            scripts/validate_frontend_placeholders.py \
+            scripts/validate_workflows.py \
+            tests/unit/test_normalize_source_timing_logs.py \
+            tests/unit/test_validate_frontend_placeholders.py \
+            tests/unit/test_validate_workflows_resilient.py
+      - name: Package TDD diagnostics
+        if: always()
+        run: zip -q review-fix-tdd-diagnostics.zip review-red.txt review-green.txt || true
+      - name: Upload TDD diagnostics
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: review-fix-tdd-diagnostics-${{ github.run_id }}
+          path: review-fix-tdd-diagnostics.zip
+          if-no-files-found: ignore
+          retention-days: 1
+      - name: Commit verified review fixes and remove harness
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            .github/workflows/main.yml \
+            scripts/normalize_source_timing_logs.py \
+            scripts/dynamic_reshard.py \
+            scripts/validate_frontend_placeholders.py \
+            scripts/validate_workflows.py \
+            tests/unit/test_normalize_source_timing_logs.py \
+            tests/unit/test_validate_frontend_placeholders.py \
+            tests/unit/test_validate_workflows_resilient.py \
+            docs/generated/environment-variables.json \
+            docs/generated/environment-variables.md \
+            docs/debt_matrix.json \
+            docs/DEBT_MATRIX.md
+          git rm .github/workflows/review-fix-tdd.yml
+          git commit -m "[autofix] security: address review findings"
+          git push origin HEAD:agent/fix-main-release-gates
