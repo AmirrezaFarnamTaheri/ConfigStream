@@ -490,13 +490,11 @@ jobs:
             -- bash scripts/install_native_validators.sh
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - name: Run every mandatory release gate
-        env:
-          CS_SIGNING_PRIVATE_KEY_HEX: ${{ secrets.CS_SIGNING_PRIVATE_KEY_HEX }}
         run: |
           set -euo pipefail
           mkdir -p pipeline-evidence
           python scripts/resilient_stage.py run --name native-validation -- python scripts/native_client_checks.py output --report pipeline-evidence/native_client_check_report.json
-          python scripts/resilient_stage.py run --name release-gate -- python scripts/release_gate.py output --native-report pipeline-evidence/native_client_check_report.json --min-source-coverage "$MIN_SOURCE_COVERAGE" --promote
+          CS_SIGNING_PRIVATE_KEY_HEX="${{ secrets.CS_SIGNING_PRIVATE_KEY_HEX }}" python scripts/resilient_stage.py run --name release-gate -- python scripts/release_gate.py output --native-report pipeline-evidence/native_client_check_report.json --min-source-coverage "$MIN_SOURCE_COVERAGE" --promote
           python scripts/resilient_stage.py run --name final-contract -- python scripts/validate_pages_artifact.py --native-client-check output
           python scripts/resilient_stage.py run --name evidence-bundle -- python scripts/generate_evidence_bundle.py --output-dir output --evidence-dir pipeline-evidence --native-report pipeline-evidence/native_client_check_report.json
       - name: Evaluate release readiness
