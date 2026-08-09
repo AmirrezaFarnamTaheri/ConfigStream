@@ -20,7 +20,7 @@ from typing import Mapping
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ed25519
 
-from configstream.signer import Signer
+from configstream.signer import Signer, normalize_public_key_hex
 
 PUBLIC_KEY_PLACEHOLDER_MARKERS = ("79e/79e/", "PLACEHOLDER_PUBLIC_KEY")
 STEGO_KEY_PLACEHOLDER = "PLACEHOLDER_KEY_INJECTED_BY_CI"
@@ -38,10 +38,13 @@ def _js_string(value: str) -> str:
     return json.dumps(value, ensure_ascii=False)
 
 
-def _derive_public_key_spki_base64(private_key_hex: str) -> str:
-    """Derive the browser Ed25519 trust anchor from a configured signing key."""
+def _public_key_spki_base64(value: str) -> str:
+    """Canonicalize any supported Ed25519 public key into browser SPKI/Base64."""
 
-    raw_public_key = bytes.fromhex(Signer(private_key_hex).get_public_key_hex())
+    normalized = normalize_public_key_hex(value)
+    if not normalized:
+        raise ValueError("invalid Ed25519 public key")
+    raw_public_key = bytes.fromhex(normalized)
     public_key = ed25519.Ed25519PublicKey.from_public_bytes(raw_public_key)
     der = public_key.public_bytes(
         encoding=serialization.Encoding.DER,
@@ -50,10 +53,16 @@ def _derive_public_key_spki_base64(private_key_hex: str) -> str:
     return base64.b64encode(der).decode("ascii")
 
 
+def _derive_public_key_spki_base64(private_key_hex: str) -> str:
+    """Derive the browser Ed25519 trust anchor from a configured signing key."""
+
+    return _public_key_spki_base64(Signer(private_key_hex).get_public_key_hex())
+
+
 def _resolve_public_key(env: Mapping[str, str]) -> str:
     explicit = env.get("CS_PUBLIC_KEY", "").strip()
     if explicit:
-        return explicit
+        return _public_key_spki_base64(explicit)
 
     private_key = (
         env.get("CS_SIGNING_PRIVATE_KEY_HEX", "").strip()
@@ -86,9 +95,11 @@ def inject_frontend_keys(root: Path, env: Mapping[str, str]) -> list[str]:
 
     The caller may have unrelated symmetric secrets in its environment for
     earlier private processing stages. They are deliberately ignored here;
-    only public browser material is selected for publication. When CS_PUBLIC_KEY
-    is omitted, the Ed25519 public key is derived from the configured signing
-    private key and only the derived public SPKI value is written.
+    only public browser material is selected for publication. Any supported
+    explicit Ed25519 public-key encoding is canonicalized to Base64/SPKI, which
+    is the representation consumed by the browser WebCrypto verifier. When
+    CS_PUBLIC_KEY is omitted, the public key is derived from the configured
+    signing private key and only that derived public value is written.
     """
 
     runtime_config_path = root / "assets" / "js" / "runtime-config.js"
@@ -154,8 +165,9 @@ def main(argv: list[str] | None = None) -> int:
         "--inject-env",
         action="store_true",
         help=(
-            "Inject public CS_PUBLIC_KEY/CS_IPNS_KEY values; when CS_PUBLIC_KEY is "
-            "absent, derive the public key from the configured Ed25519 signing key."
+            "Inject browser-safe CS_PUBLIC_KEY/CS_IPNS_KEY values; when "
+            "CS_PUBLIC_KEY is absent, derive the public key from the configured "
+            "Ed25519 signing key."
         ),
     )
     parser.add_argument(
