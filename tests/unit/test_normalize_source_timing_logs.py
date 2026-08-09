@@ -3,7 +3,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from scripts.normalize_source_timing_logs import collect_timings, parse_source_timings
+from scripts.normalize_source_timing_logs import (
+    SourceTiming,
+    collect_timings,
+    load_expected_sources,
+    parse_source_timings,
+    timing_coverage,
+)
 
 
 def test_parse_source_timings_recovers_rich_wrapped_summary() -> None:
@@ -47,3 +53,55 @@ def test_collect_timings_keeps_slowest_duplicate_observation(tmp_path: Path) -> 
     assert len(records) == 1
     assert records[0].duration_ms == 2500.0
     assert records[0].source_log == second.name
+
+
+def test_load_expected_sources_ignores_comments_and_invalid_lines(tmp_path: Path) -> None:
+    source_file = tmp_path / "batch_1.txt"
+    source_file.write_text(
+        "# comment\nhttps://a.example/sub\nnot-a-url\nhttps://b.example/sub\n",
+        encoding="utf-8",
+    )
+    assert load_expected_sources(str(tmp_path / "batch_*.txt")) == {
+        "https://a.example/sub",
+        "https://b.example/sub",
+    }
+
+
+def test_timing_coverage_normalizes_masked_query_variants() -> None:
+    records = [
+        SourceTiming(
+            url="https://a.example/sub?token=[MASKED]",
+            raw=10,
+            duration_ms=1000.0,
+            fetch_ms=None,
+            source_log="a.log",
+        ),
+        SourceTiming(
+            url="https://b.example/sub",
+            raw=20,
+            duration_ms=2000.0,
+            fetch_ms=None,
+            source_log="b.log",
+        ),
+    ]
+    expected = {
+        "https://a.example/sub?token=secret",
+        "https://b.example/sub",
+        "https://c.example/sub",
+    }
+    assert timing_coverage(records, expected) == 2 / 3
+
+
+def test_timing_coverage_rejects_sparse_evidence() -> None:
+    records = [
+        SourceTiming(
+            url=f"https://source-{index}.example/sub",
+            raw=1,
+            duration_ms=1000.0,
+            fetch_ms=None,
+            source_log="timing.log",
+        )
+        for index in range(7)
+    ]
+    expected = {f"https://source-{index}.example/sub" for index in range(10)}
+    assert timing_coverage(records, expected) == 0.7
