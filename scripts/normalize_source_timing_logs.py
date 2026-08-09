@@ -144,6 +144,19 @@ def write_outputs(
     )
 
 
+def _clear_outputs(*paths: Path) -> bool:
+    for path in paths:
+        try:
+            path.unlink(missing_ok=True)
+        except OSError as exc:
+            print(
+                f"ERROR: could not clear stale timing output {path}: {type(exc).__name__}",
+                file=sys.stderr,
+            )
+            return False
+    return True
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -172,13 +185,15 @@ def main() -> int:
     )
     args = parser.parse_args()
 
+    if not _clear_outputs(args.normalized_log, args.evidence):
+        return 1
+
     log_files = [Path(item) for item in sorted(glob.glob(args.pattern))]
     if not log_files:
         print("ERROR: no shard logs available for timing normalization", file=sys.stderr)
         return 1
 
     records = collect_timings(log_files)
-    write_outputs(records, args.normalized_log, args.evidence)
     if not records:
         print(
             "ERROR: shard logs contained no parseable Source Summary timing records",
@@ -204,6 +219,7 @@ def main() -> int:
         )
         return 1
 
+    write_outputs(records, args.normalized_log, args.evidence)
     print(
         f"OK: normalized {len(records)} source timing records from {len(log_files)} shard log(s)."
     )
