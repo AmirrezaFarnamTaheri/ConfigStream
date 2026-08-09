@@ -3,14 +3,19 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
+from configstream.signer import Signer
 from scripts.validate_frontend_placeholders import (
+    _derive_public_key_spki_base64,
     inject_frontend_keys,
     validate_frontend_placeholders,
 )
 
 SYMMETRIC_SECRET_FIELDS = ("STEGO_KEY", "CONFIG_STREAM_KEY")
+PRIVATE_KEY_HEX = "01" * 32
+PUBLIC_KEY_SPKI = _derive_public_key_spki_base64(PRIVATE_KEY_HEX)
 
 
 def _write_frontend(root: Path) -> None:
@@ -30,6 +35,13 @@ def _write_frontend(root: Path) -> None:
     )
 
 
+def _runtime_public_key(root: Path) -> str:
+    runtime = (root / "assets" / "js" / "runtime-config.js").read_text(encoding="utf-8")
+    marker = "PUBLIC_KEY: "
+    value = runtime.split(marker, 1)[1].split(",", 1)[0]
+    return str(json.loads(value))
+
+
 def test_validate_frontend_placeholders_detects_public_and_stego_keys(
     tmp_path: Path,
 ) -> None:
@@ -46,9 +58,43 @@ def test_inject_frontend_keys_generates_public_only_runtime_config(
     _write_frontend(tmp_path)
     changed = inject_frontend_keys(
         tmp_path,
-        {"CS_PUBLIC_KEY": "real-public-key-material", "CS_IPNS_KEY": "real-ipns-key"},
+        {"CS_PUBLIC_KEY": PUBLIC_KEY_SPKI, "CS_IPNS_KEY": "real-ipns-key"},
     )
     assert len(changed) == 1
+    assert _runtime_public_key(tmp_path) == PUBLIC_KEY_SPKI
+    assert validate_frontend_placeholders(tmp_path, strict=True) == []
+
+
+def test_inject_frontend_keys_canonicalizes_raw_hex_public_key_for_browser(
+    tmp_path: Path,
+) -> None:
+    _write_frontend(tmp_path)
+    raw_public_key = Signer(PRIVATE_KEY_HEX).get_public_key_hex()
+
+    inject_frontend_keys(tmp_path, {"CS_PUBLIC_KEY": raw_public_key})
+
+    assert _runtime_public_key(tmp_path) == PUBLIC_KEY_SPKI
+    assert raw_public_key not in (
+        tmp_path / "assets" / "js" / "runtime-config.js"
+    ).read_text(encoding="utf-8")
+
+
+def test_inject_frontend_keys_derives_public_key_from_signing_key(
+    tmp_path: Path,
+) -> None:
+    _write_frontend(tmp_path)
+
+    changed = inject_frontend_keys(
+        tmp_path,
+        {"CS_SIGNING_PRIVATE_KEY_HEX": PRIVATE_KEY_HEX},
+    )
+
+    runtime = (tmp_path / "assets" / "js" / "runtime-config.js").read_text(
+        encoding="utf-8"
+    )
+    assert len(changed) == 1
+    assert PRIVATE_KEY_HEX not in runtime
+    assert _runtime_public_key(tmp_path) == PUBLIC_KEY_SPKI
     assert validate_frontend_placeholders(tmp_path, strict=True) == []
 
 
@@ -57,7 +103,7 @@ def test_inject_frontend_keys_ignores_all_ambient_symmetric_secrets(
 ) -> None:
     _write_frontend(tmp_path)
     env = {
-        "CS_PUBLIC_KEY": "public",
+        "CS_PUBLIC_KEY": PUBLIC_KEY_SPKI,
         "CS_IPNS_KEY": "ipns",
         **{field: "private-value-must-never-ship" for field in SYMMETRIC_SECRET_FIELDS},
     }

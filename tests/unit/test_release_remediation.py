@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 from scripts.finalize_release_outputs import finalize, modernize_singbox
+from scripts.reconcile_release_metadata import reconcile
 from scripts.release_gate import validate
 from scripts.shard_sources import partition
 
@@ -66,6 +67,7 @@ def test_modernize_singbox_migrates_wireguard_and_route_contract() -> None:
 def test_finalize_sanitizes_counts_sources_and_transients(tmp_path: Path) -> None:
     output = tmp_path / "output"
     output.mkdir()
+    shielded_evidence = tmp_path / "pipeline-evidence" / "shielded_reconciliation.json"
     records = [
         {
             "id": "native",
@@ -100,7 +102,22 @@ def test_finalize_sanitizes_counts_sources_and_transients(tmp_path: Path) -> Non
             ),
         },
     ]
+    leaked_derivative = {
+        "id": "revived",
+        "protocol": "vless",
+        "address": "203.0.113.8",
+        "port": 443,
+        "is_working": False,
+        "details": {
+            "tester_error_category": "IPC_ERROR",
+            "failure_category": "TIMEOUT",
+            "error": "bounded tester failed",
+            "safe_public_field": "kept",
+        },
+    }
     write_json(output / "proxies.json", records)
+    write_json(output / "countries" / "XX.list.json", [leaked_derivative])
+    write_json(output / "protocols" / "revived.list-dns-safe.json", [leaked_derivative])
     write_json(
         output / "metadata.json",
         {
@@ -108,6 +125,7 @@ def test_finalize_sanitizes_counts_sources_and_transients(tmp_path: Path) -> Non
             "fetched_sources": 8,
             "total_configured_sources": 10,
             "time_limited": False,
+            "shielded_count": 739,
             "shielded_candidate_count": 0,
             "shielded_verified_count": 0,
         },
@@ -130,16 +148,31 @@ def test_finalize_sanitizes_counts_sources_and_transients(tmp_path: Path) -> Non
     )
     (output / ".metadata.json.lock").write_text("", encoding="utf-8")
     finalize(output, tmp_path, 0.80)
+    reconcile(output, shielded_evidence)
 
     public = json.loads((output / "proxies.json").read_text(encoding="utf-8"))
     assert public[0]["source"] == "example.com"
     assert "_source" not in public[0]["details"]
+    for derivative in (
+        output / "countries" / "XX.list.json",
+        output / "protocols" / "revived.list-dns-safe.json",
+    ):
+        payload = json.loads(derivative.read_text(encoding="utf-8"))
+        assert payload[0]["details"] == {"safe_public_field": "kept"}
     metadata = json.loads((output / "metadata.json").read_text(encoding="utf-8"))
     assert metadata["total_proxies"] == 1
     assert metadata["exported_record_count"] == 2
     assert metadata["total_working"] == 1
     assert metadata["exported_working_record_count"] == 2
     assert metadata["source_coverage"] == 0.8
+    assert "shard_shielded_candidate_count" not in metadata
+    assert metadata["shielded_count"] == 0
+    assert metadata["shielded_candidate_count"] == 0
+    assert metadata["shielded_verified_count"] == 0
+    evidence = json.loads(shielded_evidence.read_text(encoding="utf-8"))
+    assert evidence["shard_candidates"] == 739
+    assert evidence["public_candidates"] == 0
+    assert evidence["public_verified"] == 0
     assert not list(output.rglob("*.lock"))
     assert (output / "xray.json").is_file()
     health = json.loads((output / "health.json").read_text(encoding="utf-8"))

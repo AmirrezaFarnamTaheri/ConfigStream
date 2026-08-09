@@ -57,6 +57,31 @@ def test_missing_required_native_target_fails_closed(
     }
 
 
+def test_missing_native_validator_uses_required_artifact_path(
+    tmp_path: Path, monkeypatch
+) -> None:
+    native_checks = _load_script("native_client_checks")
+    report = tmp_path / "report.json"
+    monkeypatch.setattr(native_checks.shutil, "which", lambda _name: None)
+    monkeypatch.setattr(
+        "sys.argv",
+        ["native_client_checks.py", str(tmp_path), "--report", str(report)],
+    )
+
+    assert native_checks.main() == 1
+    payload = native_checks.json.loads(report.read_text(encoding="utf-8"))
+    missing_tools = {
+        item["core"]: item["path"]
+        for item in payload["checks"]
+        if item["error"] == "required native validator binary is unavailable"
+    }
+    assert missing_tools == {
+        "sing-box": "singbox.json",
+        "mihomo": "clash.yaml",
+        "xray": "xray.json",
+    }
+
+
 def test_native_validator_error_is_sanitized(tmp_path: Path, monkeypatch) -> None:
     native_checks = _load_script("native_client_checks")
     artifact = tmp_path / "xray.json"
