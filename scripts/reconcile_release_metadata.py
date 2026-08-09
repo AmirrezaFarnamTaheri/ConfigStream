@@ -25,11 +25,7 @@ PUBLIC_PROXY_ARRAYS = (
     "revived-dns-hardened.json",
 )
 PUBLIC_PROXY_DIRS = ("countries", "protocols")
-PUBLIC_INTERNAL_DETAIL_KEYS = {
-    *INTERNAL_KEYS,
-    "shielded_candidate",
-    "shielded_verified",
-}
+PUBLIC_INTERNAL_KEYS = set(INTERNAL_KEYS)
 
 
 def _load_object(path: Path) -> dict[str, Any]:
@@ -73,8 +69,9 @@ def _sanitize_public(
 
     The public proxy schema intentionally permits ``details.error`` for
     ``protocol: revived`` records. Other protocol-specific detail schemas are
-    closed and must not receive tester error text. Shield-verification flags are
-    release bookkeeping and are reduced to metadata counters before this pass.
+    closed and must not receive tester error text. Chain shield bookkeeping
+    fields are intentionally public and remain available for contract-valid
+    chain records; their release counters are recomputed from final records.
     """
 
     if isinstance(value, dict):
@@ -82,7 +79,7 @@ def _sanitize_public(
         for raw_key, item in value.items():
             item_key = str(raw_key)
             lowered = item_key.lower()
-            if item_key.startswith("_") or lowered in PUBLIC_INTERNAL_DETAIL_KEYS:
+            if item_key.startswith("_") or lowered in PUBLIC_INTERNAL_KEYS:
                 continue
             if lowered == "error" and not allow_error:
                 continue
@@ -104,7 +101,7 @@ def _sanitize_proxy_record(record: dict[str, Any]) -> dict[str, Any]:
     for raw_key, item in record.items():
         item_key = str(raw_key)
         lowered = item_key.lower()
-        if item_key.startswith("_") or lowered in PUBLIC_INTERNAL_DETAIL_KEYS:
+        if item_key.startswith("_") or lowered in PUBLIC_INTERNAL_KEYS:
             continue
         if item_key == "details" and isinstance(item, dict):
             output[item_key] = _sanitize_public(
