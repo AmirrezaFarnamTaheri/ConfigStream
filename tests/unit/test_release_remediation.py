@@ -100,7 +100,23 @@ def test_finalize_sanitizes_counts_sources_and_transients(tmp_path: Path) -> Non
             ),
         },
     ]
+    leaked_derivative = {
+        "id": "revived",
+        "protocol": "vless",
+        "address": "203.0.113.8",
+        "port": 443,
+        "is_working": False,
+        "details": {
+            "tester_error_category": "IPC_ERROR",
+            "failure_category": "TIMEOUT",
+            "safe_public_field": "kept",
+        },
+    }
     write_json(output / "proxies.json", records)
+    write_json(output / "countries" / "XX.list.json", [leaked_derivative])
+    write_json(
+        output / "protocols" / "revived.list-dns-safe.json", [leaked_derivative]
+    )
     write_json(
         output / "metadata.json",
         {
@@ -134,6 +150,12 @@ def test_finalize_sanitizes_counts_sources_and_transients(tmp_path: Path) -> Non
     public = json.loads((output / "proxies.json").read_text(encoding="utf-8"))
     assert public[0]["source"] == "example.com"
     assert "_source" not in public[0]["details"]
+    for derivative in (
+        output / "countries" / "XX.list.json",
+        output / "protocols" / "revived.list-dns-safe.json",
+    ):
+        payload = json.loads(derivative.read_text(encoding="utf-8"))
+        assert payload[0]["details"] == {"safe_public_field": "kept"}
     metadata = json.loads((output / "metadata.json").read_text(encoding="utf-8"))
     assert metadata["total_proxies"] == 1
     assert metadata["exported_record_count"] == 2
