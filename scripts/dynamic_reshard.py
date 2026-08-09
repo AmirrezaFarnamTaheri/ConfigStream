@@ -489,7 +489,7 @@ def analyze_similarity(observed_metrics: Dict[str, Tuple[int, float]]) -> Set[st
 
 
 def main() -> None:
-    # 1. Setup Workspace
+    _require_timing_prerequisites()
     log_files: List[str] = []
     for pattern in LOG_PATTERNS:
         log_files.extend(glob.glob(pattern))
@@ -497,7 +497,7 @@ def main() -> None:
 
     if not SOURCES_DIR.exists():
         print(f"[ERROR] Sources directory '{SOURCES_DIR}' not found.")
-        return
+        raise SystemExit(1)
 
     # Determine batch count dynamically
     num_batches = get_current_batch_count()
@@ -516,7 +516,7 @@ def main() -> None:
     all_urls = set(get_existing_sources())
     if not all_urls:
         print("[ERROR] No sources found in sources/batch_*.txt")
-        return
+        raise SystemExit(1)
     normalized_map: Dict[str, List[str]] = defaultdict(list)
     for url in all_urls:
         key = _normalize_source_key(url)
@@ -643,7 +643,7 @@ def main() -> None:
         for tmp, _ in temp_files:
             if tmp.exists():
                 tmp.unlink()
-        return
+        raise SystemExit(1)
 
     # 9. Log Performance Metrics
     print("\n[INFO] Time-Based Load Balancing Metrics:")
@@ -666,6 +666,25 @@ def main() -> None:
     print(
         "\n[INFO] Refactor complete. Run the pipeline again to see performance gains."
     )
+
+
+def _require_timing_prerequisites() -> None:
+    from scripts.require_stage_evidence import main as require_stage_evidence
+
+    exit_code = require_stage_evidence(
+        [
+            "--stage",
+            "normalize-source-timings",
+            "--required-file",
+            "source_timing_normalized.log",
+            "--required-file",
+            "pipeline-evidence/source_timing.jsonl",
+            "--output",
+            "pipeline-evidence/reshard-prerequisites.json",
+        ]
+    )
+    if exit_code != 0:
+        raise SystemExit(exit_code)
 
 
 if __name__ == "__main__":
