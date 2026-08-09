@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+import scripts.dynamic_reshard as dynamic_reshard
 from scripts.dynamic_reshard import _require_normalized_timing_inputs
 
 
@@ -62,3 +63,12 @@ def test_dynamic_reshard_accepts_successful_normalized_evidence(tmp_path: Path) 
     )
 
     _require_normalized_timing_inputs(stage, normalized, evidence)
+
+
+def test_dynamic_reshard_returns_failure_when_sources_directory_is_missing(
+    tmp_path: Path, monkeypatch
+) -> None:
+    monkeypatch.setattr(dynamic_reshard, "_require_normalized_timing_inputs", lambda: None)
+    monkeypatch.setattr(dynamic_reshard, "SOURCES_DIR", tmp_path / "missing-sources")
+
+    assert dynamic_reshard.main() == 1
