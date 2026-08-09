@@ -84,7 +84,11 @@ def test_reconcile_sanitizes_root_and_categorized_proxy_arrays(tmp_path: Path) -
     proxies = json.loads((root / "proxies.json").read_text(encoding="utf-8"))
     assert proxies[0]["source"] == "example.com"
     assert proxies[0]["details"] == {"safe_public_field": "keep"}
-    assert proxies[1]["details"] == {"processed_by": ["shielding"]}
+    assert proxies[1]["details"] == {
+        "shielded_candidate": True,
+        "shielded_verified": True,
+        "processed_by": ["shielding"],
+    }
 
     country_payload = json.loads(
         (root / "countries" / "XX.list-dns-hardened.json").read_text(encoding="utf-8")
@@ -169,7 +173,11 @@ def test_reconcile_keeps_unverified_public_shielded_candidate_blocking(
     health = json.loads((root / "health.json").read_text(encoding="utf-8"))
     assert health["release_blockers"] == ["unverified_shielded_candidates:1"]
     public = json.loads((root / "proxies.json").read_text(encoding="utf-8"))
-    assert public[0]["details"] == {"processed_by": ["shielding"]}
+    assert public[0]["details"] == {
+        "shielded_candidate": True,
+        "shielded_verified": False,
+        "processed_by": ["shielding"],
+    }
 
 
 def test_reconcile_runs_as_direct_workflow_script(tmp_path: Path) -> None:
