@@ -115,7 +115,18 @@ def test_main_preserves_authoritative_native_report() -> None:
         "--native-report pipeline-evidence/native_client_check_report.json" in command
     )
     assert "--native-report-file" not in command
-    assert "CS_SIGNING_PRIVATE_KEY_HEX" in step["env"]
+    assert "CS_SIGNING_PRIVATE_KEY_HEX" not in step.get("env", {})
+    release_line = next(
+        line for line in command.splitlines() if "release_gate.py" in line
+    )
+    assert "CS_SIGNING_PRIVATE_KEY_HEX=" in release_line
+    for marker in (
+        "native_client_checks.py",
+        "validate_pages_artifact.py",
+        "generate_evidence_bundle.py",
+    ):
+        marker_line = next(line for line in command.splitlines() if marker in line)
+        assert "CS_SIGNING_PRIVATE_KEY_HEX" not in marker_line
     assert validate_workflows._main_native_output_contract(data) is True
 
 
