@@ -297,6 +297,20 @@ def _main_wasm_download_has_dependency(data: dict[Any, Any]) -> bool:
     return True
 
 
+def _main_native_output_contract(data: dict[Any, Any]) -> bool:
+    report = "pipeline-evidence/native_client_check_report.json"
+    commands = "\n".join(_run_steps(data))
+    return all(
+        marker in commands
+        for marker in (
+            f"native_client_checks.py output --report {report}",
+            f"release_gate.py output --native-report {report}",
+            "validate_pages_artifact.py --native-client-check output",
+            f"generate_evidence_bundle.py --output-dir output --evidence-dir pipeline-evidence --native-report {report}",
+        )
+    ) and f"--native-report-file {report}" not in commands
+
+
 def _main_resilient_contract(data: dict[Any, Any]) -> list[str]:
     if not _has_command(data, "scripts/resilient_stage.py"):
         return [
@@ -364,14 +378,7 @@ def _main_safe(data: dict[Any, Any]) -> list[str]:
         artifact_name="pipeline-output",
     ):
         errors.append("pipeline-output artifact must retain for >=30 days")
-    if not (
-        _has_command(data, "python scripts/validate_pages_artifact.py")
-        and _has_command(data, "--native-client-check")
-        and _has_command(
-            data,
-            "--native-report-file pipeline-evidence/native_client_check_report.json",
-        )
-    ):
+    if not _main_native_output_contract(data):
         errors.append("data release assets must use the shared native output contract")
     if not _main_public_preparation(data):
         errors.append("data release validation must prepare the public output artifact")
