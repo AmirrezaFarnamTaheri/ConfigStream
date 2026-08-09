@@ -159,7 +159,15 @@ def _public_shielding_counts(records: list[dict[str, Any]]) -> tuple[int, int]:
     return candidates, verified
 
 
-def reconcile(root: Path) -> dict[str, Any]:
+def _write_evidence(path: Path, payload: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(payload, indent=2, ensure_ascii=False, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+
+def reconcile(root: Path, evidence_path: Path | None = None) -> dict[str, Any]:
     changed_surfaces = _sanitize_public_proxy_surfaces(root)
     metadata_path = root / "metadata.json"
     proxies_path = root / "proxies.json"
@@ -172,7 +180,6 @@ def reconcile(root: Path) -> dict[str, Any]:
     )
     public_candidates, public_verified = _public_shielding_counts(records)
 
-    metadata["shard_shielded_candidate_count"] = shard_candidates
     metadata["shielded_count"] = public_candidates
     metadata["shielded_candidate_count"] = public_candidates
     metadata["shielded_verified_count"] = public_verified
@@ -197,19 +204,28 @@ def reconcile(root: Path) -> dict[str, Any]:
             json.dumps(health, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
         )
 
-    return {
+    result: dict[str, Any] = {
+        "schema_version": 1,
         "shard_candidates": shard_candidates,
         "public_candidates": public_candidates,
         "public_verified": public_verified,
         "sanitized_surfaces": changed_surfaces,
     }
+    if evidence_path is not None:
+        _write_evidence(evidence_path, result)
+    return result
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("artifact_dir", type=Path)
+    parser.add_argument(
+        "--evidence",
+        type=Path,
+        help="Optional private evidence file for pre-publication shard diagnostics.",
+    )
     args = parser.parse_args()
-    result = reconcile(args.artifact_dir.resolve())
+    result = reconcile(args.artifact_dir.resolve(), args.evidence)
     print(
         "Reconciled public artifact: "
         f"shard_candidates={result['shard_candidates']} "
