@@ -40,6 +40,8 @@ def test_reconcile_sanitizes_root_and_categorized_proxy_arrays(tmp_path: Path) -
     derivative_record = {
         **finalized_record,
         "source": "https://user:secret@example.com/sub?token=secret",
+        "_source": "https://internal.example/private",
+        "source_url": "https://internal.example/raw",
     }
     revived_record = {
         "id": "revived",
@@ -84,12 +86,16 @@ def test_reconcile_sanitizes_root_and_categorized_proxy_arrays(tmp_path: Path) -
         (root / "countries" / "XX.list-dns-hardened.json").read_text(encoding="utf-8")
     )
     assert country_payload[0]["source"] == "example.com"
+    assert "_source" not in country_payload[0]
+    assert "source_url" not in country_payload[0]
     assert country_payload[0]["details"] == {"safe_public_field": "keep"}
 
     revived_payload = json.loads(
         (root / "revived-dns-safe.json").read_text(encoding="utf-8")
     )
     assert revived_payload[0]["source"] == "example.com"
+    assert "_source" not in revived_payload[0]
+    assert "source_url" not in revived_payload[0]
     assert revived_payload[0]["details"] == {"safe_public_field": "keep"}
     assert revived_payload[1]["source"] == "revived.example"
     assert revived_payload[1]["details"] == {
