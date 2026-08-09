@@ -67,6 +67,7 @@ def test_modernize_singbox_migrates_wireguard_and_route_contract() -> None:
 def test_finalize_sanitizes_counts_sources_and_transients(tmp_path: Path) -> None:
     output = tmp_path / "output"
     output.mkdir()
+    shielded_evidence = tmp_path / "pipeline-evidence" / "shielded_reconciliation.json"
     records = [
         {
             "id": "native",
@@ -149,7 +150,7 @@ def test_finalize_sanitizes_counts_sources_and_transients(tmp_path: Path) -> Non
     )
     (output / ".metadata.json.lock").write_text("", encoding="utf-8")
     finalize(output, tmp_path, 0.80)
-    reconcile(output)
+    reconcile(output, shielded_evidence)
 
     public = json.loads((output / "proxies.json").read_text(encoding="utf-8"))
     assert public[0]["source"] == "example.com"
@@ -166,10 +167,14 @@ def test_finalize_sanitizes_counts_sources_and_transients(tmp_path: Path) -> Non
     assert metadata["total_working"] == 1
     assert metadata["exported_working_record_count"] == 2
     assert metadata["source_coverage"] == 0.8
-    assert metadata["shard_shielded_candidate_count"] == 739
+    assert "shard_shielded_candidate_count" not in metadata
     assert metadata["shielded_count"] == 0
     assert metadata["shielded_candidate_count"] == 0
     assert metadata["shielded_verified_count"] == 0
+    evidence = json.loads(shielded_evidence.read_text(encoding="utf-8"))
+    assert evidence["shard_candidates"] == 739
+    assert evidence["public_candidates"] == 0
+    assert evidence["public_verified"] == 0
     assert not list(output.rglob("*.lock"))
     assert (output / "xray.json").is_file()
     health = json.loads((output / "health.json").read_text(encoding="utf-8"))
