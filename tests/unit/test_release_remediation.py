@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 from scripts.finalize_release_outputs import finalize, modernize_singbox
+from scripts.reconcile_release_metadata import reconcile
 from scripts.release_gate import validate
 from scripts.shard_sources import partition
 
@@ -147,6 +148,7 @@ def test_finalize_sanitizes_counts_sources_and_transients(tmp_path: Path) -> Non
     )
     (output / ".metadata.json.lock").write_text("", encoding="utf-8")
     finalize(output, tmp_path, 0.80)
+    reconcile(output)
 
     public = json.loads((output / "proxies.json").read_text(encoding="utf-8"))
     assert public[0]["source"] == "example.com"
