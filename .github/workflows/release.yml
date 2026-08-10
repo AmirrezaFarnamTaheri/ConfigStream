@@ -96,7 +96,7 @@ jobs:
           name: python-dist
           path: dist/*
       - name: Attest Python distributions
-        uses: actions/attest-build-provenance@520d128f165991a6c774bcb264f323e3d70747f4 # v2.2.0
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-path: dist/*
 
@@ -197,17 +197,17 @@ jobs:
           if-no-files-found: ignore
       - name: Attest Linux AppImage
         if: runner.os == 'Linux'
-        uses: actions/attest-build-provenance@520d128f165991a6c774bcb264f323e3d70747f4 # v2.2.0
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-path: dist/ConfigStream-linux-x86_64.AppImage
       - name: Attest Windows binary
         if: runner.os == 'Windows'
-        uses: actions/attest-build-provenance@520d128f165991a6c774bcb264f323e3d70747f4 # v2.2.0
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-path: dist/ConfigStream-windows-x86_64.exe
       - name: Attest macOS DMG
         if: runner.os == 'macOS'
-        uses: actions/attest-build-provenance@520d128f165991a6c774bcb264f323e3d70747f4 # v2.2.0
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-path: dist/ConfigStream-macos.dmg
 
