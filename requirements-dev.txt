@@ -30,7 +30,7 @@ iniconfig==2.3.0
 playwright==1.61.0
 pluggy==1.6.0
 pyfakefs==6.2.0
-pyee==13.0.0
+pyee==13.0.1
 pytest==9.1.1
 pytest-aiohttp==1.1.1
 pytest-asyncio==1.4.0
