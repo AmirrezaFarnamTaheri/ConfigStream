@@ -16,9 +16,35 @@ def test_preflight_accepts_public_key_derived_from_signing_key() -> None:
     assert validate_release_inputs({"CS_SIGNING_PRIVATE_KEY_HEX": "01" * 32}) == []
 
 
+def test_preflight_accepts_matching_explicit_public_and_signing_key() -> None:
+    signing_key = "01" * 32
+    public_key = _resolve_public_key({"CS_SIGNING_PRIVATE_KEY_HEX": signing_key})
+
+    assert (
+        validate_release_inputs(
+            {
+                "CS_PUBLIC_KEY": public_key,
+                "CS_SIGNING_PRIVATE_KEY_HEX": signing_key,
+            }
+        )
+        == []
+    )
+
+
 def test_preflight_rejects_missing_release_trust_anchor() -> None:
     errors = validate_release_inputs({})
     assert any("verification key is unavailable" in error for error in errors)
+
+
+def test_preflight_rejects_public_key_without_signing_key() -> None:
+    public_key = _resolve_public_key({"CS_SIGNING_PRIVATE_KEY_HEX": "01" * 32})
+
+    errors = validate_release_inputs({"CS_PUBLIC_KEY": public_key})
+
+    assert (
+        "release signing key is unavailable: configure CS_SIGNING_PRIVATE_KEY_HEX"
+        in errors
+    )
 
 
 def test_preflight_rejects_malformed_explicit_public_key() -> None:

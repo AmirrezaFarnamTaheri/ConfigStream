@@ -54,10 +54,20 @@ This document reviews the Ed25519 cryptographic signing pipeline, frontend verif
 
 ## 4. Secret Handling & Environment Variable Protection Assessment
 
-- **Manifest Private Key**: Sourced from `CS_SIGNING_PRIVATE_KEY_HEX` or `CONFIGSTREAM_SIGNING_PRIVATE_KEY_HEX`. Handled strictly in memory during the build phase (`_manifest_signer_from_env()`).
+- **Manifest Private Key**: Runtime signing helpers accept `CS_SIGNING_PRIVATE_KEY_HEX` and retain `CONFIGSTREAM_SIGNING_PRIVATE_KEY_HEX` as a legacy direct-invocation alias. The production GitHub Actions workflow exposes only the canonical `CS_SIGNING_PRIVATE_KEY_HEX` secret; the legacy alias is not a production CI secret name.
 - **Archive Scanning**: `validate_pages_artifact.py` includes a `ZIP_DEPLOY_SECRET_RE` regex scan to ensure high-entropy strings, `CS_PUBLIC_KEY`, `ADMIN_API_KEY`, etc., do not accidentally leak into generated ZIP archives like `side_products.zip`.
 - **Telemetry Scrubbing**: Event logs (`pipeline_events.jsonl`) are checked for forbidden markers (e.g., `Bearer`, `Authorization:`, and placeholder key strings) to prevent secret leakage via monitoring infrastructure.
 - **Public Key Parser**: The Python validation script tries decoding `CS_PUBLIC_KEY` first as Base64/DER, then falls back to Raw Hex, demonstrating resilience in CI checks.
+
+### 4.1 Production GitHub Actions Bootstrap
+
+The production release path is fail-closed. The `Validate main release prerequisites` step runs only for non-pull-request executions on `refs/heads/main`, before the release build fan-out.
+
+1. **Required signing secret**: provision `CS_SIGNING_PRIVATE_KEY_HEX` through the repository's authorized GitHub Actions secret-management path. The value must be a valid Ed25519 private key accepted by `signer.py` (a 32-byte seed or supported 64-byte form, hex encoded). Do not generate, echo, or print a production signing key in workflow logs.
+2. **Optional explicit public key**: `CS_PUBLIC_KEY` may also be configured. If omitted, the browser verification key is derived from `CS_SIGNING_PRIVATE_KEY_HEX`. If provided, preflight requires it to be a valid Ed25519 public key and to match the public key derived from the signing secret.
+3. **Public-key-only is invalid**: configuring only `CS_PUBLIC_KEY` does not satisfy production preflight because the release artifact must be signed, not merely verifiable.
+4. **Legacy alias migration**: external/direct invocations may still accept `CONFIGSTREAM_SIGNING_PRIVATE_KEY_HEX` for backward compatibility. GitHub Actions does not expose that alias. Migrate any external setup that relies on it to `CS_SIGNING_PRIVATE_KEY_HEX` before using the production workflow.
+5. **Bootstrap verification**: after provisioning the canonical secret, the next non-PR `main` run must pass `Validate main release prerequisites` before container build, source sharding, final release gating, or publication can proceed.
 
 ## 5. Hardening Recommendations
 
