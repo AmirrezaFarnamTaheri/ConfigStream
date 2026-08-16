@@ -1,8 +1,8 @@
 module configstream-tester
 
-go 1.24.0
+go 1.23
 
-toolchain go1.24.3
+toolchain go1.23.4
 
 require (
 	github.com/sagernet/sing v0.3.8
