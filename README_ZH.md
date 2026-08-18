@@ -69,7 +69,8 @@ git clone https://github.com/AmirrezaFarnamTaheri/ConfigStream.git
 cd ConfigStream
 
 # 安装 Python 依赖
-pip install -e ".[dev]"
+pip install -r requirements-dev.txt
+pip install -e . --no-deps
 
 # 运行验证管道
 python -m configstream.cli merge --sources sources/batch_1.txt --output output/
