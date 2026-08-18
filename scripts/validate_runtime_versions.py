@@ -27,13 +27,9 @@ def _expect(errors: list[str], condition: bool, message: str) -> None:
         errors.append(message)
 
 
-def _workflow_versions(
-    root: Path, key: str
-) -> list[tuple[Path, str]]:
+def _workflow_versions(root: Path, key: str) -> list[tuple[Path, str]]:
     """Return every literal YAML declaration for a workflow version key."""
-    pattern = re.compile(
-        rf"(?m)^\s*{re.escape(key)}:\s*['\"]?([^'\"\s#]+)"
-    )
+    pattern = re.compile(rf"(?m)^\s*{re.escape(key)}:\s*['\"]?([^'\"\s#]+)")
     declarations: list[tuple[Path, str]] = []
     for path in sorted((root / ".github/workflows").glob("*.y*ml")):
         text = path.read_text(encoding="utf-8")
