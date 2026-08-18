@@ -8,6 +8,7 @@ Each test pins a specific defect that was fixed:
   * lab config outbound-count and nesting-depth DoS bounds.
 """
 
+import sys
 from typing import Any
 
 import pytest
@@ -105,6 +106,10 @@ class TestV2rayJsonRobustness:
 
 
 class TestAtomicWriteDurability:
+    @pytest.mark.skipif(
+        sys.platform == "win32",
+        reason="Directory fsync is POSIX-only; skipped on Windows",
+    )
     def test_write_text_fsyncs_parent_dir(self, tmp_path, monkeypatch) -> None:
         # The rename must be made durable by fsyncing the parent directory,
         # not just the file contents.

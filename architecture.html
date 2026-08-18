@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ConfigStream — System Architecture &amp; Component Topology</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-base: #090D16;
+    --bg-surface: #0F172A;
+    --bg-card: #141E33;
+    --bg-card-hover: #1E293B;
+    --border: #1E293B;
+    --border-bright: #334155;
+    --text: #F8FAFC;
+    --text-muted: #94A3B8;
+    --text-dim: #64748B;
+    
+    --cyan: #06B6D4;
+    --cyan-glow: rgba(6, 182, 212, 0.15);
+    --violet: #8B5CF6;
+    --violet-glow: rgba(139, 92, 246, 0.15);
+    --emerald: #10B981;
+    --emerald-glow: rgba(16, 185, 129, 0.15);
+    --amber: #F59E0B;
+    --amber-glow: rgba(245, 158, 11, 0.15);
+    --rose: #F43F5E;
+    --rose-glow: rgba(244, 63, 94, 0.15);
+    --blue: #3B82F6;
+    --blue-glow: rgba(59, 130, 246, 0.15);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg-base);
+    color: var(--text);
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+  }
+
+  /* Top Navbar */
+  header {
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    padding: 0.85rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .brand-badge {
+    background: linear-gradient(135deg, var(--cyan), var(--violet));
+    color: #fff;
+    font-weight: 800;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
+    letter-spacing: 0.5px;
+  }
+  .brand h1 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+  .brand span.version {
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .nav-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .search-box input {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 0.85rem;
+    padding: 0.45rem 2rem 0.45rem 0.85rem;
+    border-radius: 8px;
+    width: 220px;
+    transition: all 0.2s;
+  }
+  .search-box input:focus {
+    outline: none;
+    border-color: var(--cyan);
+    box-shadow: 0 0 0 2px var(--cyan-glow);
+    width: 280px;
+  }
+  .search-box kbd {
+    position: absolute;
+    right: 0.6rem;
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    padding: 0.15rem 0.35rem;
+    border-radius: 4px;
+    font-family: inherit;
+  }
+
+  .btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.45rem 0.85rem;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: all 0.2s;
+  }
+  .btn:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-bright);
+  }
+  .btn.active {
+    background: var(--cyan);
+    color: #000;
+    border-color: var(--cyan);
+  }
+
+  /* Mode Switcher Tabs */
+  .mode-nav {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.2rem;
+    display: flex;
+    gap: 0.2rem;
+  }
+  .mode-tab {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.35rem 0.75rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .mode-tab:hover {
+    color: var(--text);
+  }
+  .mode-tab.active {
+    background: var(--bg-card);
+    color: var(--cyan);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  }
+
+  /* Main Container */
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    gap: 1.5rem;
+    max-width: 1600px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  /* Metrics Summary Bar */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+  .stat-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .stat-card .label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+  }
+  .stat-card .val {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--text);
+  }
+  .stat-card .sub {
+    font-size: 0.75rem;
+    color: var(--emerald);
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  /* Swimlane Layer Architecture Grid */
+  .swimlanes-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .layer-lane {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .layer-lane::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--lane-color, var(--cyan));
+  }
+  .layer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .layer-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .layer-num {
+    background: var(--lane-glow, var(--cyan-glow));
+    color: var(--lane-color, var(--cyan));
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    border: 1px solid var(--lane-color, var(--cyan));
+  }
+  .layer-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+  }
+  .layer-desc {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .node-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 0.85rem;
+  }
+  .node-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    position: relative;
+  }
+  .node-card:hover {
+    transform: translateY(-2px);
+    background: var(--bg-card-hover);
+    border-color: var(--lane-color, var(--cyan));
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+  .node-card.selected {
+    border-color: var(--lane-color, var(--cyan));
+    box-shadow: 0 0 0 2px var(--lane-color, var(--cyan)), 0 4px 16px rgba(0,0,0,0.6);
+  }
+  .node-card.blast-impacted {
+    border-color: var(--rose) !important;
+    background: rgba(244, 63, 94, 0.12) !important;
+    animation: pulse-border 1.5s infinite;
+  }
+  .node-card.flow-highlight {
+    border-color: var(--amber) !important;
+    background: rgba(245, 158, 11, 0.12) !important;
+    box-shadow: 0 0 0 2px var(--amber);
+  }
+
+  @keyframes pulse-border {
+    0%, 100% { box-shadow: 0 0 0 1px var(--rose); }
+    50% { box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.4); }
+  }
+
+  .node-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .node-name {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .node-tag {
+    font-size: 0.65rem;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    background: var(--bg-surface);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+  }
+  .node-tag.go { color: var(--cyan); border-color: var(--cyan-glow); }
+  .node-tag.python { color: var(--amber); border-color: var(--amber-glow); }
+  .node-tag.security { color: var(--rose); border-color: var(--rose-glow); }
+  .node-tag.client { color: var(--emerald); border-color: var(--emerald-glow); }
+
+  .node-desc {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .node-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    margin-top: auto;
+    padding-top: 0.4rem;
+    border-top: 1px solid rgba(255,255,255,0.05);
+  }
+
+  /* Interactive Flow Simulator Panel */
+  .flow-player-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .flow-selector-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .flow-select {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    min-width: 280px;
+  }
+  .flow-steps-track {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding: 0.5rem 0;
+  }
+  .flow-step-pill {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .flow-step-pill.active {
+    background: var(--amber);
+    color: #000;
+    border-color: var(--amber);
+  }
+
+  /* Drawer / Modal Inspector */
+  .drawer {
+    position: fixed;
+    top: 0;
+    right: -480px;
+    width: 480px;
+    max-width: 90vw;
+    height: 100vh;
+    background: var(--bg-surface);
+    border-left: 1px solid var(--border-bright);
+    z-index: 100;
+    box-shadow: -8px 0 32px rgba(0,0,0,0.6);
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    gap: 1.25rem;
+    overflow-y: auto;
+  }
+  .drawer.open {
+    right: 0;
+  }
+  .drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .drawer-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.25rem;
+    cursor: pointer;
+    padding: 0.25rem;
+  }
+  .drawer-close:hover { color: var(--text); }
+  .drawer-title {
+    font-size: 1.2rem;
+    font-weight: 800;
+  }
+  .drawer-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .drawer-section h4 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-dim);
+  }
+  .drawer-citations {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  /* Blast Radius Banner */
+  .blast-banner {
+    background: linear-gradient(135deg, rgba(244, 63, 94, 0.15), rgba(15, 23, 42, 0.9));
+    border: 1px solid var(--rose);
+    border-radius: 10px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  /* Modal Backdrop */
+  .backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(2px);
+    z-index: 90;
+    display: none;
+  }
+  .backdrop.open { display: block; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span class="brand-badge">ARCH-AST</span>
+    <h1>ConfigStream System Topology</h1>
+    <span class="version">v3.2.0</span>
+  </div>
+
+  <div class="nav-controls">
+    <div class="mode-nav">
+      <button class="mode-tab active" onclick="switchView('swimlanes')">Swimlane Flow</button>
+      <button class="mode-tab" onclick="switchView('blast')">Blast Radius Matrix</button>
+      <button class="mode-tab" onclick="switchView('flows')">Protocol Flow Simulator</button>
+    </div>
+
+    <div class="search-box">
+      <input type="text" id="nodeSearch" placeholder="Search 52 components..." oninput="handleSearch(this.value)">
+      <kbd>/</kbd>
+    </div>
+
+    <button class="btn" onclick="exportJSON()">Export JSON</button>
+  </div>
+</header>
+
+<main>
+  <!-- Metrics Bar -->
+  <section class="stats-bar">
+    <div class="stat-card">
+      <span class="label">Architectural Nodes</span>
+      <span class="val" id="statNodes">52</span>
+      <span class="sub">100% AST Verified</span>
+    </div>
+    <div class="stat-card">
+      <span class="label">Protocol Edges</span>
+      <span class="val" id="statEdges">78</span>
+      <span class="sub">Zero Dangling Links</span>
+    </div>
+    <div class="stat-card">
+      <span class="label">Execution Flows</span>
+      <span class="val" id="statFlows">12</span>
+      <span class="sub">Fully Traceable</span>
+    </div>
+    <div class="stat-card">
+      <span class="label">Security Tiers</span>
+      <span class="val">6 Layers</span>
+      <span class="sub">Zero-Trust Pipeline</span>
+    </div>
+  </section>
+
+  <!-- Flow Simulator Banner -->
+  <section id="flowPanel" class="flow-player-card" style="display: none;">
+    <div class="flow-selector-bar">
+      <label style="font-weight: 700; font-size: 0.9rem; color: var(--amber);">Select Execution Trace:</label>
+      <select id="flowSelect" class="flow-select" onchange="loadSelectedFlow(this.value)"></select>
+      <button class="btn" onclick="stepFlowPrev()">&larr; Prev</button>
+      <button class="btn" onclick="stepFlowNext()">Next &rarr;</button>
+      <span id="flowStepCounter" style="font-size: 0.8rem; font-family: 'JetBrains Mono', monospace; color: var(--text-muted);">Step 1 of 6</span>
+    </div>
+    <div id="flowStepsTrack" class="flow-steps-track"></div>
+    <div id="flowStepNotes" style="font-size: 0.85rem; color: var(--text); background: var(--bg-card); padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border);"></div>
+  </section>
+
+  <!-- Blast Radius Banner -->
+  <section id="blastBanner" class="blast-banner" style="display: none;">
+    <div>
+      <h3 style="color: var(--rose); font-size: 1rem; font-weight: 700;">Blast Radius Simulation Active</h3>
+      <p id="blastDesc" style="font-size: 0.8rem; color: var(--text-muted);">Click any node to see its downstream dependency cascade.</p>
+    </div>
+    <button class="btn" onclick="clearBlast()">Reset Failure Point</button>
+  </section>
+
+  <!-- Swimlanes Container -->
+  <div id="swimlanesContainer" class="swimlanes-container"></div>
+</main>
+
+<!-- Node Details Drawer -->
+<div id="backdrop" class="backdrop" onclick="closeDrawer()"></div>
+<aside id="nodeDrawer" class="drawer">
+  <div class="drawer-header">
+    <span id="drawerBadge" class="layer-num">LAYER</span>
+    <button class="drawer-close" onclick="closeDrawer()">&times;</button>
+  </div>
+  
+  <div>
+    <h2 id="drawerTitle" class="drawer-title">Component Name</h2>
+    <span id="drawerId" style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-dim);">id</span>
+  </div>
+
+  <div class="drawer-section">
+    <h4>Description</h4>
+    <p id="drawerDesc" style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;"></p>
+  </div>
+
+  <div class="drawer-section">
+    <h4>Source Code Citations</h4>
+    <div id="drawerCitations" class="drawer-citations"></div>
+  </div>
+
+  <div class="drawer-section">
+    <h4>Runtime Configuration</h4>
+    <div id="drawerRuntime" style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-muted); background: var(--bg-card); padding: 0.6rem; border-radius: 6px;"></div>
+  </div>
+
+  <div class="drawer-section">
+    <h4>Inbound &amp; Outbound Connections</h4>
+    <div id="drawerLinks" style="font-size: 0.8rem; display: flex; flex-direction: column; gap: 0.3rem;"></div>
+  </div>
+
+  <div style="margin-top: auto; display: flex; gap: 0.5rem;">
+    <button class="btn" style="flex: 1; justify-content: center; background: var(--rose); color: #fff;" onclick="simulateFailureFromDrawer()">Simulate Failure (Blast Radius)</button>
+  </div>
+</aside>
+
+<script>
+const TOPOLOGY = {"metadata": {"title": "ConfigStream System Architecture Topology", "version": "3.2.0", "schema_version": "2.0.0", "branch": "main", "analysis_commit": "08775304", "license": "AGPL-3.0-or-later", "description": "Comprehensive, AST-verified structural graph mapping all 52 architectural nodes, 78 protocol edges, and 12 execution flows across ConfigStream core engine, Go tester, CI matrix, distribution mirrors, and frontend PWA client."}, "nodes": [{"id": "proxy_sources", "name": "External Proxy Sources", "layer": "infrastructure", "type": "external", "description": "External third-party Git repositories, raw HTTP endpoints, and Telegram channels providing raw proxy configurations (Vmess, Vless, Trojan, Shadowsocks, Hysteria2, TUIC).", "file_citations": [{"file": "src/configstream/sources/models.py", "symbols": ["SourceProvider", "SourceSnapshotManifest"]}], "runtime_config": {"ports": ["443/tcp", "80/tcp"], "env_dependencies": []}}, {"id": "warp_sources", "name": "Cloudflare WARP Infrastructure", "layer": "infrastructure", "type": "external", "description": "Cloudflare WARP edge registration endpoints (v4/v6) and clean IP pools queried for client key exchange, device registration, and Wireguard/Masque tunneling.", "file_citations": [{"file": "src/configstream/tools/vwarp/manager.py", "symbols": ["VwarpTool", "validate_warp_key"]}], "runtime_config": {"ports": ["2408/udp", "443/tcp"], "env_dependencies": []}}, {"id": "test_targets", "name": "Network Validation Endpoints", "layer": "infrastructure", "type": "external", "description": "High-availability HTTP/204 verification targets (e.g. Google generate_204, Cloudflare cdn-cgi trace, Yandex) used to measure proxy latency, handshake integrity, and captive portal evasion.", "file_citations": [{"file": "src/go/tester/main.go", "symbols": ["TestURL", "DialContext"]}], "runtime_config": {"ports": ["80/tcp", "443/tcp"], "env_dependencies": []}}, {"id": "singbox_core", "name": "sing-box Native Core Engine", "layer": "infrastructure", "type": "service", "description": "Embedded sing-box (v1.13+) Go networking core with uTLS, Reality, ECH, and Wireguard drivers embedded directly inside the Go batch tester process.", "file_citations": [{"file": "src/go/tester/main.go", "symbols": ["box.New", "adapter.Outbound"]}], "runtime_config": {"ports": [], "env_dependencies": ["ENABLE_DEPRECATED_WIREGUARD_OUTBOUND"]}}, {"id": "cf_worker_bridge", "name": "Cloudflare Edge Worker Bridge", "layer": "infrastructure", "type": "gateway", "description": "Edge reverse proxy and failover routing layer distributing static artifacts and API updates to blocked regions via Cloudflare Global Anycast.", "file_citations": [{"file": "frontend/assets/js/utils/network.js", "symbols": ["resolveEdgeUrl", "fetchWithFailover"]}], "runtime_config": {"ports": ["443/tcp"], "env_dependencies": ["CF_WORKER_URL"]}}, {"id": "mirror_publishers", "name": "Multi-Cloud Mirror Publishers", "layer": "infrastructure", "type": "worker", "description": "Automated deployment connectors publishing verified releases across GitHub Pages, Cloudflare Pages, HuggingFace Spaces, IPFS, Google Drive, and Telegram.", "file_citations": [{"file": "scripts/finalize_release_outputs.py", "symbols": ["finalize_release_outputs"]}, {"file": ".github/workflows/deploy-pages.yml", "symbols": ["deploy-pages"]}], "runtime_config": {"ports": [], "env_dependencies": ["GITHUB_TOKEN", "HF_TOKEN", "TELEGRAM_BOT_TOKEN"]}}, {"id": "cli_gateway", "name": "ConfigStream CLI Gateway", "layer": "presentation", "type": "gateway", "description": "Unified CLI command entry point providing pipeline invocation ('run', 'merge', 'clean', 'bot', 'serve', 'diagnose') with strict argument parsing and signal handling.", "file_citations": [{"file": "src/configstream/cli.py", "symbols": ["main", "cli", "run_pipeline"]}], "runtime_config": {"ports": [], "env_dependencies": ["CONFIGSTREAM_DEBUG", "CONFIGSTREAM_CONFIG"]}}, {"id": "telegram_bot", "name": "Telegram Bot Long-Polling Daemon", "layer": "presentation", "type": "service", "description": "Interactive Telegram bot providing authorized users with on-demand WARP device provisioning, latest mirror URLs, network status diagnostics, and node filtering.", "file_citations": [{"file": "src/configstream/bot_cli.py", "symbols": ["run_bot", "warp_command", "mirror_command"]}], "runtime_config": {"ports": [], "env_dependencies": ["TELEGRAM_BOT_TOKEN", "TELEGRAM_ALLOWED_USERS"]}}, {"id": "ci_orchestrator", "name": "CI Matrix Shard Orchestrator", "layer": "application", "type": "worker", "description": "GitHub Actions workflow coordinator executing matrix test shards concurrently, caching intermediate SQLite state, and triggering artifact consolidation.", "file_citations": [{"file": ".github/workflows/main.yml", "symbols": ["run-shard", "matrix-dispatcher"]}], "runtime_config": {"ports": [], "env_dependencies": ["GITHUB_SHA", "BATCH", "PART"]}}, {"id": "dynamic_resharder", "name": "Dynamic Matrix Resharder", "layer": "application", "type": "worker", "description": "P95 execution latency profiler analyzing historical source performance from 'source_timing.jsonl' to balance matrix shards and prevent job stragglers.", "file_citations": [{"file": "scripts/dynamic_reshard.py", "symbols": ["analyze_timings", "balance_shards", "export_matrix"]}], "runtime_config": {"ports": [], "env_dependencies": []}}, {"id": "merge_worker", "name": "Matrix Shard Consolidation Worker", "layer": "application", "type": "worker", "description": "Aggregator script merging partitioned SQLite test caches, deduplicating cross-shard proxy pools, and generating master output bundles.", "file_citations": [{"file": "scripts/merge_batches.py", "symbols": ["merge_cache_history", "merge_batches", "main"]}], "runtime_config": {"ports": [], "env_dependencies": []}}, {"id": "source_admission", "name": "Source Admission Gatekeeper", "layer": "domain", "type": "service", "description": "Validates and normalizes candidate source locators against cryptographic commit pinning, domain allow-lists, and protocol admission policies.", "file_citations": [{"file": "src/configstream/source_admission.py", "symbols": ["SourceAdmissionPolicy", "normalize_source_locator", "validate_admitted_sources"]}], "runtime_config": {"ports": [], "env_dependencies": []}}, {"id": "github_blob_adapter", "name": "GitHub Blob Snapshot Adapter", "layer": "domain", "type": "service", "description": "Fetches commit-pinned source repositories and snapshots via GitHub REST/GraphQL raw blobs with ETag verification and rate-limit backoff.", "file_citations": [{"file": "src/configstream/sources/adapters/github_blob.py", "symbols": ["GitHubBlobAdapter", "AcquiredSnapshot"]}], "runtime_config": {"ports": ["443/tcp"], "env_dependencies": ["GITHUB_TOKEN"]}}, {"id": "source_policy", "name": "Source Policy Enforcer", "layer": "domain", "type": "service", "description": "Applies per-source rate limits, byte caps, license checks, and freshness TTLs to prevent source poisoning and pipeline exhaustion.", "file_citations": [{"file": "src/configstream/sources/policy.py", "symbols": ["validate_snapshot", "SourcePolicyViolation"]}], "runtime_config": {"ports": [], "env_dependencies": []}}, {"id": "source_quality_tracker", "name": "Source Quality & Circuit Breaker", "layer": "domain", "type": "service", "description": "Monitors per-source yield, error rates, and consecutive failure counts, tripping circuit breakers for degraded or compromised feeds.", "file_citations": [{"file": "src/configstream/source_quality.py", "symbols": ["SourceQualityTracker", "SourceHealth"]}], "runtime_config": {"ports": [], "env_dependencies": []}}, {"id": "producer", "name": "Async Ingestion Producer", "layer": "application", "type": "worker", "description": "Asynchronous stream producer iterating admitted source URLs, creating batch fetch requests, and managing feed discovery concurrency.", "file_citations": [{"file": "src/configstream/pipeline/producer.py", "symbols": ["Producer", "produce_sources"]}], "runtime_config": {"ports": [], "env_dependencies": []}}, {"id": "fetcher", "name": "Resilient HTTP/TLS Fetcher", "layer": "application", "type": "worker", "description": "High-concurrency async HTTP fetcher with custom uTLS fingerprinted handshakes, exponential retry policies, and SSL context rotation.", "file_citations": [{"file": "src/configstream/pipeline/fetcher.py", "symbols": ["Fetcher", "fetch_url"]}], "runtime_config": {"ports": ["443/tcp", "80/tcp"], "env_dependencies": []}}, {"id": "work_queue", "name": "Bounded Async Work Queue", "layer": "application", "type": "queue", "description": "In-memory backpressure-controlled asyncio priority queue buffering fetched proxy candidates between producer and consumer pool.", "file_citations": [{"file": "src/configstream/pipeline/core.py", "symbols": ["BoundedAsyncQueue", "PipelineOrchestrator"]}], "runtime_config": {"ports": [], "env_dependencies": []}}, {"id": "event_stream", "name": "Pipeline Event Bus & Telemetry", "layer": "application", "type": "queue", "description": "Pub/sub event bus streaming pipeline telemetry (item progress, batch completion, error events, stage transitions) to collectors.", "file_citations": [{"file": "src/configstream/pipeline/core.py", "symbols": ["EventBus", "emit_event"]}], "runtime_config": {"ports": [], "env_dependencies": []}}, {"id": "consumer_pool", "name": "Consumer Worker Pool", "layer": "application", "type": "worker", "description": "Multi-coroutine processing pool executing the candidate lifecycle: extraction, security sanitization, test dispatch, revival, and geo tagging.", "file_citations": [{"file": "src/configstream/pipeline/consumer.py", "symbols": ["ConsumerPool", "process_item"]}], "runtime_config": {"ports": [], "env_dependencies": ["GO_TESTER_BATCH_SIZE", "MAX_WORKERS"]}}, {"id": "parser", "name": "Universal Protocol Parser", "layer": "domain", "type": "service", "description": "Extracts and normalizes proxy link formats (vmess://, vless://, trojan://, ss://, ssr://, hy2://, tuic://, wireguard://) into unified Proxy models.", "file_citations": [{"file": "src/configstream/parsers/extraction.py", "symbols": ["extract_proxies_from_text", "UniversalParser"]}], "runtime_config": {"ports": [], "env_dependencies": []}}, {"id": "security_validator", "name": "Security & SSRF Validator", "layer": "domain", "type": "service", "description": "Multi-pass security filter verifying IP literal bounds, RFC1918 private subnet exclusions, port boundaries, protocol validity, and Bloom deduplication.", "file_citations": [{"file": "src/configstream/security_validator.py", "symbols": ["SecurityValidator", "validate_batch_configs"]}], "runtime_config": {"ports": [], "env_dependencies": []}}, {"id": "honeypot_detector", "name": "Honeypot & Censorship Probe Detector", "layer": "domain", "type": "service", "description": "Analyzes DNS signatures, known ISP monitoring honeypot IP ranges, and circular proxy patterns to prevent hostile traffic entrapment.", "file_citations": [{"file": "src/configstream/security/honeypot.py", "symbols": ["HoneypotDetector", "is_honeypot"]}], "runtime_config": {"ports": [], "env_dependencies": []}}, {"id": "blocklist_manager", "name": "Dynamic CIDR/ASN Blocklist", "layer": "domain", "type": "service", "description": "Manages thread-safe dynamic IP/CIDR blocklists and malicious autonomous system numbers (ASNs) with atomic reload locks.", "file_citations": [{"file": "src/configstream/security/blocklist.py", "symbols": ["BlocklistManager", "is_blocked"]}], "runtime_config": {"ports": [], "env_dependencies": []}}, {"id": "go_tester", "name": "Go Subprocess Batch Tester", "layer": "application", "type": "worker", "description": "High-performance Go daemon running sing-box data-plane network dials, TLS handshakes, HTTP/204 probes, and uTLS fingerprints via NDJSON IPC.", "file_citations": [{"file": "src/configstream/testers/go_tester/manager.py", "symbols": ["GoBatchTester", "test_batch"]}, {"file": "src/go/tester/main.go", "symbols": ["main", "handleRequest"]}], "runtime_config": {"ports": [], "env_dependencies": ["GO_TESTER_WORKERS", "GO_TESTER_TIMEOUT"]}}, {"id": "python_tester", "name": "Python Fallback Test Runner", "layer": "application", "type": "worker", "description": "Pure Python fallback tester utilizing socket connection probes and urllib when the Go binary is unavailable or running on constrained environments.", "file_citations": [{"file": "src/configstream/testers/python.py", "symbols": ["PythonTester", "test_single_proxy"]}], "runtime_config": {"ports": [], "env_dependencies": []}}, {"id": "smart_retest_scheduler", "name": "Smart Retest Scheduler", "layer": "domain", "type": "service", "description": "Calculates exponential backoff and adaptive retest intervals based on past reliability, latency stability, and historic uptime tiers.", "file_citations": [{"file": "src/configstream/scheduler.py", "symbols": ["SmartRetestScheduler", "should_retest", "RetestInterval"]}], "runtime_config": {"ports": [], "env_dependencies": []}}, {"id": "washer", "name": "Proxy Washer & Shielding Engine", "layer": "domain", "type": "service", "description": "Encapsulates proxy traffic inside Cloudflare WARP/Masque tunnels and applies 'Lazarus Pit' shielding to revive dead outbound nodes.", "file_citations": [{"file": "src/configstream/intelligence/washer/core.py", "symbols": ["ProxyWasher", "wash_batch", "shield_batch"]}], "runtime_config": {"ports": [], "env_dependencies": []}}, {"id": "vwarp_tunnel", "name": "Vwarp Masque Daemon Manager", "layer": "domain", "type": "service", "description": "Spawns and manages local high-speed Vwarp tunnel daemons implementing Cloudflare Masque (HTTP/3) transport layers.", "file_citations": [{"file": "src/configstream/tools/vwarp/tunnel.py", "symbols": ["VwarpTunnel", "start_tunnel"]}, {"file": "src/configstream/tools/vwarp/manager.py", "symbols": ["VwarpTool", "build_config"]}], "runtime_config": {"ports": ["10808/tcp"], "env_dependencies": []}}, {"id": "warp_scanner", "name": "Cloudflare Clean IP Scanner", "layer": "domain", "type": "service", "description": "Probes Cloudflare edge IP subnets for unblocked endpoints with low packet loss, minimal latency, and active WARP handshake support.", "file_citations": [{"file": "src/configstream/warp_scanner.py", "symbols": ["WarpScannerWorker", "scan_clean_ips"]}, {"file": "src/go/tester/scanner/scanner.go", "symbols": ["ScanSubnet", "PingEndpoint"]}], "runtime_config": {"ports": ["2408/udp"], "env_dependencies": []}}, {"id": "chain_engine", "name": "Multi-Hop Smart Chain Router", "layer": "domain", "type": "service", "description": "Generates optimal multi-hop proxy chains (e.g. Entry Node in Iran -> Transit Node in Europe -> Exit Node in US) for censorship circumvention.", "file_citations": [{"file": "src/configstream/intelligence/chaining.py", "symbols": ["ChainEngine", "generate_smart_chains"]}, {"file": "src/configstream/converters/chains.py", "symbols": ["build_chain_outbound"]}], "runtime_config": {"ports": [], "env_dependencies": []}}, {"id": "stego_generator", "name": "Steganographic Payload Encoder", "layer": "domain", "type": "service", "description": "Encodes encrypted proxy bundles into PNG pixel matrices using Paeth predictors and CRC32 chunks for covert distribution over image CDNs.", "file_citations": [{"file": "src/configstream/stego.py", "symbols": ["StegoPacker", "pack_payload", "unpack_payload"]}], "runtime_config": {"ports": [], "env_dependencies": []}}, {"id": "geoip_resolver", "name": "GeoIP & ASN Resolution Engine", "layer": "domain", "type": "service", "description": "Enriches verified nodes with ISO country codes, flags, city names, and ISP/ASN descriptors from MaxMind GeoLite2 databases.", "file_citations": [{"file": "src/configstream/geoip.py", "symbols": ["GeoIPResolver", "lookup_ip"]}], "runtime_config": {"ports": [], "env_dependencies": ["MAXMIND_DB_PATH"]}}, {"id": "pareto_sorter", "name": "Multi-Objective Pareto Sorter", "layer": "domain", "type": "service", "description": "Ranks verified proxies using non-dominated Pareto sorting balancing latency, reliability, packet stability, and geographical diversity.", "file_citations": [{"file": "src/configstream/sorter.py", "symbols": ["sort_proxies_pareto", "pareto_score"]}], "runtime_config": {"ports": [], "env_dependencies": []}}, {"id": "dedup_sort", "name": "Deduplication & Ranking Stage", "layer": "domain", "type": "service", "description": "Final consolidation stage removing duplicate endpoint configurations and sorting proxies into categorized tier subsets.", "file_citations": [{"file": "src/configstream/sorter.py", "symbols": ["_compute_and_sort"]}], "runtime_config": {"ports": [], "env_dependencies": []}}, {"id": "output_generator", "name": "Client Output Matrix Generator", "layer": "domain", "type": "service", "description": "Renders verified datasets into client formats (sing-box JSON, Clash YAML, V2Ray URI lists, CSV, Base64, and country-sharded splits).", "file_citations": [{"file": "src/configstream/output_handler.py", "symbols": ["OutputGenerator", "generate_all_outputs"]}], "runtime_config": {"ports": [], "env_dependencies": []}}, {"id": "release_signer", "name": "Ed25519 Cryptographic Signer", "layer": "domain", "type": "service", "description": "Generates asymmetric Ed25519 cryptographic signatures for output manifests with 300s validity envelopes and NTP skew tolerances.", "file_citations": [{"file": "src/configstream/signer.py", "symbols": ["Signer", "sign_release_manifest", "normalize_public_key_hex"]}], "runtime_config": {"ports": [], "env_dependencies": ["RELEASE_PRIVATE_KEY"]}}, {"id": "publication_gate", "name": "Fail-Closed Publication Gate", "layer": "domain", "type": "service", "description": "Security gate auditing the release directory before deployment, verifying sha256 checksums and ensuring no internal SQLite databases or secrets leak.", "file_citations": [{"file": "src/configstream/publication.py", "symbols": ["validate_public_directory", "compute_directory_digest", "build_release_manifest"]}], "runtime_config": {"ports": [], "env_dependencies": []}}, {"id": "geo_db", "name": "MaxMind GeoLite2 Database", "layer": "persistence", "type": "database", "description": "Local MMDB binary database (Country + ASN) queried with zero network latency for IP geographical enrichment.", "file_citations": [{"file": "src/configstream/geoip.py", "symbols": ["Reader", "init_database"]}], "runtime_config": {"ports": [], "env_dependencies": []}}, {"id": "quality_store", "name": "Source Quality SQLite Database", "layer": "persistence", "type": "database", "description": "Persistent SQLite database storing source reliability scores, crawl timestamps, domain error rates, and yield metrics.", "file_citations": [{"file": "src/configstream/quality/storage.py", "symbols": ["QualityStorage", "get_connection", "record_source_metrics"]}], "runtime_config": {"ports": [], "env_dependencies": []}}, {"id": "history_store", "name": "Proxy History SQLite Database", "layer": "persistence", "type": "database", "description": "Historical SQLite database tracking individual proxy uptime lifetimes, first/last seen timestamps, and latency drift curves.", "file_citations": [{"file": "src/configstream/history/storage.py", "symbols": ["HistoryStorage", "update_history", "get_proxy_history"]}], "runtime_config": {"ports": [], "env_dependencies": []}}, {"id": "test_cache", "name": "Test Results Cache Database", "layer": "persistence", "type": "cache", "description": "SQLite cache storing recent proxy test outcomes, preventing redundant re-probing of stable nodes within active cooldown windows.", "file_citations": [{"file": "src/configstream/test_cache.py", "symbols": ["TestResultCache", "get", "set", "cleanup_expired"]}], "runtime_config": {"ports": [], "env_dependencies": []}}, {"id": "output_store", "name": "Public Release Artifact Store", "layer": "persistence", "type": "database", "description": "Filesystem directory containing finalized, signed, and validated distribution bundles ('/public/' or '/dist/').", "file_citations": [{"file": "src/configstream/output_handler.py", "symbols": ["save_outputs", "OUTPUT_DIR"]}], "runtime_config": {"ports": [], "env_dependencies": []}}, {"id": "web_server", "name": "FastAPI Web & Subscription Server", "layer": "presentation", "type": "gateway", "description": "High-performance async web server serving REST endpoints, dynamic subscription routes, differential delta APIs, and WebSockets.", "file_citations": [{"file": "src/configstream/server/__init__.py", "symbols": ["create_app", "main"]}], "runtime_config": {"ports": ["8000/tcp"], "env_dependencies": ["HOST", "PORT", "ALLOWED_ORIGINS"]}}, {"id": "ws_broker", "name": "WebSocket Live Broadcast Broker", "layer": "presentation", "type": "gateway", "description": "WebSocket connection manager broadcasting real-time UPDATE_AVAILABLE events to connected dashboard clients upon release updates.", "file_citations": [{"file": "src/configstream/server/ws.py", "symbols": ["ConnectionManager", "broadcast", "handle_websocket"]}], "runtime_config": {"ports": ["8000/tcp"], "env_dependencies": []}}, {"id": "diff_engine", "name": "Differential Delta API Engine", "layer": "presentation", "type": "service", "description": "Computes incremental JSON deltas between consecutive proxy generations, reducing mobile client bandwidth by up to 94%.", "file_citations": [{"file": "src/configstream/server/routes/proxies.py", "symbols": ["get_diff", "compute_delta"]}], "runtime_config": {"ports": [], "env_dependencies": []}}, {"id": "runtime_health", "name": "Runtime Telemetry & Health Monitor", "layer": "presentation", "type": "service", "description": "Continuous health evaluation service monitoring SQLite integrity, disk budgets, memory usage, and API response percentiles.", "file_citations": [{"file": "src/configstream/runtime_health.py", "symbols": ["evaluate_runtime_health", "RuntimeHealth"]}], "runtime_config": {"ports": [], "env_dependencies": []}}, {"id": "frontend_pwa", "name": "ConfigStream PWA Dashboard", "layer": "presentation", "type": "service", "description": "Modern responsive single-page progressive web application offering interactive proxy filtering, QR export, live latency testing, and dark mode.", "file_citations": [{"file": "frontend/assets/js/main.js", "symbols": ["initApp", "renderTable", "applyFilter"]}], "runtime_config": {"ports": [], "env_dependencies": []}}, {"id": "cache_manager_frontend", "name": "Client Cache & Offline Coordinator", "layer": "presentation", "type": "cache", "description": "Client-side IndexedDB and ServiceWorker cache manager enabling instant offline load and atomic differential dataset patching.", "file_citations": [{"file": "frontend/assets/js/cache-manager.js", "symbols": ["CacheManager", "getCachedProxies", "applyDelta"]}], "runtime_config": {"ports": [], "env_dependencies": []}}, {"id": "wasm_verifier", "name": "Client WebAssembly Verifier", "layer": "presentation", "type": "service", "description": "Compiled Go WebAssembly module running in a WebWorker to perform zero-trust cryptographic signature verification directly inside the user's browser.", "file_citations": [{"file": "frontend/assets/js/wasm_loader.js", "symbols": ["initWasm", "verifySignatureWasm"]}, {"file": "frontend/assets/js/verifier.js", "symbols": ["verifyReleasePayload"]}], "runtime_config": {"ports": [], "env_dependencies": []}}, {"id": "evidence_explorer", "name": "Transparency Evidence Explorer", "layer": "presentation", "type": "service", "description": "In-browser inspection tool allowing users to examine raw signature proofs, build SHA manifests, reproducibility logs, and Git supply chain data.", "file_citations": [{"file": "frontend/assets/js/evidence-explorer.js", "symbols": ["EvidenceExplorer", "renderEvidence"]}], "runtime_config": {"ports": [], "env_dependencies": []}}, {"id": "byow_builder", "name": "BYOW Profile Assembler", "layer": "presentation", "type": "service", "description": "Interactive 'Bring Your Own WARP' configuration builder generating custom Wireguard/Masque profiles with user-provided Cloudflare credentials.", "file_citations": [{"file": "frontend/assets/js/byow.js", "symbols": ["BYOWBuilder", "generateProfile"]}], "runtime_config": {"ports": [], "env_dependencies": []}}], "edges": [{"id": "e01", "source": "proxy_sources", "target": "source_admission", "type": "sync_request", "protocol": "HTTPS", "description": "Candidate source URLs submitted for admission", "payload_type": "SourceURL", "file_citations": ["src/configstream/source_admission.py:42"]}, {"id": "e02", "source": "source_admission", "target": "github_blob_adapter", "type": "sync_request", "protocol": "HTTPS REST", "description": "Fetch commit-pinned repository snapshot", "payload_type": "CommitRef", "file_citations": ["src/configstream/sources/adapters/github_blob.py:58"]}, {"id": "e03", "source": "github_blob_adapter", "target": "source_policy", "type": "sync_request", "protocol": "In-Memory", "description": "Pass snapshot payload for rate and size validation", "payload_type": "SnapshotBytes", "file_citations": ["src/configstream/sources/policy.py:34"]}, {"id": "e04", "source": "source_policy", "target": "producer", "type": "sync_request", "protocol": "In-Memory", "description": "Admitted source objects passed to producer loop", "payload_type": "AdmittedSource", "file_citations": ["src/configstream/pipeline/producer.py:45"]}, {"id": "e05", "source": "producer", "target": "fetcher", "type": "async_event", "protocol": "asyncio Task", "description": "Dispatch concurrent HTTP/TLS fetch jobs", "payload_type": "FetchRequest", "file_citations": ["src/configstream/pipeline/fetcher.py:82"]}, {"id": "e06", "source": "fetcher", "target": "proxy_sources", "type": "sync_request", "protocol": "TLS 1.3 / uTLS", "description": "Fetch raw proxy configuration text", "payload_type": "HTTP 200 RawText", "file_citations": ["src/configstream/pipeline/fetcher.py:115"]}, {"id": "e07", "source": "fetcher", "target": "work_queue", "type": "stream", "protocol": "asyncio Queue", "description": "Enqueues raw text content with backpressure", "payload_type": "QueueItem", "file_citations": ["src/configstream/pipeline/core.py:120"]}, {"id": "e08", "source": "fetcher", "target": "source_quality_tracker", "type": "async_event", "protocol": "In-Memory", "description": "Report fetch status, latency, and HTTP status code", "payload_type": "SourceFetchResult", "file_citations": ["src/configstream/source_quality.py:65"]}, {"id": "e09", "source": "source_quality_tracker", "target": "quality_store", "type": "db_query", "protocol": "SQLite WAL", "description": "Persist source health, reliability score, and cooldowns", "payload_type": "QualityRecord", "file_citations": ["src/configstream/quality/storage.py:88"]}, {"id": "e10", "source": "work_queue", "target": "consumer_pool", "type": "stream", "protocol": "asyncio get()", "description": "Pulls raw batch items for concurrent processing", "payload_type": "QueueItem", "file_citations": ["src/configstream/pipeline/consumer.py:140"]}, {"id": "e11", "source": "consumer_pool", "target": "parser", "type": "sync_request", "protocol": "Function Call", "description": "Parse raw text into strongly-typed Proxy objects", "payload_type": "list[Proxy]", "file_citations": ["src/configstream/parsers/extraction.py:52"]}, {"id": "e12", "source": "consumer_pool", "target": "security_validator", "type": "sync_request", "protocol": "Function Call", "description": "Validate network security, port boundaries, and Bloom dedupe", "payload_type": "list[Proxy]", "file_citations": ["src/configstream/security_validator.py:110"]}, {"id": "e13", "source": "security_validator", "target": "blocklist_manager", "type": "sync_request", "protocol": "In-Memory Lock", "description": "Check IP/ASN against malicious threat intelligence blocklist", "payload_type": "IPAddress", "file_citations": ["src/configstream/security/blocklist.py:45"]}, {"id": "e14", "source": "security_validator", "target": "honeypot_detector", "type": "sync_request", "protocol": "Function Call", "description": "Screen proxy IP against honeypot heuristics", "payload_type": "Proxy", "file_citations": ["src/configstream/security/honeypot.py:38"]}, {"id": "e15", "source": "consumer_pool", "target": "smart_retest_scheduler", "type": "sync_request", "protocol": "Function Call", "description": "Query if candidate proxy requires re-testing", "payload_type": "Proxy", "file_citations": ["src/configstream/scheduler.py:75"]}, {"id": "e16", "source": "consumer_pool", "target": "test_cache", "type": "db_query", "protocol": "SQLite WAL", "description": "Look up recent test result cache hit", "payload_type": "ProxyKey", "file_citations": ["src/configstream/test_cache.py:92"]}, {"id": "e17", "source": "consumer_pool", "target": "go_tester", "type": "sync_request", "protocol": "stdio NDJSON IPC", "description": "Send test batch requests to Go batch tester daemon", "payload_type": "ProxyTestRequest", "file_citations": ["src/configstream/testers/go_tester/manager.py:412"]}, {"id": "e18", "source": "go_tester", "target": "singbox_core", "type": "dependency", "protocol": "CGO / In-Process", "description": "Initialize sing-box outbound client instances", "payload_type": "OutboundConfig", "file_citations": ["src/go/tester/main.go:145"]}, {"id": "e19", "source": "singbox_core", "target": "test_targets", "type": "sync_request", "protocol": "HTTP/1.1 / H2", "description": "Execute live 204 connection probe through proxy", "payload_type": "TCP/TLS Dial", "file_citations": ["src/go/tester/main.go:182"]}, {"id": "e20", "source": "go_tester", "target": "consumer_pool", "type": "sync_response", "protocol": "stdout NDJSON", "description": "Return latency, handshake status, and error diagnoses", "payload_type": "ProxyTestResult", "file_citations": ["src/configstream/testers/go_tester/manager.py:440"]}, {"id": "e21", "source": "consumer_pool", "target": "python_tester", "type": "sync_request", "protocol": "Fallback Subprocess", "description": "Execute fallback test if Go daemon unavailable", "payload_type": "Proxy", "file_citations": ["src/configstream/testers/python.py:60"]}, {"id": "e22", "source": "consumer_pool", "target": "test_cache", "type": "db_query", "protocol": "SQLite WAL", "description": "Persist fresh test outcomes to test cache", "payload_type": "TestRecord", "file_citations": ["src/configstream/test_cache.py:120"]}, {"id": "e23", "source": "consumer_pool", "target": "history_store", "type": "db_query", "protocol": "SQLite WAL", "description": "Update lifetime uptime metrics and latency history", "payload_type": "HistoryRecord", "file_citations": ["src/configstream/history/storage.py:110"]}, {"id": "e24", "source": "consumer_pool", "target": "washer", "type": "sync_request", "protocol": "Function Call", "description": "Pass failing proxies to Lazarus-Pit shielding", "payload_type": "list[Proxy]", "file_citations": ["src/configstream/intelligence/washer/core.py:140"]}, {"id": "e25", "source": "washer", "target": "warp_sources", "type": "sync_request", "protocol": "HTTPS REST", "description": "Fetch fresh Cloudflare WARP client credentials", "payload_type": "WarpDevice", "file_citations": ["src/configstream/tools/vwarp/manager.py:85"]}, {"id": "e26", "source": "washer", "target": "vwarp_tunnel", "type": "sync_request", "protocol": "Local SOCKS5", "description": "Route encapsulated candidate traffic through Vwarp Masque", "payload_type": "TCP Tunnel", "file_citations": ["src/configstream/tools/vwarp/tunnel.py:95"]}, {"id": "e27", "source": "warp_scanner", "target": "warp_sources", "type": "stream", "protocol": "UDP Probing", "description": "Probe Cloudflare Anycast subnets for unblocked endpoints", "payload_type": "PingPacket", "file_citations": ["src/go/tester/scanner/scanner.go:88"]}, {"id": "e28", "source": "warp_scanner", "target": "washer", "type": "sync_request", "protocol": "In-Memory", "description": "Supply clean IP endpoint pools for tunneling", "payload_type": "list[CleanIP]", "file_citations": ["src/configstream/warp_scanner.py:110"]}, {"id": "e29", "source": "consumer_pool", "target": "geoip_resolver", "type": "sync_request", "protocol": "Function Call", "description": "Enrich working proxies with country/city/ASN", "payload_type": "IPAddress", "file_citations": ["src/configstream/geoip.py:55"]}, {"id": "e30", "source": "geoip_resolver", "target": "geo_db", "type": "file_read", "protocol": "MMDB Reader", "description": "Query binary GeoLite2 MMDB", "payload_type": "GeoRecord", "file_citations": ["src/configstream/geoip.py:70"]}, {"id": "e31", "source": "consumer_pool", "target": "pareto_sorter", "type": "sync_request", "protocol": "Function Call", "description": "Rank working proxies across multi-dimensional criteria", "payload_type": "list[Proxy]", "file_citations": ["src/configstream/sorter.py:45"]}, {"id": "e32", "source": "pareto_sorter", "target": "dedup_sort", "type": "sync_request", "protocol": "Function Call", "description": "Pass sorted list for final deduplication and clustering", "payload_type": "list[Proxy]", "file_citations": ["src/configstream/sorter.py:80"]}, {"id": "e33", "source": "dedup_sort", "target": "chain_engine", "type": "sync_request", "protocol": "Function Call", "description": "Generate multi-hop entry/transit/exit chains", "payload_type": "list[Proxy]", "file_citations": ["src/configstream/intelligence/chaining.py:60"]}, {"id": "e34", "source": "chain_engine", "target": "output_generator", "type": "sync_request", "protocol": "Function Call", "description": "Pass individual nodes and assembled chains to output generator", "payload_type": "MasterProxySet", "file_citations": ["src/configstream/output_handler.py:120"]}, {"id": "e35", "source": "output_generator", "target": "stego_generator", "type": "sync_request", "protocol": "Function Call", "description": "Encode compressed proxy payload into covert PNG images", "payload_type": "GzipJSON", "file_citations": ["src/configstream/stego.py:75"]}, {"id": "e36", "source": "output_generator", "target": "release_signer", "type": "sync_request", "protocol": "Function Call", "description": "Submit unsigned manifest payload for Ed25519 signature", "payload_type": "ManifestDict", "file_citations": ["src/configstream/signer.py:90"]}, {"id": "e37", "source": "release_signer", "target": "output_store", "type": "file_write", "protocol": "POSIX write", "description": "Write signed manifest.json.sig and SPKI key file", "payload_type": "SignatureFiles", "file_citations": ["src/configstream/signer.py:140"]}, {"id": "e38", "source": "output_generator", "target": "output_store", "type": "file_write", "protocol": "POSIX write", "description": "Save generated client bundles (Clash, sing-box, V2Ray, CSV)", "payload_type": "ClientConfigs", "file_citations": ["src/configstream/output_handler.py:210"]}, {"id": "e39", "source": "output_store", "target": "publication_gate", "type": "sync_request", "protocol": "Directory Audit", "description": "Pass public release directory for security contract inspection", "payload_type": "DirectoryTree", "file_citations": ["src/configstream/publication.py:45"]}, {"id": "e40", "source": "publication_gate", "target": "mirror_publishers", "type": "async_publish", "protocol": "GitHub / CDN API", "description": "Authorized public release deployed to Pages and mirrors", "payload_type": "SealedBundle", "file_citations": ["scripts/finalize_release_outputs.py:80"]}, {"id": "e41", "source": "output_generator", "target": "web_server", "type": "sync_request", "protocol": "HTTP POST", "description": "Notify backend of newly generated dataset", "payload_type": "UpdateNotification", "file_citations": ["src/configstream/pipeline/core.py:403"]}, {"id": "e42", "source": "web_server", "target": "ws_broker", "type": "async_event", "protocol": "In-Memory PubSub", "description": "Trigger WebSocket client broadcast", "payload_type": "UPDATE_AVAILABLE", "file_citations": ["src/configstream/server/routes/admin.py:25"]}, {"id": "e43", "source": "ws_broker", "target": "frontend_pwa", "type": "async_publish", "protocol": "WebSocket WSS", "description": "Push live update notification to connected clients", "payload_type": "WSEvent", "file_citations": ["src/configstream/server/ws.py:127"]}, {"id": "e44", "source": "frontend_pwa", "target": "diff_engine", "type": "sync_request", "protocol": "HTTP GET", "description": "Request incremental delta payload based on cached hash", "payload_type": "HashString", "file_citations": ["frontend/assets/js/main.js:93"]}, {"id": "e45", "source": "diff_engine", "target": "output_store", "type": "file_read", "protocol": "JSON Compare", "description": "Compute added/removed delta from previous release", "payload_type": "JSONDelta", "file_citations": ["src/configstream/server/routes/proxies.py:36"]}, {"id": "e46", "source": "diff_engine", "target": "frontend_pwa", "type": "sync_response", "protocol": "HTTP 200 JSON", "description": "Deliver compressed differential update stream", "payload_type": "DiffResponse", "file_citations": ["frontend/assets/js/main.js:101"]}, {"id": "e47", "source": "frontend_pwa", "target": "cache_manager_frontend", "type": "sync_request", "protocol": "IndexedDB API", "description": "Store verified proxy records locally for offline use", "payload_type": "ProxyList", "file_citations": ["frontend/assets/js/cache-manager.js:45"]}, {"id": "e48", "source": "frontend_pwa", "target": "wasm_verifier", "type": "sync_request", "protocol": "WebWorker PostMessage", "description": "Dispatch release manifest and signature for verification", "payload_type": "ManifestPayload", "file_citations": ["frontend/assets/js/wasm_loader.js:60"]}, {"id": "e49", "source": "wasm_verifier", "target": "evidence_explorer", "type": "sync_response", "protocol": "In-Memory", "description": "Provide verified cryptographic attestation report", "payload_type": "VerificationReport", "file_citations": ["frontend/assets/js/evidence-explorer.js:40"]}, {"id": "e50", "source": "frontend_pwa", "target": "byow_builder", "type": "sync_request", "protocol": "In-Memory", "description": "Invoke custom client-side WARP profile builder", "payload_type": "WarpCredentials", "file_citations": ["frontend/assets/js/byow.js:35"]}, {"id": "e51", "source": "ci_orchestrator", "target": "dynamic_resharder", "type": "sync_request", "protocol": "CLI Invocation", "description": "Trigger P95 shard rebalancing before matrix dispatch", "payload_type": "TimingJSONL", "file_citations": [".github/workflows/main.yml:85"]}, {"id": "e52", "source": "dynamic_resharder", "target": "ci_orchestrator", "type": "sync_response", "protocol": "GitHub Output", "description": "Output balanced JSON matrix configuration for shards", "payload_type": "MatrixConfig", "file_citations": ["scripts/dynamic_reshard.py:120"]}, {"id": "e53", "source": "ci_orchestrator", "target": "cli_gateway", "type": "async_event", "protocol": "Subprocess Exec", "description": "Execute sharded pipeline run on isolated worker node", "payload_type": "ShardArgs", "file_citations": [".github/workflows/main.yml:288"]}, {"id": "e54", "source": "ci_orchestrator", "target": "merge_worker", "type": "async_event", "protocol": "Artifact Download", "description": "Consolidate all shard SQLite database artifacts", "payload_type": "ShardArtifacts", "file_citations": ["scripts/merge_batches.py:401"]}, {"id": "e55", "source": "merge_worker", "target": "output_generator", "type": "sync_request", "protocol": "Python API", "description": "Trigger master release generation on merged dataset", "payload_type": "ConsolidatedProxies", "file_citations": ["scripts/merge_batches.py:420"]}, {"id": "e56", "source": "cli_gateway", "target": "telegram_bot", "type": "async_event", "protocol": "Process Spawn", "description": "Spawn Telegram bot long-polling background worker", "payload_type": "BotConfig", "file_citations": ["src/configstream/cli.py:509"]}, {"id": "e57", "source": "telegram_bot", "target": "warp_sources", "type": "sync_request", "protocol": "HTTPS REST", "description": "/warp command executes on-demand account creation", "payload_type": "DeviceCredentials", "file_citations": ["src/configstream/bot_cli.py:133"]}, {"id": "e58", "source": "telegram_bot", "target": "output_store", "type": "file_read", "protocol": "File Query", "description": "/mirror command retrieves latest signed release URLs", "payload_type": "ReleaseURL", "file_citations": ["src/configstream/bot_cli.py:183"]}, {"id": "e59", "source": "producer", "target": "event_stream", "type": "async_event", "protocol": "EventBus.emit", "description": "Stream producer batch metrics", "payload_type": "BatchEvent", "file_citations": ["src/configstream/pipeline/core.py:180"]}, {"id": "e60", "source": "consumer_pool", "target": "event_stream", "type": "async_event", "protocol": "EventBus.emit", "description": "Stream proxy validation and probe progress", "payload_type": "ProgressEvent", "file_citations": ["src/configstream/pipeline/consumer.py:220"]}, {"id": "e61", "source": "event_stream", "target": "runtime_health", "type": "stream", "protocol": "In-Memory Queue", "description": "Feed event telemetry into health analyzer", "payload_type": "TelemetryStream", "file_citations": ["src/configstream/runtime_health.py:45"]}, {"id": "e62", "source": "runtime_health", "target": "web_server", "type": "sync_response", "protocol": "FastAPI Dependency", "description": "Expose /api/health endpoint payload", "payload_type": "HealthJSON", "file_citations": ["src/configstream/server/__init__.py:85"]}, {"id": "e63", "source": "honeypot_detector", "target": "blocklist_manager", "type": "async_event", "protocol": "ThreadLock", "description": "Add detected honeypot IPs to active blocklist", "payload_type": "BlockedIP", "file_citations": ["src/configstream/security/blocklist.py:80"]}, {"id": "e64", "source": "blocklist_manager", "target": "security_validator", "type": "sync_response", "protocol": "In-Memory", "description": "Return CIDR block decision", "payload_type": "bool", "file_citations": ["src/configstream/security_validator.py:130"]}, {"id": "e65", "source": "test_cache", "target": "consumer_pool", "type": "sync_response", "protocol": "SQLite Query Result", "description": "Return cached proxy test outcome on cache hit", "payload_type": "CachedResult", "file_citations": ["src/configstream/test_cache.py:105"]}, {"id": "e66", "source": "smart_retest_scheduler", "target": "test_cache", "type": "db_query", "protocol": "Timestamp Check", "description": "Query last tested timestamp for adaptive interval", "payload_type": "CacheTimestamp", "file_citations": ["src/configstream/scheduler.py:90"]}, {"id": "e67", "source": "history_store", "target": "smart_retest_scheduler", "type": "db_query", "protocol": "SQLite Query", "description": "Provide historical uptime tier to scheduler", "payload_type": "UptimeTier", "file_citations": ["src/configstream/history/storage.py:145"]}, {"id": "e68", "source": "quality_store", "target": "producer", "type": "db_query", "protocol": "SQLite Read", "description": "Supply source reliability weights for prioritization", "payload_type": "SourceWeights", "file_citations": ["src/configstream/quality/storage.py:120"]}, {"id": "e69", "source": "parser", "target": "consumer_pool", "type": "sync_response", "protocol": "Python Object Return", "description": "Return deserialized list of Proxy objects", "payload_type": "list[Proxy]", "file_citations": ["src/configstream/parsers/extraction.py:95"]}, {"id": "e70", "source": "python_tester", "target": "consumer_pool", "type": "sync_response", "protocol": "Function Return", "description": "Return fallback socket connection result", "payload_type": "ProxyTestResult", "file_citations": ["src/configstream/testers/python.py:95"]}, {"id": "e71", "source": "vwarp_tunnel", "target": "washer", "type": "sync_response", "protocol": "Port Descriptor", "description": "Return bound local Masque SOCKS5 listener port", "payload_type": "LocalPort", "file_citations": ["src/configstream/tools/vwarp/tunnel.py:120"]}, {"id": "e72", "source": "stego_generator", "target": "output_store", "type": "file_write", "protocol": "PNG Binary Write", "description": "Write steganographic PNG images to public dir", "payload_type": "PNGFile", "file_citations": ["src/configstream/stego.py:110"]}, {"id": "e73", "source": "mirror_publishers", "target": "cf_worker_bridge", "type": "async_publish", "protocol": "HTTPS CDN Sync", "description": "Synchronize release bundle with Cloudflare Worker Edge", "payload_type": "EdgeSyncBundle", "file_citations": ["scripts/finalize_release_outputs.py:95"]}, {"id": "e74", "source": "cf_worker_bridge", "target": "frontend_pwa", "type": "stream", "protocol": "HTTPS Anycast", "description": "Serve fast CDN assets and subscription feeds to client", "payload_type": "HTTPResponse", "file_citations": ["frontend/assets/js/utils/network.js:80"]}, {"id": "e75", "source": "cli_gateway", "target": "warp_scanner", "type": "async_event", "protocol": "CLI Dispatch", "description": "Execute background clean IP scan on demand", "payload_type": "ScanConfig", "file_citations": ["src/configstream/cli.py:440"]}, {"id": "e76", "source": "cache_manager_frontend", "target": "frontend_pwa", "type": "sync_response", "protocol": "IndexedDB Stream", "description": "Provide instant cached proxy dataset on app startup", "payload_type": "CachedProxies", "file_citations": ["frontend/assets/js/cache-manager.js:75"]}, {"id": "e77", "source": "evidence_explorer", "target": "frontend_pwa", "type": "sync_response", "protocol": "DOM Update", "description": "Render cryptographic transparency and verification modal", "payload_type": "HTMLModal", "file_citations": ["frontend/assets/js/evidence-explorer.js:90"]}, {"id": "e78", "source": "byow_builder", "target": "frontend_pwa", "type": "sync_response", "protocol": "Blob Export", "description": "Generate downloadable Wireguard/Masque configuration", "payload_type": "ConfigFile", "file_citations": ["frontend/assets/js/byow.js:85"]}], "flows": [{"id": "flow_source_ingestion", "name": "1. Source Admission & Ingestion Pipeline", "description": "Validates source admission policies, fetches commit-pinned snapshots, applies rate-limits, and feeds the async ingestion queue.", "steps": [{"step_number": 1, "from": "proxy_sources", "to": "source_admission", "action": "Submit source URLs for admission policy check", "payload": "SourceURL", "file_citation": "src/configstream/source_admission.py:42"}, {"step_number": 2, "from": "source_admission", "to": "github_blob_adapter", "action": "Fetch commit-pinned Git tree and raw blobs", "payload": "CommitRef", "file_citation": "src/configstream/sources/adapters/github_blob.py:58"}, {"step_number": 3, "from": "github_blob_adapter", "to": "source_policy", "action": "Enforce byte caps, license validity, and rate limits", "payload": "SnapshotBytes", "file_citation": "src/configstream/sources/policy.py:34"}, {"step_number": 4, "from": "source_policy", "to": "producer", "action": "Admitted source objects passed into producer loop", "payload": "AdmittedSource", "file_citation": "src/configstream/pipeline/producer.py:45"}, {"step_number": 5, "from": "producer", "to": "fetcher", "action": "Dispatch concurrent async HTTP/TLS fetchers", "payload": "FetchRequest", "file_citation": "src/configstream/pipeline/fetcher.py:82"}, {"step_number": 6, "from": "fetcher", "to": "work_queue", "action": "Enqueue fetched raw proxy candidate text with backpressure", "payload": "QueueItem", "file_citation": "src/configstream/pipeline/core.py:120"}]}, {"id": "flow_queue_dispatch", "name": "2. Producer-Consumer Work Queue Dispatch", "description": "Orchestrates backpressure-controlled item streaming between producer coroutines and the consumer worker pool.", "steps": [{"step_number": 1, "from": "work_queue", "to": "consumer_pool", "action": "Consumer pulls raw batch items for parsing", "payload": "QueueItem", "file_citation": "src/configstream/pipeline/consumer.py:140"}, {"step_number": 2, "from": "consumer_pool", "to": "parser", "action": "Extract and deserialize proxy configurations", "payload": "list[Proxy]", "file_citation": "src/configstream/parsers/extraction.py:52"}, {"step_number": 3, "from": "consumer_pool", "to": "security_validator", "action": "Multi-pass security validation and Bloom filter dedupe", "payload": "list[Proxy]", "file_citation": "src/configstream/security_validator.py:110"}, {"step_number": 4, "from": "security_validator", "to": "blocklist_manager", "action": "Filter out malicious CIDRs and blacklisted ASNs", "payload": "IPAddress", "file_citation": "src/configstream/security/blocklist.py:45"}]}, {"id": "flow_candidate_validation", "name": "3. Validation, Probing & Revival Cycle", "description": "Screens proxy candidates against test cache, performs adaptive scheduling, dispatches batch testing, and updates quality stores.", "steps": [{"step_number": 1, "from": "consumer_pool", "to": "smart_retest_scheduler", "action": "Query retest scheduler for adaptive cooldown check", "payload": "Proxy", "file_citation": "src/configstream/scheduler.py:75"}, {"step_number": 2, "from": "consumer_pool", "to": "test_cache", "action": "Check test result cache hit", "payload": "ProxyKey", "file_citation": "src/configstream/test_cache.py:92"}, {"step_number": 3, "from": "consumer_pool", "to": "go_tester", "action": "Dispatch test batch to Go batch tester daemon", "payload": "ProxyTestRequest", "file_citation": "src/configstream/testers/go_tester/manager.py:412"}, {"step_number": 4, "from": "go_tester", "to": "consumer_pool", "action": "Receive test results and latency metrics", "payload": "ProxyTestResult", "file_citation": "src/configstream/testers/go_tester/manager.py:440"}, {"step_number": 5, "from": "consumer_pool", "to": "test_cache", "action": "Update cache with fresh test outcomes", "payload": "TestRecord", "file_citation": "src/configstream/test_cache.py:120"}, {"step_number": 6, "from": "consumer_pool", "to": "history_store", "action": "Record proxy lifetime and latency stability curves", "payload": "HistoryRecord", "file_citation": "src/configstream/history/storage.py:110"}]}, {"id": "flow_go_tester_rpc", "name": "4. Go Tester NDJSON RPC Cycle", "description": "High-performance IPC cycle: binary identity verification, persistent daemon spawn, NDJSON RPC, and sing-box core probing.", "steps": [{"step_number": 1, "from": "consumer_pool", "to": "go_tester", "action": "Spawn daemon with sha256 binary verification", "payload": "ProcessSpawn", "file_citation": "src/configstream/testers/go_tester/secure_manager.py:83"}, {"step_number": 2, "from": "consumer_pool", "to": "go_tester", "action": "Write batch NDJSON requests over stdin", "payload": "ProxyTestRequest", "file_citation": "src/configstream/testers/go_tester/manager.py:577"}, {"step_number": 3, "from": "go_tester", "to": "singbox_core", "action": "Construct sing-box box instance and DialContext", "payload": "OutboundJSON", "file_citation": "src/go/tester/main.go:145"}, {"step_number": 4, "from": "singbox_core", "to": "test_targets", "action": "Execute HTTP generate_204 probe via proxy outbound", "payload": "TCP/TLS Dial", "file_citation": "src/go/tester/main.go:182"}, {"step_number": 5, "from": "go_tester", "to": "consumer_pool", "action": "Stream test results over stdout", "payload": "ProxyTestResult", "file_citation": "src/configstream/testers/go_tester/manager.py:412"}]}, {"id": "flow_warp_scanner_harvest", "name": "5. WARP Clean IP Scanning & Key Provisioning", "description": "Scans Cloudflare edge subnets for responsive endpoints and registers fresh WARP devices with zero-trust key exchange.", "steps": [{"step_number": 1, "from": "warp_scanner", "to": "warp_sources", "action": "Probe Cloudflare Anycast subnets for low latency", "payload": "PingPacket", "file_citation": "src/go/tester/scanner/scanner.go:88"}, {"step_number": 2, "from": "warp_scanner", "to": "washer", "action": "Provide clean IP list to proxy washer", "payload": "list[CleanIP]", "file_citation": "src/configstream/warp_scanner.py:110"}, {"step_number": 3, "from": "washer", "to": "warp_sources", "action": "Register fresh WARP accounts and keys", "payload": "WarpDevice", "file_citation": "src/configstream/tools/vwarp/manager.py:85"}]}, {"id": "flow_wash_shield_chain", "name": "6. Washing, Shielding & Smart Chaining", "description": "Launders proxies through WARP tunnels, revives dead nodes via Lazarus Pit, and constructs multi-hop routing chains.", "steps": [{"step_number": 1, "from": "output_generator", "to": "washer", "action": "Launder working proxies via WARP encapsulation", "payload": "list[Proxy]", "file_citation": "src/configstream/output_handler.py:548"}, {"step_number": 2, "from": "output_generator", "to": "washer", "action": "Apply Lazarus-Pit shielding to failed proxies", "payload": "list[Proxy]", "file_citation": "src/configstream/output_handler.py:566"}, {"step_number": 3, "from": "washer", "to": "vwarp_tunnel", "action": "Route traffic through local Vwarp Masque daemon", "payload": "TCP Tunnel", "file_citation": "src/configstream/tools/vwarp/tunnel.py:95"}, {"step_number": 4, "from": "output_generator", "to": "chain_engine", "action": "Assemble multi-hop circumvention chains", "payload": "dict[category, chains]", "file_citation": "src/configstream/output_handler.py:667"}, {"step_number": 5, "from": "output_generator", "to": "stego_generator", "action": "Pack covert payload into PNG pixel matrices", "payload": "GzipJSON", "file_citation": "src/configstream/stego.py:75"}]}, {"id": "flow_pareto_ranking", "name": "7. Multi-Objective Pareto Scoring & Dedup", "description": "Performs Pareto optimization balancing latency, reliability, packet stability, and geographical diversity.", "steps": [{"step_number": 1, "from": "consumer_pool", "to": "geoip_resolver", "action": "Resolve IP location and ASN details", "payload": "IPAddress", "file_citation": "src/configstream/geoip.py:55"}, {"step_number": 2, "from": "geoip_resolver", "to": "geo_db", "action": "Query MaxMind GeoLite2 MMDB", "payload": "GeoRecord", "file_citation": "src/configstream/geoip.py:70"}, {"step_number": 3, "from": "consumer_pool", "to": "pareto_sorter", "action": "Score proxies along Pareto efficiency frontier", "payload": "list[Proxy]", "file_citation": "src/configstream/sorter.py:45"}, {"step_number": 4, "from": "pareto_sorter", "to": "dedup_sort", "action": "Deduplicate and group proxies into priority tiers", "payload": "list[Proxy]", "file_citation": "src/configstream/sorter.py:80"}]}, {"id": "flow_dashboard_updates", "name": "8. Dashboard Live WebSocket Update Cycle", "description": "Broadcasts update notifications over WebSockets and performs differential client-side delta sync.", "steps": [{"step_number": 1, "from": "output_generator", "to": "web_server", "action": "Notify backend server of completed pipeline run", "payload": "UpdateNotification", "file_citation": "src/configstream/pipeline/core.py:403"}, {"step_number": 2, "from": "web_server", "to": "ws_broker", "action": "Trigger WebSocket manager broadcast", "payload": "UPDATE_AVAILABLE", "file_citation": "src/configstream/server/routes/admin.py:25"}, {"step_number": 3, "from": "ws_broker", "to": "frontend_pwa", "action": "Push WebSocket event to active dashboard clients", "payload": "WSEvent", "file_citation": "src/configstream/server/ws.py:127"}, {"step_number": 4, "from": "frontend_pwa", "to": "diff_engine", "action": "Fetch differential delta from base version hash", "payload": "HashString", "file_citation": "frontend/assets/js/main.js:93"}, {"step_number": 5, "from": "diff_engine", "to": "output_store", "action": "Compute delta against previous generation", "payload": "JSONDelta", "file_citation": "src/configstream/server/routes/proxies.py:36"}, {"step_number": 6, "from": "diff_engine", "to": "frontend_pwa", "action": "Return differential update payload", "payload": "DiffResponse", "file_citation": "frontend/assets/js/main.js:101"}, {"step_number": 7, "from": "frontend_pwa", "to": "cache_manager_frontend", "action": "Patch IndexedDB cache with merged dataset", "payload": "ProxyList", "file_citation": "frontend/assets/js/cache-manager.js:45"}]}, {"id": "flow_telegram_bot", "name": "9. Telegram Bot Command & Account Cycle", "description": "Processes interactive user commands for on-demand Cloudflare WARP account generation and release retrieval.", "steps": [{"step_number": 1, "from": "cli_gateway", "to": "telegram_bot", "action": "Spawn bot long-polling worker via CLI", "payload": "BotConfig", "file_citation": "src/configstream/cli.py:509"}, {"step_number": 2, "from": "telegram_bot", "to": "warp_sources", "action": "/warp command executes on-demand account creation", "payload": "DeviceCredentials", "file_citation": "src/configstream/bot_cli.py:133"}, {"step_number": 3, "from": "telegram_bot", "to": "output_store", "action": "/mirror command retrieves latest signed release URLs", "payload": "ReleaseURL", "file_citation": "src/configstream/bot_cli.py:183"}]}, {"id": "flow_ci_matrix_reshard", "name": "10. Dynamic CI Matrix Sharding & Rebalancing", "description": "Calculates P95 job durations to dynamically rebalance GitHub Actions matrix partitions, preventing stragglers.", "steps": [{"step_number": 1, "from": "ci_orchestrator", "to": "dynamic_resharder", "action": "Read source_timing.jsonl to calculate P95 durations", "payload": "TimingJSONL", "file_citation": ".github/workflows/main.yml:85"}, {"step_number": 2, "from": "dynamic_resharder", "to": "ci_orchestrator", "action": "Emit balanced matrix configuration for runner jobs", "payload": "MatrixConfig", "file_citation": "scripts/dynamic_reshard.py:120"}, {"step_number": 3, "from": "ci_orchestrator", "to": "cli_gateway", "action": "Launch parallel shard runner jobs", "payload": "ShardArgs", "file_citation": ".github/workflows/main.yml:288"}]}, {"id": "flow_ci_publish", "name": "11. Consolidation, Signing & Multi-Cloud Publishing", "description": "Aggregates shard outputs, computes Ed25519 signatures, runs publication gatekeeper, and deploys to multi-cloud mirrors.", "steps": [{"step_number": 1, "from": "ci_orchestrator", "to": "merge_worker", "action": "Download all shard SQLite databases and merge", "payload": "ShardArtifacts", "file_citation": "scripts/merge_batches.py:401"}, {"step_number": 2, "from": "merge_worker", "to": "output_generator", "action": "Generate consolidated master release bundles", "payload": "ConsolidatedProxies", "file_citation": "scripts/merge_batches.py:420"}, {"step_number": 3, "from": "output_generator", "to": "release_signer", "action": "Submit release manifest for Ed25519 signature", "payload": "ManifestDict", "file_citation": "src/configstream/signer.py:90"}, {"step_number": 4, "from": "release_signer", "to": "output_store", "action": "Write sealed manifest.json.sig to release directory", "payload": "SignatureFiles", "file_citation": "src/configstream/signer.py:140"}, {"step_number": 5, "from": "output_store", "to": "publication_gate", "action": "Audit public directory against secret leak contract", "payload": "DirectoryTree", "file_citation": "src/configstream/publication.py:45"}, {"step_number": 6, "from": "publication_gate", "to": "mirror_publishers", "action": "Deploy verified release to GitHub Pages & mirrors", "payload": "SealedBundle", "file_citation": "scripts/finalize_release_outputs.py:80"}]}, {"id": "flow_browser_verification", "name": "12. Client-Side Cryptographic Attestation & BYOW", "description": "In-browser zero-trust cryptographic verification of release signatures via Go WebAssembly and custom WARP assembly.", "steps": [{"step_number": 1, "from": "mirror_publishers", "to": "frontend_pwa", "action": "Fetch latest proxies.json and manifest.json.sig", "payload": "SignedBundle", "file_citation": "frontend/assets/js/main.js:75"}, {"step_number": 2, "from": "frontend_pwa", "to": "wasm_verifier", "action": "Send manifest and public key SPKI to WebWorker", "payload": "ManifestPayload", "file_citation": "frontend/assets/js/wasm_loader.js:60"}, {"step_number": 3, "from": "wasm_verifier", "to": "frontend_pwa", "action": "Execute Ed25519 verification in Go WebAssembly", "payload": "VerificationResult", "file_citation": "frontend/assets/js/verifier.js:88"}, {"step_number": 4, "from": "frontend_pwa", "to": "evidence_explorer", "action": "Render cryptographic transparency proof to user", "payload": "VerificationReport", "file_citation": "frontend/assets/js/evidence-explorer.js:40"}, {"step_number": 5, "from": "frontend_pwa", "to": "byow_builder", "action": "Allow user to assemble custom Wireguard/Masque profile", "payload": "WarpCredentials", "file_citation": "frontend/assets/js/byow.js:35"}]}]};
+
+const LAYER_CONFIG = {
+  'infrastructure': { title: '1. Infrastructure & External Endpoints', desc: 'Raw proxy feeds, DNS, WARP edge servers, and native testing binaries.', color: '#06B6D4', glow: 'rgba(6, 182, 212, 0.15)' },
+  'ingestion_parsing': { title: '2. Ingestion & Security Admission', desc: 'Zero-trust fetching, SSRF filtering, protocol extraction, and format normalization.', color: '#8B5CF6', glow: 'rgba(139, 92, 246, 0.15)' },
+  'intelligence_testing': { title: '3. Validation, Washing & Intelligence', desc: 'Go batch runner, TCP handshake, EWMA reliability scoring, and WARP chaining.', color: '#F59E0B', glow: 'rgba(245, 158, 11, 0.15)' },
+  'generation_output': { title: '4. Format Generation & Artifact Packaging', desc: 'Sing-box JSON, Clash YAML, Base64 subscriptions, and metadata injection.', color: '#10B981', glow: 'rgba(16, 185, 129, 0.15)' },
+  'client_distribution': { title: '5. Client Distribution & Storage Mirrors', desc: 'GitHub Pages CDN, SQLite history, PWA dashboard, and client integration.', color: '#3B82F6', glow: 'rgba(59, 130, 246, 0.15)' }
+};
+
+let currentView = 'swimlanes';
+let selectedNode = null;
+let activeFlowIndex = 0;
+let activeFlowStep = 0;
+
+function init() {
+  renderSwimlanes(TOPOLOGY.nodes);
+  setupFlows();
+  
+  // Shortcut search
+  window.addEventListener('keydown', (e) => {
+    if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
+      e.preventDefault();
+      document.getElementById('nodeSearch').focus();
+    }
+    if (e.key === 'Escape') {
+      closeDrawer();
+    }
+  });
+}
+
+function renderSwimlanes(nodes) {
+  const container = document.getElementById('swimlanesContainer');
+  container.innerHTML = '';
+
+  const byLayer = {};
+  Object.keys(LAYER_CONFIG).forEach(k => byLayer[k] = []);
+  nodes.forEach(n => {
+    if (byLayer[n.layer]) byLayer[n.layer].push(n);
+    else byLayer['infrastructure'].push(n);
+  });
+
+  Object.entries(LAYER_CONFIG).forEach(([layerKey, cfg]) => {
+    const layerNodes = byLayer[layerKey] || [];
+    const lane = document.createElement('div');
+    lane.className = 'layer-lane';
+    lane.style.setProperty('--lane-color', cfg.color);
+    lane.style.setProperty('--lane-glow', cfg.glow);
+
+    lane.innerHTML = `
+      <div class="layer-header">
+        <div class="layer-title-wrap">
+          <span class="layer-num">${layerKey.toUpperCase()}</span>
+          <div>
+            <h3 class="layer-title">${cfg.title}</h3>
+            <p class="layer-desc">${cfg.desc}</p>
+          </div>
+        </div>
+        <span style="font-size: 0.8rem; font-family: 'JetBrains Mono', monospace; color: var(--text-dim);">${layerNodes.length} Components</span>
+      </div>
+      <div class="node-grid" id="grid-${layerKey}"></div>
+    `;
+
+    const grid = lane.querySelector(`#grid-${layerKey}`);
+    layerNodes.forEach(node => {
+      const card = document.createElement('div');
+      card.className = 'node-card';
+      card.id = `node-${node.id}`;
+      card.onclick = () => openDrawer(node);
+
+      let tagClass = 'python';
+      let tagText = 'PYTHON';
+      if (node.file_citations?.[0]?.file.endsWith('.go')) { tagClass = 'go'; tagText = 'GO'; }
+      else if (node.file_citations?.[0]?.file.endsWith('.ts') || node.file_citations?.[0]?.file.endsWith('.tsx')) { tagClass = 'client'; tagText = 'TS/PWA'; }
+      else if (node.type === 'external') { tagClass = 'security'; tagText = 'EXTERNAL'; }
+
+      const inEdges = TOPOLOGY.edges.filter(e => e.target === node.id).length;
+      const outEdges = TOPOLOGY.edges.filter(e => e.source === node.id).length;
+
+      card.innerHTML = `
+        <div class="node-top">
+          <span class="node-name">${node.name}</span>
+          <span class="node-tag ${tagClass}">${tagText}</span>
+        </div>
+        <p class="node-desc">${node.description}</p>
+        <div class="node-footer">
+          <span>&darr; ${inEdges} in</span>
+          <span>&uarr; ${outEdges} out</span>
+          <span>${node.runtime_config?.ports?.[0] || 'internal'}</span>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+
+    container.appendChild(lane);
+  });
+}
+
+function openDrawer(node) {
+  selectedNode = node;
+  const drawer = document.getElementById('nodeDrawer');
+  const backdrop = document.getElementById('backdrop');
+  
+  document.getElementById('drawerBadge').innerText = (node.layer || '').toUpperCase();
+  document.getElementById('drawerTitle').innerText = node.name;
+  document.getElementById('drawerId').innerText = `ID: ${node.id} (${node.type})`;
+  document.getElementById('drawerDesc').innerText = node.description;
+
+  const citationsEl = document.getElementById('drawerCitations');
+  citationsEl.innerHTML = '';
+  (node.file_citations || []).forEach(c => {
+    const item = document.createElement('div');
+    item.innerHTML = `<strong>${c.file}</strong><br><span style="color: var(--cyan);">${c.symbols?.join(', ') || ''}</span>`;
+    citationsEl.appendChild(item);
+  });
+
+  const runtimeEl = document.getElementById('drawerRuntime');
+  runtimeEl.innerHTML = `
+    Ports: ${node.runtime_config?.ports?.join(', ') || 'none'}<br>
+    Env Deps: ${node.runtime_config?.env_dependencies?.join(', ') || 'none'}
+  `;
+
+  const linksEl = document.getElementById('drawerLinks');
+  const inEdges = TOPOLOGY.edges.filter(e => e.target === node.id);
+  const outEdges = TOPOLOGY.edges.filter(e => e.source === node.id);
+  linksEl.innerHTML = `
+    <div style="color: var(--emerald);"><strong>Inbound from:</strong> ${inEdges.map(e => e.source).join(', ') || 'none'}</div>
+    <div style="color: var(--cyan);"><strong>Outbound to:</strong> ${outEdges.map(e => e.target).join(', ') || 'none'}</div>
+  `;
+
+  drawer.classList.add('open');
+  backdrop.classList.add('open');
+
+  // Highlight connections
+  document.querySelectorAll('.node-card').forEach(el => el.classList.remove('selected'));
+  const card = document.getElementById(`node-${node.id}`);
+  if (card) card.classList.add('selected');
+}
+
+function closeDrawer() {
+  document.getElementById('nodeDrawer').classList.remove('open');
+  document.getElementById('backdrop').classList.remove('open');
+  document.querySelectorAll('.node-card').forEach(el => el.classList.remove('selected'));
+}
+
+function handleSearch(query) {
+  const q = query.toLowerCase().trim();
+  document.querySelectorAll('.node-card').forEach(card => {
+    const text = card.innerText.toLowerCase();
+    card.style.display = text.includes(q) ? 'flex' : 'none';
+  });
+}
+
+function switchView(view) {
+  currentView = view;
+  document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+
+  const flowPanel = document.getElementById('flowPanel');
+  const blastBanner = document.getElementById('blastBanner');
+
+  if (view === 'flows') {
+    flowPanel.style.display = 'flex';
+    blastBanner.style.display = 'none';
+    clearBlast();
+    loadSelectedFlow(document.getElementById('flowSelect').value || 0);
+  } else if (view === 'blast') {
+    flowPanel.style.display = 'none';
+    blastBanner.style.display = 'flex';
+    clearFlowHighlights();
+  } else {
+    flowPanel.style.display = 'none';
+    blastBanner.style.display = 'none';
+    clearBlast();
+    clearFlowHighlights();
+  }
+}
+
+function setupFlows() {
+  const select = document.getElementById('flowSelect');
+  select.innerHTML = '';
+  TOPOLOGY.flows.forEach((flow, idx) => {
+    const opt = document.createElement('option');
+    opt.value = idx;
+    opt.innerText = `${idx+1}. ${flow.name}`;
+    select.appendChild(opt);
+  });
+}
+
+function loadSelectedFlow(idx) {
+  activeFlowIndex = parseInt(idx);
+  activeFlowStep = 0;
+  const flow = TOPOLOGY.flows[activeFlowIndex];
+  if (!flow) return;
+
+  const track = document.getElementById('flowStepsTrack');
+  track.innerHTML = '';
+  flow.path.forEach((step, sidx) => {
+    const pill = document.createElement('div');
+    pill.className = `flow-step-pill ${sidx === 0 ? 'active' : ''}`;
+    pill.innerText = `${sidx+1}. ${step.replace(/_/g, ' ')}`;
+    pill.onclick = () => setFlowStep(sidx);
+    track.appendChild(pill);
+  });
+
+  highlightFlowStep();
+}
+
+function setFlowStep(sidx) {
+  activeFlowStep = sidx;
+  document.querySelectorAll('.flow-step-pill').forEach((p, idx) => {
+    p.classList.toggle('active', idx === sidx);
+  });
+  highlightFlowStep();
+}
+
+function stepFlowPrev() {
+  const flow = TOPOLOGY.flows[activeFlowIndex];
+  if (activeFlowStep > 0) setFlowStep(activeFlowStep - 1);
+}
+
+function stepFlowNext() {
+  const flow = TOPOLOGY.flows[activeFlowIndex];
+  if (activeFlowStep < flow.path.length - 1) setFlowStep(activeFlowStep + 1);
+}
+
+function highlightFlowStep() {
+  clearFlowHighlights();
+  const flow = TOPOLOGY.flows[activeFlowIndex];
+  if (!flow) return;
+
+  document.getElementById('flowStepCounter').innerText = `Step ${activeFlowStep+1} of ${flow.path.length}`;
+  const activeNodeId = flow.path[activeFlowStep];
+  const card = document.getElementById(`node-${activeNodeId}`);
+  if (card) {
+    card.classList.add('flow-highlight');
+    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  document.getElementById('flowStepNotes').innerHTML = `
+    <strong>Flow:</strong> ${flow.name}<br>
+    <strong>Active Stage:</strong> <code style="color: var(--amber);">${activeNodeId}</code> (${activeFlowStep+1}/${flow.path.length})<br>
+    <span style="color: var(--text-muted);">${flow.description}</span>
+  `;
+}
+
+function clearFlowHighlights() {
+  document.querySelectorAll('.node-card').forEach(el => el.classList.remove('flow-highlight'));
+}
+
+function simulateFailureFromDrawer() {
+  if (!selectedNode) return;
+  const rootId = selectedNode.id;
+  closeDrawer();
+  switchView('blast');
+  
+  // Downstream BFS
+  const impacted = new Set([rootId]);
+  const queue = [rootId];
+  while (queue.length > 0) {
+    const curr = queue.shift();
+    TOPOLOGY.edges.filter(e => e.source === curr).forEach(e => {
+      if (!impacted.has(e.target)) {
+        impacted.add(e.target);
+        queue.push(e.target);
+      }
+    });
+  }
+
+  document.querySelectorAll('.node-card').forEach(c => c.classList.remove('blast-impacted'));
+  impacted.forEach(id => {
+    const el = document.getElementById(`node-${id}`);
+    if (el) el.classList.add('blast-impacted');
+  });
+
+  const pct = Math.round((impacted.size / TOPOLOGY.nodes.length) * 100);
+  document.getElementById('blastDesc').innerHTML = `
+    Failure Point: <strong style="color: var(--rose);">${rootId}</strong> &rarr; 
+    Impacted <strong>${impacted.size}</strong> of <strong>${TOPOLOGY.nodes.length}</strong> nodes (${pct}% cascade impact).
+  `;
+}
+
+function clearBlast() {
+  document.querySelectorAll('.node-card').forEach(c => c.classList.remove('blast-impacted'));
+  document.getElementById('blastDesc').innerText = 'Click any node to see its downstream dependency cascade.';
+}
+
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(TOPOLOGY, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'configstream_topology.json';
+  a.click();
+}
+
+window.onload = init;
+</script>
+</body>
+</html>

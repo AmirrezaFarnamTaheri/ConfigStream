@@ -41,7 +41,7 @@
     ],
     "container": [
       {
-        "constraint": "golang:1.24-alpine",
+        "constraint": "golang:1.23-alpine",
         "name": "go_builder",
         "source": "config/container-images.json"
       },

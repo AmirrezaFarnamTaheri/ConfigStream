@@ -163,9 +163,27 @@ def _validate_image_references(tracked: list[Path]) -> list[str]:
     return errors
 
 
+def _validate_svg_xml(tracked: list[Path]) -> list[str]:
+    import xml.etree.ElementTree as ET
+
+    errors: list[str] = []
+    for path in tracked:
+        if path.suffix.lower() != ".svg":
+            continue
+        try:
+            ET.parse(path)
+        except (ET.ParseError, UnicodeDecodeError, OSError) as exc:
+            errors.append(f"malformed SVG XML in {_repo_relative(path)}: {exc}")
+    return errors
+
+
 def validate_assets() -> list[str]:
     tracked = _tracked_files()
-    return _validate_zero_byte_files(tracked) + _validate_image_references(tracked)
+    return (
+        _validate_zero_byte_files(tracked)
+        + _validate_image_references(tracked)
+        + _validate_svg_xml(tracked)
+    )
 
 
 def main() -> None:

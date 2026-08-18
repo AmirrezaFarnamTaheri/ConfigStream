@@ -45,6 +45,7 @@ def validate_repository(root: Path) -> list[str]:
         node_container = str(node["container"])
         go_language = str(go["language"])
         go_toolchain = str(go["toolchain"])
+        go_ci = str(go.get("ci", go_toolchain))
         go_container = str(go["container"])
     except (KeyError, TypeError, ValueError) as exc:
         return [f"runtime manifest schema invalid: {type(exc).__name__}: {exc}"]
@@ -121,9 +122,9 @@ def validate_repository(root: Path) -> list[str]:
     )
     _expect(
         errors,
-        f"go-version: '{go_toolchain}'" in workflow_text
-        or f'go-version: "{go_toolchain}"' in workflow_text,
-        f"workflows must use exact Go {go_toolchain}",
+        f"go-version: '{go_ci}'" in workflow_text
+        or f'go-version: "{go_ci}"' in workflow_text,
+        f"workflows must use exact Go {go_ci}",
     )
     for match in re.finditer(r"node-version:\s*['\"]?([^'\"\s]+)", workflow_text):
         _expect(

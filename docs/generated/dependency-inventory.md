@@ -84,7 +84,7 @@ Direct declarations: **67**
 | go-tester | `golang.org/x/crypto` | `v0.45.0` | `src/go/tester/go.mod` |
 | go-utls | `github.com/refraction-networking/utls` | `v1.8.1` | `src/go/utls_client/go.mod` |
 | cargo | `libc` | `0.2` | `src/rust/ss_checker/Cargo.toml` |
-| container | `go_builder` | `golang:1.24-alpine` | `config/container-images.json` |
+| container | `go_builder` | `golang:1.23-alpine` | `config/container-images.json` |
 | container | `node_ci` | `node:24-slim` | `config/container-images.json` |
 | container | `python_runtime` | `python:3.12-slim` | `config/container-images.json` |
 | container | `uv` | `ghcr.io/astral-sh/uv:0.11.32` | `config/container-images.json` |

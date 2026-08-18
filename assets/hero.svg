@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 300" width="1280" height="300" role="img" aria-label="ConfigStream Hero Banner">
+  <title>ConfigStream — Sovereign-Grade Anti-Censorship Aggregation Platform</title>
+  <defs>
+    <!-- Background Gradients -->
+    <linearGradient id="hbg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#060A12"/>
+      <stop offset="50%" stop-color="#0C1322"/>
+      <stop offset="100%" stop-color="#060A12"/>
+    </linearGradient>
+    <radialGradient id="haura1" cx="20%" cy="30%" r="50%">
+      <stop offset="0%" stop-color="#00E5FF" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#00E5FF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="haura2" cx="80%" cy="70%" r="50%">
+      <stop offset="0%" stop-color="#A855F7" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#A855F7" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="laserLine" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#00E5FF" stop-opacity="0"/>
+      <stop offset="30%" stop-color="#00E5FF" stop-opacity="0.8"/>
+      <stop offset="70%" stop-color="#A855F7" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#A855F7" stop-opacity="0"/>
+    </linearGradient>
+    <!-- Grid Pattern -->
+    <pattern id="hgrid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#1E2C4A" stroke-width="0.75" stroke-opacity="0.4"/>
+      <circle cx="1" cy="1" r="1" fill="#64748B" fill-opacity="0.25"/>
+    </pattern>
+    <clipPath id="hcard"><rect x="0" y="0" width="1280" height="300" rx="14"/></clipPath>
+  </defs>
+
+  <g clip-path="url(#hcard)">
+    <!-- Base Layer &amp; Grid -->
+    <rect width="1280" height="300" fill="url(#hbg)"/>
+    <rect width="1280" height="300" fill="url(#hgrid)"/>
+
+    <!-- Subtle Dynamic Auroras -->
+    <ellipse cx="280" cy="100" rx="420" ry="240" fill="url(#haura1)">
+      <animate attributeName="cx" values="280;420;280" dur="12s" repeatCount="indefinite"/>
+    </ellipse>
+    <ellipse cx="1000" cy="200" rx="400" ry="220" fill="url(#haura2)">
+      <animate attributeName="cx" values="1000;860;1000" dur="14s" repeatCount="indefinite"/>
+    </ellipse>
+
+    <!-- Outer Card Border -->
+    <rect x="0.75" y="0.75" width="1278.5" height="298.5" rx="14" fill="none" stroke="#334B75" stroke-width="1.5"/>
+
+    <!-- Top Status HUD Bar -->
+    <rect x="50" y="24" width="380" height="28" rx="6" fill="#111B30" stroke="#1E2C4A" stroke-width="1"/>
+    <circle cx="66" cy="38" r="4.5" fill="#10B981"/>
+    <circle cx="66" cy="38" r="4.5" fill="none" stroke="#10B981" stroke-width="1.5">
+      <animate attributeName="r" values="4.5;14;4.5" dur="2.2s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.8;0;0.8" dur="2.2s" repeatCount="indefinite"/>
+    </circle>
+    <text x="82" y="42" font-family="'JetBrains Mono', 'SF Mono', Consolas, Menlo, Monaco, monospace" font-size="11" font-weight="600" fill="#10B981" letter-spacing="0.5">
+      SYSTEM STATUS: OPERATIONAL
+    </text>
+    <text x="270" y="42" font-family="'JetBrains Mono', 'SF Mono', Consolas, Menlo, Monaco, monospace" font-size="11" font-weight="500" fill="#94A3B8">
+      | ZERO-TRUST PIPELINE
+    </text>
+
+    <!-- Telemetry Badges Right -->
+    <g transform="translate(850, 24)">
+      <rect width="180" height="28" rx="6" fill="#111B30" stroke="#1E2C4A" stroke-width="1"/>
+      <text x="18" y="18" font-family="'JetBrains Mono', 'SF Mono', Consolas, Menlo, Monaco, monospace" font-size="11" font-weight="600" fill="#00E5FF">INGESTION:</text>
+      <text x="96" y="18" font-family="'JetBrains Mono', 'SF Mono', Consolas, Menlo, Monaco, monospace" font-size="11" font-weight="500" fill="#FFFFFF">CONTINUOUS</text>
+    </g>
+    <g transform="translate(1040, 24)">
+      <rect width="190" height="28" rx="6" fill="#111B30" stroke="#1E2C4A" stroke-width="1"/>
+      <text x="18" y="18" font-family="'JetBrains Mono', 'SF Mono', Consolas, Menlo, Monaco, monospace" font-size="11" font-weight="600" fill="#A855F7">VERIFICATION:</text>
+      <text x="114" y="18" font-family="'JetBrains Mono', 'SF Mono', Consolas, Menlo, Monaco, monospace" font-size="11" font-weight="500" fill="#FFFFFF">GO SUB-MS</text>
+    </g>
+
+    <!-- Main Branding -->
+    <text x="50" y="112" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="44" font-weight="800" fill="#FFFFFF" letter-spacing="-1">
+      ConfigStream
+    </text>
+    <text x="356" y="96" font-family="'JetBrains Mono', 'SF Mono', Consolas, Menlo, Monaco, monospace" font-size="12" font-weight="700" fill="#00E5FF" letter-spacing="1">
+      v3.2.0-ENTERPRISE
+    </text>
+
+    <!-- Glowing Accent Accent Bar -->
+    <path d="M 50 128 L 680 128" stroke="url(#laserLine)" stroke-width="2.5"/>
+
+    <!-- Subtitle &amp; Value Proposition -->
+    <text x="50" y="158" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="600" fill="#F1F5F9" letter-spacing="-0.2">
+      Sovereignty-Grade Anti-Censorship Aggregator &amp; Autonomous Multi-Tier Stream Washer
+    </text>
+    <text x="50" y="186" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13.5" font-weight="400" fill="#94A3B8">
+      SSRF-Guarded Ingestion • Native Sing-box Testing • WARP/MASQUE Chaining • Subscriptions for Hiddify &amp; Clash Verge
+    </text>
+
+    <!-- Protocol Badges Matrix -->
+    <g transform="translate(50, 224)"><rect width="138" height="48" rx="8" fill="#111B30" stroke="#00E5FF" stroke-width="1.2" stroke-opacity="0.6"/><circle cx="16" cy="24" r="3.5" fill="#00E5FF"><animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite"/></circle><text x="28" y="21" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#FFFFFF" letter-spacing="0.3">VLESS</text><text x="28" y="36" font-family="'JetBrains Mono', 'SF Mono', Consolas, Menlo, Monaco, monospace" font-size="9.5" font-weight="500" fill="#94A3B8">XTLS / Reality</text></g><g transform="translate(198, 224)"><rect width="138" height="48" rx="8" fill="#111B30" stroke="#38BDF8" stroke-width="1.2" stroke-opacity="0.6"/><circle cx="16" cy="24" r="3.5" fill="#38BDF8"><animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite"/></circle><text x="28" y="21" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#FFFFFF" letter-spacing="0.3">VMess</text><text x="28" y="36" font-family="'JetBrains Mono', 'SF Mono', Consolas, Menlo, Monaco, monospace" font-size="9.5" font-weight="500" fill="#94A3B8">AEAD / WS</text></g><g transform="translate(346, 224)"><rect width="138" height="48" rx="8" fill="#111B30" stroke="#10B981" stroke-width="1.2" stroke-opacity="0.6"/><circle cx="16" cy="24" r="3.5" fill="#10B981"><animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite"/></circle><text x="28" y="21" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#FFFFFF" letter-spacing="0.3">Trojan</text><text x="28" y="36" font-family="'JetBrains Mono', 'SF Mono', Consolas, Menlo, Monaco, monospace" font-size="9.5" font-weight="500" fill="#94A3B8">gRPC / TLS</text></g><g transform="translate(494, 224)"><rect width="138" height="48" rx="8" fill="#111B30" stroke="#F59E0B" stroke-width="1.2" stroke-opacity="0.6"/><circle cx="16" cy="24" r="3.5" fill="#F59E0B"><animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite"/></circle><text x="28" y="21" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#FFFFFF" letter-spacing="0.3">Shadowsocks</text><text x="28" y="36" font-family="'JetBrains Mono', 'SF Mono', Consolas, Menlo, Monaco, monospace" font-size="9.5" font-weight="500" fill="#94A3B8">2022-blake3</text></g><g transform="translate(642, 224)"><rect width="138" height="48" rx="8" fill="#111B30" stroke="#FB7185" stroke-width="1.2" stroke-opacity="0.6"/><circle cx="16" cy="24" r="3.5" fill="#FB7185"><animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite"/></circle><text x="28" y="21" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#FFFFFF" letter-spacing="0.3">Hysteria2</text><text x="28" y="36" font-family="'JetBrains Mono', 'SF Mono', Consolas, Menlo, Monaco, monospace" font-size="9.5" font-weight="500" fill="#94A3B8">Brutal UDP</text></g><g transform="translate(790, 224)"><rect width="138" height="48" rx="8" fill="#111B30" stroke="#A855F7" stroke-width="1.2" stroke-opacity="0.6"/><circle cx="16" cy="24" r="3.5" fill="#A855F7"><animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite"/></circle><text x="28" y="21" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#FFFFFF" letter-spacing="0.3">TUIC</text><text x="28" y="36" font-family="'JetBrains Mono', 'SF Mono', Consolas, Menlo, Monaco, monospace" font-size="9.5" font-weight="500" fill="#94A3B8">QUIC / BBR</text></g><g transform="translate(938, 224)"><rect width="138" height="48" rx="8" fill="#111B30" stroke="#00E5FF" stroke-width="1.2" stroke-opacity="0.6"/><circle cx="16" cy="24" r="3.5" fill="#00E5FF"><animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite"/></circle><text x="28" y="21" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#FFFFFF" letter-spacing="0.3">MASQUE</text><text x="28" y="36" font-family="'JetBrains Mono', 'SF Mono', Consolas, Menlo, Monaco, monospace" font-size="9.5" font-weight="500" fill="#94A3B8">HTTP/3 Proxy</text></g><g transform="translate(1086, 224)"><rect width="138" height="48" rx="8" fill="#111B30" stroke="#10B981" stroke-width="1.2" stroke-opacity="0.6"/><circle cx="16" cy="24" r="3.5" fill="#10B981"><animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite"/></circle><text x="28" y="21" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#FFFFFF" letter-spacing="0.3">WARP</text><text x="28" y="36" font-family="'JetBrains Mono', 'SF Mono', Consolas, Menlo, Monaco, monospace" font-size="9.5" font-weight="500" fill="#94A3B8">Dual-Stack</text></g>
+  </g>
+</svg>

@@ -4,6 +4,8 @@
 [![CI](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/ci.yml/badge.svg)](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/ci.yml)
 [![Pages Deploy & Smoke Test](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/deploy-pages.yml)
 
+**[English](README.md) • [فارسی](README_FA.md) • [简体中文](README_ZH.md) • [Русский](README_RU.md)**
+
 ConfigStream is a sovereignty-grade, zero-budget anti-censorship platform. It continuously aggregates, validates, and distributes resilient proxy configurations under hostile network conditions.
 
 > **Release status:** v3.2.0 is a conditional release candidate, not a verified production release. `docs/readiness.json` is the machine-readable authority and `STATUS.md` is generated from it. Production readiness requires passing exact-head CI, a sealed pipeline artifact, historical secret review, and a live GitHub Pages digest/smoke check for the same commit.
