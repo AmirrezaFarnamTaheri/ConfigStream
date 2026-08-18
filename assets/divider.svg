@@ -1,38 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 20" width="1280" height="20" role="img" aria-label="ConfigStream Divider">
-  <defs>
-    <linearGradient id="divLaser" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#060A12" stop-opacity="0"/>
-      <stop offset="25%" stop-color="#00E5FF" stop-opacity="0.3"/>
-      <stop offset="50%" stop-color="#00E5FF" stop-opacity="0.9"/>
-      <stop offset="75%" stop-color="#A855F7" stop-opacity="0.3"/>
-      <stop offset="100%" stop-color="#060A12" stop-opacity="0"/>
-    </linearGradient>
-    <linearGradient id="coreGlow" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#00E5FF" stop-opacity="0"/>
-      <stop offset="50%" stop-color="#FFFFFF" stop-opacity="1"/>
-      <stop offset="100%" stop-color="#A855F7" stop-opacity="0"/>
-    </linearGradient>
-  </defs>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 20" width="1280" height="20" role="img" aria-label="ConfigStream section divider">
+  <title>ConfigStream section divider</title>
+  <rect width="1280" height="20" rx="14" fill="#090D16"/>
+  <rect x="1" y="1" width="1278" height="18" rx="13" fill="none" stroke="#334155"/>
+  
+  <line x1="25" y1="10" x2="1255" y2="10" stroke="#06B6D4" stroke-opacity=".55"/>
+  <polygon points="640,3 647,10 640,17 633,10" fill="#06B6D4">
+    <animateTransform attributeName="transform" type="rotate" from="0 640 10" to="360 640 10" dur="8s" repeatCount="indefinite"/>
+  </polygon>
 
-  <!-- Base Laser Line -->
-  <line x1="80" y1="10" x2="1200" y2="10" stroke="url(#divLaser)" stroke-width="1.5"/>
-  <line x1="440" y1="10" x2="840" y2="10" stroke="url(#coreGlow)" stroke-width="2"/>
-
-  <!-- Center Diamond Crosshair -->
-  <g transform="translate(640, 10)">
-    <polygon points="0,-6 6,0 0,6 -6,0" fill="#00E5FF">
-      <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="8s" repeatCount="indefinite"/>
-    </polygon>
-    <circle cx="0" cy="0" r="2.5" fill="#FFFFFF"/>
-    <circle cx="0" cy="0" r="8" fill="none" stroke="#00E5FF" stroke-width="1" stroke-opacity="0.5">
-      <animate attributeName="r" values="6;12;6" dur="2.5s" repeatCount="indefinite"/>
-      <animate attributeName="opacity" values="0.8;0.1;0.8" dur="2.5s" repeatCount="indefinite"/>
-    </circle>
-  </g>
-
-  <!-- Traveling Photon Packet -->
-  <circle cy="10" r="3" fill="#00E5FF">
-    <animate attributeName="cx" values="180;1100;180" dur="5s" repeatCount="indefinite"/>
-    <animate attributeName="opacity" values="0.3;1;0.3" dur="5s" repeatCount="indefinite"/>
-  </circle>
 </svg>
