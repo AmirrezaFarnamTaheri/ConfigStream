@@ -13,6 +13,7 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
@@ -94,7 +95,7 @@ jobs:
           restore-keys: |
             playwright-${{ runner.os }}-${{ matrix.python-version }}-
       - name: Install Playwright browsers
-        run: python -m playwright install --with-deps
+        run: python -m playwright install --with-deps chromium
       - name: Run tests
         shell: bash
         run: |
@@ -235,6 +236,7 @@ jobs:
 
   frontend:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -257,6 +259,7 @@ jobs:
 
   frontend-browser:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       PYTHONPATH: src
@@ -281,6 +284,13 @@ jobs:
           python -m pip install -e . --no-deps
       - name: Install frontend dependencies
         run: npm ci
+      - name: Cache Playwright browsers
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-frontend-browser-${{ hashFiles('requirements-dev.txt', 'package-lock.json') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-frontend-browser-
       - name: Install Playwright browsers
         run: |
           python -m playwright install --with-deps chromium
@@ -291,6 +301,7 @@ jobs:
   go-quality:
     name: Go unit race fuzz and benchmark gates
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
