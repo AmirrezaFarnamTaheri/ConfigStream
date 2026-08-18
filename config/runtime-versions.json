@@ -13,10 +13,10 @@
     "container": "24"
   },
   "go": {
-    "language": "1.23",
-    "toolchain": "1.23.4",
-    "ci": "1.23",
-    "container": "1.23"
+    "language": "1.24.0",
+    "toolchain": "1.24.3",
+    "ci": "1.24.3",
+    "container": "1.24"
   },
   "rust": {
     "edition": "2021",

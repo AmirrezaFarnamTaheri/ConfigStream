@@ -2,7 +2,7 @@
   "schema_version": 1,
   "images": {
     "go_builder": {
-      "reference": "golang:1.23-alpine",
+      "reference": "golang:1.24-alpine",
       "digest": "sha256:8bee1901f1e530bfb4a7850aa7a479d17ae3a18beb6e09064ed54cfd245b7191",
       "purpose": "Go tester build toolchain"
     },

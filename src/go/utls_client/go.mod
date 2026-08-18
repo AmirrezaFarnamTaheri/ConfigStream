@@ -1,6 +1,6 @@
 module utls_client
 
-go 1.23
+go 1.24.3
 
 require github.com/refraction-networking/utls v1.8.1
 

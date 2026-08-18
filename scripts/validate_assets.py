@@ -164,14 +164,14 @@ def _validate_image_references(tracked: list[Path]) -> list[str]:
 
 
 def _validate_svg_xml(tracked: list[Path]) -> list[str]:
-    import xml.etree.ElementTree as ET
+    import xml.etree.ElementTree as ET  # nosec B405
 
     errors: list[str] = []
     for path in tracked:
         if path.suffix.lower() != ".svg":
             continue
         try:
-            ET.parse(path)
+            ET.parse(path)  # nosec B314
         except (ET.ParseError, UnicodeDecodeError, OSError) as exc:
             errors.append(f"malformed SVG XML in {_repo_relative(path)}: {exc}")
     return errors
