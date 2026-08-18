@@ -177,9 +177,7 @@ def _validate_svg_xml(tracked: list[Path]) -> list[str]:
             safe_et.parse(path)
         except (DefusedXmlException, SyntaxError, UnicodeDecodeError, OSError) as exc:
             diagnostic = SecurityValidator.sanitize_log_message(str(exc))
-            errors.append(
-                f"malformed SVG XML in {_repo_relative(path)}: {diagnostic}"
-            )
+            errors.append(f"malformed SVG XML in {_repo_relative(path)}: {diagnostic}")
     return errors
 
 
