@@ -26,7 +26,6 @@ def generate_architecture_html() -> None:
     required_refs = (
         "assets/architecture-dashboard.css",
         "assets/architecture-dashboard.js",
-        "system_topology.json",
     )
     missing_refs = [ref for ref in required_refs if ref not in html]
     if missing_refs:
