@@ -69,7 +69,8 @@ git clone https://github.com/AmirrezaFarnamTaheri/ConfigStream.git
 cd ConfigStream
 
 # Установка зависимостей
-pip install -e ".[dev]"
+pip install -r requirements-dev.txt
+pip install -e . --no-deps
 
 # Запуск конвейера агрегации
 python -m configstream.cli merge --sources sources/batch_1.txt --output output/
