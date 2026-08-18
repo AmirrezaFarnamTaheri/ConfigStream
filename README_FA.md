@@ -12,7 +12,7 @@
 
 ## 🚀 لینک‌های اشتراک مستقیم (به‌روزرسانی خودکار هر ۱۵ دقیقه)
 
-همهٔ لینک‌ها شامل متادیتای پیشرفتهٔ Hiddify (`#profile-title`، `#profile-update-interval` و غیره) و رمزنگاری Base64 استاندارد هستند:
+همهٔ لینک‌ها شامل متادیتای پیشرفتهٔ Hiddify (`#profile-title`، `#profile-update-interval` و غیره) و کدگذاری Base64 استاندارد هستند:
 
 | دسته / پروفایل | فرمت لینک متنی | فرمت Base64 | سازگاری کلاینت |
 | :--- | :--- | :--- | :--- |
@@ -72,7 +72,8 @@ cd ConfigStream
 
 # ایجاد محیط مجازی و نصب وابستگی‌ها
 python -m venv .venv
-.venv/bin/pip install -e ".[dev]"
+.venv/bin/pip install -r requirements-dev.txt
+.venv/bin/pip install -e . --no-deps
 
 # اجرای پایپ‌لاین آزمایشی
 python -m configstream.cli merge --sources sources/batch_1.txt --output output/
