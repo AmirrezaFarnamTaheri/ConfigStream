@@ -13,7 +13,7 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
@@ -24,7 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          fetch-depth: 0
+          fetch-depth: 2
           persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
@@ -85,6 +85,11 @@ jobs:
         run: python scripts/validate_test_skips.py
       - name: Run unified static repository verification
         run: python scripts/verify_repository.py --profile static
+      - name: Validate generated architecture dashboard
+        run: |
+          python scripts/generate_comprehensive_topology.py
+          python scripts/build_comprehensive_architecture_page.py
+          git diff --exit-code -- architecture.html system_topology.json
       - name: Update routing databases
         run: python -m configstream.cli update-databases || echo "Database update failed (non-fatal)"
       - name: Cache Playwright browsers
