@@ -8,7 +8,7 @@ from pathlib import Path
 try:
     from scripts.generate_comprehensive_topology import load_topology
 except ModuleNotFoundError:  # direct execution: python scripts/build_...py
-    from generate_comprehensive_topology import load_topology
+    from generate_comprehensive_topology import load_topology  # type: ignore[no-redef]
 
 ROOT = Path(__file__).resolve().parents[1]
 TOPOLOGY_PATH = ROOT / "system_topology.json"
