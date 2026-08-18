@@ -43,7 +43,16 @@ def _base_svg(width: int, height: int, title: str, content: str) -> str:
 
 
 def generate_hero() -> None:
-    chips = ["VLESS", "VMess", "Trojan", "Shadowsocks", "Hysteria2", "TUIC", "MASQUE", "WARP"]
+    chips = [
+        "VLESS",
+        "VMess",
+        "Trojan",
+        "Shadowsocks",
+        "Hysteria2",
+        "TUIC",
+        "MASQUE",
+        "WARP",
+    ]
     chip_markup: list[str] = []
     x = 50
     for label in chips:
@@ -62,7 +71,9 @@ def generate_hero() -> None:
   <line x1="50" y1="192" x2="1230" y2="192" stroke="{CYAN}" stroke-opacity=".65"/>
   {''.join(chip_markup)}
 """
-    _write_svg("hero.svg", _base_svg(1280, 300, "ConfigStream telemetry banner", content))
+    _write_svg(
+        "hero.svg", _base_svg(1280, 300, "ConfigStream telemetry banner", content)
+    )
 
 
 def generate_pipeline() -> None:
@@ -101,7 +112,9 @@ def generate_divider() -> None:
     <animateTransform attributeName="transform" type="rotate" from="0 640 10" to="360 640 10" dur="8s" repeatCount="indefinite"/>
   </polygon>
 """
-    _write_svg("divider.svg", _base_svg(1280, 20, "ConfigStream section divider", content))
+    _write_svg(
+        "divider.svg", _base_svg(1280, 20, "ConfigStream section divider", content)
+    )
 
 
 def main() -> None:
