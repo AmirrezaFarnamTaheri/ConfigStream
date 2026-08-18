@@ -35,7 +35,7 @@ release_asset_digest() {
   local digest
 
   digest="$(gh api "repos/${repository}/releases/tags/${tag}" \
-    --jq ".assets[] | select(.name == \"${asset}\") | .digest" | head -n 1)"
+    --jq "first(.assets[] | select(.name == \"${asset}\") | .digest) // empty")"
   if [[ ! "$digest" =~ ^sha256:[0-9a-fA-F]{64}$ ]]; then
     echo "Missing or invalid SHA-256 digest metadata for ${repository}@${tag}:${asset}" >&2
     return 1
@@ -94,10 +94,8 @@ mkdir -p xray
 unzip -oq "$xray_archive" -d xray
 install -m 0755 xray/xray "$staging_dir/xray"
 
-mihomo_asset="$({
-  gh api "repos/MetaCubeX/mihomo/releases/tags/${MIHOMO_VERSION}" \
-    --jq '.assets[].name | select(test("^mihomo-linux-amd64-v[0-9]+-v[0-9.]+\\.gz$"))'
-} | head -n 1)"
+mihomo_asset="$(gh api "repos/MetaCubeX/mihomo/releases/tags/${MIHOMO_VERSION}" \
+  --jq 'first(.assets[].name | select(test("^mihomo-linux-amd64-v[0-9]+-v[0-9.]+\\.gz$"))) // empty')"
 if [[ -z "$mihomo_asset" ]]; then
   echo "No exact linux-amd64 Mihomo asset found for ${MIHOMO_VERSION}" >&2
   exit 1
