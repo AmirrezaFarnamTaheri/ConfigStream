@@ -6,6 +6,7 @@ Uses pure SMIL (<animate>) which is preserved by GitHub's Camo image proxy.
 Designed according to modern Cyber-Minimalist & Precision Telemetry standards.
 All XML text is strictly escaped (&amp;, &lt;, &gt;) for 100% SVG/XML compliance.
 """
+
 from __future__ import annotations
 
 import html
@@ -65,10 +66,10 @@ def _build_hero_chips() -> str:
             f'<rect width="{cw}" height="48" rx="8" fill="{BG_CARD}" stroke="{col}" stroke-width="1.2" stroke-opacity="0.6"/>'
             f'<circle cx="16" cy="24" r="3.5" fill="{col}">'
             f'<animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite"/>'
-            f'</circle>'
+            f"</circle>"
             f'<text x="28" y="21" font-family="{FONT}" font-size="13" font-weight="700" fill="{TEXT_WHITE}" letter-spacing="0.3">{esc_label}</text>'
             f'<text x="28" y="36" font-family="{MONO}" font-size="9.5" font-weight="500" fill="{TEXT_SLATE_400}">{esc_sub}</text>'
-            f'</g>'
+            f"</g>"
         )
         cx += cw + 10
     return "".join(chip_svgs)
@@ -198,18 +199,18 @@ def _build_pipeline_stages() -> str:
         stage_svgs.append(
             f'<g transform="translate({x}, 32)">'
             f'<rect width="{sw}" height="114" rx="10" fill="{BG_CARD}" stroke="{col}" stroke-width="1.2" stroke-opacity="0.65"/>'
-            f'<!-- Header Pill -->'
+            f"<!-- Header Pill -->"
             f'<rect x="12" y="12" width="30" height="18" rx="4" fill="{col}" fill-opacity="0.15" stroke="{col}" stroke-width="1"/>'
             f'<text x="27" y="25" text-anchor="middle" font-family="{MONO}" font-size="10" font-weight="700" fill="{col}">{num}</text>'
             f'<text x="50" y="26" font-family="{FONT}" font-size="13.5" font-weight="700" fill="{TEXT_WHITE}" letter-spacing="0.2">{esc_title}</text>'
-            f'<!-- Description -->'
+            f"<!-- Description -->"
             f'<text x="12" y="58" font-family="{FONT}" font-size="11.5" font-weight="400" fill="{TEXT_SLATE_400}">{esc_desc}</text>'
-            f'<!-- Divider Line -->'
+            f"<!-- Divider Line -->"
             f'<line x1="12" y1="74" x2="{sw-12}" y2="74" stroke="{BORDER}" stroke-width="1"/>'
-            f'<!-- Metric Tag -->'
+            f"<!-- Metric Tag -->"
             f'<circle cx="20" cy="92" r="3" fill="{col}"/>'
             f'<text x="30" y="96" font-family="{MONO}" font-size="10.5" font-weight="600" fill="{col}">{esc_metric}</text>'
-            f'</g>'
+            f"</g>"
         )
 
         if i < len(stages) - 1:
@@ -221,8 +222,8 @@ def _build_pipeline_stages() -> str:
                 f'<circle cx="10" cy="0" r="3.5" fill="{col}">'
                 f'<animate attributeName="cx" values="2;{gap-8};2" dur="1.8s" repeatCount="indefinite"/>'
                 f'<animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" repeatCount="indefinite"/>'
-                f'</circle>'
-                f'</g>'
+                f"</circle>"
+                f"</g>"
             )
     return "".join(stage_svgs)
 

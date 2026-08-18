@@ -151,7 +151,15 @@ def validate(root: Path) -> list[str]:
         if (root / path).exists()
     ]
     errors.extend(validate_source_layout(root))
-    IGNORED_DIRS = {".git", ".venv", "venv", "node_modules", "__pycache__", ".pytest_cache", ".mypy_cache"}
+    IGNORED_DIRS = {
+        ".git",
+        ".venv",
+        "venv",
+        "node_modules",
+        "__pycache__",
+        ".pytest_cache",
+        ".mypy_cache",
+    }
     font_files = [
         path.relative_to(root).as_posix()
         for path in root.rglob("*")

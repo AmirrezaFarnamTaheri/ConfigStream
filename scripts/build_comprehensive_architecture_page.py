@@ -4,6 +4,7 @@ Compiles system_topology.json into a human-readable, interactive architecture da
 Provides intuitive swimlane layer views, interactive node inspector, blast radius analysis,
 and protocol flow simulation.
 """
+
 from __future__ import annotations
 
 import json
@@ -945,7 +946,9 @@ def generate_architecture_html() -> None:
     top_json = json.dumps(top_data)
     html = _HTML_TEMPLATE.replace("__TOPOLOGY_JSON__", top_json)
     OUTPUT_PATH.write_text(html, encoding="utf-8")
-    print(f"Successfully compiled {OUTPUT_PATH} ({len(html.splitlines())} lines, {len(html)} bytes)")
+    print(
+        f"Successfully compiled {OUTPUT_PATH} ({len(html.splitlines())} lines, {len(html)} bytes)"
+    )
 
 
 if __name__ == "__main__":

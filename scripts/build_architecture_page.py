@@ -6,7 +6,7 @@ from pathlib import Path
 top_path = Path("system_topology.json")
 top = json.loads(top_path.read_text(encoding="utf-8"))
 
-template = '''<!DOCTYPE html>
+template = """<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -1052,8 +1052,10 @@ function boot(){
 boot();
 </script>
 </body>
-</html>'''
+</html>"""
 
-final_html = template.replace("__TOPOLOGY_JSON__", json.dumps(top, indent=2, ensure_ascii=False))
+final_html = template.replace(
+    "__TOPOLOGY_JSON__", json.dumps(top, indent=2, ensure_ascii=False)
+)
 Path("architecture.html").write_text(final_html, encoding="utf-8")
 print("Wrote architecture.html successfully!")
