@@ -164,16 +164,22 @@ def _validate_image_references(tracked: list[Path]) -> list[str]:
 
 
 def _validate_svg_xml(tracked: list[Path]) -> list[str]:
-    import xml.etree.ElementTree as ET  # nosec B405
+    from defusedxml import ElementTree as safe_et
+    from defusedxml.common import DefusedXmlException
+
+    from configstream.security_validator import SecurityValidator
 
     errors: list[str] = []
     for path in tracked:
         if path.suffix.lower() != ".svg":
             continue
         try:
-            ET.parse(path)  # nosec B314
-        except (ET.ParseError, UnicodeDecodeError, OSError) as exc:
-            errors.append(f"malformed SVG XML in {_repo_relative(path)}: {exc}")
+            safe_et.parse(path)
+        except (DefusedXmlException, SyntaxError, UnicodeDecodeError, OSError) as exc:
+            diagnostic = SecurityValidator.sanitize_log_message(str(exc))
+            errors.append(
+                f"malformed SVG XML in {_repo_relative(path)}: {diagnostic}"
+            )
     return errors
 
 
