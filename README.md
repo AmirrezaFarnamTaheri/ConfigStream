@@ -4,6 +4,8 @@
 [![CI](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/ci.yml/badge.svg)](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/ci.yml)
 [![Pages Deploy & Smoke Test](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/deploy-pages.yml)
 
+**[English](README.md) • [فارسی](README_FA.md) • [简体中文](README_ZH.md) • [Русский](README_RU.md)**
+
 ConfigStream is a sovereignty-grade, zero-budget anti-censorship platform. It continuously aggregates, validates, and distributes resilient proxy configurations under hostile network conditions.
 
 > **Release status:** v3.2.0 is a conditional release candidate, not a verified production release. `docs/readiness.json` is the machine-readable authority and `STATUS.md` is generated from it. Production readiness requires passing exact-head CI, a sealed pipeline artifact, historical secret review, and a live GitHub Pages digest/smoke check for the same commit.
@@ -14,7 +16,7 @@ ConfigStream is a sovereignty-grade, zero-budget anti-censorship platform. It co
 - **Python 3.10+**
 - **Docker** (Recommended for production)
 - **Node.js 24+** (Optional, for frontend development)
-- **Go 1.24.3+** (Optional, for high-performance tester builds)
+- **Go 1.24+** (Optional, for high-performance tester builds)
 
 ### 🚀 Quick Start (Docker)
 ```bash
@@ -24,8 +26,9 @@ Access the dashboard at `http://localhost:8000`.
 
 ### 🐍 Local Pipeline (Development)
 ```bash
-# Install dependencies
-pip install -e ".[dev]"
+# Install pinned dependencies and then the editable project
+pip install -r requirements-dev.txt
+pip install -e . --no-deps
 
 # Run the aggregation pipeline
 configstream merge --sources sources/batch_1.txt --output output/

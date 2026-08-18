@@ -173,11 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const freshnessDot = document.getElementById('freshnessDot');
     if (freshnessDot) freshnessDot.classList.add('checking');
 
-    setInterval(() => {
-        if (window._freshnessDate) {
-            updateFreshnessIndicator(window._freshnessDate);
-        }
-    }, 60000);
+    
 
     // --- LANDING PAGE PROXY SEARCH ---
     let _allProxiesCache = [];
@@ -277,7 +273,10 @@ document.addEventListener('DOMContentLoaded', () => {
             copyBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const config = p.config || '';
-                navigator.clipboard.writeText(config).then(() => {
+                (navigator.clipboard && navigator.clipboard.writeText ? 
+                        navigator.clipboard.writeText(config) : 
+                        Promise.reject(new Error('Clipboard API not available'))
+                    ).then(() => {
                     copyBtn.textContent = 'Copied!';
                     setTimeout(() => {
                         copyBtn.textContent = '';
@@ -436,6 +435,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 window._freshnessDate = date;
                 updateFreshnessIndicator(date);
+
+                // Start periodic freshness updates now that we have initial data
+                setInterval(() => {
+                    if (window._freshnessDate) {
+                        updateFreshnessIndicator(window._freshnessDate);
+                    }
+                }, 60000);
             }
 
             if (stats) {

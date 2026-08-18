@@ -292,9 +292,9 @@ def _run_process(
         output, _ = process.communicate(timeout=timeout_seconds)
         return int(process.returncode), output or "", False
     except subprocess.TimeoutExpired as exc:
-        if os.name == "posix":
+        if os.name == "posix" and hasattr(os, "killpg") and hasattr(signal, "SIGKILL"):
             try:
-                os.killpg(process.pid, signal.SIGKILL)
+                os.killpg(process.pid, signal.SIGKILL)  # type: ignore[attr-defined]
             except ProcessLookupError:
                 pass
         else:

@@ -70,3 +70,13 @@ function parseLatency(value) {
 function getStatusIcon(isWorking) {
   return isWorking ? '✅' : '❌';
 }
+
+// Expose utilities globally for non-module scripts
+// These functions are called from main.js and other scripts that may not use ES6 imports
+if (typeof window !== 'undefined') {
+  window.formatTimestamp = formatTimestamp;
+  window.getCountryFlag = getCountryFlag;
+  window.getProtocolColor = getProtocolColor;
+  window.parseLatency = parseLatency;
+  window.getStatusIcon = getStatusIcon;
+}

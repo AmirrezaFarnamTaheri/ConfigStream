@@ -27,6 +27,16 @@ def _expect(errors: list[str], condition: bool, message: str) -> None:
         errors.append(message)
 
 
+def _workflow_versions(root: Path, key: str) -> list[tuple[Path, str]]:
+    """Return every literal YAML declaration for a workflow version key."""
+    pattern = re.compile(rf"(?m)^\s*{re.escape(key)}:\s*['\"]?([^'\"\s#]+)")
+    declarations: list[tuple[Path, str]] = []
+    for path in sorted((root / ".github/workflows").glob("*.y*ml")):
+        text = path.read_text(encoding="utf-8")
+        declarations.extend((path, match.group(1)) for match in pattern.finditer(text))
+    return declarations
+
+
 def validate_repository(root: Path) -> list[str]:
     root = Path(root)
     errors: list[str] = []
@@ -45,6 +55,7 @@ def validate_repository(root: Path) -> list[str]:
         node_container = str(node["container"])
         go_language = str(go["language"])
         go_toolchain = str(go["toolchain"])
+        go_ci = str(go.get("ci", go_toolchain))
         go_container = str(go["container"])
     except (KeyError, TypeError, ValueError) as exc:
         return [f"runtime manifest schema invalid: {type(exc).__name__}: {exc}"]
@@ -115,21 +126,26 @@ def validate_repository(root: Path) -> list[str]:
                 f"Dockerfile missing canonical base: {required}",
             )
 
-    workflow_text = "\n".join(
-        path.read_text(encoding="utf-8")
-        for path in sorted((root / ".github/workflows").glob("*.y*ml"))
-    )
-    _expect(
-        errors,
-        f"go-version: '{go_toolchain}'" in workflow_text
-        or f'go-version: "{go_toolchain}"' in workflow_text,
-        f"workflows must use exact Go {go_toolchain}",
-    )
-    for match in re.finditer(r"node-version:\s*['\"]?([^'\"\s]+)", workflow_text):
+    try:
+        go_versions = _workflow_versions(root, "go-version")
+        node_versions = _workflow_versions(root, "node-version")
+    except (OSError, UnicodeError) as exc:
+        errors.append(f"workflow runtime declarations unreadable: {type(exc).__name__}")
+        return errors
+
+    _expect(errors, bool(go_versions), "workflows must declare a Go version")
+    for path, observed in go_versions:
         _expect(
             errors,
-            match.group(1) == str(node["ci"]),
-            f"workflow node-version {match.group(1)!r} != {node['ci']!r}",
+            observed == go_ci,
+            f"{path.relative_to(root)} go-version {observed!r} != {go_ci!r}",
+        )
+
+    for path, observed in node_versions:
+        _expect(
+            errors,
+            observed == str(node["ci"]),
+            f"{path.relative_to(root)} node-version {observed!r} != {node['ci']!r}",
         )
 
     return errors

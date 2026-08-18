@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 20" width="1280" height="20" role="img" aria-label="ConfigStream section divider">
+  <title>ConfigStream section divider</title>
+  <rect width="1280" height="20" rx="14" fill="#090D16"/>
+  <rect x="1" y="1" width="1278" height="18" rx="13" fill="none" stroke="#334155"/>
+  
+  <line x1="25" y1="10" x2="1255" y2="10" stroke="#06B6D4" stroke-opacity=".55"/>
+  <polygon points="640,3 647,10 640,17 633,10" fill="#06B6D4">
+    <animateTransform attributeName="transform" type="rotate" from="0 640 10" to="360 640 10" dur="8s" repeatCount="indefinite"/>
+  </polygon>
+
+</svg>

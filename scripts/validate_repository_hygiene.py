@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 FORBIDDEN_PATHS = (
@@ -41,6 +42,15 @@ RUNTIME_STATE_PATHS = (
 )
 EXPECTED_BATCH_COUNT = 17
 FORBIDDEN_FONT_SUFFIXES = {".eot", ".otf", ".ttf", ".woff", ".woff2"}
+IGNORED_DIRS = {
+    ".git",
+    ".venv",
+    "venv",
+    "node_modules",
+    "__pycache__",
+    ".pytest_cache",
+    ".mypy_cache",
+}
 TOP_LEVEL_REVIEW_TOKENS = (
     "AUDIT",
     "REPORT",
@@ -143,6 +153,19 @@ def _tracked_runtime_state(root: Path) -> list[str]:
     )
 
 
+def _forbidden_font_files(root: Path) -> list[str]:
+    """Find forbidden fonts without descending into ignored dependency/cache trees."""
+    found: list[str] = []
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = [name for name in dirnames if name not in IGNORED_DIRS]
+        directory = Path(dirpath)
+        for filename in filenames:
+            path = directory / filename
+            if path.suffix.lower() in FORBIDDEN_FONT_SUFFIXES:
+                found.append(path.relative_to(root).as_posix())
+    return sorted(found)
+
+
 def validate(root: Path) -> list[str]:
     root = Path(root)
     errors = [
@@ -151,22 +174,21 @@ def validate(root: Path) -> list[str]:
         if (root / path).exists()
     ]
     errors.extend(validate_source_layout(root))
-    font_files = [
-        path.relative_to(root).as_posix()
-        for path in root.rglob("*")
-        if path.is_file() and path.suffix.lower() in FORBIDDEN_FONT_SUFFIXES
-    ]
+
+    font_files = _forbidden_font_files(root)
     if font_files:
         errors.append(
             "binary font assets are not part of the source distribution; use system font stacks: "
-            + ", ".join(sorted(font_files))
+            + ", ".join(font_files)
         )
+
     stale_docs = _stale_top_level_review_docs(root)
     if stale_docs:
         errors.append(
             "point-in-time review artifacts must live under dated docs/audits directories: "
             + ", ".join(stale_docs)
         )
+
     tracked_runtime = _tracked_runtime_state(root)
     if tracked_runtime:
         errors.append(

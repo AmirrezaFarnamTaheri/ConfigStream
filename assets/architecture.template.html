@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ConfigStream — System Architecture &amp; Component Topology</title>
+<link rel="stylesheet" href="assets/architecture-dashboard.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-badge">ARCH-AST</span>
+    <div>
+      <h1>ConfigStream System Topology</h1>
+      <span class="version">validated graph dashboard</span>
+    </div>
+  </div>
+
+  <div class="nav-controls">
+    <div class="mode-nav" aria-label="Architecture views">
+      <button type="button" class="mode-tab active" data-view="swimlanes">Swimlane Flow</button>
+      <button type="button" class="mode-tab" data-view="blast">Blast Radius</button>
+      <button type="button" class="mode-tab" data-view="flows">Protocol Flows</button>
+    </div>
+    <label class="search-box">
+      <span class="sr-only">Search components</span>
+      <input type="search" id="nodeSearch" placeholder="Search components…" autocomplete="off">
+      <kbd>/</kbd>
+    </label>
+    <button type="button" class="btn" id="exportButton">Export JSON</button>
+  </div>
+</header>
+
+<main>
+  <section class="stats-bar" aria-label="Topology summary">
+    <div class="stat-card"><span class="label">Architectural Nodes</span><strong id="statNodes">0</strong><span class="sub">validated identifiers</span></div>
+    <div class="stat-card"><span class="label">Protocol Edges</span><strong id="statEdges">0</strong><span class="sub">validated endpoints</span></div>
+    <div class="stat-card"><span class="label">Execution Flows</span><strong id="statFlows">0</strong><span class="sub">step-by-step traces</span></div>
+    <div class="stat-card"><span class="label">Layers</span><strong id="statLayers">0</strong><span class="sub">schema-aligned lanes</span></div>
+  </section>
+
+  <section id="loadError" class="notice error" hidden role="alert">
+    <strong>Topology could not be loaded.</strong>
+    <span id="loadErrorText"></span>
+    <span>If this file was opened with <code>file://</code>, serve the repository locally (for example, <code>python -m http.server</code>) and reopen this page over HTTP.</span>
+  </section>
+
+  <section id="flowPanel" class="flow-panel" hidden>
+    <div class="flow-toolbar">
+      <label for="flowSelect">Execution trace</label>
+      <select id="flowSelect"></select>
+      <button type="button" class="btn" id="flowPrev">← Prev</button>
+      <button type="button" class="btn" id="flowNext">Next →</button>
+      <span id="flowStepCounter" class="mono">Step 0 of 0</span>
+    </div>
+    <div id="flowStepsTrack" class="flow-steps" aria-label="Flow steps"></div>
+    <div id="flowStepNotes" class="flow-notes"></div>
+  </section>
+
+  <section id="blastBanner" class="blast-banner" hidden>
+    <div>
+      <h2>Blast-radius simulation</h2>
+      <p id="blastDesc">Select a component to trace its downstream dependency cascade.</p>
+    </div>
+    <button type="button" class="btn" id="clearBlast">Reset</button>
+  </section>
+
+  <section id="swimlanesContainer" class="swimlanes" aria-live="polite"></section>
+</main>
+
+<div id="backdrop" class="backdrop" hidden></div>
+<aside id="nodeDrawer" class="drawer" aria-labelledby="drawerTitle" aria-hidden="true">
+  <div class="drawer-header">
+    <span id="drawerBadge" class="layer-badge">LAYER</span>
+    <button type="button" class="icon-button" id="drawerClose" aria-label="Close component inspector">×</button>
+  </div>
+  <h2 id="drawerTitle">Component</h2>
+  <p id="drawerId" class="mono muted"></p>
+
+  <section class="drawer-section">
+    <h3>Description</h3>
+    <p id="drawerDesc"></p>
+  </section>
+  <section class="drawer-section">
+    <h3>Source citations</h3>
+    <div id="drawerCitations" class="citations"></div>
+  </section>
+  <section class="drawer-section">
+    <h3>Runtime configuration</h3>
+    <div id="drawerRuntime" class="mono code-panel"></div>
+  </section>
+  <section class="drawer-section">
+    <h3>Connections</h3>
+    <div id="drawerLinks" class="connections"></div>
+  </section>
+  <button type="button" class="btn danger" id="drawerBlast">Simulate failure</button>
+</aside>
+
+<script src="assets/architecture-dashboard.js" defer></script>
+</body>
+</html>
