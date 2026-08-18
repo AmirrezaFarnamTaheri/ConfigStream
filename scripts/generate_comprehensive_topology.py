@@ -98,7 +98,6 @@ def validate_topology(data: dict[str, object]) -> None:
         if not isinstance(steps, list) or not steps:
             raise ValueError(f"Flow {flow_id} must contain a non-empty steps list")
 
-        previous_target: str | None = None
         for expected_number, step in enumerate(steps, start=1):
             if not isinstance(step, dict):
                 raise ValueError(
@@ -122,11 +121,6 @@ def validate_topology(data: dict[str, object]) -> None:
                 raise ValueError(
                     f"Flow {flow_id} step {expected_number} target '{target}' does not exist"
                 )
-            if previous_target is not None and source != previous_target:
-                # Flows may intentionally branch back to an earlier component, so this is not
-                # required to equal the prior target. Keep endpoint validation authoritative.
-                pass
-            previous_target = target
             _non_empty_string(
                 step.get("action"), f"Flow {flow_id} step {expected_number} action"
             )
@@ -134,12 +128,11 @@ def validate_topology(data: dict[str, object]) -> None:
 
 def main() -> None:
     data = load_topology()
-    nodes = data["nodes"]
-    edges = data["edges"]
-    flows = data["flows"]
-    assert isinstance(nodes, list)
-    assert isinstance(edges, list)
-    assert isinstance(flows, list)
+    nodes = data.get("nodes")
+    edges = data.get("edges")
+    flows = data.get("flows")
+    if not isinstance(nodes, list) or not isinstance(edges, list) or not isinstance(flows, list):
+        raise RuntimeError("Validated topology lost its collection invariants")
     print(
         f"Verified {len(nodes)} nodes, {len(edges)} edges, "
         f"and {len(flows)} flows in {TOPOLOGY_PATH.relative_to(ROOT)}"
