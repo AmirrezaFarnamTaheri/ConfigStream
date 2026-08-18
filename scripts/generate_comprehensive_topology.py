@@ -40,9 +40,7 @@ def validate_topology(data: dict[str, object]) -> None:
     required_keys = {"metadata", "nodes", "edges", "flows"}
     missing = required_keys - set(data)
     if missing:
-        raise ValueError(
-            f"Topology missing required top-level keys: {sorted(missing)}"
-        )
+        raise ValueError(f"Topology missing required top-level keys: {sorted(missing)}")
     if not isinstance(data.get("metadata"), dict):
         raise ValueError("Topology metadata must be a JSON object")
 
@@ -131,7 +129,11 @@ def main() -> None:
     nodes = data.get("nodes")
     edges = data.get("edges")
     flows = data.get("flows")
-    if not isinstance(nodes, list) or not isinstance(edges, list) or not isinstance(flows, list):
+    if (
+        not isinstance(nodes, list)
+        or not isinstance(edges, list)
+        or not isinstance(flows, list)
+    ):
         raise RuntimeError("Validated topology lost its collection invariants")
     print(
         f"Verified {len(nodes)} nodes, {len(edges)} edges, "
