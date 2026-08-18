@@ -16,7 +16,7 @@ ConfigStream is a sovereignty-grade, zero-budget anti-censorship platform. It co
 - **Python 3.10+**
 - **Docker** (Recommended for production)
 - **Node.js 24+** (Optional, for frontend development)
-- **Go 1.23+** (Optional, for high-performance tester builds)
+- **Go 1.24+** (Optional, for high-performance tester builds)
 
 ### 🚀 Quick Start (Docker)
 ```bash
@@ -26,8 +26,9 @@ Access the dashboard at `http://localhost:8000`.
 
 ### 🐍 Local Pipeline (Development)
 ```bash
-# Install dependencies
-pip install -e ".[dev]"
+# Install pinned dependencies and then the editable project
+pip install -r requirements-dev.txt
+pip install -e . --no-deps
 
 # Run the aggregation pipeline
 configstream merge --sources sources/batch_1.txt --output output/
@@ -170,7 +171,7 @@ Stable capability claims are tracked in `docs/capability_registry.json`; core/cl
 | `base64-dns-safe.txt` | dns-safe | base64 | no | presence | DNS-safe subset; empty is valid under degraded data. |
 | `proxies-dns-safe.txt` | dns-safe | text | no | presence | DNS-safe URI subscription lines. |
 | `singbox-dns-hardened.json` | singbox | json | yes | json, references | Sing-box DNS-hardened configuration; JSON syntax, outbound list shape, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated. |
-| `singbox-dns-safe.json` | singbox | json | yes | json, references | Sing-box DNS-safe configuration; JSON syntax, outbound list shape, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated. |
+| `singbox-dns-safe.json` | singbox | json | yes | json, references | DNS-safe Sing-box configuration; JSON syntax, outbound list shape, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated. |
 | `singbox.json` | singbox | json | yes | json, references | Sing-box universal configuration; JSON syntax, outbound list shape, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated. |
 | `singbox-vpn-dns-hardened.json` | singbox-vpn | json | yes | json, references | VPN-mode DNS-hardened Sing-box configuration; outbound list shape, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated. |
 | `singbox-vpn-dns-safe.json` | singbox-vpn | json | yes | json, references | VPN-mode DNS-safe Sing-box configuration; outbound list shape, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated. |
