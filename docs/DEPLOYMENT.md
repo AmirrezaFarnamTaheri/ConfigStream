@@ -23,7 +23,7 @@ This is the standard zero-cost deployment method. The repository is pre-configur
     -   Never commit this private key to the repository or expose it in workflow variables, logs, artifacts, or issue text.
     -   `CS_PUBLIC_KEY` is optional when `CS_SIGNING_PRIVATE_KEY_HEX` is present because the workflow can derive the matching public verification key. If you configure `CS_PUBLIC_KEY` explicitly, it must match the public key derived from the private signing key.
 
-The scheduled `Config's Stream` workflow is fail-closed: production work and publication are intentionally blocked when the signing key is absent or malformed. This prevents an unsigned or unverifiable artifact from becoming canonical.
+The scheduled `Config's Stream` workflow is fail-closed: production work and publication are intentionally blocked when the signing key is absent or malformed. This prevents an unsigned or unverifiable artifact from becoming canonical. After provisioning or rotating the signing key, run `Config's Stream` manually once to verify release preflight before relying on the next scheduled publication.
 
 ### Configuration (Secrets & Variables)
 You can customize the behavior using GitHub Repository Secrets/Variables:
