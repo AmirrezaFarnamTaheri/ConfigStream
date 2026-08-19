@@ -129,6 +129,7 @@ def test_validate_frontend_placeholders_allows_missing_stego_when_not_strict(
 
 def test_validate_frontend_placeholders_strict_requires_public_key(
     tmp_path: Path,
+    monkeypatch,
 ) -> None:
     js_dir = tmp_path / "assets" / "js"
     js_dir.mkdir(parents=True)
@@ -140,5 +141,8 @@ def test_validate_frontend_placeholders_strict_requires_public_key(
         'window.CS_RUNTIME_CONFIG = { PUBLIC_KEY: "", IPNS_KEY: "" };\n',
         encoding="utf-8",
     )
-    errors = validate_frontend_placeholders(tmp_path, strict=True)
+    check = validate_frontend_placeholders
+    assert check(tmp_path, strict=True) == []
+    monkeypatch.setenv("CS_SIGNING_PRIVATE_KEY_HEX", PRIVATE_KEY_HEX)
+    errors = check(tmp_path, strict=True)
     assert any("PUBLIC_KEY is missing" in error for error in errors)

@@ -17,10 +17,19 @@ This is the standard zero-cost deployment method. The repository is pre-configur
     -   Go to **Settings** > **Pages**.
     -   Under "Build and deployment", select **GitHub Actions**.
     -   The `deploy-pages.yml` workflow automatically deploys after a successful pipeline run.
+4.  **Optional: configure release signing**:
+    -   No signing secret is required for normal scheduled/main publication. With no signing material configured, ConfigStream publishes unsigned artifacts while retaining manifest hashes, native-client validation, source-coverage checks, release gating, and the other publication controls.
+    -   To enable Ed25519 signing, go to **Settings** > **Secrets and variables** > **Actions** > **New repository secret** and create `CS_SIGNING_PRIVATE_KEY_HEX` with the private signing key used for release artifacts.
+    -   The workflow may safely pass this repository secret into a job environment for signing/preflight, but do not store the private key in GitHub Actions Variables and never expose its value in logs, artifacts, issue text, or committed files.
+    -   `CS_PUBLIC_KEY` is optional when `CS_SIGNING_PRIVATE_KEY_HEX` is present because the workflow derives the matching public verification key. If you configure `CS_PUBLIC_KEY` explicitly, it must be valid, must match the private signing key, and must not be configured by itself.
+
+The scheduled `Config's Stream` workflow automatically selects unsigned mode when no signing key is configured. If signing material is supplied, validation remains fail-closed: malformed private/public keys, a public key without a signing key, or a public/private mismatch block publication rather than silently downgrading trust. Adding `CS_SIGNING_PRIVATE_KEY_HEX` later enables signed releases without changing the pipeline code.
 
 ### Configuration (Secrets & Variables)
 You can customize the behavior using GitHub Repository Secrets/Variables:
 
+-   `CS_SIGNING_PRIVATE_KEY_HEX` (Secret): Optional. When present, ConfigStream signs canonical release artifacts with Ed25519. Keep the private material in a GitHub Actions Secret, not an Actions Variable. When absent, publication uses unsigned mode.
+-   `CS_PUBLIC_KEY` (Secret or variable): Optional companion to `CS_SIGNING_PRIVATE_KEY_HEX`. Normally omit it and let ConfigStream derive the public key. If provided, it must be valid and match the signing key; public-key-only configuration is rejected.
 -   `WARP_KEY_POOL` (Secret): JSON array of Cloudflare WARP keys for proxy washing/revival. Example: `["key1","key2"]`. Without this, washing and revival features are disabled.
 -   `VT_API_KEY` (Secret): Optional. VirusTotal API key for threat intelligence lookups.
 -   `MAXMIND_LICENSE_KEY` (Secret): Optional. For fresh GeoIP databases from MaxMind.
@@ -123,6 +132,10 @@ To serve configurations globally with low latency, putting a CDN in front of you
 
 ## Troubleshooting
 
+### "Release prerequisite validation failed"
+-   **Cause**: Signing material was supplied but is inconsistent or malformed: for example an invalid `CS_SIGNING_PRIVATE_KEY_HEX`, an invalid `CS_PUBLIC_KEY`, `CS_PUBLIC_KEY` without a private signing key, or a public/private mismatch.
+-   **Solution**: For unsigned publication, remove both signing-related values. For signed publication, configure a valid `CS_SIGNING_PRIVATE_KEY_HEX` GitHub Actions repository secret and either omit `CS_PUBLIC_KEY` for automatic derivation or supply the exact matching public key. Never place private key material in a GitHub Actions Variable.
+
 ### "Database is locked"
 -   **Cause**: Concurrent writes to the SQLite database.
 -   **Solution**: The system now uses WAL mode to mitigate this. Ensure you are not running multiple pipeline instances simultaneously on the same `data/` directory.
@@ -134,5 +147,4 @@ To serve configurations globally with low latency, putting a CDN in front of you
 ### "Sing-box not found"
 -   **Cause**: The `sing-box` binary is missing from the environment.
 -   **Solution**: Ensure `sing-box` is installed. The Docker image and GitHub Action runner handle this automatically. On a VPS, download it from the official release page and place it in `/usr/local/bin`.
-
 

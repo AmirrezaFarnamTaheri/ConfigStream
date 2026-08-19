@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Fail fast when mandatory release trust inputs are unavailable or malformed."""
+"""Validate optional release-signing inputs before production publication."""
 
 from __future__ import annotations
 
@@ -23,10 +23,6 @@ def validate_release_inputs(env: Mapping[str, str]) -> list[str]:
         env.get("CS_SIGNING_PRIVATE_KEY_HEX", "").strip()
         or env.get("CONFIGSTREAM_SIGNING_PRIVATE_KEY_HEX", "").strip()
     )
-    if not signing_key:
-        errors.append(
-            "release signing key is unavailable: configure CS_SIGNING_PRIVATE_KEY_HEX"
-        )
 
     public_key = ""
     if explicit_public_key:
@@ -34,6 +30,11 @@ def validate_release_inputs(env: Mapping[str, str]) -> list[str]:
             public_key = _resolve_public_key({"CS_PUBLIC_KEY": explicit_public_key})
         except (TypeError, ValueError):
             errors.append("frontend verification key is not a valid Ed25519 public key")
+        if not signing_key:
+            errors.append(
+                "CS_PUBLIC_KEY is configured without CS_SIGNING_PRIVATE_KEY_HEX; "
+                "remove CS_PUBLIC_KEY for unsigned mode or configure the matching signing key"
+            )
     elif signing_key:
         try:
             public_key = _resolve_public_key(
@@ -41,11 +42,6 @@ def validate_release_inputs(env: Mapping[str, str]) -> list[str]:
             )
         except (TypeError, ValueError):
             errors.append("configured Ed25519 signing key is invalid")
-    else:
-        errors.append(
-            "frontend verification key is unavailable: configure CS_PUBLIC_KEY or "
-            "CS_SIGNING_PRIVATE_KEY_HEX"
-        )
 
     normalized_public = normalize_public_key_hex(public_key) if public_key else ""
     if public_key and not normalized_public:
@@ -80,7 +76,7 @@ def main() -> int:
         for error in errors:
             print(f"  - {error}", file=sys.stderr)
         return 1
-    print("OK: mandatory release trust inputs are available and valid.")
+    print("OK: release trust inputs are valid; unsigned mode is allowed.")
     return 0
 
 

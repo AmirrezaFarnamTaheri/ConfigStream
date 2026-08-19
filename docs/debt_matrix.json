@@ -24,15 +24,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 101,
-      "marker": "BROAD_EXCEPTION",
-      "category": "tooling",
-      "priority": "P2 - Routine",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
-      "path": "scripts/dynamic_reshard.py",
-      "line": 228,
+      "line": 106,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -48,7 +40,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 265,
+      "line": 238,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -56,7 +48,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 277,
+      "line": 270,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -64,7 +56,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 284,
+      "line": 282,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -72,7 +64,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 291,
+      "line": 289,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -80,7 +72,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 298,
+      "line": 296,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -88,7 +80,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 412,
+      "line": 303,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -96,7 +88,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 441,
+      "line": 417,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -104,7 +96,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 544,
+      "line": 446,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -112,7 +104,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 668,
+      "line": 549,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -120,7 +112,15 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 675,
+      "line": 673,
+      "marker": "BROAD_EXCEPTION",
+      "category": "tooling",
+      "priority": "P2 - Routine",
+      "text": "Broad exception boundary requires semantic review and structured outcome."
+    },
+    {
+      "path": "scripts/dynamic_reshard.py",
+      "line": 680,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",

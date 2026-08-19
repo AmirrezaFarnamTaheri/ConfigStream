@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import importlib
 import logging
 import re
 import glob
@@ -12,7 +13,7 @@ import sqlite3
 from collections import defaultdict
 from urllib.parse import urlparse
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional, Set
+from typing import Dict, List, Optional, Protocol, Sequence, Set, Tuple, cast
 from itertools import combinations
 
 # --- Configuration ---
@@ -38,6 +39,10 @@ RAW_LINES_REGEX = re.compile(r"Raw=(\d+)")
 FETCH_TIME_REGEX = re.compile(r"Fetch=([\d.]+)ms")
 FETCH_TIME_COLON_REGEX = re.compile(r"Fetch:\s*([\d.]+)ms")
 DURATION_REGEX = re.compile(r"Dur=([\d.]+)ms")
+
+
+class StageEvidenceModule(Protocol):
+    def main(self, argv: Sequence[str] | None = None) -> int: ...
 
 
 def _normalize_source_key(url: str) -> str:
@@ -704,9 +709,24 @@ def main() -> None:
 
 
 def _require_timing_prerequisites() -> None:
-    from scripts.require_stage_evidence import main as require_stage_evidence
+    try:
+        stage_evidence = cast(
+            StageEvidenceModule,
+            importlib.import_module("scripts.require_stage_evidence"),
+        )
+    except ModuleNotFoundError as exc:
+        # ``python scripts/dynamic_reshard.py`` puts the scripts directory, not
+        # the repository root, on sys.path. Fall back to the sibling module for
+        # that supported direct-script invocation, while preserving package
+        # imports for ``python -m scripts.dynamic_reshard`` and unit tests.
+        if exc.name != "scripts":
+            raise
+        stage_evidence = cast(
+            StageEvidenceModule,
+            importlib.import_module("require_stage_evidence"),
+        )
 
-    exit_code = require_stage_evidence(
+    exit_code = stage_evidence.main(
         [
             "--stage",
             "normalize-source-timings",

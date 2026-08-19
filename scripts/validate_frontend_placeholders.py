@@ -114,10 +114,10 @@ def inject_frontend_keys(root: Path, env: Mapping[str, str]) -> list[str]:
 
 def validate_frontend_placeholders(root: Path, *, strict: bool = False) -> list[str]:
     errors: list[str] = []
+    need_key = any(map(os.getenv, ("CS_PUBLIC_KEY", "CS_SIGNING_PRIVATE_KEY_HEX")))
     constants_path = root / "assets" / "js" / "constants.js"
     stego_path = root / "assets" / "js" / "stego.js"
     runtime_config_path = root / "assets" / "js" / "runtime-config.js"
-
     if not constants_path.exists():
         errors.append(f"Missing frontend constants file: {constants_path}")
     else:
@@ -151,7 +151,7 @@ def validate_frontend_placeholders(root: Path, *, strict: bool = False) -> list[
                 errors.append(
                     "Frontend runtime config must not contain a symmetric key field"
                 )
-            if re.search(r'PUBLIC_KEY:\s*""', runtime_config):
+            if need_key and re.search(r'PUBLIC_KEY:\s*""', runtime_config):
                 errors.append(
                     "Frontend PUBLIC_KEY is missing in assets/js/runtime-config.js"
                 )
@@ -174,7 +174,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--strict",
         action="store_true",
-        help="Fail on missing security-bearing frontend files or public verification key.",
+        help="Fail on missing security-bearing frontend files and enforce signing-mode key policy.",
     )
     args = parser.parse_args(argv)
 

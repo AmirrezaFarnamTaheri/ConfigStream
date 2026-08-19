@@ -43,7 +43,8 @@ def test_native_validator_installer_stages_before_atomic_replacement() -> None:
     assert 'staging_dir="$work_dir/staged"' in content
     assert 'mihomo_temp="$(mktemp "${staging_dir}/.mihomo.XXXXXX")"' in content
     assert 'mv -f "$mihomo_temp" "$staging_dir/mihomo"' in content
-    assert 'atomic_install "$staging_dir/$executable" "$executable"' in content
+    assert 'atomic_install "$staging_dir/$executable" "$executable" 0755' in content
+    assert 'atomic_install "$staging_dir/$geodata" "$geodata" 0644' in content
 
 
 def test_native_validator_installer_does_not_pipe_gh_api_into_head() -> None:
@@ -79,10 +80,15 @@ def test_native_validator_installer_executes_with_authenticated_release_assets(
     with tarfile.open(fixture_dir / sing_asset, "w:gz") as archive:
         archive.add(sing_payload, arcname=sing_payload.name)
 
-    xray_binary = tmp_path / "xray-payload" / "xray"
+    xray_payload = tmp_path / "xray-payload"
+    xray_binary = xray_payload / "xray"
     _write_executable(xray_binary, "xray")
+    (xray_payload / "geoip.dat").write_bytes(b"geoip-fixture")
+    (xray_payload / "geosite.dat").write_bytes(b"geosite-fixture")
     with zipfile.ZipFile(fixture_dir / xray_asset, "w") as archive:
         archive.write(xray_binary, arcname="xray")
+        archive.write(xray_payload / "geoip.dat", arcname="geoip.dat")
+        archive.write(xray_payload / "geosite.dat", arcname="geosite.dat")
 
     mihomo_binary = tmp_path / "mihomo-payload"
     _write_executable(mihomo_binary, "mihomo")
@@ -165,3 +171,8 @@ exit 2
         target = install_dir / executable
         assert target.is_file()
         assert os.access(target, os.X_OK)
+
+    assert (install_dir / "geoip.dat").read_bytes() == b"geoip-fixture"
+    assert (install_dir / "geosite.dat").read_bytes() == b"geosite-fixture"
+    assert not os.access(install_dir / "geoip.dat", os.X_OK)
+    assert not os.access(install_dir / "geosite.dat", os.X_OK)

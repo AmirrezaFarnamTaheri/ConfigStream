@@ -88,10 +88,15 @@ def build_resolver_sets() -> tuple[list[str], list[str]]:
 
 
 def build_singbox_dns_profile() -> Dict[str, Any]:
+    """Return the DNS-hardened profile in a migration-safe shape.
+
+    The public profile intentionally omits a forced outbound detour for the
+    remote resolver.  Legacy Sing-box used the default outbound when detour
+    was omitted, while current typed DNS servers dial directly by default.
+    This keeps zero-proxy/degraded artifacts valid instead of referencing a
+    selector that does not exist.  Ad blocking uses the current DNS rule
+    action rather than the removed legacy ``rcode://`` server transport.
     """
-    Returns a robust DNS configuration.
-    """
-    SELECTOR_TAG = "🌍 Proxy Select"
 
     return {
         "servers": [
@@ -100,7 +105,6 @@ def build_singbox_dns_profile() -> Dict[str, Any]:
                 "address_resolver": "local_local",
                 "strategy": "prefer_ipv4",
                 "tag": "remote_dns",
-                "detour": SELECTOR_TAG,
             },
             {
                 "address": "https://dns.google/dns-query",
@@ -108,10 +112,6 @@ def build_singbox_dns_profile() -> Dict[str, Any]:
                 "strategy": "prefer_ipv4",
                 "tag": "direct_dns",
                 "detour": "direct",
-            },
-            {
-                "address": "rcode://success",
-                "tag": "block_dns",
             },
             {
                 "address": "1.1.1.1",
@@ -133,8 +133,9 @@ def build_singbox_dns_profile() -> Dict[str, Any]:
                 "clash_mode": "Direct",
             },
             {
-                "server": "block_dns",
                 "rule_set": ["geosite-category-ads-all"],
+                "action": "predefined",
+                "rcode": "NOERROR",
             },
             {
                 "server": "direct_dns",

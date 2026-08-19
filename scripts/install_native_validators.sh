@@ -67,11 +67,12 @@ download_verified_asset() {
 atomic_install() {
   local source="$1"
   local destination="$2"
+  local mode="${3:-0755}"
   local temporary
 
   test -f "$source"
   temporary="$(mktemp "${install_dir}/.${destination}.XXXXXX")"
-  if ! install -m 0755 "$source" "$temporary"; then
+  if ! install -m "$mode" "$source" "$temporary"; then
     rm -f "$temporary"
     return 1
   fi
@@ -93,6 +94,13 @@ download_verified_asset "XTLS/Xray-core" "$XRAY_VERSION" "$xray_archive"
 mkdir -p xray
 unzip -oq "$xray_archive" -d xray
 install -m 0755 xray/xray "$staging_dir/xray"
+for geodata in geoip.dat geosite.dat; do
+  if [[ ! -f "xray/$geodata" ]]; then
+    echo "Xray release asset is missing required ${geodata}" >&2
+    exit 1
+  fi
+  install -m 0644 "xray/$geodata" "$staging_dir/$geodata"
+done
 
 mihomo_asset="$(gh api "repos/MetaCubeX/mihomo/releases/tags/${MIHOMO_VERSION}" \
   --jq 'first(.assets[].name | select(test("^mihomo-linux-amd64-v[0-9]+-v[0-9.]+\\.gz$"))) // empty')"
@@ -109,11 +117,20 @@ mv -f "$mihomo_temp" "$staging_dir/mihomo"
 for executable in sing-box xray mihomo; do
   test -x "$staging_dir/$executable"
 done
+for geodata in geoip.dat geosite.dat; do
+  test -r "$staging_dir/$geodata"
+done
 
 for executable in sing-box xray mihomo; do
-  atomic_install "$staging_dir/$executable" "$executable"
+  atomic_install "$staging_dir/$executable" "$executable" 0755
+done
+for geodata in geoip.dat geosite.dat; do
+  atomic_install "$staging_dir/$geodata" "$geodata" 0644
 done
 
 for executable in sing-box xray mihomo; do
   test -x "$install_dir/$executable"
+done
+for geodata in geoip.dat geosite.dat; do
+  test -r "$install_dir/$geodata"
 done

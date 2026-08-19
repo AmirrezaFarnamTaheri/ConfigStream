@@ -31,9 +31,8 @@ def test_preflight_accepts_matching_explicit_public_and_signing_key() -> None:
     )
 
 
-def test_preflight_rejects_missing_release_trust_anchor() -> None:
-    errors = validate_release_inputs({})
-    assert any("verification key is unavailable" in error for error in errors)
+def test_preflight_accepts_unsigned_release_by_default() -> None:
+    assert validate_release_inputs({}) == []
 
 
 def test_preflight_rejects_public_key_without_signing_key() -> None:
@@ -41,9 +40,8 @@ def test_preflight_rejects_public_key_without_signing_key() -> None:
 
     errors = validate_release_inputs({"CS_PUBLIC_KEY": public_key})
 
-    assert (
-        "release signing key is unavailable: configure CS_SIGNING_PRIVATE_KEY_HEX"
-        in errors
+    assert any(
+        "configured without CS_SIGNING_PRIVATE_KEY_HEX" in error for error in errors
     )
 
 
@@ -65,10 +63,13 @@ def test_preflight_rejects_public_key_that_does_not_match_signing_key() -> None:
     assert any("does not match" in error for error in errors)
 
 
-def test_preflight_runs_as_direct_workflow_script(tmp_path: Path) -> None:
+def test_preflight_runs_as_direct_workflow_script_without_signing_keys(
+    tmp_path: Path,
+) -> None:
     env = os.environ.copy()
     env.pop("CS_PUBLIC_KEY", None)
-    env["CS_SIGNING_PRIVATE_KEY_HEX"] = "01" * 32
+    env.pop("CS_SIGNING_PRIVATE_KEY_HEX", None)
+    env.pop("CONFIGSTREAM_SIGNING_PRIVATE_KEY_HEX", None)
 
     result = subprocess.run(
         [sys.executable, str(SCRIPT)],
@@ -81,4 +82,4 @@ def test_preflight_runs_as_direct_workflow_script(tmp_path: Path) -> None:
     )
 
     assert result.returncode == 0, result.stdout + result.stderr
-    assert "mandatory release trust inputs are available" in result.stdout
+    assert "unsigned mode is allowed" in result.stdout
