@@ -48,7 +48,7 @@ This document reviews the Ed25519 cryptographic signing pipeline, frontend verif
 
 - **Key Injection**: The CI pipeline writes environment variables (like `PUBLIC_KEY` and `STEGO_KEY`) into `frontend/assets/js/runtime-config.js` via string replacement or template generation.
 - **Verification Logic**: `verifier.js` uses the native Web Crypto API (`window.crypto.subtle`). It builds the identical signed payload `[timestamp] || [content]` and verifies it against the `PUBLIC_KEY`.
-- **Fail-Closed Design**: If the `PUBLIC_KEY` is missing, contains placeholder values (e.g., `PLACEHOLDER`, `79e/79e/`), or is less than 60 characters, verification fails and no data is trusted.
+- **Conditional Fail-Closed Design**: Unsigned objects are accepted as unsigned. When a signature is present, a missing or malformed `PUBLIC_KEY`, placeholder values (e.g., `PLACEHOLDER`, `79e/79e/`), or an invalid signature cause verification to fail rather than trusting the signed object without proof.
 - **Steganography Security**: `stego.js` uses a symmetric Fernet token (HMAC + AES-CBC). It explicitly checks for and rejects placeholder keys (`PLACEHOLDER_KEY_INJECTED_BY_CI`). The key must be at least 40 characters (standard Fernet is 44 URL-safe Base64 chars).
 - **Time Validation**: The frontend strictly validates the embedded timestamp against the client's current time, throwing a `SECURITY ALERT` if the timestamp exceeds the `300s` maximum age or the `-30s` skew tolerance.
 
@@ -61,13 +61,13 @@ This document reviews the Ed25519 cryptographic signing pipeline, frontend verif
 
 ### 4.1 Production GitHub Actions Bootstrap
 
-The production release path is fail-closed. The `Validate main release prerequisites` step runs only for non-pull-request executions on `refs/heads/main`, before the release build fan-out.
+The production release path supports both unsigned and signed publication. The `Validate main release prerequisites` step runs only for non-pull-request executions on `refs/heads/main`, before the release build fan-out, and validates any signing material that is actually configured.
 
-1. **Required signing secret**: provision `CS_SIGNING_PRIVATE_KEY_HEX` through the repository's authorized GitHub Actions secret-management path. The value must be a valid Ed25519 private key accepted by `signer.py` (a 32-byte seed or supported 64-byte form, hex encoded). Do not generate, echo, or print a production signing key in workflow logs.
-2. **Optional explicit public key**: `CS_PUBLIC_KEY` may also be configured. If omitted, the browser verification key is derived from `CS_SIGNING_PRIVATE_KEY_HEX`. If provided, preflight requires it to be a valid Ed25519 public key and to match the public key derived from the signing secret.
-3. **Public-key-only is invalid**: configuring only `CS_PUBLIC_KEY` does not satisfy production preflight because the release artifact must be signed, not merely verifiable.
-4. **Legacy alias migration**: external/direct invocations may still accept `CONFIGSTREAM_SIGNING_PRIVATE_KEY_HEX` for backward compatibility. GitHub Actions does not expose that alias. Migrate any external setup that relies on it to `CS_SIGNING_PRIVATE_KEY_HEX` before using the production workflow.
-5. **Bootstrap verification**: after provisioning the canonical secret, the next non-PR `main` run must pass `Validate main release prerequisites` before container build, source sharding, final release gating, or publication can proceed.
+1. **Unsigned mode is the default**: when neither `CS_SIGNING_PRIVATE_KEY_HEX` nor `CS_PUBLIC_KEY` is configured, release preflight succeeds and ConfigStream publishes unsigned artifacts. Manifest hashes, native-client checks, source-coverage checks, release gating, and the remaining publication controls still apply.
+2. **Optional signed mode**: provision `CS_SIGNING_PRIVATE_KEY_HEX` through the repository's authorized GitHub Actions secret-management path to enable Ed25519 signing. The value must be a valid private key accepted by `signer.py` (a 32-byte seed or supported 64-byte form, hex encoded). Do not generate, echo, or print a production signing key in workflow logs.
+3. **Optional explicit public key**: `CS_PUBLIC_KEY` may accompany the signing secret. If omitted, the browser verification key is derived from `CS_SIGNING_PRIVATE_KEY_HEX`. If provided, preflight requires it to be valid and to match the public key derived from the signing secret. Public-key-only configuration is rejected because it would make the frontend expect signatures that the release cannot create.
+4. **Legacy alias migration**: external/direct invocations may still accept `CONFIGSTREAM_SIGNING_PRIVATE_KEY_HEX` for backward compatibility. GitHub Actions does not expose that alias. Prefer `CS_SIGNING_PRIVATE_KEY_HEX` for production workflow signing.
+5. **Fail-closed when signing is configured**: malformed private/public keys or a public/private mismatch stop publication. Removing both signing-related values returns the workflow to explicit unsigned behavior instead of bypassing the other release gates.
 
 ## 5. Hardening Recommendations
 
