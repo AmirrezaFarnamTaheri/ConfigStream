@@ -155,8 +155,9 @@ class SingBoxGenerator:
             {"type": "dns", "tag": "dns-out"},
         ]
 
-        # DNS Configuration — uses "address" format for broad client compatibility
-        # (sing-box <1.12, v2rayN, NekoRay, NekoBox, Hiddify)
+        # DNS Configuration — keeps legacy input servers for compatibility, but
+        # uses the current DNS rule action for synthetic responses.  The removed
+        # rcode:// server transport cannot survive 1.12+ typed-server migration.
         dns_config = {
             "servers": [
                 {
@@ -172,10 +173,6 @@ class SingBoxGenerator:
                     "detour": "direct",
                 },
                 {
-                    "address": "rcode://success",
-                    "tag": "block_dns",
-                },
-                {
                     "address": "8.8.8.8",
                     "tag": "local_local",
                     "detour": "direct",
@@ -186,8 +183,9 @@ class SingBoxGenerator:
                 {"server": "remote_dns", "clash_mode": "Global"},
                 {"server": "direct_dns", "clash_mode": "Direct"},
                 {
-                    "server": "block_dns",
                     "rule_set": ["geosite-category-ads-all"],
+                    "action": "predefined",
+                    "rcode": "NOERROR",
                 },
                 {
                     "server": "direct_dns",
