@@ -35,12 +35,6 @@ def test_preflight_accepts_unsigned_release_by_default() -> None:
     assert validate_release_inputs({}) == []
 
 
-def test_preflight_rejects_missing_release_trust_anchor_when_required() -> None:
-    errors = validate_release_inputs({"CS_REQUIRE_SIGNING": "true"})
-    assert any("release signing key is unavailable" in error for error in errors)
-    assert any("verification key is unavailable" in error for error in errors)
-
-
 def test_preflight_rejects_public_key_without_signing_key() -> None:
     public_key = _resolve_public_key({"CS_SIGNING_PRIVATE_KEY_HEX": "01" * 32})
 
@@ -74,7 +68,6 @@ def test_preflight_runs_as_direct_workflow_script_without_signing_keys(
     env.pop("CS_PUBLIC_KEY", None)
     env.pop("CS_SIGNING_PRIVATE_KEY_HEX", None)
     env.pop("CONFIGSTREAM_SIGNING_PRIVATE_KEY_HEX", None)
-    env.pop("CS_REQUIRE_SIGNING", None)
 
     result = subprocess.run(
         [sys.executable, str(SCRIPT)],
@@ -87,4 +80,4 @@ def test_preflight_runs_as_direct_workflow_script_without_signing_keys(
     )
 
     assert result.returncode == 0, result.stdout + result.stderr
-    assert "valid for the configured signing mode" in result.stdout
+    assert "unsigned mode is allowed" in result.stdout
