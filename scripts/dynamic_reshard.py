@@ -704,7 +704,16 @@ def main() -> None:
 
 
 def _require_timing_prerequisites() -> None:
-    from scripts.require_stage_evidence import main as require_stage_evidence
+    try:
+        from scripts.require_stage_evidence import main as require_stage_evidence
+    except ModuleNotFoundError as exc:
+        # ``python scripts/dynamic_reshard.py`` puts the scripts directory, not
+        # the repository root, on sys.path. Fall back to the sibling module for
+        # that supported direct-script invocation, while preserving package
+        # imports for ``python -m scripts.dynamic_reshard`` and unit tests.
+        if exc.name != "scripts":
+            raise
+        from require_stage_evidence import main as require_stage_evidence
 
     exit_code = require_stage_evidence(
         [
