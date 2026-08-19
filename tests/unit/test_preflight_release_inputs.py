@@ -40,7 +40,9 @@ def test_preflight_rejects_public_key_without_signing_key() -> None:
 
     errors = validate_release_inputs({"CS_PUBLIC_KEY": public_key})
 
-    assert any("configured without CS_SIGNING_PRIVATE_KEY_HEX" in error for error in errors)
+    assert any(
+        "configured without CS_SIGNING_PRIVATE_KEY_HEX" in error for error in errors
+    )
 
 
 def test_preflight_rejects_malformed_explicit_public_key() -> None:
