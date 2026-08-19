@@ -20,16 +20,16 @@ This is the standard zero-cost deployment method. The repository is pre-configur
 4.  **Configure the release signing secret**:
     -   Go to **Settings** > **Secrets and variables** > **Actions** > **New repository secret**.
     -   Create `CS_SIGNING_PRIVATE_KEY_HEX` with the Ed25519 private signing key used for canonical release artifacts.
-    -   Never commit this private key to the repository or expose it in workflow variables, logs, artifacts, or issue text.
-    -   `CS_PUBLIC_KEY` is optional when `CS_SIGNING_PRIVATE_KEY_HEX` is present because the workflow can derive the matching public verification key. If you configure `CS_PUBLIC_KEY` explicitly, it must match the public key derived from the private signing key.
+    -   The workflow may safely pass this repository secret into a job environment for the signing/preflight step, but do not store the private key in GitHub Actions Variables and never expose its value in logs, artifacts, issue text, or committed files.
+    -   `CS_PUBLIC_KEY` is optional when `CS_SIGNING_PRIVATE_KEY_HEX` is present because the workflow can derive the matching public verification key. If you configure `CS_PUBLIC_KEY` explicitly, it must be a valid Ed25519 public key and must match the public key derived from the private signing key.
 
-The scheduled `Config's Stream` workflow is fail-closed: production work and publication are intentionally blocked when the signing key is absent or malformed. This prevents an unsigned or unverifiable artifact from becoming canonical. After provisioning or rotating the signing key, run `Config's Stream` manually once to verify release preflight before relying on the next scheduled publication.
+The scheduled `Config's Stream` workflow is fail-closed: production work and publication are intentionally blocked when the signing key is absent or malformed, when an explicitly configured public key is malformed, or when the public and private keys do not match. This prevents an unsigned or unverifiable artifact from becoming canonical. After provisioning or rotating the signing key, run `Config's Stream` manually once to verify release preflight before relying on the next scheduled publication.
 
 ### Configuration (Secrets & Variables)
 You can customize the behavior using GitHub Repository Secrets/Variables:
 
--   `CS_SIGNING_PRIVATE_KEY_HEX` (Secret): **Required for scheduled/main publication.** Ed25519 private signing key used to sign canonical release artifacts.
--   `CS_PUBLIC_KEY` (Secret or variable): Optional explicit Ed25519 verification key. When omitted, it is derived from `CS_SIGNING_PRIVATE_KEY_HEX`; when provided, it must match the derived public key.
+-   `CS_SIGNING_PRIVATE_KEY_HEX` (Secret): **Required for scheduled/main publication.** Ed25519 private signing key used to sign canonical release artifacts. Keep the private material in a GitHub Actions Secret, not an Actions Variable.
+-   `CS_PUBLIC_KEY` (Secret or variable): Optional explicit Ed25519 verification key. When omitted, it is derived from `CS_SIGNING_PRIVATE_KEY_HEX`; when provided, it must be valid and match the derived public key.
 -   `WARP_KEY_POOL` (Secret): JSON array of Cloudflare WARP keys for proxy washing/revival. Example: `["key1","key2"]`. Without this, washing and revival features are disabled.
 -   `VT_API_KEY` (Secret): Optional. VirusTotal API key for threat intelligence lookups.
 -   `MAXMIND_LICENSE_KEY` (Secret): Optional. For fresh GeoIP databases from MaxMind.
@@ -133,8 +133,8 @@ To serve configurations globally with low latency, putting a CDN in front of you
 ## Troubleshooting
 
 ### "Release prerequisite validation failed"
--   **Cause**: `CS_SIGNING_PRIVATE_KEY_HEX` is absent, malformed, or inconsistent with an explicitly configured `CS_PUBLIC_KEY`.
--   **Solution**: Configure `CS_SIGNING_PRIVATE_KEY_HEX` as a GitHub Actions repository secret. You may omit `CS_PUBLIC_KEY` and allow the workflow to derive it, or configure the matching public key explicitly. Do not bypass this check or replace the key with a repository variable containing private material.
+-   **Cause**: `CS_SIGNING_PRIVATE_KEY_HEX` is absent or malformed, `CS_PUBLIC_KEY` is malformed, or an explicitly configured public key does not match the private signing key.
+-   **Solution**: Configure `CS_SIGNING_PRIVATE_KEY_HEX` as a GitHub Actions repository secret. If `CS_PUBLIC_KEY` is invalid or mismatched, remove it to allow automatic derivation from the private key, or replace it with the matching valid public key. Do not bypass this check or place private key material in a GitHub Actions Variable.
 
 ### "Database is locked"
 -   **Cause**: Concurrent writes to the SQLite database.
