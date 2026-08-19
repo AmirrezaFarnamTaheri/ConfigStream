@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Validate release trust inputs according to the configured signing mode."""
+"""Validate optional release-signing inputs before production publication."""
 
 from __future__ import annotations
 
@@ -16,22 +16,13 @@ from configstream.signer import normalize_public_key_hex
 from scripts.validate_frontend_placeholders import _resolve_public_key
 
 
-def _signing_required(env: Mapping[str, str]) -> bool:
-    return env.get("CS_REQUIRE_SIGNING", "").strip().lower() in {"1", "true"}
-
-
 def validate_release_inputs(env: Mapping[str, str]) -> list[str]:
     errors: list[str] = []
-    require_signing = _signing_required(env)
     explicit_public_key = env.get("CS_PUBLIC_KEY", "").strip()
     signing_key = (
         env.get("CS_SIGNING_PRIVATE_KEY_HEX", "").strip()
         or env.get("CONFIGSTREAM_SIGNING_PRIVATE_KEY_HEX", "").strip()
     )
-    if require_signing and not signing_key:
-        errors.append(
-            "release signing key is unavailable: configure CS_SIGNING_PRIVATE_KEY_HEX"
-        )
 
     public_key = ""
     if explicit_public_key:
@@ -51,11 +42,6 @@ def validate_release_inputs(env: Mapping[str, str]) -> list[str]:
             )
         except (TypeError, ValueError):
             errors.append("configured Ed25519 signing key is invalid")
-    elif require_signing:
-        errors.append(
-            "frontend verification key is unavailable: configure CS_PUBLIC_KEY or "
-            "CS_SIGNING_PRIVATE_KEY_HEX"
-        )
 
     normalized_public = normalize_public_key_hex(public_key) if public_key else ""
     if public_key and not normalized_public:
@@ -90,7 +76,7 @@ def main() -> int:
         for error in errors:
             print(f"  - {error}", file=sys.stderr)
         return 1
-    print("OK: release trust inputs are valid for the configured signing mode.")
+    print("OK: release trust inputs are valid; unsigned mode is allowed.")
     return 0
 
 
