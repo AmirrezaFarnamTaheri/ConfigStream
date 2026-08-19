@@ -143,6 +143,6 @@ def test_validate_frontend_placeholders_strict_requires_public_key(
     )
     check = validate_frontend_placeholders
     assert check(tmp_path, strict=True) == []
-    monkeypatch.setenv("CS_REQUIRE_SIGNING", "true")
+    monkeypatch.setenv("CS_SIGNING_PRIVATE_KEY_HEX", PRIVATE_KEY_HEX)
     errors = check(tmp_path, strict=True)
     assert any("PUBLIC_KEY is missing" in error for error in errors)
