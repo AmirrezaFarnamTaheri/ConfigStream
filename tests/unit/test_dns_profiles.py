@@ -31,12 +31,16 @@ def test_singbox_dns_profile_structure():
     assert "direct_dns" in servers
     assert "block_dns" not in servers
     assert "detour" not in servers["remote_dns"]
-    assert all(not str(s.get("address", "")).startswith("rcode://") for s in servers.values())
+    assert all(
+        not str(s.get("address", "")).startswith("rcode://") for s in servers.values()
+    )
 
     # Verify servers use the legacy input "address" field; release finalization
     # is responsible for migrating these into typed 1.12+ server objects.
     for server in profile["servers"]:
-        assert "address" in server, f"Server {server.get('tag')} missing 'address' field"
+        assert (
+            "address" in server
+        ), f"Server {server.get('tag')} missing 'address' field"
 
     ad_rules = [
         rule
