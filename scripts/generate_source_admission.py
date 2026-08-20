@@ -18,6 +18,8 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
+QUARANTINED_PREFIX = "# quarantine:"
+
 
 def batch_sort_key(path: Path) -> tuple[int, str]:
     name = path.stem
@@ -41,9 +43,15 @@ def load_urls() -> dict[str, list[str]]:
     origins: dict[str, list[str]] = {}
     for path in source_files():
         for raw in path.read_text(encoding="utf-8").splitlines():
-            url = raw.strip()
-            if not url or url.startswith("#"):
+            line = raw.strip()
+            if not line:
                 continue
+            if line.startswith(QUARANTINED_PREFIX):
+                url = line[len(QUARANTINED_PREFIX) :].strip()
+            elif line.startswith("#"):
+                continue
+            else:
+                url = line
             try:
                 canonical_url = normalize_source_locator(url)
                 classify_source_locator(canonical_url)
