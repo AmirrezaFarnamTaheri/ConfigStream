@@ -137,16 +137,19 @@ def validate_singbox_config(payload: object, file_name: str) -> List[str]:
                 file_name=file_name,
                 item_kind=collection_name[:-1],
             )
-            if _is_hostname(item.get("server")):
+            needs_domain_resolver = item.get("type") == "direct" or _is_hostname(
+                item.get("server")
+            )
+            if needs_domain_resolver:
                 resolver = (
                     _resolver_server(item.get("domain_resolver"))
                     or default_domain_resolver
                 )
-                if resolver is None:
+                if resolver is None and len(dns_tags) != 1:
                     errors.append(
-                        f"{file_name} {collection_name}[{index}] hostname dial lacks domain resolver"
+                        f"{file_name} {collection_name}[{index}] domain dial lacks domain resolver"
                     )
-                elif resolver not in dns_tags:
+                elif resolver is not None and resolver not in dns_tags:
                     errors.append(
                         f"{file_name} {collection_name}[{index}] unknown domain resolver: {resolver}"
                     )
