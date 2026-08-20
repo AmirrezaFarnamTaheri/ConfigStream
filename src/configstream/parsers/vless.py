@@ -99,6 +99,7 @@ def parse_vless(url: str) -> Proxy | None:
             address=host,
             port=port,
             details={
+                # Fragment names belong in remarks, not the closed details schema.
                 "uuid": uuid_val,
                 "type": params.get("type", "tcp"),
                 "security": params.get("security", "none"),
