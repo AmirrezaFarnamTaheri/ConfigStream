@@ -17,7 +17,9 @@ except ModuleNotFoundError:
     from scripts.shard_sources import partition
 
 FETCH_SUMMARY_RE = re.compile(
-    r"Fetch\s+Summary:\s*(?P<successful>\d+)\s*/\s*(?P<attempted>\d+)\s+sources\s+successful",
+    r"Fetch\s+Summary:\s*"
+    r"(?P<successful>\d+)\s*/\s*(?P<attempted>\d+)\s+"
+    r"sources\s+successful",
     re.IGNORECASE,
 )
 
