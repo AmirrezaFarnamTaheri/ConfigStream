@@ -5,7 +5,6 @@ import json
 from typing import List, Dict, Any, Optional, cast
 from configstream.models import Proxy
 from configstream.converters import to_singbox_outbound
-from configstream.dns_profiles import build_singbox_dns_profile
 
 
 class SingBoxGenerator:
@@ -25,9 +24,11 @@ class SingBoxGenerator:
         """
         outbounds: List[Dict[str, Any]] = []
 
+        # Selector/Auto tag names (used by sing-box UI clients)
         SELECTOR_TAG = "🌍 Proxy Select"
         AUTO_TAG = "⚡ Best Latency"
 
+        # Selector (Group)
         selector_outbound: Dict[str, Any] = {
             "type": "selector",
             "tag": SELECTOR_TAG,
@@ -35,6 +36,7 @@ class SingBoxGenerator:
             "interrupt_exist_connections": True,
         }
 
+        # URLTest (Auto)
         urltest_outbound: Dict[str, Any] = {
             "type": "urltest",
             "tag": AUTO_TAG,
@@ -45,7 +47,7 @@ class SingBoxGenerator:
         }
 
         added_tags: set[str] = set()
-        tag_remap: Dict[str, str] = {}
+        tag_remap: Dict[str, str] = {}  # old_tag -> new_tag when uniquified
 
         def _uniquify_tag(tag: str) -> str:
             if not tag or tag not in added_tags:
@@ -59,6 +61,7 @@ class SingBoxGenerator:
             outbound: Dict[str, Any], *, add_to_selector: bool
         ) -> Optional[str]:
             self._clean_outbound(outbound)
+            # Resolve detour if target was uniquified
             detour = outbound.get("detour")
             tag = outbound.get("tag")
             needs_copy = False
@@ -83,8 +86,13 @@ class SingBoxGenerator:
                 added_tags.add(tag)
                 if add_to_selector:
                     cast(List[str], selector_outbound["outbounds"]).append(tag)
+            # Return the final (possibly uniquified) tag so callers reference the
+            # tag actually written, not the stale pre-uniquification value.
             return tag
 
+        # Add Extra Outbounds First (if any)
+        # Build a set of tags referenced as detour targets (inner hops)
+        # so we can identify entry-point outbounds vs inner relay hops.
         _detour_targets: set[str] = set()
         if extra_outbounds:
             for _eo in extra_outbounds:
@@ -95,17 +103,28 @@ class SingBoxGenerator:
         if extra_outbounds:
             for extra in extra_outbounds:
                 tag = extra.get("tag", "")
+                # Entry point: has detour (chains through inner hop),
+                # OR is not referenced as anyone else's detour target
+                # (standalone outbound like a wireguard endpoint).
+                # Inner hop: referenced as another outbound's detour target
+                # and does NOT itself chain further — should NOT be selectable.
                 is_inner_hop = bool(tag and tag in _detour_targets)
                 is_entry_point = not is_inner_hop
                 final_tag = _append_outbound(extra, add_to_selector=is_entry_point)
                 if is_entry_point and final_tag:
                     cast(List[str], urltest_outbound["outbounds"]).append(final_tag)
 
+        # Add Proxy Outbounds
         for p in proxies:
             try:
+                # Use imported function directly
                 outbound_config = to_singbox_outbound(p)
+
+                # Check for None (Mypy)
                 if outbound_config is None:
                     continue
+
+                # Ensure tag exists if converter didn't provide it
                 if "tag" not in outbound_config:
                     t = p.remarks or p.details.get("name") or f"proxy-{p.id}"
                     outbound_config["tag"] = t
@@ -116,7 +135,9 @@ class SingBoxGenerator:
                         if isinstance(extra, dict):
                             _append_outbound(extra, add_to_selector=False)
 
+                # Strip internal metadata
                 self._clean_outbound(outbound_config)
+
                 final_tag = _append_outbound(outbound_config, add_to_selector=True)
                 if final_tag:
                     cast(List[str], urltest_outbound["outbounds"]).append(final_tag)
@@ -124,6 +145,7 @@ class SingBoxGenerator:
                 logging.getLogger(__name__).debug("Suppressed broad exception")
                 continue
 
+        # Assemble Final Config
         final_outbounds = [
             selector_outbound,
             urltest_outbound,
@@ -133,10 +155,13 @@ class SingBoxGenerator:
             {"type": "dns", "tag": "dns-out"},
         ]
 
+        from configstream.dns_profiles import build_singbox_dns_profile
+
         # Emit the 1.12+ typed DNS model directly instead of depending on the
         # release finalizer to migrate legacy address/address_resolver fields.
         dns_config = build_singbox_dns_profile()
 
+        # Inbounds matched to e1.json
         inbounds = [
             {
                 "type": "mixed",
@@ -146,6 +171,7 @@ class SingBoxGenerator:
             }
         ]
 
+        # Route — compatible format for v2rayN / NekoRay / Hiddify
         route = {
             # Hostname-based proxy/chain outbounds inherit this resolver. This
             # is required by Sing-box 1.12+ and fixes native checks for chain
@@ -199,19 +225,24 @@ class SingBoxGenerator:
             "final": SELECTOR_TAG,
         }
 
+        # Experimental matched to e1.json
         experimental = {
             "cache_file": {"enabled": True, "path": "cache.db", "store_fakeip": False},
             "clash_api": {"external_controller": "127.0.0.1:10813"},
         }
 
-        return {
-            "log": {"level": "warn", "timestamp": True},
+        config = {
+            "log": {
+                "level": "warn",
+                "timestamp": True,
+            },
             "dns": dns_config,
             "inbounds": inbounds,
             "outbounds": final_outbounds,
             "route": route,
             "experimental": experimental,
         }
+        return config
 
     def _clean_outbound(self, outbound: Dict[str, Any]):
         keys_to_remove = [
