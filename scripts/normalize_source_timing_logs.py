@@ -16,9 +16,13 @@ from typing import Iterable
 from configstream.security_validator import SecurityValidator
 
 ANSI_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
-SUMMARY_START_RE = re.compile(r"Source\s+Summary\s+\[", re.IGNORECASE)
+# Rich can inject a source-location column (for example ``consumer.py:357``)
+# between the message and the URL, and can wrap long URLs across display lines.
+# Match up to the first '[' instead of requiring '[' to immediately follow
+# ``Source Summary``.
+SUMMARY_START_RE = re.compile(r"Source\s+Summary\b[^\[]*\[", re.IGNORECASE)
 SUMMARY_HEAD_RE = re.compile(
-    r"Source\s+Summary\s+\[(?P<url>.*?)\]\s*:\s*(?P<body>.*)",
+    r"Source\s+Summary\b[^\[]*\[(?P<url>.*?)\]\s*:\s*(?P<body>.*)",
     re.IGNORECASE | re.DOTALL,
 )
 RAW_RE = re.compile(r"\bRaw\s*=\s*(\d+)", re.IGNORECASE)
@@ -40,14 +44,20 @@ def _flatten(text: str) -> str:
     return re.sub(r"\s+", " ", ANSI_RE.sub("", text)).strip()
 
 
+def _normalize_logged_url(value: str) -> str:
+    """Undo whitespace inserted by Rich line wrapping inside logged URLs."""
+
+    return re.sub(r"\s+", "", value.strip())
+
+
 def _source_key(url: str) -> str:
-    cleaned = url.strip().replace("[MASKED]", "").replace("[BASE64]", "")
+    cleaned = _normalize_logged_url(url).replace("[MASKED]", "").replace("[BASE64]", "")
     cleaned = cleaned.split("#", 1)[0].split("?", 1)[0]
     return cleaned.rstrip()
 
 
 def parse_source_timings(text: str, source_log: str = "") -> list[SourceTiming]:
-    """Parse source summaries even when Rich wraps one logical record across lines."""
+    """Parse source summaries even when Rich wraps or annotates logical records."""
 
     flattened = _flatten(text)
     starts = list(SUMMARY_START_RE.finditer(flattened))
@@ -58,7 +68,7 @@ def parse_source_timings(text: str, source_log: str = "") -> list[SourceTiming]:
         match = SUMMARY_HEAD_RE.match(segment)
         if match is None:
             continue
-        url = match.group("url").strip()
+        url = _normalize_logged_url(match.group("url"))
         body = match.group("body")
         raw_match = RAW_RE.search(body)
         duration_match = DURATION_RE.search(body)
@@ -84,9 +94,12 @@ def collect_timings(log_files: Iterable[Path]) -> list[SourceTiming]:
     for path in log_files:
         text = path.read_text(encoding="utf-8", errors="ignore")
         for record in parse_source_timings(text, path.name):
-            previous = by_url.get(record.url)
+            key = _source_key(record.url)
+            if not key:
+                continue
+            previous = by_url.get(key)
             if previous is None or record.duration_ms > previous.duration_ms:
-                by_url[record.url] = record
+                by_url[key] = record
     return [by_url[url] for url in sorted(by_url)]
 
 
@@ -116,7 +129,7 @@ def timing_coverage(
 
 
 def source_id_for_url(url: str) -> str:
-    return hashlib.sha256(url.strip().encode("utf-8")).hexdigest()
+    return hashlib.sha256(_normalize_logged_url(url).encode("utf-8")).hexdigest()
 
 
 def write_outputs(

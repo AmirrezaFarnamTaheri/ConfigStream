@@ -10,7 +10,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from shard_sources import partition
+try:
+    from shard_sources import partition
+except ModuleNotFoundError:
+    from scripts.shard_sources import partition
 
 
 def load(path: Path) -> Any:
@@ -36,6 +39,15 @@ def expected_from_sources(sources_dir: Path, parts: int) -> int:
         ]
         expected += sum(bool(bucket) for bucket in partition(lines, parts))
     return expected
+
+
+def bounded_source_counts(source_count: int, fetched_sources: int) -> tuple[int, int]:
+    """Return covered-source estimate and raw fetch attempts separately."""
+
+    assigned = max(0, int(source_count or 0))
+    attempts = max(0, int(fetched_sources or 0))
+    covered = min(assigned, attempts) if assigned else 0
+    return covered, attempts
 
 
 def main() -> int:
@@ -90,13 +102,18 @@ def main() -> int:
             starts.append(started)
         if completed:
             ends.append(completed)
+        source_count = int(lineage.get("source_count") or 0)
+        covered_sources, source_attempts = bounded_source_counts(
+            source_count, int(metadata.get("fetched_sources") or 0)
+        )
         rows.append(
             {
                 "batch": lineage.get("batch"),
                 "part": lineage.get("part"),
-                "source_count": lineage.get("source_count"),
+                "source_count": source_count,
                 "source_sha256": lineage.get("source_sha256"),
-                "fetched_sources": int(metadata.get("fetched_sources") or 0),
+                "fetched_sources": covered_sources,
+                "source_attempts": source_attempts,
                 "tested": int(
                     metadata.get("total_tested") or metadata.get("tested") or 0
                 ),
@@ -113,6 +130,9 @@ def main() -> int:
     for key, value in counters.items():
         merged[key] = value
     wall_seconds = (max(ends) - min(starts)).total_seconds() if starts and ends else 0.0
+    configured_sources = sum(int(row["source_count"]) for row in rows)
+    covered_sources = sum(int(row["fetched_sources"]) for row in rows)
+    source_attempts = sum(int(row["source_attempts"]) for row in rows)
     merged.update(
         {
             "pipeline_work_seconds_sum": work_seconds,
@@ -124,12 +144,20 @@ def main() -> int:
             "duration": max(0.0, wall_seconds) or merged.get("duration", 0.0),
             "duration_seconds": max(0.0, wall_seconds)
             or merged.get("duration_seconds", 0.0),
+            # Keep the legacy field bounded for downstream coverage math, while
+            # preserving raw producer fetch activity as a separate counter.
+            "fetched_sources": covered_sources,
+            "source_attempts": source_attempts,
+            "total_configured_sources": configured_sources,
             "shard_summary": {
                 "expected": expected,
                 "observed": len(rows),
                 "time_limited": sum(bool(row["time_limited"]) for row in rows),
                 "zero_source": sum(int(row["fetched_sources"]) == 0 for row in rows),
                 "working": sum(int(row["working"]) > 0 for row in rows),
+                "source_attempts": source_attempts,
+                "covered_sources": covered_sources,
+                "configured_sources": configured_sources,
                 "shards": rows,
             },
         }

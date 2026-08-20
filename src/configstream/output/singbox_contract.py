@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import ipaddress
 from typing import Any, Dict, List, Set, Tuple
 
 
@@ -65,33 +66,95 @@ def _validate_detour(
         errors.append(f"{file_name} unknown {item_kind} detour: {detour}")
 
 
+def _is_hostname(value: Any) -> bool:
+    if not isinstance(value, str) or not value.strip():
+        return False
+    host = value.strip().strip("[]")
+    try:
+        ipaddress.ip_address(host)
+        return False
+    except ValueError:
+        return True
+
+
+def _resolver_server(value: Any) -> str | None:
+    if isinstance(value, str) and value:
+        return value
+    if isinstance(value, dict):
+        server = value.get("server")
+        if isinstance(server, str) and server:
+            return server
+    return None
+
+
+def _dns_server_tags(payload: Dict[str, Any]) -> Set[str]:
+    dns = payload.get("dns")
+    if not isinstance(dns, dict):
+        return set()
+    servers = dns.get("servers")
+    if not isinstance(servers, list):
+        return set()
+    return {
+        str(server.get("tag"))
+        for server in servers
+        if isinstance(server, dict) and server.get("tag")
+    }
+
+
 def validate_singbox_config(payload: object, file_name: str) -> List[str]:
-    """Validate tags and references across Sing-box outbounds and endpoints."""
+    """Validate tags, references, and hostname-resolution contracts."""
     if not isinstance(payload, dict):
         return [f"{file_name} must be a JSON object"]
 
     errors: List[str] = []
     outbounds, endpoints, tags = _collect_tagged_items(payload, file_name, errors)
+    dns_tags = _dns_server_tags(payload)
 
-    for index, endpoint in enumerate(endpoints):
-        _validate_detour(
-            endpoint,
-            f"{file_name} endpoints[{index}]",
-            tags,
-            errors,
-            file_name=file_name,
-            item_kind="endpoint",
-        )
+    route = payload.get("route")
+    default_domain_resolver: str | None = None
+    if isinstance(route, dict):
+        resolver = route.get("default_domain_resolver")
+        if resolver is not None:
+            resolver_tag = _resolver_server(resolver)
+            if resolver_tag is None:
+                errors.append(
+                    f"{file_name} route.default_domain_resolver must reference a DNS server"
+                )
+            elif resolver_tag not in dns_tags:
+                errors.append(
+                    f"{file_name} unknown route default domain resolver: {resolver_tag}"
+                )
+            else:
+                default_domain_resolver = resolver_tag
+
+    for collection_name, values in (("endpoints", endpoints), ("outbounds", outbounds)):
+        for index, item in enumerate(values):
+            _validate_detour(
+                item,
+                f"{file_name} {collection_name}[{index}]",
+                tags,
+                errors,
+                file_name=file_name,
+                item_kind=collection_name[:-1],
+            )
+            needs_domain_resolver = item.get("type") == "direct" or _is_hostname(
+                item.get("server")
+            )
+            if needs_domain_resolver:
+                resolver = (
+                    _resolver_server(item.get("domain_resolver"))
+                    or default_domain_resolver
+                )
+                if resolver is None and len(dns_tags) > 1:
+                    errors.append(
+                        f"{file_name} {collection_name}[{index}] domain dial lacks domain resolver"
+                    )
+                elif resolver is not None and resolver not in dns_tags:
+                    errors.append(
+                        f"{file_name} {collection_name}[{index}] unknown domain resolver: {resolver}"
+                    )
 
     for index, outbound in enumerate(outbounds):
-        _validate_detour(
-            outbound,
-            f"{file_name} outbounds[{index}]",
-            tags,
-            errors,
-            file_name=file_name,
-            item_kind="outbound",
-        )
         if outbound.get("type") not in {"selector", "urltest"}:
             continue
         refs = outbound.get("outbounds")
@@ -104,7 +167,6 @@ def validate_singbox_config(payload: object, file_name: str) -> List[str]:
             elif ref not in tags:
                 errors.append(f"{file_name} unknown outbound reference: {ref}")
 
-    route = payload.get("route")
     if isinstance(route, dict):
         final = route.get("final")
         if final is not None:
@@ -135,12 +197,21 @@ def validate_singbox_config(payload: object, file_name: str) -> List[str]:
                 if not isinstance(server, dict):
                     continue
                 detour = server.get("detour")
-                if detour is None:
-                    continue
-                if not isinstance(detour, str) or not detour:
-                    errors.append(
-                        f"{file_name} dns.servers[{index}] has invalid detour"
-                    )
-                elif detour not in tags:
-                    errors.append(f"{file_name} unknown DNS detour: {detour}")
+                if detour is not None:
+                    if not isinstance(detour, str) or not detour:
+                        errors.append(
+                            f"{file_name} dns.servers[{index}] has invalid detour"
+                        )
+                    elif detour not in tags:
+                        errors.append(f"{file_name} unknown DNS detour: {detour}")
+                if _is_hostname(server.get("server")):
+                    resolver = _resolver_server(server.get("domain_resolver"))
+                    if resolver is None:
+                        errors.append(
+                            f"{file_name} dns.servers[{index}] hostname server lacks domain_resolver"
+                        )
+                    elif resolver not in dns_tags:
+                        errors.append(
+                            f"{file_name} dns.servers[{index}] unknown domain_resolver: {resolver}"
+                        )
     return errors

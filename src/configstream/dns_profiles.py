@@ -88,49 +88,54 @@ def build_resolver_sets() -> tuple[list[str], list[str]]:
 
 
 def build_singbox_dns_profile() -> Dict[str, Any]:
-    """Return the DNS-hardened profile in a migration-safe shape.
+    """Return a native Sing-box 1.12+ DNS profile.
 
-    The public profile intentionally omits a forced outbound detour for the
-    remote resolver.  Legacy Sing-box used the default outbound when detour
-    was omitted, while current typed DNS servers dial directly by default.
-    This keeps zero-proxy/degraded artifacts valid instead of referencing a
-    selector that does not exist.  Ad blocking uses the current DNS rule
-    action rather than the removed legacy ``rcode://`` server transport.
+    Hostname-based DNS servers explicitly resolve through ``local_local`` so
+    native validation does not rely on the removed implicit resolver behavior.
     """
 
     return {
         "servers": [
             {
-                "address": "https://cloudflare-dns.com/dns-query",
-                "address_resolver": "local_local",
-                "strategy": "prefer_ipv4",
+                "type": "https",
                 "tag": "remote_dns",
+                "server": "cloudflare-dns.com",
+                "server_port": 443,
+                "path": "/dns-query",
+                "domain_resolver": "local_local",
             },
             {
-                "address": "https://dns.google/dns-query",
-                "address_resolver": "local_local",
-                "strategy": "prefer_ipv4",
+                "type": "https",
                 "tag": "direct_dns",
+                "server": "dns.google",
+                "server_port": 443,
+                "path": "/dns-query",
+                "domain_resolver": "local_local",
                 "detour": "direct",
             },
             {
-                "address": "1.1.1.1",
+                "type": "udp",
                 "tag": "local_local",
+                "server": "1.1.1.1",
+                "server_port": 53,
                 "detour": "direct",
             },
         ],
         "rules": [
             {
-                "server": "local_local",
                 "domain": ["sing_box-ProxyChain"],
+                "action": "route",
+                "server": "local_local",
             },
             {
-                "server": "remote_dns",
                 "clash_mode": "Global",
+                "action": "route",
+                "server": "remote_dns",
             },
             {
-                "server": "direct_dns",
                 "clash_mode": "Direct",
+                "action": "route",
+                "server": "direct_dns",
             },
             {
                 "rule_set": ["geosite-category-ads-all"],
@@ -138,12 +143,12 @@ def build_singbox_dns_profile() -> Dict[str, Any]:
                 "rcode": "NOERROR",
             },
             {
-                "server": "direct_dns",
                 "rule_set": ["geosite-private", "geosite-ir"],
+                "action": "route",
+                "server": "direct_dns",
             },
         ],
         "final": "remote_dns",
-        "independent_cache": True,
     }
 
 

@@ -13,7 +13,6 @@ def test_infrastructure_dns_list():
 
 def test_cloudflare_optimized_ips():
     assert len(CLOUDFLARE_OPTIMIZED_IPS) > 5
-    # Verify entries are valid IP-like strings
     assert all(isinstance(ip, str) and "." in ip for ip in CLOUDFLARE_OPTIMIZED_IPS)
 
 
@@ -22,25 +21,51 @@ def test_singbox_dns_profile_structure():
     assert "servers" in profile
     assert "rules" in profile
 
-    # Keep the generated legacy-input profile migration-safe for modern sing-box:
-    # no removed rcode transport and no forced proxy selector that may be absent
-    # in zero-proxy/degraded artifacts.
     servers = {s.get("tag"): s for s in profile["servers"]}
     assert "local_local" in servers
     assert "remote_dns" in servers
     assert "direct_dns" in servers
     assert "block_dns" not in servers
     assert "detour" not in servers["remote_dns"]
-    assert all(
-        not str(s.get("address", "")).startswith("rcode://") for s in servers.values()
-    )
 
-    # Verify servers use the legacy input "address" field; release finalization
-    # is responsible for migrating these into typed 1.12+ server objects.
-    for server in profile["servers"]:
-        assert (
-            "address" in server
-        ), f"Server {server.get('tag')} missing 'address' field"
+    # Sing-box 1.12+ typed DNS servers are emitted directly; hostname-based
+    # DoH servers explicitly reference a bootstrap resolver.
+    assert all("address" not in server for server in profile["servers"])
+    assert servers["remote_dns"] == {
+        "type": "https",
+        "tag": "remote_dns",
+        "server": "cloudflare-dns.com",
+        "server_port": 443,
+        "path": "/dns-query",
+        "domain_resolver": "local_local",
+    }
+    assert servers["direct_dns"]["domain_resolver"] == "local_local"
+    assert servers["local_local"]["type"] == "udp"
+    assert servers["local_local"]["server"] == "1.1.1.1"
+
+    routed_rules = [rule for rule in profile["rules"] if rule.get("action") == "route"]
+    assert routed_rules == [
+        {
+            "domain": ["sing_box-ProxyChain"],
+            "action": "route",
+            "server": "local_local",
+        },
+        {
+            "clash_mode": "Global",
+            "action": "route",
+            "server": "remote_dns",
+        },
+        {
+            "clash_mode": "Direct",
+            "action": "route",
+            "server": "direct_dns",
+        },
+        {
+            "rule_set": ["geosite-private", "geosite-ir"],
+            "action": "route",
+            "server": "direct_dns",
+        },
+    ]
 
     ad_rules = [
         rule

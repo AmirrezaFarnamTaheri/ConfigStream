@@ -155,46 +155,11 @@ class SingBoxGenerator:
             {"type": "dns", "tag": "dns-out"},
         ]
 
-        # DNS Configuration — keeps legacy input servers for compatibility, but
-        # uses the current DNS rule action for synthetic responses.  The removed
-        # rcode:// server transport cannot survive 1.12+ typed-server migration.
-        dns_config = {
-            "servers": [
-                {
-                    "address": "1.1.1.1",
-                    "strategy": "prefer_ipv4",
-                    "tag": "remote_dns",
-                    "detour": SELECTOR_TAG,
-                },
-                {
-                    "address": "8.8.8.8",
-                    "strategy": "prefer_ipv4",
-                    "tag": "direct_dns",
-                    "detour": "direct",
-                },
-                {
-                    "address": "8.8.8.8",
-                    "tag": "local_local",
-                    "detour": "direct",
-                },
-            ],
-            "rules": [
-                {"server": "local_local", "domain": ["sing_box-ProxyChain"]},
-                {"server": "remote_dns", "clash_mode": "Global"},
-                {"server": "direct_dns", "clash_mode": "Direct"},
-                {
-                    "rule_set": ["geosite-category-ads-all"],
-                    "action": "predefined",
-                    "rcode": "NOERROR",
-                },
-                {
-                    "server": "direct_dns",
-                    "rule_set": ["geosite-private", "geosite-ir"],
-                },
-            ],
-            "final": "remote_dns",
-            "independent_cache": True,
-        }
+        from configstream.dns_profiles import build_singbox_dns_profile
+
+        # Emit the 1.12+ typed DNS model directly instead of depending on the
+        # release finalizer to migrate legacy address/address_resolver fields.
+        dns_config = build_singbox_dns_profile()
 
         # Inbounds matched to e1.json
         inbounds = [
@@ -208,6 +173,10 @@ class SingBoxGenerator:
 
         # Route — compatible format for v2rayN / NekoRay / Hiddify
         route = {
+            # Hostname-based proxy/chain outbounds inherit this resolver. This
+            # is required by Sing-box 1.12+ and fixes native checks for chain
+            # artifacts whose upstream server is a domain name.
+            "default_domain_resolver": "local_local",
             "rules": [
                 {"action": "sniff"},
                 {"protocol": ["dns"], "action": "hijack-dns"},

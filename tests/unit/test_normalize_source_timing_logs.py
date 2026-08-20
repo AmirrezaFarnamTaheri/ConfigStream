@@ -29,6 +29,22 @@ def test_parse_source_timings_recovers_rich_wrapped_summary() -> None:
     assert records[0].duration_ms == 199631.0
 
 
+def test_parse_source_timings_handles_rich_source_column_and_wrapped_url() -> None:
+    text = """
+[05:39:40] INFO     Source Summary                               consumer.py:357
+                    [https://raw.githubusercontent.com/MuRongPIG
+                    /Proxy-Master/main/socks5.txt]:
+                    Raw=500 Parsed=500 Tested=499 Working=9 Dur=731141ms
+"""
+    records = parse_source_timings(text, "pipeline_batch_8_part_1.log")
+    assert len(records) == 1
+    assert records[0].url == (
+        "https://raw.githubusercontent.com/MuRongPIG/Proxy-Master/main/socks5.txt"
+    )
+    assert records[0].raw == 500
+    assert records[0].duration_ms == 731141.0
+
+
 def test_parse_source_timings_does_not_borrow_duration_from_next_record() -> None:
     text = """
 INFO Source Summary [https://broken.example/sub]: Raw=9
@@ -55,6 +71,26 @@ def test_collect_timings_keeps_slowest_duplicate_observation(tmp_path: Path) -> 
     assert len(records) == 1
     assert records[0].duration_ms == 2500.0
     assert records[0].source_log == second.name
+
+
+def test_collect_timings_dedupes_rich_wrapped_url_variants(tmp_path: Path) -> None:
+    log = tmp_path / "pipeline_batch_8_part_1.log"
+    log.write_text(
+        "\n".join(
+            [
+                "INFO Source Summary consumer.py:357 "
+                "[https://raw.githubusercontent.com/MuRongPIG "
+                "/Proxy-Master/main/socks5.txt]: Raw=500 Dur=1000ms",
+                "INFO Source Summary consumer.py:357 "
+                "[https://raw.githubusercontent.com/MuRongPIG/Proxy-Master/main/socks5.txt]: "
+                "Raw=500 Dur=2000ms",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    records = collect_timings([log])
+    assert len(records) == 1
+    assert records[0].duration_ms == 2000.0
 
 
 def test_load_expected_sources_ignores_comments_and_invalid_lines(
