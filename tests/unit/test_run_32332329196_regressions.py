@@ -67,7 +67,9 @@ def test_singbox_contract_rejects_hostname_dial_without_resolver() -> None:
 
     errors = validate_singbox_config(payload, "singbox.json")
 
-    assert any("outbounds[0] domain dial lacks domain resolver" in error for error in errors)
+    assert any(
+        "outbounds[0] domain dial lacks domain resolver" in error for error in errors
+    )
 
 
 def test_singbox_contract_rejects_direct_outbound_without_resolver() -> None:
@@ -94,7 +96,9 @@ def test_singbox_contract_rejects_direct_outbound_without_resolver() -> None:
 
     errors = validate_singbox_config(payload, "singbox.json")
 
-    assert any("outbounds[0] domain dial lacks domain resolver" in error for error in errors)
+    assert any(
+        "outbounds[0] domain dial lacks domain resolver" in error for error in errors
+    )
 
 
 def test_singbox_contract_allows_implicit_single_dns_resolver() -> None:
