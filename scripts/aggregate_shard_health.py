@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
@@ -14,6 +15,11 @@ try:
     from shard_sources import partition
 except ModuleNotFoundError:
     from scripts.shard_sources import partition
+
+FETCH_SUMMARY_RE = re.compile(
+    r"Fetch\s+Summary:\s*(?P<successful>\d+)\s*/\s*(?P<attempted>\d+)\s+sources\s+successful",
+    re.IGNORECASE,
+)
 
 
 def load(path: Path) -> Any:
@@ -42,12 +48,48 @@ def expected_from_sources(sources_dir: Path, parts: int) -> int:
 
 
 def bounded_source_counts(source_count: int, fetched_sources: int) -> tuple[int, int]:
-    """Return covered-source estimate and raw fetch attempts separately."""
+    """Return processable-source estimate and raw consumer queue observations."""
 
     assigned = max(0, int(source_count or 0))
-    attempts = max(0, int(fetched_sources or 0))
-    covered = min(assigned, attempts) if assigned else 0
-    return covered, attempts
+    observations = max(0, int(fetched_sources or 0))
+    processable = min(assigned, observations) if assigned else 0
+    return processable, observations
+
+
+def fetch_summary_counts(
+    log_path: Path,
+    *,
+    source_count: int,
+    fallback_fetched_sources: int,
+) -> tuple[int, int]:
+    """Return unique successful source fetches and source attempts.
+
+    Shard ``metadata.fetched_sources`` is updated by consumers for every queued
+    chunk, so it is not a unique source count. The producer's Fetch Summary is
+    emitted once per fetch batch and carries the actual source success / attempt
+    counts. Fall back to the old bounded estimate only when a shard log is absent.
+    """
+
+    fallback_covered, fallback_attempts = bounded_source_counts(
+        source_count, fallback_fetched_sources
+    )
+    try:
+        text = log_path.read_text(encoding="utf-8", errors="ignore")
+    except OSError:
+        return fallback_covered, fallback_attempts
+
+    matches = list(FETCH_SUMMARY_RE.finditer(text))
+    if not matches:
+        return fallback_covered, fallback_attempts
+
+    successful = sum(int(match.group("successful")) for match in matches)
+    attempted = sum(int(match.group("attempted")) for match in matches)
+    assigned = max(0, int(source_count or 0))
+    if assigned:
+        successful = min(successful, assigned)
+        attempted = min(attempted, assigned)
+    successful = min(successful, attempted)
+    return successful, attempted
 
 
 def main() -> int:
@@ -102,9 +144,14 @@ def main() -> int:
             starts.append(started)
         if completed:
             ends.append(completed)
+        batch = str(lineage.get("batch") or "").strip()
+        part = int(lineage.get("part") or 0)
         source_count = int(lineage.get("source_count") or 0)
-        covered_sources, source_attempts = bounded_source_counts(
-            source_count, int(metadata.get("fetched_sources") or 0)
+        fetch_log = Path(f"pipeline_batch_{batch}_part_{part}.log")
+        covered_sources, source_attempts = fetch_summary_counts(
+            fetch_log,
+            source_count=source_count,
+            fallback_fetched_sources=int(metadata.get("fetched_sources") or 0),
         )
         rows.append(
             {
@@ -144,10 +191,7 @@ def main() -> int:
             "duration": max(0.0, wall_seconds) or merged.get("duration", 0.0),
             "duration_seconds": max(0.0, wall_seconds)
             or merged.get("duration_seconds", 0.0),
-            # Keep the legacy field bounded for downstream coverage math, while
-            # preserving raw producer fetch activity as a separate counter.
             "fetched_sources": covered_sources,
-            "source_attempts": source_attempts,
             "total_configured_sources": configured_sources,
             "shard_summary": {
                 "expected": expected,
