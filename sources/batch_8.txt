@@ -1,5 +1,6 @@
 # ConfigStream Batch 8
-# Optimized Sources: 60
+# Active Sources: 60
+# Quarantined sources remain admission-tracked but are ignored by the runtime.
 # Quarantined after run 32332329196: MuRongPIG/Proxy-Master socks5 produced
 # ~47.5k candidates and exhausted the bounded shard budget.
 
@@ -27,6 +28,7 @@ https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub9.txt
 https://raw.githubusercontent.com/MhdiTaheri/V2rayCollector/main/sub/mix
 https://raw.githubusercontent.com/Mosifree/-FREE2CONFIG/refs/heads/main/Clash_Reality
+# quarantine: https://raw.githubusercontent.com/MuRongPIG/Proxy-Master/main/socks5.txt
 https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/hiddify/Windscribe%20on%20H2
 https://raw.githubusercontent.com/SamanValipour1/My-v2ray-configs/main/MySub.txt
 https://raw.githubusercontent.com/UptimerBot/proxy-list/main/proxies/socks4.txt
