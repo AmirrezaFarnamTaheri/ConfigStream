@@ -100,7 +100,6 @@ def parse_vless(url: str) -> Proxy | None:
             port=port,
             details={
                 "uuid": uuid_val,
-                "name": name,
                 "type": params.get("type", "tcp"),
                 "security": params.get("security", "none"),
                 "encryption": params.get("encryption", "none"),
