@@ -23,6 +23,16 @@ def test_singbox_endpoints_are_reference_targets() -> None:
             {"type": "direct", "tag": "direct"},
         ],
         "endpoints": [{"type": "wireguard", "tag": "warp", "detour": "direct"}],
+        "dns": {
+            "servers": [
+                {
+                    "type": "udp",
+                    "tag": "local_local",
+                    "server": "1.1.1.1",
+                    "server_port": 53,
+                }
+            ]
+        },
         "route": {"final": "proxy"},
     }
     assert validate_singbox_config(payload, "singbox.json") == []
