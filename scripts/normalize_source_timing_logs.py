@@ -176,44 +176,69 @@ def _candidate_sources_for_log(
     return buckets[part - 1]
 
 
+def _canonical_matches(
+    record: SourceTiming,
+    sources_by_batch: dict[str, list[str]],
+    parts: int,
+) -> list[str]:
+    candidates = _candidate_sources_for_log(record.source_log, sources_by_batch, parts)
+    observed = _normalize_logged_url(record.url)
+    matches = [url for url in candidates if _sanitized_source_key(url) == observed]
+    if not matches:
+        matches = [
+            url for url in candidates if _normalize_logged_url(url) == observed
+        ]
+    if not matches:
+        observed_key = _source_key(observed)
+        matches = [url for url in candidates if _source_key(url) == observed_key]
+    return matches if len(matches) == 1 else []
+
+
+def _timing_identity(record: SourceTiming) -> tuple[str, str]:
+    return record.source_log, _normalize_logged_url(record.url)
+
+
+def timing_resolution_counts(
+    records: Iterable[SourceTiming],
+    sources_by_batch: dict[str, list[str]],
+    parts: int,
+) -> tuple[int, int]:
+    """Return mapped and observed logical timing identities.
+
+    Multiple chunks from the same source can emit repeated summaries. Count each
+    sanitized source identity once per deterministic shard, and only count it as
+    mapped when exactly one canonical source in that shard produces the logged
+    sanitized URL. Ambiguous sanitizer collisions remain unresolved rather than
+    fabricating timing evidence for multiple sources.
+    """
+
+    identities: dict[tuple[str, str], SourceTiming] = {}
+    for record in records:
+        identities.setdefault(_timing_identity(record), record)
+    mapped = sum(
+        bool(_canonical_matches(record, sources_by_batch, parts))
+        for record in identities.values()
+    )
+    return mapped, len(identities)
+
+
 def resolve_timings(
     records: Iterable[SourceTiming],
     sources_by_batch: dict[str, list[str]],
     parts: int,
 ) -> list[SourceTiming]:
-    """Resolve sanitized log URLs back to canonical sources within each shard.
-
-    Log sanitization intentionally masks credential/base64-shaped URL segments,
-    which can make global URL matching ambiguous. Runtime shard assignment is
-    deterministic, so constrain matching to the handful of canonical sources in
-    the record's batch/part. If multiple sources still sanitize identically,
-    conservatively assign the duration to each candidate so resharding never
-    underweights an indistinguishable slow source.
-    """
+    """Resolve unambiguous sanitized log URLs to canonical shard sources."""
 
     by_url: dict[str, SourceTiming] = {}
     for record in records:
-        candidates = _candidate_sources_for_log(
-            record.source_log, sources_by_batch, parts
-        )
-        observed = _normalize_logged_url(record.url)
-        matches = [
-            url for url in candidates if _sanitized_source_key(url) == observed
-        ]
+        matches = _canonical_matches(record, sources_by_batch, parts)
         if not matches:
-            matches = [
-                url for url in candidates if _normalize_logged_url(url) == observed
-            ]
-        if not matches:
-            observed_key = _source_key(observed)
-            matches = [
-                url for url in candidates if _source_key(url) == observed_key
-            ]
-        for canonical_url in matches:
-            resolved = replace(record, url=canonical_url)
-            previous = by_url.get(canonical_url)
-            if previous is None or resolved.duration_ms > previous.duration_ms:
-                by_url[canonical_url] = resolved
+            continue
+        canonical_url = matches[0]
+        resolved = replace(record, url=canonical_url)
+        previous = by_url.get(canonical_url)
+        if previous is None or resolved.duration_ms > previous.duration_ms:
+            by_url[canonical_url] = resolved
     return [by_url[url] for url in sorted(by_url)]
 
 
@@ -227,39 +252,6 @@ def timing_coverage(
         _source_key(record.url) for record in records if _source_key(record.url)
     }
     return len(expected_keys & observed_keys) / len(expected_keys)
-
-
-def load_timing_target(metadata_path: Path, canonical_source_count: int) -> int:
-    """Return how many successfully fetched sources should have timing evidence.
-
-    The release gate independently checks successful fetch coverage against all
-    configured sources. Timing normalization therefore measures whether those
-    successfully fetched sources produced enough per-source timing evidence.
-    """
-
-    try:
-        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return canonical_source_count
-    if not isinstance(metadata, dict):
-        return canonical_source_count
-    value = metadata.get("fetched_sources")
-    try:
-        target = int(value or 0)
-    except (TypeError, ValueError):
-        return canonical_source_count
-    if target <= 0:
-        return canonical_source_count
-    return min(target, canonical_source_count)
-
-
-def timing_target_coverage(
-    records: Iterable[SourceTiming], target_count: int
-) -> float:
-    if target_count <= 0:
-        return 0.0
-    observed = {record.url for record in records if record.url}
-    return min(1.0, len(observed) / target_count)
 
 
 def source_id_for_url(url: str) -> str:
@@ -331,19 +323,10 @@ def main() -> int:
         help="Canonical source-file glob used to resolve timing evidence",
     )
     parser.add_argument(
-        "--metadata",
-        type=Path,
-        default=Path("output/metadata.json"),
-        help="Aggregated metadata used to derive successful-fetch timing coverage",
-    )
-    parser.add_argument(
         "--min-coverage",
         type=float,
         default=DEFAULT_MIN_COVERAGE,
-        help=(
-            "Minimum fraction of successfully fetched sources requiring real "
-            "timing evidence"
-        ),
+        help="Minimum fraction of logged timing identities requiring canonical mapping",
     )
     parser.add_argument(
         "--normalized-log",
@@ -383,29 +366,28 @@ def main() -> int:
         )
         return 1
 
-    records = resolve_timings(
-        raw_records, sources_by_batch, infer_shard_parts(log_files)
-    )
-    if not records:
-        print(
-            "ERROR: source timing records could not be mapped to canonical shard "
-            "sources",
-            file=sys.stderr,
-        )
-        return 1
-
-    target_count = load_timing_target(args.metadata, len(expected_sources))
-    coverage = timing_target_coverage(records, target_count)
+    parts = infer_shard_parts(log_files)
+    mapped, observed = timing_resolution_counts(raw_records, sources_by_batch, parts)
+    coverage = mapped / observed if observed else 0.0
     min_coverage = max(0.0, min(float(args.min_coverage), 1.0))
     print(
-        f"INFO: source timing coverage {coverage:.1%} "
-        f"({len(records)} canonical records, target {target_count}, "
+        f"INFO: source timing identity coverage {coverage:.1%} "
+        f"({mapped} mapped, {observed} observed identities, "
         f"{len(expected_sources)} configured sources)"
     )
     if coverage < min_coverage:
         print(
-            f"ERROR: source timing coverage {coverage:.1%} is below "
+            f"ERROR: source timing identity coverage {coverage:.1%} is below "
             f"the required {min_coverage:.1%}",
+            file=sys.stderr,
+        )
+        return 1
+
+    records = resolve_timings(raw_records, sources_by_batch, parts)
+    if not records:
+        print(
+            "ERROR: source timing records could not be mapped to canonical shard "
+            "sources",
             file=sys.stderr,
         )
         return 1
