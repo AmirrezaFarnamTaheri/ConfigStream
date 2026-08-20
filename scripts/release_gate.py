@@ -278,9 +278,6 @@ def validate(root: Path, native_report: Path, min_coverage: float) -> list[str]:
     ):
         errors.append("no logical working proxies")
 
-    # Unverified shielded chains are intentionally published as candidates with
-    # is_working=False. They remain truthful metadata, but do not make the
-    # otherwise validated release incomplete.
     drop_reasons = metadata.get("drop_reasons")
     if drop_reasons is not None and not isinstance(drop_reasons, dict):
         errors.append("metadata drop_reasons must be an object")
@@ -298,7 +295,11 @@ def validate(root: Path, native_report: Path, min_coverage: float) -> list[str]:
         if not isinstance(blockers, list):
             errors.append("health release_blockers must be a list")
         else:
-            errors.extend(f"health blocker: {item}" for item in blockers if not _is_nonblocking_health_note(item))
+            errors.extend(
+                f"health blocker: {item}"
+                for item in blockers
+                if not _is_nonblocking_health_note(item)
+            )
 
     if not isinstance(compatibility, dict):
         errors.append("format_compatibility.json must be an object")
@@ -325,7 +326,6 @@ def validate(root: Path, native_report: Path, min_coverage: float) -> list[str]:
         errors.append(f"sing-box validation failed safely: {type(exc).__name__}")
     errors.extend(validate_manifest(root, manifest))
     return errors
-
 
 
 def promote(root: Path, native_report: Path, min_coverage: float) -> None:
