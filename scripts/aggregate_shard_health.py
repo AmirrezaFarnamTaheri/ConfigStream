@@ -10,7 +10,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from shard_sources import partition
+try:
+    from shard_sources import partition
+except ModuleNotFoundError:
+    from scripts.shard_sources import partition
 
 
 def load(path: Path) -> Any:
