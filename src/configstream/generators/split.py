@@ -223,7 +223,6 @@ def generate_split_outputs(
             if tag not in selector_tags:
                 selector_tags.append(tag)
 
-    # Add washed outbounds (flat list; uniquify to prevent tag collisions)
     if washed_outbounds:
         _append_chain_uniquified(
             washed_outbounds,
@@ -234,7 +233,6 @@ def generate_split_outputs(
             add_all_non_relay=True,
         )
 
-    # Add Smart Chains to Sniper as well (if available)
     # Ensure smart chains appear in singbox.json
     if smart_chains:
         for chain_list in smart_chains.values():
@@ -308,6 +306,7 @@ def generate_split_outputs(
     }
     if singbox_dns_profile:
         sniper_config["dns"] = copy.deepcopy(singbox_dns_profile)
+        sniper_config["route"] = {"default_domain_resolver": "local_local"}
 
     sniper_path = output_dir / f"singbox{suffix}.json"
     AtomicFileWriter.write_text(
@@ -450,7 +449,7 @@ def generate_split_outputs(
     # Strip internal metadata fields from tank outbounds too
     clean_tank_outbounds = _strip_internal_metadata(tank_outbounds)
 
-    tank_config = {
+    tank_config: Dict[str, Any] = {
         "log": {"level": "info"},
         "inbounds": [
             {
@@ -473,6 +472,7 @@ def generate_split_outputs(
     }
     if singbox_dns_profile:
         tank_config["dns"] = copy.deepcopy(singbox_dns_profile)
+        tank_config["route"]["default_domain_resolver"] = "local_local"
 
     tank_path = output_dir / f"singbox-vpn{suffix}.json"
     AtomicFileWriter.write_text(
