@@ -9,17 +9,18 @@ import hashlib
 import json
 import re
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Iterable
 
 from configstream.security_validator import SecurityValidator
 
+try:
+    from shard_sources import partition
+except ModuleNotFoundError:
+    from scripts.shard_sources import partition
+
 ANSI_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
-# Rich can inject a source-location column (for example ``consumer.py:357``)
-# between the message and the URL, and can wrap long URLs across display lines.
-# Match up to the first '[' instead of requiring '[' to immediately follow
-# ``Source Summary``.
 SUMMARY_START_RE = re.compile(r"Source\s+Summary\b[^\[]*\[", re.IGNORECASE)
 SUMMARY_HEAD_RE = re.compile(
     r"Source\s+Summary\b[^\[]*\[(?P<url>.*?)\]\s*:\s*(?P<body>.*)",
@@ -28,6 +29,10 @@ SUMMARY_HEAD_RE = re.compile(
 RAW_RE = re.compile(r"\bRaw\s*=\s*(\d+)", re.IGNORECASE)
 FETCH_RE = re.compile(r"\bFetch\s*[:=]\s*([\d.]+)\s*ms", re.IGNORECASE)
 DURATION_RE = re.compile(r"\bDur\s*=\s*([\d.]+)\s*ms", re.IGNORECASE)
+SHARD_LOG_RE = re.compile(
+    r"^pipeline_batch_(?P<batch>.+?)_part_(?P<part>\d+)\.log$",
+    re.IGNORECASE,
+)
 DEFAULT_MIN_COVERAGE = 0.80
 
 
@@ -51,9 +56,17 @@ def _normalize_logged_url(value: str) -> str:
 
 
 def _source_key(url: str) -> str:
-    cleaned = _normalize_logged_url(url).replace("[MASKED]", "").replace("[BASE64]", "")
+    cleaned = (
+        _normalize_logged_url(url)
+        .replace("[MASKED]", "")
+        .replace("[BASE64]", "")
+    )
     cleaned = cleaned.split("#", 1)[0].split("?", 1)[0]
     return cleaned.rstrip()
+
+
+def _sanitized_source_key(url: str) -> str:
+    return _normalize_logged_url(SecurityValidator.sanitize_log_message(url))
 
 
 def parse_source_timings(text: str, source_log: str = "") -> list[SourceTiming]:
@@ -87,19 +100,25 @@ def parse_source_timings(text: str, source_log: str = "") -> list[SourceTiming]:
     return records
 
 
-def collect_timings(log_files: Iterable[Path]) -> list[SourceTiming]:
-    """Collect one conservative record per source URL, keeping the slowest duration."""
-
-    by_url: dict[str, SourceTiming] = {}
+def collect_raw_timings(log_files: Iterable[Path]) -> list[SourceTiming]:
+    records: list[SourceTiming] = []
     for path in log_files:
         text = path.read_text(encoding="utf-8", errors="ignore")
-        for record in parse_source_timings(text, path.name):
-            key = _source_key(record.url)
-            if not key:
-                continue
-            previous = by_url.get(key)
-            if previous is None or record.duration_ms > previous.duration_ms:
-                by_url[key] = record
+        records.extend(parse_source_timings(text, path.name))
+    return records
+
+
+def collect_timings(log_files: Iterable[Path]) -> list[SourceTiming]:
+    """Collect one conservative record per logged URL, keeping the slowest."""
+
+    by_url: dict[str, SourceTiming] = {}
+    for record in collect_raw_timings(log_files):
+        key = _source_key(record.url)
+        if not key:
+            continue
+        previous = by_url.get(key)
+        if previous is None or record.duration_ms > previous.duration_ms:
+            by_url[key] = record
     return [by_url[url] for url in sorted(by_url)]
 
 
@@ -116,6 +135,88 @@ def load_expected_sources(pattern: str) -> set[str]:
     return sources
 
 
+def load_expected_sources_by_batch(pattern: str) -> dict[str, list[str]]:
+    batches: dict[str, list[str]] = {}
+    for item in sorted(glob.glob(pattern)):
+        path = Path(item)
+        batch = path.stem.removeprefix("batch_")
+        lines = [
+            line.strip()
+            for line in path.read_text(encoding="utf-8", errors="ignore").splitlines()
+            if line.strip()
+            and not line.lstrip().startswith("#")
+            and line.strip().startswith(("http://", "https://"))
+        ]
+        batches[batch] = lines
+    return batches
+
+
+def infer_shard_parts(log_files: Iterable[Path]) -> int:
+    parts = [
+        int(match.group("part"))
+        for path in log_files
+        if (match := SHARD_LOG_RE.match(path.name)) is not None
+    ]
+    return max(parts, default=1)
+
+
+def _candidate_sources_for_log(
+    source_log: str,
+    sources_by_batch: dict[str, list[str]],
+    parts: int,
+) -> list[str]:
+    match = SHARD_LOG_RE.match(Path(source_log).name)
+    if match is None:
+        return []
+    batch_sources = sources_by_batch.get(match.group("batch"), [])
+    part = int(match.group("part"))
+    buckets = partition(batch_sources, parts) if batch_sources else []
+    if part < 1 or part > len(buckets):
+        return []
+    return buckets[part - 1]
+
+
+def resolve_timings(
+    records: Iterable[SourceTiming],
+    sources_by_batch: dict[str, list[str]],
+    parts: int,
+) -> list[SourceTiming]:
+    """Resolve sanitized log URLs back to canonical sources within each shard.
+
+    Log sanitization intentionally masks credential/base64-shaped URL segments,
+    which can make global URL matching ambiguous. Runtime shard assignment is
+    deterministic, so constrain matching to the handful of canonical sources in
+    the record's batch/part. If multiple sources still sanitize identically,
+    conservatively assign the duration to each candidate so resharding never
+    underweights an indistinguishable slow source.
+    """
+
+    by_url: dict[str, SourceTiming] = {}
+    for record in records:
+        candidates = _candidate_sources_for_log(
+            record.source_log, sources_by_batch, parts
+        )
+        observed = _normalize_logged_url(record.url)
+        matches = [
+            url for url in candidates if _sanitized_source_key(url) == observed
+        ]
+        if not matches:
+            matches = [
+                url for url in candidates if _normalize_logged_url(url) == observed
+            ]
+        if not matches:
+            observed_key = _source_key(observed)
+            matches = [
+                url for url in candidates if _source_key(url) == observed_key
+            ]
+        for canonical_url in matches:
+            resolved = replace(record, url=canonical_url)
+            previous = by_url.get(canonical_url)
+            if previous is None or resolved.duration_ms > previous.duration_ms:
+                by_url[canonical_url] = resolved
+    return [by_url[url] for url in sorted(by_url)]
+
+
 def timing_coverage(
     records: Iterable[SourceTiming], expected_sources: Iterable[str]
 ) -> float:
@@ -126,6 +227,39 @@ def timing_coverage(
         _source_key(record.url) for record in records if _source_key(record.url)
     }
     return len(expected_keys & observed_keys) / len(expected_keys)
+
+
+def load_timing_target(metadata_path: Path, canonical_source_count: int) -> int:
+    """Return how many successfully fetched sources should have timing evidence.
+
+    The release gate independently checks successful fetch coverage against all
+    configured sources. Timing normalization therefore measures whether those
+    successfully fetched sources produced enough per-source timing evidence.
+    """
+
+    try:
+        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return canonical_source_count
+    if not isinstance(metadata, dict):
+        return canonical_source_count
+    value = metadata.get("fetched_sources")
+    try:
+        target = int(value or 0)
+    except (TypeError, ValueError):
+        return canonical_source_count
+    if target <= 0:
+        return canonical_source_count
+    return min(target, canonical_source_count)
+
+
+def timing_target_coverage(
+    records: Iterable[SourceTiming], target_count: int
+) -> float:
+    if target_count <= 0:
+        return 0.0
+    observed = {record.url for record in records if record.url}
+    return min(1.0, len(observed) / target_count)
 
 
 def source_id_for_url(url: str) -> str:
@@ -176,8 +310,10 @@ def _clear_outputs(*paths: Path) -> bool:
         try:
             path.unlink(missing_ok=True)
         except OSError as exc:
+            safe_path = SecurityValidator.sanitize_log_message(str(path))
             print(
-                f"ERROR: could not clear stale timing output {SecurityValidator.sanitize_log_message(str(path))}: {type(exc).__name__}",
+                "ERROR: could not clear stale timing output "
+                f"{safe_path}: {type(exc).__name__}",
                 file=sys.stderr,
             )
             return False
@@ -192,13 +328,22 @@ def main() -> int:
     parser.add_argument(
         "--sources-pattern",
         default="sources/batch_*.txt",
-        help="Canonical source-file glob used to calculate timing coverage",
+        help="Canonical source-file glob used to resolve timing evidence",
+    )
+    parser.add_argument(
+        "--metadata",
+        type=Path,
+        default=Path("output/metadata.json"),
+        help="Aggregated metadata used to derive successful-fetch timing coverage",
     )
     parser.add_argument(
         "--min-coverage",
         type=float,
         default=DEFAULT_MIN_COVERAGE,
-        help="Minimum fraction of canonical sources requiring real timing evidence",
+        help=(
+            "Minimum fraction of successfully fetched sources requiring real "
+            "timing evidence"
+        ),
     )
     parser.add_argument(
         "--normalized-log",
@@ -222,25 +367,40 @@ def main() -> int:
         )
         return 1
 
-    records = collect_timings(log_files)
-    if not records:
+    raw_records = collect_raw_timings(log_files)
+    if not raw_records:
         print(
             "ERROR: shard logs contained no parseable Source Summary timing records",
             file=sys.stderr,
         )
         return 1
 
-    expected_sources = load_expected_sources(args.sources_pattern)
+    sources_by_batch = load_expected_sources_by_batch(args.sources_pattern)
+    expected_sources = {url for urls in sources_by_batch.values() for url in urls}
     if not expected_sources:
         print(
             "ERROR: no canonical sources available for timing coverage", file=sys.stderr
         )
         return 1
-    coverage = timing_coverage(records, expected_sources)
+
+    records = resolve_timings(
+        raw_records, sources_by_batch, infer_shard_parts(log_files)
+    )
+    if not records:
+        print(
+            "ERROR: source timing records could not be mapped to canonical shard "
+            "sources",
+            file=sys.stderr,
+        )
+        return 1
+
+    target_count = load_timing_target(args.metadata, len(expected_sources))
+    coverage = timing_target_coverage(records, target_count)
     min_coverage = max(0.0, min(float(args.min_coverage), 1.0))
     print(
         f"INFO: source timing coverage {coverage:.1%} "
-        f"({len(records)} records, {len(expected_sources)} canonical sources)"
+        f"({len(records)} canonical records, target {target_count}, "
+        f"{len(expected_sources)} configured sources)"
     )
     if coverage < min_coverage:
         print(
@@ -252,7 +412,8 @@ def main() -> int:
 
     write_outputs(records, args.normalized_log, args.evidence)
     print(
-        f"OK: normalized {len(records)} source timing records from {len(log_files)} shard log(s)."
+        f"OK: normalized {len(records)} canonical source timing records from "
+        f"{len(log_files)} shard log(s)."
     )
     return 0
 
