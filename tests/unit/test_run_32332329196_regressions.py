@@ -39,9 +39,62 @@ def test_singbox_contract_rejects_hostname_dial_without_resolver() -> None:
                 "tag": "proxy",
                 "server": "proxy.example",
                 "server_port": 1080,
-            },
-            {"type": "direct", "tag": "direct"},
+            }
         ],
+        "dns": {
+            "servers": [
+                {
+                    "type": "udp",
+                    "tag": "local_local",
+                    "server": "1.1.1.1",
+                    "server_port": 53,
+                },
+                {
+                    "type": "udp",
+                    "tag": "backup_dns",
+                    "server": "8.8.8.8",
+                    "server_port": 53,
+                },
+            ]
+        },
+        "route": {"final": "proxy", "rules": []},
+    }
+
+    errors = validate_singbox_config(payload, "singbox.json")
+
+    assert any("outbounds[0] domain dial lacks domain resolver" in error for error in errors)
+
+
+def test_singbox_contract_rejects_direct_outbound_without_resolver() -> None:
+    payload = {
+        "outbounds": [{"type": "direct", "tag": "direct"}],
+        "dns": {
+            "servers": [
+                {
+                    "type": "udp",
+                    "tag": "local_local",
+                    "server": "1.1.1.1",
+                    "server_port": 53,
+                },
+                {
+                    "type": "udp",
+                    "tag": "backup_dns",
+                    "server": "8.8.8.8",
+                    "server_port": 53,
+                },
+            ]
+        },
+        "route": {"final": "direct", "rules": []},
+    }
+
+    errors = validate_singbox_config(payload, "singbox.json")
+
+    assert any("outbounds[0] domain dial lacks domain resolver" in error for error in errors)
+
+
+def test_singbox_contract_allows_implicit_single_dns_resolver() -> None:
+    payload = {
+        "outbounds": [{"type": "direct", "tag": "direct"}],
         "dns": {
             "servers": [
                 {
@@ -52,12 +105,10 @@ def test_singbox_contract_rejects_hostname_dial_without_resolver() -> None:
                 }
             ]
         },
-        "route": {"final": "proxy", "rules": []},
+        "route": {"final": "direct", "rules": []},
     }
 
-    errors = validate_singbox_config(payload, "singbox.json")
-
-    assert any("hostname dial lacks domain resolver" in error for error in errors)
+    assert validate_singbox_config(payload, "singbox.json") == []
 
 
 def test_unverified_shielded_candidate_note_is_not_release_blocking() -> None:
