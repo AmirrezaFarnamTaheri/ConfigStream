@@ -1,16 +1,25 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
+from configstream.security_validator import SecurityValidator
 from scripts.normalize_source_timing_logs import (
     SourceTiming,
     collect_timings,
+    infer_shard_parts,
     load_expected_sources,
+    load_expected_sources_by_batch,
+    load_timing_target,
     main,
     parse_source_timings,
+    resolve_timings,
+    source_id_for_url,
     timing_coverage,
+    timing_target_coverage,
+    write_outputs,
 )
 
 
@@ -105,6 +114,68 @@ def test_load_expected_sources_ignores_comments_and_invalid_lines(
         "https://a.example/sub",
         "https://b.example/sub",
     }
+
+
+def test_resolve_timings_recovers_canonical_url_from_sanitized_shard_log(
+    tmp_path: Path,
+) -> None:
+    sources = tmp_path / "sources"
+    sources.mkdir()
+    canonical = (
+        "https://raw.githubusercontent.com/example/"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ/main/sub.txt"
+    )
+    (sources / "batch_1.txt").write_text(canonical + "\n", encoding="utf-8")
+    masked = SecurityValidator.sanitize_log_message(canonical)
+    assert masked != canonical
+    assert "[BASE64]" in masked
+
+    log = tmp_path / "pipeline_batch_1_part_1.log"
+    log.write_text(
+        f"INFO Source Summary [{masked}]: Raw=17 Dur=2500ms\n",
+        encoding="utf-8",
+    )
+    raw_records = parse_source_timings(log.read_text(), log.name)
+    sources_by_batch = load_expected_sources_by_batch(
+        str(sources / "batch_*.txt")
+    )
+    records = resolve_timings(
+        raw_records,
+        sources_by_batch,
+        infer_shard_parts([log]),
+    )
+
+    assert len(records) == 1
+    assert records[0].url == canonical
+    assert source_id_for_url(records[0].url) == source_id_for_url(canonical)
+
+    normalized = tmp_path / "source_timing_normalized.log"
+    evidence = tmp_path / "pipeline-evidence" / "source_timing.jsonl"
+    write_outputs(records, normalized, evidence)
+    payload = json.loads(evidence.read_text(encoding="utf-8").strip())
+    assert payload["source_id"] == source_id_for_url(canonical)
+    assert payload["source_url"] == masked
+
+
+def test_timing_target_coverage_tracks_successful_fetches() -> None:
+    records = [
+        SourceTiming(
+            url=f"https://source-{index}.example/sub",
+            raw=1,
+            duration_ms=1000.0,
+            fetch_ms=None,
+            source_log="timing.log",
+        )
+        for index in range(9)
+    ]
+    assert timing_target_coverage(records, 11) == 9 / 11
+    assert timing_target_coverage(records, 11) > 0.80
+
+
+def test_load_timing_target_uses_aggregated_successful_fetches(tmp_path: Path) -> None:
+    metadata = tmp_path / "metadata.json"
+    metadata.write_text('{"fetched_sources": 11}\n', encoding="utf-8")
+    assert load_timing_target(metadata, canonical_source_count=100) == 11
 
 
 def test_timing_coverage_normalizes_masked_query_variants() -> None:
