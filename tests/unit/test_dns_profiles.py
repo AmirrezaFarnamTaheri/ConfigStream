@@ -43,9 +43,7 @@ def test_singbox_dns_profile_structure():
     assert servers["local_local"]["type"] == "udp"
     assert servers["local_local"]["server"] == "1.1.1.1"
 
-    routed_rules = [
-        rule for rule in profile["rules"] if rule.get("action") == "route"
-    ]
+    routed_rules = [rule for rule in profile["rules"] if rule.get("action") == "route"]
     assert routed_rules == [
         {
             "domain": ["sing_box-ProxyChain"],
