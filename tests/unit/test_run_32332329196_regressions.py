@@ -1,7 +1,12 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
+from configstream.dns_profiles import build_singbox_dns_profile
 from configstream.generators.singbox import SingBoxGenerator
+from configstream.generators.split import generate_split_outputs
 from configstream.output.singbox_contract import validate_singbox_config
 from scripts.aggregate_shard_health import bounded_source_counts
 from scripts.release_gate import _is_nonblocking_health_note
@@ -109,6 +114,25 @@ def test_singbox_contract_allows_implicit_single_dns_resolver() -> None:
     }
 
     assert validate_singbox_config(payload, "singbox.json") == []
+
+
+def test_singbox_contract_allows_no_dns_configuration() -> None:
+    payload = {
+        "outbounds": [{"type": "direct", "tag": "direct"}],
+        "route": {"final": "direct", "rules": []},
+    }
+
+    assert validate_singbox_config(payload, "singbox.json") == []
+
+
+def test_split_configs_set_resolver_for_multi_dns_profile(tmp_path: Path) -> None:
+    files = generate_split_outputs(
+        [], tmp_path, singbox_dns_profile=build_singbox_dns_profile()
+    )
+
+    for key in ("singbox", "singbox_vpn"):
+        payload = json.loads(files[key].read_text(encoding="utf-8"))
+        assert payload["route"]["default_domain_resolver"] == "local_local"
 
 
 def test_unverified_shielded_candidate_note_is_not_release_blocking() -> None:
