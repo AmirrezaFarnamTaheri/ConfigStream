@@ -12,13 +12,12 @@ from scripts.normalize_source_timing_logs import (
     infer_shard_parts,
     load_expected_sources,
     load_expected_sources_by_batch,
-    load_timing_target,
     main,
     parse_source_timings,
     resolve_timings,
     source_id_for_url,
     timing_coverage,
-    timing_target_coverage,
+    timing_resolution_counts,
     write_outputs,
 )
 
@@ -139,12 +138,10 @@ def test_resolve_timings_recovers_canonical_url_from_sanitized_shard_log(
     sources_by_batch = load_expected_sources_by_batch(
         str(sources / "batch_*.txt")
     )
-    records = resolve_timings(
-        raw_records,
-        sources_by_batch,
-        infer_shard_parts([log]),
-    )
+    parts = infer_shard_parts([log])
+    assert timing_resolution_counts(raw_records, sources_by_batch, parts) == (1, 1)
 
+    records = resolve_timings(raw_records, sources_by_batch, parts)
     assert len(records) == 1
     assert records[0].url == canonical
     assert source_id_for_url(records[0].url) == source_id_for_url(canonical)
@@ -157,25 +154,33 @@ def test_resolve_timings_recovers_canonical_url_from_sanitized_shard_log(
     assert payload["source_url"] == masked
 
 
-def test_timing_target_coverage_tracks_successful_fetches() -> None:
-    records = [
-        SourceTiming(
-            url=f"https://source-{index}.example/sub",
-            raw=1,
-            duration_ms=1000.0,
-            fetch_ms=None,
-            source_log="timing.log",
-        )
-        for index in range(9)
-    ]
-    assert timing_target_coverage(records, 11) == 9 / 11
-    assert timing_target_coverage(records, 11) > 0.80
+def test_resolution_coverage_rejects_ambiguous_sanitizer_collision(
+    tmp_path: Path,
+) -> None:
+    sources = tmp_path / "sources"
+    sources.mkdir()
+    first = "https://raw.githubusercontent.com/a/ABCDEFGHIJKLMNOPQRSTUV/main/sub.txt"
+    second = "https://raw.githubusercontent.com/b/ABCDEFGHIJKLMNOPQRSTUV/main/sub.txt"
+    (sources / "batch_1.txt").write_text(
+        f"{first}\n{second}\n",
+        encoding="utf-8",
+    )
+    masked = SecurityValidator.sanitize_log_message(first)
+    assert masked == SecurityValidator.sanitize_log_message(second)
 
+    record = SourceTiming(
+        url=masked,
+        raw=1,
+        duration_ms=1000.0,
+        fetch_ms=None,
+        source_log="pipeline_batch_1_part_1.log",
+    )
+    sources_by_batch = load_expected_sources_by_batch(
+        str(sources / "batch_*.txt")
+    )
 
-def test_load_timing_target_uses_aggregated_successful_fetches(tmp_path: Path) -> None:
-    metadata = tmp_path / "metadata.json"
-    metadata.write_text('{"fetched_sources": 11}\n', encoding="utf-8")
-    assert load_timing_target(metadata, canonical_source_count=100) == 11
+    assert timing_resolution_counts([record], sources_by_batch, 1) == (0, 1)
+    assert resolve_timings([record], sources_by_batch, 1) == []
 
 
 def test_timing_coverage_normalizes_masked_query_variants() -> None:
@@ -223,7 +228,7 @@ def test_main_removes_partial_outputs_when_coverage_fails(
 ) -> None:
     log = tmp_path / "pipeline_batch_1_part_1.log"
     log.write_text(
-        "Source Summary [https://a.example/sub]: Raw=1 Dur=1000ms\n",
+        "Source Summary [https://unknown.example/sub]: Raw=1 Dur=1000ms\n",
         encoding="utf-8",
     )
     sources = tmp_path / "sources"
