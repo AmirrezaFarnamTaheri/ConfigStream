@@ -43,6 +43,32 @@ def test_singbox_dns_profile_structure():
     assert servers["local_local"]["type"] == "udp"
     assert servers["local_local"]["server"] == "1.1.1.1"
 
+    routed_rules = [
+        rule for rule in profile["rules"] if rule.get("action") == "route"
+    ]
+    assert routed_rules == [
+        {
+            "domain": ["sing_box-ProxyChain"],
+            "action": "route",
+            "server": "local_local",
+        },
+        {
+            "clash_mode": "Global",
+            "action": "route",
+            "server": "remote_dns",
+        },
+        {
+            "clash_mode": "Direct",
+            "action": "route",
+            "server": "direct_dns",
+        },
+        {
+            "rule_set": ["geosite-private", "geosite-ir"],
+            "action": "route",
+            "server": "direct_dns",
+        },
+    ]
+
     ad_rules = [
         rule
         for rule in profile["rules"]
