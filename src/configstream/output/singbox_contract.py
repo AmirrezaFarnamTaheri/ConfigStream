@@ -145,7 +145,7 @@ def validate_singbox_config(payload: object, file_name: str) -> List[str]:
                     _resolver_server(item.get("domain_resolver"))
                     or default_domain_resolver
                 )
-                if resolver is None and len(dns_tags) != 1:
+                if resolver is None and len(dns_tags) > 1:
                     errors.append(
                         f"{file_name} {collection_name}[{index}] domain dial lacks domain resolver"
                     )
