@@ -16,16 +16,20 @@ from configstream.source_admission import (
 
 ROOT = Path(__file__).resolve().parents[2]
 MANIFEST = ROOT / "src" / "configstream" / "data" / "source-admission.json"
+QUARANTINED_PREFIX = "# quarantine:"
 
 
 def _batch_urls() -> set[str]:
     result: set[str] = set()
     for path in sorted((ROOT / "sources").glob("batch_*.txt")):
-        result.update(
-            line.strip()
-            for line in path.read_text(encoding="utf-8").splitlines()
-            if line.strip() and not line.lstrip().startswith("#")
-        )
+        for raw in path.read_text(encoding="utf-8").splitlines():
+            line = raw.strip()
+            if not line:
+                continue
+            if line.startswith(QUARANTINED_PREFIX):
+                result.add(line[len(QUARANTINED_PREFIX) :].strip())
+            elif not line.startswith("#"):
+                result.add(line)
     return result
 
 
