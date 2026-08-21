@@ -175,6 +175,40 @@ def _public_shielding_counts(records: list[dict[str, Any]]) -> tuple[int, int]:
     return candidates, verified
 
 
+def _reconcile_execution_audit(metadata: dict[str, Any]) -> None:
+    """Rebuild aggregate source audit fields from source-level shard evidence."""
+
+    audit = metadata.get("pipeline_execution_audit")
+    shard_summary = metadata.get("shard_summary")
+    if not isinstance(audit, dict) or not isinstance(shard_summary, dict):
+        return
+
+    covered_sources = int(
+        shard_summary.get("covered_sources") or metadata.get("fetched_sources") or 0
+    )
+    configured_sources = int(
+        shard_summary.get("configured_sources")
+        or metadata.get("total_configured_sources")
+        or 0
+    )
+    source_attempts = int(shard_summary.get("source_attempts") or 0)
+    source_failures = shard_summary.get("source_failures")
+    source_failure_count = (
+        int(source_failures.get("total") or 0)
+        if isinstance(source_failures, dict)
+        else 0
+    )
+
+    audit["fetched_sources"] = covered_sources
+    audit["total_sources"] = configured_sources
+    audit["source_toxicity_rate"] = (
+        (source_failure_count / source_attempts) * 100.0 if source_attempts > 0 else 0.0
+    )
+    audit["time_limited"] = bool(
+        metadata.get("time_limited") or int(shard_summary.get("time_limited") or 0) > 0
+    )
+
+
 def _write_evidence(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
@@ -200,6 +234,13 @@ def reconcile(root: Path, evidence_path: Path | None = None) -> dict[str, Any]:
     metadata["shielded_count"] = public_candidates
     metadata["shielded_candidate_count"] = public_candidates
     metadata["shielded_verified_count"] = public_verified
+    _reconcile_execution_audit(metadata)
+
+    # Source acquisition diagnostics already live under
+    # shard_summary.source_failures. Keep the public metadata contract closed by
+    # removing the duplicate top-level field emitted by shard aggregation.
+    metadata.pop("source_failure_summary", None)
+
     metadata_path.write_text(
         json.dumps(metadata, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
