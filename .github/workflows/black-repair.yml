@@ -1,0 +1,46 @@
+name: Black Repair
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/fix-run-32447443100'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: agent/fix-run-32447443100
+          persist-credentials: true
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - name: Install pinned formatter
+        run: python -m pip install -r requirements-dev.txt
+      - name: Format source failure diagnostics
+        run: |
+          set -euo pipefail
+          python -m black \
+            scripts/aggregate_shard_health.py \
+            tests/unit/test_run_32332329196_regressions.py
+          git diff --check
+      - name: Commit formatter output
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- \
+            scripts/aggregate_shard_health.py \
+            tests/unit/test_run_32332329196_regressions.py; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- \
+            scripts/aggregate_shard_health.py \
+            tests/unit/test_run_32332329196_regressions.py
+          git commit -m "style: format source failure diagnostics"
+          git push origin HEAD:agent/fix-run-32447443100
