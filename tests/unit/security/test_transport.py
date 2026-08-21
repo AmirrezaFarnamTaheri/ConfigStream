@@ -261,3 +261,32 @@ async def test_overlapping_dns_answer_uses_only_originally_pinned_address():
     assert response.status_code == 200
     assert captured["request"].url.host == "93.184.216.34"
     await transport.aclose()
+
+
+@pytest.mark.asyncio
+async def test_configured_ipv6_pin_is_normalized_before_matching_dns_answer():
+    captured: dict[str, httpx.Request] = {}
+    transport = SecurityTransport(
+        dns_cache_enabled=False,
+        pinned_ips={
+            "EXAMPLE.COM.": {
+                "2606:4700:4700:0000:0000:0000:0000:1111",
+            }
+        },
+        network_transport=_capturing_transport(captured),
+    )
+    resolver = AsyncMock(return_value={"2606:4700:4700::1111"})
+
+    with patch.object(transport, "_resolve_host", new=resolver):
+        response = await transport.handle_async_request(
+            httpx.Request("GET", "https://example.com/resource")
+        )
+
+    assert response.status_code == 200
+    assert captured["request"].url.host == "2606:4700:4700::1111"
+    await transport.aclose()
+
+
+def test_invalid_configured_ip_pin_is_rejected_during_initialization():
+    with pytest.raises(ValueError, match="Invalid pinned IP address"):
+        SecurityTransport(pinned_ips={"example.com": {"not-an-ip"}})
