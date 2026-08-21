@@ -5,6 +5,8 @@ import json
 import sys
 from pathlib import Path
 
+import pytest
+
 from configstream.security_validator import SecurityValidator
 from scripts.normalize_source_timing_logs import (
     SourceTiming,
@@ -135,10 +137,8 @@ def test_resolve_timings_recovers_canonical_url_from_sanitized_shard_log(
         encoding="utf-8",
     )
     raw_records = parse_source_timings(log.read_text(), log.name)
-    sources_by_batch = load_expected_sources_by_batch(
-        str(sources / "batch_*.txt")
-    )
-    parts = infer_shard_parts([log])
+    sources_by_batch = load_expected_sources_by_batch(str(sources / "batch_*.txt"))
+    parts = infer_shard_parts([log], configured_parts=1)
     assert timing_resolution_counts(raw_records, sources_by_batch, parts) == (1, 1)
 
     records = resolve_timings(raw_records, sources_by_batch, parts)
@@ -152,6 +152,27 @@ def test_resolve_timings_recovers_canonical_url_from_sanitized_shard_log(
     payload = json.loads(evidence.read_text(encoding="utf-8").strip())
     assert payload["source_id"] == source_id_for_url(canonical)
     assert payload["source_url"] == masked
+
+
+def test_infer_shard_parts_preserves_configured_count_when_highest_log_missing(
+    tmp_path: Path,
+) -> None:
+    logs = [tmp_path / f"pipeline_batch_1_part_{part}.log" for part in (1, 2, 3)]
+    assert infer_shard_parts(logs, configured_parts=4) == 4
+
+
+def test_infer_shard_parts_rejects_non_positive_configured_count(
+    tmp_path: Path,
+) -> None:
+    log = tmp_path / "pipeline_batch_1_part_1.log"
+    with pytest.raises(ValueError, match="must be positive"):
+        infer_shard_parts([log], configured_parts=0)
+
+
+def test_infer_shard_parts_rejects_out_of_range_observed_part(tmp_path: Path) -> None:
+    log = tmp_path / "pipeline_batch_1_part_5.log"
+    with pytest.raises(ValueError, match="outside the configured shard count"):
+        infer_shard_parts([log], configured_parts=4)
 
 
 def test_resolution_coverage_rejects_ambiguous_sanitizer_collision(
@@ -175,9 +196,7 @@ def test_resolution_coverage_rejects_ambiguous_sanitizer_collision(
         fetch_ms=None,
         source_log="pipeline_batch_1_part_1.log",
     )
-    sources_by_batch = load_expected_sources_by_batch(
-        str(sources / "batch_*.txt")
-    )
+    sources_by_batch = load_expected_sources_by_batch(str(sources / "batch_*.txt"))
 
     assert timing_resolution_counts([record], sources_by_batch, 1) == (0, 1)
     assert resolve_timings([record], sources_by_batch, 1) == []
@@ -251,6 +270,8 @@ def test_main_removes_partial_outputs_when_coverage_fails(
             str(tmp_path / "pipeline_batch_*.log"),
             "--sources-pattern",
             str(sources / "batch_*.txt"),
+            "--parts",
+            "1",
             "--min-coverage",
             "0.80",
             "--normalized-log",
