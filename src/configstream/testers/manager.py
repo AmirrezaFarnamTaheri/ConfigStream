@@ -154,7 +154,7 @@ class SingBoxTester:
 
                 try:
                     custom_results: Dict[str, bool] = (
-                        await _run_revived_custom_go(
+                        await _run_revived_custom_go_with_deadline_and_circuit_breaker(
                             self, configs
                         )
                     )
@@ -203,7 +203,7 @@ class SingBoxTester:
             await self.go_tester.close()
 
 
-async def _run_revived_custom_go(
+async def _run_revived_custom_go_with_deadline_and_circuit_breaker(
     tester: SingBoxTester, configs: List[Dict[str, object]]
 ) -> Dict[str, bool]:
     """Run custom Go chain tests under a lifecycle circuit breaker and deadline."""
