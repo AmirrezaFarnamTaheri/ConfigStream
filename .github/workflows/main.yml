@@ -247,8 +247,9 @@ jobs:
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         if: matrix.enabled == true
         with:
-          name: source-matrix-${{ github.sha }}-${{ github.run_attempt }}
+          pattern: source-matrix-${{ github.sha }}-*
           path: .
+          merge-multiple: true
       - name: Run bounded shard and always write lineage
         if: matrix.enabled == true
         shell: bash
@@ -398,7 +399,7 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         continue-on-error: true
         with:
-          pattern: shard-${{ github.sha }}-${{ github.run_attempt }}-*
+          pattern: shard-${{ github.sha }}-*
           path: artifacts
           merge-multiple: true
       - name: Download WASM artifact
@@ -406,8 +407,9 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         continue-on-error: true
         with:
-          name: frontend-wasm-${{ github.sha }}-${{ github.run_attempt }}
+          pattern: frontend-wasm-${{ github.sha }}-*
           path: wasm-artifact
+          merge-multiple: true
       - name: Record artifact downloads
         if: always()
         run: |
