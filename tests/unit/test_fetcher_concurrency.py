@@ -16,10 +16,14 @@ from configstream.pipeline import fetcher
 async def test_fetch_multiple_sources_enforces_per_host_limit(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """Bound concurrent fetches independently for each logical source host."""
+
     active: dict[str, int] = defaultdict(int)
     maximum: dict[str, int] = defaultdict(int)
 
     async def no_prewarm(_sources: list[str]) -> None:
+        """Skip DNS prewarming so the test isolates semaphore behavior."""
+
         return None
 
     async def fake_fetch(
@@ -27,6 +31,8 @@ async def test_fetch_multiple_sources_enforces_per_host_limit(
         source: str,
         **_kwargs: object,
     ) -> FetchResult:
+        """Track active fetches per host while simulating bounded work."""
+
         host = urlparse(source).hostname or "unknown"
         active[host] += 1
         maximum[host] = max(maximum[host], active[host])
@@ -65,11 +71,15 @@ async def test_fetch_multiple_sources_enforces_per_host_limit(
 async def test_busy_host_does_not_hoard_global_fetch_slots(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """Let another host run while a saturated host waits on its own limit."""
+
     first_same_started = asyncio.Event()
     release_first_same = asyncio.Event()
     other_started = asyncio.Event()
 
     async def no_prewarm(_sources: list[str]) -> None:
+        """Skip DNS prewarming so admission ordering is the only variable."""
+
         return None
 
     async def fake_fetch(
@@ -77,6 +87,8 @@ async def test_busy_host_does_not_hoard_global_fetch_slots(
         source: str,
         **_kwargs: object,
     ) -> FetchResult:
+        """Hold the first busy-host request and observe cross-host progress."""
+
         if source == "https://same.example/0":
             first_same_started.set()
             await release_first_same.wait()
