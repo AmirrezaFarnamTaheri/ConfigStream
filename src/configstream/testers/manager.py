@@ -2,7 +2,7 @@
 import asyncio
 import copy
 import logging
-from typing import TYPE_CHECKING, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 from datetime import datetime, timezone
 
 from ..config import AppSettings
@@ -204,7 +204,7 @@ class SingBoxTester:
 
 
 async def _run_revived_custom_go_with_deadline_and_circuit_breaker(
-    tester: SingBoxTester, configs: List[Dict[str, object]]
+    tester: SingBoxTester, configs: List[Dict[str, Any]]
 ) -> Dict[str, bool]:
     """Run custom Go chain tests under a lifecycle circuit breaker and deadline."""
 
