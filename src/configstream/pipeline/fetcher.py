@@ -3,12 +3,12 @@ import asyncio
 import ipaddress
 import logging
 import socket
+from random import uniform
 from secrets import choice as secure_choice
 from urllib.parse import urlparse, urljoin
 from typing import Any, Dict, Optional, Tuple, List, Union, cast
 import httpx
 
-from configstream.concurrency_manager import ConcurrencyManager
 from configstream.config import AppSettings
 from configstream.circuit_breaker import CircuitBreakerManager
 from configstream.dns_cache import prewarm_dns_cache
@@ -79,6 +79,14 @@ def _resolve_redirect_url(
     return candidate, None
 
 
+def _retry_backoff(retry_delay: float, attempt: int, cap: float = 30.0) -> float:
+    """Return bounded exponential full-jitter delay for transient failures."""
+
+    base = max(0.0, float(retry_delay))
+    ceiling = min(max(0.0, float(cap)), base * (2 ** max(0, int(attempt))))
+    return uniform(0.0, ceiling) if ceiling > 0 else 0.0
+
+
 async def _reject_source_dns(
     url: str,
     block_private_networks: bool = True,
@@ -86,8 +94,9 @@ async def _reject_source_dns(
 ) -> Tuple[Optional[str], Optional[str]]:
     """Validate DNS resolution of *url* and return (error, validated_ip).
 
-    Returns the validated IP so callers can pin the connection, preventing
-    DNS-rebinding TOCTOU attacks.
+    Returns a validated public IP for request pre-pinning. The production
+    SecurityTransport re-resolves the logical Host at the connection boundary,
+    so this preflight cannot permanently bind a rotating CDN hostname.
     """
     if not validate_dns or not block_private_networks:
         return None, None
@@ -133,8 +142,9 @@ async def _reject_source_dns(
         if not ip.is_global:
             return "Source URL host resolves to a private or non-global address", None
 
-    validated_ip = next(iter(resolved_ips))
-    return None, validated_ip
+    # Deterministic selection avoids set-order instability. SecurityTransport
+    # owns production candidate rotation and connection-time validation.
+    return None, sorted(resolved_ips)[0]
 
 
 async def fetch_from_source(
@@ -390,7 +400,7 @@ async def fetch_from_source(
                         await breaker.record_failure()
                     attempt += 1
                     last_error = f"HTTP {response.status_code}"
-                    await asyncio.sleep(retry_delay * (2**attempt))
+                    await asyncio.sleep(_retry_backoff(retry_delay, attempt))
                     continue
 
                 if response.status_code >= 400:
@@ -531,7 +541,7 @@ async def fetch_from_source(
                         SecurityValidator.sanitize_log_message(str(breaker_exc)),
                     )
             attempt += 1
-            await asyncio.sleep(retry_delay)
+            await asyncio.sleep(_retry_backoff(retry_delay, attempt))
 
     return FetchResult(
         success=False,
@@ -599,7 +609,7 @@ async def fetch_multiple_sources(
     quality_tracker: Optional[SourceQualityTracker] = None,
     breaker_manager: Optional[CircuitBreakerManager] = None,
 ) -> Dict[str, FetchResult]:
-    """High-level entry point for batch fetching."""
+    """High-level entry point for batch fetching with global and per-host bounds."""
     results: Dict[str, FetchResult] = {}
     app_settings = AppSettings()
 
@@ -617,10 +627,18 @@ async def fetch_multiple_sources(
             recovery_timeout=app_settings.CIRCUIT_OPEN_SEC,
         )
 
-    loop = asyncio.get_running_loop()
-    controller = ConcurrencyManager(loop, initial_limit=per_host_limit)
-    await controller.start_tuner()
-    global_sem = asyncio.Semaphore(max_concurrent)
+    global_sem = asyncio.Semaphore(max(1, int(max_concurrent)))
+    host_limit = max(1, int(per_host_limit))
+    host_semaphores: Dict[str, asyncio.Semaphore] = {}
+
+    def _host_semaphore(source: str) -> asyncio.Semaphore:
+        parsed = urlparse(source)
+        key = (parsed.hostname or parsed.netloc or source).rstrip(".").lower()
+        semaphore = host_semaphores.get(key)
+        if semaphore is None:
+            semaphore = asyncio.Semaphore(host_limit)
+            host_semaphores[key] = semaphore
+        return semaphore
 
     logger.info(f"Pre-warming DNS for {len(sources)} sources...")
     loop = asyncio.get_running_loop()
@@ -633,22 +651,23 @@ async def fetch_multiple_sources(
         http_client: httpx.AsyncClient, source: str
     ) -> Tuple[str, FetchResult]:
         async with global_sem:
-            res = await fetch_from_source(
-                http_client,
-                source,
-                app_settings=app_settings,
-                rate_limiter=rate_limiter,
-                controller=controller,
-                breaker_manager=breaker_manager,
-                timeout_tracker=timeout_tracker,
-                quality_tracker=quality_tracker,
-                timeout=timeout,
-            )
-            return source, res
+            async with _host_semaphore(source):
+                res = await fetch_from_source(
+                    http_client,
+                    source,
+                    app_settings=app_settings,
+                    rate_limiter=rate_limiter,
+                    breaker_manager=breaker_manager,
+                    timeout_tracker=timeout_tracker,
+                    quality_tracker=quality_tracker,
+                    timeout=timeout,
+                )
+                return source, res
 
     try:
         logger.info(
-            f"Starting parallel fetch for {len(sources)} sources (max_concurrent={max_concurrent})"
+            f"Starting parallel fetch for {len(sources)} sources "
+            f"(max_concurrent={max_concurrent}, per_host_limit={host_limit})"
         )
         start_time = asyncio.get_running_loop().time()
         if client:
@@ -664,7 +683,6 @@ async def fetch_multiple_sources(
         duration = asyncio.get_running_loop().time() - start_time
         logger.info(f"Batch fetch completed in {duration:.2f}s")
     finally:
-        await controller.stop_tuner()
         if timeout_tracker:
             await asyncio.get_running_loop().run_in_executor(None, timeout_tracker.save)
 
