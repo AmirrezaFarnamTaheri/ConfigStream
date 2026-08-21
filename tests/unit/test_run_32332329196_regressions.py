@@ -78,6 +78,41 @@ def test_source_failure_diagnostics_classify_host_and_failure_type(
     assert classify_fetch_failure("Rate limited", 429) == "rate_limited"
 
 
+def test_source_failure_diagnostics_parse_rich_wrapped_producer_logs(
+    tmp_path: Path,
+) -> None:
+    log = tmp_path / "pipeline_batch_9_part_5.log"
+    log.write_text(
+        "\n".join(
+            [
+                "           WARNING  Failed to fetch https://buyproxy.ru/free:    producer.py:580",
+                "                    Max retries exceeded: Server disconnected",
+                "                    without sending a response. (Status: 0)",
+                "           WARNING  Failed to fetch                              producer.py:580",
+                "                    https://raw.githubusercontent.com/v2clash/V2",
+                "                    ray/main/list.txt: Max retries exceeded: DNS",
+                "                    rebinding detected for",
+                "                    'raw.githubusercontent.com' (Status: 0)",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    summary = fetch_failure_counts(log)
+
+    assert summary["total"] == 2
+    assert summary["by_category"] == {"connect_error": 1, "dns_rebinding": 1}
+    assert summary["by_host"] == {
+        "buyproxy.ru": 1,
+        "raw.githubusercontent.com": 1,
+    }
+    assert summary["by_host_category"] == {
+        "buyproxy.ru:connect_error": 1,
+        "raw.githubusercontent.com:dns_rebinding": 1,
+    }
+
+
 def test_singbox_generator_supplies_resolver_for_hostname_dials() -> None:
     config = SingBoxGenerator().generate(
         [],
