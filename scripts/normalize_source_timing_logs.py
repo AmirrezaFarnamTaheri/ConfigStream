@@ -7,7 +7,6 @@ import argparse
 import glob
 import hashlib
 import json
-import os
 import re
 import sys
 from dataclasses import dataclass, replace
@@ -149,20 +148,27 @@ def load_expected_sources_by_batch(pattern: str) -> dict[str, list[str]]:
 
 
 def infer_shard_parts(
-    log_files: Iterable[Path], configured_parts: int | None = None
+    log_files: Iterable[Path],
+    configured_parts: int | None = None,
+    *,
+    lineage_files: Iterable[Path] = (),
 ) -> int:
     """Return the authoritative runtime shard count and validate observed logs."""
 
     if configured_parts is None:
-        raw_parts = os.environ.get("SOURCE_SHARD_PARTS")
-        if raw_parts is None:
-            raise ValueError(
-                "runtime shard count is required via --parts or SOURCE_SHARD_PARTS"
-            )
-        try:
-            configured_parts = int(raw_parts)
-        except ValueError as exc:
-            raise ValueError("runtime shard count must be an integer") from exc
+        lineage_parts: list[int] = []
+        for path in lineage_files:
+            try:
+                payload = json.loads(path.read_text(encoding="utf-8"))
+                part = int(payload.get("part") or 0) if isinstance(payload, dict) else 0
+            except (OSError, json.JSONDecodeError, TypeError, ValueError):
+                continue
+            if part > 0:
+                lineage_parts.append(part)
+        if not lineage_parts:
+            raise ValueError("runtime shard count requires --parts or shard lineage")
+        configured_parts = max(lineage_parts)
+
     if configured_parts <= 0:
         raise ValueError("runtime shard count must be positive")
 
@@ -188,7 +194,9 @@ def _candidate_sources_for_log(
         return []
     batch_sources = sources_by_batch.get(match.group("batch"), [])
     part = int(match.group("part"))
-    buckets = cast(list[list[str]], partition(batch_sources, parts)) if batch_sources else []
+    buckets = (
+        cast(list[list[str]], partition(batch_sources, parts)) if batch_sources else []
+    )
     if part < 1 or part > len(buckets):
         return []
     return buckets[part - 1]
@@ -339,9 +347,14 @@ def main() -> int:
         help="Canonical source-file glob used to resolve timing evidence",
     )
     parser.add_argument(
+        "--lineage-pattern",
+        default="output_batch_*/shard_lineage.json",
+        help="Shard-lineage glob used when --parts is not supplied",
+    )
+    parser.add_argument(
         "--parts",
         type=int,
-        help="Authoritative runtime shard count (defaults to SOURCE_SHARD_PARTS)",
+        help="Authoritative runtime shard count; otherwise derived from lineage",
     )
     parser.add_argument(
         "--min-coverage",
@@ -387,8 +400,13 @@ def main() -> int:
         )
         return 1
 
+    lineage_files = [Path(item) for item in sorted(glob.glob(args.lineage_pattern))]
     try:
-        parts = infer_shard_parts(log_files, args.parts)
+        parts = infer_shard_parts(
+            log_files,
+            args.parts,
+            lineage_files=lineage_files,
+        )
     except ValueError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
