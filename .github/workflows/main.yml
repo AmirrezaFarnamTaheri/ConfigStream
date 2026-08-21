@@ -136,12 +136,13 @@ jobs:
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
-          name: frontend-wasm-${{ github.sha }}-${{ github.run_attempt }}
+          name: frontend-wasm-${{ github.run_id }}
           path: |
             frontend/assets/wasm/tester.wasm
             frontend/assets/js/wasm_exec.js
           if-no-files-found: error
           retention-days: 7
+          overwrite: true
 
   setup_matrix:
     name: Generate Runtime Source Matrix
@@ -210,7 +211,7 @@ jobs:
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
-          name: source-matrix-${{ github.sha }}-${{ github.run_attempt }}
+          name: source-matrix-${{ github.run_id }}
           path: |
             sources/runtime/
             source-matrix.json
@@ -218,6 +219,7 @@ jobs:
             matrix.stderr.log
           if-no-files-found: error
           retention-days: 30
+          overwrite: true
 
   pipeline:
     name: Run Source Shard ${{ matrix.batch }}.${{ matrix.part }}
@@ -247,7 +249,7 @@ jobs:
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         if: matrix.enabled == true
         with:
-          name: source-matrix-${{ github.sha }}-${{ github.run_attempt }}
+          name: source-matrix-${{ github.run_id }}
           path: .
       - name: Run bounded shard and always write lineage
         if: matrix.enabled == true
@@ -341,12 +343,13 @@ jobs:
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always() && matrix.enabled == true
         with:
-          name: shard-${{ github.sha }}-${{ github.run_attempt }}-${{ matrix.batch }}-${{ matrix.part }}
+          name: shard-${{ github.run_id }}-${{ matrix.batch }}-${{ matrix.part }}
           path: |
             output_batch_${{ matrix.batch }}_part_${{ matrix.part }}/
             pipeline_batch_${{ matrix.batch }}_part_${{ matrix.part }}.log
           if-no-files-found: error
           retention-days: 7
+          overwrite: true
 
   merge_validate_publish:
     name: Merge, Diagnose, Gate, and Publish
@@ -398,7 +401,7 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         continue-on-error: true
         with:
-          pattern: shard-${{ github.sha }}-${{ github.run_attempt }}-*
+          pattern: shard-${{ github.run_id }}-*
           path: artifacts
           merge-multiple: true
       - name: Download WASM artifact
@@ -406,7 +409,7 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         continue-on-error: true
         with:
-          name: frontend-wasm-${{ github.sha }}-${{ github.run_attempt }}
+          name: frontend-wasm-${{ github.run_id }}
           path: wasm-artifact
       - name: Record artifact downloads
         if: always()

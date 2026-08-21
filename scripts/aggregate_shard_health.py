@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Reconcile shard lineage and counters into merged metadata."""
+"""Reconcile shard lineage, source failures, and counters into merged metadata."""
 
 from __future__ import annotations
 
@@ -9,7 +9,8 @@ import re
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator, TypedDict
+from urllib.parse import urlparse
 
 try:
     from shard_sources import partition
@@ -23,6 +24,38 @@ FETCH_SUMMARY_RE = re.compile(
     r"sources\s+successful",
     re.IGNORECASE,
 )
+LEGACY_FETCH_FAILURE_RE = re.compile(
+    r"(?:Failed(?:\s+to\s+fetch)?|Failure)\s*:\s*"
+    r"(?P<url>https?://\S+?)\s+-\s+(?P<error>.*?)"
+    r"(?:\s+\(Status:\s*(?P<status>\d+)\))?\s*$",
+    re.IGNORECASE,
+)
+FETCH_FAILURE_RE = re.compile(
+    r"^Failed\s+to\s+fetch\s+(?P<url>https?://.+?):\s+"
+    r"(?P<error>.*?)\s+\(Status:\s*(?P<status>\d+)\)\s*$",
+    re.IGNORECASE,
+)
+FETCH_STATUS_RE = re.compile(r"\(Status:\s*\d+\)\s*$", re.IGNORECASE)
+ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
+LOG_RECORD_START_RE = re.compile(
+    r"^\s*(?:\[\d{2}:\d{2}:\d{2}\]\s+)?" r"(?:DEBUG|INFO|WARNING|ERROR|CRITICAL)\s+"
+)
+SOURCE_LOCATION_RE = re.compile(r"\s+[A-Za-z0-9_./-]+\.py:\d+\s*$")
+
+
+class FailureSummary(TypedDict):
+    """Stable source-acquisition failure summary contract."""
+
+    total: int
+    by_category: dict[str, int]
+    by_host: dict[str, int]
+    by_host_category: dict[str, int]
+
+
+def _sorted_counter(counter: Counter[str]) -> dict[str, int]:
+    """Serialize counters by descending count with lexical tie-breaking."""
+
+    return dict(sorted(counter.items(), key=lambda item: (-item[1], item[0])))
 
 
 def load(path: Path) -> Any:
@@ -95,6 +128,135 @@ def fetch_summary_counts(
     return successful, attempted
 
 
+def classify_fetch_failure(error: str, status: int = 0) -> str:
+    """Map one source acquisition failure to a stable diagnostic category."""
+
+    message = str(error or "").lower()
+    if "dns rebinding" in message:
+        return "dns_rebinding"
+    if any(
+        marker in message
+        for marker in (
+            "could not be resolved",
+            "dns resolution",
+            "dns validation",
+            "resolved to no addresses",
+            "name or service not known",
+            "nodename nor servname",
+        )
+    ):
+        return "dns_resolution"
+    if (
+        status in {404, 410}
+        or "permanent error: 404" in message
+        or "permanent error: 410" in message
+    ):
+        return "permanent_http"
+    if status == 429 or "rate limited" in message:
+        return "rate_limited"
+    if status >= 500 or re.search(r"\bhttp\s+5\d\d\b", message):
+        return "server_error"
+    if any(
+        marker in message
+        for marker in (
+            "all connection attempts failed",
+            "connecterror",
+            "connection refused",
+            "connection reset",
+            "server disconnected",
+            "network is unreachable",
+        )
+    ):
+        return "connect_error"
+    if "timed out" in message or "timeout" in message:
+        return "timeout"
+    if "circuit breaker open" in message:
+        return "circuit_breaker"
+    return "other"
+
+
+def _rich_failure_records(text: str) -> Iterator[str]:
+    """Reassemble Rich-wrapped producer warnings into logical failure records."""
+
+    current: str | None = None
+    for raw_line in text.splitlines():
+        line = ANSI_ESCAPE_RE.sub("", raw_line)
+        line = SOURCE_LOCATION_RE.sub("", line).rstrip()
+        record_start = LOG_RECORD_START_RE.match(line)
+        fragment = (line[record_start.end() :] if record_start else line).strip()
+
+        if record_start:
+            current = None
+            offset = fragment.lower().find("failed to fetch")
+            if offset >= 0:
+                current = fragment[offset:]
+        elif current is not None and fragment:
+            current = f"{current} {fragment}"
+
+        if current is not None and FETCH_STATUS_RE.search(current):
+            yield current
+            current = None
+
+
+def _source_host(raw_url: str) -> str:
+    """Extract a host even when console wrapping split a URL token."""
+
+    normalized = re.sub(r"\s+", "", raw_url)
+    try:
+        host = urlparse(normalized).hostname
+    except ValueError:
+        host = None
+    if not host:
+        fallback = re.match(r"https?://([^/:]+)", normalized, re.IGNORECASE)
+        host = fallback.group(1) if fallback else "unknown"
+    return host.rstrip(".").lower()
+
+
+def _record_failure(
+    match: re.Match[str],
+    categories: Counter[str],
+    hosts: Counter[str],
+    host_categories: Counter[str],
+) -> None:
+    raw_url = match.group("url")
+    error = match.group("error") or ""
+    status = int(match.group("status") or 0)
+    host = _source_host(raw_url)
+    category = classify_fetch_failure(error, status)
+    categories[category] += 1
+    hosts[host] += 1
+    host_categories[f"{host}:{category}"] += 1
+
+
+def fetch_failure_counts(log_path: Path) -> FailureSummary:
+    """Return privacy-safe failure counts by category and logical source host."""
+
+    categories: Counter[str] = Counter()
+    hosts: Counter[str] = Counter()
+    host_categories: Counter[str] = Counter()
+    try:
+        text = log_path.read_text(encoding="utf-8", errors="ignore")
+    except OSError:
+        text = ""
+
+    for line in text.splitlines():
+        match = LEGACY_FETCH_FAILURE_RE.search(line)
+        if match:
+            _record_failure(match, categories, hosts, host_categories)
+
+    for record in _rich_failure_records(text):
+        match = FETCH_FAILURE_RE.match(record)
+        if match:
+            _record_failure(match, categories, hosts, host_categories)
+
+    return {
+        "total": sum(categories.values()),
+        "by_category": _sorted_counter(categories),
+        "by_host": _sorted_counter(hosts),
+        "by_host_category": _sorted_counter(host_categories),
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--batch-glob", default="output_batch_*")
@@ -119,6 +281,9 @@ def main() -> int:
             f"expected {expected} shard directories, found {len(directories)}"
         )
     counters: Counter[str] = Counter()
+    failure_categories: Counter[str] = Counter()
+    failure_hosts: Counter[str] = Counter()
+    failure_host_categories: Counter[str] = Counter()
     starts: list[datetime] = []
     ends: list[datetime] = []
     work_seconds = 0.0
@@ -158,6 +323,10 @@ def main() -> int:
             source_count=source_count,
             fallback_fetched_sources=int(metadata.get("fetched_sources") or 0),
         )
+        shard_failures = fetch_failure_counts(fetch_log)
+        failure_categories.update(shard_failures["by_category"])
+        failure_hosts.update(shard_failures["by_host"])
+        failure_host_categories.update(shard_failures["by_host_category"])
         rows.append(
             {
                 "batch": lineage.get("batch"),
@@ -166,6 +335,7 @@ def main() -> int:
                 "source_sha256": lineage.get("source_sha256"),
                 "fetched_sources": covered_sources,
                 "source_attempts": source_attempts,
+                "source_failures": shard_failures,
                 "tested": int(
                     metadata.get("total_tested") or metadata.get("tested") or 0
                 ),
@@ -185,6 +355,12 @@ def main() -> int:
     configured_sources = sum(int(row["source_count"]) for row in rows)
     covered_sources = sum(int(row["fetched_sources"]) for row in rows)
     source_attempts = sum(int(row["source_attempts"]) for row in rows)
+    source_failure_summary: FailureSummary = {
+        "total": sum(failure_categories.values()),
+        "by_category": _sorted_counter(failure_categories),
+        "by_host": _sorted_counter(failure_hosts),
+        "by_host_category": _sorted_counter(failure_host_categories),
+    }
     merged.update(
         {
             "pipeline_work_seconds_sum": work_seconds,
@@ -198,6 +374,7 @@ def main() -> int:
             or merged.get("duration_seconds", 0.0),
             "fetched_sources": covered_sources,
             "total_configured_sources": configured_sources,
+            "source_failure_summary": source_failure_summary,
             "shard_summary": {
                 "expected": expected,
                 "observed": len(rows),
@@ -207,6 +384,7 @@ def main() -> int:
                 "source_attempts": source_attempts,
                 "covered_sources": covered_sources,
                 "configured_sources": configured_sources,
+                "source_failures": source_failure_summary,
                 "shards": rows,
             },
         }

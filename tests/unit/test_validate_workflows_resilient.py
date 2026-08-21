@@ -10,6 +10,8 @@ from scripts import validate_workflows
 
 
 def _load_local_workflow(name: str) -> dict:
+    """Load one repository workflow as a mutable mapping for contract tests."""
+
     path = Path(__file__).resolve().parents[2] / ".github" / "workflows" / name
     data = yaml.safe_load(path.read_text(encoding="utf-8"))
     assert isinstance(data, dict)
@@ -17,6 +19,8 @@ def _load_local_workflow(name: str) -> dict:
 
 
 def _step_by_name(job: dict, name: str) -> dict:
+    """Return a workflow step identified by its display name."""
+
     return next(
         step
         for step in job.get("steps", [])
@@ -25,10 +29,14 @@ def _step_by_name(job: dict, name: str) -> dict:
 
 
 def test_resilient_main_contract_accepts_hardened_workflow() -> None:
+    """Accept the checked-in main workflow under resilience validation."""
+
     assert validate_workflows._main_safe(_load_local_workflow("main.yml")) == []
 
 
 def test_resilient_main_contract_requires_stage_orchestration() -> None:
+    """Require main stages to run through the resilient stage orchestrator."""
+
     data = deepcopy(_load_local_workflow("main.yml"))
     for job in data["jobs"].values():
         if not isinstance(job, dict):
@@ -46,6 +54,8 @@ def test_resilient_main_contract_requires_stage_orchestration() -> None:
 
 
 def test_pipeline_job_if_is_read_without_string_conversion_crash() -> None:
+    """Handle a valid pipeline job condition without coercion failures."""
+
     data = _load_local_workflow("main.yml")
     pipeline = data["jobs"]["pipeline"]
     assert isinstance(pipeline, dict)
@@ -57,6 +67,8 @@ def test_pipeline_job_if_is_read_without_string_conversion_crash() -> None:
 
 
 def test_pipeline_job_if_rejects_matrix_context() -> None:
+    """Reject matrix references from the pipeline job-level condition."""
+
     data = _load_local_workflow("main.yml")
     pipeline = data["jobs"]["pipeline"]
     assert isinstance(pipeline, dict)
@@ -69,6 +81,8 @@ def test_pipeline_job_if_rejects_matrix_context() -> None:
 
 
 def test_resilient_main_contract_rejects_masked_quality_failure() -> None:
+    """Prevent the quality job from masking its own failure result."""
+
     data = deepcopy(_load_local_workflow("main.yml"))
     data["jobs"]["quality"]["continue-on-error"] = True
 
@@ -79,6 +93,8 @@ def test_resilient_main_contract_rejects_masked_quality_failure() -> None:
 
 
 def test_resilient_main_contract_requires_matrix_status_evidence() -> None:
+    """Require matrix-status evidence in release-readiness evaluation."""
+
     data = deepcopy(_load_local_workflow("main.yml"))
     merge = data["jobs"]["merge_validate_publish"]
     for step in merge["steps"]:
@@ -92,6 +108,8 @@ def test_resilient_main_contract_requires_matrix_status_evidence() -> None:
 
 
 def test_main_release_prerequisites_are_checked_before_fanout() -> None:
+    """Validate release prerequisites before expensive fan-out jobs begin."""
+
     data = _load_local_workflow("main.yml")
     quality = data["jobs"]["quality"]
     step = _step_by_name(quality, "Validate main release prerequisites")
@@ -103,6 +121,8 @@ def test_main_release_prerequisites_are_checked_before_fanout() -> None:
 
 
 def test_main_preserves_authoritative_native_report() -> None:
+    """Keep one authoritative native-client report through release gating."""
+
     data = _load_local_workflow("main.yml")
     merge = data["jobs"]["merge_validate_publish"]
     step = _step_by_name(merge, "Run every mandatory release gate")
@@ -131,6 +151,8 @@ def test_main_preserves_authoritative_native_report() -> None:
 
 
 def test_main_contract_rejects_authoritative_native_report_overwrite() -> None:
+    """Reject workflow mutations that overwrite the authoritative native report."""
+
     data = deepcopy(_load_local_workflow("main.yml"))
     merge = data["jobs"]["merge_validate_publish"]
     step = _step_by_name(merge, "Run every mandatory release gate")
@@ -148,6 +170,8 @@ def test_main_contract_rejects_authoritative_native_report_overwrite() -> None:
 
 
 def test_main_requires_real_timing_and_reconciled_public_metadata() -> None:
+    """Require timing evidence and reconciled metadata before release readiness."""
+
     data = _load_local_workflow("main.yml")
     assert str(data["env"]["SOURCE_SHARD_PARTS"]) == "6"
     merge = data["jobs"]["merge_validate_publish"]
@@ -161,7 +185,68 @@ def test_main_requires_real_timing_and_reconciled_public_metadata() -> None:
     assert "--required-file pipeline-evidence/source_timing.jsonl" in readiness
 
 
+def test_main_artifacts_are_stable_across_run_attempts() -> None:
+    """Keep reusable artifact identities stable across rerun attempts."""
+
+    data = _load_local_workflow("main.yml")
+
+    wasm_upload = next(
+        step
+        for step in data["jobs"]["build_wasm"]["steps"]
+        if isinstance(step, dict)
+        and str(step.get("uses", "")).startswith("actions/upload-artifact@")
+    )
+    assert wasm_upload["with"]["name"] == "frontend-wasm-${{ github.run_id }}"
+    assert wasm_upload["with"]["overwrite"] is True
+
+    matrix_upload = next(
+        step
+        for step in data["jobs"]["setup_matrix"]["steps"]
+        if isinstance(step, dict)
+        and str(step.get("uses", "")).startswith("actions/upload-artifact@")
+    )
+    assert matrix_upload["with"]["name"] == "source-matrix-${{ github.run_id }}"
+    assert matrix_upload["with"]["overwrite"] is True
+
+    pipeline = data["jobs"]["pipeline"]
+    matrix_download = next(
+        step
+        for step in pipeline["steps"]
+        if isinstance(step, dict)
+        and str(step.get("uses", "")).startswith("actions/download-artifact@")
+    )
+    shard_upload = next(
+        step
+        for step in pipeline["steps"]
+        if isinstance(step, dict)
+        and str(step.get("uses", "")).startswith("actions/upload-artifact@")
+    )
+    assert matrix_download["with"]["name"] == "source-matrix-${{ github.run_id }}"
+    assert shard_upload["with"]["name"] == (
+        "shard-${{ github.run_id }}-${{ matrix.batch }}-${{ matrix.part }}"
+    )
+    assert shard_upload["with"]["overwrite"] is True
+
+    merge = data["jobs"]["merge_validate_publish"]
+    shard_download = _step_by_name(merge, "Download shard artifacts")
+    wasm_download = _step_by_name(merge, "Download WASM artifact")
+    assert shard_download["with"]["pattern"] == "shard-${{ github.run_id }}-*"
+    assert shard_download["with"]["merge-multiple"] is True
+    assert wasm_download["with"]["name"] == "frontend-wasm-${{ github.run_id }}"
+
+    reusable_names = [
+        wasm_upload["with"]["name"],
+        matrix_upload["with"]["name"],
+        shard_upload["with"]["name"],
+        shard_download["with"]["pattern"],
+        wasm_download["with"]["name"],
+    ]
+    assert all("github.run_attempt" not in value for value in reusable_names)
+
+
 def test_pages_contract_accepts_hardened_workflow() -> None:
+    """Accept the checked-in Pages workflow under resilience validation."""
+
     assert (
         validate_workflows._deploy_pages_safe(_load_local_workflow("deploy-pages.yml"))
         == []
@@ -169,6 +254,8 @@ def test_pages_contract_accepts_hardened_workflow() -> None:
 
 
 def test_pages_smoke_verification_propagates_failed_stage() -> None:
+    """Require deployed Pages smoke failures to propagate into stage evidence."""
+
     data = _load_local_workflow("deploy-pages.yml")
     deploy = data["jobs"]["deploy"]
     smoke_step = next(

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Security-hardened HTTP transport with DNS validation and connection pinning."""
+"""Security-hardened HTTP transport with request-scoped DNS pinning."""
 
 from __future__ import annotations
 
@@ -64,17 +64,35 @@ def _host_header_authority(host: str, port: int | None, default_port: int) -> st
     )
 
 
+def _normalize_pinned_ips(
+    pinned_ips: Optional[Dict[str, Set[str]]],
+) -> Dict[str, Set[str]]:
+    """Canonicalize explicit host/IP allowlists and reject malformed pins."""
+
+    normalized: Dict[str, Set[str]] = {}
+    for host, addresses in (pinned_ips or {}).items():
+        normalized_host = host.rstrip(".").lower()
+        normalized_addresses: Set[str] = set()
+        for raw_address in addresses:
+            parsed = _parse_ip(raw_address)
+            if parsed is None:
+                raise ValueError(f"Invalid pinned IP address: {raw_address!r}")
+            normalized_addresses.add(str(parsed))
+        normalized[normalized_host] = normalized_addresses
+    return normalized
+
+
 def rewrite_request_to_pinned_ip(
     request: httpx.Request,
     allowed_ips: Set[str],
     *,
     logical_host: Optional[str] = None,
 ) -> httpx.Request:
-    """Return a request that connects to a validated IP while preserving TLS identity.
+    """Connect to one validated IP while preserving the logical Host and TLS SNI.
 
-    Keeping this transformation at the request layer means the same Host/SNI
-    contract applies to the shared security transport and to explicitly injected
-    HTTPX clients used by the fetch pipeline.
+    ``allowed_ips`` belongs to the current request/redirect hop. It is deliberately
+    not treated as a permanent DNS identity for the hostname because public CDN
+    answers can rotate between otherwise independent requests.
     """
 
     if not allowed_ips:
@@ -106,7 +124,13 @@ def rewrite_request_to_pinned_ip(
 
 
 class SecurityTransport(httpx.AsyncHTTPTransport):
-    """Validate DNS answers and ensure the connector uses only validated IPs."""
+    """Validate DNS answers and pin each connection to its validated answer set.
+
+    DNS validation is request-scoped. ``pinned_ips`` is an optional explicit
+    caller-supplied allowlist, not a cache of the first DNS answer ever observed.
+    This preserves SSRF/TOCTOU protection without rejecting legitimate CDN DNS
+    rotation between independent requests.
+    """
 
     def __init__(
         self,
@@ -114,19 +138,17 @@ class SecurityTransport(httpx.AsyncHTTPTransport):
         pinned_ips: Optional[Dict[str, Set[str]]] = None,
         dns_cache_enabled: bool = True,
         network_transport: Optional[httpx.AsyncBaseTransport] = None,
+        per_host_limit: int = 4,
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
         self._block_private_networks = bool(block_private_networks)
-        self._pinned_ips: Dict[str, Set[str]] = pinned_ips or {}
+        self._pinned_ips = _normalize_pinned_ips(pinned_ips)
         self._dns_cache_enabled = bool(dns_cache_enabled)
         self._network_transport = network_transport
-        self._pin_lock: Optional[asyncio.Lock] = None
-
-    def _get_pin_lock(self) -> asyncio.Lock:
-        if self._pin_lock is None:
-            self._pin_lock = asyncio.Lock()
-        return self._pin_lock
+        self._per_host_limit = max(1, int(per_host_limit))
+        self._host_semaphores: Dict[str, asyncio.Semaphore] = {}
+        self._candidate_cursor: Dict[str, int] = {}
 
     @staticmethod
     def _logical_host(request: httpx.Request) -> str:
@@ -139,6 +161,22 @@ class SecurityTransport(httpx.AsyncHTTPTransport):
                 return host_header.rstrip(".").lower()
         return connection_host.rstrip(".").lower()
 
+    def _host_semaphore(self, logical_host: str) -> asyncio.Semaphore:
+        semaphore = self._host_semaphores.get(logical_host)
+        if semaphore is None:
+            semaphore = asyncio.Semaphore(self._per_host_limit)
+            self._host_semaphores[logical_host] = semaphore
+        return semaphore
+
+    def _select_candidate(self, logical_host: str, candidates: Set[str]) -> str:
+        ordered = sorted(candidates)
+        if not ordered:
+            raise ValueError("candidate set must not be empty")
+        cursor = self._candidate_cursor.get(logical_host, 0)
+        selected = ordered[cursor % len(ordered)]
+        self._candidate_cursor[logical_host] = cursor + 1
+        return selected
+
     async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
         connection_host = request.url.host
         if not connection_host:
@@ -146,40 +184,62 @@ class SecurityTransport(httpx.AsyncHTTPTransport):
         logical_host = self._logical_host(request)
         if not logical_host:
             raise httpx.ConnectError("Request URL has an invalid host", request=request)
-        port = request.url.port or (443 if request.url.scheme == "https" else 80)
 
+        async with self._host_semaphore(logical_host):
+            return await self._handle_validated_request(
+                request,
+                connection_host=connection_host,
+                logical_host=logical_host,
+            )
+
+    async def _handle_validated_request(
+        self,
+        request: httpx.Request,
+        *,
+        connection_host: str,
+        logical_host: str,
+    ) -> httpx.Response:
+        port = request.url.port or (443 if request.url.scheme == "https" else 80)
         connection_ip = _parse_ip(connection_host)
-        if connection_ip is not None:
+
+        # The fetch pipeline may already have rewritten a hostname URL to one
+        # validated IP. Production SecurityTransport remains the authoritative
+        # connection boundary: re-resolve the logical Host header so a rotating
+        # CDN is not reduced to a stale one-address identity.
+        if connection_ip is not None and logical_host != connection_host.lower():
+            resolved_ips = await self._resolve_and_cache(logical_host, port, request)
+        elif connection_ip is not None:
             resolved_ips = {str(connection_ip)}
         else:
             resolved_ips = await self._resolve_and_cache(connection_host, port, request)
 
         if self._block_private_networks:
-            non_global = [raw_ip for raw_ip in resolved_ips if not _is_global(raw_ip)]
+            non_global = sorted(
+                raw_ip for raw_ip in resolved_ips if not _is_global(raw_ip)
+            )
             if non_global:
                 raise httpx.ConnectError(
                     f"Host resolved to non-global IP: {non_global[0]!r}",
                     request=request,
                 )
 
-        async with self._get_pin_lock():
-            previous = self._pinned_ips.get(logical_host)
-            if previous is None:
-                self._pinned_ips[logical_host] = set(resolved_ips)
-                connection_candidates = set(resolved_ips)
-            else:
-                connection_candidates = resolved_ips & previous
-                if not connection_candidates:
-                    logger.warning("DNS rebinding detected for %s", logical_host)
-                    raise httpx.ConnectError(
-                        f"DNS rebinding detected for {logical_host!r}",
-                        request=request,
-                    )
+        configured_pins = self._pinned_ips.get(logical_host)
+        if configured_pins is None:
+            connection_candidates = set(resolved_ips)
+        else:
+            connection_candidates = resolved_ips & configured_pins
+            if not connection_candidates:
+                logger.warning("DNS rebinding detected for %s", logical_host)
+                raise httpx.ConnectError(
+                    f"DNS rebinding detected for {logical_host!r}",
+                    request=request,
+                )
 
         if request.url.scheme in {"http", "https"}:
+            selected = self._select_candidate(logical_host, connection_candidates)
             request = self._rewrite_to_pinned_ip(
                 request,
-                connection_candidates,
+                {selected},
                 logical_host=logical_host,
             )
         if self._network_transport is not None:
