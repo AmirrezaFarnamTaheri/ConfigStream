@@ -9,17 +9,18 @@ import hashlib
 import json
 import re
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, cast
 
 from configstream.security_validator import SecurityValidator
 
+try:
+    from shard_sources import partition
+except ModuleNotFoundError:
+    from scripts.shard_sources import partition
+
 ANSI_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
-# Rich can inject a source-location column (for example ``consumer.py:357``)
-# between the message and the URL, and can wrap long URLs across display lines.
-# Match up to the first '[' instead of requiring '[' to immediately follow
-# ``Source Summary``.
 SUMMARY_START_RE = re.compile(r"Source\s+Summary\b[^\[]*\[", re.IGNORECASE)
 SUMMARY_HEAD_RE = re.compile(
     r"Source\s+Summary\b[^\[]*\[(?P<url>.*?)\]\s*:\s*(?P<body>.*)",
@@ -28,6 +29,10 @@ SUMMARY_HEAD_RE = re.compile(
 RAW_RE = re.compile(r"\bRaw\s*=\s*(\d+)", re.IGNORECASE)
 FETCH_RE = re.compile(r"\bFetch\s*[:=]\s*([\d.]+)\s*ms", re.IGNORECASE)
 DURATION_RE = re.compile(r"\bDur\s*=\s*([\d.]+)\s*ms", re.IGNORECASE)
+SHARD_LOG_RE = re.compile(
+    r"^pipeline_batch_(?P<batch>.+?)_part_(?P<part>\d+)\.log$",
+    re.IGNORECASE,
+)
 DEFAULT_MIN_COVERAGE = 0.80
 
 
@@ -54,6 +59,10 @@ def _source_key(url: str) -> str:
     cleaned = _normalize_logged_url(url).replace("[MASKED]", "").replace("[BASE64]", "")
     cleaned = cleaned.split("#", 1)[0].split("?", 1)[0]
     return cleaned.rstrip()
+
+
+def _sanitized_source_key(url: str) -> str:
+    return _normalize_logged_url(SecurityValidator.sanitize_log_message(url))
 
 
 def parse_source_timings(text: str, source_log: str = "") -> list[SourceTiming]:
@@ -87,19 +96,25 @@ def parse_source_timings(text: str, source_log: str = "") -> list[SourceTiming]:
     return records
 
 
-def collect_timings(log_files: Iterable[Path]) -> list[SourceTiming]:
-    """Collect one conservative record per source URL, keeping the slowest duration."""
-
-    by_url: dict[str, SourceTiming] = {}
+def collect_raw_timings(log_files: Iterable[Path]) -> list[SourceTiming]:
+    records: list[SourceTiming] = []
     for path in log_files:
         text = path.read_text(encoding="utf-8", errors="ignore")
-        for record in parse_source_timings(text, path.name):
-            key = _source_key(record.url)
-            if not key:
-                continue
-            previous = by_url.get(key)
-            if previous is None or record.duration_ms > previous.duration_ms:
-                by_url[key] = record
+        records.extend(parse_source_timings(text, path.name))
+    return records
+
+
+def collect_timings(log_files: Iterable[Path]) -> list[SourceTiming]:
+    """Collect one conservative record per logged URL, keeping the slowest."""
+
+    by_url: dict[str, SourceTiming] = {}
+    for record in collect_raw_timings(log_files):
+        key = _source_key(record.url)
+        if not key:
+            continue
+        previous = by_url.get(key)
+        if previous is None or record.duration_ms > previous.duration_ms:
+            by_url[key] = record
     return [by_url[url] for url in sorted(by_url)]
 
 
@@ -114,6 +129,141 @@ def load_expected_sources(pattern: str) -> set[str]:
             if value.startswith(("http://", "https://")):
                 sources.add(value)
     return sources
+
+
+def load_expected_sources_by_batch(pattern: str) -> dict[str, list[str]]:
+    batches: dict[str, list[str]] = {}
+    for item in sorted(glob.glob(pattern)):
+        path = Path(item)
+        batch = path.stem.removeprefix("batch_")
+        lines = [
+            line.strip()
+            for line in path.read_text(encoding="utf-8", errors="ignore").splitlines()
+            if line.strip()
+            and not line.lstrip().startswith("#")
+            and line.strip().startswith(("http://", "https://"))
+        ]
+        batches[batch] = lines
+    return batches
+
+
+def infer_shard_parts(
+    log_files: Iterable[Path],
+    configured_parts: int | None = None,
+    *,
+    lineage_files: Iterable[Path] = (),
+) -> int:
+    """Return the authoritative runtime shard count and validate observed logs."""
+
+    if configured_parts is None:
+        lineage_parts: list[int] = []
+        for path in lineage_files:
+            try:
+                payload = json.loads(path.read_text(encoding="utf-8"))
+                part = int(payload.get("part") or 0) if isinstance(payload, dict) else 0
+            except (OSError, json.JSONDecodeError, TypeError, ValueError):
+                continue
+            if part > 0:
+                lineage_parts.append(part)
+        if not lineage_parts:
+            raise ValueError("runtime shard count requires --parts or shard lineage")
+        configured_parts = max(lineage_parts)
+
+    if configured_parts <= 0:
+        raise ValueError("runtime shard count must be positive")
+
+    observed_parts = [
+        int(match.group("part"))
+        for path in log_files
+        if (match := SHARD_LOG_RE.match(path.name)) is not None
+    ]
+    if any(part <= 0 or part > configured_parts for part in observed_parts):
+        raise ValueError("observed shard part is outside the configured shard count")
+    return configured_parts
+
+
+def _candidate_sources_for_log(
+    source_log: str,
+    sources_by_batch: dict[str, list[str]],
+    parts: int,
+) -> list[str]:
+    if parts <= 0:
+        raise ValueError("runtime shard count must be positive")
+    match = SHARD_LOG_RE.match(Path(source_log).name)
+    if match is None:
+        return []
+    batch_sources = sources_by_batch.get(match.group("batch"), [])
+    part = int(match.group("part"))
+    buckets = (
+        cast(list[list[str]], partition(batch_sources, parts)) if batch_sources else []
+    )
+    if part < 1 or part > len(buckets):
+        return []
+    return buckets[part - 1]
+
+
+def _canonical_matches(
+    record: SourceTiming,
+    sources_by_batch: dict[str, list[str]],
+    parts: int,
+) -> list[str]:
+    candidates = _candidate_sources_for_log(record.source_log, sources_by_batch, parts)
+    observed = _normalize_logged_url(record.url)
+    matches = [url for url in candidates if _sanitized_source_key(url) == observed]
+    if not matches:
+        matches = [url for url in candidates if _normalize_logged_url(url) == observed]
+    if not matches:
+        observed_key = _source_key(observed)
+        matches = [url for url in candidates if _source_key(url) == observed_key]
+    return matches if len(matches) == 1 else []
+
+
+def _timing_identity(record: SourceTiming) -> tuple[str, str]:
+    return record.source_log, _normalize_logged_url(record.url)
+
+
+def timing_resolution_counts(
+    records: Iterable[SourceTiming],
+    sources_by_batch: dict[str, list[str]],
+    parts: int,
+) -> tuple[int, int]:
+    """Return mapped and observed logical timing identities.
+
+    Multiple chunks from the same source can emit repeated summaries. Count each
+    sanitized source identity once per deterministic shard, and only count it as
+    mapped when exactly one canonical source in that shard produces the logged
+    sanitized URL. Ambiguous sanitizer collisions remain unresolved rather than
+    fabricating timing evidence for multiple sources.
+    """
+
+    identities: dict[tuple[str, str], SourceTiming] = {}
+    for record in records:
+        identities.setdefault(_timing_identity(record), record)
+    mapped = sum(
+        bool(_canonical_matches(record, sources_by_batch, parts))
+        for record in identities.values()
+    )
+    return mapped, len(identities)
+
+
+def resolve_timings(
+    records: Iterable[SourceTiming],
+    sources_by_batch: dict[str, list[str]],
+    parts: int,
+) -> list[SourceTiming]:
+    """Resolve unambiguous sanitized log URLs to canonical shard sources."""
+
+    by_url: dict[str, SourceTiming] = {}
+    for record in records:
+        matches = _canonical_matches(record, sources_by_batch, parts)
+        if not matches:
+            continue
+        canonical_url = matches[0]
+        resolved = replace(record, url=canonical_url)
+        previous = by_url.get(canonical_url)
+        if previous is None or resolved.duration_ms > previous.duration_ms:
+            by_url[canonical_url] = resolved
+    return [by_url[url] for url in sorted(by_url)]
 
 
 def timing_coverage(
@@ -176,8 +326,10 @@ def _clear_outputs(*paths: Path) -> bool:
         try:
             path.unlink(missing_ok=True)
         except OSError as exc:
+            safe_path = SecurityValidator.sanitize_log_message(str(path))
             print(
-                f"ERROR: could not clear stale timing output {SecurityValidator.sanitize_log_message(str(path))}: {type(exc).__name__}",
+                "ERROR: could not clear stale timing output "
+                f"{safe_path}: {type(exc).__name__}",
                 file=sys.stderr,
             )
             return False
@@ -192,13 +344,23 @@ def main() -> int:
     parser.add_argument(
         "--sources-pattern",
         default="sources/batch_*.txt",
-        help="Canonical source-file glob used to calculate timing coverage",
+        help="Canonical source-file glob used to resolve timing evidence",
+    )
+    parser.add_argument(
+        "--lineage-pattern",
+        default="output_batch_*/shard_lineage.json",
+        help="Shard-lineage glob used when --parts is not supplied",
+    )
+    parser.add_argument(
+        "--parts",
+        type=int,
+        help="Authoritative runtime shard count; otherwise derived from lineage",
     )
     parser.add_argument(
         "--min-coverage",
         type=float,
         default=DEFAULT_MIN_COVERAGE,
-        help="Minimum fraction of canonical sources requiring real timing evidence",
+        help="Minimum fraction of logged timing identities requiring canonical mapping",
     )
     parser.add_argument(
         "--normalized-log",
@@ -222,37 +384,62 @@ def main() -> int:
         )
         return 1
 
-    records = collect_timings(log_files)
-    if not records:
+    raw_records = collect_raw_timings(log_files)
+    if not raw_records:
         print(
             "ERROR: shard logs contained no parseable Source Summary timing records",
             file=sys.stderr,
         )
         return 1
 
-    expected_sources = load_expected_sources(args.sources_pattern)
+    sources_by_batch = load_expected_sources_by_batch(args.sources_pattern)
+    expected_sources = {url for urls in sources_by_batch.values() for url in urls}
     if not expected_sources:
         print(
             "ERROR: no canonical sources available for timing coverage", file=sys.stderr
         )
         return 1
-    coverage = timing_coverage(records, expected_sources)
+
+    lineage_files = [Path(item) for item in sorted(glob.glob(args.lineage_pattern))]
+    try:
+        parts = infer_shard_parts(
+            log_files,
+            args.parts,
+            lineage_files=lineage_files,
+        )
+    except ValueError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
+
+    mapped, observed = timing_resolution_counts(raw_records, sources_by_batch, parts)
+    coverage = mapped / observed if observed else 0.0
     min_coverage = max(0.0, min(float(args.min_coverage), 1.0))
     print(
-        f"INFO: source timing coverage {coverage:.1%} "
-        f"({len(records)} records, {len(expected_sources)} canonical sources)"
+        f"INFO: source timing identity coverage {coverage:.1%} "
+        f"({mapped} mapped, {observed} observed identities, "
+        f"{len(expected_sources)} configured sources)"
     )
     if coverage < min_coverage:
         print(
-            f"ERROR: source timing coverage {coverage:.1%} is below "
+            f"ERROR: source timing identity coverage {coverage:.1%} is below "
             f"the required {min_coverage:.1%}",
+            file=sys.stderr,
+        )
+        return 1
+
+    records = resolve_timings(raw_records, sources_by_batch, parts)
+    if not records:
+        print(
+            "ERROR: source timing records could not be mapped to canonical shard "
+            "sources",
             file=sys.stderr,
         )
         return 1
 
     write_outputs(records, args.normalized_log, args.evidence)
     print(
-        f"OK: normalized {len(records)} source timing records from {len(log_files)} shard log(s)."
+        f"OK: normalized {len(records)} canonical source timing records from "
+        f"{len(log_files)} shard log(s)."
     )
     return 0
 

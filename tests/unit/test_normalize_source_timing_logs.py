@@ -1,16 +1,26 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
+import pytest
+
+from configstream.security_validator import SecurityValidator
 from scripts.normalize_source_timing_logs import (
     SourceTiming,
     collect_timings,
+    infer_shard_parts,
     load_expected_sources,
+    load_expected_sources_by_batch,
     main,
     parse_source_timings,
+    resolve_timings,
+    source_id_for_url,
     timing_coverage,
+    timing_resolution_counts,
+    write_outputs,
 )
 
 
@@ -107,6 +117,91 @@ def test_load_expected_sources_ignores_comments_and_invalid_lines(
     }
 
 
+def test_resolve_timings_recovers_canonical_url_from_sanitized_shard_log(
+    tmp_path: Path,
+) -> None:
+    sources = tmp_path / "sources"
+    sources.mkdir()
+    canonical = (
+        "https://raw.githubusercontent.com/example/"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ/main/sub.txt"
+    )
+    (sources / "batch_1.txt").write_text(canonical + "\n", encoding="utf-8")
+    masked = SecurityValidator.sanitize_log_message(canonical)
+    assert masked != canonical
+    assert "[BASE64]" in masked
+
+    log = tmp_path / "pipeline_batch_1_part_1.log"
+    log.write_text(
+        f"INFO Source Summary [{masked}]: Raw=17 Dur=2500ms\n",
+        encoding="utf-8",
+    )
+    raw_records = parse_source_timings(log.read_text(), log.name)
+    sources_by_batch = load_expected_sources_by_batch(str(sources / "batch_*.txt"))
+    parts = infer_shard_parts([log], configured_parts=1)
+    assert timing_resolution_counts(raw_records, sources_by_batch, parts) == (1, 1)
+
+    records = resolve_timings(raw_records, sources_by_batch, parts)
+    assert len(records) == 1
+    assert records[0].url == canonical
+    assert source_id_for_url(records[0].url) == source_id_for_url(canonical)
+
+    normalized = tmp_path / "source_timing_normalized.log"
+    evidence = tmp_path / "pipeline-evidence" / "source_timing.jsonl"
+    write_outputs(records, normalized, evidence)
+    payload = json.loads(evidence.read_text(encoding="utf-8").strip())
+    assert payload["source_id"] == source_id_for_url(canonical)
+    assert payload["source_url"] == masked
+
+
+def test_infer_shard_parts_preserves_configured_count_when_highest_log_missing(
+    tmp_path: Path,
+) -> None:
+    logs = [tmp_path / f"pipeline_batch_1_part_{part}.log" for part in (1, 2, 3)]
+    assert infer_shard_parts(logs, configured_parts=4) == 4
+
+
+def test_infer_shard_parts_rejects_non_positive_configured_count(
+    tmp_path: Path,
+) -> None:
+    log = tmp_path / "pipeline_batch_1_part_1.log"
+    with pytest.raises(ValueError, match="must be positive"):
+        infer_shard_parts([log], configured_parts=0)
+
+
+def test_infer_shard_parts_rejects_out_of_range_observed_part(tmp_path: Path) -> None:
+    log = tmp_path / "pipeline_batch_1_part_5.log"
+    with pytest.raises(ValueError, match="outside the configured shard count"):
+        infer_shard_parts([log], configured_parts=4)
+
+
+def test_resolution_coverage_rejects_ambiguous_sanitizer_collision(
+    tmp_path: Path,
+) -> None:
+    sources = tmp_path / "sources"
+    sources.mkdir()
+    first = "https://raw.githubusercontent.com/a/ABCDEFGHIJKLMNOPQRSTUV/main/sub.txt"
+    second = "https://raw.githubusercontent.com/b/ABCDEFGHIJKLMNOPQRSTUV/main/sub.txt"
+    (sources / "batch_1.txt").write_text(
+        f"{first}\n{second}\n",
+        encoding="utf-8",
+    )
+    masked = SecurityValidator.sanitize_log_message(first)
+    assert masked == SecurityValidator.sanitize_log_message(second)
+
+    record = SourceTiming(
+        url=masked,
+        raw=1,
+        duration_ms=1000.0,
+        fetch_ms=None,
+        source_log="pipeline_batch_1_part_1.log",
+    )
+    sources_by_batch = load_expected_sources_by_batch(str(sources / "batch_*.txt"))
+
+    assert timing_resolution_counts([record], sources_by_batch, 1) == (0, 1)
+    assert resolve_timings([record], sources_by_batch, 1) == []
+
+
 def test_timing_coverage_normalizes_masked_query_variants() -> None:
     records = [
         SourceTiming(
@@ -152,7 +247,7 @@ def test_main_removes_partial_outputs_when_coverage_fails(
 ) -> None:
     log = tmp_path / "pipeline_batch_1_part_1.log"
     log.write_text(
-        "Source Summary [https://a.example/sub]: Raw=1 Dur=1000ms\n",
+        "Source Summary [https://unknown.example/sub]: Raw=1 Dur=1000ms\n",
         encoding="utf-8",
     )
     sources = tmp_path / "sources"
@@ -175,6 +270,8 @@ def test_main_removes_partial_outputs_when_coverage_fails(
             str(tmp_path / "pipeline_batch_*.log"),
             "--sources-pattern",
             str(sources / "batch_*.txt"),
+            "--parts",
+            "1",
             "--min-coverage",
             "0.80",
             "--normalized-log",

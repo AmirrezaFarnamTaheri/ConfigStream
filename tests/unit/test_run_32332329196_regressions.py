@@ -8,13 +8,36 @@ from configstream.dns_profiles import build_singbox_dns_profile
 from configstream.generators.singbox import SingBoxGenerator
 from configstream.generators.split import generate_split_outputs
 from configstream.output.singbox_contract import validate_singbox_config
-from scripts.aggregate_shard_health import bounded_source_counts
+from scripts.aggregate_shard_health import bounded_source_counts, fetch_summary_counts
 from scripts.release_gate import _is_nonblocking_health_note
 
 
 def test_source_attempts_do_not_inflate_coverage() -> None:
     assert bounded_source_counts(source_count=9, fetched_sources=102) == (9, 102)
     assert bounded_source_counts(source_count=9, fetched_sources=7) == (7, 7)
+
+
+def test_fetch_summary_uses_unique_source_success_counts(tmp_path: Path) -> None:
+    log = tmp_path / "pipeline_batch_10_part_2.log"
+    log.write_text(
+        "Fetch Summary: 11/12 sources successful.\n",
+        encoding="utf-8",
+    )
+
+    assert fetch_summary_counts(log, source_count=12, fallback_fetched_sources=28) == (
+        11,
+        12,
+    )
+
+
+def test_fetch_summary_falls_back_when_log_has_no_summary(tmp_path: Path) -> None:
+    log = tmp_path / "pipeline_batch_10_part_2.log"
+    log.write_text("no summary\n", encoding="utf-8")
+
+    assert fetch_summary_counts(log, source_count=12, fallback_fetched_sources=28) == (
+        12,
+        28,
+    )
 
 
 def test_singbox_generator_supplies_resolver_for_hostname_dials() -> None:
