@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from unittest.mock import AsyncMock, patch
 
 import httpx
@@ -73,6 +74,95 @@ async def test_public_dns_rotation_across_requests_is_allowed():
     assert second.status_code == 200
     assert resolver.await_count == 2
     assert captured["request"].url.host == "8.8.8.8"
+    await transport.aclose()
+
+
+@pytest.mark.asyncio
+async def test_pre_pinned_request_reresolves_logical_host_and_rotates_candidates():
+    captured: list[httpx.Request] = []
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        captured.append(request)
+        return httpx.Response(200, request=request)
+
+    transport = SecurityTransport(
+        dns_cache_enabled=False,
+        network_transport=httpx.MockTransport(handler),
+    )
+    resolver = AsyncMock(return_value={"8.8.8.8", "93.184.216.34"})
+
+    def request(path: str) -> httpx.Request:
+        return httpx.Request(
+            "GET",
+            f"https://93.184.216.34/{path}",
+            headers={"Host": "example.com"},
+            extensions={"sni_hostname": "example.com"},
+        )
+
+    with patch.object(transport, "_resolve_host", new=resolver):
+        await transport.handle_async_request(request("first"))
+        await transport.handle_async_request(request("second"))
+
+    assert resolver.await_count == 2
+    assert {item.url.host for item in captured} == {"8.8.8.8", "93.184.216.34"}
+    assert all(item.headers["Host"] == "example.com" for item in captured)
+    assert all(item.extensions["sni_hostname"] == "example.com" for item in captured)
+    await transport.aclose()
+
+
+@pytest.mark.asyncio
+async def test_pre_pinned_request_cannot_hide_private_logical_dns_answer():
+    transport = SecurityTransport(
+        dns_cache_enabled=False,
+        network_transport=_unused_transport(),
+    )
+    resolver = AsyncMock(return_value={"127.0.0.1"})
+    request = httpx.Request(
+        "GET",
+        "https://93.184.216.34/resource",
+        headers={"Host": "example.com"},
+        extensions={"sni_hostname": "example.com"},
+    )
+
+    with patch.object(transport, "_resolve_host", new=resolver):
+        with pytest.raises(httpx.ConnectError, match="resolved to non-global IP"):
+            await transport.handle_async_request(request)
+
+    resolver.assert_awaited_once()
+    await transport.aclose()
+
+
+@pytest.mark.asyncio
+async def test_per_host_limit_bounds_concurrent_connections():
+    active = 0
+    maximum = 0
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal active, maximum
+        active += 1
+        maximum = max(maximum, active)
+        await asyncio.sleep(0.01)
+        active -= 1
+        return httpx.Response(200, request=request)
+
+    transport = SecurityTransport(
+        dns_cache_enabled=False,
+        network_transport=httpx.MockTransport(handler),
+        per_host_limit=2,
+    )
+    resolver = AsyncMock(return_value={"93.184.216.34"})
+
+    with patch.object(transport, "_resolve_host", new=resolver):
+        await asyncio.gather(
+            *(
+                transport.handle_async_request(
+                    httpx.Request("GET", f"https://example.com/{index}")
+                )
+                for index in range(6)
+            )
+        )
+
+    assert maximum == 2
     await transport.aclose()
 
 
