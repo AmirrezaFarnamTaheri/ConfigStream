@@ -101,7 +101,7 @@ class TestVLESSNameAndRemarks:
         assert proxy.remarks == "My Server"
         assert "name" not in proxy.details
 
-    def test_vless_no_remark(self):
+    def test_vless_no_remark(self) -> None:
         """VLESS without remark should have empty remarks."""
         proxy = parse_vless("vless://uuid@host:443")
         assert proxy is not None
