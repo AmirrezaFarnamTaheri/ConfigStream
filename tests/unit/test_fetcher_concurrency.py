@@ -5,6 +5,7 @@ import asyncio
 from collections import defaultdict
 from urllib.parse import urlparse
 
+import httpx
 import pytest
 
 from configstream.fetcher_worker import FetchResult
@@ -39,13 +40,14 @@ async def test_fetch_multiple_sources_enforces_per_host_limit(monkeypatch) -> No
         *(f"https://same.example/{index}" for index in range(6)),
         *(f"https://other.example/{index}" for index in range(3)),
     ]
-    results = await fetcher.fetch_multiple_sources(
-        sources,
-        max_concurrent=9,
-        per_host_limit=2,
-        client=object(),
-        use_adaptive_timeout=False,
-    )
+    async with httpx.AsyncClient() as client:
+        results = await fetcher.fetch_multiple_sources(
+            sources,
+            max_concurrent=9,
+            per_host_limit=2,
+            client=client,
+            use_adaptive_timeout=False,
+        )
 
     assert len(results) == len(sources)
     assert all(result.success for result in results.values())
