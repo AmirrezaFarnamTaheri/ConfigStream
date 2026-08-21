@@ -16,6 +16,7 @@ try:
 except ModuleNotFoundError:
     from scripts.shard_sources import partition
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
 FETCH_SUMMARY_RE = re.compile(
     r"Fetch\s+Summary:\s*"
     r"(?P<successful>\d+)\s*/\s*(?P<attempted>\d+)\s+"
@@ -101,7 +102,9 @@ def main() -> int:
     parser.add_argument("--expected-shards", type=int)
     parser.add_argument("--sources-dir", type=Path, default=Path("sources"))
     parser.add_argument("--parts", type=int, default=4)
+    parser.add_argument("--log-dir", type=Path, default=REPO_ROOT)
     args = parser.parse_args()
+    log_root = args.log_dir.resolve()
 
     expected = args.expected_shards or expected_from_sources(
         args.sources_dir, args.parts
@@ -149,7 +152,7 @@ def main() -> int:
         batch = str(lineage.get("batch") or "").strip()
         part = int(lineage.get("part") or 0)
         source_count = int(lineage.get("source_count") or 0)
-        fetch_log = Path(f"pipeline_batch_{batch}_part_{part}.log")
+        fetch_log = log_root / f"pipeline_batch_{batch}_part_{part}.log"
         covered_sources, source_attempts = fetch_summary_counts(
             fetch_log,
             source_count=source_count,
