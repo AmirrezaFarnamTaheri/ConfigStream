@@ -113,6 +113,29 @@ def test_source_failure_diagnostics_parse_rich_wrapped_producer_logs(
     }
 
 
+def test_source_failure_diagnostics_use_canonical_tie_order(tmp_path: Path) -> None:
+    log = tmp_path / "pipeline_batch_9_part_5.log"
+    log.write_text(
+        "\n".join(
+            [
+                "Failed: https://z.example/a - Max retries exceeded: DNS rebinding detected for 'z.example' (Status: 0)",
+                "Failed: https://a.example/b - Max retries exceeded: All connection attempts failed (Status: 0)",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    summary = fetch_failure_counts(log)
+
+    assert list(summary["by_category"]) == ["connect_error", "dns_rebinding"]
+    assert list(summary["by_host"]) == ["a.example", "z.example"]
+    assert list(summary["by_host_category"]) == [
+        "a.example:connect_error",
+        "z.example:dns_rebinding",
+    ]
+
+
 def test_singbox_generator_supplies_resolver_for_hostname_dials() -> None:
     config = SingBoxGenerator().generate(
         [],
