@@ -7,11 +7,12 @@ import argparse
 import glob
 import hashlib
 import json
+import os
 import re
 import sys
 from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, cast
 
 from configstream.security_validator import SecurityValidator
 
@@ -56,11 +57,7 @@ def _normalize_logged_url(value: str) -> str:
 
 
 def _source_key(url: str) -> str:
-    cleaned = (
-        _normalize_logged_url(url)
-        .replace("[MASKED]", "")
-        .replace("[BASE64]", "")
-    )
+    cleaned = _normalize_logged_url(url).replace("[MASKED]", "").replace("[BASE64]", "")
     cleaned = cleaned.split("#", 1)[0].split("?", 1)[0]
     return cleaned.rstrip()
 
@@ -151,13 +148,32 @@ def load_expected_sources_by_batch(pattern: str) -> dict[str, list[str]]:
     return batches
 
 
-def infer_shard_parts(log_files: Iterable[Path]) -> int:
-    parts = [
+def infer_shard_parts(
+    log_files: Iterable[Path], configured_parts: int | None = None
+) -> int:
+    """Return the authoritative runtime shard count and validate observed logs."""
+
+    if configured_parts is None:
+        raw_parts = os.environ.get("SOURCE_SHARD_PARTS")
+        if raw_parts is None:
+            raise ValueError(
+                "runtime shard count is required via --parts or SOURCE_SHARD_PARTS"
+            )
+        try:
+            configured_parts = int(raw_parts)
+        except ValueError as exc:
+            raise ValueError("runtime shard count must be an integer") from exc
+    if configured_parts <= 0:
+        raise ValueError("runtime shard count must be positive")
+
+    observed_parts = [
         int(match.group("part"))
         for path in log_files
         if (match := SHARD_LOG_RE.match(path.name)) is not None
     ]
-    return max(parts, default=1)
+    if any(part <= 0 or part > configured_parts for part in observed_parts):
+        raise ValueError("observed shard part is outside the configured shard count")
+    return configured_parts
 
 
 def _candidate_sources_for_log(
@@ -165,12 +181,14 @@ def _candidate_sources_for_log(
     sources_by_batch: dict[str, list[str]],
     parts: int,
 ) -> list[str]:
+    if parts <= 0:
+        raise ValueError("runtime shard count must be positive")
     match = SHARD_LOG_RE.match(Path(source_log).name)
     if match is None:
         return []
     batch_sources = sources_by_batch.get(match.group("batch"), [])
     part = int(match.group("part"))
-    buckets = partition(batch_sources, parts) if batch_sources else []
+    buckets = cast(list[list[str]], partition(batch_sources, parts)) if batch_sources else []
     if part < 1 or part > len(buckets):
         return []
     return buckets[part - 1]
@@ -185,9 +203,7 @@ def _canonical_matches(
     observed = _normalize_logged_url(record.url)
     matches = [url for url in candidates if _sanitized_source_key(url) == observed]
     if not matches:
-        matches = [
-            url for url in candidates if _normalize_logged_url(url) == observed
-        ]
+        matches = [url for url in candidates if _normalize_logged_url(url) == observed]
     if not matches:
         observed_key = _source_key(observed)
         matches = [url for url in candidates if _source_key(url) == observed_key]
@@ -323,6 +339,11 @@ def main() -> int:
         help="Canonical source-file glob used to resolve timing evidence",
     )
     parser.add_argument(
+        "--parts",
+        type=int,
+        help="Authoritative runtime shard count (defaults to SOURCE_SHARD_PARTS)",
+    )
+    parser.add_argument(
         "--min-coverage",
         type=float,
         default=DEFAULT_MIN_COVERAGE,
@@ -366,7 +387,12 @@ def main() -> int:
         )
         return 1
 
-    parts = infer_shard_parts(log_files)
+    try:
+        parts = infer_shard_parts(log_files, args.parts)
+    except ValueError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
+
     mapped, observed = timing_resolution_counts(raw_records, sources_by_batch, parts)
     coverage = mapped / observed if observed else 0.0
     min_coverage = max(0.0, min(float(args.min_coverage), 1.0))
