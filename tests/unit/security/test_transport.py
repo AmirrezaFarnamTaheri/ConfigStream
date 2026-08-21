@@ -51,6 +51,32 @@ async def test_https_rewrites_to_pinned_ip_and_preserves_sni_and_host():
 
 
 @pytest.mark.asyncio
+async def test_public_dns_rotation_across_requests_is_allowed():
+    captured: dict[str, httpx.Request] = {}
+    transport = SecurityTransport(
+        dns_cache_enabled=False,
+        network_transport=_capturing_transport(captured),
+    )
+    resolver = AsyncMock(
+        side_effect=[{"93.184.216.34"}, {"8.8.8.8"}],
+    )
+
+    with patch.object(transport, "_resolve_host", new=resolver):
+        first = await transport.handle_async_request(
+            httpx.Request("GET", "https://example.com/first")
+        )
+        second = await transport.handle_async_request(
+            httpx.Request("GET", "https://example.com/second")
+        )
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert resolver.await_count == 2
+    assert captured["request"].url.host == "8.8.8.8"
+    await transport.aclose()
+
+
+@pytest.mark.asyncio
 async def test_disjoint_dns_resolution_is_rejected_as_rebinding():
     transport = SecurityTransport(
         dns_cache_enabled=False,
