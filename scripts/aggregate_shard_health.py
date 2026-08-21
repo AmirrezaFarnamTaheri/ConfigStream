@@ -9,7 +9,7 @@ import re
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any, Iterator, TypedDict
 from urllib.parse import urlparse
 
 try:
@@ -41,6 +41,21 @@ LOG_RECORD_START_RE = re.compile(
     r"^\s*(?:\[\d{2}:\d{2}:\d{2}\]\s+)?" r"(?:DEBUG|INFO|WARNING|ERROR|CRITICAL)\s+"
 )
 SOURCE_LOCATION_RE = re.compile(r"\s+[A-Za-z0-9_./-]+\.py:\d+\s*$")
+
+
+class FailureSummary(TypedDict):
+    """Stable source-acquisition failure summary contract."""
+
+    total: int
+    by_category: dict[str, int]
+    by_host: dict[str, int]
+    by_host_category: dict[str, int]
+
+
+def _sorted_counter(counter: Counter[str]) -> dict[str, int]:
+    """Serialize counters by descending count with lexical tie-breaking."""
+
+    return dict(sorted(counter.items(), key=lambda item: (-item[1], item[0])))
 
 
 def load(path: Path) -> Any:
@@ -213,7 +228,7 @@ def _record_failure(
     host_categories[f"{host}:{category}"] += 1
 
 
-def fetch_failure_counts(log_path: Path) -> dict[str, Any]:
+def fetch_failure_counts(log_path: Path) -> FailureSummary:
     """Return privacy-safe failure counts by category and logical source host."""
 
     categories: Counter[str] = Counter()
@@ -236,9 +251,9 @@ def fetch_failure_counts(log_path: Path) -> dict[str, Any]:
 
     return {
         "total": sum(categories.values()),
-        "by_category": dict(categories.most_common()),
-        "by_host": dict(hosts.most_common()),
-        "by_host_category": dict(host_categories.most_common()),
+        "by_category": _sorted_counter(categories),
+        "by_host": _sorted_counter(hosts),
+        "by_host_category": _sorted_counter(host_categories),
     }
 
 
@@ -340,11 +355,11 @@ def main() -> int:
     configured_sources = sum(int(row["source_count"]) for row in rows)
     covered_sources = sum(int(row["fetched_sources"]) for row in rows)
     source_attempts = sum(int(row["source_attempts"]) for row in rows)
-    source_failure_summary = {
+    source_failure_summary: FailureSummary = {
         "total": sum(failure_categories.values()),
-        "by_category": dict(failure_categories.most_common()),
-        "by_host": dict(failure_hosts.most_common()),
-        "by_host_category": dict(failure_host_categories.most_common()),
+        "by_category": _sorted_counter(failure_categories),
+        "by_host": _sorted_counter(failure_hosts),
+        "by_host_category": _sorted_counter(failure_host_categories),
     }
     merged.update(
         {
