@@ -13,7 +13,11 @@ from configstream.security.transport import SecurityTransport
 
 
 def _capturing_transport(captured: dict[str, httpx.Request]) -> httpx.MockTransport:
+    """Build a mock transport that records the last downstream request."""
+
     async def handler(request: httpx.Request) -> httpx.Response:
+        """Capture one downstream request and return a successful response."""
+
         captured["request"] = request
         return httpx.Response(200, request=request)
 
@@ -21,7 +25,11 @@ def _capturing_transport(captured: dict[str, httpx.Request]) -> httpx.MockTransp
 
 
 def _unused_transport() -> httpx.MockTransport:
+    """Build a transport that fails if validation unexpectedly reaches I/O."""
+
     async def handler(request: httpx.Request) -> httpx.Response:
+        """Reject unexpected downstream traffic from a validation failure path."""
+
         raise AssertionError(
             f"Downstream transport unexpectedly called for {request.url}"
         )
@@ -31,6 +39,8 @@ def _unused_transport() -> httpx.MockTransport:
 
 @pytest.mark.asyncio
 async def test_https_rewrites_to_pinned_ip_and_preserves_sni_and_host():
+    """Preserve logical Host and TLS SNI when connecting to a validated IP."""
+
     captured: dict[str, httpx.Request] = {}
     transport = SecurityTransport(
         dns_cache_enabled=False,
@@ -53,6 +63,8 @@ async def test_https_rewrites_to_pinned_ip_and_preserves_sni_and_host():
 
 @pytest.mark.asyncio
 async def test_public_dns_rotation_across_requests_is_allowed():
+    """Allow independent requests to follow legitimate public DNS rotation."""
+
     captured: dict[str, httpx.Request] = {}
     transport = SecurityTransport(
         dns_cache_enabled=False,
@@ -79,9 +91,13 @@ async def test_public_dns_rotation_across_requests_is_allowed():
 
 @pytest.mark.asyncio
 async def test_pre_pinned_request_reresolves_logical_host_and_rotates_candidates():
+    """Re-resolve a pre-pinned request and rotate among current public answers."""
+
     captured: list[httpx.Request] = []
 
     async def handler(request: httpx.Request) -> httpx.Response:
+        """Record each selected connection candidate."""
+
         captured.append(request)
         return httpx.Response(200, request=request)
 
@@ -92,6 +108,8 @@ async def test_pre_pinned_request_reresolves_logical_host_and_rotates_candidates
     resolver = AsyncMock(return_value={"8.8.8.8", "93.184.216.34"})
 
     def request(path: str) -> httpx.Request:
+        """Build a pre-pinned HTTPS request that retains its logical hostname."""
+
         return httpx.Request(
             "GET",
             f"https://93.184.216.34/{path}",
@@ -112,6 +130,8 @@ async def test_pre_pinned_request_reresolves_logical_host_and_rotates_candidates
 
 @pytest.mark.asyncio
 async def test_pre_pinned_request_cannot_hide_private_logical_dns_answer():
+    """Reject private DNS answers even when the incoming URL is already public-IP pinned."""
+
     transport = SecurityTransport(
         dns_cache_enabled=False,
         network_transport=_unused_transport(),
@@ -134,10 +154,14 @@ async def test_pre_pinned_request_cannot_hide_private_logical_dns_answer():
 
 @pytest.mark.asyncio
 async def test_per_host_limit_bounds_concurrent_connections():
+    """Enforce the transport-level connection limit for one logical host."""
+
     active = 0
     maximum = 0
 
     async def handler(request: httpx.Request) -> httpx.Response:
+        """Track peak concurrent downstream connections."""
+
         nonlocal active, maximum
         active += 1
         maximum = max(maximum, active)
@@ -168,6 +192,8 @@ async def test_per_host_limit_bounds_concurrent_connections():
 
 @pytest.mark.asyncio
 async def test_disjoint_dns_resolution_is_rejected_as_rebinding():
+    """Fail closed when current DNS answers do not overlap an explicit allowlist."""
+
     transport = SecurityTransport(
         dns_cache_enabled=False,
         pinned_ips={"example.com": {"93.184.216.34"}},
@@ -184,6 +210,8 @@ async def test_disjoint_dns_resolution_is_rejected_as_rebinding():
 
 @pytest.mark.asyncio
 async def test_security_transport_rejects_private_ips_dual_stack():
+    """Reject a mixed DNS answer set containing any private address."""
+
     transport = SecurityTransport(
         dns_cache_enabled=False,
         network_transport=_unused_transport(),
@@ -199,6 +227,8 @@ async def test_security_transport_rejects_private_ips_dual_stack():
 
 @pytest.mark.asyncio
 async def test_security_transport_allows_all_global_ips_dual_stack():
+    """Allow a dual-stack DNS answer set when every address is globally routable."""
+
     captured: dict[str, httpx.Request] = {}
     transport = SecurityTransport(
         dns_cache_enabled=False,
@@ -216,6 +246,8 @@ async def test_security_transport_allows_all_global_ips_dual_stack():
 
 
 def test_rewrite_request_to_pinned_ip_formats_ipv6_and_nondefault_port():
+    """Format an IPv6 connection target while preserving a nondefault Host port."""
+
     from configstream.security.transport import rewrite_request_to_pinned_ip
 
     request = httpx.Request("GET", "https://example.com:8443/resource")
@@ -231,6 +263,8 @@ def test_rewrite_request_to_pinned_ip_formats_ipv6_and_nondefault_port():
 
 
 def test_rewrite_request_brackets_literal_ipv6_host_header():
+    """Bracket a literal IPv6 Host header when a nondefault port is present."""
+
     from configstream.security.transport import rewrite_request_to_pinned_ip
 
     request = httpx.Request("GET", "https://[2606:4700:4700::1111]:8443/resource")
@@ -245,6 +279,8 @@ def test_rewrite_request_brackets_literal_ipv6_host_header():
 
 @pytest.mark.asyncio
 async def test_overlapping_dns_answer_uses_only_originally_pinned_address():
+    """Restrict a request to the overlap between DNS answers and explicit pins."""
+
     captured: dict[str, httpx.Request] = {}
     transport = SecurityTransport(
         dns_cache_enabled=False,
@@ -265,6 +301,8 @@ async def test_overlapping_dns_answer_uses_only_originally_pinned_address():
 
 @pytest.mark.asyncio
 async def test_configured_ipv6_pin_is_normalized_before_matching_dns_answer():
+    """Canonicalize an expanded IPv6 pin before intersecting it with DNS answers."""
+
     captured: dict[str, httpx.Request] = {}
     transport = SecurityTransport(
         dns_cache_enabled=False,
@@ -288,5 +326,7 @@ async def test_configured_ipv6_pin_is_normalized_before_matching_dns_answer():
 
 
 def test_invalid_configured_ip_pin_is_rejected_during_initialization():
+    """Reject malformed explicit IP pins before any request can use them."""
+
     with pytest.raises(ValueError, match="Invalid pinned IP address"):
         SecurityTransport(pinned_ips={"example.com": {"not-an-ip"}})
