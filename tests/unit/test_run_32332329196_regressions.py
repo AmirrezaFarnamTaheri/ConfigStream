@@ -8,7 +8,12 @@ from configstream.dns_profiles import build_singbox_dns_profile
 from configstream.generators.singbox import SingBoxGenerator
 from configstream.generators.split import generate_split_outputs
 from configstream.output.singbox_contract import validate_singbox_config
-from scripts.aggregate_shard_health import bounded_source_counts, fetch_summary_counts
+from scripts.aggregate_shard_health import (
+    bounded_source_counts,
+    classify_fetch_failure,
+    fetch_failure_counts,
+    fetch_summary_counts,
+)
 from scripts.release_gate import _is_nonblocking_health_note
 
 
@@ -38,6 +43,41 @@ def test_fetch_summary_falls_back_when_log_has_no_summary(tmp_path: Path) -> Non
         12,
         28,
     )
+
+
+def test_source_failure_diagnostics_classify_host_and_failure_type(
+    tmp_path: Path,
+) -> None:
+    log = tmp_path / "pipeline_batch_9_part_5.log"
+    log.write_text(
+        "\n".join(
+            [
+                "Failed: https://raw.githubusercontent.com/a/b/main/x - Max retries exceeded: DNS rebinding detected for 'raw.githubusercontent.com' (Status: 0)",
+                "Failed: https://raw.githubusercontent.com/a/b/main/y - Max retries exceeded: All connection attempts failed (Status: 0)",
+                "Failed: https://example.com/missing - Permanent Error: 404 (Status: 404)",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    summary = fetch_failure_counts(log)
+
+    assert summary["total"] == 3
+    assert summary["by_category"] == {
+        "dns_rebinding": 1,
+        "connect_error": 1,
+        "permanent_http": 1,
+    }
+    assert summary["by_host"] == {
+        "raw.githubusercontent.com": 2,
+        "example.com": 1,
+    }
+    assert summary["by_host_category"][
+        "raw.githubusercontent.com:dns_rebinding"
+    ] == 1
+    assert classify_fetch_failure("request timed out") == "timeout"
+    assert classify_fetch_failure("Rate limited", 429) == "rate_limited"
 
 
 def test_singbox_generator_supplies_resolver_for_hostname_dials() -> None:
