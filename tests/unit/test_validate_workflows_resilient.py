@@ -161,6 +161,31 @@ def test_main_requires_real_timing_and_reconciled_public_metadata() -> None:
     assert "--required-file pipeline-evidence/source_timing.jsonl" in readiness
 
 
+def test_main_artifact_downloads_survive_failed_job_reruns() -> None:
+    data = _load_local_workflow("main.yml")
+
+    pipeline = data["jobs"]["pipeline"]
+    matrix_download = next(
+        step
+        for step in pipeline["steps"]
+        if isinstance(step, dict)
+        and str(step.get("uses", "")).startswith("actions/download-artifact@")
+    )
+    assert matrix_download["with"]["pattern"] == "source-matrix-${{ github.sha }}-*"
+    assert matrix_download["with"]["merge-multiple"] is True
+    assert "github.run_attempt" not in matrix_download["with"]["pattern"]
+
+    merge = data["jobs"]["merge_validate_publish"]
+    shard_download = _step_by_name(merge, "Download shard artifacts")
+    wasm_download = _step_by_name(merge, "Download WASM artifact")
+    assert shard_download["with"]["pattern"] == "shard-${{ github.sha }}-*"
+    assert shard_download["with"]["merge-multiple"] is True
+    assert wasm_download["with"]["pattern"] == "frontend-wasm-${{ github.sha }}-*"
+    assert wasm_download["with"]["merge-multiple"] is True
+    assert "github.run_attempt" not in shard_download["with"]["pattern"]
+    assert "github.run_attempt" not in wasm_download["with"]["pattern"]
+
+
 def test_pages_contract_accepts_hardened_workflow() -> None:
     assert (
         validate_workflows._deploy_pages_safe(_load_local_workflow("deploy-pages.yml"))
