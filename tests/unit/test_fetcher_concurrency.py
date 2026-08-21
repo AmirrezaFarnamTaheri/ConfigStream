@@ -13,14 +13,20 @@ from configstream.pipeline import fetcher
 
 
 @pytest.mark.asyncio
-async def test_fetch_multiple_sources_enforces_per_host_limit(monkeypatch) -> None:
+async def test_fetch_multiple_sources_enforces_per_host_limit(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     active: dict[str, int] = defaultdict(int)
     maximum: dict[str, int] = defaultdict(int)
 
-    async def no_prewarm(_sources) -> None:
+    async def no_prewarm(_sources: list[str]) -> None:
         return None
 
-    async def fake_fetch(_client, source: str, **_kwargs) -> FetchResult:
+    async def fake_fetch(
+        _client: httpx.AsyncClient,
+        source: str,
+        **_kwargs: object,
+    ) -> FetchResult:
         host = urlparse(source).hostname or "unknown"
         active[host] += 1
         maximum[host] = max(maximum[host], active[host])
@@ -53,3 +59,61 @@ async def test_fetch_multiple_sources_enforces_per_host_limit(monkeypatch) -> No
     assert all(result.success for result in results.values())
     assert maximum["same.example"] == 2
     assert maximum["other.example"] == 2
+
+
+@pytest.mark.asyncio
+async def test_busy_host_does_not_hoard_global_fetch_slots(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    first_same_started = asyncio.Event()
+    release_first_same = asyncio.Event()
+    other_started = asyncio.Event()
+
+    async def no_prewarm(_sources: list[str]) -> None:
+        return None
+
+    async def fake_fetch(
+        _client: httpx.AsyncClient,
+        source: str,
+        **_kwargs: object,
+    ) -> FetchResult:
+        if source == "https://same.example/0":
+            first_same_started.set()
+            await release_first_same.wait()
+        if source.startswith("https://other.example/"):
+            other_started.set()
+        return FetchResult(
+            success=True,
+            source=source,
+            content="ok",
+            status_code=200,
+        )
+
+    monkeypatch.setattr(fetcher, "prewarm_dns_cache", no_prewarm)
+    monkeypatch.setattr(fetcher, "fetch_from_source", fake_fetch)
+
+    sources = [
+        "https://same.example/0",
+        "https://same.example/1",
+        "https://same.example/2",
+        "https://other.example/0",
+    ]
+    async with httpx.AsyncClient() as client:
+        batch = asyncio.create_task(
+            fetcher.fetch_multiple_sources(
+                sources,
+                max_concurrent=2,
+                per_host_limit=1,
+                client=client,
+                use_adaptive_timeout=False,
+            )
+        )
+        await first_same_started.wait()
+        await asyncio.sleep(0)
+        await asyncio.sleep(0)
+        other_started_while_first_same_blocked = other_started.is_set()
+        release_first_same.set()
+        results = await batch
+
+    assert len(results) == len(sources)
+    assert other_started_while_first_same_blocked
