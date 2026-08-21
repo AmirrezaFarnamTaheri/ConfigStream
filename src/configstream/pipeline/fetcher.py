@@ -3,8 +3,7 @@ import asyncio
 import ipaddress
 import logging
 import socket
-from random import uniform
-from secrets import choice as secure_choice
+from secrets import choice as secure_choice, randbelow
 from urllib.parse import urlparse, urljoin
 from typing import Any, Dict, Optional, Tuple, List, Union, cast
 import httpx
@@ -84,7 +83,11 @@ def _retry_backoff(retry_delay: float, attempt: int, cap: float = 30.0) -> float
 
     base = max(0.0, float(retry_delay))
     ceiling = min(max(0.0, float(cap)), base * (2 ** max(0, int(attempt))))
-    return uniform(0.0, ceiling) if ceiling > 0 else 0.0
+    if ceiling <= 0:
+        return 0.0
+    resolution = 1_000_000
+    upper = max(1, int(ceiling * resolution))
+    return randbelow(upper + 1) / resolution
 
 
 async def _reject_source_dns(
