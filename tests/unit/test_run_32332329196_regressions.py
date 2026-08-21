@@ -24,18 +24,20 @@ def test_fetch_summary_uses_unique_source_success_counts(tmp_path: Path) -> None
         encoding="utf-8",
     )
 
-    assert fetch_summary_counts(
-        log, source_count=12, fallback_fetched_sources=28
-    ) == (11, 12)
+    assert fetch_summary_counts(log, source_count=12, fallback_fetched_sources=28) == (
+        11,
+        12,
+    )
 
 
 def test_fetch_summary_falls_back_when_log_has_no_summary(tmp_path: Path) -> None:
     log = tmp_path / "pipeline_batch_10_part_2.log"
     log.write_text("no summary\n", encoding="utf-8")
 
-    assert fetch_summary_counts(
-        log, source_count=12, fallback_fetched_sources=28
-    ) == (12, 28)
+    assert fetch_summary_counts(log, source_count=12, fallback_fetched_sources=28) == (
+        12,
+        28,
+    )
 
 
 def test_singbox_generator_supplies_resolver_for_hostname_dials() -> None:
