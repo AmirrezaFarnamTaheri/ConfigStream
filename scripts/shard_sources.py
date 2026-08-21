@@ -8,6 +8,8 @@ import hashlib
 import json
 from pathlib import Path
 
+QUARANTINE_FILENAME = "quarantine.txt"
+
 
 def partition(lines: list[str], parts: int) -> list[list[str]]:
     buckets: list[list[str]] = [[] for _ in range(parts)]
@@ -15,6 +17,31 @@ def partition(lines: list[str], parts: int) -> list[list[str]]:
         index = int(hashlib.sha256(line.encode()).hexdigest(), 16) % parts
         buckets[index].append(line)
     return buckets
+
+
+def load_quarantined_sources(sources_dir: Path) -> set[str]:
+    """Return explicitly quarantined source locators for runtime exclusion."""
+
+    path = sources_dir / QUARANTINE_FILENAME
+    if not path.is_file():
+        return set()
+    return {
+        line.strip()
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    }
+
+
+def active_source_lines(source_file: Path, quarantined: set[str]) -> list[str]:
+    """Load active source locators while preserving the admitted batch inventory."""
+
+    return [
+        line
+        for raw_line in source_file.read_text(encoding="utf-8").splitlines()
+        if (line := raw_line.strip())
+        and not line.lstrip().startswith("#")
+        and line not in quarantined
+    ]
 
 
 def main() -> int:
@@ -27,14 +54,11 @@ def main() -> int:
     if args.parts < 1:
         raise SystemExit("--parts must be >= 1")
     args.output_dir.mkdir(parents=True, exist_ok=True)
+    quarantined = load_quarantined_sources(args.sources_dir)
     matrix: list[dict[str, object]] = []
     for source_file in sorted(args.sources_dir.glob("batch_*.txt")):
         batch = source_file.stem.removeprefix("batch_")
-        lines = [
-            line.strip()
-            for line in source_file.read_text(encoding="utf-8").splitlines()
-            if line.strip() and not line.lstrip().startswith("#")
-        ]
+        lines = active_source_lines(source_file, quarantined)
         for part, bucket in enumerate(partition(lines, args.parts), start=1):
             if not bucket:
                 continue
