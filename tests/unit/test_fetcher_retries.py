@@ -4,13 +4,20 @@ import pytest
 import respx
 
 from configstream.config import AppSettings
-from configstream.pipeline.fetcher import fetch_from_source
+from configstream.pipeline.fetcher import _retry_backoff, fetch_from_source
 
 
 def _mocked_settings() -> AppSettings:
     settings = AppSettings()
     settings.FETCH_VALIDATE_DNS = False
     return settings
+
+
+def test_retry_backoff_is_bounded_exponential_full_jitter() -> None:
+    for attempt in range(1, 8):
+        delay = _retry_backoff(1.0, attempt, cap=30.0)
+        assert 0.0 <= delay <= min(30.0, 2**attempt)
+    assert _retry_backoff(0.0, 10) == 0.0
 
 
 @pytest.mark.asyncio
