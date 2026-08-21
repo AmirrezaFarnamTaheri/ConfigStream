@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Security-hardened HTTP transport with DNS validation and connection pinning."""
+"""Security-hardened HTTP transport with request-scoped DNS pinning."""
 
 from __future__ import annotations
 
@@ -70,11 +70,11 @@ def rewrite_request_to_pinned_ip(
     *,
     logical_host: Optional[str] = None,
 ) -> httpx.Request:
-    """Return a request that connects to a validated IP while preserving TLS identity.
+    """Connect to one validated IP while preserving the logical Host and TLS SNI.
 
-    Keeping this transformation at the request layer means the same Host/SNI
-    contract applies to the shared security transport and to explicitly injected
-    HTTPX clients used by the fetch pipeline.
+    ``allowed_ips`` belongs to the current request/redirect hop. It is deliberately
+    not treated as a permanent DNS identity for the hostname because public CDN
+    answers can rotate between otherwise independent requests.
     """
 
     if not allowed_ips:
@@ -106,7 +106,13 @@ def rewrite_request_to_pinned_ip(
 
 
 class SecurityTransport(httpx.AsyncHTTPTransport):
-    """Validate DNS answers and ensure the connector uses only validated IPs."""
+    """Validate DNS answers and pin each connection to its validated answer set.
+
+    DNS validation is request-scoped. ``pinned_ips`` is an optional explicit
+    caller-supplied allowlist, not a cache of the first DNS answer ever observed.
+    This preserves SSRF/TOCTOU protection without rejecting legitimate CDN DNS
+    rotation between independent requests.
+    """
 
     def __init__(
         self,
@@ -118,15 +124,12 @@ class SecurityTransport(httpx.AsyncHTTPTransport):
     ) -> None:
         super().__init__(**kwargs)
         self._block_private_networks = bool(block_private_networks)
-        self._pinned_ips: Dict[str, Set[str]] = pinned_ips or {}
+        self._pinned_ips: Dict[str, Set[str]] = {
+            host.rstrip(".").lower(): set(addresses)
+            for host, addresses in (pinned_ips or {}).items()
+        }
         self._dns_cache_enabled = bool(dns_cache_enabled)
         self._network_transport = network_transport
-        self._pin_lock: Optional[asyncio.Lock] = None
-
-    def _get_pin_lock(self) -> asyncio.Lock:
-        if self._pin_lock is None:
-            self._pin_lock = asyncio.Lock()
-        return self._pin_lock
 
     @staticmethod
     def _logical_host(request: httpx.Request) -> str:
@@ -155,26 +158,24 @@ class SecurityTransport(httpx.AsyncHTTPTransport):
             resolved_ips = await self._resolve_and_cache(connection_host, port, request)
 
         if self._block_private_networks:
-            non_global = [raw_ip for raw_ip in resolved_ips if not _is_global(raw_ip)]
+            non_global = sorted(raw_ip for raw_ip in resolved_ips if not _is_global(raw_ip))
             if non_global:
                 raise httpx.ConnectError(
                     f"Host resolved to non-global IP: {non_global[0]!r}",
                     request=request,
                 )
 
-        async with self._get_pin_lock():
-            previous = self._pinned_ips.get(logical_host)
-            if previous is None:
-                self._pinned_ips[logical_host] = set(resolved_ips)
-                connection_candidates = set(resolved_ips)
-            else:
-                connection_candidates = resolved_ips & previous
-                if not connection_candidates:
-                    logger.warning("DNS rebinding detected for %s", logical_host)
-                    raise httpx.ConnectError(
-                        f"DNS rebinding detected for {logical_host!r}",
-                        request=request,
-                    )
+        configured_pins = self._pinned_ips.get(logical_host)
+        if configured_pins is None:
+            connection_candidates = set(resolved_ips)
+        else:
+            connection_candidates = resolved_ips & configured_pins
+            if not connection_candidates:
+                logger.warning("DNS rebinding detected for %s", logical_host)
+                raise httpx.ConnectError(
+                    f"DNS rebinding detected for {logical_host!r}",
+                    request=request,
+                )
 
         if request.url.scheme in {"http", "https"}:
             request = self._rewrite_to_pinned_ip(
