@@ -64,6 +64,24 @@ def _host_header_authority(host: str, port: int | None, default_port: int) -> st
     )
 
 
+def _normalize_pinned_ips(
+    pinned_ips: Optional[Dict[str, Set[str]]],
+) -> Dict[str, Set[str]]:
+    """Canonicalize explicit host/IP allowlists and reject malformed pins."""
+
+    normalized: Dict[str, Set[str]] = {}
+    for host, addresses in (pinned_ips or {}).items():
+        normalized_host = host.rstrip(".").lower()
+        normalized_addresses: Set[str] = set()
+        for raw_address in addresses:
+            parsed = _parse_ip(raw_address)
+            if parsed is None:
+                raise ValueError(f"Invalid pinned IP address: {raw_address!r}")
+            normalized_addresses.add(str(parsed))
+        normalized[normalized_host] = normalized_addresses
+    return normalized
+
+
 def rewrite_request_to_pinned_ip(
     request: httpx.Request,
     allowed_ips: Set[str],
@@ -125,10 +143,7 @@ class SecurityTransport(httpx.AsyncHTTPTransport):
     ) -> None:
         super().__init__(**kwargs)
         self._block_private_networks = bool(block_private_networks)
-        self._pinned_ips: Dict[str, Set[str]] = {
-            host.rstrip(".").lower(): set(addresses)
-            for host, addresses in (pinned_ips or {}).items()
-        }
+        self._pinned_ips = _normalize_pinned_ips(pinned_ips)
         self._dns_cache_enabled = bool(dns_cache_enabled)
         self._network_transport = network_transport
         self._per_host_limit = max(1, int(per_host_limit))
