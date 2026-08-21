@@ -8,12 +8,16 @@ from configstream.pipeline.fetcher import _retry_backoff, fetch_from_source
 
 
 def _mocked_settings() -> AppSettings:
+    """Return fetch settings that keep retry tests independent of live DNS."""
+
     settings = AppSettings()
     settings.FETCH_VALIDATE_DNS = False
     return settings
 
 
 def test_retry_backoff_is_bounded_exponential_full_jitter() -> None:
+    """Keep retry jitter within its exponential ceiling and configured cap."""
+
     for attempt in range(1, 8):
         delay = _retry_backoff(1.0, attempt, cap=30.0)
         assert 0.0 <= delay <= min(30.0, 2**attempt)
@@ -22,6 +26,8 @@ def test_retry_backoff_is_bounded_exponential_full_jitter() -> None:
 
 @pytest.mark.asyncio
 async def test_fetch_404_abort():
+    """Treat HTTP 404 as permanent and avoid redundant retries."""
+
     async with httpx.AsyncClient() as client:
         with respx.mock(base_url="https://example.com") as respx_mock:
             respx_mock.get("/missing").mock(return_value=httpx.Response(404))
@@ -40,6 +46,8 @@ async def test_fetch_404_abort():
 
 @pytest.mark.asyncio
 async def test_fetch_410_abort():
+    """Treat HTTP 410 as permanent and avoid redundant retries."""
+
     async with httpx.AsyncClient() as client:
         with respx.mock(base_url="https://example.com") as respx_mock:
             respx_mock.get("/gone").mock(return_value=httpx.Response(410))
@@ -58,6 +66,8 @@ async def test_fetch_410_abort():
 
 @pytest.mark.asyncio
 async def test_fetch_500_retry():
+    """Retry transient HTTP 500 responses up to the configured attempt limit."""
+
     async with httpx.AsyncClient() as client:
         with respx.mock(base_url="https://example.com") as respx_mock:
             respx_mock.get("/error").mock(return_value=httpx.Response(500))
