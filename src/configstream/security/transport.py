@@ -120,6 +120,7 @@ class SecurityTransport(httpx.AsyncHTTPTransport):
         pinned_ips: Optional[Dict[str, Set[str]]] = None,
         dns_cache_enabled: bool = True,
         network_transport: Optional[httpx.AsyncBaseTransport] = None,
+        per_host_limit: int = 4,
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
@@ -130,6 +131,9 @@ class SecurityTransport(httpx.AsyncHTTPTransport):
         }
         self._dns_cache_enabled = bool(dns_cache_enabled)
         self._network_transport = network_transport
+        self._per_host_limit = max(1, int(per_host_limit))
+        self._host_semaphores: Dict[str, asyncio.Semaphore] = {}
+        self._candidate_cursor: Dict[str, int] = {}
 
     @staticmethod
     def _logical_host(request: httpx.Request) -> str:
@@ -142,6 +146,22 @@ class SecurityTransport(httpx.AsyncHTTPTransport):
                 return host_header.rstrip(".").lower()
         return connection_host.rstrip(".").lower()
 
+    def _host_semaphore(self, logical_host: str) -> asyncio.Semaphore:
+        semaphore = self._host_semaphores.get(logical_host)
+        if semaphore is None:
+            semaphore = asyncio.Semaphore(self._per_host_limit)
+            self._host_semaphores[logical_host] = semaphore
+        return semaphore
+
+    def _select_candidate(self, logical_host: str, candidates: Set[str]) -> str:
+        ordered = sorted(candidates)
+        if not ordered:
+            raise ValueError("candidate set must not be empty")
+        cursor = self._candidate_cursor.get(logical_host, 0)
+        selected = ordered[cursor % len(ordered)]
+        self._candidate_cursor[logical_host] = cursor + 1
+        return selected
+
     async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
         connection_host = request.url.host
         if not connection_host:
@@ -149,10 +169,31 @@ class SecurityTransport(httpx.AsyncHTTPTransport):
         logical_host = self._logical_host(request)
         if not logical_host:
             raise httpx.ConnectError("Request URL has an invalid host", request=request)
-        port = request.url.port or (443 if request.url.scheme == "https" else 80)
 
+        async with self._host_semaphore(logical_host):
+            return await self._handle_validated_request(
+                request,
+                connection_host=connection_host,
+                logical_host=logical_host,
+            )
+
+    async def _handle_validated_request(
+        self,
+        request: httpx.Request,
+        *,
+        connection_host: str,
+        logical_host: str,
+    ) -> httpx.Response:
+        port = request.url.port or (443 if request.url.scheme == "https" else 80)
         connection_ip = _parse_ip(connection_host)
-        if connection_ip is not None:
+
+        # The fetch pipeline may already have rewritten a hostname URL to one
+        # validated IP. Production SecurityTransport remains the authoritative
+        # connection boundary: re-resolve the logical Host header so a rotating
+        # CDN is not reduced to a stale one-address identity.
+        if connection_ip is not None and logical_host != connection_host.lower():
+            resolved_ips = await self._resolve_and_cache(logical_host, port, request)
+        elif connection_ip is not None:
             resolved_ips = {str(connection_ip)}
         else:
             resolved_ips = await self._resolve_and_cache(connection_host, port, request)
@@ -178,9 +219,10 @@ class SecurityTransport(httpx.AsyncHTTPTransport):
                 )
 
         if request.url.scheme in {"http", "https"}:
+            selected = self._select_candidate(logical_host, connection_candidates)
             request = self._rewrite_to_pinned_ip(
                 request,
-                connection_candidates,
+                {selected},
                 logical_host=logical_host,
             )
         if self._network_transport is not None:
