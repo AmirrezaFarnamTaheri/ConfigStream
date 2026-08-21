@@ -18,11 +18,15 @@ from scripts.release_gate import _is_nonblocking_health_note
 
 
 def test_source_attempts_do_not_inflate_coverage() -> None:
+    """Keep consumer observations from inflating unique source coverage."""
+
     assert bounded_source_counts(source_count=9, fetched_sources=102) == (9, 102)
     assert bounded_source_counts(source_count=9, fetched_sources=7) == (7, 7)
 
 
 def test_fetch_summary_uses_unique_source_success_counts(tmp_path: Path) -> None:
+    """Prefer producer success counts over downstream queue observations."""
+
     log = tmp_path / "pipeline_batch_10_part_2.log"
     log.write_text(
         "Fetch Summary: 11/12 sources successful.\n",
@@ -36,6 +40,8 @@ def test_fetch_summary_uses_unique_source_success_counts(tmp_path: Path) -> None
 
 
 def test_fetch_summary_falls_back_when_log_has_no_summary(tmp_path: Path) -> None:
+    """Use bounded legacy counters when a producer summary is unavailable."""
+
     log = tmp_path / "pipeline_batch_10_part_2.log"
     log.write_text("no summary\n", encoding="utf-8")
 
@@ -48,6 +54,8 @@ def test_fetch_summary_falls_back_when_log_has_no_summary(tmp_path: Path) -> Non
 def test_source_failure_diagnostics_classify_host_and_failure_type(
     tmp_path: Path,
 ) -> None:
+    """Classify source failures and aggregate them by logical host."""
+
     log = tmp_path / "pipeline_batch_9_part_5.log"
     log.write_text(
         "\n".join(
@@ -81,6 +89,8 @@ def test_source_failure_diagnostics_classify_host_and_failure_type(
 def test_source_failure_diagnostics_parse_rich_wrapped_producer_logs(
     tmp_path: Path,
 ) -> None:
+    """Reconstruct Rich-wrapped producer warnings before classification."""
+
     log = tmp_path / "pipeline_batch_9_part_5.log"
     log.write_text(
         "\n".join(
@@ -114,6 +124,8 @@ def test_source_failure_diagnostics_parse_rich_wrapped_producer_logs(
 
 
 def test_source_failure_diagnostics_use_canonical_tie_order(tmp_path: Path) -> None:
+    """Serialize tied failure counts in stable lexical order."""
+
     log = tmp_path / "pipeline_batch_9_part_5.log"
     log.write_text(
         "\n".join(
@@ -137,6 +149,8 @@ def test_source_failure_diagnostics_use_canonical_tie_order(tmp_path: Path) -> N
 
 
 def test_singbox_generator_supplies_resolver_for_hostname_dials() -> None:
+    """Supply a default resolver when generated outbounds dial hostnames."""
+
     config = SingBoxGenerator().generate(
         [],
         extra_outbounds=[
@@ -156,6 +170,8 @@ def test_singbox_generator_supplies_resolver_for_hostname_dials() -> None:
 
 
 def test_singbox_contract_rejects_hostname_dial_without_resolver() -> None:
+    """Reject hostname dial outbounds when multi-DNS routing lacks a resolver."""
+
     payload = {
         "outbounds": [
             {
@@ -192,6 +208,8 @@ def test_singbox_contract_rejects_hostname_dial_without_resolver() -> None:
 
 
 def test_singbox_contract_rejects_direct_outbound_without_resolver() -> None:
+    """Reject direct hostname routing when multiple DNS servers are ambiguous."""
+
     payload = {
         "outbounds": [{"type": "direct", "tag": "direct"}],
         "dns": {
@@ -221,6 +239,8 @@ def test_singbox_contract_rejects_direct_outbound_without_resolver() -> None:
 
 
 def test_singbox_contract_allows_implicit_single_dns_resolver() -> None:
+    """Allow implicit resolution when exactly one DNS server is configured."""
+
     payload = {
         "outbounds": [{"type": "direct", "tag": "direct"}],
         "dns": {
@@ -240,6 +260,8 @@ def test_singbox_contract_allows_implicit_single_dns_resolver() -> None:
 
 
 def test_singbox_contract_allows_no_dns_configuration() -> None:
+    """Allow direct routing when the configuration defines no DNS section."""
+
     payload = {
         "outbounds": [{"type": "direct", "tag": "direct"}],
         "route": {"final": "direct", "rules": []},
@@ -249,6 +271,8 @@ def test_singbox_contract_allows_no_dns_configuration() -> None:
 
 
 def test_split_configs_set_resolver_for_multi_dns_profile(tmp_path: Path) -> None:
+    """Set the default resolver in split outputs that use multiple DNS servers."""
+
     files = generate_split_outputs(
         [], tmp_path, singbox_dns_profile=build_singbox_dns_profile()
     )
@@ -259,5 +283,7 @@ def test_split_configs_set_resolver_for_multi_dns_profile(tmp_path: Path) -> Non
 
 
 def test_unverified_shielded_candidate_note_is_not_release_blocking() -> None:
+    """Treat unverified shielded candidates as a health note, not a blocker."""
+
     assert _is_nonblocking_health_note("unverified_shielded_candidates:15")
     assert not _is_nonblocking_health_note("pipeline_time_limited")
