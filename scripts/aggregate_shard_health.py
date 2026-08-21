@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Reconcile shard lineage and counters into merged metadata."""
+"""Reconcile shard lineage, source failures, and counters into merged metadata."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ from collections import Counter
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 try:
     from shard_sources import partition
@@ -21,6 +22,12 @@ FETCH_SUMMARY_RE = re.compile(
     r"Fetch\s+Summary:\s*"
     r"(?P<successful>\d+)\s*/\s*(?P<attempted>\d+)\s+"
     r"sources\s+successful",
+    re.IGNORECASE,
+)
+FETCH_FAILURE_RE = re.compile(
+    r"(?:Failed(?:\s+to\s+fetch)?|Failure)\s*:\s*"
+    r"(?P<url>https?://\S+?)\s+-\s+(?P<error>.*?)"
+    r"(?:\s+\(Status:\s*(?P<status>\d+)\))?\s*$",
     re.IGNORECASE,
 )
 
@@ -95,6 +102,81 @@ def fetch_summary_counts(
     return successful, attempted
 
 
+def classify_fetch_failure(error: str, status: int = 0) -> str:
+    """Map one source acquisition failure to a stable diagnostic category."""
+
+    message = str(error or "").lower()
+    if "dns rebinding" in message:
+        return "dns_rebinding"
+    if any(
+        marker in message
+        for marker in (
+            "could not be resolved",
+            "dns resolution",
+            "dns validation",
+            "resolved to no addresses",
+            "name or service not known",
+            "nodename nor servname",
+        )
+    ):
+        return "dns_resolution"
+    if status in {404, 410} or "permanent error: 404" in message or "permanent error: 410" in message:
+        return "permanent_http"
+    if status == 429 or "rate limited" in message:
+        return "rate_limited"
+    if status >= 500 or re.search(r"\bhttp\s+5\d\d\b", message):
+        return "server_error"
+    if any(
+        marker in message
+        for marker in (
+            "all connection attempts failed",
+            "connecterror",
+            "connection refused",
+            "connection reset",
+            "server disconnected",
+            "network is unreachable",
+        )
+    ):
+        return "connect_error"
+    if "timed out" in message or "timeout" in message:
+        return "timeout"
+    if "circuit breaker open" in message:
+        return "circuit_breaker"
+    return "other"
+
+
+def fetch_failure_counts(log_path: Path) -> dict[str, Any]:
+    """Return privacy-safe failure counts by category and logical source host."""
+
+    categories: Counter[str] = Counter()
+    hosts: Counter[str] = Counter()
+    host_categories: Counter[str] = Counter()
+    try:
+        lines = log_path.read_text(encoding="utf-8", errors="ignore").splitlines()
+    except OSError:
+        lines = []
+
+    for line in lines:
+        match = FETCH_FAILURE_RE.search(line)
+        if not match:
+            continue
+        raw_url = match.group("url")
+        error = match.group("error") or ""
+        status = int(match.group("status") or 0)
+        host = (urlparse(raw_url).hostname or "unknown").rstrip(".").lower()
+        category = classify_fetch_failure(error, status)
+        categories[category] += 1
+        hosts[host] += 1
+        host_categories[f"{host}:{category}"] += 1
+
+    return {
+        "total": sum(categories.values()),
+        "by_category": dict(categories.most_common()),
+        "by_host": dict(hosts.most_common()),
+        "by_host_category": dict(host_categories.most_common()),
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--batch-glob", default="output_batch_*")
@@ -119,6 +201,9 @@ def main() -> int:
             f"expected {expected} shard directories, found {len(directories)}"
         )
     counters: Counter[str] = Counter()
+    failure_categories: Counter[str] = Counter()
+    failure_hosts: Counter[str] = Counter()
+    failure_host_categories: Counter[str] = Counter()
     starts: list[datetime] = []
     ends: list[datetime] = []
     work_seconds = 0.0
@@ -158,6 +243,10 @@ def main() -> int:
             source_count=source_count,
             fallback_fetched_sources=int(metadata.get("fetched_sources") or 0),
         )
+        shard_failures = fetch_failure_counts(fetch_log)
+        failure_categories.update(shard_failures["by_category"])
+        failure_hosts.update(shard_failures["by_host"])
+        failure_host_categories.update(shard_failures["by_host_category"])
         rows.append(
             {
                 "batch": lineage.get("batch"),
@@ -166,6 +255,7 @@ def main() -> int:
                 "source_sha256": lineage.get("source_sha256"),
                 "fetched_sources": covered_sources,
                 "source_attempts": source_attempts,
+                "source_failures": shard_failures,
                 "tested": int(
                     metadata.get("total_tested") or metadata.get("tested") or 0
                 ),
@@ -185,6 +275,12 @@ def main() -> int:
     configured_sources = sum(int(row["source_count"]) for row in rows)
     covered_sources = sum(int(row["fetched_sources"]) for row in rows)
     source_attempts = sum(int(row["source_attempts"]) for row in rows)
+    source_failure_summary = {
+        "total": sum(failure_categories.values()),
+        "by_category": dict(failure_categories.most_common()),
+        "by_host": dict(failure_hosts.most_common()),
+        "by_host_category": dict(failure_host_categories.most_common()),
+    }
     merged.update(
         {
             "pipeline_work_seconds_sum": work_seconds,
@@ -198,6 +294,7 @@ def main() -> int:
             or merged.get("duration_seconds", 0.0),
             "fetched_sources": covered_sources,
             "total_configured_sources": configured_sources,
+            "source_failure_summary": source_failure_summary,
             "shard_summary": {
                 "expected": expected,
                 "observed": len(rows),
@@ -207,6 +304,7 @@ def main() -> int:
                 "source_attempts": source_attempts,
                 "covered_sources": covered_sources,
                 "configured_sources": configured_sources,
+                "source_failures": source_failure_summary,
                 "shards": rows,
             },
         }
