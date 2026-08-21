@@ -38,8 +38,7 @@ FETCH_FAILURE_RE = re.compile(
 FETCH_STATUS_RE = re.compile(r"\(Status:\s*\d+\)\s*$", re.IGNORECASE)
 ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
 LOG_RECORD_START_RE = re.compile(
-    r"^\s*(?:\[\d{2}:\d{2}:\d{2}\]\s+)?"
-    r"(?:DEBUG|INFO|WARNING|ERROR|CRITICAL)\s+"
+    r"^\s*(?:\[\d{2}:\d{2}:\d{2}\]\s+)?" r"(?:DEBUG|INFO|WARNING|ERROR|CRITICAL)\s+"
 )
 SOURCE_LOCATION_RE = re.compile(r"\s+[A-Za-z0-9_./-]+\.py:\d+\s*$")
 
