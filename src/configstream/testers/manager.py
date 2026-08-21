@@ -34,9 +34,6 @@ class SingBoxTester:
         self.max_workers = max_workers
         self.go_tester = GoBatchTester(workers=max_workers, timeout=int(timeout))
         self._python_tester: Optional["PythonTester"] = None
-        self._revived_go_failures = 0
-        self._revived_go_failure_limit = 5
-        self._revived_go_disabled = False
 
     @property
     def python_tester(self) -> "PythonTester":
@@ -88,16 +85,6 @@ class SingBoxTester:
                 await asyncio.gather(*(guarded_test(proxy) for proxy in chunk))
             )
         return results
-
-    def _record_revived_go_health(self, missing_count: int) -> None:
-        """Trip the custom-config path after repeated incomplete Go results."""
-
-        if missing_count <= 0:
-            self._revived_go_failures = 0
-            return
-        self._revived_go_failures += 1
-        if self._revived_go_failures >= self._revived_go_failure_limit:
-            self._revived_go_disabled = True
 
     async def test_batch(self, proxies: List[Proxy]) -> List[Proxy]:
         if self.dry_run:
@@ -165,85 +152,23 @@ class SingBoxTester:
                         chain_outbounds.insert(0, head)
                     configs.append({"id": p.id, "outbounds": chain_outbounds})
 
-                custom_results: Dict[str, bool] = {}
-                if self._revived_go_disabled:
-                    logger.warning(
-                        "Go custom-config testing is disabled after repeated incomplete results; "
-                        "using bounded Python fallback for revived chains."
+                try:
+                    custom_results: Dict[str, bool] = (
+                        await _run_revived_custom_go(
+                            self, configs
+                        )
                     )
-                else:
-                    try:
-                        custom_results = await asyncio.wait_for(
-                            self.go_tester.test_custom_configs(
-                                configs, check_honeypot=False
-                            ),
-                            timeout=max(30.0, float(self.timeout) * 2.0),
-                        )
-                    except asyncio.TimeoutError:
-                        logger.warning(
-                            "Go Tester timed out for revived chains; falling back within the bounded recovery budget."
-                        )
-                        custom_results = {}
-                    except Exception as e:
-                        logger.warning(
-                            f"Go Tester failed for revived chains: {e}. Falling back."
-                        )
-                        custom_results = {}
-
+                except Exception as e:
+                    logger.warning(
+                        f"Go Tester failed for revived chains: {e}. Falling back."
+                    )
+                    custom_results = {}
                 missing = [p for p in revived_candidates if p.id not in custom_results]
-                if not self._revived_go_disabled:
-                    self._record_revived_go_health(len(missing))
-                    if self._revived_go_disabled:
-                        logger.error(
-                            "Go custom-config testing reached the five-strike incomplete-result limit; "
-                            "disabling that path for the rest of this tester lifecycle."
-                        )
-
+                _record_revived_go_health(self, len(missing))
                 if missing:
-                    fallback_limit = max(1, int(self.settings.PY_TESTER_BATCH_SIZE))
-                    fallback_candidates = missing[:fallback_limit]
-                    skipped_candidates = missing[fallback_limit:]
-                    logger.warning(
-                        "Go tester returned empty/partial results for revived chains; "
-                        "testing at most %d candidates with the Python fallback.",
-                        fallback_limit,
+                    custom_results.update(
+                        await _bounded_revived_python_fallback(self, missing)
                     )
-                    max_concurrent = max(
-                        1, int(self.max_workers) if self.max_workers else 1
-                    )
-                    sem = asyncio.Semaphore(max_concurrent)
-
-                    async def _fallback_chain_test(p: Proxy) -> Proxy:
-                        async with sem:
-                            return await self.python_tester.test_via_singbox(p)
-
-                    try:
-                        fallback_results = await asyncio.wait_for(
-                            asyncio.gather(
-                                *[
-                                    _fallback_chain_test(p)
-                                    for p in fallback_candidates
-                                ],
-                                return_exceptions=True,
-                            ),
-                            timeout=max(30.0, float(self.timeout) * 2.0),
-                        )
-                    except asyncio.TimeoutError:
-                        logger.warning(
-                            "Python revived-chain fallback exceeded its bounded recovery deadline."
-                        )
-                        fallback_results = []
-
-                    for res in fallback_results:
-                        if isinstance(res, Proxy):
-                            custom_results[res.id] = bool(res.is_working)
-
-                    skipped_at = datetime.now(timezone.utc).isoformat()
-                    for p in skipped_candidates:
-                        p.is_working = False
-                        p.tested_at = skipped_at
-                        p.details["error"] = "REVIVAL_FALLBACK_BUDGET_EXHAUSTED"
-                        p.details["failure_category"] = "INFRA_BUDGET"
 
                 for p in revived_candidates:
                     is_working = custom_results.get(p.id, False)
@@ -276,3 +201,93 @@ class SingBoxTester:
         """Clean up resources."""
         if self.go_tester:
             await self.go_tester.close()
+
+
+async def _run_revived_custom_go(
+    tester: SingBoxTester, configs: List[Dict[str, object]]
+) -> Dict[str, bool]:
+    """Run custom Go chain tests under a lifecycle circuit breaker and deadline."""
+
+    if bool(getattr(tester, "_revived_go_disabled", False)):
+        logger.warning(
+            "Go custom-config testing is disabled after repeated incomplete results; "
+            "using bounded Python fallback for revived chains."
+        )
+        return {}
+    try:
+        return await asyncio.wait_for(
+            tester.go_tester.test_custom_configs(configs, check_honeypot=False),
+            timeout=max(30.0, float(tester.timeout) * 2.0),
+        )
+    except asyncio.TimeoutError:
+        logger.warning(
+            "Go Tester timed out for revived chains; falling back within the bounded recovery budget."
+        )
+        return {}
+
+
+def _record_revived_go_health(tester: SingBoxTester, missing_count: int) -> None:
+    """Trip the custom-config path after five consecutive incomplete results."""
+
+    if bool(getattr(tester, "_revived_go_disabled", False)):
+        return
+    if missing_count <= 0:
+        setattr(tester, "_revived_go_failures", 0)
+        return
+    failures = int(getattr(tester, "_revived_go_failures", 0)) + 1
+    limit = int(getattr(tester, "_revived_go_failure_limit", 5))
+    setattr(tester, "_revived_go_failures", failures)
+    if failures >= limit:
+        setattr(tester, "_revived_go_disabled", True)
+        logger.error(
+            "Go custom-config testing reached the five-strike incomplete-result limit; "
+            "disabling that path for the rest of this tester lifecycle."
+        )
+
+
+async def _bounded_revived_python_fallback(
+    tester: SingBoxTester, missing: List[Proxy]
+) -> Dict[str, bool]:
+    """Bound revived-chain Python recovery by count, concurrency, and wall time."""
+
+    fallback_limit = max(1, int(tester.settings.PY_TESTER_BATCH_SIZE))
+    fallback_candidates = missing[:fallback_limit]
+    skipped_candidates = missing[fallback_limit:]
+    logger.warning(
+        "Go tester returned empty/partial results for revived chains; "
+        "testing at most %d candidates with the Python fallback.",
+        fallback_limit,
+    )
+    max_concurrent = max(1, int(tester.max_workers) if tester.max_workers else 1)
+    semaphore = asyncio.Semaphore(max_concurrent)
+
+    async def fallback_chain_test(proxy: Proxy) -> Proxy:
+        async with semaphore:
+            return await tester.python_tester.test_via_singbox(proxy)
+
+    try:
+        raw_results = await asyncio.wait_for(
+            asyncio.gather(
+                *(fallback_chain_test(proxy) for proxy in fallback_candidates),
+                return_exceptions=True,
+            ),
+            timeout=max(30.0, float(tester.timeout) * 2.0),
+        )
+    except asyncio.TimeoutError:
+        logger.warning(
+            "Python revived-chain fallback exceeded its bounded recovery deadline."
+        )
+        raw_results = []
+
+    results: Dict[str, bool] = {}
+    for result in raw_results:
+        if isinstance(result, Proxy):
+            results[result.id] = bool(result.is_working)
+
+    skipped_at = datetime.now(timezone.utc).isoformat()
+    for proxy in skipped_candidates:
+        proxy.is_working = False
+        proxy.tested_at = skipped_at
+        proxy.details["error"] = "REVIVAL_FALLBACK_BUDGET_EXHAUSTED"
+        proxy.details["failure_category"] = "INFRA_BUDGET"
+    return results
