@@ -1,0 +1,25 @@
+name: Debt Matrix Repair Artifact
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Generate debt matrix
+        run: python scripts/generate_debt_matrix.py
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: debt-matrix-repair-${{ github.sha }}
+          path: |
+            docs/DEBT_MATRIX.md
+            docs/debt_matrix.json
+          if-no-files-found: error
+          retention-days: 1
