@@ -653,8 +653,8 @@ async def fetch_multiple_sources(
     async def _worker(
         http_client: httpx.AsyncClient, source: str
     ) -> Tuple[str, FetchResult]:
-        async with global_sem:
-            async with _host_semaphore(source):
+        async with _host_semaphore(source):
+            async with global_sem:
                 res = await fetch_from_source(
                     http_client,
                     source,
