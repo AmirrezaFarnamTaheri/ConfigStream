@@ -199,7 +199,9 @@ class SecurityTransport(httpx.AsyncHTTPTransport):
             resolved_ips = await self._resolve_and_cache(connection_host, port, request)
 
         if self._block_private_networks:
-            non_global = sorted(raw_ip for raw_ip in resolved_ips if not _is_global(raw_ip))
+            non_global = sorted(
+                raw_ip for raw_ip in resolved_ips if not _is_global(raw_ip)
+            )
             if non_global:
                 raise httpx.ConnectError(
                     f"Host resolved to non-global IP: {non_global[0]!r}",

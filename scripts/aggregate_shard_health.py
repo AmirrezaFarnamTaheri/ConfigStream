@@ -120,7 +120,11 @@ def classify_fetch_failure(error: str, status: int = 0) -> str:
         )
     ):
         return "dns_resolution"
-    if status in {404, 410} or "permanent error: 404" in message or "permanent error: 410" in message:
+    if (
+        status in {404, 410}
+        or "permanent error: 404" in message
+        or "permanent error: 410" in message
+    ):
         return "permanent_http"
     if status == 429 or "rate limited" in message:
         return "rate_limited"

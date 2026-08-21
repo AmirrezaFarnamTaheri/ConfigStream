@@ -73,9 +73,7 @@ def test_source_failure_diagnostics_classify_host_and_failure_type(
         "raw.githubusercontent.com": 2,
         "example.com": 1,
     }
-    assert summary["by_host_category"][
-        "raw.githubusercontent.com:dns_rebinding"
-    ] == 1
+    assert summary["by_host_category"]["raw.githubusercontent.com:dns_rebinding"] == 1
     assert classify_fetch_failure("request timed out") == "timeout"
     assert classify_fetch_failure("Rate limited", 429) == "rate_limited"
 
