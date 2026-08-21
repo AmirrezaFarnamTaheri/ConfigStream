@@ -9,7 +9,7 @@ import re
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator
 from urllib.parse import urlparse
 
 try:
@@ -24,12 +24,24 @@ FETCH_SUMMARY_RE = re.compile(
     r"sources\s+successful",
     re.IGNORECASE,
 )
-FETCH_FAILURE_RE = re.compile(
+LEGACY_FETCH_FAILURE_RE = re.compile(
     r"(?:Failed(?:\s+to\s+fetch)?|Failure)\s*:\s*"
     r"(?P<url>https?://\S+?)\s+-\s+(?P<error>.*?)"
     r"(?:\s+\(Status:\s*(?P<status>\d+)\))?\s*$",
     re.IGNORECASE,
 )
+FETCH_FAILURE_RE = re.compile(
+    r"^Failed\s+to\s+fetch\s+(?P<url>https?://.+?):\s+"
+    r"(?P<error>.*?)\s+\(Status:\s*(?P<status>\d+)\)\s*$",
+    re.IGNORECASE,
+)
+FETCH_STATUS_RE = re.compile(r"\(Status:\s*\d+\)\s*$", re.IGNORECASE)
+ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
+LOG_RECORD_START_RE = re.compile(
+    r"^\s*(?:\[\d{2}:\d{2}:\d{2}\]\s+)?"
+    r"(?:DEBUG|INFO|WARNING|ERROR|CRITICAL)\s+"
+)
+SOURCE_LOCATION_RE = re.compile(r"\s+[A-Za-z0-9_./-]+\.py:\d+\s*$")
 
 
 def load(path: Path) -> Any:
@@ -149,6 +161,59 @@ def classify_fetch_failure(error: str, status: int = 0) -> str:
     return "other"
 
 
+def _rich_failure_records(text: str) -> Iterator[str]:
+    """Reassemble Rich-wrapped producer warnings into logical failure records."""
+
+    current: str | None = None
+    for raw_line in text.splitlines():
+        line = ANSI_ESCAPE_RE.sub("", raw_line)
+        line = SOURCE_LOCATION_RE.sub("", line).rstrip()
+        record_start = LOG_RECORD_START_RE.match(line)
+        fragment = (line[record_start.end() :] if record_start else line).strip()
+
+        if record_start:
+            current = None
+            offset = fragment.lower().find("failed to fetch")
+            if offset >= 0:
+                current = fragment[offset:]
+        elif current is not None and fragment:
+            current = f"{current} {fragment}"
+
+        if current is not None and FETCH_STATUS_RE.search(current):
+            yield current
+            current = None
+
+
+def _source_host(raw_url: str) -> str:
+    """Extract a host even when console wrapping split a URL token."""
+
+    normalized = re.sub(r"\s+", "", raw_url)
+    try:
+        host = urlparse(normalized).hostname
+    except ValueError:
+        host = None
+    if not host:
+        fallback = re.match(r"https?://([^/:]+)", normalized, re.IGNORECASE)
+        host = fallback.group(1) if fallback else "unknown"
+    return host.rstrip(".").lower()
+
+
+def _record_failure(
+    match: re.Match[str],
+    categories: Counter[str],
+    hosts: Counter[str],
+    host_categories: Counter[str],
+) -> None:
+    raw_url = match.group("url")
+    error = match.group("error") or ""
+    status = int(match.group("status") or 0)
+    host = _source_host(raw_url)
+    category = classify_fetch_failure(error, status)
+    categories[category] += 1
+    hosts[host] += 1
+    host_categories[f"{host}:{category}"] += 1
+
+
 def fetch_failure_counts(log_path: Path) -> dict[str, Any]:
     """Return privacy-safe failure counts by category and logical source host."""
 
@@ -156,22 +221,19 @@ def fetch_failure_counts(log_path: Path) -> dict[str, Any]:
     hosts: Counter[str] = Counter()
     host_categories: Counter[str] = Counter()
     try:
-        lines = log_path.read_text(encoding="utf-8", errors="ignore").splitlines()
+        text = log_path.read_text(encoding="utf-8", errors="ignore")
     except OSError:
-        lines = []
+        text = ""
 
-    for line in lines:
-        match = FETCH_FAILURE_RE.search(line)
-        if not match:
-            continue
-        raw_url = match.group("url")
-        error = match.group("error") or ""
-        status = int(match.group("status") or 0)
-        host = (urlparse(raw_url).hostname or "unknown").rstrip(".").lower()
-        category = classify_fetch_failure(error, status)
-        categories[category] += 1
-        hosts[host] += 1
-        host_categories[f"{host}:{category}"] += 1
+    for line in text.splitlines():
+        match = LEGACY_FETCH_FAILURE_RE.search(line)
+        if match:
+            _record_failure(match, categories, hosts, host_categories)
+
+    for record in _rich_failure_records(text):
+        match = FETCH_FAILURE_RE.match(record)
+        if match:
+            _record_failure(match, categories, hosts, host_categories)
 
     return {
         "total": sum(categories.values()),
