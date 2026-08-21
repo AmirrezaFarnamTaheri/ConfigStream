@@ -4,11 +4,12 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from types import SimpleNamespace
+from typing import Any
 
 import pytest
 
 from configstream.models import Proxy
-from configstream.testers.manager import SingBoxTester
+from configstream.testers.manager import SingBoxTester, _record_revived_go_health
 from scripts.reconcile_release_metadata import reconcile
 from scripts.shard_sources import active_source_lines, load_quarantined_sources
 
@@ -78,9 +79,7 @@ def test_reconcile_removes_duplicate_failure_summary_and_repairs_audit(
             "time_limited": 2,
         },
     }
-    (root / "metadata.json").write_text(
-        json.dumps(metadata), encoding="utf-8"
-    )
+    (root / "metadata.json").write_text(json.dumps(metadata), encoding="utf-8")
 
     reconcile(root)
 
@@ -95,21 +94,21 @@ def test_reconcile_removes_duplicate_failure_summary_and_repairs_audit(
 
 
 def test_revived_go_health_trips_after_five_incomplete_results() -> None:
-    tester = object.__new__(SingBoxTester)
+    tester: Any = object.__new__(SingBoxTester)
     tester._revived_go_failures = 0
     tester._revived_go_failure_limit = 5
     tester._revived_go_disabled = False
 
     for _ in range(4):
-        tester._record_revived_go_health(1)
+        _record_revived_go_health(tester, 1)
         assert tester._revived_go_disabled is False
 
-    tester._record_revived_go_health(1)
+    _record_revived_go_health(tester, 1)
     assert tester._revived_go_disabled is True
 
     tester._revived_go_failures = 3
     tester._revived_go_disabled = False
-    tester._record_revived_go_health(0)
+    _record_revived_go_health(tester, 0)
     assert tester._revived_go_failures == 0
     assert tester._revived_go_disabled is False
 
@@ -134,7 +133,7 @@ async def test_revived_python_fallback_respects_existing_batch_budget() -> None:
             proxy.is_working = True
             return proxy
 
-    tester = object.__new__(SingBoxTester)
+    tester: Any = object.__new__(SingBoxTester)
     tester.timeout = 1.0
     tester.cache = None
     tester.strict_security = False
@@ -142,7 +141,8 @@ async def test_revived_python_fallback_respects_existing_batch_budget() -> None:
     tester.dry_run = False
     tester.max_workers = 2
     tester.go_tester = FakeGoTester()
-    tester._python_tester = FakePythonTester()
+    python_tester = FakePythonTester()
+    tester._python_tester = python_tester
     tester._revived_go_failures = 0
     tester._revived_go_failure_limit = 5
     tester._revived_go_disabled = False
@@ -150,7 +150,7 @@ async def test_revived_python_fallback_respects_existing_batch_budget() -> None:
     proxies = [_revived_proxy(index) for index in range(5)]
     await tester.test_batch(proxies)
 
-    assert len(tester._python_tester.calls) == 2
+    assert len(python_tester.calls) == 2
     skipped = [
         proxy
         for proxy in proxies
