@@ -344,7 +344,7 @@
     },
     {
       "path": "scripts/validate_pages_artifact.py",
-      "line": 843,
+      "line": 846,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
