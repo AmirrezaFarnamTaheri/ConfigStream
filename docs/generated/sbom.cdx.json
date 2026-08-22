@@ -2748,7 +2748,7 @@
       "version": "1.32.0"
     },
     {
-      "bom-ref": "pkg:npm/nanoid@3.3.16",
+      "bom-ref": "pkg:npm/nanoid@3.3.18",
       "licenses": [
         {
           "license": {
@@ -2771,10 +2771,10 @@
           "value": "package-lock.json"
         }
       ],
-      "purl": "pkg:npm/nanoid@3.3.16",
+      "purl": "pkg:npm/nanoid@3.3.18",
       "scope": "optional",
       "type": "library",
-      "version": "3.3.16"
+      "version": "3.3.18"
     },
     {
       "bom-ref": "pkg:npm/picocolors@1.1.1",

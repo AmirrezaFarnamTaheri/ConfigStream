@@ -4,15 +4,23 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from scripts import generate_triage_report
 
 
 def _write_json(path: Path, payload: object) -> None:
+    """Write one JSON fixture, creating its parent directories first."""
+
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload), encoding="utf-8")
 
 
-def test_triage_report_check_accepts_crlf_content(tmp_path: Path, monkeypatch) -> None:
+def test_triage_report_check_accepts_crlf_content(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Treat CRLF and LF report content as semantically equivalent."""
+
     _write_json(
         tmp_path / "docs" / "readiness.json",
         {

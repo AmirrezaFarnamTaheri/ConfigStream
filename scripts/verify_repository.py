@@ -316,7 +316,12 @@ def _run_process(
 
 
 def _run_stage(root: Path, stage: Stage, env: dict[str, str]) -> StageResult:
+    """Validate and execute one verification stage in its declared environment."""
+
     tool = stage.required_tool or stage.command[0]
+    workdir = root / stage.workdir
+    stage_env = env.copy()
+    stage_env.update(dict(stage.environment))
     missing_paths = [
         path
         for path in stage.required_paths
@@ -346,7 +351,10 @@ def _run_stage(root: Path, stage: Stage, env: dict[str, str]) -> StageResult:
             duration_seconds=0.0,
             output="required project artifact not found: " + ", ".join(missing_paths),
         )
-    if not (Path(tool).is_file() or shutil.which(tool)):
+    tool_path = Path(tool)
+    if not tool_path.is_absolute():
+        tool_path = workdir / tool_path
+    if not (tool_path.is_file() or shutil.which(tool, path=stage_env.get("PATH"))):
         return StageResult(
             name=stage.name,
             command=stage.command,
@@ -358,8 +366,8 @@ def _run_stage(root: Path, stage: Stage, env: dict[str, str]) -> StageResult:
     if stage.minimum_tool_version and stage.version_command:
         version_code, version_output, version_timed_out = _run_process(
             stage.version_command,
-            cwd=root / stage.workdir,
-            env=env,
+            cwd=workdir,
+            env=stage_env,
             timeout_seconds=15,
         )
         if version_timed_out or version_code != 0:
@@ -396,12 +404,10 @@ def _run_stage(root: Path, stage: Stage, env: dict[str, str]) -> StageResult:
                 0.0,
                 f"tool version {observed} is below required {required}",
             )
-    stage_env = env.copy()
-    stage_env.update(dict(stage.environment))
     started = time.monotonic()
     exit_code, output, timed_out = _run_process(
         stage.command,
-        cwd=root / stage.workdir,
+        cwd=workdir,
         env=stage_env,
         timeout_seconds=stage.timeout_seconds,
     )
