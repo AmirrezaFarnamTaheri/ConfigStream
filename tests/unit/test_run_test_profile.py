@@ -34,7 +34,9 @@ def test_unit_commands_skip_empty_root_test_glob(
     assert len(commands) == 1
 
 
-def test_frontend_browser_profile_disables_plugin_autoload_and_loads_required_plugins() -> None:
+def test_frontend_browser_profile_disables_plugin_autoload_and_loads_required_plugins() -> (
+    None
+):
     commands = run_test_profile._frontend_browser_commands("python", "npm")
 
     pytest_command, environment = commands[0]

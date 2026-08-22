@@ -12,9 +12,7 @@ def _write_json(path: Path, payload: object) -> None:
     path.write_text(json.dumps(payload), encoding="utf-8")
 
 
-def test_triage_report_check_accepts_crlf_content(
-    tmp_path: Path, monkeypatch
-) -> None:
+def test_triage_report_check_accepts_crlf_content(tmp_path: Path, monkeypatch) -> None:
     _write_json(
         tmp_path / "docs" / "readiness.json",
         {
