@@ -226,9 +226,12 @@ def _public_key_hex_from_env() -> str:
     if not key:
         return ""
     _, serialization = _load_signature_primitives()
-    return key.public_bytes(
-        encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
-    ).hex()
+    return cast(
+        str,
+        key.public_bytes(
+            encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
+        ).hex(),
+    )
 
 
 def _manifest_signer_from_env() -> Any | None:
