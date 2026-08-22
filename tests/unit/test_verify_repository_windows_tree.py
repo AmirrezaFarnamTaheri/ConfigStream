@@ -60,7 +60,7 @@ def test_windows_timeout_terminates_descendant_tree_with_argument_list(
     process = Mock(spec=subprocess.Popen)
     process.pid = 4321
     process.kill = Mock()
-    completed = subprocess.CompletedProcess([], 0)
+    completed: subprocess.CompletedProcess[bytes] = subprocess.CompletedProcess([], 0)
     run = Mock(return_value=completed)
 
     monkeypatch.setattr(
