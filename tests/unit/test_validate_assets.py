@@ -100,3 +100,55 @@ def test_validate_image_references_rejects_empty_asset(
     assert errors == [
         "frontend/index.html references empty image: frontend/assets/images/empty.png"
     ]
+
+
+def test_resolve_svg_parser_returns_parse_capable_module() -> None:
+    parser, parse_errors = validate_assets._resolve_svg_parser()
+
+    assert hasattr(parser, "parse")
+    assert parse_errors
+
+
+def test_validate_svg_xml_rejects_malformed_svg(tmp_path: Path, monkeypatch) -> None:
+    _patch_root(tmp_path, monkeypatch)
+    svg = tmp_path / "frontend" / "assets" / "svg" / "broken.svg"
+    svg.parent.mkdir(parents=True)
+    svg.write_text("<svg><g></svg>", encoding="utf-8")
+
+    errors = validate_assets._validate_svg_xml([svg])
+
+    assert len(errors) == 1
+    assert errors[0].startswith("malformed SVG XML in frontend/assets/svg/broken.svg:")
+
+
+def test_validate_svg_xml_sanitizes_parser_diagnostics(
+    tmp_path: Path, monkeypatch
+) -> None:
+    _patch_root(tmp_path, monkeypatch)
+    svg = tmp_path / "frontend" / "assets" / "svg" / "broken.svg"
+    svg.parent.mkdir(parents=True)
+    svg.write_text("<svg/>", encoding="utf-8")
+
+    class SensitiveParseError(Exception):
+        pass
+
+    class Parser:
+        @staticmethod
+        def parse(_path: Path) -> None:
+            raise SensitiveParseError(
+                "fetch https://user:password@example.test/?token=secret from 192.0.2.1"
+            )
+
+    monkeypatch.setattr(
+        validate_assets,
+        "_resolve_svg_parser",
+        lambda: (Parser, (SensitiveParseError,)),
+    )
+
+    [error] = validate_assets._validate_svg_xml([svg])
+
+    assert "password" not in error
+    assert "token=secret" not in error
+    assert "192.0.2.1" not in error
+    assert "[MASKED]" in error
+    assert "[IP]" in error

@@ -35,6 +35,7 @@ def get_proxy_credential(p: Any) -> str:
                 "psk",
                 "key",
                 "token",
+                "chain_fingerprint",
             ):
                 val = details.get(key)
                 if isinstance(val, str) and val.strip():

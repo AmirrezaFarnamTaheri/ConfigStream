@@ -1,6 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Sing-box Outbound Configuration Schema",
+  "title": "ConfigStream Intermediate Sing-box Outbound",
+  "description": "Validates converter-stage outbound objects before release finalization. Public sing-box files are complete root objects and are validated separately; finalization migrates legacy WireGuard outbounds to modern sing-box endpoints.",
   "type": "object",
   "required": [
     "type",
@@ -27,10 +28,12 @@
       ]
     },
     "tag": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1
     },
     "server": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1
     },
     "server_port": {
       "type": "integer",
@@ -38,31 +41,39 @@
       "maximum": 65535
     },
     "uuid": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1
     },
     "flow": {
       "type": "string"
     },
     "password": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1
     },
     "method": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1
     },
     "private_key": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1
     },
     "peer_public_key": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1
     },
     "local_address": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1
     },
     "local_address_v6": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1
     },
     "pre_shared_key": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1
     },
     "mtu": {
       "type": "integer"
@@ -71,6 +82,14 @@
       "type": "array",
       "items": {
         "type": "integer"
+      }
+    },
+    "outbounds": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
       }
     },
     "tls": {
@@ -112,5 +131,130 @@
         }
       }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "enum": [
+              "vless",
+              "vmess",
+              "trojan",
+              "shadowsocks",
+              "hysteria2",
+              "tuic",
+              "wireguard",
+              "http",
+              "socks"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "server",
+          "server_port"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "enum": [
+              "vless",
+              "vmess"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "uuid"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "enum": [
+              "trojan",
+              "hysteria2"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "password"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "shadowsocks"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "method",
+          "password"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "tuic"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "uuid",
+          "password"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "wireguard"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "private_key",
+          "peer_public_key",
+          "local_address",
+          "mtu"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "enum": [
+              "selector",
+              "urltest"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "outbounds"
+        ]
+      }
+    }
+  ]
 }

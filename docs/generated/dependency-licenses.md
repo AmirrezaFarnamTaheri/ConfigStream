@@ -121,7 +121,7 @@ Unknown licenses requiring external resolution: **151**
 | npm | `lightningcss-linux-x64-musl` | `1.32.0` | optional | `MPL-2.0` |
 | npm | `lightningcss-win32-arm64-msvc` | `1.32.0` | optional | `MPL-2.0` |
 | npm | `lightningcss-win32-x64-msvc` | `1.32.0` | optional | `MPL-2.0` |
-| npm | `nanoid` | `3.3.16` | development | `MIT` |
+| npm | `nanoid` | `3.3.18` | development | `MIT` |
 | npm | `picocolors` | `1.1.1` | development | `ISC` |
 | npm | `picomatch` | `4.0.5` | development | `MIT` |
 | npm | `playwright` | `1.62.0` | development | `Apache-2.0` |

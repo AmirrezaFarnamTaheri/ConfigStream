@@ -41,6 +41,10 @@ SAFE_ALPN_COMBINATIONS = [
     ["h2"],
 ]
 
+# Compatibility sentinel for callers that previously selected sing-box TLS
+# fragmentation presets. Current sing-box releases expose no equivalent field.
+FRAG_PRESETS: Dict[str, List[Optional[Dict[str, str]]]] = {"none": [None]}
+
 
 def _rotation_hash(
     proxy_id: str, namespace: str, rotation_seed: Optional[str] = None
@@ -127,58 +131,14 @@ def add_multiplexing(
     return outbound
 
 
-FRAG_PRESETS: Dict[str, List[Optional[Dict[str, str]]]] = {
-    "none": [None],
-    "light": [
-        {"packets": "tlshello", "length": "100-200", "interval": "10-20"},
-    ],
-    "medium": [
-        {"packets": "tlshello", "length": "50-100", "interval": "10-20"},
-        {"packets": "tlshello", "length": "100-200", "interval": "20-40"},
-    ],
-    "heavy": [
-        {"packets": "tlshello", "length": "10-50", "interval": "5-10"},
-        {"packets": "tlshello", "length": "50-100", "interval": "10-30"},
-        {"packets": "tlshello", "length": "100-300", "interval": "20-50"},
-    ],
-    "all": [
-        None,
-        {"packets": "tlshello", "length": "100-200", "interval": "10-20"},
-        {"packets": "tlshello", "length": "50-100", "interval": "10-30"},
-        {"packets": "tlshello", "length": "10-50", "interval": "5-10"},
-    ],
-}
-
-
 def get_fragment_config(
     proxy_id: str,
     enabled: bool = True,
     preset: str = "medium",
     rotation_seed: Optional[str] = None,
-) -> Optional[Dict[str, Any]]:
-    """Select a fragmentation preset that rotates daily by default."""
-    if not enabled:
-        return None
-    normalized_preset = str(preset or "medium").strip().lower()
-    if normalized_preset == "none":
-        return None
-    choices = FRAG_PRESETS.get(normalized_preset)
-    if choices is None:
-        logger.warning(
-            "Unknown fragmentation preset %r; using medium",
-            normalized_preset,
-        )
-        normalized_preset = "medium"
-        choices = FRAG_PRESETS[normalized_preset]
-
-    valid_choices = [choice for choice in choices if choice is not None]
-    if not valid_choices:
-        return None
-    selected = valid_choices[
-        _rotation_hash(proxy_id, f"fragment:{normalized_preset}", rotation_seed)
-        % len(valid_choices)
-    ]
-    return selected.copy()
+) -> None:
+    """Deprecated compatibility shim; sing-box TLS fragmentation was removed."""
+    return None
 
 
 def enrich_outbound_with_evasion(
@@ -186,17 +146,23 @@ def enrich_outbound_with_evasion(
     proxy_id: str,
     enable_utls: bool = True,
     enable_alpn: bool = True,
-    enable_fragmentation: bool = True,
+    enable_fragmentation: bool = False,
     enable_multiplexing: bool = True,
     tls_fingerprint: Optional[str] = None,
     alpn_list: Optional[List[str]] = None,
-    fragment_preset: str = "medium",
+    fragment_preset: str = "none",
     enable_tfo: bool = False,
     enable_mptcp: bool = False,
     enable_padding: bool = False,
     ech_config: Optional[str] = None,
     rotation_seed: Optional[str] = None,
 ) -> Dict[str, Any]:
+    """Apply supported sing-box evasion fields.
+
+    ``enable_fragmentation``, ``fragment_preset``, and ``enable_padding`` are
+    retained as deprecated no-op keywords for callers upgrading from older
+    ConfigStream releases. Padding is emitted only by ``multiplex.padding``.
+    """
     protocol = outbound.get("type", "")
     tls = outbound.get("tls")
 
@@ -225,32 +191,9 @@ def enrich_outbound_with_evasion(
         if alpn_protocols:
             tls["alpn"] = alpn_protocols
 
-    if enable_padding and protocol in {"vmess", "vless", "trojan", "hysteria2", "tuic"}:
-        if isinstance(tls, dict):
-            tls["padding"] = True
-
     if ech_config and protocol in {"vmess", "vless", "trojan", "hysteria2", "tuic"}:
         if isinstance(tls, dict):
             tls["ech"] = {"enabled": True, "config": str(ech_config)}
-
-    if enable_fragmentation and protocol in {"vmess", "vless", "trojan"}:
-        is_reality = isinstance(tls, dict) and bool(
-            tls.get("reality", {}).get("enabled")
-        )
-        is_vision = str(outbound.get("flow", "")).startswith("xtls-rprx-vision")
-        if not is_reality and not is_vision:
-            frag_cfg = get_fragment_config(
-                proxy_id,
-                enabled=True,
-                preset=fragment_preset,
-                rotation_seed=rotation_seed,
-            )
-            if frag_cfg:
-                dial = outbound.get("dial")
-                if not isinstance(dial, dict):
-                    dial = {}
-                dial["fragment"] = {"enabled": True, **frag_cfg}
-                outbound["dial"] = dial
 
     if (enable_tfo or enable_mptcp) and protocol in {
         "vmess",
@@ -262,14 +205,10 @@ def enrich_outbound_with_evasion(
         "hysteria2",
         "tuic",
     }:
-        dial = outbound.get("dial")
-        if not isinstance(dial, dict):
-            dial = {}
         if enable_tfo:
-            dial["tcp_fast_open"] = True
+            outbound["tcp_fast_open"] = True
         if enable_mptcp:
-            dial["tcp_multi_path"] = True
-        outbound["dial"] = dial
+            outbound["tcp_multi_path"] = True
 
     if enable_multiplexing:
         outbound = add_multiplexing(outbound, enabled=True, padding=True)

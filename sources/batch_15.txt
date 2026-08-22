@@ -6,8 +6,6 @@ https://aliveproxy.com/proxy-list/
 https://chat.tawana.online/sub/tawanaproxy.txt
 https://config.elaheniloofar.link
 https://github.com/v2rayfree
-https://msk.vless-balancer.ru/sub/dXNlcl82Nzg4MzMxMjQ5LDE3Njk1MzUzMTkBqGm3A1STd/
-https://nv2ron.ir/ALKSHHH1243800OOAKKSDVVVXXCSA654DAFVJHVZSNCBrealityV2RAY
 https://proxyorbit.com/api/all
 https://raw.githubusercontent.com/AB841V0N/Warp-ON-Warp/main/AB_841-Warp-ON-Warp
 https://raw.githubusercontent.com/Barabama/FreeNodes/main/nodes/clashmeta.yaml

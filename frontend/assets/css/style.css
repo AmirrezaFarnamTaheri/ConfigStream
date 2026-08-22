@@ -2192,6 +2192,26 @@ body.dark .filter-summary {
     outline-offset: -2px;
 }
 
+.proxies-table .sort-button {
+    display: inline-flex;
+    align-items: center;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    letter-spacing: inherit;
+    text-align: inherit;
+    text-transform: inherit;
+    cursor: pointer;
+}
+
+.proxies-table .sort-button:focus-visible {
+    outline: 2px solid var(--brand-primary);
+    outline-offset: 4px;
+}
+
 body.dark .proxies-table th {
     color: var(--text-secondary);
 }

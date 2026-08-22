@@ -2,7 +2,6 @@
 # Optimized Sources: 60
 
 http://www.proxylists.net/
-https://cdn.fildl.ir/sub/TUNrQ2JpLDE3Njc4OTA3OTEyzup1z2RKG
 https://cdn.jsdelivr.net/gh/peasoft/NoMoreWalls@master/list.txt
 https://geonode.com/free-proxy-list
 https://github.com/ircfspace/tvc/raw/main/sub/mix

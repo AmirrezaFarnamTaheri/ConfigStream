@@ -1071,6 +1071,10 @@
         "origin_id": {
           "type": "string"
         },
+        "chain_fingerprint": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
         "origin_config": {
           "type": "object"
         },
@@ -1112,6 +1116,21 @@
         },
         "latency_is_estimate": {
           "type": "boolean"
+        },
+        "process": {
+          "type": "string"
+        },
+        "chain_process": {
+          "type": "string"
+        },
+        "shielded_candidate": {
+          "type": "boolean"
+        },
+        "shielded_verified": {
+          "type": "boolean"
+        },
+        "failure_category": {
+          "type": "string"
         },
         "detour": {
           "type": "string"

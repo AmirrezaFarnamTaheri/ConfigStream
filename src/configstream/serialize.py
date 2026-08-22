@@ -79,8 +79,9 @@ def serialize_proxy(
         proxy: The proxy object.
         history_points: Optional list of recent latency points for sparklines.
     """
-    # For revived/chain proxies, generate a mini sing-box JSON config
-    # that v2rayN / xray / nekoray / Hiddify can import directly.
+    # For revived proxies, embed a compact sing-box configuration. This is not
+    # an Xray document: consumers must route it through a sing-box-compatible
+    # parser or use the complete public singbox-chains*.json artifacts.
     config_value = proxy.config
     details_value = proxy.details
     if isinstance(details_value, dict):
@@ -160,8 +161,10 @@ def serialize_proxy(
 
 def _build_chain_config(chain_outbounds: List[Dict[str, Any]]) -> str:
     """
-    Build a mini sing-box JSON config from chain outbounds.
-    Importable by v2rayN / xray / nekoray / Hiddify.
+    Build a compact sing-box JSON object from chain outbounds.
+
+    The object deliberately uses sing-box outbound syntax and must not be
+    presented as an Xray configuration merely because both formats are JSON.
     """
     clean = []
     for ob in chain_outbounds:

@@ -19,7 +19,7 @@ import time
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import cast
+from typing import Any, cast
 
 from configstream.output.client_formats import (
     validate_mihomo_config,
@@ -27,8 +27,19 @@ from configstream.output.client_formats import (
     validate_xray_config,
 )
 from configstream.output.singbox_contract import validate_singbox_config
-from cryptography.hazmat.primitives.asymmetric import ed25519
-from cryptography.hazmat.primitives import serialization
+
+try:
+    from scripts.public_client_configs import (
+        discover_mihomo_configs,
+        discover_singbox_configs,
+        resolve_public_config,
+    )
+except ModuleNotFoundError:  # Direct ``python scripts/...`` execution.
+    from public_client_configs import (  # type: ignore[no-redef]
+        discover_mihomo_configs,
+        discover_singbox_configs,
+        resolve_public_config,
+    )
 
 logger = logging.getLogger(__name__)
 
@@ -65,12 +76,15 @@ REQUIRED_EXISTS: tuple[str, ...] = (
     "chains.json",
     "chains-dns-safe.json",
     "chains-dns-hardened.json",
+    "chosen/singbox.json",
+    "chosen/clash.yaml",
     "side_products.zip",
     "side_products-dns-safe.zip",
     "side_products-dns-hardened.zip",
     "chosen/base64.txt",
     "chosen/base64-dns-safe.txt",
     "chosen/base64-dns-hardened.txt",
+    "chosen/proxies.txt",
     "data/clean_ips.json",
     "data/proxy_history_viz.json",
     "data/active_proxy_trend.json",
@@ -104,6 +118,8 @@ REQUIRED_NONEMPTY: tuple[str, ...] = (
     "chains.json",
     "chains-dns-safe.json",
     "chains-dns-hardened.json",
+    "chosen/singbox.json",
+    "chosen/clash.yaml",
     "side_products.zip",
     "side_products-dns-safe.zip",
     "side_products-dns-hardened.zip",
@@ -126,16 +142,6 @@ JSON_FILES: tuple[str, ...] = tuple(
 
 ZIP_FILES: tuple[str, ...] = tuple(
     name for name in REQUIRED_EXISTS if name.endswith(".zip")
-)
-SINGBOX_FILES: tuple[str, ...] = tuple(
-    name
-    for name in REQUIRED_EXISTS
-    if name.startswith("singbox") and name.endswith(".json")
-)
-CLASH_FILES: tuple[str, ...] = tuple(
-    name
-    for name in REQUIRED_EXISTS
-    if name.startswith("clash") and name.endswith(".yaml")
 )
 XRAY_FILES: tuple[str, ...] = ("xray.json",)
 SING_BOX_BINARY_NAMES: tuple[str, ...] = ("sing-box", "sing-box.exe")
@@ -183,7 +189,15 @@ _MANIFEST_PRIVATE_KEY_ENV = (
 )
 
 
-def _public_key_from_runtime_env() -> ed25519.Ed25519PublicKey | None:
+def _load_signature_primitives() -> tuple[Any, Any]:
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric import ed25519
+
+    return ed25519, serialization
+
+
+def _public_key_from_runtime_env() -> Any | None:
+    ed25519, serialization = _load_signature_primitives()
     value = (os.environ.get("CS_PUBLIC_KEY") or "").strip()
     if not value:
         return None
@@ -219,12 +233,16 @@ def _public_key_hex_from_env() -> str:
     key = _public_key_from_runtime_env()
     if not key:
         return ""
-    return key.public_bytes(
-        encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
-    ).hex()
+    _, serialization = _load_signature_primitives()
+    return cast(
+        str,
+        key.public_bytes(
+            encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
+        ).hex(),
+    )
 
 
-def _manifest_signer_from_env() -> ed25519.Ed25519PrivateKey | None:
+def _manifest_signer_from_env() -> Any | None:
     key_hex = ""
     for env_name in _MANIFEST_PRIVATE_KEY_ENV:
         key_hex = (os.environ.get(env_name) or "").strip()
@@ -237,6 +255,7 @@ def _manifest_signer_from_env() -> ed25519.Ed25519PrivateKey | None:
         key_bytes = key_bytes[:32]
     if len(key_bytes) != 32:
         raise ValueError("Manifest signing key must be 32 or 64 bytes (hex).")
+    ed25519, _ = _load_signature_primitives()
     return ed25519.Ed25519PrivateKey.from_private_bytes(key_bytes)
 
 
@@ -334,15 +353,17 @@ def collect_native_client_report(root: Path) -> dict[str, object]:
 
     sing_box = _first_available_binary(SING_BOX_BINARY_NAMES)
     tools["sing-box"] = {"available": bool(sing_box), "binary": sing_box}
-    for rel_path in SINGBOX_FILES:
-        target = root / rel_path
-        if not target.is_file():
-            continue
-        if not sing_box:
+    for target in discover_singbox_configs(root):
+        rel_path = target.relative_to(root).as_posix()
+        resolved, path_error = resolve_public_config(root, target)
+        if resolved is None:
+            status, error = "failed", f"{rel_path}: {path_error}"
+            command = None
+        elif not sing_box:
             status, error = "skipped", None
             command = None
         else:
-            command = [sing_box, "check", "-c", str(target)]
+            command = [sing_box, "check", "-c", str(resolved)]
             status, error = _run_native_check(command, rel_path)
         summary[status] = int(summary.get(status, 0)) + 1
         checks.append(
@@ -357,15 +378,17 @@ def collect_native_client_report(root: Path) -> dict[str, object]:
 
     mihomo = _first_available_binary(MIHOMO_BINARY_NAMES)
     tools["mihomo"] = {"available": bool(mihomo), "binary": mihomo}
-    for rel_path in CLASH_FILES:
-        target = root / rel_path
-        if not target.is_file():
-            continue
-        if not mihomo:
+    for target in discover_mihomo_configs(root):
+        rel_path = target.relative_to(root).as_posix()
+        resolved, path_error = resolve_public_config(root, target)
+        if resolved is None:
+            status, error = "failed", f"{rel_path}: {path_error}"
+            command = None
+        elif not mihomo:
             status, error = "skipped", None
             command = None
         else:
-            command = [mihomo, "-t", "-f", str(target)]
+            command = [mihomo, "-t", "-f", str(resolved)]
             status, error = _run_native_check(command, rel_path)
         summary[status] = int(summary.get(status, 0)) + 1
         checks.append(
@@ -1061,6 +1084,9 @@ def _validate_api_alias_parity(root: Path) -> list[str]:
     for canonical, alias in (
         ("proxies.json", "api/proxies"),
         ("metadata.json", "api/stats"),
+        ("singbox-chains.json", "chains.json"),
+        ("singbox-chains-dns-safe.json", "chains-dns-safe.json"),
+        ("singbox-chains-dns-hardened.json", "chains-dns-hardened.json"),
     ):
         canonical_path = root / canonical
         alias_path = root / alias
@@ -1196,6 +1222,7 @@ def write_pages_contract(root: Path) -> None:
     }
     signer = _manifest_signer_from_env()
     if signer is not None:
+        _, serialization = _load_signature_primitives()
         ts_val = int(time.time())
         payload = _canonical_manifest_payload(manifest, ts_val)
         signature = signer.sign(payload).hex()
@@ -1272,20 +1299,24 @@ def validate_pages_artifact(
         if bad_member:
             errors.append(f"corrupt ZIP member in {rel_path}: {bad_member}")
 
-    for rel_path in SINGBOX_FILES:
-        target = root / rel_path
-        if not target.is_file():
+    for target in discover_singbox_configs(root):
+        rel_path = target.relative_to(root).as_posix()
+        resolved, path_error = resolve_public_config(root, target)
+        if resolved is None:
+            errors.append(f"{rel_path} is unsafe: {path_error}")
             continue
-        payload, error = _load_json(target)
+        payload, error = _load_json(resolved)
         if error:
             continue
         errors.extend(validate_singbox_config(payload, rel_path))
 
-    for rel_path in CLASH_FILES:
-        target = root / rel_path
-        if not target.is_file():
+    for target in discover_mihomo_configs(root):
+        rel_path = target.relative_to(root).as_posix()
+        resolved, path_error = resolve_public_config(root, target)
+        if resolved is None:
+            errors.append(f"{rel_path} is unsafe: {path_error}")
             continue
-        payload, error = _load_yaml(target)
+        payload, error = _load_yaml(resolved)
         if error:
             errors.append(error.replace(target.name, rel_path, 1))
             continue

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_digest": "2f014c77840f88bf00b0b962e855a4878523515646074aabbfa40b3888c32f2b",
+  "source_digest": "576dd26a0471ab0dd7c5e431879bdfab59f25f8ccfe6e5fa58ba24c86f140575",
   "variable_count": 160,
   "variables": [
     {
@@ -346,7 +346,7 @@
       "sensitive": false,
       "sources": [
         "scripts/snapshot_pages_release.py:417",
-        "scripts/validate_pages_artifact.py:187"
+        "scripts/validate_pages_artifact.py:201"
       ],
       "type": null
     },
@@ -737,15 +737,15 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:540",
-        "scripts/finalize_release_outputs.py:583",
+        "scripts/finalize_release_outputs.py:570",
+        "scripts/finalize_release_outputs.py:613",
         "scripts/generate_evidence_bundle.py:20",
-        "scripts/native_client_checks.py:211",
+        "scripts/native_client_checks.py:222",
         "scripts/release_gate.py:180",
         "scripts/release_gate.py:388",
         "scripts/resilient_stage.py:469",
-        "scripts/validate_pages_artifact.py:1159",
-        "scripts/validate_pages_artifact.py:1192",
+        "scripts/validate_pages_artifact.py:1185",
+        "scripts/validate_pages_artifact.py:1218",
         "src/configstream/output/metadata.py:508",
         "src/configstream/output/metadata.py:541"
       ],
@@ -758,15 +758,15 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:539",
-        "scripts/finalize_release_outputs.py:582",
+        "scripts/finalize_release_outputs.py:569",
+        "scripts/finalize_release_outputs.py:612",
         "scripts/generate_evidence_bundle.py:19",
-        "scripts/native_client_checks.py:210",
+        "scripts/native_client_checks.py:221",
         "scripts/release_gate.py:179",
         "scripts/release_gate.py:385",
         "scripts/resilient_stage.py:468",
-        "scripts/validate_pages_artifact.py:1158",
-        "scripts/validate_pages_artifact.py:1191",
+        "scripts/validate_pages_artifact.py:1184",
+        "scripts/validate_pages_artifact.py:1217",
         "src/configstream/output/metadata.py:507",
         "src/configstream/output/metadata.py:540"
       ],
@@ -779,15 +779,15 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:538",
-        "scripts/finalize_release_outputs.py:581",
+        "scripts/finalize_release_outputs.py:568",
+        "scripts/finalize_release_outputs.py:611",
         "scripts/generate_evidence_bundle.py:21",
-        "scripts/native_client_checks.py:209",
+        "scripts/native_client_checks.py:220",
         "scripts/release_gate.py:178",
         "scripts/release_gate.py:382",
         "scripts/resilient_stage.py:470",
-        "scripts/validate_pages_artifact.py:1157",
-        "scripts/validate_pages_artifact.py:1190",
+        "scripts/validate_pages_artifact.py:1183",
+        "scripts/validate_pages_artifact.py:1216",
         "src/configstream/output/metadata.py:506",
         "src/configstream/output/metadata.py:539"
       ],
@@ -1108,7 +1108,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:39"
+        "scripts/finalize_release_outputs.py:51"
       ],
       "type": null
     },
@@ -1141,7 +1141,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:598"
+        "scripts/finalize_release_outputs.py:628"
       ],
       "type": null
     },
@@ -1196,7 +1196,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/native_client_checks.py:72",
+        "scripts/native_client_checks.py:83",
         "src/configstream/testers/go_tester/manager.py:324",
         "src/configstream/testers/go_tester/manager.py:91"
       ],
@@ -1656,6 +1656,7 @@
       "sensitive": false,
       "sources": [
         "src/configstream/config.py:144",
+        "src/configstream/intelligence/washer/core.py:515",
         "src/configstream/pipeline/core.py:133",
         "src/configstream/pipeline/core.py:138",
         "src/configstream/pipeline/core.py:143",

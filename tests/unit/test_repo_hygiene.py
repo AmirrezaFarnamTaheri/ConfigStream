@@ -8,6 +8,15 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+SOURCE_TOKEN_PATTERNS = (
+    re.compile(r"(?:token|key|secret|auth|sub|id)=[a-zA-Z0-9_-]{16,}", re.I),
+    re.compile(
+        r"(?i)(?:^|/)"
+        r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+        r"(?:/|$|[?#])"
+    ),
+    re.compile(r"(?i)/sub/[a-z0-9_-]{24,}(?:/|$|[?#])"),
+)
 
 
 def _tracked_files() -> list[str]:
@@ -68,8 +77,6 @@ def test_no_tokens_in_tracked_sources() -> None:
     if not tracked:
         return
 
-    token_pattern = re.compile(r"(?:token|key|secret|auth|sub|id)=[a-zA-Z0-9]{16,}")
-
     source_files = [f for f in tracked if f.startswith("sources/")]
 
     leaks = []
@@ -80,7 +87,19 @@ def test_no_tokens_in_tracked_sources() -> None:
 
         content = path.read_text(encoding="utf-8")
         for line_no, line in enumerate(content.splitlines(), 1):
-            if token_pattern.search(line):
+            if any(pattern.search(line) for pattern in SOURCE_TOKEN_PATTERNS):
                 leaks.append(f"{rel_path}:{line_no}")
 
     assert not leaks, f"Tokens found in tracked source files: {leaks[:10]}..."
+
+
+def test_source_token_patterns_cover_case_and_opaque_subscription_paths() -> None:
+    samples = (
+        "https://example.test/path?AUTH=abcdefghijklmnop",
+        "https://example.test/sub/dXNlcl82Nzg4MzMxMjQ5LDE3Njk1MzUzMTkBqGm3A1STd",
+    )
+
+    assert all(
+        any(pattern.search(sample) for pattern in SOURCE_TOKEN_PATTERNS)
+        for sample in samples
+    )

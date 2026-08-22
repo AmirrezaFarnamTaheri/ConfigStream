@@ -41,18 +41,60 @@ def _run_many(commands: list[tuple[list[str], dict[str, str] | None]]) -> int:
     return 0
 
 
+def _unit_commands(python: str) -> list[tuple[list[str], dict[str, str] | None]]:
+    """Build portable unit commands without relying on shell glob expansion."""
+
+    environment = {"ENVIRONMENT": "test"}
+    commands: list[tuple[list[str], dict[str, str] | None]] = [
+        ([python, "-m", "pytest", "-q", "tests/unit"], environment)
+    ]
+    root_tests = sorted(
+        path.relative_to(REPO_ROOT).as_posix()
+        for path in (REPO_ROOT / "tests").glob("test_*.py")
+    )
+    if root_tests:
+        commands.append(([python, "-m", "pytest", "-q", *root_tests], environment))
+    return commands
+
+
+def _frontend_browser_commands(
+    python: str, npm: str
+) -> list[tuple[list[str], dict[str, str] | None]]:
+    """Run browser tests without inheriting unrelated host pytest plugins."""
+
+    pytest_environment = {
+        "CONFIGSTREAM_REQUIRE_PLAYWRIGHT": "1",
+        "ENVIRONMENT": "test",
+        "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+    }
+    return [
+        (
+            [
+                python,
+                "-m",
+                "pytest",
+                "-q",
+                "-p",
+                "pytest_asyncio.plugin",
+                "-p",
+                "pytest_playwright.pytest_playwright",
+                "-p",
+                "pytest_base_url.plugin",
+                "tests/e2e/test_frontend.py",
+            ],
+            pytest_environment,
+        ),
+        ([npm, "run", "test:frontend:no-network"], None),
+        ([npm, "run", "test:frontend:degraded"], None),
+    ]
+
+
 def run_profile(profile: str) -> int:
     python = sys.executable
     npm = shutil.which("npm") or "npm"
 
     profiles: dict[str, list[tuple[list[str], dict[str, str] | None]]] = {
-        "unit": [
-            ([python, "-m", "pytest", "-q", "tests/unit"], {"ENVIRONMENT": "test"}),
-            (
-                [python, "-m", "pytest", "-q", "tests/test_*.py"],
-                {"ENVIRONMENT": "test"},
-            ),
-        ],
+        "unit": _unit_commands(python),
         "integration": [
             (
                 [
@@ -69,14 +111,7 @@ def run_profile(profile: str) -> int:
                 {"ENVIRONMENT": "test"},
             )
         ],
-        "frontend-browser": [
-            (
-                [python, "-m", "pytest", "-q", "tests/e2e/test_frontend.py"],
-                {"CONFIGSTREAM_REQUIRE_PLAYWRIGHT": "1", "ENVIRONMENT": "test"},
-            ),
-            ([npm, "run", "test:frontend:no-network"], None),
-            ([npm, "run", "test:frontend:degraded"], None),
-        ],
+        "frontend-browser": _frontend_browser_commands(python, npm),
     }
 
     if profile not in profiles:

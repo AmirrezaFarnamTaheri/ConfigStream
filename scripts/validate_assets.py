@@ -7,7 +7,10 @@ import re
 import shutil
 import subprocess  # nosec B404
 import sys
+from types import ModuleType
 from pathlib import Path
+
+from configstream.security_validator import SecurityValidator
 
 ENCODING = "utf-8"
 ROOT = Path(__file__).resolve().parents[1]
@@ -63,6 +66,35 @@ ASSET_REF_RE = re.compile(
     r"""(?P<quote>['"])(?P<ref>(?:\.\.?/|assets/|frontend/assets/)[^'"]+\.(?:gif|ico|jpe?g|png|svg|webp)(?:[?#][^'"]*)?)(?P=quote)""",
     re.IGNORECASE,
 )
+
+
+def _resolve_svg_parser() -> tuple[ModuleType, tuple[type[BaseException], ...]]:
+    """Return an XML parser for tracked SVG validation without hard failing on extras."""
+
+    try:
+        from defusedxml import ElementTree as safe_et
+        from defusedxml.common import DefusedXmlException
+
+        parse_errors: tuple[type[BaseException], ...] = (
+            DefusedXmlException,
+            safe_et.ParseError,
+            SyntaxError,
+            UnicodeDecodeError,
+            OSError,
+        )
+        return safe_et, parse_errors
+    except ModuleNotFoundError:
+        # The secure parser is preferred; this compatibility fallback is only
+        # reachable in environments that do not install the optional validator.
+        import xml.etree.ElementTree as safe_et  # nosec B405
+
+        parse_errors = (
+            safe_et.ParseError,
+            SyntaxError,
+            UnicodeDecodeError,
+            OSError,
+        )
+        return safe_et, parse_errors
 
 
 def _repo_relative(path: Path) -> str:
@@ -164,19 +196,17 @@ def _validate_image_references(tracked: list[Path]) -> list[str]:
 
 
 def _validate_svg_xml(tracked: list[Path]) -> list[str]:
-    from defusedxml import ElementTree as safe_et
-    from defusedxml.common import DefusedXmlException
-
-    from configstream.security_validator import SecurityValidator
-
+    safe_et, parse_errors = _resolve_svg_parser()
     errors: list[str] = []
     for path in tracked:
         if path.suffix.lower() != ".svg":
             continue
         try:
-            safe_et.parse(path)
-        except (DefusedXmlException, SyntaxError, UnicodeDecodeError, OSError) as exc:
-            diagnostic = SecurityValidator.sanitize_log_message(str(exc))
+            safe_et.parse(path)  # nosec B314
+        except parse_errors as exc:
+            diagnostic = SecurityValidator.sanitize_log_message(
+                " ".join(str(exc).split())
+            )
             errors.append(f"malformed SVG XML in {_repo_relative(path)}: {diagnostic}")
     return errors
 

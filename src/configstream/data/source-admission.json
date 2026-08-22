@@ -287,19 +287,6 @@
       "url_sha256": "e33e3693f61422e68c15d1bc80cff25edde43ce3dced117c4f33f0da86f81434"
     },
     {
-      "host": "apex.gaming-shop54.top",
-      "immutable_reference": false,
-      "locator_type": "opaque-http",
-      "reference": null,
-      "scheme": "https",
-      "source_files": [
-        "sources/batch_16.txt"
-      ],
-      "trust_class": "opaque",
-      "url": "https://apex.gaming-shop54.top/QXYR8Itk5Ll9oPHMixCwK/095f2d65-00b7-4760-9591-7599adc803d4/all.txt?name=apex.gaming-shop54.top-unknown&asn=unknown&mode=new",
-      "url_sha256": "4b4f701949c5fc6ecb21d8eed9005db30ace2d0ffbecd5f424b728d7ff210679"
-    },
-    {
       "host": "api.dler.io",
       "immutable_reference": false,
       "locator_type": "opaque-http",
@@ -558,19 +545,6 @@
       "trust_class": "opaque",
       "url": "https://buyproxy.ru/free",
       "url_sha256": "34eb2a2ac5d94cffb524f48c35a3b315a6f42771262d99f5e0f0f7aad147a568"
-    },
-    {
-      "host": "cdn.fildl.ir",
-      "immutable_reference": false,
-      "locator_type": "opaque-http",
-      "reference": null,
-      "scheme": "https",
-      "source_files": [
-        "sources/batch_10.txt"
-      ],
-      "trust_class": "opaque",
-      "url": "https://cdn.fildl.ir/sub/TUNrQ2JpLDE3Njc4OTA3OTEyzup1z2RKG",
-      "url_sha256": "c899e9c7ba5997e18bdfc2629fdea8104f875b2a93c05ec15a9fe15c412a3796"
     },
     {
       "host": "cdn.jsdelivr.net",
@@ -1418,32 +1392,6 @@
       "url_sha256": "a2b58d33dac0539c1b33d2d876e8cbd3828640d1e8156fd2f34a5c395a207cbd"
     },
     {
-      "host": "msk.vless-balancer.ru",
-      "immutable_reference": false,
-      "locator_type": "opaque-http",
-      "reference": null,
-      "scheme": "https",
-      "source_files": [
-        "sources/batch_14.txt"
-      ],
-      "trust_class": "opaque",
-      "url": "https://msk.vless-balancer.ru/sub/dXNlcl82Nzg4MzMxMjQ5LDE3Njk1MzUzMTkBqGm3A1STd",
-      "url_sha256": "82b3e11b8cb5661950aa16a101391eaa2b7478ecdf9fed841c806e64e08022d0"
-    },
-    {
-      "host": "msk.vless-balancer.ru",
-      "immutable_reference": false,
-      "locator_type": "opaque-http",
-      "reference": null,
-      "scheme": "https",
-      "source_files": [
-        "sources/batch_15.txt"
-      ],
-      "trust_class": "opaque",
-      "url": "https://msk.vless-balancer.ru/sub/dXNlcl82Nzg4MzMxMjQ5LDE3Njk1MzUzMTkBqGm3A1STd/",
-      "url_sha256": "4489aaed1173da7b95a791c05e7a015f55c9c67570377990120c44209d2d0a51"
-    },
-    {
       "host": "netproxylist.com",
       "immutable_reference": false,
       "locator_type": "opaque-http",
@@ -1481,19 +1429,6 @@
       "trust_class": "opaque",
       "url": "https://noopsproxy.com/api/all",
       "url_sha256": "546ebc6db635705668f56018027d49eaad535444694d9ec54aae5d2d5c4f30bb"
-    },
-    {
-      "host": "nv2ron.ir",
-      "immutable_reference": false,
-      "locator_type": "opaque-http",
-      "reference": null,
-      "scheme": "https",
-      "source_files": [
-        "sources/batch_15.txt"
-      ],
-      "trust_class": "opaque",
-      "url": "https://nv2ron.ir/ALKSHHH1243800OOAKKSDVVVXXCSA654DAFVJHVZSNCBrealityV2RAY",
-      "url_sha256": "8389f83a62c0fc315bedabb7a02b75c8ae03e462fc695c37f7f09103b62a2abe"
     },
     {
       "host": "oneclash.githubrowcontent.com",
@@ -12130,32 +12065,6 @@
       "url_sha256": "f18316780f926d73f2c80a3eadebd95f0d957462d2f9091c72a88b00209b24f5"
     },
     {
-      "host": "sub.shadowproxy66.workers.dev",
-      "immutable_reference": false,
-      "locator_type": "opaque-http",
-      "reference": null,
-      "scheme": "https",
-      "source_files": [
-        "sources/batch_6.txt"
-      ],
-      "trust_class": "opaque",
-      "url": "https://sub.shadowproxy66.workers.dev/sub/214abfe9-791e-44ba-bd8e-0afe298119f6",
-      "url_sha256": "fd355ea964981fcfeb6f7d4b7bba87cfff136134d77446b1ccaa0a41eb9cf519"
-    },
-    {
-      "host": "sub.shadowproxy66.workers.dev",
-      "immutable_reference": false,
-      "locator_type": "opaque-http",
-      "reference": null,
-      "scheme": "https",
-      "source_files": [
-        "sources/batch_7.txt"
-      ],
-      "trust_class": "opaque",
-      "url": "https://sub.shadowproxy66.workers.dev/sub/be80a76c-6044-417c-9bff-e587f9380d05",
-      "url_sha256": "4eef2581e7f321fbdf5b16d7029fef80cb72b814051c8fa2c22d81c99abff1dd"
-    },
-    {
       "host": "sub.whitedns.one",
       "immutable_reference": false,
       "locator_type": "opaque-http",
@@ -13365,7 +13274,7 @@
       "url_sha256": "542c5c77d9ad552264bd9be32678dc7b9b8b9d6de8235bf66cef17fb527f5929"
     }
   ],
-  "entry_count": 1028,
+  "entry_count": 1021,
   "policy": {
     "allowed_schemes": [
       "https",
@@ -13397,5 +13306,5 @@
     "sources/batch_16.txt",
     "sources/batch_17.txt"
   ],
-  "source_set_sha256": "005aa25010db02dadb9e11f30dfa79b74317952e03a93054482c26859a7817d9"
+  "source_set_sha256": "0d7f5269818f4875156cbfa61bf0e45493f993567e65206337443e73e5c6f7cf"
 }

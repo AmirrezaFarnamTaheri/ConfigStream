@@ -14,7 +14,6 @@ from types import SimpleNamespace
 import pytest
 
 from configstream.event_stream import EventStream
-from configstream.intelligence.evasion import get_fragment_config
 from configstream.intelligence.washer.key_generator import KeyGenerator
 from configstream.intelligence.washer.utils import make_entry
 from configstream.server import ws
@@ -70,28 +69,6 @@ def test_scraped_warp_entries_are_unverified() -> None:
     assert proxy.is_working is False
     assert proxy.details["candidate_id"].startswith("WARP-test-")
     assert proxy.details["reserved"] == [0, 0, 0]
-
-
-def test_fragment_selection_is_stable_per_seed_and_rotatable() -> None:
-    first = get_fragment_config("proxy-a", preset="heavy", rotation_seed="day-1")
-    repeated = get_fragment_config("proxy-a", preset="heavy", rotation_seed="day-1")
-    assert first == repeated
-    assert first in [
-        entry
-        for entry in get_fragment_config.__globals__["FRAG_PRESETS"]["heavy"]
-        if entry
-    ]
-
-    choices = {
-        json.dumps(
-            get_fragment_config(
-                "proxy-a", preset="heavy", rotation_seed=f"day-{index}"
-            ),
-            sort_keys=True,
-        )
-        for index in range(32)
-    }
-    assert len(choices) > 1
 
 
 def test_websocket_wildcard_never_allows_arbitrary_origin(

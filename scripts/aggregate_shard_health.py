@@ -13,9 +13,17 @@ from typing import Any, Iterator, TypedDict
 from urllib.parse import urlparse
 
 try:
-    from shard_sources import partition
+    from shard_sources import (
+        active_source_lines,
+        load_quarantined_sources,
+        partition,
+    )
 except ModuleNotFoundError:
-    from scripts.shard_sources import partition
+    from scripts.shard_sources import (
+        active_source_lines,
+        load_quarantined_sources,
+        partition,
+    )
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 FETCH_SUMMARY_RE = re.compile(
@@ -72,13 +80,12 @@ def parse_time(value: Any) -> datetime | None:
 
 
 def expected_from_sources(sources_dir: Path, parts: int) -> int:
+    """Count non-empty runtime shards using the canonical admission contract."""
+
     expected = 0
+    quarantined = load_quarantined_sources(sources_dir)
     for source_file in sorted(sources_dir.glob("batch_*.txt")):
-        lines = [
-            line.strip()
-            for line in source_file.read_text(encoding="utf-8").splitlines()
-            if line.strip() and not line.lstrip().startswith("#")
-        ]
+        lines = active_source_lines(source_file, quarantined)
         expected += sum(bool(bucket) for bucket in partition(lines, parts))
     return expected
 

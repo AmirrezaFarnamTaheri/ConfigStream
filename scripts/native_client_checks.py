@@ -17,6 +17,17 @@ from typing import Any
 
 from configstream.security_validator import SecurityValidator
 
+try:
+    from scripts.public_client_configs import (
+        discover_mihomo_configs,
+        discover_singbox_configs,
+    )
+except ModuleNotFoundError:  # Direct ``python scripts/...`` execution.
+    from public_client_configs import (  # type: ignore[no-redef]
+        discover_mihomo_configs,
+        discover_singbox_configs,
+    )
+
 MAX_OUTPUT_CHARS = 1000
 
 
@@ -151,7 +162,7 @@ def main() -> int:
     singbox_binary = binaries["sing-box"]
     singbox_digest = binary_digests["sing-box"]
     if singbox_binary is not None and singbox_digest is not None:
-        singbox_paths = sorted(root.glob("singbox*.json"))
+        singbox_paths = discover_singbox_configs(root)
         if not singbox_paths:
             checks.append(missing_artifact("sing-box", "singbox.json", singbox_digest))
         for path in singbox_paths:
@@ -168,7 +179,7 @@ def main() -> int:
     mihomo_binary = binaries["mihomo"]
     mihomo_digest = binary_digests["mihomo"]
     if mihomo_binary is not None and mihomo_digest is not None:
-        mihomo_paths = sorted(root.glob("clash*.yaml"))
+        mihomo_paths = discover_mihomo_configs(root)
         if not mihomo_paths:
             checks.append(missing_artifact("mihomo", "clash.yaml", mihomo_digest))
         for path in mihomo_paths:

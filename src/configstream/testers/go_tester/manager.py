@@ -551,7 +551,6 @@ class GoBatchTester:
                     p.id,
                     enable_utls=True,
                     enable_alpn=True,
-                    enable_fragmentation=True,
                     enable_multiplexing=True,
                 )
                 # Use unique request ID (Full UUID) to handle duplicate proxies collision-free

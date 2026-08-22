@@ -154,15 +154,17 @@ Stable capability claims are tracked in `docs/capability_registry.json`; core/cl
 
 | Output | Family | Format | Non-empty | Validation | Notes |
 | --- | --- | --- | --- | --- | --- |
-| `chains-dns-hardened.json` | chains | json | yes | json | Compatibility alias for singbox-chains-dns-hardened.json. |
-| `chains-dns-safe.json` | chains | json | yes | json | Compatibility alias for singbox-chains-dns-safe.json. |
-| `chains.json` | chains | json | yes | json | Compatibility alias for singbox-chains.json; JSON syntax is validated. |
+| `chains-dns-hardened.json` | chains | json | yes | json, references | Compatibility alias for singbox-chains-dns-hardened.json. |
+| `chains-dns-safe.json` | chains | json | yes | json, references | Compatibility alias for singbox-chains-dns-safe.json. |
+| `chains.json` | chains | json | yes | json, references | Compatibility alias for singbox-chains.json; JSON syntax is validated. |
 | `singbox-chains-dns-hardened.json` | chains | json | yes | json, references | DNS-hardened Sing-box chain outbounds; outbound list shape, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated. |
 | `singbox-chains-dns-safe.json` | chains | json | yes | json, references | DNS-safe Sing-box chain outbounds; outbound list shape, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated. |
 | `singbox-chains.json` | chains | json | yes | json, references | Sing-box chain outbounds; JSON syntax, outbound list shape, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated. |
 | `chosen/base64-dns-hardened.txt` | chosen | base64 | no | presence | Chosen DNS-hardened base64 output. |
 | `chosen/base64-dns-safe.txt` | chosen | base64 | no | presence | Chosen DNS-safe base64 output. |
 | `chosen/base64.txt` | chosen | base64 | no | presence | Chosen top-N base64 output; empty is valid when chosen lines are unavailable. |
+| `chosen/proxies.txt` | chosen | text | no | presence | Chosen top-N newline-delimited share-link subscription; empty is valid when no proxies are selected. |
+| `chosen/clash.yaml` | clash | yaml | yes | yaml, references | Chosen top-N complete Mihomo/Clash configuration; repaired and validated with the same contract as root Clash artifacts. |
 | `clash-dns-hardened.yaml` | clash | yaml | yes | yaml, references | Clash DNS-hardened configuration; YAML syntax, proxy/group list shape, unique names, group references, and rule policy references are validated. |
 | `clash-dns-safe.yaml` | clash | yaml | yes | yaml, references | Clash DNS-safe configuration; YAML syntax, proxy/group list shape, unique names, group references, and rule policy references are validated. |
 | `clash.yaml` | clash | yaml | yes | yaml, references | Clash universal configuration; YAML syntax, proxy/group list shape, unique names, group references, and rule policy references are validated. |
@@ -170,6 +172,9 @@ Stable capability claims are tracked in `docs/capability_registry.json`; core/cl
 | `proxies-dns-hardened.txt` | dns-hardened | text | no | presence | DNS-hardened URI subscription lines. |
 | `base64-dns-safe.txt` | dns-safe | base64 | no | presence | DNS-safe subset; empty is valid under degraded data. |
 | `proxies-dns-safe.txt` | dns-safe | text | no | presence | DNS-safe URI subscription lines. |
+| `chosen/singbox.json` | singbox | json | yes | json, references | Chosen top-N complete sing-box configuration; finalized and validated with the same contract as root sing-box artifacts. |
+| `countries/*.json` | singbox | json | no | json, references | Country-specific complete sing-box configurations; excludes the sibling *.list.json ConfigStream API arrays. |
+| `protocols/*.json` | singbox | json | no | json, references | Protocol-specific complete sing-box configurations; excludes the sibling *.list.json ConfigStream API arrays. |
 | `singbox-dns-hardened.json` | singbox | json | yes | json, references | Sing-box DNS-hardened configuration; JSON syntax, outbound list shape, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated. |
 | `singbox-dns-safe.json` | singbox | json | yes | json, references | Sing-box DNS-safe configuration; JSON syntax, outbound list shape, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated. |
 | `singbox.json` | singbox | json | yes | json, references | Sing-box universal configuration; JSON syntax, outbound list shape, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated. |
@@ -177,9 +182,8 @@ Stable capability claims are tracked in `docs/capability_registry.json`; core/cl
 | `singbox-vpn-dns-safe.json` | singbox-vpn | json | yes | json, references | VPN-mode DNS-safe Sing-box configuration; outbound list shape, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated. |
 | `singbox-vpn.json` | singbox-vpn | json | yes | json, references | VPN-mode Sing-box configuration; outbound list shape, unique tags, selector/urltest references, detours, route outbounds, and DNS detours are validated. |
 | `base64.txt` | universal | base64 | no | presence | May be empty when no usable subscription lines exist. |
-| `proxies.json` | universal | json | yes | schema, json | Canonical public proxy JSON list. |
 | `proxies.txt` | universal | text | no | presence | URI subscription lines. |
-| `xray.json` | xray | json | yes | json | Xray full configuration with modern VMess/VLESS settings, structural reference validation, and pinned native release checks. |
+| `xray.json` | xray | json | yes | json, references | Xray full configuration with modern VMess/VLESS settings, structural reference validation, and pinned native release checks. |
 | `side_products-dns-hardened.zip` | side-products | zip | yes | zip, zip members | DNS-hardened side-product bundle; ZIP integrity, safe member paths, required proxies.txt, optional OpenVPN/WireGuard member patterns, and deploy-secret markers are validated. |
 | `side_products-dns-safe.zip` | side-products | zip | yes | zip, zip members | DNS-safe side-product bundle; ZIP integrity, safe member paths, required proxies.txt, optional OpenVPN/WireGuard member patterns, and deploy-secret markers are validated. |
 | `side_products.zip` | side-products | zip | yes | zip, zip members | Side-product bundle; ZIP integrity, safe member paths, required proxies.txt, optional OpenVPN/WireGuard member patterns, and deploy-secret markers are validated. |
@@ -187,10 +191,11 @@ Stable capability claims are tracked in `docs/capability_registry.json`; core/cl
 | `health.json` | control | json | yes | schema, json | Freshness and degraded-state control artifact. |
 | `metadata.json` | control | json | yes | schema, json | Canonical run metadata validated against metadata.schema.json. |
 | `pipeline_events.jsonl` | control | jsonl | yes | jsonl | Sanitized append-only pipeline event telemetry; JSONL structure and secret-marker absence are validated. |
-| `api/proxies` | api-alias | json | yes | schema, json | API alias that must match proxies.json. |
+| `api/proxies` | api-alias | json | yes | schema, json | API alias that must exactly match the proxies.json ConfigStream record array; it is not a native client configuration. |
 | `api/stats` | api-alias | json | yes | schema, json | API alias that must match metadata.json. |
-| `countries/*.list.json` | categorized-api | json | no | schema, json | Country-specific proxy list JSON; must match proxy.schema.json. |
-| `protocols/*.list.json` | categorized-api | json | no | schema, json | Protocol-specific proxy list JSON; must match proxy.schema.json. |
+| `countries/*.list.json` | categorized-api | json | no | schema, json | Country-specific ConfigStream proxy record array validated by proxy-list.schema.json. This is API/filtering data, not a native client configuration. |
+| `protocols/*.list.json` | categorized-api | json | no | schema, json | Protocol-specific ConfigStream proxy record array validated by proxy-list.schema.json. This is API/filtering data, not a native client configuration. |
+| `proxies.json` | universal | json | yes | schema, json | Canonical ConfigStream API dataset validated by proxy-list.schema.json: a JSON array whose items follow proxy.schema.json, not a directly importable sing-box, Xray, or Mihomo configuration. |
 | `data/active_proxy_trend.json` | analytics | json | yes | json | Active proxy trend data. |
 | `data/clean_ips.json` | analytics | json | yes | json | Clean IP data consumed by frontend tools. |
 | `data/evasion_trend.json` | analytics | json | yes | json | Evasion trend data. |

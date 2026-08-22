@@ -322,3 +322,69 @@ def test_singbox_outbounds_validate_against_schema():
         out = to_singbox_outbound(p)
         assert out is not None, f"Conversion failed for {p.protocol}"
         validator.validate(out)
+
+
+def test_singbox_outbound_schema_rejects_incomplete_protocol_objects():
+    """The intermediate schema must catch missing protocol-required fields."""
+    import json
+    from pathlib import Path
+
+    import jsonschema
+    import pytest
+
+    schema_path = (
+        Path(__file__).resolve().parent.parent.parent.parent
+        / "schema"
+        / "singbox_outbound.schema.json"
+    )
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    validator = jsonschema.Draft202012Validator(schema)
+
+    with pytest.raises(jsonschema.exceptions.ValidationError):
+        validator.validate({"type": "vless", "tag": "incomplete"})
+    with pytest.raises(jsonschema.exceptions.ValidationError):
+        validator.validate({"type": "selector", "tag": "empty-selector"})
+
+
+def test_singbox_outbound_schema_rejects_empty_mandatory_values():
+    """Required protocol fields must contain values, not merely exist."""
+    import json
+    from pathlib import Path
+
+    import jsonschema
+    import pytest
+
+    schema_path = (
+        Path(__file__).resolve().parent.parent.parent.parent
+        / "schema"
+        / "singbox_outbound.schema.json"
+    )
+    validator = jsonschema.Draft202012Validator(
+        json.loads(schema_path.read_text(encoding="utf-8"))
+    )
+    invalid_outbounds = [
+        {
+            "type": "vless",
+            "tag": "empty-uuid",
+            "server": "example.com",
+            "server_port": 443,
+            "uuid": "",
+        },
+        {
+            "type": "shadowsocks",
+            "tag": "empty-secret",
+            "server": "example.com",
+            "server_port": 443,
+            "method": "",
+            "password": "",
+        },
+        {
+            "type": "http",
+            "tag": "empty-server",
+            "server": "",
+            "server_port": 443,
+        },
+    ]
+    for outbound in invalid_outbounds:
+        with pytest.raises(jsonschema.exceptions.ValidationError):
+            validator.validate(outbound)

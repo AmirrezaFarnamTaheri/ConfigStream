@@ -10,13 +10,25 @@ import os
 import re
 import shutil
 import unicodedata
-from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
 from configstream.output.client_formats import generate_xray_config
+
+try:
+    from scripts.public_client_configs import (
+        discover_mihomo_configs,
+        discover_singbox_configs,
+        resolve_public_config,
+    )
+except ModuleNotFoundError:  # Direct ``python scripts/...`` execution.
+    from public_client_configs import (  # type: ignore[no-redef]
+        discover_mihomo_configs,
+        discover_singbox_configs,
+        resolve_public_config,
+    )
 
 try:
     import yaml  # type: ignore
@@ -301,8 +313,15 @@ def _repair_clash(root: Path, records: list[dict[str, Any]]) -> dict[str, Any]:
     if yaml is None:
         return {"status": "skipped", "reason": "PyYAML unavailable"}
     added = 0
-    for path in root.glob("clash*.yaml"):
-        loaded = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    repaired_files: list[str] = []
+    for path in discover_mihomo_configs(root):
+        resolved, path_error = resolve_public_config(root, path)
+        if resolved is None:
+            raise ValueError(
+                f"refusing to rewrite unsafe client config "
+                f"{path.relative_to(root)}: {path_error}"
+            )
+        loaded = yaml.safe_load(resolved.read_text(encoding="utf-8")) or {}
         payload: dict[str, Any] = loaded if isinstance(loaded, dict) else {}
         raw_proxies = payload.get("proxies")
         proxies: list[Any] = raw_proxies if isinstance(raw_proxies, list) else []
@@ -352,11 +371,16 @@ def _repair_clash(root: Path, records: list[dict[str, Any]]) -> dict[str, Any]:
             raw_group_proxies.extend(
                 name for name in new_names if name not in raw_group_proxies
             )
-        path.write_text(
+        resolved.write_text(
             yaml.safe_dump(payload, allow_unicode=True, sort_keys=False),
             encoding="utf-8",
         )
-    return {"status": "generated", "added_http_socks": added}
+        repaired_files.append(path.relative_to(root).as_posix())
+    return {
+        "status": "generated",
+        "added_http_socks": added,
+        "repaired_files": repaired_files,
+    }
 
 
 def _cleanup(root: Path) -> list[str]:
@@ -445,11 +469,17 @@ def finalize(root: Path, repo_root: Path, threshold: float) -> None:
     _write(root / "proxies.json", records)
 
     modernized: list[str] = []
-    for path in sorted({*root.glob("singbox*.json"), *root.glob("chains*.json")}):
-        payload = _load(path)
+    for path in discover_singbox_configs(root):
+        resolved, path_error = resolve_public_config(root, path)
+        if resolved is None:
+            raise ValueError(
+                f"refusing to rewrite unsafe client config "
+                f"{path.relative_to(root)}: {path_error}"
+            )
+        payload = _load(resolved)
         if isinstance(payload, dict):
-            _write(path, modernize_singbox(payload))
-            modernized.append(path.name)
+            _write(resolved, modernize_singbox(payload))
+            modernized.append(path.relative_to(root).as_posix())
 
     xray, xray_report = generate_xray_config(records)
     _write(root / "xray.json", xray)

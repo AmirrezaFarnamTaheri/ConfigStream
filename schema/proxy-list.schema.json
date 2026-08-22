@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://configstream.dev/schema/proxy-list.schema.json",
+  "title": "ConfigStream Proxy List",
+  "description": "Whole-document schema for proxies.json, api/proxies, and categorized *.list.json API artifacts. This array is not a native proxy-core configuration.",
+  "type": "array",
+  "items": {
+    "$ref": "proxy.schema.json"
+  }
+}

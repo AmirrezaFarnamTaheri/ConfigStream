@@ -14,6 +14,22 @@ from urllib.parse import urlsplit
 
 _URI_SCHEME_RE = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*$")
 _XRAY_BUILTIN_TAGS = {"direct", "block"}
+_XRAY_STREAM_METHOD_SETTINGS = {
+    "raw": "rawSettings",
+    "websocket": "wsSettings",
+    "grpc": "grpcSettings",
+    "httpupgrade": "httpupgradeSettings",
+    "xhttp": "xhttpSettings",
+    "mkcp": "kcpSettings",
+}
+_XRAY_GENERATED_PROXY_PROTOCOLS = {
+    "http",
+    "socks",
+    "shadowsocks",
+    "trojan",
+    "vmess",
+    "vless",
+}
 
 
 def _string_list(value: Any) -> list[str]:
@@ -507,16 +523,82 @@ def validate_xray_config(payload: object, file_name: str = "xray.json") -> list[
         if not isinstance(settings, dict):
             errors.append(f"{file_name} outbounds[{index}] settings must be an object")
             continue
+        if protocol in _XRAY_GENERATED_PROXY_PROTOCOLS:
+            address = settings.get("address")
+            if not isinstance(address, str) or not address.strip():
+                errors.append(
+                    f"{file_name} outbounds[{index}] missing modern {protocol} address"
+                )
+            port = settings.get("port")
+            if (
+                not isinstance(port, int)
+                or isinstance(port, bool)
+                or not 1 <= port <= 65535
+            ):
+                errors.append(
+                    f"{file_name} outbounds[{index}] missing modern {protocol} port"
+                )
         if protocol in {"vmess", "vless"}:
             if "vnext" in settings:
                 errors.append(
                     f"{file_name} outbounds[{index}] uses obsolete vnext settings"
                 )
-            for key in ("address", "port", "id"):
-                if settings.get(key) in (None, ""):
-                    errors.append(
-                        f"{file_name} outbounds[{index}] missing modern {protocol} {key}"
-                    )
+            identifier = settings.get("id")
+            if not isinstance(identifier, str) or not identifier.strip():
+                errors.append(
+                    f"{file_name} outbounds[{index}] missing modern {protocol} id"
+                )
+        if protocol in {"trojan", "shadowsocks"}:
+            password = settings.get("password")
+            if not isinstance(password, str) or not password:
+                errors.append(
+                    f"{file_name} outbounds[{index}] missing {protocol} password"
+                )
+        if protocol == "shadowsocks":
+            method = settings.get("method")
+            if not isinstance(method, str) or not method.strip():
+                errors.append(
+                    f"{file_name} outbounds[{index}] missing shadowsocks method"
+                )
+        if protocol == "wireguard":
+            secret_key = settings.get("secretKey")
+            if not isinstance(secret_key, str) or not secret_key:
+                errors.append(
+                    f"{file_name} outbounds[{index}] missing wireguard secretKey"
+                )
+            addresses = settings.get("address")
+            if (
+                not isinstance(addresses, list)
+                or not addresses
+                or not all(
+                    isinstance(item, str) and bool(item.strip()) for item in addresses
+                )
+            ):
+                errors.append(
+                    f"{file_name} outbounds[{index}] wireguard address must be a non-empty string list"
+                )
+            peers = settings.get("peers")
+            if not isinstance(peers, list) or not peers:
+                errors.append(
+                    f"{file_name} outbounds[{index}] wireguard peers must be a non-empty list"
+                )
+            else:
+                for peer_index, peer in enumerate(peers):
+                    if not isinstance(peer, dict):
+                        errors.append(
+                            f"{file_name} outbounds[{index}] wireguard peers[{peer_index}] must be an object"
+                        )
+                        continue
+                    endpoint = peer.get("endpoint")
+                    if not isinstance(endpoint, str) or not endpoint.strip():
+                        errors.append(
+                            f"{file_name} outbounds[{index}] wireguard peers[{peer_index}] missing endpoint"
+                        )
+                    public_key = peer.get("publicKey")
+                    if not isinstance(public_key, str) or not public_key:
+                        errors.append(
+                            f"{file_name} outbounds[{index}] wireguard peers[{peer_index}] missing publicKey"
+                        )
         proxy_settings = outbound.get("proxySettings")
         if isinstance(proxy_settings, dict) and proxy_settings.get("tag"):
             references.append(
@@ -526,10 +608,33 @@ def validate_xray_config(payload: object, file_name: str = "xray.json") -> list[
                 )
             )
         stream_settings = outbound.get("streamSettings")
-        if stream_settings is not None and not isinstance(stream_settings, dict):
+        if protocol in _XRAY_GENERATED_PROXY_PROTOCOLS and not isinstance(
+            stream_settings, dict
+        ):
+            errors.append(f"{file_name} outbounds[{index}] missing streamSettings")
+        elif stream_settings is not None and not isinstance(stream_settings, dict):
             errors.append(
                 f"{file_name} outbounds[{index}] streamSettings must be an object"
             )
+        elif isinstance(stream_settings, dict):
+            stream_method = stream_settings.get("method")
+            if stream_method not in _XRAY_STREAM_METHOD_SETTINGS:
+                errors.append(
+                    f"{file_name} outbounds[{index}] has invalid streamSettings.method"
+                )
+            else:
+                expected_key = _XRAY_STREAM_METHOD_SETTINGS[str(stream_method)]
+                if not isinstance(stream_settings.get(expected_key), dict):
+                    errors.append(
+                        f"{file_name} outbounds[{index}] method {stream_method} requires {expected_key}"
+                    )
+                for method_key in set(_XRAY_STREAM_METHOD_SETTINGS.values()) - {
+                    expected_key
+                }:
+                    if method_key in stream_settings:
+                        errors.append(
+                            f"{file_name} outbounds[{index}] method {stream_method} conflicts with {method_key}"
+                        )
 
     routing = payload.get("routing")
     if isinstance(routing, dict):

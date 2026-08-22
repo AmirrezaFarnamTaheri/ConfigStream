@@ -6,6 +6,7 @@ import binascii
 import json
 import hashlib
 import logging
+import os
 import threading
 import httpx
 import time
@@ -502,6 +503,25 @@ class ProxyWasher:
             return True
         return Path("vwarp").exists() or Path("/usr/local/bin/vwarp").exists()
 
+    @staticmethod
+    def _vwarp_runtime_override() -> Optional[bool]:
+        """Return the tunnel state published by pipeline startup, if present.
+
+        ``StandardPipeline.create`` sets this override only after the managed
+        tunnel has started successfully, or to false when startup fails.  The
+        manager may install Vwarp outside PATH, so repeating ad-hoc binary
+        discovery here would reject the exact process that it just launched.
+        """
+        value = os.environ.get("USE_VWARP_TUNNEL")
+        if value is None:
+            return None
+        normalized = value.strip().lower()
+        if normalized == "true":
+            return True
+        if normalized == "false":
+            return False
+        return None
+
     def is_vwarp_available(self) -> bool:
         """
         Synchronous compatibility check.
@@ -510,11 +530,17 @@ class ProxyWasher:
         This method intentionally avoids blocking socket probes. Async code paths
         should use ``is_vwarp_available_async`` for live tunnel checks.
         """
+        runtime_override = self._vwarp_runtime_override()
+        if runtime_override is not None:
+            return runtime_override
         return self._has_vwarp_binary()
 
     async def is_vwarp_available_async(self) -> bool:
-        """Check binary presence and local SOCKS reachability without blocking."""
-        if not self._has_vwarp_binary():
+        """Check canonical runtime state and local SOCKS reachability."""
+        runtime_override = self._vwarp_runtime_override()
+        if runtime_override is False:
+            return False
+        if runtime_override is None and not self._has_vwarp_binary():
             return False
         try:
             reader, writer = await asyncio.wait_for(
@@ -872,6 +898,15 @@ class ProxyWasher:
         # if it was derived from a native proxy.
         details = {
             "chain": [entry_outbound, exit_outbound],
+            "chain_fingerprint": hashlib.sha256(
+                json.dumps(
+                    [entry_outbound, exit_outbound],
+                    sort_keys=True,
+                    separators=(",", ":"),
+                    ensure_ascii=True,
+                    default=str,
+                ).encode("utf-8")
+            ).hexdigest(),
             "is_revived": True,
             "process": process,
         }

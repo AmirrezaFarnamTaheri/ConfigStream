@@ -30,6 +30,8 @@ DEFAULT_EVIDENCE_PATH = Path("pipeline-evidence/shielded_reconciliation.json")
 
 
 def _load_object(path: Path) -> dict[str, Any]:
+    """Load a JSON object from disk and reject non-object payloads."""
+
     payload = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(payload, dict):
         raise ValueError(f"{path.name} must contain a JSON object")
@@ -37,6 +39,8 @@ def _load_object(path: Path) -> dict[str, Any]:
 
 
 def _load_records(path: Path) -> list[dict[str, Any]]:
+    """Load a JSON array and keep only object-shaped records."""
+
     payload = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(payload, list):
         raise ValueError(f"{path.name} must contain a JSON array")
@@ -97,6 +101,8 @@ def _sanitize_public(
 
 
 def _sanitize_proxy_record(record: dict[str, Any]) -> dict[str, Any]:
+    """Apply the public boundary to a single proxy record."""
+
     protocol = str(record.get("protocol") or "").lower()
     output: dict[str, Any] = {}
     for raw_key, item in record.items():
@@ -116,6 +122,8 @@ def _sanitize_proxy_record(record: dict[str, Any]) -> dict[str, Any]:
 
 
 def _sanitize_proxy_array(path: Path) -> bool:
+    """Rewrite a proxy array only when public-surface sanitization changes it."""
+
     if not path.is_file():
         return False
     payload = json.loads(path.read_text(encoding="utf-8"))
@@ -138,6 +146,8 @@ def _sanitize_proxy_array(path: Path) -> bool:
 
 
 def _sanitize_public_proxy_surfaces(root: Path) -> list[str]:
+    """Sanitize every generated public proxy surface beneath an artifact root."""
+
     changed: list[str] = []
     for relative in PUBLIC_PROXY_ARRAYS:
         path = root / relative
@@ -154,6 +164,8 @@ def _sanitize_public_proxy_surfaces(root: Path) -> list[str]:
 
 
 def _sync_api_alias(root: Path, canonical: str, alias: str) -> None:
+    """Mirror a canonical artifact to its API alias path when present."""
+
     source = root / canonical
     destination = root / alias
     if not source.is_file():
@@ -163,6 +175,8 @@ def _sync_api_alias(root: Path, canonical: str, alias: str) -> None:
 
 
 def _public_shielding_counts(records: list[dict[str, Any]]) -> tuple[int, int]:
+    """Count public shielded candidates and the subset verified as working."""
+
     candidates = 0
     verified = 0
     for record in records:
@@ -175,7 +189,53 @@ def _public_shielding_counts(records: list[dict[str, Any]]) -> tuple[int, int]:
     return candidates, verified
 
 
+def _coalesce_int(*values: Any) -> int:
+    """Return the first explicit integer-like value without treating zero as absent."""
+
+    for value in values:
+        if value in (None, ""):
+            continue
+        return int(value)
+    return 0
+
+
+def _reconcile_execution_audit(metadata: dict[str, Any]) -> None:
+    """Rebuild aggregate source audit fields from source-level shard evidence."""
+
+    audit = metadata.get("pipeline_execution_audit")
+    shard_summary = metadata.get("shard_summary")
+    if not isinstance(audit, dict) or not isinstance(shard_summary, dict):
+        return
+
+    covered_sources = _coalesce_int(
+        shard_summary.get("covered_sources"),
+        metadata.get("fetched_sources"),
+    )
+    configured_sources = _coalesce_int(
+        shard_summary.get("configured_sources"),
+        metadata.get("total_configured_sources"),
+    )
+    source_attempts = _coalesce_int(shard_summary.get("source_attempts"))
+    source_failures = shard_summary.get("source_failures")
+    source_failure_count = (
+        _coalesce_int(source_failures.get("total"))
+        if isinstance(source_failures, dict)
+        else 0
+    )
+
+    audit["fetched_sources"] = covered_sources
+    audit["total_sources"] = configured_sources
+    audit["source_toxicity_rate"] = (
+        (source_failure_count / source_attempts) * 100.0 if source_attempts > 0 else 0.0
+    )
+    audit["time_limited"] = bool(
+        metadata.get("time_limited") or int(shard_summary.get("time_limited") or 0) > 0
+    )
+
+
 def _write_evidence(path: Path, payload: dict[str, Any]) -> None:
+    """Persist private reconciliation evidence next to the public artifacts."""
+
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
         json.dumps(payload, indent=2, ensure_ascii=False, sort_keys=True) + "\n",
@@ -184,6 +244,8 @@ def _write_evidence(path: Path, payload: dict[str, Any]) -> None:
 
 
 def reconcile(root: Path, evidence_path: Path | None = None) -> dict[str, Any]:
+    """Repair public release metadata and sanitize generated proxy surfaces."""
+
     metadata_path = root / "metadata.json"
     proxies_path = root / "proxies.json"
     metadata = _load_object(metadata_path)
@@ -200,6 +262,13 @@ def reconcile(root: Path, evidence_path: Path | None = None) -> dict[str, Any]:
     metadata["shielded_count"] = public_candidates
     metadata["shielded_candidate_count"] = public_candidates
     metadata["shielded_verified_count"] = public_verified
+    _reconcile_execution_audit(metadata)
+
+    # Source acquisition diagnostics already live under
+    # shard_summary.source_failures. Keep the public metadata contract closed by
+    # removing the duplicate top-level field emitted by shard aggregation.
+    metadata.pop("source_failure_summary", None)
+
     metadata_path.write_text(
         json.dumps(metadata, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
@@ -240,6 +309,8 @@ def reconcile(root: Path, evidence_path: Path | None = None) -> dict[str, Any]:
 
 
 def main() -> int:
+    """CLI entrypoint for post-finalization artifact reconciliation."""
+
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("artifact_dir", type=Path)
     parser.add_argument(

@@ -2,7 +2,10 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
+
+import pytest
 
 from scripts import verify_repository
 
@@ -78,7 +81,7 @@ def test_all_verification_profiles_have_unique_stage_names() -> None:
 
 
 def test_stage_environment_drops_parent_test_instrumentation(
-    monkeypatch, tmp_path: Path
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     monkeypatch.setenv("PYTEST_CURRENT_TEST", "parent")
     monkeypatch.setenv("COVERAGE_PROCESS_START", "coverage.ini")
@@ -115,3 +118,107 @@ def test_run_process_times_out_and_returns_control(tmp_path: Path) -> None:
     assert code is None
     assert timed_out is True
     assert output == ""
+
+
+def test_run_process_resolves_platform_command_shims(tmp_path: Path) -> None:
+    command = "cmd" if os.name == "nt" else "sh"
+    arguments = ["/c", "exit 0"] if os.name == "nt" else ["-c", "exit 0"]
+
+    code, output, timed_out = verify_repository._run_process(
+        [command, *arguments],
+        cwd=tmp_path,
+        env=verify_repository._build_stage_environment(tmp_path),
+        timeout_seconds=5,
+    )
+
+    assert code == 0
+    assert output == ""
+    assert timed_out is False
+
+
+def test_run_process_resolves_executable_relative_to_child_cwd(tmp_path: Path) -> None:
+    if os.name == "nt":
+        executable = tmp_path / "local-tool.cmd"
+        executable.write_text("@exit /b 0\n", encoding="utf-8")
+    else:
+        executable = tmp_path / "local-tool"
+        executable.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+        executable.chmod(0o755)
+
+    code, output, timed_out = verify_repository._run_process(
+        [f".{os.sep}{executable.name}"],
+        cwd=tmp_path,
+        env=verify_repository._build_stage_environment(tmp_path),
+        timeout_seconds=5,
+    )
+
+    assert code == 0
+    assert output == ""
+    assert timed_out is False
+
+
+def test_run_process_resolves_child_path_command_shim(tmp_path: Path) -> None:
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    if os.name == "nt":
+        shim = bin_dir / "local-shim.cmd"
+        shim.write_text("@exit /b 0\n", encoding="utf-8")
+    else:
+        shim = bin_dir / "local-shim"
+        shim.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+        shim.chmod(0o755)
+    environment = verify_repository._build_stage_environment(tmp_path)
+    environment["PATH"] = str(bin_dir)
+
+    code, output, timed_out = verify_repository._run_process(
+        ["local-shim"], cwd=tmp_path, env=environment, timeout_seconds=5
+    )
+
+    assert code == 0
+    assert output == ""
+    assert timed_out is False
+
+
+def test_run_stage_uses_declared_workdir_and_environment_path(tmp_path: Path) -> None:
+    """Stage preflight must use the same workdir and PATH as child execution."""
+
+    workdir = tmp_path / "nested"
+    bin_dir = tmp_path / "stage-bin"
+    workdir.mkdir()
+    bin_dir.mkdir()
+    if os.name == "nt":
+        local_tool = workdir / "local-tool.cmd"
+        local_tool.write_text("@exit /b 0\n", encoding="utf-8")
+        path_tool = bin_dir / "path-tool.cmd"
+        path_tool.write_text("@exit /b 0\n", encoding="utf-8")
+    else:
+        local_tool = workdir / "local-tool"
+        local_tool.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+        local_tool.chmod(0o755)
+        path_tool = bin_dir / "path-tool"
+        path_tool.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+        path_tool.chmod(0o755)
+
+    base_env = verify_repository._build_stage_environment(tmp_path)
+    local_result = verify_repository._run_stage(
+        tmp_path,
+        verify_repository.Stage(
+            name="local-tool",
+            command=(f".{os.sep}{local_tool.name}",),
+            workdir="nested",
+        ),
+        base_env,
+    )
+    path_result = verify_repository._run_stage(
+        tmp_path,
+        verify_repository.Stage(
+            name="path-tool",
+            command=("path-tool",),
+            workdir="nested",
+            environment=(("PATH", str(bin_dir)),),
+        ),
+        base_env,
+    )
+
+    assert local_result.status == "success"
+    assert path_result.status == "success"

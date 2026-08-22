@@ -599,8 +599,11 @@ function setupFilters() {
 function setupSorting() {
     const headers = document.querySelectorAll('th.sortable');
     headers.forEach(th => {
-        th.addEventListener('click', () => {
-            const field = th.dataset.sort;
+        const button = th.querySelector('button.sort-button');
+        if (!button) return;
+
+        const activateSort = () => {
+            const field = button.dataset.sort;
             if (currentSort.field === field) {
                 currentSort.order = currentSort.order === 'asc' ? 'desc' : 'asc';
             } else {
@@ -613,7 +616,10 @@ function setupSorting() {
 
             sortProxies();
             renderTable();
-        });
+        };
+        // Native buttons supply keyboard activation once per deliberate
+        // action, without a custom keydown handler firing on key repeat.
+        button.addEventListener('click', activateSort);
     });
 }
 

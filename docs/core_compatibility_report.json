@@ -18,12 +18,15 @@
         "singbox-chains-dns-hardened.json",
         "chains.json",
         "chains-dns-safe.json",
-        "chains-dns-hardened.json"
+        "chains-dns-hardened.json",
+        "chosen/singbox.json",
+        "countries/*.json",
+        "protocols/*.json"
       ],
       "structural_validator": "scripts/validate_pages_artifact.py",
       "optional_native_validator": "sing-box check -c <artifact>",
-      "native_validation_status": "optional-local",
-      "notes": "All listed chain aliases are full Sing-box configs, not bare outbound fragments."
+      "native_validation_status": "mandatory-release-ci",
+      "notes": "All listed artifacts are complete sing-box configurations, not bare outbound fragments or ConfigStream record arrays; release finalization and native checks cover root, chosen, country, and protocol configs."
     },
     {
       "core": "clash",
@@ -32,7 +35,8 @@
       "pipeline_outputs": [
         "clash.yaml",
         "clash-dns-safe.yaml",
-        "clash-dns-hardened.yaml"
+        "clash-dns-hardened.yaml",
+        "chosen/clash.yaml"
       ],
       "structural_validator": "scripts/validate_pages_artifact.py",
       "optional_native_validator": "mihomo -t -f <artifact>",
@@ -54,10 +58,7 @@
     }
   ],
   "planned_pipeline_outputs_requiring_implementation": [],
-  "remaining_work": [
-    "Pin zero-budget native client binaries when available so optional checks can move from local/CI opportunistic evidence to reproducible pinned evidence.",
-    "Add offline/lite Sing-box variants only after output_matrix, generator, validator, docs, and tests are updated together."
-  ],
+  "remaining_work": [],
   "subscription_clients": [
     {
       "client": "NekoBox / NekoRay",

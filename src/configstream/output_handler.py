@@ -351,6 +351,72 @@ def _chain_obs_to_entries(
     return entries
 
 
+def _mark_shielded_lifecycle(proxy: Proxy, *, verified: bool) -> Proxy:
+    """Normalize the public lifecycle contract for a shielded chain."""
+    proxy.process = "shielded"
+    proxy.is_working = verified
+    details = dict(proxy.details or {})
+    # ProxyWasher historically stores raw outbound dictionaries under
+    # ``chain``.  The tester/serializer contract reads ``chain_outbounds``;
+    # preserve the original key for compatibility while publishing the
+    # canonical key used by downstream consumers.
+    chain = details.get("chain")
+    if isinstance(chain, list) and chain and "chain_outbounds" not in details:
+        details["chain_outbounds"] = chain
+    details.update(
+        {
+            "chain_process": "shielded",
+            "shielded_candidate": True,
+            "shielded_verified": verified,
+        }
+    )
+    proxy.details = details
+    proxy.tags = list(dict.fromkeys([*proxy.tags, "shielded", "candidate"]))
+    return proxy
+
+
+async def _verify_shielded_candidates(
+    candidates: List[Proxy],
+    tester: Optional["SingBoxTester"],
+    stats: PipelineStats,
+) -> List[Proxy]:
+    """Verify candidates without dropping failed or missing result rows."""
+    if tester is None:
+        logger.debug(
+            "No tester supplied; shielded candidates kept with is_working=False "
+            "for user-side testing."
+        )
+        return candidates
+    logger.info("🧪  Verifying %d shielded candidates...", len(candidates))
+    try:
+        results_by_object = {
+            id(result): result for result in await tester.test_batch(candidates)
+        }
+        public_candidates = [
+            _mark_shielded_lifecycle(
+                results_by_object.get(id(candidate), candidate),
+                verified=bool(
+                    results_by_object.get(id(candidate), candidate).is_working
+                ),
+            )
+            for candidate in candidates
+        ]
+    except Exception as verify_exc:
+        logger.warning(
+            "Shielded chain verification failed: %s",
+            str(verify_exc),
+            exc_info=True,
+        )
+        return candidates
+    stats.shielded_verified_count = sum(p.is_working for p in public_candidates)
+    logger.info(
+        "✅  Shielded Verification: %d/%d chains verified working.",
+        stats.shielded_verified_count,
+        len(candidates),
+    )
+    return public_candidates
+
+
 def _save_proxies_with_chains(
     proxies: List[Proxy],
     path: Path,
@@ -379,6 +445,26 @@ def _save_proxies_with_chains(
         name_template=name_template,
         used_names=used_names,
     )
+    # Shielded chains are materialized as Proxy records before this function is
+    # called so that verification state survives serialization.  Do not also
+    # emit the raw outbound representation: it is always marked unverified and
+    # would create a contradictory duplicate for a successfully tested chain.
+    materialized_shielded_tags: Set[str] = set()
+    for proxy in proxies:
+        if proxy.process != "shielded":
+            continue
+        chain = chain_obs_from_details(proxy.details or {})
+        if chain and isinstance(chain[-1], dict) and chain[-1].get("tag"):
+            materialized_shielded_tags.add(str(chain[-1]["tag"]))
+    if materialized_shielded_tags:
+        chain_entries = [
+            entry
+            for entry in chain_entries
+            if not (
+                entry.get("process") == "shielded"
+                and str(entry.get("id", "")) in materialized_shielded_tags
+            )
+        ]
     if chain_entries:
         data.extend(chain_entries)
 
@@ -578,45 +664,20 @@ async def generate_pipeline_outputs(
                     entry = shielded_outbounds[i]
                     exit_p = shielded_outbounds[i + 1]
                     # This helper builds a 'revived' proxy model from chain details
-                    p = washer.create_revived_proxy(entry, exit_p, "shielded")
+                    p = _mark_shielded_lifecycle(
+                        washer.create_revived_proxy(entry, exit_p, "shielded"),
+                        verified=False,
+                    )
                     shielded_proxies.append(p)
 
-                # Active Verification — only runs when a tester was supplied.
-                # When tester is None the candidates are still included in the
-                # output with is_working=False so end-users can try them.
-                if tester is not None and shielded_proxies:
-                    logger.info(
-                        "🧪  Verifying %d shielded candidates...",
-                        len(shielded_proxies),
-                    )
-                    try:
-                        verified_results = await tester.test_batch(shielded_proxies)
-                        verified_count = sum(
-                            1 for p in verified_results if p.is_working
-                        )
-                        stats.shielded_verified_count = verified_count
-                        logger.info(
-                            "✅  Shielded Verification: %d/%d chains verified working.",
-                            verified_count,
-                            len(shielded_proxies),
-                        )
-                        # Only add verified chains to the working proxy pool so
-                        # they count toward total_working and appear in outputs.
-                        for p in verified_results:
-                            if p.is_working:
-                                optimized_proxies.append(p)
-                    except Exception as verify_exc:
-                        logger.warning(
-                            "Shielded chain verification failed: %s",
-                            str(verify_exc),
-                            exc_info=True,
-                        )
-                else:
-                    if tester is None:
-                        logger.debug(
-                            "No tester supplied; shielded candidates kept with "
-                            "is_working=False for user-side testing."
-                        )
+                public_shielded_proxies = await _verify_shielded_candidates(
+                    shielded_proxies, tester, stats
+                )
+
+                # Preserve every candidate as one public Proxy record.  Only
+                # candidates with successful verification are working; failed,
+                # missing, and exception-path results remain user-testable.
+                optimized_proxies.extend(public_shielded_proxies)
 
                 # Always track candidates and total created
                 stats.shielded_count = len(shielded_ids)

@@ -8,8 +8,13 @@ import hashlib
 import json
 from pathlib import Path
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+QUARANTINE_FILENAME = "quarantine.txt"
+
 
 def partition(lines: list[str], parts: int) -> list[list[str]]:
+    """Deterministically spread unique source locators across shard buckets."""
+
     buckets: list[list[str]] = [[] for _ in range(parts)]
     for line in sorted(dict.fromkeys(lines)):
         index = int(hashlib.sha256(line.encode()).hexdigest(), 16) % parts
@@ -17,24 +22,69 @@ def partition(lines: list[str], parts: int) -> list[list[str]]:
     return buckets
 
 
+def _default_sources_dir() -> Path:
+    """Return the canonical repo-root sources directory."""
+
+    return REPO_ROOT / "sources"
+
+
+def _default_output_dir() -> Path:
+    """Return the canonical runtime shard directory inside the repo."""
+
+    return _default_sources_dir() / "runtime"
+
+
+def load_quarantined_sources(sources_dir: Path) -> set[str]:
+    """Return explicitly quarantined source locators for runtime exclusion."""
+
+    path = sources_dir / QUARANTINE_FILENAME
+    if not path.is_file():
+        return set()
+    return {
+        line.strip()
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    }
+
+
+def active_source_lines(source_file: Path, quarantined: set[str]) -> list[str]:
+    """Load active source locators while preserving the admitted batch inventory."""
+
+    return [
+        line
+        for raw_line in source_file.read_text(encoding="utf-8").splitlines()
+        if (line := raw_line.strip())
+        and not line.lstrip().startswith("#")
+        and line not in quarantined
+    ]
+
+
+def _matrix_source_path(path: Path) -> str:
+    """Prefer repo-relative matrix paths while preserving custom absolute paths."""
+
+    try:
+        return path.relative_to(REPO_ROOT).as_posix()
+    except ValueError:
+        return path.as_posix()
+
+
 def main() -> int:
+    """Generate runtime source shards and emit the Actions matrix payload."""
+
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--sources-dir", type=Path, default=Path("sources"))
-    parser.add_argument("--output-dir", type=Path, default=Path("sources/runtime"))
+    parser.add_argument("--sources-dir", type=Path, default=_default_sources_dir())
+    parser.add_argument("--output-dir", type=Path, default=_default_output_dir())
     parser.add_argument("--parts", type=int, default=4)
     parser.add_argument("--matrix-output", type=Path, required=True)
     args = parser.parse_args()
     if args.parts < 1:
         raise SystemExit("--parts must be >= 1")
     args.output_dir.mkdir(parents=True, exist_ok=True)
+    quarantined = load_quarantined_sources(args.sources_dir)
     matrix: list[dict[str, object]] = []
     for source_file in sorted(args.sources_dir.glob("batch_*.txt")):
         batch = source_file.stem.removeprefix("batch_")
-        lines = [
-            line.strip()
-            for line in source_file.read_text(encoding="utf-8").splitlines()
-            if line.strip() and not line.lstrip().startswith("#")
-        ]
+        lines = active_source_lines(source_file, quarantined)
         for part, bucket in enumerate(partition(lines, args.parts), start=1):
             if not bucket:
                 continue
@@ -44,7 +94,7 @@ def main() -> int:
                 {
                     "batch": batch,
                     "part": part,
-                    "source_file": target.as_posix(),
+                    "source_file": _matrix_source_path(target),
                     "source_count": len(bucket),
                     "source_sha256": hashlib.sha256(target.read_bytes()).hexdigest(),
                 }
