@@ -109,9 +109,7 @@ def test_resolve_svg_parser_returns_parse_capable_module() -> None:
     assert parse_errors
 
 
-def test_validate_svg_xml_rejects_malformed_svg(
-    tmp_path: Path, monkeypatch
-) -> None:
+def test_validate_svg_xml_rejects_malformed_svg(tmp_path: Path, monkeypatch) -> None:
     _patch_root(tmp_path, monkeypatch)
     svg = tmp_path / "frontend" / "assets" / "svg" / "broken.svg"
     svg.parent.mkdir(parents=True)
@@ -120,6 +118,4 @@ def test_validate_svg_xml_rejects_malformed_svg(
     errors = validate_assets._validate_svg_xml([svg])
 
     assert len(errors) == 1
-    assert errors[0].startswith(
-        "malformed SVG XML in frontend/assets/svg/broken.svg:"
-    )
+    assert errors[0].startswith("malformed SVG XML in frontend/assets/svg/broken.svg:")
