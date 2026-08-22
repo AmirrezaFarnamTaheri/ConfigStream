@@ -7,7 +7,6 @@ https://api.openproxylist.xyz/socks5.txt
 https://check.torproject.org/torbulkexitlist
 https://github.com/MrMohebi/xray-proxy-grabber-telegram/raw/master/collected-proxies/row-url/all.txt
 https://github.com/sinavm/Hiddify/raw/refs/heads/main/@sinavm
-https://msk.vless-balancer.ru/sub/dXNlcl82Nzg4MzMxMjQ5LDE3Njk1MzUzMTkBqGm3A1STd
 https://noopsproxy.com/api/all
 https://proxynium.com/
 https://raw.githubusercontent.com/AB-84-AB/WarpFree/refs/heads/main/WarpFree

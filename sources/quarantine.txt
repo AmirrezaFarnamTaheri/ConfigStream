@@ -122,8 +122,6 @@ https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/normal
 https://shz.al/4FEZ:/~@sorenab1,/333
 https://shz.al/~@FREE2CONFIG_T,H
 https://sub.amiralter.com/config-lite
-https://sub.shadowproxy66.workers.dev/sub/214abfe9-791e-44ba-bd8e-0afe298119f6
-https://sub.shadowproxy66.workers.dev/sub/be80a76c-6044-417c-9bff-e587f9380d05
 https://v2.fit/modules/servers/V2raySocks/osubscribe.php
 https://v2y.xyz/api/v1/client/subscribe
 https://vpny.net/Mobile

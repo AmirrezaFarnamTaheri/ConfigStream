@@ -56,8 +56,8 @@ def test_native_validator_installer_does_not_pipe_gh_api_into_head() -> None:
 
 
 @pytest.mark.skipif(
-    shutil.which("bash") is None,
-    reason="Bash tool unavailable on this platform environment",
+    os.name == "nt" or shutil.which("bash") is None,
+    reason="POSIX Bash environment unavailable on this platform",
 )
 def test_native_validator_installer_executes_with_authenticated_release_assets(
     tmp_path: Path,

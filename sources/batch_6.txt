@@ -53,7 +53,6 @@ https://raw.githubusercontent.com/vpei/free-node-1/refs/heads/main/res/nod-9.txt
 https://raw.githubusercontent.com/wiki/gfpcom/free-proxy-list/lists/http.txt
 https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/normal/mix
 https://raw.githubusercontent.com/zieng2/wl/main/vless_universal.txt
-https://sub.shadowproxy66.workers.dev/sub/214abfe9-791e-44ba-bd8e-0afe298119f6
 https://sub.whitedns.one/sub/mihomo.yaml
 https://t.me/ProxyDailyChannel
 https://v2.alicivil.workers.dev/?count=2000&list=gb&shuffle=true

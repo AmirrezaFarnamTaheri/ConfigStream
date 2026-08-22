@@ -138,20 +138,20 @@ mod tests {
     fn test_valid_config() {
         let json = r#"{"method": "aes-256-gcm", "password": "mypass"}"#;
         let c_str = std::ffi::CString::new(json).unwrap();
-        assert_eq!(unsafe { verify_shadowsocks(c_str.as_ptr()) }, 1);
+        assert_eq!(verify_shadowsocks(c_str.as_ptr()), 1);
     }
 
     #[test]
     fn test_invalid_method() {
         let json = r#"{"method": "invalid-cipher", "password": "mypass"}"#;
         let c_str = std::ffi::CString::new(json).unwrap();
-        assert_eq!(unsafe { verify_shadowsocks(c_str.as_ptr()) }, 0);
+        assert_eq!(verify_shadowsocks(c_str.as_ptr()), 0);
     }
 
     #[test]
     fn test_missing_password() {
         let json = r#"{"method": "aes-256-gcm"}"#;
         let c_str = std::ffi::CString::new(json).unwrap();
-        assert_eq!(unsafe { verify_shadowsocks(c_str.as_ptr()) }, 0);
+        assert_eq!(verify_shadowsocks(c_str.as_ptr()), 0);
     }
 }

@@ -279,8 +279,17 @@ def _run_process(
     timeout_seconds: float,
 ) -> tuple[int | None, str, bool]:
     """Run one bounded child and terminate its whole process group on timeout."""
+    requested_executable = Path(command[0])
+    if not requested_executable.is_absolute():
+        requested_executable = cwd / requested_executable
+    executable = (
+        str(requested_executable)
+        if requested_executable.is_file()
+        else shutil.which(command[0], path=env.get("PATH"))
+    )
+    resolved_command = [executable or command[0], *command[1:]]
     process = subprocess.Popen(  # nosec B603
-        list(command),
+        resolved_command,
         cwd=cwd,
         env=env,
         text=True,

@@ -54,7 +54,6 @@ https://raw.githubusercontent.com/wiki/gfpcom/free-proxy-list/lists/https.txt
 https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/normal/reality
 https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_.txt
 https://raw.githubusercontent.com/zjfb/SubCrawler/main/sub/share/all
-https://sub.shadowproxy66.workers.dev/sub/be80a76c-6044-417c-9bff-e587f9380d05
 https://subapi.fxxk.dedyn.io/sub?target=singbox&url=https%3A%2F%2Fraw.githubusercontent.com%2Fpeasoft%2FNoMoreWalls%2Fmaster%2Fsnippets%2Fnodes.meta.yml&insert=false&config=https%3A%2F%2Fraw.githubusercontent.com%2FACL4SSR%2FACL4SSR%2Fmaster%2FClash%2Fconfig%2FACL4SSR_Online_Full_NoAuto.ini&tls13=true&emoji=true&list=false&xudp=true&udp=true&tfo=false&expand=true&scv=false&fdn=false&singbox.ipv6=1
 https://t.me/ProxyScanBot
 https://v2.alicivil.workers.dev/?count=2000&list=lt&shuffle=true

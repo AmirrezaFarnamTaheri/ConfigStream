@@ -20,6 +20,10 @@ def _load(path: Path) -> dict:
     return value
 
 
+def _normalize_newlines(text: str) -> str:
+    return text.replace("\r\n", "\n").replace("\r", "\n")
+
+
 def render() -> str:
     readiness = _load(ROOT / "docs/readiness.json")
     debt = _load(ROOT / "docs/debt_matrix.json")
@@ -62,18 +66,24 @@ def render() -> str:
     return "\n".join(lines) + "\n"
 
 
+def is_current(expected: str) -> bool:
+    if not OUTPUT.exists():
+        return False
+    return _normalize_newlines(OUTPUT.read_text(encoding="utf-8")) == expected
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
     expected = render()
     if args.check:
-        if not OUTPUT.exists() or OUTPUT.read_text(encoding="utf-8") != expected:
+        if not is_current(expected):
             print("TRIAGE_REPORT.md is stale", file=sys.stderr)
             return 1
         print("TRIAGE_REPORT.md is current")
         return 0
-    OUTPUT.write_text(expected, encoding="utf-8")
+    OUTPUT.write_text(expected, encoding="utf-8", newline="\n")
     print("wrote TRIAGE_REPORT.md")
     return 0
 

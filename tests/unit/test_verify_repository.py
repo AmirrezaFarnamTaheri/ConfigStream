@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 from scripts import verify_repository
@@ -115,3 +116,62 @@ def test_run_process_times_out_and_returns_control(tmp_path: Path) -> None:
     assert code is None
     assert timed_out is True
     assert output == ""
+
+
+def test_run_process_resolves_platform_command_shims(tmp_path: Path) -> None:
+    command = "cmd" if os.name == "nt" else "sh"
+    arguments = ["/c", "exit 0"] if os.name == "nt" else ["-c", "exit 0"]
+
+    code, output, timed_out = verify_repository._run_process(
+        [command, *arguments],
+        cwd=tmp_path,
+        env=verify_repository._build_stage_environment(tmp_path),
+        timeout_seconds=5,
+    )
+
+    assert code == 0
+    assert output == ""
+    assert timed_out is False
+
+
+def test_run_process_resolves_executable_relative_to_child_cwd(tmp_path: Path) -> None:
+    if os.name == "nt":
+        executable = tmp_path / "local-tool.cmd"
+        executable.write_text("@exit /b 0\n", encoding="utf-8")
+    else:
+        executable = tmp_path / "local-tool"
+        executable.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+        executable.chmod(0o755)
+
+    code, output, timed_out = verify_repository._run_process(
+        [f".{os.sep}{executable.name}"],
+        cwd=tmp_path,
+        env=verify_repository._build_stage_environment(tmp_path),
+        timeout_seconds=5,
+    )
+
+    assert code == 0
+    assert output == ""
+    assert timed_out is False
+
+
+def test_run_process_resolves_child_path_command_shim(tmp_path: Path) -> None:
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    if os.name == "nt":
+        shim = bin_dir / "local-shim.cmd"
+        shim.write_text("@exit /b 0\n", encoding="utf-8")
+    else:
+        shim = bin_dir / "local-shim"
+        shim.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+        shim.chmod(0o755)
+    environment = verify_repository._build_stage_environment(tmp_path)
+    environment["PATH"] = str(bin_dir)
+
+    code, output, timed_out = verify_repository._run_process(
+        ["local-shim"], cwd=tmp_path, env=environment, timeout_seconds=5
+    )
+
+    assert code == 0
+    assert output == ""
+    assert timed_out is False

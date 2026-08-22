@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from __future__ import annotations
 
+import asyncio
 import json
 from pathlib import Path
 from types import SimpleNamespace
@@ -10,11 +11,14 @@ import pytest
 
 from configstream.models import Proxy
 from configstream.testers.manager import SingBoxTester, _record_revived_go_health
-from scripts.reconcile_release_metadata import reconcile
+from scripts import shard_sources
+from scripts.reconcile_release_metadata import _reconcile_execution_audit, reconcile
 from scripts.shard_sources import active_source_lines, load_quarantined_sources
 
 
 def _revived_proxy(index: int) -> Proxy:
+    """Build a revived proxy fixture with chain-outbound details."""
+
     return Proxy(
         config=f"revived://{index}",
         protocol="revived",
@@ -34,6 +38,8 @@ def _revived_proxy(index: int) -> Proxy:
 
 
 def test_runtime_quarantine_excludes_listed_sources(tmp_path: Path) -> None:
+    """Runtime sharding should skip locators listed in the quarantine file."""
+
     sources = tmp_path / "sources"
     sources.mkdir()
     batch = sources / "batch_1.txt"
@@ -55,6 +61,8 @@ def test_runtime_quarantine_excludes_listed_sources(tmp_path: Path) -> None:
 def test_reconcile_removes_duplicate_failure_summary_and_repairs_audit(
     tmp_path: Path,
 ) -> None:
+    """Reconciliation should drop duplicate source failures and repair audit counters."""
+
     root = tmp_path / "output"
     root.mkdir()
     (root / "proxies.json").write_text("[]\n", encoding="utf-8")
@@ -93,7 +101,40 @@ def test_reconcile_removes_duplicate_failure_summary_and_repairs_audit(
     assert audit["time_limited"] is True
 
 
+def test_reconcile_execution_audit_preserves_explicit_zero_counts() -> None:
+    """Zero-valued shard counters must override stale aggregate metadata."""
+
+    metadata: dict[str, Any] = {
+        "fetched_sources": 722,
+        "total_configured_sources": 1027,
+        "pipeline_execution_audit": {
+            "fetched_sources": 722,
+            "total_sources": 1027,
+            "source_toxicity_rate": 1.0,
+            "time_limited": True,
+        },
+        "shard_summary": {
+            "covered_sources": 0,
+            "configured_sources": 0,
+            "source_attempts": 0,
+            "source_failures": {"total": 0},
+            "time_limited": 0,
+        },
+        "time_limited": False,
+    }
+
+    _reconcile_execution_audit(metadata)
+
+    audit = metadata["pipeline_execution_audit"]
+    assert audit["fetched_sources"] == 0
+    assert audit["total_sources"] == 0
+    assert audit["source_toxicity_rate"] == 0.0
+    assert audit["time_limited"] is False
+
+
 def test_revived_go_health_trips_after_five_incomplete_results() -> None:
+    """Five consecutive incomplete revived-Go batches should disable that path."""
+
     tester: Any = object.__new__(SingBoxTester)
     tester._revived_go_failures = 0
     tester._revived_go_failure_limit = 5
@@ -113,22 +154,39 @@ def test_revived_go_health_trips_after_five_incomplete_results() -> None:
     assert tester._revived_go_disabled is False
 
 
-@pytest.mark.asyncio
-async def test_revived_python_fallback_respects_existing_batch_budget() -> None:
+def test_revived_python_fallback_respects_existing_batch_budget() -> None:
+    """Revived fallback should honor the configured Python batch budget."""
+
     class FakeGoTester:
         available = True
 
-        async def test_custom_configs(self, configs, check_honeypot=False):
+        async def test_custom_configs(
+            self,
+            configs: list[dict[str, Any]],
+            check_honeypot: bool = False,
+        ) -> dict[str, bool]:
+            """Simulate a Go custom-config tester that returns no results."""
+
             return {}
 
-        async def test_batch(self, proxies, check_honeypot=False):
+        async def test_batch(
+            self,
+            proxies: list[Proxy],
+            check_honeypot: bool = False,
+        ) -> list[Proxy]:
+            """Simulate a Go batch tester that leaves proxies untouched."""
+
             return proxies
 
     class FakePythonTester:
+        """Capture revived fallback calls and mark those proxies as working."""
+
         def __init__(self) -> None:
             self.calls: list[str] = []
 
         async def test_via_singbox(self, proxy: Proxy) -> Proxy:
+            """Pretend the Python fallback verified this revived proxy."""
+
             self.calls.append(proxy.id)
             proxy.is_working = True
             return proxy
@@ -147,8 +205,14 @@ async def test_revived_python_fallback_respects_existing_batch_budget() -> None:
     tester._revived_go_failure_limit = 5
     tester._revived_go_disabled = False
 
-    proxies = [_revived_proxy(index) for index in range(5)]
-    await tester.test_batch(proxies)
+    async def run_batch() -> list[Proxy]:
+        """Execute the revived test batch without relying on pytest asyncio plugins."""
+
+        proxies = [_revived_proxy(index) for index in range(5)]
+        await tester.test_batch(proxies)
+        return proxies
+
+    proxies = asyncio.run(run_batch())
 
     assert len(python_tester.calls) == 2
     skipped = [
@@ -158,3 +222,39 @@ async def test_revived_python_fallback_respects_existing_batch_budget() -> None:
     ]
     assert len(skipped) == 3
     assert all(proxy.is_working is False for proxy in skipped)
+
+
+def test_shard_sources_defaults_track_repo_root_outside_cwd(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The shard CLI defaults should resolve from the repo root, not the caller CWD."""
+
+    repo_root = tmp_path / "repo"
+    sources_dir = repo_root / "sources"
+    sources_dir.mkdir(parents=True)
+    (sources_dir / "batch_1.txt").write_text(
+        "https://active.example/sub\n", encoding="utf-8"
+    )
+
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    matrix_output = outside / "matrix.json"
+
+    monkeypatch.setattr(shard_sources, "REPO_ROOT", repo_root)
+    monkeypatch.chdir(outside)
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "shard_sources.py",
+            "--parts",
+            "1",
+            "--matrix-output",
+            str(matrix_output),
+        ],
+    )
+
+    assert shard_sources.main() == 0
+
+    payload = json.loads(matrix_output.read_text(encoding="utf-8"))
+    assert payload["include"][0]["source_file"] == "sources/runtime/batch_1_part_1.txt"
+    assert (repo_root / "sources" / "runtime" / "batch_1_part_1.txt").is_file()
