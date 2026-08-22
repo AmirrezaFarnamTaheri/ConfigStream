@@ -8,7 +8,9 @@ importScripts('assets/js/cache-config.js?v=' + new Date().getTime()); // Bust HT
 const config = self.ConfigStreamCache || {};
 const VERSION = config.VERSION || 'ERR_NO_VERSION'; // Fail loudly if config missing
 const CACHE_PREFIX = config.CACHE_PREFIX || 'configstream-cache-';
-const CACHE_NAME = config.CACHE_NAME || `configstream-v${VERSION}`;
+const CACHE_VERSION = String(VERSION).startsWith('v') ? VERSION : `v${VERSION}`;
+const CACHE_NAME = config.CACHE_NAME || `${CACHE_PREFIX}${CACHE_VERSION}`;
+const LEGACY_CACHE_PREFIX = 'configstream-v';
 const ASSETS_TO_CACHE = config.PRECACHE_URLS || [
   'index.html',
   'proxies.html',
@@ -39,7 +41,10 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheName.startsWith(CACHE_PREFIX) && cacheName !== CACHE_NAME) {
+          const isManagedCache =
+            cacheName.startsWith(CACHE_PREFIX) ||
+            cacheName.startsWith(LEGACY_CACHE_PREFIX);
+          if (isManagedCache && cacheName !== CACHE_NAME) {
             console.log('[ServiceWorker] Removing old cache:', cacheName);
             return caches.delete(cacheName);
           }

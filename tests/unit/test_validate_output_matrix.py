@@ -8,6 +8,8 @@ import json
 import sys
 from pathlib import Path
 
+import pytest
+
 from scripts import validate_output_matrix
 from scripts.generate_output_docs import generate, render_output_table
 from scripts.validate_output_matrix import EXPECTED_ZIP_OPTIONAL_PATTERNS
@@ -89,9 +91,14 @@ def test_validate_output_matrix_accepts_current_repo() -> None:
     assert validate_output_matrix.validate_output_matrix() == []
 
 
-def test_output_submodule_import_does_not_eagerly_load_metadata() -> None:
-    sys.modules.pop("configstream.output", None)
-    sys.modules.pop("configstream.output.metadata", None)
+def test_output_submodule_import_does_not_eagerly_load_metadata(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delitem(sys.modules, "configstream.output", raising=False)
+    monkeypatch.delitem(
+        sys.modules, "configstream.output.client_formats", raising=False
+    )
+    monkeypatch.delitem(sys.modules, "configstream.output.metadata", raising=False)
 
     importlib.import_module("configstream.output.client_formats")
 

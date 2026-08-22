@@ -101,6 +101,72 @@ def test_xray_rejects_obsolete_vnext_layout() -> None:
     assert "xray.json outbounds[0] missing modern vless id" in errors
 
 
+def test_xray_rejects_invalid_generated_protocol_fields_and_transport() -> None:
+    errors = validate_xray_config(
+        {
+            "outbounds": [
+                {
+                    "tag": "vless",
+                    "protocol": "vless",
+                    "settings": {"address": "", "port": True, "id": 42},
+                    "streamSettings": {
+                        "method": "websocket",
+                        "rawSettings": {},
+                    },
+                },
+                {
+                    "tag": "ss",
+                    "protocol": "shadowsocks",
+                    "settings": {
+                        "address": "example.com",
+                        "port": 443,
+                        "method": "",
+                        "password": 123,
+                    },
+                    "streamSettings": {"method": "invalid"},
+                },
+            ]
+        }
+    )
+
+    assert "xray.json outbounds[0] missing modern vless address" in errors
+    assert "xray.json outbounds[0] missing modern vless port" in errors
+    assert "xray.json outbounds[0] missing modern vless id" in errors
+    assert "xray.json outbounds[0] method websocket requires wsSettings" in errors
+    assert (
+        "xray.json outbounds[0] method websocket conflicts with rawSettings" in errors
+    )
+    assert "xray.json outbounds[1] missing shadowsocks password" in errors
+    assert "xray.json outbounds[1] missing shadowsocks method" in errors
+    assert "xray.json outbounds[1] has invalid streamSettings.method" in errors
+
+
+def test_xray_rejects_invalid_wireguard_key_and_peer_shapes() -> None:
+    errors = validate_xray_config(
+        {
+            "outbounds": [
+                {
+                    "tag": "warp",
+                    "protocol": "wireguard",
+                    "settings": {
+                        "secretKey": "",
+                        "address": [""],
+                        "peers": [{"endpoint": 42, "publicKey": ""}],
+                    },
+                }
+            ]
+        }
+    )
+
+    assert "xray.json outbounds[0] missing wireguard secretKey" in errors
+    assert (
+        "xray.json outbounds[0] wireguard address must be a non-empty string list"
+        in errors
+    )
+    assert "xray.json outbounds[0] wireguard peers[0] missing endpoint" in errors
+    assert "xray.json outbounds[0] wireguard peers[0] missing publicKey" in errors
+
+
 def test_nekobox_subscription_roundtrip(tmp_path: Path) -> None:
     text = "vless://example.com#node\n"
     (tmp_path / "proxies.txt").write_text(text, encoding="utf-8")

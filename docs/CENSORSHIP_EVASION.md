@@ -165,13 +165,6 @@ Enables a single TCP connection to split traffic across multiple network interfa
 - **Benefit**: Ensures uninterrupted connectivity if one path is blocked or degraded, and spreads packet patterns across distinct routes to confuse DPI observers.
 - **Applied to**: VMess, VLESS, Trojan, Shadowsocks, HTTP, SOCKS5, Hysteria2, TUIC.
 
-### TLS Padding
-
-Appends random padding lengths to the TLS ClientHello handshake packet. Many DPI classifiers target the characteristic length signature of proxy handshakes.
-
-- **Benefit**: Obfuscates the packet size footprint of the initial handshake to look like arbitrary HTTPS traffic.
-- **Applied to**: VMess, VLESS, Trojan, Hysteria2, TUIC.
-
 ### Encrypted Client Hello (ECH)
 
 Encrypts the sensitive parameters of the TLS ClientHello (most importantly the Server Name Indication, or SNI) using a public key published by the destination server.
@@ -184,9 +177,9 @@ Encrypts the sensitive parameters of the TLS ClientHello (most importantly the S
 To simplify client-side setup, the Laboratory interface includes high-level strategy templates:
 
 - **Default Bypass**: Applies standard browser mimicry with uTLS Chrome fingerprint rotation.
-- **Hardened Firewall**: Configures maximum obfuscation, enabling uTLS fingerprint rotation, ALPN protocol rotation, multiplexing with random padding, TCP Fast Open, Multipath TCP, and TLS padding.
+- **Hardened Firewall**: Configures maximum obfuscation, enabling uTLS fingerprint rotation, ALPN protocol rotation, multiplexing with random padding, TCP Fast Open, and Multipath TCP.
 - **Minimal Latency**: Prioritizes raw throughput and low latency by pairing TCP Fast Open, Multipath TCP, and Yamux multiplexing.
-- **Strict SNI Obfuscation**: Focuses on bypassing SNI-level blocklists using randomized uTLS fingerprints, strict HTTP/2 ALPN, TLS padding, and ECH.
+- **Strict SNI Obfuscation**: Focuses on bypassing SNI-level blocklists using randomized uTLS fingerprints, strict HTTP/2 ALPN, and ECH.
 
 ### Multiplexing with Padding
 

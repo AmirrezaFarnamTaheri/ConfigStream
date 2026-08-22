@@ -284,35 +284,83 @@ def _run_process(
         requested_executable = cwd / requested_executable
     executable = (
         str(requested_executable)
-        if requested_executable.is_file()
+        if _is_executable_file(requested_executable)
         else shutil.which(command[0], path=env.get("PATH"))
     )
     resolved_command = [executable or command[0], *command[1:]]
-    process = subprocess.Popen(  # nosec B603
-        resolved_command,
-        cwd=cwd,
-        env=env,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        start_new_session=os.name == "posix",
-    )
+    try:
+        process = subprocess.Popen(  # nosec B603
+            resolved_command,
+            cwd=cwd,
+            env=env,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            start_new_session=os.name == "posix",
+            creationflags=(
+                getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+                if os.name == "nt"
+                else 0
+            ),
+        )
+    except OSError as exc:
+        exit_code = 126 if isinstance(exc, PermissionError) else 127
+        return exit_code, f"could not start process: {exc}", False
     try:
         output, _ = process.communicate(timeout=timeout_seconds)
         return int(process.returncode), output or "", False
     except subprocess.TimeoutExpired as exc:
-        if os.name == "posix" and hasattr(os, "killpg") and hasattr(signal, "SIGKILL"):
-            try:
-                os.killpg(process.pid, signal.SIGKILL)  # type: ignore[attr-defined]
-            except ProcessLookupError:
-                pass
-        else:
-            process.kill()
+        _terminate_process_tree(process)
         trailing, _ = process.communicate()
         captured = exc.output or ""
         if isinstance(captured, bytes):
             captured = captured.decode(errors="replace")
         return None, str(captured) + (trailing or ""), True
+
+
+def _is_executable_file(path: Path, *, platform_name: str | None = None) -> bool:
+    """Return whether a concrete path can be executed on the target platform."""
+
+    if not path.is_file():
+        return False
+    platform_name = platform_name or os.name
+    return platform_name != "posix" or os.access(path, os.X_OK)
+
+
+def _terminate_process_tree(
+    process: subprocess.Popen[str], *, platform_name: str | None = None
+) -> None:
+    """Force-stop a timed-out process and all descendants where supported."""
+
+    platform_name = platform_name or os.name
+    if (
+        platform_name == "posix"
+        and hasattr(os, "killpg")
+        and hasattr(signal, "SIGKILL")
+    ):
+        try:
+            os.killpg(process.pid, signal.SIGKILL)  # type: ignore[attr-defined]
+        except ProcessLookupError:
+            pass
+        return
+
+    if platform_name == "nt":
+        taskkill = shutil.which("taskkill")
+        if taskkill:
+            try:
+                completed = subprocess.run(  # nosec B603
+                    [taskkill, "/PID", str(process.pid), "/T", "/F"],
+                    check=False,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    timeout=10,
+                )
+                if completed.returncode == 0:
+                    return
+            except (OSError, subprocess.SubprocessError):
+                pass
+
+    process.kill()
 
 
 def _run_stage(root: Path, stage: Stage, env: dict[str, str]) -> StageResult:
@@ -354,7 +402,9 @@ def _run_stage(root: Path, stage: Stage, env: dict[str, str]) -> StageResult:
     tool_path = Path(tool)
     if not tool_path.is_absolute():
         tool_path = workdir / tool_path
-    if not (tool_path.is_file() or shutil.which(tool, path=stage_env.get("PATH"))):
+    if not (
+        _is_executable_file(tool_path) or shutil.which(tool, path=stage_env.get("PATH"))
+    ):
         return StageResult(
             name=stage.name,
             command=stage.command,

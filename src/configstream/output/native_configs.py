@@ -16,6 +16,31 @@ from ..converters.chains import update_chain_details
 logger = logging.getLogger(__name__)
 
 
+def generate_singbox_config(
+    proxies: List[Proxy],
+    region: str = "all",
+    extra_outbounds: Optional[List[Dict[str, Any]]] = None,
+) -> str:
+    """Delegate to the canonical Sing-box generator public API."""
+
+    from ..generators import generate_singbox_config as generate
+
+    return generate(proxies, region, extra_outbounds)
+
+
+def generate_clash_config(
+    proxies: List[Proxy],
+    extra_outbounds: Any = None,
+    dns_profile: Optional[Dict[str, Any]] = None,
+    ignore_status: bool = False,
+) -> str:
+    """Delegate to the canonical Clash generator public API."""
+
+    from ..generators import generate_clash_config as generate
+
+    return generate(proxies, extra_outbounds, dns_profile, ignore_status)
+
+
 def _rewrite_openvpn_remote(config: str, original_host: str, ip_value: str) -> str:
     if not config or not original_host or not ip_value:
         return config

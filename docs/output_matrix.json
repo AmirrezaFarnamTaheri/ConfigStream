@@ -9,13 +9,13 @@
     {
       "path": "proxies.json",
       "family": "universal",
-      "category": "subscription",
+      "category": "api",
       "format": "json",
       "required": true,
       "nonempty": true,
       "schema_validation": true,
       "degraded_valid": true,
-      "notes": "Canonical public proxy JSON list."
+      "notes": "Canonical ConfigStream API dataset validated by proxy-list.schema.json: a JSON array whose items follow proxy.schema.json, not a directly importable sing-box, Xray, or Mihomo configuration."
     },
     {
       "path": "metadata.json",
@@ -461,6 +461,43 @@
       "notes": "Chosen DNS-hardened base64 output."
     },
     {
+      "path": "chosen/proxies.txt",
+      "family": "chosen",
+      "category": "subscription",
+      "format": "text",
+      "required": true,
+      "nonempty": false,
+      "schema_validation": false,
+      "degraded_valid": true,
+      "notes": "Chosen top-N newline-delimited share-link subscription; empty is valid when no proxies are selected."
+    },
+    {
+      "path": "chosen/singbox.json",
+      "family": "singbox",
+      "category": "subscription",
+      "format": "json",
+      "required": true,
+      "nonempty": true,
+      "schema_validation": false,
+      "degraded_valid": true,
+      "core_format": "sing-box",
+      "artifact_type": "full_config",
+      "notes": "Chosen top-N complete sing-box configuration; finalized and validated with the same contract as root sing-box artifacts."
+    },
+    {
+      "path": "chosen/clash.yaml",
+      "family": "clash",
+      "category": "subscription",
+      "format": "yaml",
+      "required": true,
+      "nonempty": true,
+      "schema_validation": false,
+      "degraded_valid": true,
+      "core_format": "clash",
+      "artifact_type": "full_config",
+      "notes": "Chosen top-N complete Mihomo/Clash configuration; repaired and validated with the same contract as root Clash artifacts."
+    },
+    {
       "path": "data/clean_ips.json",
       "family": "analytics",
       "category": "analytics",
@@ -546,7 +583,7 @@
       "nonempty": true,
       "schema_validation": true,
       "degraded_valid": true,
-      "notes": "API alias that must match proxies.json."
+      "notes": "API alias that must exactly match the proxies.json ConfigStream record array; it is not a native client configuration."
     },
     {
       "path": "api/stats",
@@ -560,6 +597,19 @@
       "notes": "API alias that must match metadata.json."
     },
     {
+      "path": "countries/*.json",
+      "family": "singbox",
+      "category": "subscription",
+      "format": "json",
+      "required": false,
+      "nonempty": false,
+      "schema_validation": false,
+      "degraded_valid": true,
+      "core_format": "sing-box",
+      "artifact_type": "full_config",
+      "notes": "Country-specific complete sing-box configurations; excludes the sibling *.list.json ConfigStream API arrays."
+    },
+    {
       "path": "countries/*.list.json",
       "family": "categorized-api",
       "category": "api",
@@ -568,7 +618,20 @@
       "nonempty": false,
       "schema_validation": true,
       "degraded_valid": true,
-      "notes": "Country-specific proxy list JSON; must match proxy.schema.json."
+      "notes": "Country-specific ConfigStream proxy record array validated by proxy-list.schema.json. This is API/filtering data, not a native client configuration."
+    },
+    {
+      "path": "protocols/*.json",
+      "family": "singbox",
+      "category": "subscription",
+      "format": "json",
+      "required": false,
+      "nonempty": false,
+      "schema_validation": false,
+      "degraded_valid": true,
+      "core_format": "sing-box",
+      "artifact_type": "full_config",
+      "notes": "Protocol-specific complete sing-box configurations; excludes the sibling *.list.json ConfigStream API arrays."
     },
     {
       "path": "protocols/*.list.json",
@@ -579,7 +642,7 @@
       "nonempty": false,
       "schema_validation": true,
       "degraded_valid": true,
-      "notes": "Protocol-specific proxy list JSON; must match proxy.schema.json."
+      "notes": "Protocol-specific ConfigStream proxy record array validated by proxy-list.schema.json. This is API/filtering data, not a native client configuration."
     },
     {
       "path": "xray.json",

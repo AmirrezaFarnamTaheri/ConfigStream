@@ -227,9 +227,14 @@ def _write_valid_artifact(root: Path) -> None:
             )
         elif rel_path.endswith("proxies.json") or rel_path == "api/proxies":
             _write_text(path, "[]")
-        elif rel_path.startswith("singbox") and rel_path.endswith(".json"):
+        elif (
+            rel_path.startswith(("singbox", "chains"))
+            or rel_path == "chosen/singbox.json"
+        ) and rel_path.endswith(".json"):
             _write_text(path, json.dumps(_singbox_payload()))
-        elif rel_path.startswith("clash") and rel_path.endswith(".yaml"):
+        elif (
+            rel_path.startswith("clash") or rel_path == "chosen/clash.yaml"
+        ) and rel_path.endswith(".yaml"):
             _write_text(path, _clash_payload())
         elif rel_path == "xray.json":
             _write_text(
@@ -574,6 +579,21 @@ def test_validate_pages_artifact_reports_api_alias_drift(tmp_path: Path) -> None
     assert any("api/proxies must match proxies.json" in error for error in errors)
 
 
+def test_validate_pages_artifact_reports_chain_alias_drift(tmp_path: Path) -> None:
+    _write_valid_artifact(tmp_path)
+    payload = _singbox_payload()
+    payload["route"] = {"final": "direct"}
+    _write_text(tmp_path / "chains-dns-safe.json", json.dumps(payload))
+    _write_manifest(tmp_path)
+
+    errors = validate_pages_artifact(tmp_path)
+
+    assert any(
+        "chains-dns-safe.json must match singbox-chains-dns-safe.json" in error
+        for error in errors
+    )
+
+
 def test_validate_pages_artifact_reports_singbox_unknown_outbound_reference(
     tmp_path: Path,
 ) -> None:
@@ -711,9 +731,27 @@ def test_validate_pages_artifact_native_check_skips_when_binaries_missing(
 
     assert errors == []
 
+    (tmp_path / "countries").mkdir()
+    (tmp_path / "protocols").mkdir()
+    (tmp_path / "countries" / "US.json").write_bytes(
+        (tmp_path / "singbox.json").read_bytes()
+    )
+    (tmp_path / "protocols" / "vless.json").write_bytes(
+        (tmp_path / "singbox.json").read_bytes()
+    )
+
     report = cast(dict[str, Any], collect_native_client_report(tmp_path))
-    assert report["summary"]["skipped"] == 12
+    assert report["summary"]["skipped"] == len(report["checks"])
     assert report["summary"]["failed"] == 0
+    checked_paths = {check["path"] for check in report["checks"]}
+    assert {
+        "chosen/singbox.json",
+        "chosen/clash.yaml",
+        "chains.json",
+        "chains-dns-safe.json",
+        "countries/US.json",
+        "protocols/vless.json",
+    }.issubset(checked_paths)
 
 
 def test_validate_pages_artifact_native_check_reports_singbox_failure(
@@ -747,7 +785,7 @@ def test_validate_pages_artifact_native_check_reports_singbox_failure(
     report_path = tmp_path / "native_client_check_report.json"
     write_native_client_report(tmp_path, report_path)
     report = cast(dict[str, Any], json.loads(report_path.read_text(encoding="utf-8")))
-    assert report["summary"]["failed"] == 9
+    assert report["summary"]["failed"] == 13
     assert report["tools"]["sing-box"]["available"] is True
 
 
@@ -805,7 +843,7 @@ def test_write_native_client_report_records_passed_checks(
     write_native_client_report(tmp_path, report_path)
     report = cast(dict[str, Any], json.loads(report_path.read_text(encoding="utf-8")))
 
-    assert report["summary"] == {"passed": 12, "failed": 0, "skipped": 0}
+    assert report["summary"] == {"passed": 17, "failed": 0, "skipped": 0}
     assert {check["core"] for check in report["checks"]} == {"sing-box", "clash"}
 
 

@@ -129,7 +129,10 @@ class SingBoxTester:
             # Test revived chains using custom config testing
             if revived_candidates:
                 configs = []
-                for p in revived_candidates:
+                request_ids: Dict[int, str] = {}
+                for candidate_index, p in enumerate(revived_candidates):
+                    request_id = f"{p.id}-{candidate_index}"
+                    request_ids[id(p)] = request_id
                     chain_outbounds = copy.deepcopy(
                         chain_outbounds_from_details(p.details or {})
                     )
@@ -150,7 +153,7 @@ class SingBoxTester:
                         chain_outbounds[head_index]["tag"] = "proxy"
                         head = chain_outbounds.pop(head_index)
                         chain_outbounds.insert(0, head)
-                    configs.append({"id": p.id, "outbounds": chain_outbounds})
+                    configs.append({"id": request_id, "outbounds": chain_outbounds})
 
                 try:
                     custom_results: Dict[str, bool] = (
@@ -163,15 +166,21 @@ class SingBoxTester:
                         f"Go Tester failed for revived chains: {e}. Falling back."
                     )
                     custom_results = {}
-                missing = [p for p in revived_candidates if p.id not in custom_results]
+                missing = [
+                    p
+                    for p in revived_candidates
+                    if request_ids[id(p)] not in custom_results
+                ]
                 _record_revived_go_health(self, len(missing))
                 if missing:
                     custom_results.update(
-                        await _bounded_revived_python_fallback(self, missing)
+                        await _bounded_revived_python_fallback(
+                            self, missing, request_ids
+                        )
                     )
 
                 for p in revived_candidates:
-                    is_working = custom_results.get(p.id, False)
+                    is_working = custom_results.get(request_ids[id(p)], False)
                     p.is_working = is_working
                     p.tested_at = datetime.now(timezone.utc).isoformat()
                     if is_working:
@@ -246,7 +255,9 @@ def _record_revived_go_health(tester: SingBoxTester, missing_count: int) -> None
 
 
 async def _bounded_revived_python_fallback(
-    tester: SingBoxTester, missing: List[Proxy]
+    tester: SingBoxTester,
+    missing: List[Proxy],
+    request_ids: Dict[int, str],
 ) -> Dict[str, bool]:
     """Bound revived-chain Python recovery by count, concurrency, and wall time."""
 
@@ -280,9 +291,9 @@ async def _bounded_revived_python_fallback(
         raw_results = []
 
     results: Dict[str, bool] = {}
-    for result in raw_results:
+    for proxy, result in zip(fallback_candidates, raw_results):
         if isinstance(result, Proxy):
-            results[result.id] = bool(result.is_working)
+            results[request_ids[id(proxy)]] = bool(result.is_working)
 
     skipped_at = datetime.now(timezone.utc).isoformat()
     for proxy in skipped_candidates:

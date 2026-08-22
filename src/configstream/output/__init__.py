@@ -42,8 +42,8 @@ _EXPORT_MAP = {
         ".subscriptions",
         "generate_plaintext_subscription",
     ),
-    "generate_singbox_config": ("..generators", "generate_singbox_config"),
-    "generate_clash_config": ("..generators", "generate_clash_config"),
+    "generate_singbox_config": (".native_configs", "generate_singbox_config"),
+    "generate_clash_config": (".native_configs", "generate_clash_config"),
 }
 
 

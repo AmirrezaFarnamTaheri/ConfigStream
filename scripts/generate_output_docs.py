@@ -50,19 +50,7 @@ def _validation_summary(item: dict[str, Any]) -> str:
         checks.append("schema")
     if item.get("format") in {"json", "jsonl", "yaml", "zip"}:
         checks.append(str(item["format"]))
-    if item.get("path") in {
-        "singbox.json",
-        "singbox-dns-safe.json",
-        "singbox-dns-hardened.json",
-        "singbox-vpn.json",
-        "singbox-vpn-dns-safe.json",
-        "singbox-vpn-dns-hardened.json",
-        "singbox-chains.json",
-        "singbox-chains-dns-safe.json",
-        "singbox-chains-dns-hardened.json",
-    }:
-        checks.append("references")
-    if str(item.get("path", "")).startswith("clash"):
+    if item.get("core_format") in {"sing-box", "clash", "xray"}:
         checks.append("references")
     if item.get("zip_required_members"):
         checks.append("zip members")

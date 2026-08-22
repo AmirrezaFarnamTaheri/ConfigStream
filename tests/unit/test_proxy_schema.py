@@ -12,8 +12,12 @@ import pytest
 from configstream.constants import PROCESS_TYPES, VALID_PROTOCOLS
 
 import jsonschema
+from referencing import Registry, Resource
 
 SCHEMA_PATH = Path(__file__).resolve().parents[2] / "schema" / "proxy.schema.json"
+LIST_SCHEMA_PATH = (
+    Path(__file__).resolve().parents[2] / "schema" / "proxy-list.schema.json"
+)
 
 
 def _load_schema() -> dict:
@@ -33,7 +37,10 @@ def _base_proxy() -> dict:
         "address": "example.com",
         "port": 443,
         "uuid": "123e4567-e89b-42d3-a456-426614174000",
-        "details": {},
+        "details": {
+            "uuid": "123e4567-e89b-42d3-a456-426614174000",
+            "security": "tls",
+        },
         "process": "native",
     }
 
@@ -49,6 +56,23 @@ def test_schema_process_enum_matches_constants() -> None:
     schema = _load_schema()
     process_enum = set(schema["properties"]["process"]["enum"])
     assert process_enum == set(PROCESS_TYPES)
+
+
+def test_proxy_list_schema_declares_array_document_of_proxy_records() -> None:
+    schema = json.loads(LIST_SCHEMA_PATH.read_text(encoding="utf-8"))
+
+    assert schema["type"] == "array"
+    assert schema["items"] == {"$ref": "proxy.schema.json"}
+
+    registry = Registry().with_resource(
+        "https://configstream.dev/schema/proxy.schema.json",
+        Resource.from_contents(_load_schema()),
+    )
+    validator = jsonschema.Draft202012Validator(schema, registry=registry)
+    validator.validate([_base_proxy()])
+
+    with pytest.raises(jsonschema.exceptions.ValidationError):
+        validator.validate({"not": "an array"})
 
 
 def test_protocol_detail_defs_are_strict() -> None:

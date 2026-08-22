@@ -28,6 +28,19 @@ from configstream.output.client_formats import (
 )
 from configstream.output.singbox_contract import validate_singbox_config
 
+try:
+    from scripts.public_client_configs import (
+        discover_mihomo_configs,
+        discover_singbox_configs,
+        resolve_public_config,
+    )
+except ModuleNotFoundError:  # Direct ``python scripts/...`` execution.
+    from public_client_configs import (  # type: ignore[no-redef]
+        discover_mihomo_configs,
+        discover_singbox_configs,
+        resolve_public_config,
+    )
+
 logger = logging.getLogger(__name__)
 
 try:
@@ -63,12 +76,15 @@ REQUIRED_EXISTS: tuple[str, ...] = (
     "chains.json",
     "chains-dns-safe.json",
     "chains-dns-hardened.json",
+    "chosen/singbox.json",
+    "chosen/clash.yaml",
     "side_products.zip",
     "side_products-dns-safe.zip",
     "side_products-dns-hardened.zip",
     "chosen/base64.txt",
     "chosen/base64-dns-safe.txt",
     "chosen/base64-dns-hardened.txt",
+    "chosen/proxies.txt",
     "data/clean_ips.json",
     "data/proxy_history_viz.json",
     "data/active_proxy_trend.json",
@@ -102,6 +118,8 @@ REQUIRED_NONEMPTY: tuple[str, ...] = (
     "chains.json",
     "chains-dns-safe.json",
     "chains-dns-hardened.json",
+    "chosen/singbox.json",
+    "chosen/clash.yaml",
     "side_products.zip",
     "side_products-dns-safe.zip",
     "side_products-dns-hardened.zip",
@@ -124,16 +142,6 @@ JSON_FILES: tuple[str, ...] = tuple(
 
 ZIP_FILES: tuple[str, ...] = tuple(
     name for name in REQUIRED_EXISTS if name.endswith(".zip")
-)
-SINGBOX_FILES: tuple[str, ...] = tuple(
-    name
-    for name in REQUIRED_EXISTS
-    if name.startswith("singbox") and name.endswith(".json")
-)
-CLASH_FILES: tuple[str, ...] = tuple(
-    name
-    for name in REQUIRED_EXISTS
-    if name.startswith("clash") and name.endswith(".yaml")
 )
 XRAY_FILES: tuple[str, ...] = ("xray.json",)
 SING_BOX_BINARY_NAMES: tuple[str, ...] = ("sing-box", "sing-box.exe")
@@ -345,15 +353,17 @@ def collect_native_client_report(root: Path) -> dict[str, object]:
 
     sing_box = _first_available_binary(SING_BOX_BINARY_NAMES)
     tools["sing-box"] = {"available": bool(sing_box), "binary": sing_box}
-    for rel_path in SINGBOX_FILES:
-        target = root / rel_path
-        if not target.is_file():
-            continue
-        if not sing_box:
+    for target in discover_singbox_configs(root):
+        rel_path = target.relative_to(root).as_posix()
+        resolved, path_error = resolve_public_config(root, target)
+        if resolved is None:
+            status, error = "failed", f"{rel_path}: {path_error}"
+            command = None
+        elif not sing_box:
             status, error = "skipped", None
             command = None
         else:
-            command = [sing_box, "check", "-c", str(target)]
+            command = [sing_box, "check", "-c", str(resolved)]
             status, error = _run_native_check(command, rel_path)
         summary[status] = int(summary.get(status, 0)) + 1
         checks.append(
@@ -368,15 +378,17 @@ def collect_native_client_report(root: Path) -> dict[str, object]:
 
     mihomo = _first_available_binary(MIHOMO_BINARY_NAMES)
     tools["mihomo"] = {"available": bool(mihomo), "binary": mihomo}
-    for rel_path in CLASH_FILES:
-        target = root / rel_path
-        if not target.is_file():
-            continue
-        if not mihomo:
+    for target in discover_mihomo_configs(root):
+        rel_path = target.relative_to(root).as_posix()
+        resolved, path_error = resolve_public_config(root, target)
+        if resolved is None:
+            status, error = "failed", f"{rel_path}: {path_error}"
+            command = None
+        elif not mihomo:
             status, error = "skipped", None
             command = None
         else:
-            command = [mihomo, "-t", "-f", str(target)]
+            command = [mihomo, "-t", "-f", str(resolved)]
             status, error = _run_native_check(command, rel_path)
         summary[status] = int(summary.get(status, 0)) + 1
         checks.append(
@@ -1072,6 +1084,9 @@ def _validate_api_alias_parity(root: Path) -> list[str]:
     for canonical, alias in (
         ("proxies.json", "api/proxies"),
         ("metadata.json", "api/stats"),
+        ("singbox-chains.json", "chains.json"),
+        ("singbox-chains-dns-safe.json", "chains-dns-safe.json"),
+        ("singbox-chains-dns-hardened.json", "chains-dns-hardened.json"),
     ):
         canonical_path = root / canonical
         alias_path = root / alias
@@ -1284,20 +1299,24 @@ def validate_pages_artifact(
         if bad_member:
             errors.append(f"corrupt ZIP member in {rel_path}: {bad_member}")
 
-    for rel_path in SINGBOX_FILES:
-        target = root / rel_path
-        if not target.is_file():
+    for target in discover_singbox_configs(root):
+        rel_path = target.relative_to(root).as_posix()
+        resolved, path_error = resolve_public_config(root, target)
+        if resolved is None:
+            errors.append(f"{rel_path} is unsafe: {path_error}")
             continue
-        payload, error = _load_json(target)
+        payload, error = _load_json(resolved)
         if error:
             continue
         errors.extend(validate_singbox_config(payload, rel_path))
 
-    for rel_path in CLASH_FILES:
-        target = root / rel_path
-        if not target.is_file():
+    for target in discover_mihomo_configs(root):
+        rel_path = target.relative_to(root).as_posix()
+        resolved, path_error = resolve_public_config(root, target)
+        if resolved is None:
+            errors.append(f"{rel_path} is unsafe: {path_error}")
             continue
-        payload, error = _load_yaml(target)
+        payload, error = _load_yaml(resolved)
         if error:
             errors.append(error.replace(target.name, rel_path, 1))
             continue

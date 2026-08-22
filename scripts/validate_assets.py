@@ -10,6 +10,8 @@ import sys
 from types import ModuleType
 from pathlib import Path
 
+from configstream.security_validator import SecurityValidator
+
 ENCODING = "utf-8"
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -202,7 +204,9 @@ def _validate_svg_xml(tracked: list[Path]) -> list[str]:
         try:
             safe_et.parse(path)  # nosec B314
         except parse_errors as exc:
-            diagnostic = " ".join(str(exc).split())
+            diagnostic = SecurityValidator.sanitize_log_message(
+                " ".join(str(exc).split())
+            )
             errors.append(f"malformed SVG XML in {_repo_relative(path)}: {diagnostic}")
     return errors
 

@@ -218,9 +218,14 @@ def _write_output_fixture(root: Path) -> None:
             )
         elif rel_path == "proxies.json" or rel_path == "api/proxies":
             _write_text(target, "[]")
-        elif rel_path.startswith("singbox") and rel_path.endswith(".json"):
+        elif (
+            rel_path.startswith(("singbox", "chains"))
+            or rel_path == "chosen/singbox.json"
+        ) and rel_path.endswith(".json"):
             _write_text(target, json.dumps(_singbox_payload(), ensure_ascii=False))
-        elif rel_path.startswith("clash") and rel_path.endswith(".yaml"):
+        elif (
+            rel_path.startswith("clash") or rel_path == "chosen/clash.yaml"
+        ) and rel_path.endswith(".yaml"):
             _write_text(target, _clash_payload())
         elif rel_path == "xray.json":
             _write_text(target, json.dumps(_xray_payload(), ensure_ascii=False))

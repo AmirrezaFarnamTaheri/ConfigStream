@@ -170,11 +170,9 @@ def generate_split_outputs(
                 p.id,
                 enable_utls=True,
                 enable_alpn=True,
-                enable_fragmentation=True,
                 enable_multiplexing=True,
                 enable_tfo=True,
                 enable_mptcp=True,
-                enable_padding=True,
             )
         elif evasion_mode == "stealth":
             sb_proxy = enrich_outbound_with_evasion(
@@ -182,11 +180,9 @@ def generate_split_outputs(
                 p.id,
                 enable_utls=True,
                 enable_alpn=False,
-                enable_fragmentation=True,
                 enable_multiplexing=False,
                 enable_tfo=True,
                 enable_mptcp=False,
-                enable_padding=False,
             )
         else:  # standard - no evasion (compatibility mode)
             sb_proxy = enrich_outbound_with_evasion(
@@ -194,21 +190,21 @@ def generate_split_outputs(
                 p.id,
                 enable_utls=False,
                 enable_alpn=False,
-                enable_fragmentation=False,
                 enable_multiplexing=False,
                 enable_tfo=False,
                 enable_mptcp=False,
-                enable_padding=False,
             )
         # Mark evasion features based on actual mode, not unconditionally True
         if not p.details:
             p.details = {}
         p.details["has_utls"] = evasion_mode in ("aggressive", "stealth")
-        p.details["has_fragmentation"] = evasion_mode in ("aggressive", "stealth")
+        # Native sing-box no longer exposes TLS fragmentation dial fields.
+        p.details["has_fragmentation"] = False
         p.details["has_multiplexing"] = evasion_mode == "aggressive"
         p.details["has_alpn_rotation"] = evasion_mode == "aggressive"
         p.details["has_tfo"] = evasion_mode in ("aggressive", "stealth")
         p.details["has_mptcp"] = evasion_mode == "aggressive"
+        # sing-box supports padding on the multiplex object, not on TLS.
         p.details["has_padding"] = evasion_mode == "aggressive"
         if tag and tag in seen_tags:
             tag_suffix = 0

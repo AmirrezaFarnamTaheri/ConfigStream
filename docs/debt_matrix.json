@@ -344,7 +344,7 @@
     },
     {
       "path": "scripts/validate_pages_artifact.py",
-      "line": 846,
+      "line": 858,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -684,7 +684,7 @@
       "marker": "LARGE_FUNCTION",
       "category": "production",
       "priority": "P1 - High",
-      "text": "Function generate_split_outputs spans 391 lines (threshold: 300)."
+      "text": "Function generate_split_outputs spans 387 lines (threshold: 300)."
     },
     {
       "path": "src/configstream/geoip.py",
@@ -864,7 +864,7 @@
     },
     {
       "path": "src/configstream/intelligence/washer/core.py",
-      "line": 112,
+      "line": 113,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -872,7 +872,7 @@
     },
     {
       "path": "src/configstream/intelligence/washer/core.py",
-      "line": 241,
+      "line": 242,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -880,7 +880,7 @@
     },
     {
       "path": "src/configstream/intelligence/washer/core.py",
-      "line": 257,
+      "line": 258,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -888,7 +888,7 @@
     },
     {
       "path": "src/configstream/intelligence/washer/core.py",
-      "line": 277,
+      "line": 278,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -896,7 +896,7 @@
     },
     {
       "path": "src/configstream/intelligence/washer/core.py",
-      "line": 323,
+      "line": 324,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -904,7 +904,7 @@
     },
     {
       "path": "src/configstream/intelligence/washer/core.py",
-      "line": 349,
+      "line": 350,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -912,7 +912,7 @@
     },
     {
       "path": "src/configstream/intelligence/washer/core.py",
-      "line": 528,
+      "line": 554,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -920,7 +920,7 @@
     },
     {
       "path": "src/configstream/intelligence/washer/core.py",
-      "line": 806,
+      "line": 832,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1008,15 +1008,7 @@
     },
     {
       "path": "src/configstream/output_handler.py",
-      "line": 452,
-      "marker": "LARGE_FUNCTION",
-      "category": "production",
-      "priority": "P1 - High",
-      "text": "Function generate_pipeline_outputs spans 393 lines (threshold: 300)."
-    },
-    {
-      "path": "src/configstream/output_handler.py",
-      "line": 524,
+      "line": 404,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1025,6 +1017,14 @@
     {
       "path": "src/configstream/output_handler.py",
       "line": 538,
+      "marker": "LARGE_FUNCTION",
+      "category": "production",
+      "priority": "P1 - High",
+      "text": "Function generate_pipeline_outputs spans 368 lines (threshold: 300)."
+    },
+    {
+      "path": "src/configstream/output_handler.py",
+      "line": 610,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1032,7 +1032,7 @@
     },
     {
       "path": "src/configstream/output_handler.py",
-      "line": 608,
+      "line": 624,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1040,7 +1040,7 @@
     },
     {
       "path": "src/configstream/output_handler.py",
-      "line": 632,
+      "line": 693,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1048,7 +1048,7 @@
     },
     {
       "path": "src/configstream/output_handler.py",
-      "line": 687,
+      "line": 748,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1692,11 +1692,11 @@
       "marker": "LARGE_FUNCTION",
       "category": "production",
       "priority": "P1 - High",
-      "text": "Function test_batch spans 333 lines (threshold: 300)."
+      "text": "Function test_batch spans 332 lines (threshold: 300)."
     },
     {
       "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 648,
+      "line": 647,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1704,7 +1704,7 @@
     },
     {
       "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 714,
+      "line": 713,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1712,7 +1712,7 @@
     },
     {
       "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 742,
+      "line": 741,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1720,7 +1720,7 @@
     },
     {
       "path": "src/configstream/testers/go_tester/manager.py",
-      "line": 953,
+      "line": 952,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1784,7 +1784,7 @@
     },
     {
       "path": "src/configstream/testers/manager.py",
-      "line": 161,
+      "line": 164,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1800,7 +1800,7 @@
     },
     {
       "path": "src/configstream/testers/python.py",
-      "line": 208,
+      "line": 207,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1808,7 +1808,7 @@
     },
     {
       "path": "src/configstream/testers/python.py",
-      "line": 240,
+      "line": 239,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1816,7 +1816,7 @@
     },
     {
       "path": "src/configstream/testers/python.py",
-      "line": 260,
+      "line": 259,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1824,7 +1824,7 @@
     },
     {
       "path": "src/configstream/testers/python.py",
-      "line": 284,
+      "line": 283,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",

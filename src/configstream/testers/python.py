@@ -164,7 +164,6 @@ class PythonTester:
             proxy.id,
             enable_utls=True,
             enable_alpn=True,
-            enable_fragmentation=True,
             enable_multiplexing=True,
         )
         extras = outbound.pop("_extra_outbounds", None)

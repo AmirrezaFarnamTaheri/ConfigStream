@@ -224,6 +224,47 @@ def test_revived_python_fallback_respects_existing_batch_budget() -> None:
     assert all(proxy.is_working is False for proxy in skipped)
 
 
+def test_revived_custom_requests_are_unique_when_proxy_ids_collide() -> None:
+    """Chain test results must not collapse at a shared endpoint identity."""
+
+    class FakeGoTester:
+        available = True
+
+        def __init__(self) -> None:
+            self.request_ids: list[str] = []
+
+        async def test_custom_configs(
+            self,
+            configs: list[dict[str, Any]],
+            check_honeypot: bool = False,
+        ) -> dict[str, bool]:
+            self.request_ids = [str(config["id"]) for config in configs]
+            return {self.request_ids[0]: True, self.request_ids[1]: False}
+
+    tester: Any = object.__new__(SingBoxTester)
+    tester.timeout = 1.0
+    tester.cache = None
+    tester.strict_security = False
+    tester.settings = SimpleNamespace(PY_TESTER_BATCH_SIZE=2)
+    tester.dry_run = False
+    tester.max_workers = 2
+    tester.go_tester = FakeGoTester()
+    tester._revived_go_failures = 0
+    tester._revived_go_failure_limit = 5
+    tester._revived_go_disabled = False
+
+    first = _revived_proxy(0)
+    second = _revived_proxy(1)
+    second.address = first.address
+    second.details["chain_outbounds"][0]["tag"] = "other-hop"
+    assert first.id == second.id
+
+    results = asyncio.run(tester.test_batch([first, second]))
+
+    assert len(set(tester.go_tester.request_ids)) == 2
+    assert [result.is_working for result in results] == [True, False]
+
+
 def test_shard_sources_defaults_track_repo_root_outside_cwd(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
