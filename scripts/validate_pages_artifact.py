@@ -1204,6 +1204,7 @@ def write_pages_contract(root: Path) -> None:
     }
     signer = _manifest_signer_from_env()
     if signer is not None:
+        _, serialization = _load_signature_primitives()
         ts_val = int(time.time())
         payload = _canonical_manifest_payload(manifest, ts_val)
         signature = signer.sign(payload).hex()
