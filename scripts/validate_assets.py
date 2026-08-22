@@ -82,7 +82,7 @@ def _resolve_svg_parser() -> tuple[ModuleType, tuple[type[BaseException], ...]]:
         )
         return safe_et, parse_errors
     except ModuleNotFoundError:
-        import xml.etree.ElementTree as safe_et
+        import xml.etree.ElementTree as safe_et  # nosec B405 - fallback only when defusedxml is unavailable
 
         parse_errors = (
             safe_et.ParseError,
@@ -198,7 +198,7 @@ def _validate_svg_xml(tracked: list[Path]) -> list[str]:
         if path.suffix.lower() != ".svg":
             continue
         try:
-            safe_et.parse(path)
+            safe_et.parse(path)  # nosec B314 - fallback parser is used only without defusedxml
         except parse_errors as exc:
             diagnostic = " ".join(str(exc).split())
             errors.append(f"malformed SVG XML in {_repo_relative(path)}: {diagnostic}")

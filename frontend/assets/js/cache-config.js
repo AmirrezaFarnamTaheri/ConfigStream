@@ -11,6 +11,14 @@
         CACHE_STRATEGY: {
             networkFirst: ['.json', '/api/'],
             staleWhileRevalidate: true
+        },
+        CACHE_CONFIG: {
+            staleWhileRevalidate: true,
+            networkTimeout: 5000,
+            metadataExpiry: 2 * 60 * 1000,
+            proxiesExpiry: 10 * 60 * 1000,
+            statsExpiry: 5 * 60 * 1000,
+            defaultExpiry: 5 * 60 * 1000
         }
     };
     if (global.ConfigStreamLogger) {
