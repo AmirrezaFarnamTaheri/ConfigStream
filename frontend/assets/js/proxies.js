@@ -599,7 +599,7 @@ function setupFilters() {
 function setupSorting() {
     const headers = document.querySelectorAll('th.sortable');
     headers.forEach(th => {
-        th.addEventListener('click', () => {
+        const activateSort = () => {
             const field = th.dataset.sort;
             if (currentSort.field === field) {
                 currentSort.order = currentSort.order === 'asc' ? 'desc' : 'asc';
@@ -613,6 +613,13 @@ function setupSorting() {
 
             sortProxies();
             renderTable();
+        };
+        th.addEventListener('click', activateSort);
+        th.addEventListener('keydown', event => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                activateSort();
+            }
         });
     });
 }

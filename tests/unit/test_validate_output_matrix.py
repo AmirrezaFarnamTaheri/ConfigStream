@@ -3,7 +3,9 @@
 
 from __future__ import annotations
 
+import importlib
 import json
+import sys
 from pathlib import Path
 
 from scripts import validate_output_matrix
@@ -85,6 +87,15 @@ def _minimal_valid_matrix() -> dict[str, object]:
 
 def test_validate_output_matrix_accepts_current_repo() -> None:
     assert validate_output_matrix.validate_output_matrix() == []
+
+
+def test_output_submodule_import_does_not_eagerly_load_metadata() -> None:
+    sys.modules.pop("configstream.output", None)
+    sys.modules.pop("configstream.output.metadata", None)
+
+    importlib.import_module("configstream.output.client_formats")
+
+    assert "configstream.output.metadata" not in sys.modules
 
 
 def test_generated_output_docs_are_current() -> None:

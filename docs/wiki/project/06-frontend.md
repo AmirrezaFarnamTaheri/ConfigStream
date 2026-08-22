@@ -105,7 +105,7 @@ The Laboratory is a 5-step interactive chain builder that guides users from zero
 
 ### Step 1: Parse Proxy
 *   **Manual URI Paste**: User pastes a proxy URI (VLESS, VMess, Trojan, SS, Hysteria2, TUIC, WireGuard).
-*   **Pre-Tested Proxies**: Users can click "Load Pre-Tested Proxies" to fetch working proxies from ConfigStream's pipeline output (`output/base64.txt`). Proxies are decoded from Base64, parsed, and displayed in a dropdown grouped by protocol.
+*   **Pre-Tested Proxies**: Users can click "Load Pre-Tested Proxies" to fetch the plaintext `proxies.txt` artifact from the deployed pipeline output. The verified URI list is parsed and displayed in a dropdown grouped by protocol.
 *   **Subscription Load**: Or load from the existing subscription endpoint.
 *   **Network Diagnosis**: An expandable section runs browser-based connectivity checks against 6 endpoints (Cloudflare, Google, GitHub, Wikipedia, DoH) and renders a censorship severity gauge with multi-strategy advice.
 *   **Local Proxy Detection**: Users can specify an existing local proxy (Psiphon, V2RayN, Clash) as Layer 1.

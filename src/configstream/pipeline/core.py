@@ -465,6 +465,14 @@ class StandardPipeline(IPipeline):
             if self.context.anomaly_detector:
                 self.context.anomaly_detector.close()
 
+            if self.context.quality_tracker:
+                with suppress(Exception):
+                    self.context.quality_tracker.close()
+
+            if self.context.history:
+                with suppress(Exception):
+                    self.context.history.close()
+
             if self.context.hard_stop_watcher and self.context.event_stream:
                 await self.context.hard_stop_watcher.flush_event_stream(
                     self.context.event_stream

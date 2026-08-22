@@ -19,7 +19,7 @@ import time
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import cast
+from typing import Any, cast
 
 from configstream.output.client_formats import (
     validate_mihomo_config,
@@ -27,8 +27,6 @@ from configstream.output.client_formats import (
     validate_xray_config,
 )
 from configstream.output.singbox_contract import validate_singbox_config
-from cryptography.hazmat.primitives.asymmetric import ed25519
-from cryptography.hazmat.primitives import serialization
 
 logger = logging.getLogger(__name__)
 
@@ -183,7 +181,15 @@ _MANIFEST_PRIVATE_KEY_ENV = (
 )
 
 
-def _public_key_from_runtime_env() -> ed25519.Ed25519PublicKey | None:
+def _load_signature_primitives() -> tuple[Any, Any]:
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric import ed25519
+
+    return ed25519, serialization
+
+
+def _public_key_from_runtime_env() -> Any | None:
+    ed25519, serialization = _load_signature_primitives()
     value = (os.environ.get("CS_PUBLIC_KEY") or "").strip()
     if not value:
         return None
@@ -219,12 +225,13 @@ def _public_key_hex_from_env() -> str:
     key = _public_key_from_runtime_env()
     if not key:
         return ""
+    _, serialization = _load_signature_primitives()
     return key.public_bytes(
         encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
     ).hex()
 
 
-def _manifest_signer_from_env() -> ed25519.Ed25519PrivateKey | None:
+def _manifest_signer_from_env() -> Any | None:
     key_hex = ""
     for env_name in _MANIFEST_PRIVATE_KEY_ENV:
         key_hex = (os.environ.get(env_name) or "").strip()
@@ -237,6 +244,7 @@ def _manifest_signer_from_env() -> ed25519.Ed25519PrivateKey | None:
         key_bytes = key_bytes[:32]
     if len(key_bytes) != 32:
         raise ValueError("Manifest signing key must be 32 or 64 bytes (hex).")
+    ed25519, _ = _load_signature_primitives()
     return ed25519.Ed25519PrivateKey.from_private_bytes(key_bytes)
 
 

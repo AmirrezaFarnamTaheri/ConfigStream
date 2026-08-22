@@ -458,19 +458,6 @@
                 <a href="about.html" class="nav-link">About</a>
             </nav>
             <div class="header-actions">
-                <div class="lang-dropdown">
-                    <button class="lang-btn" aria-label="Select Language">
-                        <i data-feather="globe"></i> <span id="current-lang-label"></span>
-                    </button>
-                    <div class="lang-menu" id="lang-menu">
-                        <button class="lang-select-btn" data-lang="en">English</button>
-                        <button class="lang-select-btn" data-lang="zh">中文</button>
-                        <button class="lang-select-btn" data-lang="ru">Русский</button>
-                        <button class="lang-select-btn" data-lang="fa">فارسی</button>
-                        <button class="lang-select-btn" data-lang="ar">العربية</button>
-                    </div>
-                </div>
-
                 <button id="theme-switcher" class="theme-btn" aria-label="Toggle theme">
                     <div class="theme-btn-inner">
                         <i data-feather="moon" class="moon-icon"></i>
@@ -549,7 +536,7 @@
                             <table class="lab-ip-table">
                                 <tbody id="diagTableBody"></tbody>
                             </table>
-                            <div id="diagAdvice" class="lab-test-result" style="margin-top:0.75rem;"></div>
+                            <div id="diagAdvice" class="lab-test-result" style="margin-top:0.75rem;" role="status" aria-live="polite" aria-atomic="true"></div>
                         </div>
                     </div>
                 </details>
@@ -575,7 +562,7 @@
                             </div>
                         </div>
                         <button class="lab-btn lab-btn-secondary" id="testLocalProxy" style="margin-top:0.5rem;">Test Local Proxy</button>
-                        <div id="localProxyResult" class="lab-test-result"></div>
+                        <div id="localProxyResult" class="lab-test-result" role="status" aria-live="polite" aria-atomic="true"></div>
                     </div>
                 </details>
 
@@ -597,7 +584,7 @@
                     </div>
                 </div>
 
-                <div id="step1Result" class="lab-test-result"></div>
+                <div id="step1Result" class="lab-test-result" role="status" aria-live="polite" aria-atomic="true"></div>
 
                 <div class="lab-btn-group">
                     <button class="lab-btn lab-btn-primary" id="step1Next">Parse &amp; Continue</button>
@@ -639,7 +626,7 @@
                     </table>
                 </div>
 
-                <div id="step2Result" class="lab-test-result"></div>
+                <div id="step2Result" class="lab-test-result" role="status" aria-live="polite" aria-atomic="true"></div>
 
                 <div class="lab-btn-group">
                     <button class="lab-btn lab-btn-secondary" id="step2Back">Back</button>
@@ -986,7 +973,7 @@
                     </div>
                 </details>
 
-                <div id="step3Result" class="lab-test-result"></div>
+                <div id="step3Result" class="lab-test-result" role="status" aria-live="polite" aria-atomic="true"></div>
 
                 <div class="lab-btn-group">
                     <button class="lab-btn lab-btn-secondary" id="step3Back">Back</button>
@@ -1007,7 +994,7 @@
                 </div>
 
                 <div id="step4Mode" class="lab-test-result info" style="display:none;"></div>
-                <div id="step4Result" class="lab-test-result"></div>
+                <div id="step4Result" class="lab-test-result" role="status" aria-live="polite" aria-atomic="true"></div>
 
                 <div class="lab-btn-group">
                     <button class="lab-btn lab-btn-secondary" id="step4Back">Back</button>
@@ -1079,7 +1066,7 @@
 
                 <div id="qrOutput" style="display:none; text-align: center; margin-top: 1rem;"></div>
 
-                <div id="step5Result" class="lab-test-result"></div>
+                <div id="step5Result" class="lab-test-result" role="status" aria-live="polite" aria-atomic="true"></div>
 
                 <div class="lab-btn-group">
                     <button class="lab-btn lab-btn-secondary" id="step5Back">Back</button>
