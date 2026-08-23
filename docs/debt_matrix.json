@@ -608,15 +608,15 @@
     },
     {
       "path": "src/configstream/converters/singbox.py",
-      "line": 214,
+      "line": 255,
       "marker": "LARGE_FUNCTION",
       "category": "production",
       "priority": "P1 - High",
-      "text": "Function to_singbox_outbound spans 569 lines (threshold: 300)."
+      "text": "Function to_singbox_outbound spans 559 lines (threshold: 300)."
     },
     {
       "path": "src/configstream/converters/singbox.py",
-      "line": 586,
+      "line": 617,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",

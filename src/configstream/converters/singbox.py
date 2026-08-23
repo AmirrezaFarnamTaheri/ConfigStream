@@ -5,7 +5,7 @@ import base64
 import ipaddress
 import re
 import copy
-from typing import Any, Dict, Optional, Set
+from typing import Any, Dict, List, Optional, Set
 from ..models import Proxy
 from ..security_validator import SecurityValidator
 from .singbox_utils import add_transport_sb, apply_stealth_profile
@@ -209,6 +209,47 @@ def _safe_source_ref(proxy: Proxy) -> str:
     return SecurityValidator.sanitize_log_message(
         str(getattr(proxy, "details", {}).get("_source", "unknown"))
     )
+
+
+def _revived_outbound_from_chain(
+    chain_obs: List[Dict[str, Any]],
+    remarks: Optional[str],
+) -> Optional[Dict[str, Any]]:
+    """Build the public revived outbound from its hop list.
+
+    The selectable entry is the hop no other hop dials through. Inner hops
+    must keep their original tags because upstream hops reference them via
+    ``detour`` (e.g. SHIELD-* WARP transports); renaming an inner hop leaves
+    dangling detour references in every per-country / per-protocol slice
+    built from these outbounds.
+    """
+    if not chain_obs:
+        return None
+
+    detour_targets = {
+        hop.get("detour")
+        for hop in chain_obs
+        if isinstance(hop.get("detour"), str) and hop.get("detour")
+    }
+    entry_index = next(
+        (
+            index
+            for index, hop in enumerate(chain_obs)
+            if hop.get("tag") not in detour_targets
+        ),
+        len(chain_obs) - 1,
+    )
+    extra_outbounds = [
+        copy.deepcopy(hop)
+        for index, hop in enumerate(chain_obs)
+        if index != entry_index
+    ]
+    out = copy.deepcopy(chain_obs[entry_index])
+    if remarks:
+        out["tag"] = remarks
+    if extra_outbounds:
+        out["_extra_outbounds"] = extra_outbounds
+    return out
 
 
 def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
@@ -415,19 +456,9 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
 
     elif protocol == "revived":
         chain_obs = _chain_obs_from_details(proxy.details or {})
-        if not chain_obs:
+        out = _revived_outbound_from_chain(chain_obs, proxy.remarks)
+        if out is None:
             return None
-
-        chain_head = next(
-            (o for o in chain_obs if o.get("type") == "wireguard"),
-            chain_obs[0],
-        )
-        extra_outbounds = [o for o in chain_obs if o is not chain_head]
-        out = copy.deepcopy(chain_head)
-        if proxy.remarks:
-            out["tag"] = proxy.remarks
-        if extra_outbounds:
-            out["_extra_outbounds"] = copy.deepcopy(extra_outbounds)
 
     elif protocol == "http":
         tls_enabled = parse_tls_flag(proxy.details.get("tls")) or proxy.details.get(
