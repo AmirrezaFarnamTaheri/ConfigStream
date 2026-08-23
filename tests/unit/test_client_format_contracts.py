@@ -101,6 +101,55 @@ def test_xray_rejects_obsolete_vnext_layout() -> None:
     assert "xray.json outbounds[0] missing modern vless id" in errors
 
 
+def test_xray_drops_plain_trojan_to_public_ip() -> None:
+    """Xray >= 26.7 refuses no-TLS trojan to public IPs at config-build time.
+
+    Run 32638423498 failed native-validation on exactly this: a working
+    plain-TCP trojan record made xray.json unrunnable, blocking the release
+    gate. Such records must be excluded instead of emitted.
+    """
+    config, report = generate_xray_config(
+        [
+            {
+                "id": "t1",
+                "protocol": "trojan",
+                "address": "93.184.216.34",  # public IP literal
+                "port": 443,
+                "uuid": "pw1",
+                "remarks": "trojan-plain-ip",
+                "is_working": True,
+                "details": {},
+            },
+            {
+                "id": "t2",
+                "protocol": "trojan",
+                "address": "93.184.216.35",
+                "port": 443,
+                "uuid": "pw2",
+                "remarks": "trojan-tls",
+                "is_working": True,
+                "details": {"tls": True, "sni": "example.com"},
+            },
+            {
+                "id": "t3",
+                "protocol": "trojan",
+                "address": "proxy.example.net",  # domain is allowed by xray
+                "port": 443,
+                "uuid": "pw3",
+                "remarks": "trojan-domain",
+                "is_working": True,
+                "details": {},
+            },
+        ]
+    )
+    tags = [outbound["tag"] for outbound in config["outbounds"]]
+    assert "trojan-plain-ip" not in tags
+    assert "trojan-tls" in tags
+    assert "trojan-domain" in tags
+    assert report["unsupported"].get("trojan") == 1
+    assert validate_xray_config(config) == []
+
+
 def test_xray_rejects_invalid_generated_protocol_fields_and_transport() -> None:
     errors = validate_xray_config(
         {

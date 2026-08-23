@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import base64
 import binascii
+import ipaddress
 import json
 import re
 from collections import Counter
@@ -43,6 +44,17 @@ def _string_list(value: Any) -> list[str]:
 def _clean_tag(value: Any, fallback: str) -> str:
     tag = str(value or fallback).strip()
     return tag or fallback
+
+
+def _is_public_ip(address: Any) -> bool:
+    """True when the address parses as a non-private (public) IP literal."""
+    if not isinstance(address, str) or not address.strip():
+        return False
+    try:
+        ip = ipaddress.ip_address(address.strip().strip("[]"))
+    except ValueError:
+        return False  # hostnames/domains are not IP literals
+    return not ip.is_private and not ip.is_loopback and not ip.is_link_local
 
 
 def _unique_tag(base: str, seen: set[str]) -> str:
@@ -292,6 +304,16 @@ def _xray_outbound(outbound: dict[str, Any], tag: str) -> dict[str, Any] | None:
 
     if kind != "wireguard":
         result["streamSettings"] = _xray_stream_settings(outbound)
+    stream = result.get("streamSettings") or {}
+    if (
+        kind == "trojan"
+        and str(stream.get("security") or "none") == "none"
+        and _is_public_ip(address)
+    ):
+        # Xray >= 26.7 refuses plain-TCP trojan dialing a public IP at config
+        # build time ("trojan without TLS is prohibited"), so such outbounds
+        # cannot be represented in xray.json at all.
+        return None
     detour = outbound.get("detour")
     if detour:
         result["proxySettings"] = {
