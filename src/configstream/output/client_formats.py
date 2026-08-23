@@ -174,13 +174,11 @@ def _xray_stream_settings(outbound: dict[str, Any]) -> dict[str, Any] | None:
         }
     elif security == "tls" or tls_obj.get("enabled"):
         stream["security"] = "tls"
+        # NOTE: no allowInsecure here - Xray >= 26.7 removed the feature and
+        # refuses to load any config that still carries the field, which
+        # would make xray.json unusable for every proxy because of one hop.
         tls_settings: dict[str, Any] = {
             "serverName": str(tls_obj.get("server_name") or outbound.get("sni") or ""),
-            "allowInsecure": bool(
-                tls_obj.get("insecure")
-                or outbound.get("allow_insecure")
-                or outbound.get("allowInsecure")
-            ),
         }
         alpn = _normalise_alpn(tls_obj.get("alpn") or outbound.get("alpn"))
         if alpn:

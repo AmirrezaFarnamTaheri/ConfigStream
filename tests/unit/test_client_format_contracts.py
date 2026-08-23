@@ -150,6 +150,35 @@ def test_xray_drops_plain_trojan_to_public_ip() -> None:
     assert validate_xray_config(config) == []
 
 
+def test_xray_tls_settings_omit_removed_allow_insecure() -> None:
+    """Xray >= 26.7 removed allowInsecure and refuses configs carrying it.
+
+    Run 32653192568 failed native-validation because chain hops exported
+    their tested `insecure` flag into xray.json tlsSettings, making one hop
+    invalidate the whole file. The generated export must never emit it.
+    """
+    config, report = generate_xray_config(
+        [
+            {
+                "id": "n1",
+                "protocol": "vless",
+                "address": "93.184.216.34",
+                "port": 443,
+                "uuid": "00000000-0000-0000-0000-00000000abc1",
+                "remarks": "insecure-vless",
+                "is_working": True,
+                "details": {"tls": True, "sni": "example.com", "allowInsecure": True},
+            }
+        ]
+    )
+    outbound = next(
+        o for o in config["outbounds"] if o.get("tag") == "insecure-vless"
+    )
+    assert "allowInsecure" not in outbound["streamSettings"]["tlsSettings"]
+    assert validate_xray_config(config) == []
+    assert report["emitted_records"] == 1
+
+
 def test_xray_rejects_invalid_generated_protocol_fields_and_transport() -> None:
     errors = validate_xray_config(
         {
