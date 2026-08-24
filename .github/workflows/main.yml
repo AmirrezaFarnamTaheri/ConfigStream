@@ -310,7 +310,7 @@ jobs:
           python -m configstream.cli merge \
             --sources "$SOURCE_FILE" \
             --output "$output" \
-            --max-workers 40 \
+            --max-workers 64 \
             --timeout 24 \
             --max-latency 6000 2>&1 | tee "pipeline_batch_${BATCH}_part_${PART}.log"
           rc=${PIPESTATUS[0]}
