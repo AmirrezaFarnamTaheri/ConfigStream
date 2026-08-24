@@ -2,6 +2,7 @@
 /output/
 /data/
 /build/
+/sources/backup_dynamic/
 # Legacy mistake guard: runtime data must never land inside the package tree
 /src/data/
 
