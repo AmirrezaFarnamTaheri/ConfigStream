@@ -13,7 +13,7 @@ pycodestyle==2.14.0
 pyflakes==3.4.0
 types-PyYAML==6.0.12.20260518
 types-aiofiles==25.1.0.20260518
-types-cachetools==6.2.0.20251022
+types-cachetools==7.0.0.20260713
 types-orjson==3.6.2
 types-psutil==7.2.2.20260518
 typing-inspection==0.4.2
