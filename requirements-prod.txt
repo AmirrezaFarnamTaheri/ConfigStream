@@ -56,7 +56,7 @@ pyparsing==3.3.2
 python-dotenv==1.2.2
 python-slugify==8.0.4
 python-socks==2.8.2
-python-telegram-bot==22.5
+python-telegram-bot==22.8
 requests==2.34.2
 rich==14.2.0
 singbox2proxy==0.2.7
