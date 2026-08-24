@@ -226,7 +226,10 @@ jobs:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && needs.build_container.result == 'success' && needs.setup_matrix.outputs.status == 'ready'
     needs: [build_container, setup_matrix]
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    # 240 min covers the 11700s batch window + grace and artifact steps;
+    # shards that stall past the soft limit are force-ended with lineage
+    # instead of being killed mid-write by the job cap.
+    timeout-minutes: 240
     permissions:
       contents: read
       packages: read
@@ -260,7 +263,10 @@ jobs:
           VT_API_KEY: ${{ secrets.VT_API_KEY }}
           WARP_KEY_POOL: ${{ secrets.WARP_KEY_POOL }}
           CANARY_URL: "https://httpbin.org"
-          BATCH_TIME_LIMIT_SECONDS: 9000
+          # 11700s soft limit + 900s grace: slow source lists (many dead hosts
+          # x per-source timeout) were force-ending ~3h shards and tripping
+          # the release gate's time_limited blocker on every run.
+          BATCH_TIME_LIMIT_SECONDS: 11700
           BATCH_TIME_LIMIT_GRACE_SECONDS: 900
           FORCE_SCANNER: "false"
           ALLOW_ACTIVE_SCANNING: "false"
