@@ -17,8 +17,8 @@
 
 ## Source admission
 
-- Admitted fetch locators: **1021**
-- Source-set digest: `0d7f5269818f4875156cbfa61bf0e45493f993567e65206337443e73e5c6f7cf`
+- Admitted fetch locators: **1020**
+- Source-set digest: `ddeed43d8406dcff86a664248aa7fdb7b88f93ecc2197f3b049933a3f8b89216`
 
 ## Live control-plane boundary
 
