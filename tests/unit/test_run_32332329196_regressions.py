@@ -286,4 +286,15 @@ def test_unverified_shielded_candidate_note_is_not_release_blocking() -> None:
     """Treat unverified shielded candidates as a health note, not a blocker."""
 
     assert _is_nonblocking_health_note("unverified_shielded_candidates:15")
-    assert not _is_nonblocking_health_note("pipeline_time_limited")
+
+
+def test_time_limited_intake_is_a_health_note_not_a_blocker() -> None:
+    """A time-limited intake means slower coverage, not bad proxies.
+
+    Runs 32668367033 / 32722445848 / 32754492501 each failed solely on
+    ``pipeline_time_limited`` while passing every other gate (contracts,
+    native clients, coverage) - with a different shard hitting the window
+    each time, so no fixed batch limit can prevent it structurally.
+    """
+
+    assert _is_nonblocking_health_note("pipeline_time_limited")

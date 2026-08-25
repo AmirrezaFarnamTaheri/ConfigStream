@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_digest": "576dd26a0471ab0dd7c5e431879bdfab59f25f8ccfe6e5fa58ba24c86f140575",
+  "source_digest": "6055abd884ab79c89e49327e287039ee77a66fd2a13933591c47a11d56d666d6",
   "variable_count": 160,
   "variables": [
     {
@@ -357,7 +357,7 @@
       "required": false,
       "sensitive": true,
       "sources": [
-        "scripts/release_gate.py:334",
+        "scripts/release_gate.py:338",
         "src/configstream/output/metadata.py:467"
       ],
       "type": null
@@ -737,12 +737,12 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:570",
-        "scripts/finalize_release_outputs.py:613",
+        "scripts/finalize_release_outputs.py:573",
+        "scripts/finalize_release_outputs.py:616",
         "scripts/generate_evidence_bundle.py:20",
         "scripts/native_client_checks.py:222",
         "scripts/release_gate.py:180",
-        "scripts/release_gate.py:388",
+        "scripts/release_gate.py:392",
         "scripts/resilient_stage.py:469",
         "scripts/validate_pages_artifact.py:1185",
         "scripts/validate_pages_artifact.py:1218",
@@ -758,12 +758,12 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:569",
-        "scripts/finalize_release_outputs.py:612",
+        "scripts/finalize_release_outputs.py:572",
+        "scripts/finalize_release_outputs.py:615",
         "scripts/generate_evidence_bundle.py:19",
         "scripts/native_client_checks.py:221",
         "scripts/release_gate.py:179",
-        "scripts/release_gate.py:385",
+        "scripts/release_gate.py:389",
         "scripts/resilient_stage.py:468",
         "scripts/validate_pages_artifact.py:1184",
         "scripts/validate_pages_artifact.py:1217",
@@ -779,12 +779,12 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:568",
-        "scripts/finalize_release_outputs.py:611",
+        "scripts/finalize_release_outputs.py:571",
+        "scripts/finalize_release_outputs.py:614",
         "scripts/generate_evidence_bundle.py:21",
         "scripts/native_client_checks.py:220",
         "scripts/release_gate.py:178",
-        "scripts/release_gate.py:382",
+        "scripts/release_gate.py:386",
         "scripts/resilient_stage.py:470",
         "scripts/validate_pages_artifact.py:1183",
         "scripts/validate_pages_artifact.py:1216",
@@ -1141,7 +1141,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:628"
+        "scripts/finalize_release_outputs.py:631"
       ],
       "type": null
     },

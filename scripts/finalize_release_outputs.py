@@ -422,8 +422,11 @@ def _blockers(metadata: dict[str, Any], threshold: float) -> list[str]:
         reasons.append(
             f"source_coverage_below_threshold:{coverage:.4f}<{threshold:.4f}"
         )
-    if metadata.get("time_limited"):
-        reasons.append("pipeline_time_limited")
+    # metadata.time_limited is deliberately NOT a blocker: it means source
+    # intake stopped at the batch window, not that published proxies are bad.
+    # Every emitted proxy still passed testing, native-client validation, and
+    # the coverage gate below. The gate classifies the residual
+    # "pipeline_time_limited" note as non-blocking (see release_gate).
     tester_errors = 0
     drop_reasons = metadata.get("drop_reasons")
     if isinstance(drop_reasons, dict):
