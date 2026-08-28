@@ -3,7 +3,6 @@
 
 from pathlib import Path
 
-
 WORKFLOW = (
     Path(__file__).resolve().parents[2] / ".github" / "workflows" / "deploy-pages.yml"
 )
@@ -21,10 +20,7 @@ def test_retest_noop_is_qualified_before_pages_deploy() -> None:
         'source_name=$(gh api "repos/${REPOSITORY}/actions/runs/${selected}"'
         in workflow
     )
-    assert (
-        '[ "$EVENT_NAME" = workflow_run ] && [ "$source_name" = Retest ]'
-        in workflow
-    )
+    assert '[ "$EVENT_NAME" = workflow_run ] && [ "$source_name" = Retest ]' in workflow
     assert 'echo "has_candidate=false" >> "$GITHUB_OUTPUT"' in workflow
     assert "    needs: candidate\n" in workflow
     assert "needs.candidate.outputs.has_candidate == 'true'" in workflow
