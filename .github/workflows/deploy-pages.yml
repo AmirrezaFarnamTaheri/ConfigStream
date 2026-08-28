@@ -27,9 +27,52 @@ env:
   PYTHONPATH: src
 
 jobs:
+  candidate:
+    name: Qualify Pages Deployment Candidate
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      has_candidate: ${{ steps.qualify.outputs.has_candidate }}
+    steps:
+      - name: Check canonical pipeline artifact availability
+        id: qualify
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          EVENT_NAME: ${{ github.event_name }}
+          TRIGGER_RUN_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || inputs.run_id }}
+        run: |
+          set -euo pipefail
+          selected="${TRIGGER_RUN_ID:-}"
+          if ! [[ "$selected" =~ ^[0-9]+$ ]]; then
+            echo "::error::Deployment source run id is invalid"
+            exit 1
+          fi
+
+          source_name=$(gh api "repos/${REPOSITORY}/actions/runs/${selected}" --jq '.name')
+          artifact_count=$(gh api "repos/${REPOSITORY}/actions/runs/${selected}/artifacts?per_page=100" \
+            --jq '[.artifacts[] | select(.name == "pipeline-output" and .expired == false)] | length')
+
+          if [ "$artifact_count" -gt 0 ]; then
+            echo "has_candidate=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ "$EVENT_NAME" = workflow_run ] && [ "$source_name" = Retest ]; then
+            echo "has_candidate=false" >> "$GITHUB_OUTPUT"
+            echo "Retest run $selected completed successfully without pipeline-output; deployment is intentionally skipped." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          echo "has_candidate=false" >> "$GITHUB_OUTPUT"
+          echo "::error::Approved deployment source $selected did not publish pipeline-output"
+          exit 1
+
   deploy:
     name: Locate, Verify, and Deploy Sealed Artifact
-    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') }}
+    needs: candidate
+    if: ${{ needs.candidate.result == 'success' && needs.candidate.outputs.has_candidate == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     environment:
