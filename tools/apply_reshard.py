@@ -36,20 +36,34 @@ TARGET_BATCH_SECONDS = 14400.0  # keep in sync with scripts/dynamic_reshard.py
 EST_TIME_RE = re.compile(r"Est\. Fetch Time: ([\d.]+)s")
 
 
+def _resolve_executable(name: str) -> str:
+    executable = shutil.which(name)
+    if executable is None:
+        raise SystemExit(f"{name} CLI not found on PATH; install it first.")
+    return executable
+
+
 def _gh(*args: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(  # nosec B603
-        ["gh", *args], capture_output=True, text=True, check=False
+        [_resolve_executable("gh"), *args], capture_output=True, text=True, check=False
     )
 
 
 def _require_gh() -> None:
     if _gh("--version").returncode != 0:
-        raise SystemExit("gh CLI not found on PATH; install GitHub CLI first.")
+        raise SystemExit("gh CLI is not executable; reinstall GitHub CLI.")
 
 
 def _repo_slug() -> str:
     url = subprocess.run(  # nosec B603
-        ["git", "-C", str(REPO), "remote", "get-url", "origin"],
+        [
+            _resolve_executable("git"),
+            "-C",
+            str(REPO),
+            "remote",
+            "get-url",
+            "origin",
+        ],
         capture_output=True,
         text=True,
         check=True,
@@ -188,11 +202,12 @@ def main(argv: list[str] | None = None) -> int:
             print("working tree already matches the recommendation.")
             return 0
 
+    git = _resolve_executable("git")
     subprocess.run(  # nosec B603
-        ["git", "-C", str(REPO), "add", "-A", "--", "sources"], check=True
+        [git, "-C", str(REPO), "add", "-A", "--", "sources"], check=True
     )
     diff = subprocess.run(  # nosec B603
-        ["git", "-C", str(REPO), "diff", "--cached", "--quiet"],
+        [git, "-C", str(REPO), "diff", "--cached", "--quiet"],
         capture_output=True,
         check=False,
     )
@@ -201,7 +216,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     subprocess.run(  # nosec B603
         [
-            "git",
+            git,
             "-C",
             str(REPO),
             "commit",
@@ -211,7 +226,7 @@ def main(argv: list[str] | None = None) -> int:
         check=True,
     )
     push = subprocess.run(  # nosec B603
-        ["git", "-C", str(REPO), "push", "origin", "HEAD:main"],
+        [git, "-C", str(REPO), "push", "origin", "HEAD:main"],
         check=False,
     )
     if push.returncode != 0:
