@@ -37,7 +37,7 @@ EST_TIME_RE = re.compile(r"Est\\. Fetch Time: ([\\d.]+)s")
 
 
 def _gh(*args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(  # nosec B603
+    return subprocess.run(  # nosec B603 B607
         ["gh", *args], capture_output=True, text=True, check=False
     )
 
@@ -48,7 +48,7 @@ def _require_gh() -> None:
 
 
 def _repo_slug() -> str:
-    url = subprocess.run(  # nosec B603
+    url = subprocess.run(  # nosec B603 B607
         ["git", "-C", str(REPO), "remote", "get-url", "origin"],
         capture_output=True,
         text=True,
@@ -65,8 +65,8 @@ def _latest_recommendation_run(slug: str) -> int | None:
         "api",
         f"repos/{slug}/actions/runs?per_page=30",
         "--jq",
-        \'[.workflow_runs[] | select(.name == "Config\'s Stream" and \'
-        \'.conclusion == "success") | .id] | .[0]\',
+        '[.workflow_runs[] | select(.name == "Config\'s Stream" and '
+        '.conclusion == "success") | .id] | .[0]',
     )
     if result.returncode != 0 or not result.stdout.strip():
         return None
@@ -188,10 +188,10 @@ def main(argv: list[str] | None = None) -> int:
             print("working tree already matches the recommendation.")
             return 0
 
-    subprocess.run(  # nosec B603
+    subprocess.run(  # nosec B603 B607
         ["git", "-C", str(REPO), "add", "-A", "--", "sources"], check=True
     )
-    diff = subprocess.run(  # nosec B603
+    diff = subprocess.run(  # nosec B603 B607
         ["git", "-C", str(REPO), "diff", "--cached", "--quiet"],
         capture_output=True,
         check=False,
@@ -199,7 +199,7 @@ def main(argv: list[str] | None = None) -> int:
     if diff.returncode == 0:
         print("nothing staged; already up to date.")
         return 0
-    subprocess.run(  # nosec B603
+    subprocess.run(  # nosec B603 B607
         [
             "git",
             "-C",
@@ -210,7 +210,7 @@ def main(argv: list[str] | None = None) -> int:
         ],
         check=True,
     )
-    push = subprocess.run(  # nosec B603
+    push = subprocess.run(  # nosec B603 B607
         ["git", "-C", str(REPO), "push", "origin", "HEAD:main"],
         check=False,
     )

@@ -15,7 +15,7 @@
     {"action": "actions/upload-pages-artifact", "version": "v5", "commit_sha": "fc324d3547104276b827a68afc52ff2a11cc49c9"},
     {"action": "docker/build-push-action", "version": "v7.3.0", "commit_sha": "53b7df96c91f9c12dcc8a07bcb9ccacbed38856a"},
     {"action": "docker/login-action", "version": "v3", "commit_sha": "c94ce9fb468520275223c153574b00df6fe4bcc9"},
-    {"action": "docker/setup-buildx-action", "version": "v4.2.0", "commit_sha": "bb05f3f5519dd87d3ba754cc423b652a5edd6d2c"},
+    {"action": "docker/setup-buildx-action", "version": "v4.3.0", "commit_sha": "37fe631027851001ddb9b187196cc803df7f5f0e"},
     {"action": "gitleaks/gitleaks-action", "version": "v3", "commit_sha": "e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e"},
     {"action": "pypa/gh-action-pypi-publish", "version": "v1.14.1", "commit_sha": "ba38be9e461d3875417946c167d0b5f3d385a247"},
     {"action": "softprops/action-gh-release", "version": "v3.0.2", "commit_sha": "3d0d9888cb7fd7b750713d6e236d1fcb99157228"}
