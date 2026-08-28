@@ -25,7 +25,7 @@ import argparse
 import json
 import re
 import shutil
-import subprocess
+import subprocess  # nosec B404
 import sys
 import tempfile
 from pathlib import Path
@@ -33,11 +33,11 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 SOURCES_DIR = REPO / "sources"
 TARGET_BATCH_SECONDS = 14400.0  # keep in sync with scripts/dynamic_reshard.py
-EST_TIME_RE = re.compile(r"Est\. Fetch Time: ([\d.]+)s")
+EST_TIME_RE = re.compile(r"Est\\. Fetch Time: ([\\d.]+)s")
 
 
 def _gh(*args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
+    return subprocess.run(  # nosec B603
         ["gh", *args], capture_output=True, text=True, check=False
     )
 
@@ -48,13 +48,13 @@ def _require_gh() -> None:
 
 
 def _repo_slug() -> str:
-    url = subprocess.run(
+    url = subprocess.run(  # nosec B603
         ["git", "-C", str(REPO), "remote", "get-url", "origin"],
         capture_output=True,
         text=True,
         check=True,
     ).stdout.strip()
-    match = re.search(r"github\.com[:/](.+?)(?:\.git)?$", url)
+    match = re.search(r"github\\.com[:/](.+?)(?:\\.git)?$", url)
     if not match:
         raise SystemExit(f"cannot parse repository slug from {url}")
     return match.group(1)
@@ -65,8 +65,8 @@ def _latest_recommendation_run(slug: str) -> int | None:
         "api",
         f"repos/{slug}/actions/runs?per_page=30",
         "--jq",
-        '[.workflow_runs[] | select(.name == "Config\'s Stream" and '
-        '.conclusion == "success") | .id] | .[0]',
+        \'[.workflow_runs[] | select(.name == "Config\'s Stream" and \'
+        \'.conclusion == "success") | .id] | .[0]\',
     )
     if result.returncode != 0 or not result.stdout.strip():
         return None
@@ -104,7 +104,7 @@ def _validate(recommendation: Path) -> dict[str, float]:
     for path in sorted(recommendation.glob("batch_*.txt")):
         match = EST_TIME_RE.search(path.read_text(encoding="utf-8"))
         if not match:
-            raise SystemExit(f"{path.name} missing 'Est. Fetch Time' header")
+            raise SystemExit(f"{path.name} missing \'Est. Fetch Time\' header")
         seconds = float(match.group(1))
         if seconds > TARGET_BATCH_SECONDS:
             raise SystemExit(
@@ -147,7 +147,7 @@ def main(argv: list[str] | None = None) -> int:
     if run_id is None:
         run_id = _latest_recommendation_run(slug)
         if run_id is None:
-            raise SystemExit("no successful Config's Stream run found")
+            raise SystemExit("no successful Config\'s Stream run found")
     print(f"source run: {run_id}")
 
     with tempfile.TemporaryDirectory() as tmp:
@@ -188,8 +188,10 @@ def main(argv: list[str] | None = None) -> int:
             print("working tree already matches the recommendation.")
             return 0
 
-    subprocess.run(["git", "-C", str(REPO), "add", "-A", "--", "sources"], check=True)
-    diff = subprocess.run(
+    subprocess.run(  # nosec B603
+        ["git", "-C", str(REPO), "add", "-A", "--", "sources"], check=True
+    )
+    diff = subprocess.run(  # nosec B603
         ["git", "-C", str(REPO), "diff", "--cached", "--quiet"],
         capture_output=True,
         check=False,
@@ -197,7 +199,7 @@ def main(argv: list[str] | None = None) -> int:
     if diff.returncode == 0:
         print("nothing staged; already up to date.")
         return 0
-    subprocess.run(
+    subprocess.run(  # nosec B603
         [
             "git",
             "-C",
@@ -208,7 +210,7 @@ def main(argv: list[str] | None = None) -> int:
         ],
         check=True,
     )
-    push = subprocess.run(
+    push = subprocess.run(  # nosec B603
         ["git", "-C", str(REPO), "push", "origin", "HEAD:main"],
         check=False,
     )
