@@ -67,6 +67,66 @@ def parse_vmess(config: str) -> Optional[Proxy]:
         else:
             ps = str(ps)[:200]
 
+        # Build a schema-clean details dict: only include keys allowed by
+        # proxy.schema.json #/$defs/vmess_details (additionalProperties: false).
+        # Remap legacy vmess-URI keys to their canonical schema names.
+        details: dict = {}
+        # Remap id -> uuid (required by vmess_details schema)
+        if "id" in vmess_data:
+            details["uuid"] = vmess_data["id"]
+        # aid is allowed as-is
+        if "aid" in vmess_data:
+            details["aid"] = vmess_data["aid"]
+        # net, type, host, path are all allowed
+        for key in ("net", "type", "host", "path"):
+            if key in vmess_data:
+                details[key] = vmess_data[key]
+        # Remap scy -> security (legacy alias)
+        if "scy" in vmess_data:
+            details["security"] = vmess_data["scy"]
+        # tls, sni, fp, fingerprint, alpn, server_name are all allowed
+        for key in ("tls", "sni", "fp", "fingerprint", "alpn", "server_name"):
+            if key in vmess_data:
+                details[key] = vmess_data[key]
+        # grpc_service_name is allowed (grpc-specific)
+        if "servicename" in vmess_data:
+            details["grpc_service_name"] = vmess_data["servicename"]
+        # http_host, ws_host are allowed; ws/http paths
+        for key in ("http_host", "ws_host", "http_path", "ws_path"):
+            if key in vmess_data:
+                details[key] = vmess_data[key]
+        # StreamLabs / HTTP/2 specific
+        if "serviceName" in vmess_data:
+            details["serviceName"] = vmess_data["serviceName"]
+        # allowInsecure and skip_cert_verify are allowed (canonical names)
+        for key in ("allowInsecure", "skip_cert_verify"):
+            if key in vmess_data:
+                details[key] = vmess_data[key]
+        # Remap legacy aliases for TLS verification flags
+        if "insecure" in vmess_data and "allowInsecure" not in details:
+            details["allowInsecure"] = bool(vmess_data["insecure"])
+        if (
+            "skip-cert-verify" in vmess_data
+            and "skip_cert_verify" not in details
+        ):
+            details["skip_cert_verify"] = bool(vmess_data["skip-cert-verify"])
+        # Drop legacy/top-level keys that must NOT appear in details:
+        # add, port, id, ps, v, scy (already remapped above), encrypt, etc.
+        for key in (
+            "add",
+            "port",
+            "id",
+            "ps",
+            "v",
+            "scy",
+            "encrypt",
+            "insecure",
+            "skip-cert-verify",
+            "pcs",
+            "vcn",
+        ):
+            details.pop(key, None)
+
         proxy = Proxy(
             config=config,
             protocol="vmess",
@@ -74,7 +134,7 @@ def parse_vmess(config: str) -> Optional[Proxy]:
             port=port,
             uuid=str(uuid),
             remarks=ps,
-            details=vmess_data,
+            details=details,
         )
         normalize_proxy_details(proxy)
         return proxy

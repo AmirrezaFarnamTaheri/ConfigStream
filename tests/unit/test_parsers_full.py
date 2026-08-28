@@ -63,3 +63,72 @@ def test_parse_vmess_valid():
     assert p.address == "1.1.1.1"
     assert p.uuid == "uuid"
     assert p.details["net"] == "ws"
+
+
+def test_parse_vmess_details_is_schema_compliant():
+    """Regression for run 33020481885: vmess_details must satisfy
+    schema/proxy.schema.json #$defs/vmess_details (additionalProperties: false,
+    requires uuid). The legacy URI keys (add, id, port, ps, v, scy, encrypt)
+    must not leak into details; ``id`` is remapped to ``uuid`` and ``scy`` to
+    ``security``.
+    """
+    import uuid as _uuid
+
+    v4 = str(_uuid.uuid4())
+    v_obj = {
+        "v": "2",
+        "ps": "Schema VMess",
+        "add": "93.184.216.34",
+        "port": 443,
+        "id": v4,
+        "aid": 0,
+        "net": "ws",
+        "type": "none",
+        "host": "example.com",
+        "path": "/v2",
+        "tls": "tls",
+        "scy": "auto",
+        "fp": "chrome",
+        "alpn": ["h2", "http/1.1"],
+        "servicename": "grpc svc",
+        "allowInsecure": False,
+        "skip_cert_verify": False,
+    }
+    b64 = base64.b64encode(json.dumps(v_obj).encode()).decode()
+    uri = f"vmess://{b64}"
+
+    p = parse_vmess(uri)
+    assert p is not None
+    # Legacy keys must NOT appear in details
+    for forbidden in ("add", "port", "id", "ps", "v", "scy", "encrypt"):
+        assert forbidden not in p.details, (
+            f"legacy key {forbidden!r} leaked into details: {p.details}"
+        )
+    # id must be remapped to uuid (required by vmess_details schema)
+    assert p.details["uuid"] == v4
+    # scy must be remapped to security
+    assert p.details["security"] == "auto"
+    # Other valid vmess_details keys still present
+    assert p.details["aid"] == 0
+    assert p.details["net"] == "ws"
+    assert p.details["type"] == "none"
+    assert p.details["host"] == "example.com"
+    assert p.details["path"] == "/v2"
+    assert p.details["fp"] == "chrome"
+    assert p.details["alpn"] == ["h2", "http/1.1"]
+    assert p.details["grpc_service_name"] == "grpc svc"
+
+    # End-to-end: feed it through the published-artifact schema validator
+    from scripts.validate_pages_artifact import _validate_proxies
+
+    proxy = {
+        "config": uri,
+        "protocol": p.protocol,
+        "address": p.address,
+        "port": p.port,
+        "uuid": p.uuid,
+        "details": p.details,
+        "process": "native",
+    }
+    errors = _validate_proxies([proxy], "proxies.json")
+    assert errors == [], f"schema violations: {errors}"
