@@ -86,28 +86,6 @@ def safe_path(root: Path, relative: str) -> Path:
     return candidate
 
 
-def _artifact_category(relative: str) -> str:
-    """Classify public artifact files using the Pages manifest taxonomy."""
-    if relative in {
-        "metadata.json",
-        "health.json",
-        "artifact_manifest.json",
-        "pipeline_events.jsonl",
-    }:
-        return "control"
-    if relative.startswith("api/"):
-        return "api"
-    if relative.startswith("assets/") or relative.endswith(".html"):
-        return "frontend"
-    if relative.startswith("docs/"):
-        return "docs"
-    if relative.startswith("data/"):
-        return "analytics"
-    if relative.endswith(".zip"):
-        return "side-product"
-    return "subscription"
-
-
 def manifest_entries(root: Path) -> list[dict[str, Any]]:
     entries: list[dict[str, Any]] = []
     total = 0
@@ -116,25 +94,18 @@ def manifest_entries(root: Path) -> list[dict[str, Any]]:
             raise ValueError(
                 f"public artifact contains symlink: {path.relative_to(root).as_posix()}"
             )
-        relative = path.relative_to(root).as_posix()
-        if not path.is_file() or relative == "artifact_manifest.json":
+        r = path.relative_to(root).as_posix()
+        if not path.is_file() or r == "artifact_manifest.json":
             continue
         if path.name.endswith(TRANSIENT_SUFFIXES):
-            raise ValueError(f"transient file is public: {relative}")
-        size = path.stat().st_size
-        if size > MAX_FILE_BYTES:
-            raise ValueError(f"public file exceeds size limit: {relative}")
-        total += size
+            raise ValueError(f"transient file is public: {r}")
+        s = path.stat().st_size
+        if s > MAX_FILE_BYTES:
+            raise ValueError(f"public file exceeds size limit: {r}")
+        total += s
         if total > MAX_TOTAL_BYTES:
             raise ValueError("public artifact exceeds aggregate size limit")
-        entries.append(
-            {
-                "path": relative,
-                "size_bytes": size,
-                "sha256": digest(path),
-                "category": _artifact_category(relative),
-            }
-        )
+        entries.append(dict(path=r, size_bytes=s, sha256=digest(path), category=_cat(r)))
         if len(entries) > MAX_FILES:
             raise ValueError("public artifact exceeds file-count limit")
     return entries
@@ -465,6 +436,15 @@ def _is_nonblocking_health_note(item: Any) -> bool:
     if value == "pipeline_time_limited":
         return True
     return False
+
+
+def _cat(relative: str) -> str:
+    """Use the Pages validator as the canonical artifact taxonomy owner."""
+    try:
+        from scripts.validate_pages_artifact import _artifact_category
+    except ModuleNotFoundError:  # Direct ``python scripts/...`` execution.
+        from validate_pages_artifact import _artifact_category  # type: ignore[no-redef]
+    return _artifact_category(relative)
 
 
 def main() -> int:
