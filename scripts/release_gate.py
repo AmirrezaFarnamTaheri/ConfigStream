@@ -59,11 +59,9 @@ def load_checked(path: Path, errors: list[str]) -> Any:
 
 
 def safe_int(value: Optional[Union[int, float]]) -> int:
-    return (
-        int(value)
-        if isinstance(value, (int, float)) and not isinstance(value, bool)
-        else 0
-    )
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return 0
+    return int(value)
 
 
 def safe_float(value: Optional[Union[int, float]]) -> float:
@@ -105,7 +103,9 @@ def manifest_entries(root: Path) -> list[dict[str, Any]]:
         total += s
         if total > MAX_TOTAL_BYTES:
             raise ValueError("public artifact exceeds aggregate size limit")
-        entries.append(dict(path=r, size_bytes=s, sha256=digest(path), category=_cat(r)))
+        entries.append(
+            dict(path=r, size_bytes=s, sha256=digest(path), category=_cat(r))
+        )
         if len(entries) > MAX_FILES:
             raise ValueError("public artifact exceeds file-count limit")
     return entries
