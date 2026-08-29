@@ -243,7 +243,9 @@ def test_release_gate_rejects_skipped_or_missing_native_validation(
     assert any("xray" in error for error in errors)
 
 
-def test_release_manifest_entries_keep_pages_contract_categories(tmp_path: Path) -> None:
+def test_release_manifest_entries_keep_pages_contract_categories(
+    tmp_path: Path,
+) -> None:
     root = tmp_path / "output"
     root.mkdir()
     fixtures = {
