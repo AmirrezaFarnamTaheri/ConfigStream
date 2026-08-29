@@ -86,6 +86,28 @@ def safe_path(root: Path, relative: str) -> Path:
     return candidate
 
 
+def _artifact_category(relative: str) -> str:
+    """Classify public artifact files using the Pages manifest taxonomy."""
+    if relative in {
+        "metadata.json",
+        "health.json",
+        "artifact_manifest.json",
+        "pipeline_events.jsonl",
+    }:
+        return "control"
+    if relative.startswith("api/"):
+        return "api"
+    if relative.startswith("assets/") or relative.endswith(".html"):
+        return "frontend"
+    if relative.startswith("docs/"):
+        return "docs"
+    if relative.startswith("data/"):
+        return "analytics"
+    if relative.endswith(".zip"):
+        return "side-product"
+    return "subscription"
+
+
 def manifest_entries(root: Path) -> list[dict[str, Any]]:
     entries: list[dict[str, Any]] = []
     total = 0
@@ -105,7 +127,14 @@ def manifest_entries(root: Path) -> list[dict[str, Any]]:
         total += size
         if total > MAX_TOTAL_BYTES:
             raise ValueError("public artifact exceeds aggregate size limit")
-        entries.append({"path": relative, "size_bytes": size, "sha256": digest(path)})
+        entries.append(
+            {
+                "path": relative,
+                "size_bytes": size,
+                "sha256": digest(path),
+                "category": _artifact_category(relative),
+            }
+        )
         if len(entries) > MAX_FILES:
             raise ValueError("public artifact exceeds file-count limit")
     return entries
