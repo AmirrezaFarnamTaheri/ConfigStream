@@ -5,11 +5,19 @@ from __future__ import annotations
 
 import re
 
-_UUID_RE = re.compile(r"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}", re.IGNORECASE)
+_UUID_RE = re.compile(
+    r"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}", re.IGNORECASE
+)
 _USERINFO_RE = re.compile(r"(?P<prefix>://[^/?#\s:@]+):([^/?#\s:@]+)@")
-_INLINE_SECRET_USERINFO_RE = re.compile(r"(?i)\b(pass|password|token|secret|auth):([^@\s]+)@")
-_QUERY_SECRET_RE = re.compile(r"(?i)(token|access_token|api_key|apikey|license_key|stego_key|config_stream_key|key|secret|pass|password|uuid|id|auth|authorization)=([^&\s]+)")
-_AUTH_HEADER_RE = re.compile(r"(?i)(authorization|auth)\s*[:=]\s*(bearer|basic)?\s*([A-Za-z0-9\-._~+/]+=*)")
+_INLINE_SECRET_USERINFO_RE = re.compile(
+    r"(?i)\b(pass|password|token|secret|auth):([^@\s]+)@"
+)
+_QUERY_SECRET_RE = re.compile(
+    r"(?i)(token|access_token|api_key|apikey|license_key|stego_key|config_stream_key|key|secret|pass|password|uuid|id|auth|authorization)=([^&\s]+)"
+)
+_AUTH_HEADER_RE = re.compile(
+    r"(?i)(authorization|auth)\s*[:=]\s*(bearer|basic)?\s*([A-Za-z0-9\-._~+/]+=*)"
+)
 _BEARER_RE = re.compile(r"(?i)bearer\s+[A-Za-z0-9\-._~+/]+=*")
 _BASE64_RE = re.compile(r"\b[A-Za-z0-9+/]{20,}={0,2}\b")
 _IPV4_RE = re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b")
