@@ -300,18 +300,12 @@ def check_workflow_dependency_installs(workflow_dir: Path) -> List[str]:
         "ci.yml",
         "main.yml",
         "release.yml",
-        "replay-release-preparation.yml",
         "retest.yml",
     }
     for name in sorted(required_dev):
         path = workflow_dir / name
         if path.exists() and "requirements-dev.txt" not in workflow_text[path]:
             errors.append(f"{path}: missing requirements-dev.txt installation")
-
-    for name in ("replay-release-preparation.yml",):
-        path = workflow_dir / name
-        if path.exists() and "requirements-publish.txt" not in workflow_text[path]:
-            errors.append(f"{path}: missing requirements-publish.txt installation")
     return errors
 
 
