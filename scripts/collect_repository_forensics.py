@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 from pathlib import Path
 from typing import TypedDict, cast
@@ -59,25 +60,28 @@ class ForensicsReport(TypedDict):
 
 def _current_tree_findings(root: Path) -> list[SecretFinding]:
     findings: list[SecretFinding] = []
-    for path in sorted(root.rglob("*")):
-        if not path.is_file() or any(part in _EXCLUDED for part in path.parts):
-            continue
-        try:
-            if path.stat().st_size > 2_000_000:
+    for directory, dirnames, filenames in os.walk(
+        root, topdown=True, onerror=lambda _error: None, followlinks=False
+    ):
+        dirnames[:] = sorted(name for name in dirnames if name not in _EXCLUDED)
+        for filename in sorted(filenames):
+            path = Path(directory) / filename
+            try:
+                if path.stat().st_size > 2_000_000:
+                    continue
+                text = path.read_text(encoding="utf-8")
+            except (OSError, UnicodeDecodeError):
                 continue
-            text = path.read_text(encoding="utf-8")
-        except (OSError, UnicodeDecodeError):
-            continue
-        for kind, pattern in _PATTERNS.items():
-            matches = list(pattern.finditer(text))
-            if matches:
-                findings.append(
-                    {
-                        "path": path.relative_to(root).as_posix(),
-                        "kind": kind,
-                        "match_count": len(matches),
-                    }
-                )
+            for kind, pattern in _PATTERNS.items():
+                matches = list(pattern.finditer(text))
+                if matches:
+                    findings.append(
+                        {
+                            "path": path.relative_to(root).as_posix(),
+                            "kind": kind,
+                            "match_count": len(matches),
+                        }
+                    )
     return findings
 
 

@@ -61,3 +61,13 @@ def test_frontend_browser_profile_disables_plugin_autoload_and_loads_required_pl
         "pytest_base_url.plugin",
     ]
     assert pytest_command[-1] == "tests/e2e/test_frontend.py"
+
+def test_frontend_browser_profile_scopes_optional_browser_channel(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("PLAYWRIGHT_BROWSER_CHANNEL", "msedge")
+
+    commands = run_test_profile._frontend_browser_commands("python", "npm")
+
+    pytest_command, _ = commands[0]
+    assert "--browser-channel=msedge" in pytest_command

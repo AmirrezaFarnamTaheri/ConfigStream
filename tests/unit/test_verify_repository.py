@@ -58,6 +58,7 @@ def test_frontend_stages_require_installed_locked_tools() -> None:
     stages = {stage.name: stage for stage in verify_repository.build_plan("full")}
     assert "node_modules/.bin/vite" in stages["frontend-build"].required_paths
     assert "node_modules/.bin/playwright" in stages["frontend-browser"].required_paths
+    assert "pytest_playwright" in stages["frontend-browser"].required_python_modules
 
 
 def test_full_plan_declares_environment_preconditions() -> None:
@@ -65,6 +66,9 @@ def test_full_plan_declares_environment_preconditions() -> None:
     assert "aiohttp_socks" in stages["python-unit"].required_python_modules
     assert stages["go-tester-unit"].minimum_tool_version == (1, 24, 0)
     assert stages["go-utls-unit"].minimum_tool_version == (1, 24, 3)
+    assert stages["go-tester-unit"].environment == (
+        ("GOTOOLCHAIN", "go1.24.3"),
+    )
 
 
 def test_extended_plan_is_the_full_only_tail() -> None:
@@ -106,7 +110,20 @@ def test_focused_regressions_use_only_required_pytest_plugin() -> None:
     ]
     assert stage.environment == (("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1"),)
     assert stage.command[stage.command.index("-p") + 1] == "pytest_asyncio.plugin"
+    assert stage.required_python_modules == ("pytest", "pytest_asyncio")
 
+
+def test_module_preflight_uses_isolated_child_environment(tmp_path: Path) -> None:
+    environment = verify_repository._build_stage_environment(tmp_path)
+
+    missing = verify_repository._find_missing_python_modules(
+        __import__("sys").executable,
+        ("json", "configstream_definitely_missing_dependency"),
+        cwd=tmp_path,
+        env=environment,
+    )
+
+    assert missing == ["configstream_definitely_missing_dependency"]
 
 def test_run_process_times_out_and_returns_control(tmp_path: Path) -> None:
     code, output, timed_out = verify_repository._run_process(

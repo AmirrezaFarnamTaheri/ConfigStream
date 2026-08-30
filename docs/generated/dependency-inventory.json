@@ -63,12 +63,12 @@
     ],
     "go-tester": [
       {
-        "constraint": "v0.3.8",
+        "constraint": "v0.4.3",
         "name": "github.com/sagernet/sing",
         "source": "src/go/tester/go.mod"
       },
       {
-        "constraint": "v1.8.14",
+        "constraint": "v1.9.7",
         "name": "github.com/sagernet/sing-box",
         "source": "src/go/tester/go.mod"
       },

@@ -8,6 +8,7 @@ from urllib.parse import urlparse
 from typing import List, Tuple, TYPE_CHECKING
 import logging
 from .utils.bool_parser import parse_tls_flag
+from .utils.log_sanitizer import sanitize_log_message
 from .config import AppSettings
 
 if TYPE_CHECKING:
@@ -18,25 +19,6 @@ logger = logging.getLogger(__name__)
 # Cache settings to avoid repeated pydantic_settings instantiation in per-proxy hot paths
 _SETTINGS_CACHE = AppSettings()
 
-# Pre-compiled patterns for sanitize_log_message (called per log message - extremely hot)
-_LOG_UUID_RE = re.compile(
-    r"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}",
-    re.IGNORECASE,
-)
-_LOG_USERINFO_RE = re.compile(r"(?P<prefix>://[^/?#\s:@]+):([^/?#\s:@]+)@")
-_LOG_INLINE_SECRET_USERINFO_RE = re.compile(
-    r"(?i)\b(pass|password|token|secret|auth):([^@\s]+)@"
-)
-_LOG_QUERY_SECRET_RE = re.compile(
-    r"(?i)(token|access_token|api_key|apikey|license_key|stego_key|config_stream_key|key|secret|pass|password|uuid|id|auth|authorization)=([^&\s]+)"
-)
-_LOG_AUTH_HEADER_RE = re.compile(
-    r"(?i)(authorization|auth)\s*[:=]\s*(bearer|basic)?\s*([A-Za-z0-9\-._~+/]+=*)"
-)
-_LOG_BEARER_RE = re.compile(r"(?i)bearer\s+[A-Za-z0-9\-._~+/]+=*")
-_LOG_BASE64_RE = re.compile(r"\b[A-Za-z0-9+/]{20,}={0,2}\b")
-_LOG_IPV4_RE = re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b")
-_LOG_IPV6_RE = re.compile(r"\b(?:[0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}\b")
 # Pre-compiled pattern for sanitize_address (called per proxy)
 _SANITIZE_ADDR_RE = re.compile(r"[^a-zA-Z0-9\.\-\:\[\]]")
 
@@ -117,29 +99,8 @@ class SecurityValidator:
 
     @staticmethod
     def sanitize_log_message(msg: str, mask_patterns: bool = True) -> str:
-        """Sanitizes sensitive info like UUIDs or IPs from logs."""
-        if not mask_patterns:
-            return msg
-        # Mask UUIDs (common in VMess/VLESS configs)
-        msg = _LOG_UUID_RE.sub("[UUID]", msg)
-        # Mask passwords in URLs (user:pass@host)
-        msg = _LOG_USERINFO_RE.sub(r"\g<prefix>:[MASKED]@", msg)
-        # Mask inline credential-shaped snippets without treating prose like "Error: ..." as userinfo.
-        msg = _LOG_INLINE_SECRET_USERINFO_RE.sub(r"\1:[MASKED]@", msg)
-        # Mask common query-style secrets (token, key, secret, password, uuid, id)
-        msg = _LOG_QUERY_SECRET_RE.sub(r"\1=[MASKED]", msg)
-        # Mask Authorization headers or inline auth blobs (e.g., "Authorization: Bearer ...")
-        msg = _LOG_AUTH_HEADER_RE.sub(r"\1: [MASKED]", msg)
-        # Mask standalone Bearer tokens
-        msg = _LOG_BEARER_RE.sub("Bearer [MASKED]", msg)
-        # Mask likely Base64 strings (long sequences of alphanumeric+ending with =)
-        msg = _LOG_BASE64_RE.sub("[BASE64]", msg)
-        # Mask IPv4 addresses
-        msg = _LOG_IPV4_RE.sub("[IP]", msg)
-        # Mask IPv6 addresses (best-effort)
-        msg = _LOG_IPV6_RE.sub("[IP]", msg)
-
-        return msg
+        """Sanitize sensitive identifiers before writing log messages."""
+        return sanitize_log_message(msg, mask_patterns=mask_patterns)
 
     @staticmethod
     def sanitize_address(address: str) -> str:

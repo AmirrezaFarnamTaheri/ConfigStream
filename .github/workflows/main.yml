@@ -377,7 +377,6 @@ jobs:
           cache: pip
           cache-dependency-path: |
             requirements-dev.txt
-            requirements-publish.txt
       - name: Install Python dependencies with evidence
         run: |
           python scripts/resilient_stage.py run \
@@ -386,7 +385,6 @@ jobs:
             -- bash -lc '
               set -euo pipefail
               python -m pip install -r requirements-dev.txt
-              python -m pip install -r requirements-publish.txt
               python -m pip install -e . --no-deps
               python -m pip check
             '
@@ -574,64 +572,6 @@ jobs:
           include-hidden-files: true
           if-no-files-found: error
           retention-days: 30
-      - name: Publish to IPFS independently
-        if: steps.readiness.outputs.publish_ready == 'true' && github.ref == 'refs/heads/main'
-        env:
-          PINATA_JWT: ${{ secrets.PINATA_JWT }}
-        run: |
-          set -euo pipefail
-          if [ -z "$PINATA_JWT" ]; then
-            python scripts/resilient_stage.py record --name publish-ipfs --status skipped
-          else
-            python scripts/resilient_stage.py run --name publish-ipfs -- python scripts/publish_ipfs.py --file output/ --domain fallback.example.com
-          fi
-      - name: Upload to Telegram independently
-        if: steps.readiness.outputs.publish_ready == 'true' && github.ref == 'refs/heads/main'
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: |
-          set -euo pipefail
-          if [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$TELEGRAM_CHAT_ID" ]; then
-            python scripts/resilient_stage.py record --name publish-telegram --status skipped
-          else
-            python scripts/resilient_stage.py run --name publish-telegram -- python scripts/upload_telegram.py
-          fi
-      - name: Upload to Hugging Face independently
-        if: steps.readiness.outputs.publish_ready == 'true' && github.ref == 'refs/heads/main'
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-          HF_REPO_ID: ${{ secrets.HF_REPO_ID }}
-        run: |
-          set -euo pipefail
-          if [ -z "$HF_TOKEN" ] || [ -z "$HF_REPO_ID" ]; then
-            python scripts/resilient_stage.py record --name publish-huggingface --status skipped
-          else
-            python scripts/resilient_stage.py run --name publish-huggingface -- python scripts/upload_hf.py --path output/ --repo-id "$HF_REPO_ID"
-          fi
-      - name: Upload to Google Drive independently
-        if: steps.readiness.outputs.publish_ready == 'true' && github.ref == 'refs/heads/main'
-        env:
-          GDRIVE_SA_JSON: ${{ secrets.GDRIVE_SA_JSON }}
-          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
-        run: |
-          set -euo pipefail
-          if [ -z "$GDRIVE_FOLDER_ID" ] || [ -z "$GDRIVE_SA_JSON" ]; then
-            python scripts/resilient_stage.py record --name publish-gdrive --status skipped
-          else
-            python scripts/resilient_stage.py run --name publish-gdrive -- python scripts/upload_gdrive.py --path output/ --folder-id "$GDRIVE_FOLDER_ID"
-          fi
-      - name: Publish GitHub Release independently
-        if: steps.readiness.outputs.publish_ready == 'true' && github.ref == 'refs/heads/main'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          python scripts/resilient_stage.py run --name publish-github-release -- bash -lc '
-            set -euo pipefail
-            files=$(python scripts/prepare_release_assets.py --output-dir output)
-            tag="v$(date +%Y.%m.%d-%H%M)-${GITHUB_RUN_ID}"
-            gh release create "$tag" $files --title "ConfigStream $tag" --notes "Automated verified release from ${GITHUB_SHA}."
-          '
       - name: Final self-describing summary
         if: always()
         run: |
@@ -657,7 +597,10 @@ jobs:
           failed_stages = [
               stage.get("name")
               for stage in summary.get("stages", [])
-              if stage.get("status") == "failed"
+              if (
+                  stage.get("status") == "failed"
+                  and stage.get("criticality", "required") == "required"
+              )
           ]
           with Path(os.environ["GITHUB_STEP_SUMMARY"]).open("a", encoding="utf-8") as handle:
               handle.write("## Final release disposition\n")

@@ -15,7 +15,6 @@ CONCURRENCY_REQUIRED = {
     "main.yml",
     "retest.yml",
     "deploy-pages.yml",
-    "deploy_mirror.yml",
 }
 UNRESOLVABLE_ACTION_REFS = {
     "actions/cache@0c907a75c2df011682e883a1779590213020689b",

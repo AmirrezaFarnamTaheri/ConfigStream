@@ -44,8 +44,30 @@
       "type": "integer",
       "minimum": 0
     },
+    "source_coverage": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
     "schema_validated": {
       "type": "boolean"
+    },
+    "native_clients_validated": {
+      "type": "boolean"
+    },
+    "release_blockers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "native_report": {
+      "type": "string",
+      "minLength": 1
+    },
+    "native_report_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
     },
     "notes": {
       "type": "array",
@@ -54,5 +76,26 @@
       }
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "schema_version": {
+            "const": "2.0"
+          }
+        },
+        "required": ["schema_version"]
+      },
+      "then": {
+        "required": [
+          "source_coverage",
+          "native_clients_validated",
+          "release_blockers",
+          "native_report",
+          "native_report_sha256"
+        ]
+      }
+    }
+  ],
   "additionalProperties": false
 }

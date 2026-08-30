@@ -67,24 +67,24 @@ def _frontend_browser_commands(
         "ENVIRONMENT": "test",
         "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
     }
+    pytest_command = [
+        python,
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "pytest_asyncio.plugin",
+        "-p",
+        "pytest_playwright.pytest_playwright",
+        "-p",
+        "pytest_base_url.plugin",
+    ]
+    browser_channel = os.environ.get("PLAYWRIGHT_BROWSER_CHANNEL", "").strip()
+    if browser_channel:
+        pytest_command.append(f"--browser-channel={browser_channel}")
+    pytest_command.append("tests/e2e/test_frontend.py")
     return [
-        (
-            [
-                python,
-                "-m",
-                "pytest",
-                "-q",
-                "-p",
-                "pytest_asyncio.plugin",
-                "-p",
-                "pytest_playwright.pytest_playwright",
-                "-p",
-                "pytest_base_url.plugin",
-                "tests/e2e/test_frontend.py",
-            ],
-            pytest_environment,
-        ),
-        ([npm, "run", "test:frontend:no-network"], None),
+        (pytest_command, pytest_environment),        ([npm, "run", "test:frontend:no-network"], None),
         ([npm, "run", "test:frontend:degraded"], None),
     ]
 

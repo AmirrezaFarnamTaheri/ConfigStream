@@ -3,7 +3,7 @@
 Generated from `AppSettings` and direct Python `os.environ`/`os.getenv` references.
 Sensitive defaults are never rendered.
 
-Variables: **160**
+Variables: **161**
 
 | Variable | Settings field | Type | Default | Required | Sensitive | Sources |
 |---|---:|---|---|---:|---:|---|
@@ -114,6 +114,7 @@ Variables: **160**
 | `PATH` | no | `direct-only` |  | no | no | `scripts/native_client_checks.py:83`<br>`src/configstream/testers/go_tester/manager.py:324`<br>`src/configstream/testers/go_tester/manager.py:91` |
 | `PER_HOST_MAX_CONCURRENCY` | yes | `int` | `16` | no | no | `src/configstream/config.py:111` |
 | `PINATA_JWT` | no | `direct-only` |  | no | no | `scripts/publish_ipfs.py:180` |
+| `PLAYWRIGHT_BROWSER_CHANNEL` | no | `direct-only` |  | no | no | `scripts/run_test_profile.py:82` |
 | `PORT` | no | `direct-only` |  | no | no | `src/configstream/container_healthcheck.py:28`<br>`src/configstream/server/__main__.py:13` |
 | `PRODUCER_MAX_CONCURRENCY` | yes | `int` | `100` | no | no | `src/configstream/config.py:49` |
 | `PSIPHON_COUNTRY` | yes | `str` | `"US"` | no | no | `src/configstream/config.py:149` |

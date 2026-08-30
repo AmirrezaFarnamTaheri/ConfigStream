@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import importlib.util
 import re
 import os
 import signal
@@ -52,6 +51,7 @@ class StageResult:
 
 def build_plan(profile: str) -> list[Stage]:
     python = sys.executable
+    go_environment = (("GOTOOLCHAIN", "go1.24.3"),)
     static = [
         Stage("versions", (python, "scripts/validate_versions.py")),
         Stage("changelog", (python, "scripts/validate_changelog.py")),
@@ -155,6 +155,7 @@ def build_plan(profile: str) -> list[Stage]:
             ),
             timeout_seconds=900,
             environment=(("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1"),),
+            required_python_modules=("pytest", "pytest_asyncio"),
         ),
     ]
     release = static + release_tail
@@ -177,6 +178,12 @@ def build_plan(profile: str) -> list[Stage]:
             required_tool="npm",
             timeout_seconds=180,
             required_paths=("node_modules/.bin/playwright",),
+            required_python_modules=(
+                "pytest",
+                "pytest_asyncio",
+                "pytest_playwright",
+                "pytest_base_url",
+            ),
         ),
         Stage(
             "go-tester-unit",
@@ -186,6 +193,7 @@ def build_plan(profile: str) -> list[Stage]:
             workdir="src/go/tester",
             minimum_tool_version=(1, 24, 0),
             version_command=("go", "version"),
+            environment=go_environment,
         ),
         Stage(
             "go-tester-race",
@@ -195,6 +203,7 @@ def build_plan(profile: str) -> list[Stage]:
             workdir="src/go/tester",
             minimum_tool_version=(1, 24, 0),
             version_command=("go", "version"),
+            environment=go_environment,
         ),
         Stage(
             "go-tester-fuzz",
@@ -204,6 +213,7 @@ def build_plan(profile: str) -> list[Stage]:
             workdir="src/go/tester",
             minimum_tool_version=(1, 24, 0),
             version_command=("go", "version"),
+            environment=go_environment,
         ),
         Stage(
             "go-tester-benchmark",
@@ -213,6 +223,7 @@ def build_plan(profile: str) -> list[Stage]:
             workdir="src/go/tester",
             minimum_tool_version=(1, 24, 0),
             version_command=("go", "version"),
+            environment=go_environment,
         ),
         Stage(
             "go-utls-unit",
@@ -222,6 +233,7 @@ def build_plan(profile: str) -> list[Stage]:
             workdir="src/go/utls_client",
             minimum_tool_version=(1, 24, 3),
             version_command=("go", "version"),
+            environment=go_environment,
         ),
         Stage(
             "go-utls-race",
@@ -231,6 +243,7 @@ def build_plan(profile: str) -> list[Stage]:
             workdir="src/go/utls_client",
             minimum_tool_version=(1, 24, 3),
             version_command=("go", "version"),
+            environment=go_environment,
         ),
         Stage(
             "go-utls-fuzz",
@@ -240,6 +253,7 @@ def build_plan(profile: str) -> list[Stage]:
             workdir="src/go/utls_client",
             minimum_tool_version=(1, 24, 3),
             version_command=("go", "version"),
+            environment=go_environment,
         ),
         Stage(
             "go-utls-benchmark",
@@ -249,6 +263,7 @@ def build_plan(profile: str) -> list[Stage]:
             workdir="src/go/utls_client",
             minimum_tool_version=(1, 24, 3),
             version_command=("go", "version"),
+            environment=go_environment,
         ),
         Stage(
             "rust-test",
@@ -363,6 +378,31 @@ def _terminate_process_tree(
     process.kill()
 
 
+def _find_missing_python_modules(
+    interpreter: str,
+    modules: tuple[str, ...],
+    *,
+    cwd: Path,
+    env: dict[str, str],
+) -> list[str]:
+    """Probe module availability in the stage's isolated child environment."""
+    if not modules:
+        return []
+    probe = (
+        "import importlib.util, sys; "
+        "print(','.join(name for name in sys.argv[1:] "
+        "if importlib.util.find_spec(name) is None))"
+    )
+    code, output, timed_out = _run_process(
+        [interpreter, "-c", probe, *modules],
+        cwd=cwd,
+        env=env,
+        timeout_seconds=30,
+    )
+    if timed_out or code != 0:
+        return list(modules)
+    return [name for name in output.strip().split(",") if name]
+
 def _run_stage(root: Path, stage: Stage, env: dict[str, str]) -> StageResult:
     """Validate and execute one verification stage in its declared environment."""
 
@@ -375,11 +415,12 @@ def _run_stage(root: Path, stage: Stage, env: dict[str, str]) -> StageResult:
         for path in stage.required_paths
         if not (root / stage.workdir / path).exists()
     ]
-    missing_modules = [
-        module
-        for module in stage.required_python_modules
-        if importlib.util.find_spec(module) is None
-    ]
+    missing_modules = _find_missing_python_modules(
+        stage.command[0],
+        stage.required_python_modules,
+        cwd=workdir,
+        env=stage_env,
+    )
     if missing_modules:
         return StageResult(
             name=stage.name,

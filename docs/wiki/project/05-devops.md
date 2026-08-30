@@ -9,10 +9,9 @@ GitHub Pages is the core zero-budget publication target. External mirrors are op
 | Workflow | File | Purpose |
 | :--- | :--- | :--- |
 | CI | `.github/workflows/ci.yml` | Pull request and push validation, including workflow syntax validation. |
-| Config's Stream | `.github/workflows/main.yml` | Scheduled/manual production pipeline, sharded batch execution, merge, output generation, and optional secret-gated mirrors/releases. |
+| Config's Stream | `.github/workflows/main.yml` | Scheduled/manual production pipeline, sharded batch execution, merge, output generation,. |
 | Retest | `.github/workflows/retest.yml` | Retests the latest successful `pipeline-output` artifact without running a full source ingestion cycle. |
 | Deploy to GitHub Pages | `.github/workflows/deploy-pages.yml` | Deploys one completed `pipeline-output` artifact to GitHub Pages after validation. |
-| Deploy Mirror | `.github/workflows/deploy_mirror.yml` | Optional secret-gated mirror deployment from the latest successful `pipeline-output`. |
 | Release | `.github/workflows/release.yml` | Tagged package release, Python distributions, native binaries, attestations, PyPI publish, and GitHub release assets. |
 
 Every external `uses:` reference must match the tag-to-commit resolution in
@@ -29,7 +28,6 @@ Current concurrency rules:
 - `main.yml`: one run per workflow/ref; non-main refs can cancel in progress.
 - `retest.yml`: one active retest per workflow/ref, with no cancellation of an already-running retest.
 - `deploy-pages.yml`: one Pages deployment at a time.
-- `deploy_mirror.yml`: one mirror deployment per workflow/ref, canceling stale in-progress mirror runs.
 
 Any workflow that writes, deploys, or republishes output must keep an explicit concurrency policy. Any workflow that commits resharded source files must also ignore those source paths on push.
 

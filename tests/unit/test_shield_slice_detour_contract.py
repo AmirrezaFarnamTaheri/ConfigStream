@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import cast
 
 from configstream.converters.singbox import to_singbox_outbound
 from configstream.generators.singbox import generate_singbox_config
@@ -76,10 +77,22 @@ def _shielded_revived_proxy(index: int, shield_tag: str) -> Proxy:
 
 def _assert_contract_holds(config_path: Path) -> dict[str, object]:
     payload = json.loads(config_path.read_text(encoding="utf-8"))
-    modernized = modernize_singbox(payload)
+    modernized = cast(dict[str, object], modernize_singbox(payload))
     errors = validate_singbox_config(modernized, config_path.name)
     assert errors == [], f"{config_path.name}: {errors[:5]}"
     return modernized
+
+
+def _config_entries(payload: dict[str, object]) -> list[dict[str, object]]:
+    outbounds = payload.get("outbounds", [])
+    endpoints = payload.get("endpoints", [])
+    assert isinstance(outbounds, list)
+    assert isinstance(endpoints, list)
+    return [
+        cast(dict[str, object], item)
+        for item in [*outbounds, *endpoints]
+        if isinstance(item, dict)
+    ]
 
 
 def test_revived_slice_keeps_shield_detour_resolvable(tmp_path: Path) -> None:
@@ -87,16 +100,10 @@ def test_revived_slice_keeps_shield_detour_resolvable(tmp_path: Path) -> None:
     generated = generate_categorized_lists(proxies, tmp_path)
 
     country = _assert_contract_holds(generated["country_XX"])
-    tags = {
-        str(item.get("tag"))
-        for item in [*country.get("outbounds", []), *country.get("endpoints", [])]
-    }
+    tags = {str(item.get("tag")) for item in _config_entries(country)}
     assert "SHIELD-XX-0" in tags, "inner SHIELD hop lost its tag"
     proto = _assert_contract_holds(generated["proto_revived"])
-    proto_tags = {
-        str(item.get("tag"))
-        for item in [*proto.get("outbounds", []), *proto.get("endpoints", [])]
-    }
+    proto_tags = {str(item.get("tag")) for item in _config_entries(proto)}
     assert "SHIELD-XX-0" in proto_tags
 
 
@@ -131,7 +138,7 @@ def test_duplicate_shield_tags_uniquify_without_dangling_detours(
 
     shield_tags = [
         str(item.get("tag"))
-        for item in [*country.get("outbounds", []), *country.get("endpoints", [])]
+        for item in _config_entries(country)
         if str(item.get("tag", "")).startswith("SHIELD-")
     ]
     assert sorted(shield_tags) == ["SHIELD-XX-0", "SHIELD-XX-0-0", "SHIELD-XX-1"]

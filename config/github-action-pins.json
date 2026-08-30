@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "verified_at": "2026-08-01",
+  "verified_at": "2026-08-29",
   "verification_method": "GitHub compare commits API with base tag equal to head tag; base_commit.sha recorded",
   "entries": [
     {"action": "actions/attest-build-provenance", "version": "v2.2.0", "commit_sha": "520d128f165991a6c774bcb264f323e3d70747f4"},

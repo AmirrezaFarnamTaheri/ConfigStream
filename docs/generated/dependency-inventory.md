@@ -79,8 +79,8 @@ Direct declarations: **67**
 | npm | `playwright` | `^1.62.0` | `package.json` |
 | npm | `postcss` | `^8.5.23` | `package.json` |
 | npm | `vite` | `^8.1.5` | `package.json` |
-| go-tester | `github.com/sagernet/sing` | `v0.3.8` | `src/go/tester/go.mod` |
-| go-tester | `github.com/sagernet/sing-box` | `v1.8.14` | `src/go/tester/go.mod` |
+| go-tester | `github.com/sagernet/sing` | `v0.4.3` | `src/go/tester/go.mod` |
+| go-tester | `github.com/sagernet/sing-box` | `v1.9.7` | `src/go/tester/go.mod` |
 | go-tester | `golang.org/x/crypto` | `v0.45.0` | `src/go/tester/go.mod` |
 | go-utls | `github.com/refraction-networking/utls` | `v1.8.1` | `src/go/utls_client/go.mod` |
 | cargo | `libc` | `0.2` | `src/rust/ss_checker/Cargo.toml` |

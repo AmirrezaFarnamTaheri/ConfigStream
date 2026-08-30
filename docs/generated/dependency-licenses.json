@@ -152,7 +152,7 @@
       "name": "github.com/gofrs/uuid/v5",
       "scope": "development",
       "source": "src/go/tester/go.mod",
-      "version": "5.1.0"
+      "version": "5.2.0"
     },
     {
       "ecosystem": "go",
@@ -257,6 +257,15 @@
       "ecosystem": "go",
       "license_status": "unknown",
       "licenses": [],
+      "name": "github.com/metacubex/tfo-go",
+      "scope": "development",
+      "source": "src/go/tester/go.mod",
+      "version": "0.0.0-20240821025650-e9be0afd5e7d"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
       "name": "github.com/mholt/acmez",
       "scope": "development",
       "source": "src/go/tester/go.mod",
@@ -350,7 +359,7 @@
       "name": "github.com/sagernet/gvisor",
       "scope": "development",
       "source": "src/go/tester/go.mod",
-      "version": "0.0.0-20231209105102-8d27a30e436e"
+      "version": "0.0.0-20240428053021-e691de28565f"
     },
     {
       "ecosystem": "go",
@@ -359,7 +368,7 @@
       "name": "github.com/sagernet/netlink",
       "scope": "development",
       "source": "src/go/tester/go.mod",
-      "version": "0.0.0-20220905062125-8043b4a9aa97"
+      "version": "0.0.0-20240523065131-45e60152f9ba"
     },
     {
       "ecosystem": "go",
@@ -368,7 +377,7 @@
       "name": "github.com/sagernet/quic-go",
       "scope": "development",
       "source": "src/go/tester/go.mod",
-      "version": "0.40.1"
+      "version": "0.47.0-beta.2"
     },
     {
       "ecosystem": "go",
@@ -386,7 +395,7 @@
       "name": "github.com/sagernet/sing",
       "scope": "required",
       "source": "src/go/tester/go.mod",
-      "version": "0.3.8"
+      "version": "0.4.3"
     },
     {
       "ecosystem": "go",
@@ -395,7 +404,7 @@
       "name": "github.com/sagernet/sing-box",
       "scope": "required",
       "source": "src/go/tester/go.mod",
-      "version": "1.8.14"
+      "version": "1.9.7"
     },
     {
       "ecosystem": "go",
@@ -404,7 +413,7 @@
       "name": "github.com/sagernet/sing-dns",
       "scope": "development",
       "source": "src/go/tester/go.mod",
-      "version": "0.1.14"
+      "version": "0.2.3"
     },
     {
       "ecosystem": "go",
@@ -422,7 +431,7 @@
       "name": "github.com/sagernet/sing-quic",
       "scope": "development",
       "source": "src/go/tester/go.mod",
-      "version": "0.1.15"
+      "version": "0.2.2"
     },
     {
       "ecosystem": "go",
@@ -431,7 +440,7 @@
       "name": "github.com/sagernet/sing-shadowsocks",
       "scope": "development",
       "source": "src/go/tester/go.mod",
-      "version": "0.2.6"
+      "version": "0.2.7"
     },
     {
       "ecosystem": "go",
@@ -458,7 +467,7 @@
       "name": "github.com/sagernet/sing-tun",
       "scope": "development",
       "source": "src/go/tester/go.mod",
-      "version": "0.2.7"
+      "version": "0.3.3"
     },
     {
       "ecosystem": "go",
@@ -467,7 +476,7 @@
       "name": "github.com/sagernet/sing-vmess",
       "scope": "development",
       "source": "src/go/tester/go.mod",
-      "version": "0.1.8"
+      "version": "0.1.12"
     },
     {
       "ecosystem": "go",
@@ -477,15 +486,6 @@
       "scope": "development",
       "source": "src/go/tester/go.mod",
       "version": "0.0.0-20231208180855-7041f6ea79e7"
-    },
-    {
-      "ecosystem": "go",
-      "license_status": "unknown",
-      "licenses": [],
-      "name": "github.com/sagernet/tfo-go",
-      "scope": "development",
-      "source": "src/go/tester/go.mod",
-      "version": "0.0.0-20231209031829-7b5343ac1dc6"
     },
     {
       "ecosystem": "go",
@@ -683,7 +683,7 @@
       "name": "lukechampine.com/blake3",
       "scope": "development",
       "source": "src/go/tester/go.mod",
-      "version": "1.2.1"
+      "version": "1.3.0"
     },
     {
       "ecosystem": "npm",

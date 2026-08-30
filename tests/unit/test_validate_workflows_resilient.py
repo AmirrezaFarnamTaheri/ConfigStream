@@ -267,3 +267,33 @@ def test_pages_smoke_verification_propagates_failed_stage() -> None:
 
     assert "deploy-evidence/stages/smoke-pages.json" in command
     assert 'test "$smoke_status" = success' in command
+
+
+def test_main_has_no_noncanonical_side_product_publishers() -> None:
+    """Keep optional mirrors from turning a valid canonical run red."""
+
+    data = _load_local_workflow("main.yml")
+    merge = data["jobs"]["merge_validate_publish"]
+    step_names = {
+        step.get("name")
+        for step in merge["steps"]
+        if isinstance(step, dict)
+    }
+    assert step_names.isdisjoint(
+        {
+            "Publish to IPFS independently",
+            "Upload to Telegram independently",
+            "Upload to Hugging Face independently",
+            "Upload to Google Drive independently",
+            "Publish GitHub Release independently",
+        }
+    )
+
+    workflow_dir = Path(__file__).resolve().parents[2] / ".github" / "workflows"
+    assert not (workflow_dir / "deploy_mirror.yml").exists()
+    assert "requirements-publish.txt" not in (workflow_dir / "main.yml").read_text(
+        encoding="utf-8"
+    )
+
+    summary = _step_by_name(merge, "Final self-describing summary")["run"]
+    assert 'stage.get("criticality", "required") == "required"' in summary

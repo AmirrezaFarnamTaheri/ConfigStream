@@ -1568,7 +1568,7 @@
     },
     {
       "path": "src/configstream/security_validator.py",
-      "line": 189,
+      "line": 150,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",

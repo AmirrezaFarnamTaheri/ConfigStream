@@ -7,8 +7,9 @@ from pathlib import Path
 
 from scripts.finalize_release_outputs import finalize, modernize_singbox
 from scripts.reconcile_release_metadata import reconcile
-from scripts.release_gate import validate
+from scripts.release_gate import manifest_entries, validate
 from scripts.shard_sources import partition
+from scripts.validate_pages_artifact import _validate_health
 
 
 def write_json(path: Path, payload: object) -> None:
@@ -240,3 +241,53 @@ def test_release_gate_rejects_skipped_or_missing_native_validation(
     errors = validate(root, report, 0.8)
     assert any("did not pass" in error for error in errors)
     assert any("xray" in error for error in errors)
+
+
+def test_release_manifest_entries_keep_pages_contract_categories(
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "output"
+    root.mkdir()
+    fixtures = {
+        "metadata.json": "control",
+        "api/stats": "api",
+        "assets/app.js": "frontend",
+        "index.html": "frontend",
+        "docs/wiki/index.md": "docs",
+        "data/metrics.json": "analytics",
+        "side_products.zip": "side-product",
+        "proxies.txt": "subscription",
+    }
+    for relative in fixtures:
+        path = root / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("fixture", encoding="utf-8")
+
+    entries = {entry["path"]: entry for entry in manifest_entries(root)}
+
+    assert set(entries) == set(fixtures)
+    for relative, expected_category in fixtures.items():
+        assert entries[relative]["category"] == expected_category
+
+
+def test_promoted_health_matches_strict_pages_schema() -> None:
+    health = {
+        "schema_version": "2.0",
+        "status": "ok",
+        "generated_at": "2026-08-29T10:37:57+00:00",
+        "trace_id": "-",
+        "source_commit": "a" * 40,
+        "run_id": "33237679082",
+        "run_attempt": "1",
+        "total_working": 1891,
+        "total_tested": 506933,
+        "source_coverage": 0.8122905027932961,
+        "schema_validated": True,
+        "native_clients_validated": True,
+        "release_blockers": [],
+        "native_report": "evidence/native_client_check_report.json",
+        "native_report_sha256": "b" * 64,
+        "notes": [],
+    }
+
+    assert _validate_health(health) == []

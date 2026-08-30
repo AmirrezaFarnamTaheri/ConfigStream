@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "source_digest": "6055abd884ab79c89e49327e287039ee77a66fd2a13933591c47a11d56d666d6",
-  "variable_count": 160,
+  "source_digest": "9f03f0b0f56466af8d1b4728fb9556fff6ee6ace2b82dd7535af98e1219d5fb0",
+  "variable_count": 161,
   "variables": [
     {
       "declared_in_settings": true,
@@ -1221,6 +1221,17 @@
       "sensitive": false,
       "sources": [
         "scripts/publish_ipfs.py:180"
+      ],
+      "type": null
+    },
+    {
+      "declared_in_settings": false,
+      "default": null,
+      "name": "PLAYWRIGHT_BROWSER_CHANNEL",
+      "required": false,
+      "sensitive": false,
+      "sources": [
+        "scripts/run_test_profile.py:82"
       ],
       "type": null
     },
