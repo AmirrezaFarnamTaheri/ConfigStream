@@ -44,7 +44,7 @@ tomli_w==1.2.0
 greenlet==3.5.3
 
 # Security audit tools
-bandit==1.8.6
+bandit==1.9.4
 pip_audit==2.10.1
 cyclonedx-python-lib==11.11.0
 annotated-doc==0.0.4
