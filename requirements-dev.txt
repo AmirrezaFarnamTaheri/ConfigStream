@@ -48,7 +48,7 @@ bandit==1.8.6
 pip_audit==2.10.1
 cyclonedx-python-lib==11.11.0
 annotated-doc==0.0.4
-ast_serialize==0.6.0
+ast_serialize==0.8.0
 boolean.py==5.0
 license-expression==30.4.4
 packageurl-python==0.17.6
