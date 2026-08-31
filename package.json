@@ -29,7 +29,7 @@
   },
   "homepage": "https://github.com/AmirrezaFarnamTaheri/ConfigStream#readme",
   "devDependencies": {
-    "picomatch": "^4.0.5",
+    "picomatch": "^4.0.7",
     "playwright": "^1.62.0",
     "postcss": "^8.5.23",
     "vite": "^8.1.5"
