@@ -440,7 +440,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             )
 
     elif protocol == "trojan":
-        password = proxy.uuid or proxy.details.get("password")
+        password = proxy.details.get("password") or proxy.uuid
         if not password:
             logger.warning(
                 "Dropping Trojan proxy missing password: %s. Source: %s",
@@ -673,11 +673,8 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             out["mtu"] = 1280
 
     elif protocol in ("hysteria2", "hysteria3", "hy3"):
-        pwd = (
-            str(proxy.details.get("password", ""))
-            or str(proxy.details.get("auth", ""))
-            or proxy.uuid
-        )
+        d = proxy.details or {}
+        pwd = str(d.get("password") or d.get("auth") or d.get("token") or proxy.uuid or "")
         out = {
             "type": "hysteria2",
             **base,
