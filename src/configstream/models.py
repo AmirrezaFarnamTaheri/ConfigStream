@@ -21,26 +21,43 @@ from .constants import (
 
 def get_proxy_credential(p: Any) -> str:
     """Extract primary credential string across proxy models using strict key precedence."""
-    cred = (getattr(p, "uuid", "") or "").strip()
-    if not cred:
-        details = getattr(p, "details", {}) or {}
-        if isinstance(details, dict):
-            for key in (
-                "uuid",
-                "password",
-                "auth",
-                "private_key",
-                "public_key",
-                "peer_public_key",
-                "psk",
-                "key",
-                "token",
-                "chain_fingerprint",
-            ):
+    proto = getattr(p, "protocol", "")
+    details = getattr(p, "details", {}) or {}
+    if isinstance(details, dict):
+        if proto in ("wireguard", "wg"):
+            for key in ("private_key", "peer_public_key", "public_key", "psk"):
                 val = details.get(key)
                 if isinstance(val, str) and val.strip():
-                    cred = val.strip()
-                    break
+                    return val.strip()
+        elif proto in ("hysteria2", "hy2"):
+            for key in ("auth", "password", "token"):
+                val = details.get(key)
+                if isinstance(val, str) and val.strip():
+                    return val.strip()
+        elif proto in ("shadowsocks", "ss"):
+            for key in ("password", "key", "secret"):
+                val = details.get(key)
+                if isinstance(val, str) and val.strip():
+                    return val.strip()
+
+    cred = (getattr(p, "uuid", "") or "").strip()
+    if not cred and isinstance(details, dict):
+        for key in (
+            "uuid",
+            "password",
+            "auth",
+            "private_key",
+            "public_key",
+            "peer_public_key",
+            "psk",
+            "key",
+            "token",
+            "chain_fingerprint",
+        ):
+            val = details.get(key)
+            if isinstance(val, str) and val.strip():
+                cred = val.strip()
+                break
     return cred
 
 

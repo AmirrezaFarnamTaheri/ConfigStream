@@ -106,7 +106,9 @@ class SurgeAdapter(Adapter):
             )
 
         elif p.protocol in ("hysteria2", "hy2"):
-            password = p.uuid or p.details.get("password", "")
+            password = (
+                p.details.get("password", "") or p.details.get("auth", "") or p.uuid
+            )
             sni = _extract_sni(p.details)
             sni_part = f", sni={sni}" if sni else ""
             return f"{name} = hysteria2, {p.address}, {p.port}, password={password}{sni_part}"

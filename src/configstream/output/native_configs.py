@@ -387,6 +387,15 @@ def wrap_shadowrocket_profile(
 
 
 def build_wireguard_config(proxy: Proxy) -> Optional[str]:
+    if not proxy.address or "/" in str(proxy.address):
+        return None
+    try:
+        port = int(proxy.port)
+        if not (1 <= port <= 65535):
+            return None
+    except (ValueError, TypeError):
+        return None
+
     details = proxy.details or {}
     private_key = details.get("private_key") or proxy.uuid or ""
     peer_public_key = details.get("peer_public_key") or details.get("public_key") or ""
