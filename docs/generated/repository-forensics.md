@@ -13,7 +13,7 @@ No high-signal current-tree secret pattern was found.
 ## Evidence unavailable from the archive
 
 - **upstream commit history:** not present in the supplied archive
-- **deleted secret history:** requires a full upstream Git clone and history scanner
+- **deleted secrets history:** requires a full upstream Git clone and history scanner
 - **code ownership:** requires original authorship history
 - **branch protection:** requires authenticated GitHub repository metadata
 - **github project state:** requires trusted ProjectV2 binding and authenticated metadata

@@ -275,7 +275,7 @@ def main() -> int:
             "fail_on_zero_tested": True,
             "fail_on_zero_working": True,
             "private_state_forbidden": True,
-            "secret_scan_required": True,
+            "require_secret_scan": True,
             "source_sha": args.source_sha,
         },
         sort_keys=True,

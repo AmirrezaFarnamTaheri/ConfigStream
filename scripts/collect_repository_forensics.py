@@ -106,7 +106,7 @@ def build(root: Path) -> ForensicsReport:
         },
         "unavailable_claims": {
             "upstream_commit_history": "not present in the supplied archive",
-            "deleted_secret_history": "requires a full upstream Git clone and history scanner",
+            "deleted_secrets_history": "requires a full upstream Git clone and history scanner",
             "code_ownership": "requires original authorship history",
             "branch_protection": "requires authenticated GitHub repository metadata",
             "github_project_state": "requires trusted ProjectV2 binding and authenticated metadata",
