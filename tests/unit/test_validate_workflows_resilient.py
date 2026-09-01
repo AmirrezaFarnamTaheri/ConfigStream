@@ -274,11 +274,7 @@ def test_main_has_no_noncanonical_side_product_publishers() -> None:
 
     data = _load_local_workflow("main.yml")
     merge = data["jobs"]["merge_validate_publish"]
-    step_names = {
-        step.get("name")
-        for step in merge["steps"]
-        if isinstance(step, dict)
-    }
+    step_names = {step.get("name") for step in merge["steps"] if isinstance(step, dict)}
     assert step_names.isdisjoint(
         {
             "Publish to IPFS independently",

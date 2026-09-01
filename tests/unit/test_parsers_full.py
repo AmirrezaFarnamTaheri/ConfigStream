@@ -101,9 +101,9 @@ def test_parse_vmess_details_is_schema_compliant():
     assert p is not None
     # Legacy keys must NOT appear in details
     for forbidden in ("add", "port", "id", "ps", "v", "scy", "encrypt"):
-        assert forbidden not in p.details, (
-            f"legacy key {forbidden!r} leaked into details: {p.details}"
-        )
+        assert (
+            forbidden not in p.details
+        ), f"legacy key {forbidden!r} leaked into details: {p.details}"
     # id must be remapped to uuid (required by vmess_details schema)
     assert p.details["uuid"] == v4
     # scy must be remapped to security

@@ -674,7 +674,9 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
 
     elif protocol in ("hysteria2", "hysteria3", "hy3"):
         d = proxy.details or {}
-        pwd = str(d.get("password") or d.get("auth") or d.get("token") or proxy.uuid or "")
+        pwd = str(
+            d.get("password") or d.get("auth") or d.get("token") or proxy.uuid or ""
+        )
         out = {
             "type": "hysteria2",
             **base,

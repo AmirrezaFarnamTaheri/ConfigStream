@@ -171,9 +171,7 @@ def test_xray_tls_settings_omit_removed_allow_insecure() -> None:
             }
         ]
     )
-    outbound = next(
-        o for o in config["outbounds"] if o.get("tag") == "insecure-vless"
-    )
+    outbound = next(o for o in config["outbounds"] if o.get("tag") == "insecure-vless")
     assert "allowInsecure" not in outbound["streamSettings"]["tlsSettings"]
     assert validate_xray_config(config) == []
     assert report["emitted_records"] == 1
