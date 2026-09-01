@@ -413,7 +413,7 @@
         "source": "pyproject.toml"
       },
       {
-        "constraint": "bandit==1.8.6",
+        "constraint": "bandit==1.9.4",
         "name": "bandit",
         "scope": "development",
         "source": "pyproject.toml"

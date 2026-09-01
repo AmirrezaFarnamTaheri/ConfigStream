@@ -24,7 +24,7 @@ beautifulsoup4==4.14.3
 nest-asyncio==1.6.0
 soupsieve==2.8.4
 backports.asyncio.runner==1.2.0; python_version < "3.11"
-coverage==7.15.1
+coverage==7.15.4
 hypothesis==6.156.1
 iniconfig==2.3.0
 playwright==1.61.0
@@ -44,11 +44,11 @@ tomli_w==1.2.0
 greenlet==3.5.3
 
 # Security audit tools
-bandit==1.8.6
+bandit==1.9.4
 pip_audit==2.10.1
 cyclonedx-python-lib==11.11.0
-annotated-doc==0.0.4
-ast_serialize==0.6.0
+annotated-doc==0.0.5
+ast_serialize==0.8.0
 boolean.py==5.0
 license-expression==30.4.4
 packageurl-python==0.17.6

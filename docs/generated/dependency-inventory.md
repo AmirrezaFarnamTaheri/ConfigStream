@@ -71,7 +71,7 @@ Direct declarations: **67**
 | python | `types-jsonschema` | `types-jsonschema` | `pyproject.toml` |
 | python | `types-aiofiles` | `types-aiofiles` | `pyproject.toml` |
 | python | `types-orjson` | `types-orjson` | `pyproject.toml` |
-| python | `bandit` | `bandit==1.8.6` | `pyproject.toml` |
+| python | `bandit` | `bandit==1.9.4` | `pyproject.toml` |
 | python | `huggingface-hub` | `==1.24.0` | `requirements-publish.txt` |
 | python | `google-api-python-client` | `==2.198.0` | `requirements-publish.txt` |
 | python | `google-auth` | `==2.56.0` | `requirements-publish.txt` |
