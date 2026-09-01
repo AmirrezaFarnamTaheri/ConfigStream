@@ -108,6 +108,7 @@ def test_validator_uses_dependency_free_log_sanitizer() -> None:
     assert "configstream.security_validator" not in source
     assert "configstream.utils.log_sanitizer" in source
 
+
 def test_resolve_svg_parser_returns_parse_capable_module() -> None:
     parser, parse_errors = validate_assets._resolve_svg_parser()
 

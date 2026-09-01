@@ -66,9 +66,7 @@ def test_full_plan_declares_environment_preconditions() -> None:
     assert "aiohttp_socks" in stages["python-unit"].required_python_modules
     assert stages["go-tester-unit"].minimum_tool_version == (1, 24, 0)
     assert stages["go-utls-unit"].minimum_tool_version == (1, 24, 3)
-    assert stages["go-tester-unit"].environment == (
-        ("GOTOOLCHAIN", "go1.24.3"),
-    )
+    assert stages["go-tester-unit"].environment == (("GOTOOLCHAIN", "go1.24.3"),)
 
 
 def test_extended_plan_is_the_full_only_tail() -> None:
@@ -124,6 +122,7 @@ def test_module_preflight_uses_isolated_child_environment(tmp_path: Path) -> Non
     )
 
     assert missing == ["configstream_definitely_missing_dependency"]
+
 
 def test_run_process_times_out_and_returns_control(tmp_path: Path) -> None:
     code, output, timed_out = verify_repository._run_process(

@@ -62,6 +62,7 @@ def test_frontend_browser_profile_disables_plugin_autoload_and_loads_required_pl
     ]
     assert pytest_command[-1] == "tests/e2e/test_frontend.py"
 
+
 def test_frontend_browser_profile_scopes_optional_browser_channel(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

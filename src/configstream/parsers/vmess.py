@@ -105,10 +105,7 @@ def parse_vmess(config: str) -> Optional[Proxy]:
         # Remap legacy aliases for TLS verification flags
         if "insecure" in vmess_data and "allowInsecure" not in details:
             details["allowInsecure"] = bool(vmess_data["insecure"])
-        if (
-            "skip-cert-verify" in vmess_data
-            and "skip_cert_verify" not in details
-        ):
+        if "skip-cert-verify" in vmess_data and "skip_cert_verify" not in details:
             details["skip_cert_verify"] = bool(vmess_data["skip-cert-verify"])
         # Drop legacy/top-level keys that must NOT appear in details:
         # add, port, id, ps, v, scy (already remapped above), encrypt, etc.
