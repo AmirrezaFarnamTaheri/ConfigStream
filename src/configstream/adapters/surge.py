@@ -107,7 +107,11 @@ class SurgeAdapter(Adapter):
 
         elif p.protocol in ("hysteria2", "hy2"):
             password = (
-                p.details.get("password", "") or p.details.get("auth", "") or p.uuid
+                p.details.get("password")
+                or p.details.get("auth")
+                or p.details.get("token")
+                or p.uuid
+                or ""
             )
             sni = _extract_sni(p.details)
             sni_part = f", sni={sni}" if sni else ""

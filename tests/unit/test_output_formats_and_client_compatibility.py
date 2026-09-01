@@ -26,11 +26,11 @@ def sample_proxies() -> list[Proxy]:
     """Provide a diverse set of valid proxies across supported protocols."""
     return [
         Proxy(
-            config="vless://11111111-2222-3333-4444-555555555555@104.21.45.10:443?type=tcp&security=tls#US-VLESS-Fast",
+            config="vless://11111111-2222-4333-8444-555555555555@104.21.45.10:443?type=tcp&security=tls#US-VLESS-Fast",
             protocol="vless",
             address="104.21.45.10",
             port=443,
-            uuid="11111111-2222-3333-4444-555555555555",
+            uuid="11111111-2222-4333-8444-555555555555",
             country_code="US",
             remarks="US-VLESS-Fast",
             is_working=True,
@@ -42,11 +42,11 @@ def sample_proxies() -> list[Proxy]:
             },
         ),
         Proxy(
-            config="vmess://eyJhZGQiOiIxMDQuMjEuNDUuMTEiLCJwb3J0Ijo4NDQzLCJpZCI6IjIyMjIyMjIyLTMzMzMtNDQ0NC01NTU1LTY2NjY2NjY2NjY2NiIsIm5ldCI6IndzIiwicHMiOiJERS1WTWVzcy1XUyJ9",
+            config="vmess://eyJhZGQiOiIxMDQuMjEuNDUuMTEiLCJwb3J0Ijo4NDQzLCJpZCI6IjIyMjIyMjIyLTMzMzMtNDQ0NC04NTU1LTY2NjY2NjY2NjY2NiIsIm5ldCI6IndzIiwicHMiOiJERS1WTWVzcy1XUyJ9",
             protocol="vmess",
             address="104.21.45.11",
             port=8443,
-            uuid="22222222-3333-4444-5555-666666666666",
+            uuid="22222222-3333-4444-8555-666666666666",
             country_code="DE",
             remarks="DE-VMess-WS",
             is_working=True,
@@ -63,11 +63,12 @@ def sample_proxies() -> list[Proxy]:
             protocol="trojan",
             address="104.21.45.12",
             port=443,
-            uuid="secret-trojan-pw",
+            uuid="33333333-3333-4333-8333-333333333333",
             country_code="JP",
             remarks="JP-Trojan-TLS",
             is_working=True,
             details={
+                "password": "secret-trojan-pw",
                 "security": "tls",
                 "sni": "jp.example.com",
                 "alpn": "h2,http/1.1",
@@ -78,7 +79,7 @@ def sample_proxies() -> list[Proxy]:
             protocol="shadowsocks",
             address="104.21.45.13",
             port=8388,
-            uuid="chacha-password",
+            uuid="44444444-4444-4444-8444-444444444444",
             country_code="FR",
             remarks="FR-SS-AEAD",
             is_working=True,
@@ -150,7 +151,7 @@ def test_singbox_outbound_format_correctness(sample_proxies: list[Proxy]) -> Non
             assert outbound["transport"]["type"] == "ws"
         elif proxy.protocol == "trojan":
             assert outbound["type"] == "trojan"
-            assert outbound["password"] == proxy.uuid
+            assert outbound["password"] == "secret-trojan-pw"
             assert "tls" in outbound
         elif proxy.protocol == "shadowsocks":
             assert outbound["type"] == "shadowsocks"
@@ -196,7 +197,7 @@ def test_clash_proxy_format_correctness(sample_proxies: list[Proxy]) -> None:
             assert clash_obj.get("network") == "ws"
         elif proxy.protocol == "trojan":
             assert clash_obj["type"] == "trojan"
-            assert clash_obj["password"] == proxy.uuid
+            assert clash_obj["password"] == "secret-trojan-pw"
             assert clash_obj.get("tls") is True
 
 

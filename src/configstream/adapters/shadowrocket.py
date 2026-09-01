@@ -341,9 +341,14 @@ class ShadowrocketAdapter(Adapter):
                 params["alpn"] = _join_list(alpn)
             query = urllib.parse.urlencode(params, safe=",") if params else ""
             query_part = f"?{query}" if query else ""
-            password = (
-                p.details.get("password", "") or p.details.get("auth", "") or p.uuid
+            credential = (
+                p.details.get("password")
+                or p.details.get("auth")
+                or p.details.get("token")
+                or p.uuid
+                or ""
             )
+            password = urllib.parse.quote(str(credential), safe="")
             return f"hysteria2://{password}@{p.address}:{p.port}{query_part}#{name}"
 
         elif p.protocol == "tuic":

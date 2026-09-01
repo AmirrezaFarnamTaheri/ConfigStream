@@ -51,7 +51,7 @@ def _convert_vmess(proxy: Proxy, common: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def _convert_trojan(proxy: Proxy, common: Dict[str, Any]) -> Dict[str, Any]:
-    common["password"] = proxy.uuid
+    common["password"] = proxy.details.get("password") or proxy.uuid or ""
     common["udp"] = True
     add_transport_opts(common, proxy.details)
     common["tls"] = True
@@ -75,7 +75,11 @@ def _convert_vless(proxy: Proxy, common: Dict[str, Any]) -> Dict[str, Any]:
 def _convert_hysteria2(proxy: Proxy, common: Dict[str, Any]) -> Dict[str, Any]:
     common["type"] = "hysteria2"
     common["password"] = (
-        proxy.details.get("password", "") or proxy.details.get("auth", "") or proxy.uuid
+        proxy.details.get("password")
+        or proxy.details.get("auth")
+        or proxy.details.get("token")
+        or proxy.uuid
+        or ""
     )
     common["tls"] = True
     common["sni"] = proxy.details.get("sni", "")

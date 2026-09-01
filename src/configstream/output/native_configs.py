@@ -387,7 +387,8 @@ def wrap_shadowrocket_profile(
 
 
 def build_wireguard_config(proxy: Proxy) -> Optional[str]:
-    if not proxy.address or "/" in str(proxy.address):
+    host = str(proxy.address).strip()
+    if not host or "/" in host:
         return None
     try:
         port = int(proxy.port)
@@ -411,7 +412,8 @@ def build_wireguard_config(proxy: Proxy) -> Optional[str]:
         return None
 
     allowed_ips = details.get("allowed_ips") or "0.0.0.0/0, ::/0"
-    endpoint = f"{proxy.address}:{proxy.port}"
+    endpoint_host = f"[{host}]" if ":" in host and not host.startswith("[") else host
+    endpoint = f"{endpoint_host}:{port}"
     keepalive = details.get("persistent_keepalive") or details.get("keepalive")
     dns = details.get("dns")
 

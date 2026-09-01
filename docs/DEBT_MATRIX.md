@@ -259,13 +259,13 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 - L121 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `src/configstream/converters/clash.py`
-- L190 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L194 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `src/configstream/converters/common.py`
 - L130 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `src/configstream/converters/singbox.py`
-- L255 [`LARGE_FUNCTION`] **P1 - High**: `Function to_singbox_outbound spans 559 lines (threshold: 300).`
+- L255 [`LARGE_FUNCTION`] **P1 - High**: `Function to_singbox_outbound spans 556 lines (threshold: 300).`
 - L617 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `src/configstream/dns_batch_resolver.py`
