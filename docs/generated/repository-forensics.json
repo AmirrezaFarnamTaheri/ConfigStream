@@ -23,7 +23,7 @@
   "unavailable_claims": {
     "branch_protection": "requires authenticated GitHub repository metadata",
     "code_ownership": "requires original authorship history",
-    "deleted_secret_history": "requires a full upstream Git clone and history scanner",
+    "deleted_secrets_history": "requires a full upstream Git clone and history scanner",
     "github_project_state": "requires trusted ProjectV2 binding and authenticated metadata",
     "remote_ci_head": "requires a pushed commit and exact-head GitHub Actions results",
     "upstream_commit_history": "not present in the supplied archive"
