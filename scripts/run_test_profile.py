@@ -84,7 +84,8 @@ def _frontend_browser_commands(
         pytest_command.append(f"--browser-channel={browser_channel}")
     pytest_command.append("tests/e2e/test_frontend.py")
     return [
-        (pytest_command, pytest_environment),        ([npm, "run", "test:frontend:no-network"], None),
+        (pytest_command, pytest_environment),
+        ([npm, "run", "test:frontend:no-network"], None),
         ([npm, "run", "test:frontend:degraded"], None),
     ]
 

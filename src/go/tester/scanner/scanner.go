@@ -7,6 +7,7 @@ import (
 	"log"
 	mrand "math/rand"
 	"net"
+	"strconv"
 	"sync"
 	"time"
 
@@ -201,7 +202,9 @@ func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resu
 				latency := recvTime.Sub(startTime).Milliseconds()
 
 				port := 2408
-				fmt.Sscanf(portStr, "%d", &port)
+				if p, err := strconv.Atoi(portStr); err == nil {
+					port = p
+				}
 
 				// Avoid deadlock if results consumer is slow/unbuffered, but don't silently lose all results.
 				select {
