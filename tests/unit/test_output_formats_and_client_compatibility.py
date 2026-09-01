@@ -26,7 +26,6 @@ def sample_proxies() -> list[Proxy]:
     """Provide a diverse set of valid proxies across supported protocols."""
     return [
         Proxy(
-            id="p-vless-1",
             config="vless://11111111-2222-3333-4444-555555555555@104.21.45.10:443?type=tcp&security=tls#US-VLESS-Fast",
             protocol="vless",
             address="104.21.45.10",
@@ -43,7 +42,6 @@ def sample_proxies() -> list[Proxy]:
             },
         ),
         Proxy(
-            id="p-vmess-1",
             config="vmess://eyJhZGQiOiIxMDQuMjEuNDUuMTEiLCJwb3J0Ijo4NDQzLCJpZCI6IjIyMjIyMjIyLTMzMzMtNDQ0NC01NTU1LTY2NjY2NjY2NjY2NiIsIm5ldCI6IndzIiwicHMiOiJERS1WTWVzcy1XUyJ9",
             protocol="vmess",
             address="104.21.45.11",
@@ -61,7 +59,6 @@ def sample_proxies() -> list[Proxy]:
             },
         ),
         Proxy(
-            id="p-trojan-1",
             config="trojan://secret-trojan-pw@104.21.45.12:443?security=tls&sni=jp.example.com#JP-Trojan-TLS",
             protocol="trojan",
             address="104.21.45.12",
@@ -77,7 +74,6 @@ def sample_proxies() -> list[Proxy]:
             },
         ),
         Proxy(
-            id="p-ss-1",
             config="ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpjaGFjaGEtcGFzc3dvcmQ=@104.21.45.13:8388#FR-SS-AEAD",
             protocol="shadowsocks",
             address="104.21.45.13",
@@ -92,7 +88,6 @@ def sample_proxies() -> list[Proxy]:
             },
         ),
         Proxy(
-            id="p-hy2-1",
             config="hysteria2://hy2-token@104.21.45.14:443/?sni=gb.example.com#GB-Hysteria2",
             protocol="hysteria2",
             address="104.21.45.14",
@@ -108,7 +103,6 @@ def sample_proxies() -> list[Proxy]:
             },
         ),
         Proxy(
-            id="p-wg-1",
             config="wireguard://104.21.45.15:51820?publickey=QkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkI=&reserved=0,0,0#SG-WireGuard",
             protocol="wireguard",
             address="104.21.45.15",
