@@ -318,15 +318,9 @@ def extract_config_lines(
             return [], {"size_limit_exceeded": 1}
 
     else:
-        # Attempt Base64 decode for subscriptions
-        decoded = safe_b64_decode(payload_str)
-        if decoded is None:
-            decoded = payload_str
-
-        if decoded != payload_str:
-            lines = decoded.splitlines()
-        else:
-            lines = payload_str.splitlines()
+        # Attempt Base64 decode for subscriptions only if not already raw URI list
+        decoded = safe_b64_decode(payload_str) if "://" not in payload_str else None
+        lines = (decoded if decoded is not None else payload_str).splitlines()
 
     if max_lines > 0 and len(lines) > max_lines:
         original_count = len(lines)

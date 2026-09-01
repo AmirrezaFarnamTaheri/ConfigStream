@@ -107,6 +107,7 @@ def run_profile(profile: str) -> int:
                     "tests/e2e/test_failure_scenarios.py",
                     "tests/e2e/test_mixed_protocols.py",
                     "tests/e2e/test_pipeline_real.py",
+                    "tests/e2e/test_pipeline_shards_light.py",
                 ],
                 {"ENVIRONMENT": "test"},
             )
