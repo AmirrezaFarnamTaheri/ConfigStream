@@ -50,7 +50,9 @@ def _sample_configs() -> List[str]:
         "tls": "tls",
         "sni": "vmess.example.com",
     }
-    vmess_b64_1 = base64.b64encode(json.dumps(vmess_payload_1).encode("utf-8")).decode("utf-8")
+    vmess_b64_1 = base64.b64encode(json.dumps(vmess_payload_1).encode("utf-8")).decode(
+        "utf-8"
+    )
 
     vmess_payload_2 = {
         "v": "2",
@@ -67,7 +69,9 @@ def _sample_configs() -> List[str]:
         "tls": "tls",
         "sni": "vmess2.example.com",
     }
-    vmess_b64_2 = base64.b64encode(json.dumps(vmess_payload_2).encode("utf-8")).decode("utf-8")
+    vmess_b64_2 = base64.b64encode(json.dumps(vmess_payload_2).encode("utf-8")).decode(
+        "utf-8"
+    )
 
     return [
         # VLESS Reality
@@ -141,12 +145,32 @@ def _setup_hermetic_mocks(monkeypatch: pytest.MonkeyPatch) -> None:
     async def fake_lookup(self: Any, ip: str) -> GeoData:
         ip_str = str(ip)
         if "1.1.1.1" in ip_str:
-            return GeoData(country_code="US", country_name="United States", city="Los Angeles", asn="AS13335")
+            return GeoData(
+                country_code="US",
+                country_name="United States",
+                city="Los Angeles",
+                asn="AS13335",
+            )
         if "2.2.2.2" in ip_str:
-            return GeoData(country_code="DE", country_name="Germany", city="Frankfurt", asn="AS24940")
+            return GeoData(
+                country_code="DE",
+                country_name="Germany",
+                city="Frankfurt",
+                asn="AS24940",
+            )
         if "3.3.3.3" in ip_str:
-            return GeoData(country_code="SG", country_name="Singapore", city="Singapore", asn="AS45102")
-        return GeoData(country_code="NL", country_name="Netherlands", city="Amsterdam", asn="AS1103")
+            return GeoData(
+                country_code="SG",
+                country_name="Singapore",
+                city="Singapore",
+                asn="AS45102",
+            )
+        return GeoData(
+            country_code="NL",
+            country_name="Netherlands",
+            city="Amsterdam",
+            asn="AS1103",
+        )
 
     async def fake_update() -> None:
         return None
@@ -156,7 +180,10 @@ def _setup_hermetic_mocks(monkeypatch: pytest.MonkeyPatch) -> None:
 
     monkeypatch.setattr("configstream.geoip.GeoIPResolver.lookup", fake_lookup)
     monkeypatch.setattr("configstream.pipeline.DEFAULT_BLOCKLIST.update", fake_update)
-    monkeypatch.setattr("configstream.intelligence.washer.core.ProxyWasher.fetch_clean_ips", fake_fetch_clean_ips)
+    monkeypatch.setattr(
+        "configstream.intelligence.washer.core.ProxyWasher.fetch_clean_ips",
+        fake_fetch_clean_ips,
+    )
 
 
 @pytest.mark.asyncio
@@ -234,10 +261,17 @@ async def test_light_sharded_pipeline_e2e(tmp_path: Path) -> None:
 
     # Verify multi-protocol diversity in merged output
     protocols_found = {p["protocol"] for p in merged_proxies}
-    expected_protocols = {"vless", "vmess", "trojan", "shadowsocks", "hysteria2", "wireguard"}
-    assert expected_protocols.issubset(protocols_found), (
-        f"Missing expected protocols in merged output: {expected_protocols - protocols_found}"
-    )
+    expected_protocols = {
+        "vless",
+        "vmess",
+        "trojan",
+        "shadowsocks",
+        "hysteria2",
+        "wireguard",
+    }
+    assert expected_protocols.issubset(
+        protocols_found
+    ), f"Missing expected protocols in merged output: {expected_protocols - protocols_found}"
 
     # Verify metadata aggregation
     assert merged_metadata.get("final_count") == len(configs)
@@ -252,7 +286,9 @@ async def test_light_sharded_pipeline_e2e(tmp_path: Path) -> None:
             proxy_validator.validate(proxy)
 
         if PROXY_LIST_SCHEMA_PATH.is_file():
-            proxy_list_schema = json.loads(PROXY_LIST_SCHEMA_PATH.read_text(encoding="utf-8"))
+            proxy_list_schema = json.loads(
+                PROXY_LIST_SCHEMA_PATH.read_text(encoding="utf-8")
+            )
             from referencing import Registry, Resource
 
             resource = Resource.from_contents(proxy_schema)
@@ -262,7 +298,9 @@ async def test_light_sharded_pipeline_e2e(tmp_path: Path) -> None:
                     ("https://configstream.dev/schema/proxy.schema.json", resource),
                 ]
             )
-            validator = jsonschema.Draft202012Validator(proxy_list_schema, registry=registry)
+            validator = jsonschema.Draft202012Validator(
+                proxy_list_schema, registry=registry
+            )
             validator.validate(merged_proxies)
 
     if METADATA_SCHEMA_PATH.is_file():
@@ -276,7 +314,9 @@ async def test_light_sharded_pipeline_e2e(tmp_path: Path) -> None:
         for sub_name in expected_subs:
             sub_path = sub_dir / sub_name
             if sub_path.exists():
-                assert sub_path.stat().st_size > 0, f"Empty subscription file: {sub_name}"
+                assert (
+                    sub_path.stat().st_size > 0
+                ), f"Empty subscription file: {sub_name}"
 
 
 def test_cli_light_pipeline_shard(tmp_path: Path) -> None:
