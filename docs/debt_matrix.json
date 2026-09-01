@@ -592,7 +592,7 @@
     },
     {
       "path": "src/configstream/converters/clash.py",
-      "line": 188,
+      "line": 192,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1176,7 +1176,7 @@
     },
     {
       "path": "src/configstream/parsers/others.py",
-      "line": 274,
+      "line": 332,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1184,7 +1184,7 @@
     },
     {
       "path": "src/configstream/parsers/others.py",
-      "line": 319,
+      "line": 377,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",

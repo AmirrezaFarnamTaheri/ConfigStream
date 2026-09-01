@@ -9,6 +9,7 @@ for pipeline format support.
 import base64
 import logging
 import re
+import uuid as uuid_lib
 
 # pylint: disable=no-member
 from typing import Optional
@@ -16,7 +17,7 @@ from urllib.parse import parse_qs, unquote, urlparse
 from ..models import Proxy
 from .base import normalize_proxy_details
 from ..constants import MAX_CONFIG_LINE_LENGTH
-from ..security_validator import safe_log_text
+from ..security_validator import SecurityValidator, safe_log_text
 
 logger = logging.getLogger(__name__)
 
@@ -115,6 +116,21 @@ def parse_hysteria2(c: str) -> Optional[Proxy]:
 
     if proxy:
         proxy.details.pop("username", None)
+        # Store auth/password credential in password detail field per schema
+        auth_credential = (
+            proxy.uuid
+            or proxy.details.get("password")
+            or proxy.details.pop("auth", None)
+            or ""
+        )
+        if auth_credential:
+            proxy.details["password"] = auth_credential
+        proxy.details.pop("auth", None)
+
+        # Keep non-UUID credentials out of proxy.uuid
+        if not SecurityValidator.is_valid_uuid(proxy.uuid):
+            proxy.uuid = str(uuid_lib.uuid4())
+
         # Normalize parameter aliases
         # Map obfs_password / obfsPassword -> obfs-password
         if "obfs-password" not in proxy.details:
@@ -153,11 +169,11 @@ def parse_hysteria2(c: str) -> Optional[Proxy]:
                 )
                 del proxy.details["ports"]
 
-        if not proxy.uuid:
+        if not auth_credential:
             # Auth is optional in some cases but usually required.
             # If no password, Hysteria2 is only valid if the server allows anonymous access.
             logger.debug(
-                "Hysteria2 config missing password (UUID field) - treating as anonymous auth."
+                "Hysteria2 config missing password - treating as anonymous auth."
             )
 
     return proxy
@@ -205,8 +221,30 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
     proxy.details.pop("username", None)
     proxy.details.pop("password", None)
 
-    # Recover real address if hostname is 'wg' (common in Exclave links)
-    if proxy.address == "wg" and "address" in proxy.details:
+    # Recover real endpoint address if hostname is 'wg' or if endpoint/peer is present
+    if "endpoint" in proxy.details:
+        ep_val = proxy.details.pop("endpoint")
+        if ":" in ep_val:
+            h, p = ep_val.rsplit(":", 1)
+            if p.isdigit():
+                proxy.address = h.strip("[]")
+                proxy.port = int(p)
+            else:
+                proxy.address = ep_val
+        else:
+            proxy.address = ep_val
+    elif "peer" in proxy.details:
+        peer_val = proxy.details.pop("peer")
+        if ":" in peer_val:
+            h, p = peer_val.rsplit(":", 1)
+            if p.isdigit():
+                proxy.address = h.strip("[]")
+                proxy.port = int(p)
+            else:
+                proxy.address = peer_val
+        else:
+            proxy.address = peer_val
+    elif proxy.address == "wg" and "address" in proxy.details:
         addr_val = proxy.details["address"]
         # Handle host:port split
         if ":" in addr_val:
@@ -233,10 +271,26 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
         else:
             proxy.address = addr_val
 
+    # Ensure CIDR data (e.g. 10.0.0.2/32) is moved to local_address and not kept in proxy.address
     if "address" in proxy.details:
         addr_val = proxy.details.pop("address")
         if "/" in addr_val and "local_address" not in proxy.details:
             proxy.details["local_address"] = addr_val
+        elif "/" not in addr_val and proxy.address == "wg":
+            proxy.address = addr_val
+
+    if "/" in proxy.address:
+        if "local_address" not in proxy.details:
+            proxy.details["local_address"] = proxy.address
+        logger.debug(
+            "Dropping WireGuard proxy with CIDR in remote endpoint address: %s",
+            safe_log_text(proxy.address),
+        )
+        return None
+
+    if proxy.address == "wg":
+        logger.debug("Dropping WireGuard proxy missing remote endpoint address")
+        return None
 
     # WireGuard specific: if private_key is not in details, try to use uuid (username)
     if "private_key" not in proxy.details:
@@ -250,6 +304,10 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
             # Enforce private_key check
             logger.debug("Dropping WireGuard proxy missing private_key")
             return None
+
+    # Keep non-UUID private key out of proxy.uuid
+    if not SecurityValidator.is_valid_uuid(proxy.uuid):
+        proxy.uuid = str(uuid_lib.uuid4())
 
     private_key = proxy.details.get("private_key")
     if not private_key:

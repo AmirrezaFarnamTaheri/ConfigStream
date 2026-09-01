@@ -74,7 +74,9 @@ def _convert_vless(proxy: Proxy, common: Dict[str, Any]) -> Dict[str, Any]:
 
 def _convert_hysteria2(proxy: Proxy, common: Dict[str, Any]) -> Dict[str, Any]:
     common["type"] = "hysteria2"
-    common["password"] = proxy.uuid or proxy.details.get("password", "")
+    common["password"] = (
+        proxy.details.get("password", "") or proxy.details.get("auth", "") or proxy.uuid
+    )
     common["tls"] = True
     common["sni"] = proxy.details.get("sni", "")
     common["skip-cert-verify"] = parse_bool(proxy.details.get("allowInsecure", False))

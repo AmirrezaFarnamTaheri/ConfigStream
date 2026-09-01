@@ -194,6 +194,13 @@ async def test_light_sharded_pipeline_e2e(tmp_path: Path) -> None:
     assert len(shards) == 2
     assert all(len(bucket) > 0 for bucket in shards)
 
+    # Assert deterministic partition output and complete source coverage
+    shards_repeat = partition(configs, parts=2)
+    assert shards == shards_repeat
+    flattened = [item for bucket in shards for item in bucket]
+    assert sorted(flattened) == sorted(configs)
+    assert len(flattened) == len(configs)
+
     shard_dirs: list[Path] = []
 
     # 1. Execute Pipeline for each Shard (Shard 1 and Shard 2)
@@ -279,33 +286,34 @@ async def test_light_sharded_pipeline_e2e(tmp_path: Path) -> None:
     assert merged_metadata.get("parsed", 0) >= len(configs)
 
     # 4. JSON Schema Validation on Merged Artifacts
-    if PROXY_SCHEMA_PATH.is_file():
-        proxy_schema = json.loads(PROXY_SCHEMA_PATH.read_text(encoding="utf-8"))
-        proxy_validator = jsonschema.Draft202012Validator(proxy_schema)
-        for proxy in merged_proxies:
-            proxy_validator.validate(proxy)
+    assert PROXY_SCHEMA_PATH.is_file(), f"Missing proxy schema: {PROXY_SCHEMA_PATH}"
+    assert (
+        PROXY_LIST_SCHEMA_PATH.is_file()
+    ), f"Missing proxy list schema: {PROXY_LIST_SCHEMA_PATH}"
+    assert (
+        METADATA_SCHEMA_PATH.is_file()
+    ), f"Missing metadata schema: {METADATA_SCHEMA_PATH}"
 
-        if PROXY_LIST_SCHEMA_PATH.is_file():
-            proxy_list_schema = json.loads(
-                PROXY_LIST_SCHEMA_PATH.read_text(encoding="utf-8")
-            )
-            from referencing import Registry, Resource
+    proxy_schema = json.loads(PROXY_SCHEMA_PATH.read_text(encoding="utf-8"))
+    proxy_validator = jsonschema.Draft202012Validator(proxy_schema)
+    for proxy in merged_proxies:
+        proxy_validator.validate(proxy)
 
-            resource = Resource.from_contents(proxy_schema)
-            registry = Registry().with_resources(
-                [
-                    ("proxy.schema.json", resource),
-                    ("https://configstream.dev/schema/proxy.schema.json", resource),
-                ]
-            )
-            validator = jsonschema.Draft202012Validator(
-                proxy_list_schema, registry=registry
-            )
-            validator.validate(merged_proxies)
+    proxy_list_schema = json.loads(PROXY_LIST_SCHEMA_PATH.read_text(encoding="utf-8"))
+    from referencing import Registry, Resource
 
-    if METADATA_SCHEMA_PATH.is_file():
-        metadata_schema = json.loads(METADATA_SCHEMA_PATH.read_text(encoding="utf-8"))
-        jsonschema.Draft202012Validator(metadata_schema).validate(merged_metadata)
+    resource = Resource.from_contents(proxy_schema)
+    registry = Registry().with_resources(
+        [
+            ("proxy.schema.json", resource),
+            ("https://configstream.dev/schema/proxy.schema.json", resource),
+        ]
+    )
+    validator = jsonschema.Draft202012Validator(proxy_list_schema, registry=registry)
+    validator.validate(merged_proxies)
+
+    metadata_schema = json.loads(METADATA_SCHEMA_PATH.read_text(encoding="utf-8"))
+    jsonschema.Draft202012Validator(metadata_schema).validate(merged_metadata)
 
     # 5. Verify Generated Subscriptions and Output Formats
     sub_dir = merged_output / "sub"
@@ -323,7 +331,7 @@ def test_cli_light_pipeline_shard(tmp_path: Path) -> None:
     """Verify that the CLI entrypoint can execute a light single-shard pipeline run."""
     source_file = tmp_path / "cli_sources.txt"
     source_file.write_text(
-        "vless://11111111-1111-1111-1111-111111111111@1.1.1.1:443"
+        "vless://11111111-1111-4111-8111-111111111111@1.1.1.1:443"
         "?security=reality&encryption=none&pbk=pubkey123&sid=1234abcd"
         "&fp=chrome&type=tcp&sni=vless.example.com#CLI-Node\n",
         encoding="utf-8",
@@ -343,5 +351,14 @@ def test_cli_light_pipeline_shard(tmp_path: Path) -> None:
         ],
     )
     assert result.exit_code == 0, f"CLI invocation failed:\n{result.output}"
-    assert (output_dir / "proxies.json").exists()
-    assert (output_dir / "metadata.json").exists()
+    proxies_file = output_dir / "proxies.json"
+    metadata_file = output_dir / "metadata.json"
+    assert proxies_file.exists()
+    assert metadata_file.exists()
+
+    cli_proxies = json.loads(proxies_file.read_text(encoding="utf-8"))
+    assert isinstance(cli_proxies, list)
+    assert len(cli_proxies) == 1
+    assert cli_proxies[0]["protocol"] == "vless"
+    assert cli_proxies[0]["address"] == "1.1.1.1"
+    assert cli_proxies[0]["port"] == 443
