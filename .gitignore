@@ -69,3 +69,5 @@ scratch_*.py
 # Agent execution state (local, never shipped)
 /.absolute-work/
 /.absolute.config.json
+/.serena/
+/.gortex/

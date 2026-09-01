@@ -114,6 +114,7 @@ def parse_hysteria2(c: str) -> Optional[Proxy]:
             proxy.protocol = "hysteria2"  # Normalize protocol
 
     if proxy:
+        proxy.details.pop("username", None)
         # Normalize parameter aliases
         # Map obfs_password / obfsPassword -> obfs-password
         if "obfs-password" not in proxy.details:
@@ -201,6 +202,9 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
     if not proxy:
         return None
 
+    proxy.details.pop("username", None)
+    proxy.details.pop("password", None)
+
     # Recover real address if hostname is 'wg' (common in Exclave links)
     if proxy.address == "wg" and "address" in proxy.details:
         addr_val = proxy.details["address"]
@@ -228,6 +232,11 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
                     proxy.address = addr_val
         else:
             proxy.address = addr_val
+
+    if "address" in proxy.details:
+        addr_val = proxy.details.pop("address")
+        if "/" in addr_val and "local_address" not in proxy.details:
+            proxy.details["local_address"] = addr_val
 
     # WireGuard specific: if private_key is not in details, try to use uuid (username)
     if "private_key" not in proxy.details:

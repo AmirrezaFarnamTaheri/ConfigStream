@@ -1132,7 +1132,7 @@
       "marker": "LARGE_FUNCTION",
       "category": "production",
       "priority": "P1 - High",
-      "text": "Function extract_config_lines spans 398 lines (threshold: 300)."
+      "text": "Function extract_config_lines spans 392 lines (threshold: 300)."
     },
     {
       "path": "src/configstream/parsers/extraction.py",
@@ -1176,7 +1176,7 @@
     },
     {
       "path": "src/configstream/parsers/others.py",
-      "line": 265,
+      "line": 274,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1184,7 +1184,7 @@
     },
     {
       "path": "src/configstream/parsers/others.py",
-      "line": 310,
+      "line": 319,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
