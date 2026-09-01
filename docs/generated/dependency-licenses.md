@@ -155,7 +155,7 @@ Unknown licenses requiring external resolution: **151**
 | python | `filelock` | `3.29.4` | required | unknown |
 | python | `frozenlist` | `1.8.0` | required | unknown |
 | python | `geographiclib` | `2.1` | required | unknown |
-| python | `geoip2` | `5.2.0` | required | unknown |
+| python | `geoip2` | `5.3.0` | required | unknown |
 | python | `geopy` | `2.4.1` | required | unknown |
 | python | `h11` | `0.16.0` | required | unknown |
 | python | `h2` | `4.4.1` | required | unknown |
