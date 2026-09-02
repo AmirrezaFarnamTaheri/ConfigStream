@@ -78,3 +78,11 @@ def test_home_page_does_not_claim_auto_updating_before_verification() -> None:
     assert "Release data is unavailable until" in html
     assert "let sourceCount = null" in main
     assert "artifact verification succeeds" in main.lower()
+
+
+def test_dynamic_download_icons_do_not_use_unsafe_global_feather_replacement() -> None:
+    dynamic_downloads = (ROOT / "frontend/assets/js/dynamic-downloads.js").read_text(
+        encoding="utf-8"
+    )
+    assert "window.inlineIcons.replace()" in dynamic_downloads
+    assert "feather.replace()" not in dynamic_downloads
