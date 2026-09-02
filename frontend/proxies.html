@@ -93,7 +93,7 @@
                 <!-- Modern Language Dropdown -->
                 <div class="lang-dropdown">
                     <button class="lang-btn" aria-label="Select Language">
-                        <i data-feather="globe"></i> <span id="current-lang-label"></span>
+                        <i data-feather="globe" aria-hidden="true"></i> <span id="current-lang-label"></span>
                     </button>
                     <div class="lang-menu" id="lang-menu">
                         <button class="lang-select-btn" data-lang="en">English</button>
@@ -106,16 +106,16 @@
 
                 <button id="theme-switcher" class="theme-btn" aria-label="Toggle theme">
                     <div class="theme-btn-inner">
-                        <i data-feather="moon" class="moon-icon"></i>
-                        <i data-feather="sun" class="sun-icon"></i>
+                        <i data-feather="moon" class="moon-icon" aria-hidden="true"></i>
+                        <i data-feather="sun" class="sun-icon" aria-hidden="true"></i>
                     </div>
                 </button>
                 <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream" class="github-btn" target="_blank" rel="noopener noreferrer" aria-label="View on GitHub">
-                    <i data-feather="github"></i>
+                    <i data-feather="github" aria-hidden="true"></i>
                 </a>
                 <button class="mobile-nav-toggle" id="mobile-nav-toggle" aria-label="Open navigation menu" aria-expanded="false" aria-controls="main-nav">
-                    <i data-feather="menu" class="menu-icon"></i>
-                    <i data-feather="x" class="close-icon"></i>
+                    <i data-feather="menu" class="menu-icon" aria-hidden="true"></i>
+                    <i data-feather="x" class="close-icon" aria-hidden="true"></i>
                 </button>
             </div>
         </div>
@@ -132,7 +132,7 @@
                 <!-- Modern BYOW Panel -->
                 <div class="byow-panel">
                     <div class="byow-header">
-                        <h3 data-i18n="byow.title">🚀 Turbo Mode (BYOW)</h3>
+                        <h3 data-i18n="byow.title"><i data-feather="zap" aria-hidden="true"></i> Turbo Mode (BYOW)</h3>
                         <p class="hint" data-i18n="byow.hint">Deploy your own worker for private speeds.</p>
                     </div>
                     <div class="byow-actions">
@@ -149,7 +149,7 @@
                     <!-- Search Input (Natural Language) -->
                     <div class="filter-bar" style="margin-bottom: 1rem;">
                         <div class="filter-input-wrapper" style="width: 100%;">
-                            <i data-feather="search" class="filter-icon"></i>
+                            <i data-feather="search" class="filter-icon" aria-hidden="true"></i>
                             <input type="text" id="searchInput" data-i18n="filters.search" placeholder="e.g., fastest US vmess, or Germany < 100ms" aria-label="Search proxies">
                         </div>
                     </div>
@@ -157,24 +157,24 @@
                     <div class="filter-bar">
                         <div class="filter-group">
                             <div class="filter-input-wrapper">
-                                <i data-feather="list" class="filter-icon"></i>
+                                <i data-feather="list" class="filter-icon" aria-hidden="true"></i>
                                 <select id="filterProtocol" aria-label="Filter by protocol">
                                     <option value="" data-i18n="filters.protocol">All Protocols</option>
                                 </select>
                             </div>
                             <div class="filter-input-wrapper">
-                                <i data-feather="map-pin" class="filter-icon"></i>
+                                <i data-feather="map-pin" class="filter-icon" aria-hidden="true"></i>
                                 <span class="country-flag-display" id="countryFlagDisplay">
-                                    <i data-feather="globe" class="country-flag-icon-small"></i>
+                                    <i data-feather="globe" class="country-flag-icon-small" aria-hidden="true"></i>
                                 </span>
                                 <select id="filterCountry" aria-label="Filter by country">
                                     <option value="" data-i18n="filters.country">All Countries</option>
                                 </select>
                             </div>
                             <div class="filter-input-wrapper">
-                                <i data-feather="navigation" class="filter-icon"></i>
+                                <i data-feather="navigation" class="filter-icon" aria-hidden="true"></i>
                                 <span class="city-flag-display" id="cityFlagDisplay">
-                                    <i data-feather="globe" class="country-flag-icon-small"></i>
+                                    <i data-feather="globe" class="country-flag-icon-small" aria-hidden="true"></i>
                                 </span>
                                 <select id="filterCity" aria-label="Filter by city">
                                     <option value="" data-i18n="filters.city">All Cities</option>
@@ -183,40 +183,40 @@
                         </div>
                         <div class="filter-group">
                             <div class="filter-input-wrapper latency-wrapper">
-                                <i data-feather="activity" class="filter-icon"></i>
+                                <i data-feather="activity" class="filter-icon" aria-hidden="true"></i>
                                 <input type="number" id="filterLatencyMin" placeholder="Min" aria-label="Minimum latency">
                                 <span>-</span>
                                 <input type="number" id="filterLatencyMax" placeholder="Max" aria-label="Maximum latency">
                             </div>
                             <button id="clearFilters" class="btn btn-secondary btn-icon" aria-label="Clear all filters">
-                                <i data-feather="x"></i>
+                                <i data-feather="x" aria-hidden="true"></i>
                             </button>
                         </div>
                     </div>
                     <div class="actions-bar">
                         <div class="action-group">
                             <button id="copyAll" class="btn btn-secondary">
-                                <i data-feather="copy"></i>
+                                <i data-feather="copy" aria-hidden="true"></i>
                                 <span data-i18n="filters.copy_all">Copy All</span>
                             </button>
                             <button id="copyFiltered" class="btn btn-secondary">
-                                <i data-feather="copy"></i>
+                                <i data-feather="copy" aria-hidden="true"></i>
                                 <span data-i18n="filters.copy_filtered">Copy Filtered</span>
                             </button>
                             <button id="downloadFiltered" class="btn btn-primary">
-                                <i data-feather="download"></i>
+                                <i data-feather="download" aria-hidden="true"></i>
                                 <span data-i18n="filters.download_filtered">Download Filtered</span>
                             </button>
                         </div>
                         <div class="pagination-info">
-                            <span id="filterCount" role="status" aria-live="polite">Loading...</span>
+                            <span id="filterCount" role="status" aria-live="polite" class="tabular-nums">Loading...</span>
                             <div class="page-size-wrapper">
                                 <select id="pageSize" aria-label="Proxies per page">
                                     <option value="25">25/page</option>
                                     <option value="50" selected>50/page</option>
                                     <option value="100">100/page</option>
                                 </select>
-                                <i data-feather="chevron-down"></i>
+                                <i data-feather="chevron-down" aria-hidden="true"></i>
                             </div>
                         </div>
                     </div>
@@ -231,7 +231,7 @@
                     </div>
                     <div id="emptyState" class="empty-state hidden">
                         <div class="empty-state-icon">
-                            <i data-feather="frown"></i>
+                            <i data-feather="frown" aria-hidden="true"></i>
                         </div>
                         <h3 data-i18n="filters.empty_title">No Matches Found</h3>
                         <p data-i18n="filters.empty_text">Your search for proxies didn't return any results. Please try adjusting your filters.</p>
@@ -259,11 +259,11 @@
     <footer class="footer">
         <div class="container">
             <div class="social-links">
-                <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream" target="_blank" rel="noopener noreferrer" aria-label="Visit our GitHub page"><i data-feather="github"></i></a>
-                <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream/issues" target="_blank" rel="noopener noreferrer" aria-label="Report an issue"><i data-feather="alert-circle"></i></a>
+                <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream" target="_blank" rel="noopener noreferrer" aria-label="Visit our GitHub page"><i data-feather="github" aria-hidden="true"></i></a>
+                <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream/issues" target="_blank" rel="noopener noreferrer" aria-label="Report an issue"><i data-feather="alert-circle" aria-hidden="true"></i></a>
             </div>
-            <p data-i18n="footer.love">A passion project for a free and open internet. ✨</p>
-            <p class="last-updated">Last updated: <span id="footerUpdate" class="loading">checking...</span></p>
+            <p data-i18n="footer.love">A passion project for a free and open internet.</p>
+            <p class="last-updated">Last updated: <span id="footerUpdate" class="loading tabular-nums">checking...</span></p>
         </div>
     </footer>
 

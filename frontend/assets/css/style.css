@@ -35,6 +35,10 @@
     --radius-xl: 40px;
     --radius-full: 9999px;
 
+    /* WCAG 2.2 AA Touch Target Tokens */
+    --touch-target-desktop: 24px;
+    --touch-target-min: 44px;
+
     /* Transitions */
     --transition-fast: 400ms cubic-bezier(0.65, 0, 0.35, 1);
     --transition-base: 800ms cubic-bezier(0.65, 0, 0.35, 1);
@@ -167,6 +171,62 @@ textarea:focus-visible,
 [tabindex]:focus-visible {
     outline: 2px solid var(--border-focus) !important;
     outline-offset: 2px !important;
+}
+
+/* Tabular Numerics for Telemetry, Latency, Port, IP, and Metric Counters (WCAG / Data Alignment) */
+.tabular-nums,
+.ping-badge,
+.port-cell,
+.counter-value,
+.stat-value,
+.stat-item .stat-value,
+.stat-item-compact .stat-value,
+.telemetry-counter,
+.health-score-value,
+.proxies-table td[data-label="Latency"],
+.proxies-table .latency-cell,
+.proxies-table .port-cell,
+.proxies-table .ping-badge,
+.latency-wrapper input,
+#filterCount,
+.pagination-info {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+}
+
+/* WCAG 2.2 SC 2.5.8 Minimum Touch Targets (Desktop: >=24x24px, Coarse/Touch: >=44x44px) */
+.btn,
+.mode-tab,
+.copy-btn,
+.client-select,
+.pagination-btn,
+.sort-button,
+.theme-btn,
+.github-btn,
+.mobile-nav-toggle,
+.lang-btn,
+.lang-select-btn {
+    min-width: var(--touch-target-desktop, 24px);
+    min-height: var(--touch-target-desktop, 24px);
+}
+
+@media (pointer: coarse), (max-width: 768px) {
+    .btn,
+    .mode-tab,
+    .copy-btn,
+    .client-select,
+    .pagination-btn,
+    .theme-btn,
+    .github-btn,
+    .mobile-nav-toggle,
+    .lang-btn,
+    .lang-select-btn,
+    .filter-input-wrapper select,
+    .filter-input-wrapper input,
+    .page-size-wrapper select {
+        min-width: var(--touch-target-min, 44px);
+        min-height: var(--touch-target-min, 44px);
+    }
 }
 
 body {
@@ -3077,7 +3137,11 @@ body.dark #preloader {
     transition: all var(--transition-fast);
     font-size: 0.9rem;
     font-weight: 500;
-    min-width: 40px;
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     text-align: center;
     flex-shrink: 0;
     position: relative;
@@ -3085,7 +3149,8 @@ body.dark #preloader {
 
 @media (max-width: 768px) {
     .pagination-btn {
-        min-width: 36px;
+        min-width: 44px;
+        min-height: 44px;
         padding: calc(var(--space-unit) * 0.75) calc(var(--space-unit) * 1.5);
         font-size: 0.85rem;
     }
@@ -3500,8 +3565,8 @@ body.dark #preloader {
 
     /* Improved mobile copy button */
     .copy-btn {
-        min-width: 40px;
-        min-height: 40px;
+        min-width: 44px;
+        min-height: 44px;
         padding: calc(var(--space-unit) * 1) calc(var(--space-unit) * 1.25);
     }
 
@@ -3542,7 +3607,7 @@ body.dark #preloader {
 @media (max-width: 768px) {
     /* Prevent all forms of horizontal scrolling */
     select, input, textarea, button {
-        min-height: 36px !important;
+        min-height: 44px !important;
         font-size: 16px !important; /* Prevent iOS zoom */
         max-width: 100%;
     }
@@ -3551,7 +3616,7 @@ body.dark #preloader {
     .filter-input-group select,
     .filter-input-group input {
         width: 100% !important;
-        min-height: 32px !important;
+        min-height: 44px !important;
         padding-top: 4px !important;
         padding-bottom: 4px !important;
     }
@@ -3564,8 +3629,8 @@ body.dark #preloader {
 
     /* Improve copy buttons on mobile */
     .copy-btn {
-        min-width: 40px;
-        min-height: 40px;
+        min-width: 44px;
+        min-height: 44px;
         padding: calc(var(--space-unit) * 1);
     }
 
@@ -4767,6 +4832,8 @@ body.dark #globe-viz {
 
 .client-select {
     text-align: center;
+    min-height: var(--touch-target-desktop, 24px);
+    min-width: var(--touch-target-desktop, 24px);
     padding: 0.5rem 1rem;
     border-radius: var(--radius-sm);
     border: 1px solid var(--border);

@@ -95,7 +95,7 @@
                 <!-- Modern Language Dropdown -->
                 <div class="lang-dropdown">
                     <button class="lang-btn" aria-label="Select Language">
-                        <i data-feather="globe"></i> <span id="current-lang-label"></span>
+                        <i data-feather="globe" aria-hidden="true"></i> <span id="current-lang-label"></span>
                     </button>
                     <div class="lang-menu" id="lang-menu">
                         <button class="lang-select-btn" data-lang="en">English</button>
@@ -108,16 +108,16 @@
 
                 <button id="theme-switcher" class="theme-btn" aria-label="Toggle theme">
                     <div class="theme-btn-inner">
-                        <i data-feather="moon" class="moon-icon"></i>
-                        <i data-feather="sun" class="sun-icon"></i>
+                        <i data-feather="moon" class="moon-icon" aria-hidden="true"></i>
+                        <i data-feather="sun" class="sun-icon" aria-hidden="true"></i>
                     </div>
                 </button>
                 <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream" class="github-btn" target="_blank" rel="noopener noreferrer" aria-label="View on GitHub">
-                    <i data-feather="github"></i>
+                    <i data-feather="github" aria-hidden="true"></i>
                 </a>
                 <button class="mobile-nav-toggle" id="mobile-nav-toggle" aria-label="Open navigation menu" aria-expanded="false" aria-controls="main-nav">
-                    <i data-feather="menu" class="menu-icon"></i>
-                    <i data-feather="x" class="close-icon"></i>
+                    <i data-feather="menu" class="menu-icon" aria-hidden="true"></i>
+                    <i data-feather="x" class="close-icon" aria-hidden="true"></i>
                 </button>
             </div>
         </div>
@@ -134,11 +134,11 @@
                 </p>
                 <div class="hero-actions" style="--delay: 0.3s;">
                     <a href="proxies.html" class="btn btn-primary">
-                        <i data-feather="zap"></i>
+                        <i data-feather="zap" aria-hidden="true"></i>
                         <span data-i18n="hero.browse">Browse Proxies</span>
                     </a>
                     <a href="#downloads" class="btn btn-secondary">
-                        <i data-feather="download"></i>
+                        <i data-feather="download" aria-hidden="true"></i>
                         <span data-i18n="hero.get">Get Configs</span>
                     </a>
                 </div>
@@ -147,7 +147,7 @@
             <!-- Data Freshness Indicator -->
             <div id="freshnessIndicator" class="freshness-indicator" style="--delay: 0.3s;" role="status" aria-live="polite">
                 <span class="freshness-dot" id="freshnessDot"></span>
-                <span class="freshness-text" id="freshnessText">Checking data freshness...</span>
+                <span class="freshness-text tabular-nums" id="freshnessText">Checking data freshness...</span>
             </div>
 
             <!-- Unified Stats Card — hero row + compact row -->
@@ -155,30 +155,30 @@
                 <!-- Row 1: 4 primary hero metrics -->
                 <div class="stats-row stats-row-primary">
                     <div class="stat-item">
-                        <div class="stat-icon"><i data-feather="download-cloud"></i></div>
+                        <div class="stat-icon"><i data-feather="download-cloud" aria-hidden="true"></i></div>
                         <div class="stat-value-wrapper">
-                            <div id="totalSourced" class="stat-value loading">0</div>
+                            <div id="totalSourced" class="stat-value tabular-nums loading">0</div>
                             <div class="stat-label" data-i18n="stats.sourced">Total Sourced</div>
                         </div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-icon"><i data-feather="check-circle"></i></div>
+                        <div class="stat-icon"><i data-feather="check-circle" aria-hidden="true"></i></div>
                         <div class="stat-value-wrapper">
-                            <div id="totalConfigs" class="stat-value loading">0</div>
+                            <div id="totalConfigs" class="stat-value tabular-nums loading">0</div>
                             <div class="stat-label" data-i18n="stats.unique">Unique Candidates</div>
                         </div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-icon" style="background: var(--success-color);"><i data-feather="zap"></i></div>
+                        <div class="stat-icon" style="background: var(--success-color);"><i data-feather="zap" aria-hidden="true"></i></div>
                         <div class="stat-value-wrapper">
-                            <div id="workingConfigs" class="stat-value loading">0</div>
+                            <div id="workingConfigs" class="stat-value tabular-nums loading">0</div>
                             <div class="stat-label" data-i18n="stats.online">Retested Working</div>
                         </div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-icon" style="background: var(--brand-secondary);"><i data-feather="clock"></i></div>
+                        <div class="stat-icon" style="background: var(--brand-secondary);"><i data-feather="clock" aria-hidden="true"></i></div>
                         <div class="stat-value-wrapper">
-                            <div id="updateFrequency" class="stat-value">...</div>
+                            <div id="updateFrequency" class="stat-value tabular-nums">...</div>
                             <div class="stat-label" data-i18n="stats.update">Update Cycle</div>
                         </div>
                     </div>
@@ -188,65 +188,65 @@
                 <!-- Row 2: compact secondary metrics — single row -->
                 <div class="stats-row stats-row-compact">
                     <div class="stat-item-compact">
-                        <div class="stat-icon-sm" style="background: var(--brand-tertiary);"><i data-feather="refresh-cw"></i></div>
+                        <div class="stat-icon-sm" style="background: var(--brand-tertiary);"><i data-feather="refresh-cw" aria-hidden="true"></i></div>
                         <div class="stat-value-wrapper">
-                            <div id="totalRevived" class="stat-value">0</div>
+                            <div id="totalRevived" class="stat-value tabular-nums">0</div>
                             <div class="stat-label">Revived</div>
                         </div>
                     </div>
                     <div class="stat-item-compact">
-                        <div class="stat-icon-sm" style="background: var(--brand-tertiary);"><i data-feather="repeat"></i></div>
+                        <div class="stat-icon-sm" style="background: var(--brand-tertiary);"><i data-feather="repeat" aria-hidden="true"></i></div>
                         <div class="stat-value-wrapper">
-                            <div id="revivedWarp" class="stat-value">0</div>
+                            <div id="revivedWarp" class="stat-value tabular-nums">0</div>
                             <div class="stat-label">WARP</div>
                         </div>
                     </div>
                     <div class="stat-item-compact">
-                        <div class="stat-icon-sm" style="background: var(--brand-tertiary);"><i data-feather="shuffle"></i></div>
+                        <div class="stat-icon-sm" style="background: var(--brand-tertiary);"><i data-feather="shuffle" aria-hidden="true"></i></div>
                         <div class="stat-value-wrapper">
-                            <div id="revivedVwarp" class="stat-value">0</div>
+                            <div id="revivedVwarp" class="stat-value tabular-nums">0</div>
                             <div class="stat-label">VWARP</div>
                         </div>
                     </div>
                     <div class="stat-item-compact">
-                        <div class="stat-icon-sm" style="background: #ffd700;"><i data-feather="shield"></i></div>
+                        <div class="stat-icon-sm" style="background: #ffd700;"><i data-feather="shield" aria-hidden="true"></i></div>
                         <div class="stat-value-wrapper">
-                            <div id="shieldedCount" class="stat-value">0</div>
+                            <div id="shieldedCount" class="stat-value tabular-nums">0</div>
                             <div class="stat-label">Shielded Candidates</div>
                         </div>
                     </div>
                     <div class="stat-item-compact">
-                        <div class="stat-icon-sm" style="background: var(--brand-primary);"><i data-feather="link"></i></div>
+                        <div class="stat-icon-sm" style="background: var(--brand-primary);"><i data-feather="link" aria-hidden="true"></i></div>
                         <div class="stat-value-wrapper">
-                            <div id="smartChains" class="stat-value">0</div>
+                            <div id="smartChains" class="stat-value tabular-nums">0</div>
                             <div class="stat-label">Chains</div>
                         </div>
                     </div>
                     <div class="stat-item-compact">
-                        <div class="stat-icon-sm" style="background: var(--danger-color);"><i data-feather="alert-triangle"></i></div>
+                        <div class="stat-icon-sm" style="background: var(--danger-color);"><i data-feather="alert-triangle" aria-hidden="true"></i></div>
                         <div class="stat-value-wrapper">
-                            <div id="threatsBlocked" class="stat-value">0</div>
+                            <div id="threatsBlocked" class="stat-value tabular-nums">0</div>
                             <div class="stat-label">Blocked</div>
                         </div>
                     </div>
                     <div class="stat-item-compact">
-                        <div class="stat-icon-sm" style="background: var(--brand-tertiary);"><i data-feather="trending-up"></i></div>
+                        <div class="stat-icon-sm" style="background: var(--brand-tertiary);"><i data-feather="trending-up" aria-hidden="true"></i></div>
                         <div class="stat-value-wrapper">
-                            <div id="vwarpWinRate" class="stat-value">0%</div>
+                            <div id="vwarpWinRate" class="stat-value tabular-nums">0%</div>
                             <div class="stat-label">Vwarp Rate</div>
                         </div>
                     </div>
                     <div class="stat-item-compact">
-                        <div class="stat-icon-sm" style="background: #4a90e2;"><i data-feather="lock"></i></div>
+                        <div class="stat-icon-sm" style="background: #4a90e2;"><i data-feather="lock" aria-hidden="true"></i></div>
                         <div class="stat-value-wrapper">
-                            <div id="evasionUtls" class="stat-value">0</div>
+                            <div id="evasionUtls" class="stat-value tabular-nums">0</div>
                             <div class="stat-label">uTLS</div>
                         </div>
                     </div>
                     <div class="stat-item-compact">
-                        <div class="stat-icon-sm" style="background: #36d299;"><i data-feather="globe"></i></div>
+                        <div class="stat-icon-sm" style="background: #36d299;"><i data-feather="globe" aria-hidden="true"></i></div>
                         <div class="stat-value-wrapper">
-                            <div id="evasionDnsHardened" class="stat-value">0</div>
+                            <div id="evasionDnsHardened" class="stat-value tabular-nums">0</div>
                             <div class="stat-label">DNS-Hardened</div>
                         </div>
                     </div>
@@ -256,14 +256,14 @@
             <!-- Compact Proxy Search & Filter -->
             <section class="proxy-quick-search" style="--delay: 0.4s;">
                 <div class="proxy-search-header">
-                    <h3><i data-feather="search"></i> Quick Proxy Search</h3>
+                    <h3><i data-feather="search" aria-hidden="true"></i> Quick Proxy Search</h3>
                     <a href="proxies.html" class="btn btn-secondary btn-sm">
                         <span>Full Proxy List</span>
-                        <i data-feather="arrow-right"></i>
+                        <i data-feather="arrow-right" aria-hidden="true"></i>
                     </a>
                 </div>
                 <div class="proxy-search-bar">
-                    <i data-feather="search" class="search-icon"></i>
+                    <i data-feather="search" class="search-icon" aria-hidden="true"></i>
                     <input type="text" id="landingSearch" placeholder="Search by protocol, country, city... e.g. vless US" aria-label="Search proxies">
                     <select id="landingProtocol" aria-label="Filter by protocol">
                         <option value="">All Protocols</option>
@@ -282,26 +282,26 @@
                 <!-- Chosen Top Proxies -->
                 <div class="card" style="padding: 1.75rem; border-top: 3px solid var(--brand-primary); text-align: center;">
                     <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-bottom: 0.75rem;">
-                        <i data-feather="award" style="width: 22px; height: 22px; color: var(--brand-primary);"></i>
+                        <i data-feather="award" style="width: 22px; height: 22px; color: var(--brand-primary);" aria-hidden="true"></i>
                         <h3 style="color: var(--brand-primary); margin: 0; font-size: 1.2rem; font-weight: 700;" data-i18n="downloads.chosen.title">Chosen Top Proxies</h3>
                     </div>
                     <p style="margin-bottom: 1rem; line-height: 1.5; color: var(--text-secondary); font-size: 0.9rem;" data-i18n="downloads.chosen.desc">Top 50 proxies per protocol, ranked by lowest latency. Best for most users.</p>
                     <button class="btn btn-primary copy-btn" data-file="chosen/base64.txt" data-dns-file="chosen/base64-dns-safe.txt" data-dns-hardened-file="chosen/base64-dns-hardened.txt" style="font-weight: 600;">
-                        <i data-feather="copy"></i>
+                        <i data-feather="copy" aria-hidden="true"></i>
                         <span data-i18n="downloads.chosen.btn">Copy Subscription</span>
                     </button>
                 </div>
                 <!-- Gold Shielded Connection -->
                 <div class="card" style="padding: 1.75rem; border-top: 3px solid #ffd700; text-align: center;">
                     <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-bottom: 0.75rem;">
-                        <i data-feather="shield" style="width: 22px; height: 22px; color: #ffd700;"></i>
+                        <i data-feather="shield" style="width: 22px; height: 22px; color: #ffd700;" aria-hidden="true"></i>
                         <h3 style="color: #ffd700; margin: 0; font-size: 1.2rem; font-weight: 700;">Gold Connection</h3>
                     </div>
                     <p style="margin-bottom: 0.75rem; line-height: 1.5; color: var(--text-secondary); font-size: 0.9rem;">
                         WARP-shielded candidate chains for severe censorship. Retest in your own network with Sing-box or Nekobox.
                     </p>
                     <button class="btn btn-primary copy-btn" data-file="singbox-chains.json" data-dns-file="chains-dns-safe.json" data-dns-hardened-file="chains-dns-hardened.json" style="background: #ffd700; color: #000; font-weight: 600;">
-                        <i data-feather="copy"></i>
+                        <i data-feather="copy" aria-hidden="true"></i>
                         <span>Copy Gold Subscription</span>
                     </button>
                     <p style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-secondary);">Requires Sing-box / Nekobox. Standard V2RayNG is not compatible.</p>
@@ -316,14 +316,14 @@
                                 <h2 id="downloads-heading" data-i18n="downloads.title">Get Your Configs</h2>
                                 <p class="subtitle" data-i18n="downloads.subtitle">Choose your preferred format. All downloads contain our latest tested proxies.</p>
                             </div>
-                            <i data-feather="chevron-down" class="accordion-icon"></i>
+                            <i data-feather="chevron-down" class="accordion-icon" aria-hidden="true"></i>
                         </button>
                         <div class="accordion-content">
                             <div>
                                 <div class="config-selectors">
                                     <div class="selector-group">
                                         <label for="dns-profile-selector" class="selector-label">
-                                            <i data-feather="globe" class="selector-label-icon"></i>
+                                             <i data-feather="globe" class="selector-label-icon" aria-hidden="true"></i>
                                             <span data-i18n="downloads.dns_profile.label">DNS Profile</span>
                                         </label>
                                         <div class="client-dropdown-wrapper">
@@ -332,12 +332,12 @@
                                                 <option value="dns-safe" data-i18n="downloads.dns_profile.safe">DNS-Safe — IP-only endpoints, no DNS leaks</option>
                                                 <option value="dns-hardened" data-i18n="downloads.dns_profile.hardened">DNS-Hardened — Encrypted resolvers (DoH/DoT/DoQ)</option>
                                             </select>
-                                            <i data-feather="chevron-down" class="dropdown-arrow"></i>
+                                            <i data-feather="chevron-down" class="dropdown-arrow" aria-hidden="true"></i>
                                         </div>
                                     </div>
                                     <div class="selector-group">
                                         <label for="evasion-mode-selector" class="selector-label">
-                                            <i data-feather="shield" class="selector-label-icon"></i>
+                                            <i data-feather="shield" class="selector-label-icon" aria-hidden="true"></i>
                                             <span data-i18n="downloads.evasion_mode.label">Evasion Level</span>
                                         </label>
                                         <div class="client-dropdown-wrapper">
@@ -346,51 +346,51 @@
                                                 <option value="stealth" data-i18n="downloads.evasion_mode.stealth">Stealth — TLS fragmentation + uTLS fingerprint</option>
                                                 <option value="aggressive" data-i18n="downloads.evasion_mode.aggressive">Maximum — All evasion techniques enabled</option>
                                             </select>
-                                            <i data-feather="chevron-down" class="dropdown-arrow"></i>
+                                            <i data-feather="chevron-down" class="dropdown-arrow" aria-hidden="true"></i>
                                         </div>
                                     </div>
                                     <p class="selector-hint" data-i18n="downloads.dns_profile.desc">DNS-Safe uses IP-only endpoints. DNS-Hardened embeds encrypted resolvers. Stealth and Maximum add anti-censorship techniques.</p>
                                 </div>
                                 <div class="downloads-grid">
                                     <div class="download-card" style="--delay: 0.6s;">
-                                        <div class="download-icon"><i data-feather="award"></i></div>
+                                        <div class="download-icon"><i data-feather="award" aria-hidden="true"></i></div>
                                         <div class="download-info">
                                             <h3 class="download-title" data-i18n="downloads.universal">Universal Subscription</h3>
                                             <p class="download-desc" data-i18n="downloads.universal.desc">Base64 format compatible with V2Ray, Xray, and most clients. Auto-updating.</p>
                                         </div>
                                         <button class="btn btn-primary copy-btn" data-file="base64.txt" data-dns-file="base64-dns-safe.txt" data-dns-hardened-file="base64-dns-hardened.txt">
-                                            <i data-feather="copy"></i>
+                                            <i data-feather="copy" aria-hidden="true"></i>
                                             <span data-i18n="table.copy">Copy Link</span>
                                         </button>
                                     </div>
                                     <div class="download-card" style="--delay: 0.7s;">
-                                        <div class="download-icon"><i data-feather="copy"></i></div>
+                                        <div class="download-icon"><i data-feather="copy" aria-hidden="true"></i></div>
                                         <div class="download-info">
                                             <h3 class="download-title" data-i18n="downloads.singbox">Sing-box Config</h3>
                                             <p class="download-desc" data-i18n="downloads.singbox.desc">Optimized JSON configuration.</p>
                                             <div style="margin-top: 10px; display: flex; gap: 5px; flex-wrap: wrap; justify-content: center;">
                                         <button class="btn btn-sm btn-secondary copy-btn" data-file="singbox.json" data-dns-file="singbox-dns-safe.json" data-dns-hardened-file="singbox-dns-hardened.json">
-                                            <i data-feather="target"></i> <span data-i18n="downloads.sniper">Sniper</span>
+                                            <i data-feather="target" aria-hidden="true"></i> <span data-i18n="downloads.sniper">Sniper</span>
                                         </button>
                                         <button class="btn btn-sm btn-secondary copy-btn" data-file="singbox-vpn.json" data-dns-file="singbox-vpn-dns-safe.json" data-dns-hardened-file="singbox-vpn-dns-hardened.json">
-                                            <i data-feather="shield"></i> <span data-i18n="downloads.tank">Tank</span>
+                                            <i data-feather="shield" aria-hidden="true"></i> <span data-i18n="downloads.tank">Tank</span>
                                         </button>
                                     </div>
                                         </div>
                                     </div>
                                     <div class="download-card" style="--delay: 0.8s;">
-                                        <div class="download-icon"><i data-feather="download-cloud"></i></div>
+                                        <div class="download-icon"><i data-feather="download-cloud" aria-hidden="true"></i></div>
                                         <div class="download-info">
                                             <h3 class="download-title" data-i18n="downloads.clash">Clash Config</h3>
                                             <p class="download-desc" data-i18n="downloads.clash.desc">A ready-to-use YAML file, perfect for Clash users.</p>
                                         </div>
                                         <a href="clash.yaml" class="btn btn-primary" download="clash.yaml" data-file="clash.yaml" data-dns-file="clash-dns-safe.yaml" data-dns-hardened-file="clash-dns-hardened.yaml">
-                                            <i data-feather="download-cloud"></i>
+                                            <i data-feather="download-cloud" aria-hidden="true"></i>
                                             <span data-i18n="downloads.download">Download</span>
                                         </a>
                                     </div>
                                     <div class="download-card" style="--delay: 0.9s;">
-                                        <div class="download-icon" id="dynamic-icon"><i data-feather="grid"></i></div>
+                                        <div class="download-icon" id="dynamic-icon"><i data-feather="grid" aria-hidden="true"></i></div>
                                         <div class="download-info">
                                             <!-- Redesigned Dropdown for Clients -->
                                             <div class="client-dropdown-wrapper">
@@ -408,24 +408,24 @@
                                                 <option value="chains" data-icon="link-2">Chains (Shielded Candidates)</option>
                                                 <option value="sideproducts" data-icon="package">Side Products (.conf/.ovpn)</option>
                                                 </select>
-                                                <i data-feather="chevron-down" class="dropdown-arrow"></i>
+                                                <i data-feather="chevron-down" class="dropdown-arrow" aria-hidden="true"></i>
                                             </div>
                                             <p class="download-desc" id="client-desc" style="margin-top: 1rem;" data-i18n="downloads.client.singbox.desc">Sing-box JSON config (V2rayN, NekoRay, NekoBox, Hiddify).</p>
                                         </div>
                                         <button id="dynamic-copy-btn" class="btn btn-primary copy-btn" data-file="singbox.json">
-                                            <i data-feather="copy"></i>
+                                            <i data-feather="copy" aria-hidden="true"></i>
                                             <span data-i18n="table.copy">Copy Link</span>
                                         </button>
                                     </div>
                                     <!-- Side Products Download Card -->
                                     <div class="download-card" style="--delay: 1.0s;">
-                                        <div class="download-icon"><i data-feather="package"></i></div>
+                                        <div class="download-icon"><i data-feather="package" aria-hidden="true"></i></div>
                                         <div class="download-info">
                                             <h3 class="download-title" data-i18n="downloads.sideproducts">Native Configs Pack</h3>
                                             <p class="download-desc" data-i18n="downloads.sideproducts.desc">WireGuard .conf, OpenVPN .ovpn, and plain URIs bundled in a ZIP.</p>
                                         </div>
                                         <a href="side_products.zip" class="btn btn-primary" download="side_products.zip" id="side-products-download" data-file="side_products.zip" data-dns-file="side_products-dns-safe.zip" data-dns-hardened-file="side_products-dns-hardened.zip">
-                                            <i data-feather="download"></i>
+                                            <i data-feather="download" aria-hidden="true"></i>
                                             <span data-i18n="downloads.download">Download ZIP</span>
                                         </a>
                                     </div>
@@ -439,8 +439,8 @@
                 <div class="info-column accordion-container">
                     <section class="card info-card accordion-item accordion-open" style="--delay: 0.9s;">
                         <button class="accordion-header" aria-expanded="true">
-                            <h3><i data-feather="play-circle"></i> <span data-i18n="info.start.title">Getting Started</span></h3>
-                            <i data-feather="chevron-down" class="accordion-icon"></i>
+                            <h3><i data-feather="play-circle" aria-hidden="true"></i> <span data-i18n="info.start.title">Getting Started</span></h3>
+                            <i data-feather="chevron-down" class="accordion-icon" aria-hidden="true"></i>
                         </button>
                         <div class="accordion-content">
                             <div>
@@ -458,14 +458,14 @@
                     </section>
                     <section class="card info-card accordion-item" style="--delay: 1.0s;">
                         <button class="accordion-header" aria-expanded="false">
-                            <h3><i data-feather="activity"></i> <span data-i18n="info.how.title">How It Works</span></h3>
-                            <i data-feather="chevron-down" class="accordion-icon"></i>
+                            <h3><i data-feather="activity" aria-hidden="true"></i> <span data-i18n="info.how.title">How It Works</span></h3>
+                            <i data-feather="chevron-down" class="accordion-icon" aria-hidden="true"></i>
                         </button>
                         <div class="accordion-content">
                             <div>
                                 <p data-i18n="info.how.text" style="margin-bottom: 1rem;">ConfigStream runs an automated, zero-cost pipeline on GitHub Actions:</p>
                                 <ul style="margin-left: 1.5rem; line-height: 1.8; margin-bottom: 1rem;">
-                                    <li><strong data-i18n="info.how.collection">Collection:</strong> <span data-i18n="info.how.collection.text">Every</span> <strong><span id="infoUpdateFrequency">...</span></strong> <span data-i18n="info.how.collection.hours">hours, proxies are aggregated from over</span> <strong><span id="infoSourceCount">...</span></strong> <span data-i18n="info.how.collection.sources">public sources worldwide</span></li>
+                                    <li><strong data-i18n="info.how.collection">Collection:</strong> <span data-i18n="info.how.collection.text">Every</span> <strong><span id="infoUpdateFrequency" class="tabular-nums">...</span></strong> <span data-i18n="info.how.collection.hours">hours, proxies are aggregated from over</span> <strong><span id="infoSourceCount" class="tabular-nums">...</span></strong> <span data-i18n="info.how.collection.sources">public sources worldwide</span></li>
                                     <li data-i18n="info.how.dedup" data-i18n-html="true"><strong>Deduplication:</strong> Advanced filtering removes duplicates and invalid entries</li>
                                     <li data-i18n="info.how.verify" data-i18n-html="true"><strong>Verification:</strong> A hybrid Go + Python engine tests each proxy for connectivity and speed</li>
                                     <li data-i18n="info.how.security" data-i18n-html="true"><strong>Security:</strong> Automated checks filter out honeypots, malware hosts, and unsafe nodes</li>
@@ -473,7 +473,7 @@
                                     <li data-i18n="info.how.publish" data-i18n-html="true"><strong>Publishing:</strong> Configs are generated for all major VPN clients and three DNS profiles</li>
                                 </ul>
                                 <div class="feature-card-highlight">
-                                    <strong data-i18n="info.how.highlight.title"><i data-feather="zap" style="width: 16px; height: 16px; vertical-align: middle;"></i> Network Intelligence</strong>
+                                    <strong data-i18n="info.how.highlight.title"><i data-feather="zap" style="width: 16px; height: 16px; vertical-align: middle;" aria-hidden="true"></i> Network Intelligence</strong>
                                     <p data-i18n="info.how.highlight.text">Proxy Washing revives blocked IPs by tunneling through Cloudflare WARP, producing resilient Smart Chains that bypass censorship. Supports 20+ protocols including VLESS, VMess, Trojan, Shadowsocks, Hysteria2, TUIC, and WireGuard.</p>
                                 </div>
                             </div>
@@ -481,8 +481,8 @@
                     </section>
                     <section class="card info-card accordion-item" style="--delay: 1.2s;">
                         <button class="accordion-header" aria-expanded="false">
-                            <h3><i data-feather="file-text"></i> <span data-i18n="formats.title">Formats Explained</span></h3>
-                            <i data-feather="chevron-down" class="accordion-icon"></i>
+                            <h3><i data-feather="file-text" aria-hidden="true"></i> <span data-i18n="formats.title">Formats Explained</span></h3>
+                            <i data-feather="chevron-down" class="accordion-icon" aria-hidden="true"></i>
                         </button>
                         <div class="accordion-content">
                             <div>
@@ -498,7 +498,7 @@
                         </div>
                     </section>
                     <section class="card notice-card" style="--delay: 1.4s;">
-                        <h3><i data-feather="alert-triangle"></i> <span data-i18n="notice.title">Important Security Notice</span></h3>
+                        <h3><i data-feather="alert-triangle" aria-hidden="true"></i> <span data-i18n="notice.title">Important Security Notice</span></h3>
                         <p data-i18n="notice.text">These are free, public proxies from unknown operators. We test for safety but cannot guarantee privacy.</p>
                         <ul class="notice-list">
                             <li data-i18n="notice.list.1">DO NOT use for banking or sensitive data.</li>
@@ -514,14 +514,14 @@
             <section class="card byow-section" style="--delay: 1.3s; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border: 2px solid #667eea;">
                 <div class="text-center" style="padding: 2rem;">
                     <div style="display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
-                        <span style="font-size: 28px;">🚀</span>
+                        <i data-feather="zap" style="width: 28px; height: 28px; color: #667eea;" aria-hidden="true"></i>
                         <h3 style="color: #667eea; margin: 0; font-size: 1.5rem; font-weight: 700;">Deploy Your Own Private Bridge (BYOW)</h3>
                     </div>
                     <p class="subtitle-sm" style="margin-bottom: 1.25rem; line-height: 1.6; color: var(--text-primary);">
                         Avoid shared Worker quota pressure and generate a private bridge profile using your own Cloudflare Worker.
                     </p>
                     <div style="margin-bottom: 1.5rem; text-align: left; background: rgba(102, 126, 234, 0.05); padding: 1rem; border-radius: 8px;">
-                        <p style="margin-bottom: 0.75rem; font-weight: 600; color: #667eea;">📋 How It Works:</p>
+                        <p style="margin-bottom: 0.75rem; font-weight: 600; color: #667eea;"><i data-feather="list" aria-hidden="true"></i> How It Works:</p>
                         <ol style="margin-left: 1.5rem; line-height: 1.8; color: var(--text-primary);">
                             <li><strong>Step 1:</strong> Click "Deploy to Cloudflare Workers" below (one-click deploy).</li>
                             <li><strong>Step 2:</strong> Log in to Cloudflare (free account) and authorize the deployment.</li>
@@ -535,7 +535,7 @@
                            rel="noopener noreferrer"
                            class="btn btn-primary" 
                            style="background: #667eea; color: white; font-weight: 600; padding: 1rem 2rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
-                            <i data-feather="cloud"></i>
+                            <i data-feather="cloud" aria-hidden="true"></i>
                             <span>Deploy to Cloudflare Workers</span>
                         </a>
                         <div style="width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 0.75rem;">
@@ -548,12 +548,12 @@
                                 <button id="generatePrivateBridgeBtn" 
                                         class="btn btn-primary" 
                                         style="background: #667eea; color: white; font-weight: 600; white-space: nowrap;">
-                                    <i data-feather="zap"></i>
+                                    <i data-feather="zap" aria-hidden="true"></i>
                                     <span>Generate Private Bridge</span>
                                 </button>
                             </div>
                             <p style="color: #667eea; font-size: 0.85rem; margin: 0; line-height: 1.5;">
-                                💡 <strong>Benefits:</strong> Your own free-tier quota, less shared-infrastructure exposure, and a bridge domain you control.
+                                <i data-feather="lightbulb" aria-hidden="true"></i> <strong>Benefits:</strong> Your own free-tier quota, less shared-infrastructure exposure, and a bridge domain you control.
                             </p>
                         </div>
                     </div>
@@ -565,14 +565,14 @@
     <footer class="footer">
         <div class="container">
             <div class="social-links">
-                <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream" target="_blank" rel="noopener noreferrer" aria-label="Visit our GitHub page"><i data-feather="github"></i></a>
-                <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream/issues" target="_blank" rel="noopener noreferrer" aria-label="Report an issue"><i data-feather="alert-circle"></i></a>
+                <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream" target="_blank" rel="noopener noreferrer" aria-label="Visit our GitHub page"><i data-feather="github" aria-hidden="true"></i></a>
+                <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream/issues" target="_blank" rel="noopener noreferrer" aria-label="Report an issue"><i data-feather="alert-circle" aria-hidden="true"></i></a>
             </div>
-            <p data-i18n="footer.love">Built for freedom. Powered by ConfigStream. ✨</p>
+            <p data-i18n="footer.love">Built for freedom. Powered by ConfigStream.</p>
             <p class="last-updated">
                 <span data-i18n="footer.lastupdated">Last updated:</span>
-                <span id="footerUpdate" class="loading" data-i18n="footer.checking">checking...</span>
-                <span class="freshness-badge" id="footerFreshnessBadge"></span>
+                <span id="footerUpdate" class="loading tabular-nums" data-i18n="footer.checking">checking...</span>
+                <span class="freshness-badge tabular-nums" id="footerFreshnessBadge"></span>
             </p>
         </div>
     </footer>
