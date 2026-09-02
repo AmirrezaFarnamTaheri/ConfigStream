@@ -99,6 +99,18 @@ If you see `WarpScannerWorker: Go binary not found`, the pipeline cannot find th
 *   **Fix:** Compile it: `cd src/go/tester && go build -o configstream-tester .`
 *   **CI:** Check `.github/workflows/main.yml` to ensure the `build_go` step ran successfully.
 
+### Future Go Toolchain Upgrade Compatibility
+The repository currently pins Go 1.24.3. Before adopting a later Go toolchain,
+run the Go test suite and a sidecar integration test against the candidate
+version. Do not upgrade `sing-box` solely from troubleshooting guidance: record
+the reproduced compiler error, compatibility evidence, and migration plan in
+the upgrade change.
+
+### "High Memory / Timer Churn" during UDP Scans
+If the WARP IP scanner consumes high CPU or GC pauses spike during multi-thousand PPS sweeps:
+*   **Cause:** Ephemeral `time.After()` channel allocations inside packet receiver select blocks.
+*   **Fix:** Ensure single-socket UDP multiplexing and reusable `time.NewTimer()` instances with explicit `Reset()` calls are enabled in `src/go/tester/scanner/scanner.go`.
+
 ### "Washing Skipped: No WARP keys"
 The `WARP_KEY_POOL` environment variable is empty or malformed.
 *   **Fix:** Provide a valid JSON array of WARP credentials.
@@ -116,10 +128,57 @@ Indicates Python 3.8/3.9 without `from typing import List`.
 The 3D Globe requires WebGL.
 *   **Fix:** Enable Hardware Acceleration in your browser. Check console for `three.js` errors.
 
+### Pages Still Shows an Old Date After a Green Backend Run
+
+Treat this as three separate failure modes:
+
+1. **Candidate never published.** Inspect `deploy-pages.yml` qualification
+   logs and the dependency-install step. A pipeline artifact is not a Pages
+   deployment; validation imports must succeed in the deploy runner.
+2. **An old site passed a weak smoke test.** Compare the live manifest digest,
+   source identifier, workflow run identifier, signature, and metadata timestamp with the selected
+   candidate. A self-consistent old manifest is not proof of propagation.
+3. **The browser kept an old shell.** Inspect the service-worker cache identity
+   and update path. HTML/JS cache invalidation must follow verified artifact
+   identity, not a manually maintained version alone.
+
+For each mode, retain the structured verifier report and sanitized workflow
+logs. Do not use the browser's current local time as evidence of artifact
+freshness.
+
+If an update banner is based only on an HTTP `Last-Modified` response or a
+successful `HEAD`, trigger a verified manifest/metadata fetch before telling
+the user an update is available.
+
+### Public Controls Are Disabled After Deployment
+
+Confirm that the page loads `runtime-config.js`, then `constants.js`, then the
+verifier and artifact guard. Test valid, missing, and malformed public-key
+configuration. If the guard rejects a valid signature, compare the exact
+versioned byte envelope signed by Python with the bytes passed to WebCrypto;
+timestamp encoding is part of that contract.
+
 ### "No Data" in Analytics Charts
 If analytics show zeros:
 *   **Cause:** The pipeline may have failed before the `save_metadata` step.
 *   **Check:** Inspect `output/metadata.json` — if it is empty or missing fields, the pipeline did not complete output generation.
+
+### "Stale metadata.json / Frontend Date Stuck in February" (Publication Blocked)
+If the frontend shows old metadata or an outdated timestamp even when backend pipeline runs succeed:
+*   **Root Cause**: The backend pipeline produces a valid `pipeline-output` artifact, but GitHub Pages deployment fails closed during sealed-artifact verification.
+*   **Failure Trace**:
+    1. `.github/workflows/deploy-pages.yml` downloads the canonical artifact and executes `python scripts/validate_frontend_placeholders.py --strict output`.
+    2. `validate_frontend_placeholders.py` imports `configstream.security_validator`, which imports `configstream.config` (`pydantic_settings`).
+    3. The `Install rollback verification dependencies` step in `deploy-pages.yml:91` installs only `httpx` and `cryptography`, omitting `pydantic` and `pydantic_settings`.
+    4. Python throws `ModuleNotFoundError: No module named 'pydantic_settings'`.
+    5. `verify-sealed-pages-artifact` fails with exit code 1; `DEPLOY_READY` is not set; deployment fails closed, leaving the older live Pages artifact active.
+*   **Pseudo-Success Confusion**: Some Pages workflow runs appear with a green checkmark ("Success") because the deploy job was skipped (e.g. trigger without a deployable candidate). A skipped job is **not** a successful deployment.
+*   **Fix**: Update `.github/workflows/deploy-pages.yml` to install full validator requirements:
+    ```yaml
+    - name: Install rollback verification dependencies
+      run: python -m pip install "httpx==0.28.1" "cryptography==50.0.0" "pydantic>=2.0.0" "pydantic-settings>=2.0.0"
+    ```
+    Once verified dependencies are present and a Pages deploy completes, the frontend timestamp advances automatically.
 
 ### "Connection Refused" on Washed Proxies
 If proxies tagged `GOLD-` or `🛡️ Secure` are not connecting:

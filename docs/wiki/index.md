@@ -19,6 +19,8 @@ Welcome to the comprehensive documentation for ConfigStream — a "Zero to Hero"
 9.  **[Contributing](project/09-contributing.md)** — Dev setup, coding standards, project structure, PR workflow
 10. **[Troubleshooting & FAQ](project/10-troubleshooting.md)** — Client issues, Lab Scanner, pipeline errors
 11. **[Output File Variations](project/11-outputs.md)** — Comprehensive list of all generated artifacts
+12. **[C4 Architecture & Frontend Design](project/c4-architecture.md)** — C4 model diagrams, DFII audit, and UX standards
+13. **[Master System Audit & Synthesis](project/12-master-audit.md)** — 10-lens holistic evaluation and technical debt roadmap
 
 ### Quick References
 

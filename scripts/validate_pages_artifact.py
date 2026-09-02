@@ -836,11 +836,13 @@ def _validate_manifest_signature(manifest: dict[str, object]) -> list[str]:
         )
         return errors
 
-    # Freshness / skew check (30s negative skew tolerance, 300s max age)
+    # A manifest is a static release record.  Its signed metadata timestamp is
+    # checked separately for freshness; only reject impossible future signatures
+    # here so queued Pages publication and rollback remain valid.
     age = time.time() - timestamp
-    if age < -30 or age > 300:
+    if age < -30:
         errors.append(
-            f"artifact_manifest.json manifest_signature.timestamp expired or skewed (age: {age:.1f}s)"
+            f"artifact_manifest.json manifest_signature.timestamp is in the future (age: {age:.1f}s)"
         )
         return errors
 

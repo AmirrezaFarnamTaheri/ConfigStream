@@ -71,7 +71,6 @@
     --danger-color: #f50057;
     --border-color: rgba(0,0,0,0.1);
 }
-
 /* Dark Theme Colors */
 body.dark {
     --bg-primary: #0a101f;
@@ -89,7 +88,6 @@ body.dark {
     --danger-color: #ff5277;
     --border-color: rgba(255,255,255,0.1);
 }
-
 /* Cyberpunk Theme */
 body.cyberpunk {
     --bg-primary: #050505;
@@ -4892,5 +4890,3 @@ body.dark #globe-viz {
     display: block;
     filter: drop-shadow(0 0 20px rgba(6, 182, 212, 0.3));
 }
-
-

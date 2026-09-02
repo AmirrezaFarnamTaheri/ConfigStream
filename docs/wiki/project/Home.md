@@ -40,6 +40,11 @@ Welcome to the **ConfigStream** documentation. ConfigStream is an automated, hig
 *   **[API Reference](08-api-reference.md):** Data structures, output formats, and endpoint specifications.
 *   **[Contributing](09-contributing.md):** How developers can help improve the project.
 *   **[Troubleshooting](10-troubleshooting.md):** Solutions for common connection issues and client-specific guides.
+*   **[Output File Variations](11-outputs.md):** Comprehensive catalog of all generated subscriptions and bundles.
+*   **[C4 Architecture & UX Specification](c4-architecture.md):** C4 Model (Context, Container, Component) and DFII frontend standards.
+*   **[Target-State System Roadmap](12-master-audit.md):** 10-lens workstreams, subsystem goals, closure evidence, and technical debt roadmap.
+*   **[Design System](../../../DESIGN.md):** Visual tokens, Cold Luxury aesthetics, and anti-slop rules.
+*   **[Interface Design](../../../interface-design.md):** WCAG 2.2 AA accessibility, tabular figures, and NDJSON IPC contracts.
 
 ### Encyclopedia (Deep Knowledge)
 *   **[Networking Terms](../encyclopedia/glossary/networking_terms.md):** ISP, routing, TCP/UDP, TLS, SNI, DPI, and obfuscation techniques.

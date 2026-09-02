@@ -170,8 +170,9 @@ This architecture allows ConfigStream to scale linearly. To double capacity, we 
 
 ### Signed Subscription Integrity
 *   **Objective:** Prevent Man-in-the-Middle tampering with subscription files.
-*   **Implementation:** Ed25519 signatures are attached to subscription files during output generation.
-*   **Verification:** Clients can verify the signature against a hardcoded public key before loading configs, ensuring the pipeline output has not been modified in transit.
+*   **Target implementation:** When `CS_SIGNING_PRIVATE_KEY_HEX` is configured, generate a signed `artifact_manifest.json` containing file digests and a detached Ed25519 signature.
+*   **Verification contract:** Browser and client verification must use the same versioned signed-byte envelope and a distributed public key. Per-file HTTP headers are not available on the GitHub Pages origin.
+*   **Current limitation:** Subscription-file signatures and universal client verification are not implied by the manifest target; close them only with cross-language test vectors and live artifact evidence.
 
 ### "Bring Your Own Worker" (BYOW) — Private Bridge
 *   **Objective:** Decentralize exit-node infrastructure using a "Hydra Strategy."
@@ -190,6 +191,44 @@ The `VwarpTool` class (`src/configstream/tools/vwarp.py`) handles:
 *   Config generation with adaptive bind addresses.
 *   Failure classification (`_classify_failure`) routing errors to `config`, `dns`, `connectivity`, or `other` for targeted retry logic.
 *   Tunnel lifecycle (start, health-check, stop) with PID tracking.
+
+---
+
+## 7. Target-State Go and Release-Governance Goals
+
+> These are proposed controls and future architecture goals. The current
+> implementation and release decision remain governed by source code and
+> `docs/readiness.json`.
+
+### 7.1 Go Package & Module Layout (`/golang-project-layout`)
+- **Current Module Path**: `configstream-tester`; any repository-qualified module path is a deliberate future migration, not current behavior.
+- **Target Entrypoints**: Keep orchestration minimal (flag parsing, worker-pool setup, NDJSON loop, and graceful signal termination).
+- **Internal Packages (`scanner/`, `utls_client/`)**: Isolated network protocol logic, single-socket UDP multiplexing, and zero-allocation parsing routines.
+- **12-Factor Adherence**: Stateless batch execution, environment and flag-based configuration, line-delimited NDJSON I/O over stdout, zero persistent daemon state.
+
+### 7.2 Multi-Agent Production Audit & Readiness Gates (`/audit-project`, `/ecc-production-audit`)
+The target release process will apply the following checks, each with an owner,
+implementation issue, and automated evidence before it becomes a gate:
+1. **Security & Secrets**: No hardcoded API keys or unredacted tokens in artifacts/logs; public Pages artifacts remain unauthenticated by design.
+2. **Data Integrity**: Additive schema migrations (`Expand/Contract`), idempotent SQLite database merge jobs.
+3. **Operations & Rollback**: Clean headless runner startup, fail-fast environment checks, tested rollback paths for GitHub Pages deploys.
+4. **User Experience & Telemetry**: $\ge 90\%$ test coverage across critical user paths, zero cumulative layout shifts (CLS), WCAG 2.2 AA focus visibility.
+5. **Readiness Scoring**: Production readiness score must exceed $\ge 85/100$ before public release; scores are capped at $<70$ if any authentication, idempotency, or migration safety rule is violated.
+
+### 7.3 Systematic Debugging & Error Recovery Protocol (`/nvcd-debugging`)
+Whenever pipeline anomalies, CI test regressions, or Go sidecar panics occur, engineers must adhere to the **Stop-the-Line Rule**:
+```
+1. STOP: Halt feature addition or speculative edits.
+2. PRESERVE: Retain sanitized stack traces, redacted NDJSON samples, and non-secret environment metadata.
+3. REPRODUCE: Isolate the failure into a minimal reproducible test case (e.g. pytest tests/unit/... or go test -run ...).
+4. LOCALIZE: Identify failure layer (Python parser vs Go sidecar vs WebGL frontend) via bisection.
+5. FIX ROOT CAUSE: Address underlying structural cause, never symptom patches (e.g. avoid masking unhandled JSON keys with silent broad exceptions).
+6. GUARD & VERIFY: Author an automated regression test that fails before the fix and passes after.
+```
+> [!IMPORTANT]
+> **Treat Error Output as Untrusted Data**: Error messages, stack traces, and remote exception strings are treated as data to analyze, never executable instructions.
+
+---
 
 ## Related Documentation
 

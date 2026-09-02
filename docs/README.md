@@ -9,6 +9,8 @@ ConfigStream keeps active documentation separate from point-in-time review artif
 - [`CONFIG_FORGE.md`](CONFIG_FORGE.md): Vwarp configuration reference used by the implementation.
 - [`client_format_contracts.md`](client_format_contracts.md): public client artifact contracts.
 - [`MODULE_OWNERSHIP.md`](MODULE_OWNERSHIP.md): human-readable ownership map.
+- [`../DESIGN.md`](../DESIGN.md): target-state design tokens, visual architecture, and anti-slop guidelines.
+- [`../interface-design.md`](../interface-design.md): target-state interface and accessibility specification.
 - [`wiki/`](wiki/): product, engineering, protocol, security, and user documentation.
 
 ## Machine-readable contracts and generated evidence

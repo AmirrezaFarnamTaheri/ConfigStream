@@ -172,9 +172,16 @@ class Signer:
     def verify_manifest_signature(
         manifest: Dict[str, Any],
         public_key_hex: str,
-        max_age_seconds: int = SIGNATURE_MAX_AGE_SECONDS,
+        max_age_seconds: Optional[int] = None,
     ) -> bool:
-        """Verify an artifact manifest's signature and timestamp freshness."""
+        """Verify an artifact manifest signature.
+
+        A Pages manifest is a static, signed release record.  Its freshness is
+        governed by the signed metadata generation time, not by the instant the
+        signature was created: a short signature TTL would invalidate every
+        otherwise-valid published artifact and rollback snapshot.  Callers that
+        need a short-lived token can opt in through ``max_age_seconds``.
+        """
         try:
             sig_info = manifest.get("manifest_signature")
             if not isinstance(sig_info, dict):
@@ -201,7 +208,9 @@ class Signer:
                 return False
 
             age = int(time.time()) - timestamp_int
-            if age < -CLOCK_SKEW_TOLERANCE_SECONDS or age > max_age_seconds:
+            if age < -CLOCK_SKEW_TOLERANCE_SECONDS:
+                return False
+            if max_age_seconds is not None and age > max_age_seconds:
                 return False
 
             payload = dict(manifest)

@@ -55,6 +55,8 @@ A WebGL-based 3D globe visualization.
 *   **Data**: Latency distribution from `metadata.json` (`latency_distribution`, `latency_by_country`, `latency_by_protocol`).
 *   **Arcs**: Draws arcs from the user's estimated location to the proxy location.
 *   **Color Coding**: Green (Fast), Yellow (Medium), Red (Slow).
+*   **Target — Hardware Throttling (`IntersectionObserver`)**: Pause the animation loop when `#globe-viz` leaves the active viewport; verify the pause and resume in a browser test.
+*   **Target — Layout Reserve**: Before canvas initialization, reserve an explicit `aspect-ratio: 16/9` box with a `min-height: 500px`; validate cumulative-layout-shift behavior in the visual suite.
 
 ### 2. Analytics (`Chart.js`)
 *   **Protocol Distribution**: Doughnut chart (`protocols`).
@@ -99,7 +101,7 @@ In the proxy table, the "Latency" column is not just a number. It is a story.
 *   **Visual**: A tiny SVG sparkline.
 *   **Insight**: A user sees a spike (900ms) and knows the proxy is unstable, even if it says "115ms" right now.
 
-## Chain Laboratory (`lab.html` + `lab.js`)
+## Chain Laboratory (`lab.html` + `assets/js/lab/` modules)
 
 The Laboratory is a 5-step interactive chain builder that guides users from zero to a working proxy chain:
 
@@ -163,7 +165,10 @@ ConfigStream implements a context-aware caching system that optimizes performanc
 
 ### Update Detection (`update-detector.js`)
 
-The `UpdateDetector` polls every 4 minutes using lightweight HTTP `HEAD` requests. When it detects a change in `Last-Modified` headers or `last_updated_utc` timestamps, it triggers selective fetches — only downloading the resources that actually changed, not the entire dataset.
+The target `UpdateDetector` may poll with lightweight HTTP `HEAD` requests as
+an optimization. A changed `Last-Modified` value is only a fetch hint; the
+detector must then verify the manifest identity and signed metadata before
+reporting an update. It must not treat publication time as data freshness.
 
 ### Multi-Layer Caching Strategy (`cache-config.js`)
 
@@ -202,6 +207,58 @@ We support RTL (Right-to-Left) languages natively for our Persian and Arabic use
 *   **Dictionary**: `assets/js/i18n.js` contains mappings.
 *   **Detection**: Auto-detects browser language.
 *   **Switching**: Dynamic, no reload required.
+
+## Web Interface Standards & Interaction Craft
+
+The following standards govern frontend rendering, WebGL performance, and motion hygiene (codified in [`DESIGN.md`](../../../DESIGN.md) and [`interface-design.md`](../../../interface-design.md)):
+
+1. **Focus**: Every interactive control has an explicit `:focus-visible` ring (`2px solid #06b6d4`).
+2. **Numeric stability**: Telemetry uses `font-variant-numeric: tabular-nums` across all tables, latencies, and ports.
+3. **Motion**: Decorative animations use only `transform` and `opacity`.
+4. **Reduced motion**: `@media (prefers-reduced-motion: reduce)` universally disables decorative loops and sets animation durations to `0.01ms`.
+5. **Layout stability**: Chart canvases reserve `400px`; the globe reserves `500px` (`min-height`).
+6. **WebGL & Animation Offscreen Gating (`/optimize-web-animations`)**:
+   - **DPR Clamping**: Globe.gl pixel ratio is capped at `Math.min(window.devicePixelRatio || 1, 1.5)` to prevent GPU overdraw and memory pressure on high-DPI mobile screens.
+   - **Offscreen Gating**: An `IntersectionObserver` on `#globe-viz` (threshold: `0.01`) toggles `data-animation-active` and pauses `requestAnimationFrame` / `controls.autoRotate` when the globe leaves the viewport, resuming smoothly on re-entry.
+   - **Context Loss Recovery**: `webglcontextlost` cancels RAF and suspends render loops; `webglcontextrestored` rebuilds the scene graph without full page crash.
+   - **Teardown Hooks**: `window._disposeGlobe()` disconnects observers, clears rotation timers, and disposes WebGL renderers during client navigation.
+   - **CSS Animation Pauses**: Offscreen sections and elements matching `.is-offscreen` or `[data-animation-active="false"]` enforce `animation-play-state: paused !important`.
+
+### Trust Bootstrap and Freshness Contract
+
+Every public page that uses `verifier.js` or `artifact-state.js` must load its
+scripts in this order: `runtime-config.js`, `constants.js`, `verifier.js`, then
+`artifact-state.js`. The page-level test matrix must cover a missing,
+malformed, and valid public key configuration. A public host must fail closed
+on invalid trust configuration, while local development must retain its
+explicitly scoped bypass.
+
+| Surface | Required freshness source | Prohibited substitute | Required states |
+|---|---|---|---|
+| Home and download controls | Verified `metadata.last_updated_utc` | Browser wall clock | fresh, stale, invalid, error |
+| Proxy catalog footer | Verified artifact timestamp | `new Date()` after fetch | fresh, stale, empty, error |
+| Analytics | Verified artifact identity/version | per-visit timestamp cache buster | fresh, stale, invalid, error |
+| Service worker shell | Artifact identity/commit-driven cache version | manually remembered cache bump | current shell, upgrade available, offline fallback |
+
+The browser guard and release verifier treat a signed zero-working artifact as
+an **empty, non-distributable** release: the catalog displays the empty state,
+while copy and download controls remain disabled. It must never be presented as
+fresh or as a cryptographic-tampering failure.
+
+Update detection may use HTTP headers only as a cheap hint to perform a
+verified fetch. It must not treat `Last-Modified`, a successful `HEAD`, or a
+local fetch time as artifact freshness. Compare a verified manifest identity
+and signed metadata generation timestamp before reporting an update.
+
+### Performance Acceptance Targets
+
+These are targets, not measurements. Test a production-sized fixture on a
+throttled mobile profile: capture p95 input-to-render time for filtering,
+repeat-view transfer behavior, long tasks during resize, and WebGL frame/heap
+data. The proxy table must either preserve relevance ordering after filtering
+or avoid relevance scoring entirely; it must not compute and then discard an
+expensive relevance sort. Virtualization or worker search is justified only by
+this measured fixture evidence.
 
 ## Related Documentation
 

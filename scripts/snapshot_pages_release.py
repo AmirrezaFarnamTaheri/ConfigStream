@@ -287,10 +287,9 @@ def _validate_release_eligibility(
         signature_verified = Signer.verify_manifest_signature(
             manifest,
             public_key_hex,
-            max_age_seconds=max_age_seconds,
         )
         if not signature_verified:
-            raise ValueError("artifact manifest signature is invalid or stale")
+            raise ValueError("artifact manifest signature is invalid")
 
     source_commit = manifest.get("source_commit")
     if not is_local and (

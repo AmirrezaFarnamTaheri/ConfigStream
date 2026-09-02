@@ -24,3 +24,14 @@ def test_validator_dependencies_resolvable():
     )
     assert result.returncode == 0, f"Import failed: {result.stderr}"
 
+
+def test_live_pages_smoke_receives_candidate_identity_and_public_key() -> None:
+    root = Path(__file__).resolve().parents[2]
+    workflow = (root / ".github" / "workflows" / "deploy-pages.yml").read_text(
+        encoding="utf-8"
+    )
+    assert "--expected-commit \"$EXPECTED_SOURCE_SHA\"" in workflow
+    assert "--expected-run-id \"$EXPECTED_SOURCE_RUN_ID\"" in workflow
+    assert "--expected-digest \"$manifest_digest\"" in workflow
+    assert "CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}" in workflow
+    assert "CS_PUBLIC_KEY is required to verify the signed deployed artifact" in workflow

@@ -14,12 +14,12 @@ def test_canonical_manifest_payload_and_negative_vectors():
     }
     ts = 1725321600
     payload_bytes = _canonical_manifest_payload(manifest, ts)
-    
+
     # 8-byte big endian timestamp prefix + canonical JSON
     assert len(payload_bytes) > 8
     json_part = payload_bytes[8:].decode("utf-8")
     assert json_part == '{"files":["proxies.json","metadata.json"],"generated_at":1725321600,"nested":{"a":2,"z":1},"version":"3.2.0"}'
-    
+
     # 2. Key generation & signature verification
     priv_key = ed25519.Ed25519PrivateKey.generate()
     priv_hex = priv_key.private_bytes(
@@ -31,10 +31,10 @@ def test_canonical_manifest_payload_and_negative_vectors():
         encoding=serialization.Encoding.Raw,
         format=serialization.PublicFormat.Raw
     ).hex()
-    
+
     signer = Signer(private_key_hex=priv_hex)
     signed_data = signer.sign_subscription("test-subscription-content")
-    
+
     # Verify valid signature
     assert signer.verify_subscription(
         signed_data["content"],
@@ -42,7 +42,7 @@ def test_canonical_manifest_payload_and_negative_vectors():
         pub_hex,
         timestamp=signed_data["timestamp"]
     ) is True
-    
+
     # Negative test 1: Tampered content
     assert signer.verify_subscription(
         "tampered-content",
@@ -50,7 +50,7 @@ def test_canonical_manifest_payload_and_negative_vectors():
         pub_hex,
         timestamp=signed_data["timestamp"]
     ) is False
-    
+
     # Negative test 2: Tampered timestamp
     assert signer.verify_subscription(
         signed_data["content"],
@@ -58,7 +58,6 @@ def test_canonical_manifest_payload_and_negative_vectors():
         pub_hex,
         timestamp=signed_data["timestamp"] + 10
     ) is False
-    
     # Negative test 3: Mismatched public key
     other_priv = ed25519.Ed25519PrivateKey.generate()
     other_pub_hex = other_priv.public_key().public_bytes(

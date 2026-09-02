@@ -5,6 +5,7 @@ import base64
 import pytest
 from cryptography.hazmat.primitives.asymmetric import ed25519
 from cryptography.hazmat.primitives import serialization
+import configstream.signer as signer_module
 from configstream.signer import (
     Signer,
     _canonical_manifest_payload,
@@ -55,6 +56,22 @@ def test_manifest_signature_roundtrip_verification() -> None:
 
     # Verification must succeed via Signer helper
     assert Signer.verify_manifest_signature(manifest, pub_key_hex) is True
+
+
+def test_manifest_signature_remains_valid_after_short_token_window(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Static release manifests rely on signed metadata freshness, not a 5-minute TTL."""
+    clock = [1_700_000_000]
+    monkeypatch.setattr(signer_module.time, "time", lambda: clock[0])
+    signer = Signer("22" * 32)
+    public_key = signer.get_public_key_hex()
+    manifest = {"schema_version": "1.0", "files": []}
+    manifest["manifest_signature"] = signer.sign_manifest(manifest)
+
+    clock[0] += 600
+    assert Signer.verify_manifest_signature(manifest, public_key) is True
+    assert Signer.verify_manifest_signature(manifest, public_key, max_age_seconds=300) is False
 
 
 def test_public_key_normalization_accepts_browser_spki_and_raw_hex() -> None:

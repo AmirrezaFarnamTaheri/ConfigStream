@@ -383,8 +383,14 @@ async function loadProxiesPage() {
         logger.error("Failed to load proxies:", e);
         const errorMsg = e?.message || String(e);
         const isSecurity = /verification|signature|digest|manifest|blocked|tamper|cryptographic/i.test(errorMsg);
+        const isEmptyArtifact = /no verified working proxies|artifact health is degraded/i.test(errorMsg);
 
-        if (isSecurity) {
+        if (isEmptyArtifact) {
+            applyTrustState('empty', null, {
+                errorMessage: 'No verified working proxies are available in this signed release.',
+                onRetry: () => loadProxiesPage()
+            });
+        } else if (isSecurity) {
             applyTrustState('invalid', null, {
                 errorMessage: 'Security Alert: Detached cryptographic verification failed. Feeds blocked.',
                 onRetry: () => loadProxiesPage()
@@ -401,7 +407,9 @@ async function loadProxiesPage() {
             loadingEl.replaceChildren();
             const errorP = document.createElement('p');
             errorP.style.color = 'var(--danger-color)';
-            errorP.textContent = isSecurity
+            errorP.textContent = isEmptyArtifact
+                ? 'No verified working proxies are available in this signed release.'
+                : isSecurity
                 ? 'Security Alert: Detached cryptographic verification failed. Feeds blocked.'
                 : 'Error loading proxies. Please check console or click retry.';
             loadingEl.appendChild(errorP);
@@ -416,6 +424,7 @@ async function loadProxiesPage() {
             loadingEl.appendChild(retryBtn);
         }
         if (tableEl) tableEl.classList.add('hidden');
+        if (emptyState && isEmptyArtifact) emptyState.classList.remove('hidden');
 
         const footerDate = document.getElementById('footerUpdate');
         if (footerDate) {

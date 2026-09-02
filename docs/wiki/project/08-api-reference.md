@@ -412,9 +412,44 @@ Tags are appended in this order: `PROTO` → `TRANS` → `SEC` → `PROC` → `R
 
 ---
 
+## 6. Subsystem & Streaming IPC Contracts (NDJSON)
+
+ConfigStream communicates across Python control processes and Go testing
+sidecars via line-delimited NDJSON streams over standard I/O (`stdin` /
+`stdout`). This is the current internal contract; changes require a versioned
+compatibility migration and stream tests.
+
+### 6.1 Request Payload (`ProxyTestRequest`)
+```json
+{
+  "id": "vless-198-51-100-1-443-a1b2c3",
+  "config": "[{\"type\":\"vless\",\"tag\":\"proxy\",\"server\":\"198.51.100.1\",\"server_port\":443,\"uuid\":\"a1b2c3d4-e5f6-7890-abcd-ef1234567890\"}]",
+  "check_honeypot": true,
+  "target": "https://cp.cloudflare.com/generate_204",
+  "timeout": 3500
+}
+```
+
+### 6.2 Response Payload (`ProxyTestResult`)
+```json
+{
+  "id": "vless-198-51-100-1-443-a1b2c3",
+  "is_working": true,
+  "latency": 142,
+  "error": "",
+  "issues": []
+}
+```
+
+### 6.3 Resiliency & Panic Recovery
+- **Error Propagation**: Any parsing or handshake panics in third-party protocol parsers inside the Go sidecar are trapped with `defer recover()` and emitted as `is_working: false` with the matching `id` to prevent IPC stream deadlocks.
+
+---
+
 ## Related Documentation
 
 *   **[Protocols & Parsing](03-protocols.md)** — How proxy URIs are parsed and validated.
+*   **[C4 Architecture & Contracts](c4-architecture.md)** — C4 container architecture and component contracts.
 *   **[Configuration Reference](Configuration.md)** — All environment variables.
 *   **[Download files matrix](#download-files-matrix)** — All 60+ output file variants.
 *   **[Censorship Evasion](../../CENSORSHIP_EVASION.md)** — Evasion modes, techniques, tagging, metrics, troubleshooting.

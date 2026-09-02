@@ -1,15 +1,15 @@
 {
   "generated_from": "current tracked tree",
   "summary": {
-    "total": 280,
+    "total": 268,
     "markers": {
-      "BROAD_EXCEPTION": 268,
+      "BROAD_EXCEPTION": 256,
       "LARGE_FUNCTION": 10,
       "PLACEHOLDER": 2
     },
     "categories": {
       "other": 14,
-      "production": 224,
+      "production": 212,
       "tooling": 42
     }
   },
@@ -344,7 +344,7 @@
     },
     {
       "path": "scripts/validate_pages_artifact.py",
-      "line": 858,
+      "line": 860,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -1103,108 +1103,12 @@
       "text": "Broad exception boundary requires semantic review and structured outcome."
     },
     {
-      "path": "src/configstream/parsers/clash_json.py",
-      "line": 106,
-      "marker": "BROAD_EXCEPTION",
-      "category": "production",
-      "priority": "P1 - High",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
-      "path": "src/configstream/parsers/decoders.py",
-      "line": 64,
-      "marker": "BROAD_EXCEPTION",
-      "category": "production",
-      "priority": "P1 - High",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
-      "path": "src/configstream/parsers/decoders.py",
-      "line": 138,
-      "marker": "BROAD_EXCEPTION",
-      "category": "production",
-      "priority": "P1 - High",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
       "path": "src/configstream/parsers/extraction.py",
       "line": 137,
       "marker": "LARGE_FUNCTION",
       "category": "production",
       "priority": "P1 - High",
       "text": "Function extract_config_lines spans 392 lines (threshold: 300)."
-    },
-    {
-      "path": "src/configstream/parsers/extraction.py",
-      "line": 175,
-      "marker": "BROAD_EXCEPTION",
-      "category": "production",
-      "priority": "P1 - High",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
-      "path": "src/configstream/parsers/extraction.py",
-      "line": 249,
-      "marker": "BROAD_EXCEPTION",
-      "category": "production",
-      "priority": "P1 - High",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
-      "path": "src/configstream/parsers/extraction.py",
-      "line": 268,
-      "marker": "BROAD_EXCEPTION",
-      "category": "production",
-      "priority": "P1 - High",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
-      "path": "src/configstream/parsers/extraction.py",
-      "line": 297,
-      "marker": "BROAD_EXCEPTION",
-      "category": "production",
-      "priority": "P1 - High",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
-      "path": "src/configstream/parsers/openvpn.py",
-      "line": 141,
-      "marker": "BROAD_EXCEPTION",
-      "category": "production",
-      "priority": "P1 - High",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
-      "path": "src/configstream/parsers/others.py",
-      "line": 332,
-      "marker": "BROAD_EXCEPTION",
-      "category": "production",
-      "priority": "P1 - High",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
-      "path": "src/configstream/parsers/others.py",
-      "line": 377,
-      "marker": "BROAD_EXCEPTION",
-      "category": "production",
-      "priority": "P1 - High",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
-      "path": "src/configstream/parsers/shadowsocks.py",
-      "line": 212,
-      "marker": "BROAD_EXCEPTION",
-      "category": "production",
-      "priority": "P1 - High",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
-      "path": "src/configstream/parsers/vless.py",
-      "line": 160,
-      "marker": "BROAD_EXCEPTION",
-      "category": "production",
-      "priority": "P1 - High",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
     },
     {
       "path": "src/configstream/pipeline/consumer.py",

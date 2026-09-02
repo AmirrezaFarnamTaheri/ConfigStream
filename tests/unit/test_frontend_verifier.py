@@ -72,7 +72,6 @@ def test_signed_artifacts_fail_closed_without_key_or_webcrypto() -> None:
 
     subprocess.run(["node", "-e", script], cwd=REPO_ROOT, check=True)
 
-
 def test_manifest_verification_fails_closed_on_signature_mismatch() -> None:
     script = textwrap.dedent(f"""
         const fs = require('fs');
@@ -253,4 +252,3 @@ def test_cross_language_signing_and_verification_parity() -> None:
     """)
 
     subprocess.run(["node", "-e", script], cwd=REPO_ROOT, check=True)
-

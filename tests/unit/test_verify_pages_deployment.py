@@ -214,8 +214,8 @@ def test_verify_pages_deployment_accepts_valid_site(tmp_path: Path) -> None:
 def test_verify_pages_deployment_candidate_exact_match(tmp_path: Path) -> None:
     commit = "a" * 40
     run_id = "12345"
-    digest = "digest-abc"
-    _write_site(tmp_path, source_commit=commit, run_id=run_id, manifest_digest=digest)
+    _write_site(tmp_path, source_commit=commit, run_id=run_id)
+    digest = hashlib.sha256((tmp_path / "artifact_manifest.json").read_bytes()).hexdigest()
     server, url = _serve(tmp_path)
     try:
         errors = verify_pages_deployment(
@@ -262,7 +262,7 @@ def test_verify_pages_deployment_candidate_run_id_mismatch(tmp_path: Path) -> No
 
 
 def test_verify_pages_deployment_candidate_digest_mismatch(tmp_path: Path) -> None:
-    _write_site(tmp_path, source_commit="a" * 40, run_id="12345", manifest_digest="digest-real")
+    _write_site(tmp_path, source_commit="a" * 40, run_id="12345")
     server, url = _serve(tmp_path)
     try:
         errors = verify_pages_deployment(
@@ -332,7 +332,8 @@ def test_verify_pages_deployment_signature_gate_fails_tampered_or_missing(tmp_pa
 
 
 def test_main_cli_candidate_matching_and_report_json(tmp_path: Path) -> None:
-    _write_site(tmp_path, source_commit="a" * 40, run_id="12345", manifest_digest="digest-foo")
+    _write_site(tmp_path, source_commit="a" * 40, run_id="12345")
+    digest = hashlib.sha256((tmp_path / "artifact_manifest.json").read_bytes()).hexdigest()
     server, url = _serve(tmp_path)
     report_file = tmp_path / "report.json"
     try:
@@ -341,7 +342,7 @@ def test_main_cli_candidate_matching_and_report_json(tmp_path: Path) -> None:
             url,
             "--expected-commit", "a" * 40,
             "--expected-run-id", "12345",
-            "--expected-digest", "digest-foo",
+            "--expected-digest", digest,
             "--report-file", str(report_file),
         ])
         assert rc == 0

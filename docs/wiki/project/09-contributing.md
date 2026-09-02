@@ -33,28 +33,100 @@ We welcome contributions! This guide will help you get started.
     playwright install --with-deps
     ```
 
-## Coding Standards
+## Coding Standards & Engineering Workflow
 
-We enforce strict code quality standards.
+We enforce strict code quality standards across Python, Go, and Frontend code.
 
-*   **Formatting:** We use `black`.
+*   **Formatting:** We use `black` for Python and `gofmt` for Go.
     ```bash
     black .
     ```
-*   **Linting:** We use `flake8`.
+*   **Linting:** We use `flake8`. `golangci-lint` is a proposed future gate and must not be assumed available.
     ```bash
     flake8 src tests
     ```
-*   **Type Checking:** We use `mypy`.
+*   **Type Checking:** We use `mypy` with the repository configuration. Strict mode is a proposed future migration.
     ```bash
     mypy src
     ```
 
-## Testing
+### 1. Source-Driven Development (`/source-driven-development`)
 
-*   **Run all tests:**
+Every framework-specific or protocol-specific implementation decision must be grounded in official, version-matched documentation (e.g. [Pydantic v2 Docs](https://docs.pydantic.dev/), [Go Standard Library](https://pkg.go.dev/), [Sing-box Core](https://sing-box.sagernet.org/)). Never author code from unverified model memory.
+
+```
+DETECT ──→ FETCH ──→ IMPLEMENT ──→ CITE
+  │          │           │            │
+  ▼          ▼           ▼            ▼
+ What       Get the    Follow the   Show your
+ stack?     relevant   documented   sources
+            docs       patterns
+```
+
+- **Stack Detection**: Identify exact versions from `pyproject.toml`, `go.mod`, and `assets/vendor-manifest.json` before authoring logic.
+- **Authoritative Hierarchy**: 1. Official Documentation $\rightarrow$ 2. Official Release Changelogs $\rightarrow$ 3. Web Standards (MDN/W3C). Never cite Stack Overflow or unverified AI summaries.
+- **Deep-Link Citations**: In code comments and commit descriptions, provide full URL citations with specific anchors:
+  ```python
+  # Pydantic v2 model serialization using model_dump
+  # Source: https://docs.pydantic.dev/latest/concepts/serialization/#modelmodel_dump
+  data = proxy.model_dump(mode="json", exclude_none=True)
+  ```
+
+### 2. Test-Driven Development (TDD) Lifecycle (`/test-driven-development`)
+
+We enforce the strict **Red-Green-Refactor** iron law:
+
+```
+NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST
+```
+
+```mermaid
+flowchart LR
+    Red["1. RED: Write Failing Test"] --> VerifyRed{"Verify Fails Correctly?"}
+    VerifyRed -- Yes --> Green["2. GREEN: Minimal Code"]
+    VerifyRed -- No --> Red
+    Green --> VerifyGreen{"Verify All Pass?"}
+    VerifyGreen -- Yes --> Refactor["3. REFACTOR: Clean Up"]
+    VerifyGreen -- No --> Green
+    Refactor --> VerifyGreen
+```
+
+1. **RED**: Write a minimal test specifying desired behavior (not internal implementation details).
+2. **VERIFY RED**: Run `pytest` or `go test` and confirm the test fails with the expected failure assertion. If it passes immediately, fix the test.
+3. **GREEN**: Write the minimal code necessary to satisfy the test. Avoid speculative abstractions.
+4. **VERIFY GREEN**: Confirm the test passes cleanly along with the existing test suite.
+5. **REFACTOR**: Simplify code, remove duplication, and improve variable naming while keeping all tests green.
+
+### 3. Research Before You Code (`/ecc-search-first`)
+
+Before authoring custom utilities or data structures, execute the Search-First workflow:
+
+```
+┌─────────────────────────┬──────────────────────────────────────────┬─────────────────────────────┐
+│ Need Assessment         │ Search Channel                           │ Decision Action             │
+├─────────────────────────┼──────────────────────────────────────────┼─────────────────────────────┤
+│ Standard Utility        │ Repo grep (`src/`, `utils/`)             │ Reuse existing helper       │
+│ Common Protocol / Dial  │ Go standard library (`math/rand/v2`, net)│ Adopt stdlib directly       │
+│ Parser / Sanitizer      │ Pydantic v2 / DOMPurify vendored         │ Extend/Wrap verified library│
+│ Unique Evasion Logic    │ Architectural Specification              │ Build minimal custom logic  │
+└─────────────────────────┴──────────────────────────────────────────┴─────────────────────────────┘
+```
+
+- **Decision Matrix**:
+  - **Adopt**: Exact match, verified license $\rightarrow$ Use directly without wrappers.
+  - **Extend**: Partial match $\rightarrow$ Write thin, documented wrapper.
+  - **Compose**: Multiple partial matches $\rightarrow$ Combine focused modules.
+  - **Build Custom**: Author bespoke logic only when no standard solution exists.
+
+## Testing & Verification
+
+*   **Run all Python tests:**
     ```bash
     pytest
+    ```
+*   **Run Go tests & benchmarks:**
+    ```bash
+    go test -v -bench=. -benchmem ./src/go/utls_client/...
     ```
 *   **Run unit tests only:**
     ```bash
@@ -65,7 +137,7 @@ We enforce strict code quality standards.
     pytest tests/e2e
     ```
 
-**Coverage Requirement:** We aim for >90% test coverage. Please write tests for any new features or bug fixes.
+**Coverage:** The current release workflow enforces an 80% source-coverage threshold. Raising it above 90% is a target that requires an approved CI change and baseline evidence. Every bug fix should include a regression test when practical.
 
 ## Frontend Contributions
 
@@ -81,11 +153,42 @@ The frontend is a critical security boundary.
     *   Write tests for JS modules where possible.
     *   Verify UI changes in multiple browsers.
 
+## 4. 5-Axis Code Review & Quality Gates (`/code-review-and-quality`)
+
+Every Pull Request is audited across five mandatory dimensions:
+
+```
+                  ┌──────────────────────────────────────────────┐
+                  │ 1. Correctness (Spec, edge cases, error paths)│
+                  │ 2. Readability (Simplicity, naming, clean DOM)│
+                  │ 3. Architecture (Boundaries, DI, no leakage) │
+                  │ 4. Security (Zero secrets, sanitized logs)   │
+                  │ 5. Performance (No N+1, single-socket UDP)   │
+                  └──────────────────────────────────────────────┘
+```
+
+- **Severity Prefixes**: Review comments must specify severity: `Critical:` (blocks merge), `Required:`, `Optional:` / `Consider:`, or `Nit:` (cosmetic).
+- **Dead Code Discipline**: Unused functions or temporary backwards-compatibility shims must be deleted rather than left behind.
+- **Change Sizing**: Target $\sim 100 - 300$ lines changed per PR. Split $>1,000$ line diffs into stacked PRs.
+
+## 5. Dependency Triage Protocol (`/dependency-triage`)
+
+Before modifying or upgrading dependencies in Python or Go:
+
+| Risk Level | Definition | Protocol |
+|:---|:---|:---|
+| **Patch** | Semver patch or lockfile-only security fix | Safe to update with green CI test suite. |
+| **Minor** | Semver minor with backwards-compatible features | Requires full integration validation and changelog review. |
+| **Major** | Semver major with potential breaking API changes | Requires human architectural review, migration plan, and ADR. |
+
+- **Single Dependency Rule**: Never bundle multiple unrelated package updates into one commit.
+- **Lockfile Integrity**: `go.sum` and pinned digests must be updated deterministically via package managers (`go mod tidy`).
+
 ## Pull Request Workflow
 
 1.  Create a new branch for your feature or fix.
 2.  Write code and tests.
-3.  Ensure all checks pass locally (`pytest`, `flake8`, `mypy`).
+3.  Ensure all checks pass locally (`pytest`, `flake8`, `mypy`, `go test`).
 4.  Submit a Pull Request with a clear description of your changes.
 5.  Address any review comments.
 

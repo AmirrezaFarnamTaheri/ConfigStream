@@ -86,14 +86,21 @@ else:
     return self._test_via_singbox(proxy)  # Sing-box subprocess — fallback
 ```
 
-### The Go Sidecar (Batch Tester)
+### The Go Sidecar & Fast Tester Architecture
 
 *   **Path**: `src/go/tester/main.go`
-*   **Concurrency**: Uses Go routines. Can handle 500 concurrent checks easily.
-*   **Interface**: NDJSON stream (one JSON object per line) for both stdin and stdout. Python writes proxy configs to stdin; Go writes test results to stdout.
-*   **Payload Format**: Each `config` field must be a JSON **array** of outbounds (not a single object).
-*   **Honeypot Check**: When `strict_security` is enabled, the Go sidecar performs a UDP honeypot probe and, if `CANARY_URL` is set, uses it as the test target. Otherwise, falls back to `TEST_URLS`.
-*   **Evasion in Testing**: The tester applies [evasion features](../../CENSORSHIP_EVASION.md) during testing to avoid false negatives — a proxy that only works *with* uTLS will be correctly identified as working.
+*   **Concurrency Architecture**:
+    *   **Current worker pool**: The sidecar defaults to `-workers=20` and clamps the value to 200. Any higher-concurrency target requires benchmark and resource-limit evidence.
+    *   **Channel Ownership**: Senders own and close communication channels; unbuffered channels are preferred for backpressure signaling.
+    *   **Multiplexed UDP Scanning**: `src/go/tester/scanner/scanner.go` uses a single shared UDP socket. Packet-rate targets require reproducible benchmark evidence before publication.
+*   **Subprocess IPC Contract**:
+    *   **Transport**: Line-delimited NDJSON streaming over standard `stdin`/`stdout`.
+    *   **Correlation Integrity**: Named return `(result ProxyTestResult)` with `defer recover()` protection ensures every input request yields a correlated result even if upstream decoders panic.
+*   **Error Handling & Modern Idioms**:
+    *   **Single-Handling Rule**: Errors are wrapped with context (`fmt.Errorf("context: %w", err)`) and propagated without duplicate logging.
+    *   **Modern Primitives**: Go 1.22+ `math/rand/v2` for lock-free PRNG, `slices` / `maps` standard packages, and zero-value `sync.Map` readiness.
+*   **Benchmark target**: Add named, reproducible Go 1.24+ benchmarks before publishing throughput, allocation, or latency figures.
+*   **Evasion in Testing**: The tester applies [evasion features](../../CENSORSHIP_EVASION.md) (uTLS ClientHello simulation via `src/go/utls_client`) to prevent DPI false negatives.
 
 ---
 
@@ -322,6 +329,93 @@ To enable "Natural Language Search" on a static site:
 **File**: `tools/workers/subscription_worker.js`
 
 A Cloudflare Worker that proxies VLESS traffic and serves dynamic subscription links for the user's private node. Supports Clash YAML, Sing-box JSON, and V2Ray Base64 formats. Deploy a single worker to get a full subscription endpoint for all clients at zero cost. See [CENSORSHIP_EVASION.md — BYOW](../../CENSORSHIP_EVASION.md) for the full deployment walkthrough.
+
+---
+
+## 11. Deprecation, Migration & Refactoring Governance
+
+> **Target-state governance.** The following practices are proposed standards;
+> they are not assertions that every migration, tool, or CI gate already exists.
+
+### 11.1 Deprecation & Safe Migration Protocols (`/deprecation-and-migration`)
+- **Code as a Liability**: Every line carries maintenance, patch, and test costs. Deprecation planning begins at design time.
+- **Expand/Contract Schema Pattern**: Database and JSON schema modifications are deployed additively first (expand), backfilled across pipeline runs (migrate), and legacy keys dropped only after zero downstream consumers query them (contract).
+- **The Strangler & Adapter Patterns**: Protocol converters (e.g. legacy Shadowsocks to modern VLESS/Reality or legacy Clash to Mihomo `dialer-proxy`) use adapter wrappers to maintain backwards compatibility while consumers migrate.
+- **Advisory vs Compulsory Windows**: Public feeds follow minimum 6-month advisory deprecation windows with `Sunset` HTTP headers before hard schema sunset.
+
+### 11.2 Go Refactoring Discipline (`/golang-refactoring`)
+- **Core Loop**: `Understand` (blast radius via `gopls`) $\rightarrow$ `Safety Net` (characterization tests) $\rightarrow$ `Tool-Driven Step` (`gopls` rename/inline) $\rightarrow$ `Verify` (`go test -race` + `benchstat`) $\rightarrow$ `Atomic Commit`.
+- **Structural vs Behavioral Separation**: Refactor commits and feature commits are strictly separated.
+- **Gradual Code Repair with Type Aliases**: Types moved across packages use `type A = B` aliases so call sites migrate incrementally without breaking consumers.
+- **Consumer-Side Interfaces**: Circular package dependencies are broken by defining 1-3 method interfaces at the consumption site rather than introducing complex leaf packages.
+
+### 11.3 Workflow Governance & Skills Migration (`/migrate-workflows`)
+- **First-Class Modular Skills**: Legacy monolithic `.agents/workflows/*.md` scripts are systematically migrated to modular skills (`.agents/skills/<name>/SKILL.md`) equipped with standard YAML frontmatter (`name`, `description`), enabling automated semantic discovery and slash command invocation.
+
+---
+
+## 12. Multi-Agent Coordination & Parallel Debugging (ACH Framework)
+
+### 12.1 Multi-Agent Workflow Coordination (`/nvcd-oma-coordination`)
+When orchestrating multi-domain features across Python backend, Go sidecar, and WebGL frontend:
+- **Contract-First Alignment**: Define and lock IPC schemas (`NDJSON` payloads, `metadata.json`, and API specs) before spawning frontend or client-side tasks.
+- **Priority Tiering & Parallel Execution**: Execute independent tasks in parallel within disjoint workspaces (`-w ./backend`, `-w ./frontend`) to eliminate file collision.
+- **Lifecycle Sequence**: `Plan (PM Decomposition)` $\rightarrow$ `Execute (Specialist Workspaces)` $\rightarrow$ `Verify (Contract Validation)` $\rightarrow$ `QA Gate (Terminal Verification)`.
+
+### 12.2 Analysis of Competing Hypotheses (ACH) for Parallel Debugging (`/nvcd-parallel-debugging`)
+When triaging subtle regressions, memory leaks, or protocol handshake failures across distributed runners, hypotheses are evaluated simultaneously across 6 failure modes:
+
+| Failure Mode | Investigation Domain | Concrete Verification In ConfigStream |
+|:---|:---|:---|
+| **1. Logic Error** | Control flow & loops | Off-by-one in IP CIDR masking or AIMD backoff calculations. |
+| **2. Data Issue** | Input encoding & serialization | Malformed VMess Base64 padding or unescaped query string characters. |
+| **3. State Problem** | Race conditions & cache staleness | Concurrent WARP key fetch races or corrupted SQLite delta merges. |
+| **4. Integration Failure** | Contract / IPC mismatch | Go tester stdout serialization drift against Python NDJSON deserializer. |
+| **5. Resource Issue** | Leaks & exhaustion | UDP socket / file descriptor leaks in raw socket scanners under high PPS. |
+| **6. Environment** | Runtime / OS differences | Go 1.26 linker compatibility or Linux vs macOS socket buffer divergences. |
+
+#### Evidence Standards & Arbitration Protocol
+- **Direct Evidence**: Mandatory file:line citations (`src/go/tester/main.go:182`).
+- **Confidence Rating**: Categorized into *High (>80%)*, *Medium (50-80%)*, or *Low (<50%)*.
+- **Result Arbitration**: Outcomes are marked as *Confirmed*, *Plausible*, *Falsified*, or *Inconclusive*, ensuring root-cause resolution before patching.
+
+---
+
+## 13. Go Dependency Injection & Management (`/golang-dependency-injection`, `/golang-dependency-management`)
+
+### 13.1 Dependency Injection Principles
+ConfigStream's Go sidecars (`src/go/tester/` and `src/go/utls_client/`) adhere to explicit, minimal Dependency Injection:
+- **Constructor Injection**: All services, parsers, and testers declare dependencies explicitly in `New*` constructors. Global package variables and `init()` service initializations are strictly prohibited.
+- **Accept Interfaces, Return Structs**: Interfaces are defined at the *consumer* boundary where methods are called, never at the provider package.
+- **Composition Root**: Wiring happens strictly at application entrypoints (`main.go`). DI containers are never passed down into business logic (eliminating the Service Locator anti-pattern).
+- **Manual vs Container Threshold**: Projects with $<10$ services use zero-overhead manual constructor injection. High-complexity microservices adopt compile-time DI (`google/wire`) or generic hierarchical containers (`samber/do/v2`).
+
+### 13.2 Dependency Management & Supply Chain Hygiene
+- **Immutable Checksums**: `go.sum` is committed and verified in CI using `go mod verify` to prevent supply chain substitution attacks.
+- **Vulnerability Scanning**: CI gates require clean `govulncheck ./...` execution prior to binary compilation.
+- **Patch-First Upgrades**: Routine updates use `go get -u=patch ./...` followed by `go mod tidy` and regression testing.
+- **Tool Directives (Go 1.24+)**: Build and test tools are pinned directly in `go.mod` using `tool` directives (`golangci-lint`, `govulncheck`, `benchstat`) to guarantee reproducible developer environments.
+
+---
+
+## 14. CodeNav: 4-Axis Codebase Navigation Protocol (`/codenav`)
+
+When investigating complex bugs, regressions, or cross-subsystem interactions, engineers and AI agents navigate along four distinct axes:
+
+```
+                          1. Temporal Axis (Git History / Churn)
+                                            ▲
+                                            │
+2. Structural Axis (AST / Call Graphs) ◄───┼───► 3. Semantic Axis (Vector Search / Concepts)
+                                            │
+                                            ▼
+                          4. Precision Axis (Exact Grep / AST Match)
+```
+
+1. **Temporal / Evolutionary Axis**: Trace commit history, blame graphs, and past regressions to understand *why* code was structured this way.
+2. **Structural / Topological Axis**: Utilize `graphify` / AST dependency graphs to compute the inbound and outbound blast radius before touching shared abstractions.
+3. **Semantic / Concept Axis**: Query documentation compendiums and vector indexes to locate domain features and business logic when exact symbol names are unfamiliar.
+4. **Precision / Literal Axis**: Pinpoint exact symbol declarations, type definitions, and variable call-sites using targeted grep and AST inspection tools.
 
 ---
 
