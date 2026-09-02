@@ -128,3 +128,129 @@ def test_manifest_verification_fails_closed_on_signature_mismatch() -> None:
         """)
 
     subprocess.run(["node", "-e", script], cwd=REPO_ROOT, check=True)
+
+
+def test_cross_language_signing_and_verification_parity() -> None:
+    """Test full Ed25519 signing from Python verified by WebCrypto in Node."""
+    import base64
+    import json
+    from cryptography.hazmat.primitives.asymmetric import ed25519
+    from cryptography.hazmat.primitives import serialization
+    from configstream.signer import Signer
+
+    priv_key = ed25519.Ed25519PrivateKey.generate()
+    seed_bytes = priv_key.private_bytes(
+        encoding=serialization.Encoding.Raw,
+        format=serialization.PrivateFormat.Raw,
+        encryption_algorithm=serialization.NoEncryption(),
+    )
+    spki_bytes = priv_key.public_key().public_bytes(
+        encoding=serialization.Encoding.DER,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo,
+    )
+    spki_b64 = base64.b64encode(spki_bytes).decode("ascii")
+
+    signer = Signer(seed_bytes.hex())
+
+    # 1. Sign config / subscription
+    content_obj = {"proxies": [{"name": "test-node", "port": 443}], "status": "active"}
+    content_str = json.dumps(content_obj)
+    signed_sub = signer.sign_subscription(content_str)
+
+    # 2. Sign manifest
+    manifest_obj = {
+        "version": "3.2.0",
+        "generated_at": 1725321600,
+        "files": ["proxies.json", "metadata.json"],
+        "nested": {"z": 100, "a": 200},
+    }
+    manifest_sig = signer.sign_manifest(manifest_obj)
+    manifest_obj["manifest_signature"] = manifest_sig
+
+    test_payload = {
+        "spki_b64": spki_b64,
+        "signed_sub": signed_sub,
+        "manifest_obj": manifest_obj,
+    }
+
+    script = textwrap.dedent(f"""
+        const fs = require('fs');
+        const vm = require('vm');
+        const crypto = require('crypto');
+        const verifierJs = fs.readFileSync({str(REPO_ROOT / "frontend/assets/js/verifier.js")!r}, 'utf8');
+        const data = {json.dumps(test_payload)};
+
+        const context = {{
+          console,
+          TextEncoder,
+          Uint8Array,
+          window: {{
+            atob: (val) => Buffer.from(val, 'base64').toString('binary'),
+            crypto: crypto.webcrypto,
+            CS_CONSTANTS: {{ PUBLIC_KEY: data.spki_b64 }}
+          }},
+          self: {{}}
+        }};
+        context.window.window = context.window;
+        context.window.self = context.window;
+        vm.createContext(context);
+        vm.runInContext(verifierJs, context);
+
+        (async () => {{
+          // Positive vector 1: verifyConfig
+          const verifiedSub = await context.window.Verifier.verifyConfig(data.signed_sub);
+          if (!verifiedSub || verifiedSub.status !== 'active') {{
+            throw new Error('verifyConfig failed to parse verified content');
+          }}
+
+          // Negative vector 1: tampered content in verifyConfig
+          let failedTampered = false;
+          try {{
+            await context.window.Verifier.verifyConfig({{
+              content: JSON.stringify({{ proxies: [], status: 'tampered' }}),
+              signature: data.signed_sub.signature,
+              timestamp: data.signed_sub.timestamp
+            }});
+          }} catch (e) {{
+            failedTampered = true;
+          }}
+          if (!failedTampered) throw new Error('verifyConfig did not fail on tampered content');
+
+          // Negative vector 2: tampered timestamp in verifyConfig
+          let failedTimestamp = false;
+          try {{
+            await context.window.Verifier.verifyConfig({{
+              content: data.signed_sub.content,
+              signature: data.signed_sub.signature,
+              timestamp: data.signed_sub.timestamp + 500
+            }});
+          }} catch (e) {{
+            failedTimestamp = true;
+          }}
+          if (!failedTimestamp) throw new Error('verifyConfig did not fail on tampered timestamp');
+
+          // Positive vector 2: verifyManifestSignature
+          const manifestRes = await context.window.Verifier.verifyManifestSignature(data.manifest_obj);
+          if (!manifestRes.verified) {{
+            throw new Error('verifyManifestSignature failed on valid signed manifest');
+          }}
+
+          // Negative vector 3: tampered manifest field
+          const tamperedManifest = JSON.parse(JSON.stringify(data.manifest_obj));
+          tamperedManifest.version = '9.9.9';
+          let failedManifest = false;
+          try {{
+            await context.window.Verifier.verifyManifestSignature(tamperedManifest);
+          }} catch (e) {{
+            failedManifest = true;
+          }}
+          if (!failedManifest) throw new Error('verifyManifestSignature did not fail on tampered manifest');
+
+        }})().catch((error) => {{
+          console.error(error.message);
+          process.exit(1);
+        }});
+    """)
+
+    subprocess.run(["node", "-e", script], cwd=REPO_ROOT, check=True)
+

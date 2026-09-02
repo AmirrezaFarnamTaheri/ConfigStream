@@ -211,6 +211,18 @@
                 throw new Error("Manifest verification failed: Public Key not configured.");
             }
 
+            const MAX_SIGNATURE_AGE_SECONDS = 300;
+            const CLOCK_SKEW_TOLERANCE_SECONDS = 30;
+            const timestamp = sig.timestamp != null ? Number(sig.timestamp) : null;
+            if (timestamp != null) {
+                const age = Math.floor(Date.now() / 1000) - timestamp;
+                if (age < -CLOCK_SKEW_TOLERANCE_SECONDS || age > MAX_SIGNATURE_AGE_SECONDS) {
+                    throw new Error(
+                        `SECURITY ALERT: Manifest signature age ${age}s exceeds tolerance (${-CLOCK_SKEW_TOLERANCE_SECONDS}s to ${MAX_SIGNATURE_AGE_SECONDS}s) — possible replay attack.`
+                    );
+                }
+            }
+
             let keyData;
             keyData = this._base64ToArrayBuffer(PUBLIC_KEY);
             const key = await window.crypto.subtle.importKey(
@@ -220,7 +232,8 @@
                 true,
                 ["verify"]
             );
-            const payload = new TextEncoder().encode(this._canonicalManifestPayload(manifestObj));
+            const canonicalJson = this._canonicalManifestPayload(manifestObj);
+            const payload = this._buildSignedPayload(canonicalJson, timestamp);
             const signature = this._hexToBytes(sig.signature);
             const isValid = await window.crypto.subtle.verify(
                 { name: "Ed25519" },
