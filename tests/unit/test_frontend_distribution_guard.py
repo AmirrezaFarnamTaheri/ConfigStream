@@ -69,6 +69,7 @@ def test_public_data_fetches_are_forced_through_verified_bytes() -> None:
     assert "return await window.api.fetchProxies()" in main
     assert "window.api.fetchMetadata()" in main
     assert "window.api.fetchStatistics()" in main
+    assert "import logger from './utils/logger.js';" in main
 
 
 def test_home_page_does_not_claim_auto_updating_before_verification() -> None:
