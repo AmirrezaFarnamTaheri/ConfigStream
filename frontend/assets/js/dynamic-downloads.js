@@ -165,9 +165,11 @@ function initDynamicDownloads() {
             iconContainer.appendChild(icon);
         }
 
-        // Re-render feather icons
-        if (window.feather) {
-            feather.replace();
+        // Use the local icon renderer when it is ready.  Calling the legacy
+        // Feather global scans every icon placeholder on the page and throws
+        // if any optional icon is unavailable, which must not break downloads.
+        if (window.inlineIcons && typeof window.inlineIcons.replace === 'function') {
+            window.inlineIcons.replace();
         }
     };
 
