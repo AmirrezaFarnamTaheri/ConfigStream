@@ -4,6 +4,7 @@
 import logging
 import urllib.parse
 from typing import Optional
+from pydantic import ValidationError
 
 from ..models import Proxy
 from ..security_validator import SecurityValidator
@@ -91,7 +92,16 @@ def parse_hysteria3(line: str) -> Optional[Proxy]:
             remarks=remarks,
             details=details,
         )
-    except (ValueError, AttributeError, UnicodeDecodeError) as exc:
+    except (
+        ValidationError,
+        ValueError,
+        AttributeError,
+        UnicodeDecodeError,
+        KeyError,
+        IndexError,
+        TypeError,
+        TimeoutError,
+    ) as exc:
         logger.debug(
             "Hysteria3 parser: dropping malformed URI – %s",
             SecurityValidator.sanitize_log_message(str(exc)),

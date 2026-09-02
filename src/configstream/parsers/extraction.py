@@ -172,7 +172,7 @@ def extract_config_lines(
         except UnicodeDecodeError:
             try:
                 payload_str = payload.decode("latin-1")
-            except Exception:
+            except (UnicodeDecodeError, ValueError, TypeError, LookupError):
                 payload_str = payload.decode("utf-8", errors="ignore")
                 logger.debug(
                     "extract_config_lines: Binary payload decoded with errors ignored."
@@ -246,7 +246,7 @@ def extract_config_lines(
             else:
                 # Not a list, maybe fallback
                 lines = payload_str.splitlines()
-        except Exception as e:
+        except (json.JSONDecodeError, ValueError, TypeError, KeyError) as e:
             logger.debug(
                 "Failed to parse JSON array: %s",
                 SecurityValidator.sanitize_log_message(str(e)),
@@ -265,8 +265,8 @@ def extract_config_lines(
                 ], {}
             # If standard V2Ray, return as is
             return [payload_str], {}
-        except Exception:
-            logging.getLogger(__name__).debug("Suppressed broad exception")
+        except (json.JSONDecodeError, ValueError, TypeError, KeyError):
+            logging.getLogger(__name__).debug("Suppressed JSON parse exception")
             return [payload_str], {}  # Let parser fail later if invalid
 
     # 3. Check for YAML (Clash)
@@ -294,7 +294,7 @@ def extract_config_lines(
         except ImportError:
             logger.warning("PyYAML not installed, skipping Clash YAML parsing")
             drop_stats["missing_dependency_yaml"] = 1
-        except Exception as e:
+        except (ValueError, TypeError, KeyError, AttributeError, yaml.YAMLError) as e:
             logger.debug(
                 "Failed to parse Clash YAML: %s",
                 SecurityValidator.sanitize_log_message(str(e)),

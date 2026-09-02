@@ -61,8 +61,8 @@ def validate_b64_input(data: str) -> Optional[str]:
             unquoted = unquote(trimmed)
             if unquoted != trimmed:
                 trimmed = unquoted
-        except Exception:  # nosec B110
-            logging.getLogger(__name__).debug("Suppressed broad exception")
+        except (ValueError, TypeError):  # nosec B110
+            logging.getLogger(__name__).debug("Suppressed unquote exception")
             pass
 
     # Basic char check + noise check
@@ -135,6 +135,6 @@ def safe_b64_decode(data: str) -> Optional[str]:
             return base64.b64decode(cleaned, validate=False).decode(
                 "utf-8", errors="ignore"
             )
-        except Exception:
-            logging.getLogger(__name__).debug("Suppressed broad exception")
+        except (binascii.Error, ValueError, TypeError):
+            logging.getLogger(__name__).debug("Suppressed fallback base64 decode exception")
             return None

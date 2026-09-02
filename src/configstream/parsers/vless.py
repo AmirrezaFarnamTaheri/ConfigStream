@@ -1,8 +1,12 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import binascii
 import html
+import json
 import logging
 import urllib.parse
+from pydantic import ValidationError
 from configstream.models import Proxy
+from ..security_validator import safe_log_text
 from .base import normalize_proxy_details
 
 logger = logging.getLogger(__name__)
@@ -157,6 +161,15 @@ def parse_vless(url: str) -> Proxy | None:
         normalize_proxy_details(proxy)
         return proxy
 
-    except Exception:
-        logging.getLogger(__name__).debug("Suppressed broad exception")
+    except (
+        ValidationError,
+        ValueError,
+        KeyError,
+        json.JSONDecodeError,
+        TimeoutError,
+        IndexError,
+        TypeError,
+        binascii.Error,
+    ) as e:
+        logger.debug("Failed to parse VLESS: %s", safe_log_text(str(e)[:100]))
         return None

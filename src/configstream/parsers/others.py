@@ -7,6 +7,8 @@ for pipeline format support.
 """
 
 import base64
+import binascii
+import json
 import logging
 import re
 import uuid as uuid_lib
@@ -14,6 +16,7 @@ import uuid as uuid_lib
 # pylint: disable=no-member
 from typing import Optional
 from urllib.parse import parse_qs, unquote, urlparse
+from pydantic import ValidationError
 from ..models import Proxy
 from .base import normalize_proxy_details
 from ..constants import MAX_CONFIG_LINE_LENGTH
@@ -93,7 +96,16 @@ def _parse_url_scheme(config: str, protocol: str, default_port: int) -> Optional
             proxy.details["username"] = cred
         normalize_proxy_details(proxy)
         return proxy
-    except (ValueError, IndexError) as e:
+    except (
+        ValidationError,
+        ValueError,
+        KeyError,
+        json.JSONDecodeError,
+        TimeoutError,
+        IndexError,
+        TypeError,
+        binascii.Error,
+    ) as e:
         logger.debug(
             "Failed to parse %s: %s",
             protocol.upper(),
@@ -329,8 +341,8 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
                     from urllib.parse import unquote
 
                     key = unquote(key)
-                except Exception:  # nosec B110
-                    logging.getLogger(__name__).debug("Suppressed broad exception")
+                except (ValueError, TypeError):  # nosec B110
+                    logging.getLogger(__name__).debug("Suppressed unquote exception")
                     pass
 
             key_clean = key.strip().replace(" ", "+")
@@ -374,7 +386,16 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
         if peer_pub and not validate_wg_key(peer_pub, "peer_public_key"):
             return None
 
-    except Exception as e:
+    except (
+        ValidationError,
+        ValueError,
+        KeyError,
+        json.JSONDecodeError,
+        TimeoutError,
+        IndexError,
+        TypeError,
+        binascii.Error,
+    ) as e:
         logger.debug("WireGuard key validation failed: %s", safe_log_text(e))
         return None
 

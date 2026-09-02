@@ -1,7 +1,9 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import binascii
 import json
 import logging
 from typing import Optional
+from pydantic import ValidationError
 from ..models import Proxy
 from ..constants import MAX_CONFIG_LINE_LENGTH
 from ..security_validator import SecurityValidator
@@ -103,7 +105,16 @@ def parse_clash_json(config: str) -> Optional[Proxy]:
         )
         normalize_proxy_details(proxy)
         return proxy
-    except Exception as e:
+    except (
+        ValidationError,
+        ValueError,
+        KeyError,
+        json.JSONDecodeError,
+        TimeoutError,
+        IndexError,
+        TypeError,
+        binascii.Error,
+    ) as e:
         logger.debug(
             "Failed to parse Clash JSON: %s",
             SecurityValidator.sanitize_log_message(str(e)),

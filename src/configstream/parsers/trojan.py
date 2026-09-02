@@ -1,7 +1,10 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import binascii
+import json
 import logging
 from typing import Optional
 from urllib.parse import parse_qs, unquote, urlparse
+from pydantic import ValidationError
 from ..models import Proxy
 from .base import normalize_proxy_details
 from ..constants import MAX_CONFIG_LINE_LENGTH
@@ -55,6 +58,15 @@ def parse_trojan(config: str) -> Optional[Proxy]:
             proxy.details["password"] = uuid
         normalize_proxy_details(proxy)
         return proxy
-    except (ValueError, IndexError) as e:
+    except (
+        ValidationError,
+        ValueError,
+        KeyError,
+        json.JSONDecodeError,
+        TimeoutError,
+        IndexError,
+        TypeError,
+        binascii.Error,
+    ) as e:
         logger.debug("Failed to parse Trojan: %s", safe_log_text(e))
         return None
