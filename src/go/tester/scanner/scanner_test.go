@@ -4,6 +4,7 @@ package scanner
 import (
 	"net"
 	"testing"
+	"time"
 )
 
 func TestConstructHandshakePacketShape(t *testing.T) {
@@ -39,10 +40,48 @@ func TestInc(t *testing.T) {
 	}
 }
 
+func TestDeliverResultWithTimer_Success(t *testing.T) {
+	ch := make(chan ScanResult, 1)
+	res := ScanResult{IP: "1.1.1.1", Port: 2408, Latency: 42}
+	deliverResultWithTimer(ch, res, 50*time.Millisecond)
+
+	select {
+	case got := <-ch:
+		if got != res {
+			t.Fatalf("got %+v, want %+v", got, res)
+		}
+	default:
+		t.Fatal("expected result in channel")
+	}
+}
+
+func TestDeliverResultWithTimer_Timeout(t *testing.T) {
+	ch := make(chan ScanResult) // unbuffered, no receiver
+	res := ScanResult{IP: "1.1.1.1", Port: 2408, Latency: 42}
+	start := time.Now()
+	deliverResultWithTimer(ch, res, 10*time.Millisecond)
+	elapsed := time.Since(start)
+	if elapsed < 10*time.Millisecond {
+		t.Fatalf("expected timeout to take at least 10ms, took %v", elapsed)
+	}
+}
+
 func BenchmarkConstructHandshakePacket(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		if packet := ConstructHandshakePacket(); len(packet) != HandshakeLen {
 			b.Fatal("invalid packet")
 		}
+	}
+}
+
+func BenchmarkDeliverResultTimer(b *testing.B) {
+	resultsChan := make(chan ScanResult, 1)
+	res := ScanResult{IP: "1.1.1.1", Port: 2408, Latency: 10}
+
+	b.ResetTimer()
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		deliverResultWithTimer(resultsChan, res, 50*time.Millisecond)
+		<-resultsChan
 	}
 }
