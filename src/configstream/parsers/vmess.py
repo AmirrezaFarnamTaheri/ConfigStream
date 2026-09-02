@@ -1,8 +1,9 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import binascii
 import json
 import logging
-import binascii
 from typing import Optional
+from pydantic import ValidationError
 from ..models import Proxy
 from ..constants import MAX_CONFIG_LINE_LENGTH
 from .base import normalize_proxy_details, safe_b64_decode
@@ -135,6 +136,15 @@ def parse_vmess(config: str) -> Optional[Proxy]:
         )
         normalize_proxy_details(proxy)
         return proxy
-    except (json.JSONDecodeError, binascii.Error, KeyError, ValueError, TypeError) as e:
+    except (
+        ValidationError,
+        ValueError,
+        KeyError,
+        json.JSONDecodeError,
+        TimeoutError,
+        IndexError,
+        TypeError,
+        binascii.Error,
+    ) as e:
         logger.debug("Failed to parse VMess: %s", safe_log_text(str(e)[:100]))
         return None

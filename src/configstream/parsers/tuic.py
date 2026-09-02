@@ -1,9 +1,12 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """TUIC v5 protocol URI parser."""
 
+import binascii
+import json
 import logging
 import urllib.parse
 from typing import List, Optional, Dict, Any
+from pydantic import ValidationError
 
 from ..models import Proxy
 from ..security_validator import SecurityValidator
@@ -92,7 +95,18 @@ def parse_tuic(line: str) -> Optional[Proxy]:
             remarks=remarks,
             details=details,
         )
-    except (ValueError, AttributeError, UnicodeDecodeError) as exc:
+    except (
+        ValidationError,
+        ValueError,
+        AttributeError,
+        UnicodeDecodeError,
+        KeyError,
+        IndexError,
+        TypeError,
+        TimeoutError,
+        binascii.Error,
+        json.JSONDecodeError,
+    ) as exc:
         logger.debug(
             "TUIC parser: dropping malformed URI – %s",
             SecurityValidator.sanitize_log_message(str(exc)),

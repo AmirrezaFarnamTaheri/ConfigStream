@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import binascii
 import html
 import logging
 import json
@@ -6,6 +7,7 @@ import re
 import ipaddress
 from typing import Optional, Any, Dict
 from urllib.parse import urlparse, unquote
+from pydantic import ValidationError
 from ..models import Proxy
 from .base import normalize_proxy_details
 from ..constants import MAX_CONFIG_LINE_LENGTH
@@ -167,7 +169,16 @@ def parse_generic_url_scheme(config: str) -> Optional[Proxy]:
             proxy.details["username"] = unquote(parsed.username)
         normalize_proxy_details(proxy)
         return proxy
-    except (ValueError, IndexError) as e:
+    except (
+        ValidationError,
+        ValueError,
+        KeyError,
+        json.JSONDecodeError,
+        TimeoutError,
+        IndexError,
+        TypeError,
+        binascii.Error,
+    ) as e:
         logger.debug("Failed to parse Generic config: %s", safe_log_text(str(e)[:50]))
         return None
 
@@ -202,7 +213,16 @@ def parse_naive(config: str) -> Optional[Proxy]:
             proxy.details["username"] = unquote(parsed.username)
         normalize_proxy_details(proxy)
         return proxy
-    except (ValueError, IndexError) as e:
+    except (
+        ValidationError,
+        ValueError,
+        KeyError,
+        json.JSONDecodeError,
+        TimeoutError,
+        IndexError,
+        TypeError,
+        binascii.Error,
+    ) as e:
         logger.debug("Failed to parse Naive config: %s", safe_log_text(str(e)[:50]))
         return None
 
@@ -217,7 +237,7 @@ def parse_v2ray_json(config: str) -> Optional[Proxy]:
         return None
     try:
         data = json.loads(stripped)
-    except (json.JSONDecodeError, RecursionError):
+    except (json.JSONDecodeError, RecursionError, ValueError, TypeError):
         # RecursionError guards against deeply nested attacker JSON; the
         # dispatcher only catches ValueError/KeyError/JSONDecodeError.
         return None

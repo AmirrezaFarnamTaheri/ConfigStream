@@ -1,8 +1,10 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-import logging
 import binascii
+import json
+import logging
 from typing import Any, Dict, Optional
 from urllib.parse import parse_qs, unquote
+from pydantic import ValidationError
 from ..models import Proxy
 from .base import normalize_proxy_details, safe_b64_decode
 from ..constants import MAX_CONFIG_LINE_LENGTH
@@ -181,7 +183,16 @@ def parse_ss(config: str) -> Optional[Proxy]:
         )
         normalize_proxy_details(proxy)
         return proxy
-    except (ValueError, IndexError, binascii.Error) as e:
+    except (
+        ValidationError,
+        ValueError,
+        KeyError,
+        json.JSONDecodeError,
+        TimeoutError,
+        IndexError,
+        TypeError,
+        binascii.Error,
+    ) as e:
         logger.debug(
             "Failed to parse Shadowsocks config: %s",
             safe_log_text(str(e)[:100]),
@@ -209,6 +220,15 @@ def parse_ss2022(config: str) -> Optional[Proxy]:
             proxy.protocol = "ss2022"
 
         return proxy
-    except Exception as e:
+    except (
+        ValidationError,
+        ValueError,
+        KeyError,
+        json.JSONDecodeError,
+        TimeoutError,
+        IndexError,
+        TypeError,
+        binascii.Error,
+    ) as e:
         logger.debug("Failed to parse Shadowsocks 2022: %s", safe_log_text(e))
         return None

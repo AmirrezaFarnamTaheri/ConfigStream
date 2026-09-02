@@ -1,7 +1,10 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import binascii
+import json
 import logging
 import re
 from typing import Optional
+from pydantic import ValidationError
 
 from ..constants import MAX_OPENVPN_CONFIG_SIZE
 from ..models import Proxy
@@ -126,21 +129,19 @@ def parse_openvpn(config: str) -> Optional[Proxy]:
             remarks="OpenVPN Config",
         )
 
-    except ValueError as e:
+    except (
+        ValidationError,
+        ValueError,
+        KeyError,
+        json.JSONDecodeError,
+        TimeoutError,
+        IndexError,
+        TypeError,
+        binascii.Error,
+        re.error,
+    ) as e:
         logger.debug(
-            "Failed to parse OpenVPN (validation error): %s",
-            safe_log_text(e),
-        )
-        return None
-    except re.error as e:
-        logger.warning(
-            "Failed to parse OpenVPN (regex error): %s",
-            safe_log_text(e),
-        )
-        return None
-    except Exception as e:
-        logger.warning(
-            "Failed to parse OpenVPN (unexpected error): %s",
+            "Failed to parse OpenVPN: %s",
             safe_log_text(e),
         )
         return None
