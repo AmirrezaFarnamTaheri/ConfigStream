@@ -1,3 +1,4 @@
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -5,12 +6,21 @@ from pathlib import Path
 
 def test_validator_dependencies_resolvable():
     """Verify that validate_frontend_placeholders can be imported cleanly without missing dependencies."""
-    script_path = Path("scripts/validate_frontend_placeholders.py")
+    root = Path(__file__).resolve().parents[2]
+    script_path = root / "scripts" / "validate_frontend_placeholders.py"
     assert script_path.exists(), "validate_frontend_placeholders.py missing"
+
+    env = dict(os.environ)
+    src_dir = str(root / "src")
+    existing_pp = env.get("PYTHONPATH", "")
+    env["PYTHONPATH"] = f"{src_dir}{os.pathsep}{existing_pp}" if existing_pp else src_dir
 
     result = subprocess.run(
         [sys.executable, "-c", "import configstream.security_validator; import pydantic_settings"],
         capture_output=True,
         text=True,
+        cwd=str(root),
+        env=env,
     )
     assert result.returncode == 0, f"Import failed: {result.stderr}"
+

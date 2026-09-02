@@ -178,7 +178,7 @@ let currentTrustState = 'loading'; // 'loading', 'fresh', 'stale', 'invalid', 'e
 let cachedMetadata = null;
 
 // --- 5-STATE TRUST UI CONTRACT & PROVENANCE BANNER ---
-export function applyTrustState(state, metadata, options = {}) {
+function applyTrustState(state, metadata, options = {}) {
     currentTrustState = state;
     if (metadata) cachedMetadata = metadata;
 
@@ -247,20 +247,22 @@ function isActionAllowed() {
 }
 
 // Global artifact-state event listener for reactive trust transitions
-window.addEventListener('configstream:artifact-state', (event) => {
-    const detail = event.detail;
-    if (detail) {
-        if (detail.status === 'blocked' || detail.canDistribute === false) {
-            applyTrustState('invalid', detail.metadata, {
-                errorMessage: 'Security Alert: Detached cryptographic verification failed. Feeds blocked.',
-                onRetry: () => loadProxiesPage()
-            });
+if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+    window.addEventListener('configstream:artifact-state', (event) => {
+        const detail = event.detail;
+        if (detail) {
+            if (detail.status === 'blocked' || detail.canDistribute === false) {
+                applyTrustState('invalid', detail.metadata, {
+                    errorMessage: 'Security Alert: Detached cryptographic verification failed. Feeds blocked.',
+                    onRetry: () => loadProxiesPage()
+                });
+            }
         }
-    }
-});
+    });
+}
 
 // Initialization & Page Data Loader
-export async function loadProxiesPage() {
+async function loadProxiesPage() {
     const loadingEl = document.getElementById('loadingContainer');
     const tableEl = document.getElementById('proxiesTable');
     const emptyState = document.getElementById('emptyState');

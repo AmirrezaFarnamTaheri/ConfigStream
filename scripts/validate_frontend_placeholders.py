@@ -20,6 +20,9 @@ from typing import Mapping
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ed25519
 
+# Ensure src/ is on sys.path for direct CLI execution
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+
 from configstream.security_validator import SecurityValidator
 from configstream.signer import Signer, normalize_public_key_hex
 
