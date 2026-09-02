@@ -11,6 +11,16 @@
 
 /* 1. Root & Theming */
 :root {
+    /* Cold Luxury Design Tokens */
+    --bg-base: #0a0e17;
+    --bg-surface: #111827;
+    --bg-glass: rgba(17, 24, 39, 0.75);
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-focus: #06b6d4;
+    --accent-cobalt: #3b82f6;
+    --accent-cyan: #06b6d4;
+    --header-height: 64px;
+
     /* Typography */
     --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans", "Helvetica Neue", Arial, sans-serif;
     --font-display: Georgia, "Times New Roman", serif;
@@ -43,7 +53,6 @@
     /* Light Theme Colors (Default) */
     --bg-primary: #f0f4f8;
     --bg-secondary: #ffffff;
-    --bg-glass: rgba(255, 255, 255, 0.4);
     --border: rgba(0, 0, 0, 0.07);
     --text-primary: #0a192f;
     --text-secondary: #334155;
@@ -129,6 +138,35 @@ body.solarized {
 html {
     scroll-behavior: smooth;
     max-width: 100%;
+}
+
+/* Sticky Header Offset for Anchor Destinations */
+section[id],
+div[id],
+main[id],
+[id]:target,
+#faq,
+#quick-search,
+#telemetry,
+#features,
+#download,
+#downloads,
+#proxies,
+#analytics,
+#lab {
+    scroll-margin-top: 80px;
+}
+
+/* High-Contrast Focus Visible Styling (WCAG 2.2 SC 2.4.11) */
+:focus-visible,
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+    outline: 2px solid var(--border-focus) !important;
+    outline-offset: 2px !important;
 }
 
 body {
@@ -4748,3 +4786,23 @@ body.dark #globe-viz {
     outline: 2px solid var(--brand-primary);
     outline-offset: 2px;
 }
+
+/* ===== Offscreen Animation Optimization & Reduced Motion Gating ===== */
+/* Pause CSS animations when container or section is offscreen */
+.is-offscreen,
+.is-offscreen *,
+[data-animation-active="false"],
+[data-animation-active="false"] * {
+    animation-play-state: paused !important;
+}
+
+/* Universal WCAG 2.2 AA Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
