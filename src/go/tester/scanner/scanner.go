@@ -207,29 +207,22 @@ func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resu
 				}
 
 				// Avoid deadlock if results consumer is slow/unbuffered, but don't silently lose all results.
-				select {
-				case resultsChan <- ScanResult{
+				deliverResultWithTimer(resultsChan, ScanResult{
 					IP:      ipStr,
 					Port:    port,
 					Latency: latency,
-				}:
-				case <-time.After(50 * time.Millisecond):
-					// Timed out delivering result under backpressure
-				}
+				}, 50*time.Millisecond)
 			} else {
 				// Fallback if key was just IP (unlikely given sender logic below, but safe)
 				if val, ok := pending.LoadAndDelete(ipStr); ok {
 					startTime := val.(time.Time)
 					latency := recvTime.Sub(startTime).Milliseconds()
 
-					select {
-					case resultsChan <- ScanResult{
+					deliverResultWithTimer(resultsChan, ScanResult{
 						IP:      ipStr,
 						Port:    2408,
 						Latency: latency,
-					}:
-					case <-time.After(50 * time.Millisecond):
-					}
+					}, 50*time.Millisecond)
 				}
 			}
 		}
@@ -322,3 +315,16 @@ func inc(ip net.IP) {
 		}
 	}
 }
+
+// deliverResultWithTimer delivers a ScanResult to resultsChan with a specified timeout,
+// ensuring timers are stopped promptly to prevent memory churn and channel leaks.
+func deliverResultWithTimer(resultsChan chan<- ScanResult, res ScanResult, timeout time.Duration) {
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
+
+	select {
+	case resultsChan <- res:
+	case <-timer.C:
+	}
+}
+
