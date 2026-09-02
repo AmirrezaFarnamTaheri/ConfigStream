@@ -528,6 +528,7 @@ function renderTable() {
         // Latency
         const latCell = document.createElement('td');
         latCell.setAttribute('data-label', 'Latency');
+        latCell.className = 'latency-cell tabular-nums';
         const latVal = p.latencyVal === 9999 ? 'N/A' : `${p.latencyVal}ms`;
         // Simple color coding
         let latColor = 'var(--text-primary)';
@@ -535,6 +536,7 @@ function renderTable() {
         else if(p.latencyVal > 800) latColor = 'var(--danger-color)';
 
         const latSpan = document.createElement('span');
+        latSpan.className = 'tabular-nums';
         latSpan.style.color = latColor;
         latSpan.style.fontWeight = 'bold';
         latSpan.textContent = latVal;
@@ -574,7 +576,7 @@ function renderTable() {
         // Trend (Latency History Sparkline)
         const trendCell = document.createElement('td');
         trendCell.setAttribute('data-label', 'Trend');
-        trendCell.className = 'trend-cell';
+        trendCell.className = 'trend-cell tabular-nums';
 
         // Add trend visualization using history data
         const history = p.history || [];
@@ -603,13 +605,14 @@ function renderTable() {
                 const trendIcon = lastVal < firstVal ? '↓' : (lastVal > firstVal ? '↑' : '→');
 
                 const trendWrapper = document.createElement('div');
-                trendWrapper.className = 'trend-sparkline';
+                trendWrapper.className = 'trend-sparkline tabular-nums';
                 trendWrapper.title = `Latency trend: ${history.length} data points`;
 
                 const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
                 svg.setAttribute('width', width);
                 svg.setAttribute('height', height);
                 svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+                svg.setAttribute('aria-hidden', 'true');
 
                 const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                 path.setAttribute('d', points);
@@ -631,13 +634,13 @@ function renderTable() {
                 trendCell.appendChild(trendWrapper);
             } else {
                 const noDataSpan = document.createElement('span');
-                noDataSpan.className = 'trend-no-data';
+                noDataSpan.className = 'trend-no-data tabular-nums';
                 noDataSpan.textContent = '-';
                 trendCell.appendChild(noDataSpan);
             }
         } else {
             const noDataSpan = document.createElement('span');
-            noDataSpan.className = 'trend-no-data';
+            noDataSpan.className = 'trend-no-data tabular-nums';
             noDataSpan.textContent = '-';
             trendCell.appendChild(noDataSpan);
         }
@@ -648,9 +651,11 @@ function renderTable() {
         actionCell.setAttribute('data-label', 'Action');
         const btn = document.createElement('button');
         btn.className = 'btn btn-secondary copy-btn';
+        btn.setAttribute('aria-label', `Copy ${p.protocol} configuration`);
         
         const copyIcon = document.createElement('i');
         copyIcon.dataset.feather = 'copy';
+        copyIcon.setAttribute('aria-hidden', 'true');
         btn.appendChild(copyIcon);
         
         // We use data-config attribute or just pass it

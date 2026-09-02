@@ -58,6 +58,7 @@
                 const svg = doc.querySelector('svg');
                 if (svg) {
                     svg.querySelectorAll('animate, set, animateTransform, script, foreignObject').forEach(node => node.remove());
+                    svg.setAttribute('aria-hidden', 'true');
                     el.replaceChildren(svg);
                     el.classList.add('inline-icon');
                 }
