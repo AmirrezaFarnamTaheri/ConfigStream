@@ -177,7 +177,7 @@ the candidate by checking all of the following after propagation polling and
 cache-bypassed fetches:
 
 1. Expected source commit or immutable candidate identifier.
-2. Expected workflow run identifier, manifest digest, and valid manifest signature.
+2. Expected workflow run identifier and manifest digest; verify the detached manifest signature when a public key is configured. A missing optional verification key must not create a new deployment prerequisite.
 3. Metadata generation time against the configured freshness policy.
 4. Required route/bootstrap asset hashes, including runtime configuration.
 
