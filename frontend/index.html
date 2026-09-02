@@ -126,6 +126,9 @@
     <main>
         <div class="container">
             <section class="hero text-center">
+                <div id="hero-canvas-container" class="hero-canvas-container" aria-hidden="true">
+                    <canvas id="hero-canvas" class="hero-canvas"></canvas>
+                </div>
                 <h1 style="--delay: 0.1s;" data-i18n="hero.title">Unlock the Internet</h1>
                 <p class="subtitle" style="--delay: 0.2s;">
                     <span id="heroSubtitle">Release data is unavailable until the served artifact passes integrity, health, and freshness checks.</span>
@@ -599,6 +602,7 @@
     <script src="assets/js/artifact-state.js" defer></script>
     <script src="assets/js/common-ui.js" defer></script>
     <script src="assets/js/byow.js" defer></script>
+    <script src="assets/js/hero-scene.js" defer></script>
     <script type="module" src="assets/js/main.js" defer></script>
     <script src="assets/js/inline-icons.js" defer></script>
     <script src="assets/js/sw-init.js" defer></script>

@@ -4873,3 +4873,24 @@ body.dark #globe-viz {
     }
 }
 
+/* ===== Procedural 3D Hero Node Canvas ===== */
+.hero-canvas-container {
+    position: relative;
+    width: 100%;
+    max-width: 320px;
+    height: 200px;
+    margin: 0 auto 1rem auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.hero-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    filter: drop-shadow(0 0 20px rgba(6, 182, 212, 0.3));
+}
+
+
