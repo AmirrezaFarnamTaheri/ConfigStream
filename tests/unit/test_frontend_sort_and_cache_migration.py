@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[2]
 def test_sortable_headers_keep_column_semantics_and_use_native_buttons() -> None:
     html = (ROOT / "frontend/proxies.html").read_text(encoding="utf-8")
     soup = BeautifulSoup(html, "html.parser")
-    headers = soup.select("th.sortable")
+    headers = [th for th in soup.find_all("th") if "sortable" in (th.get("class") or [])]
 
     assert len(headers) == 4
     for header in headers:
@@ -19,10 +19,12 @@ def test_sortable_headers_keep_column_semantics_and_use_native_buttons() -> None
         assert header.get("role") is None
         assert header.get("tabindex") is None
         assert header.get("data-sort") is None
-        button = header.select_one('button.sort-button[type="button"][data-sort]')
+        button = header.find("button", class_="sort-button")
         assert button is not None
+        assert button.get("type") == "button"
+        assert button.get("data-sort") is not None
         assert button.get_text(strip=True)
-        icon = button.select_one('[data-feather="chevron-down"]')
+        icon = button.find(attrs={"data-feather": "chevron-down"})
         assert icon is not None
         assert icon.get("aria-hidden") == "true"
 

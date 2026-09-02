@@ -173,24 +173,136 @@ function processProxyData(raw) {
     };
 }
 
-// Initialization
-document.addEventListener('DOMContentLoaded', async () => {
-    setupFilters();
-    setupSorting();
-    setupPagination();
-    setupActionButtons();
+// Global Trust State
+let currentTrustState = 'loading'; // 'loading', 'fresh', 'stale', 'invalid', 'empty', 'error'
+let cachedMetadata = null;
 
+// --- 5-STATE TRUST UI CONTRACT & PROVENANCE BANNER ---
+export function applyTrustState(state, metadata, options = {}) {
+    currentTrustState = state;
+    if (metadata) cachedMetadata = metadata;
+
+    let banner = document.getElementById('trustStateBanner');
+    if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'trustStateBanner';
+        banner.setAttribute('role', 'alert');
+        banner.setAttribute('aria-live', 'polite');
+        banner.style.cssText = 'position:sticky;top:0;z-index:9999;padding:0.65rem 1rem;text-align:center;font:600 0.875rem/1.4 system-ui,sans-serif;display:none;';
+        const main = document.querySelector('main') || document.body;
+        if (main && main.firstChild) {
+            main.insertBefore(banner, main.firstChild);
+        } else if (main) {
+            main.appendChild(banner);
+        }
+    }
+
+    banner.className = `trust-banner trust-banner--${state}`;
+
+    if (state === 'stale') {
+        const genTime = metadata?.last_updated_utc ? new Date(metadata.last_updated_utc).toISOString() : (metadata?.generated_at || 'Unknown');
+        banner.textContent = `Warning: Showing cached telemetry generated at ${genTime}.`;
+        banner.style.background = '#d97706';
+        banner.style.color = '#fff';
+        banner.style.display = 'block';
+    } else if (state === 'invalid') {
+        banner.textContent = 'Security Alert: Detached cryptographic verification failed. Feeds blocked.';
+        banner.style.background = '#dc2626';
+        banner.style.color = '#fff';
+        banner.style.display = 'block';
+    } else if (state === 'error' || state === 'empty') {
+        banner.replaceChildren();
+        const msg = document.createElement('span');
+        msg.textContent = options.errorMessage || (state === 'empty' ? 'No proxies match your criteria.' : 'Error loading proxies.');
+        banner.appendChild(msg);
+
+        if (typeof options.onRetry === 'function') {
+            const retryBtn = document.createElement('button');
+            retryBtn.className = 'btn btn-secondary trust-banner-retry';
+            retryBtn.style.cssText = 'margin-left:12px;padding:2px 8px;font-size:0.8rem;cursor:pointer;';
+            retryBtn.textContent = 'Retry';
+            retryBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                options.onRetry();
+            });
+            banner.appendChild(retryBtn);
+        }
+        banner.style.background = '#4b5563';
+        banner.style.color = '#fff';
+        banner.style.display = 'block';
+    } else if (state === 'loading') {
+        banner.style.display = 'none';
+    } else { // 'fresh'
+        banner.style.display = 'none';
+    }
+}
+
+// Operational guard checking fail-closed distribution permission
+function isActionAllowed() {
+    if (currentTrustState === 'invalid') return false;
+    if (window.ConfigStreamArtifactState && typeof window.ConfigStreamArtifactState.canDistribute === 'function') {
+        return window.ConfigStreamArtifactState.canDistribute();
+    }
+    return currentTrustState === 'fresh' || currentTrustState === 'stale';
+}
+
+// Global artifact-state event listener for reactive trust transitions
+window.addEventListener('configstream:artifact-state', (event) => {
+    const detail = event.detail;
+    if (detail) {
+        if (detail.status === 'blocked' || detail.canDistribute === false) {
+            applyTrustState('invalid', detail.metadata, {
+                errorMessage: 'Security Alert: Detached cryptographic verification failed. Feeds blocked.',
+                onRetry: () => loadProxiesPage()
+            });
+        }
+    }
+});
+
+// Initialization & Page Data Loader
+export async function loadProxiesPage() {
     const loadingEl = document.getElementById('loadingContainer');
     const tableEl = document.getElementById('proxiesTable');
+    const emptyState = document.getElementById('emptyState');
 
-    // Initialize Proxy History Chart
-    if (typeof ProxyHistoryChart !== 'undefined') {
-        window.proxyHistoryChart = new ProxyHistoryChart('history-container');
-        await window.proxyHistoryChart.loadHistoryData();
+    applyTrustState('loading');
+    if (loadingEl) {
+        loadingEl.classList.remove('hidden');
+        loadingEl.replaceChildren();
+        const obj = document.createElement('object');
+        obj.setAttribute('data', 'assets/svg/logo-loading.svg');
+        obj.setAttribute('type', 'image/svg+xml');
+        obj.setAttribute('width', '80');
+        obj.setAttribute('height', '80');
+        obj.setAttribute('aria-hidden', 'true');
+        const fallbackImg = document.createElement('img');
+        fallbackImg.src = 'assets/svg/favicon.svg';
+        fallbackImg.alt = '';
+        obj.appendChild(fallbackImg);
+        const text = document.createElement('p');
+        text.textContent = 'Loading and testing live proxies...';
+        loadingEl.appendChild(obj);
+        loadingEl.appendChild(text);
     }
+    if (tableEl) tableEl.classList.add('hidden');
+    if (emptyState) emptyState.classList.add('hidden');
 
     try {
         if (!window.api) throw new Error("API module missing");
+
+        if (typeof window.api.requireVerifiedArtifact === 'function') {
+            await window.api.requireVerifiedArtifact();
+        }
+
+        let metadata = null;
+        if (window.api.fetchMetadata) {
+            try {
+                metadata = await window.api.fetchMetadata();
+                cachedMetadata = metadata;
+            } catch (err) {
+                logger.warn("Metadata load failed", err);
+            }
+        }
 
         // Fetch Stats
         if (window.api.fetchStatistics) {
@@ -198,16 +310,50 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const meta = await window.api.fetchStatistics();
                 stats.revived = meta.total_revived || 0;
                 stats.smartChains = meta.total_smart_chains || 0;
-            } catch(e) { logger.warn("Metadata load failed", e); }
+                if (!metadata) {
+                    metadata = meta;
+                    cachedMetadata = meta;
+                }
+            } catch (err) {
+                logger.warn("Stats load failed", err);
+            }
         }
 
         // Fetch Proxies
         // Use fetchProxies() (canonical API entrypoint) instead of fetchAllProxies().
         const proxies = await window.api.fetchProxies();
 
-        // Hide loading
-        if(loadingEl) loadingEl.classList.add('hidden');
-        if(tableEl) tableEl.classList.remove('hidden');
+        if (!Array.isArray(proxies) || proxies.length === 0) {
+            applyTrustState('empty', metadata, {
+                errorMessage: 'No proxies currently available.',
+                onRetry: () => loadProxiesPage()
+            });
+            if (loadingEl) loadingEl.classList.add('hidden');
+            if (tableEl) tableEl.classList.add('hidden');
+            if (emptyState) emptyState.classList.remove('hidden');
+            allProxies = [];
+            filteredProxies = [];
+            return;
+        }
+
+        // Truthful freshness evaluation strictly referencing metadata.last_updated_utc
+        const rawDate = metadata?.last_updated_utc || metadata?.generated_at;
+        const genDate = rawDate ? new Date(rawDate) : null;
+        const isFallback = proxies.some(p => p.source === 'fallback');
+        const intervalHours = Number(metadata?.update_interval_hours || 6);
+        const maxAgeHours = Math.min(48, Math.max(12, intervalHours * 2));
+        const ageMs = genDate ? (Date.now() - genDate.getTime()) : Infinity;
+        const isStale = isFallback || !genDate || Number.isNaN(genDate.getTime()) || (ageMs > maxAgeHours * 60 * 60 * 1000);
+
+        if (isStale) {
+            applyTrustState('stale', metadata);
+        } else {
+            applyTrustState('fresh', metadata);
+        }
+
+        // Hide loading, show table
+        if (loadingEl) loadingEl.classList.add('hidden');
+        if (tableEl) tableEl.classList.remove('hidden');
 
         // Initial Data Processing
         allProxies = proxies.map(processProxyData);
@@ -220,23 +366,76 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderTable();
         updatePaginationInfo();
 
-        // Update Footer Date
+        // Update Footer Date strictly from metadata.last_updated_utc
         const footerDate = document.getElementById('footerUpdate');
         if (footerDate) {
-            footerDate.textContent = new Date().toLocaleString();
+            if (genDate && !Number.isNaN(genDate.getTime())) {
+                footerDate.textContent = typeof formatTimestamp === 'function' ? formatTimestamp(genDate) : genDate.toISOString();
+            } else {
+                footerDate.textContent = 'N/A';
+            }
             footerDate.classList.remove('loading');
         }
 
     } catch (e) {
         logger.error("Failed to load proxies:", e);
-        if(loadingEl) {
+        const errorMsg = e?.message || String(e);
+        const isSecurity = /verification|signature|digest|manifest|blocked|tamper|cryptographic/i.test(errorMsg);
+
+        if (isSecurity) {
+            applyTrustState('invalid', null, {
+                errorMessage: 'Security Alert: Detached cryptographic verification failed. Feeds blocked.',
+                onRetry: () => loadProxiesPage()
+            });
+        } else {
+            applyTrustState('error', null, {
+                errorMessage: `Error loading proxies: ${errorMsg}`,
+                onRetry: () => loadProxiesPage()
+            });
+        }
+
+        if (loadingEl) {
+            loadingEl.classList.remove('hidden');
             loadingEl.replaceChildren();
             const errorP = document.createElement('p');
             errorP.style.color = 'var(--danger-color)';
-            errorP.textContent = 'Error loading proxies. Please check console.';
+            errorP.textContent = isSecurity
+                ? 'Security Alert: Detached cryptographic verification failed. Feeds blocked.'
+                : 'Error loading proxies. Please check console or click retry.';
             loadingEl.appendChild(errorP);
+
+            const retryBtn = document.createElement('button');
+            retryBtn.className = 'btn btn-primary retry-btn';
+            retryBtn.style.marginTop = '12px';
+            retryBtn.textContent = 'Retry';
+            retryBtn.addEventListener('click', () => {
+                loadProxiesPage();
+            });
+            loadingEl.appendChild(retryBtn);
+        }
+        if (tableEl) tableEl.classList.add('hidden');
+
+        const footerDate = document.getElementById('footerUpdate');
+        if (footerDate) {
+            footerDate.textContent = 'N/A';
+            footerDate.classList.remove('loading');
         }
     }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    setupFilters();
+    setupSorting();
+    setupPagination();
+    setupActionButtons();
+
+    // Initialize Proxy History Chart
+    if (typeof ProxyHistoryChart !== 'undefined') {
+        window.proxyHistoryChart = new ProxyHistoryChart('history-container');
+        await window.proxyHistoryChart.loadHistoryData();
+    }
+
+    await loadProxiesPage();
 });
 
 // UI Helpers
@@ -459,6 +658,12 @@ function renderTable() {
         const configStr = p.config || '';
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
+            if (!isActionAllowed()) {
+                if (window.stateManager && window.stateManager.setError) {
+                    window.stateManager.setError('Copy blocked: Artifact verification failed');
+                }
+                return;
+            }
             window.copyToClipboard(configStr, btn);
         });
         actionCell.appendChild(btn);
@@ -703,6 +908,12 @@ function setupActionButtons() {
     const copyAllBtn = document.getElementById('copyAll');
     if (copyAllBtn) {
         copyAllBtn.addEventListener('click', async () => {
+            if (!isActionAllowed()) {
+                if (window.stateManager && window.stateManager.setError) {
+                    window.stateManager.setError('Copy blocked: Distribution disabled until artifact verification succeeds');
+                }
+                return;
+            }
             const configs = getVisibleConfigs(true);
             if (configs.length === 0) return;
             if (window.copyToClipboard) {
@@ -714,6 +925,12 @@ function setupActionButtons() {
     const copyFilteredBtn = document.getElementById('copyFiltered');
     if (copyFilteredBtn) {
         copyFilteredBtn.addEventListener('click', async () => {
+            if (!isActionAllowed()) {
+                if (window.stateManager && window.stateManager.setError) {
+                    window.stateManager.setError('Copy blocked: Distribution disabled until artifact verification succeeds');
+                }
+                return;
+            }
             const configs = getVisibleConfigs(false);
             if (configs.length === 0) return;
             if (window.copyToClipboard) {
@@ -725,6 +942,12 @@ function setupActionButtons() {
     const downloadFilteredBtn = document.getElementById('downloadFiltered');
     if (downloadFilteredBtn) {
         downloadFilteredBtn.addEventListener('click', () => {
+            if (!isActionAllowed()) {
+                if (window.stateManager && window.stateManager.setError) {
+                    window.stateManager.setError('Download blocked: Distribution disabled until artifact verification succeeds');
+                }
+                return;
+            }
             const configs = getVisibleConfigs(false);
             if (configs.length === 0) return;
             const blob = new Blob([configs.join('\n')], { type: 'text/plain' });
@@ -740,4 +963,4 @@ function setupActionButtons() {
     }
 }
 
-export { processProxyData };
+export { processProxyData, applyTrustState, loadProxiesPage };

@@ -1,12 +1,315 @@
-// Import production-safe logger (disables console.log in production)
-import logger from './utils/logger.js';
+// --- 5-STATE TRUST UI CONTRACT & PROVENANCE BANNER ---
+export function applyTrustState(state, metadata, options = {}) {
+    let banner = document.getElementById('trustStateBanner');
+    if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'trustStateBanner';
+        banner.setAttribute('role', 'alert');
+        banner.setAttribute('aria-live', 'polite');
+        banner.style.cssText = 'position:sticky;top:0;z-index:9999;padding:0.65rem 1rem;text-align:center;font:600 0.875rem/1.4 system-ui,sans-serif;display:none;';
+        const main = document.querySelector('main') || document.body;
+        if (main && main.firstChild) {
+            main.insertBefore(banner, main.firstChild);
+        } else if (main) {
+            main.appendChild(banner);
+        }
+    }
+
+    banner.className = `trust-banner trust-banner--${state}`;
+
+    if (state === 'stale') {
+        const genTime = metadata?.last_updated_utc ? new Date(metadata.last_updated_utc).toISOString() : (metadata?.generated_at || 'Unknown');
+        banner.textContent = `Warning: Showing cached telemetry generated at ${genTime}.`;
+        banner.style.background = '#d97706';
+        banner.style.color = '#fff';
+        banner.style.display = 'block';
+    } else if (state === 'invalid') {
+        banner.textContent = 'Security Alert: Detached cryptographic verification failed. Feeds blocked.';
+        banner.style.background = '#dc2626';
+        banner.style.color = '#fff';
+        banner.style.display = 'block';
+    } else if (state === 'error' || state === 'empty') {
+        banner.replaceChildren();
+        const msg = document.createElement('span');
+        msg.textContent = options.errorMessage || (state === 'empty' ? 'No telemetry data available.' : 'Failed to initialize page data.');
+        banner.appendChild(msg);
+
+        if (typeof options.onRetry === 'function') {
+            const retryBtn = document.createElement('button');
+            retryBtn.className = 'btn btn-secondary trust-banner-retry';
+            retryBtn.style.cssText = 'margin-left:12px;padding:2px 8px;font-size:0.8rem;cursor:pointer;';
+            retryBtn.textContent = 'Retry';
+            retryBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                options.onRetry();
+            });
+            banner.appendChild(retryBtn);
+        }
+        banner.style.background = '#4b5563';
+        banner.style.color = '#fff';
+        banner.style.display = 'block';
+    } else if (state === 'loading') {
+        banner.style.display = 'none';
+    } else { // 'fresh'
+        banner.style.display = 'none';
+    }
+}
+
+export async function initializePageData() {
+    const preloader = document.getElementById('preloader');
+    const logo = document.querySelector('.logo-svg');
+
+    if (!window.stateManager) {
+        logger.error("StateManager not found!");
+        if (preloader) {
+            preloader.classList.add('hidden');
+            document.body.classList.add('loaded');
+        }
+        return;
+    }
+    window.stateManager.setLoading(true, 'Fetching latest data...');
+    applyTrustState('loading');
+
+    let sourceCount = null;
+    let updateFreq = null;
+
+    const updateHeroSubtitle = () => {
+         const heroSubtitle = document.getElementById('heroSubtitle');
+         const formatNum = (num) => {
+             if (num === undefined || num === null) return 'N/A';
+             return window.i18n && window.i18n.formatNumber ? window.i18n.formatNumber(num) : num;
+         };
+
+         if (heroSubtitle && window.i18n) {
+             let text = window.i18n.t('hero.subtitle.main');
+             text = text.replace('{sources}', formatNum(sourceCount));
+             text = text.replace('{hours}', formatNum(updateFreq));
+            if (window.DOMPurify) {
+                const fragment = window.DOMPurify.sanitize(text, {
+                    ALLOWED_TAGS: ['strong', 'em', 'b', 'i', 'span'],
+                    RETURN_DOM_FRAGMENT: true
+                });
+                if (fragment && typeof fragment.nodeType === 'number') {
+                    heroSubtitle.replaceChildren(fragment);
+                } else {
+                    heroSubtitle.textContent = String(fragment || '').replace(/<[^>]*>/g, '');
+                }
+            } else {
+                heroSubtitle.textContent = text.replace(/<[^>]*>/g, '');
+            }
+         }
+    };
+
+    updateHeroSubtitle();
+    window.addEventListener('languageChanged', updateHeroSubtitle);
+    if (window.i18n && typeof window.i18n.init === 'function') {
+        window.i18n.init().then(updateHeroSubtitle).catch(() => {});
+    }
+
+    try {
+        if (!window.api || typeof window.api.requireVerifiedArtifact !== 'function') {
+            throw new Error('Artifact verification API is unavailable');
+        }
+        await window.api.requireVerifiedArtifact();
+
+        const [metadata, stats] = await Promise.all([
+            window.api.fetchMetadata(),
+            window.api.fetchStatistics()
+        ]);
+        window.CONFIGSTREAM_PROXY_SNAPSHOT_HASH = metadata?.proxies_snapshot_hash || null;
+
+        if (metadata && metadata.protocol_colors) {
+            window.PROTOCOL_COLORS = metadata.protocol_colors;
+        }
+
+        // Truthful freshness evaluation strictly referencing metadata.last_updated_utc
+        if (metadata && (metadata.last_updated_utc || metadata.generated_at)) {
+            const rawDate = metadata.last_updated_utc || metadata.generated_at;
+            const date = new Date(rawDate);
+            const intervalHours = Number(metadata.update_interval_hours || stats?.update_interval_hours || 6);
+            const maxAgeHours = Math.min(48, Math.max(12, intervalHours * 2));
+            const ageMs = Date.now() - date.getTime();
+            const isStale = Number.isNaN(date.getTime()) || (ageMs > maxAgeHours * 60 * 60 * 1000);
+
+            if (isStale) {
+                applyTrustState('stale', metadata);
+            } else {
+                applyTrustState('fresh', metadata);
+            }
+
+            const formatted = formatTimestamp(date);
+            updateElement('#footerUpdate', formatted);
+
+            if (window.api && window.api.updateFreshnessColor) {
+                window.api.updateFreshnessColor(date);
+            }
+
+            window._freshnessDate = date;
+            updateFreshnessIndicator(date);
+
+            // Start periodic freshness updates now that we have initial data
+            if (!window._freshnessIntervalStarted) {
+                window._freshnessIntervalStarted = true;
+                setInterval(() => {
+                    if (window._freshnessDate) {
+                        updateFreshnessIndicator(window._freshnessDate);
+                    }
+                }, 60000);
+            }
+        } else {
+            applyTrustState('stale', metadata);
+        }
+
+        if (stats) {
+            const formatNum = (num) => {
+                if (num === undefined || num === null) return 'N/A';
+                return window.i18n && window.i18n.formatNumber ? window.i18n.formatNumber(num) : num;
+            };
+
+            const totalSourced = stats.total_lines_sourced;
+            updateElement('#totalSourced', formatNum(totalSourced));
+
+            const totalConfigs = stats.total_unique_candidates;
+            updateElement('#totalConfigs', formatNum(totalConfigs));
+
+            const workingCount = stats.total_working ?? stats.total_valid_proxies ?? stats.working ?? 0;
+            updateElement('#workingConfigs', formatNum(workingCount));
+
+            const revivedWarp = stats.revived_warp || 0;
+            const revivedVwarp = stats.revived_vwarp || 0;
+            const totalRevived = stats.total_revived ?? (revivedWarp + revivedVwarp);
+            updateElement('#totalRevived', formatNum(totalRevived));
+            updateElement('#revivedWarp', formatNum(revivedWarp));
+            updateElement('#revivedVwarp', formatNum(revivedVwarp));
+
+            const threatsBlocked = stats.total_dirty;
+            updateElement('#threatsBlocked', formatNum(threatsBlocked));
+
+            const smartChains = stats.total_smart_chains;
+            updateElement('#smartChains', formatNum(smartChains));
+
+            const vwarpWinRate = stats.vwarp_win_rate;
+            const washingEnabled = stats.washing_enabled;
+            const winRateDisplay = (washingEnabled !== false && vwarpWinRate !== undefined) ? `${Math.round(vwarpWinRate)}%` : 'N/A';
+            updateElement('#vwarpWinRate', winRateDisplay);
+
+            const winRateElem = document.querySelector('#vwarpWinRate');
+            if (winRateElem && washingEnabled === false) {
+                 winRateElem.setAttribute('title', 'Washing disabled (no keys provided)');
+                 winRateElem.style.opacity = '0.7';
+            }
+
+            updateFreq = metadata?.update_interval_hours || stats.update_interval_hours || 6;
+            updateElement('#updateFrequency', `${updateFreq} hrs`);
+
+            sourceCount = metadata?.sources_count || stats.sources_count || 0;
+            updateHeroSubtitle();
+
+            const infoSourceCountElem = document.getElementById('infoSourceCount');
+            if (infoSourceCountElem) {
+                infoSourceCountElem.textContent = formatNum(sourceCount);
+            }
+
+            const infoUpdateFreqElem = document.getElementById('infoUpdateFrequency');
+            if (infoUpdateFreqElem) {
+                infoUpdateFreqElem.textContent = formatNum(updateFreq);
+            }
+        }
+
+    } catch (error) {
+        const errorMsg = error?.message || String(error);
+        const isSecurity = /verification|signature|digest|manifest|blocked|tamper|cryptographic/i.test(errorMsg);
+
+        if (isSecurity) {
+            applyTrustState('invalid', null, {
+                errorMessage: 'Security Alert: Detached cryptographic verification failed. Feeds blocked.',
+                onRetry: () => initializePageData()
+            });
+            logger.error('Security alert - verification failed:', error);
+        } else {
+            applyTrustState('error', null, {
+                errorMessage: `Failed to initialize page data: ${errorMsg}`,
+                onRetry: () => initializePageData()
+            });
+            logger.error('Failed to initialize page data:', error);
+        }
+
+        window.stateManager.setError('Failed to initialize page data.', error);
+        updateElement('#footerUpdate', 'N/A');
+        updateElement('#totalConfigs', 'N/A');
+        updateElement('#workingConfigs', 'N/A');
+        sourceCount = null;
+        updateFreq = null;
+        updateHeroSubtitle();
+        const freshnessText = document.getElementById('freshnessText');
+        if (freshnessText) freshnessText.textContent = 'Distribution disabled until artifact verification succeeds';
+    } finally {
+        window.stateManager.setLoading(false);
+        if (preloader) {
+            setTimeout(() => {
+                preloader.classList.add('hidden');
+                document.body.classList.add('loaded');
+                if (logo) {
+                    logo.classList.add('loading-animation');
+                }
+            }, 100);
+        }
+    }
+}
+
+// Global artifact-state event listener for reactive trust transitions
+window.addEventListener('configstream:artifact-state', (event) => {
+    const detail = event.detail;
+    if (detail) {
+        if (detail.status === 'blocked' || detail.canDistribute === false) {
+            applyTrustState('invalid', detail.metadata, {
+                errorMessage: 'Security Alert: Detached cryptographic verification failed. Feeds blocked.',
+                onRetry: () => initializePageData()
+            });
+        }
+    }
+});
+
+// --- FRESHNESS INDICATOR HELPER ---
+function updateFreshnessIndicator(date) {
+    const dot = document.getElementById('freshnessDot');
+    const text = document.getElementById('freshnessText');
+    const badge = document.getElementById('footerFreshnessBadge');
+    if (!dot || !text) return;
+
+    const now = Date.now();
+    const ageMs = now - date.getTime();
+    const ageHours = ageMs / (1000 * 60 * 60);
+
+    dot.classList.remove('fresh', 'aging', 'stale', 'checking');
+    if (badge) badge.classList.remove('fresh', 'aging', 'stale');
+
+    let state, label;
+    if (ageHours < 2) {
+        state = 'fresh';
+        label = 'Data is fresh — updated less than 2 hours ago';
+    } else if (ageHours < 6) {
+        state = 'aging';
+        label = `Data is ${Math.round(ageHours)} hours old — next update expected soon`;
+    } else {
+        state = 'stale';
+        label = `Data is ${Math.round(ageHours)} hours old — may be stale`;
+    }
+
+    dot.classList.add(state);
+    text.textContent = label;
+    dot.setAttribute('aria-label', label);
+
+    if (badge) {
+        badge.classList.add(state);
+        badge.textContent = state === 'fresh' ? '● Fresh' : state === 'aging' ? '◐ Aging' : '○ Stale';
+    }
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     const root = window.ROOT_PATH || './';
     const API_PROXIES_URL = `${root}api/proxies`;
     const API_DIFF_PROXIES_URL = `${root}api/diff/proxies`;
-
-    // Note: Common UI (Theme, Header Scroll, Mobile Nav, Copy Buttons) is now handled by common-ui.js
 
     // Initialize Dynamic Downloads (Client Selector)
     if (typeof initDynamicDownloads === 'function') {
@@ -134,46 +437,8 @@ document.addEventListener('DOMContentLoaded', () => {
         connectWebSocket();
     }
 
-    // --- FRESHNESS INDICATOR ---
-    function updateFreshnessIndicator(date) {
-        const dot = document.getElementById('freshnessDot');
-        const text = document.getElementById('freshnessText');
-        const badge = document.getElementById('footerFreshnessBadge');
-        if (!dot || !text) return;
-
-        const now = Date.now();
-        const ageMs = now - date.getTime();
-        const ageHours = ageMs / (1000 * 60 * 60);
-
-        dot.classList.remove('fresh', 'aging', 'stale', 'checking');
-        if (badge) badge.classList.remove('fresh', 'aging', 'stale');
-
-        let state, label;
-        if (ageHours < 2) {
-            state = 'fresh';
-            label = 'Data is fresh — updated less than 2 hours ago';
-        } else if (ageHours < 6) {
-            state = 'aging';
-            label = `Data is ${Math.round(ageHours)} hours old — next update expected soon`;
-        } else {
-            state = 'stale';
-            label = `Data is ${Math.round(ageHours)} hours old — may be stale`;
-        }
-
-        dot.classList.add(state);
-        text.textContent = label;
-        dot.setAttribute('aria-label', label);
-
-        if (badge) {
-            badge.classList.add(state);
-            badge.textContent = state === 'fresh' ? '● Fresh' : state === 'aging' ? '◐ Aging' : '○ Stale';
-        }
-    }
-
     const freshnessDot = document.getElementById('freshnessDot');
     if (freshnessDot) freshnessDot.classList.add('checking');
-
-    
 
     // --- LANDING PAGE PROXY SEARCH ---
     let _allProxiesCache = [];
@@ -357,170 +622,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setupLandingProxySearch();
 
-    // --- DATA FETCHING & INITIALIZATION ---
-    (async () => {
-        const preloader = document.getElementById('preloader');
-        const logo = document.querySelector('.logo-svg');
-
-        if (!window.stateManager) {
-            logger.error("StateManager not found!");
-            if (preloader) {
-                preloader.classList.add('hidden');
-                document.body.classList.add('loaded');
-            }
-            return;
-        }
-        window.stateManager.setLoading(true, 'Fetching latest data...');
-
-        let sourceCount = null;
-        let updateFreq = null;
-
-        const updateHeroSubtitle = () => {
-             const heroSubtitle = document.getElementById('heroSubtitle');
-             const formatNum = (num) => {
-                 if (num === undefined || num === null) return 'N/A';
-                 return window.i18n && window.i18n.formatNumber ? window.i18n.formatNumber(num) : num;
-             };
-
-             if (heroSubtitle && window.i18n) {
-                 let text = window.i18n.t('hero.subtitle.main');
-                 text = text.replace('{sources}', formatNum(sourceCount));
-                 text = text.replace('{hours}', formatNum(updateFreq));
-                if (window.DOMPurify) {
-                    const fragment = window.DOMPurify.sanitize(text, {
-                        ALLOWED_TAGS: ['strong', 'em', 'b', 'i', 'span'],
-                        RETURN_DOM_FRAGMENT: true
-                    });
-                    if (fragment && typeof fragment.nodeType === 'number') {
-                        heroSubtitle.replaceChildren(fragment);
-                    } else {
-                        heroSubtitle.textContent = String(fragment || '').replace(/<[^>]*>/g, '');
-                    }
-                } else {
-                    heroSubtitle.textContent = text.replace(/<[^>]*>/g, '');
-                }
-             }
-        };
-
-        updateHeroSubtitle();
-        window.addEventListener('languageChanged', updateHeroSubtitle);
-        if (window.i18n && typeof window.i18n.init === 'function') {
-            window.i18n.init().then(updateHeroSubtitle).catch(() => {});
-        }
-
-        try {
-            if (!window.api || typeof window.api.requireVerifiedArtifact !== 'function') {
-                throw new Error('Artifact verification API is unavailable');
-            }
-            await window.api.requireVerifiedArtifact();
-
-            const [metadata, stats] = await Promise.all([
-                window.api.fetchMetadata(),
-                window.api.fetchStatistics()
-            ]);
-            window.CONFIGSTREAM_PROXY_SNAPSHOT_HASH = metadata?.proxies_snapshot_hash || null;
-
-            if (metadata && metadata.protocol_colors) {
-                window.PROTOCOL_COLORS = metadata.protocol_colors;
-            }
-
-            if (metadata && metadata.last_updated_utc) {
-                const date = new Date(metadata.last_updated_utc);
-                const formatted = formatTimestamp(date);
-                updateElement('#footerUpdate', formatted);
-
-                if (window.api && window.api.updateFreshnessColor) {
-                    window.api.updateFreshnessColor(date);
-                }
-
-                window._freshnessDate = date;
-                updateFreshnessIndicator(date);
-
-                // Start periodic freshness updates now that we have initial data
-                setInterval(() => {
-                    if (window._freshnessDate) {
-                        updateFreshnessIndicator(window._freshnessDate);
-                    }
-                }, 60000);
-            }
-
-            if (stats) {
-                const formatNum = (num) => {
-                    if (num === undefined || num === null) return 'N/A';
-                    return window.i18n && window.i18n.formatNumber ? window.i18n.formatNumber(num) : num;
-                };
-
-                const totalSourced = stats.total_lines_sourced;
-                updateElement('#totalSourced', formatNum(totalSourced));
-
-                const totalConfigs = stats.total_unique_candidates;
-                updateElement('#totalConfigs', formatNum(totalConfigs));
-
-                const workingCount = stats.total_working ?? stats.total_valid_proxies ?? stats.working ?? 0;
-                updateElement('#workingConfigs', formatNum(workingCount));
-
-                const revivedWarp = stats.revived_warp || 0;
-                const revivedVwarp = stats.revived_vwarp || 0;
-                const totalRevived = stats.total_revived ?? (revivedWarp + revivedVwarp);
-                updateElement('#totalRevived', formatNum(totalRevived));
-                updateElement('#revivedWarp', formatNum(revivedWarp));
-                updateElement('#revivedVwarp', formatNum(revivedVwarp));
-
-                const threatsBlocked = stats.total_dirty;
-                updateElement('#threatsBlocked', formatNum(threatsBlocked));
-
-                const smartChains = stats.total_smart_chains;
-                updateElement('#smartChains', formatNum(smartChains));
-
-                const vwarpWinRate = stats.vwarp_win_rate;
-                const washingEnabled = stats.washing_enabled;
-                const winRateDisplay = (washingEnabled !== false && vwarpWinRate !== undefined) ? `${Math.round(vwarpWinRate)}%` : 'N/A';
-                updateElement('#vwarpWinRate', winRateDisplay);
-
-                const winRateElem = document.querySelector('#vwarpWinRate');
-                if (winRateElem && washingEnabled === false) {
-                     winRateElem.setAttribute('title', 'Washing disabled (no keys provided)');
-                     winRateElem.style.opacity = '0.7';
-                }
-
-                updateFreq = metadata?.update_interval_hours || stats.update_interval_hours || 6;
-                updateElement('#updateFrequency', `${updateFreq} hrs`);
-
-                sourceCount = metadata?.sources_count || stats.sources_count || 0;
-                updateHeroSubtitle();
-
-                const infoSourceCountElem = document.getElementById('infoSourceCount');
-                if (infoSourceCountElem) {
-                    infoSourceCountElem.textContent = formatNum(sourceCount);
-                }
-
-                const infoUpdateFreqElem = document.getElementById('infoUpdateFrequency');
-                if (infoUpdateFreqElem) {
-                    infoUpdateFreqElem.textContent = formatNum(updateFreq);
-                }
-            }
-
-        } catch (error) {
-            window.stateManager.setError('Failed to initialize page data.', error);
-            updateElement('#footerUpdate', 'N/A');
-            updateElement('#totalConfigs', 'N/A');
-            updateElement('#workingConfigs', 'N/A');
-            sourceCount = null;
-            updateFreq = null;
-            updateHeroSubtitle();
-            const freshnessText = document.getElementById('freshnessText');
-            if (freshnessText) freshnessText.textContent = 'Distribution disabled until artifact verification succeeds';
-        } finally {
-            window.stateManager.setLoading(false);
-            if (preloader) {
-                setTimeout(() => {
-                    preloader.classList.add('hidden');
-                    document.body.classList.add('loaded');
-                    if (logo) {
-                        logo.classList.add('loading-animation');
-                    }
-                }, 100);
-            }
-        }
-    })();
+    // Trigger page data initialization
+    initializePageData();
 });
+

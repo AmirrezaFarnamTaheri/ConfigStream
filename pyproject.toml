@@ -93,7 +93,8 @@ configstream = ["data/*.json"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
-addopts = "-v --strict-markers -p no:warnings"
+pythonpath = ["src"]
+addopts = "-v --strict-markers -p no:warnings -p no:phoenix"
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 markers = [
