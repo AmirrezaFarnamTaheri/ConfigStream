@@ -276,7 +276,7 @@ def test_public_snapshot_rejects_invalid_signature(
     payloads["artifact_manifest.json"] = json.dumps(manifest, sort_keys=True).encode()
     monkeypatch.setattr(snapshot_pages_release, "_fetch", _remote_fetcher(payloads))
 
-    with pytest.raises(ValueError, match="signature is invalid or stale"):
+    with pytest.raises(ValueError, match="artifact manifest signature is invalid"):
         snapshot_pages_release.snapshot(
             "https://example.com/",
             tmp_path / "snapshot",

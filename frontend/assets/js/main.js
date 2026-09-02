@@ -1,3 +1,5 @@
+import logger from './utils/logger.js';
+
 // --- 5-STATE TRUST UI CONTRACT & PROVENANCE BANNER ---
 export function applyTrustState(state, metadata, options = {}) {
     let banner = document.getElementById('trustStateBanner');
