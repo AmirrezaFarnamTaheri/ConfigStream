@@ -7,11 +7,31 @@ import argparse
 import hashlib
 import http.client
 import json
+import os
 import urllib.error
 import urllib.parse
 import urllib.request
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any
+
+try:
+    from configstream.signer import (
+        CLOCK_SKEW_TOLERANCE_SECONDS,
+        Signer,
+        normalize_public_key_hex,
+    )
+except ImportError:
+    try:
+        from src.configstream.signer import (
+            CLOCK_SKEW_TOLERANCE_SECONDS,
+            Signer,
+            normalize_public_key_hex,
+        )
+    except ImportError:
+        CLOCK_SKEW_TOLERANCE_SECONDS = 30
+        Signer = None  # type: ignore
+        normalize_public_key_hex = None  # type: ignore
 
 PLACEHOLDER_MARKERS = (
     "79e/79e/",
@@ -75,6 +95,8 @@ def _fetch(url: str, *, timeout: float) -> Response:
         headers={
             "accept": "*/*",
             "user-agent": "ConfigStream deploy smoke",
+            "cache-control": "no-cache, no-store",
+            "pragma": "no-cache",
         },
     )
     try:
@@ -210,7 +232,43 @@ def _validate_pipeline_events(response: Response, errors: list[str]) -> None:
                 )
 
 
-def verify_pages_deployment(base_url: str, *, timeout: float = 20.0) -> list[str]:
+def evaluate_candidate_match(
+    manifest: dict | Any,
+    expected_sha: str | None = None,
+    expected_run_id: str | int | None = None,
+    expected_digest: str | None = None,
+) -> bool:
+    """Validate that live manifest strictly matches candidate deployment metadata."""
+    if not isinstance(manifest, dict):
+        return False
+    if expected_sha:
+        actual_sha = manifest.get("commit_sha") or manifest.get("source_commit")
+        if actual_sha != expected_sha:
+            return False
+    if expected_run_id is not None:
+        actual_run_id = manifest.get("workflow_run_id") or manifest.get("run_id")
+        if actual_run_id is None or str(actual_run_id) != str(expected_run_id):
+            return False
+    if expected_digest:
+        actual_digest = (
+            manifest.get("digest")
+            or manifest.get("manifest_digest")
+            or manifest.get("sha256")
+        )
+        if actual_digest != expected_digest:
+            return False
+    return True
+
+
+def verify_pages_deployment(
+    base_url: str,
+    *,
+    timeout: float = 20.0,
+    expected_commit: str | None = None,
+    expected_run_id: str | None = None,
+    expected_digest: str | None = None,
+    public_key: str | None = None,
+) -> list[str]:
     errors: list[str] = []
     parsed = urllib.parse.urlparse(base_url)
     if parsed.scheme not in {"http", "https"} or not parsed.netloc:
@@ -316,6 +374,55 @@ def verify_pages_deployment(base_url: str, *, timeout: float = 20.0) -> list[str
                 _assert_manifest_hash(
                     rel_path, responses[rel_path], manifest_hashes, errors
                 )
+
+            # Candidate identity gate
+            if expected_commit or expected_run_id or expected_digest:
+                if not isinstance(manifest, dict):
+                    errors.append(
+                        "artifact_manifest.json candidate identity mismatch: manifest is not an object"
+                    )
+                else:
+                    if expected_commit:
+                        actual_commit = manifest.get("commit_sha") or manifest.get("source_commit")
+                        if actual_commit != expected_commit:
+                            errors.append(
+                                f"artifact_manifest.json commit mismatch: expected {expected_commit}, got {actual_commit}"
+                            )
+                    if expected_run_id:
+                        actual_run_id = manifest.get("workflow_run_id") or manifest.get("run_id")
+                        if actual_run_id is None or str(actual_run_id) != str(expected_run_id):
+                            errors.append(
+                                f"artifact_manifest.json run_id mismatch: expected {expected_run_id}, got {actual_run_id}"
+                            )
+                    if expected_digest:
+                        actual_digest = (
+                            manifest.get("digest")
+                            or manifest.get("manifest_digest")
+                            or manifest.get("sha256")
+                        )
+                        if actual_digest != expected_digest:
+                            errors.append(
+                                f"artifact_manifest.json digest mismatch: expected {expected_digest}, got {actual_digest}"
+                            )
+
+            # Signature gate
+            if public_key:
+                if not isinstance(manifest, dict) or not isinstance(manifest.get("manifest_signature"), dict):
+                    errors.append("artifact_manifest.json missing required manifest_signature")
+                elif Signer is not None and normalize_public_key_hex is not None:
+                    pk_hex = normalize_public_key_hex(public_key)
+                    if not pk_hex:
+                        errors.append("invalid public key provided for signature verification")
+                    else:
+                        sig_valid = Signer.verify_manifest_signature(
+                            manifest,
+                            pk_hex,
+                            max_age_seconds=86400,
+                        )
+                        if not sig_valid:
+                            errors.append("artifact_manifest.json signature verification failed")
+                else:
+                    errors.append("signer module unavailable for signature verification")
         except json.JSONDecodeError as exc:
             errors.append(f"artifact_manifest.json decode failed: {exc}")
 
@@ -326,18 +433,36 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("url", help="GitHub Pages deployment URL")
     parser.add_argument("--timeout", type=float, default=20.0)
+    parser.add_argument("--expected-commit", help="Expected candidate source commit SHA")
+    parser.add_argument("--expected-run-id", help="Expected candidate workflow run ID")
+    parser.add_argument("--expected-digest", help="Expected candidate manifest digest")
+    parser.add_argument(
+        "--public-key",
+        default=os.getenv("CS_PUBLIC_KEY") or os.getenv("PUBLIC_KEY"),
+        help="Public key hex or base64 SPKI to verify manifest detached signature",
+    )
     parser.add_argument("--report-file", help="Path to save JSON report")
     args = parser.parse_args(argv)
 
-    errors = verify_pages_deployment(args.url, timeout=args.timeout)
+    errors = verify_pages_deployment(
+        args.url,
+        timeout=args.timeout,
+        expected_commit=args.expected_commit,
+        expected_run_id=args.expected_run_id,
+        expected_digest=args.expected_digest,
+        public_key=args.public_key,
+    )
 
     if args.report_file:
         report = {
             "url": args.url,
             "status": "passed" if not errors else "failed",
             "errors": errors,
+            "expected_commit": args.expected_commit,
+            "expected_run_id": args.expected_run_id,
+            "expected_digest": args.expected_digest,
         }
-        with open(args.report_file, "w") as f:
+        with open(args.report_file, "w", encoding="utf-8") as f:
             json.dump(report, f, indent=2)
 
     if errors:

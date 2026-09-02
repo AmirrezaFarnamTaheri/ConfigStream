@@ -11,13 +11,20 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import cast
 
-from scripts.verify_pages_deployment import verify_pages_deployment
+from scripts.verify_pages_deployment import (
+    evaluate_candidate_match,
+    main,
+    verify_pages_deployment,
+)
+from configstream.signer import Signer
 
 
 class _StaticHandler(BaseHTTPRequestHandler):
     root: Path
+    last_headers: dict[str, str] = {}
 
     def do_GET(self) -> None:
+        _StaticHandler.last_headers = {k.lower(): v for k, v in self.headers.items()}
         rel_path = self.path.split("?", 1)[0].lstrip("/") or "index.html"
         target = (self.root / rel_path).resolve()
         if self.root not in target.parents and target != self.root:
@@ -46,7 +53,15 @@ class _StaticHandler(BaseHTTPRequestHandler):
         return
 
 
-def _write_site(root: Path, *, runtime_config: str | None = None) -> None:
+def _write_site(
+    root: Path,
+    *,
+    runtime_config: str | None = None,
+    source_commit: str = "a" * 40,
+    run_id: str = "12345",
+    manifest_digest: str | None = None,
+    signer: Signer | None = None,
+) -> None:
     html = "<!doctype html><html><head><title>ConfigStream</title></head><body>ConfigStream</body></html>"
     for page in (
         "index.html",
@@ -56,7 +71,7 @@ def _write_site(root: Path, *, runtime_config: str | None = None) -> None:
         "wiki.html",
     ):
         (root / page).write_text(html, encoding="utf-8")
-    (root / "assets" / "js").mkdir(parents=True)
+    (root / "assets" / "js").mkdir(parents=True, exist_ok=True)
     (root / "assets" / "js" / "runtime-config.js").write_text(
         runtime_config
         or 'window.CS_RUNTIME_CONFIG = { PUBLIC_KEY: "public-key", STEGO_KEY: "stego-key" };\n',
@@ -78,8 +93,8 @@ def _write_site(root: Path, *, runtime_config: str | None = None) -> None:
         json.dumps(
             {
                 "status": "degraded",
-                "run_id": "12345",
-                "source_commit": "a" * 40,
+                "run_id": run_id,
+                "source_commit": source_commit,
             }
         ),
         encoding="utf-8",
@@ -96,9 +111,9 @@ def _write_site(root: Path, *, runtime_config: str | None = None) -> None:
         encoding="utf-8",
     )
     (root / "base64.txt").write_text("", encoding="utf-8")
-    (root / "chosen").mkdir()
+    (root / "chosen").mkdir(exist_ok=True)
     (root / "chosen" / "base64.txt").write_text("", encoding="utf-8")
-    (root / "api").mkdir()
+    (root / "api").mkdir(exist_ok=True)
     (root / "api" / "stats").write_text(json.dumps(metadata), encoding="utf-8")
     (root / "api" / "proxies").write_text(json.dumps(proxies), encoding="utf-8")
     files: list[dict[str, object]] = []
@@ -119,13 +134,18 @@ def _write_site(root: Path, *, runtime_config: str | None = None) -> None:
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "artifact_generated_at": datetime.now(timezone.utc).isoformat(),
         "trace_id": "trace",
-        "source_commit": "a" * 40,
-        "run_id": "12345",
+        "source_commit": source_commit,
+        "run_id": run_id,
         "run_attempt": "1",
         "file_count": len(files),
         "total_size_bytes": sum(cast(int, item["size_bytes"]) for item in files),
         "files": files,
     }
+    if manifest_digest is not None:
+        manifest["digest"] = manifest_digest
+    if signer is not None:
+        sig = signer.sign_manifest(manifest)
+        manifest["manifest_signature"] = sig
     (root / "artifact_manifest.json").write_text(
         json.dumps(manifest),
         encoding="utf-8",
@@ -145,11 +165,200 @@ def _serve(root: Path) -> tuple[ThreadingHTTPServer, str]:
     return server, f"http://{host}:{port}/"
 
 
+def test_candidate_identity_matching_logic() -> None:
+    live_manifest = {
+        "commit_sha": "abc1234",
+        "workflow_run_id": "999888",
+        "digest": "sha256-xyz",
+    }
+
+    # Exact match passes
+    assert evaluate_candidate_match(live_manifest, "abc1234", "999888", "sha256-xyz") is True
+
+    # Stale SHA fails
+    assert evaluate_candidate_match(live_manifest, "old1111", "999888", "sha256-xyz") is False
+
+    # Stale run ID fails
+    assert evaluate_candidate_match(live_manifest, "abc1234", "888777", "sha256-xyz") is False
+
+    # Digest mismatch fails
+    assert evaluate_candidate_match(live_manifest, "abc1234", "999888", "sha256-other") is False
+
+    # None / omitted candidate checks pass
+    assert evaluate_candidate_match(live_manifest, None, None, None) is True
+    assert evaluate_candidate_match(live_manifest, "abc1234", None, None) is True
+
+    # Fallback field names (source_commit, run_id, sha256)
+    alt_manifest = {
+        "source_commit": "def5678",
+        "run_id": "555444",
+        "sha256": "digest-123",
+    }
+    assert evaluate_candidate_match(alt_manifest, "def5678", "555444", "digest-123") is True
+    assert evaluate_candidate_match(alt_manifest, "def5678", "wrong", "digest-123") is False
+
+    # Non-dict manifest fails
+    assert evaluate_candidate_match("not-a-dict", "abc1234", "999888", "sha256-xyz") is False
+
+
 def test_verify_pages_deployment_accepts_valid_site(tmp_path: Path) -> None:
     _write_site(tmp_path)
     server, url = _serve(tmp_path)
     try:
         assert verify_pages_deployment(url, timeout=5.0) == []
+    finally:
+        server.shutdown()
+        server.server_close()
+
+
+def test_verify_pages_deployment_candidate_exact_match(tmp_path: Path) -> None:
+    commit = "a" * 40
+    run_id = "12345"
+    digest = "digest-abc"
+    _write_site(tmp_path, source_commit=commit, run_id=run_id, manifest_digest=digest)
+    server, url = _serve(tmp_path)
+    try:
+        errors = verify_pages_deployment(
+            url,
+            timeout=5.0,
+            expected_commit=commit,
+            expected_run_id=run_id,
+            expected_digest=digest,
+        )
+        assert errors == []
+    finally:
+        server.shutdown()
+        server.server_close()
+
+
+def test_verify_pages_deployment_candidate_commit_mismatch(tmp_path: Path) -> None:
+    _write_site(tmp_path, source_commit="a" * 40, run_id="12345")
+    server, url = _serve(tmp_path)
+    try:
+        errors = verify_pages_deployment(
+            url,
+            timeout=5.0,
+            expected_commit="b" * 40,
+        )
+        assert any("commit mismatch" in e or "candidate identity mismatch" in e for e in errors)
+    finally:
+        server.shutdown()
+        server.server_close()
+
+
+def test_verify_pages_deployment_candidate_run_id_mismatch(tmp_path: Path) -> None:
+    _write_site(tmp_path, source_commit="a" * 40, run_id="12345")
+    server, url = _serve(tmp_path)
+    try:
+        errors = verify_pages_deployment(
+            url,
+            timeout=5.0,
+            expected_run_id="99999",
+        )
+        assert any("run_id mismatch" in e or "candidate identity mismatch" in e for e in errors)
+    finally:
+        server.shutdown()
+        server.server_close()
+
+
+def test_verify_pages_deployment_candidate_digest_mismatch(tmp_path: Path) -> None:
+    _write_site(tmp_path, source_commit="a" * 40, run_id="12345", manifest_digest="digest-real")
+    server, url = _serve(tmp_path)
+    try:
+        errors = verify_pages_deployment(
+            url,
+            timeout=5.0,
+            expected_digest="digest-wrong",
+        )
+        assert any("digest mismatch" in e or "candidate identity mismatch" in e for e in errors)
+    finally:
+        server.shutdown()
+        server.server_close()
+
+
+def test_verify_pages_deployment_fetches_with_cache_busting_headers(tmp_path: Path) -> None:
+    _write_site(tmp_path)
+    server, url = _serve(tmp_path)
+    try:
+        errors = verify_pages_deployment(url, timeout=5.0)
+        assert errors == []
+        assert _StaticHandler.last_headers.get("cache-control") == "no-cache, no-store"
+    finally:
+        server.shutdown()
+        server.server_close()
+
+
+def test_verify_pages_deployment_signature_gate_passes_valid(tmp_path: Path) -> None:
+    signer = Signer(private_key_hex="11" * 32)
+    pub_hex = signer.get_public_key_hex()
+    _write_site(tmp_path, signer=signer)
+    server, url = _serve(tmp_path)
+    try:
+        errors = verify_pages_deployment(url, timeout=5.0, public_key=pub_hex)
+        assert errors == []
+    finally:
+        server.shutdown()
+        server.server_close()
+
+
+def test_verify_pages_deployment_signature_gate_fails_tampered_or_missing(tmp_path: Path) -> None:
+    signer = Signer(private_key_hex="11" * 32)
+    pub_hex = signer.get_public_key_hex()
+
+    # Case 1: Missing signature when public_key required
+    _write_site(tmp_path)
+    server, url = _serve(tmp_path)
+    try:
+        errors = verify_pages_deployment(url, timeout=5.0, public_key=pub_hex)
+        assert any("signature" in e.lower() for e in errors)
+    finally:
+        server.shutdown()
+        server.server_close()
+
+    # Case 2: Tampered signature
+    _write_site(tmp_path, signer=signer)
+    manifest_path = tmp_path / "artifact_manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["manifest_signature"]["signature"] = "ff" * 64
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    server2, url2 = _serve(tmp_path)
+    try:
+        errors2 = verify_pages_deployment(url2, timeout=5.0, public_key=pub_hex)
+        assert any("signature" in e.lower() for e in errors2)
+    finally:
+        server2.shutdown()
+        server2.server_close()
+
+
+def test_main_cli_candidate_matching_and_report_json(tmp_path: Path) -> None:
+    _write_site(tmp_path, source_commit="a" * 40, run_id="12345", manifest_digest="digest-foo")
+    server, url = _serve(tmp_path)
+    report_file = tmp_path / "report.json"
+    try:
+        # Match passes
+        rc = main([
+            url,
+            "--expected-commit", "a" * 40,
+            "--expected-run-id", "12345",
+            "--expected-digest", "digest-foo",
+            "--report-file", str(report_file),
+        ])
+        assert rc == 0
+        report = json.loads(report_file.read_text(encoding="utf-8"))
+        assert report["status"] == "passed"
+        assert report["errors"] == []
+
+        # Mismatch fails with code 1 and writes structured JSON errors
+        rc_mismatch = main([
+            url,
+            "--expected-commit", "wrong-commit",
+            "--report-file", str(report_file),
+        ])
+        assert rc_mismatch == 1
+        report_fail = json.loads(report_file.read_text(encoding="utf-8"))
+        assert report_fail["status"] == "failed"
+        assert len(report_fail["errors"]) > 0
     finally:
         server.shutdown()
         server.server_close()
