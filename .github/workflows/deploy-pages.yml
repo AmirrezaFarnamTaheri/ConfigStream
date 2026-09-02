@@ -88,7 +88,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install rollback verification dependencies
-        run: python -m pip install "httpx==0.28.1" "cryptography==50.0.0"
+        run: python -m pip install "httpx==0.28.1" "cryptography==50.0.0" "pydantic>=2.0.0" "pydantic-settings>=2.0.0"
       - name: Initialise deployment evidence
         run: |
           set -euo pipefail
