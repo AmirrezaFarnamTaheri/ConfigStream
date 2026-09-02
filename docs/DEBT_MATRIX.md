@@ -3,20 +3,20 @@
 ## Executive Summary
 This matrix represents **actionable** technical debt. Noise from test mocks, documentation placeholders, and historical reports has been filtered out.
 
-- Total actionable markers: **280**
-- `BROAD_EXCEPTION`: **268**
+- Total actionable markers: **268**
+- `BROAD_EXCEPTION`: **256**
 - `LARGE_FUNCTION`: **10**
 - `PLACEHOLDER`: **2**
 
 ## Categories
 
 - `other`: **14**
-- `production`: **224**
+- `production`: **212**
 - `tooling`: **42**
 
 ## Actionable Priorities
 
-### P1 - High (224)
+### P1 - High (212)
 - `src/configstream/__init__.py`
 - `src/configstream/adapters/loon.py`
 - `src/configstream/adapters/quantumult.py`
@@ -27,7 +27,7 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 - `src/configstream/auto_detect.py`
 - `src/configstream/backup.py`
 - `src/configstream/bot_cli.py`
-- ... and 58 more files.
+- ... and 52 more files.
 
 ### P2 - Routine (56)
 - `scripts/check_license_headers.py`
@@ -99,13 +99,7 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 | `src/configstream/output_handler.py` | 11 | BROAD_EXCEPTION, LARGE_FUNCTION |
 | `src/configstream/output_logic.py` | 5 | BROAD_EXCEPTION |
 | `src/configstream/output_transport.py` | 1 | BROAD_EXCEPTION |
-| `src/configstream/parsers/clash_json.py` | 1 | BROAD_EXCEPTION |
-| `src/configstream/parsers/decoders.py` | 2 | BROAD_EXCEPTION |
-| `src/configstream/parsers/extraction.py` | 5 | BROAD_EXCEPTION, LARGE_FUNCTION |
-| `src/configstream/parsers/openvpn.py` | 1 | BROAD_EXCEPTION |
-| `src/configstream/parsers/others.py` | 2 | BROAD_EXCEPTION |
-| `src/configstream/parsers/shadowsocks.py` | 1 | BROAD_EXCEPTION |
-| `src/configstream/parsers/vless.py` | 1 | BROAD_EXCEPTION |
+| `src/configstream/parsers/extraction.py` | 1 | LARGE_FUNCTION |
 | `src/configstream/pipeline/consumer.py` | 11 | BROAD_EXCEPTION, LARGE_FUNCTION |
 | `src/configstream/pipeline/core.py` | 5 | BROAD_EXCEPTION |
 | `src/configstream/pipeline/fetcher.py` | 5 | BROAD_EXCEPTION, LARGE_FUNCTION |
@@ -202,7 +196,7 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 - L21 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `scripts/validate_pages_artifact.py`
-- L858 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
+- L860 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `src/configstream/__init__.py`
 - L73 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
@@ -366,32 +360,8 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 ### `src/configstream/output_transport.py`
 - L51 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 
-### `src/configstream/parsers/clash_json.py`
-- L106 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-
-### `src/configstream/parsers/decoders.py`
-- L64 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L138 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-
 ### `src/configstream/parsers/extraction.py`
 - L137 [`LARGE_FUNCTION`] **P1 - High**: `Function extract_config_lines spans 392 lines (threshold: 300).`
-- L175 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L249 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L268 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L297 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-
-### `src/configstream/parsers/openvpn.py`
-- L141 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-
-### `src/configstream/parsers/others.py`
-- L332 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L377 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-
-### `src/configstream/parsers/shadowsocks.py`
-- L212 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-
-### `src/configstream/parsers/vless.py`
-- L160 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `src/configstream/pipeline/consumer.py`
 - L103 [`LARGE_FUNCTION`] **P1 - High**: `Function processing_consumer spans 303 lines (threshold: 300).`

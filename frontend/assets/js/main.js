@@ -219,8 +219,14 @@ export async function initializePageData() {
     } catch (error) {
         const errorMsg = error?.message || String(error);
         const isSecurity = /verification|signature|digest|manifest|blocked|tamper|cryptographic/i.test(errorMsg);
+        const isEmptyArtifact = /no verified working proxies|artifact health is degraded/i.test(errorMsg);
 
-        if (isSecurity) {
+        if (isEmptyArtifact) {
+            applyTrustState('empty', null, {
+                errorMessage: 'No verified working proxies are available in this signed release.',
+                onRetry: () => initializePageData()
+            });
+        } else if (isSecurity) {
             applyTrustState('invalid', null, {
                 errorMessage: 'Security Alert: Detached cryptographic verification failed. Feeds blocked.',
                 onRetry: () => initializePageData()
@@ -269,7 +275,6 @@ window.addEventListener('configstream:artifact-state', (event) => {
         }
     }
 });
-
 // --- FRESHNESS INDICATOR HELPER ---
 function updateFreshnessIndicator(date) {
     const dot = document.getElementById('freshnessDot');
@@ -625,4 +630,3 @@ document.addEventListener('DOMContentLoaded', () => {
     // Trigger page data initialization
     initializePageData();
 });
-

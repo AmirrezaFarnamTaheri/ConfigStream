@@ -43,7 +43,9 @@ func TestInc(t *testing.T) {
 func TestDeliverResultWithTimer_Success(t *testing.T) {
 	ch := make(chan ScanResult, 1)
 	res := ScanResult{IP: "1.1.1.1", Port: 2408, Latency: 42}
-	deliverResultWithTimer(ch, res, 50*time.Millisecond)
+	timer := time.NewTimer(time.Hour)
+	defer timer.Stop()
+	deliverResultWithTimer(ch, res, timer, 50*time.Millisecond)
 
 	select {
 	case got := <-ch:
@@ -58,8 +60,10 @@ func TestDeliverResultWithTimer_Success(t *testing.T) {
 func TestDeliverResultWithTimer_Timeout(t *testing.T) {
 	ch := make(chan ScanResult) // unbuffered, no receiver
 	res := ScanResult{IP: "1.1.1.1", Port: 2408, Latency: 42}
+	timer := time.NewTimer(time.Hour)
+	defer timer.Stop()
 	start := time.Now()
-	deliverResultWithTimer(ch, res, 10*time.Millisecond)
+	deliverResultWithTimer(ch, res, timer, 10*time.Millisecond)
 	elapsed := time.Since(start)
 	if elapsed < 10*time.Millisecond {
 		t.Fatalf("expected timeout to take at least 10ms, took %v", elapsed)
@@ -77,11 +81,13 @@ func BenchmarkConstructHandshakePacket(b *testing.B) {
 func BenchmarkDeliverResultTimer(b *testing.B) {
 	resultsChan := make(chan ScanResult, 1)
 	res := ScanResult{IP: "1.1.1.1", Port: 2408, Latency: 10}
+	timer := time.NewTimer(time.Hour)
+	defer timer.Stop()
 
 	b.ResetTimer()
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
-		deliverResultWithTimer(resultsChan, res, 50*time.Millisecond)
+		deliverResultWithTimer(resultsChan, res, timer, 50*time.Millisecond)
 		<-resultsChan
 	}
 }

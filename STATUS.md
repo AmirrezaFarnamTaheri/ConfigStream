@@ -6,18 +6,18 @@
 **Verdict:** CONDITIONAL
 **Release gate:** `external_verification_required`
 **Production ready:** No
-**Evaluated at:** 2026-09-02T22:50:00Z
+**Evaluated at:** 2026-09-02T23:00:00Z
 
 ## Required Gates
 
 | Gate | Status | Evidence |
 |---|---|---|
-| `blocking_ci_green` | `passing` | `pytest tests/unit/ (83 roadmap and core unit tests passing with zero failures)`<br>`go test -v ./scanner (5/5 passing with zero memory allocation churn)`<br>`go test -v ./src/go/utls_client (passing with fuzz testing)` |
-| `frontend_visual_regression` | `passing` | `tests/unit/test_design_tokens.py (Cold Luxury tokens, sticky header scroll-margin-top: 80px)`<br>`tests/unit/test_accessibility_tokens.py (WCAG 2.2 AA touch targets, tabular-nums)`<br>`tests/unit/test_hero_node.py (Procedural 3D polyhedral hero node with reduced motion and lifecycle management)` |
-| `historical_secret_exposure_investigated` | `passing` | `scripts/validate_frontend_placeholders.py (passed with zero symmetric keys in public client bundle)`<br>`Ed25519 detached signature verification enforced with strict public-key format validation` |
+| `blocking_ci_green` | `unverified` | `A clean exact-head CI run and retained job links are required. Local targeted tests and static repository checks are not CI evidence.` |
+| `frontend_visual_regression` | `unavailable` | `A committed golden screenshot from a browser-capable exact-head run is still required before this gate can pass.` |
+| `historical_secret_exposure_investigated` | `operator_action_required` | `Historical repository and hosted-artifact exposure requires operator investigation; local placeholder validation is not historical evidence.` |
 | `live_pages_digest_and_smoke_verified` | `unverified` | `scripts/verify_pages_deployment.py (Candidate commit, run ID, and manifest digest identity gate)`<br>`Live deployment verification requires post-merge execution against public GitHub Pages URL.` |
-| `local_release_contract` | `passing` | `Phases 1-4 delivery completed across all 12 roadmap tasks`<br>`Deterministic script loading and 5-state trust data contract (Loading, Fresh, Stale, Invalid, Empty/Error) enforced` |
-| `sealed_pipeline_artifact_generated` | `passing` | `.github/workflows/deploy-pages.yml:91 (pydantic and pydantic-settings runtime dependencies closed)`<br>`tests/unit/test_deploy_qualification.py (passing clean import and execution qualification)` |
+| `local_release_contract` | `pending` | `Run scripts/verify_repository.py --profile static and the release-tail profile against the final exact commit; retain the generated reports.` |
+| `sealed_pipeline_artifact_generated` | `unverified` | `A sealed pipeline artifact for the final source commit must be generated and validated before this gate can pass.` |
 
 ## Release Invariant
 
@@ -25,4 +25,4 @@ A production release is prohibited unless every required gate is passing for the
 
 ## Evidence Boundary
 
-This source snapshot provides complete local repository verification across all unit suites, design tokens, cryptographic envelopes, and static CI qualification gates. Live Pages verification executes after deployment.
+This source snapshot can prove local repository checks only. It cannot prove exact-head CI, retained release artifacts, historical-secret investigation, or the live GitHub Pages deployment.

@@ -1,6 +1,5 @@
 {
   "path_ceilings": {
-    "scripts/add_license_headers.py": 0,
     "scripts/check_license_headers.py": 1,
     "scripts/dynamic_reshard.py": 13,
     "scripts/generate_evidence_bundle.py": 5,
@@ -45,13 +44,6 @@
     "src/configstream/output_handler.py": 10,
     "src/configstream/output_logic.py": 5,
     "src/configstream/output_transport.py": 1,
-    "src/configstream/parsers/clash_json.py": 1,
-    "src/configstream/parsers/decoders.py": 2,
-    "src/configstream/parsers/extraction.py": 4,
-    "src/configstream/parsers/openvpn.py": 1,
-    "src/configstream/parsers/others.py": 2,
-    "src/configstream/parsers/shadowsocks.py": 1,
-    "src/configstream/parsers/vless.py": 1,
     "src/configstream/pipeline/consumer.py": 10,
     "src/configstream/pipeline/core.py": 5,
     "src/configstream/pipeline/fetcher.py": 4,
@@ -88,5 +80,5 @@
     "target_total": 0
   },
   "schema_version": 1,
-  "total_ceiling": 254
+  "total_ceiling": 242
 }

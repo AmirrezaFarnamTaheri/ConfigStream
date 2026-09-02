@@ -211,14 +211,16 @@
                 throw new Error("Manifest verification failed: Public Key not configured.");
             }
 
-            const MAX_SIGNATURE_AGE_SECONDS = 300;
             const CLOCK_SKEW_TOLERANCE_SECONDS = 30;
             const timestamp = sig.timestamp != null ? Number(sig.timestamp) : null;
             if (timestamp != null) {
+                if (!Number.isSafeInteger(timestamp) || timestamp < 0) {
+                    throw new Error("Manifest verification failed: invalid signature timestamp.");
+                }
                 const age = Math.floor(Date.now() / 1000) - timestamp;
-                if (age < -CLOCK_SKEW_TOLERANCE_SECONDS || age > MAX_SIGNATURE_AGE_SECONDS) {
+                if (age < -CLOCK_SKEW_TOLERANCE_SECONDS) {
                     throw new Error(
-                        `SECURITY ALERT: Manifest signature age ${age}s exceeds tolerance (${-CLOCK_SKEW_TOLERANCE_SECONDS}s to ${MAX_SIGNATURE_AGE_SECONDS}s) — possible replay attack.`
+                        `SECURITY ALERT: Manifest signature timestamp is ${Math.abs(age)}s in the future.`
                     );
                 }
             }

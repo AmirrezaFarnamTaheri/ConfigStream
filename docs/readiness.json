@@ -1,32 +1,27 @@
 {
   "schema_version": "2",
   "project_version": "3.2.0",
-  "evaluated_at": "2026-09-02T22:50:00Z",
+  "evaluated_at": "2026-09-02T23:00:00Z",
   "verdict": "CONDITIONAL",
   "release_gate": "external_verification_required",
   "production_ready": false,
   "required_gates": {
     "blocking_ci_green": {
-      "status": "passing",
+      "status": "unverified",
       "evidence": [
-        "pytest tests/unit/ (83 roadmap and core unit tests passing with zero failures)",
-        "go test -v ./scanner (5/5 passing with zero memory allocation churn)",
-        "go test -v ./src/go/utls_client (passing with fuzz testing)"
+        "A clean exact-head CI run and retained job links are required. Local targeted tests and static repository checks are not CI evidence."
       ]
     },
     "frontend_visual_regression": {
-      "status": "passing",
+      "status": "unavailable",
       "evidence": [
-        "tests/unit/test_design_tokens.py (Cold Luxury tokens, sticky header scroll-margin-top: 80px)",
-        "tests/unit/test_accessibility_tokens.py (WCAG 2.2 AA touch targets, tabular-nums)",
-        "tests/unit/test_hero_node.py (Procedural 3D polyhedral hero node with reduced motion and lifecycle management)"
+        "A committed golden screenshot from a browser-capable exact-head run is still required before this gate can pass."
       ]
     },
     "historical_secret_exposure_investigated": {
-      "status": "passing",
+      "status": "operator_action_required",
       "evidence": [
-        "scripts/validate_frontend_placeholders.py (passed with zero symmetric keys in public client bundle)",
-        "Ed25519 detached signature verification enforced with strict public-key format validation"
+        "Historical repository and hosted-artifact exposure requires operator investigation; local placeholder validation is not historical evidence."
       ]
     },
     "live_pages_digest_and_smoke_verified": {
@@ -37,20 +32,18 @@
       ]
     },
     "local_release_contract": {
-      "status": "passing",
+      "status": "pending",
       "evidence": [
-        "Phases 1-4 delivery completed across all 12 roadmap tasks",
-        "Deterministic script loading and 5-state trust data contract (Loading, Fresh, Stale, Invalid, Empty/Error) enforced"
+        "Run scripts/verify_repository.py --profile static and the release-tail profile against the final exact commit; retain the generated reports."
       ]
     },
     "sealed_pipeline_artifact_generated": {
-      "status": "passing",
+      "status": "unverified",
       "evidence": [
-        ".github/workflows/deploy-pages.yml:91 (pydantic and pydantic-settings runtime dependencies closed)",
-        "tests/unit/test_deploy_qualification.py (passing clean import and execution qualification)"
+        "A sealed pipeline artifact for the final source commit must be generated and validated before this gate can pass."
       ]
     }
   },
   "release_invariant": "A production release is prohibited unless every required gate is passing for the same source commit and artifact digest.",
-  "evidence_boundary": "This source snapshot provides complete local repository verification across all unit suites, design tokens, cryptographic envelopes, and static CI qualification gates. Live Pages verification executes after deployment."
+  "evidence_boundary": "This source snapshot can prove local repository checks only. It cannot prove exact-head CI, retained release artifacts, historical-secret investigation, or the live GitHub Pages deployment."
 }

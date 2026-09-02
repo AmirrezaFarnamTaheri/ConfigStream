@@ -1,9 +1,9 @@
 # 12. Target-State System Roadmap & Architectural Synthesis
 
-> **Document Status:** Proposed target-state roadmap; not a release audit or sign-off.  
-> **Repository:** `ConfigStream`  
-> **Version Target:** `v3.2.0`  
-> **Audit Scope:** All Modules, All Folders, All Files (Python Control Plane, Go Data Plane, Frontend PWA, CI/CD, Documentation)  
+> **Document Status:** Proposed target-state roadmap; not a release audit or sign-off.
+> **Repository:** `ConfigStream`
+> **Version Target:** `v3.2.0`
+> **Audit Scope:** All Modules, All Folders, All Files (Python Control Plane, Go Data Plane, Frontend PWA, CI/CD, Documentation)
 > **Evaluation Framework:** Multi-Aspect Holistic Engineering Assessment (10 Lenses)
 
 ---
@@ -59,15 +59,15 @@ dependency workstream.
 
 | Priority | Blocker | Closure Evidence & Verification Commit | Status |
 |---|---|---|---|
-| P0 | Deploy validator environment is incomplete | Closed in `.github/workflows/deploy-pages.yml:91` + `test_deploy_qualification.py` (`5ed6b31`) | **RESOLVED** |
-| P0 | Python and browser disagree on manifest signed bytes | Closed in `signer.py` + `verifier.js` + `test_signer_canonical.py` (`066fca6`) | **RESOLVED** |
-| P0 | Guarded pages omit the public trust bootstrap | Standardized across 8 online HTML surfaces + `test_frontend_bootstrap.py` (`6e96d93`) | **RESOLVED** |
-| P1 | Live smoke can accept an old self-consistent release | Candidate identity gate (`--expected-commit`, `--expected-run-id`) in `verify_pages_deployment.py` (`8761760`) | **RESOLVED** |
-| P1 | Browser and release policy disagree on degraded artifacts | 5-state trust data contract (*Loading, Fresh, Stale, Invalid, Empty/Error*) in `main.js`, `proxies.js` (`8f362c5`) | **RESOLVED** |
-| P1 | Design tokens, sticky header occlusion & touch targets | Cold Luxury tokens, `scroll-margin-top: 80px`, `:focus-visible`, WCAG 2.2 AA touch targets (`ed3e13e`, `d18af44`) | **RESOLVED** |
-| P2 | Go scanner UDP timer channel churn | Replaced ephemeral `time.After` with reusable timer in `scanner.go` (`8bad335`) | **RESOLVED** |
-| P2 | Broad `except Exception:` in parsers | Refactored 13 parsers to explicit `(ValidationError, ...)` tuples (`e4978b2`) | **RESOLVED** |
-| P3 | WebGL performance & 3D hero node | Globe.gl DPR clamp & offscreen pause (`a311971`) + procedural 3D hero node (`00d27fb`) | **RESOLVED** |
+| P0 | Deploy validator environment is incomplete | Dependency closure is implemented in `.github/workflows/deploy-pages.yml`; an exact-head artifact deployment remains required. | **IMPLEMENTED — EVIDENCE PENDING** |
+| P0 | Python and browser disagree on manifest signed bytes | Shared envelope code and unit vectors exist; retain browser WebCrypto evidence from the final artifact. | **IMPLEMENTED — EVIDENCE PENDING** |
+| P0 | Guarded pages omit the public trust bootstrap | Bootstrap tags and structural tests exist; verify every deployed route with a configured public key. | **IMPLEMENTED — EVIDENCE PENDING** |
+| P1 | Live smoke can accept an old self-consistent release | Candidate commit, run ID, manifest-byte digest, and public key must be supplied by the deployment workflow and proven against live Pages. | **IMPLEMENTED — LIVE EVIDENCE PENDING** |
+| P1 | Browser and release policy disagree on degraded artifacts | A signed zero-working artifact renders an empty state and remains non-distributable; browser fixtures are still required. | **IMPLEMENTED — EVIDENCE PENDING** |
+| P1 | Design tokens, sticky header occlusion & touch targets | Source changes exist; keyboard, zoom/reflow, and browser visual evidence are required. | **IMPLEMENTED — EVIDENCE PENDING** |
+| P2 | Go scanner UDP timer channel churn | A receiver-owned reusable timer is implemented; benchmark allocations and a production-sized scan trace are still required. | **IMPLEMENTED — EVIDENCE PENDING** |
+| P2 | Broad `except Exception:` in parsers | Parser boundaries were narrowed; malformed-input scenario coverage must be retained in exact-head CI. | **IMPLEMENTED — EVIDENCE PENDING** |
+| P3 | WebGL performance & 3D hero node | Lifecycle code exists; browser frame/heap evidence is still required before performance closure. | **IMPLEMENTED — EVIDENCE PENDING** |
 
 ```
 ┌───────────────────────────────────────┬────────────┬───────────┬──────────────────────────────────────────┐
@@ -100,8 +100,8 @@ dependency workstream.
 │ 9. UI/UX Accessibility (WCAG 2.2 AA)  │ target     │ PENDING   │ Verify focus, reflow, names, and touch targets |
 │                                       │            │           │ targets, zero raw emoji navigation       │
 ├───────────────────────────────────────┼────────────┼───────────┼──────────────────────────────────────────┤
-│ 10. Technical Debt & Maintainability  │   9.1/10   │ VERY GOOD │ 280 tracked debt markers triaged in P1/P2│
-│                                       │            │           │ with clear remediation roadmaps          │
+│ 10. Technical Debt & Maintainability  │ target     │ PENDING   │ Regenerate the debt matrix and retain its │
+│                                       │            │           │ exact-head evidence before prioritizing   │
 ├───────────────────────────────────────┼────────────┼───────────┼──────────────────────────────────────────┤
 │ Release decision                       │ fresh artifact deploy and readiness gate │
 └───────────────────────────────────────┴────────────┴───────────┴──────────────────────────────────────────┘

@@ -1,6 +1,6 @@
 /**
  * ConfigStream - Procedural 3D Polyhedral Hero Node
- * 
+ *
  * High-craft, lightweight procedural 3D geometric node featuring:
  * - Dual polyhedral core + wireframe orbital cage + pulsing data nodes
  * - Cold Luxury palette (Electric Cobalt #3b82f6, Cyan #06b6d4)
@@ -10,7 +10,7 @@
  * - WebGL context loss and restoration handling
  * - Pure 2D Canvas graceful fallback
  * - Clean teardown hook exported at window._disposeHeroNode()
- * 
+ *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
@@ -96,6 +96,40 @@
     [6, 10], [6, 15], [6, 18], [7, 11], [7, 15], [7, 19],
     [8, 10], [9, 11], [12, 14], [13, 15], [16, 17], [18, 19]
   ];
+
+  let staticGeometry = null;
+
+  function buildWireGeometry(vertices, edges, firstColor, secondColor) {
+    const positions = [];
+    const colors = [];
+    for (const [first, second] of edges) {
+      positions.push(...vertices[first], ...vertices[second]);
+      colors.push(...firstColor, ...secondColor);
+    }
+    return {
+      positions: new Float32Array(positions),
+      colors: new Float32Array(colors)
+    };
+  }
+
+  function getStaticGeometry() {
+    if (staticGeometry) return staticGeometry;
+    staticGeometry = {
+      core: buildWireGeometry(
+        createIcosahedronVertices(0.85),
+        ICOSAHEDRON_EDGES,
+        [PALETTE.cobaltRgb[0] / 255, PALETTE.cobaltRgb[1] / 255, PALETTE.cobaltRgb[2] / 255, 0.9],
+        [PALETTE.cyanRgb[0] / 255, PALETTE.cyanRgb[1] / 255, PALETTE.cyanRgb[2] / 255, 0.9]
+      ),
+      cage: buildWireGeometry(
+        createDodecahedronVertices(1.35),
+        DODECAHEDRON_EDGES,
+        [PALETTE.cyanRgb[0] / 255, PALETTE.cyanRgb[1] / 255, PALETTE.cyanRgb[2] / 255, 0.6],
+        [PALETTE.cobaltRgb[0] / 255, PALETTE.cobaltRgb[1] / 255, PALETTE.cobaltRgb[2] / 255, 0.6]
+      )
+    };
+    return staticGeometry;
+  }
 
   // Orbital rings (3 geodesic rings at differing angles)
   function createOrbitalRings(segments, radius) {
@@ -227,7 +261,8 @@
       return null;
     }
 
-    return {
+    const geometry = getStaticGeometry();
+    const resources = {
       program,
       vs,
       fs,
@@ -235,9 +270,24 @@
       aColor: glCtx.getAttribLocation(program, 'aColor'),
       uMVP: glCtx.getUniformLocation(program, 'uMVP'),
       uTime: glCtx.getUniformLocation(program, 'uTime'),
-      vertexBuffer: glCtx.createBuffer(),
-      colorBuffer: glCtx.createBuffer()
+      coreVertexBuffer: glCtx.createBuffer(),
+      coreColorBuffer: glCtx.createBuffer(),
+      cageVertexBuffer: glCtx.createBuffer(),
+      cageColorBuffer: glCtx.createBuffer()
     };
+    const arrayBuffer = glCtx.ARRAY_BUFFER || 34962;
+    const staticDraw = glCtx.STATIC_DRAW || 35044;
+    for (const [buffer, data] of [
+      [resources.coreVertexBuffer, geometry.core.positions],
+      [resources.coreColorBuffer, geometry.core.colors],
+      [resources.cageVertexBuffer, geometry.cage.positions],
+      [resources.cageColorBuffer, geometry.cage.colors]
+    ]) {
+      if (!buffer) return null;
+      glCtx.bindBuffer(arrayBuffer, buffer);
+      glCtx.bufferData(arrayBuffer, data, staticDraw);
+    }
+    return resources;
   }
 
   // Perspective matrix helper
@@ -312,17 +362,7 @@
 
     const proj = createPerspective(Math.PI / 4, aspect, 0.1, 100.0);
 
-    // Inner core icosahedron (Cobalt with Cyan accents)
-    const coreVerts = createIcosahedronVertices(0.85);
-    const coreLines = [];
-    const coreColors = [];
-    for (const [i, j] of ICOSAHEDRON_EDGES) {
-      coreLines.push(...coreVerts[i], ...coreVerts[j]);
-      coreColors.push(
-        PALETTE.cobaltRgb[0] / 255, PALETTE.cobaltRgb[1] / 255, PALETTE.cobaltRgb[2] / 255, 0.9,
-        PALETTE.cyanRgb[0] / 255, PALETTE.cyanRgb[1] / 255, PALETTE.cyanRgb[2] / 255, 0.9
-      );
-    }
+    const geometry = getStaticGeometry();
 
     const mvCore = createModelViewMatrix(0, 0, -3.2, t * 0.45, t * 0.75, t * 0.25);
     const mvpCore = multiplyMatrix(proj, mvCore);
@@ -331,30 +371,17 @@
       gl.uniformMatrix4fv(glResources.uMVP, false, new Float32Array(mvpCore));
     }
 
-    gl.bindBuffer(gl.ARRAY_BUFFER || 34962, glResources.vertexBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER || 34962, new Float32Array(coreLines), gl.STATIC_DRAW || 35044);
+    gl.bindBuffer(gl.ARRAY_BUFFER || 34962, glResources.coreVertexBuffer);
     gl.enableVertexAttribArray(glResources.aPosition);
     gl.vertexAttribPointer(glResources.aPosition, 3, gl.FLOAT || 5126, false, 0, 0);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER || 34962, glResources.colorBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER || 34962, new Float32Array(coreColors), gl.STATIC_DRAW || 35044);
+    gl.bindBuffer(gl.ARRAY_BUFFER || 34962, glResources.coreColorBuffer);
     gl.enableVertexAttribArray(glResources.aColor);
     gl.vertexAttribPointer(glResources.aColor, 4, gl.FLOAT || 5126, false, 0, 0);
 
-    gl.drawArrays(gl.LINES || 1, 0, coreLines.length / 3);
+    gl.drawArrays(gl.LINES || 1, 0, geometry.core.positions.length / 3);
 
     // Outer orbital cage dodecahedron (Electric Cyan)
-    const cageVerts = createDodecahedronVertices(1.35);
-    const cageLines = [];
-    const cageColors = [];
-    for (const [i, j] of DODECAHEDRON_EDGES) {
-      cageLines.push(...cageVerts[i], ...cageVerts[j]);
-      cageColors.push(
-        PALETTE.cyanRgb[0] / 255, PALETTE.cyanRgb[1] / 255, PALETTE.cyanRgb[2] / 255, 0.6,
-        PALETTE.cobaltRgb[0] / 255, PALETTE.cobaltRgb[1] / 255, PALETTE.cobaltRgb[2] / 255, 0.6
-      );
-    }
-
     const mvCage = createModelViewMatrix(0, 0, -3.2, -t * 0.35, t * 0.4, -t * 0.15);
     const mvpCage = multiplyMatrix(proj, mvCage);
 
@@ -362,11 +389,11 @@
       gl.uniformMatrix4fv(glResources.uMVP, false, new Float32Array(mvpCage));
     }
 
-    gl.bindBuffer(gl.ARRAY_BUFFER || 34962, glResources.vertexBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER || 34962, new Float32Array(cageLines), gl.STATIC_DRAW || 35044);
-    gl.bindBuffer(gl.ARRAY_BUFFER || 34962, glResources.colorBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER || 34962, new Float32Array(cageColors), gl.STATIC_DRAW || 35044);
-    gl.drawArrays(gl.LINES || 1, 0, cageLines.length / 3);
+    gl.bindBuffer(gl.ARRAY_BUFFER || 34962, glResources.cageVertexBuffer);
+    gl.vertexAttribPointer(glResources.aPosition, 3, gl.FLOAT || 5126, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER || 34962, glResources.cageColorBuffer);
+    gl.vertexAttribPointer(glResources.aColor, 4, gl.FLOAT || 5126, false, 0, 0);
+    gl.drawArrays(gl.LINES || 1, 0, geometry.cage.positions.length / 3);
   }
 
   // Render frame via 2D Canvas Fallback
@@ -444,7 +471,7 @@
     for (let k = 0; k < projCore.length; k++) {
       const p = projCore[k];
       const nodeRadius = (2.8 + Math.sin(t * 3.0 + k) * 0.8) * dpr;
-      
+
       // Node halo
       ctx2d.beginPath();
       ctx2d.arc(p[0], p[1], nodeRadius * 2.2, 0, Math.PI * 2);
@@ -656,8 +683,10 @@
       if (gl.deleteProgram && glResources.program) gl.deleteProgram(glResources.program);
       if (gl.deleteShader && glResources.vs) gl.deleteShader(glResources.vs);
       if (gl.deleteShader && glResources.fs) gl.deleteShader(glResources.fs);
-      if (gl.deleteBuffer && glResources.vertexBuffer) gl.deleteBuffer(glResources.vertexBuffer);
-      if (gl.deleteBuffer && glResources.colorBuffer) gl.deleteBuffer(glResources.colorBuffer);
+      if (gl.deleteBuffer && glResources.coreVertexBuffer) gl.deleteBuffer(glResources.coreVertexBuffer);
+      if (gl.deleteBuffer && glResources.coreColorBuffer) gl.deleteBuffer(glResources.coreColorBuffer);
+      if (gl.deleteBuffer && glResources.cageVertexBuffer) gl.deleteBuffer(glResources.cageVertexBuffer);
+      if (gl.deleteBuffer && glResources.cageColorBuffer) gl.deleteBuffer(glResources.cageColorBuffer);
       glResources = null;
     }
 

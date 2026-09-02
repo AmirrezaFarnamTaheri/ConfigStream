@@ -624,6 +624,38 @@ function _initGlobeInternal(data, container) {
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
 
+    // Optimization: Clamp Device Pixel Ratio to 1.5 to prevent mobile GPU overdraw
+    const renderer = globe.renderer ? globe.renderer() : null;
+    if (renderer && typeof renderer.setPixelRatio === 'function') {
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    }
+
+    // WebGL Context Loss & Restoration Handlers
+    const canvas = container.querySelector('canvas');
+    let globeVisible = true;
+    const handleContextLost = (event) => {
+        event.preventDefault();
+        logger.warn('[WebGL] Context lost on globe canvas. Suspending render loop.');
+        container.setAttribute('data-animation-active', 'false');
+        controls.autoRotate = false;
+        if (typeof globe.pauseAnimation === 'function') {
+            globe.pauseAnimation();
+        }
+    };
+    const handleContextRestored = () => {
+        logger.info('[WebGL] Context restored.');
+        if (!globeVisible) return;
+        container.setAttribute('data-animation-active', 'true');
+        controls.autoRotate = true;
+        if (typeof globe.resumeAnimation === 'function') {
+            globe.resumeAnimation();
+        }
+    };
+    if (canvas) {
+        canvas.addEventListener('webglcontextlost', handleContextLost, false);
+        canvas.addEventListener('webglcontextrestored', handleContextRestored, false);
+    }
+
     let rotationCooldownTimer = null;
     const COOLDOWN_DURATION = 2000;
     let interactionActive = false;
@@ -660,20 +692,46 @@ function _initGlobeInternal(data, container) {
     container.addEventListener('touchstart', handleInteraction);
     container.addEventListener('wheel', handleInteraction);
 
-    // Do NOT set zoom-inactive initially which set pointer-events: none
-    // container.classList.add('zoom-inactive');
-
-    // Instead just ensure zoom is disabled in controls initially (done above)
-    // and let CSS cursor indicate grabbable
-
     globe.pointOfView({ lat: 20, lng: 0, altitude: 2.5 }, 0);
 
-    window.addEventListener('resize', () => {
+    const handleResize = () => {
         globe.width(container.clientWidth);
         globe.height(container.clientHeight);
-    });
+    };
+    window.addEventListener('resize', handleResize);
 
-    window.addEventListener('themechanged', (e) => {
+    // Offscreen IntersectionObserver: Pause RAF & auto-rotation when scrolled offscreen
+    let globeObserver = null;
+    if (typeof IntersectionObserver !== 'undefined') {
+        globeObserver = new IntersectionObserver((entries) => {
+            for (const entry of entries) {
+                if (entry.isIntersecting) {
+                    globeVisible = true;
+                    container.setAttribute('data-animation-active', 'true');
+                    container.classList.remove('is-offscreen');
+                    controls.autoRotate = true;
+                    if (typeof globe.resumeAnimation === 'function') {
+                        globe.resumeAnimation();
+                    }
+                } else {
+                    globeVisible = false;
+                    container.setAttribute('data-animation-active', 'false');
+                    container.classList.add('is-offscreen');
+                    controls.autoRotate = false;
+                    if (typeof globe.pauseAnimation === 'function') {
+                        globe.pauseAnimation();
+                    }
+                }
+            }
+        }, { threshold: 0.01 });
+
+        globeObserver.observe(container);
+    } else {
+        globeVisible = true;
+        container.setAttribute('data-animation-active', 'true');
+    }
+
+    const handleThemeChanged = (e) => {
         const newIsDark = e.detail.theme === 'dark';
         const newGlobeTexture = newIsDark
             ? globeAssets.earthNight
@@ -690,7 +748,29 @@ function _initGlobeInternal(data, container) {
             }
             globe.backgroundImageUrl(null);
         }
-    });
+    };
+    window.addEventListener('themechanged', handleThemeChanged);
+
+    // Teardown hook for route changes / unmount
+    window._disposeGlobe = () => {
+        if (globeObserver) globeObserver.disconnect();
+        if (rotationCooldownTimer) clearTimeout(rotationCooldownTimer);
+        if (typeof globe.pauseAnimation === 'function') globe.pauseAnimation();
+        container.removeEventListener('mousedown', handleInteraction);
+        container.removeEventListener('touchstart', handleInteraction);
+        container.removeEventListener('wheel', handleInteraction);
+        window.removeEventListener('resize', handleResize);
+        window.removeEventListener('themechanged', handleThemeChanged);
+        if (canvas) {
+            canvas.removeEventListener('webglcontextlost', handleContextLost);
+            canvas.removeEventListener('webglcontextrestored', handleContextRestored);
+        }
+        if (controls && typeof controls.dispose === 'function') controls.dispose();
+        if (renderer && typeof renderer.dispose === 'function') {
+            renderer.dispose();
+        }
+        window.globeInstance = null;
+    };
 
     window.globeInstance = globe;
 }

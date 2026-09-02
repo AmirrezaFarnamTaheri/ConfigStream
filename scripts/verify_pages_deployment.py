@@ -375,7 +375,9 @@ def verify_pages_deployment(
                     rel_path, responses[rel_path], manifest_hashes, errors
                 )
 
-            # Candidate identity gate
+            # Candidate identity gate.  The expected digest is the SHA-256 of
+            # the manifest bytes selected for this deployment, not an optional
+            # self-reported field inside that manifest.
             if expected_commit or expected_run_id or expected_digest:
                 if not isinstance(manifest, dict):
                     errors.append(
@@ -395,11 +397,7 @@ def verify_pages_deployment(
                                 f"artifact_manifest.json run_id mismatch: expected {expected_run_id}, got {actual_run_id}"
                             )
                     if expected_digest:
-                        actual_digest = (
-                            manifest.get("digest")
-                            or manifest.get("manifest_digest")
-                            or manifest.get("sha256")
-                        )
+                        actual_digest = hashlib.sha256(manifest_response.body).hexdigest()
                         if actual_digest != expected_digest:
                             errors.append(
                                 f"artifact_manifest.json digest mismatch: expected {expected_digest}, got {actual_digest}"
@@ -417,7 +415,6 @@ def verify_pages_deployment(
                         sig_valid = Signer.verify_manifest_signature(
                             manifest,
                             pk_hex,
-                            max_age_seconds=86400,
                         )
                         if not sig_valid:
                             errors.append("artifact_manifest.json signature verification failed")
@@ -438,7 +435,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--expected-digest", help="Expected candidate manifest digest")
     parser.add_argument(
         "--public-key",
-        default=os.getenv("CS_PUBLIC_KEY") or os.getenv("PUBLIC_KEY"),
+        default=os.getenv("CS_PUBLIC_KEY"),
         help="Public key hex or base64 SPKI to verify manifest detached signature",
     )
     parser.add_argument("--report-file", help="Path to save JSON report")

@@ -19,7 +19,6 @@ var DefaultCidrs = []string{
 	"162.159.192.0/24", "162.159.193.0/24", "162.159.195.0/24",
 	"188.114.96.0/24", "188.114.97.0/24", "188.114.98.0/24", "188.114.99.0/24",
 }
-
 // WireGuard Handshake Initiation Packet Constants
 const (
 	HandshakeType     = 1 // initiation
@@ -136,6 +135,14 @@ func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resu
 	go func() {
 		defer close(done)
 		buf := make([]byte, 1024)
+		// The receiver is the sole result sender, so it owns one reusable
+		// delivery timer for the whole scan rather than allocating a timer for
+		// each received packet.
+		deliveryTimer := time.NewTimer(time.Hour)
+		if !deliveryTimer.Stop() {
+			<-deliveryTimer.C
+		}
+		defer deliveryTimer.Stop()
 
 		// No deadline while sending; once sending completes, start the grace-period timer.
 		var end time.Time
@@ -211,7 +218,7 @@ func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resu
 					IP:      ipStr,
 					Port:    port,
 					Latency: latency,
-				}, 50*time.Millisecond)
+				}, deliveryTimer, 50*time.Millisecond)
 			} else {
 				// Fallback if key was just IP (unlikely given sender logic below, but safe)
 				if val, ok := pending.LoadAndDelete(ipStr); ok {
@@ -222,7 +229,7 @@ func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resu
 						IP:      ipStr,
 						Port:    2408,
 						Latency: latency,
-					}, 50*time.Millisecond)
+					}, deliveryTimer, 50*time.Millisecond)
 				}
 			}
 		}
@@ -316,15 +323,25 @@ func inc(ip net.IP) {
 	}
 }
 
-// deliverResultWithTimer delivers a ScanResult to resultsChan with a specified timeout,
-// ensuring timers are stopped promptly to prevent memory churn and channel leaks.
-func deliverResultWithTimer(resultsChan chan<- ScanResult, res ScanResult, timeout time.Duration) {
-	timer := time.NewTimer(timeout)
-	defer timer.Stop()
+// deliverResultWithTimer uses a caller-owned timer to bound delivery without
+// allocating a fresh timer for every packet.
+func deliverResultWithTimer(resultsChan chan<- ScanResult, res ScanResult, timer *time.Timer, timeout time.Duration) {
+	if !timer.Stop() {
+		select {
+		case <-timer.C:
+		default:
+		}
+	}
+	timer.Reset(timeout)
 
 	select {
 	case resultsChan <- res:
+		if !timer.Stop() {
+			select {
+			case <-timer.C:
+			default:
+			}
+		}
 	case <-timer.C:
 	}
 }
-
