@@ -215,6 +215,26 @@ class Signer:
             return False
 
     @staticmethod
+    def verify_subscription(
+        content: str,
+        signature_hex: str,
+        public_key_hex: str,
+        timestamp: Optional[int] = None,
+        max_age_seconds: int = SIGNATURE_MAX_AGE_SECONDS,
+    ) -> bool:
+        """Verify the Ed25519 subscription signature and enforce replay protection.
+
+        Alias for verify_signature for semantic parity with sign_subscription.
+        """
+        return Signer.verify_signature(
+            content=content,
+            signature_hex=signature_hex,
+            public_key_hex=public_key_hex,
+            timestamp=timestamp,
+            max_age_seconds=max_age_seconds,
+        )
+
+    @staticmethod
     def verify_signature(
         content: str,
         signature_hex: str,
