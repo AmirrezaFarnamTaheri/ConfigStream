@@ -166,7 +166,7 @@ function initDynamicDownloads() {
         }
 
         // Use the local icon renderer when it is ready.  Calling the legacy
-        // Feather global scans every icon placeholder on the page and throws
+        // Feather global scans every icon element on the page and throws
         // if any optional icon is unavailable, which must not break downloads.
         if (window.inlineIcons && typeof window.inlineIcons.replace === 'function') {
             window.inlineIcons.replace();

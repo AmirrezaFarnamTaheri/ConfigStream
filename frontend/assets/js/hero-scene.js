@@ -70,7 +70,7 @@
     [3, 9], [3, 4], [3, 2], [3, 6], [3, 8],
     [4, 9], [9, 8], [8, 6], [6, 2], [2, 4],
     [1, 9], [5, 4], [11, 2], [10, 6], [7, 8],
-    [0, 7], [1, 8], [5, 9], [11, 4], [10, 2]
+    [6, 7], [1, 8], [5, 9], [11, 4], [10, 2]
   ];
 
   // 20 vertices of regular dodecahedron (dual cage, normalized)
@@ -126,7 +126,12 @@
         DODECAHEDRON_EDGES,
         [PALETTE.cyanRgb[0] / 255, PALETTE.cyanRgb[1] / 255, PALETTE.cyanRgb[2] / 255, 0.6],
         [PALETTE.cobaltRgb[0] / 255, PALETTE.cobaltRgb[1] / 255, PALETTE.cobaltRgb[2] / 255, 0.6]
-      )
+      ),
+      canvas2d: {
+        cage: createDodecahedronVertices(1.35),
+        core: createIcosahedronVertices(0.85),
+        rings: createOrbitalRings(36, 1.6)
+      }
     };
     return staticGeometry;
   }
@@ -365,7 +370,7 @@
     const geometry = getStaticGeometry();
 
     const mvCore = createModelViewMatrix(0, 0, -3.2, t * 0.45, t * 0.75, t * 0.25);
-    const mvpCore = multiplyMatrix(proj, mvCore);
+    const mvpCore = multiplyMatrix(mvCore, proj);
 
     if (glResources.uMVP) {
       gl.uniformMatrix4fv(glResources.uMVP, false, new Float32Array(mvpCore));
@@ -383,7 +388,7 @@
 
     // Outer orbital cage dodecahedron (Electric Cyan)
     const mvCage = createModelViewMatrix(0, 0, -3.2, -t * 0.35, t * 0.4, -t * 0.15);
-    const mvpCage = multiplyMatrix(proj, mvCage);
+    const mvpCage = multiplyMatrix(mvCage, proj);
 
     if (glResources.uMVP) {
       gl.uniformMatrix4fv(glResources.uMVP, false, new Float32Array(mvpCage));
@@ -400,7 +405,6 @@
   function renderCanvas2D(t) {
     if (!ctx2d) return;
 
-    updateDimensions();
     const width = canvas.width || 300;
     const height = canvas.height || 220;
     const cx = width / 2;
@@ -420,7 +424,8 @@
     }
 
     // Outer Cage Dodecahedron (Cyan)
-    const rawCage = createDodecahedronVertices(1.35);
+    const geometry = getStaticGeometry().canvas2d;
+    const rawCage = geometry.cage;
     const rotCage = rawCage.map(p => rotate3D(p, -t * 0.35, t * 0.4, -t * 0.15));
     const projCage = rotCage.map(project);
 
@@ -436,7 +441,7 @@
     ctx2d.stroke();
 
     // Orbital Rings
-    const orbitalRings = createOrbitalRings(36, 1.6);
+    const orbitalRings = geometry.rings;
     ctx2d.strokeStyle = 'rgba(59, 130, 246, 0.25)';
     ctx2d.lineWidth = 1.0 * dpr;
     for (const ring of orbitalRings) {
@@ -451,7 +456,7 @@
     }
 
     // Inner Core Icosahedron (Electric Cobalt / Cyan)
-    const rawCore = createIcosahedronVertices(0.85);
+    const rawCore = geometry.core;
     const rotCore = rawCore.map(p => rotate3D(p, t * 0.45, t * 0.75, t * 0.25));
     const projCore = rotCore.map(project);
 
@@ -599,6 +604,13 @@
       glResources = initWebGL(gl);
       if (glResources) {
         isWebGL = true;
+      } else {
+        const replacement = canvas.cloneNode(false);
+        if (canvas.parentNode) {
+          canvas.parentNode.replaceChild(replacement, canvas);
+          canvas = replacement;
+        }
+        gl = null;
       }
     }
 
