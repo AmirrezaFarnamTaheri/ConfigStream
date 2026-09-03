@@ -80,9 +80,8 @@ def test_error_and_empty_states_provide_actionable_retry() -> None:
 
 
 def test_provenance_banner_and_trust_classes_exist() -> None:
-    main_js = _read_file("assets/js/main.js")
-    proxies_js = _read_file("assets/js/proxies.js")
+    trust_state_js = _read_file("assets/js/trust-state.js")
 
-    # Check for trust banner element ID or class
-    assert "trustStateBanner" in main_js or "trustStateBanner" in proxies_js or "artifactStatusBanner" in main_js
-    assert "trust-banner" in main_js or "trust-banner" in proxies_js
+    # The shared renderer owns the banner DOM and classes; controllers import it.
+    assert "trustStateBanner" in trust_state_js
+    assert "trust-banner" in trust_state_js
