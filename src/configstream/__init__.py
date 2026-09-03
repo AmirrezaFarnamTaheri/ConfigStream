@@ -6,7 +6,7 @@ ConfigStream: High-Performance VPN Aggregator & Tester
 import logging
 
 import sys
-from typing import Any, Optional
+from typing import Any, Optional, cast
 import importlib.metadata
 
 try:
@@ -86,7 +86,7 @@ def _patch_sniffio_for_asyncio() -> None:
 
     def _patched_async_library() -> str:
         try:
-            return _orig()
+            return cast(str, _orig())
         except sniffio.AsyncLibraryNotFoundError:
             try:
                 asyncio.get_running_loop()
@@ -130,12 +130,12 @@ def _patch_anyio_current_task() -> None:
         try:
             running_loop = loop or asyncio.get_running_loop()
         except RuntimeError:
-            return task
+            return cast(Optional[asyncio.Task], task)
         sentinel = _sentinel_tasks.get(running_loop)
         if sentinel is None or sentinel.done():
             sentinel = running_loop.create_task(_keepalive())
             _sentinel_tasks[running_loop] = sentinel
-        return sentinel
+        return cast(Optional[asyncio.Task], sentinel)
 
     anyio_asyncio.current_task = _safe_current_task
 

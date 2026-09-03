@@ -8,11 +8,13 @@ import hashlib
 import http.client
 import json
 import os
+import sys
 import urllib.error
 import urllib.parse
 import urllib.request
 from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 try:
@@ -22,8 +24,11 @@ try:
         normalize_public_key_hex,
     )
 except ImportError:
+    source_root = Path(__file__).resolve().parents[1] / "src"
+    if str(source_root) not in sys.path:
+        sys.path.insert(0, str(source_root))
     try:
-        from src.configstream.signer import (
+        from configstream.signer import (
             CLOCK_SKEW_TOLERANCE_SECONDS,
             Signer,
             normalize_public_key_hex,
@@ -387,19 +392,27 @@ def verify_pages_deployment(
                     )
                 else:
                     if expected_commit:
-                        actual_commit = manifest.get("commit_sha") or manifest.get("source_commit")
+                        actual_commit = manifest.get("commit_sha") or manifest.get(
+                            "source_commit"
+                        )
                         if actual_commit != expected_commit:
                             errors.append(
                                 f"artifact_manifest.json commit mismatch: expected {expected_commit}, got {actual_commit}"
                             )
                     if expected_run_id:
-                        actual_run_id = manifest.get("workflow_run_id") or manifest.get("run_id")
-                        if actual_run_id is None or str(actual_run_id) != str(expected_run_id):
+                        actual_run_id = manifest.get("workflow_run_id") or manifest.get(
+                            "run_id"
+                        )
+                        if actual_run_id is None or str(actual_run_id) != str(
+                            expected_run_id
+                        ):
                             errors.append(
                                 f"artifact_manifest.json run_id mismatch: expected {expected_run_id}, got {actual_run_id}"
                             )
                     if expected_digest:
-                        actual_digest = hashlib.sha256(manifest_response.body).hexdigest()
+                        actual_digest = hashlib.sha256(
+                            manifest_response.body
+                        ).hexdigest()
                         if actual_digest != expected_digest:
                             errors.append(
                                 f"artifact_manifest.json digest mismatch: expected {expected_digest}, got {actual_digest}"
@@ -407,21 +420,31 @@ def verify_pages_deployment(
 
             # Signature gate
             if public_key:
-                if not isinstance(manifest, dict) or not isinstance(manifest.get("manifest_signature"), dict):
-                    errors.append("artifact_manifest.json missing required manifest_signature")
+                if not isinstance(manifest, dict) or not isinstance(
+                    manifest.get("manifest_signature"), dict
+                ):
+                    errors.append(
+                        "artifact_manifest.json missing required manifest_signature"
+                    )
                 elif Signer is not None and normalize_public_key_hex is not None:
                     pk_hex = normalize_public_key_hex(public_key)
                     if not pk_hex:
-                        errors.append("invalid public key provided for signature verification")
+                        errors.append(
+                            "invalid public key provided for signature verification"
+                        )
                     else:
                         sig_valid = Signer.verify_manifest_signature(
                             manifest,
                             pk_hex,
                         )
                         if not sig_valid:
-                            errors.append("artifact_manifest.json signature verification failed")
+                            errors.append(
+                                "artifact_manifest.json signature verification failed"
+                            )
                 else:
-                    errors.append("signer module unavailable for signature verification")
+                    errors.append(
+                        "signer module unavailable for signature verification"
+                    )
         except json.JSONDecodeError as exc:
             errors.append(f"artifact_manifest.json decode failed: {exc}")
 
@@ -432,7 +455,9 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("url", help="GitHub Pages deployment URL")
     parser.add_argument("--timeout", type=float, default=20.0)
-    parser.add_argument("--expected-commit", help="Expected candidate source commit SHA")
+    parser.add_argument(
+        "--expected-commit", help="Expected candidate source commit SHA"
+    )
     parser.add_argument("--expected-run-id", help="Expected candidate workflow run ID")
     parser.add_argument("--expected-digest", help="Expected candidate manifest digest")
     parser.add_argument(

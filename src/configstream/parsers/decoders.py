@@ -136,5 +136,7 @@ def safe_b64_decode(data: str) -> Optional[str]:
                 "utf-8", errors="ignore"
             )
         except (binascii.Error, ValueError, TypeError):
-            logging.getLogger(__name__).debug("Suppressed fallback base64 decode exception")
+            logging.getLogger(__name__).debug(
+                "Suppressed fallback base64 decode exception"
+            )
             return None

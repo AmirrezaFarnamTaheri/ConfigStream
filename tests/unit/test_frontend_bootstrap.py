@@ -2,7 +2,9 @@
 """Automated regression tests for frontend trust bootstrap sequence.
 
 Standardizes script inclusion order across all public static HTML surfaces:
-untime-config.js -> constants.js -> erifier.js -> rtifact-state.js / rtifact-guard.js
+
+untime-config.js -> constants.js ->
+erifier.js -> rtifact-state.js / rtifact-guard.js
 """
 
 from __future__ import annotations
@@ -25,22 +27,26 @@ PUBLIC_ONLINE_PAGES = (
     REPO_ROOT / "architecture.html",
 )
 
-OFFLINE_EXEMPT_PAGES = (
-    FRONTEND_DIR / "lab-offline.html",
-)
+OFFLINE_EXEMPT_PAGES = (FRONTEND_DIR / "lab-offline.html",)
 
 
 def get_script_sources(html: str) -> list[tuple[str, set[str]]]:
     """Extract script sources and loading attributes in document order."""
     sources: list[tuple[str, set[str]]] = []
-    for match in re.finditer(r"<script\b(?P<attributes>[^>]*)>", html, flags=re.IGNORECASE):
+    for match in re.finditer(
+        r"<script\b(?P<attributes>[^>]*)>", html, flags=re.IGNORECASE
+    ):
         attributes = match.group("attributes")
-        source = re.search(r"\bsrc=[\"']([^\"']+)[\"']", attributes, flags=re.IGNORECASE)
+        source = re.search(
+            r"\bsrc=[\"']([^\"']+)[\"']", attributes, flags=re.IGNORECASE
+        )
         if source:
             flags = {
                 flag
                 for flag in ("async", "defer")
-                if re.search(rf"(?:^|\s){flag}(?:\s|=|$)", attributes, flags=re.IGNORECASE)
+                if re.search(
+                    rf"(?:^|\s){flag}(?:\s|=|$)", attributes, flags=re.IGNORECASE
+                )
             }
             sources.append((source.group(1), flags))
     return sources
@@ -115,7 +121,11 @@ def test_public_pages_enforce_trust_bootstrap_sequence(page_path: Path) -> None:
     assert page_path.is_file(), f"Page file does not exist: {page_path}"
     html = page_path.read_text(encoding="utf-8")
     violations = audit_trust_bootstrap(html)
-    assert not violations, f"{page_path.name} failed trust bootstrap audit:\n" + "\n".join(f"- {v}" for v in violations)
+    assert (
+        not violations
+    ), f"{page_path.name} failed trust bootstrap audit:\n" + "\n".join(
+        f"- {v}" for v in violations
+    )
 
 
 def test_offline_lab_page_is_exempt_and_self_contained() -> None:
@@ -124,8 +134,12 @@ def test_offline_lab_page_is_exempt_and_self_contained() -> None:
     assert offline_page.is_file()
     html = offline_page.read_text(encoding="utf-8")
     scripts = get_script_sources(html)
-    assert len(scripts) == 0, f"lab-offline.html must not load external scripts, found: {scripts}"
-    assert "connect-src 'none'" in html, "lab-offline.html must enforce connect-src 'none' in CSP"
+    assert (
+        len(scripts) == 0
+    ), f"lab-offline.html must not load external scripts, found: {scripts}"
+    assert (
+        "connect-src 'none'" in html
+    ), "lab-offline.html must enforce connect-src 'none' in CSP"
 
 
 @pytest.mark.parametrize(
@@ -165,7 +179,11 @@ def test_offline_lab_page_is_exempt_and_self_contained() -> None:
         ),
     ],
 )
-def test_trust_bootstrap_audit_negative_vectors(html_fixture: str, expected_violation: str) -> None:
+def test_trust_bootstrap_audit_negative_vectors(
+    html_fixture: str, expected_violation: str
+) -> None:
     """Verify that malformed or incomplete trust bootstrap sequences fail the audit."""
     violations = audit_trust_bootstrap(html_fixture)
-    assert any(expected_violation in v for v in violations), f"Expected '{expected_violation}', got: {violations}"
+    assert any(
+        expected_violation in v for v in violations
+    ), f"Expected '{expected_violation}', got: {violations}"
