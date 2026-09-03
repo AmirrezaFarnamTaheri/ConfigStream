@@ -64,7 +64,9 @@ class TestExpectedExceptionsReturnNone:
         incomplete_json = "eyJmb28iOiAiYmFyIn0="  # {"foo": "bar"}
         assert parse_vmess(f"vmess://{incomplete_json}") is None
         # Port not an int
-        bad_port_json = "eyJhZGQiOiAidGVzdC5jb20iLCAicG9ydCI6ICJub3RhcG9ydCIsICJpZCI6ICJ1dWlkIn0="
+        bad_port_json = (
+            "eyJhZGQiOiAidGVzdC5jb20iLCAicG9ydCI6ICJub3RhcG9ydCIsICJpZCI6ICJ1dWlkIn0="
+        )
         assert parse_vmess(f"vmess://{bad_port_json}") is None
 
     def test_trojan_malformed_inputs(self):
@@ -83,13 +85,17 @@ class TestExpectedExceptionsReturnNone:
         # Out of range port
         assert parse_ss("ss://YWVzLTEyOC1nY206cGFzc3dvcmQ=@example.com:999999") is None
         # Non-numeric port
-        assert parse_ss("ss://YWVzLTEyOC1nY206cGFzc3dvcmQ=@example.com:notaport") is None
+        assert (
+            parse_ss("ss://YWVzLTEyOC1nY206cGFzc3dvcmQ=@example.com:notaport") is None
+        )
         # SS2022 invalid
         assert parse_ss2022("ss2022://invalid-ss2022-url") is None
 
     @pytest.mark.parametrize("parser", (parse_ss, parse_ss2022, parse_ssr))
     @pytest.mark.parametrize("malformed_value", (None, 42, {}, []))
-    def test_shadowsocks_parsers_reject_non_string_inputs(self, parser, malformed_value):
+    def test_shadowsocks_parsers_reject_non_string_inputs(
+        self, parser, malformed_value
+    ):
         """Public parser boundaries must reject malformed object shapes safely."""
         assert parser(malformed_value) is None
 
@@ -101,7 +107,19 @@ class TestExpectedExceptionsReturnNone:
         # Missing mandatory fields
         assert parse_clash_json(json.dumps({"name": "test"})) is None
         # Invalid port
-        assert parse_clash_json(json.dumps({"name": "test", "type": "vmess", "server": "1.1.1.1", "port": 999999})) is None
+        assert (
+            parse_clash_json(
+                json.dumps(
+                    {
+                        "name": "test",
+                        "type": "vmess",
+                        "server": "1.1.1.1",
+                        "port": 999999,
+                    }
+                )
+            )
+            is None
+        )
 
     def test_openvpn_malformed_inputs(self):
         # No client directive
@@ -109,7 +127,9 @@ class TestExpectedExceptionsReturnNone:
         # Invalid port
         assert parse_openvpn("client\nremote 1.1.1.1 notaport\nproto udp") is None
         # Invalid hostname format
-        assert parse_openvpn("client\nremote invalid!hostname!* 1194\nproto udp") is None
+        assert (
+            parse_openvpn("client\nremote invalid!hostname!* 1194\nproto udp") is None
+        )
 
     def test_generic_and_others_malformed_inputs(self):
         assert parse_generic_url_scheme("http://") is None
@@ -172,7 +192,14 @@ class TestUnexpectedExceptionsNotSwallowed:
         ],
     )
     def test_runtime_error_propagates(self, module_path, parser_func, valid_config):
-        target = f"{module_path}.normalize_proxy_details" if hasattr(__import__(module_path, fromlist=["normalize_proxy_details"]), "normalize_proxy_details") else f"{module_path}.Proxy"
+        target = (
+            f"{module_path}.normalize_proxy_details"
+            if hasattr(
+                __import__(module_path, fromlist=["normalize_proxy_details"]),
+                "normalize_proxy_details",
+            )
+            else f"{module_path}.Proxy"
+        )
         with patch(target, side_effect=RuntimeError("unexpected crash")):
             with pytest.raises(RuntimeError, match="unexpected crash"):
                 parser_func(valid_config)
@@ -202,7 +229,9 @@ class TestUnexpectedExceptionsNotSwallowed:
             ),
         ],
     )
-    def test_keyboard_interrupt_propagates(self, module_path, parser_func, valid_config):
+    def test_keyboard_interrupt_propagates(
+        self, module_path, parser_func, valid_config
+    ):
         target = f"{module_path}.normalize_proxy_details"
         with patch(target, side_effect=KeyboardInterrupt()):
             with pytest.raises(KeyboardInterrupt):
@@ -213,25 +242,50 @@ class TestExplicitValidationErrorHandling:
     """Test that pydantic.ValidationError during model instantiation is caught gracefully."""
 
     def test_vless_validation_error_caught(self):
-        with patch("configstream.parsers.vless.Proxy", side_effect=ValidationError.from_exception_data(
-            title="Proxy", line_errors=[]
-        )):
-            assert parse_vless("vless://a3a2a1a0-1234-5678-9abc-def012345678@example.com:443?type=tcp#test") is None
+        with patch(
+            "configstream.parsers.vless.Proxy",
+            side_effect=ValidationError.from_exception_data(
+                title="Proxy", line_errors=[]
+            ),
+        ):
+            assert (
+                parse_vless(
+                    "vless://a3a2a1a0-1234-5678-9abc-def012345678@example.com:443?type=tcp#test"
+                )
+                is None
+            )
 
     def test_vmess_validation_error_caught(self):
-        with patch("configstream.parsers.vmess.Proxy", side_effect=ValidationError.from_exception_data(
-            title="Proxy", line_errors=[]
-        )):
-            assert parse_vmess("vmess://eyJhZGQiOiAiMS4xLjEuMSIsICJwb3J0IjogNDQzLCAiaWQiOiAiYTNhMmExYTAtMTIzNC01Njc4LTlhYmMtZGVmMDEyMzQ1Njc4In0=") is None
+        with patch(
+            "configstream.parsers.vmess.Proxy",
+            side_effect=ValidationError.from_exception_data(
+                title="Proxy", line_errors=[]
+            ),
+        ):
+            assert (
+                parse_vmess(
+                    "vmess://eyJhZGQiOiAiMS4xLjEuMSIsICJwb3J0IjogNDQzLCAiaWQiOiAiYTNhMmExYTAtMTIzNC01Njc4LTlhYmMtZGVmMDEyMzQ1Njc4In0="
+                )
+                is None
+            )
 
     def test_trojan_validation_error_caught(self):
-        with patch("configstream.parsers.trojan.Proxy", side_effect=ValidationError.from_exception_data(
-            title="Proxy", line_errors=[]
-        )):
+        with patch(
+            "configstream.parsers.trojan.Proxy",
+            side_effect=ValidationError.from_exception_data(
+                title="Proxy", line_errors=[]
+            ),
+        ):
             assert parse_trojan("trojan://password123@example.com:443#test") is None
 
     def test_shadowsocks_validation_error_caught(self):
-        with patch("configstream.parsers.shadowsocks.Proxy", side_effect=ValidationError.from_exception_data(
-            title="Proxy", line_errors=[]
-        )):
-            assert parse_ss("ss://YWVzLTEyOC1nY206cGFzc3dvcmRAMS4xLjEuMTo4Mzg4#test") is None
+        with patch(
+            "configstream.parsers.shadowsocks.Proxy",
+            side_effect=ValidationError.from_exception_data(
+                title="Proxy", line_errors=[]
+            ),
+        ):
+            assert (
+                parse_ss("ss://YWVzLTEyOC1nY206cGFzc3dvcmRAMS4xLjEuMTo4Mzg4#test")
+                is None
+            )

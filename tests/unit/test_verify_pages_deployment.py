@@ -176,16 +176,28 @@ def test_candidate_identity_matching_logic() -> None:
     }
 
     # Exact match passes
-    assert evaluate_candidate_match(live_manifest, "abc1234", "999888", "sha256-xyz") is True
+    assert (
+        evaluate_candidate_match(live_manifest, "abc1234", "999888", "sha256-xyz")
+        is True
+    )
 
     # Stale SHA fails
-    assert evaluate_candidate_match(live_manifest, "old1111", "999888", "sha256-xyz") is False
+    assert (
+        evaluate_candidate_match(live_manifest, "old1111", "999888", "sha256-xyz")
+        is False
+    )
 
     # Stale run ID fails
-    assert evaluate_candidate_match(live_manifest, "abc1234", "888777", "sha256-xyz") is False
+    assert (
+        evaluate_candidate_match(live_manifest, "abc1234", "888777", "sha256-xyz")
+        is False
+    )
 
     # Digest mismatch fails
-    assert evaluate_candidate_match(live_manifest, "abc1234", "999888", "sha256-other") is False
+    assert (
+        evaluate_candidate_match(live_manifest, "abc1234", "999888", "sha256-other")
+        is False
+    )
 
     # None / omitted candidate checks pass
     assert evaluate_candidate_match(live_manifest, None, None, None) is True
@@ -197,11 +209,20 @@ def test_candidate_identity_matching_logic() -> None:
         "run_id": "555444",
         "sha256": "digest-123",
     }
-    assert evaluate_candidate_match(alt_manifest, "def5678", "555444", "digest-123") is True
-    assert evaluate_candidate_match(alt_manifest, "def5678", "wrong", "digest-123") is False
+    assert (
+        evaluate_candidate_match(alt_manifest, "def5678", "555444", "digest-123")
+        is True
+    )
+    assert (
+        evaluate_candidate_match(alt_manifest, "def5678", "wrong", "digest-123")
+        is False
+    )
 
     # Non-dict manifest fails
-    assert evaluate_candidate_match("not-a-dict", "abc1234", "999888", "sha256-xyz") is False
+    assert (
+        evaluate_candidate_match("not-a-dict", "abc1234", "999888", "sha256-xyz")
+        is False
+    )
 
 
 def test_verify_pages_deployment_accepts_valid_site(tmp_path: Path) -> None:
@@ -218,7 +239,9 @@ def test_verify_pages_deployment_candidate_exact_match(tmp_path: Path) -> None:
     commit = "a" * 40
     run_id = "12345"
     _write_site(tmp_path, source_commit=commit, run_id=run_id)
-    digest = hashlib.sha256((tmp_path / "artifact_manifest.json").read_bytes()).hexdigest()
+    digest = hashlib.sha256(
+        (tmp_path / "artifact_manifest.json").read_bytes()
+    ).hexdigest()
     server, url = _serve(tmp_path)
     try:
         errors = verify_pages_deployment(
@@ -243,7 +266,9 @@ def test_verify_pages_deployment_candidate_commit_mismatch(tmp_path: Path) -> No
             timeout=5.0,
             expected_commit="b" * 40,
         )
-        assert any("commit mismatch" in e or "candidate identity mismatch" in e for e in errors)
+        assert any(
+            "commit mismatch" in e or "candidate identity mismatch" in e for e in errors
+        )
     finally:
         server.shutdown()
         server.server_close()
@@ -258,7 +283,9 @@ def test_verify_pages_deployment_candidate_run_id_mismatch(tmp_path: Path) -> No
             timeout=5.0,
             expected_run_id="99999",
         )
-        assert any("run_id mismatch" in e or "candidate identity mismatch" in e for e in errors)
+        assert any(
+            "run_id mismatch" in e or "candidate identity mismatch" in e for e in errors
+        )
     finally:
         server.shutdown()
         server.server_close()
@@ -273,13 +300,17 @@ def test_verify_pages_deployment_candidate_digest_mismatch(tmp_path: Path) -> No
             timeout=5.0,
             expected_digest="digest-wrong",
         )
-        assert any("digest mismatch" in e or "candidate identity mismatch" in e for e in errors)
+        assert any(
+            "digest mismatch" in e or "candidate identity mismatch" in e for e in errors
+        )
     finally:
         server.shutdown()
         server.server_close()
 
 
-def test_verify_pages_deployment_fetches_with_cache_busting_headers(tmp_path: Path) -> None:
+def test_verify_pages_deployment_fetches_with_cache_busting_headers(
+    tmp_path: Path,
+) -> None:
     _write_site(tmp_path)
     server, url = _serve(tmp_path)
     try:
@@ -293,7 +324,10 @@ def test_verify_pages_deployment_fetches_with_cache_busting_headers(tmp_path: Pa
 
 def test_fetch_returns_transport_failure_response() -> None:
     """A connection failure is reportable validation evidence, not a crash."""
-    with patch("urllib.request.OpenerDirector.open", side_effect=urllib.error.URLError("offline")):
+    with patch(
+        "urllib.request.OpenerDirector.open",
+        side_effect=urllib.error.URLError("offline"),
+    ):
         response = _fetch("https://example.invalid/", timeout=0.1)
     assert response.status == 0
     assert response.body == b""
@@ -312,7 +346,9 @@ def test_verify_pages_deployment_signature_gate_passes_valid(tmp_path: Path) -> 
         server.server_close()
 
 
-def test_verify_pages_deployment_signature_gate_fails_tampered_or_missing(tmp_path: Path) -> None:
+def test_verify_pages_deployment_signature_gate_fails_tampered_or_missing(
+    tmp_path: Path,
+) -> None:
     signer = Signer(private_key_hex="11" * 32)
     pub_hex = signer.get_public_key_hex()
 
@@ -344,29 +380,41 @@ def test_verify_pages_deployment_signature_gate_fails_tampered_or_missing(tmp_pa
 
 def test_main_cli_candidate_matching_and_report_json(tmp_path: Path) -> None:
     _write_site(tmp_path, source_commit="a" * 40, run_id="12345")
-    digest = hashlib.sha256((tmp_path / "artifact_manifest.json").read_bytes()).hexdigest()
+    digest = hashlib.sha256(
+        (tmp_path / "artifact_manifest.json").read_bytes()
+    ).hexdigest()
     server, url = _serve(tmp_path)
     report_file = tmp_path / "report.json"
     try:
         # Match passes
-        rc = main([
-            url,
-            "--expected-commit", "a" * 40,
-            "--expected-run-id", "12345",
-            "--expected-digest", digest,
-            "--report-file", str(report_file),
-        ])
+        rc = main(
+            [
+                url,
+                "--expected-commit",
+                "a" * 40,
+                "--expected-run-id",
+                "12345",
+                "--expected-digest",
+                digest,
+                "--report-file",
+                str(report_file),
+            ]
+        )
         assert rc == 0
         report = json.loads(report_file.read_text(encoding="utf-8"))
         assert report["status"] == "passed"
         assert report["errors"] == []
 
         # Mismatch fails with code 1 and writes structured JSON errors
-        rc_mismatch = main([
-            url,
-            "--expected-commit", "wrong-commit",
-            "--report-file", str(report_file),
-        ])
+        rc_mismatch = main(
+            [
+                url,
+                "--expected-commit",
+                "wrong-commit",
+                "--report-file",
+                str(report_file),
+            ]
+        )
         assert rc_mismatch == 1
         report_fail = json.loads(report_file.read_text(encoding="utf-8"))
         assert report_fail["status"] == "failed"

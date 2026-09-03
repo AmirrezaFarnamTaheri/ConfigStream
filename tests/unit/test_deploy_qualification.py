@@ -13,10 +13,16 @@ def test_validator_dependencies_resolvable() -> None:
     env = dict(os.environ)
     src_dir = str(root / "src")
     existing_pp = env.get("PYTHONPATH", "")
-    env["PYTHONPATH"] = f"{src_dir}{os.pathsep}{existing_pp}" if existing_pp else src_dir
+    env["PYTHONPATH"] = (
+        f"{src_dir}{os.pathsep}{existing_pp}" if existing_pp else src_dir
+    )
 
     result = subprocess.run(
-        [sys.executable, "-c", "import configstream.security_validator; import pydantic_settings"],
+        [
+            sys.executable,
+            "-c",
+            "import configstream.security_validator; import pydantic_settings",
+        ],
         capture_output=True,
         text=True,
         cwd=str(root),
@@ -30,9 +36,12 @@ def test_live_pages_smoke_receives_candidate_identity_and_public_key() -> None:
     workflow = (root / ".github" / "workflows" / "deploy-pages.yml").read_text(
         encoding="utf-8"
     )
-    assert "--expected-commit \"$EXPECTED_SOURCE_SHA\"" in workflow
-    assert "--expected-run-id \"$EXPECTED_SOURCE_RUN_ID\"" in workflow
-    assert "--expected-digest \"$manifest_digest\"" in workflow
+    assert '--expected-commit "$EXPECTED_SOURCE_SHA"' in workflow
+    assert '--expected-run-id "$EXPECTED_SOURCE_RUN_ID"' in workflow
+    assert '--expected-digest "$manifest_digest"' in workflow
     assert "CS_PUBLIC_KEY: ${{ secrets.CS_PUBLIC_KEY }}" in workflow
     assert 'if [ -n "${CS_PUBLIC_KEY:-}" ]; then' in workflow
-    assert "verifying deployment identity and integrity without signature validation" in workflow
+    assert (
+        "verifying deployment identity and integrity without signature validation"
+        in workflow
+    )

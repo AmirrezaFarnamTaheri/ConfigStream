@@ -2,6 +2,7 @@
 """Page Object Model for Frontend Laboratory UI."""
 
 from playwright.async_api import Page
+from typing import cast
 
 
 class LaboratoryPage:
@@ -13,4 +14,4 @@ class LaboratoryPage:
         await self.page.goto(base_url)
 
     async def get_title(self) -> str:
-        return await self.page.inner_text(self.title_selector)
+        return cast(str, await self.page.inner_text(self.title_selector))

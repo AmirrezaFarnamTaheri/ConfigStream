@@ -3,7 +3,7 @@ import asyncio
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Awaitable, Callable, List
+from typing import Awaitable, Callable, List, cast
 
 from contextlib import asynccontextmanager
 
@@ -106,7 +106,7 @@ def create_app() -> FastAPI:
     async def rate_limit_handler(request: Request, exc: Exception) -> Response:
         """Wrapper for type-safe rate limit handling."""
         if isinstance(exc, RateLimitExceeded):
-            return _rate_limit_exceeded_handler(request, exc)
+            return cast(Response, _rate_limit_exceeded_handler(request, exc))
         return JSONResponse({"error": "Rate limit exceeded"}, status_code=429)
 
     app.add_exception_handler(RateLimitExceeded, rate_limit_handler)
