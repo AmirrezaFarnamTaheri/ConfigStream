@@ -96,10 +96,15 @@ def audit_trust_bootstrap(html: str) -> list[str]:
         )
 
     for script_name in ("runtime-config.js", "constants.js", "verifier.js"):
-        script_idx = find_script_index(scripts, script_name)
-        if script_idx != -1 and scripts[script_idx][1]:
-            flags = ", ".join(sorted(scripts[script_idx][1]))
-            violations.append(f"{script_name} must not use async/defer ({flags})")
+        for src, flags in scripts:
+            clean_src = src.split("?")[0].strip()
+            if (
+                clean_src == script_name or clean_src.endswith("/" + script_name)
+            ) and flags:
+                formatted_flags = ", ".join(sorted(flags))
+                violations.append(
+                    f"{script_name} must not use async/defer ({formatted_flags})"
+                )
 
     # If artifact guard / artifact state is present, it must be loaded after verifier.js
     for guard_name in ("artifact-state.js", "artifact-guard.js"):
@@ -176,6 +181,10 @@ def test_offline_lab_page_is_exempt_and_self_contained() -> None:
         (
             '<script src="assets/js/runtime-config.js"></script><script async src="assets/js/constants.js"></script><script src="assets/js/verifier.js"></script>',
             "constants.js must not use async/defer (async)",
+        ),
+        (
+            '<script src="assets/js/runtime-config.js"></script><script src="assets/js/constants.js"></script><script src="assets/js/verifier.js"></script><script defer src="assets/js/verifier.js"></script>',
+            "verifier.js must not use async/defer (defer)",
         ),
     ],
 )

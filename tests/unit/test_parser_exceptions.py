@@ -9,6 +9,8 @@ Verifies that:
 
 import binascii
 import json
+from collections.abc import Callable
+from typing import cast
 import pytest
 from unittest.mock import patch
 from pydantic import ValidationError
@@ -77,7 +79,7 @@ class TestExpectedExceptionsReturnNone:
         # Missing hostname
         assert parse_trojan("trojan://password@:443") is None
 
-    def test_shadowsocks_malformed_inputs(self):
+    def test_shadowsocks_malformed_inputs(self) -> None:
         # Missing password/credentials
         assert parse_ss("ss://@example.com:8388") is None
         # Invalid method (c3M6cGFzc3dvcmQ= is ss:password)
@@ -94,10 +96,12 @@ class TestExpectedExceptionsReturnNone:
     @pytest.mark.parametrize("parser", (parse_ss, parse_ss2022, parse_ssr))
     @pytest.mark.parametrize("malformed_value", (None, 42, {}, []))
     def test_shadowsocks_parsers_reject_non_string_inputs(
-        self, parser, malformed_value
-    ):
+        self,
+        parser: Callable[[str], object],
+        malformed_value: object,
+    ) -> None:
         """Public parser boundaries must reject malformed object shapes safely."""
-        assert parser(malformed_value) is None
+        assert parser(cast(str, malformed_value)) is None
 
     def test_clash_json_malformed_inputs(self):
         # Non-JSON string
@@ -121,7 +125,7 @@ class TestExpectedExceptionsReturnNone:
             is None
         )
 
-    def test_openvpn_malformed_inputs(self):
+    def test_openvpn_malformed_inputs(self) -> None:
         # No client directive
         assert parse_openvpn("remote 1.1.1.1 1194\nproto udp") is None
         # Invalid port
@@ -191,7 +195,12 @@ class TestUnexpectedExceptionsNotSwallowed:
             ),
         ],
     )
-    def test_runtime_error_propagates(self, module_path, parser_func, valid_config):
+    def test_runtime_error_propagates(
+        self,
+        module_path: str,
+        parser_func: Callable[[str], object],
+        valid_config: str,
+    ) -> None:
         target = (
             f"{module_path}.normalize_proxy_details"
             if hasattr(
@@ -230,8 +239,11 @@ class TestUnexpectedExceptionsNotSwallowed:
         ],
     )
     def test_keyboard_interrupt_propagates(
-        self, module_path, parser_func, valid_config
-    ):
+        self,
+        module_path: str,
+        parser_func: Callable[[str], object],
+        valid_config: str,
+    ) -> None:
         target = f"{module_path}.normalize_proxy_details"
         with patch(target, side_effect=KeyboardInterrupt()):
             with pytest.raises(KeyboardInterrupt):

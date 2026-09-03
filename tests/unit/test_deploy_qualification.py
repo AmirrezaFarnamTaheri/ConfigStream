@@ -21,7 +21,7 @@ def test_validator_dependencies_resolvable() -> None:
         [
             sys.executable,
             "-c",
-            "import configstream.security_validator; import pydantic_settings",
+            "import runpy; import configstream.security_validator; import pydantic_settings; runpy.run_path('scripts/validate_frontend_placeholders.py', run_name='__test__')",
         ],
         capture_output=True,
         text=True,

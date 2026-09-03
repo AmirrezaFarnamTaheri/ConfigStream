@@ -148,7 +148,7 @@ verification condition, not a passing result.
   - Multi-job CI pipelines shard ingestion, testing, and output generation across GitHub Actions runners.
   - Dynamic batch merging (`scripts/merge_batches.py`) and SQLite database resharding ensure zero data loss during runner timeouts.
 - **Immutable Supply Chain Target**:
-  - Pin each external GitHub Action to an immutable full commit identifier; record the reviewed workflow inventory and commit in a measured report before making a coverage claim. A 40-character Git commit identifier is not a SHA-256 digest.
+  - Pin each external GitHub Action to an immutable full commit identifier; before claiming coverage, verify each `uses:` name, version comment, and reviewed tag-to-commit mapping against `config/github-action-pins.json`, then record that manifest-backed inventory and commit in a measured report. A 40-character Git commit identifier is not a SHA-256 digest.
   - Containerization uses multi-stage Docker builds based on Alpine/Distroless with non-root security boundaries (`USER 1001:1001`).
 
 ---

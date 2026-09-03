@@ -90,11 +90,8 @@ def test_accessible_iconography_and_no_structural_emojis() -> None:
         for btn in soup.find_all(["button", "a"]):
             btn_text = btn.get_text(strip=True)
             aria_label = btn.get("aria-label", "")
-            has_svg_or_feather = bool(
-                btn.find(["svg", "object"])
-                or btn.find(attrs={"data-feather": True})  # type: ignore[call-overload]
-            )
-            if not btn_text and not aria_label and not btn.find("img"):
-                assert (
-                    has_svg_or_feather
-                ), f"Interactive element in {html_path.name} must have accessible label or SVG: {btn}"
+            has_image_label = bool(btn.find("img", alt=True))
+            has_referenced_label = bool(btn.get("aria-labelledby"))
+            assert (
+                btn_text or aria_label or has_image_label or has_referenced_label
+            ), f"Interactive element in {html_path.name} must have an accessible name: {btn}"
