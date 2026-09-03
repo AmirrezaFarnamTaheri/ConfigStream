@@ -186,13 +186,13 @@ For proxy lists, cached records carry snapshot identity from `metadata.json` (`p
 
 ### Data Flow
 
-```
+```text
 Page Load → Service Worker (Cache First for assets)
          → CacheManager checks IndexedDB for data
          → If fresh → Render immediately
          → If stale → Render cached, fetch fresh in background
-         → UpdateDetector starts polling (every 4 min)
-         → On change → Selective fetch → Update IndexedDB → Dispatch event → Re-render UI
+         → UpdateDetector may issue a conditional metadata request as a cache hint
+         → Candidate update → verify manifest identity, digest, signature, and signed metadata → Update IndexedDB → Dispatch event → Re-render UI
 ```
 
 ### Cache Troubleshooting

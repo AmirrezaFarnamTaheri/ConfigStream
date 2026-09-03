@@ -4,7 +4,7 @@ from cryptography.hazmat.primitives.asymmetric import ed25519
 from cryptography.hazmat.primitives import serialization
 from configstream.signer import Signer, _canonical_manifest_payload, _build_signed_payload, normalize_public_key_hex
 
-def test_canonical_manifest_payload_and_negative_vectors():
+def test_canonical_manifest_payload_and_negative_vectors() -> None:
     # 1. Test canonical serialization format
     manifest = {
         "version": "3.2.0",

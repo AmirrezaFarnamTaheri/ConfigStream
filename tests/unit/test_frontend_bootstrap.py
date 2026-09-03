@@ -30,14 +30,25 @@ OFFLINE_EXEMPT_PAGES = (
 )
 
 
-def get_script_sources(html: str) -> list[str]:
-    """Extract script src attributes in document order."""
-    return re.findall(r'<script\b[^>]*\bsrc=["\']([^"\']+)["\']', html, flags=re.IGNORECASE)
+def get_script_sources(html: str) -> list[tuple[str, set[str]]]:
+    """Extract script sources and loading attributes in document order."""
+    sources: list[tuple[str, set[str]]] = []
+    for match in re.finditer(r"<script\b(?P<attributes>[^>]*)>", html, flags=re.IGNORECASE):
+        attributes = match.group("attributes")
+        source = re.search(r"\bsrc=[\"']([^\"']+)[\"']", attributes, flags=re.IGNORECASE)
+        if source:
+            flags = {
+                flag
+                for flag in ("async", "defer")
+                if re.search(rf"(?:^|\s){flag}(?:\s|=|$)", attributes, flags=re.IGNORECASE)
+            }
+            sources.append((source.group(1), flags))
+    return sources
 
 
-def find_script_index(scripts: list[str], script_name: str) -> int:
+def find_script_index(scripts: list[tuple[str, set[str]]], script_name: str) -> int:
     """Find 0-based index of first script whose path ends with script_name."""
-    for idx, src in enumerate(scripts):
+    for idx, (src, _flags) in enumerate(scripts):
         clean_src = src.split("?")[0].strip()
         if clean_src == script_name or clean_src.endswith("/" + script_name):
             return idx
@@ -77,6 +88,12 @@ def audit_trust_bootstrap(html: str) -> list[str]:
         violations.append(
             f"runtime-config.js (index {runtime_idx}) loaded after verifier.js (index {verifier_idx})"
         )
+
+    for script_name in ("runtime-config.js", "constants.js", "verifier.js"):
+        script_idx = find_script_index(scripts, script_name)
+        if script_idx != -1 and scripts[script_idx][1]:
+            flags = ", ".join(sorted(scripts[script_idx][1]))
+            violations.append(f"{script_name} must not use async/defer ({flags})")
 
     # If artifact guard / artifact state is present, it must be loaded after verifier.js
     for guard_name in ("artifact-state.js", "artifact-guard.js"):
@@ -137,6 +154,14 @@ def test_offline_lab_page_is_exempt_and_self_contained() -> None:
         (
             '<script src="assets/js/runtime-config.js"></script><script src="assets/js/artifact-state.js"></script><script src="assets/js/constants.js"></script><script src="assets/js/verifier.js"></script>',
             "artifact-state.js (index 1) loaded before verifier.js (index 3)",
+        ),
+        (
+            '<script defer src="assets/js/runtime-config.js"></script><script src="assets/js/constants.js"></script><script src="assets/js/verifier.js"></script>',
+            "runtime-config.js must not use async/defer (defer)",
+        ),
+        (
+            '<script src="assets/js/runtime-config.js"></script><script async src="assets/js/constants.js"></script><script src="assets/js/verifier.js"></script>',
+            "constants.js must not use async/defer (async)",
         ),
     ],
 )

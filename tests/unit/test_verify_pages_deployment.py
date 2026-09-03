@@ -6,12 +6,15 @@ from __future__ import annotations
 import json
 import threading
 import hashlib
+import urllib.error
+from unittest.mock import patch
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import cast
 
 from scripts.verify_pages_deployment import (
+    _fetch,
     evaluate_candidate_match,
     main,
     verify_pages_deployment,
@@ -286,6 +289,14 @@ def test_verify_pages_deployment_fetches_with_cache_busting_headers(tmp_path: Pa
     finally:
         server.shutdown()
         server.server_close()
+
+
+def test_fetch_returns_transport_failure_response() -> None:
+    """A connection failure is reportable validation evidence, not a crash."""
+    with patch("urllib.request.OpenerDirector.open", side_effect=urllib.error.URLError("offline")):
+        response = _fetch("https://example.invalid/", timeout=0.1)
+    assert response.status == 0
+    assert response.body == b""
 
 
 def test_verify_pages_deployment_signature_gate_passes_valid(tmp_path: Path) -> None:

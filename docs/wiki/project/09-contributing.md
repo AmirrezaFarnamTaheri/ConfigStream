@@ -54,7 +54,7 @@ We enforce strict code quality standards across Python, Go, and Frontend code.
 
 Every framework-specific or protocol-specific implementation decision must be grounded in official, version-matched documentation (e.g. [Pydantic v2 Docs](https://docs.pydantic.dev/), [Go Standard Library](https://pkg.go.dev/), [Sing-box Core](https://sing-box.sagernet.org/)). Never author code from unverified model memory.
 
-```
+```text
 DETECT ──→ FETCH ──→ IMPLEMENT ──→ CITE
   │          │           │            │
   ▼          ▼           ▼            ▼
@@ -76,7 +76,7 @@ DETECT ──→ FETCH ──→ IMPLEMENT ──→ CITE
 
 We enforce the strict **Red-Green-Refactor** iron law:
 
-```
+```text
 NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST
 ```
 
@@ -101,7 +101,7 @@ flowchart LR
 
 Before authoring custom utilities or data structures, execute the Search-First workflow:
 
-```
+```text
 ┌─────────────────────────┬──────────────────────────────────────────┬─────────────────────────────┐
 │ Need Assessment         │ Search Channel                           │ Decision Action             │
 ├─────────────────────────┼──────────────────────────────────────────┼─────────────────────────────┤
@@ -124,9 +124,15 @@ Before authoring custom utilities or data structures, execute the Search-First w
     ```bash
     pytest
     ```
-*   **Run Go tests & benchmarks:**
+*   **Run Go tester tests & benchmarks:**
     ```bash
-    go test -v -bench=. -benchmem ./src/go/utls_client/...
+    cd src/go/tester
+    go test -v -bench=. -benchmem ./...
+    ```
+*   **Run the uTLS client tests:**
+    ```bash
+    cd src/go/utls_client
+    go test -v ./...
     ```
 *   **Run unit tests only:**
     ```bash
@@ -157,7 +163,7 @@ The frontend is a critical security boundary.
 
 Every Pull Request is audited across five mandatory dimensions:
 
-```
+```text
                   ┌──────────────────────────────────────────────┐
                   │ 1. Correctness (Spec, edge cases, error paths)│
                   │ 2. Readability (Simplicity, naming, clean DOM)│

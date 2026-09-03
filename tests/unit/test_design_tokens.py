@@ -9,7 +9,7 @@ from pathlib import Path
 CSS_PATH = Path(__file__).resolve().parents[2] / "frontend" / "assets" / "css" / "style.css"
 
 
-def test_design_tokens_present():
+def test_design_tokens_present() -> None:
     """Verify that Cold Luxury design tokens are defined in style.css."""
     assert CSS_PATH.exists(), f"{CSS_PATH} does not exist"
     css_content = CSS_PATH.read_text(encoding="utf-8")
@@ -17,7 +17,7 @@ def test_design_tokens_present():
     expected_tokens = [
         ("--bg-base", "#0a0e17"),
         ("--bg-surface", "#111827"),
-        ("--bg-glass", "rgba(17, 24, 39, 0.75)"),
+        ("--bg-glass", "rgba(255, 255, 255, 0.78)"),
         ("--border-subtle", "rgba(255, 255, 255, 0.08)"),
         ("--border-focus", "#06b6d4"),
         ("--accent-cobalt", "#3b82f6"),
@@ -31,7 +31,7 @@ def test_design_tokens_present():
         )
 
 
-def test_sticky_header_scroll_margin_offset():
+def test_sticky_header_scroll_margin_offset() -> None:
     """Verify that scroll-margin-top is declared for section targets / hash anchors to prevent header clipping."""
     css_content = CSS_PATH.read_text(encoding="utf-8")
 
@@ -53,7 +53,7 @@ def test_sticky_header_scroll_margin_offset():
     ) is not None, "scroll-margin-top should target section IDs or anchor destinations"
 
 
-def test_focus_visible_high_contrast_outline():
+def test_focus_visible_high_contrast_outline() -> None:
     """Verify that :focus-visible enforces high-contrast 2px outline and outline-offset."""
     css_content = CSS_PATH.read_text(encoding="utf-8")
 

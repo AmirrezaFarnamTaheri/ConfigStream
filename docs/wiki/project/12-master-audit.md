@@ -48,12 +48,11 @@ examples must not be used as release evidence.
 
 ### 1.2.1 Tooling Evidence Boundary
 
-The latest local checks are limited and must not be generalized into a release
-claim: `go mod verify` passed for `src/go/tester`, and `npm audit --omit=dev`
-reported no known production vulnerabilities. Python dependency auditing was
-not available because `pip-audit` is not installed in this environment; install
-the approved scanner and record its version and report before closing the
-dependency workstream.
+No current measured dependency-audit result is retained in this roadmap. Before
+closing the dependency workstream, run the approved scanners at the candidate
+commit and retain a dated report containing the command, scanner version,
+fixture or environment, and output. An unavailable scanner is a pending
+verification condition, not a passing result.
 
 ### 1.3 Release Blockers Closure Register
 
@@ -148,8 +147,8 @@ dependency workstream.
 - **Matrix Sharding & Resiliency**:
   - Multi-job CI pipelines shard ingestion, testing, and output generation across GitHub Actions runners.
   - Dynamic batch merging (`scripts/merge_batches.py`) and SQLite database resharding ensure zero data loss during runner timeouts.
-- **Immutable Supply Chain**:
-  - 100% of external GitHub Actions (66/66) pinned to full immutable 40-character SHA-256 commit hashes.
+- **Immutable Supply Chain Target**:
+  - Pin each external GitHub Action to an immutable full commit identifier; record the reviewed workflow inventory and commit in a measured report before making a coverage claim. A 40-character Git commit identifier is not a SHA-256 digest.
   - Containerization uses multi-stage Docker builds based on Alpine/Distroless with non-root security boundaries (`USER 1001:1001`).
 
 ---
