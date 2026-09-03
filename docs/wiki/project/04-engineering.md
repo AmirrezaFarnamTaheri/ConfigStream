@@ -402,7 +402,7 @@ ConfigStream's Go sidecars (`src/go/tester/` and `src/go/utls_client/`) adhere t
 
 When investigating complex bugs, regressions, or cross-subsystem interactions, engineers and AI agents navigate along four distinct axes:
 
-```
+```text
                           1. Temporal Axis (Git History / Churn)
                                             ▲
                                             │

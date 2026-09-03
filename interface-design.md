@@ -29,29 +29,12 @@ evidence does not exist.
 Always prioritize native semantic HTML (`<main>`, `<nav>`, `<header>`, `<section>`, `<aside>`, `<table>`, `<button>`) styled with CSS Custom Properties.
 
 ### 2.1 Color Palette & Semantic Tokens
-```css
-:root {
-  /* Surface Elevation & Backgrounds */
-  --bg-primary: #0a0e17;
-  --bg-surface: #111827;
-  --bg-glass: rgba(17, 24, 39, 0.75);
-  --border-glass: rgba(255, 255, 255, 0.08);
-  --border-focus: #06b6d4;
 
-  /* Text & Contrast Hierarchy (WCAG 2.2 AA Compliant) */
-  --text-primary: #f9fafb;     /* Contrast > 12:1 against bg-primary */
-  --text-secondary: #94a3b8;   /* Contrast > 4.5:1 against bg-primary */
-  --text-muted: #64748b;       /* Supplementary text & microcopy */
-
-  /* Brand & Status Accents */
-  --brand-primary: #3b82f6;    /* Electric Cobalt */
-  --brand-cyan: #06b6d4;       /* Neon Cyan (Focus & Active highlights) */
-  --status-success: #10b981;   /* Valid / Shielded (Green) */
-  --status-warning: #f59e0b;   /* High Latency / Retrying (Amber) */
-  --status-danger: #ef4444;    /* Dead / Dirty Blocked (Coral) */
-  --status-revived: #8b5cf6;   /* Warp / Vwarp Revived (Purple) */
-}
-```
+`DESIGN.md` is the sole canonical token table. Implementations must consume
+the semantic tokens defined there rather than copy palette values into this
+accessibility specification. In particular, muted text is `#7c8da5` on the
+dark base (`#0a0e17`), which provides a 5.8:1 contrast ratio; verify every
+theme-specific foreground/background pairing in browser-backed checks.
 
 ### 2.2 Typography & Numerical Precision
 - **Primary Body Font:** System UI font stack (`-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`).

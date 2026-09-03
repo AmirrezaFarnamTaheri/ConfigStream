@@ -1,6 +1,6 @@
 # ConfigStream — Frontend, 3D WebGL, Geospatial & Design Target Roadmap
 
-**Repository Target:** `ConfigStream` (`D:/Github/ConfigStream`)
+**Repository Target:** `ConfigStream`
 **Status:** Proposed target-state roadmap. Any historical ratings and PASS labels below are retired placeholders, not completion evidence; use `TARGET/PENDING` and the evidence register instead.
 **Generated On:** 2026-09-02
 **Planned Evaluation Scope:** The nine public surfaces (`index.html`, `proxies.html`, `analytics.html`, `lab.html`, `lab-offline.html`, `about.html`, `evidence.html`, `wiki.html`, `architecture.html`), shared CSS, client-side JavaScript, and 3D WebGL runtime layers. Completion requires retained route-level evidence.
@@ -112,7 +112,7 @@ mapping are defined in the same release artifact.
 - **Theme-Aware Textures**: Dynamically switches between `earth-night.jpg` / `earth-topology.png` (dark mode) and `earth-blue-marble.jpg` (light mode).
 - **Identified Pitfalls & Optimizations**:
   1. *Uncapped Device Pixel Ratio (DPR)*: Globe.gl defaults to native screen DPR. On 3x Retina mobile devices, rendering dual full-resolution textures overdraws the mobile GPU.
-     **Fix**: Explicitly cap pixel ratio: `renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75))`.
+     **Fix**: Explicitly cap pixel ratio: `renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5))`.
   2. *Missing WebGL Resource Disposal*: Window resize and theme change event listeners are registered, but no teardown/cleanup hook exists to call `renderer.dispose()`, `geometry.dispose()`, or `material.dispose()`.
   3. *Mobile Touch Trap*: Zoom gesture captures page scroll.
      **Fix**: Set `touch-action: pan-y;` on `#globe-viz` container and disable zoom by default on touch screens.
@@ -129,12 +129,12 @@ mapping are defined in the same release artifact.
 
 | Anti-Pattern Checked | Found in Codebase | Location | Verdict & Remediation |
 |---|---|---|---|
-| **AI Purple Default Gradient** | Yes (in `:root` `--brand-gradient`) | `style.css:L56` | `#5E55F1` + `#A855F7` + `#D83A8D`. Refine default light mode toward electric cobalt (`oklch(0.58 0.22 260)`). |
+| **AI Purple Default Gradient** | TARGET | `style.css` | Replace the generic purple/pink gradient with the documented cobalt/cyan palette, then verify light- and dark-theme contrast. |
 | **Banned Generic Beige/Brass** | No (Clean palette) | `style.css:L43-L120` | Complies with Cold Luxury & Cyberpunk dark aesthetics. |
-| **Meta-Label Banning** ("SECTION 01") | No | All HTML files | **Pass**: Clean semantic titles (`Quick Proxy Search`, `System Topology`). |
-| **Wrapped Button Text on Desktop** | No | `index.html:L289-L306` | **Pass**: Clean single-line CTA buttons with icon glyphs. |
-| **Hero 2-Line Rule & Container Width** | Yes | `index.html:L128-L135` | `H1` flows naturally in 1-2 lines with `max-w-5xl`. |
-| **Gapless Bento Grid Architecture** | Yes | `index.html:L156-L254` | 4 Primary hero stats + 9 secondary evasion chips without dead space. |
+| **Meta-Label Banning** ("SECTION 01") | TARGET | All HTML files | Verify semantic titles (`Quick Proxy Search`, `System Topology`) through a browser-backed content review. |
+| **Wrapped Button Text on Desktop** | TARGET | `index.html` | Verify single-line CTA buttons at supported desktop widths. |
+| **Hero 2-Line Rule & Container Width** | TARGET | `index.html` | Verify the heading wraps within the intended two-line limit at supported viewport widths. |
+| **Gapless Bento Grid Architecture** | TARGET | `index.html` | Verify density and readable spacing with browser screenshots and keyboard navigation. |
 
 ### 3.2 Typography & Italic Descender Discipline
 - **System Font Stacks**:
@@ -151,17 +151,17 @@ mapping are defined in the same release artifact.
 ┌───────────────────────────┬──────────────┬──────────┬────────────────────────────────────────────────────────┐
 │ File Path                 │ Surface Role │ Status   │ Primary Findings & Recommendations                     │
 ├───────────────────────────┼──────────────┼──────────┼────────────────────────────────────────────────────────┤
-│ frontend/index.html       │ Landing      │ Pass     │ Strong AIDA structure; add 3D hero node; clean tokens  │
-│ frontend/proxies.html     │ Live Pool    │ Pass     │ Rich filtering/BYOW; add table DOM virtualization      │
-│ frontend/analytics.html   │ Observability│ Pass     │ 3D Globe + 8 Chart.js charts; add DPR clamp & disposal │
-│ frontend/lab.html         │ Config Studio│ Pass     │ Interactive chain builder & SVG gauge; add latency node│
-│ frontend/lab-offline.html │ Air-Gapped   │ Pass     │ Standalone offline WASM builder; zero external calls   │
-│ frontend/about.html       │ Mission/Spec │ Pass     │ Clear 3-pillar narrative; add interactive client table │
-│ frontend/evidence.html    │ Provenance   │ Pass     │ SHA-256 integrity ledger & transformation preview      │
-│ frontend/wiki.html        │ Docs         │ Pass     │ Marked.js + DOMPurify + Highlight.js; add full search  │
-│ architecture.html         │ Topology AST │ Pass     │ Interactive swimlanes & blast radius simulation drawer │
-│ frontend/assets/css/*.css │ Design System│ Pass     │ 4 distinct themes; migrate hex to OKLCH tokens         │
-│ frontend/assets/js/*.js   │ Client Logic │ Pass     │ Modular ES modules; add WebGL context-loss handlers    │
+│ frontend/index.html       │ Landing      │ TARGET   │ Verify hero node and token migration                    │
+│ frontend/proxies.html     │ Live Pool    │ TARGET   │ Verify filtering/BYOW and table virtualization need     │
+│ frontend/analytics.html   │ Observability│ TARGET   │ Verify DPR clamp and resource lifecycle                 │
+│ frontend/lab.html         │ Config Studio│ TARGET   │ Verify chain builder and latency visualization          │
+│ frontend/lab-offline.html │ Air-Gapped   │ TARGET   │ Verify offline behavior and CSP                         │
+│ frontend/about.html       │ Mission/Spec │ TARGET   │ Verify narrative and client table behavior              │
+│ frontend/evidence.html    │ Provenance   │ TARGET   │ Verify manifest inspection and safe preview             │
+│ frontend/wiki.html        │ Docs         │ TARGET   │ Verify sanitization and search behavior                 │
+│ architecture.html         │ Topology AST │ TARGET   │ Verify simulation and inspector behavior                │
+│ frontend/assets/css/*.css │ Design System│ TARGET   │ Verify themes and token contrast                         │
+│ frontend/assets/js/*.js   │ Client Logic │ TARGET   │ Verify lifecycle and module boundaries                  │
 └───────────────────────────┴──────────────┴──────────┴────────────────────────────────────────────────────────┘
 ```
 
@@ -254,7 +254,7 @@ export function mountHero3DNode(canvasElement) {
         alpha: true,
         powerPreference: 'high-performance'
     });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.1;
 
@@ -265,8 +265,8 @@ export function mountHero3DNode(canvasElement) {
     // Core Icosahedron with Physical Shader
     const coreGeo = new THREE.IcosahedronGeometry(1.3, 1);
     const coreMat = new THREE.MeshPhysicalMaterial({
-        color: 0x5E55F1,
-        emissive: 0x120d33,
+        color: 0x3b82f6,
+        emissive: 0x0b2545,
         metalness: 0.6,
         roughness: 0.25,
         clearcoat: 0.9,
@@ -292,7 +292,7 @@ export function mountHero3DNode(canvasElement) {
     keyLight.position.set(4, 5, 4);
     scene.add(keyLight);
 
-    const rimLight = new THREE.DirectionalLight(0xD83A8D, 1.6);
+    const rimLight = new THREE.DirectionalLight(0x06b6d4, 1.6);
     rimLight.position.set(-4, -2, -3);
     scene.add(rimLight);
 
@@ -359,7 +359,10 @@ export function setupGlobeLifecycle(globeInstance, containerElement) {
 
     canvas.addEventListener('webglcontextrestored', () => {
         console.info('[WebGL] Context restored. Rebuilding scene graph.');
-        window.location.reload();
+        // Rebuild this visualization in place. Never discard page state merely
+        // because the browser restored a GPU context; render a static fallback
+        // if rebuilding fails.
+        rebuildGlobeInPlace(globeInstance, containerElement);
     }, false);
 }
 ```

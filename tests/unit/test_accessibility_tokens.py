@@ -13,7 +13,7 @@ INDEX_HTML = FRONTEND_DIR / "index.html"
 PROXIES_HTML = FRONTEND_DIR / "proxies.html"
 
 
-def test_tabular_numerics_css_tokens():
+def test_tabular_numerics_css_tokens() -> None:
     """Verify that tabular-nums and font-feature-settings tnum are applied to telemetry/numeric classes in style.css."""
     assert CSS_PATH.exists(), f"{CSS_PATH} does not exist"
     css_content = CSS_PATH.read_text(encoding="utf-8")
@@ -30,7 +30,7 @@ def test_tabular_numerics_css_tokens():
         assert selector in css_content, f"Expected selector '{selector}' to be defined with tabular numerics in style.css"
 
 
-def test_proxy_table_numeric_columns_use_tabular_nums():
+def test_proxy_table_numeric_columns_use_tabular_nums() -> None:
     """Verify that proxy table latency/ping/port/numeric columns are styled with tabular numerics."""
     css_content = CSS_PATH.read_text(encoding="utf-8")
 
@@ -42,7 +42,7 @@ def test_proxy_table_numeric_columns_use_tabular_nums():
     ) is not None, "Proxy table numeric/latency elements must utilize font-variant-numeric: tabular-nums"
 
 
-def test_touch_target_dimensions_wcag22():
+def test_touch_target_dimensions_wcag22() -> None:
     """Verify minimum touch targets: >=24x24px desktop and >=44x44px for coarse pointer/mobile."""
     css_content = CSS_PATH.read_text(encoding="utf-8")
 
@@ -64,7 +64,7 @@ def test_touch_target_dimensions_wcag22():
     )
 
 
-def test_accessible_iconography_and_no_structural_emojis():
+def test_accessible_iconography_and_no_structural_emojis() -> None:
     """Verify that structural navigation and action buttons avoid raw emojis and use accessible SVG icons."""
     for html_path in [INDEX_HTML, PROXIES_HTML]:
         assert html_path.exists(), f"{html_path} does not exist"
@@ -78,8 +78,3 @@ def test_accessible_iconography_and_no_structural_emojis():
             has_svg_or_feather = bool(btn.find(["svg", "object"]) or btn.find(attrs={"data-feather": True}))
             if not btn_text and not aria_label and not btn.find("img"):
                 assert has_svg_or_feather, f"Interactive element in {html_path.name} must have accessible label or SVG: {btn}"
-
-        # Ensure no structural navigation controls use raw emojis as sole labels
-        for heading in soup.find_all(["h1", "h2", "h3"]):
-            # Headings should not use sole raw emoji navigation
-            pass

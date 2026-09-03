@@ -1,4 +1,5 @@
 import logger from './utils/logger.js';
+import { renderTrustState } from './trust-state.js';
 
 // --- COUNTRY THEMES ---
 const COUNTRY_THEMES = {
@@ -181,60 +182,11 @@ let cachedMetadata = null;
 function applyTrustState(state, metadata, options = {}) {
     currentTrustState = state;
     if (metadata) cachedMetadata = metadata;
-
-    let banner = document.getElementById('trustStateBanner');
-    if (!banner) {
-        banner = document.createElement('div');
-        banner.id = 'trustStateBanner';
-        banner.setAttribute('role', 'alert');
-        banner.setAttribute('aria-live', 'polite');
-        banner.style.cssText = 'position:sticky;top:0;z-index:9999;padding:0.65rem 1rem;text-align:center;font:600 0.875rem/1.4 system-ui,sans-serif;display:none;';
-        const main = document.querySelector('main') || document.body;
-        if (main && main.firstChild) {
-            main.insertBefore(banner, main.firstChild);
-        } else if (main) {
-            main.appendChild(banner);
-        }
-    }
-
-    banner.className = `trust-banner trust-banner--${state}`;
-
-    if (state === 'stale') {
-        const genTime = metadata?.last_updated_utc ? new Date(metadata.last_updated_utc).toISOString() : (metadata?.generated_at || 'Unknown');
-        banner.textContent = `Warning: Showing cached telemetry generated at ${genTime}.`;
-        banner.style.background = '#d97706';
-        banner.style.color = '#fff';
-        banner.style.display = 'block';
-    } else if (state === 'invalid') {
-        banner.textContent = 'Security Alert: Detached cryptographic verification failed. Feeds blocked.';
-        banner.style.background = '#dc2626';
-        banner.style.color = '#fff';
-        banner.style.display = 'block';
-    } else if (state === 'error' || state === 'empty') {
-        banner.replaceChildren();
-        const msg = document.createElement('span');
-        msg.textContent = options.errorMessage || (state === 'empty' ? 'No proxies match your criteria.' : 'Error loading proxies.');
-        banner.appendChild(msg);
-
-        if (typeof options.onRetry === 'function') {
-            const retryBtn = document.createElement('button');
-            retryBtn.className = 'btn btn-secondary trust-banner-retry';
-            retryBtn.style.cssText = 'margin-left:12px;padding:2px 8px;font-size:0.8rem;cursor:pointer;';
-            retryBtn.textContent = 'Retry';
-            retryBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                options.onRetry();
-            });
-            banner.appendChild(retryBtn);
-        }
-        banner.style.background = '#4b5563';
-        banner.style.color = '#fff';
-        banner.style.display = 'block';
-    } else if (state === 'loading') {
-        banner.style.display = 'none';
-    } else { // 'fresh'
-        banner.style.display = 'none';
-    }
+    renderTrustState(state, metadata, {
+        emptyMessage: 'No proxies match your criteria.',
+        errorMessage: state === 'empty' ? 'No proxies match your criteria.' : 'Error loading proxies.',
+        ...options,
+    });
 }
 
 // Operational guard checking fail-closed distribution permission

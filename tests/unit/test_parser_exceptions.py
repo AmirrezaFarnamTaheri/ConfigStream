@@ -17,6 +17,7 @@ from configstream.parsers.vless import parse_vless
 from configstream.parsers.vmess import parse_vmess
 from configstream.parsers.trojan import parse_trojan
 from configstream.parsers.shadowsocks import parse_ss, parse_ss2022
+from configstream.parsers.ssr import parse_ssr
 from configstream.parsers.clash_json import parse_clash_json
 from configstream.parsers.openvpn import parse_openvpn
 from configstream.parsers.others import (
@@ -85,6 +86,12 @@ class TestExpectedExceptionsReturnNone:
         assert parse_ss("ss://YWVzLTEyOC1nY206cGFzc3dvcmQ=@example.com:notaport") is None
         # SS2022 invalid
         assert parse_ss2022("ss2022://invalid-ss2022-url") is None
+
+    @pytest.mark.parametrize("parser", (parse_ss, parse_ss2022, parse_ssr))
+    @pytest.mark.parametrize("malformed_value", (None, 42, {}, []))
+    def test_shadowsocks_parsers_reject_non_string_inputs(self, parser, malformed_value):
+        """Public parser boundaries must reject malformed object shapes safely."""
+        assert parser(malformed_value) is None
 
     def test_clash_json_malformed_inputs(self):
         # Non-JSON string

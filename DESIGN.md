@@ -23,7 +23,7 @@ ConfigStream is a utilitarian, censorship-resistant proxy intelligence platform.
 | `--border-focus` | `#06b6d4` | High-contrast `:focus-visible` ring | $6.8:1$ against bg-base |
 | `--text-primary` | `#f9fafb` | Primary headings, table data, and labels | $14.2:1$ against bg-base |
 | `--text-secondary`| `#94a3b8` | Subheadings, descriptions, and metadata | $6.1:1$ against bg-base |
-| `--text-muted` | `#64748b` | Timestamps, microcopy, and footnotes | $4.6:1$ against bg-base |
+| `--text-muted` | `#7c8da5` | Timestamps, microcopy, and footnotes | $5.8:1$ against bg-base |
 | `--accent-cobalt` | `#3b82f6` | Primary action buttons and branding | $5.2:1$ against bg-base |
 | `--accent-cyan` | `#06b6d4` | Active tabs, glow accents, and focus indicators | $6.8:1$ against bg-base |
 | `--status-valid` | `#10b981` | Verified / Shielded active proxies | $7.4:1$ against bg-base |

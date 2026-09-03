@@ -436,8 +436,6 @@ compatibility migration and stream tests.
   "id": "vless-198-51-100-1-443-a1b2c3",
   "is_working": true,
   "latency": 142,
-  "error": "",
-  "issues": []
 }
 ```
 

@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 
-def test_validator_dependencies_resolvable():
+def test_validator_dependencies_resolvable() -> None:
     """Verify that validate_frontend_placeholders can be imported cleanly without missing dependencies."""
     root = Path(__file__).resolve().parents[2]
     script_path = root / "scripts" / "validate_frontend_placeholders.py"
