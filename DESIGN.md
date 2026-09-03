@@ -52,7 +52,7 @@ ConfigStream is a utilitarian, censorship-resistant proxy intelligence platform.
 - `radius-sm`: `4px` (Tags, micro-badges, code snippets)
 - `radius-md`: `8px` (Buttons, inputs, filter dropdowns)
 - `radius-lg`: `12px` (Cards, telemetry widgets, dialogs)
-- `radius-xl`: `16px` (Hero containers, 3D viewport frame)
+- `radius-xl`: `16px` (Hero containers and prominent content panels)
 - `radius-pill`: `9999px` (Status badges, pill tabs, scroll pills)
 
 ---

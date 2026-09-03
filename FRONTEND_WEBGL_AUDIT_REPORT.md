@@ -117,9 +117,9 @@ mapping are defined in the same release artifact.
   3. *Mobile Touch Trap*: Zoom gesture captures page scroll.
      **Fix**: Set `touch-action: pan-y;` on `#globe-viz` container and disable zoom by default on touch screens.
 
-### 2.3 WebGL Landing Page Steering (`/webgl-landing-steering`)
-- **Assigned Lane**: **Lane B (Data Intelligence & Infrastructure Authority)** combined with **Lane C (Object-Centric 3D Node Moment)**.
-- **Hero Transformation Plan**: Replace the static 2D animated SVG logo in `frontend/index.html` with a code-only procedural Three.js cryptographic polyhedral node (`MeshPhysicalMaterial` with clearcoat, iridescent rim lighting, and a wireframe orbital shield).
+### 2.3 Landing-page hero direction
+- **Decision:** The landing page uses a restrained typographic hero and the existing brand mark. It must not add a decorative WebGL/canvas object, simulated cryptographic node, or continuous animation.
+- **Rationale:** The hero’s job is to establish the product and guide the primary action. Decorative 3D treatment competes with that hierarchy, adds a failure mode on constrained devices, and does not communicate a user-facing capability.
 
 ---
 
@@ -151,7 +151,7 @@ mapping are defined in the same release artifact.
 ┌───────────────────────────┬──────────────┬──────────┬────────────────────────────────────────────────────────┐
 │ File Path                 │ Surface Role │ Status   │ Primary Findings & Recommendations                     │
 ├───────────────────────────┼──────────────┼──────────┼────────────────────────────────────────────────────────┤
-│ frontend/index.html       │ Landing      │ TARGET   │ Verify hero node and token migration                    │
+│ frontend/index.html       │ Landing      │ TARGET   │ Verify typographic hierarchy and token migration        │
 │ frontend/proxies.html     │ Live Pool    │ TARGET   │ Verify filtering/BYOW and table virtualization need     │
 │ frontend/analytics.html   │ Observability│ TARGET   │ Verify DPR clamp and resource lifecycle                 │
 │ frontend/lab.html         │ Config Studio│ TARGET   │ Verify chain builder and latency visualization          │
@@ -236,7 +236,12 @@ mapping are defined in the same release artifact.
 
 ## 7. Target Implementation Blueprints
 
-### Blueprint 1: Procedural 3D Cryptographic Node for Hero (`frontend/index.html`)
+### Retired blueprint: Procedural 3D Cryptographic Node for Hero (`frontend/index.html`)
+
+> **Do not implement.** This retained historical proposal is superseded by the
+> landing-page hero direction above. It remains only to document the rejected
+> approach; new work must not add its canvas, WebGL renderer, animation loop,
+> or dependencies.
 
 ```javascript
 /**

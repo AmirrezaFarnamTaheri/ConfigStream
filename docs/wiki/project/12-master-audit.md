@@ -66,7 +66,7 @@ verification condition, not a passing result.
 | P1 | Design tokens, sticky header occlusion & touch targets | Source changes exist; keyboard, zoom/reflow, and browser visual evidence are required. | **IMPLEMENTED — EVIDENCE PENDING** |
 | P2 | Go scanner UDP timer channel churn | A receiver-owned reusable timer is implemented; benchmark allocations and a production-sized scan trace are still required. | **IMPLEMENTED — EVIDENCE PENDING** |
 | P2 | Broad `except Exception:` in parsers | Parser boundaries were narrowed; malformed-input scenario coverage must be retained in exact-head CI. | **IMPLEMENTED — EVIDENCE PENDING** |
-| P3 | WebGL performance & 3D hero node | Lifecycle code exists; browser frame/heap evidence is still required before performance closure. | **IMPLEMENTED — EVIDENCE PENDING** |
+| P3 | WebGL performance | Globe lifecycle code exists; browser frame/heap evidence is still required before performance closure. The decorative landing-page 3D hero was retired. | **IMPLEMENTED — EVIDENCE PENDING** |
 
 ```
 ┌───────────────────────────────────────┬────────────┬───────────┬──────────────────────────────────────────┐
