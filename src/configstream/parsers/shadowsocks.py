@@ -16,6 +16,8 @@ logger = logging.getLogger(__name__)
 def parse_ss(config: str) -> Optional[Proxy]:
     """Parse a Shadowsocks (ss://) URL."""
     try:
+        if not isinstance(config, str):
+            return None
         config = config.strip()
         if MAX_CONFIG_LINE_LENGTH > 0 and len(config) > MAX_CONFIG_LINE_LENGTH:
             return None
@@ -203,6 +205,8 @@ def parse_ss(config: str) -> Optional[Proxy]:
 def parse_ss2022(config: str) -> Optional[Proxy]:
     """Parse a Shadowsocks 2022 (ss2022://) URL - uses same format as SS."""
     try:
+        if not isinstance(config, str):
+            return None
         config = config.strip()
         if MAX_CONFIG_LINE_LENGTH > 0 and len(config) > MAX_CONFIG_LINE_LENGTH:
             return None

@@ -200,6 +200,9 @@ function initGlobe(data) {
 }
 
 function _initGlobeInternal(data, container) {
+    if (typeof window._disposeGlobe === 'function') {
+        window._disposeGlobe();
+    }
     // Clear loading indicator
     container.replaceChildren();
 
@@ -766,9 +769,24 @@ function _initGlobeInternal(data, container) {
             canvas.removeEventListener('webglcontextrestored', handleContextRestored);
         }
         if (controls && typeof controls.dispose === 'function') controls.dispose();
+        const scene = typeof globe.scene === 'function' ? globe.scene() : null;
+        if (scene && typeof scene.traverse === 'function') {
+            scene.traverse((node) => {
+                if (node.geometry && typeof node.geometry.dispose === 'function') node.geometry.dispose();
+                const materials = Array.isArray(node.material) ? node.material : [node.material];
+                for (const material of materials) {
+                    if (!material) continue;
+                    for (const value of Object.values(material)) {
+                        if (value && typeof value.dispose === 'function' && value.isTexture) value.dispose();
+                    }
+                    if (typeof material.dispose === 'function') material.dispose();
+                }
+            });
+        }
         if (renderer && typeof renderer.dispose === 'function') {
             renderer.dispose();
         }
+        if (canvas && canvas.parentNode === container) canvas.remove();
         window.globeInstance = null;
     };
 

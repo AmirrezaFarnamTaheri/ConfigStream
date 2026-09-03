@@ -128,6 +128,8 @@ def _fetch(url: str, *, timeout: float) -> Response:
             body=body,
             content_type=exc.headers.get("content-type", ""),
         )
+    except (urllib.error.URLError, TimeoutError, OSError):
+        return Response(url=url, status=0, body=b"", content_type="")
 
 
 def _json(response: Response) -> object:
