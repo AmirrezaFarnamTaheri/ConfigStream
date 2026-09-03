@@ -14,7 +14,7 @@
     /* Cold Luxury Design Tokens */
     --bg-base: #0a0e17;
     --bg-surface: #111827;
-    --bg-glass: rgba(255, 255, 255, 0.78);
+    --bg-glass: rgba(236, 242, 248, 0.62);
     --border-subtle: rgba(255, 255, 255, 0.08);
     --border-focus: #06b6d4;
     --accent-cobalt: #3b82f6;
@@ -4869,24 +4869,4 @@ body.dark #globe-viz {
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
     }
-}
-
-/* ===== Procedural 3D Hero Node Canvas ===== */
-.hero-canvas-container {
-    position: relative;
-    width: 100%;
-    max-width: 320px;
-    height: 200px;
-    margin: 0 auto 1rem auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    pointer-events: none;
-}
-
-.hero-canvas {
-    width: 100%;
-    height: 100%;
-    display: block;
-    filter: drop-shadow(0 0 20px rgba(6, 182, 212, 0.3));
 }

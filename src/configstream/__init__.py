@@ -126,7 +126,7 @@ def _patch_anyio_current_task() -> None:
     ) -> Optional[asyncio.Task]:
         task = _orig_current_task(loop)
         if task is not None:
-            return task
+            return cast(Optional[asyncio.Task], task)
         try:
             running_loop = loop or asyncio.get_running_loop()
         except RuntimeError:
