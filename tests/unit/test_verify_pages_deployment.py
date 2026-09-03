@@ -8,7 +8,7 @@ import threading
 import hashlib
 import urllib.error
 from unittest.mock import patch
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import cast
@@ -88,7 +88,11 @@ def _write_site(
         "window.CS_STEGO = {};\n",
         encoding="utf-8",
     )
-    metadata = {"proxies_snapshot_hash": "a" * 64}
+    metadata = {
+        "proxies_snapshot_hash": "a" * 64,
+        "last_updated_utc": datetime.now(timezone.utc).isoformat(),
+        "update_interval_hours": 4,
+    }
     proxies: list[object] = []
     (root / "metadata.json").write_text(json.dumps(metadata), encoding="utf-8")
     (root / "proxies.json").write_text(json.dumps(proxies), encoding="utf-8")
@@ -233,6 +237,25 @@ def test_verify_pages_deployment_accepts_valid_site(tmp_path: Path) -> None:
     finally:
         server.shutdown()
         server.server_close()
+
+
+def test_verify_pages_deployment_rejects_stale_metadata(tmp_path: Path) -> None:
+    _write_site(tmp_path)
+    metadata_path = tmp_path / "metadata.json"
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    metadata["last_updated_utc"] = (
+        datetime.now(timezone.utc) - timedelta(hours=13)
+    ).isoformat()
+    metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
+
+    server, url = _serve(tmp_path)
+    try:
+        errors = verify_pages_deployment(url, timeout=5.0)
+    finally:
+        server.shutdown()
+        server.server_close()
+
+    assert any("metadata.json is stale" in error for error in errors)
 
 
 def test_verify_pages_deployment_candidate_exact_match(tmp_path: Path) -> None:

@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -86,3 +87,19 @@ def test_dynamic_download_icons_do_not_use_unsafe_global_feather_replacement() -
     )
     assert "window.inlineIcons.replace()" in dynamic_downloads
     assert "feather.replace()" not in dynamic_downloads
+
+
+def test_dynamic_download_icons_are_available_in_the_local_registry() -> None:
+    dynamic_downloads = (ROOT / "frontend/assets/js/dynamic-downloads.js").read_text(
+        encoding="utf-8"
+    )
+    inline_icons = (ROOT / "frontend/assets/js/inline-icons.js").read_text(
+        encoding="utf-8"
+    )
+    dynamic_icons = set(re.findall(r'icon:\s*"([^"]+)"', dynamic_downloads))
+    registered_icons = set(re.findall(r"'([^']+)':\s*'<svg", inline_icons))
+
+    assert dynamic_icons <= registered_icons, (
+        "dynamic-downloads.js uses icons missing from inline-icons.js: "
+        f"{sorted(dynamic_icons - registered_icons)}"
+    )

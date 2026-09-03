@@ -26,6 +26,7 @@ from configstream.output.client_formats import (
     validate_nekobox_subscriptions,
     validate_xray_config,
 )
+from configstream.artifact_freshness import validate_metadata_freshness
 from configstream.output.singbox_contract import validate_singbox_config
 
 try:
@@ -888,6 +889,7 @@ def _validate_metadata(metadata: object) -> list[str]:
     success_rate = metadata.get("success_rate")
     if not isinstance(success_rate, (int, float)) or success_rate < 0:
         errors.append("metadata.json success_rate must be a non-negative number")
+    errors.extend(validate_metadata_freshness(metadata))
     return errors
 
 

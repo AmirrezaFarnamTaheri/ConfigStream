@@ -38,6 +38,8 @@ except ImportError:
         Signer = None  # type: ignore
         normalize_public_key_hex = None  # type: ignore
 
+from configstream.artifact_freshness import validate_metadata_freshness
+
 PLACEHOLDER_MARKERS = (
     "79e/79e/",
     "PLACEHOLDER_PUBLIC_KEY",
@@ -127,6 +129,8 @@ def _fetch(url: str, *, timeout: float) -> Response:
             body = exc.read()
         except http.client.IncompleteRead as read_exc:
             body = read_exc.partial
+        except OSError:
+            return Response(url=url, status=0, body=b"", content_type="")
         return Response(
             url=url,
             status=int(exc.code),
@@ -330,8 +334,10 @@ def verify_pages_deployment(
             errors.append("api/stats does not match metadata.json")
         if not isinstance(metadata, dict):
             errors.append("metadata.json must be a JSON object")
-        elif not metadata.get("proxies_snapshot_hash"):
-            errors.append("metadata.json missing proxies_snapshot_hash")
+        else:
+            if not metadata.get("proxies_snapshot_hash"):
+                errors.append("metadata.json missing proxies_snapshot_hash")
+            errors.extend(validate_metadata_freshness(metadata))
     except json.JSONDecodeError as exc:
         errors.append(f"metadata/api stats JSON decode failed: {exc}")
 

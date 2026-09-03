@@ -22,8 +22,10 @@ export function renderTrustState(state, metadata, options = {}) {
 
     banner.className = `trust-banner trust-banner--${state}`;
     if (state === 'stale') {
-        const generatedAt = metadata?.last_updated_utc
-            ? new Date(metadata.last_updated_utc).toISOString()
+        const updatedAt = metadata?.last_updated_utc;
+        const parsedUpdatedAt = updatedAt ? new Date(updatedAt) : null;
+        const generatedAt = parsedUpdatedAt && !Number.isNaN(parsedUpdatedAt.getTime())
+            ? parsedUpdatedAt.toISOString()
             : (metadata?.generated_at || 'Unknown');
         banner.textContent = `Warning: Showing cached telemetry generated at ${generatedAt}.`;
         banner.style.background = '#d97706';
