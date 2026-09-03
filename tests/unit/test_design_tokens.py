@@ -19,7 +19,7 @@ def test_design_tokens_present() -> None:
     expected_tokens = [
         ("--bg-base", "#0a0e17"),
         ("--bg-surface", "#111827"),
-        ("--bg-glass", "rgba(255, 255, 255, 0.78)"),
+        ("--bg-glass", "rgba(236, 242, 248, 0.62)"),
         ("--border-subtle", "rgba(255, 255, 255, 0.08)"),
         ("--border-focus", "#06b6d4"),
         ("--accent-cobalt", "#3b82f6"),
