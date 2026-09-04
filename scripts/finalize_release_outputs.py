@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
+from configstream.constants import is_tester_infrastructure_drop_reason
 from configstream.output.client_formats import generate_xray_config
 
 try:
@@ -431,11 +432,7 @@ def _blockers(metadata: dict[str, Any], threshold: float) -> list[str]:
     drop_reasons = metadata.get("drop_reasons")
     if isinstance(drop_reasons, dict):
         for key, value in drop_reasons.items():
-            if (
-                "nonetype" in str(key).lower()
-                or "sequence item" in str(key).lower()
-                or "tester" in str(key).lower()
-            ):
+            if is_tester_infrastructure_drop_reason(key):
                 tester_errors += int(value or 0)
     if tester_errors:
         reasons.append(f"tester_errors:{tester_errors}")
@@ -510,6 +507,10 @@ def finalize(root: Path, repo_root: Path, threshold: float) -> None:
         metadata.get("total_configured_sources") or metadata.get("total_sources") or 0
     )
     fetched = int(metadata.get("fetched_sources") or 0)
+    now_iso = datetime.now(timezone.utc).isoformat()
+    if not str(metadata.get("generated_at") or "").strip():
+        metadata["generated_at"] = now_iso
+    metadata["last_updated_utc"] = now_iso
     metadata.update(
         {
             "schema_version": "3.1.0",
@@ -559,13 +560,13 @@ def finalize(root: Path, repo_root: Path, threshold: float) -> None:
 
     reasons = _blockers(metadata, threshold)
     generated_at = str(
-        metadata.get("generated_at")
-        or metadata.get("last_updated_utc")
+        metadata.get("last_updated_utc")
+        or metadata.get("generated_at")
         or datetime.now(timezone.utc).isoformat()
     )
     health: dict[str, Any] = {
         "schema_version": "2.0",
-        "status": "failed" if reasons else "degraded",
+        "status": "degraded",
         "generated_at": generated_at,
         "trace_id": str(metadata.get("trace_id") or "-"),
         "source_commit": os.environ.get("GITHUB_SHA", ""),

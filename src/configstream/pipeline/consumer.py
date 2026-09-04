@@ -596,30 +596,34 @@ async def _test_candidates(
                             f"Go batch tester failed for chunk: {e}. Fallback to Python tester."
                         )
                     )
-                    # Record batch error in stats so metadata reflects the failure
-                    async with seen_lock:
-                        stats.drop_reasons["tester_error"] = stats.drop_reasons.get(
-                            "tester_error", 0
-                        ) + len(chunk)
-
                     results = await asyncio.gather(
                         *[_fallback_test(x) for x in chunk],
                         return_exceptions=True,
                     )
+                    fallback_exceptions = 0
                     for idx, res in enumerate(results):
                         if isinstance(res, Proxy):
                             chunk[idx] = res
-                        else:
-                            if isinstance(res, asyncio.CancelledError):
-                                raise res
-
-                            p = chunk[idx]
-                            p.is_working = False
-                            p.details["error"] = "FALLBACK_TEST_EXCEPTION"
-                            logger.error(
-                                SecurityValidator.sanitize_log_message(
-                                    f"Fallback test for proxy {p.id} raised an exception: {res}"
-                                )
+                            continue
+                        if isinstance(res, asyncio.CancelledError):
+                            raise res
+                        fallback_exceptions += 1
+                        p = chunk[idx]
+                        p.is_working = False
+                        p.details["error"] = "FALLBACK_TEST_EXCEPTION"
+                        logger.error(
+                            SecurityValidator.sanitize_log_message(
+                                f"Fallback test for proxy {p.id} raised an exception: {res}"
+                            )
+                        )
+                    # Only count tester_error when Python fallback also could
+                    # not complete a test. Recovered proxies must not block
+                    # release_gate, which treats any tester_error as fatal.
+                    if fallback_exceptions:
+                        async with seen_lock:
+                            stats.drop_reasons["tester_error"] = (
+                                stats.drop_reasons.get("tester_error", 0)
+                                + fallback_exceptions
                             )
 
                 # Check for proxies marked with infra_failure=True during Go batch test
@@ -788,10 +792,6 @@ async def _revive_failed_proxies(
             logger.error(
                 SecurityValidator.sanitize_log_message(f"Vwarp batch test failed: {e}")
             )
-            async with seen_lock:
-                stats.drop_reasons["tester_error"] = stats.drop_reasons.get(
-                    "tester_error", 0
-                ) + len(vwarp_candidates)
 
         for p in vwarp_candidates:
             p.process = "revived-vwarp"
@@ -853,10 +853,6 @@ async def _revive_failed_proxies(
                         f"WARP batch test failed: {e}"
                     )
                 )
-                async with seen_lock:
-                    stats.drop_reasons["tester_error"] = stats.drop_reasons.get(
-                        "tester_error", 0
-                    ) + len(warp_candidates)
             for p in warp_candidates:
                 p.process = "revived-warp"
                 if "revived-warp" not in p.tags:

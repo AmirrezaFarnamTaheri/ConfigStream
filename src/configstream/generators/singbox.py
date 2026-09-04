@@ -145,6 +145,13 @@ class SingBoxGenerator:
                 logging.getLogger(__name__).debug("Suppressed broad exception")
                 continue
 
+        # Empty urltest groups fail both native `sing-box check` and the
+        # Pages contract. Country/protocol subsets can have no convertible
+        # outbounds; fall back to direct so the config remains valid.
+        urltest_members = cast(List[str], urltest_outbound["outbounds"])
+        if not urltest_members:
+            urltest_members.append("direct")
+
         # Assemble Final Config
         final_outbounds = [
             selector_outbound,

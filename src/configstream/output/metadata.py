@@ -129,7 +129,9 @@ def save_metadata(
     parsed_count = total
     tested_count = total
     reasons: Dict[str, int] = {}
-    end_time_iso = datetime.now(timezone.utc).isoformat()
+    now_iso = datetime.now(timezone.utc).isoformat()
+    end_time_iso = now_iso
+    generated_at_iso = now_iso
     start_time_iso = None
     washed_count = 0
     smart_chain_count = 0
@@ -221,7 +223,8 @@ def save_metadata(
             pipeline_execution_audit = dict(audit_obj)
         start_time_iso = stats.get("start_time")
         if stats.get("end_time"):
-            end_time_iso = str(stats.get("end_time") or "")
+            generated_at_iso = str(stats.get("end_time") or now_iso)
+            end_time_iso = generated_at_iso
     else:
         # PipelineStats object
         total_sourced = getattr(
@@ -231,7 +234,8 @@ def save_metadata(
         tested_count = getattr(stats, "tested", total)
         reasons = getattr(stats, "drop_reasons", {})
         if hasattr(stats, "end_time") and stats.end_time:
-            end_time_iso = stats.end_time.isoformat()
+            generated_at_iso = stats.end_time.isoformat()
+            end_time_iso = now_iso
         washed_count = getattr(stats, "washer_success_count", 0)
         smart_chain_count = getattr(stats, "smart_chain_count", 0)
         vwarp_win_rate = getattr(stats, "vwarp_win_rate", 0.0)
@@ -375,8 +379,8 @@ def save_metadata(
         "success_rate": (
             (exported_total_working / tested_count) if tested_count > 0 else 0
         ),
-        "generated_at": end_time_iso,
-        "last_updated_utc": end_time_iso,
+        "generated_at": generated_at_iso,
+        "last_updated_utc": now_iso,
         "trace_id": trace_id,
         "proxies_snapshot_hash": proxies_snapshot_hash,
         "previous_proxies_snapshot_hash": old_snapshot_hash,
@@ -492,7 +496,7 @@ def write_public_artifact_contract(output_dir: Path) -> Dict[str, Any]:
     metadata = _read_json_object(output_dir / "metadata.json")
     now_iso = datetime.now(timezone.utc).isoformat()
     generated_at = str(
-        metadata.get("generated_at") or metadata.get("last_updated_utc") or now_iso
+        metadata.get("last_updated_utc") or metadata.get("generated_at") or now_iso
     )
     trace_id = str(metadata.get("trace_id") or "-")
 

@@ -1170,10 +1170,24 @@ def _validate_zip_members(rel_path: str, archive: zipfile.ZipFile) -> list[str]:
 def write_pages_contract(root: Path) -> None:
     metadata, _ = _load_json(root / "metadata.json")
     metadata_obj = metadata if isinstance(metadata, dict) else {}
+    now_iso = datetime.now(timezone.utc).isoformat()
+    if isinstance(metadata, dict):
+        if not str(metadata_obj.get("generated_at") or "").strip():
+            metadata_obj["generated_at"] = now_iso
+        metadata_obj["last_updated_utc"] = now_iso
+        metadata_path = root / "metadata.json"
+        metadata_path.write_text(
+            json.dumps(metadata_obj, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+        api_stats = root / "api" / "stats"
+        if api_stats.is_file() or (root / "api").is_dir():
+            api_stats.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(metadata_path, api_stats)
     generated_at = str(
-        metadata_obj.get("generated_at")
-        or metadata_obj.get("last_updated_utc")
-        or datetime.now(timezone.utc).isoformat()
+        metadata_obj.get("last_updated_utc")
+        or metadata_obj.get("generated_at")
+        or now_iso
     )
     trace_id = str(metadata_obj.get("trace_id") or "-")
     total_working = int(metadata_obj.get("total_working", 0) or 0)

@@ -148,3 +148,64 @@ async def test_processing_consumer_revival_crash(mock_dependencies_fix):
     # Vwarp success skips the fallback Warp retry for the same proxy.
     assert len(final_proxies) == 1
     assert final_proxies[0].protocol == "revived"
+
+
+@pytest.mark.asyncio
+async def test_go_batch_failure_does_not_count_tester_error_when_fallback_recovers(
+    mock_dependencies_fix,
+):
+    """Python fallback recovery must not trip the release-gate tester_error key."""
+
+    deps = mock_dependencies_fix
+    queue = deps["queue"]
+    stats = PipelineStats()
+    seen_keys = set()
+    final_proxies = []
+
+    await queue.put(("test-source", ["vmess://test"]))
+    await queue.put(None)
+
+    original_proxy = Proxy(
+        protocol="vmess",
+        address="1.2.3.4",
+        port=443,
+        config="vmess://test",
+        uuid="11111111-1111-4111-8111-111111111111",
+    )
+    recovered = original_proxy.model_copy(update={"is_working": True, "latency": 40})
+
+    deps["tester"].test_batch.side_effect = RuntimeError("go tester down")
+    deps["tester"].python_tester = MagicMock()
+    deps["tester"].python_tester.test_via_singbox = AsyncMock(return_value=recovered)
+    deps["washer"].is_vwarp_available_async = AsyncMock(return_value=False)
+    deps["washer"].warp_keys = []
+
+    with patch("configstream.consumer.parse_config", return_value=original_proxy):
+        with patch(
+            "configstream.consumer.validate_batch_configs",
+            return_value=[original_proxy],
+        ):
+            await processing_consumer(
+                work_queue=queue,
+                stats=stats,
+                seen_keys=seen_keys,
+                final_proxies=final_proxies,
+                tester=deps["tester"],
+                scheduler=deps["scheduler"],
+                test_cache=deps["test_cache"],
+                concurrency=deps["concurrency"],
+                geoip=deps["geoip"],
+                tracker=deps["tracker"],
+                event_stream=None,
+                quality_tracker=deps["quality"],
+                history=deps["history"],
+                progress=None,
+                task_process=None,
+                max_latency=None,
+                country_filter=None,
+                leniency=False,
+                washer=deps["washer"],
+            )
+
+    assert stats.drop_reasons.get("tester_error", 0) == 0
+    assert any(item.is_working for item in final_proxies)

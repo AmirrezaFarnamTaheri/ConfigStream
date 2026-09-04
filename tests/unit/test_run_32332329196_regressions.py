@@ -14,6 +14,7 @@ from scripts.aggregate_shard_health import (
     fetch_failure_counts,
     fetch_summary_counts,
 )
+from configstream.constants import is_tester_infrastructure_drop_reason
 from scripts.release_gate import _is_nonblocking_health_note
 
 
@@ -286,6 +287,18 @@ def test_unverified_shielded_candidate_note_is_not_release_blocking() -> None:
     """Treat unverified shielded candidates as a health note, not a blocker."""
 
     assert _is_nonblocking_health_note("unverified_shielded_candidates:15")
+
+
+def test_ordinary_test_outcomes_are_not_tester_infrastructure_errors() -> None:
+    """Substring matching on 'tester' must not block TEST_FAILED / untested."""
+
+    assert is_tester_infrastructure_drop_reason("tester_error")
+    assert is_tester_infrastructure_drop_reason("Go-Tester-Error")
+    assert is_tester_infrastructure_drop_reason("NoneType")
+    assert not is_tester_infrastructure_drop_reason("TEST_FAILED")
+    assert not is_tester_infrastructure_drop_reason("tested")
+    assert not is_tester_infrastructure_drop_reason("untested")
+    assert not is_tester_infrastructure_drop_reason("duplicate")
 
 
 def test_time_limited_intake_is_a_health_note_not_a_blocker() -> None:
