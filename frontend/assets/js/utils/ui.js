@@ -15,31 +15,93 @@ function initMobileNav() {
 
     if (!toggleBtn || !mainNav) return;
 
-    const toggleNav = () => {
-        const isNavOpen = document.body.classList.toggle('nav-open');
-        toggleBtn.setAttribute('aria-expanded', isNavOpen);
-        document.body.style.overflow = isNavOpen ? 'hidden' : '';
+    let previouslyFocusedElement = null;
+
+    const getFocusables = () => {
+        return Array.from(mainNav.querySelectorAll('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'));
+    };
+
+    const updateAria = () => {
+        const isMobile = window.innerWidth <= 768;
+        if (isMobile) {
+            const isOpen = document.body.classList.contains('nav-open');
+            mainNav.setAttribute('aria-hidden', String(!isOpen));
+        } else {
+            mainNav.removeAttribute('aria-hidden');
+        }
     };
 
     const newBtn = toggleBtn.cloneNode(true);
     toggleBtn.parentNode.replaceChild(newBtn, toggleBtn);
+
+    const toggleNav = (open) => {
+        const shouldOpen = typeof open === 'boolean' ? open : !document.body.classList.contains('nav-open');
+        document.body.classList.toggle('nav-open', shouldOpen);
+        newBtn.setAttribute('aria-expanded', String(shouldOpen));
+        document.body.style.overflow = shouldOpen ? 'hidden' : '';
+
+        if (shouldOpen) {
+            previouslyFocusedElement = document.activeElement;
+            mainNav.setAttribute('aria-hidden', 'false');
+            const focusables = getFocusables();
+            if (focusables.length > 0) {
+                setTimeout(() => focusables[0].focus(), 50);
+            }
+        } else {
+            updateAria();
+            if (previouslyFocusedElement && typeof previouslyFocusedElement.focus === 'function') {
+                previouslyFocusedElement.focus();
+            } else {
+                newBtn.focus();
+            }
+        }
+    };
 
     newBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         toggleNav();
     });
 
-    navOverlay.addEventListener('click', toggleNav);
+    navOverlay.addEventListener('click', () => toggleNav(false));
 
     mainNav.addEventListener('click', (e) => {
-        if (e.target.classList.contains('nav-link')) {
-            if (document.body.classList.contains('nav-open')) toggleNav();
+        if (e.target.closest('.nav-link')) {
+            if (document.body.classList.contains('nav-open')) toggleNav(false);
         }
     });
 
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && document.body.classList.contains('nav-open')) toggleNav();
+        if (!document.body.classList.contains('nav-open')) return;
+
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            toggleNav(false);
+            return;
+        }
+
+        if (e.key === 'Tab') {
+            const focusables = getFocusables();
+            if (focusables.length === 0) return;
+
+            const first = focusables[0];
+            const last = focusables[focusables.length - 1];
+
+            if (e.shiftKey) {
+                if (document.activeElement === first || !mainNav.contains(document.activeElement)) {
+                    e.preventDefault();
+                    last.focus();
+                }
+            } else {
+                if (document.activeElement === last || !mainNav.contains(document.activeElement)) {
+                    e.preventDefault();
+                    first.focus();
+                }
+            }
+        }
     });
+
+    window.addEventListener('resize', updateAria);
+    updateAria();
 }
 
 function initTheme() {

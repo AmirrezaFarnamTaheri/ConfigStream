@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0a0e17">
     <meta name="description" content="Access the free, open internet with ConfigStream. We provide auto-updating, security-tested VPN configurations for everyone.">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' blob:; style-src 'self' 'unsafe-inline'; font-src 'none'; img-src 'self' data: blob:; connect-src 'self' ws: wss: data: https://cp.cloudflare.com https://connectivitycheck.gstatic.com https://1.1.1.1 https://api.github.com https://en.wikipedia.org https://cloudflare-dns.com; worker-src 'self' blob:; object-src 'self'; base-uri 'self'; form-action 'self';">
     <title>ConfigStream - Your Gateway to the Open Internet</title>
@@ -540,14 +541,14 @@
                         </a>
                         <div style="width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 0.75rem;">
                             <label for="userWorkerUrl" style="font-weight: 600; color: var(--text-primary);">Your Worker URL:</label>
-                            <div style="display: flex; gap: 0.5rem;">
+                            <div class="byow-input-group">
                                 <input type="text" 
                                        id="userWorkerUrl" 
                                        placeholder="your-worker.username.workers.dev" 
-                                       style="flex: 1; padding: 0.75rem; border: 1px solid #667eea; border-radius: var(--radius-md); background: var(--bg-secondary); color: var(--text-primary); font-family: monospace; font-size: 0.9rem;">
+                                       style="flex: 1; padding: 0.75rem; border: 1px solid #667eea; border-radius: var(--radius-md); background: var(--bg-secondary); color: var(--text-primary); font-family: monospace; font-size: 1rem; min-height: 44px;">
                                 <button id="generatePrivateBridgeBtn" 
                                         class="btn btn-primary" 
-                                        style="background: #667eea; color: white; font-weight: 600; white-space: nowrap;">
+                                        style="background: #667eea; color: white; font-weight: 600; white-space: nowrap; min-height: 44px;">
                                     <i data-feather="zap" aria-hidden="true"></i>
                                     <span>Generate Private Bridge</span>
                                 </button>

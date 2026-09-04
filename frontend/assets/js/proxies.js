@@ -399,6 +399,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     await loadProxiesPage();
+
+    window.addEventListener('languageChanged', () => {
+        renderTable();
+    });
 });
 
 // UI Helpers
@@ -418,6 +422,22 @@ function renderTable() {
     if(emptyState) emptyState.classList.add('hidden');
     document.getElementById('proxiesTable').classList.remove('hidden');
 
+    const getTableLabel = (key, fallback) => {
+        if (window.i18n && typeof window.i18n.t === 'function') {
+            const trans = window.i18n.t(key);
+            if (trans && trans !== key) return trans;
+        }
+        return fallback;
+    };
+
+    const labelProtocol = getTableLabel('table.protocol', 'Protocol');
+    const labelLocation = getTableLabel('table.location', 'Location');
+    const labelLatency = getTableLabel('table.latency', 'Latency');
+    const labelStatus = getTableLabel('table.status', 'Status');
+    const labelProcess = getTableLabel('table.process', 'Process');
+    const labelTrend = getTableLabel('table.trend', 'Trend');
+    const labelAction = getTableLabel('table.copy', 'Action');
+
     const start = (currentPage - 1) * itemsPerPage;
     const end = start + itemsPerPage;
     const pageData = filteredProxies.slice(start, end);
@@ -430,7 +450,7 @@ function renderTable() {
 
         // Protocol
         const protoCell = document.createElement('td');
-        protoCell.setAttribute('data-label', 'Protocol');
+        protoCell.setAttribute('data-label', labelProtocol);
         const protoBadge = document.createElement('span');
         protoBadge.className = 'badge badge-protocol';
         protoBadge.textContent = p.protocol.toUpperCase();
@@ -439,16 +459,30 @@ function renderTable() {
         if (p.typeTag) {
             let tagClass = 'badge-info';
             let tagText = 'Smart';
-            let icon = '';
-            if (p.typeTag === 'secure') { tagClass = 'badge-success'; tagText = 'Secure'; icon = '🛡️'; }
-            if (p.typeTag === 'optimal') { tagClass = 'badge-warning'; tagText = 'Optimal'; icon = '⚡'; }
-            if (p.typeTag === 'intranet') { tagClass = 'badge-primary'; tagText = 'Intranet'; icon = '🏢'; }
+            let iconName = '';
+            if (p.typeTag === 'secure') { tagClass = 'badge-success'; tagText = 'Secure'; iconName = 'shield'; }
+            if (p.typeTag === 'optimal') { tagClass = 'badge-warning'; tagText = 'Optimal'; iconName = 'zap'; }
+            if (p.typeTag === 'intranet') { tagClass = 'badge-primary'; tagText = 'Intranet'; iconName = 'server'; }
             
             const tagBadge = document.createElement('span');
             tagBadge.className = `badge ${tagClass}`;
             tagBadge.style.fontSize = '0.7em';
             tagBadge.style.marginInlineStart = '5px';
-            tagBadge.textContent = `${icon} ${tagText}`;
+            tagBadge.style.display = 'inline-flex';
+            tagBadge.style.alignItems = 'center';
+            tagBadge.style.gap = '3px';
+
+            if (iconName) {
+                const iconElem = document.createElement('i');
+                iconElem.dataset.feather = iconName;
+                iconElem.style.width = '12px';
+                iconElem.style.height = '12px';
+                tagBadge.appendChild(iconElem);
+            }
+            const tagSpan = document.createElement('span');
+            tagSpan.textContent = tagText;
+            tagBadge.appendChild(tagSpan);
+
             protoCell.appendChild(document.createTextNode(' '));
             protoCell.appendChild(tagBadge);
         }
@@ -456,7 +490,7 @@ function renderTable() {
 
         // Location
         const locCell = document.createElement('td');
-        locCell.setAttribute('data-label', 'Location');
+        locCell.setAttribute('data-label', labelLocation);
         locCell.className = 'location-cell';
         const safeCountryCode = p.country_code || 'Unknown';
         const normalizedCountryCode = typeof p.country_code === 'string' ? p.country_code.trim().toLowerCase() : '';
@@ -490,7 +524,7 @@ function renderTable() {
 
         // Latency
         const latCell = document.createElement('td');
-        latCell.setAttribute('data-label', 'Latency');
+        latCell.setAttribute('data-label', labelLatency);
         latCell.className = 'latency-cell tabular-nums';
         const latVal = p.latencyVal === 9999 ? 'N/A' : `${p.latencyVal}ms`;
         // Simple color coding
@@ -508,7 +542,7 @@ function renderTable() {
 
         // Status
         const statusCell = document.createElement('td');
-        statusCell.setAttribute('data-label', 'Status');
+        statusCell.setAttribute('data-label', labelStatus);
         statusCell.className = 'status-cell';
 
         const statusBadge = document.createElement('span');
@@ -519,7 +553,7 @@ function renderTable() {
 
         // Process Type (Replaces History)
         const processCell = document.createElement('td');
-        processCell.setAttribute('data-label', 'Process');
+        processCell.setAttribute('data-label', labelProcess);
         processCell.className = 'process-cell';
         const processType = p.process || 'native';
         let pBadge = 'badge-secondary';
@@ -538,7 +572,7 @@ function renderTable() {
 
         // Trend (Latency History Sparkline)
         const trendCell = document.createElement('td');
-        trendCell.setAttribute('data-label', 'Trend');
+        trendCell.setAttribute('data-label', labelTrend);
         trendCell.className = 'trend-cell tabular-nums';
 
         // Add trend visualization using history data
@@ -611,7 +645,7 @@ function renderTable() {
 
         // Action
         const actionCell = document.createElement('td');
-        actionCell.setAttribute('data-label', 'Action');
+        actionCell.setAttribute('data-label', labelAction);
         const btn = document.createElement('button');
         btn.className = 'btn btn-secondary copy-btn';
         btn.setAttribute('aria-label', `Copy ${p.protocol} configuration`);
@@ -642,6 +676,7 @@ function renderTable() {
 
     tbody.appendChild(frag);
     if(window.inlineIcons) window.inlineIcons.replace();
+    if(window.feather && typeof window.feather.replace === 'function') window.feather.replace();
 
     // History charts removed in favor of Process column
 }

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0a0e17">
     <meta name="description" content="ConfigStream Laboratory - Build, test, and troubleshoot chained proxy routes for free internet access.">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' blob:; style-src 'self' 'unsafe-inline'; font-src 'none'; img-src 'self' data: blob:; connect-src 'self' ws: wss: data: https://cp.cloudflare.com https://connectivitycheck.gstatic.com https://1.1.1.1 https://api.github.com https://en.wikipedia.org https://cloudflare-dns.com; worker-src 'self' blob:; object-src 'self'; base-uri 'self'; form-action 'self';">
     <title>Laboratory - ConfigStream</title>
@@ -63,7 +64,8 @@
             gap: 0;
         }
         .lab-step-dot {
-            width: 40px; height: 40px;
+            width: 44px; height: 44px;
+            min-width: 44px; min-height: 44px;
             border-radius: 50%;
             background: var(--bg-secondary);
             border: 2px solid var(--border-color);
@@ -449,15 +451,29 @@
               <span class="header-logo-text">ConfigStream</span>
             </div>
             <nav class="nav" id="main-nav" aria-label="Main navigation">
-                <a href="index.html" class="nav-link">Home</a>
-                <a href="proxies.html" class="nav-link">Proxy List</a>
-                <a href="analytics.html" class="nav-link">Analytics</a>
+                <a href="index.html" class="nav-link" data-i18n="nav.home">Home</a>
+                <a href="proxies.html" class="nav-link" data-i18n="nav.proxies">Proxy List</a>
+                <a href="analytics.html" class="nav-link" data-i18n="nav.analytics">Analytics</a>
                 <a href="evidence.html" class="nav-link">Evidence</a>
-                <a href="lab.html" class="nav-link active">Lab</a>
-                <a href="wiki.html" class="nav-link">Wiki</a>
-                <a href="about.html" class="nav-link">About</a>
+                <a href="lab.html" class="nav-link active" data-i18n="nav.lab" aria-current="page">Lab</a>
+                <a href="wiki.html" class="nav-link" data-i18n="nav.wiki">Wiki</a>
+                <a href="about.html" class="nav-link" data-i18n="nav.about">About</a>
             </nav>
             <div class="header-actions">
+                <!-- Modern Language Dropdown -->
+                <div class="lang-dropdown">
+                    <button class="lang-btn" aria-label="Select Language">
+                        <i data-feather="globe"></i> <span id="current-lang-label"></span>
+                    </button>
+                    <div class="lang-menu" id="lang-menu">
+                        <button class="lang-select-btn" data-lang="en">English</button>
+                        <button class="lang-select-btn" data-lang="zh">中文</button>
+                        <button class="lang-select-btn" data-lang="ru">Русский</button>
+                        <button class="lang-select-btn" data-lang="fa">فارسی</button>
+                        <button class="lang-select-btn" data-lang="ar">العربية</button>
+                    </div>
+                </div>
+
                 <button id="theme-switcher" class="theme-btn" aria-label="Toggle theme">
                     <div class="theme-btn-inner">
                         <i data-feather="moon" class="moon-icon"></i>

@@ -663,37 +663,87 @@ function _initGlobeInternal(data, container) {
     const COOLDOWN_DURATION = 2000;
     let interactionActive = false;
 
-    // Handler for interaction
+    // Handler for desktop mouse interaction
     const handleInteraction = () => {
-        // Stop auto rotation immediately
         controls.autoRotate = false;
 
-        // Enable zoom if not already enabled (cooldown active logic)
         if (!interactionActive) {
             interactionActive = true;
-            controls.enableZoom = true; // Enable zoom when interacting
+            controls.enableZoom = true;
             container.classList.add('zoom-active');
             container.classList.remove('zoom-inactive');
         }
 
-        // Reset cooldown timer
         if (rotationCooldownTimer) {
             clearTimeout(rotationCooldownTimer);
         }
 
-        // Set timer to resume auto-rotation and disable zoom after 2s of inactivity
         rotationCooldownTimer = setTimeout(() => {
-            controls.autoRotate = true; // Auto spin on
+            controls.autoRotate = true;
             interactionActive = false;
-            controls.enableZoom = false; // Zoom off
+            controls.enableZoom = false;
             container.classList.remove('zoom-active');
             container.classList.add('zoom-inactive');
         }, COOLDOWN_DURATION);
     };
 
     container.addEventListener('mousedown', handleInteraction);
-    container.addEventListener('touchstart', handleInteraction);
     container.addEventListener('wheel', handleInteraction);
+
+    // Mobile / Touch handling: Prevent scroll hijacking
+    const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 768);
+    if (isTouchDevice) {
+        const touchGateBtn = document.createElement('button');
+        touchGateBtn.type = 'button';
+        touchGateBtn.className = 'globe-touch-gate';
+        touchGateBtn.setAttribute('aria-label', 'Toggle interactive 3D globe navigation');
+        touchGateBtn.innerHTML = '<i data-feather="move" aria-hidden="true"></i> <span>Explore 3D Globe</span>';
+        
+        let touchActive = false;
+        let touchInactivityTimer = null;
+
+        const setTouchState = (active) => {
+            touchActive = active;
+            container.classList.toggle('touch-enabled', active);
+            touchGateBtn.classList.toggle('active', active);
+            controls.enableZoom = active;
+            controls.autoRotate = !active;
+            
+            if (active) {
+                touchGateBtn.innerHTML = '<i data-feather="check" aria-hidden="true"></i> <span>Exit 3D Mode</span>';
+            } else {
+                touchGateBtn.innerHTML = '<i data-feather="move" aria-hidden="true"></i> <span>Explore 3D Globe</span>';
+            }
+            if (window.feather) window.feather.replace();
+        };
+
+        const resetInactivityTimer = () => {
+            if (touchInactivityTimer) clearTimeout(touchInactivityTimer);
+            if (touchActive) {
+                touchInactivityTimer = setTimeout(() => {
+                    setTouchState(false);
+                }, 8000);
+            }
+        };
+
+        touchGateBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            setTouchState(!touchActive);
+            resetInactivityTimer();
+        });
+
+        container.addEventListener('touchstart', () => {
+            if (touchActive) {
+                resetInactivityTimer();
+            }
+        }, { passive: true });
+
+        container.appendChild(touchGateBtn);
+        if (window.feather) window.feather.replace();
+    } else {
+        container.addEventListener('touchstart', handleInteraction, { passive: true });
+    }
+
 
     globe.pointOfView({ lat: 20, lng: 0, altitude: 2.5 }, 0);
 

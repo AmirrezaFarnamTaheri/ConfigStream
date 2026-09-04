@@ -7,6 +7,22 @@
         CACHE_PREFIX: 'configstream-cache-',
         CACHE_NAME: 'configstream-cache-v3.2.0',
 
+        // Precache URLs for offline PWA support
+        PRECACHE_URLS: [
+            'index.html',
+            'proxies.html',
+            'analytics.html',
+            'evidence.html',
+            'lab.html',
+            'lab-offline.html',
+            'about.html',
+            'wiki.html',
+            'assets/css/style.css',
+            'assets/js/main.js',
+            'assets/js/init.js',
+            'assets/js/utils.js'
+        ],
+
         // Cache Strategies
         CACHE_STRATEGY: {
             networkFirst: ['.json', '/api/'],
