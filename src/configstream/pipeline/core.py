@@ -97,6 +97,8 @@ class StandardPipeline(IPipeline):
         progress: Optional[Any] = None,
         dry_run: bool = False,
         time_limit_seconds: Optional[int] = None,
+        supplied_proxies: Optional[List[Any]] = None,
+        force_retest: bool = False,
     ) -> "StandardPipeline":
         settings = AppSettings()
         settings.validate_settings()
@@ -145,7 +147,10 @@ class StandardPipeline(IPipeline):
             logger.info("Vwarp tunnel disabled by configuration.")
 
         test_cache = TestResultCache()
+        # Propagate force_retest to cache/scheduler so consumer can bypass them
+        setattr(test_cache, "force_retest", bool(force_retest))
         scheduler = SmartRetestScheduler(cache=test_cache)
+        setattr(scheduler, "force_retest", bool(force_retest))
         concurrency = ConcurrencyManager(
             asyncio.get_running_loop(),
             initial_limit=max_workers,
@@ -217,6 +222,8 @@ class StandardPipeline(IPipeline):
             leniency=leniency,
             strict_security=strict_security,
             dry_run=dry_run,
+            supplied_proxies=supplied_proxies,
+            force_retest=force_retest,
         )
 
         cpu_count = multiprocessing.cpu_count()
@@ -496,9 +503,14 @@ async def run_full_pipeline(
     dry_run: bool = False,
     time_limit_seconds: Optional[int] = None,
     proxies: Optional[List[Any]] = None,
+    supplied_proxies: Optional[List[Any]] = None,
+    force_retest: bool = False,
 ) -> PipelineResult:
     from configstream.pipeline.producer import StreamingProducer
     from configstream.pipeline.consumer import WorkerConsumer
+
+    # Backwards-compatible alias: older callers use `proxies`, newer use `supplied_proxies`.
+    effective_proxies = supplied_proxies if supplied_proxies is not None else proxies
 
     pipeline = await StandardPipeline.create_and_init(
         sources=sources,
@@ -514,7 +526,7 @@ async def run_full_pipeline(
         progress=progress,
         dry_run=dry_run,
         time_limit_seconds=time_limit_seconds,
+        supplied_proxies=effective_proxies,
+        force_retest=force_retest,
     )
-    if proxies:
-        pipeline.context.final_proxies.extend(proxies)
     return await pipeline.run()

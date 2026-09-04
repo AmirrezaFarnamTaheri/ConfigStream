@@ -52,7 +52,7 @@ class StreamingProducer(IProducer):
             await source_producer(
                 self.sources,
                 self.context.work_queue,
-                None,  # Pre-supplied proxies are queued separately, not via results list.
+                getattr(self.context, "supplied_proxies", None),
                 self.context.quality_tracker,
                 self.context.anomaly_detector,
                 self.context.event_stream,

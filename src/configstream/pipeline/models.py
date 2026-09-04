@@ -75,3 +75,5 @@ class PipelineContext:
     strict_security: bool = False
     dry_run: bool = False
     num_consumers: int = 4
+    supplied_proxies: Optional[List[Proxy]] = None
+    force_retest: bool = False

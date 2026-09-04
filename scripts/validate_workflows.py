@@ -503,6 +503,10 @@ def main() -> int:
             artifact_name="pipeline-output",
         ):
             errors.append(f"{path}: pipeline-output artifact retention must be durable")
+        if path.name == "retest.yml" and not _has_command(
+            data, "python -m configstream.cli retest"
+        ):
+            errors.append(f"{path}: retest workflow must invoke python -m configstream.cli retest")
         if path.name == "deploy-pages.yml":
             errors.extend(f"{path}: {error}" for error in _deploy_pages_safe(data))
         if _has_command(data, "git push"):

@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import json
 import sys
 import asyncio
 import logging
@@ -253,6 +254,144 @@ def merge(
     finally:
         # GeoIP support is optional for commands such as ``update-databases``.
         # Import it only after the merge path has used the resolver.
+        try:
+            from .geoip import DEFAULT_RESOLVER
+        except ImportError:
+            DEFAULT_RESOLVER = None
+        if DEFAULT_RESOLVER:
+            DEFAULT_RESOLVER.close()
+
+
+@main.command()
+@click.option("--input", required=True, help="Path to proxies.json file")
+@click.option("--output", default="output", help="Output directory")
+@click.option("--timeout", type=float, default=310, help="Test timeout in seconds")
+@click.option("--max-workers", default=50, help="Max concurrent workers")
+@click.option("--leniency", is_flag=True, help="Enable lenient testing mode")
+@click.option("--verbose", "-v", is_flag=True, help="Enable debug logging")
+def retest(input, output, timeout, max_workers, leniency, verbose):  # noqa: A002
+    """Retest proxies from a previous export."""
+    setup_logging(verbose)
+    from .config import AppSettings
+
+    settings = AppSettings()
+    if timeout is None:
+        timeout = settings.TEST_TIMEOUT
+
+    input_path = Path(input)
+    if not input_path.is_file():
+        console.print(f"[red]Error: Input file not found: {input}[/red]")
+        sys.exit(1)
+
+    try:
+        raw_text = input_path.read_text(encoding="utf-8")
+        data = json.loads(raw_text)
+    except (OSError, json.JSONDecodeError, UnicodeDecodeError) as exc:
+        console.print(f"[red]Error: Could not read {input}: {exc}[/red]")
+        sys.exit(1)
+
+    if not isinstance(data, list):
+        console.print(f"[red]Error: {input} must contain a JSON list[/red]")
+        sys.exit(1)
+
+    configs: list[str] = []
+    for item in data:
+        if not isinstance(item, dict):
+            continue
+        cfg = item.get("config")
+        if not isinstance(cfg, str):
+            continue
+        stripped = cfg.strip()
+        if not stripped:
+            continue
+        # Skip JSON chain blobs (generated Sing-box outbound bundles)
+        if stripped.lstrip().startswith("{"):
+            continue
+        configs.append(stripped)
+
+    if not configs:
+        console.print(f"[red]Error: No share-link configs found in {input}[/red]")
+        sys.exit(1)
+
+    console.print(f"[bold green]🚀 Retesting {len(configs)} proxies from {input}[/bold green]")
+
+    class _Holder:
+        __slots__ = ("config",)
+
+        def __init__(self, cfg: str):
+            self.config = cfg
+
+    supplied = [_Holder(c) for c in configs]
+
+    async def _run():
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TaskProgressColumn(),
+            console=console,
+        ) as progress:
+            result = await run_full_pipeline(
+                sources=[],
+                output_dir=output,
+                max_workers=max_workers,
+                timeout=timeout,
+                leniency=leniency,
+                progress=progress,
+                supplied_proxies=supplied,
+                force_retest=True,
+            )
+            return result
+
+    try:
+        if sys.platform == "win32":
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+        coro = _run()
+        try:
+            result = asyncio.run(coro)
+        except RuntimeError as exc:
+            coro.close()
+            if "no current event loop" in str(exc).lower():
+                loop = asyncio.new_event_loop()
+                try:
+                    asyncio.set_event_loop(loop)
+                    result = loop.run_until_complete(_run())
+                finally:
+                    loop.close()
+                    asyncio.set_event_loop(None)
+            else:
+                raise
+
+        if result.success:
+            stats_obj = result.stats
+
+            def _get(key: str):
+                if hasattr(stats_obj, key):
+                    return getattr(stats_obj, key)
+                if isinstance(stats_obj, dict):
+                    return stats_obj.get(key, 0)
+                return 0
+
+            console.print("\n[bold green]Retest Completed Successfully![/bold green]")
+            console.print(f"Duration: {_get('duration'):.1f}s")
+            console.print(f"Tested: {_get('tested')}")
+            console.print(f"Working: {_get('working')}")
+            if _get("working") == 0 and not _get("time_limited"):
+                console.print("[yellow]Warning: retest finished with 0 working proxies[/yellow]")
+        else:
+            console.print(f"\n[bold red]Retest Failed: {result.error}[/bold red]")
+            sys.exit(1)
+
+    except KeyboardInterrupt:
+        console.print("\n[yellow]Retest interrupted by user.[/yellow]")
+        sys.exit(130)
+    except (OSError, ValueError, RuntimeError) as exc:
+        console.print(f"\n[bold red]Retest Error: {exc}[/bold red]")
+        if verbose:
+            console.print_exception()
+        sys.exit(1)
+    finally:
         try:
             from .geoip import DEFAULT_RESOLVER
         except ImportError:

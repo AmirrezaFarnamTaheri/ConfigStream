@@ -568,7 +568,7 @@
     },
     {
       "path": "src/configstream/cli.py",
-      "line": 248,
+      "line": 249,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1160,7 +1160,7 @@
     },
     {
       "path": "src/configstream/pipeline/consumer.py",
-      "line": 579,
+      "line": 585,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1168,7 +1168,7 @@
     },
     {
       "path": "src/configstream/pipeline/consumer.py",
-      "line": 593,
+      "line": 599,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1176,7 +1176,7 @@
     },
     {
       "path": "src/configstream/pipeline/consumer.py",
-      "line": 791,
+      "line": 797,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1184,7 +1184,7 @@
     },
     {
       "path": "src/configstream/pipeline/consumer.py",
-      "line": 809,
+      "line": 815,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1192,7 +1192,7 @@
     },
     {
       "path": "src/configstream/pipeline/consumer.py",
-      "line": 850,
+      "line": 856,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1208,7 +1208,7 @@
     },
     {
       "path": "src/configstream/pipeline/core.py",
-      "line": 246,
+      "line": 253,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1216,7 +1216,7 @@
     },
     {
       "path": "src/configstream/pipeline/core.py",
-      "line": 307,
+      "line": 314,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1224,7 +1224,7 @@
     },
     {
       "path": "src/configstream/pipeline/core.py",
-      "line": 394,
+      "line": 401,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1232,7 +1232,7 @@
     },
     {
       "path": "src/configstream/pipeline/core.py",
-      "line": 421,
+      "line": 428,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
