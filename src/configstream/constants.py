@@ -163,6 +163,36 @@ class DropCategory(str, Enum):
     UNKNOWN = "unknown"
 
 
+_TESTER_INFRA_EXACT = frozenset(
+    {
+        "tester",
+        "go_tester",
+        "tester_crash",
+        "tester_timeout",
+        "tester_unavailable",
+    }
+)
+
+
+def is_tester_infrastructure_drop_reason(key: object) -> bool:
+    """Return True when a drop-reason key is tester *infrastructure* failure.
+
+    Release gates must not treat ordinary outcomes such as ``TEST_FAILED``,
+    ``tested``, or ``untested`` as infrastructure errors. Matching the
+    substring "tester" false-positives on those keys and blocks an
+    otherwise valid release.
+    """
+
+    lowered = str(key or "").strip().lower().replace("-", "_").replace(" ", "_")
+    if not lowered:
+        return False
+    if "nonetype" in lowered or "sequence_item" in lowered:
+        return True
+    if lowered in _TESTER_INFRA_EXACT:
+        return True
+    return "tester_error" in lowered
+
+
 # Canonical protocol ordering for user-facing output artifacts.
 # Keeps high-demand censorship-evasion transports first while preserving
 # deterministic ordering across base64/proxies/adapters/chosen files.

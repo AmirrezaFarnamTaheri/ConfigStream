@@ -82,3 +82,10 @@ def test_generate_singbox_config_has_no_dead_legacy_selector_outbounds():
     assert "⚡ Best Latency" in tags
     assert "🚀 Mode Selector" not in tags
     assert "🛡️ Auto-Fallback" not in tags
+
+
+def test_generate_singbox_config_empty_urltest_falls_back_to_direct():
+    """Country/protocol subsets with no convertible proxies must stay valid."""
+    config = json.loads(generate_singbox_config([]))
+    urltest = next(item for item in config["outbounds"] if item.get("type") == "urltest")
+    assert urltest["outbounds"] == ["direct"]

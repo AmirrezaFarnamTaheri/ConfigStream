@@ -1,6 +1,9 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import json
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+
+from configstream.artifact_freshness import validate_metadata_freshness
 from configstream.models import Proxy
 from configstream.output_logic import save_metadata
 
@@ -100,6 +103,18 @@ def test_save_metadata_analytics_structure(tmp_path: Path):
     # assert data["total_fetched"] == 100 # Field might be named differently or not exist
     # assert data["duration_seconds"] == 10.5
     assert "last_updated_utc" in data
+
+    p_stats.end_time = datetime.now(timezone.utc) - timedelta(hours=13)
+    save_metadata(p_stats, proxies, output_dir)
+    restamped = json.loads(metadata_file.read_text())
+    assert validate_metadata_freshness(restamped) == []
+    generated = datetime.fromisoformat(
+        restamped["generated_at"].replace("Z", "+00:00")
+    )
+    updated = datetime.fromisoformat(
+        restamped["last_updated_utc"].replace("Z", "+00:00")
+    )
+    assert updated > generated
 
     # Check latency distribution
     dist = data["latency_distribution"]

@@ -5,7 +5,7 @@ import hashlib
 import json
 from pathlib import Path
 
-from scripts.finalize_release_outputs import finalize, modernize_singbox
+from scripts.finalize_release_outputs import _blockers, finalize, modernize_singbox
 from scripts.reconcile_release_metadata import reconcile
 from scripts.release_gate import manifest_entries, validate
 from scripts.shard_sources import partition
@@ -63,6 +63,23 @@ def test_modernize_singbox_migrates_wireguard_and_route_contract() -> None:
     assert any(item.get("action") == "hijack-dns" for item in result["route"]["rules"])
     assert result["inbounds"][0]["address"] == ["172.19.0.1/30"]
     assert "\u008f" not in json.dumps(result, ensure_ascii=False)
+
+
+def test_finalize_blockers_ignore_ordinary_test_failures() -> None:
+    """TEST_FAILED / untested must not become tester_errors release blockers."""
+
+    healthy = {
+        "fetched_sources": 8,
+        "total_configured_sources": 10,
+        "drop_reasons": {"TEST_FAILED": 12, "untested": 3, "tested": 40},
+    }
+    assert _blockers(healthy, 0.80) == []
+    blocked = {
+        "fetched_sources": 8,
+        "total_configured_sources": 10,
+        "drop_reasons": {"tester_error": 2},
+    }
+    assert _blockers(blocked, 0.80) == ["tester_errors:2"]
 
 
 def test_finalize_sanitizes_counts_sources_and_transients(tmp_path: Path) -> None:

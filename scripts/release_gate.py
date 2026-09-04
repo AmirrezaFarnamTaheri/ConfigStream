@@ -13,6 +13,7 @@ from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 from typing import Any, Optional, Union
 
+from configstream.constants import is_tester_infrastructure_drop_reason
 from configstream.output.client_formats import validate_xray_config
 from configstream.output.singbox_contract import validate_singbox_config
 
@@ -287,10 +288,7 @@ def validate(root: Path, native_report: Path, min_coverage: float) -> list[str]:
         errors.append("metadata drop_reasons must be an object")
     elif isinstance(drop_reasons, dict):
         for key, value in drop_reasons.items():
-            lowered = str(key).lower()
-            if any(
-                marker in lowered for marker in ("nonetype", "sequence item", "tester")
-            ) and safe_int(value):
+            if is_tester_infrastructure_drop_reason(key) and safe_int(value):
                 errors.append(f"tester infrastructure errors remain: {key}={value}")
     if not isinstance(health, dict):
         errors.append("health.json must be an object")
