@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_digest": "18cc859756a611b1fe832d35de61ec22e554a988a0034c43800752767df51c1c",
+  "source_digest": "350f3a0f96cf5508c364bf14f3670e22f59d5289d293fee6775d23a1786cf9e2",
   "variable_count": 161,
   "variables": [
     {
@@ -738,10 +738,10 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:574",
-        "scripts/finalize_release_outputs.py:617",
+        "scripts/finalize_release_outputs.py:583",
+        "scripts/finalize_release_outputs.py:626",
         "scripts/generate_evidence_bundle.py:20",
-        "scripts/native_client_checks.py:222",
+        "scripts/native_client_checks.py:232",
         "scripts/release_gate.py:181",
         "scripts/release_gate.py:390",
         "scripts/resilient_stage.py:469",
@@ -759,10 +759,10 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:573",
-        "scripts/finalize_release_outputs.py:616",
+        "scripts/finalize_release_outputs.py:582",
+        "scripts/finalize_release_outputs.py:625",
         "scripts/generate_evidence_bundle.py:19",
-        "scripts/native_client_checks.py:221",
+        "scripts/native_client_checks.py:231",
         "scripts/release_gate.py:180",
         "scripts/release_gate.py:387",
         "scripts/resilient_stage.py:468",
@@ -780,10 +780,10 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:572",
-        "scripts/finalize_release_outputs.py:615",
+        "scripts/finalize_release_outputs.py:581",
+        "scripts/finalize_release_outputs.py:624",
         "scripts/generate_evidence_bundle.py:21",
-        "scripts/native_client_checks.py:220",
+        "scripts/native_client_checks.py:230",
         "scripts/release_gate.py:179",
         "scripts/release_gate.py:384",
         "scripts/resilient_stage.py:470",
@@ -1142,7 +1142,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:632"
+        "scripts/finalize_release_outputs.py:641"
       ],
       "type": null
     },
@@ -1197,7 +1197,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/native_client_checks.py:83",
+        "scripts/native_client_checks.py:92",
         "src/configstream/testers/go_tester/manager.py:324",
         "src/configstream/testers/go_tester/manager.py:91"
       ],
@@ -1669,9 +1669,9 @@
       "sources": [
         "src/configstream/config.py:144",
         "src/configstream/intelligence/washer/core.py:515",
-        "src/configstream/pipeline/core.py:133",
-        "src/configstream/pipeline/core.py:138",
-        "src/configstream/pipeline/core.py:143",
+        "src/configstream/pipeline/core.py:135",
+        "src/configstream/pipeline/core.py:140",
+        "src/configstream/pipeline/core.py:145",
         "src/configstream/testers/go_tester/manager.py:331",
         "src/configstream/testers/go_tester/secure_manager.py:71"
       ],

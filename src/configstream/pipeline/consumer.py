@@ -514,11 +514,17 @@ async def _test_candidates(
     final_batch_for_this_source = []
     proxies_to_actually_test = []
 
+    # Retest mode bypasses scheduler and cache via force_retest flag on cache.
+    # Use `is True` to distinguish real bool flag from MagicMock auto-attributes.
+    force_retest = bool(
+        getattr(test_cache, "force_retest", False) is True
+        or getattr(scheduler, "force_retest", False) is True
+    )
     # Cache Check (batch lock acquisition instead of per-proxy)
     _local_cache_misses = 0
     for p in safe_batch:
         cached = None
-        if not scheduler.should_retest(p):
+        if not force_retest and not scheduler.should_retest(p):
             cached = test_cache.get(p)
 
         if cached:

@@ -79,9 +79,19 @@ def run(
     before = digest(resolved)
     base["artifact_sha256"] = before
     with tempfile.TemporaryDirectory(prefix=f"configstream-{core}-") as home:
+        # Xray resolves geodata via XRAY_LOCATION_ASSET; HOME is a temp dir
+        # that does not contain the validated geoip.dat/geosite.dat assets.
+        xray_binary = shutil.which("xray")
+        xray_asset_dir = ""
+        if xray_binary:
+            xray_asset_dir = str(Path(xray_binary).resolve().parent)
+        else:
+            # Fallback to the install dir used by install_native_validators.sh
+            xray_asset_dir = str(Path.home() / ".local" / "bin")
         env = {
             "PATH": os.environ.get("PATH", ""),
             "HOME": home,
+            "XRAY_LOCATION_ASSET": xray_asset_dir,
             "LANG": "C.UTF-8",
             "LC_ALL": "C.UTF-8",
             "TZ": "UTC",

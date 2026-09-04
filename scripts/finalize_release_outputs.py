@@ -485,14 +485,23 @@ def finalize(root: Path, repo_root: Path, threshold: float) -> None:
     _write(root / "xray.json", xray)
     clash_report = _repair_clash(root, records)
     copied_wasm: list[str] = []
-    for source, destination in (
+    wasm_candidates: list[tuple[Path, Path]] = [
+        (repo_root / "frontend/assets/wasm/tester.wasm", root / "assets/wasm/tester.wasm"),
+        (repo_root / "frontend/assets/js/wasm_exec.js", root / "assets/js/wasm_exec.js"),
+        # Legacy fallback locations retained for local runs
         (repo_root / "wasm/tester.wasm", root / "assets/wasm/tester.wasm"),
         (repo_root / "js/wasm_exec.js", root / "assets/js/wasm_exec.js"),
-    ):
+    ]
+    for source, destination in wasm_candidates:
         if source.is_file():
             destination.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(source, destination)
-            copied_wasm.append(destination.relative_to(root).as_posix())
+            # Atomic copy to avoid half-written wasm on sudden termination
+            tmp = destination.with_suffix(destination.suffix + ".tmp")
+            shutil.copy2(source, tmp)
+            tmp.replace(destination)
+            rel = destination.relative_to(root).as_posix()
+            if rel not in copied_wasm:
+                copied_wasm.append(rel)
     removed = _cleanup(root)
 
     logical = [item for item in records if item.get("protocol") != "chain"]
