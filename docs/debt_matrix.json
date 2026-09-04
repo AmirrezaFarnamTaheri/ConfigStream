@@ -928,15 +928,15 @@
     },
     {
       "path": "src/configstream/output/metadata.py",
-      "line": 70,
+      "line": 84,
       "marker": "LARGE_FUNCTION",
       "category": "production",
       "priority": "P1 - High",
-      "text": "Function save_metadata spans 394 lines (threshold: 300)."
+      "text": "Function save_metadata spans 393 lines (threshold: 300)."
     },
     {
       "path": "src/configstream/output/metadata.py",
-      "line": 326,
+      "line": 339,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -944,7 +944,7 @@
     },
     {
       "path": "src/configstream/output/metadata.py",
-      "line": 477,
+      "line": 490,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1176,7 +1176,7 @@
     },
     {
       "path": "src/configstream/pipeline/consumer.py",
-      "line": 787,
+      "line": 791,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",

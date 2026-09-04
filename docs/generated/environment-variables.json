@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_digest": "a83418d48b2e217f866e43d1337d04ac373314ef32f675bab59bddf0c44514cc",
+  "source_digest": "18cc859756a611b1fe832d35de61ec22e554a988a0034c43800752767df51c1c",
   "variable_count": 161,
   "variables": [
     {
@@ -358,8 +358,8 @@
       "required": false,
       "sensitive": true,
       "sources": [
-        "scripts/release_gate.py:338",
-        "src/configstream/output/metadata.py:467"
+        "scripts/release_gate.py:336",
+        "src/configstream/output/metadata.py:480"
       ],
       "type": null
     },
@@ -738,17 +738,17 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:573",
-        "scripts/finalize_release_outputs.py:616",
+        "scripts/finalize_release_outputs.py:574",
+        "scripts/finalize_release_outputs.py:617",
         "scripts/generate_evidence_bundle.py:20",
         "scripts/native_client_checks.py:222",
-        "scripts/release_gate.py:180",
-        "scripts/release_gate.py:392",
+        "scripts/release_gate.py:181",
+        "scripts/release_gate.py:390",
         "scripts/resilient_stage.py:469",
-        "scripts/validate_pages_artifact.py:1189",
-        "scripts/validate_pages_artifact.py:1222",
-        "src/configstream/output/metadata.py:508",
-        "src/configstream/output/metadata.py:541"
+        "scripts/validate_pages_artifact.py:1203",
+        "scripts/validate_pages_artifact.py:1236",
+        "src/configstream/output/metadata.py:521",
+        "src/configstream/output/metadata.py:554"
       ],
       "type": null
     },
@@ -759,17 +759,17 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:572",
-        "scripts/finalize_release_outputs.py:615",
+        "scripts/finalize_release_outputs.py:573",
+        "scripts/finalize_release_outputs.py:616",
         "scripts/generate_evidence_bundle.py:19",
         "scripts/native_client_checks.py:221",
-        "scripts/release_gate.py:179",
-        "scripts/release_gate.py:389",
+        "scripts/release_gate.py:180",
+        "scripts/release_gate.py:387",
         "scripts/resilient_stage.py:468",
-        "scripts/validate_pages_artifact.py:1188",
-        "scripts/validate_pages_artifact.py:1221",
-        "src/configstream/output/metadata.py:507",
-        "src/configstream/output/metadata.py:540"
+        "scripts/validate_pages_artifact.py:1202",
+        "scripts/validate_pages_artifact.py:1235",
+        "src/configstream/output/metadata.py:520",
+        "src/configstream/output/metadata.py:553"
       ],
       "type": null
     },
@@ -780,17 +780,17 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:571",
-        "scripts/finalize_release_outputs.py:614",
+        "scripts/finalize_release_outputs.py:572",
+        "scripts/finalize_release_outputs.py:615",
         "scripts/generate_evidence_bundle.py:21",
         "scripts/native_client_checks.py:220",
-        "scripts/release_gate.py:178",
-        "scripts/release_gate.py:386",
+        "scripts/release_gate.py:179",
+        "scripts/release_gate.py:384",
         "scripts/resilient_stage.py:470",
-        "scripts/validate_pages_artifact.py:1187",
-        "scripts/validate_pages_artifact.py:1220",
-        "src/configstream/output/metadata.py:506",
-        "src/configstream/output/metadata.py:539"
+        "scripts/validate_pages_artifact.py:1201",
+        "scripts/validate_pages_artifact.py:1234",
+        "src/configstream/output/metadata.py:519",
+        "src/configstream/output/metadata.py:552"
       ],
       "type": null
     },
@@ -1109,7 +1109,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:51"
+        "scripts/finalize_release_outputs.py:52"
       ],
       "type": null
     },
@@ -1142,7 +1142,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:631"
+        "scripts/finalize_release_outputs.py:632"
       ],
       "type": null
     },

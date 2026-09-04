@@ -67,6 +67,20 @@ def _read_json_object(path: Path) -> Dict[str, Any]:
     return payload if isinstance(payload, dict) else {}
 
 
+def _artifact_timestamps(stats: Any) -> tuple[str, str, Any]:
+    """Return generated_at, last_updated_utc, and start_time for metadata."""
+    now_iso = datetime.now(timezone.utc).isoformat()
+    generated_at_iso = now_iso
+    start_time_iso = None
+    if isinstance(stats, dict):
+        start_time_iso = stats.get("start_time")
+        if stats.get("end_time"):
+            generated_at_iso = str(stats.get("end_time") or now_iso)
+    elif getattr(stats, "end_time", None):
+        generated_at_iso = stats.end_time.isoformat()
+    return generated_at_iso, now_iso, start_time_iso
+
+
 def save_metadata(
     stats: Any,
     proxies: List[Proxy],
@@ -129,10 +143,8 @@ def save_metadata(
     parsed_count = total
     tested_count = total
     reasons: Dict[str, int] = {}
-    now_iso = datetime.now(timezone.utc).isoformat()
-    end_time_iso = now_iso
-    generated_at_iso = now_iso
-    start_time_iso = None
+    generated_at_iso, now_iso, start_time_iso = _artifact_timestamps(stats)
+    end_time_iso = generated_at_iso
     washed_count = 0
     smart_chain_count = 0
     vwarp_win_rate = 0.0
@@ -233,9 +245,6 @@ def save_metadata(
         parsed_count = getattr(stats, "parsed", total)
         tested_count = getattr(stats, "tested", total)
         reasons = getattr(stats, "drop_reasons", {})
-        if hasattr(stats, "end_time") and stats.end_time:
-            generated_at_iso = stats.end_time.isoformat()
-            end_time_iso = now_iso
         washed_count = getattr(stats, "washer_success_count", 0)
         smart_chain_count = getattr(stats, "smart_chain_count", 0)
         vwarp_win_rate = getattr(stats, "vwarp_win_rate", 0.0)
