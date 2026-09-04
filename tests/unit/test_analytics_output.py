@@ -108,9 +108,7 @@ def test_save_metadata_analytics_structure(tmp_path: Path):
     save_metadata(p_stats, proxies, output_dir)
     restamped = json.loads(metadata_file.read_text())
     assert validate_metadata_freshness(restamped) == []
-    generated = datetime.fromisoformat(
-        restamped["generated_at"].replace("Z", "+00:00")
-    )
+    generated = datetime.fromisoformat(restamped["generated_at"].replace("Z", "+00:00"))
     updated = datetime.fromisoformat(
         restamped["last_updated_utc"].replace("Z", "+00:00")
     )
