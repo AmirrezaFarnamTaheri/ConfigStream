@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_digest": "350f3a0f96cf5508c364bf14f3670e22f59d5289d293fee6775d23a1786cf9e2",
+  "source_digest": "6be30abfa73f1112a3e3457388c769842f36bb64e2c19c06428e493b24fb14fc",
   "variable_count": 161,
   "variables": [
     {
@@ -738,8 +738,8 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:583",
-        "scripts/finalize_release_outputs.py:626",
+        "scripts/finalize_release_outputs.py:589",
+        "scripts/finalize_release_outputs.py:632",
         "scripts/generate_evidence_bundle.py:20",
         "scripts/native_client_checks.py:232",
         "scripts/release_gate.py:181",
@@ -759,8 +759,8 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:582",
-        "scripts/finalize_release_outputs.py:625",
+        "scripts/finalize_release_outputs.py:588",
+        "scripts/finalize_release_outputs.py:631",
         "scripts/generate_evidence_bundle.py:19",
         "scripts/native_client_checks.py:231",
         "scripts/release_gate.py:180",
@@ -780,8 +780,8 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:581",
-        "scripts/finalize_release_outputs.py:624",
+        "scripts/finalize_release_outputs.py:587",
+        "scripts/finalize_release_outputs.py:630",
         "scripts/generate_evidence_bundle.py:21",
         "scripts/native_client_checks.py:230",
         "scripts/release_gate.py:179",
@@ -1142,7 +1142,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:641"
+        "scripts/finalize_release_outputs.py:647"
       ],
       "type": null
     },

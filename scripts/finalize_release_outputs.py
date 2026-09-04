@@ -486,8 +486,14 @@ def finalize(root: Path, repo_root: Path, threshold: float) -> None:
     clash_report = _repair_clash(root, records)
     copied_wasm: list[str] = []
     wasm_candidates: list[tuple[Path, Path]] = [
-        (repo_root / "frontend/assets/wasm/tester.wasm", root / "assets/wasm/tester.wasm"),
-        (repo_root / "frontend/assets/js/wasm_exec.js", root / "assets/js/wasm_exec.js"),
+        (
+            repo_root / "frontend/assets/wasm/tester.wasm",
+            root / "assets/wasm/tester.wasm",
+        ),
+        (
+            repo_root / "frontend/assets/js/wasm_exec.js",
+            root / "assets/js/wasm_exec.js",
+        ),
         # Legacy fallback locations retained for local runs
         (repo_root / "wasm/tester.wasm", root / "assets/wasm/tester.wasm"),
         (repo_root / "js/wasm_exec.js", root / "assets/js/wasm_exec.js"),
