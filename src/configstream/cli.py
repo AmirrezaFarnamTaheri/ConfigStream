@@ -313,7 +313,9 @@ def retest(input, output, timeout, max_workers, leniency, verbose):  # noqa: A00
         console.print(f"[red]Error: No share-link configs found in {input}[/red]")
         sys.exit(1)
 
-    console.print(f"[bold green]🚀 Retesting {len(configs)} proxies from {input}[/bold green]")
+    console.print(
+        f"[bold green]🚀 Retesting {len(configs)} proxies from {input}[/bold green]"
+    )
 
     class _Holder:
         __slots__ = ("config",)
@@ -378,7 +380,9 @@ def retest(input, output, timeout, max_workers, leniency, verbose):  # noqa: A00
             console.print(f"Tested: {_get('tested')}")
             console.print(f"Working: {_get('working')}")
             if _get("working") == 0 and not _get("time_limited"):
-                console.print("[yellow]Warning: retest finished with 0 working proxies[/yellow]")
+                console.print(
+                    "[yellow]Warning: retest finished with 0 working proxies[/yellow]"
+                )
         else:
             console.print(f"\n[bold red]Retest Failed: {result.error}[/bold red]")
             sys.exit(1)
