@@ -253,10 +253,9 @@ class PipelineStats:
             self.abandoned_queue_items += int(item_count)
             self.abandoned_queue_lines += int(line_count)
             if line_count:
-                self.drop_reasons["hard_timeout_abandoned"] = (
-                    self.drop_reasons.get("hard_timeout_abandoned", 0)
-                    + int(line_count)
-                )
+                self.drop_reasons["hard_timeout_abandoned"] = self.drop_reasons.get(
+                    "hard_timeout_abandoned", 0
+                ) + int(line_count)
 
     def to_dict(self) -> Dict[str, Any]:
         """
