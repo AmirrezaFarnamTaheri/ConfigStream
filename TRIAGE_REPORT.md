@@ -13,7 +13,7 @@
 
 - Total entries: **266**
 - Exact broad exception boundaries: **241**
-- Oversized functions (300+ lines): **10**
+- Oversized functions (300+ lines): **9**
 
 ## Source admission
 
