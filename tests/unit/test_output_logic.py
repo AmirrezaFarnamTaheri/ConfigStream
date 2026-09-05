@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import json
 import base64
+from pathlib import Path
+
 from configstream.generators.plaintext import generate_plaintext_subscription
 from configstream.models import Proxy
 from configstream.output_logic import generate_categorized_outputs
@@ -122,8 +124,10 @@ def test_dns_cache_passthrough(tmp_path, sample_proxies):
 
 
 def test_disabled_dns_modes_emit_empty_required_artifacts_without_building(
-    tmp_path, sample_proxies, monkeypatch
-):
+    tmp_path: Path,
+    sample_proxies: list[Proxy],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setenv("DNS_SAFE_OUTPUTS", "false")
     monkeypatch.setenv("DNS_HARDENED_OUTPUTS", "false")
 
