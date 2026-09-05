@@ -2,10 +2,6 @@
 import asyncio
 import logging
 import inspect
-import time
-import hashlib
-from pathlib import Path
-import orjson as json
 from typing import List, Optional, Any, TYPE_CHECKING, cast, Dict
 
 from rich.progress import Progress, TaskID
@@ -22,7 +18,8 @@ from configstream.testers import SingBoxTester
 from configstream.test_cache import TestResultCache
 from configstream.scheduler import SmartRetestScheduler
 from configstream.concurrency_manager import ConcurrencyManager
-from configstream.source_quality import SourceQualityTracker, calculate_diversity_score
+from configstream.source_quality import SourceQualityTracker
+from configstream.source_run_aggregation import record_source_chunk
 from configstream.performance import PerformanceTracker
 from configstream.history.tracker import ProxyHistoryTracker
 from configstream.pipeline_stats import PipelineStats
@@ -208,40 +205,7 @@ async def processing_consumer(
             work_queue.task_done()
             continue
 
-        # [FINGERPRINT] Save source fingerprint for similarity analysis
-        def _save_fingerprint(batch, src_url):
-            try:
-                fingerprint_keys = []
-                for p in batch:
-                    k = proxy_unique_key(p)
-                    fingerprint_keys.append(k)
-
-                fingerprint_set = list(set(fingerprint_keys))
-
-                if fingerprint_set:
-                    src_hash = hashlib.sha256(
-                        src_url.encode("utf-8", errors="ignore")
-                    ).hexdigest()
-                    fp_dir = Path("data") / "fingerprints"
-                    fp_dir.mkdir(parents=True, exist_ok=True)
-                    fp_file = fp_dir / f"{src_hash}.json"
-
-                    fp_data = {
-                        "url": SecurityValidator.sanitize_log_message(str(src_url)),
-                        "proxies": fingerprint_set,
-                        "timestamp": int(time.time()),
-                    }
-
-                    tmp_fp = fp_file.with_suffix(".tmp")
-                    raw = json.dumps(fp_data)
-                    tmp_fp.write_bytes(
-                        raw if isinstance(raw, bytes) else raw.encode("utf-8")
-                    )
-                    tmp_fp.replace(fp_file)
-            except Exception as e:
-                logger.debug(f"Fingerprint save failed: {e}")
-
-        await loop.run_in_executor(None, _save_fingerprint, parsed_batch, source)
+        fingerprint_keys = [proxy_unique_key(p) for p in parsed_batch]
 
         # 1. Deduplication Stage
         async with seen_lock:
@@ -324,12 +288,13 @@ async def processing_consumer(
 
         # 6. Source Metrics Reporting
         fetched_count = len(parsed_batch)
-        diversity_score = calculate_diversity_score(final_batch_for_this_source)
 
         process_end_time = asyncio.get_running_loop().time()
         total_duration = (process_end_time - process_start_time) * 1000
         fetch_duration = (metadata.get("fetch_duration") or 0.0) * 1000
-        full_duration_ms = total_duration + fetch_duration
+        full_duration_ms = total_duration + (
+            fetch_duration if metadata.get("count_source", True) else 0.0
+        )
 
         # Aggregate Failure Modes & GeoIP for logging
         failure_modes: dict = {}
@@ -337,8 +302,8 @@ async def processing_consumer(
             failure_modes.update(metadata.get("drop_stats", {}))
         geoip_stats: dict = {}
         for p in final_batch_for_this_source:
-            if p.country_code:
-                geoip_stats[p.country_code] = geoip_stats.get(p.country_code, 0) + 1
+            cc = p.country_code or "XX"
+            geoip_stats[cc] = geoip_stats.get(cc, 0) + 1
 
         summary_msg = (
             f"Source Summary [{safe_source}]: "
@@ -360,34 +325,23 @@ async def processing_consumer(
             and not source.startswith("sources/")
         ):
             try:
-                await loop.run_in_executor(
-                    None,
-                    quality_tracker.update,
-                    source,
-                    fetched_count,
-                    working_count,
-                    diversity_score,
-                    0.0,
-                )
-            except Exception:  # nosec B110
-                logging.getLogger(__name__).debug("Suppressed broad exception")
-                pass
-            try:
                 batch_number = str(getattr(settings, "BATCH_NUMBER", "")).strip()
                 batch_source = f"batch_{batch_number}" if batch_number else "pipeline"
                 await loop.run_in_executor(
                     None,
-                    quality_tracker.record_run,
+                    record_source_chunk,
+                    quality_tracker,
                     source,
-                    {
-                        "timestamp": int(time.time()),
-                        "duration_ms": full_duration_ms,
-                        "fetched_count": fetched_count,
-                        "working_count": working_count,
-                        "geoip_json": json.dumps(geoip_stats).decode(),
-                        "failure_modes_json": json.dumps(failure_modes).decode(),
-                        "batch_source": batch_source,
-                    },
+                    stats.trace_id,
+                    int(metadata.get("chunk_index", 1) or 1),
+                    fetched_count,
+                    working_count,
+                    full_duration_ms,
+                    geoip_stats,
+                    failure_modes,
+                    batch_source,
+                    int(stats.start_time.timestamp()),
+                    fingerprint_keys,
                 )
             except Exception:  # nosec B110
                 logging.getLogger(__name__).debug("Suppressed broad exception")
