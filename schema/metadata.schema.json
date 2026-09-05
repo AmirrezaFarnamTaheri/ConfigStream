@@ -382,6 +382,17 @@
       "type": "integer",
       "minimum": 0
     },
+    "hard_timeout": {
+      "type": "boolean"
+    },
+    "abandoned_queue_items": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "abandoned_queue_lines": {
+      "type": "integer",
+      "minimum": 0
+    },
     "total_configured_sources": {
       "type": "integer",
       "minimum": 0
@@ -486,6 +497,17 @@
         },
         "time_limited": {
           "type": "boolean"
+        },
+        "hard_timeout": {
+          "type": "boolean"
+        },
+        "abandoned_queue_items": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "abandoned_queue_lines": {
+          "type": "integer",
+          "minimum": 0
         }
       },
       "additionalProperties": false
