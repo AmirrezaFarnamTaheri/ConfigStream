@@ -1,0 +1,37 @@
+name: Regenerate environment catalog
+
+on:
+  push:
+    branches:
+      - codex/fix-actions-and-runtime-resilience
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    if: github.event.head_commit.message != 'Regenerate environment catalog'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v5.0.0
+        with:
+          ref: codex/fix-actions-and-runtime-resilience
+          fetch-depth: 0
+
+      - name: Regenerate catalog
+        run: python scripts/generate_environment_catalog.py
+
+      - name: Commit generated catalog
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add docs/generated/environment-variables.json docs/generated/environment-variables.md
+          if git diff --cached --quiet; then
+            echo "Environment catalog is already current."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Regenerate environment catalog"
+          git push origin HEAD:codex/fix-actions-and-runtime-resilience
