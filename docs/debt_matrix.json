@@ -1112,7 +1112,7 @@
     },
     {
       "path": "src/configstream/pipeline/consumer.py",
-      "line": 346,
+      "line": 418,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1120,7 +1120,7 @@
     },
     {
       "path": "src/configstream/pipeline/consumer.py",
-      "line": 440,
+      "line": 504,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1128,7 +1128,7 @@
     },
     {
       "path": "src/configstream/pipeline/consumer.py",
-      "line": 535,
+      "line": 599,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1136,7 +1136,7 @@
     },
     {
       "path": "src/configstream/pipeline/consumer.py",
-      "line": 549,
+      "line": 613,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1144,7 +1144,7 @@
     },
     {
       "path": "src/configstream/pipeline/consumer.py",
-      "line": 747,
+      "line": 811,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1152,7 +1152,7 @@
     },
     {
       "path": "src/configstream/pipeline/consumer.py",
-      "line": 765,
+      "line": 829,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1160,7 +1160,7 @@
     },
     {
       "path": "src/configstream/pipeline/consumer.py",
-      "line": 806,
+      "line": 870,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
