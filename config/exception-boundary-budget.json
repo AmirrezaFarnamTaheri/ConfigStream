@@ -44,7 +44,7 @@
     "src/configstream/output_handler.py": 9,
     "src/configstream/output_logic.py": 5,
     "src/configstream/output_transport.py": 1,
-    "src/configstream/pipeline/consumer.py": 10,
+    "src/configstream/pipeline/consumer.py": 8,
     "src/configstream/pipeline/core.py": 5,
     "src/configstream/pipeline/fetcher.py": 4,
     "src/configstream/pipeline/producer.py": 7,
@@ -80,5 +80,5 @@
     "target_total": 0
   },
   "schema_version": 1,
-  "total_ceiling": 241
+  "total_ceiling": 239
 }
