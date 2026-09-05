@@ -1,0 +1,91 @@
+name: PR583 Format Artifact
+
+on:
+  push:
+    branches:
+      - tmp/pr583-format-5007016
+
+permissions:
+  contents: read
+
+jobs:
+  build-patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v6
+        with:
+          python-version: '3.11'
+      - name: Apply exact type fix
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('src/configstream/pipeline/consumer.py')
+          text = path.read_text(encoding='utf-8')
+          old = '''            failure_modes: Dict[str, int] = {}
+            if metadata and isinstance(metadata.get("drop_stats"), dict):
+                failure_modes.update(metadata.get("drop_stats", {}))
+            failure_modes["parse_empty"] = (
+                failure_modes.get("parse_empty", 0) + len(raw_lines)
+            )
+'''
+          new = '''            source_failure_modes: Dict[str, int] = {}
+            if metadata and isinstance(metadata.get("drop_stats"), dict):
+                source_failure_modes.update(metadata.get("drop_stats", {}))
+            source_failure_modes["parse_empty"] = (
+                source_failure_modes.get("parse_empty", 0) + len(raw_lines)
+            )
+'''
+          if text.count(old) != 1:
+              raise SystemExit('expected parse-empty failure block exactly once')
+          text = text.replace(old, new, 1)
+          old_arg = '''                failure_modes=failure_modes,
+                fingerprint_keys=fingerprint_keys,
+'''
+          new_arg = '''                failure_modes=source_failure_modes,
+                fingerprint_keys=fingerprint_keys,
+'''
+          if text.count(old_arg) < 1:
+              raise SystemExit('expected source-outcome failure_modes argument')
+          text = text.replace(old_arg, new_arg, 1)
+          path.write_text(text, encoding='utf-8')
+          PY
+      - name: Format reported files
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install 'black==26.5.1'
+          python -m black \
+            src/configstream/pipeline/consumer.py \
+            src/configstream/source_run_aggregation.py \
+            tests/unit/test_source_run_aggregation.py
+          python -m black --check \
+            src/configstream/pipeline/consumer.py \
+            src/configstream/source_run_aggregation.py \
+            tests/unit/test_source_run_aggregation.py
+          python -m py_compile \
+            src/configstream/pipeline/consumer.py \
+            src/configstream/source_run_aggregation.py \
+            tests/unit/test_source_run_aggregation.py
+          git diff --check
+          git diff -- \
+            src/configstream/pipeline/consumer.py \
+            src/configstream/source_run_aggregation.py \
+            tests/unit/test_source_run_aggregation.py > pr583-format.patch
+      - name: Upload explicit patch artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: pr583-format-artifact
+          path: |
+            src/configstream/pipeline/consumer.py
+            src/configstream/source_run_aggregation.py
+            tests/unit/test_source_run_aggregation.py
+            pr583-format.patch
+          if-no-files-found: error
+          retention-days: 1
