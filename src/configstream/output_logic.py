@@ -62,7 +62,7 @@ __all__ = [
     "generate_split_outputs",
     "generate_categorized_outputs",
 ]
-
+_DnsVariantCache = Tuple[List[Proxy], Dict[str, str]]
 logger = logging.getLogger(__name__)
 
 
@@ -195,7 +195,7 @@ def generate_categorized_outputs(
 
     # 6. DNS-safe variations
     if not settings.DNS_SAFE_OUTPUTS:
-        safe_proxies, host_map = cast(Tuple[List[Proxy], Dict[str, str]], ([], {}))
+        safe_proxies, host_map = cast(_DnsVariantCache, ([], {}))
     elif dns_safe_cache is not None:
         safe_proxies, host_map = dns_safe_cache
     else:
@@ -214,7 +214,7 @@ def generate_categorized_outputs(
 
     # 7. DNS-hardened variations
     if not settings.DNS_HARDENED_OUTPUTS:
-        hardened_proxies, hardened_map = cast(Tuple[List[Proxy], Dict[str, str]], ([], {}))
+        hardened_proxies, hardened_map = cast(_DnsVariantCache, ([], {}))
     elif dns_hardened_cache is not None:
         hardened_proxies, hardened_map = dns_hardened_cache
     else:
