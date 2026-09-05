@@ -178,8 +178,6 @@ def _persist_fingerprint(
         set(fingerprint_keys),
         key=lambda item: json.dumps(item, sort_keys=True, separators=(",", ":")),
     )
-    if not keys:
-        return
 
     source_hash = hashlib.sha256(url.encode("utf-8", errors="ignore")).hexdigest()
     run_hash = hashlib.sha256(run_id.encode("utf-8", errors="ignore")).hexdigest()[:12]
