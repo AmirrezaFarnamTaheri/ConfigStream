@@ -145,7 +145,7 @@ def _persist_run_row(
             run_key, url, timestamp, duration_ms, fetched_count,
             working_count, geoip_json, failure_modes_json, batch_source
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT(run_key) DO UPDATE SET
+        ON CONFLICT(run_key) WHERE run_key IS NOT NULL DO UPDATE SET
             timestamp=excluded.timestamp,
             duration_ms=excluded.duration_ms,
             fetched_count=excluded.fetched_count,
