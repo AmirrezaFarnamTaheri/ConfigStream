@@ -59,7 +59,7 @@ def test_public_metadata_preserves_zero_counts_and_snapshot(tmp_path: Path) -> N
         port=1080,
         is_working=True,
     )
-    public = []
+    public: list[dict[str, object]] = []
     (tmp_path / "proxies.json").write_text(json.dumps(public), encoding="utf-8")
     save_metadata(
         {"public_record_count": 0, "public_working_count": 0}, [proxy], tmp_path
