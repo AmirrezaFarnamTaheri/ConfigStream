@@ -1,39 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Rendered-pixel smoke coverage for the public homepage."""
 
-import os
-from pathlib import Path
-
 import pytest
-from playwright.sync_api import Page, expect, sync_playwright
-
-
-def _playwright_ready() -> bool:
-    try:
-        with sync_playwright() as playwright:
-            if Path(playwright.chromium.executable_path).exists():
-                return True
-    except Exception:
-        pass
-
-    configured_browser_root = os.getenv("PLAYWRIGHT_BROWSERS_PATH", "")
-    if not configured_browser_root or configured_browser_root == "0":
-        local_app_data = os.getenv("LOCALAPPDATA")
-        if not local_app_data:
-            return False
-        browser_root = Path(local_app_data) / "ms-playwright"
-    else:
-        browser_root = Path(configured_browser_root)
-
-    return any(
-        path.exists()
-        for path in browser_root.glob("chromium-*/chrome-win64/chrome.exe")
-    )
-
-
-pytestmark = pytest.mark.skipif(
-    not _playwright_ready(), reason="Playwright browsers not installed"
-)
+from playwright.sync_api import Page, expect
 
 
 @pytest.mark.e2e
@@ -52,8 +21,9 @@ def test_homepage_screenshot_smoke(page: Page, http_server):
         ),
     )
     page.add_init_script("""
+        document.addEventListener("DOMContentLoaded", () => {
         const style = document.createElement('style');
-        style.innerHTML = `
+        style.textContent = `
             *, *::before, *::after {
                 animation: none !important;
                 transition: none !important;
@@ -61,6 +31,7 @@ def test_homepage_screenshot_smoke(page: Page, http_server):
             }
         `;
         document.head.appendChild(style);
+        }, { once: true });
         """)
 
     page.set_viewport_size({"width": 1440, "height": 1000})

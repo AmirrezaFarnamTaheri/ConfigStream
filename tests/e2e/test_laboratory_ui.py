@@ -4,7 +4,7 @@
 import pytest
 from unittest.mock import AsyncMock
 from tests.e2e.pages.laboratory_page import LaboratoryPage
-from playwright.async_api import Page
+from playwright.sync_api import expect
 
 
 @pytest.mark.asyncio
@@ -20,16 +20,16 @@ async def test_laboratory_page_object_model() -> None:
 
 
 @pytest.mark.playwright
-def test_laboratory_page_loads(page) -> None:
+def test_laboratory_page_loads(page, http_server) -> None:
     """Real browser test: Laboratory page loads without JS runtime errors."""
-    import pathlib
-
-    lab_html = pathlib.Path("frontend/lab.html").resolve()
-
     errors = []
     page.on("pageerror", lambda exc: errors.append(str(exc)))
 
-    page.goto(f"file://{lab_html}")
+    page.goto(f"{http_server}/lab.html", wait_until="networkidle")
+    expect(page.locator("#runDiagnosis")).to_be_visible()
+    page.locator("#proxyUri").fill("socks5://127.0.0.1:1080")
+    page.locator("#step1Next").click()
+    expect(page.locator("#step-2")).to_be_visible()
     title = page.title()
     assert "Lab" in title or "ConfigStream" in title
     assert len(errors) == 0, f"Page JS errors: {errors}"

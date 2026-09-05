@@ -1,51 +1,16 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import pytest
 import asyncio
-from pathlib import Path
-from playwright.sync_api import Page, expect, sync_playwright
+from playwright.sync_api import Page, expect
 from playwright._impl._errors import Error as PlaywrightError
 import re
 import json
 import os
 import sys
 from urllib.parse import urlparse
-from tests.browser_support import configured_browser_options
 
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
-
-
-def _playwright_ready() -> bool:
-    try:
-        options = configured_browser_options()
-        if options:
-            # Explicit executables are validated by the selector; installed
-            # channels are validated by the browser fixture when it launches.
-            return True
-        with sync_playwright() as p:
-            return Path(p.chromium.executable_path).is_file()
-    except (PlaywrightError, OSError, RuntimeError):
-        return False
-
-
-@pytest.fixture(scope="session")
-def browser_type_launch_args(browser_type_launch_args: dict) -> dict:
-    return {**browser_type_launch_args, **configured_browser_options()}
-
-
-_PLAYWRIGHT_READY = _playwright_ready()
-_REQUIRE_PLAYWRIGHT = os.getenv("CONFIGSTREAM_REQUIRE_PLAYWRIGHT") == "1"
-
-if _REQUIRE_PLAYWRIGHT and not _PLAYWRIGHT_READY:
-    raise RuntimeError(
-        "CONFIGSTREAM_REQUIRE_PLAYWRIGHT=1 but Python Playwright browsers are "
-        "unavailable. Install the pinned browser or set "
-        "PLAYWRIGHT_CHROMIUM_EXECUTABLE to a working local Chromium executable."
-    )
-
-pytestmark = pytest.mark.skipif(
-    not _PLAYWRIGHT_READY, reason="Playwright browsers not installed"
-)
 
 
 # Remove all asyncio markers, let pytest-playwright handle loop injection
@@ -74,8 +39,9 @@ def test_homepage_loads(page: Page, http_server):
     try:
         # Disable animations to prevent visibility issues
         page.add_init_script("""
+            document.addEventListener("DOMContentLoaded", () => {
             const style = document.createElement('style');
-            style.innerHTML = `
+            style.textContent = `
                 *, *::before, *::after {
                     animation: none !important;
                     transition: none !important;
@@ -83,11 +49,14 @@ def test_homepage_loads(page: Page, http_server):
                 }
             `;
             document.head.appendChild(style);
+        }, { once: true });
         """)
 
         page.goto(url, wait_until="networkidle", timeout=10000)
     except PlaywrightError as e:
-        if "crashed" in str(e).lower():
+        if "crashed" in str(e).lower() and not os.getenv(
+            "CONFIGSTREAM_REQUIRE_PLAYWRIGHT"
+        ):
             pytest.skip(
                 "Browser crashed - likely due to containerized environment limitations"
             )
@@ -137,7 +106,9 @@ def test_pwa_manifest_link(page: Page, http_server):
     try:
         page.goto(url, wait_until="networkidle", timeout=10000)
     except PlaywrightError as e:
-        if "crashed" in str(e).lower():
+        if "crashed" in str(e).lower() and not os.getenv(
+            "CONFIGSTREAM_REQUIRE_PLAYWRIGHT"
+        ):
             pytest.skip(
                 "Browser crashed - likely due to containerized environment limitations"
             )
@@ -205,7 +176,9 @@ def test_widgets_presence(page: Page, http_server):
     try:
         page.goto(url, wait_until="networkidle", timeout=10000)
     except PlaywrightError as e:
-        if "crashed" in str(e).lower():
+        if "crashed" in str(e).lower() and not os.getenv(
+            "CONFIGSTREAM_REQUIRE_PLAYWRIGHT"
+        ):
             pytest.skip(
                 "Browser crashed - likely due to containerized environment limitations"
             )
@@ -253,8 +226,9 @@ def test_frontend_pages_load_with_external_network_blocked(page: Page, http_serv
     page.route("**/stego_loader.js", lambda route: route.abort())
 
     page.add_init_script("""
+        document.addEventListener("DOMContentLoaded", () => {
         const style = document.createElement('style');
-        style.innerHTML = `
+        style.textContent = `
             *, *::before, *::after {
                 animation: none !important;
                 transition: none !important;
@@ -262,6 +236,7 @@ def test_frontend_pages_load_with_external_network_blocked(page: Page, http_serv
             }
         `;
         document.head.appendChild(style);
+        }, { once: true });
     """)
 
     for page_name in (
@@ -279,7 +254,9 @@ def test_frontend_pages_load_with_external_network_blocked(page: Page, http_serv
                 timeout=10000,
             )
         except PlaywrightError as e:
-            if "crashed" in str(e).lower():
+            if "crashed" in str(e).lower() and not os.getenv(
+                "CONFIGSTREAM_REQUIRE_PLAYWRIGHT"
+            ):
                 pytest.skip(
                     "Browser crashed - likely due to containerized environment limitations"
                 )
