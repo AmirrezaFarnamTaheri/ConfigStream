@@ -26,6 +26,9 @@ jobs:
         run: |
           set -euo pipefail
           test "$(cat .github/pr583-runtime.part.* | wc -c)" -eq 62632
+          for offset in 0 5000 10000; do
+            dd if=.github/pr583-runtime.part.01 bs=1 skip="$offset" count=5000 status=none | sha256sum
+          done
           cat .github/pr583-runtime.part.* > /tmp/pr583-runtime.patch.gz.b64
           printf '%s  %s\n' '3ff4a66b18d6dd9de9220c7ec1a1750c7001938c5b4771af8f4a0f17b281e8c8' /tmp/pr583-runtime.patch.gz.b64 | sha256sum -c -
           base64 --decode /tmp/pr583-runtime.patch.gz.b64 | gzip --decompress > /tmp/pr583-runtime.patch
