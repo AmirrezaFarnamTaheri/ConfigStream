@@ -113,3 +113,36 @@ def test_invalid_canonical_chain_does_not_restore_stale_legacy_path() -> None:
         )
         == []
     )
+
+
+def test_empty_canonical_chain_does_not_restore_stale_legacy_path() -> None:
+    assert (
+        chain_outbounds_from_details(
+            {
+                "chain": [],
+                "chain_outbounds": [{"type": "direct", "tag": "stale"}],
+            }
+        )
+        == []
+    )
+    assert (
+        chain_outbounds_from_details(
+            {
+                "chain": "",
+                "chain_outbounds": [{"type": "direct", "tag": "stale"}],
+            }
+        )
+        == []
+    )
+
+
+def test_washer_raw_outbounds_are_valid_canonical_chain_details() -> None:
+    chain = [
+        {"type": "wireguard", "tag": "shield", "server": "1.1.1.1"},
+        {"type": "vless", "tag": "relay", "server": "relay.example"},
+    ]
+
+    resolved = chain_outbounds_from_details({"chain": chain})
+
+    assert resolved == chain
+    assert resolved is not chain

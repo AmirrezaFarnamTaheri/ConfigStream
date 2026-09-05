@@ -11,22 +11,36 @@ from .chains import extract_chain_proxies
 def chain_outbounds_from_details(details: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Resolve canonical chain details through the Sing-box converter."""
     chain_proxies = extract_chain_proxies(details)
-    if details.get("chain"):
-        if not isinstance(details["chain"], list) or len(chain_proxies) != len(
-            details["chain"]
-        ):
+    if "chain" in details:
+        chain = details["chain"]
+        if not isinstance(chain, list) or not chain:
             return []
-        # Imported here to keep the generic chain model independent of targets.
-        from .singbox import to_singbox_outbound
-
-        resolved: List[Dict[str, Any]] = []
-        for hop in chain_proxies:
-            outbound = to_singbox_outbound(hop)
-            if isinstance(outbound, dict):
-                resolved.append(outbound)
-            else:
+        if chain_proxies:
+            if len(chain_proxies) != len(chain):
                 return []
-        return resolved
+            # Imported here to keep the generic chain model independent of targets.
+            from .singbox import to_singbox_outbound
+
+            resolved: List[Dict[str, Any]] = []
+            for hop in chain_proxies:
+                outbound = to_singbox_outbound(hop)
+                if isinstance(outbound, dict):
+                    resolved.append(outbound)
+                else:
+                    return []
+            return resolved
+        # Washer-produced revived records historically store ready client
+        # outbounds in the canonical chain field. Accept only a complete,
+        # unmistakable outbound list; malformed model dictionaries must not
+        # fall through to a stale chain_outbounds copy.
+        if all(
+            isinstance(item, dict)
+            and isinstance(item.get("type"), str)
+            and bool(item["type"])
+            for item in chain
+        ):
+            return list(chain)
+        return []
 
     chain_outbounds = details.get("chain_outbounds")
     if isinstance(chain_outbounds, list) and chain_outbounds:

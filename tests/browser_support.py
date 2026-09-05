@@ -12,7 +12,7 @@ def configured_browser_options() -> dict[str, Any]:
     executable = os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE", "").strip()
     if executable:
         path = Path(executable).expanduser().resolve()
-        if not path.is_file():
+        if not path.is_file() or (os.name != "nt" and not os.access(path, os.X_OK)):
             raise FileNotFoundError(f"Configured Chromium executable not found: {path}")
         return {"executable_path": str(path), "channel": None}
     channel = os.environ.get("PLAYWRIGHT_BROWSER_CHANNEL", "").strip()

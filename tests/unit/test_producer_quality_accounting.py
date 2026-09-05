@@ -38,8 +38,13 @@ async def test_backpressure_accounting_does_not_penalize_source_health() -> None
     assert json.loads(payload["failure_modes_json"]) == {"backpressure_drop": 42}
 
 
-def test_source_count_marks_only_first_enqueued_chunk():
+def test_source_count_marks_only_first_enqueued_chunk() -> None:
     from configstream.pipeline.producer import _chunk_metadata
 
-    assert _chunk_metadata({}, 2, 3, 0)["count_source"] is True
-    assert _chunk_metadata({}, 3, 3, 1)["count_source"] is False
+    base = {"drop_stats": {"invalid": 2}}
+    first_queued = _chunk_metadata(base, 2, 3, 0)
+    later_queued = _chunk_metadata(base, 3, 3, 1)
+    assert first_queued["count_source"] is True
+    assert first_queued["drop_stats"] == {"invalid": 2}
+    assert later_queued["count_source"] is False
+    assert later_queued["drop_stats"] == {}

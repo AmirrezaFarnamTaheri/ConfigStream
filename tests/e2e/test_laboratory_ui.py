@@ -4,7 +4,7 @@
 import pytest
 from unittest.mock import AsyncMock
 from tests.e2e.pages.laboratory_page import LaboratoryPage
-from playwright.sync_api import expect
+from playwright.sync_api import Page, expect
 
 
 @pytest.mark.asyncio
@@ -20,7 +20,7 @@ async def test_laboratory_page_object_model() -> None:
 
 
 @pytest.mark.playwright
-def test_laboratory_page_loads(page, http_server) -> None:
+def test_laboratory_page_loads(page: Page, http_server: str) -> None:
     """Real browser test: Laboratory page loads without JS runtime errors."""
     errors = []
     page.on("pageerror", lambda exc: errors.append(str(exc)))

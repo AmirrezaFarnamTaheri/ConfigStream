@@ -5,7 +5,9 @@ from unittest.mock import AsyncMock, MagicMock
 from configstream import dns_cache
 
 
-def test_select_doh_provider_uses_weighted_integer_draw(monkeypatch):
+def test_select_doh_provider_uses_weighted_integer_draw(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setattr(dns_cache, "randbelow", lambda total: 20)
 
     provider = dns_cache.select_doh_provider()
@@ -13,7 +15,9 @@ def test_select_doh_provider_uses_weighted_integer_draw(monkeypatch):
     assert provider["name"] == "Google"
 
 
-def test_select_doh_provider_falls_back_when_weights_are_empty(monkeypatch):
+def test_select_doh_provider_falls_back_when_weights_are_empty(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     providers = [
         {"name": "Fallback", "url": "https://fallback.example/dns-query", "weight": 0}
     ]
@@ -26,7 +30,9 @@ def test_select_doh_provider_falls_back_when_weights_are_empty(monkeypatch):
 
 @pytest.mark.parametrize("payload", [[], None, {"Answer": None}, {"Answer": {}}])
 @pytest.mark.asyncio
-async def test_doh_invalid_shapes_fail_without_exception(monkeypatch, payload):
+async def test_doh_invalid_shapes_fail_without_exception(
+    monkeypatch: pytest.MonkeyPatch, payload: object
+) -> None:
     response = MagicMock(status_code=200)
     response.json.return_value = payload
     client = AsyncMock()
@@ -37,11 +43,11 @@ async def test_doh_invalid_shapes_fail_without_exception(monkeypatch, payload):
 
 
 @pytest.mark.parametrize("ttl", [float("nan"), float("inf")])
-def test_dns_cache_rejects_non_finite_ttl(ttl):
+def test_dns_cache_rejects_non_finite_ttl(ttl: float) -> None:
     with pytest.raises(ValueError):
         dns_cache.DNSCache(ttl=ttl)
 
 
-def test_dns_cache_rejects_zero_capacity():
+def test_dns_cache_rejects_zero_capacity() -> None:
     with pytest.raises(ValueError):
         dns_cache.DNSCache(max_size=0)

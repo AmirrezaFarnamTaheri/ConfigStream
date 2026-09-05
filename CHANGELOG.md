@@ -1,6 +1,6 @@
 ## [Unreleased]
 
-- **Previously omitted browser coverage**: The browser profile now includes Laboratory interaction and rendered screenshot checks, shares explicit browser selection across modules, and fails required checks on browser crashes. Laboratory tests use the served site so ES modules execute. Invalid canonical chains cannot silently restore stale legacy paths.
+- **Previously omitted browser coverage**: The browser profile now includes Laboratory interaction and rendered screenshot checks, shares explicit executable browser validation across modules, and fails required checks on browser crashes. Laboratory tests use the served site so ES modules execute. Invalid or empty canonical chains cannot silently restore stale legacy paths, disabled DNS output modes emit empty required artifacts without rebuilding datasets, explicit zero telemetry survives dictionary-based metadata generation, and source drop statistics stay attached until the first successful chunk enqueue.
 
 - **Chain and input boundary hardening**: IP-only datasets now reject unresolved/non-global chain hops, converters reject partial paths, DNS lookup rejects malformed JSON, and queue/cache limits reject non-finite values. Side-product archives preserve duplicate display names with unique entries. Public source labels exclude URL credentials, and the stats API rejects non-object metadata. Snapshot rotation is atomic and runs outside the event loop; shielding diagnostics are sanitized.
 

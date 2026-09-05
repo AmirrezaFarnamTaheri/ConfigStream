@@ -85,7 +85,7 @@ def _chunk_metadata(
     base: Dict[str, Any], index: int, total: int, queued: int
 ) -> Dict[str, Any]:
     metadata = dict(base, count_source=queued == 0)
-    if index > 1:
+    if queued > 0:
         metadata["drop_stats"] = {}
     if total > 1:
         metadata.update(chunk_index=index, chunk_total=total)

@@ -138,7 +138,7 @@ def generate_side_products_pack(
     safe_re = re.compile(r"[^A-Za-z0-9._-]+")
     used_names: set[str] = set()
 
-    def safe_name(val, fallback):
+    def safe_name(val: object, fallback: str) -> str:
         base = safe_re.sub("_", str(val or fallback)).strip("._-") or fallback
         name = base
         suffix = 2
