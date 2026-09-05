@@ -115,9 +115,9 @@ disable_error_code = ["union-attr"]
 exclude = "^(invvest|Latest Outputs to investigate|output|data|verification-evidence)(/|\\\\)"
 
 [[tool.mypy.overrides]]
-module = ["configstream.testers.go_tester", "src.configstream.testers.go_tester"]
+module = ["configstream.testers.go_tester"]
 disable_error_code = ["misc"]
 
 [[tool.mypy.overrides]]
-module = ["tests.unit.test_ws_origin", "test_ws_origin"]
+module = ["tests.unit.test_ws_origin"]
 disable_error_code = ["arg-type"]
