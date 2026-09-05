@@ -41,7 +41,8 @@ jobs:
           git diff --check
           python scripts/verify_repository.py --profile static
       - name: Upload generated evidence
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: pr583-generated-evidence
           path: |
