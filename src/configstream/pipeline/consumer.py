@@ -201,11 +201,43 @@ async def processing_consumer(
                 None, _parse_chunk, raw_lines, source
             )
 
+        fingerprint_keys = [proxy_unique_key(p) for p in parsed_batch]
+
         if not parsed_batch:
+            process_end_time = asyncio.get_running_loop().time()
+            total_duration = (process_end_time - process_start_time) * 1000
+            fetch_duration = (metadata.get("fetch_duration") or 0.0) * 1000
+            full_duration_ms = total_duration + (
+                fetch_duration if metadata.get("count_source", True) else 0.0
+            )
+            failure_modes: Dict[str, int] = {}
+            if metadata and isinstance(metadata.get("drop_stats"), dict):
+                failure_modes.update(metadata.get("drop_stats", {}))
+            failure_modes["parse_empty"] = (
+                failure_modes.get("parse_empty", 0) + len(raw_lines)
+            )
+            await _record_source_outcome(
+                source=source,
+                metadata=metadata,
+                fetched_count=0,
+                working_count=0,
+                full_duration_ms=full_duration_ms,
+                geoip_stats={},
+                failure_modes=failure_modes,
+                fingerprint_keys=fingerprint_keys,
+                settings=settings,
+                loop=loop,
+                quality_tracker=quality_tracker,
+                stats=stats,
+            )
+            logger.warning(
+                "(No parseable proxies) Source Summary [%s]: Raw=%d Parsed=0 Dur=%.0fms",
+                safe_source,
+                len(raw_lines),
+                full_duration_ms,
+            )
             work_queue.task_done()
             continue
-
-        fingerprint_keys = [proxy_unique_key(p) for p in parsed_batch]
 
         # 1. Deduplication Stage
         async with seen_lock:
@@ -319,33 +351,20 @@ async def processing_consumer(
         else:
             logger.warning("(No proxies passed) " + summary_msg)
 
-        if (
-            not source.startswith("supplied-proxies")
-            and not source.startswith("supplied-config")
-            and not source.startswith("sources/")
-        ):
-            try:
-                batch_number = str(getattr(settings, "BATCH_NUMBER", "")).strip()
-                batch_source = f"batch_{batch_number}" if batch_number else "pipeline"
-                await loop.run_in_executor(
-                    None,
-                    record_source_chunk,
-                    quality_tracker,
-                    source,
-                    stats.trace_id,
-                    int(metadata.get("chunk_index", 1) or 1),
-                    fetched_count,
-                    working_count,
-                    full_duration_ms,
-                    geoip_stats,
-                    failure_modes,
-                    batch_source,
-                    int(stats.start_time.timestamp()),
-                    fingerprint_keys,
-                )
-            except Exception:  # nosec B110
-                logging.getLogger(__name__).debug("Suppressed broad exception")
-                pass
+        await _record_source_outcome(
+            source=source,
+            metadata=metadata,
+            fetched_count=fetched_count,
+            working_count=working_count,
+            full_duration_ms=full_duration_ms,
+            geoip_stats=geoip_stats,
+            failure_modes=failure_modes,
+            fingerprint_keys=fingerprint_keys,
+            settings=settings,
+            loop=loop,
+            quality_tracker=quality_tracker,
+            stats=stats,
+        )
 
         work_queue.task_done()
 
@@ -353,6 +372,51 @@ async def processing_consumer(
         logger.error(
             f"CRITICAL: All {stats.tested} proxy tests failed across all sources!"
         )
+
+
+async def _record_source_outcome(
+    *,
+    source: str,
+    metadata: Dict[str, Any],
+    fetched_count: int,
+    working_count: int,
+    full_duration_ms: float,
+    geoip_stats: Dict[str, int],
+    failure_modes: Dict[str, int],
+    fingerprint_keys: List[tuple[Any, ...]],
+    settings: AppSettings,
+    loop: asyncio.AbstractEventLoop,
+    quality_tracker: SourceQualityTracker,
+    stats: PipelineStats,
+) -> None:
+    if (
+        source.startswith("supplied-proxies")
+        or source.startswith("supplied-config")
+        or source.startswith("sources/")
+    ):
+        return
+
+    try:
+        batch_number = str(getattr(settings, "BATCH_NUMBER", "")).strip()
+        batch_source = f"batch_{batch_number}" if batch_number else "pipeline"
+        await loop.run_in_executor(
+            None,
+            record_source_chunk,
+            quality_tracker,
+            source,
+            stats.trace_id,
+            int(metadata.get("chunk_index", 1) or 1),
+            fetched_count,
+            working_count,
+            full_duration_ms,
+            geoip_stats,
+            failure_modes,
+            batch_source,
+            int(stats.start_time.timestamp()),
+            fingerprint_keys,
+        )
+    except Exception:  # nosec B110
+        logging.getLogger(__name__).debug("Suppressed broad exception")
 
 
 def _deduplicate_batch(
