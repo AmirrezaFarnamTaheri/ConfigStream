@@ -2,7 +2,7 @@
 import logging
 import copy
 import shutil
-from typing import List, Dict, Optional, Any, Tuple
+from typing import List, Dict, Optional, Any, Tuple, cast
 from pathlib import Path
 
 from .models import Proxy
@@ -195,7 +195,7 @@ def generate_categorized_outputs(
 
     # 6. DNS-safe variations
     if not settings.DNS_SAFE_OUTPUTS:
-        safe_proxies, host_map = [], {}
+        safe_proxies, host_map = cast(Tuple[List[Proxy], Dict[str, str]], ([], {}))
     elif dns_safe_cache is not None:
         safe_proxies, host_map = dns_safe_cache
     else:
@@ -214,7 +214,7 @@ def generate_categorized_outputs(
 
     # 7. DNS-hardened variations
     if not settings.DNS_HARDENED_OUTPUTS:
-        hardened_proxies, hardened_map = [], {}
+        hardened_proxies, hardened_map = cast(Tuple[List[Proxy], Dict[str, str]], ([], {}))
     elif dns_hardened_cache is not None:
         hardened_proxies, hardened_map = dns_hardened_cache
     else:
