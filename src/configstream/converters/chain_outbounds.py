@@ -11,8 +11,10 @@ from .chains import extract_chain_proxies
 def chain_outbounds_from_details(details: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Resolve canonical chain details through the Sing-box converter."""
     chain_proxies = extract_chain_proxies(details)
-    if chain_proxies:
-        if len(chain_proxies) != len(details["chain"]):
+    if details.get("chain"):
+        if not isinstance(details["chain"], list) or len(chain_proxies) != len(
+            details["chain"]
+        ):
             return []
         # Imported here to keep the generic chain model independent of targets.
         from .singbox import to_singbox_outbound

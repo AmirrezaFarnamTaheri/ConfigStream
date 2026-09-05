@@ -82,7 +82,13 @@ def _frontend_browser_commands(
     browser_channel = os.environ.get("PLAYWRIGHT_BROWSER_CHANNEL", "").strip()
     if browser_channel:
         pytest_command.append(f"--browser-channel={browser_channel}")
-    pytest_command.append("tests/e2e/test_frontend.py")
+    pytest_command.extend(
+        [
+            "tests/e2e/test_frontend.py",
+            "tests/e2e/test_frontend_visual.py",
+            "tests/e2e/test_laboratory_ui.py",
+        ]
+    )
     return [
         (pytest_command, pytest_environment),
         ([npm, "run", "test:frontend:no-network"], None),

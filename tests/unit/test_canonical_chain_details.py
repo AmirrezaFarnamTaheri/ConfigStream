@@ -101,3 +101,15 @@ def test_split_generator_uses_canonical_chain_details(tmp_path) -> None:
 
     assert "relay-hop" in tags
     assert "warp-hop" in tags
+
+
+def test_invalid_canonical_chain_does_not_restore_stale_legacy_path() -> None:
+    assert (
+        chain_outbounds_from_details(
+            {
+                "chain": [{"protocol": "vless"}],
+                "chain_outbounds": [{"type": "direct", "tag": "stale"}],
+            }
+        )
+        == []
+    )

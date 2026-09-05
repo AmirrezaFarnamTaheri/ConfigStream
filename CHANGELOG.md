@@ -1,5 +1,7 @@
 ## [Unreleased]
 
+- **Previously omitted browser coverage**: The browser profile now includes Laboratory interaction and rendered screenshot checks, shares explicit browser selection across modules, and fails required checks on browser crashes. Laboratory tests use the served site so ES modules execute. Invalid canonical chains cannot silently restore stale legacy paths.
+
 - **Chain and input boundary hardening**: IP-only datasets now reject unresolved/non-global chain hops, converters reject partial paths, DNS lookup rejects malformed JSON, and queue/cache limits reject non-finite values. Side-product archives preserve duplicate display names with unique entries. Public source labels exclude URL credentials, and the stats API rejects non-object metadata. Snapshot rotation is atomic and runs outside the event loop; shielding diagnostics are sanitized.
 
 - **Cross-layer contract repairs**: DNS variants include late shielded candidates, resolve in hardened-only mode, and rewrite chains independently of input order. Public metadata preserves explicit zero counts and hashes the exported payload. Proxy deltas replace changed records, retain order, and persist their exact snapshot version.

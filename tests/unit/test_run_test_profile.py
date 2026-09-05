@@ -60,7 +60,11 @@ def test_frontend_browser_profile_disables_plugin_autoload_and_loads_required_pl
         "-p",
         "pytest_base_url.plugin",
     ]
-    assert pytest_command[-1] == "tests/e2e/test_frontend.py"
+    assert pytest_command[-3:] == [
+        "tests/e2e/test_frontend.py",
+        "tests/e2e/test_frontend_visual.py",
+        "tests/e2e/test_laboratory_ui.py",
+    ]
 
 
 def test_frontend_browser_profile_scopes_optional_browser_channel(
