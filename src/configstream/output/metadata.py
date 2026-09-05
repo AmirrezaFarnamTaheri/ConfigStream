@@ -115,7 +115,6 @@ def _dict_value(
     return default
 
 
-
 def _normalize_drop_reason(reason: str) -> str:
     key = (reason or "").strip().lower()
     if not key:
@@ -145,6 +144,7 @@ def _normalize_drop_reason(reason: str) -> str:
     if "fetch_error" in key:
         return DropCategory.FETCH_ERROR.value
     return key
+
 
 def save_metadata(
     stats: Any,
