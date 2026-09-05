@@ -23,39 +23,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python - <<'PY'
-          from pathlib import Path
-
-          path = Path('src/configstream/pipeline/consumer.py')
-          text = path.read_text(encoding='utf-8')
-          old = '''            failure_modes: Dict[str, int] = {}
-            if metadata and isinstance(metadata.get("drop_stats"), dict):
-                failure_modes.update(metadata.get("drop_stats", {}))
-            failure_modes["parse_empty"] = (
-                failure_modes.get("parse_empty", 0) + len(raw_lines)
-            )
-'''
-          new = '''            source_failure_modes: Dict[str, int] = {}
-            if metadata and isinstance(metadata.get("drop_stats"), dict):
-                source_failure_modes.update(metadata.get("drop_stats", {}))
-            source_failure_modes["parse_empty"] = (
-                source_failure_modes.get("parse_empty", 0) + len(raw_lines)
-            )
-'''
-          if text.count(old) != 1:
-              raise SystemExit('expected parse-empty failure block exactly once')
-          text = text.replace(old, new, 1)
-          old_arg = '''                failure_modes=failure_modes,
-                fingerprint_keys=fingerprint_keys,
-'''
-          new_arg = '''                failure_modes=source_failure_modes,
-                fingerprint_keys=fingerprint_keys,
-'''
-          if text.count(old_arg) < 1:
-              raise SystemExit('expected source-outcome failure_modes argument')
-          text = text.replace(old_arg, new_arg, 1)
-          path.write_text(text, encoding='utf-8')
-          PY
+          python -c 'from pathlib import Path; p=Path("src/configstream/pipeline/consumer.py"); s=p.read_text(); s=s.replace("            failure_modes: Dict[str, int] = {}", "            source_failure_modes: Dict[str, int] = {}", 1); s=s.replace("                failure_modes.update(metadata.get(\"drop_stats\", {}))", "                source_failure_modes.update(metadata.get(\"drop_stats\", {}))", 1); s=s.replace("            failure_modes[\"parse_empty\"] = (", "            source_failure_modes[\"parse_empty\"] = (", 1); s=s.replace("                failure_modes.get(\"parse_empty\", 0) + len(raw_lines)", "                source_failure_modes.get(\"parse_empty\", 0) + len(raw_lines)", 1); s=s.replace("                failure_modes=failure_modes,", "                failure_modes=source_failure_modes,", 1); p.write_text(s)'
+          grep -q 'source_failure_modes: Dict\[str, int\]' src/configstream/pipeline/consumer.py
       - name: Format reported files
         shell: bash
         run: |
