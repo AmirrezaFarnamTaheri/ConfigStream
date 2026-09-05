@@ -18,6 +18,15 @@ function requireString(value, field) {
     return text;
 }
 
+function firstHost(value, fallback) {
+    const candidates = Array.isArray(value) ? value : [value];
+    for (const candidate of candidates) {
+        const host = String(candidate ?? '').trim();
+        if (host) return host;
+    }
+    return String(fallback ?? '');
+}
+
 function toBase64Utf8(value) {
     const bytes = new TextEncoder().encode(String(value));
     let binary = '';
@@ -253,15 +262,13 @@ export function singboxOutboundToXray(sbOut) {
             stream.method = 'httpupgrade';
             stream.httpupgradeSettings = {
                 path: String(transport.path || '/'),
-                host: String(transport.host || sni),
+                host: firstHost(transport.host, sni),
             };
         } else if (transport.type === 'http') {
             stream.method = 'xhttp';
             stream.xhttpSettings = {
                 path: String(transport.path || '/'),
-                host: transport.host
-                    ? (Array.isArray(transport.host) ? transport.host.map(String) : [String(transport.host)])
-                    : [sni],
+                host: firstHost(transport.host, sni),
             };
         }
         if (stream.method === 'raw') stream.rawSettings = { header: { type: 'none' } };

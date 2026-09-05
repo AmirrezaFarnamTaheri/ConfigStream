@@ -169,9 +169,45 @@ async def test_colliding_endpoint_ids_keep_independent_verification_results() ->
     assert first.id == second.id
 
     async def verify(proxies: list[Proxy]) -> list[Proxy]:
-        proxies[0].is_working = True
-        proxies[1].is_working = False
-        return proxies
+        results = [proxy.model_copy(deep=True) for proxy in proxies]
+        results[0].is_working = True
+        results[1].is_working = False
+        return results
+
+    tester = MagicMock()
+    tester.test_batch = AsyncMock(side_effect=verify)
+    stats = PipelineStats()
+    results = await _verify_shielded_candidates([first, second], tester, stats)
+
+    assert results[0] is not first
+    assert results[1] is not second
+    assert [result.is_working for result in results] == [True, False]
+    assert results[0].details["chain"] == [{"tag": "a"}]
+    assert results[1].details["chain"] == [{"tag": "b"}]
+    assert stats.shielded_verified_count == 1
+
+
+@pytest.mark.asyncio
+async def test_mismatched_or_missing_shielded_results_fail_closed() -> None:
+    first = Proxy(
+        config="chain://first",
+        protocol="revived",
+        address="first.example",
+        port=443,
+        details={"is_revived": True, "chain": [{"tag": "first"}]},
+    )
+    second = Proxy(
+        config="chain://second",
+        protocol="revived",
+        address="second.example",
+        port=443,
+        details={"is_revived": True, "chain": [{"tag": "second"}]},
+    )
+
+    async def verify(_proxies: list[Proxy]) -> list[Proxy]:
+        mismatched = second.model_copy(deep=True)
+        mismatched.is_working = True
+        return [mismatched]
 
     tester = MagicMock()
     tester.test_batch = AsyncMock(side_effect=verify)
@@ -179,9 +215,8 @@ async def test_colliding_endpoint_ids_keep_independent_verification_results() ->
     results = await _verify_shielded_candidates([first, second], tester, stats)
 
     assert results == [first, second]
-    assert results[0] is not results[1]
-    assert [result.is_working for result in results] == [True, False]
-    assert stats.shielded_verified_count == 1
+    assert all(result.is_working is False for result in results)
+    assert stats.shielded_verified_count == 0
 
 
 def test_revived_chain_fingerprint_makes_same_endpoint_ids_distinct() -> None:

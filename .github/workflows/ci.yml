@@ -28,9 +28,8 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          # Gitleaks compares the pull-request base to the checked-out head.
-          # A bounded clone can omit that base on a long-lived branch, causing
-          # the security scan to fail before it examines any content.
+          # Exact-range security scanning and changed-file checks need both
+          # pull-request endpoints even on long-lived branches.
           fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
@@ -67,11 +66,54 @@ jobs:
         run: bandit -r src/configstream scripts tools frontend/assets/js -q
       - name: Validate Bandit suppression hygiene
         run: python scripts/validate_bandit_suppressions.py --require-active
-      - name: Shift-left security scan (gitleaks)
+      - name: Install Gitleaks and compatibility scan
+        id: gitleaks-bootstrap
+        continue-on-error: true
         uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_CONFIG: .gitleaks.toml
+          GITLEAKS_VERSION: 8.30.1
+      - name: Shift-left security scan (gitleaks exact range)
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          if ! command -v gitleaks >/dev/null 2>&1; then
+            echo "Gitleaks binary was not installed by the pinned bootstrap action."
+            exit 1
+          fi
+          if ! git cat-file -e "${HEAD_SHA}^{commit}" 2>/dev/null; then
+            echo "Exact Gitleaks head commit is unavailable: ${HEAD_SHA}"
+            exit 1
+          fi
+          if [ -z "${BASE_SHA:-}" ] || ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+            BASE_SHA="${HEAD_SHA}^"
+          fi
+          if [ "$BASE_SHA" = "$HEAD_SHA" ]; then
+            LOG_OPTS="-1"
+          else
+            LOG_OPTS="${BASE_SHA}..${HEAD_SHA}"
+          fi
+          echo "Scanning exact Git range: ${LOG_OPTS}"
+          gitleaks detect \
+            --redact \
+            -v \
+            --exit-code=2 \
+            --report-format=sarif \
+            --report-path=gitleaks-exact.sarif \
+            --config=.gitleaks.toml \
+            --log-opts="${LOG_OPTS}"
+      - name: Upload exact Gitleaks report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: gitleaks-exact-py${{ matrix.python-version }}-${{ github.run_id }}
+          path: gitleaks-exact.sarif
+          if-no-files-found: ignore
+          retention-days: 14
       - name: Validate Versions
         run: python scripts/validate_versions.py
       - name: Validate capability registry
