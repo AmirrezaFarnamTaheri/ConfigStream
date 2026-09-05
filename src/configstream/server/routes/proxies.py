@@ -134,8 +134,10 @@ async def get_stats():
     try:
         # Read and return JSON content directly to ensure proper content-type and parsing
         content = await _read_json_file_async(metadata_path)
+        if not isinstance(content, dict):
+            raise ValueError("Metadata must be an object")
         return JSONResponse(content=content)
-    except (OSError, json.JSONDecodeError) as exc:
+    except (OSError, ValueError) as exc:
         logger.error("Failed to read metadata.json: %s", type(exc).__name__)
         return JSONResponse(
             content={

@@ -67,3 +67,15 @@ async def test_shed_enqueue_is_bounded_and_reports_drop() -> None:
     assert result.enqueued is False
     assert result.dropped is True
     assert result.attempts == 2
+
+
+@pytest.mark.parametrize("timeout", [float("nan"), float("inf"), float("-inf")])
+def test_backpressure_rejects_unbounded_timeout(timeout):
+    with pytest.raises(ValueError):
+        BackpressurePolicy(put_timeout_seconds=timeout)
+
+
+@pytest.mark.parametrize("tries", [True, 1.5, float("inf")])
+def test_backpressure_requires_finite_integer_retries(tries):
+    with pytest.raises(ValueError):
+        BackpressurePolicy(max_tries=tries)

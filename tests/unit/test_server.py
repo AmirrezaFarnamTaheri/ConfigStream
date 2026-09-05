@@ -753,3 +753,11 @@ async def test_proxy_delta_replaces_changed_records_and_preserves_order(
     assert delta["removed"] == ["a"]
     assert delta["order"] == ["b", "a"]
     assert delta["current_version"] == _snapshot_hash(current)
+
+
+@pytest.mark.asyncio
+async def test_stats_rejects_non_object_metadata(mock_output_dir, async_client):
+    (mock_output_dir / "metadata.json").write_text("[]", encoding="utf-8")
+    with patch("configstream.server.OUTPUT_DIR", mock_output_dir):
+        response = await async_client.get("/api/stats")
+    assert response.status_code == 503

@@ -3,10 +3,10 @@ from typing import Dict, Any, List, Optional, Set
 import json
 import logging
 import asyncio
-import shutil
 from pathlib import Path
 
 from configstream.models import Proxy
+from configstream.security_validator import SecurityValidator
 from configstream.history.tracker import ProxyHistoryTracker
 from configstream.output_logic import (
     generate_categorized_outputs,
@@ -40,6 +40,26 @@ if TYPE_CHECKING:
     from configstream.testers.manager import SingBoxTester
 
 logger = logging.getLogger(__name__)
+
+
+def _rotate_proxy_snapshot(current: Path, previous: Path) -> None:
+    try:
+        content = current.read_bytes()
+    except FileNotFoundError:
+        return
+    except OSError as exc:
+        logger.warning(
+            "Failed to read snapshot for rotation: %s",
+            SecurityValidator.sanitize_log_message(str(exc)),
+        )
+        return
+    try:
+        AtomicFileWriter.write_bytes(previous, content)
+    except OSError as exc:
+        logger.warning(
+            "Failed to rotate snapshot: %s",
+            SecurityValidator.sanitize_log_message(str(exc)),
+        )
 
 
 def _log_geoip_enrichment_stats(proxies: List[Proxy]) -> Dict[str, int]:
@@ -404,8 +424,7 @@ async def _verify_shielded_candidates(
     except Exception as verify_exc:
         logger.warning(
             "Shielded chain verification failed: %s",
-            str(verify_exc),
-            exc_info=True,
+            SecurityValidator.sanitize_log_message(str(verify_exc)),
         )
         return candidates
     stats.shielded_verified_count = sum(p.is_working for p in public_candidates)
@@ -676,7 +695,9 @@ async def generate_pipeline_outputs(
                     "No dead proxies could be resurrected (no WARP keys or clean IPs available)."
                 )
         except Exception as e:
-            logger.warning(f"Shielding failed: {e}", exc_info=True)
+            logger.warning(
+                "Shielding failed: %s", SecurityValidator.sanitize_log_message(str(e))
+            )
 
     # Resolve and cache DNS variants after shielding has finalized the proxy pool.
     # Both modes need endpoint resolution; hardened-only deployments must not
@@ -740,13 +761,7 @@ async def generate_pipeline_outputs(
     proxies_path = output_path / "proxies.json"
     old_proxies_path = output_path / "proxies.old.json"
 
-    if proxies_path.exists():
-        try:
-            # Perform rotation for differential updates
-            shutil.copy2(proxies_path, old_proxies_path)
-            logger.info("Rotated proxies.json -> proxies.old.json for diff generation")
-        except Exception as e:
-            logger.warning(f"Failed to rotate proxies.json: {e}")
+    await asyncio.to_thread(_rotate_proxy_snapshot, proxies_path, old_proxies_path)
 
     # Run blocking file I/O in executor
     loop = asyncio.get_running_loop()

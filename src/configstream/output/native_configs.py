@@ -162,7 +162,26 @@ def build_dns_safe_proxies(
 
         safe.append(clone)
 
+    # IP-only applies to every hop, not merely the public record's endpoint.
+    safe = [proxy for proxy in safe if _dns_safe_chain(proxy.details or {})]
     return safe, host_map
+
+
+def _dns_safe_chain(details: Dict[str, Any]) -> bool:
+    chain = chain_obs_from_details(details)
+    if not chain:
+        return not (details.get("chain") or details.get("chain_outbounds"))
+    for outbound in chain:
+        if outbound.get("type") in {"direct", "block", "selector", "urltest"}:
+            continue
+        server = outbound.get("server")
+        if (
+            not isinstance(server, str)
+            or not _is_ip_literal(server)
+            or not _is_global_ip(server)
+        ):
+            return False
+    return True
 
 
 def build_dns_hardened_proxies(

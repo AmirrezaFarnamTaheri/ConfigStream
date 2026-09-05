@@ -156,3 +156,21 @@ def test_shielded_chain_entries_are_candidates_not_working() -> None:
     assert "candidate" in row["tags"]
     assert row["details"]["shielded_candidate"] is True
     assert row["details"]["shielded_verified"] is False
+
+
+def test_snapshot_rotation_preserves_previous_file_when_replace_fails(
+    tmp_path, monkeypatch
+):
+    from configstream.output_handler import _rotate_proxy_snapshot
+    from configstream.utils import AtomicFileWriter
+
+    current, previous = tmp_path / "current.json", tmp_path / "previous.json"
+    current.write_text("[1]", encoding="utf-8")
+    previous.write_text("[0]", encoding="utf-8")
+
+    def fail_replace(*args):
+        raise PermissionError("temporary sharing violation")
+
+    monkeypatch.setattr(AtomicFileWriter, "write_bytes", fail_replace)
+    _rotate_proxy_snapshot(current, previous)
+    assert previous.read_text(encoding="utf-8") == "[0]"

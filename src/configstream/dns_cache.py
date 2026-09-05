@@ -6,6 +6,7 @@ from __future__ import annotations
 import asyncio
 import ipaddress
 import logging
+import math
 import socket
 from collections import Counter, OrderedDict
 from dataclasses import dataclass
@@ -68,6 +69,8 @@ async def resolve_doh_json(host: str) -> Optional[str]:
         if response.status_code != 200:
             return None
         data = response.json()
+        if not isinstance(data, dict) or not isinstance(data.get("Answer", []), list):
+            return None
         for answer in data.get("Answer", []):
             if isinstance(answer, dict) and answer.get("type") == 1:
                 value = answer.get("data")
@@ -100,10 +103,10 @@ class DNSCache:
     DEFAULT_MAX_SIZE = 10000
 
     def __init__(self, ttl: float = 900.0, max_size: Optional[int] = None) -> None:
-        if ttl <= 0:
+        if not math.isfinite(ttl) or ttl <= 0:
             raise ValueError("ttl must be positive")
         self._ttl = float(ttl)
-        self._max_size = int(max_size or self.DEFAULT_MAX_SIZE)
+        self._max_size = int(self.DEFAULT_MAX_SIZE if max_size is None else max_size)
         if self._max_size <= 0:
             raise ValueError("max_size must be positive")
         self._cache: OrderedDict[str, CachedDNS] = OrderedDict()
@@ -117,7 +120,7 @@ class DNSCache:
         return self._lock
 
     async def resolve(self, host: str) -> str | None:
-        normalized_host = str(host).strip().rstrip(".")
+        normalized_host = str(host).strip().rstrip(".").lower()
         if not normalized_host or len(normalized_host) > 253:
             return None
 
