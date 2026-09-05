@@ -63,6 +63,26 @@ async def _cancel_all(
         )
 
 
+def _account_abandoned_queue(work_queue: asyncio.Queue, stats: PipelineStats) -> None:
+    """Drain and account queued work after a forced hard-timeout teardown."""
+    while True:
+        try:
+            item = work_queue.get_nowait()
+        except asyncio.QueueEmpty:
+            break
+        try:
+            if item is None:
+                continue
+            line_count = 0
+            if isinstance(item, tuple) and len(item) >= 2:
+                raw_lines = item[1]
+                if isinstance(raw_lines, list):
+                    line_count = len(raw_lines)
+            stats.record_abandoned_work(line_count)
+        finally:
+            work_queue.task_done()
+
+
 class StandardPipeline(IPipeline):
     def __init__(
         self,
@@ -298,11 +318,13 @@ class StandardPipeline(IPipeline):
                     await gather_task
             except asyncio.TimeoutError:
                 self.context.stats.time_limited = True
+                self.context.stats.hard_timeout = True
                 self.context.stop_event.set()
                 logger.warning(
                     "Hard batch time limit reached. Cancelling pipeline tasks."
                 )
                 await _cancel_all(producer_task, consumer_tasks)
+                _account_abandoned_queue(self.context.work_queue, self.context.stats)
                 # ``gather_task`` owns the aggregate cancellation result.
                 # Retrieve it explicitly so forced timeouts do not leak an
                 # unhandled ``CancelledError`` warning after cleanup.
@@ -428,7 +450,7 @@ class StandardPipeline(IPipeline):
                 except Exception as e:
                     logger.debug(f"Server notification skipped: {e}")
 
-            should_fail = (
+            zero_working_failure = (
                 (
                     self.context.strict_security
                     or bool(
@@ -438,8 +460,14 @@ class StandardPipeline(IPipeline):
                 and bool(_zero_working)
                 and not stats.time_limited
             )
+            should_fail = bool(stats.hard_timeout or zero_working_failure)
 
-            if should_fail:
+            if stats.hard_timeout:
+                logger.error(
+                    "Pipeline exceeded the time-limit grace window; forced cancellation "
+                    "makes this run non-publishable."
+                )
+            elif should_fail:
                 logger.error(
                     "0 working proxies detected and strict mode is enabled; marking pipeline result as failed."
                 )
@@ -449,7 +477,11 @@ class StandardPipeline(IPipeline):
                 success=not should_fail,
                 stats=stats,
                 output_files=generated_files,
-                error="0 working proxies detected" if should_fail else None,
+                error=(
+                    "hard batch timeout forced cancellation"
+                    if stats.hard_timeout
+                    else ("0 working proxies detected" if should_fail else None)
+                ),
             )
 
         finally:
