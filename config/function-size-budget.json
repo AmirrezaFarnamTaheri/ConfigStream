@@ -6,7 +6,6 @@
     "src/configstream/output/metadata.py::save_metadata": 383,
     "src/configstream/output_handler.py::generate_pipeline_outputs": 356,
     "src/configstream/parsers/extraction.py::extract_config_lines": 392,
-    "src/configstream/pipeline/consumer.py::processing_consumer": 303,
     "src/configstream/pipeline/fetcher.py::fetch_from_source": 403,
     "src/configstream/pipeline/producer.py::source_producer": 503,
     "src/configstream/testers/go_tester/manager.py::test_batch": 332
