@@ -1,0 +1,29 @@
+name: PR583 Debt Artifact
+
+on:
+  push:
+    branches:
+      - aux/pr583-debt-artifact-d030501e
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Generate debt matrix
+        run: python3 scripts/generate_debt_matrix.py
+      - name: Upload generated debt matrix
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: pr583-debt-matrix
+          path: |
+            docs/DEBT_MATRIX.md
+            docs/debt_matrix.json
+          if-no-files-found: error
+          retention-days: 1
