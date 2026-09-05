@@ -235,9 +235,7 @@ def record_source_chunk(
         total_duration_ms = sum(item.duration_ms for item in chunks)
         merged_geoip = _merge_counts(chunks, "geoip_stats")
         merged_failures = _merge_counts(chunks, "failure_modes")
-        merged_fingerprints = {
-            key for item in chunks for key in item.fingerprint_keys
-        }
+        merged_fingerprints = {key for item in chunks for key in item.fingerprint_keys}
         diversity = _diversity_score(merged_geoip)
 
         _persist_source_state(

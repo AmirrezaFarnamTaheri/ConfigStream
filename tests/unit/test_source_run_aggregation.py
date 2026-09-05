@@ -275,7 +275,9 @@ async def test_parse_empty_chunk_records_source_failure_and_empty_fingerprint(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.chdir(tmp_path)
-    monkeypatch.setattr(pipeline_consumer.consumer_mod, "parse_config", lambda _line: None)
+    monkeypatch.setattr(
+        pipeline_consumer.consumer_mod, "parse_config", lambda _line: None
+    )
 
     source = "https://example.com/invalid.txt"
     queue: asyncio.Queue[object] = asyncio.Queue()
