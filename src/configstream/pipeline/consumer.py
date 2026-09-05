@@ -164,7 +164,7 @@ async def processing_consumer(
             metadata = {}
 
         async with seen_lock:
-            stats.fetched_sources += 1
+            stats.fetched_sources += int(bool(metadata.get("count_source", True)))
             stats.fetched_lines += len(raw_lines)
             if "drop_stats" in metadata and isinstance(metadata["drop_stats"], dict):
                 for reason, count in metadata["drop_stats"].items():

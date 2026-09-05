@@ -36,3 +36,10 @@ async def test_backpressure_accounting_does_not_penalize_source_health() -> None
     assert payload["fetched_count"] == 0
     assert payload["working_count"] == 0
     assert json.loads(payload["failure_modes_json"]) == {"backpressure_drop": 42}
+
+
+def test_source_count_marks_only_first_enqueued_chunk():
+    from configstream.pipeline.producer import _chunk_metadata
+
+    assert _chunk_metadata({}, 2, 3, 0)["count_source"] is True
+    assert _chunk_metadata({}, 3, 3, 1)["count_source"] is False

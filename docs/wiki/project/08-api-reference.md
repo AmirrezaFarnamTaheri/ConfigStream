@@ -452,3 +452,5 @@ compatibility migration and stream tests.
 *   **[Download files matrix](#download-files-matrix)** — All 60+ output file variants.
 *   **[Censorship Evasion](../../CENSORSHIP_EVASION.md)** — Evasion modes, techniques, tagging, metrics, troubleshooting.
 *   **[Sing-box Configuration Guide](../encyclopedia/tools/singbox_configuration_guide.md)** — How outbound configs are structured.
+
+Proxy delta responses include `removed` IDs, `added` records, and the current ID `order`. A changed record appears in both removal and addition sets. Apply removals, additions, and ordering before recording `current_version`. Ambiguous or missing IDs require a full reload. `metadata.json` hashes the public `proxies.json` payload, including generated chain records.

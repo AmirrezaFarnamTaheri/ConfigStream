@@ -58,3 +58,54 @@ def test_revived_shadowrocket_uses_resolved_ip_for_dns_variant() -> None:
     assert "example.com:443" in normal_text
     assert "1.1.1.1:443" in dns_text
     assert "example.com:443" not in dns_text
+
+
+def test_dns_chain_rewrite_does_not_depend_on_record_order():
+    from configstream.output.native_configs import build_dns_hardened_proxies
+
+    chain = Proxy(
+        config="revived://test",
+        protocol="revived",
+        address="1.1.1.1",
+        port=443,
+        details={
+            "chain_outbounds": [
+                {
+                    "type": "trojan",
+                    "tag": "hop",
+                    "server": "relay.example",
+                    "server_port": 443,
+                    "password": "test",
+                    "tls": {"enabled": True},
+                }
+            ]
+        },
+    )
+    relay = Proxy(
+        config="socks5://relay.example:1080",
+        protocol="socks5",
+        address="relay.example",
+        port=1080,
+        resolved_ip="8.8.8.8",
+    )
+    forward, _ = build_dns_hardened_proxies([chain, relay])
+    reverse, _ = build_dns_hardened_proxies([relay, chain])
+    assert forward[0].details == reverse[1].details
+    assert forward[0].details["chain_outbounds"][0]["server"] == "8.8.8.8"
+
+
+def test_chosen_subscription_ranks_zero_latency_first():
+    from configstream.output.subscriptions import select_chosen_proxies
+
+    proxies = [
+        Proxy(
+            config=f"socks5://1.1.1.1:{port}",
+            protocol="socks5",
+            address="1.1.1.1",
+            port=port,
+            latency=latency,
+            is_working=True,
+        )
+        for port, latency in [(1080, 0), (1081, 10)]
+    ]
+    assert select_chosen_proxies(proxies, 1, 1)[0].latency == 0

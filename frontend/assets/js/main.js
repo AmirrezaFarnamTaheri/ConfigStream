@@ -370,7 +370,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     proxies = proxies.concat(update.added);
                 }
 
-                await window.cacheManager.cacheData(API_PROXIES_URL, proxies, newVersion);
+                if (Array.isArray(update.order)) {
+                    const byId = new Map(proxies.map(proxy => [proxy.id, proxy]));
+                    if (update.order.length !== proxies.length || update.order.some(id => !byId.has(id))) {
+                        throw new Error('Incomplete proxy delta');
+                    }
+                    proxies = update.order.map(id => byId.get(id));
+                }
+
+                await window.cacheManager.cacheData(API_PROXIES_URL, proxies, update.current_version);
 
                 window.dispatchEvent(new CustomEvent('configstream:dataUpdated', {
                     detail: { count: proxies.length, generated_at: Date.now() }

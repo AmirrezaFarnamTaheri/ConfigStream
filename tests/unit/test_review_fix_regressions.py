@@ -157,3 +157,20 @@ def test_structured_timing_rejects_non_finite_duration(tmp_path: Path) -> None:
     )
 
     assert dynamic_reshard.parse_timing_evidence(evidence, {raw_url}) == {}
+
+
+def test_structured_timing_skips_malformed_records(tmp_path: Path) -> None:
+    raw_url = "https://example.com/source"
+    source_id = hashlib.sha256(raw_url.encode()).hexdigest()
+    evidence = tmp_path / "timing.jsonl"
+    rows = [
+        [],
+        None,
+        {"source_id": source_id, "raw": float("inf"), "duration_ms": 100},
+        {"source_id": source_id, "raw": -1, "duration_ms": 100},
+        {"source_id": source_id, "raw": 2, "duration_ms": 1000},
+    ]
+    evidence.write_text("\n".join(json.dumps(row) for row in rows), encoding="utf-8")
+    assert dynamic_reshard.parse_timing_evidence(evidence, {raw_url}) == {
+        raw_url: (2, 1.0)
+    }

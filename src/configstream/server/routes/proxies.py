@@ -1,8 +1,9 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import json
+import asyncio
 import re
 import secrets
-from typing import Optional
+from typing import Any, Optional
 from pathlib import Path
 from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
@@ -17,6 +18,49 @@ from ..utils import (
 )
 
 router = APIRouter(tags=["proxies"])
+
+
+def _build_proxy_delta(
+    current_data: list[dict[str, Any]],
+    old_data: list[dict[str, Any]],
+    base_version: str,
+) -> dict[str, Any]:
+    expected_base_version = sha256_json(old_data)
+    if not secrets.compare_digest(base_version, expected_base_version):
+        return {
+            "type": "full_reload_required",
+            "reason": "base_version_mismatch",
+            "expected_base_version": expected_base_version,
+        }
+
+    # Legacy/ambiguous IDs cannot be safely applied by the browser's ID map.
+    for snapshot in (current_data, old_data):
+        ids = [p.get("id") for p in snapshot]
+        if not all(isinstance(pid, str) and pid for pid in ids) or len(set(ids)) != len(
+            ids
+        ):
+            return {"type": "full_reload_required", "reason": "ambiguous_proxy_ids"}
+    current_ids = {p.get("id", str(i)): p for i, p in enumerate(current_data)}
+    old_ids = {p.get("id", str(i)): p for i, p in enumerate(old_data)}
+
+    changed = {
+        pid
+        for pid in current_ids.keys() & old_ids.keys()
+        if current_ids[pid] != old_ids[pid]
+    }
+    added = [
+        p for pid, p in current_ids.items() if pid not in old_ids or pid in changed
+    ]
+    removed = [pid for pid in old_ids if pid not in current_ids or pid in changed]
+
+    return {
+        "type": "delta",
+        "base_version": base_version,
+        "current_version": sha256_json(current_data),
+        "added": added,
+        "removed": removed,
+        "order": list(current_ids),
+    }
 
 
 @router.get("/api/diff/proxies")
@@ -66,28 +110,9 @@ async def get_proxy_diff(request: Request, base_version: str):
         ):
             return {"type": "full_reload_required", "reason": "base_snapshot_invalid"}
 
-        expected_base_version = sha256_json(old_data)
-        if not secrets.compare_digest(base_version, expected_base_version):
-            return {
-                "type": "full_reload_required",
-                "reason": "base_version_mismatch",
-                "expected_base_version": expected_base_version,
-            }
-
-        # Prefer stable proxy IDs; fallback to index for legacy payloads.
-        current_ids = {p.get("id", str(i)): p for i, p in enumerate(current_data)}
-        old_ids = {p.get("id", str(i)): p for i, p in enumerate(old_data)}
-
-        added = [p for pid, p in current_ids.items() if pid not in old_ids]
-        removed = [pid for pid in old_ids if pid not in current_ids]
-
-        return {
-            "type": "delta",
-            "base_version": base_version,
-            "current_version": sha256_json(current_data),
-            "added": added,
-            "removed": removed,
-        }
+        return await asyncio.to_thread(
+            _build_proxy_delta, current_data, old_data, base_version
+        )
 
     # Fallback: Tell client to fetch full
     return {"type": "full_reload_required"}

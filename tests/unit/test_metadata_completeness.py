@@ -45,3 +45,26 @@ def test_save_metadata_contains_all_pipeline_stats_fields() -> None:
     assert (
         not missing
     ), f"save_metadata meta dict is missing PipelineStats fields: {sorted(missing)}"
+
+
+def test_public_metadata_preserves_zero_counts_and_snapshot(tmp_path):
+    import json
+    from configstream.output.metadata import save_metadata, _json_snapshot_sha256
+    from configstream.models import Proxy
+
+    proxy = Proxy(
+        config="socks5://1.1.1.1:1080",
+        protocol="socks5",
+        address="1.1.1.1",
+        port=1080,
+        is_working=True,
+    )
+    public = []
+    (tmp_path / "proxies.json").write_text(json.dumps(public), encoding="utf-8")
+    save_metadata(
+        {"public_record_count": 0, "public_working_count": 0}, [proxy], tmp_path
+    )
+    metadata = json.loads((tmp_path / "metadata.json").read_text(encoding="utf-8"))
+    assert metadata["total_proxies"] == 0
+    assert metadata["total_working"] == 0
+    assert metadata["proxies_snapshot_hash"] == _json_snapshot_sha256(public)

@@ -52,6 +52,7 @@ class FakeWebSocket:
 
 @pytest.fixture
 async def async_client(monkeypatch):
+    limiter.reset()
     monkeypatch.setattr(sniffio, "current_async_library", lambda: "asyncio")
     import anyio._backends._asyncio as anyio_asyncio
     import starlette.responses as starlette_responses
@@ -733,3 +734,22 @@ async def test_lab_test_chain_rejects_resolving_private_destination(
 
 def test_lab_test_chain_is_rate_limited() -> None:
     assert "configstream.server.routes.lab.lab_test_chain" in limiter._route_limits
+
+
+@pytest.mark.asyncio
+async def test_proxy_delta_replaces_changed_records_and_preserves_order(
+    mock_output_dir, async_client
+):
+    old = [{"id": "a", "latency": 10}, {"id": "b", "latency": 20}]
+    current = [{"id": "b", "latency": 20}, {"id": "a", "latency": 99}]
+    (mock_output_dir / "proxies.old.json").write_text(json.dumps(old), encoding="utf-8")
+    (mock_output_dir / "proxies.json").write_text(json.dumps(current), encoding="utf-8")
+    with patch("configstream.server.OUTPUT_DIR", mock_output_dir):
+        response = await async_client.get(
+            f"/api/diff/proxies?base_version={_snapshot_hash(old)}"
+        )
+    delta = response.json()
+    assert delta["added"] == [current[1]]
+    assert delta["removed"] == ["a"]
+    assert delta["order"] == ["b", "a"]
+    assert delta["current_version"] == _snapshot_hash(current)

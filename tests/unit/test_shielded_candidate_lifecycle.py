@@ -211,3 +211,15 @@ def test_revived_chain_fingerprint_makes_same_endpoint_ids_distinct() -> None:
 
     assert first.details["chain_fingerprint"] != second.details["chain_fingerprint"]
     assert first.id != second.id
+
+
+@pytest.mark.asyncio
+async def test_dns_hardened_pool_contains_late_shielded_candidates(
+    tmp_path: Path,
+) -> None:
+    rows, stats = await _generate(tmp_path, tester=None)
+    hardened = json.loads(
+        (tmp_path / "output" / "proxies-dns-hardened.json").read_text(encoding="utf-8")
+    )
+    assert any(row.get("process") == "shielded" for row in hardened)
+    assert stats.evasion_dns_hardened_count == len(hardened)

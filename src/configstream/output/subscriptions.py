@@ -94,16 +94,23 @@ def select_chosen_proxies(
     for proto in sorted(by_protocol.keys(), key=protocol_sort_key):
         candidates = sorted(
             by_protocol[proto],
-            key=lambda p: (p.latency is None, p.latency or 9e9),
+            key=lambda p: (
+                p.latency is None,
+                p.latency if p.latency is not None else 9e9,
+            ),
         )
         if top_per_protocol > 0:
             candidates = candidates[:top_per_protocol]
         chosen.extend(candidates)
 
     if total_target > 0 and len(chosen) > total_target:
-        chosen = sorted(chosen, key=lambda p: (p.latency is None, p.latency or 9e9))[
-            :total_target
-        ]
+        chosen = sorted(
+            chosen,
+            key=lambda p: (
+                p.latency is None,
+                p.latency if p.latency is not None else 9e9,
+            ),
+        )[:total_target]
 
     return order_export_proxies(chosen)
 

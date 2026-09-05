@@ -580,21 +580,6 @@ async def generate_pipeline_outputs(
     logger.info(f"Applying proxy tagging with template: {tagger.template}")
     tagger.apply(optimized_proxies)
 
-    # 0b. DNS-safe resolution (optional)
-    # Cache results to avoid recomputing later during output generation
-    _cached_dns_safe = None
-    _cached_dns_hardened = None
-    if getattr(settings, "DNS_SAFE_OUTPUTS", True):
-        await _populate_resolved_ips(optimized_proxies, settings)
-        # Track DNS-safe count
-        _cached_dns_safe = _build_dns_safe_proxies(optimized_proxies)
-        stats.evasion_dns_safe_count = len(_cached_dns_safe[0])
-
-    # Track DNS-hardened count
-    if getattr(settings, "DNS_HARDENED_OUTPUTS", True):
-        _cached_dns_hardened = _build_dns_hardened_proxies(optimized_proxies)
-        stats.evasion_dns_hardened_count = len(_cached_dns_hardened[0])
-
     # 0c. Log GeoIP enrichment statistics without loading the optional MMDB backend.
     _log_geoip_enrichment_stats(optimized_proxies)
 
@@ -692,6 +677,21 @@ async def generate_pipeline_outputs(
                 )
         except Exception as e:
             logger.warning(f"Shielding failed: {e}", exc_info=True)
+
+    # Resolve and cache DNS variants after shielding has finalized the proxy pool.
+    # Both modes need endpoint resolution; hardened-only deployments must not
+    # depend on DNS_SAFE_OUTPUTS being enabled.
+    if settings.DNS_SAFE_OUTPUTS or settings.DNS_HARDENED_OUTPUTS:
+        await _populate_resolved_ips(optimized_proxies, settings)
+    loop = asyncio.get_running_loop()
+    _cached_dns_safe = await loop.run_in_executor(
+        None, _build_dns_safe_proxies, optimized_proxies
+    )
+    _cached_dns_hardened = await loop.run_in_executor(
+        None, _build_dns_hardened_proxies, optimized_proxies
+    )
+    stats.evasion_dns_safe_count = len(_cached_dns_safe[0])
+    stats.evasion_dns_hardened_count = len(_cached_dns_hardened[0])
 
     # Track evasion metrics (count ALL TLS-capable proxies, not just working ones,
     # since evasion features are applied during output generation to all proxies)
