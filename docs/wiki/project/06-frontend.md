@@ -158,6 +158,7 @@ All chain configs are exported in formats compatible with the three major proxy 
 *   `npm run test:frontend:no-network` runs the same same-origin-only browser smoke through Node Playwright for environments where the Python browser bundle is unavailable.
 *   `npm run test:frontend:degraded` loads the same primary pages with JavaScript disabled, while still blocking non-same-origin requests.
 *   `python scripts/run_test_profile.py frontend-browser` sets `CONFIGSTREAM_REQUIRE_PLAYWRIGHT=1`; missing Python Playwright browsers are a hard failure in that profile and in CI.
+*   For local verification when the pinned browser cannot be downloaded, set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to an installed Chromium executable. Both Python and Node browser checks use that explicit path; it takes precedence over `PLAYWRIGHT_BROWSER_CHANNEL`. Readiness checks require the selected executable rather than an unrelated cached version, and launch failures fail the tests. CI continues to use its installed pinned browser by default.
 
 ## Cache Architecture
 

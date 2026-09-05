@@ -7,6 +7,7 @@ import logging
 import re
 import mimetypes
 import secrets
+import time
 import importlib.metadata
 from pathlib import Path
 from typing import Any, Optional, cast
@@ -65,7 +66,15 @@ _cache_locks: defaultdict[Path, asyncio.Lock] = defaultdict(asyncio.Lock)
 
 def _read_json_file(path: Path) -> Any:
     """Read and parse a JSON file from a worker thread."""
-    return json.loads(path.read_text(encoding="utf-8"))
+    for attempt in range(5):
+        try:
+            return json.loads(path.read_text(encoding="utf-8"))
+        except PermissionError:
+            # Windows may temporarily deny opens while an atomic rename completes.
+            # This helper runs in a worker thread, so retries do not block asyncio.
+            if attempt == 4:
+                raise
+            time.sleep(0.01 * (attempt + 1))
 
 
 async def _read_json_file_async(path: Path) -> Any:

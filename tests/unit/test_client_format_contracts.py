@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import base64
 import json
+import pytest
 from pathlib import Path
 
 from configstream.output.client_formats import (
@@ -133,7 +134,7 @@ def test_xray_drops_plain_trojan_to_public_ip() -> None:
             {
                 "id": "t3",
                 "protocol": "trojan",
-                "address": "proxy.example.net",  # domain is allowed by xray
+                "address": "proxy.example.net",  # public domains require TLS too
                 "port": 443,
                 "uuid": "pw3",
                 "remarks": "trojan-domain",
@@ -145,8 +146,110 @@ def test_xray_drops_plain_trojan_to_public_ip() -> None:
     tags = [outbound["tag"] for outbound in config["outbounds"]]
     assert "trojan-plain-ip" not in tags
     assert "trojan-tls" in tags
-    assert "trojan-domain" in tags
-    assert report["unsupported"].get("trojan") == 1
+    assert "trojan-domain" not in tags
+    assert report["unsupported"].get("trojan") == 2
+    assert validate_xray_config(config) == []
+
+
+@pytest.mark.parametrize("protocol", ["trojan", "vless"])
+@pytest.mark.parametrize(
+    "address", ["relay.example.net", "93.184.216.34", "2606:4700::1111"]
+)
+def test_xray_rejects_public_plaintext_destinations(
+    protocol: str, address: str
+) -> None:
+    record = {
+        "protocol": protocol,
+        "address": address,
+        "port": 443,
+        "uuid": "00000000-0000-0000-0000-000000000001",
+        "is_working": True,
+        "details": {},
+    }
+    config, report = generate_xray_config([record])
+    assert report["emitted_records"] == 0
+    assert [outbound["tag"] for outbound in config["outbounds"]] == ["direct", "block"]
+    # Structural validation must also reject imported/previously generated configs.
+    config["outbounds"].insert(
+        0,
+        {
+            "tag": "unsafe",
+            "protocol": protocol,
+            "settings": {
+                "address": address,
+                "port": 443,
+                "password": "fixture",
+                "id": record["uuid"],
+            },
+            "streamSettings": {"method": "raw", "rawSettings": {}, "security": "none"},
+        },
+    )
+    assert any(
+        "public destinations require" in error for error in validate_xray_config(config)
+    )
+
+
+@pytest.mark.parametrize(
+    "address",
+    [
+        "127.0.0.1",
+        "100.64.0.1",
+        "192.0.2.1",
+        "::1",
+        "fd00::1",
+        "relay.local",
+        "HOME.ARPA.",
+        "router",
+    ],
+)
+def test_xray_preserves_supported_private_plaintext_destinations(address: str) -> None:
+    config, report = generate_xray_config(
+        [
+            {
+                "protocol": "trojan",
+                "address": address,
+                "port": 443,
+                "uuid": "fixture",
+                "is_working": True,
+                "details": {},
+            }
+        ]
+    )
+    assert report["emitted_records"] == 1
+    assert validate_xray_config(config) == []
+
+
+def test_xray_excludes_entire_chain_if_a_hop_is_incompatible() -> None:
+    config, report = generate_xray_config(
+        [
+            {
+                "protocol": "chain",
+                "is_working": True,
+                "config": json.dumps(
+                    {
+                        "outbounds": [
+                            {
+                                "tag": "relay",
+                                "type": "trojan",
+                                "server": "relay.example.net",
+                                "server_port": 443,
+                                "password": "fixture",
+                            },
+                            {
+                                "tag": "exit",
+                                "type": "socks",
+                                "server": "exit.example.net",
+                                "server_port": 1080,
+                                "detour": "relay",
+                            },
+                        ]
+                    }
+                ),
+            }
+        ]
+    )
+    assert report["unsupported"] == {"chain": 1}
+    assert [outbound["tag"] for outbound in config["outbounds"]] == ["direct", "block"]
     assert validate_xray_config(config) == []
 
 
@@ -215,6 +318,30 @@ def test_xray_rejects_invalid_generated_protocol_fields_and_transport() -> None:
     assert "xray.json outbounds[1] missing shadowsocks password" in errors
     assert "xray.json outbounds[1] missing shadowsocks method" in errors
     assert "xray.json outbounds[1] has invalid streamSettings.method" in errors
+
+
+@pytest.mark.parametrize("value", [[], {}])
+def test_xray_rejects_non_scalar_protocol_and_stream_fields(value: object) -> None:
+    errors = validate_xray_config(
+        {
+            "outbounds": [
+                {"tag": "bad", "protocol": value, "settings": {}},
+                {
+                    "tag": "plain",
+                    "protocol": "trojan",
+                    "settings": {
+                        "address": "public.example.com",
+                        "port": 443,
+                        "password": "test",
+                    },
+                    "streamSettings": {"method": value, "security": value},
+                },
+            ]
+        }
+    )
+    assert "xray.json outbounds[0] missing protocol" in errors
+    assert "xray.json outbounds[1] has invalid streamSettings.method" in errors
+    assert any("public destinations require TLS" in error for error in errors)
 
 
 def test_xray_rejects_invalid_wireguard_key_and_peer_shapes() -> None:

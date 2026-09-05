@@ -112,7 +112,7 @@ warn_return_any = true
 warn_unused_configs = true
 ignore_missing_imports = true
 disable_error_code = ["union-attr"]
-exclude = "^(invvest|Latest Outputs to investigate|output|data)(/|\\\\)"
+exclude = "^(invvest|Latest Outputs to investigate|output|data|verification-evidence)(/|\\\\)"
 
 [[tool.mypy.overrides]]
 module = ["configstream.testers.go_tester", "src.configstream.testers.go_tester"]

@@ -176,7 +176,8 @@ def build_plan(profile: str) -> list[Stage]:
             "frontend-browser",
             (python, "scripts/run_test_profile.py", "frontend-browser"),
             required_tool="npm",
-            timeout_seconds=180,
+            # This profile runs Python E2E plus two Node browser suites serially.
+            timeout_seconds=600,
             required_paths=("node_modules/.bin/playwright",),
             required_python_modules=(
                 "pytest",
@@ -402,6 +403,7 @@ def _find_missing_python_modules(
     if timed_out or code != 0:
         return list(modules)
     return [name for name in output.strip().split(",") if name]
+
 
 def _run_stage(root: Path, stage: Stage, env: dict[str, str]) -> StageResult:
     """Validate and execute one verification stage in its declared environment."""

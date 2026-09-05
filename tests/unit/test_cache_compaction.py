@@ -3,9 +3,40 @@ from __future__ import annotations
 
 import json
 import time
+from pathlib import Path
+import pytest
 
 from configstream.models import Proxy
 from configstream.test_cache import TestResultCache
+
+
+@pytest.mark.parametrize("timestamp", ["NaN", "Infinity", "-Infinity", 1e300])
+def test_invalid_timestamp_does_not_poison_cache(
+    tmp_path: Path, timestamp: object
+) -> None:
+    path = tmp_path / "cache.json"
+    proxy = _proxy(1)
+    key = TestResultCache._compute_hash(proxy.config)
+    path.write_text(json.dumps({key: {"tested_at": timestamp}}), encoding="utf-8")
+    cache = TestResultCache(path)
+    assert cache.get(proxy) is None
+    assert not cache.contains(proxy)
+
+
+def test_infinite_counters_preserve_other_valid_cache_entries(tmp_path: Path) -> None:
+    path = tmp_path / "cache.json"
+    path.write_text(
+        json.dumps(
+            {
+                "valid": {"tested_at": time.time(), "test_count": float("inf")},
+                "other": {"tested_at": time.time()},
+            }
+        ),
+        encoding="utf-8",
+    )
+    cache = TestResultCache(path)
+    assert set(cache._cache) == {"valid", "other"}
+    assert cache._cache["valid"]["test_count"] == 0
 
 
 def _proxy(index: int) -> Proxy:

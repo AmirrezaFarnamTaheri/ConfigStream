@@ -10,6 +10,7 @@ It is designed to work with CI artifact passing rather than a persistent DB.
 import hashlib
 import json
 import logging
+import math
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -49,15 +50,16 @@ def _safe_proxy_ref(proxy: Proxy) -> str:
 
 def _coerce_float(value: Any, default: float = 0.0) -> float:
     try:
-        return float(value)
-    except (TypeError, ValueError):
+        parsed = float(value)
+        return parsed if math.isfinite(parsed) else default
+    except (TypeError, ValueError, OverflowError):
         return default
 
 
 def _coerce_nonnegative_int(value: Any) -> int:
     try:
         parsed = int(value)
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, OverflowError):
         return 0
     return max(parsed, 0)
 
@@ -67,7 +69,7 @@ def _normalize_entry(value: Any) -> Optional[Dict[str, Any]]:
     if not isinstance(value, dict):
         return None
     tested_at = _coerce_float(value.get("tested_at"), default=-1.0)
-    if tested_at < 0:
+    if tested_at < 0 or tested_at > time.time() + 30:
         return None
 
     normalized = {key: item for key, item in value.items() if key != "config"}

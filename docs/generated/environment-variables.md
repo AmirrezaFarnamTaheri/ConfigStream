@@ -15,7 +15,7 @@ Variables: **161**
 | `ALLOWED_ORIGIN_REGEX` | yes | `str` | `""` | no | no | `src/configstream/config.py:163` |
 | `ALLOW_ACTIVE_SCANNING` | yes | `bool` | `false` | no | no | `src/configstream/config.py:151` |
 | `ALLOW_PRIVATE_IPS` | yes | `bool` | `false` | no | no | `src/configstream/config.py:129` |
-| `ALLOW_UNAUTHENTICATED_ADMIN` | no | `direct-only` |  | no | no | `src/configstream/server/utils.py:220` |
+| `ALLOW_UNAUTHENTICATED_ADMIN` | no | `direct-only` |  | no | no | `src/configstream/server/utils.py:229` |
 | `BATCH_NUMBER` | yes | `str` | `""` | no | no | `src/configstream/config.py:127` |
 | `BATCH_SIZE` | yes | `int` | `50` | no | no | `src/configstream/config.py:67` |
 | `BATCH_TIME_LIMIT_GRACE_SECONDS` | yes | `int` | `2700` | no | no | `src/configstream/config.py:33` |
@@ -109,7 +109,7 @@ Variables: **161**
 | `MIN_SOURCE_COVERAGE` | no | `direct-only` |  | no | no | `scripts/finalize_release_outputs.py:647` |
 | `NOTIFY_UPDATE_URL` | yes | `Optional[str]` |  | no | no | `src/configstream/config.py:172` |
 | `OPTIMAL_RELAY_ORIGIN` | yes | `str` | `"IR"` | no | no | `src/configstream/config.py:62` |
-| `OUTPUT_DIR` | no | `direct-only` |  | no | no | `src/configstream/server/utils.py:54` |
+| `OUTPUT_DIR` | no | `direct-only` |  | no | no | `src/configstream/server/utils.py:55` |
 | `PARENT_RELEASE_DIGEST` | no | `direct-only` |  | no | no | `scripts/finalize_release.py:292` |
 | `PATH` | no | `direct-only` |  | no | no | `scripts/native_client_checks.py:92`<br>`src/configstream/testers/go_tester/manager.py:324`<br>`src/configstream/testers/go_tester/manager.py:91` |
 | `PER_HOST_MAX_CONCURRENCY` | yes | `int` | `16` | no | no | `src/configstream/config.py:111` |

@@ -9,6 +9,7 @@ import json
 import os
 import sys
 from urllib.parse import urlparse
+from tests.browser_support import configured_browser_options
 
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
@@ -16,24 +17,20 @@ if sys.platform == "win32":
 
 def _playwright_ready() -> bool:
     try:
+        options = configured_browser_options()
+        if options:
+            # Explicit executables are validated by the selector; installed
+            # channels are validated by the browser fixture when it launches.
+            return True
         with sync_playwright() as p:
-            if Path(p.chromium.executable_path).exists():
-                return True
-    except Exception:
-        pass
+            return Path(p.chromium.executable_path).is_file()
+    except (PlaywrightError, OSError, RuntimeError):
+        return False
 
-    configured_browser_root = os.getenv("PLAYWRIGHT_BROWSERS_PATH", "")
-    browser_root = Path(configured_browser_root)
-    if not configured_browser_root or configured_browser_root == "0":
-        local_app_data = os.getenv("LOCALAPPDATA")
-        if not local_app_data:
-            return False
-        browser_root = Path(local_app_data) / "ms-playwright"
 
-    return any(
-        path.exists()
-        for path in browser_root.glob("chromium-*/chrome-win64/chrome.exe")
-    )
+@pytest.fixture(scope="session")
+def browser_type_launch_args(browser_type_launch_args: dict) -> dict:
+    return {**browser_type_launch_args, **configured_browser_options()}
 
 
 _PLAYWRIGHT_READY = _playwright_ready()
@@ -42,8 +39,8 @@ _REQUIRE_PLAYWRIGHT = os.getenv("CONFIGSTREAM_REQUIRE_PLAYWRIGHT") == "1"
 if _REQUIRE_PLAYWRIGHT and not _PLAYWRIGHT_READY:
     raise RuntimeError(
         "CONFIGSTREAM_REQUIRE_PLAYWRIGHT=1 but Python Playwright browsers are "
-        "not installed. Run `python -m playwright install --with-deps` before "
-        "the frontend-browser test profile."
+        "unavailable. Install the pinned browser or set "
+        "PLAYWRIGHT_CHROMIUM_EXECUTABLE to a working local Chromium executable."
     )
 
 pytestmark = pytest.mark.skipif(
