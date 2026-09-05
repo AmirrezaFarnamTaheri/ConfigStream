@@ -109,3 +109,65 @@ def test_chosen_subscription_ranks_zero_latency_first():
         for port, latency in [(1080, 0), (1081, 10)]
     ]
     assert select_chosen_proxies(proxies, 1, 1)[0].latency == 0
+
+
+def test_dns_safe_excludes_unresolved_chain_hop():
+    from configstream.output.native_configs import build_dns_safe_proxies
+
+    proxy = Proxy(
+        config="revived://test",
+        protocol="revived",
+        address="1.1.1.1",
+        port=443,
+        details={
+            "chain_outbounds": [
+                {
+                    "type": "trojan",
+                    "tag": "hop",
+                    "server": "unresolved.example",
+                    "server_port": 443,
+                    "password": "test",
+                }
+            ]
+        },
+    )
+    safe, _ = build_dns_safe_proxies([proxy])
+    assert safe == []
+
+
+def test_chain_conversion_never_returns_partial_path():
+    from configstream.converters.chain_outbounds import chain_obs_from_details
+
+    hop = Proxy(
+        config="socks5://1.1.1.1:1080", protocol="socks5", address="1.1.1.1", port=1080
+    )
+    assert chain_obs_from_details({"chain": [hop, {"invalid": True}]}) == []
+    assert chain_obs_from_details({"chain_outbounds": [{"type": "socks"}, None]}) == []
+
+
+def test_side_product_archive_preserves_colliding_names(tmp_path):
+    import zipfile
+    from configstream.output.subscriptions import generate_side_products_pack
+    from configstream.models import Proxy
+
+    proxies = [
+        Proxy(
+            config=f"client\nremote 1.1.1.{n} 1194\n",
+            protocol="openvpn",
+            address=f"1.1.1.{n}",
+            port=1194,
+            remarks="same",
+        )
+        for n in (1, 2)
+    ]
+    archive = tmp_path / "side.zip"
+    assert generate_side_products_pack(proxies, archive, "", tmp_path) == archive
+    with zipfile.ZipFile(archive) as handle:
+        names = [name for name in handle.namelist() if name.endswith(".ovpn")]
+        assert len(names) == len(set(names)) == 2
+        assert handle.read(names[0]) != handle.read(names[1])
+
+
+def test_public_source_host_drops_userinfo():
+    from configstream.serialize import _sanitize_source
+    assert _sanitize_source('https://user:private-password@example.com:443/sub?token=secret') == 'example.com'

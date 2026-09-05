@@ -13,7 +13,7 @@ from ..constants import (
     canonical_protocol_name,
 )
 from ..generators.plaintext import generate_plaintext_subscription
-from ..security_validator import _safe_proxy_ref
+from ..security_validator import _safe_proxy_ref, SecurityValidator
 
 logger = logging.getLogger(__name__)
 
@@ -136,12 +136,17 @@ def generate_side_products_pack(
     import re
 
     safe_re = re.compile(r"[^A-Za-z0-9._-]+")
+    used_names: set[str] = set()
 
     def safe_name(val, fallback):
-        if not val:
-            return fallback
-        clean = safe_re.sub("_", val).strip("._-")
-        return clean or fallback
+        base = safe_re.sub("_", str(val or fallback)).strip("._-") or fallback
+        name = base
+        suffix = 2
+        while name.casefold() in used_names:
+            name = f"{base}-{suffix}"
+            suffix += 1
+        used_names.add(name.casefold())
+        return name
 
     tmp_path = None
     try:
@@ -171,7 +176,10 @@ def generate_side_products_pack(
         os.replace(tmp_path, output_path)
         return output_path
     except Exception as exc:
-        logger.warning("Failed to generate zip: %s", str(exc))
+        logger.warning(
+            "Failed to generate zip: %s",
+            SecurityValidator.sanitize_log_message(str(exc)),
+        )
         if tmp_path and os.path.exists(tmp_path):
             try:
                 os.unlink(tmp_path)

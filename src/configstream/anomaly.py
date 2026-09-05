@@ -3,7 +3,7 @@
 Anomaly Detector.
 Identifies suspicious spikes or drops in source content volume to prevent
 cache poisoning and spam attacks.
-Uses Isolation Forest for robust outlier detection when sufficient data exists.
+Uses median absolute deviation for robust outlier detection with sufficient history.
 """
 
 import ipaddress
@@ -17,10 +17,6 @@ from typing import Any, Dict, Optional, Tuple
 
 from .constants import Z_SCORE_NORMAL_CONSTANT
 from .security_validator import safe_log_text
-
-# Removed heavy sklearn/numpy dependency
-# import numpy as np
-# from sklearn.ensemble import IsolationForest
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +54,7 @@ CREATE TABLE IF NOT EXISTS history (
     def is_safe(self, url: str, current_count: int) -> Tuple[bool, str]:
         """
         Check if the current item count is statistically safe compared to history.
-        Uses Isolation Forest for detecting outliers when sufficient history exists (n > 15).
+        Uses median absolute deviation when at least ten history samples exist.
         Falls back to Z-score for smaller datasets.
 
         Returns:

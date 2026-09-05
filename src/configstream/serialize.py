@@ -46,9 +46,9 @@ def _sanitize_source(raw_source: Optional[str]) -> Optional[str]:
         return None
     try:
         parsed = urlparse(raw_source)
-        if parsed.netloc:
+        if parsed.hostname:
             # Return just the domain/host
-            return parsed.netloc
+            return parsed.hostname
     except Exception:
         # Fall through to deterministic hash fallback
         logging.getLogger(__name__).debug("Suppressed broad exception")

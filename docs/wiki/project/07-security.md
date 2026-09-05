@@ -74,7 +74,7 @@ We cross-reference proxy IPs with VirusTotal's database.
 
 The `AnomalyDetector` (`src/configstream/anomaly.py`) protects against **pollution attacks** by modelling per‑source history and identifying massive spikes or drops.
 
-*   For established sources, Isolation Forest / Z‑score heuristics are used to detect outliers in batch size.
+*   For established sources, median absolute deviation / Z-score heuristics are used to detect outliers in batch size.
 *   For new or small sources, simple heuristics guard against “sudden massive yield”.
 *   **Failure Mode**: If the anomaly database is temporarily unavailable (e.g. SQLite error), we **fail open**:
     *   The source is **allowed** for this run.

@@ -273,3 +273,5 @@ this measured fixture evidence.
 The Laboratory Xray exporter targets the pinned Xray core's modern outbound fields. Unsupported TUIC/Hysteria2 conversions raise an error instead of substituting a direct connection. Clash conversion preserves explicit TLS and proxy authentication settings.
 
 DNS-safe and DNS-hardened datasets are derived after shielded candidates are added. Either DNS mode enables endpoint resolution. Host mappings are collected before chain rewriting, so record order does not change the resulting endpoint addresses; original TLS server names remain available for certificate validation.
+
+IP-only datasets require global IP endpoints for every represented chain hop. Chains with unresolved or non-global hops are omitted from DNS-safe datasets; DNS-hardened datasets remain the fallback for unresolved hosts. Side-product archives assign unique filenames even when proxy display names collide.

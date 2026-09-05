@@ -1,5 +1,7 @@
 ## [Unreleased]
 
+- **Chain and input boundary hardening**: IP-only datasets now reject unresolved/non-global chain hops, converters reject partial paths, DNS lookup rejects malformed JSON, and queue/cache limits reject non-finite values. Side-product archives preserve duplicate display names with unique entries. Public source labels exclude URL credentials, and the stats API rejects non-object metadata. Snapshot rotation is atomic and runs outside the event loop; shielding diagnostics are sanitized.
+
 - **Cross-layer contract repairs**: DNS variants include late shielded candidates, resolve in hardened-only mode, and rewrite chains independently of input order. Public metadata preserves explicit zero counts and hashes the exported payload. Proxy deltas replace changed records, retain order, and persist their exact snapshot version.
 - **Laboratory core parity**: Modernized Xray outbound/transport fields, removed obsolete TLS options, preserved Clash TLS/authentication settings, and reject unsupported Xray protocols instead of silently exporting direct connections. Native Xray validation covers generated laboratory fixtures.
 - **Telemetry and repository hygiene**: Count a chunked source once, reject malformed reshard timing records, rank zero-latency subscriptions correctly, and preserve zero latency on the map. Removed the unused incremental loader and reduced oversized producer/metadata functions.

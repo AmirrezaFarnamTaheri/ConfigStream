@@ -8,6 +8,7 @@ Lossless is the default. Candidate shedding exists only behind the named
 from __future__ import annotations
 
 import asyncio
+import math
 from dataclasses import dataclass
 from typing import Sequence, TypeVar
 
@@ -25,13 +26,17 @@ class BackpressurePolicy:
     def __post_init__(self) -> None:
         if self.mode not in {"lossless", "shed-longest"}:
             raise ValueError("mode must be 'lossless' or 'shed-longest'")
-        if self.put_timeout_seconds <= 0:
+        if not math.isfinite(self.put_timeout_seconds) or self.put_timeout_seconds <= 0:
             raise ValueError("put_timeout_seconds must be positive")
         if not 0 < self.overload_threshold <= 1:
             raise ValueError("overload_threshold must be in (0, 1]")
         if not 0 < self.keep_ratio <= 1:
             raise ValueError("keep_ratio must be in (0, 1]")
-        if self.max_tries <= 0:
+        if (
+            isinstance(self.max_tries, bool)
+            or not isinstance(self.max_tries, int)
+            or self.max_tries <= 0
+        ):
             raise ValueError("max_tries must be positive")
 
 
