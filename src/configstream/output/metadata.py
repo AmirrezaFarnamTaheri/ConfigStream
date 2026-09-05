@@ -115,6 +115,37 @@ def _dict_value(
     return default
 
 
+
+def _normalize_drop_reason(reason: str) -> str:
+    key = (reason or "").strip().lower()
+    if not key:
+        return DropCategory.UNKNOWN.value
+    if "duplicate" in key:
+        return DropCategory.DUPLICATE.value
+    if "invalid_protocol" in key:
+        return DropCategory.INVALID_PROTOCOL.value
+    if "invalid_port" in key:
+        return DropCategory.INVALID_PORT.value
+    if "missing_protocol_separator" in key:
+        return DropCategory.MISSING_PROTOCOL_SEPARATOR.value
+    if "implausible_format" in key:
+        return DropCategory.IMPLAUSIBLE_FORMAT.value
+    if "security" in key:
+        return DropCategory.SECURITY_VALIDATION.value
+    if "html" in key:
+        return DropCategory.HTML_CONTENT.value
+    if "hostile_payload" in key:
+        return DropCategory.HOSTILE_PAYLOAD.value
+    if "size_limit" in key:
+        return DropCategory.SIZE_LIMIT_EXCEEDED.value
+    if "backpressure" in key:
+        return DropCategory.BACKPRESSURE_DROP.value
+    if "tester_error" in key:
+        return DropCategory.TESTER_ERROR.value
+    if "fetch_error" in key:
+        return DropCategory.FETCH_ERROR.value
+    return key
+
 def save_metadata(
     stats: Any,
     proxies: List[Proxy],
@@ -324,36 +355,6 @@ def save_metadata(
             ).to_dict()
         if hasattr(stats, "working") and stats.working > 0:
             working = stats.working
-
-    def _normalize_drop_reason(reason: str) -> str:
-        key = (reason or "").strip().lower()
-        if not key:
-            return DropCategory.UNKNOWN.value
-        if "duplicate" in key:
-            return DropCategory.DUPLICATE.value
-        if "invalid_protocol" in key:
-            return DropCategory.INVALID_PROTOCOL.value
-        if "invalid_port" in key:
-            return DropCategory.INVALID_PORT.value
-        if "missing_protocol_separator" in key:
-            return DropCategory.MISSING_PROTOCOL_SEPARATOR.value
-        if "implausible_format" in key:
-            return DropCategory.IMPLAUSIBLE_FORMAT.value
-        if "security" in key:
-            return DropCategory.SECURITY_VALIDATION.value
-        if "html" in key:
-            return DropCategory.HTML_CONTENT.value
-        if "hostile_payload" in key:
-            return DropCategory.HOSTILE_PAYLOAD.value
-        if "size_limit" in key:
-            return DropCategory.SIZE_LIMIT_EXCEEDED.value
-        if "backpressure" in key:
-            return DropCategory.BACKPRESSURE_DROP.value
-        if "tester_error" in key:
-            return DropCategory.TESTER_ERROR.value
-        if "fetch_error" in key:
-            return DropCategory.FETCH_ERROR.value
-        return key
 
     normalized_reasons: Dict[str, int] = {}
     for reason_key, reason_count in (reasons or {}).items():

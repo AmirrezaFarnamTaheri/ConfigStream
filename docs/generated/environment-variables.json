@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_digest": "32ac400152aed3f5a301e77489d16034630a7ae36c2d4936aba0c6e313b628bd",
+  "source_digest": "6a820f2c45a1347681a713a4af3d1055d02b78948a8d0e3887584e94abbbbff6",
   "variable_count": 161,
   "variables": [
     {
@@ -359,7 +359,7 @@
       "sensitive": true,
       "sources": [
         "scripts/release_gate.py:336",
-        "src/configstream/output/metadata.py:504"
+        "src/configstream/output/metadata.py:517"
       ],
       "type": null
     },
@@ -747,8 +747,8 @@
         "scripts/resilient_stage.py:469",
         "scripts/validate_pages_artifact.py:1203",
         "scripts/validate_pages_artifact.py:1236",
-        "src/configstream/output/metadata.py:545",
-        "src/configstream/output/metadata.py:578"
+        "src/configstream/output/metadata.py:558",
+        "src/configstream/output/metadata.py:591"
       ],
       "type": null
     },
@@ -768,8 +768,8 @@
         "scripts/resilient_stage.py:468",
         "scripts/validate_pages_artifact.py:1202",
         "scripts/validate_pages_artifact.py:1235",
-        "src/configstream/output/metadata.py:544",
-        "src/configstream/output/metadata.py:577"
+        "src/configstream/output/metadata.py:557",
+        "src/configstream/output/metadata.py:590"
       ],
       "type": null
     },
@@ -789,8 +789,8 @@
         "scripts/resilient_stage.py:470",
         "scripts/validate_pages_artifact.py:1201",
         "scripts/validate_pages_artifact.py:1234",
-        "src/configstream/output/metadata.py:543",
-        "src/configstream/output/metadata.py:576"
+        "src/configstream/output/metadata.py:556",
+        "src/configstream/output/metadata.py:589"
       ],
       "type": null
     },
