@@ -174,3 +174,27 @@ def test_structured_timing_skips_malformed_records(tmp_path: Path) -> None:
     assert dynamic_reshard.parse_timing_evidence(evidence, {raw_url}) == {
         raw_url: (2, 1.0)
     }
+
+
+def test_ci_gitleaks_scans_explicit_exact_range() -> None:
+    data = _load_workflow("ci.yml")
+    jobs = data.get("jobs")
+    assert isinstance(jobs, dict)
+    test_job = jobs["test"]
+
+    bootstrap = _step_by_name(test_job, "Install Gitleaks and compatibility scan")
+    assert bootstrap.get("continue-on-error") is True
+    bootstrap_env = bootstrap.get("env", {})
+    assert isinstance(bootstrap_env, dict)
+    assert bootstrap_env.get("GITLEAKS_VERSION") == "8.30.1"
+
+    exact = _step_by_name(test_job, "Shift-left security scan (gitleaks exact range)")
+    exact_env = exact.get("env", {})
+    assert isinstance(exact_env, dict)
+    assert "pull_request.base.sha" in str(exact_env.get("BASE_SHA", ""))
+    assert "pull_request.head.sha" in str(exact_env.get("HEAD_SHA", ""))
+    command = exact.get("run")
+    assert isinstance(command, str)
+    assert 'LOG_OPTS="${BASE_SHA}..${HEAD_SHA}"' in command
+    assert '--log-opts="${LOG_OPTS}"' in command
+    assert "gitleaks-exact.sarif" in command

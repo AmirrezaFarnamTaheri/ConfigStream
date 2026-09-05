@@ -400,33 +400,59 @@ async def _verify_shielded_candidates(
     tester: Optional["SingBoxTester"],
     stats: PipelineStats,
 ) -> List[Proxy]:
-    """Verify candidates without dropping failed or missing result rows."""
+    """Verify candidates by ordered stable identity and fail closed per row."""
     if tester is None:
         logger.debug(
             "No tester supplied; shielded candidates kept with is_working=False "
             "for user-side testing."
         )
-        return candidates
-    logger.info("🧪  Verifying %d shielded candidates...", len(candidates))
-    try:
-        results_by_object = {
-            id(result): result for result in await tester.test_batch(candidates)
-        }
-        public_candidates = [
-            _mark_shielded_lifecycle(
-                results_by_object.get(id(candidate), candidate),
-                verified=bool(
-                    results_by_object.get(id(candidate), candidate).is_working
-                ),
-            )
+        return [
+            _mark_shielded_lifecycle(candidate, verified=False)
             for candidate in candidates
         ]
+    logger.info("🧪  Verifying %d shielded candidates...", len(candidates))
+    try:
+        tested_results = await tester.test_batch(candidates)
+        public_candidates: List[Proxy] = []
+        for index, candidate in enumerate(candidates):
+            tested: Optional[Proxy] = None
+            if index < len(tested_results):
+                result = tested_results[index]
+                if isinstance(result, Proxy) and result.id == candidate.id:
+                    tested = result
+                else:
+                    logger.warning(
+                        "Shielded tester result %d did not match its candidate; "
+                        "keeping that candidate unverified.",
+                        index,
+                    )
+            else:
+                logger.warning(
+                    "Shielded tester omitted result %d; keeping that candidate "
+                    "unverified.",
+                    index,
+                )
+
+            if tested is None:
+                public_candidates.append(
+                    _mark_shielded_lifecycle(candidate, verified=False)
+                )
+            else:
+                public_candidates.append(
+                    _mark_shielded_lifecycle(
+                        tested,
+                        verified=bool(tested.is_working),
+                    )
+                )
     except Exception as verify_exc:
         logger.warning(
             "Shielded chain verification failed: %s",
             SecurityValidator.sanitize_log_message(str(verify_exc)),
         )
-        return candidates
+        return [
+            _mark_shielded_lifecycle(candidate, verified=False)
+            for candidate in candidates
+        ]
     stats.shielded_verified_count = sum(p.is_working for p in public_candidates)
     logger.info(
         "✅  Shielded Verification: %d/%d chains verified working.",
