@@ -14,6 +14,30 @@ from typing import Dict, Any
 from unittest.mock import patch, MagicMock
 
 from configstream.server.utils import _read_json_file_async, _json_cache, _cache_locks
+from configstream.server.utils import _read_json_file
+
+
+def test_json_read_retries_transient_sharing_failure(tmp_path: Path) -> None:
+    with (
+        patch.object(
+            Path, "read_text", side_effect=[PermissionError(), '{"ok": true}']
+        ),
+        patch("configstream.server.utils.time.sleep") as sleep,
+    ):
+        assert _read_json_file(tmp_path / "state.json") == {"ok": True}
+    sleep.assert_called_once_with(0.01)
+
+
+def test_json_read_permission_retries_are_bounded(tmp_path: Path) -> None:
+    with (
+        patch.object(Path, "read_text", side_effect=PermissionError()) as read,
+        patch("configstream.server.utils.time.sleep") as sleep,
+    ):
+        with pytest.raises(PermissionError):
+            _read_json_file(tmp_path / "state.json")
+    assert read.call_count == 5
+    assert sleep.call_count == 4
+
 
 # ---------------------------------------------------------------------------
 # Test 1: Cache stampede prevention — single disk read under concurrency

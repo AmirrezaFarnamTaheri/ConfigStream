@@ -14,6 +14,7 @@ import time
 from pathlib import Path
 from typing import Union, Any
 from contextlib import asynccontextmanager
+from .log_sanitizer import sanitize_log_message
 
 logger = logging.getLogger(__name__)
 
@@ -47,19 +48,28 @@ class _FileLock:
     def __enter__(self):
         self.lock_path.parent.mkdir(parents=True, exist_ok=True)
         self._fh = open(self.lock_path, "a+", encoding="utf-8")
-        # Acquire lock
-        if fcntl:
-            fcntl.flock(self._fh, fcntl.LOCK_EX)
-        elif msvcrt:
-            # Non-blocking attempts first, then fallback to blocking.
-            for _ in range(self.retries):
-                try:
-                    msvcrt.locking(self._fh.fileno(), msvcrt.LK_NBLCK, 1)
-                    break
-                except OSError:
-                    time.sleep(self.delay)
-            else:
-                msvcrt.locking(self._fh.fileno(), msvcrt.LK_LOCK, 1)
+        acquired = False
+        try:
+            # Always lock the same byte, even when the lock file is nonempty.
+            self._fh.seek(0)
+            if fcntl:
+                fcntl.flock(self._fh, fcntl.LOCK_EX)
+            elif msvcrt:
+                # Non-blocking attempts first, then fallback to blocking.
+                for _ in range(self.retries):
+                    try:
+                        msvcrt.locking(self._fh.fileno(), msvcrt.LK_NBLCK, 1)
+                        break
+                    except OSError:
+                        time.sleep(self.delay)
+                else:
+                    msvcrt.locking(self._fh.fileno(), msvcrt.LK_LOCK, 1)
+            acquired = True
+        finally:
+            if not acquired:
+                # __exit__ is not called when __enter__ fails.
+                self._fh.close()
+                self._fh = None
         return self
 
     def __exit__(self, exc_type, exc, tb):
@@ -69,6 +79,7 @@ class _FileLock:
                     fcntl.flock(self._fh, fcntl.LOCK_UN)
                 elif msvcrt:
                     try:
+                        self._fh.seek(0)
                         msvcrt.locking(self._fh.fileno(), msvcrt.LK_UNLCK, 1)
                     except OSError:
                         pass
@@ -151,14 +162,18 @@ class AtomicFileWriter:
                 # Make the rename itself durable, not just the file contents.
                 _fsync_parent_dir(path)
             except Exception as e:
-                logger.error(f"Failed to write atomically to {path}: {e}")
+                logger.error(
+                    "Failed to write atomically: %s",
+                    sanitize_log_message(f"{path}: {e}"),
+                )
                 # Cleanup temp file if it exists
                 if temp_path and os.path.exists(temp_path):
                     try:
                         os.unlink(temp_path)
                     except OSError as e_cleanup:
                         logger.debug(
-                            f"Failed to cleanup temp file {temp_path}: {e_cleanup}"
+                            "Failed to cleanup temp file: %s",
+                            sanitize_log_message(f"{temp_path}: {e_cleanup}"),
                         )
                 raise
 
@@ -196,13 +211,17 @@ class AtomicFileWriter:
                 # Make the rename itself durable, not just the file contents.
                 _fsync_parent_dir(path)
             except Exception as e:
-                logger.error(f"Failed to write atomically to {path}: {e}")
+                logger.error(
+                    "Failed to write atomically: %s",
+                    sanitize_log_message(f"{path}: {e}"),
+                )
                 if temp_path and os.path.exists(temp_path):
                     try:
                         os.unlink(temp_path)
                     except OSError as e_cleanup:
                         logger.debug(
-                            f"Failed to cleanup temp file {temp_path}: {e_cleanup}"
+                            "Failed to cleanup temp file: %s",
+                            sanitize_log_message(f"{temp_path}: {e_cleanup}"),
                         )
                 raise
 

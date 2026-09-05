@@ -1,5 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import pytest
+from pathlib import Path
+from unittest.mock import patch
 from configstream.async_file_ops import (
     read_file_async,
     write_file_async,
@@ -57,3 +59,14 @@ def test_ensure_directory(tmp_path):
     ensure_directory(target)
     assert target.exists()
     assert target.is_dir()
+
+
+@pytest.mark.asyncio
+async def test_failed_async_replace_preserves_previous_content(tmp_path: Path) -> None:
+    target = tmp_path / "state.json"
+    target.write_text('{"version": 1}', encoding="utf-8")
+    with patch("configstream.utils.os.replace", side_effect=OSError("disk failure")):
+        with pytest.raises(OSError, match="disk failure"):
+            await write_file_async(target, '{"version": 2}')
+    assert target.read_text(encoding="utf-8") == '{"version": 1}'
+    assert not list(tmp_path.glob("*.tmp"))

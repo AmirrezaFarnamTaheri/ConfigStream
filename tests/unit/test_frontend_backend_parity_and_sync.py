@@ -246,8 +246,7 @@ def test_atomic_json_sync_and_filelock(tmp_path: Path) -> None:
         save_json_file({"step": step, "payload": [step] * 50}, str(target_file))
 
     def reader_task() -> dict[str, Any]:
-        content = target_file.read_text(encoding="utf-8")
-        data = json.loads(content)
+        data = utils._read_json_file(target_file)
         assert isinstance(data, dict)
         assert "step" in data
         assert "payload" in data or "items" in data

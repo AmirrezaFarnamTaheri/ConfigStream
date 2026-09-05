@@ -2008,7 +2008,7 @@
     },
     {
       "path": "src/configstream/utils/__init__.py",
-      "line": 25,
+      "line": 26,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -2016,7 +2016,7 @@
     },
     {
       "path": "src/configstream/utils/__init__.py",
-      "line": 33,
+      "line": 34,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -2024,7 +2024,7 @@
     },
     {
       "path": "src/configstream/utils/__init__.py",
-      "line": 153,
+      "line": 164,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -2032,7 +2032,7 @@
     },
     {
       "path": "src/configstream/utils/__init__.py",
-      "line": 198,
+      "line": 213,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",

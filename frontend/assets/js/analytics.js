@@ -697,7 +697,16 @@ function _initGlobeInternal(data, container) {
         touchGateBtn.type = 'button';
         touchGateBtn.className = 'globe-touch-gate';
         touchGateBtn.setAttribute('aria-label', 'Toggle interactive 3D globe navigation');
-        touchGateBtn.innerHTML = '<i data-feather="move" aria-hidden="true"></i> <span>Explore 3D Globe</span>';
+        const updateTouchGate = (active) => {
+            const icon = document.createElement('i');
+            icon.dataset.feather = active ? 'check' : 'move';
+            icon.setAttribute('aria-hidden', 'true');
+            const label = document.createElement('span');
+            label.textContent = active ? 'Exit 3D Mode' : 'Explore 3D Globe';
+            touchGateBtn.replaceChildren(icon, document.createTextNode(' '), label);
+            touchGateBtn.setAttribute('aria-pressed', String(active));
+        };
+        updateTouchGate(false);
         
         let touchActive = false;
         let touchInactivityTimer = null;
@@ -709,11 +718,7 @@ function _initGlobeInternal(data, container) {
             controls.enableZoom = active;
             controls.autoRotate = !active;
             
-            if (active) {
-                touchGateBtn.innerHTML = '<i data-feather="check" aria-hidden="true"></i> <span>Exit 3D Mode</span>';
-            } else {
-                touchGateBtn.innerHTML = '<i data-feather="move" aria-hidden="true"></i> <span>Explore 3D Globe</span>';
-            }
+            updateTouchGate(active);
             if (window.feather) window.feather.replace();
         };
 

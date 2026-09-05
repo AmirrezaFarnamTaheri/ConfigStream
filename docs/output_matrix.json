@@ -655,7 +655,7 @@
       "degraded_valid": true,
       "core_format": "xray",
       "artifact_type": "full_config",
-      "notes": "Xray full configuration with modern VMess/VLESS settings, structural reference validation, and pinned native release checks."
+      "notes": "Xray full configuration with modern VMess/VLESS settings, structural reference validation, and pinned native release checks. Plaintext Trojan and unencrypted VLESS public destinations are excluded according to Xray v26.7.28 private-destination rules; incompatible chains are excluded as a whole."
     }
   ],
   "remaining_work": []

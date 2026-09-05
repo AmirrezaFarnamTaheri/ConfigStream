@@ -10,6 +10,8 @@ from pathlib import Path
 from typing import List, Tuple, Union
 
 import aiofiles  # type: ignore[import-untyped]
+from .utils import AtomicFileWriter
+from .security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
 
@@ -19,9 +21,6 @@ async def read_file_async(path: Union[str, Path]) -> str:
     Read a file asynchronously.
     """
     path = Path(path)
-    if not path.exists():
-        raise FileNotFoundError(f"File not found: {path}")
-
     # Use 'replace' instead of 'ignore' to avoid silent data loss
     async with aiofiles.open(path, mode="r", encoding="utf-8", errors="replace") as f:
         content = await f.read()
@@ -30,14 +29,9 @@ async def read_file_async(path: Union[str, Path]) -> str:
 
 async def write_file_async(path: Union[str, Path], content: str) -> None:
     """
-    Write to a file asynchronously (atomic-like overwrite).
+    Atomically replace a file without blocking the event loop.
     """
-    path = Path(path)
-    # Ensure parent exists
-    path.parent.mkdir(parents=True, exist_ok=True)
-
-    async with aiofiles.open(path, mode="w", encoding="utf-8") as f:
-        await f.write(content)
+    await asyncio.to_thread(AtomicFileWriter.write_text, path, content)
 
 
 async def read_multiple_files_async(paths: List[str]) -> List[Tuple[str, str]]:
@@ -54,13 +48,16 @@ async def read_multiple_files_async(paths: List[str]) -> List[Tuple[str, str]]:
     output: List[Tuple[str, str]] = []
     for path, res in zip(paths, results):
         if isinstance(res, Exception):
-            logger.warning(f"Failed to read {path}: {res}")
+            logger.warning(
+                "Failed to read file: %s",
+                SecurityValidator.sanitize_log_message(f"{path}: {res}"),
+            )
         else:
             output.append((path, str(res)))
 
     return output
 
 
-def ensure_directory(path: Union[str, Path]):
+def ensure_directory(path: Union[str, Path]) -> None:
     """Ensure directory exists (Sync wrapper for convenience)."""
     Path(path).mkdir(parents=True, exist_ok=True)

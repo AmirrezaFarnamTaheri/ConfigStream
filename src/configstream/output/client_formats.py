@@ -5,13 +5,14 @@ from __future__ import annotations
 
 import base64
 import binascii
-import ipaddress
 import json
 import re
 from collections import Counter
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
+
+from .xray_security import transport_security_error
 
 _URI_SCHEME_RE = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*$")
 _XRAY_BUILTIN_TAGS = {"direct", "block"}
@@ -44,17 +45,6 @@ def _string_list(value: Any) -> list[str]:
 def _clean_tag(value: Any, fallback: str) -> str:
     tag = str(value or fallback).strip()
     return tag or fallback
-
-
-def _is_public_ip(address: Any) -> bool:
-    """True when the address parses as a non-private (public) IP literal."""
-    if not isinstance(address, str) or not address.strip():
-        return False
-    try:
-        ip = ipaddress.ip_address(address.strip().strip("[]"))
-    except ValueError:
-        return False  # hostnames/domains are not IP literals
-    return not ip.is_private and not ip.is_loopback and not ip.is_link_local
 
 
 def _unique_tag(base: str, seen: set[str]) -> str:
@@ -303,14 +293,7 @@ def _xray_outbound(outbound: dict[str, Any], tag: str) -> dict[str, Any] | None:
     if kind != "wireguard":
         result["streamSettings"] = _xray_stream_settings(outbound)
     stream = result.get("streamSettings") or {}
-    if (
-        kind == "trojan"
-        and str(stream.get("security") or "none") == "none"
-        and _is_public_ip(address)
-    ):
-        # Xray >= 26.7 refuses plain-TCP trojan dialing a public IP at config
-        # build time ("trojan without TLS is prohibited"), so such outbounds
-        # cannot be represented in xray.json at all.
+    if transport_security_error(result["protocol"], result["settings"], stream):
         return None
     detour = outbound.get("detour")
     if detour:
@@ -435,7 +418,6 @@ def generate_xray_config(
             if candidate:
                 candidates.append(candidate)
 
-        before = len(outbounds)
         tag_map: dict[str, str] = {}
         pending: list[tuple[dict[str, Any], str]] = []
         for candidate in candidates:
@@ -451,17 +433,29 @@ def generate_xray_config(
             pending.append((candidate, tag))
             if original:
                 tag_map[original] = tag
+        converted_batch: list[dict[str, Any]] = []
         for candidate, tag in pending:
             detour = candidate.get("detour")
             if detour and str(detour) in tag_map:
                 candidate = {**candidate, "detour": tag_map[str(detour)]}
             converted = _xray_outbound(candidate, tag)
             if converted:
-                seen.add(tag)
-                outbounds.append(converted)
-        if len(outbounds) == before:
+                converted_batch.append(converted)
+        batch_tags = {item["tag"] for item in converted_batch} | _XRAY_BUILTIN_TAGS
+        missing_detour = any(
+            item.get("proxySettings", {}).get("tag", "direct") not in batch_tags
+            for item in converted_batch
+        )
+        # A partially converted chain changes routing or leaves dangling hops.
+        if (
+            not converted_batch
+            or len(converted_batch) != len(pending)
+            or missing_detour
+        ):
             unsupported[protocol] += 1
         else:
+            outbounds.extend(converted_batch)
+            seen.update(item["tag"] for item in converted_batch)
             emitted_records += 1
 
     outbounds.extend(
@@ -507,7 +501,7 @@ def generate_xray_config(
     }
     report = {
         "status": "generated",
-        "target": "Xray-core v26.3.27",
+        "target": "Xray-core v26.7.28",
         "emitted_records": emitted_records,
         "outbound_count": len(outbounds),
         "unsupported": dict(unsupported),
@@ -540,6 +534,7 @@ def validate_xray_config(payload: object, file_name: str = "xray.json") -> list[
             tags.add(tag)
         if not isinstance(protocol, str) or not protocol:
             errors.append(f"{file_name} outbounds[{index}] missing protocol")
+            continue
         if not isinstance(settings, dict):
             errors.append(f"{file_name} outbounds[{index}] settings must be an object")
             continue
@@ -637,8 +632,16 @@ def validate_xray_config(payload: object, file_name: str = "xray.json") -> list[
                 f"{file_name} outbounds[{index}] streamSettings must be an object"
             )
         elif isinstance(stream_settings, dict):
+            security_error = transport_security_error(
+                str(protocol), settings, stream_settings
+            )
+            if security_error:
+                errors.append(f"{file_name} outbounds[{index}] {security_error}")
             stream_method = stream_settings.get("method")
-            if stream_method not in _XRAY_STREAM_METHOD_SETTINGS:
+            if (
+                not isinstance(stream_method, str)
+                or stream_method not in _XRAY_STREAM_METHOD_SETTINGS
+            ):
                 errors.append(
                     f"{file_name} outbounds[{index}] has invalid streamSettings.method"
                 )

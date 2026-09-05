@@ -1,7 +1,42 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import pytest
 import asyncio
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+from configstream.utils import _FileLock
 from configstream.utils import AtomicFileWriter, BoundedConcurrencyManager
+
+
+def test_lock_acquisition_failure_closes_handle(tmp_path: Path) -> None:
+    backend = MagicMock()
+    backend.flock.side_effect = OSError("lock unavailable")
+    lock = _FileLock(tmp_path / "state.lock")
+    with patch("configstream.utils.fcntl", backend):
+        with pytest.raises(OSError, match="lock unavailable"):
+            lock.__enter__()
+    assert lock._fh is None
+
+
+def test_windows_lock_uses_first_byte(tmp_path: Path) -> None:
+    path = tmp_path / "state.lock"
+    path.write_text("existing lock data", encoding="utf-8")
+    backend = MagicMock()
+    lock = _FileLock(path)
+    positions: list[int] = []
+
+    def record_position(*args: object) -> None:
+        assert lock._fh is not None
+        positions.append(lock._fh.tell())
+
+    backend.locking.side_effect = record_position
+    with (
+        patch("configstream.utils.fcntl", None),
+        patch("configstream.utils.msvcrt", backend),
+    ):
+        with lock:
+            assert lock._fh is not None
+            lock._fh.seek(3)
+    assert positions == [0, 0]
 
 
 def test_atomic_write_text(tmp_path):
