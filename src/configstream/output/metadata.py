@@ -81,7 +81,7 @@ def _artifact_timestamps(stats: Any) -> tuple[str, str, Any]:
     return generated_at_iso, now_iso, start_time_iso
 
 
-def _snapshot_hashes(proxies: List[Proxy], output_dir: Path) -> tuple[str, Any]:
+def _snapshot_hashes(proxies: List[Proxy], output_dir: Path) -> tuple[str, str | None]:
     proxies_snapshot_hash = _json_snapshot_sha256([serialize_proxy(p) for p in proxies])
     public_snapshot_path = output_dir / "proxies.json"
     if public_snapshot_path.is_file():
@@ -102,6 +102,17 @@ def _snapshot_hashes(proxies: List[Proxy], output_dir: Path) -> tuple[str, Any]:
 def _public_count(stats: Any, key: str, value: int, fallback: int) -> int:
     present = key in stats if isinstance(stats, dict) else hasattr(stats, key)
     return value if present else fallback
+
+
+def _dict_value(
+    stats: Dict[str, Any], key: str, alias: str = "", default: Any = 0
+) -> Any:
+    """Return an explicitly present value without treating zero as missing."""
+    if key in stats:
+        return stats[key]
+    if alias and alias in stats:
+        return stats[alias]
+    return default
 
 
 def save_metadata(
@@ -195,7 +206,7 @@ def save_metadata(
 
     if isinstance(stats, dict):
         total_sourced = safe_int_conversion(
-            stats.get("fetched_lines") or stats.get("total_fetched") or total
+            _dict_value(stats, "fetched_lines", "total_fetched", total)
         )
         parsed_count = stats.get("parsed", total)
         tested_count = stats.get("tested", total)
@@ -206,17 +217,15 @@ def save_metadata(
                 for k, v in raw_reasons.items()
                 if k is not None
             }
-        washed_count = stats.get("washed_chains") or stats.get(
-            "washer_success_count", 0
-        )
+        washed_count = _dict_value(stats, "washed_chains", "washer_success_count")
         smart_chain_count = stats.get("smart_chain_count", 0)
         if not smart_chain_count and "smart_chains_breakdown" in stats:
             smart_chain_count = sum(stats["smart_chains_breakdown"].values())
         vwarp_win_rate = stats.get("vwarp_win_rate", 0.0)
         scanner_ips_found = stats.get("scanner_ips_found", 0)
         fetched_sources = stats.get("fetched_sources", 0)
-        total_configured_sources = (
-            stats.get("total_configured_sources", 0) or fetched_sources
+        total_configured_sources = _dict_value(
+            stats, "total_configured_sources", default=fetched_sources
         )
         revived_warp = stats.get("revived_warp", 0)
         revived_vwarp = stats.get("revived_vwarp", 0)
@@ -232,7 +241,7 @@ def save_metadata(
         time_limit_seconds = int(stats.get("time_limit_seconds", 0) or 0)
         shielded_count = stats.get("shielded_count", 0)
         shielded_candidate_count = int(
-            stats.get("shielded_candidate_count", shielded_count) or shielded_count
+            _dict_value(stats, "shielded_candidate_count", default=shielded_count)
         )
         shielded_verified_count = stats.get("shielded_verified_count", 0)
         evasion_utls_enabled = stats.get("evasion_utls_enabled", 0)
@@ -464,10 +473,10 @@ def save_metadata(
         "total_lines_sourced": total_sourced,
         "total_unique_candidates": parsed_count,
         "total_valid_proxies": working,
-        "total_configured_sources": total_configured_sources or fetched_sources,
+        "total_configured_sources": total_configured_sources,
         "fetched_sources": fetched_sources,
-        "sources_count": total_configured_sources or fetched_sources,
-        "total_sources": total_configured_sources or fetched_sources,
+        "sources_count": total_configured_sources,
+        "total_sources": total_configured_sources,
         "update_interval_hours": update_interval_hours,
         "latency_by_country": latency_by_country,
         "latency_by_protocol": latency_by_protocol,

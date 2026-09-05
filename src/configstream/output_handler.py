@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-from typing import Dict, Any, List, Optional, Set
+from typing import Dict, Any, List, Optional, Set, Tuple
 import json
 import logging
 import asyncio
@@ -554,6 +554,24 @@ async def _populate_resolved_ips(proxies: List[Proxy], settings: AppSettings) ->
     )
 
 
+async def _build_enabled_dns_caches(
+    proxies: List[Proxy], settings: AppSettings
+) -> Tuple[Tuple[List[Proxy], Dict[str, str]], Tuple[List[Proxy], Dict[str, str]]]:
+    """Build enabled DNS variants while retaining empty required artifacts."""
+    if settings.DNS_SAFE_OUTPUTS or settings.DNS_HARDENED_OUTPUTS:
+        await _populate_resolved_ips(proxies, settings)
+    loop = asyncio.get_running_loop()
+    safe: Tuple[List[Proxy], Dict[str, str]] = ([], {})
+    hardened: Tuple[List[Proxy], Dict[str, str]] = ([], {})
+    if settings.DNS_SAFE_OUTPUTS:
+        safe = await loop.run_in_executor(None, _build_dns_safe_proxies, proxies)
+    if settings.DNS_HARDENED_OUTPUTS:
+        hardened = await loop.run_in_executor(
+            None, _build_dns_hardened_proxies, proxies
+        )
+    return safe, hardened
+
+
 async def generate_pipeline_outputs(
     optimized_proxies: List[Proxy],
     output_path: Path,
@@ -700,16 +718,8 @@ async def generate_pipeline_outputs(
             )
 
     # Resolve and cache DNS variants after shielding has finalized the proxy pool.
-    # Both modes need endpoint resolution; hardened-only deployments must not
-    # depend on DNS_SAFE_OUTPUTS being enabled.
-    if settings.DNS_SAFE_OUTPUTS or settings.DNS_HARDENED_OUTPUTS:
-        await _populate_resolved_ips(optimized_proxies, settings)
-    loop = asyncio.get_running_loop()
-    _cached_dns_safe = await loop.run_in_executor(
-        None, _build_dns_safe_proxies, optimized_proxies
-    )
-    _cached_dns_hardened = await loop.run_in_executor(
-        None, _build_dns_hardened_proxies, optimized_proxies
+    _cached_dns_safe, _cached_dns_hardened = await _build_enabled_dns_caches(
+        optimized_proxies, settings
     )
     stats.evasion_dns_safe_count = len(_cached_dns_safe[0])
     stats.evasion_dns_hardened_count = len(_cached_dns_hardened[0])

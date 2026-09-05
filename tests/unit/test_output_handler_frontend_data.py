@@ -168,7 +168,7 @@ def test_snapshot_rotation_preserves_previous_file_when_replace_fails(
     current.write_text("[1]", encoding="utf-8")
     previous.write_text("[0]", encoding="utf-8")
 
-    def fail_replace(*args):
+    def fail_replace(*_args: object) -> None:
         raise PermissionError("temporary sharing violation")
 
     monkeypatch.setattr(AtomicFileWriter, "write_bytes", fail_replace)

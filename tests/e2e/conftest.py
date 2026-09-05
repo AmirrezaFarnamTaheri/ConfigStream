@@ -9,12 +9,14 @@ from tests.browser_support import configured_browser_options
 
 
 @pytest.fixture(scope="session")
-def browser_type_launch_args(browser_type_launch_args: dict) -> dict:
+def browser_type_launch_args(
+    browser_type_launch_args: dict[str, object],
+) -> dict[str, object]:
     return {**browser_type_launch_args, **configured_browser_options()}
 
 
 @pytest.fixture(autouse=True)
-def require_browser(request):
+def require_browser(request: pytest.FixtureRequest) -> None:
     # Mock-only tests do not need a browser installation.
     if "page" not in request.fixturenames:
         return

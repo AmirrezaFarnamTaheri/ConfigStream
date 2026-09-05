@@ -12,7 +12,7 @@ from configstream.output.client_formats import validate_xray_config
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def test_lab_exports_match_current_core_contracts():
+def test_lab_exports_match_current_core_contracts() -> None:
     node = shutil.which("node")
     if not node:
         pytest.skip("Node unavailable")
@@ -43,7 +43,7 @@ console.log(JSON.stringify({outbounds,plain,rejected}));
     )
 
 
-def test_cache_keeps_explicit_delta_snapshot_version():
+def test_cache_keeps_explicit_delta_snapshot_version() -> None:
     node = shutil.which("node")
     if not node:
         pytest.skip("Node unavailable")
@@ -71,7 +71,7 @@ if(stored.version !== 'exact-snapshot') throw new Error('Snapshot identity lost'
     )
 
 
-def test_lab_private_destination_rules_match_backend():
+def test_lab_private_destination_rules_match_backend() -> None:
     from configstream.output.xray_security import (
         requires_transport_security,
         XRAY_PRIVATE_NETWORKS,

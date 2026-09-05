@@ -1,5 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
+from pathlib import Path
+
 from configstream.adapters import ShadowrocketAdapter
 from configstream.generators.plaintext import generate_plaintext_subscription
 from configstream.models import Proxy
@@ -60,7 +62,7 @@ def test_revived_shadowrocket_uses_resolved_ip_for_dns_variant() -> None:
     assert "example.com:443" not in dns_text
 
 
-def test_dns_chain_rewrite_does_not_depend_on_record_order():
+def test_dns_chain_rewrite_does_not_depend_on_record_order() -> None:
     from configstream.output.native_configs import build_dns_hardened_proxies
 
     chain = Proxy(
@@ -94,7 +96,7 @@ def test_dns_chain_rewrite_does_not_depend_on_record_order():
     assert forward[0].details["chain_outbounds"][0]["server"] == "8.8.8.8"
 
 
-def test_chosen_subscription_ranks_zero_latency_first():
+def test_chosen_subscription_ranks_zero_latency_first() -> None:
     from configstream.output.subscriptions import select_chosen_proxies
 
     proxies = [
@@ -111,7 +113,7 @@ def test_chosen_subscription_ranks_zero_latency_first():
     assert select_chosen_proxies(proxies, 1, 1)[0].latency == 0
 
 
-def test_dns_safe_excludes_unresolved_chain_hop():
+def test_dns_safe_excludes_unresolved_chain_hop() -> None:
     from configstream.output.native_configs import build_dns_safe_proxies
 
     proxy = Proxy(
@@ -135,7 +137,7 @@ def test_dns_safe_excludes_unresolved_chain_hop():
     assert safe == []
 
 
-def test_chain_conversion_never_returns_partial_path():
+def test_chain_conversion_never_returns_partial_path() -> None:
     from configstream.converters.chain_outbounds import chain_obs_from_details
 
     hop = Proxy(
@@ -145,7 +147,7 @@ def test_chain_conversion_never_returns_partial_path():
     assert chain_obs_from_details({"chain_outbounds": [{"type": "socks"}, None]}) == []
 
 
-def test_side_product_archive_preserves_colliding_names(tmp_path):
+def test_side_product_archive_preserves_colliding_names(tmp_path: Path) -> None:
     import zipfile
     from configstream.output.subscriptions import generate_side_products_pack
     from configstream.models import Proxy
@@ -168,6 +170,12 @@ def test_side_product_archive_preserves_colliding_names(tmp_path):
         assert handle.read(names[0]) != handle.read(names[1])
 
 
-def test_public_source_host_drops_userinfo():
+def test_public_source_host_drops_userinfo() -> None:
     from configstream.serialize import _sanitize_source
-    assert _sanitize_source('https://user:private-password@example.com:443/sub?token=secret') == 'example.com'
+
+    assert (
+        _sanitize_source(
+            "https://user:private-password@example.com:443/sub?token=secret"
+        )
+        == "example.com"
+    )

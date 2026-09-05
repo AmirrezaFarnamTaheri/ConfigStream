@@ -47,7 +47,7 @@ def test_save_metadata_contains_all_pipeline_stats_fields() -> None:
     ), f"save_metadata meta dict is missing PipelineStats fields: {sorted(missing)}"
 
 
-def test_public_metadata_preserves_zero_counts_and_snapshot(tmp_path):
+def test_public_metadata_preserves_zero_counts_and_snapshot(tmp_path: Path) -> None:
     import json
     from configstream.output.metadata import save_metadata, _json_snapshot_sha256
     from configstream.models import Proxy
@@ -68,3 +68,39 @@ def test_public_metadata_preserves_zero_counts_and_snapshot(tmp_path):
     assert metadata["total_proxies"] == 0
     assert metadata["total_working"] == 0
     assert metadata["proxies_snapshot_hash"] == _json_snapshot_sha256(public)
+
+
+def test_dict_metadata_preserves_explicit_zero_telemetry(tmp_path: Path) -> None:
+    import json
+    from configstream.output.metadata import save_metadata
+    from configstream.models import Proxy
+
+    proxy = Proxy(
+        config="socks5://1.1.1.1:1080",
+        protocol="socks5",
+        address="1.1.1.1",
+        port=1080,
+        is_working=True,
+    )
+    save_metadata(
+        {
+            "fetched_lines": 0,
+            "total_fetched": 99,
+            "fetched_sources": 4,
+            "total_configured_sources": 0,
+            "washed_chains": 0,
+            "washer_success_count": 7,
+            "shielded_count": 3,
+            "shielded_candidate_count": 0,
+        },
+        [proxy],
+        tmp_path,
+    )
+
+    metadata = json.loads((tmp_path / "metadata.json").read_text(encoding="utf-8"))
+    assert metadata["fetched_lines"] == 0
+    assert metadata["total_lines_sourced"] == 0
+    assert metadata["total_configured_sources"] == 0
+    assert metadata["sources_count"] == 0
+    assert metadata["washer_success_count"] == 0
+    assert metadata["shielded_candidate_count"] == 0

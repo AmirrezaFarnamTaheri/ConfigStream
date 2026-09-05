@@ -121,6 +121,30 @@ def test_dns_cache_passthrough(tmp_path, sample_proxies):
     assert "singbox_full" in files
 
 
+def test_disabled_dns_modes_emit_empty_required_artifacts_without_building(
+    tmp_path, sample_proxies, monkeypatch
+):
+    monkeypatch.setenv("DNS_SAFE_OUTPUTS", "false")
+    monkeypatch.setenv("DNS_HARDENED_OUTPUTS", "false")
+
+    def unexpected_build(*_args: object, **_kwargs: object) -> None:
+        raise AssertionError("disabled DNS mode rebuilt its proxy dataset")
+
+    monkeypatch.setattr(
+        "configstream.output_logic._build_dns_safe_proxies", unexpected_build
+    )
+    monkeypatch.setattr(
+        "configstream.output_logic._build_dns_hardened_proxies", unexpected_build
+    )
+
+    files = generate_categorized_outputs(sample_proxies, tmp_path)
+
+    assert files["base64_dns_safe"].read_text(encoding="utf-8") == ""
+    assert files["base64_dns_hardened"].read_text(encoding="utf-8") == ""
+    assert files["singbox_dns_safe"].exists()
+    assert files["singbox_dns_hardened"].exists()
+
+
 def test_protocol_txt_files_generated(tmp_path, sample_proxies):
     """Verify per-protocol .txt URI subscription files are generated."""
     files = generate_categorized_outputs(sample_proxies, tmp_path)
