@@ -174,7 +174,10 @@ def _persist_fingerprint(
     timestamp: int,
     fingerprint_keys: Iterable[FingerprintKey],
 ) -> None:
-    keys = sorted(set(fingerprint_keys))
+    keys = sorted(
+        set(fingerprint_keys),
+        key=lambda item: json.dumps(item, sort_keys=True, separators=(",", ":")),
+    )
     if not keys:
         return
 
@@ -266,7 +269,7 @@ def record_source_chunk(
                 timestamp,
                 merged_fingerprints,
             )
-        except Exception as exc:
+        except (OSError, TypeError, ValueError) as exc:
             logger.debug(
                 "Fingerprint save failed for %s: %s",
                 SecurityValidator.sanitize_log_message(url),
