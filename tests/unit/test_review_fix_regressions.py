@@ -163,7 +163,7 @@ def test_structured_timing_skips_malformed_records(tmp_path: Path) -> None:
     raw_url = "https://example.com/source"
     source_id = hashlib.sha256(raw_url.encode()).hexdigest()
     evidence = tmp_path / "timing.jsonl"
-    rows = [
+    rows: list[object] = [
         [],
         None,
         {"source_id": source_id, "raw": float("inf"), "duration_ms": 100},
