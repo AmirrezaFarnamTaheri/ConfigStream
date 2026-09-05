@@ -2,10 +2,10 @@
         "nav.home": "Home",
         "nav.proxies": "Live Proxies",
         "nav.analytics": "Analytics",
+        "nav.evidence": "Evidence",
         "nav.wiki": "Wiki",
         "nav.about": "About",
         "nav.lab": "Lab",
-
         "wiki.nav.home": "Wiki Home",
         "wiki.nav.intro": "Introduction",
         "wiki.nav.arch": "Architecture",
@@ -21,15 +21,12 @@
         "wiki.nav.page_analytics": "Page: Analytics",
         "wiki.nav.page_proxies": "Page: Proxies",
         "wiki.nav.page_about": "Page: About",
-
         "hero.title": "Unlock the Internet",
         "hero.subtitle.main": "Access the open web with our free, auto-updating VPN configurations. We aggregate fresh proxies from <strong class='highlight-text'>{sources}</strong> sources every <strong class='highlight-text'>{hours}</strong> hours, ensuring you always have a reliable connection.",
         "hero.subtitle.powered": "Powered by the <strong>Resilient Core</strong> hybrid engine with <strong>Smart Chain</strong> and <strong>Vwarp</strong> anti-censorship technology.",
         "hero.browse": "Browse Proxies",
         "hero.get": "Get Configs",
-
         "pipeline.title": "Live Pipeline Status",
-
         "stats.sourced": "Total Sourced",
         "stats.unique": "Unique Candidates",
         "stats.online": "Retested Working",
@@ -43,18 +40,17 @@
         "stats.threats": "Threats Blocked",
         "stats.chains": "Smart Chains",
         "stats.vwarp": "Vwarp Efficiency",
-
         "downloads.title": "Get Your Configs",
         "downloads.subtitle": "Select your preferred format below. All files contain our latest verified proxies.",
         "downloads.dns_profile.label": "DNS Profile",
-        "downloads.dns_profile.standard": "Standard \u2014 Default DNS resolution",
-        "downloads.dns_profile.safe": "DNS-Safe \u2014 IP-only endpoints, no DNS leaks",
-        "downloads.dns_profile.hardened": "DNS-Hardened \u2014 Encrypted resolvers (DoH/DoT/DoQ)",
+        "downloads.dns_profile.standard": "Standard — Default DNS resolution",
+        "downloads.dns_profile.safe": "DNS-Safe — IP-only endpoints, no DNS leaks",
+        "downloads.dns_profile.hardened": "DNS-Hardened — Encrypted resolvers (DoH/DoT/DoQ)",
         "downloads.dns_profile.desc": "DNS-Safe uses IP-only endpoints. DNS-Hardened embeds encrypted resolvers. Stealth and Maximum add anti-censorship techniques.",
         "downloads.evasion_mode.label": "Evasion Level",
-        "downloads.evasion_mode.standard": "Standard \u2014 No extra evasion",
-        "downloads.evasion_mode.stealth": "Stealth \u2014 TLS fragmentation + uTLS fingerprint",
-        "downloads.evasion_mode.aggressive": "Maximum \u2014 All evasion techniques enabled",
+        "downloads.evasion_mode.standard": "Standard — No extra evasion",
+        "downloads.evasion_mode.stealth": "Stealth — TLS fragmentation + uTLS fingerprint",
+        "downloads.evasion_mode.aggressive": "Maximum — All evasion techniques enabled",
         "downloads.dns_safe.label": "DNS-safe (IP-only) variants",
         "downloads.dns_safe.desc": "Uses pre-resolved IP endpoints to reduce DNS dependency. Some entries may be missing if resolution fails.",
         "downloads.universal": "Universal Subscription",
@@ -86,14 +82,13 @@
         "downloads.sniper": "Sniper",
         "downloads.tank": "Tank",
         "downloads.download": "Download",
-
         "info.start.title": "Getting Started",
         "info.start.text": "Five steps to a working connection:",
-        "info.start.step1": "<strong>Pick a format</strong> \u2014 choose the subscription that matches your VPN client (Sing-box, Clash, V2Ray, Shadowrocket, etc.)",
-        "info.start.step2": "<strong>Copy the link</strong> \u2014 click the copy button next to your chosen format",
-        "info.start.step3": "<strong>Import</strong> \u2014 paste the link into your client's subscription manager",
-        "info.start.step4": "<strong>Update</strong> \u2014 refresh the subscription to fetch the latest proxies",
-        "info.start.step5": "<strong>Connect</strong> \u2014 select any proxy from the list",
+        "info.start.step1": "<strong>Pick a format</strong> — choose the subscription that matches your VPN client (Sing-box, Clash, V2Ray, Shadowrocket, etc.)",
+        "info.start.step2": "<strong>Copy the link</strong> — click the copy button next to your chosen format",
+        "info.start.step3": "<strong>Import</strong> — paste the link into your client's subscription manager",
+        "info.start.step4": "<strong>Update</strong> — refresh the subscription to fetch the latest proxies",
+        "info.start.step5": "<strong>Connect</strong> — select any proxy from the list",
         "info.start.tip": "Subscriptions auto-update on a schedule, so you always have fresh proxies.",
         "info.how.title": "How It Works",
         "info.how.text": "ConfigStream runs an automated, zero-cost pipeline on GitHub Actions:",
@@ -110,33 +105,27 @@
         "info.how.highlight.text": "Proxy Washing revives blocked IPs by tunneling through Cloudflare WARP, producing resilient Smart Chains that bypass censorship. Supports 20+ protocols including VLESS, VMess, Trojan, Shadowsocks, Hysteria2, TUIC, and WireGuard.",
         "info.security.title": "Security & Privacy",
         "info.community.title": "Open Source",
-
         "footer.love": "Empowering global access to information. Open Source & Forever Free. ",
         "footer.lastupdated": "Last updated:",
         "footer.checking": "checking...",
-
         "formats.title": "Formats Explained",
-        "formats.base64": "<strong>Base64 Subscription</strong> \u2014 Universal link compatible with V2Ray, Xray, Shadowrocket, and most clients.",
-        "formats.singbox": "<strong>Sing-box Config</strong> \u2014 JSON with smart routing (Sniper) and full-VPN mode (Tank). Works with V2RayN, NekoRay, NekoBox, Hiddify.",
-        "formats.clash": "<strong>Clash Config</strong> \u2014 YAML for Clash, Clash Meta (Mihomo), Stash, and Clash Verge.",
-
+        "formats.base64": "<strong>Base64 Subscription</strong> — Universal link compatible with V2Ray, Xray, Shadowrocket, and most clients.",
+        "formats.singbox": "<strong>Sing-box Config</strong> — JSON with smart routing (Sniper) and full-VPN mode (Tank). Works with V2RayN, NekoRay, NekoBox, Hiddify.",
+        "formats.clash": "<strong>Clash Config</strong> — YAML for Clash, Clash Meta (Mihomo), Stash, and Clash Verge.",
         "notice.title": "Security Notice",
         "notice.text": "These are free public proxies. While we test them for safety, we cannot guarantee privacy.",
         "notice.list.1": "DO NOT use for banking or sensitive data.",
         "notice.list.2": "GREAT for unblocking content and browsing.",
         "notice.list.3": "Traffic flows through third-party servers.",
         "notice.disclaimer": "Use responsibly at your own risk.",
-
         "adapters.title": "🔌 New Formats",
         "adapters.subtitle": "Experimental support for additional clients.",
-
         "byow.title": "🚀 Turbo Mode (BYOW)",
         "byow.url.placeholder": "Paste your Cloudflare Worker URL...",
         "byow.uuid.placeholder": "Optional: UUID",
         "byow.apply": "Apply Custom Worker",
         "byow.hint": "Use your own Worker for private, high-speed connectivity.",
         "byow.download": "Download Turbo Config",
-
         "filters.search": "Search e.g., 'fastest US vmess' or 'Germany < 100ms'",
         "filters.protocol": "All Protocols",
         "filters.country": "All Countries",
@@ -146,7 +135,6 @@
         "filters.download_filtered": "Download Filtered",
         "filters.empty_title": "No Matches Found",
         "filters.empty_text": "We couldn't find any proxies matching your criteria. Try adjusting your filters.",
-
         "table.protocol": "Protocol",
         "table.location": "Location",
         "table.latency": "Latency",
@@ -155,7 +143,6 @@
         "table.trend": "Trend",
         "table.history": "History",
         "table.copy": "Copy Link",
-
         "verify.local": "Turbo-Verify (Local)",
         "verify.status": "Ready to verify via WASM",
 
@@ -168,7 +155,7 @@
         "about.pillar1.title": "Zero Budget, Maximum Impact",
         "about.pillar1.text": "We operate entirely on free infrastructure (GitHub Actions/Pages). This guarantees sustainability—we can't run out of funds because we don't spend any.",
         "about.pillar2.title": "Automated Intelligence",
-        "about.pillar2.text": "A hybrid Python/Go engine aggregates, deduplicates, tests, and \"washes\" thousands of proxies on a recurring schedule \u2014 fully automated.",
+        "about.pillar2.text": "A hybrid Python/Go engine aggregates, deduplicates, tests, and \"washes\" thousands of proxies on a recurring schedule — fully automated.",
         "about.pillar3.title": "Radical Transparency",
         "about.pillar3.text": "Open source from day one. Every line of code, every metric, and every configuration is public and auditable by the community.",
 
@@ -216,7 +203,7 @@
         "about.opensource.title": "Open Source & License",
         "about.opensource.text": "ConfigStream is released under the <strong>AGPLv3 License</strong>, ensuring it remains free and open source forever. We believe in transparency, community-driven development, and unrestricted access to information.",
         "about.opensource.btn": "View on GitHub",
-        "about.footer": "&copy; 2024\u20132026 ConfigStream. Open Source (AGPLv3).",
+        "about.footer": "&copy; 2024–2026 ConfigStream. Open Source (AGPLv3).",
         "about.arch.title": "Architecture: The \"Resilient Core\"",
         "about.arch.text": "Built on a \"Zero Budget\" philosophy, ConfigStream leverages the immense power of distributed CI/CD infrastructure (GitHub Actions) to create a self-sustaining, unstoppable pipeline. We don't rely on expensive servers that can be blocked or taken down.",
         "about.arch.hybrid": "<strong>Hybrid Engine:</strong> A fusion of Python's analytical intelligence and a high-performance <strong>Go Sidecar</strong> for massively concurrent, raw-socket network verification.",
@@ -240,4 +227,4 @@
         /* Proxies Page */
         "proxies.hero.title": "Live Proxy List",
         "proxies.hero.subtitle": "Explore generated proxy candidates. Search, sort, and choose a connection that fits your network."
-    }
+}
