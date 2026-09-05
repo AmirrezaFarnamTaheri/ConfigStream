@@ -194,8 +194,7 @@ def generate_categorized_outputs(
         generated_files[name.replace("-", "_").replace(".json", "")] = path
 
     # 6. DNS-safe variations
-    dns_safe_enabled = settings.DNS_SAFE_OUTPUTS
-    if not dns_safe_enabled:
+    if not settings.DNS_SAFE_OUTPUTS:
         safe_proxies, host_map = [], {}
     elif dns_safe_cache is not None:
         safe_proxies, host_map = dns_safe_cache
@@ -207,15 +206,14 @@ def generate_categorized_outputs(
         host_map,
         output_dir,
         "dns-safe",
-        washed_outbounds if dns_safe_enabled else None,
-        smart_chains if dns_safe_enabled else {},
-        washed_ids if dns_safe_enabled else None,
+        washed_outbounds if settings.DNS_SAFE_OUTPUTS else None,
+        smart_chains if settings.DNS_SAFE_OUTPUTS else {},
+        washed_ids if settings.DNS_SAFE_OUTPUTS else None,
         generated_files,
     )
 
     # 7. DNS-hardened variations
-    dns_hardened_enabled = settings.DNS_HARDENED_OUTPUTS
-    if not dns_hardened_enabled:
+    if not settings.DNS_HARDENED_OUTPUTS:
         hardened_proxies, hardened_map = [], {}
     elif dns_hardened_cache is not None:
         hardened_proxies, hardened_map = dns_hardened_cache
@@ -227,9 +225,9 @@ def generate_categorized_outputs(
         hardened_map,
         output_dir,
         "dns-hardened",
-        washed_outbounds if dns_hardened_enabled else None,
-        smart_chains if dns_hardened_enabled else {},
-        washed_ids if dns_hardened_enabled else None,
+        washed_outbounds if settings.DNS_HARDENED_OUTPUTS else None,
+        smart_chains if settings.DNS_HARDENED_OUTPUTS else {},
+        washed_ids if settings.DNS_HARDENED_OUTPUTS else None,
         generated_files,
         is_hardened=True,
     )
