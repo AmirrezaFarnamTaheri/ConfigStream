@@ -6,7 +6,7 @@ on:
       - codex/fix-actions-and-runtime-resilience
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   regenerate:
@@ -15,8 +15,8 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          persist-credentials: false
-      - name: Regenerate governed evidence for final tree
+          persist-credentials: true
+      - name: Regenerate and finalize governed evidence
         shell: bash
         run: |
           set -euo pipefail
@@ -25,18 +25,9 @@ jobs:
           python scripts/validate_exception_boundaries.py --write
           python scripts/generate_triage_report.py
           python scripts/collect_repository_forensics.py
-          mkdir -p pr583-generated/docs/generated pr583-generated/config
-          cp docs/DEBT_MATRIX.md pr583-generated/docs/DEBT_MATRIX.md
-          cp docs/debt_matrix.json pr583-generated/docs/debt_matrix.json
-          cp config/exception-boundary-budget.json pr583-generated/config/exception-boundary-budget.json
-          cp TRIAGE_REPORT.md pr583-generated/TRIAGE_REPORT.md
-          cp docs/generated/repository-forensics.json pr583-generated/docs/generated/repository-forensics.json
-          cp docs/generated/repository-forensics.md pr583-generated/docs/generated/repository-forensics.md
-          git diff -- docs/DEBT_MATRIX.md docs/debt_matrix.json config/exception-boundary-budget.json TRIAGE_REPORT.md docs/generated/repository-forensics.json docs/generated/repository-forensics.md > pr583-generated/generated.diff
-      - name: Upload regenerated evidence
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: pr583-generated-evidence-${{ github.run_id }}
-          path: pr583-generated/
-          if-no-files-found: error
-          retention-days: 1
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/DEBT_MATRIX.md docs/debt_matrix.json config/exception-boundary-budget.json TRIAGE_REPORT.md docs/generated/repository-forensics.json docs/generated/repository-forensics.md .github/workflows/pr583-evidence-regeneration.yml
+          git diff --cached --check
+          git commit -m "docs: regenerate source-run governance evidence"
+          git push origin HEAD:codex/fix-actions-and-runtime-resilience
