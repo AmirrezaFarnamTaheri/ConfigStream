@@ -81,6 +81,17 @@ def _chunk_lines(lines: List[str], chunk_size: int) -> List[List[str]]:
     return [lines[i : i + chunk_size] for i in range(0, len(lines), chunk_size)]
 
 
+def _chunk_metadata(
+    base: Dict[str, Any], index: int, total: int, queued: int
+) -> Dict[str, Any]:
+    metadata = dict(base, count_source=queued == 0)
+    if index > 1:
+        metadata["drop_stats"] = {}
+    if total > 1:
+        metadata.update(chunk_index=index, chunk_total=total)
+    return metadata
+
+
 async def _report_source_failure(
     loop: asyncio.AbstractEventLoop,
     quality_tracker: SourceQualityTracker,
@@ -216,13 +227,7 @@ async def source_producer(
         queued_chunks = 0
 
         for idx, chunk in enumerate(chunks, start=1):
-            chunk_meta: Dict[str, Any] = dict(base_meta)
-            if idx > 1:
-                # Avoid double-counting parser drop stats on every chunk.
-                chunk_meta["drop_stats"] = {}
-            if len(chunks) > 1:
-                chunk_meta["chunk_index"] = idx
-                chunk_meta["chunk_total"] = len(chunks)
+            chunk_meta = _chunk_metadata(base_meta, idx, len(chunks), queued_chunks)
 
             candidate_lines, dropped = select_candidates(
                 chunk, pressure=_queue_pressure(), policy=queue_policy

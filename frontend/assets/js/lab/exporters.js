@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { WARP_PUBLIC_KEY } from './state.js';
+import { requiresXrayTransportSecurity } from './xray-security.js';
 
 function requirePort(value) {
     const port = Number(value);
@@ -91,7 +92,7 @@ export function singboxOutboundToClash(sbOut) {
             proxy = {
                 name, type: 'vless', server, port,
                 uuid: requireString(sbOut.uuid, 'VLESS UUID'),
-                tls: tls.enabled !== false,
+                tls: tls.enabled === true,
                 servername: sni,
             };
             if (sbOut.flow) proxy.flow = String(sbOut.flow);
@@ -101,7 +102,7 @@ export function singboxOutboundToClash(sbOut) {
                 name, type: 'vmess', server, port,
                 uuid: requireString(sbOut.uuid, 'VMess UUID'),
                 alterId: 0, cipher: 'auto',
-                tls: tls.enabled !== false,
+                tls: tls.enabled === true,
                 servername: sni,
             };
             break;
@@ -120,6 +121,7 @@ export function singboxOutboundToClash(sbOut) {
             };
             break;
         case 'socks':
+            if (sbOut.version && String(sbOut.version) !== '5') throw new TypeError('Clash requires SOCKS5');
             proxy = { name, type: 'socks5', server, port };
             break;
         case 'http':
@@ -161,6 +163,15 @@ export function singboxOutboundToClash(sbOut) {
             throw new TypeError(`Unsupported Clash outbound type: ${type}`);
     }
 
+    if (type === 'socks' || type === 'http') {
+        if (sbOut.username) {
+            proxy.username = String(sbOut.username);
+            proxy.password = String(sbOut.password || '');
+        }
+        proxy.tls = tls.enabled === true;
+        if (proxy.tls) proxy.sni = sni;
+    }
+    if (tls.enabled === true) proxy['skip-cert-verify'] = tls.insecure === true;
     if (tls.reality && tls.reality.enabled) {
         proxy['reality-opts'] = {
             'public-key': String(tls.reality.public_key || ''),
@@ -209,12 +220,11 @@ export function singboxOutboundToXray(sbOut) {
             : {};
         const sni = String(tls.server_name || outbound.server || '');
         const stream = {
-            network: 'tcp',
-            security: tls.enabled !== false && (tls.enabled || tls.server_name) ? 'tls' : 'none',
+            method: 'raw',
+            security: tls.enabled === true ? 'tls' : 'none',
         };
         if (stream.security === 'tls') {
             stream.tlsSettings = { serverName: sni };
-            if (tls.insecure) stream.tlsSettings.allowInsecure = true;
             if (Array.isArray(tls.alpn) && tls.alpn.length) stream.tlsSettings.alpn = tls.alpn.map(String);
             if (tls.utls && tls.utls.fingerprint) stream.tlsSettings.fingerprint = String(tls.utls.fingerprint);
         }
@@ -222,14 +232,14 @@ export function singboxOutboundToXray(sbOut) {
             stream.security = 'reality';
             stream.realitySettings = {
                 serverName: sni,
-                publicKey: String(tls.reality.public_key || ''),
+                password: String(tls.reality.public_key || ''),
                 shortId: String(tls.reality.short_id || ''),
                 fingerprint: String((tls.utls && tls.utls.fingerprint) || 'chrome'),
             };
             delete stream.tlsSettings;
         }
         if (transport.type === 'ws') {
-            stream.network = 'ws';
+            stream.method = 'websocket';
             stream.wsSettings = {
                 path: String(transport.path || '/'),
                 headers: transport.headers && typeof transport.headers === 'object'
@@ -237,23 +247,24 @@ export function singboxOutboundToXray(sbOut) {
                     : {},
             };
         } else if (transport.type === 'grpc') {
-            stream.network = 'grpc';
+            stream.method = 'grpc';
             stream.grpcSettings = { serviceName: String(transport.service_name || '') };
         } else if (transport.type === 'httpupgrade') {
-            stream.network = 'httpupgrade';
+            stream.method = 'httpupgrade';
             stream.httpupgradeSettings = {
                 path: String(transport.path || '/'),
                 host: String(transport.host || sni),
             };
         } else if (transport.type === 'http') {
-            stream.network = 'h2';
-            stream.httpSettings = {
+            stream.method = 'xhttp';
+            stream.xhttpSettings = {
                 path: String(transport.path || '/'),
                 host: transport.host
                     ? (Array.isArray(transport.host) ? transport.host.map(String) : [String(transport.host)])
                     : [sni],
             };
         }
+        if (stream.method === 'raw') stream.rawSettings = { header: { type: 'none' } };
         return stream;
     }
 
@@ -263,40 +274,45 @@ export function singboxOutboundToXray(sbOut) {
         const user = { id: requireString(sbOut.uuid, 'VLESS UUID'), encryption: 'none' };
         if (sbOut.flow) user.flow = String(sbOut.flow);
         xOut.protocol = 'vless';
-        xOut.settings = { vnext: [{ address, port, users: [user] }] };
+        xOut.settings = { address, port, ...user };
         xOut.streamSettings = buildStreamSettings(sbOut);
     } else if (type === 'vmess') {
         xOut.protocol = 'vmess';
         xOut.settings = {
-            vnext: [{ address, port, users: [{ id: requireString(sbOut.uuid, 'VMess UUID'), alterId: 0, security: 'auto' }] }],
+            address, port, id: requireString(sbOut.uuid, 'VMess UUID'), security: String(sbOut.security || 'auto'),
         };
         xOut.streamSettings = buildStreamSettings(sbOut);
     } else if (type === 'trojan') {
         xOut.protocol = 'trojan';
-        xOut.settings = { servers: [{ address, port, password: requireString(sbOut.password, 'Trojan password') }] };
+        xOut.settings = { address, port, password: requireString(sbOut.password, 'Trojan password') };
         xOut.streamSettings = buildStreamSettings(sbOut);
     } else if (type === 'shadowsocks') {
         xOut.protocol = 'shadowsocks';
         xOut.settings = {
-            servers: [{ address, port, method: String(sbOut.method || 'aes-128-gcm'), password: requireString(sbOut.password, 'Shadowsocks password') }],
+            address, port, method: requireString(sbOut.method, 'Shadowsocks method'), password: requireString(sbOut.password, 'Shadowsocks password'),
         };
     } else if (type === 'socks' || type === 'http') {
         xOut.protocol = type;
-        xOut.settings = { servers: [{ address, port }] };
+        xOut.settings = { address, port };
+        if (sbOut.username) { xOut.settings.user = String(sbOut.username); xOut.settings.pass = String(sbOut.password || ''); }
     } else if (type === 'wireguard') {
         xOut.protocol = 'wireguard';
         xOut.settings = {
             secretKey: requireString(sbOut.private_key, 'WireGuard private key'),
             address: Array.isArray(sbOut.local_address) ? sbOut.local_address.map(String) : [String(sbOut.local_address || '172.16.0.2/32')],
-            peers: [{ endpoint: `${address}:${port}`, publicKey: requireString(sbOut.peer_public_key, 'WireGuard public key') }],
+            peers: [{ endpoint: `${address.includes(':') ? '[' + address.replace(/^\[|\]$/g, '') + ']' : address}:${port}`, publicKey: requireString(sbOut.peer_public_key, 'WireGuard public key') }],
             reserved: normalizeReserved(sbOut.reserved),
             mtu: Number.isInteger(Number(sbOut.mtu)) ? Number(sbOut.mtu) : 1280,
         };
     } else if (type === 'hysteria2' || type === 'tuic') {
-        xOut.protocol = 'freedom';
-        xOut._note = `${type} is not supported by Xray/V2Ray; use sing-box.`;
+        throw new TypeError(`${type} is not supported by Xray; use sing-box.`);
     } else {
         throw new TypeError(`Unsupported Xray outbound type: ${type}`);
+    }
+    if (type !== 'wireguard') xOut.streamSettings = buildStreamSettings(sbOut);
+    if (['trojan', 'vless'].includes(type) && xOut.streamSettings.security === 'none'
+        && requiresXrayTransportSecurity(address)) {
+        throw new TypeError(`${type} to a public destination requires TLS in Xray.`);
     }
     if (sbOut.detour) xOut.proxySettings = { tag: String(sbOut.detour) };
     return xOut;
@@ -314,8 +330,8 @@ export function buildXrayJson(chainConfig) {
     };
     if (chainConfig._vwarp && typeof chainConfig._vwarp === 'object') xray._vwarp = chainConfig._vwarp;
     for (const outbound of chainConfig.outbounds) {
-        if (outbound.type === 'direct') xray.outbounds.push({ tag: String(outbound.tag), protocol: 'freedom' });
-        else if (outbound.type === 'block') xray.outbounds.push({ tag: String(outbound.tag), protocol: 'blackhole' });
+        if (outbound.type === 'direct') xray.outbounds.push({ tag: String(outbound.tag), protocol: 'freedom', settings: {} });
+        else if (outbound.type === 'block') xray.outbounds.push({ tag: String(outbound.tag), protocol: 'blackhole', settings: {} });
         else xray.outbounds.push(singboxOutboundToXray(outbound));
     }
     return JSON.stringify(xray, null, 2);

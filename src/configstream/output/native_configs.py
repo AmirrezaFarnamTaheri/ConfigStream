@@ -89,11 +89,28 @@ def _rewrite_chain_obs_for_dns(
         update_chain_details(details, rewritten_chain)
 
 
+def _resolved_host_map(proxies: List[Proxy]) -> Dict[str, str]:
+    host_map: Dict[str, str] = {}
+    for proxy in proxies:
+        address = (proxy.address or "").strip()
+        resolved = (
+            address if _is_ip_literal(address) else (proxy.resolved_ip or "").strip()
+        )
+        if (
+            address
+            and resolved
+            and _is_ip_literal(resolved)
+            and _is_global_ip(resolved)
+        ):
+            host_map[_normalize_host(address)] = resolved
+    return host_map
+
+
 def build_dns_safe_proxies(
     proxies: List[Proxy],
 ) -> Tuple[List[Proxy], Dict[str, str]]:
     safe: List[Proxy] = []
-    host_map: Dict[str, str] = {}
+    host_map = _resolved_host_map(proxies)
 
     for proxy in proxies:
         addr = (proxy.address or "").strip()
@@ -152,7 +169,7 @@ def build_dns_hardened_proxies(
     proxies: List[Proxy],
 ) -> Tuple[List[Proxy], Dict[str, str]]:
     hardened: List[Proxy] = []
-    host_map: Dict[str, str] = {}
+    host_map = _resolved_host_map(proxies)
     adapter = ShadowrocketAdapter()
 
     for proxy in proxies:

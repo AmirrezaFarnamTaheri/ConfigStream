@@ -269,3 +269,7 @@ this measured fixture evidence.
 *   **[Sing-box Configuration Guide](../encyclopedia/tools/singbox_configuration_guide.md)** — How the Lab's exported configs are structured.
 *   **[Networking Terms — WebSocket](../encyclopedia/glossary/networking_terms.md)** — WS transport used by WASM tester.
 *   **[WARP & Clean IPs](../encyclopedia/networking/warp.md)** — How the Lab discovers and uses clean IPs.
+
+The Laboratory Xray exporter targets the pinned Xray core's modern outbound fields. Unsupported TUIC/Hysteria2 conversions raise an error instead of substituting a direct connection. Clash conversion preserves explicit TLS and proxy authentication settings.
+
+DNS-safe and DNS-hardened datasets are derived after shielded candidates are added. Either DNS mode enables endpoint resolution. Host mappings are collected before chain rewriting, so record order does not change the resulting endpoint addresses; original TLS server names remain available for certificate validation.

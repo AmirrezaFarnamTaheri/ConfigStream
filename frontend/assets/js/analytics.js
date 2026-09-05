@@ -492,7 +492,7 @@ function _initGlobeInternal(data, container) {
             const lat = p.lat;
             const lng = p.lng;
             let color = '#ff0000';
-            const latency = p.latency || 9999;
+            const latency = Number.isFinite(p.latency) ? p.latency : 9999;
             if (latency < 200) color = '#00ff00';
             else if (latency < 500) color = '#ffff00';
 

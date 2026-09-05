@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+- **Cross-layer contract repairs**: DNS variants include late shielded candidates, resolve in hardened-only mode, and rewrite chains independently of input order. Public metadata preserves explicit zero counts and hashes the exported payload. Proxy deltas replace changed records, retain order, and persist their exact snapshot version.
+- **Laboratory core parity**: Modernized Xray outbound/transport fields, removed obsolete TLS options, preserved Clash TLS/authentication settings, and reject unsupported Xray protocols instead of silently exporting direct connections. Native Xray validation covers generated laboratory fixtures.
+- **Telemetry and repository hygiene**: Count a chunked source once, reject malformed reshard timing records, rank zero-latency subscriptions correctly, and preserve zero latency on the map. Removed the unused incremental loader and reduced oversized producer/metadata functions.
+
 - **Xray release-gate repair**: Applied the pinned core's transport-security rules to public Trojan hostnames and unencrypted VLESS destinations, retained its supported private destinations, and excluded incompatible chains as a whole. Structural validation now catches the same failure before native release checks.
 - **Browser verification selection**: Python browser tests honor the same explicit Chromium path as the Node smoke checks; unrelated cached browser versions no longer produce false readiness, and launch failures remain test failures. The combined three-suite browser profile has a bounded ten-minute budget to accommodate browser shutdown on slower hosts.
 - **CI and Pages verification repairs**: Replaced analytics globe button HTML assignments with DOM construction and exposed its pressed state. Installed the Pages artifact validator's PyYAML dependency and constrained deployment verification packages to the reviewed production pins.

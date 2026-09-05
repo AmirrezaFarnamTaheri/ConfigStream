@@ -353,7 +353,7 @@ class CacheManager {
     }
   }
 
-  async cacheData(url, data) {
+  async cacheData(url, data, snapshotVersion = null) {
     if (!this.cacheAvailable) return false;
     try {
       const cacheKey = this.getCacheKey(url);
@@ -373,7 +373,7 @@ class CacheManager {
 
       // Store snapshot identity for differential updates. Proxy arrays do not
       // carry their own version, so use the metadata hash published beside them.
-      const version = data.version ||
+      const version = snapshotVersion || data.version ||
         data.proxies_snapshot_hash ||
         (Array.isArray(data) && url.includes('api/proxies') ? window.CONFIGSTREAM_PROXY_SNAPSHOT_HASH : null) ||
         data.last_updated_utc ||

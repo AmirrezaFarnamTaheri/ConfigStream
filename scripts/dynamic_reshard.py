@@ -72,12 +72,19 @@ def parse_timing_evidence(
             continue
         try:
             payload = json.loads(line)
+            if not isinstance(payload, dict):
+                continue
             source_url = by_id.get(str(payload.get("source_id", "")))
             raw = int(payload.get("raw", 0) or 0)
             duration_ms = float(payload.get("duration_ms", 0.0) or 0.0)
-        except (json.JSONDecodeError, TypeError, ValueError):
+        except (json.JSONDecodeError, TypeError, ValueError, OverflowError):
             continue
-        if not source_url or not math.isfinite(duration_ms) or duration_ms <= 0:
+        if (
+            not source_url
+            or raw < 0
+            or not math.isfinite(duration_ms)
+            or duration_ms <= 0
+        ):
             continue
         duration = duration_ms / 1000.0
         existing = metrics.get(source_url, (0, 0.0))

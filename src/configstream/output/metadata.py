@@ -81,6 +81,29 @@ def _artifact_timestamps(stats: Any) -> tuple[str, str, Any]:
     return generated_at_iso, now_iso, start_time_iso
 
 
+def _snapshot_hashes(proxies: List[Proxy], output_dir: Path) -> tuple[str, Any]:
+    proxies_snapshot_hash = _json_snapshot_sha256([serialize_proxy(p) for p in proxies])
+    public_snapshot_path = output_dir / "proxies.json"
+    if public_snapshot_path.is_file():
+        public_snapshot = json.loads(public_snapshot_path.read_text(encoding="utf-8"))
+        proxies_snapshot_hash = _json_snapshot_sha256(public_snapshot)
+    old_snapshot_hash = None
+    old_snapshot_path = output_dir / "proxies.old.json"
+    if old_snapshot_path.is_file():
+        try:
+            old_payload = json.loads(old_snapshot_path.read_text(encoding="utf-8"))
+            old_snapshot_hash = _json_snapshot_sha256(old_payload)
+        except (OSError, json.JSONDecodeError):
+            old_snapshot_hash = None
+
+    return proxies_snapshot_hash, old_snapshot_hash
+
+
+def _public_count(stats: Any, key: str, value: int, fallback: int) -> int:
+    present = key in stats if isinstance(stats, dict) else hasattr(stats, key)
+    return value if present else fallback
+
+
 def save_metadata(
     stats: Any,
     proxies: List[Proxy],
@@ -128,15 +151,7 @@ def save_metadata(
         if p.asn:
             asns[p.asn] = asns.get(p.asn, 0) + 1
 
-    proxies_snapshot_hash = _json_snapshot_sha256([serialize_proxy(p) for p in proxies])
-    old_snapshot_hash = None
-    old_snapshot_path = output_dir / "proxies.old.json"
-    if old_snapshot_path.is_file():
-        try:
-            old_payload = json.loads(old_snapshot_path.read_text(encoding="utf-8"))
-            old_snapshot_hash = _json_snapshot_sha256(old_payload)
-        except (OSError, json.JSONDecodeError):
-            old_snapshot_hash = None
+    proxies_snapshot_hash, old_snapshot_hash = _snapshot_hashes(proxies, output_dir)
 
     # Extraction logic for stats
     total_sourced = total
@@ -370,11 +385,11 @@ def save_metadata(
     washing_enabled = washing_enabled or vwarp_attempts > 0
 
     logical_total_proxies = total + smart_chain_count
-    exported_total_proxies = (
-        public_record_count if public_record_count > 0 else logical_total_proxies
+    exported_total_proxies = _public_count(
+        stats, "public_record_count", public_record_count, logical_total_proxies
     )
-    exported_total_working = (
-        public_working_count if public_working_count > 0 else working
+    exported_total_working = _public_count(
+        stats, "public_working_count", public_working_count, working
     )
 
     meta = {
