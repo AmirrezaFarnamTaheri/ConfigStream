@@ -189,6 +189,9 @@ def save_metadata(
     chain_obs_count = 0
     time_limited = False
     time_limit_seconds = 0
+    hard_timeout = False
+    abandoned_queue_items = 0
+    abandoned_queue_lines = 0
     shielded_count = 0
     shielded_candidate_count = 0
     shielded_verified_count = 0
@@ -239,6 +242,9 @@ def save_metadata(
         chain_obs_count = stats.get("chain_obs_count", 0)
         time_limited = bool(stats.get("time_limited", False))
         time_limit_seconds = int(stats.get("time_limit_seconds", 0) or 0)
+        hard_timeout = bool(stats.get("hard_timeout", False))
+        abandoned_queue_items = int(stats.get("abandoned_queue_items", 0) or 0)
+        abandoned_queue_lines = int(stats.get("abandoned_queue_lines", 0) or 0)
         shielded_count = stats.get("shielded_count", 0)
         shielded_candidate_count = int(
             _dict_value(stats, "shielded_candidate_count", default=shielded_count)
@@ -289,6 +295,9 @@ def save_metadata(
         chain_obs_count = getattr(stats, "chain_obs_count", 0)
         time_limited = bool(getattr(stats, "time_limited", False))
         time_limit_seconds = int(getattr(stats, "time_limit_seconds", 0) or 0)
+        hard_timeout = bool(getattr(stats, "hard_timeout", False))
+        abandoned_queue_items = int(getattr(stats, "abandoned_queue_items", 0) or 0)
+        abandoned_queue_lines = int(getattr(stats, "abandoned_queue_lines", 0) or 0)
         shielded_count = getattr(stats, "shielded_count", 0)
         shielded_candidate_count = getattr(
             stats, "shielded_candidate_count", shielded_count
@@ -470,6 +479,9 @@ def save_metadata(
         "final_count": final_count or working,
         "time_limited": time_limited,
         "time_limit_seconds": time_limit_seconds,
+        "hard_timeout": hard_timeout,
+        "abandoned_queue_items": abandoned_queue_items,
+        "abandoned_queue_lines": abandoned_queue_lines,
         "total_lines_sourced": total_sourced,
         "total_unique_candidates": parsed_count,
         "total_valid_proxies": working,
