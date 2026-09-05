@@ -32,6 +32,7 @@ class RunStatsView(Protocol):
     tested: int
     working: int
     time_limited: bool
+    hard_timeout: bool
 
 
 def classify_run(stats: RunStatsView) -> PublicationDecision:
@@ -57,11 +58,11 @@ def classify_run(stats: RunStatsView) -> PublicationDecision:
             False,
             "No candidates passed validation.",
         )
-    if stats.time_limited:
+    if stats.hard_timeout:
         return PublicationDecision(
             RunDisposition.FAILED_TIME_LIMIT,
             False,
-            "The run ended under a time limit and is incomplete.",
+            "The run exceeded its grace window and required forced cancellation.",
         )
     return PublicationDecision(
         RunDisposition.SUCCESS, True, "All stable publication predicates passed."

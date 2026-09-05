@@ -153,10 +153,6 @@ async def processing_consumer(
             work_queue.task_done()
             break
 
-        if stop_event.is_set():
-            work_queue.task_done()
-            continue
-
         if len(item) == 3:
             source, raw_lines, metadata = item
         else:

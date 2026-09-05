@@ -24,6 +24,9 @@ class PipelineExecutionAudit:
     source_toxicity_rate: float
     backpressure_drop: int
     time_limited: bool
+    hard_timeout: bool
+    abandoned_queue_items: int
+    abandoned_queue_lines: int
 
     @classmethod
     def from_stats(cls, stats: "PipelineStats") -> "PipelineExecutionAudit":
@@ -55,6 +58,9 @@ class PipelineExecutionAudit:
             source_toxicity_rate=toxicity_rate,
             backpressure_drop=int(stats.backpressure_drop),
             time_limited=bool(stats.time_limited),
+            hard_timeout=bool(stats.hard_timeout),
+            abandoned_queue_items=int(stats.abandoned_queue_items),
+            abandoned_queue_lines=int(stats.abandoned_queue_lines),
         )
 
     def to_dict(self) -> Dict[str, Any]:
@@ -72,6 +78,9 @@ class PipelineExecutionAudit:
             "source_toxicity_rate": self.source_toxicity_rate,
             "backpressure_drop": self.backpressure_drop,
             "time_limited": self.time_limited,
+            "hard_timeout": self.hard_timeout,
+            "abandoned_queue_items": self.abandoned_queue_items,
+            "abandoned_queue_lines": self.abandoned_queue_lines,
         }
 
 
@@ -108,6 +117,12 @@ class PipelineStats:
     # Time budget handling
     time_limited: bool = False
     time_limit_seconds: int = 0
+    # ``time_limited`` means intake stopped at the configured window and the
+    # queue was allowed to drain. ``hard_timeout`` means the grace window also
+    # expired and work had to be cancelled; such a run is not publishable.
+    hard_timeout: bool = False
+    abandoned_queue_items: int = 0
+    abandoned_queue_lines: int = 0
 
     # Revived Stats
     revived_warp: int = 0
@@ -230,6 +245,19 @@ class PipelineStats:
                 self.drop_reasons.get("backpressure_drop", 0) + count
             )
 
+    def record_abandoned_work(self, line_count: int, item_count: int = 1) -> None:
+        """Account work abandoned only during a forced hard-timeout teardown."""
+        if line_count < 0 or item_count <= 0:
+            return
+        with self._lock:
+            self.abandoned_queue_items += int(item_count)
+            self.abandoned_queue_lines += int(line_count)
+            if line_count:
+                self.drop_reasons["hard_timeout_abandoned"] = (
+                    self.drop_reasons.get("hard_timeout_abandoned", 0)
+                    + int(line_count)
+                )
+
     def to_dict(self) -> Dict[str, Any]:
         """
         Return a dictionary representation of stats.
@@ -258,6 +286,9 @@ class PipelineStats:
                 "backpressure_drop": self.backpressure_drop,
                 "time_limited": self.time_limited,
                 "time_limit_seconds": self.time_limit_seconds,
+                "hard_timeout": self.hard_timeout,
+                "abandoned_queue_items": self.abandoned_queue_items,
+                "abandoned_queue_lines": self.abandoned_queue_lines,
                 "revived_warp": self.revived_warp,
                 "revived_vwarp": self.revived_vwarp,
                 "shielded_count": self.shielded_count,
