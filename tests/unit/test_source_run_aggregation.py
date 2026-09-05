@@ -2,6 +2,7 @@
 import hashlib
 import json
 import sqlite3
+from pathlib import Path
 
 import pytest
 
@@ -9,12 +10,14 @@ from configstream.source_quality import SourceQualityTracker
 from configstream.source_run_aggregation import record_source_chunk
 
 
-def _fingerprint_path(tmp_path, source: str):
+def _fingerprint_path(tmp_path: Path, source: str) -> Path:
     source_hash = hashlib.sha256(source.encode("utf-8")).hexdigest()
     return tmp_path / "data" / "fingerprints" / f"{source_hash}.json"
 
 
-def test_source_chunks_aggregate_out_of_order(tmp_path, monkeypatch):
+def test_source_chunks_aggregate_out_of_order(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.chdir(tmp_path)
     db_path = tmp_path / "quality.db"
     tracker = SourceQualityTracker(db_path=db_path)
@@ -66,11 +69,12 @@ def test_source_chunks_aggregate_out_of_order(tmp_path, monkeypatch):
             """,
             (source,),
         ).fetchone()
-        count = conn.execute(
+        count_row = conn.execute(
             "SELECT COUNT(*) FROM source_runs WHERE url = ?", (source,)
-        ).fetchone()[0]
+        ).fetchone()
 
-    assert count == 1
+    assert count_row is not None
+    assert count_row[0] == 1
     assert row is not None
     assert row[0] == pytest.approx(40.0)
     assert row[1:3] == (40, 15)
@@ -85,7 +89,9 @@ def test_source_chunks_aggregate_out_of_order(tmp_path, monkeypatch):
     ]
 
 
-def test_failed_run_counts_once_and_chunk_replay_is_idempotent(tmp_path, monkeypatch):
+def test_failed_run_counts_once_and_chunk_replay_is_idempotent(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.chdir(tmp_path)
     db_path = tmp_path / "quality.db"
     tracker = SourceQualityTracker(db_path=db_path)
@@ -153,17 +159,20 @@ def test_failed_run_counts_once_and_chunk_replay_is_idempotent(tmp_path, monkeyp
             "SELECT duration_ms, fetched_count, working_count FROM source_runs WHERE url = ?",
             (source,),
         ).fetchone()
-        count = conn.execute(
+        count_row = conn.execute(
             "SELECT COUNT(*) FROM source_runs WHERE url = ?", (source,)
-        ).fetchone()[0]
+        ).fetchone()
 
-    assert count == 1
+    assert count_row is not None
+    assert count_row[0] == 1
     assert row is not None
     assert row[0] == pytest.approx(6.0)
     assert row[1:] == (10, 3)
 
 
-def test_new_run_replaces_previous_fingerprint_snapshot(tmp_path, monkeypatch):
+def test_new_run_replaces_previous_fingerprint_snapshot(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.chdir(tmp_path)
     tracker = SourceQualityTracker(db_path=tmp_path / "quality.db")
     source = "https://example.com/rotating.txt"
@@ -202,7 +211,55 @@ def test_new_run_replaces_previous_fingerprint_snapshot(tmp_path, monkeypatch):
     assert fingerprint["proxies"] == [["c.example", 443]]
 
     with sqlite3.connect(tmp_path / "quality.db") as conn:
-        count = conn.execute(
+        count_row = conn.execute(
             "SELECT COUNT(*) FROM source_runs WHERE url = ?", (source,)
-        ).fetchone()[0]
-    assert count == 2
+        ).fetchone()
+    assert count_row is not None
+    assert count_row[0] == 2
+
+
+def test_empty_run_clears_previous_fingerprint_snapshot(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    tracker = SourceQualityTracker(db_path=tmp_path / "quality.db")
+    source = "https://example.com/emptied.txt"
+
+    record_source_chunk(
+        tracker,
+        source,
+        "run-a",
+        1,
+        1,
+        1,
+        1.0,
+        {"US": 1},
+        {},
+        "pipeline",
+        100,
+        [("a.example", 443)],
+    )
+    record_source_chunk(
+        tracker,
+        source,
+        "run-b",
+        1,
+        0,
+        0,
+        2.0,
+        {},
+        {"parse_empty": 4},
+        "pipeline",
+        200,
+        [],
+    )
+
+    fingerprint = json.loads(_fingerprint_path(tmp_path, source).read_text())
+    assert fingerprint["timestamp"] == 200
+    assert fingerprint["proxies"] == []
+
+    state = tracker.get_source_state(source)
+    assert state is not None
+    assert state[2] == 1
+    assert state[3] == pytest.approx(0.0)
+    assert state[4:6] == (0, 0)
