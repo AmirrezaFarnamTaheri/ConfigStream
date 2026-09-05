@@ -1,0 +1,44 @@
+name: Regenerate derived evidence
+
+on:
+  push:
+    branches:
+      - codex/fix-actions-and-runtime-resilience
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    if: github.event.head_commit.message != 'Regenerate derived repository evidence'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v5.0.0
+        with:
+          ref: codex/fix-actions-and-runtime-resilience
+          fetch-depth: 0
+
+      - name: Regenerate checked-in evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/regenerate-derived-evidence.yml
+          python scripts/generate_debt_matrix.py
+          python scripts/generate_triage_report.py
+          python scripts/generate_comprehensive_topology.py
+          python scripts/build_comprehensive_architecture_page.py
+
+      - name: Commit generated evidence only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add docs/DEBT_MATRIX.md docs/debt_matrix.json TRIAGE_REPORT.md architecture.html system_topology.json
+          if git diff --cached --quiet; then
+            echo "Derived repository evidence is already current."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Regenerate derived repository evidence"
+          git push origin HEAD:codex/fix-actions-and-runtime-resilience
