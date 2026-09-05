@@ -3,9 +3,13 @@ import hashlib
 import json
 import sqlite3
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import pytest
 
+import configstream.pipeline.consumer as pipeline_consumer
+from configstream.pipeline.consumer import processing_consumer
+from configstream.pipeline_stats import PipelineStats
 from configstream.source_quality import SourceQualityTracker
 from configstream.source_run_aggregation import record_source_chunk
 
@@ -263,3 +267,64 @@ def test_empty_run_clears_previous_fingerprint_snapshot(
     assert state[2] == 1
     assert state[3] == pytest.approx(0.0)
     assert state[4:6] == (0, 0)
+
+
+@pytest.mark.asyncio
+async def test_parse_empty_chunk_records_source_failure_and_empty_fingerprint(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(pipeline_consumer.consumer_mod, "parse_config", lambda _line: None)
+
+    source = "https://example.com/invalid.txt"
+    queue: asyncio.Queue[object] = asyncio.Queue()
+    await queue.put(
+        (
+            source,
+            ["not-a-proxy"],
+            {"count_source": True, "fetch_duration": 0.01, "chunk_index": 1},
+        )
+    )
+    await queue.put(None)
+
+    stats = PipelineStats(trace_id="parse-empty-run")
+    quality = SourceQualityTracker(db_path=tmp_path / "quality.db")
+
+    await processing_consumer(
+        queue,
+        stats,
+        set(),
+        [],
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
+        None,
+        quality,
+        MagicMock(),
+        None,
+        None,
+        None,
+        None,
+        False,
+        washer=MagicMock(),
+    )
+
+    state = quality.get_source_state(source)
+    assert state is not None
+    assert state[2] == 1
+    assert state[4:6] == (0, 0)
+
+    fingerprint = json.loads(_fingerprint_path(tmp_path, source).read_text())
+    assert fingerprint["proxies"] == []
+
+    with sqlite3.connect(tmp_path / "quality.db") as conn:
+        run_row = conn.execute(
+            "SELECT fetched_count, working_count, failure_modes_json FROM source_runs WHERE url = ?",
+            (source,),
+        ).fetchone()
+    assert run_row is not None
+    assert run_row[0:2] == (0, 0)
+    assert json.loads(run_row[2]) == {"parse_empty": 1}
