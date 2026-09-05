@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+from typing import cast
 
 import pytest
 
@@ -78,4 +79,4 @@ def test_backpressure_rejects_unbounded_timeout(timeout: float) -> None:
 @pytest.mark.parametrize("tries", [True, 1.5, float("inf")])
 def test_backpressure_requires_finite_integer_retries(tries: object) -> None:
     with pytest.raises(ValueError):
-        BackpressurePolicy(max_tries=tries)
+        BackpressurePolicy(max_tries=cast(int, tries))
