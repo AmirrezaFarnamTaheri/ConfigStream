@@ -329,9 +329,9 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 - L832 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `src/configstream/output/metadata.py`
-- L118 [`LARGE_FUNCTION`] **P1 - High**: `Function save_metadata spans 383 lines (threshold: 300).`
-- L363 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L514 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L149 [`LARGE_FUNCTION`] **P1 - High**: `Function save_metadata spans 365 lines (threshold: 300).`
+- L373 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
+- L527 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `src/configstream/output/subscriptions.py`
 - L41 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
