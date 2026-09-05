@@ -210,12 +210,12 @@ async def processing_consumer(
             full_duration_ms = total_duration + (
                 fetch_duration if metadata.get("count_source", True) else 0.0
             )
-            failure_modes: Dict[str, int] = {}
+            source_failure_modes: Dict[str, int] = {}
             if metadata and isinstance(metadata.get("drop_stats"), dict):
-                failure_modes.update(metadata.get("drop_stats", {}))
-            failure_modes["parse_empty"] = (
-                failure_modes.get("parse_empty", 0) + len(raw_lines)
-            )
+                source_failure_modes.update(metadata.get("drop_stats", {}))
+            source_failure_modes["parse_empty"] = source_failure_modes.get(
+                "parse_empty", 0
+            ) + len(raw_lines)
             await _record_source_outcome(
                 source=source,
                 metadata=metadata,
@@ -223,7 +223,7 @@ async def processing_consumer(
                 working_count=0,
                 full_duration_ms=full_duration_ms,
                 geoip_stats={},
-                failure_modes=failure_modes,
+                failure_modes=source_failure_modes,
                 fingerprint_keys=fingerprint_keys,
                 settings=settings,
                 loop=loop,
