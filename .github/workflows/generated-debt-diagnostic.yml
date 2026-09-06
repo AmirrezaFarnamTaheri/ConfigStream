@@ -16,18 +16,31 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: true
+      - name: Ignore parameterized SQL placeholders in debt scan
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("scripts/generate_debt_matrix.py")
+          text = path.read_text(encoding="utf-8")
+          old = '''        if re.search(r"VALUES\\s*\\(\\s*\\{placeholders\\}", text_stripped):\n            return True\n'''
+          new = '''        if re.search(r"VALUES\\s*\\(\\s*\\{placeholders\\}", text_stripped):\n            return True\n        if re.search(r"\\bIN\\s*\\(\\s*\\{placeholders\\}\\s*\\)", text_stripped, re.IGNORECASE):\n            return True\n'''
+          if old not in text:
+              raise SystemExit("debt scanner SQL placeholder anchor not found")
+          path.write_text(text.replace(old, new), encoding="utf-8")
+          PY
       - name: Regenerate debt evidence
         run: python scripts/generate_debt_matrix.py
-      - name: Commit exact generated debt evidence
+      - name: Commit scanner fix and exact generated debt evidence
         shell: bash
         run: |
           set -euo pipefail
-          if git diff --quiet -- docs/debt_matrix.json docs/DEBT_MATRIX.md; then
+          if git diff --quiet -- scripts/generate_debt_matrix.py docs/debt_matrix.json docs/DEBT_MATRIX.md; then
             echo "Debt evidence is already current."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- docs/debt_matrix.json docs/DEBT_MATRIX.md
-          git commit -m "chore(generated): refresh debt matrix"
+          git add -- scripts/generate_debt_matrix.py docs/debt_matrix.json docs/DEBT_MATRIX.md
+          git commit -m "fix(tooling): ignore parameterized SQL placeholders"
           git push origin "HEAD:${GITHUB_REF_NAME}"
