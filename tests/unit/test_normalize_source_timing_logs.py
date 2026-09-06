@@ -284,3 +284,65 @@ def test_main_removes_partial_outputs_when_coverage_fails(
     assert main() == 1
     assert not normalized.exists()
     assert not evidence.exists()
+
+
+def test_parse_source_timings_records_parallel_consumer_count() -> None:
+    text = """
+INFO Starting pipeline with 6 parallel consumers
+INFO Source Summary [https://example.com/sub]: Raw=500 Dur=12000ms
+"""
+    records = parse_source_timings(text, "pipeline_batch_1_part_1.log")
+    assert len(records) == 1
+    assert records[0].parallel_consumers == 6
+    assert records[0].chunk_count == 1
+
+
+def test_resolve_timings_aggregates_multi_chunk_worker_time(tmp_path: Path) -> None:
+    sources = tmp_path / "sources"
+    sources.mkdir()
+    canonical = "https://example.com/large-subscription.txt"
+    (sources / "batch_1.txt").write_text(canonical + "\n", encoding="utf-8")
+    records = [
+        SourceTiming(
+            url=canonical,
+            raw=500,
+            duration_ms=duration,
+            fetch_ms=100.0,
+            source_log="pipeline_batch_1_part_1.log",
+            parallel_consumers=6,
+        )
+        for duration in (6000.0, 6000.0, 6000.0, 6000.0, 6000.0, 6000.0, 6000.0)
+    ]
+    sources_by_batch = load_expected_sources_by_batch(str(sources / "batch_*.txt"))
+
+    resolved = resolve_timings(records, sources_by_batch, 1)
+
+    assert len(resolved) == 1
+    assert resolved[0].raw == 3500
+    assert resolved[0].chunk_count == 7
+    assert resolved[0].parallel_consumers == 6
+    assert resolved[0].duration_ms == 7000.0
+    assert resolved[0].duration_ms > max(record.duration_ms for record in records)
+    assert resolved[0].duration_ms < sum(record.duration_ms for record in records)
+
+
+def test_resolve_timings_preserves_single_chunk_duration(tmp_path: Path) -> None:
+    sources = tmp_path / "sources"
+    sources.mkdir()
+    canonical = "https://example.com/small-subscription.txt"
+    (sources / "batch_1.txt").write_text(canonical + "\n", encoding="utf-8")
+    record = SourceTiming(
+        url=canonical,
+        raw=23,
+        duration_ms=4321.0,
+        fetch_ms=50.0,
+        source_log="pipeline_batch_1_part_1.log",
+        parallel_consumers=16,
+    )
+    sources_by_batch = load_expected_sources_by_batch(str(sources / "batch_*.txt"))
+
+    resolved = resolve_timings([record], sources_by_batch, 1)
+
+    assert len(resolved) == 1
+    assert resolved[0].duration_ms == 4321.0
+    assert resolved[0].chunk_count == 1
