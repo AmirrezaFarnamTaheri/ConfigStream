@@ -112,8 +112,6 @@ function initDynamicDownloads() {
             icon: "package"
         }
     };
-
-    const evasionModeSelector = document.getElementById('evasion-mode-selector');
     
     const dnsProfile = () => {
         if (window.getDnsProfile) {
@@ -123,13 +121,6 @@ function initDynamicDownloads() {
             return profileSelector.value;
         }
         return dnsToggle && dnsToggle.checked ? 'dns-safe' : 'standard';
-    };
-    
-    const evasionMode = () => {
-        if (evasionModeSelector && evasionModeSelector.value) {
-            return evasionModeSelector.value;
-        }
-        return 'standard';
     };
 
     const updateUI = (clientKey) => {
@@ -179,9 +170,6 @@ function initDynamicDownloads() {
     }
     if (dnsToggle) {
         dnsToggle.addEventListener('change', () => updateUI(dropdown.value || 'singbox'));
-    }
-    if (evasionModeSelector) {
-        evasionModeSelector.addEventListener('change', () => updateUI(dropdown.value || 'singbox'));
     }
     window.addEventListener('languageChanged', () => updateUI(dropdown.value || 'singbox'));
 
