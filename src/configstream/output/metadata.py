@@ -16,6 +16,7 @@ from ..config import AppSettings
 from ..serialize import serialize_proxy
 from ..constants import (
     CHOSEN_TOTAL_TARGET,
+    ARTIFACT_TRANSIENT_SUFFIXES,
     DropCategory,
     latency_bucket_for_ms,
 )
@@ -570,7 +571,9 @@ def write_public_artifact_contract(output_dir: Path) -> Dict[str, Any]:
         if not path.is_file():
             continue
         rel_path = path.relative_to(output_dir).as_posix()
-        if rel_path == "artifact_manifest.json" or rel_path.endswith(".tmp"):
+        if rel_path == "artifact_manifest.json" or rel_path.endswith(
+            ARTIFACT_TRANSIENT_SUFFIXES
+        ):
             continue
         files.append(
             {
