@@ -7,21 +7,55 @@ from pathlib import Path
 from scripts.normalize_legacy_profiles import normalize_profiles
 
 
-def _working_http_record() -> dict[str, object]:
-    return {
-        "id": "http-1",
-        "protocol": "http",
-        "address": "203.0.113.10",
+def _working_record(address: str, protocol: str = "http") -> dict[str, object]:
+    record: dict[str, object] = {
+        "id": f"{protocol}-1",
+        "protocol": protocol,
+        "address": address,
         "port": 8080,
+        "uuid": "",
+        "country": "",
+        "country_code": "XX",
+        "city": "",
+        "asn": "",
+        "org": "",
+        "latency": 10.0,
         "is_working": True,
-        "remarks": "working-http",
+        "tags": [],
+        "last_checked": "",
+        "source": None,
+        "security": {},
         "details": {},
+        "config": f"{protocol}://{address}:8080",
+        "remarks": f"working-{protocol}",
+        "process": "native",
     }
+    if protocol in {"ss", "shadowsocks"}:
+        record["port"] = 8388
+        record["details"] = {
+            "method": "aes-256-gcm",
+            "password": "secret",
+        }
+        record["config"] = "ss://example"
+    return record
 
 
-def test_normalizer_preserves_dns_variant_bytes(tmp_path: Path) -> None:
+def test_normalizer_generates_safe_profiles_and_preserves_hardened_bytes(
+    tmp_path: Path,
+) -> None:
+    standard_records = [_working_record("proxy.example")]
+    safe_records = [
+        _working_record("203.0.113.10"),
+        _working_record("198.51.100.20", "shadowsocks"),
+    ]
     (tmp_path / "proxies.json").write_text(
-        json.dumps([_working_http_record()]), encoding="utf-8"
+        json.dumps(standard_records), encoding="utf-8"
+    )
+    (tmp_path / "proxies-dns-safe.json").write_text(
+        json.dumps(safe_records), encoding="utf-8"
+    )
+    (tmp_path / "proxies-dns-safe.txt").write_text(
+        "http://203.0.113.10:8080\nss://safe\n", encoding="utf-8"
     )
     hardened = {
         "surge-dns-hardened.conf": "# hardened surge\n[DNS]\ndns-server = https://dns.example/dns-query\n",
@@ -35,17 +69,24 @@ def test_normalizer_preserves_dns_variant_bytes(tmp_path: Path) -> None:
 
     for filename, content in hardened.items():
         assert (tmp_path / filename).read_text(encoding="utf-8") == content
-    assert "[General]" in (tmp_path / "surge.conf").read_text(encoding="utf-8")
-    assert "[Proxy Group]" in (tmp_path / "loon.conf").read_text(encoding="utf-8")
-    assert "http=working-http" in (tmp_path / "quantumult.conf").read_text(
-        encoding="utf-8"
-    )
-    assert report["profiles"]["surge"]["preserved_variants"] == [
+    for filename in (
+        "surge-dns-safe.conf",
+        "loon-dns-safe.conf",
+        "quantumult-dns-safe.conf",
+    ):
+        content = (tmp_path / filename).read_text(encoding="utf-8")
+        assert "203.0.113.10" in content
+        assert "proxy.example" not in content
+    assert (tmp_path / "shadowrocket-dns-safe.txt").read_bytes() == (
+        tmp_path / "proxies-dns-safe.txt"
+    ).read_bytes()
+    sip008 = json.loads((tmp_path / "sip008-dns-safe.json").read_text(encoding="utf-8"))
+    assert sip008["servers"][0]["server"] == "198.51.100.20"
+    assert report["profiles"]["surge"]["dns_safe_file"] == "surge-dns-safe.conf"
+    assert report["profiles"]["surge"]["preserved_hardened_file"] == (
         "surge-dns-hardened.conf"
-    ]
-    assert report["profiles"]["loon"]["preserved_variants"] == [
-        "loon-dns-hardened.conf"
-    ]
-    assert report["profiles"]["quantumult"]["preserved_variants"] == [
-        "quantumult-dns-hardened.conf"
-    ]
+    )
+    assert report["dns_safe_aliases"] == {
+        "shadowrocket": "shadowrocket-dns-safe.txt",
+        "sip008": "sip008-dns-safe.json",
+    }
