@@ -1,19 +1,44 @@
 {
   "generated_from": "current tracked tree",
   "summary": {
-    "total": 265,
+    "total": 267,
     "markers": {
       "BROAD_EXCEPTION": 253,
       "LARGE_FUNCTION": 9,
-      "PLACEHOLDER": 3
+      "PLACEHOLDER": 5
     },
     "categories": {
+      "ci": 3,
       "other": 14,
-      "production": 209,
+      "production": 208,
       "tooling": 42
     }
   },
   "entries": [
+    {
+      "path": ".github/workflows/generated-debt-diagnostic.yml",
+      "line": 19,
+      "marker": "PLACEHOLDER",
+      "category": "ci",
+      "priority": "P3 - Maintenance",
+      "text": "- name: Ignore parameterized SQL placeholders in debt scan"
+    },
+    {
+      "path": ".github/workflows/generated-debt-diagnostic.yml",
+      "line": 29,
+      "marker": "PLACEHOLDER",
+      "category": "ci",
+      "priority": "P3 - Maintenance",
+      "text": "raise SystemExit(\"debt scanner SQL placeholder anchor not found\")"
+    },
+    {
+      "path": ".github/workflows/generated-debt-diagnostic.yml",
+      "line": 45,
+      "marker": "PLACEHOLDER",
+      "category": "ci",
+      "priority": "P3 - Maintenance",
+      "text": "git commit -m \"fix(tooling): ignore parameterized SQL placeholders\""
+    },
     {
       "path": "scripts/check_license_headers.py",
       "line": 30,
@@ -813,14 +838,6 @@
       "category": "production",
       "priority": "P1 - High",
       "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
-      "path": "src/configstream/history/tracker.py",
-      "line": 217,
-      "marker": "PLACEHOLDER",
-      "category": "production",
-      "priority": "P1 - High",
-      "text": "WHERE proxy_id IN ({placeholders})"
     },
     {
       "path": "src/configstream/history/tracker.py",

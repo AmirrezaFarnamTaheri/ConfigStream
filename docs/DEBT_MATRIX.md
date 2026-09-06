@@ -3,20 +3,21 @@
 ## Executive Summary
 This matrix represents **actionable** technical debt. Noise from test mocks, documentation placeholders, and historical reports has been filtered out.
 
-- Total actionable markers: **265**
+- Total actionable markers: **267**
 - `BROAD_EXCEPTION`: **253**
 - `LARGE_FUNCTION`: **9**
-- `PLACEHOLDER`: **3**
+- `PLACEHOLDER`: **5**
 
 ## Categories
 
+- `ci`: **3**
 - `other`: **14**
-- `production`: **209**
+- `production`: **208**
 - `tooling`: **42**
 
 ## Actionable Priorities
 
-### P1 - High (209)
+### P1 - High (208)
 - `src/configstream/__init__.py`
 - `src/configstream/adapters/loon.py`
 - `src/configstream/adapters/quantumult.py`
@@ -42,6 +43,9 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 - `scripts/upload_hf.py`
 - ... and 4 more files.
 
+### P3 - Maintenance (3)
+- `.github/workflows/generated-debt-diagnostic.yml`
+
 ## Triage Rules
 
 - `P0 - Critical`: Release blockers. Must be fixed before production deployment.
@@ -53,6 +57,7 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 
 | File | Marker Count | Markers |
 | --- | ---: | --- |
+| `.github/workflows/generated-debt-diagnostic.yml` | 3 | PLACEHOLDER |
 | `scripts/check_license_headers.py` | 1 | BROAD_EXCEPTION |
 | `scripts/dynamic_reshard.py` | 13 | BROAD_EXCEPTION |
 | `scripts/generate_evidence_bundle.py` | 5 | BROAD_EXCEPTION |
@@ -90,7 +95,7 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 | `src/configstream/hard_stop.py` | 3 | BROAD_EXCEPTION |
 | `src/configstream/history/export.py` | 4 | BROAD_EXCEPTION |
 | `src/configstream/history/storage.py` | 2 | BROAD_EXCEPTION |
-| `src/configstream/history/tracker.py` | 9 | BROAD_EXCEPTION, PLACEHOLDER |
+| `src/configstream/history/tracker.py` | 8 | BROAD_EXCEPTION |
 | `src/configstream/intelligence/chaining.py` | 1 | LARGE_FUNCTION |
 | `src/configstream/intelligence/vectors.py` | 1 | BROAD_EXCEPTION |
 | `src/configstream/intelligence/washer/core.py` | 8 | BROAD_EXCEPTION |
@@ -131,6 +136,11 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 | `tools/lab-scanner.py` | 12 | BROAD_EXCEPTION |
 
 ## Raw Entries
+
+### `.github/workflows/generated-debt-diagnostic.yml`
+- L19 [`PLACEHOLDER`] **P3 - Maintenance**: `- name: Ignore parameterized SQL placeholders in debt scan`
+- L29 [`PLACEHOLDER`] **P3 - Maintenance**: `raise SystemExit("debt scanner SQL placeholder anchor not found")`
+- L45 [`PLACEHOLDER`] **P3 - Maintenance**: `git commit -m "fix(tooling): ignore parameterized SQL placeholders"`
 
 ### `scripts/check_license_headers.py`
 - L30 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
@@ -307,7 +317,6 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 - L106 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 - L151 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 - L182 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-- L217 [`PLACEHOLDER`] **P1 - High**: `WHERE proxy_id IN ({placeholders})`
 - L227 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 - L277 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
 - L279 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
