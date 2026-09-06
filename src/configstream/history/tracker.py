@@ -212,9 +212,9 @@ class ProxyHistoryTracker:
                 placeholders = ",".join("?" for _ in chunk)
                 # Only literal '?' placeholders are interpolated; IDs stay bound.
                 query = (
-                    "SELECT proxy_id, AVG(is_working) as reliability "
+                    "SELECT proxy_id, AVG(is_working) as reliability "  # nosec B608
                     "FROM proxy_history "
-                    f"WHERE proxy_id IN ({placeholders}) "  # nosec B608
+                    f"WHERE proxy_id IN ({placeholders}) "
                     "GROUP BY proxy_id"
                 )
                 cursor = conn.execute(query, chunk)
