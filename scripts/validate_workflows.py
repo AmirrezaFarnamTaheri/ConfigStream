@@ -11,11 +11,7 @@ import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW_DIR = REPO_ROOT / ".github" / "workflows"
-CONCURRENCY_REQUIRED = {
-    "main.yml",
-    "retest.yml",
-    "deploy-pages.yml",
-}
+CONCURRENCY_REQUIRED = {"main.yml", "retest.yml", "deploy-pages.yml"}
 UNRESOLVABLE_ACTION_REFS = {
     "actions/cache@0c907a75c2df011682e883a1779590213020689b",
     "actions/deploy-pages@d6db90164db5ed868d4d441e8835172955749614",
@@ -198,8 +194,7 @@ def _ci_ignores_canonical_sources(data: dict[Any, Any]) -> bool:
         return False
     canonical_sources = _canonical_source_paths()
     return any(
-        any(source.match(pattern) for source in canonical_sources)
-        for pattern in patterns
+        any(source.match(pattern) for source in canonical_sources) for pattern in patterns
     )
 
 
@@ -208,9 +203,7 @@ def _ci_safe(data: dict[Any, Any]) -> list[str]:
     frontend = _find_job(data, "frontend")
     browser = _find_job(data, "frontend-browser")
     browser_commands = (
-        "\n".join(
-            _run(step) for step in browser.get("steps", []) if isinstance(step, dict)
-        )
+        "\n".join(_run(step) for step in browser.get("steps", []) if isinstance(step, dict))
         if browser
         else ""
     )
@@ -224,9 +217,7 @@ def _ci_safe(data: dict[Any, Any]) -> list[str]:
     ):
         errors.append("missing required frontend-browser Playwright profile")
     frontend_commands = (
-        "\n".join(
-            _run(step) for step in frontend.get("steps", []) if isinstance(step, dict)
-        )
+        "\n".join(_run(step) for step in frontend.get("steps", []) if isinstance(step, dict))
         if frontend
         else ""
     )
@@ -238,9 +229,7 @@ def _ci_safe(data: dict[Any, Any]) -> list[str]:
         )
     ):
         errors.append("frontend smoke job must install Node Playwright Chromium")
-    if not _has_command(
-        data, "bandit -r src/configstream scripts tools"
-    ) or not _has_command(
+    if not _has_command(data, "bandit -r src/configstream scripts tools") or not _has_command(
         data, "python scripts/validate_bandit_suppressions.py --require-active"
     ):
         errors.append("missing Bandit suppression hygiene guard")
@@ -256,10 +245,7 @@ def _ci_safe(data: dict[Any, Any]) -> list[str]:
 def _main_public_preparation(data: dict[Any, Any]) -> bool:
     transactional = (
         _has_command(data, "scripts/prepare_public_candidate.py output output")
-        and _has_command(
-            data,
-            "validate_frontend_placeholders.py --inject-env --strict output",
-        )
+        and _has_command(data, "validate_frontend_placeholders.py --inject-env --strict output")
         and _has_command(data, "validate_pages_artifact.py --refresh-contract output")
     )
     legacy = all(
@@ -313,10 +299,6 @@ def _main_native_output_contract(data: dict[Any, Any]) -> bool:
     )
     if resilient:
         return modern
-
-    # Legacy/non-resilient workflow fixtures are rejected independently by the
-    # resilience contract. Recognize their older optional native-report shape
-    # here so tests for unrelated retention/dependency rules remain isolated.
     legacy = (
         "validate_pages_artifact.py" in commands
         and "--native-client-check" in commands
@@ -327,9 +309,7 @@ def _main_native_output_contract(data: dict[Any, Any]) -> bool:
 
 def _main_resilient_contract(data: dict[Any, Any]) -> list[str]:
     if not _has_command(data, "scripts/resilient_stage.py"):
-        return [
-            "main workflow must orchestrate stages through scripts/resilient_stage.py"
-        ]
+        return ["main workflow must orchestrate stages through scripts/resilient_stage.py"]
     errors: list[str] = []
     quality = _find_job(data, "quality")
     matrix = _find_job(data, "setup_matrix")
@@ -344,15 +324,16 @@ def _main_resilient_contract(data: dict[Any, Any]) -> list[str]:
     pipeline_if = str(pipeline.get("if", "")) if pipeline else ""
     if re.search(r"(?<![A-Za-z0-9_])matrix\.", pipeline_if):
         errors.append("pipeline job-level if must not reference matrix context")
-    if (
-        matrix is None
-        or not isinstance(matrix.get("outputs"), dict)
-        or "status" not in matrix["outputs"]
-    ):
+    if matrix is None or not isinstance(matrix.get("outputs"), dict) or "status" not in matrix["outputs"]:
         errors.append("setup_matrix must expose a status output")
     if merge is None:
         errors.append("missing merge_validate_publish diagnostic gate")
         return errors
+    permissions = merge.get("permissions", {})
+    if not isinstance(permissions, dict) or permissions.get("contents") != "read":
+        errors.append("merge_validate_publish must use contents: read")
+    if isinstance(permissions, dict) and permissions.get("id-token") == "write":
+        errors.append("merge_validate_publish must not request id-token: write")
     merge_commands = "\n".join(
         _run(step) for step in merge.get("steps", []) if isinstance(step, dict)
     )
@@ -364,9 +345,7 @@ def _main_resilient_contract(data: dict[Any, Any]) -> list[str]:
     if "scripts/prepare_public_candidate.py output output" not in merge_commands:
         errors.append("public candidate replacement must be transactional")
     if "bash scripts/install_native_validators.sh" not in merge_commands:
-        errors.append(
-            "native validator installation must use the shared verified installer"
-        )
+        errors.append("native validator installation must use the shared verified installer")
     prepare_step = _find_step(data, "Prepare public output artifact transactionally")
     if prepare_step and "rm -rf output" in _run(prepare_step):
         errors.append("public candidate preparation must preserve output on failure")
@@ -419,32 +398,17 @@ def _deploy_pages_safe(data: dict[Any, Any]) -> list[str]:
     ):
         errors.append("missing deployed Pages URL smoke validation")
     commands = "\n".join(_run_steps(data))
-    if (
-        "npm run build" in commands
-        or "vite build" in commands
-        or "frontend-dist" in commands
-    ):
+    if "npm run build" in commands or "vite build" in commands or "frontend-dist" in commands:
         errors.append("Pages must not rebuild frontend assets")
     serialized = yaml.safe_dump(data, sort_keys=False)
     if "STEGO_KEY" in serialized:
         errors.append("Pages must not receive symmetric secrets")
     concurrency = data.get("concurrency")
-    if (
-        not isinstance(concurrency, dict)
-        or concurrency.get("cancel-in-progress") is not False
-    ):
-        errors.append(
-            "Pages deployments must queue instead of cancelling in-progress releases"
-        )
+    if not isinstance(concurrency, dict) or concurrency.get("cancel-in-progress") is not False:
+        errors.append("Pages deployments must queue instead of cancelling in-progress releases")
     locate = _find_step(data, "Locate and download exact canonical artifact")
-    if (
-        locate is None
-        or "set -euo pipefail" not in _run(locate)
-        or "set +e" in _run(locate)
-    ):
-        errors.append(
-            "Pages artifact lookup must use strict, narrowly scoped error handling"
-        )
+    if locate is None or "set -euo pipefail" not in _run(locate) or "set +e" in _run(locate):
+        errors.append("Pages artifact lookup must use strict, narrowly scoped error handling")
     if not (
         _has_command(data, "--required-stage deployment-evidence-bundle")
         and _has_command(data, "deployment_readiness.json")
@@ -464,7 +428,6 @@ def main() -> int:
     if not workflow_files:
         print(f"ERROR: no workflow files found in {WORKFLOW_DIR}")
         return 1
-
     errors: list[str] = []
     for path in workflow_files:
         try:
@@ -484,36 +447,25 @@ def main() -> int:
         if path.name in CONCURRENCY_REQUIRED and "concurrency" not in data:
             errors.append(f"{path}: missing concurrency")
         if _contains_secret_context_in_if(data):
-            errors.append(
-                f"{path}: secrets context must not be used directly in if expressions"
-            )
+            errors.append(f"{path}: secrets context must not be used directly in if expressions")
         for ref in _find_unresolvable_action_refs(data):
             errors.append(f"{path}: stale action ref {ref}")
         if path.name == "ci.yml":
             errors.extend(f"{path}: {error}" for error in _ci_safe(data))
         if path.name == "release.yml" and not _has_contract_validators(data):
-            errors.append(
-                f"{path}: missing capability/core/module ownership contract validators"
-            )
+            errors.append(f"{path}: missing capability/core/module ownership contract validators")
         if path.name == "main.yml":
             errors.extend(f"{path}: {error}" for error in _main_safe(data))
         if path.name == "retest.yml" and not _has_durable_named_artifact(
-            data,
-            action="actions/upload-artifact@",
-            artifact_name="pipeline-output",
+            data, action="actions/upload-artifact@", artifact_name="pipeline-output"
         ):
             errors.append(f"{path}: pipeline-output artifact retention must be durable")
-        if path.name == "retest.yml" and not _has_command(
-            data, "python -m configstream.cli retest"
-        ):
-            errors.append(
-                f"{path}: retest workflow must invoke python -m configstream.cli retest"
-            )
+        if path.name == "retest.yml" and not _has_command(data, "python -m configstream.cli retest"):
+            errors.append(f"{path}: retest workflow must invoke python -m configstream.cli retest")
         if path.name == "deploy-pages.yml":
             errors.extend(f"{path}: {error}" for error in _deploy_pages_safe(data))
         if _has_command(data, "git push"):
             errors.append(f"{path}: workflows must not push directly to the repository")
-
     if errors:
         print("ERROR: workflow validation failed")
         for error in errors:

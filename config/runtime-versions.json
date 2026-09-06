@@ -2,7 +2,11 @@
   "schema_version": 1,
   "python": {
     "minimum": "3.10",
-    "ci_supported": ["3.10", "3.11", "3.12"],
+    "ci_supported": [
+      "3.10",
+      "3.11",
+      "3.12"
+    ],
     "default": "3.11",
     "deployment": "3.12",
     "container": "3.12"
@@ -21,5 +25,10 @@
   "rust": {
     "edition": "2021",
     "maturity": "experimental"
+  },
+  "sing_box": {
+    "release_validator": "1.13.18",
+    "embedded_tester": "1.9.7",
+    "embedded_contract": "legacy-runtime-input-modernized-before-release-validation"
   }
 }
