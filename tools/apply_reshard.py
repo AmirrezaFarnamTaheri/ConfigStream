@@ -14,8 +14,12 @@ a machine with push access:
 Safety contract:
 - the recommended URL set must exactly match the working tree set
   (nothing silently dropped or injected);
+- the timing sidecar must match that exact source set and contain only
+  positive integer weights for known opaque source IDs;
 - every batch must carry an ``Est. Fetch Time`` header at or below
   dynamic_reshard.TARGET_BATCH_SECONDS;
+- mutation requires a clean worktree so unrelated local changes cannot be
+  overwritten or included in the generated commit;
 - nothing is committed unless all checks pass.
 """
 
@@ -70,6 +74,7 @@ def _repo_slug() -> str:
 
 def _latest_recommendation_run(slug: str) -> int | None:
     """Return newest workflow run containing a usable recommendation artifact."""
+
     result = _gh("api", f"repos/{slug}/actions/runs?per_page=30")
     if result.returncode != 0:
         return None
@@ -111,6 +116,10 @@ def _urls_of(directory: Path) -> set[str]:
     return urls
 
 
+def _source_timing_id(url: str) -> str:
+    return hashlib.sha256(url.strip().encode("utf-8")).hexdigest()
+
+
 def _validate_timing_weights(recommendation: Path, urls: set[str]) -> None:
     path = recommendation / TIMING_WEIGHTS_FILENAME
     if not path.is_file():
@@ -119,11 +128,41 @@ def _validate_timing_weights(recommendation: Path, urls: set[str]) -> None:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         raise SystemExit(f"invalid {TIMING_WEIGHTS_FILENAME}: {exc}") from exc
-    expected = hashlib.sha256(("\n".join(sorted(urls)) + "\n").encode()).hexdigest()
+    if not isinstance(payload, dict):
+        raise SystemExit(f"invalid {TIMING_WEIGHTS_FILENAME}: expected object")
+
+    expected = hashlib.sha256(
+        ("\n".join(sorted(urls)) + "\n").encode("utf-8")
+    ).hexdigest()
     if payload.get("schema_version") != 1 or payload.get("unit") != "deciseconds":
         raise SystemExit(f"invalid {TIMING_WEIGHTS_FILENAME}: unsupported schema")
     if payload.get("source_set_sha256") != expected:
         raise SystemExit(f"invalid {TIMING_WEIGHTS_FILENAME}: source-set mismatch")
+
+    default_weight = payload.get("default_weight")
+    raw_weights = payload.get("weights", {})
+    if (
+        not isinstance(default_weight, int)
+        or isinstance(default_weight, bool)
+        or default_weight < 1
+        or not isinstance(raw_weights, dict)
+    ):
+        raise SystemExit(f"invalid {TIMING_WEIGHTS_FILENAME}: malformed weights")
+
+    allowed_ids = {_source_timing_id(url) for url in urls}
+    for key, value in raw_weights.items():
+        if (
+            not isinstance(key, str)
+            or len(key) != 64
+            or any(char not in "0123456789abcdef" for char in key.lower())
+            or key not in allowed_ids
+            or not isinstance(value, int)
+            or isinstance(value, bool)
+            or value < 1
+        ):
+            raise SystemExit(
+                f"invalid {TIMING_WEIGHTS_FILENAME}: invalid source weight"
+            )
 
 
 def _validate(recommendation: Path) -> dict[str, float]:
@@ -159,6 +198,22 @@ def _validate(recommendation: Path) -> dict[str, float]:
     if not estimates:
         raise SystemExit("recommendation contains no batch files")
     return estimates
+
+
+def _require_clean_worktree() -> None:
+    git = _resolve_executable("git")
+    status = subprocess.run(  # nosec B603
+        [git, "-C", str(REPO), "status", "--porcelain=v1", "--untracked-files=all"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if status.returncode != 0:
+        raise SystemExit("cannot verify clean worktree before applying recommendation")
+    if status.stdout.strip():
+        raise SystemExit(
+            "refusing to apply with local changes; commit or stash the worktree first"
+        )
 
 
 def _apply(recommendation: Path) -> bool:
@@ -199,8 +254,15 @@ def main(argv: list[str] | None = None) -> int:
     with tempfile.TemporaryDirectory() as tmp:
         rec_dir = Path(tmp) / "rec"
         download = _gh(
-            "run", "download", str(run_id), "--repo", slug,
-            "--name", "source-reshard-recommendation", "--dir", str(rec_dir),
+            "run",
+            "download",
+            str(run_id),
+            "--repo",
+            slug,
+            "--name",
+            "source-reshard-recommendation",
+            "--dir",
+            str(rec_dir),
         )
         if download.returncode != 0:
             raise SystemExit(
@@ -221,12 +283,15 @@ def main(argv: list[str] | None = None) -> int:
         )
         if args.check:
             return 0
+        _require_clean_worktree()
         if not _apply(batch_home):
             print("working tree already matches the recommendation.")
             return 0
 
     git = _resolve_executable("git")
-    subprocess.run([git, "-C", str(REPO), "add", "-A", "--", "sources"], check=True)  # nosec B603
+    subprocess.run(  # nosec B603
+        [git, "-C", str(REPO), "add", "-A", "--", "sources"], check=True
+    )
     diff = subprocess.run(  # nosec B603
         [git, "-C", str(REPO), "diff", "--cached", "--quiet"],
         capture_output=True,
@@ -237,9 +302,18 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     branch = f"chore/apply-reshard-{run_id}"
-    subprocess.run([git, "-C", str(REPO), "switch", "-c", branch], check=True)  # nosec B603
     subprocess.run(  # nosec B603
-        [git, "-C", str(REPO), "commit", "-m", "chore(sources): apply dynamic reshard recommendations"],
+        [git, "-C", str(REPO), "switch", "-c", branch], check=True
+    )
+    subprocess.run(  # nosec B603
+        [
+            git,
+            "-C",
+            str(REPO),
+            "commit",
+            "-m",
+            "chore(sources): apply dynamic reshard recommendations",
+        ],
         check=True,
     )
     push = subprocess.run(  # nosec B603
@@ -251,9 +325,18 @@ def main(argv: list[str] | None = None) -> int:
     if push.returncode != 0:
         raise SystemExit(f"push failed: {push.stderr.strip()[:200]}")
     pr = _gh(
-        "pr", "create", "--repo", slug, "--base", "main", "--head", branch,
-        "--title", "chore(sources): apply dynamic reshard recommendation",
-        "--body", f"Applies validated source-reshard-recommendation from workflow run {run_id}.",
+        "pr",
+        "create",
+        "--repo",
+        slug,
+        "--base",
+        "main",
+        "--head",
+        branch,
+        "--title",
+        "chore(sources): apply dynamic reshard recommendation",
+        "--body",
+        f"Applies validated source-reshard-recommendation from workflow run {run_id}.",
     )
     if pr.returncode != 0:
         raise SystemExit("branch pushed but PR creation failed")
