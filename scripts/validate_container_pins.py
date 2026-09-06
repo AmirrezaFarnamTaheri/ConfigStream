@@ -16,6 +16,9 @@ def validate(root: Path) -> list[str]:
     manifest = json.loads(
         (root / "config/container-images.json").read_text(encoding="utf-8")
     )
+    runtime_versions = json.loads(
+        (root / "config/runtime-versions.json").read_text(encoding="utf-8")
+    )
     dockerfile = (root / "Dockerfile").read_text(encoding="utf-8")
     dockerignore = (root / ".dockerignore").read_text(encoding="utf-8")
     refs = {
@@ -27,6 +30,26 @@ def validate(root: Path) -> list[str]:
     expected = {
         f"{item['reference']}@{item['digest']}" for item in manifest["images"].values()
     }
+    governed_references = {
+        "go_builder": (
+            f"golang:{runtime_versions['go']['container']}-"
+            f"{runtime_versions['go']['container_variant']}"
+        ),
+        "node_ci": (
+            f"node:{runtime_versions['node']['container']}-"
+            f"{runtime_versions['node']['container_variant']}"
+        ),
+        "python_runtime": (
+            f"python:{runtime_versions['python']['container']}-"
+            f"{runtime_versions['python']['container_variant']}"
+        ),
+    }
+    for name, reference in governed_references.items():
+        observed = str(manifest["images"].get(name, {}).get("reference", ""))
+        if observed != reference:
+            errors.append(
+                f"{name} reference {observed!r} != runtime manifest {reference!r}"
+            )
     missing = sorted(expected - refs)
     if missing:
         errors.extend(f"Dockerfile missing pinned image {ref}" for ref in missing)
