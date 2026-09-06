@@ -10,9 +10,9 @@ from scripts import validate_runtime_versions
 def _write_fixture(
     root: Path,
     *,
-    go_toolchain: str = "1.24.3",
+    go_toolchain: str = "1.26.8",
     go_ci: str | None = None,
-    workflow_go: str = "1.24.3",
+    workflow_go: str = "1.26.8",
 ) -> None:
     (root / "config").mkdir()
     (root / ".github/workflows").mkdir(parents=True)
@@ -20,16 +20,30 @@ def _write_fixture(
     go_payload = {
         "language": "1.24.0",
         "toolchain": go_toolchain,
-        "container": "1.24",
+        "container": go_toolchain,
+        "container_variant": "alpine3.24",
     }
     if go_ci is not None:
         go_payload["ci"] = go_ci
     (root / "config/runtime-versions.json").write_text(
         json.dumps(
             {
-                "python": {"minimum": "3.10", "container": "3.12"},
-                "node": {"minimum_major": 24, "container": "24", "ci": "24"},
+                "python": {
+                    "minimum": "3.10",
+                    "container": "3.12.14",
+                    "container_variant": "slim-bookworm",
+                },
+                "node": {
+                    "minimum_major": 24,
+                    "container": "24.20.0",
+                    "container_variant": "bookworm-slim",
+                    "ci": "24",
+                },
                 "go": go_payload,
+                "sing_box": {
+                    "release_validator": "1.13.18",
+                    "embedded_tester": "1.9.7",
+                },
             }
         ),
         encoding="utf-8",
@@ -41,16 +55,20 @@ def _write_fixture(
         json.dumps({"engines": {"node": ">=24"}}), encoding="utf-8"
     )
     (root / "Dockerfile").write_text(
-        "FROM golang:1.24-alpine@sha256:deadbeef AS builder\n"
-        "FROM node:24-slim@sha256:deadbeef AS node-runtime\n"
-        "FROM python:3.12-slim@sha256:deadbeef\n",
+        f"FROM golang:{go_toolchain}-alpine3.24@sha256:deadbeef AS builder\n"
+        "FROM node:24.20.0-bookworm-slim@sha256:deadbeef AS node-runtime\n"
+        "FROM python:3.12.14-slim-bookworm@sha256:deadbeef\n",
         encoding="utf-8",
     )
     (root / ".github/workflows/ci.yml").write_text(
-        f"go-version: '{workflow_go}'\nnode-version: '24'\n", encoding="utf-8"
+        f"go-version: '{workflow_go}'\n"
+        "node-version: '24'\n"
+        "SING_BOX_VERSION: '1.13.18'\n",
+        encoding="utf-8",
     )
     (root / "src/go/tester/go.mod").write_text(
-        f"module example\n\ngo 1.24.0\n\ntoolchain go{go_toolchain}\n",
+        f"module example\n\ngo 1.24.0\n\ntoolchain go{go_toolchain}\n"
+        "\nrequire github.com/sagernet/sing-box v1.9.7\n",
         encoding="utf-8",
     )
 
@@ -61,11 +79,11 @@ def test_repository_runtime_versions_are_consistent() -> None:
 
 
 def test_validator_detects_go_toolchain_drift(tmp_path: Path) -> None:
-    _write_fixture(tmp_path, go_toolchain="1.24.2", workflow_go="1.24.2")
+    _write_fixture(tmp_path, go_toolchain="1.26.7", workflow_go="1.26.7")
     manifest = json.loads(
         (tmp_path / "config/runtime-versions.json").read_text(encoding="utf-8")
     )
-    manifest["go"]["toolchain"] = "1.24.3"
+    manifest["go"]["toolchain"] = "1.26.8"
     (tmp_path / "config/runtime-versions.json").write_text(
         json.dumps(manifest), encoding="utf-8"
     )
@@ -78,18 +96,19 @@ def test_validator_detects_go_toolchain_drift(tmp_path: Path) -> None:
 def test_validator_prefers_explicit_go_ci_over_toolchain(tmp_path: Path) -> None:
     _write_fixture(
         tmp_path,
-        go_toolchain="1.24.3",
-        go_ci="1.24.4",
-        workflow_go="1.24.4",
+        go_toolchain="1.26.8",
+        go_ci="1.27.1",
+        workflow_go="1.27.1",
     )
 
     errors = validate_runtime_versions.validate_repository(tmp_path)
 
     assert not any("go-version" in error for error in errors), errors
+    assert any("must be identical" in error for error in errors), errors
 
 
 def test_validator_rejects_any_stale_workflow_go_version(tmp_path: Path) -> None:
-    _write_fixture(tmp_path, go_ci="1.24.3", workflow_go="1.24.3")
+    _write_fixture(tmp_path, go_ci="1.26.8", workflow_go="1.26.8")
     (tmp_path / ".github/workflows/other.yml").write_text(
         "go-version: '1.23'\n", encoding="utf-8"
     )
@@ -97,3 +116,20 @@ def test_validator_rejects_any_stale_workflow_go_version(tmp_path: Path) -> None
     errors = validate_runtime_versions.validate_repository(tmp_path)
 
     assert any("other.yml go-version '1.23'" in error for error in errors)
+
+
+def test_validator_rejects_minor_only_container_pin(tmp_path: Path) -> None:
+    _write_fixture(tmp_path)
+    manifest = json.loads(
+        (tmp_path / "config/runtime-versions.json").read_text(encoding="utf-8")
+    )
+    manifest["python"]["container"] = "3.12"
+    (tmp_path / "config/runtime-versions.json").write_text(
+        json.dumps(manifest), encoding="utf-8"
+    )
+
+    errors = validate_runtime_versions.validate_repository(tmp_path)
+
+    assert any(
+        "python.container must pin an exact patch release" in error for error in errors
+    )
