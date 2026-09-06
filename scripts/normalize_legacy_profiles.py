@@ -205,11 +205,8 @@ def quantumult(records: list[dict[str, Any]]) -> tuple[str, dict[str, int]]:
     return "\n".join(lines) + "\n", dict(unsupported)
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("artifact_dir", type=Path)
-    args = parser.parse_args()
-    records = load_records(args.artifact_dir)
+def normalize_profiles(artifact_dir: Path) -> dict[str, Any]:
+    records = load_records(artifact_dir)
     generators: dict[str, ProfileGenerator] = {
         "surge": surge,
         "loon": loon,
@@ -221,23 +218,38 @@ def main() -> int:
         raise TypeError("profiles report must be a dictionary")
     for family, generator in generators.items():
         content, unsupported = generator(records)
-        pattern = "quantumult*.conf" if family == "quantumult" else f"{family}*.conf"
-        targets = list(args.artifact_dir.glob(pattern))
-        if not targets:
-            targets = [
-                args.artifact_dir
-                / ("quantumult.conf" if family == "quantumult" else f"{family}.conf")
-            ]
-        for target in targets:
-            target.write_text(content, encoding="utf-8")
+        filename = "quantumult.conf" if family == "quantumult" else f"{family}.conf"
+        target = artifact_dir / filename
+        target.write_text(content, encoding="utf-8")
+
+        variants = [target.name]
+        for suffix in ("dns-safe", "dns-hardened"):
+            variant = artifact_dir / (
+                f"quantumult-{suffix}.conf"
+                if family == "quantumult"
+                else f"{family}-{suffix}.conf"
+            )
+            if variant.is_file():
+                variants.append(variant.name)
+
         profiles[family] = {
-            "files": [path.name for path in targets],
+            "files": variants,
+            "normalized_file": target.name,
+            "preserved_variants": variants[1:],
             "unsupported": unsupported,
         }
-    (args.artifact_dir / "legacy_profile_coverage.json").write_text(
+    (artifact_dir / "legacy_profile_coverage.json").write_text(
         json.dumps(report, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
+    return report
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("artifact_dir", type=Path)
+    args = parser.parse_args()
+    normalize_profiles(args.artifact_dir)
     return 0
 
 
