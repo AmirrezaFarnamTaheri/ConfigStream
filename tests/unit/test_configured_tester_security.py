@@ -16,3 +16,11 @@ def test_configured_tester_can_disable_security_via_application_setting(monkeypa
     with patch("configstream.testers.manager.GoBatchTester"):
         tester = SingBoxTester(strict_security=False, dry_run=True)
     assert tester.strict_security is False
+
+
+def test_configured_tester_preserves_positional_strict_security_api(monkeypatch):
+    monkeypatch.setenv("STRICT_SECURITY", "true")
+    with patch("configstream.testers.manager.GoBatchTester"):
+        tester = SingBoxTester(10.0, None, False, True)
+    assert tester.strict_security is True
+    assert tester.dry_run is True
