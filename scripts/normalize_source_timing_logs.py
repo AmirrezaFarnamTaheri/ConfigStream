@@ -16,9 +16,13 @@ from typing import Iterable, cast
 from configstream.security_validator import SecurityValidator
 
 try:
-    from shard_sources import partition
+    from shard_sources import load_quarantined_sources, partition, runtime_source_lines
 except ModuleNotFoundError:
-    from scripts.shard_sources import partition
+    from scripts.shard_sources import (
+        load_quarantined_sources,
+        partition,
+        runtime_source_lines,
+    )
 
 ANSI_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
 SUMMARY_START_RE = re.compile(r"Source\s+Summary\b[^\[]*\[", re.IGNORECASE)
@@ -32,6 +36,9 @@ DURATION_RE = re.compile(r"\bDur\s*=\s*([\d.]+)\s*ms", re.IGNORECASE)
 SHARD_LOG_RE = re.compile(
     r"^pipeline_batch_(?P<batch>.+?)_part_(?P<part>\d+)\.log$",
     re.IGNORECASE,
+)
+RUNTIME_SOURCE_RE = re.compile(
+    r"^batch_(?P<batch>.+?)_part_(?P<part>\d+)\.txt$", re.IGNORECASE
 )
 DEFAULT_MIN_COVERAGE = 0.80
 
@@ -131,19 +138,29 @@ def load_expected_sources(pattern: str) -> set[str]:
     return sources
 
 
+def _runtime_shard_key(batch: str, part: int) -> str:
+    return f"{batch}::part::{part}"
+
+
 def load_expected_sources_by_batch(pattern: str) -> dict[str, list[str]]:
+    paths = [Path(item) for item in sorted(glob.glob(pattern))]
+    if not paths:
+        return {}
+    parents = {path.parent.resolve() for path in paths}
+    quarantined: set[str] = set()
+    if len(parents) == 1:
+        quarantined = load_quarantined_sources(next(iter(parents)))
     batches: dict[str, list[str]] = {}
-    for item in sorted(glob.glob(pattern)):
-        path = Path(item)
+    for path in paths:
+        runtime_match = RUNTIME_SOURCE_RE.match(path.name)
+        if runtime_match is not None:
+            key = _runtime_shard_key(
+                runtime_match.group("batch"), int(runtime_match.group("part"))
+            )
+            batches[key] = runtime_source_lines(path, set())
+            continue
         batch = path.stem.removeprefix("batch_")
-        lines = [
-            line.strip()
-            for line in path.read_text(encoding="utf-8", errors="ignore").splitlines()
-            if line.strip()
-            and not line.lstrip().startswith("#")
-            and line.strip().startswith(("http://", "https://"))
-        ]
-        batches[batch] = lines
+        batches[batch] = runtime_source_lines(path, quarantined)
     return batches
 
 
@@ -192,8 +209,12 @@ def _candidate_sources_for_log(
     match = SHARD_LOG_RE.match(Path(source_log).name)
     if match is None:
         return []
-    batch_sources = sources_by_batch.get(match.group("batch"), [])
+    batch = match.group("batch")
     part = int(match.group("part"))
+    exact_sources = sources_by_batch.get(_runtime_shard_key(batch, part))
+    if exact_sources is not None:
+        return exact_sources
+    batch_sources = sources_by_batch.get(batch, [])
     buckets = (
         cast(list[list[str]], partition(batch_sources, parts)) if batch_sources else []
     )
@@ -412,22 +433,22 @@ def main() -> int:
         return 1
 
     mapped, observed = timing_resolution_counts(raw_records, sources_by_batch, parts)
-    coverage = mapped / observed if observed else 0.0
+    records = resolve_timings(raw_records, sources_by_batch, parts)
+    coverage = timing_coverage(records, expected_sources)
     min_coverage = max(0.0, min(float(args.min_coverage), 1.0))
     print(
-        f"INFO: source timing identity coverage {coverage:.1%} "
-        f"({mapped} mapped, {observed} observed identities, "
-        f"{len(expected_sources)} configured sources)"
+        f"INFO: source timing coverage {coverage:.1%} "
+        f"({len(records)} canonical timings, {len(expected_sources)} runtime sources; "
+        f"{mapped}/{observed} observed identities mapped)"
     )
     if coverage < min_coverage:
         print(
-            f"ERROR: source timing identity coverage {coverage:.1%} is below "
+            f"ERROR: source timing coverage {coverage:.1%} is below "
             f"the required {min_coverage:.1%}",
             file=sys.stderr,
         )
         return 1
 
-    records = resolve_timings(raw_records, sources_by_batch, parts)
     if not records:
         print(
             "ERROR: source timing records could not be mapped to canonical shard "
