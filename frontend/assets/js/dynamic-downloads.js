@@ -89,10 +89,10 @@ function initDynamicDownloads() {
         },
         sip008: {
             descKey: "downloads.client.sip008.desc",
-            desc: "Standard SIP008 JSON format for Shadowsocks.",
+            desc: "SIP008 Shadowsocks server list. DNS-Hardened falls back to DNS-Safe endpoints because SIP008 cannot encode resolver policy.",
             file: "sip008.json",
             dnsFile: "sip008-dns-safe.json",
-            dnsHardenedFile: "sip008-dns-hardened.json",
+            dnsHardenedFile: null,
             icon: "code"
         },
         chains: {
