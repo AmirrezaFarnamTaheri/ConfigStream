@@ -32,6 +32,11 @@
   "sing_box": {
     "release_validator": "1.13.18",
     "embedded_tester": "1.9.7",
-    "embedded_contract": "legacy-runtime-input-modernized-before-release-validation"
+    "embedded_contract": "legacy-runtime-input-modernized-before-release-validation",
+    "embedded_linker_compat": {
+      "flag": "-checklinkname=0",
+      "scope": "legacy-tester-only",
+      "upstream_fix_commit": "a33349366d899068145f2d0e3ea0f5b2632fa3f2"
+    }
   }
 }
