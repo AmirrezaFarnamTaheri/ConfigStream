@@ -12,7 +12,7 @@ from configstream.output_logic import write_public_artifact_contract
 from configstream.signer import Signer
 from configstream.utils import AtomicFileWriter
 
-TRANSIENT_SUFFIXES = (".lock", ".tmp", ".log", ".pyc", ".pyo", ".swp")
+from configstream.constants import ARTIFACT_TRANSIENT_SUFFIXES as TRANSIENT_SUFFIXES
 
 
 def prune_transient_files(output_dir: Path) -> list[str]:
