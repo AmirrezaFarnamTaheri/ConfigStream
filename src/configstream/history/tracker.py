@@ -216,7 +216,7 @@ FROM proxy_history
 
 WHERE proxy_id IN ({placeholders})
 GROUP BY proxy_id"""
-                query = query_template.format(**{"place" "holders": bind_marks})  # nosec B608
+                query = query_template.format(**{"place" "holders": bind_marks})
                 cursor = conn.execute(query, chunk)
                 for pid, rel in cursor:
                     reliability = float(rel)
