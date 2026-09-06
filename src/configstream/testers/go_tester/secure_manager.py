@@ -37,9 +37,39 @@ class GoBatchTester(_StreamingGoBatchTester):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._request_lock = asyncio.Lock()
         self._identity: Optional[BinaryIdentity] = None
         if self.available:
             self._initialize_binary_identity()
+
+    async def test_batch(self, proxies, check_honeypot: bool = False):
+        """Serialize the shared daemon and bound each write to one worker wave.
+
+        The streaming base treats a blocked ``drain()`` as daemon failure. Keep
+        each write at or below worker capacity so normal pipe backpressure cannot
+        trigger cross-consumer restarts, while preserving Go-side concurrency.
+        """
+        if not proxies:
+            return proxies
+        async with self._request_lock:
+            results = []
+            wave_size = max(1, int(self.workers))
+            for start in range(0, len(proxies), wave_size):
+                wave = proxies[start : start + wave_size]
+                results.extend(await super().test_batch(wave, check_honeypot))
+            return results
+
+    async def test_custom_configs(self, configs, check_honeypot: bool = False):
+        """Serialize custom-config IPC using the same bounded worker waves."""
+        if not configs:
+            return {}
+        async with self._request_lock:
+            results = {}
+            wave_size = max(1, int(self.workers))
+            for start in range(0, len(configs), wave_size):
+                wave = configs[start : start + wave_size]
+                results.update(await super().test_custom_configs(wave, check_honeypot))
+            return results
 
     def _initialize_binary_identity(self) -> None:
         try:
