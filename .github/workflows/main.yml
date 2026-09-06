@@ -144,6 +144,53 @@ jobs:
           retention-days: 7
           overwrite: true
 
+  setup_geoip:
+    name: Prepare GeoIP Databases
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: [build_container]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    container:
+      image: ${{ needs.build_container.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+      env:
+        PYTHONPATH: /app/src
+    steps:
+      - name: Download and validate GeoIP databases once per run
+        env:
+          MAXMIND_LICENSE_KEY: ${{ secrets.MAXMIND_LICENSE_KEY }}
+        run: |
+          set -euo pipefail
+          python -m configstream.cli update-databases
+          python - <<'PY'
+          from pathlib import Path
+          import geoip2.database
+          for raw_path, expected_type in {
+              "data/GeoLite2-City.mmdb": "City",
+              "data/GeoLite2-ASN.mmdb": "ASN",
+          }.items():
+              path = Path(raw_path)
+              if not path.is_file() or path.stat().st_size <= 0:
+                  raise SystemExit(f"missing GeoIP database: {path}")
+              with geoip2.database.Reader(path) as reader:
+                  database_type = reader.metadata().database_type
+              if expected_type not in database_type:
+                  raise SystemExit(f"unexpected GeoIP database type for {path}: {database_type}")
+          PY
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: geoip-databases-${{ github.run_id }}
+          path: |
+            data/GeoLite2-City.mmdb
+            data/GeoLite2-ASN.mmdb
+          if-no-files-found: error
+          retention-days: 1
+          overwrite: true
+
   setup_matrix:
     name: Generate Runtime Source Matrix
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
@@ -224,12 +271,8 @@ jobs:
   pipeline:
     name: Run Source Shard ${{ matrix.batch }}.${{ matrix.part }}
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && needs.build_container.result == 'success' && needs.setup_matrix.outputs.status == 'ready'
-    needs: [build_container, setup_matrix]
+    needs: [build_container, setup_geoip, setup_matrix]
     runs-on: ubuntu-latest
-    # 270 min covers the 14400s batch window + grace and artifact steps.
-    # The window must stay >= dynamic_reshard.TARGET_BATCH_SECONDS (4h):
-    # the resharder balances batches to that target, so a shorter force-end
-    # would mark healthy runs time_limited every time.
     timeout-minutes: 270
     permissions:
       contents: read
@@ -255,6 +298,11 @@ jobs:
         with:
           name: source-matrix-${{ github.run_id }}
           path: .
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        if: matrix.enabled == true
+        with:
+          name: geoip-databases-${{ github.run_id }}
+          path: data
       - name: Run bounded shard and always write lineage
         if: matrix.enabled == true
         shell: bash
@@ -264,9 +312,6 @@ jobs:
           VT_API_KEY: ${{ secrets.VT_API_KEY }}
           WARP_KEY_POOL: ${{ secrets.WARP_KEY_POOL }}
           CANARY_URL: "https://httpbin.org"
-          # Must stay >= dynamic_reshard.TARGET_BATCH_SECONDS (14400s): the
-          # resharder balances every batch to that target, so a shorter
-          # force-end would mark healthy runs time_limited.
           BATCH_TIME_LIMIT_SECONDS: 14400
           BATCH_TIME_LIMIT_GRACE_SECONDS: 900
           FORCE_SCANNER: "false"
@@ -361,12 +406,11 @@ jobs:
   merge_validate_publish:
     name: Merge, Diagnose, Gate, and Publish
     if: always() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-    needs: [quality, build_container, build_wasm, setup_matrix, pipeline]
+    needs: [quality, build_container, build_wasm, setup_geoip, setup_matrix, pipeline]
     runs-on: ubuntu-latest
     permissions:
       actions: read
-      contents: write
-      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -375,8 +419,7 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
-          cache-dependency-path: |
-            requirements-dev.txt
+          cache-dependency-path: requirements-dev.txt
       - name: Install Python dependencies with evidence
         run: |
           python scripts/resilient_stage.py run \
@@ -396,6 +439,7 @@ jobs:
           python scripts/resilient_stage.py record --name quality-job --status "${{ needs.quality.result }}"
           python scripts/resilient_stage.py record --name container-job --status "${{ needs.build_container.result }}"
           python scripts/resilient_stage.py record --name wasm-job --status "${{ needs.build_wasm.result }}"
+          python scripts/resilient_stage.py record --name geoip-job --status "${{ needs.setup_geoip.result }}"
           python scripts/resilient_stage.py record --name matrix-job --status "${{ needs.setup_matrix.result }}"
           matrix_status="${{ needs.setup_matrix.outputs.status }}"
           if [ -z "$matrix_status" ]; then matrix_status=failure; fi
@@ -416,11 +460,19 @@ jobs:
         with:
           name: frontend-wasm-${{ github.run_id }}
           path: wasm-artifact
+      - name: Download exact runtime source matrix artifact
+        id: matrix_artifact_download
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        continue-on-error: true
+        with:
+          name: source-matrix-${{ github.run_id }}
+          path: matrix-artifact
       - name: Record artifact downloads
         if: always()
         run: |
           python scripts/resilient_stage.py record --name shard-download --status "${{ steps.shard_download.outcome }}"
           python scripts/resilient_stage.py record --name wasm-download --status "${{ steps.wasm_download.outcome }}"
+          python scripts/resilient_stage.py record --name matrix-artifact-download --status "${{ steps.matrix_artifact_download.outcome }}"
       - name: Restore available artifacts
         run: |
           python scripts/resilient_stage.py run --name restore-shards -- bash -lc '
@@ -450,7 +502,7 @@ jobs:
         run: |
           python scripts/resilient_stage.py run --name merge-batches -- python -m scripts.merge_batches
           python scripts/resilient_stage.py run --name aggregate-shard-health -- python scripts/aggregate_shard_health.py --parts "$SOURCE_SHARD_PARTS"
-          python scripts/resilient_stage.py run --name normalize-source-timings -- python scripts/normalize_source_timing_logs.py --evidence pipeline-evidence/source_timing.jsonl
+          python scripts/resilient_stage.py run --name normalize-source-timings -- python scripts/normalize_source_timing_logs.py --sources-pattern "matrix-artifact/sources/runtime/batch_*_part_*.txt" --evidence pipeline-evidence/source_timing.jsonl
           python scripts/resilient_stage.py run --name dynamic-reshard -- python scripts/dynamic_reshard.py
       - name: Upload source reshard recommendation
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
@@ -458,7 +510,9 @@ jobs:
         continue-on-error: true
         with:
           name: source-reshard-recommendation
-          path: sources/batch_*.txt
+          path: |
+            sources/batch_*.txt
+            sources/source_timing_weights.json
           if-no-files-found: warn
           retention-days: 30
       - name: Prepare public output artifact transactionally
@@ -514,11 +568,13 @@ jobs:
             --required-stage quality-job \
             --required-stage container-job \
             --required-stage wasm-job \
+            --required-stage geoip-job \
             --required-stage matrix-job \
             --required-stage matrix-status \
             --required-stage shard-jobs \
             --required-stage shard-download \
             --required-stage wasm-download \
+            --required-stage matrix-artifact-download \
             --required-stage restore-shards \
             --required-stage restore-wasm \
             --required-stage merge-batches \
