@@ -16,6 +16,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from configstream.constants import is_tester_infrastructure_drop_reason
+from configstream.constants import ARTIFACT_TRANSIENT_SUFFIXES as TRANSIENT_SUFFIXES
 from configstream.output.client_formats import generate_xray_config
 
 try:
@@ -37,7 +38,6 @@ except ImportError:  # pragma: no cover
     yaml = None  # type: ignore
 
 CONTROL_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]")
-TRANSIENT_SUFFIXES = (".lock", ".tmp", ".log", ".pyc", ".pyo", ".swp")
 INTERNAL_KEYS = {
     "_source",
     "source_url",
@@ -72,6 +72,20 @@ def _sha256(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             value.update(chunk)
     return value.hexdigest()
+
+
+def _release_singbox_version() -> str:
+    manifest = Path(__file__).resolve().parents[1] / "config" / "runtime-versions.json"
+    payload = _load(manifest, {})
+    try:
+        value = str(payload["sing_box"]["release_validator"]).strip()
+    except (KeyError, TypeError, AttributeError):
+        value = ""
+    if not re.fullmatch(r"\d+\.\d+\.\d+", value):
+        raise RuntimeError(
+            "runtime manifest has invalid sing-box release validator version"
+        )
+    return value
 
 
 def _clean_text(value: str) -> str:
@@ -554,7 +568,7 @@ def finalize(root: Path, repo_root: Path, threshold: float) -> None:
         "targets": {
             "sing-box": {
                 "status": "generated",
-                "target": "1.13.14",
+                "target": _release_singbox_version(),
                 "wireguard_model": "top-level endpoints",
                 "modernized_files": modernized,
             },
