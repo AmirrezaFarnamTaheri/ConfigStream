@@ -283,7 +283,7 @@ def _write_proxy_search_projection(
 
     fields = ("protocol", "country_code", "city", "latency", "config")
     projection = [
-        {field: record.get(field) for field in fields}
+        {field: record[field] for field in fields if record.get(field) is not None}
         for record in records
         if bool(record.get("is_working")) and record.get("protocol") != "chain"
     ]
