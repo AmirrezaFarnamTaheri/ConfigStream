@@ -57,6 +57,9 @@ def validate_repository(root: Path) -> list[str]:
         go_toolchain = str(go["toolchain"])
         go_ci = str(go.get("ci", go_toolchain))
         go_container = str(go["container"])
+        sing_box = versions["sing_box"]
+        sing_box_release = str(sing_box["release_validator"])
+        sing_box_embedded = str(sing_box["embedded_tester"])
     except (KeyError, TypeError, ValueError) as exc:
         return [f"runtime manifest schema invalid: {type(exc).__name__}: {exc}"]
 
@@ -66,31 +69,15 @@ def validate_repository(root: Path) -> list[str]:
     except (OSError, UnicodeError, tomllib.TOMLDecodeError, KeyError, TypeError) as exc:
         errors.append(f"pyproject runtime declaration unreadable: {type(exc).__name__}")
     else:
-        _expect(
-            errors,
-            requires_python == f">={python_min}",
-            f"pyproject requires-python {requires_python!r} != '>={python_min}'",
-        )
+        _expect(errors, requires_python == f">={python_min}", f"pyproject requires-python {requires_python!r} != '>={python_min}'")
 
     try:
         package = _load_json(root / "package.json")
         node_engine = str(package.get("engines", {}).get("node", ""))
-    except (
-        OSError,
-        UnicodeError,
-        json.JSONDecodeError,
-        ValueError,
-        AttributeError,
-    ) as exc:
-        errors.append(
-            f"package.json runtime declaration unreadable: {type(exc).__name__}"
-        )
+    except (OSError, UnicodeError, json.JSONDecodeError, ValueError, AttributeError) as exc:
+        errors.append(f"package.json runtime declaration unreadable: {type(exc).__name__}")
     else:
-        _expect(
-            errors,
-            node_engine == f">={node_min}",
-            f"package.json engines.node {node_engine!r} != '>={node_min}'",
-        )
+        _expect(errors, node_engine == f">={node_min}", f"package.json engines.node {node_engine!r} != '>={node_min}'")
 
     try:
         go_mod = (root / "src/go/tester/go.mod").read_text(encoding="utf-8")
@@ -99,16 +86,10 @@ def validate_repository(root: Path) -> list[str]:
     else:
         language_match = re.search(r"(?m)^go\s+(\S+)\s*$", go_mod)
         toolchain_match = re.search(r"(?m)^toolchain\s+go(\S+)\s*$", go_mod)
-        _expect(
-            errors,
-            bool(language_match and language_match.group(1) == go_language),
-            f"go.mod language version must be {go_language}",
-        )
-        _expect(
-            errors,
-            bool(toolchain_match and toolchain_match.group(1) == go_toolchain),
-            f"go.mod toolchain must be go{go_toolchain}",
-        )
+        _expect(errors, bool(language_match and language_match.group(1) == go_language), f"go.mod language version must be {go_language}")
+        _expect(errors, bool(toolchain_match and toolchain_match.group(1) == go_toolchain), f"go.mod toolchain must be go{go_toolchain}")
+        sing_box_match = re.search(r"(?m)^\s*github\.com/sagernet/sing-box\s+v(\S+)\s*$", go_mod)
+        _expect(errors, bool(sing_box_match and sing_box_match.group(1) == sing_box_embedded), f"go.mod embedded sing-box must be v{sing_box_embedded}")
 
     try:
         dockerfile = (root / "Dockerfile").read_text(encoding="utf-8")
@@ -120,11 +101,7 @@ def validate_repository(root: Path) -> list[str]:
             f"FROM node:{node_container}-slim@sha256:",
             f"FROM python:{python_container}-slim@sha256:",
         ):
-            _expect(
-                errors,
-                required in dockerfile,
-                f"Dockerfile missing canonical base: {required}",
-            )
+            _expect(errors, required in dockerfile, f"Dockerfile missing canonical base: {required}")
 
     try:
         go_versions = _workflow_versions(root, "go-version")
@@ -135,18 +112,18 @@ def validate_repository(root: Path) -> list[str]:
 
     _expect(errors, bool(go_versions), "workflows must declare a Go version")
     for path, observed in go_versions:
-        _expect(
-            errors,
-            observed == go_ci,
-            f"{path.relative_to(root)} go-version {observed!r} != {go_ci!r}",
-        )
-
+        _expect(errors, observed == go_ci, f"{path.relative_to(root)} go-version {observed!r} != {go_ci!r}")
     for path, observed in node_versions:
-        _expect(
-            errors,
-            observed == str(node["ci"]),
-            f"{path.relative_to(root)} node-version {observed!r} != {node['ci']!r}",
-        )
+        _expect(errors, observed == str(node["ci"]), f"{path.relative_to(root)} node-version {observed!r} != {node['ci']!r}")
+
+    try:
+        sing_box_versions = _workflow_versions(root, "SING_BOX_VERSION")
+    except (OSError, UnicodeError) as exc:
+        errors.append(f"workflow sing-box declaration unreadable: {type(exc).__name__}")
+    else:
+        _expect(errors, bool(sing_box_versions), "workflows must declare SING_BOX_VERSION")
+        for path, observed in sing_box_versions:
+            _expect(errors, observed == sing_box_release, f"{path.relative_to(root)} SING_BOX_VERSION {observed!r} != {sing_box_release!r}")
 
     return errors
 
