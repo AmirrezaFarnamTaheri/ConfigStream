@@ -55,6 +55,7 @@ jobs:
             scripts/reconcile_release_metadata.py \
             scripts/preflight_release_inputs.py \
             scripts/normalize_source_timing_logs.py \
+            scripts/refresh_shard_contract.py \
             scripts/native_client_checks.py \
             scripts/release_gate.py \
             scripts/validate_workflows.py
@@ -67,6 +68,7 @@ jobs:
             tests/unit/test_install_native_validators.py \
             tests/unit/test_preflight_release_inputs.py \
             tests/unit/test_normalize_source_timing_logs.py \
+            tests/unit/test_refresh_shard_contract.py \
             tests/unit/test_release_remediation.py \
             tests/unit/test_validate_workflows.py \
             tests/unit/test_validate_workflows_resilient.py \
@@ -390,6 +392,11 @@ jobs:
           PY
           then
             rc=125
+          fi
+          # The CLI writes its first manifest before this wrapper finalizes
+          # lineage; refresh only after the process exits and lineage is final.
+          if ! python scripts/refresh_shard_contract.py "$output"; then
+            if [ "$rc" -eq 0 ]; then rc=125; fi
           fi
           exit "$rc"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
