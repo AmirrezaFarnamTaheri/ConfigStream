@@ -37,6 +37,10 @@ SHARD_LOG_RE = re.compile(
     r"^pipeline_batch_(?P<batch>.+?)_part_(?P<part>\d+)\.log$",
     re.IGNORECASE,
 )
+PARALLEL_CONSUMERS_RE = re.compile(
+    r"Starting\s+pipeline\s+with\s+(?P<count>\d+)\s+parallel\s+consumers",
+    re.IGNORECASE,
+)
 RUNTIME_SOURCE_RE = re.compile(
     r"^batch_(?P<batch>.+?)_part_(?P<part>\d+)\.txt$", re.IGNORECASE
 )
@@ -50,6 +54,8 @@ class SourceTiming:
     duration_ms: float
     fetch_ms: float | None
     source_log: str
+    parallel_consumers: int = 1
+    chunk_count: int = 1
 
 
 def _flatten(text: str) -> str:
@@ -76,6 +82,10 @@ def parse_source_timings(text: str, source_log: str = "") -> list[SourceTiming]:
     """Parse source summaries even when Rich wraps or annotates logical records."""
 
     flattened = _flatten(text)
+    consumer_match = PARALLEL_CONSUMERS_RE.search(flattened)
+    parallel_consumers = (
+        max(1, int(consumer_match.group("count"))) if consumer_match is not None else 1
+    )
     starts = list(SUMMARY_START_RE.finditer(flattened))
     records: list[SourceTiming] = []
     for index, start in enumerate(starts):
@@ -98,6 +108,7 @@ def parse_source_timings(text: str, source_log: str = "") -> list[SourceTiming]:
                 duration_ms=float(duration_match.group(1)),
                 fetch_ms=float(fetch_match.group(1)) if fetch_match else None,
                 source_log=source_log,
+                parallel_consumers=parallel_consumers,
             )
         )
     return records
@@ -267,23 +278,62 @@ def timing_resolution_counts(
     return mapped, len(identities)
 
 
+def _aggregate_chunk_timings(records: list[SourceTiming]) -> SourceTiming:
+    """Collapse one source's chunk summaries into a wall-time-equivalent record.
+
+    Consumers process source chunks concurrently.  Keeping only the slowest chunk
+    severely underweights large subscriptions, while summing every chunk treats
+    parallel worker-time as serial wall time.  The lower bound
+    ``max(slowest_chunk, total_worker_time / consumers)`` preserves single-chunk
+    behavior and captures the dominant cost of heavily chunked sources without
+    multiplying it by pipeline parallelism.
+    """
+
+    if not records:
+        raise ValueError("cannot aggregate an empty timing record set")
+    consumers = max(1, max(record.parallel_consumers for record in records))
+    worker_time_ms = sum(max(0.0, record.duration_ms) for record in records)
+    slowest_ms = max(record.duration_ms for record in records)
+    wall_time_ms = max(slowest_ms, worker_time_ms / consumers)
+    fetch_values = [
+        record.fetch_ms for record in records if record.fetch_ms is not None
+    ]
+    representative = max(records, key=lambda record: record.duration_ms)
+    return replace(
+        representative,
+        raw=sum(max(0, record.raw) for record in records),
+        duration_ms=wall_time_ms,
+        fetch_ms=max(fetch_values) if fetch_values else None,
+        parallel_consumers=consumers,
+        chunk_count=sum(max(1, record.chunk_count) for record in records),
+    )
+
+
 def resolve_timings(
     records: Iterable[SourceTiming],
     sources_by_batch: dict[str, list[str]],
     parts: int,
 ) -> list[SourceTiming]:
-    """Resolve unambiguous sanitized log URLs to canonical shard sources."""
+    """Resolve canonical sources and aggregate repeated per-source chunk summaries."""
 
-    by_url: dict[str, SourceTiming] = {}
+    by_observation: dict[tuple[str, str], list[SourceTiming]] = {}
     for record in records:
         matches = _canonical_matches(record, sources_by_batch, parts)
         if not matches:
             continue
         canonical_url = matches[0]
         resolved = replace(record, url=canonical_url)
+        by_observation.setdefault((canonical_url, record.source_log), []).append(resolved)
+
+    # A source should belong to one runtime shard.  If duplicated logs are present
+    # (for example, retry evidence), retain the most expensive complete observation
+    # instead of summing multiple runs together.
+    by_url: dict[str, SourceTiming] = {}
+    for (canonical_url, _source_log), chunks in by_observation.items():
+        aggregate = _aggregate_chunk_timings(chunks)
         previous = by_url.get(canonical_url)
-        if previous is None or resolved.duration_ms > previous.duration_ms:
-            by_url[canonical_url] = resolved
+        if previous is None or aggregate.duration_ms > previous.duration_ms:
+            by_url[canonical_url] = aggregate
     return [by_url[url] for url in sorted(by_url)]
 
 
@@ -327,6 +377,8 @@ def write_outputs(
                     "fetch_ms": record.fetch_ms,
                     "duration_ms": record.duration_ms,
                     "source_log": safe_source_log,
+                    "chunk_count": record.chunk_count,
+                    "parallel_consumers": record.parallel_consumers,
                 },
                 ensure_ascii=False,
                 sort_keys=True,
