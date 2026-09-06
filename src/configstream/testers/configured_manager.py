@@ -18,6 +18,10 @@ class SingBoxTester(_BaseSingBoxTester):
 
     def __init__(self, *args, **kwargs):
         configured = bool(AppSettings().STRICT_SECURITY)
-        requested = bool(kwargs.get("strict_security", False))
-        kwargs["strict_security"] = configured or requested
-        super().__init__(*args, **kwargs)
+        positional = list(args)
+        if len(positional) >= 3:
+            positional[2] = configured or bool(positional[2])
+        else:
+            requested = bool(kwargs.get("strict_security", False))
+            kwargs["strict_security"] = configured or requested
+        super().__init__(*positional, **kwargs)
