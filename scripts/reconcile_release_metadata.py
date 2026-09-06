@@ -233,6 +233,69 @@ def _reconcile_execution_audit(metadata: dict[str, Any]) -> None:
     )
 
 
+def _runtime_release_validator_version() -> str:
+    """Read the governed native sing-box validator version."""
+
+    payload = _load_object(REPO_ROOT / "config/runtime-versions.json")
+    sing_box = payload.get("sing_box")
+    if not isinstance(sing_box, dict):
+        raise ValueError("runtime-versions.json must define sing_box")
+    version = str(sing_box.get("release_validator") or "").strip()
+    if not version or not all(part.isdigit() for part in version.split(".")):
+        raise ValueError("sing_box.release_validator must be a numeric version")
+    return version
+
+
+def _reconcile_format_compatibility(root: Path) -> str | None:
+    """Bind release compatibility metadata to governed runtime contracts."""
+
+    path = root / "format_compatibility.json"
+    if not path.is_file():
+        return None
+    payload = _load_object(path)
+    targets = payload.get("targets")
+    if not isinstance(targets, dict):
+        raise ValueError("format_compatibility.json targets must be an object")
+    sing_box = targets.get("sing-box")
+    if not isinstance(sing_box, dict):
+        raise ValueError("format_compatibility.json must define sing-box target")
+    release_validator = _runtime_release_validator_version()
+    sing_box["target"] = release_validator
+    sip008 = targets.get("sip008")
+    if isinstance(sip008, dict):
+        sip008.update(
+            {
+                "dns_safe_endpoint_variant": "sip008-dns-safe.json",
+                "dns_hardened_resolver_policy": "unsupported_by_sip008",
+                "dns_hardened_compat_alias": "sip008-dns-hardened.json",
+            }
+        )
+    path.write_text(
+        json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
+    return release_validator
+
+
+def _write_proxy_search_projection(
+    root: Path, records: list[dict[str, Any]]
+) -> int:
+    """Write the minimal verified dataset used by the landing-page search."""
+
+    fields = ("protocol", "country_code", "city", "latency", "config")
+    projection = [
+        {field: record.get(field) for field in fields}
+        for record in records
+        if bool(record.get("is_working")) and record.get("protocol") != "chain"
+    ]
+    target = root / "data/proxy_search.json"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(
+        json.dumps(projection, separators=(",", ":"), ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    return len(projection)
+
+
 def _write_evidence(path: Path, payload: dict[str, Any]) -> None:
     """Persist private reconciliation evidence next to the public artifacts."""
 
@@ -258,6 +321,9 @@ def reconcile(root: Path, evidence_path: Path | None = None) -> dict[str, Any]:
     public_candidates, public_verified = _public_shielding_counts(raw_records)
 
     changed_surfaces = _sanitize_public_proxy_surfaces(root)
+    public_records = _load_records(proxies_path)
+    proxy_search_records = _write_proxy_search_projection(root, public_records)
+    release_validator = _reconcile_format_compatibility(root)
 
     metadata["shielded_count"] = public_candidates
     metadata["shielded_candidate_count"] = public_candidates
@@ -302,6 +368,8 @@ def reconcile(root: Path, evidence_path: Path | None = None) -> dict[str, Any]:
         "public_candidates": public_candidates,
         "public_verified": public_verified,
         "sanitized_surfaces": changed_surfaces,
+        "proxy_search_records": proxy_search_records,
+        "sing_box_release_validator": release_validator,
     }
     if evidence_path is not None:
         _write_evidence(evidence_path, result)
