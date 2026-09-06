@@ -35,7 +35,6 @@ class GeoIPResolver:
     _lock: threading.Lock = threading.Lock()
 
     def __new__(cls):
-        # Always acquire lock before checking to prevent race condition
         with cls._lock:
             if cls._instance is None:
                 cls._instance = super(GeoIPResolver, cls).__new__(cls)
@@ -43,25 +42,16 @@ class GeoIPResolver:
         return cls._instance
 
     def __init__(self):
-        # Guard under the class-level lock so that a second thread cannot
-        # slip past the _initialized check between __new__ releasing the lock
-        # and __init__ setting _initialized = True.
         with self.__class__._lock:
             if getattr(self, "_initialized", False):
                 return
-
             self.settings = AppSettings()
             self.reader_city: Optional[geoip2.database.Reader] = None
             self.reader_asn: Optional[geoip2.database.Reader] = None
-
-            # Use threading.Lock for sync context - asyncio.Lock created lazily
             self._lookup_lock: Optional[asyncio.Lock] = None
             self._last_mtime: float = 0.0
-
-            # Track if C extension (MMAP) mode is used - readers are thread-safe in this mode
+            self._last_asn_mtime: float = 0.0
             self._uses_c_extension: bool = False
-
-            # Load synchronously
             self._load_databases()
             self._initialized = True
 
@@ -70,10 +60,7 @@ class GeoIPResolver:
         try:
             city_path = Path(self.settings.GEOIP_CITY_DB_PATH)
             asn_path = Path(self.settings.GEOIP_ASN_DB_PATH)
-
-            # Check for C extension availability
-            # C extension (MMAP_EXT mode) is thread-safe for reads, allowing lock-free lookups
-            db_mode = 0  # Default (Auto)
+            db_mode = 0
             try:
                 import maxminddb
 
@@ -92,101 +79,94 @@ class GeoIPResolver:
                 try:
                     self.reader_city = geoip2.database.Reader(city_path, mode=db_mode)
                 except (ValueError, TypeError):
-                    # Fallback if extension fails or invalid mode
                     logger.warning(
                         "Failed to load GeoIP with C extension, falling back to pure Python."
                     )
                     self.reader_city = geoip2.database.Reader(city_path)
-                    self._uses_c_extension = False  # Reset flag on fallback
-
+                    self._uses_c_extension = False
                 logger.info("Loaded GeoLite2 City database.")
                 self._last_mtime = city_path.stat().st_mtime
             else:
                 logger.warning(
                     "GeoLite2 City DB not found. Geolocation disabled. Run 'configstream update-databases'."
                 )
-                self._last_mtime = 0
+                self._last_mtime = 0.0
 
             if asn_path.exists():
                 try:
                     self.reader_asn = geoip2.database.Reader(asn_path, mode=db_mode)
                 except (ValueError, TypeError):
                     self.reader_asn = geoip2.database.Reader(asn_path)
-                    self._uses_c_extension = False  # Reset flag on fallback
-
+                    self._uses_c_extension = False
                 logger.info("Loaded GeoLite2 ASN database.")
+                self._last_asn_mtime = asn_path.stat().st_mtime
             else:
                 logger.warning(
                     "GeoLite2 ASN DB not found. ASN lookup disabled. Run 'configstream update-databases'."
                 )
+                self._last_asn_mtime = 0.0
 
         except (OSError, IOError) as e:
-            # File system errors (permissions, corrupted files, etc.)
             logger.error(f"I/O error loading GeoIP databases: {e}")
         except geoip2.errors.GeoIP2Error as e:
-            # GeoIP2-specific errors (invalid database format, etc.)
             logger.error(f"GeoIP2 database error: {e}")
         except Exception as e:
-            # Unexpected errors - log with full traceback
             logger.exception(f"Unexpected error loading GeoIP databases: {e}")
 
     def _get_lookup_lock(self) -> asyncio.Lock:
-        """Lazily create async lock when first needed (within event loop context)."""
         if self._lookup_lock is None:
             self._lookup_lock = asyncio.Lock()
         return self._lookup_lock
 
     def _check_reload_needed(self):
-        """Check if DB file has changed on disk (thread-safe double-checked reload)."""
+        """Reload when either GeoIP DB is created, removed, or replaced."""
+
+        def _mtime(path: Path) -> float:
+            try:
+                return path.stat().st_mtime
+            except FileNotFoundError:
+                return 0.0
+
         try:
-            p = Path(self.settings.GEOIP_CITY_DB_PATH)
-            if not p.exists():
+            city_path = Path(self.settings.GEOIP_CITY_DB_PATH)
+            asn_path = Path(self.settings.GEOIP_ASN_DB_PATH)
+            city_mtime = _mtime(city_path)
+            asn_mtime = _mtime(asn_path)
+            if city_mtime == self._last_mtime and asn_mtime == self._last_asn_mtime:
                 return
-            mtime = p.stat().st_mtime
-            # Fast path: no change detected without the lock.
-            if mtime <= self._last_mtime:
-                return
-            # Slow path: acquire the class lock so only one thread performs
-            # the reload even if multiple threads detected the mtime change.
             with self.__class__._lock:
-                # Re-read mtime inside the lock (double-checked locking).
-                mtime = p.stat().st_mtime
-                if mtime <= self._last_mtime:
+                city_mtime = _mtime(city_path)
+                asn_mtime = _mtime(asn_path)
+                if city_mtime == self._last_mtime and asn_mtime == self._last_asn_mtime:
                     return
-                logger.info("GeoIP database changed. Reloading...")
+                logger.info("GeoIP database set changed. Reloading...")
                 self.close()
                 self._load_databases()
         except Exception:  # nosec B110
-            logging.getLogger(__name__).debug("Suppressed broad exception")
-            pass
+            logging.getLogger(__name__).debug(
+                "Suppressed GeoIP reload exception", exc_info=True
+            )
 
     async def lookup(self, ip: str) -> GeoData:
-        """Resolve IP to Country, City, ASN (Async with conditional Lock).
-
-        When using the C extension (MMAP_EXT mode), the reader is thread-safe
-        for concurrent reads, so we skip the lock for better performance.
-        In pure Python mode, we use a lock to ensure safety.
-        """
+        """Resolve IP to Country, City, ASN."""
         result = GeoData()
         if not ip:
             return result
-
-        # Validate IP format before lookup
         try:
             ipaddress.ip_address(ip)
         except ValueError:
             logger.debug(f"Invalid IP address format: {ip}")
             return result
 
-        # Check for updates (only in pure python mode or before lock)
-        if self._initialized and not self._uses_c_extension:
+        if self._initialized and (
+            not self._uses_c_extension
+            or self.reader_city is None
+            or self.reader_asn is None
+        ):
             self._check_reload_needed()
 
-        # Skip lock when C extension is used (thread-safe reads)
         if self._uses_c_extension:
             return self._do_lookup(ip)
-
-        # Pure Python mode - use lock for safety
         async with self._get_lookup_lock():
             return self._do_lookup(ip)
 
@@ -196,46 +176,33 @@ class GeoIPResolver:
         try:
             if self.reader_city:
                 response = self.reader_city.city(ip)
-                result.country_code = response.country.iso_code or "XX"  # Fallback XX
+                result.country_code = response.country.iso_code or "XX"
                 result.country_name = response.country.name or "Unknown"
                 result.city = response.city.name or "Unknown"
                 result.lat = response.location.latitude
                 result.lng = response.location.longitude
             else:
-                # Explicit warning/fallback if DB missing
-                result.country_code = "XX"
+                # Missing DB means enrichment is unavailable, not successfully
+                # resolved to the synthetic unknown-country sentinel.
+                result.country_code = ""
                 result.country_name = "Unknown (DB Missing)"
 
             if self.reader_asn:
                 response_asn = self.reader_asn.asn(ip)
                 result.asn = str(response_asn.autonomous_system_number)
-                result.org = (
-                    response_asn.autonomous_system_organization or "Unknown Org"
-                )
-
+                result.org = response_asn.autonomous_system_organization or "Unknown Org"
         except geoip2.errors.AddressNotFoundError:
-            # Expected for private IPs or missing data
             result.country_code = "XX"
             result.country_name = "Unknown"
         except (ValueError, TypeError) as e:
-            # Invalid IP format or type errors
             logger.debug(f"Invalid IP format during GeoIP lookup for {ip}: {e}")
         except geoip2.errors.GeoIP2Error as e:
-            # GeoIP2-specific errors (database errors, etc.)
             logger.warning(f"GeoIP2 error during lookup for {ip}: {e}")
         except Exception as e:
-            # Unexpected errors - log for debugging
             logger.debug(f"Unexpected GeoIP lookup error for {ip}: {e}")
-
         return result
 
     def close(self) -> None:
-        """Close GeoIP database readers and release resources.
-
-        After closing, the reader attributes are set to None so that any
-        concurrent _do_lookup call racing against a reload cannot call
-        .city()/.asn() on a closed reader.
-        """
         if self.reader_city:
             self.reader_city.close()
             self.reader_city = None
@@ -244,18 +211,6 @@ class GeoIPResolver:
             self.reader_asn = None
 
     def log_enrichment_stats(self, proxies: List[Any]) -> Dict[str, int]:
-        """Log and return GeoIP enrichment statistics.
-
-        Args:
-            proxies: List of proxy objects with optional geo attributes
-
-        Returns:
-            Dictionary containing enrichment statistics:
-            - total: Total number of proxies
-            - with_country: Count of proxies with country data
-            - with_city: Count of proxies with city data
-            - with_asn: Count of proxies with ASN data
-        """
         stats: Dict[str, int] = {
             "total": len(proxies),
             "with_country": sum(
@@ -274,5 +229,4 @@ class GeoIPResolver:
         return stats
 
 
-# Global Singleton
 DEFAULT_RESOLVER = GeoIPResolver()
