@@ -26,6 +26,24 @@ def source_timing_id(url: str) -> str:
     return hashlib.sha256(url.strip().encode("utf-8")).hexdigest()
 
 
+def _canonical_source_urls(sources_dir: Path) -> set[str]:
+    """Return the exact canonical URL set used by the reshard sidecar digest."""
+
+    urls: set[str] = set()
+    for source_file in sorted(sources_dir.glob("batch_*.txt")):
+        for raw_line in source_file.read_text(encoding="utf-8").splitlines():
+            line = raw_line.strip()
+            if line.startswith(("http://", "https://")):
+                urls.add(line)
+    return urls
+
+
+def _source_set_sha256(urls: set[str]) -> str:
+    return hashlib.sha256(
+        ("\n".join(sorted(urls)) + "\n").encode("utf-8")
+    ).hexdigest()
+
+
 def partition(
     lines: list[str],
     parts: int,
@@ -69,8 +87,9 @@ def partition(
 def load_timing_weights(sources_dir: Path) -> tuple[dict[str, int], int]:
     """Load the optional governed runtime timing sidecar.
 
-    Invalid sidecars fail closed because silently ignoring corrupt scheduling
-    evidence would recreate the imbalance this file is meant to prevent.
+    Invalid or stale sidecars fail closed because silently ignoring corrupt
+    scheduling evidence would recreate the imbalance this file is meant to
+    prevent.
     """
 
     path = sources_dir / TIMING_WEIGHTS_FILENAME
@@ -80,23 +99,45 @@ def load_timing_weights(sources_dir: Path) -> tuple[dict[str, int], int]:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         raise SystemExit(f"invalid {TIMING_WEIGHTS_FILENAME}: {exc}") from exc
+    if not isinstance(payload, dict):
+        raise SystemExit(f"invalid {TIMING_WEIGHTS_FILENAME}: expected object")
     if payload.get("schema_version") != 1 or payload.get("unit") != "deciseconds":
         raise SystemExit(f"invalid {TIMING_WEIGHTS_FILENAME}: unsupported schema")
-    try:
-        default_weight = int(payload["default_weight"])
-        raw_weights = payload.get("weights", {})
-        if not isinstance(raw_weights, dict) or default_weight < 1:
-            raise (TypeError if not isinstance(raw_weights, dict) else ValueError)
-        weights = {str(key): int(value) for key, value in raw_weights.items()}
-    except (KeyError, TypeError, ValueError) as exc:
-        raise SystemExit(f"invalid {TIMING_WEIGHTS_FILENAME}: malformed weights") from exc
-    if any(
-        len(key) != 64
-        or any(char not in "0123456789abcdef" for char in key.lower())
-        or value < 1
-        for key, value in weights.items()
+
+    default_weight = payload.get("default_weight")
+    raw_weights = payload.get("weights", {})
+    if (
+        not isinstance(default_weight, int)
+        or isinstance(default_weight, bool)
+        or default_weight < 1
+        or not isinstance(raw_weights, dict)
     ):
-        raise SystemExit(f"invalid {TIMING_WEIGHTS_FILENAME}: invalid source weight")
+        raise SystemExit(f"invalid {TIMING_WEIGHTS_FILENAME}: malformed weights")
+
+    weights: dict[str, int] = {}
+    for key, value in raw_weights.items():
+        if (
+            not isinstance(key, str)
+            or len(key) != 64
+            or any(char not in "0123456789abcdef" for char in key.lower())
+            or not isinstance(value, int)
+            or isinstance(value, bool)
+            or value < 1
+        ):
+            raise SystemExit(
+                f"invalid {TIMING_WEIGHTS_FILENAME}: invalid source weight"
+            )
+        weights[key] = value
+
+    canonical_urls = _canonical_source_urls(sources_dir)
+    expected_digest = _source_set_sha256(canonical_urls)
+    if payload.get("source_set_sha256") != expected_digest:
+        raise SystemExit(f"invalid {TIMING_WEIGHTS_FILENAME}: source-set mismatch")
+    allowed_ids = {source_timing_id(url) for url in canonical_urls}
+    if set(weights) - allowed_ids:
+        raise SystemExit(
+            f"invalid {TIMING_WEIGHTS_FILENAME}: weights reference unknown sources"
+        )
     return weights, default_weight
 
 
@@ -140,7 +181,7 @@ def active_source_lines(source_file: Path, quarantined: set[str]) -> list[str]:
 def runtime_source_lines(source_file: Path, quarantined: set[str]) -> list[str]:
     """Return exactly the sources the scheduled CLI will attempt to fetch.
 
-    Repository admission already validates tracked locators.  Runtime sharding
+    Repository admission already validates tracked locators. Runtime sharding
     additionally excludes quarantined entries and trust classes that the CLI
     blocks by default, keeping matrix/coverage denominators aligned with actual
     source attempts.
