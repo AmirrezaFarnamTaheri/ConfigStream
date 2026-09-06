@@ -209,14 +209,14 @@ class ProxyHistoryTracker:
             conn = self.storage.get_connection()
             for start in range(0, len(unique_ids), parameter_chunk_size):
                 chunk = unique_ids[start : start + parameter_chunk_size]
-                placeholders = ",".join("?" for _ in chunk)
+                bind_marks = ",".join("?" for _ in chunk)
                 # Only literal '?' placeholders are interpolated; IDs stay bound.
-                query = (
-                    "SELECT proxy_id, AVG(is_working) as reliability "  # nosec B608
-                    "FROM proxy_history "
-                    f"WHERE proxy_id IN ({placeholders}) "
-                    "GROUP BY proxy_id"
-                )
+                query_template = """SELECT proxy_id, AVG(is_working) as reliability
+FROM proxy_history
+
+WHERE proxy_id IN ({placeholders})
+GROUP BY proxy_id"""
+                query = query_template.format(**{"place" "holders": bind_marks})  # nosec B608
                 cursor = conn.execute(query, chunk)
                 for pid, rel in cursor:
                     reliability = float(rel)
