@@ -9,7 +9,7 @@ from scripts.validate_download_targets import configured_targets, validate
 
 
 def _frontend_catalog_source() -> str:
-    return Path("frontend/assets/js/dynamic-downloads.js").read_text(encoding="utf-8")
+    return (Path("frontend/assets/js/dynamic-downloads.js")).read_text(encoding="utf-8")
 
 
 def test_dynamic_catalog_uses_dns_safe_fallback_for_sip008() -> None:
@@ -65,3 +65,21 @@ def test_configured_targets_rejects_parent_traversal(tmp_path: Path) -> None:
         assert "unsafe frontend download target" in str(exc)
     else:
         raise AssertionError("expected unsafe target rejection")
+
+
+def test_repository_frontend_has_no_dead_evasion_selector() -> None:
+    index = Path("frontend/index.html").read_text(encoding="utf-8")
+    dynamic = Path("frontend/assets/js/dynamic-downloads.js").read_text(encoding="utf-8")
+    assert "evasion-mode-selector" not in index
+    assert "evasion-mode-selector" not in dynamic
+    assert "evasionMode" not in dynamic
+
+
+def test_landing_search_uses_compact_verified_projection() -> None:
+    main = Path("frontend/assets/js/main.js").read_text(encoding="utf-8")
+    marker = "async function fetchProxyData()"
+    start = main.index(marker)
+    end = main.index("function renderLandingResults", start)
+    fetch_block = main[start:end]
+    assert "data/proxy_search.json" in fetch_block
+    assert "fetchProxies(" not in fetch_block
