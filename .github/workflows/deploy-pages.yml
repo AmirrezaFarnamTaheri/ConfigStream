@@ -267,7 +267,7 @@ jobs:
         id: deployment
         if: env.DEPLOY_READY == 'true' && steps.pages_artifact.outcome == 'success'
         continue-on-error: true
-        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5
         with:
           artifact_name: github-pages-candidate
       - name: Record Pages action outcomes
@@ -338,7 +338,7 @@ jobs:
         id: rollback_deployment
         if: always() && env.SMOKE_OK != 'true' && env.HAS_LKG == 'true' && steps.rollback_artifact.outcome == 'success'
         continue-on-error: true
-        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5
         with:
           artifact_name: github-pages-last-known-good
       - name: Verify rollback restoration
