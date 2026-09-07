@@ -3,14 +3,14 @@
 ## Executive Summary
 This matrix represents **actionable** technical debt. Noise from test mocks, documentation placeholders, and historical reports has been filtered out.
 
-- Total actionable markers: **264**
-- `BROAD_EXCEPTION`: **253**
+- Total actionable markers: **262**
+- `BROAD_EXCEPTION`: **251**
 - `LARGE_FUNCTION`: **9**
 - `PLACEHOLDER`: **2**
 
 ## Categories
 
-- `other`: **14**
+- `other`: **12**
 - `production`: **208**
 - `tooling`: **42**
 
@@ -29,7 +29,7 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 - `src/configstream/bot_cli.py`
 - ... and 52 more files.
 
-### P2 - Routine (56)
+### P2 - Routine (54)
 - `scripts/check_license_headers.py`
 - `scripts/dynamic_reshard.py`
 - `scripts/generate_evidence_bundle.py`
@@ -40,7 +40,7 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 - `scripts/resilient_stage.py`
 - `scripts/upload_gdrive.py`
 - `scripts/upload_hf.py`
-- ... and 4 more files.
+- ... and 3 more files.
 
 ## Triage Rules
 
@@ -127,7 +127,6 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 | `src/configstream/tools/warp.py` | 1 | BROAD_EXCEPTION |
 | `src/configstream/utils/__init__.py` | 4 | BROAD_EXCEPTION |
 | `src/configstream/warp_scanner.py` | 1 | BROAD_EXCEPTION |
-| `tools/dns_scanner.py` | 2 | BROAD_EXCEPTION |
 | `tools/lab-scanner.py` | 12 | BROAD_EXCEPTION |
 
 ## Raw Entries
@@ -529,10 +528,6 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 
 ### `src/configstream/warp_scanner.py`
 - L237 [`BROAD_EXCEPTION`] **P1 - High**: `Broad exception boundary requires semantic review and structured outcome.`
-
-### `tools/dns_scanner.py`
-- L51 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
-- L73 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `tools/lab-scanner.py`
 - L449 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`

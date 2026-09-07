@@ -1,14 +1,14 @@
 {
   "generated_from": "current tracked tree",
   "summary": {
-    "total": 264,
+    "total": 262,
     "markers": {
-      "BROAD_EXCEPTION": 253,
+      "BROAD_EXCEPTION": 251,
       "LARGE_FUNCTION": 9,
       "PLACEHOLDER": 2
     },
     "categories": {
-      "other": 14,
+      "other": 12,
       "production": 208,
       "tooling": 42
     }
@@ -2012,22 +2012,6 @@
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
-      "path": "tools/dns_scanner.py",
-      "line": 51,
-      "marker": "BROAD_EXCEPTION",
-      "category": "other",
-      "priority": "P2 - Routine",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
-      "path": "tools/dns_scanner.py",
-      "line": 73,
-      "marker": "BROAD_EXCEPTION",
-      "category": "other",
-      "priority": "P2 - Routine",
       "text": "Broad exception boundary requires semantic review and structured outcome."
     },
     {
