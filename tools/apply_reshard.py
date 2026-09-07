@@ -333,11 +333,11 @@ def _apply(recommendation: Path) -> bool:
         old_moved = True
         try:
             os.replace(staged_sources, SOURCES_DIR)
-        except OSError:
+        except (OSError, KeyboardInterrupt, SystemExit):
             try:
                 os.replace(backup_sources, SOURCES_DIR)
                 old_moved = False
-            except OSError as rollback_exc:
+            except (OSError, KeyboardInterrupt, SystemExit) as rollback_exc:
                 raise RuntimeError(
                     "source-layout publication failed and rollback could not restore "
                     "the previous sources directory"
