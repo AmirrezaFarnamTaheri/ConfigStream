@@ -69,9 +69,13 @@ async def scan_cidrs(
                     f"[yellow]Skipping large subnet {cidr} (>65k IPs)[/yellow]"
                 )
                 continue
-            for ip in net.hosts():
-                ips.append(str(ip))
-        except (ipaddress.AddressValueError, ipaddress.NetmaskValueError, ValueError) as exc:
+            for address in net.hosts():
+                ips.append(str(address))
+        except (
+            ipaddress.AddressValueError,
+            ipaddress.NetmaskValueError,
+            ValueError,
+        ) as exc:
             console.print(f"[red]Invalid CIDR {cidr}: {exc}[/red]")
 
     rng = secrets.SystemRandom()
@@ -103,9 +107,9 @@ async def scan_cidrs(
             chunk = ips[i : i + CHUNK_SIZE]
             results = await asyncio.gather(*(worker(ip) for ip in chunk))
 
-            for ip, success, latency in results:
+            for result_ip, success, latency in results:
                 if success:
-                    found_servers.append((ip, latency))
+                    found_servers.append((result_ip, latency))
 
             progress.update(
                 task,
@@ -117,8 +121,8 @@ async def scan_cidrs(
     with Path(output_file).open("w", encoding="utf-8", newline="\n") as handle:
         handle.write("# DNS Scanner Results\n")
         handle.write(f"# Scanned: {total_ips} | Found: {len(found_servers)}\n")
-        for ip, latency in found_servers:
-            handle.write(f"{ip}\t# {latency * 1000:.0f}ms\n")
+        for server_ip, latency in found_servers:
+            handle.write(f"{server_ip}\t# {latency * 1000:.0f}ms\n")
 
     console.print(
         f"[bold green]Scan Complete! Found {len(found_servers)} servers. "
