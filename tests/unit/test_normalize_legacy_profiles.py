@@ -4,7 +4,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from scripts.normalize_legacy_profiles import normalize_profiles
+import pytest
+
+from scripts.normalize_legacy_profiles import normalize_profiles, values
 
 
 def _working_record(address: str, protocol: str = "http") -> dict[str, object]:
@@ -90,6 +92,24 @@ def test_normalizer_generates_safe_profiles_and_preserves_hardened_bytes(
         "shadowrocket": "shadowrocket-dns-safe.txt",
         "sip008": "sip008-dns-safe.json",
     }
+
+
+@pytest.mark.parametrize("raw_port", [True, 443.9, float("inf"), float("-inf")])
+def test_values_rejects_lossy_or_overflowing_ports(raw_port: object) -> None:
+    record = _working_record("203.0.113.30")
+    record["port"] = raw_port
+
+    assert values(record) is None
+
+
+def test_values_accepts_integral_float_port_without_loss() -> None:
+    record = _working_record("203.0.113.30")
+    record["port"] = 443.0
+
+    parsed = values(record)
+
+    assert parsed is not None
+    assert parsed[2] == 443
 
 
 def test_sip008_skips_malformed_port_without_aborting_other_servers(
