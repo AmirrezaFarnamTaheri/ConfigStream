@@ -13,8 +13,8 @@ aiosignal==1.4.0
 anyio==4.12.0
 async-timeout==5.0.1
 attrs==25.4.0
-beautifulsoup4==4.14.3
-cachetools==7.1.4
+beautifulsoup4==4.15.0
+cachetools==7.1.8
 certifi==2025.11.12
 charset-normalizer==3.4.4
 click==8.3.3
@@ -36,7 +36,7 @@ httpx==0.28.1
 hyperframe==6.1.0
 idna==3.15
 limits==5.8.0
-markdown-it-py==4.0.0
+markdown-it-py==4.2.0
 maxminddb==3.1.1
 mdurl==0.1.2
 msgpack==1.2.1
@@ -50,7 +50,7 @@ propcache==0.4.1
 psutil==7.2.1
 pycparser==2.23
 pydantic-settings==2.14.2
-pydantic==2.13.4
+pydantic==2.13.5
 pydantic_core==2.46.4
 pyparsing==3.3.2
 python-dotenv==1.2.2
