@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_digest": "0e17bc32ecb52eed609fda2c78149a67566899a02bc270771673cb536c67da0f",
+  "source_digest": "119bf4e47cc1fd8022cc08a9cbee3ed3078ccad7d49fa6b58b6e51e8e0f84ec2",
   "variable_count": 161,
   "variables": [
     {
@@ -209,7 +209,7 @@
       "sensitive": false,
       "sources": [
         "src/configstream/testers/go_tester/manager.py:306",
-        "src/configstream/testers/go_tester/secure_manager.py:107",
+        "src/configstream/testers/go_tester/secure_manager.py:108",
         "src/configstream/warp_scanner.py:41",
         "src/configstream/warp_scanner.py:64"
       ],
@@ -1674,7 +1674,7 @@
         "src/configstream/pipeline/core.py:160",
         "src/configstream/pipeline/core.py:165",
         "src/configstream/testers/go_tester/manager.py:331",
-        "src/configstream/testers/go_tester/secure_manager.py:71"
+        "src/configstream/testers/go_tester/secure_manager.py:72"
       ],
       "type": "bool"
     },

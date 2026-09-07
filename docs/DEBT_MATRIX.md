@@ -3,14 +3,13 @@
 ## Executive Summary
 This matrix represents **actionable** technical debt. Noise from test mocks, documentation placeholders, and historical reports has been filtered out.
 
-- Total actionable markers: **267**
+- Total actionable markers: **264**
 - `BROAD_EXCEPTION`: **253**
 - `LARGE_FUNCTION`: **9**
-- `PLACEHOLDER`: **5**
+- `PLACEHOLDER`: **2**
 
 ## Categories
 
-- `ci`: **3**
 - `other`: **14**
 - `production`: **208**
 - `tooling`: **42**
@@ -43,9 +42,6 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 - `scripts/upload_hf.py`
 - ... and 4 more files.
 
-### P3 - Maintenance (3)
-- `.github/workflows/generated-debt-diagnostic.yml`
-
 ## Triage Rules
 
 - `P0 - Critical`: Release blockers. Must be fixed before production deployment.
@@ -57,7 +53,6 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 
 | File | Marker Count | Markers |
 | --- | ---: | --- |
-| `.github/workflows/generated-debt-diagnostic.yml` | 3 | PLACEHOLDER |
 | `scripts/check_license_headers.py` | 1 | BROAD_EXCEPTION |
 | `scripts/dynamic_reshard.py` | 13 | BROAD_EXCEPTION |
 | `scripts/generate_evidence_bundle.py` | 5 | BROAD_EXCEPTION |
@@ -137,28 +132,23 @@ This matrix represents **actionable** technical debt. Noise from test mocks, doc
 
 ## Raw Entries
 
-### `.github/workflows/generated-debt-diagnostic.yml`
-- L19 [`PLACEHOLDER`] **P3 - Maintenance**: `- name: Ignore parameterized SQL placeholders in debt scan`
-- L29 [`PLACEHOLDER`] **P3 - Maintenance**: `raise SystemExit("debt scanner SQL placeholder anchor not found")`
-- L45 [`PLACEHOLDER`] **P3 - Maintenance**: `git commit -m "fix(tooling): ignore parameterized SQL placeholders"`
-
 ### `scripts/check_license_headers.py`
 - L30 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `scripts/dynamic_reshard.py`
-- L167 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
-- L277 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
-- L282 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
-- L306 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
-- L316 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
-- L321 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
-- L326 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
-- L331 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
-- L431 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
-- L454 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
-- L507 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
-- L591 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
-- L604 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
+- L175 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
+- L285 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
+- L290 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
+- L314 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
+- L324 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
+- L329 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
+- L334 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
+- L339 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
+- L439 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
+- L462 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
+- L559 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
+- L610 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
+- L681 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`
 
 ### `scripts/generate_evidence_bundle.py`
 - L53 [`BROAD_EXCEPTION`] **P2 - Routine**: `Broad exception boundary requires semantic review and structured outcome.`

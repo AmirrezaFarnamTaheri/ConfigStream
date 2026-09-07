@@ -1,44 +1,19 @@
 {
   "generated_from": "current tracked tree",
   "summary": {
-    "total": 267,
+    "total": 264,
     "markers": {
       "BROAD_EXCEPTION": 253,
       "LARGE_FUNCTION": 9,
-      "PLACEHOLDER": 5
+      "PLACEHOLDER": 2
     },
     "categories": {
-      "ci": 3,
       "other": 14,
       "production": 208,
       "tooling": 42
     }
   },
   "entries": [
-    {
-      "path": ".github/workflows/generated-debt-diagnostic.yml",
-      "line": 19,
-      "marker": "PLACEHOLDER",
-      "category": "ci",
-      "priority": "P3 - Maintenance",
-      "text": "- name: Ignore parameterized SQL placeholders in debt scan"
-    },
-    {
-      "path": ".github/workflows/generated-debt-diagnostic.yml",
-      "line": 29,
-      "marker": "PLACEHOLDER",
-      "category": "ci",
-      "priority": "P3 - Maintenance",
-      "text": "raise SystemExit(\"debt scanner SQL placeholder anchor not found\")"
-    },
-    {
-      "path": ".github/workflows/generated-debt-diagnostic.yml",
-      "line": 45,
-      "marker": "PLACEHOLDER",
-      "category": "ci",
-      "priority": "P3 - Maintenance",
-      "text": "git commit -m \"fix(tooling): ignore parameterized SQL placeholders\""
-    },
     {
       "path": "scripts/check_license_headers.py",
       "line": 30,
@@ -49,7 +24,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 167,
+      "line": 175,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -57,7 +32,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 277,
+      "line": 285,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -65,7 +40,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 282,
+      "line": 290,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -73,7 +48,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 306,
+      "line": 314,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -81,7 +56,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 316,
+      "line": 324,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -89,7 +64,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 321,
+      "line": 329,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -97,7 +72,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 326,
+      "line": 334,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -105,7 +80,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 331,
+      "line": 339,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -113,7 +88,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 431,
+      "line": 439,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -121,7 +96,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 454,
+      "line": 462,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -129,7 +104,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 507,
+      "line": 559,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -137,7 +112,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 591,
+      "line": 610,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -145,7 +120,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 604,
+      "line": 681,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
