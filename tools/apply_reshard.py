@@ -221,6 +221,7 @@ def _validate_timing_weights(
 def _validate(recommendation: Path) -> dict[str, float]:
     current = SOURCES_DIR if SOURCES_DIR.is_dir() else REPO / "sources"
     urls_rec = _urls_of(recommendation)
+    _require_unique_fetch_identities(recommendation)
     urls_cur = _urls_of(current)
     lost = urls_cur - urls_rec
     added = urls_rec - urls_cur
@@ -234,7 +235,6 @@ def _validate(recommendation: Path) -> dict[str, float]:
             f"refusing to apply: {len(added)} unreviewed sources would be added "
             f"(e.g. {sorted(added)[:3]})"
         )
-    _require_unique_fetch_identities(recommendation)
     timing_weights, default_weight = _validate_timing_weights(recommendation, urls_rec)
 
     estimates: dict[str, float] = {}
