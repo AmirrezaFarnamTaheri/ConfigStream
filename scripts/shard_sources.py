@@ -14,16 +14,17 @@ SRC_ROOT = REPO_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from configstream.source_admission import classify_source_locator
+from configstream.source_admission import classify_source_locator, normalize_source_locator
 
 QUARANTINE_FILENAME = "quarantine.txt"
 TIMING_WEIGHTS_FILENAME = "source_timing_weights.json"
 
 
 def source_timing_id(url: str) -> str:
-    """Return the stable source identity used by timing evidence."""
+    """Return the stable canonical source identity used by timing evidence."""
 
-    return hashlib.sha256(url.strip().encode("utf-8")).hexdigest()
+    canonical = normalize_source_locator(url)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
 def _canonical_source_urls(sources_dir: Path) -> set[str]:
@@ -34,13 +35,14 @@ def _canonical_source_urls(sources_dir: Path) -> set[str]:
         for raw_line in source_file.read_text(encoding="utf-8").splitlines():
             line = raw_line.strip()
             if line.startswith(("http://", "https://")):
-                urls.add(line)
+                urls.add(normalize_source_locator(line))
     return urls
 
 
 def _source_set_sha256(urls: set[str]) -> str:
+    canonical_urls = {normalize_source_locator(url) for url in urls}
     return hashlib.sha256(
-        ("\n".join(sorted(urls)) + "\n").encode("utf-8")
+        ("\n".join(sorted(canonical_urls)) + "\n").encode("utf-8")
     ).hexdigest()
 
 
