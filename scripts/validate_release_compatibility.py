@@ -5,10 +5,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+EXACT_RELEASE_RE = re.compile(r"^\d+\.\d+\.\d+$")
 
 
 def _load_object(path: Path) -> dict[str, Any]:
@@ -19,6 +21,8 @@ def _load_object(path: Path) -> dict[str, Any]:
 
 
 def validate(artifact_dir: Path, repo_root: Path = REPO_ROOT) -> list[str]:
+    artifact_dir = Path(artifact_dir).resolve()
+    repo_root = Path(repo_root).resolve()
     errors: list[str] = []
     try:
         runtime = _load_object(repo_root / "config/runtime-versions.json")
@@ -34,6 +38,11 @@ def validate(artifact_dir: Path, repo_root: Path = REPO_ROOT) -> list[str]:
         return ["format_compatibility.json targets must be an object"]
 
     governed = str(sing_box_runtime.get("release_validator") or "").strip()
+    if not EXACT_RELEASE_RE.fullmatch(governed):
+        errors.append(
+            "runtime-versions.json sing_box.release_validator must be an exact x.y.z release"
+        )
+
     sing_box = targets.get("sing-box")
     if not isinstance(sing_box, dict):
         errors.append("format compatibility is missing sing-box target")
