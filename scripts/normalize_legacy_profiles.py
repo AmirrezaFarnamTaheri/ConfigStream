@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 ProfileGenerator = Callable[[list[dict[str, Any]]], tuple[str, dict[str, int]]]
+RecordValues = tuple[str, str, int, dict[str, Any], str, str]
 
 
 def load_records(root: Path) -> list[dict[str, Any]]:
@@ -20,9 +21,7 @@ def load_records(root: Path) -> list[dict[str, Any]]:
     return [item for item in payload if isinstance(item, dict)]
 
 
-def values(
-    record: dict[str, Any],
-) -> tuple[str, str, int, dict[str, Any], str, str]:
+def values(record: dict[str, Any]) -> RecordValues | None:
     protocol = str(record.get("protocol") or "").lower()
     name = (
         str(record.get("remarks") or record.get("id") or "Proxy")
@@ -36,7 +35,13 @@ def values(
         record.get("uuid") or details.get("username") or details.get("user") or ""
     )
     password = str(details.get("password") or "")
-    return protocol, name, int(record.get("port") or 0), details, user, password
+    try:
+        port = int(record.get("port") or 0)
+    except (TypeError, ValueError):
+        return None
+    if not 1 <= port <= 65535:
+        return None
+    return protocol, name, port, details, user, password
 
 
 def surge(records: list[dict[str, Any]]) -> tuple[str, dict[str, int]]:
@@ -52,7 +57,11 @@ def surge(records: list[dict[str, Any]]) -> tuple[str, dict[str, int]]:
     for record in records:
         if not record.get("is_working") or record.get("protocol") == "chain":
             continue
-        protocol, name, port, details, user, password = values(record)
+        parsed = values(record)
+        if parsed is None:
+            unsupported["invalid_port"] += 1
+            continue
+        protocol, name, port, details, user, password = parsed
         host = record.get("address")
         line = None
         if protocol == "http":
@@ -115,7 +124,11 @@ def loon(records: list[dict[str, Any]]) -> tuple[str, dict[str, int]]:
     for record in records:
         if not record.get("is_working") or record.get("protocol") == "chain":
             continue
-        protocol, name, port, details, user, password = values(record)
+        parsed = values(record)
+        if parsed is None:
+            unsupported["invalid_port"] += 1
+            continue
+        protocol, name, port, details, user, password = parsed
         host = record.get("address")
         line = None
         if protocol == "http":
@@ -164,7 +177,11 @@ def quantumult(records: list[dict[str, Any]]) -> tuple[str, dict[str, int]]:
     for record in records:
         if not record.get("is_working") or record.get("protocol") == "chain":
             continue
-        protocol, name, port, details, user, password = values(record)
+        parsed = values(record)
+        if parsed is None:
+            unsupported["invalid_port"] += 1
+            continue
+        protocol, name, port, details, user, password = parsed
         host = record.get("address")
         line = None
         if protocol == "http":
@@ -242,20 +259,18 @@ def _sip008_payload(records: list[dict[str, Any]]) -> dict[str, Any]:
             continue
         if str(record.get("protocol") or "").lower() not in {"ss", "shadowsocks"}:
             continue
-        raw_details = record.get("details")
-        details = raw_details if isinstance(raw_details, dict) else {}
-        address = str(record.get("address") or "").strip()
-        try:
-            port = int(record.get("port") or 0)
-        except (TypeError, ValueError):
+        parsed = values(record)
+        if parsed is None:
             continue
-        if not address or not 1 <= port <= 65535:
+        _protocol, _name, port, details, _user, password = parsed
+        address = str(record.get("address") or "").strip()
+        if not address:
             continue
         servers.append(
             {
                 "server": address,
                 "server_port": port,
-                "password": str(details.get("password") or ""),
+                "password": password,
                 "method": str(
                     details.get("method")
                     or details.get("cipher")
