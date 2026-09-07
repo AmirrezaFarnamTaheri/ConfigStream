@@ -54,9 +54,10 @@ document.addEventListener('DOMContentLoaded', () => {
         group.insertAdjacentElement('afterend', notice);
     }
 
-    if (window.feather) {
-        window.feather.replace();
-    }
+    // Icon rendering is centralized in inline-icons.js. Do not invoke the
+    // vendored Feather global here: its all-document replacement aborts on an
+    // icon name outside that older bundle and can escalate an unrelated marker
+    // into the application's fatal-error UI.
 });
 
 async function applyUserWorker() {
