@@ -11,6 +11,7 @@ from scripts.shard_sources import (
     TIMING_WEIGHTS_FILENAME,
     _source_set_sha256,
     load_timing_weights,
+    partition,
     source_timing_id,
 )
 from tools.apply_reshard import _validate_timing_weights
@@ -33,6 +34,15 @@ def _write_sidecar(
     (directory / TIMING_WEIGHTS_FILENAME).write_text(
         json.dumps(payload), encoding="utf-8"
     )
+
+
+def test_unweighted_partition_remains_generic() -> None:
+    values = ["vmess://example", "vless://example", "trojan://example"]
+
+    buckets = partition(values, 2)
+
+    assert sorted(item for bucket in buckets for item in bucket) == sorted(values)
+    assert sorted(map(len, buckets)) == [1, 2]
 
 
 def test_runtime_timing_weights_require_exact_source_set(tmp_path: Path) -> None:
