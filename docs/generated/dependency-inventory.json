@@ -99,7 +99,7 @@
         "source": "package.json"
       },
       {
-        "constraint": "^8.5.23",
+        "constraint": "^8.5.28",
         "name": "postcss",
         "scope": "devDependencies",
         "source": "package.json"

@@ -1156,7 +1156,7 @@
       "name": "postcss",
       "scope": "development",
       "source": "package-lock.json",
-      "version": "8.5.23"
+      "version": "8.5.28"
     },
     {
       "ecosystem": "npm",
@@ -1321,7 +1321,7 @@
       "name": "beautifulsoup4",
       "scope": "required",
       "source": "requirements-prod.txt",
-      "version": "4.14.3"
+      "version": "4.15.0"
     },
     {
       "ecosystem": "python",
@@ -1330,7 +1330,7 @@
       "name": "cachetools",
       "scope": "required",
       "source": "requirements-prod.txt",
-      "version": "7.1.4"
+      "version": "7.1.8"
     },
     {
       "ecosystem": "python",
@@ -1528,7 +1528,7 @@
       "name": "markdown-it-py",
       "scope": "required",
       "source": "requirements-prod.txt",
-      "version": "4.0.0"
+      "version": "4.2.0"
     },
     {
       "ecosystem": "python",
@@ -1654,7 +1654,7 @@
       "name": "pydantic",
       "scope": "required",
       "source": "requirements-prod.txt",
-      "version": "2.13.4"
+      "version": "2.13.5"
     },
     {
       "ecosystem": "python",
@@ -1672,7 +1672,7 @@
       "name": "pydantic_core",
       "scope": "required",
       "source": "requirements-prod.txt",
-      "version": "2.46.4"
+      "version": "2.46.5"
     },
     {
       "ecosystem": "python",

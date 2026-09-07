@@ -2893,7 +2893,7 @@
       "version": "1.62.0"
     },
     {
-      "bom-ref": "pkg:npm/postcss@8.5.23",
+      "bom-ref": "pkg:npm/postcss@8.5.28",
       "licenses": [
         {
           "license": {
@@ -2916,10 +2916,10 @@
           "value": "package-lock.json"
         }
       ],
-      "purl": "pkg:npm/postcss@8.5.23",
+      "purl": "pkg:npm/postcss@8.5.28",
       "scope": "optional",
       "type": "library",
-      "version": "8.5.23"
+      "version": "8.5.28"
     },
     {
       "bom-ref": "pkg:npm/rolldown@1.1.5",
@@ -3316,7 +3316,7 @@
       "version": "25.4.0"
     },
     {
-      "bom-ref": "pkg:pypi/beautifulsoup4@4.14.3",
+      "bom-ref": "pkg:pypi/beautifulsoup4@4.15.0",
       "name": "beautifulsoup4",
       "properties": [
         {
@@ -3332,13 +3332,13 @@
           "value": "requirements-prod.txt"
         }
       ],
-      "purl": "pkg:pypi/beautifulsoup4@4.14.3",
+      "purl": "pkg:pypi/beautifulsoup4@4.15.0",
       "scope": "required",
       "type": "library",
-      "version": "4.14.3"
+      "version": "4.15.0"
     },
     {
-      "bom-ref": "pkg:pypi/cachetools@7.1.4",
+      "bom-ref": "pkg:pypi/cachetools@7.1.8",
       "name": "cachetools",
       "properties": [
         {
@@ -3354,10 +3354,10 @@
           "value": "requirements-prod.txt"
         }
       ],
-      "purl": "pkg:pypi/cachetools@7.1.4",
+      "purl": "pkg:pypi/cachetools@7.1.8",
       "scope": "required",
       "type": "library",
-      "version": "7.1.4"
+      "version": "7.1.8"
     },
     {
       "bom-ref": "pkg:pypi/certifi@2025.11.12",
@@ -3822,7 +3822,7 @@
       "version": "5.8.0"
     },
     {
-      "bom-ref": "pkg:pypi/markdown-it-py@4.0.0",
+      "bom-ref": "pkg:pypi/markdown-it-py@4.2.0",
       "name": "markdown-it-py",
       "properties": [
         {
@@ -3838,10 +3838,10 @@
           "value": "requirements-prod.txt"
         }
       ],
-      "purl": "pkg:pypi/markdown-it-py@4.0.0",
+      "purl": "pkg:pypi/markdown-it-py@4.2.0",
       "scope": "required",
       "type": "library",
-      "version": "4.0.0"
+      "version": "4.2.0"
     },
     {
       "bom-ref": "pkg:pypi/maxminddb@3.1.1",
@@ -4130,7 +4130,7 @@
       "version": "2.23"
     },
     {
-      "bom-ref": "pkg:pypi/pydantic@2.13.4",
+      "bom-ref": "pkg:pypi/pydantic@2.13.5",
       "name": "pydantic",
       "properties": [
         {
@@ -4146,10 +4146,10 @@
           "value": "requirements-prod.txt"
         }
       ],
-      "purl": "pkg:pypi/pydantic@2.13.4",
+      "purl": "pkg:pypi/pydantic@2.13.5",
       "scope": "required",
       "type": "library",
-      "version": "2.13.4"
+      "version": "2.13.5"
     },
     {
       "bom-ref": "pkg:pypi/pydantic-settings@2.14.2",
@@ -4174,7 +4174,7 @@
       "version": "2.14.2"
     },
     {
-      "bom-ref": "pkg:pypi/pydantic_core@2.46.4",
+      "bom-ref": "pkg:pypi/pydantic_core@2.46.5",
       "name": "pydantic_core",
       "properties": [
         {
@@ -4190,10 +4190,10 @@
           "value": "requirements-prod.txt"
         }
       ],
-      "purl": "pkg:pypi/pydantic_core@2.46.4",
+      "purl": "pkg:pypi/pydantic_core@2.46.5",
       "scope": "required",
       "type": "library",
-      "version": "2.46.4"
+      "version": "2.46.5"
     },
     {
       "bom-ref": "pkg:pypi/Pygments@2.20.0",
