@@ -40,9 +40,9 @@ def test_source_timing_identity_uses_canonical_fetch_locator() -> None:
     assert apply_reshard._source_timing_id(first) == apply_reshard._source_timing_id(
         second
     )
-    assert apply_reshard._source_set_sha256({first}) == apply_reshard._source_set_sha256(
-        {second}
-    )
+    assert apply_reshard._source_set_sha256(
+        {first}
+    ) == apply_reshard._source_set_sha256({second})
 
 
 def _write_sidecar(directory: Path, urls: set[str], *, weight: int = 10) -> None:
