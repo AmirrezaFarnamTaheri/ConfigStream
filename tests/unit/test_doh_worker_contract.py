@@ -30,6 +30,17 @@ def test_doh_workers_validate_dns_wire_identity() -> None:
         assert "DNS request has no questions" in text
 
 
+def test_doh_workers_classify_client_and_upstream_failures_separately() -> None:
+    for path in WORKERS:
+        text = path.read_text(encoding="utf-8")
+        parse_index = text.index("dnsRequest = await parseDNSRequest(request, url);")
+        bad_request_index = text.index("textResponse('Invalid DNS request', 400)")
+        query_index = text.index("const dnsResponse = await queryDNS(dnsRequest);")
+        upstream_error_index = text.index("textResponse('DNS query failed', 502)")
+
+        assert parse_index < bad_request_index < query_index < upstream_error_index
+
+
 def test_doh_workers_do_not_fake_dns_cache_ttls_or_forward_spoofed_ips() -> None:
     for path in WORKERS:
         text = path.read_text(encoding="utf-8")
