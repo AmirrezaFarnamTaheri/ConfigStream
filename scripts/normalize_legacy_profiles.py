@@ -35,9 +35,14 @@ def values(record: dict[str, Any]) -> RecordValues | None:
         record.get("uuid") or details.get("username") or details.get("user") or ""
     )
     password = str(details.get("password") or "")
+    raw_port = record.get("port")
+    if isinstance(raw_port, bool):
+        return None
+    if isinstance(raw_port, float) and not raw_port.is_integer():
+        return None
     try:
-        port = int(record.get("port") or 0)
-    except (TypeError, ValueError):
+        port = int(raw_port or 0)
+    except (TypeError, ValueError, OverflowError):
         return None
     if not 1 <= port <= 65535:
         return None
@@ -321,41 +326,23 @@ def normalize_profiles(artifact_dir: Path) -> dict[str, Any]:
         safe = _write_profile_family(artifact_dir, safe_dicts, suffix="-dns-safe")
         safe_aliases = _write_dns_safe_subscription_aliases(artifact_dir, safe_dicts)
 
-    report: dict[str, Any] = {
-        "schema_version": 1,
-        "profiles": {},
+    for family, entry in standard.items():
+        entry["dns_safe_file"] = safe.get(family, {}).get("file")
+        hardened = artifact_dir / f"{family}-dns-hardened.conf"
+        entry["preserved_hardened_file"] = hardened.name if hardened.is_file() else None
+
+    return {
+        "profiles": standard,
         "dns_safe_aliases": safe_aliases,
     }
-    profiles = report["profiles"]
-    if not isinstance(profiles, dict):
-        raise TypeError("profiles report must be a dictionary")
-    for family in ("surge", "loon", "quantumult"):
-        variants = [standard[family]["file"]]
-        if family in safe:
-            variants.append(safe[family]["file"])
-        hardened = artifact_dir / f"{family}-dns-hardened.conf"
-        if hardened.is_file():
-            variants.append(hardened.name)
-        profiles[family] = {
-            "files": variants,
-            "normalized_file": standard[family]["file"],
-            "dns_safe_file": safe.get(family, {}).get("file"),
-            "preserved_hardened_file": hardened.name if hardened.is_file() else None,
-            "unsupported": standard[family]["unsupported"],
-            "dns_safe_unsupported": safe.get(family, {}).get("unsupported", {}),
-        }
-    (artifact_dir / "legacy_profile_coverage.json").write_text(
-        json.dumps(report, indent=2, ensure_ascii=False) + "\n",
-        encoding="utf-8",
-    )
-    return report
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("artifact_dir", type=Path)
-    args = parser.parse_args()
-    normalize_profiles(args.artifact_dir)
+    args = parser.parse_args(argv)
+    report = normalize_profiles(args.artifact_dir)
+    print(json.dumps(report, indent=2, sort_keys=True))
     return 0
 
 
