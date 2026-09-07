@@ -65,7 +65,7 @@ def _normalize_source_key(url: str) -> str:
 
 
 def _source_timing_id(url: str) -> str:
-    return _canonical_source_timing_id(url)
+    return str(_canonical_source_timing_id(url))
 
 
 def parse_timing_evidence(
