@@ -1,64 +1,72 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""
-Standalone DNS Scanner
-Scans IPs/CIDRs for working DNS servers using aiodns.
-Based on dnsscanner_tui.py logic but adapted for CLI.
-"""
+"""Standalone asynchronous IPv4 DNS resolver scanner."""
 
-import logging
+from __future__ import annotations
 
 import asyncio
 import ipaddress
+import logging
+import secrets
 import sys
 import time
-import secrets
-import aiodns
 from pathlib import Path
 from typing import List, Tuple
+
+import aiodns
 from rich.console import Console
 from rich.progress import (
+    BarColumn,
     Progress,
     SpinnerColumn,
-    TextColumn,
-    BarColumn,
     TaskProgressColumn,
+    TextColumn,
     TimeRemainingColumn,
 )
 
 console = Console()
+CHUNK_SIZE = 1000
+TEST_DOMAIN = "example.com"
 
 
 async def test_dns(
     ip: str, domain: str, timeout: float = 2.0
 ) -> Tuple[str, bool, float]:
-    """Test if IP is a working DNS server."""
+    """Return success only when the resolver returns an actual A-record answer."""
+
     try:
         resolver = aiodns.DNSResolver(nameservers=[ip], timeout=timeout, tries=1)
-        start = time.time()
+        start = time.perf_counter()
         try:
-            await resolver.query(domain, "A")
-            elapsed = time.time() - start
-            return (ip, True, elapsed)
-        except aiodns.error.DNSError as e:
-            # Check for error codes that imply the server IS a DNS server (just returned error)
-            # 1=NXDOMAIN, 3=NXRRSET, 4=NODATA
-            error_code = e.args[0] if e.args else 0
-            if error_code in (1, 3, 4):
-                elapsed = time.time() - start
-                return (ip, True, elapsed)
+            answer = await resolver.query(domain, "A")
+        except aiodns.error.DNSError:
+            # A completed DNS error (for example ENODATA, SERVFAIL, ENOTFOUND,
+            # REFUSED) proves only that something answered the query. It does not
+            # prove that this address is a useful recursive resolver for the
+            # scanner's known-good domain.
             return (ip, False, 0.0)
+        elapsed = time.perf_counter() - start
+        if not answer:
+            return (ip, False, 0.0)
+        return (ip, True, elapsed)
     except Exception:
-        logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+        logging.getLogger(__name__).debug("DNS probe failed", exc_info=True)
         return (ip, False, 0.0)
 
 
 async def scan_cidrs(
     cidrs: List[str], concurrency: int = 100, output_file: str = "dns_results.txt"
-):
-    """Scan IPs generated from CIDRs."""
+) -> None:
+    """Scan IPv4 addresses generated from CIDRs."""
 
-    ips = []
+    if concurrency < 1:
+        raise ValueError("concurrency must be at least 1")
+    if concurrency > CHUNK_SIZE:
+        raise ValueError(
+            f"concurrency cannot exceed the scanner chunk size ({CHUNK_SIZE})"
+        )
+
+    ips: list[str] = []
     console.print(f"[cyan]Generating IPs from {len(cidrs)} CIDRs...[/cyan]")
     for cidr in cidrs:
         try:
@@ -70,10 +78,9 @@ async def scan_cidrs(
                 continue
             for ip in net.hosts():
                 ips.append(str(ip))
-        except Exception as e:
-            console.print(f"[red]Invalid CIDR {cidr}: {e}[/red]")
+        except (ipaddress.AddressValueError, ipaddress.NetmaskValueError, ValueError) as exc:
+            console.print(f"[red]Invalid CIDR {cidr}: {exc}[/red]")
 
-    # Shuffle for better distribution
     rng = secrets.SystemRandom()
     rng.shuffle(ips)
 
@@ -83,12 +90,11 @@ async def scan_cidrs(
     )
 
     sem = asyncio.Semaphore(concurrency)
-    found_servers = []
+    found_servers: list[tuple[str, float]] = []
 
-    async def worker(ip):
+    async def worker(ip: str) -> Tuple[str, bool, float]:
         async with sem:
-            result = await test_dns(ip, "google.com")
-            return result
+            return await test_dns(ip, TEST_DOMAIN)
 
     with Progress(
         SpinnerColumn(),
@@ -100,17 +106,13 @@ async def scan_cidrs(
     ) as progress:
         task = progress.add_task("[cyan]Scanning...", total=total_ips)
 
-        # Chunking to avoid massive memory usage with gather
-        chunk_size = 1000
-        for i in range(0, total_ips, chunk_size):
-            chunk = ips[i : i + chunk_size]
-            coros = [worker(ip) for ip in chunk]
-            results = await asyncio.gather(*coros)
+        for i in range(0, total_ips, CHUNK_SIZE):
+            chunk = ips[i : i + CHUNK_SIZE]
+            results = await asyncio.gather(*(worker(ip) for ip in chunk))
 
-            for ip, success, lat in results:
+            for ip, success, latency in results:
                 if success:
-                    found_servers.append((ip, lat))
-                    # console.print(f"[green]Found: {ip} ({lat*1000:.0f}ms)[/green]")
+                    found_servers.append((ip, latency))
 
             progress.update(
                 task,
@@ -118,34 +120,56 @@ async def scan_cidrs(
                 description=f"[cyan]Scanning... Found: {len(found_servers)}",
             )
 
-    # Save results
-    found_servers.sort(key=lambda x: x[1])
-    with open(output_file, "w") as f:
-        f.write("# DNS Scanner Results\n")
-        f.write(f"# Scanned: {total_ips} | Found: {len(found_servers)}\n")
-        for ip, lat in found_servers:
-            f.write(f"{ip}\t# {lat*1000:.0f}ms\n")
+    found_servers.sort(key=lambda item: item[1])
+    with Path(output_file).open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write("# DNS Scanner Results\n")
+        handle.write(f"# Scanned: {total_ips} | Found: {len(found_servers)}\n")
+        for ip, latency in found_servers:
+            handle.write(f"{ip}\t# {latency * 1000:.0f}ms\n")
 
     console.print(
-        f"[bold green]Scan Complete! Found {len(found_servers)} servers. Saved to {output_file}[/bold green]"
+        f"[bold green]Scan Complete! Found {len(found_servers)} servers. "
+        f"Saved to {output_file}[/bold green]"
     )
 
 
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
+def _parse_concurrency(raw: str | None) -> int:
+    if raw is None:
+        return 100
+    try:
+        value = int(raw)
+    except ValueError as exc:
+        raise SystemExit("concurrency must be an integer") from exc
+    if not 1 <= value <= CHUNK_SIZE:
+        raise SystemExit(f"concurrency must be between 1 and {CHUNK_SIZE}")
+    return value
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = list(sys.argv[1:] if argv is None else argv)
+    if not args:
         console.print("Usage: python3 dns_scanner.py <cidr_file_or_cidr> [concurrency]")
-        sys.exit(1)
+        return 1
 
-    input_arg = sys.argv[1]
-    concurrency = int(sys.argv[2]) if len(sys.argv) > 2 else 100
+    input_arg = args[0]
+    concurrency = _parse_concurrency(args[1] if len(args) > 1 else None)
+    if len(args) > 2:
+        raise SystemExit("too many arguments")
 
-    cidrs = []
-    if Path(input_arg).exists():
-        with open(input_arg, "r") as f:
+    input_path = Path(input_arg)
+    if input_path.is_file():
+        with input_path.open("r", encoding="utf-8") as handle:
             cidrs = [
-                line.strip() for line in f if line.strip() and not line.startswith("#")
+                line.strip()
+                for line in handle
+                if line.strip() and not line.lstrip().startswith("#")
             ]
     else:
         cidrs = [input_arg]
 
     asyncio.run(scan_cidrs(cidrs, concurrency))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
