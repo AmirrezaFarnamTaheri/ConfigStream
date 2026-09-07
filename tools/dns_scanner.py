@@ -6,12 +6,10 @@ from __future__ import annotations
 
 import asyncio
 import ipaddress
-import logging
 import secrets
 import sys
 import time
 from pathlib import Path
-from typing import List, Tuple
 
 import aiodns
 from rich.console import Console
@@ -31,31 +29,26 @@ TEST_DOMAIN = "example.com"
 
 async def test_dns(
     ip: str, domain: str, timeout: float = 2.0
-) -> Tuple[str, bool, float]:
+) -> tuple[str, bool, float]:
     """Return success only when the resolver returns an actual A-record answer."""
 
     try:
         resolver = aiodns.DNSResolver(nameservers=[ip], timeout=timeout, tries=1)
         start = time.perf_counter()
-        try:
-            answer = await resolver.query(domain, "A")
-        except aiodns.error.DNSError:
-            # A completed DNS error (for example ENODATA, SERVFAIL, ENOTFOUND,
-            # REFUSED) proves only that something answered the query. It does not
-            # prove that this address is a useful recursive resolver for the
-            # scanner's known-good domain.
-            return (ip, False, 0.0)
-        elapsed = time.perf_counter() - start
-        if not answer:
-            return (ip, False, 0.0)
-        return (ip, True, elapsed)
-    except Exception:
-        logging.getLogger(__name__).debug("DNS probe failed", exc_info=True)
+        answer = await resolver.query(domain, "A")
+    except (aiodns.error.DNSError, OSError, ValueError):
+        # Resolver setup failures and completed DNS errors prove only that this
+        # address is not a useful recursive resolver for the known-good domain.
         return (ip, False, 0.0)
+
+    elapsed = time.perf_counter() - start
+    if not answer:
+        return (ip, False, 0.0)
+    return (ip, True, elapsed)
 
 
 async def scan_cidrs(
-    cidrs: List[str], concurrency: int = 100, output_file: str = "dns_results.txt"
+    cidrs: list[str], concurrency: int = 100, output_file: str = "dns_results.txt"
 ) -> None:
     """Scan IPv4 addresses generated from CIDRs."""
 
@@ -92,7 +85,7 @@ async def scan_cidrs(
     sem = asyncio.Semaphore(concurrency)
     found_servers: list[tuple[str, float]] = []
 
-    async def worker(ip: str) -> Tuple[str, bool, float]:
+    async def worker(ip: str) -> tuple[str, bool, float]:
         async with sem:
             return await test_dns(ip, TEST_DOMAIN)
 
