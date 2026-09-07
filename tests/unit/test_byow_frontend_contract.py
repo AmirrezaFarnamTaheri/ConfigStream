@@ -19,6 +19,13 @@ def test_frontend_does_not_rewrite_arbitrary_proxy_transports() -> None:
     assert "Manual Bridge Setup Required" in text
 
 
+def test_byow_does_not_run_global_feather_replacement() -> None:
+    text = BYOW.read_text(encoding="utf-8")
+
+    assert "feather.replace" not in text
+    assert "window.feather.replace" not in text
+
+
 def test_worker_deployment_docs_match_required_bindings() -> None:
     wrangler = WRANGLER.read_text(encoding="utf-8")
     worker = WORKER.read_text(encoding="utf-8")
