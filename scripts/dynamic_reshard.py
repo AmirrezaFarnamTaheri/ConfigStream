@@ -3,7 +3,6 @@ import importlib
 import logging
 import re
 import glob
-import hashlib
 import shutil
 import statistics
 import json
@@ -15,6 +14,17 @@ from urllib.parse import urlparse
 from pathlib import Path
 from typing import Dict, List, Optional, Protocol, Sequence, Set, Tuple, cast
 from itertools import combinations
+
+try:
+    from shard_sources import (
+        _source_set_sha256,
+        source_timing_id as _canonical_source_timing_id,
+    )
+except ModuleNotFoundError:
+    from scripts.shard_sources import (
+        _source_set_sha256,
+        source_timing_id as _canonical_source_timing_id,
+    )
 
 LOG_PATTERNS = [
     "output/consolidated_pipeline.log",
@@ -55,7 +65,7 @@ def _normalize_source_key(url: str) -> str:
 
 
 def _source_timing_id(url: str) -> str:
-    return hashlib.sha256(url.strip().encode("utf-8")).hexdigest()
+    return _canonical_source_timing_id(url)
 
 
 def parse_timing_evidence(
@@ -129,14 +139,12 @@ def _write_timing_weights(
     observed_metrics: Dict[str, Tuple[int, float]],
     default_weight: int,
 ) -> None:
-    """Persist runtime weights using opaque source IDs and an exact-set digest."""
+    """Persist runtime weights using canonical opaque IDs and an exact-set digest."""
     payload = {
         "schema_version": 1,
         "unit": "deciseconds",
         "default_weight": default_weight,
-        "source_set_sha256": hashlib.sha256(
-            ("\n".join(sorted(all_urls)) + "\n").encode("utf-8")
-        ).hexdigest(),
+        "source_set_sha256": _source_set_sha256(all_urls),
         "weights": {
             _source_timing_id(url): max(1, int(math.ceil(duration * 10.0)))
             for url, (_count, duration) in sorted(observed_metrics.items())
@@ -487,6 +495,101 @@ def analyze_similarity(observed_metrics: Dict[str, Tuple[int, float]]) -> Set[st
     return candidates
 
 
+def _publish_reshard_layout(
+    batches: List[List[str]],
+    batch_loads: List[int],
+    all_urls: Set[str],
+    observed_metrics: Dict[str, Tuple[int, float]],
+    default_weight: int,
+) -> None:
+    """Stage and publish the complete source layout with rollback on failure."""
+
+    existing_paths = sorted(SOURCES_DIR.glob("batch_*.txt"))
+    timing_path = SOURCES_DIR / TIMING_WEIGHTS_FILENAME
+    if timing_path.is_file():
+        existing_paths.append(timing_path)
+
+    staged: List[Tuple[Path, Path]] = []
+    backups: List[Tuple[Path, Path]] = []
+    published: List[Path] = []
+    timing_temp = SOURCES_DIR / f".{TIMING_WEIGHTS_FILENAME}.reshard-new"
+
+    try:
+        staged_urls: Set[str] = set()
+        for i, batch in enumerate(batches):
+            file_name = f"batch_{i + 1}.txt"
+            final_path = SOURCES_DIR / file_name
+            temp_path = SOURCES_DIR / f".{file_name}.reshard-new"
+            est_time = batch_loads[i] / 10.0
+            content = [
+                f"# ConfigStream Batch {i + 1}",
+                "# Optimized based on fetch duration for equal execution times",
+                f"# Est. Fetch Time: {est_time:.1f}s",
+                "",
+            ]
+            content.extend(batch)
+            temp_path.write_text("\n".join(content), encoding="utf-8")
+            staged.append((temp_path, final_path))
+            staged_urls.update(batch)
+
+        if staged_urls != all_urls:
+            raise RuntimeError("reshard changed the canonical source set before publish")
+
+        _write_timing_weights(
+            timing_temp,
+            all_urls,
+            observed_metrics,
+            default_weight,
+        )
+        staged.append((timing_temp, timing_path))
+
+        for original in existing_paths:
+            backup = original.with_name(f".{original.name}.reshard-backup")
+            if backup.exists():
+                raise RuntimeError(f"stale reshard backup exists: {backup}")
+            original.replace(backup)
+            backups.append((backup, original))
+
+        for temp_path, final_path in staged:
+            temp_path.replace(final_path)
+            published.append(final_path)
+
+        if set(get_existing_sources()) != all_urls:
+            raise RuntimeError("published reshard changed the canonical source set")
+    except Exception:
+        for final_path in reversed(published):
+            try:
+                final_path.unlink(missing_ok=True)
+            except OSError:
+                logging.getLogger(__name__).exception(
+                    "Failed to remove partially published reshard file %s", final_path
+                )
+        for backup, original in reversed(backups):
+            try:
+                backup.replace(original)
+            except OSError:
+                logging.getLogger(__name__).exception(
+                    "Failed to restore reshard backup %s", original
+                )
+        for temp_path, _ in staged:
+            try:
+                temp_path.unlink(missing_ok=True)
+            except OSError:
+                logging.getLogger(__name__).debug(
+                    "Failed to remove staged reshard file %s", temp_path, exc_info=True
+                )
+        timing_temp.unlink(missing_ok=True)
+        raise
+    else:
+        for backup, _ in backups:
+            try:
+                backup.unlink(missing_ok=True)
+            except OSError:
+                logging.getLogger(__name__).warning(
+                    "Published reshard but could not remove backup %s", backup
+                )
+
+
 def main() -> None:
     _require_timing_prerequisites()
     log_files: List[str] = []
@@ -563,50 +666,21 @@ def main() -> None:
     print("\n[INFO] Optimized Batch Distribution (Time-Based):")
     print(f"{'Batch':<10} | {'Sources':<10} | {'Est. Time (s)':<15}")
     print("-" * 45)
-    existing_batches = set(SOURCES_DIR.glob("batch_*.txt"))
-    new_batches = set()
-    temp_files = []
+    for i, batch in enumerate(batches):
+        est_time = batch_loads[i] / 10.0
+        print(f"Batch {i + 1:<4} | {len(batch):<10} | {est_time:<15.1f}")
+
     try:
-        for i, batch in enumerate(batches):
-            file_name = f"batch_{i+1}.txt"
-            file_path = SOURCES_DIR / file_name
-            new_batches.add(file_path)
-            temp_path = SOURCES_DIR / (file_name + ".tmp")
-            est_time = batch_loads[i] / 10.0
-            content = [
-                f"# ConfigStream Batch {i+1}",
-                "# Optimized based on fetch duration for equal execution times",
-                f"# Est. Fetch Time: {est_time:.1f}s",
-                "",
-            ]
-            content.extend(batch)
-            temp_path.write_text("\n".join(content), encoding="utf-8")
-            temp_files.append((temp_path, file_path))
-            print(f"Batch {i+1:<4} | {len(batch):<10} | {est_time:<15.1f}")
-
-        for stale in existing_batches - new_batches:
-            try:
-                stale.unlink()
-                print(f"[INFO] Deleted stale batch: {stale.name}")
-            except Exception as e:
-                print(f"[WARN] Failed to delete stale batch {stale}: {e}")
-        for tmp_path, final_path in temp_files:
-            tmp_path.replace(final_path)
-
-        if set(get_existing_sources()) != all_urls:
-            raise RuntimeError("reshard changed the canonical source set")
-        _write_timing_weights(
-            SOURCES_DIR / TIMING_WEIGHTS_FILENAME,
+        _publish_reshard_layout(
+            batches,
+            batch_loads,
             all_urls,
             observed_metrics,
             default_weight,
         )
     except Exception as e:
-        print(f"[ERROR] Atomic write failed: {e}")
-        for tmp, _ in temp_files:
-            if tmp.exists():
-                tmp.unlink()
-        raise SystemExit(1)
+        print(f"[ERROR] Atomic reshard publication failed: {e}")
+        raise SystemExit(1) from e
 
     print("\n[INFO] Time-Based Load Balancing Metrics:")
     print(f"  Load Balance Ratio: {load_balance_ratio:.2f}x (ideal: 1.00x)")
