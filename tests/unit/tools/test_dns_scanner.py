@@ -75,6 +75,38 @@ async def test_scan_rejects_invalid_concurrency(
         )
 
 
+@pytest.mark.asyncio
+async def test_scan_rejects_cumulative_target_budget_before_scanning(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    output = tmp_path / "out.txt"
+    monkeypatch.setattr(dns_scanner, "MAX_TOTAL_TARGETS", 3)
+
+    with pytest.raises(ValueError, match="target budget"):
+        await dns_scanner.scan_cidrs(
+            ["192.0.2.0/30", "198.51.100.0/30"], output_file=str(output)
+        )
+
+    assert not output.exists()
+
+
+@pytest.mark.asyncio
+async def test_scan_rejects_cidr_input_budget_before_scanning(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    output = tmp_path / "out.txt"
+    monkeypatch.setattr(dns_scanner, "MAX_CIDR_INPUTS", 1)
+
+    with pytest.raises(ValueError, match="CIDR input budget"):
+        await dns_scanner.scan_cidrs(
+            ["192.0.2.1/32", "198.51.100.1/32"], output_file=str(output)
+        )
+
+    assert not output.exists()
+
+
 @pytest.mark.parametrize(
     ("raw", "expected"),
     [(None, 100), ("1", 1), (str(dns_scanner.CHUNK_SIZE), dns_scanner.CHUNK_SIZE)],
