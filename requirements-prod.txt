@@ -36,7 +36,7 @@ httpx==0.28.1
 hyperframe==6.1.0
 idna==3.15
 limits==5.8.0
-markdown-it-py==4.0.0
+markdown-it-py==4.2.0
 maxminddb==3.1.1
 mdurl==0.1.2
 msgpack==1.2.1
