@@ -14,7 +14,10 @@ SRC_ROOT = REPO_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from configstream.source_admission import classify_source_locator, normalize_source_locator
+from configstream.source_admission import (
+    classify_source_locator,
+    normalize_source_locator,
+)
 
 QUARANTINE_FILENAME = "quarantine.txt"
 TIMING_WEIGHTS_FILENAME = "source_timing_weights.json"
@@ -53,12 +56,12 @@ def partition(
     weights: dict[str, int] | None = None,
     default_weight: int = 1,
 ) -> list[list[str]]:
-    """Deterministically balance unique locators across runtime shard buckets.
+    """Deterministically balance unique inputs across shard buckets.
 
-    When timing weights are available, use longest-processing-time-first (LPT)
-    scheduling so the measured load survives all the way to the actual runtime
-    jobs. Without timing data, equal weights degrade to deterministic round-robin
-    balancing rather than hash buckets with arbitrary count skew.
+    When timing weights are available, inputs are source locators and use
+    longest-processing-time-first (LPT) scheduling. Without timing data this
+    helper remains generic: equal weights provide deterministic round-robin
+    balancing without requiring the inputs themselves to be URLs.
     """
 
     if parts < 1:
@@ -68,13 +71,24 @@ def partition(
 
     normalized_weights = weights or {}
     unique_lines = sorted(dict.fromkeys(lines))
-    weighted = [
-        (
-            line,
-            max(1, int(normalized_weights.get(source_timing_id(line), default_weight))),
-        )
-        for line in unique_lines
-    ]
+    if normalized_weights:
+        weighted = [
+            (
+                line,
+                max(
+                    1,
+                    int(
+                        normalized_weights.get(
+                            source_timing_id(line),
+                            default_weight,
+                        )
+                    ),
+                ),
+            )
+            for line in unique_lines
+        ]
+    else:
+        weighted = [(line, default_weight) for line in unique_lines]
     weighted.sort(key=lambda item: (-item[1], item[0]))
 
     buckets: list[list[str]] = [[] for _ in range(parts)]
