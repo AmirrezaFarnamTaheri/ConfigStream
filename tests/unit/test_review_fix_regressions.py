@@ -64,13 +64,13 @@ def test_timing_outputs_sanitize_source_credentials(tmp_path: Path) -> None:
 def test_structured_timing_evidence_maps_opaque_id_to_configured_url(
     tmp_path: Path,
 ) -> None:
-    raw_url = "https://user:super-secret@example.com/sub?token=abc123"
+    configured_url = "https://example.com/sub?token=abc123"
     evidence = tmp_path / "source_timing.jsonl"
     evidence.write_text(
         json.dumps(
             {
-                "source_id": hashlib.sha256(raw_url.encode("utf-8")).hexdigest(),
-                "source_url": ("https://user:[MASKED]@example.com/sub?token=[MASKED]"),
+                "source_id": dynamic_reshard._source_timing_id(configured_url),
+                "source_url": "https://example.com/sub?token=[MASKED]",
                 "raw": 10,
                 "duration_ms": 2500.0,
             }
@@ -79,8 +79,8 @@ def test_structured_timing_evidence_maps_opaque_id_to_configured_url(
         encoding="utf-8",
     )
 
-    assert dynamic_reshard.parse_timing_evidence(evidence, {raw_url}) == {
-        raw_url: (10, 2.5)
+    assert dynamic_reshard.parse_timing_evidence(evidence, {configured_url}) == {
+        configured_url: (10, 2.5)
     }
 
 
