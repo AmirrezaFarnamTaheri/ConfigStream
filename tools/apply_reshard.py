@@ -14,12 +14,15 @@ a machine with push access:
 Safety contract:
 - the recommended URL set must exactly match the working tree set
   (nothing silently dropped or injected);
+- each canonical upstream fetch identity may appear only once in the
+  recommendation;
 - the timing sidecar must match that exact source set and contain only
   positive integer weights for known opaque source IDs;
-- every batch must carry an ``Est. Fetch Time`` header at or below
-  dynamic_reshard.TARGET_BATCH_SECONDS;
+- every batch must carry an ``Est. Fetch Time`` header that matches the timing
+  sidecar and remains at or below dynamic_reshard.TARGET_BATCH_SECONDS;
 - mutation requires a clean worktree so unrelated local changes cannot be
   overwritten or included in the generated commit;
+- a review branch is created before any source mutation;
 - source-layout publication is staged and rolls back if the directory handoff
   fails;
 - nothing is committed unless all checks pass.
@@ -118,14 +121,24 @@ def _latest_recommendation_run(slug: str) -> int | None:
     return None
 
 
-def _urls_of(directory: Path) -> set[str]:
-    urls: set[str] = set()
+def _source_lines(path: Path) -> list[str]:
+    return [
+        line
+        for raw_line in path.read_text(encoding="utf-8").splitlines()
+        if (line := raw_line.strip())
+        and line.startswith(("http://", "https://"))
+    ]
+
+
+def _source_entries(directory: Path) -> list[str]:
+    entries: list[str] = []
     for path in sorted(directory.glob("batch_*.txt")):
-        for line in path.read_text(encoding="utf-8").splitlines():
-            line = line.strip()
-            if line.startswith(("http://", "https://")):
-                urls.add(line)
-    return urls
+        entries.extend(_source_lines(path))
+    return entries
+
+
+def _urls_of(directory: Path) -> set[str]:
+    return set(_source_entries(directory))
 
 
 def _canonical_source_urls(urls: set[str]) -> set[str]:
@@ -144,7 +157,22 @@ def _source_timing_id(url: str) -> str:
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
-def _validate_timing_weights(recommendation: Path, urls: set[str]) -> None:
+def _require_unique_fetch_identities(recommendation: Path) -> None:
+    seen: dict[str, str] = {}
+    for url in _source_entries(recommendation):
+        source_id = _source_timing_id(url)
+        previous = seen.get(source_id)
+        if previous is not None:
+            raise SystemExit(
+                "refusing to apply: recommendation repeats canonical source fetch "
+                f"identity ({previous!r}, {url!r})"
+            )
+        seen[source_id] = url
+
+
+def _validate_timing_weights(
+    recommendation: Path, urls: set[str]
+) -> tuple[dict[str, int], int]:
     path = recommendation / TIMING_WEIGHTS_FILENAME
     if not path.is_file():
         raise SystemExit(f"recommendation missing {TIMING_WEIGHTS_FILENAME}")
@@ -172,6 +200,7 @@ def _validate_timing_weights(recommendation: Path, urls: set[str]) -> None:
         raise SystemExit(f"invalid {TIMING_WEIGHTS_FILENAME}: malformed weights")
 
     allowed_ids = {_source_timing_id(url) for url in urls}
+    weights: dict[str, int] = {}
     for key, value in raw_weights.items():
         if (
             not isinstance(key, str)
@@ -185,6 +214,8 @@ def _validate_timing_weights(recommendation: Path, urls: set[str]) -> None:
             raise SystemExit(
                 f"invalid {TIMING_WEIGHTS_FILENAME}: invalid source weight"
             )
+        weights[key] = value
+    return weights, default_weight
 
 
 def _validate(recommendation: Path) -> dict[str, float]:
@@ -203,20 +234,30 @@ def _validate(recommendation: Path) -> dict[str, float]:
             f"refusing to apply: {len(added)} unreviewed sources would be added "
             f"(e.g. {sorted(added)[:3]})"
         )
-    _validate_timing_weights(recommendation, urls_rec)
+    _require_unique_fetch_identities(recommendation)
+    timing_weights, default_weight = _validate_timing_weights(recommendation, urls_rec)
 
     estimates: dict[str, float] = {}
     for path in sorted(recommendation.glob("batch_*.txt")):
         match = EST_TIME_RE.search(path.read_text(encoding="utf-8"))
         if not match:
             raise SystemExit(f"{path.name} missing 'Est. Fetch Time' header")
-        seconds = float(match.group(1))
-        if seconds > TARGET_BATCH_SECONDS:
+        declared_seconds = float(match.group(1))
+        computed_seconds = sum(
+            timing_weights.get(_source_timing_id(url), default_weight)
+            for url in _source_lines(path)
+        ) / 10.0
+        if abs(declared_seconds - computed_seconds) > 0.05:
             raise SystemExit(
-                f"{path.name} estimate {seconds:.0f}s exceeds target "
+                f"{path.name} estimate {declared_seconds:.1f}s does not match "
+                f"timing sidecar ({computed_seconds:.1f}s)"
+            )
+        if computed_seconds > TARGET_BATCH_SECONDS:
+            raise SystemExit(
+                f"{path.name} estimate {computed_seconds:.0f}s exceeds target "
                 f"{TARGET_BATCH_SECONDS:.0f}s"
             )
-        estimates[path.name] = seconds
+        estimates[path.name] = computed_seconds
     if not estimates:
         raise SystemExit("recommendation contains no batch files")
     return estimates
@@ -292,7 +333,7 @@ def _apply(recommendation: Path) -> bool:
         old_moved = True
         try:
             os.replace(staged_sources, SOURCES_DIR)
-        except BaseException as publish_exc:
+        except BaseException:
             try:
                 os.replace(backup_sources, SOURCES_DIR)
                 old_moved = False
@@ -301,7 +342,7 @@ def _apply(recommendation: Path) -> bool:
                     "source-layout publication failed and rollback could not restore "
                     "the previous sources directory"
                 ) from rollback_exc
-            raise publish_exc
+            raise
 
         old_moved = False
         return True
@@ -315,6 +356,20 @@ def _apply(recommendation: Path) -> bool:
                     "directory and rollback failed"
                 ) from rollback_exc
         shutil.rmtree(transaction_root, ignore_errors=True)
+
+
+def _create_review_branch(git: str, branch: str) -> None:
+    result = subprocess.run(  # nosec B603
+        [git, "-C", str(REPO), "switch", "-c", branch],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        raise SystemExit(
+            "cannot create review branch before applying recommendation: "
+            f"{result.stderr.strip()[:200]}"
+        )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -334,6 +389,8 @@ def main(argv: list[str] | None = None) -> int:
             "source-reshard-recommendation artifact"
         )
     print(f"source run: {run_id}")
+    branch = f"chore/apply-reshard-{run_id}"
+    git = _resolve_executable("git")
 
     with tempfile.TemporaryDirectory() as tmp:
         rec_dir = Path(tmp) / "rec"
@@ -368,11 +425,13 @@ def main(argv: list[str] | None = None) -> int:
         if args.check:
             return 0
         _require_clean_worktree()
-        if not _apply(batch_home):
+        if _layout_matches(batch_home):
             print("working tree already matches the recommendation.")
             return 0
+        _create_review_branch(git, branch)
+        if not _apply(batch_home):
+            raise RuntimeError("validated source layout changed before publication")
 
-    git = _resolve_executable("git")
     subprocess.run(  # nosec B603
         [git, "-C", str(REPO), "add", "-A", "--", "sources"], check=True
     )
@@ -385,10 +444,6 @@ def main(argv: list[str] | None = None) -> int:
         print("nothing staged; already up to date.")
         return 0
 
-    branch = f"chore/apply-reshard-{run_id}"
-    subprocess.run(  # nosec B603
-        [git, "-C", str(REPO), "switch", "-c", branch], check=True
-    )
     subprocess.run(  # nosec B603
         [
             git,

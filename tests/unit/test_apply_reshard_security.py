@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 from pathlib import Path
 
 import pytest
@@ -42,6 +43,63 @@ def test_source_timing_identity_uses_canonical_fetch_locator() -> None:
     assert apply_reshard._source_set_sha256({first}) == apply_reshard._source_set_sha256(
         {second}
     )
+
+
+def _write_sidecar(directory: Path, urls: set[str], *, weight: int = 10) -> None:
+    weights = {apply_reshard._source_timing_id(url): weight for url in urls}
+    payload = {
+        "schema_version": 1,
+        "unit": "deciseconds",
+        "source_set_sha256": apply_reshard._source_set_sha256(urls),
+        "default_weight": weight,
+        "weights": weights,
+    }
+    (directory / apply_reshard.TIMING_WEIGHTS_FILENAME).write_text(
+        json.dumps(payload), encoding="utf-8"
+    )
+
+
+def test_validate_rejects_duplicate_canonical_fetch_identity(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    sources = tmp_path / "sources"
+    recommendation = tmp_path / "recommendation"
+    sources.mkdir()
+    recommendation.mkdir()
+    url = "https://example.com/subscription?token=abc"
+    (sources / "batch_1.txt").write_text(f"{url}\n", encoding="utf-8")
+    (recommendation / "batch_1.txt").write_text(
+        f"# Est. Fetch Time: 1.0s\n{url}\n", encoding="utf-8"
+    )
+    (recommendation / "batch_2.txt").write_text(
+        f"# Est. Fetch Time: 1.0s\n{url}#duplicate-label\n", encoding="utf-8"
+    )
+    _write_sidecar(recommendation, {url})
+    monkeypatch.setattr(apply_reshard, "SOURCES_DIR", sources)
+
+    with pytest.raises(SystemExit, match="repeats canonical source fetch identity"):
+        apply_reshard._validate(recommendation)
+
+
+def test_validate_recomputes_batch_estimate_from_sidecar(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    sources = tmp_path / "sources"
+    recommendation = tmp_path / "recommendation"
+    sources.mkdir()
+    recommendation.mkdir()
+    url = "https://example.com/subscription"
+    (sources / "batch_1.txt").write_text(f"{url}\n", encoding="utf-8")
+    (recommendation / "batch_1.txt").write_text(
+        f"# Est. Fetch Time: 0.1s\n{url}\n", encoding="utf-8"
+    )
+    _write_sidecar(recommendation, {url}, weight=20)
+    monkeypatch.setattr(apply_reshard, "SOURCES_DIR", sources)
+
+    with pytest.raises(SystemExit, match="does not match timing sidecar"):
+        apply_reshard._validate(recommendation)
 
 
 def test_apply_swaps_layout_and_preserves_unrelated_sources_files(
