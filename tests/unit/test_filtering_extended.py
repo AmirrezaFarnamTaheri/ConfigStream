@@ -1,10 +1,11 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from unittest.mock import MagicMock, patch
+
 from configstream.filtering import (
-    proxy_unique_key,
+    ProxyFilter,
     dedupe_and_shuffle,
     filter_unique_endpoints,
-    ProxyFilter,
+    proxy_unique_key,
 )
 from configstream.models import Proxy
 
@@ -24,7 +25,7 @@ def create_proxy(
     p = MagicMock(spec=Proxy)
     p.protocol = protocol
     p.address = address
-    p.resolved_ip = address  # For simplicity
+    p.resolved_ip = address
     p.port = port
     p.uuid = uuid
     p.is_working = working
@@ -32,8 +33,10 @@ def create_proxy(
     p.sni = sni
     p.path = path
     p.country_code = country_code
+    p.country = "Country"
     p.city = "City"
     p.asn = "AS123"
+    p.org = "Org"
     p.details = details or {}
     return p
 
@@ -43,28 +46,21 @@ def test_proxy_unique_key():
     key = proxy_unique_key(p)
     assert key[0] == "vless"
     assert key[1] == "1.2.3.4"
-    assert key[6] == "svc"  # service_name
-    assert key[7] == "gun"  # mode
-    assert key[9] == "grpc"  # transport
+    assert key[6] == "svc"
+    assert key[7] == "gun"
+    assert key[9] == "grpc"
 
 
 def test_dedupe_and_shuffle():
     p1 = create_proxy(latency=100)
-    p2 = create_proxy(latency=50)  # duplicate of p1 but faster
-    p3 = create_proxy(address="5.6.7.8")  # distinct
+    p2 = create_proxy(latency=50)
+    p3 = create_proxy(address="5.6.7.8")
 
     result = dedupe_and_shuffle([p1, p2, p3])
 
     assert len(result) == 2
-    # result should contain p2 and p3.
-    # Since we used MagicMock, identity might be tricky if dedupe makes copies,
-    # but code just stores reference.
-
-    # Check properties
     latencies = sorted([p.latency for p in result])
     assert latencies == [50, 100]
-    # p2 (50) and p3 (default 100). p1 (100) should be gone.
-
     addresses = sorted([p.address for p in result])
     assert addresses == ["1.2.3.4", "5.6.7.8"]
 
@@ -81,11 +77,35 @@ def test_dedupe_prefer_working():
 def test_filter_unique_endpoints():
     p1 = create_proxy(address="1.1.1.1", latency=200)
     p2 = create_proxy(address="example.com", latency=100)
-    p2.resolved_ip = "1.1.1.1"  # Resolves to same IP
+    p2.resolved_ip = "1.1.1.1"
 
     result = filter_unique_endpoints([p1, p2])
     assert len(result) == 1
     assert result[0].latency == 100
+
+
+def test_filter_unique_endpoints_enriches_empty_country_code():
+    existing = create_proxy(address="1.1.1.1", latency=50, country_code="")
+    existing.country = ""
+    existing.city = ""
+    existing.asn = ""
+    existing.org = ""
+
+    candidate = create_proxy(address="proxy.example", latency=100, country_code="DE")
+    candidate.resolved_ip = "1.1.1.1"
+    candidate.country = "Germany"
+    candidate.city = "Berlin"
+    candidate.asn = "AS680"
+    candidate.org = "Example ISP"
+
+    result = filter_unique_endpoints([existing, candidate])
+
+    assert result == [existing]
+    assert existing.country_code == "DE"
+    assert existing.country == "Germany"
+    assert existing.city == "Berlin"
+    assert existing.asn == "AS680"
+    assert existing.org == "Example ISP"
 
 
 def test_proxy_filter_chaining():
@@ -110,10 +130,10 @@ def test_proxy_filter_chaining():
     assert res[1].address == "3"
 
     res = pf.by_protocol(["vless"]).to_list()
-    assert len(res) == 2  # 2 and 3
+    assert len(res) == 2
 
     res = pf.working_only().to_list()
-    assert len(res) == 3  # 1, 2, 3
+    assert len(res) == 3
 
     res = pf.limit(1).to_list()
     assert len(res) == 1
@@ -139,8 +159,6 @@ def test_dedupe_shuffle_seed():
     p1 = create_proxy(address="1")
     p2 = create_proxy(address="2")
 
-    # Mock AppSettings to return seed
-    # Patch where it is imported (filtering module)
     with patch("configstream.filtering.AppSettings") as mock_settings:
         mock_settings.return_value.CONFIGSTREAM_SHUFFLE_SEED = "42"
         res1 = dedupe_and_shuffle([p1, p2])
