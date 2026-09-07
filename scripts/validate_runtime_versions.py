@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import posixpath
 import re
 from pathlib import Path
 from typing import Any
@@ -13,6 +14,8 @@ try:
     import tomllib
 except ModuleNotFoundError:  # Python 3.10
     import tomli as tomllib
+
+EXACT_PATCH_RE = re.compile(r"^\d+\.\d+\.\d+$")
 
 
 def _load_json(path: Path) -> dict[str, Any]:
@@ -35,6 +38,54 @@ def _workflow_versions(root: Path, key: str) -> list[tuple[Path, str]]:
         text = path.read_text(encoding="utf-8")
         declarations.extend((path, match.group(1)) for match in pattern.finditer(text))
     return declarations
+
+
+def _legacy_tester_go_test_commands(workflow_text: str) -> list[str]:
+    """Return Go test commands executed from the embedded tester module."""
+
+    commands: list[str] = []
+    cwd = "."
+    for raw_line in workflow_text.splitlines():
+        stripped = raw_line.strip()
+        if stripped.startswith("- name:"):
+            cwd = "."
+            continue
+        if stripped.startswith("cd "):
+            target = stripped[3:].strip().strip("'\"")
+            cwd = posixpath.normpath(posixpath.join(cwd, target))
+            continue
+        if re.match(r"^go\s+test(?:\s|$)", stripped) and cwd == "src/go/tester":
+            commands.append(stripped)
+    return commands
+
+
+def _validate_legacy_go_quality_gates(
+    errors: list[str], workflow_text: str, linker_flag: str
+) -> None:
+    """Require linker compatibility on every embedded-tester quality gate."""
+
+    commands = _legacy_tester_go_test_commands(workflow_text)
+    gate_predicates = {
+        "unit": lambda command: all(
+            token not in command for token in ("-race", "-fuzz=", "-bench=")
+        ),
+        "race": lambda command: "-race" in command,
+        "fuzz": lambda command: "-fuzz=" in command,
+        "benchmark": lambda command: "-bench=" in command,
+    }
+    for gate, predicate in gate_predicates.items():
+        matching = [command for command in commands if predicate(command)]
+        _expect(
+            errors,
+            bool(matching),
+            f"CI legacy tester {gate} gate is missing",
+        )
+        if matching:
+            _expect(
+                errors,
+                all(linker_flag in command for command in matching),
+                f"CI legacy tester {gate} gate must carry the governed linker compatibility flag",
+            )
 
 
 def validate_repository(root: Path) -> list[str]:
@@ -61,7 +112,7 @@ def validate_repository(root: Path) -> list[str]:
         go_container = str(go["container"])
         go_variant = str(go["container_variant"])
         sing_box = versions["sing_box"]
-        sing_box_release = str(sing_box["release_validator"])
+        sing_box_release = str(sing_box["release_validator"]).strip()
         sing_box_embedded = str(sing_box["embedded_tester"])
         linker_compat = sing_box["embedded_linker_compat"]
         linker_compat_flag = str(linker_compat["flag"])
@@ -69,6 +120,12 @@ def validate_repository(root: Path) -> list[str]:
         linker_compat_upstream_fix = str(linker_compat["upstream_fix_commit"])
     except (KeyError, TypeError, ValueError) as exc:
         return [f"runtime manifest schema invalid: {type(exc).__name__}: {exc}"]
+
+    _expect(
+        errors,
+        bool(EXACT_PATCH_RE.fullmatch(sing_box_release)),
+        f"sing_box.release_validator must pin an exact patch release, got {sing_box_release!r}",
+    )
 
     try:
         pyproject = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
@@ -162,11 +219,7 @@ def validate_repository(root: Path) -> list[str]:
             linker_compat_flag in wasm_build,
             "WASM legacy tester build must carry the governed linker compatibility flag",
         )
-        _expect(
-            errors,
-            ci_workflow.count(linker_compat_flag) >= 4,
-            "CI legacy tester unit/race/fuzz/benchmark gates must carry the governed linker compatibility flag",
-        )
+        _validate_legacy_go_quality_gates(errors, ci_workflow, linker_compat_flag)
 
     try:
         go_versions = _workflow_versions(root, "go-version")
@@ -190,7 +243,6 @@ def validate_repository(root: Path) -> list[str]:
             f"{path.relative_to(root)} node-version {observed!r} != {node['ci']!r}",
         )
 
-    exact_patch = re.compile(r"^\d+\.\d+\.\d+$")
     for name, observed in (
         ("python.container", python_container),
         ("node.container", node_container),
@@ -200,7 +252,7 @@ def validate_repository(root: Path) -> list[str]:
     ):
         _expect(
             errors,
-            bool(exact_patch.fullmatch(observed)),
+            bool(EXACT_PATCH_RE.fullmatch(observed)),
             f"{name} must pin an exact patch release, got {observed!r}",
         )
     _expect(
