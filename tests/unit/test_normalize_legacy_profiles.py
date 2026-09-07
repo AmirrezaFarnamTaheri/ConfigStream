@@ -90,3 +90,20 @@ def test_normalizer_generates_safe_profiles_and_preserves_hardened_bytes(
         "shadowrocket": "shadowrocket-dns-safe.txt",
         "sip008": "sip008-dns-safe.json",
     }
+
+
+def test_sip008_skips_malformed_port_without_aborting_other_servers(
+    tmp_path: Path,
+) -> None:
+    valid = _working_record("198.51.100.20", "shadowsocks")
+    invalid = _working_record("203.0.113.30", "shadowsocks")
+    invalid["port"] = "not-a-port"
+    (tmp_path / "proxies.json").write_text(json.dumps([valid]), encoding="utf-8")
+    (tmp_path / "proxies-dns-safe.json").write_text(
+        json.dumps([invalid, valid]), encoding="utf-8"
+    )
+
+    normalize_profiles(tmp_path)
+
+    sip008 = json.loads((tmp_path / "sip008-dns-safe.json").read_text(encoding="utf-8"))
+    assert [server["server"] for server in sip008["servers"]] == ["198.51.100.20"]
