@@ -11,7 +11,7 @@
 
 ## Measured debt
 
-- Total entries: **265**
+- Total entries: **264**
 - Exact broad exception boundaries: **239**
 - Oversized functions (300+ lines): **9**
 
