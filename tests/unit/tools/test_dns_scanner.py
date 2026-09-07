@@ -81,12 +81,11 @@ async def test_scan_rejects_cumulative_target_budget_before_scanning(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     output = tmp_path / "out.txt"
-    monkeypatch.setattr(dns_scanner, "MAX_TOTAL_TARGETS", 3)
+    monkeypatch.setattr(dns_scanner, "MAX_TOTAL_TARGETS", 10)
+    cidrs = [f"10.0.0.{offset}/30" for offset in (0, 4, 8, 12, 16, 20)]
 
     with pytest.raises(ValueError, match="target budget"):
-        await dns_scanner.scan_cidrs(
-            ["192.0.2.0/30", "198.51.100.0/30"], output_file=str(output)
-        )
+        await dns_scanner.scan_cidrs(cidrs, output_file=str(output))
 
     assert not output.exists()
 
