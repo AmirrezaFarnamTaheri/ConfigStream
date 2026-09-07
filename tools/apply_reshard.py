@@ -125,8 +125,7 @@ def _source_lines(path: Path) -> list[str]:
     return [
         line
         for raw_line in path.read_text(encoding="utf-8").splitlines()
-        if (line := raw_line.strip())
-        and line.startswith(("http://", "https://"))
+        if (line := raw_line.strip()) and line.startswith(("http://", "https://"))
     ]
 
 
@@ -243,10 +242,13 @@ def _validate(recommendation: Path) -> dict[str, float]:
         if not match:
             raise SystemExit(f"{path.name} missing 'Est. Fetch Time' header")
         declared_seconds = float(match.group(1))
-        computed_seconds = sum(
-            timing_weights.get(_source_timing_id(url), default_weight)
-            for url in _source_lines(path)
-        ) / 10.0
+        computed_seconds = (
+            sum(
+                timing_weights.get(_source_timing_id(url), default_weight)
+                for url in _source_lines(path)
+            )
+            / 10.0
+        )
         if abs(declared_seconds - computed_seconds) > 0.05:
             raise SystemExit(
                 f"{path.name} estimate {declared_seconds:.1f}s does not match "
