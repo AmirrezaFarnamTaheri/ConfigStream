@@ -20,6 +20,8 @@ Safety contract:
   dynamic_reshard.TARGET_BATCH_SECONDS;
 - mutation requires a clean worktree so unrelated local changes cannot be
   overwritten or included in the generated commit;
+- source-layout publication is staged and rolls back if the directory handoff
+  fails;
 - nothing is committed unless all checks pass.
 """
 
@@ -28,13 +30,21 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import shutil
 import subprocess  # nosec B404
+import sys
 import tempfile
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
+SRC_ROOT = REPO / "src"
+if str(SRC_ROOT) not in sys.path:
+    sys.path.insert(0, str(SRC_ROOT))
+
+from configstream.source_admission import normalize_source_locator
+
 SOURCES_DIR = REPO / "sources"
 TARGET_BATCH_SECONDS = 14400.0
 EST_TIME_RE = re.compile(r"Est\. Fetch Time: ([\d.]+)s")
@@ -118,8 +128,20 @@ def _urls_of(directory: Path) -> set[str]:
     return urls
 
 
+def _canonical_source_urls(urls: set[str]) -> set[str]:
+    return {normalize_source_locator(url) for url in urls}
+
+
+def _source_set_sha256(urls: set[str]) -> str:
+    canonical_urls = _canonical_source_urls(urls)
+    return hashlib.sha256(
+        ("\n".join(sorted(canonical_urls)) + "\n").encode("utf-8")
+    ).hexdigest()
+
+
 def _source_timing_id(url: str) -> str:
-    return hashlib.sha256(url.strip().encode("utf-8")).hexdigest()
+    canonical = normalize_source_locator(url)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
 def _validate_timing_weights(recommendation: Path, urls: set[str]) -> None:
@@ -133,9 +155,7 @@ def _validate_timing_weights(recommendation: Path, urls: set[str]) -> None:
     if not isinstance(payload, dict):
         raise SystemExit(f"invalid {TIMING_WEIGHTS_FILENAME}: expected object")
 
-    expected = hashlib.sha256(
-        ("\n".join(sorted(urls)) + "\n").encode("utf-8")
-    ).hexdigest()
+    expected = _source_set_sha256(urls)
     if payload.get("schema_version") != 1 or payload.get("unit") != "deciseconds":
         raise SystemExit(f"invalid {TIMING_WEIGHTS_FILENAME}: unsupported schema")
     if payload.get("source_set_sha256") != expected:
@@ -218,23 +238,83 @@ def _require_clean_worktree() -> None:
         )
 
 
+def _layout_matches(recommendation: Path) -> bool:
+    current_batches = {path.name: path for path in SOURCES_DIR.glob("batch_*.txt")}
+    recommended_batches = {
+        path.name: path for path in recommendation.glob("batch_*.txt")
+    }
+    if set(current_batches) != set(recommended_batches):
+        return False
+    if any(
+        current_batches[name].read_bytes() != recommended_batches[name].read_bytes()
+        for name in current_batches
+    ):
+        return False
+
+    current_sidecar = SOURCES_DIR / TIMING_WEIGHTS_FILENAME
+    recommended_sidecar = recommendation / TIMING_WEIGHTS_FILENAME
+    return (
+        current_sidecar.is_file()
+        and recommended_sidecar.is_file()
+        and current_sidecar.read_bytes() == recommended_sidecar.read_bytes()
+    )
+
+
 def _apply(recommendation: Path) -> bool:
-    changed = False
-    for src in sorted(recommendation.glob("batch_*.txt")):
-        dest = SOURCES_DIR / src.name
-        if not dest.exists() or dest.read_bytes() != src.read_bytes():
-            shutil.copyfile(src, dest)
-            changed = True
-    sidecar = recommendation / TIMING_WEIGHTS_FILENAME
-    sidecar_dest = SOURCES_DIR / TIMING_WEIGHTS_FILENAME
-    if not sidecar_dest.exists() or sidecar_dest.read_bytes() != sidecar.read_bytes():
-        shutil.copyfile(sidecar, sidecar_dest)
-        changed = True
-    for dest in sorted(SOURCES_DIR.glob("batch_*.txt")):
-        if not (recommendation / dest.name).exists():
-            dest.unlink()
-            changed = True
-    return changed
+    """Publish a validated source layout with rollback-safe directory handoff."""
+
+    if _layout_matches(recommendation):
+        return False
+
+    transaction_root = Path(
+        tempfile.mkdtemp(prefix=".reshard-transaction-", dir=SOURCES_DIR.parent)
+    )
+    staged_sources = transaction_root / "next"
+    backup_sources = transaction_root / "previous"
+    old_moved = False
+
+    try:
+        shutil.copytree(SOURCES_DIR, staged_sources, symlinks=True)
+        for stale in staged_sources.glob("batch_*.txt"):
+            stale.unlink()
+        staged_sidecar = staged_sources / TIMING_WEIGHTS_FILENAME
+        if staged_sidecar.exists():
+            staged_sidecar.unlink()
+
+        for src in sorted(recommendation.glob("batch_*.txt")):
+            shutil.copy2(src, staged_sources / src.name)
+        shutil.copy2(
+            recommendation / TIMING_WEIGHTS_FILENAME,
+            staged_sources / TIMING_WEIGHTS_FILENAME,
+        )
+
+        os.replace(SOURCES_DIR, backup_sources)
+        old_moved = True
+        try:
+            os.replace(staged_sources, SOURCES_DIR)
+        except BaseException as publish_exc:
+            try:
+                os.replace(backup_sources, SOURCES_DIR)
+                old_moved = False
+            except BaseException as rollback_exc:
+                raise RuntimeError(
+                    "source-layout publication failed and rollback could not restore "
+                    "the previous sources directory"
+                ) from rollback_exc
+            raise publish_exc
+
+        old_moved = False
+        return True
+    finally:
+        if old_moved and backup_sources.exists() and not SOURCES_DIR.exists():
+            try:
+                os.replace(backup_sources, SOURCES_DIR)
+            except OSError as rollback_exc:
+                raise RuntimeError(
+                    "source-layout transaction exited without a live sources "
+                    "directory and rollback failed"
+                ) from rollback_exc
+        shutil.rmtree(transaction_root, ignore_errors=True)
 
 
 def main(argv: list[str] | None = None) -> int:
