@@ -9,6 +9,7 @@ import ipaddress
 import secrets
 import sys
 import time
+from collections.abc import Iterable
 from pathlib import Path
 
 import aiodns
@@ -24,6 +25,9 @@ from rich.progress import (
 
 console = Console()
 CHUNK_SIZE = 1000
+MAX_CIDR_INPUTS = 4096
+MAX_ADDRESSES_PER_CIDR = 65536
+MAX_TOTAL_TARGETS = 250_000
 TEST_DOMAIN = "example.com"
 
 
@@ -47,10 +51,20 @@ async def test_dns(
     return (ip, True, elapsed)
 
 
+def _usable_host_count(network: ipaddress.IPv4Network) -> int:
+    """Return the number of addresses produced by ``IPv4Network.hosts()``."""
+
+    if network.prefixlen >= 31:
+        return network.num_addresses
+    return max(0, network.num_addresses - 2)
+
+
 async def scan_cidrs(
-    cidrs: list[str], concurrency: int = 100, output_file: str = "dns_results.txt"
+    cidrs: Iterable[str],
+    concurrency: int = 100,
+    output_file: str = "dns_results.txt",
 ) -> None:
-    """Scan IPv4 addresses generated from CIDRs."""
+    """Scan IPv4 addresses generated from CIDRs within explicit input budgets."""
 
     if concurrency < 1:
         raise ValueError("concurrency must be at least 1")
@@ -60,21 +74,33 @@ async def scan_cidrs(
         )
 
     ips: list[str] = []
-    console.print(f"[cyan]Generating IPs from {len(cidrs)} CIDRs...[/cyan]")
+    cidr_count = 0
+    target_count = 0
+    console.print("[cyan]Generating IPs from CIDRs...[/cyan]")
     for cidr in cidrs:
+        cidr_count += 1
+        if cidr_count > MAX_CIDR_INPUTS:
+            raise ValueError(
+                f"CIDR input budget exceeded ({MAX_CIDR_INPUTS} entries maximum)"
+            )
         try:
             net = ipaddress.IPv4Network(cidr, strict=False)
-            if net.num_addresses > 65536:
+            if net.num_addresses > MAX_ADDRESSES_PER_CIDR:
                 console.print(
-                    f"[yellow]Skipping large subnet {cidr} (>65k IPs)[/yellow]"
+                    f"[yellow]Skipping large subnet {cidr} "
+                    f"(>{MAX_ADDRESSES_PER_CIDR} IPs)[/yellow]"
                 )
                 continue
-            for address in net.hosts():
-                ips.append(str(address))
+            network_targets = _usable_host_count(net)
+            if target_count + network_targets > MAX_TOTAL_TARGETS:
+                raise ValueError(
+                    f"DNS target budget exceeded ({MAX_TOTAL_TARGETS} addresses maximum)"
+                )
+            target_count += network_targets
+            ips.extend(str(address) for address in net.hosts())
         except (
             ipaddress.AddressValueError,
             ipaddress.NetmaskValueError,
-            ValueError,
         ) as exc:
             console.print(f"[red]Invalid CIDR {cidr}: {exc}[/red]")
 
@@ -83,7 +109,8 @@ async def scan_cidrs(
 
     total_ips = len(ips)
     console.print(
-        f"[green]Starting scan on {total_ips} IPs with {concurrency} concurrency...[/green]"
+        f"[green]Starting scan on {total_ips} IPs from {cidr_count} CIDRs "
+        f"with {concurrency} concurrency...[/green]"
     )
 
     sem = asyncio.Semaphore(concurrency)
@@ -156,15 +183,14 @@ def main(argv: list[str] | None = None) -> int:
     input_path = Path(input_arg)
     if input_path.is_file():
         with input_path.open("r", encoding="utf-8") as handle:
-            cidrs = [
+            cidrs = (
                 line.strip()
                 for line in handle
                 if line.strip() and not line.lstrip().startswith("#")
-            ]
+            )
+            asyncio.run(scan_cidrs(cidrs, concurrency))
     else:
-        cidrs = [input_arg]
-
-    asyncio.run(scan_cidrs(cidrs, concurrency))
+        asyncio.run(scan_cidrs([input_arg], concurrency))
     return 0
 
 
