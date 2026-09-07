@@ -245,7 +245,10 @@ def _sip008_payload(records: list[dict[str, Any]]) -> dict[str, Any]:
         raw_details = record.get("details")
         details = raw_details if isinstance(raw_details, dict) else {}
         address = str(record.get("address") or "").strip()
-        port = int(record.get("port") or 0)
+        try:
+            port = int(record.get("port") or 0)
+        except (TypeError, ValueError):
+            continue
         if not address or not 1 <= port <= 65535:
             continue
         servers.append(
