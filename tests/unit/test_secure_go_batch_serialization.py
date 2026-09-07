@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import asyncio
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -11,7 +12,7 @@ from configstream.testers.go_tester.secure_manager import (
 
 
 @pytest.mark.asyncio
-async def test_secure_manager_serializes_and_chunks_to_worker_capacity():
+async def test_secure_manager_serializes_and_chunks_to_worker_capacity() -> None:
     tester = object.__new__(GoBatchTester)
     tester.available = True
     tester.workers = 2
@@ -19,9 +20,11 @@ async def test_secure_manager_serializes_and_chunks_to_worker_capacity():
     proxies = [object(), object(), object(), object(), object()]
     active = 0
     max_active = 0
-    sizes = []
+    sizes: list[int] = []
 
-    async def fake_base(self, wave, check_honeypot=False):
+    async def fake_base(
+        _self: BaseTester, wave: list[Any], check_honeypot: bool = False
+    ) -> list[Any]:
         nonlocal active, max_active
         active += 1
         max_active = max(max_active, active)
@@ -31,8 +34,8 @@ async def test_secure_manager_serializes_and_chunks_to_worker_capacity():
         return wave
 
     with patch.object(BaseTester, "test_batch", new=fake_base):
-        first = asyncio.create_task(tester.test_batch(proxies))
-        second = asyncio.create_task(tester.test_batch(proxies[:2]))
+        first = asyncio.create_task(tester.test_batch(proxies))  # type: ignore[arg-type]
+        second = asyncio.create_task(tester.test_batch(proxies[:2]))  # type: ignore[arg-type]
         await asyncio.gather(first, second)
 
     assert sizes == [2, 2, 1, 2]
@@ -40,14 +43,16 @@ async def test_secure_manager_serializes_and_chunks_to_worker_capacity():
 
 
 @pytest.mark.asyncio
-async def test_secure_manager_chunks_custom_configs():
+async def test_secure_manager_chunks_custom_configs() -> None:
     tester = object.__new__(GoBatchTester)
     tester.available = True
     tester.workers = 2
     tester._request_lock = asyncio.Lock()
-    calls = []
+    calls: list[int] = []
 
-    async def fake_base(self, wave, check_honeypot=False):
+    async def fake_base(
+        _self: BaseTester, wave: list[dict[str, Any]], check_honeypot: bool = False
+    ) -> dict[str, bool]:
         calls.append(len(wave))
         return {str(id(item)): True for item in wave}
 
