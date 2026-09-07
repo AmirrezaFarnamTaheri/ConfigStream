@@ -60,11 +60,19 @@ async function handleRequest(request) {
 
   concurrentRequests += 1;
   try {
-    const dnsRequest = await parseDNSRequest(request, url);
-    const dnsResponse = await queryDNS(dnsRequest);
-    return new Response(dnsResponse, { status: 200, headers: dnsHeaders() });
-  } catch (_error) {
-    return textResponse('DNS query failed', 502);
+    let dnsRequest;
+    try {
+      dnsRequest = await parseDNSRequest(request, url);
+    } catch (_error) {
+      return textResponse('Invalid DNS request', 400);
+    }
+
+    try {
+      const dnsResponse = await queryDNS(dnsRequest);
+      return new Response(dnsResponse, { status: 200, headers: dnsHeaders() });
+    } catch (_error) {
+      return textResponse('DNS query failed', 502);
+    }
   } finally {
     concurrentRequests -= 1;
   }
