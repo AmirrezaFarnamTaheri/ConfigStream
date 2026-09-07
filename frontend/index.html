@@ -336,21 +336,7 @@
                                             <i data-feather="chevron-down" class="dropdown-arrow" aria-hidden="true"></i>
                                         </div>
                                     </div>
-                                    <div class="selector-group">
-                                        <label for="evasion-mode-selector" class="selector-label">
-                                            <i data-feather="shield" class="selector-label-icon" aria-hidden="true"></i>
-                                            <span data-i18n="downloads.evasion_mode.label">Evasion Level</span>
-                                        </label>
-                                        <div class="client-dropdown-wrapper">
-                                            <select id="evasion-mode-selector" class="client-select" aria-label="Evasion level">
-                                                <option value="standard" data-i18n="downloads.evasion_mode.standard">Standard — No extra evasion</option>
-                                                <option value="stealth" data-i18n="downloads.evasion_mode.stealth">Stealth — TLS fragmentation + uTLS fingerprint</option>
-                                                <option value="aggressive" data-i18n="downloads.evasion_mode.aggressive">Maximum — All evasion techniques enabled</option>
-                                            </select>
-                                            <i data-feather="chevron-down" class="dropdown-arrow" aria-hidden="true"></i>
-                                        </div>
-                                    </div>
-                                    <p class="selector-hint" data-i18n="downloads.dns_profile.desc">DNS-Safe uses IP-only endpoints. DNS-Hardened embeds encrypted resolvers. Stealth and Maximum add anti-censorship techniques.</p>
+                                    <p class="selector-hint" data-i18n="downloads.dns_profile.desc">DNS-Safe uses IP-only endpoints. DNS-Hardened embeds encrypted resolvers where the selected client format supports resolver policy.</p>
                                 </div>
                                 <div class="downloads-grid">
                                     <div class="download-card" style="--delay: 0.6s;">

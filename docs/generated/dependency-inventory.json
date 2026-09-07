@@ -41,17 +41,17 @@
     ],
     "container": [
       {
-        "constraint": "golang:1.24-alpine",
+        "constraint": "golang:1.26.8-alpine3.24",
         "name": "go_builder",
         "source": "config/container-images.json"
       },
       {
-        "constraint": "node:24-slim",
+        "constraint": "node:24.20.0-bookworm-slim",
         "name": "node_ci",
         "source": "config/container-images.json"
       },
       {
-        "constraint": "python:3.12-slim",
+        "constraint": "python:3.12.14-slim-bookworm",
         "name": "python_runtime",
         "source": "config/container-images.json"
       },
@@ -99,7 +99,7 @@
         "source": "package.json"
       },
       {
-        "constraint": "^8.5.23",
+        "constraint": "^8.5.28",
         "name": "postcss",
         "scope": "devDependencies",
         "source": "package.json"

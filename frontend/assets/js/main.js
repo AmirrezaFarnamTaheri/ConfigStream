@@ -412,12 +412,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchProxyData() {
         try {
-            if (!window.api || typeof window.api.fetchProxies !== 'function') {
-                throw new Error('Verified proxy API unavailable');
+            if (!window.api || typeof window.api.fetchVerifiedArtifactJson !== 'function') {
+                throw new Error('Verified artifact API unavailable');
             }
-            return await window.api.fetchProxies();
+            const proxies = await window.api.fetchVerifiedArtifactJson('data/proxy_search.json');
+            if (!Array.isArray(proxies)) {
+                throw new Error('Invalid compact proxy search payload');
+            }
+            return proxies.map(proxy => ({ ...proxy, is_working: true }));
         } catch (e) {
-            logger.warn('Landing proxy search: failed to fetch verified proxies', e);
+            logger.warn('Landing proxy search: failed to fetch verified compact snapshot', e);
             return [];
         }
     }

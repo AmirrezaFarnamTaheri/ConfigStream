@@ -6,11 +6,12 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
-from typing import Optional
+from typing import Any, Optional
 
 from ...config import AppSettings
 from ...constants import VWARP_BIND_ADDRESS, VWARP_SOCKS5_PORT
 from ...async_utils import safe_wait_for
+from ...models import Proxy
 from .manager import (
     GO_TESTER_STREAM_LIMIT,
     GoBatchTester as _StreamingGoBatchTester,
@@ -35,7 +36,7 @@ class GoBatchTester(_StreamingGoBatchTester):
     every spawn, preventing path replacement between discovery and execution.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self._identity: Optional[BinaryIdentity] = None
         if self.available:
@@ -136,3 +137,44 @@ class GoBatchTester(_StreamingGoBatchTester):
                     "Failed to start verified Go tester daemon: %s", type(exc).__name__
                 )
                 self._proc = None
+
+    def _get_request_lock(self) -> asyncio.Lock:
+        """Return the per-instance shared-daemon request lock."""
+        request_lock = getattr(self, "_request_lock", None)
+        if request_lock is None:
+            request_lock = asyncio.Lock()
+            self._request_lock = request_lock
+        return request_lock
+
+    async def test_batch(
+        self, proxies: list[Proxy], check_honeypot: bool = False
+    ) -> list[Proxy]:
+        """Serialize the shared daemon and bound each write to one worker wave.
+
+        The streaming base treats a blocked ``drain()`` as daemon failure. Keep
+        each write at or below worker capacity so normal pipe backpressure cannot
+        trigger cross-consumer restarts, while preserving Go-side concurrency.
+        """
+        if not proxies:
+            return proxies
+        async with self._get_request_lock():
+            results: list[Proxy] = []
+            wave_size = max(1, int(self.workers))
+            for start in range(0, len(proxies), wave_size):
+                wave = proxies[start : start + wave_size]
+                results.extend(await super().test_batch(wave, check_honeypot))
+            return results
+
+    async def test_custom_configs(
+        self, configs: list[dict[str, Any]], check_honeypot: bool = False
+    ) -> dict[str, bool]:
+        """Serialize custom-config IPC using the same bounded worker waves."""
+        if not configs:
+            return {}
+        async with self._get_request_lock():
+            results: dict[str, bool] = {}
+            wave_size = max(1, int(self.workers))
+            for start in range(0, len(configs), wave_size):
+                wave = configs[start : start + wave_size]
+                results.update(await super().test_custom_configs(wave, check_honeypot))
+            return results

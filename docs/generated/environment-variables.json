@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_digest": "6a820f2c45a1347681a713a4af3d1055d02b78948a8d0e3887584e94abbbbff6",
+  "source_digest": "119bf4e47cc1fd8022cc08a9cbee3ed3078ccad7d49fa6b58b6e51e8e0f84ec2",
   "variable_count": 161,
   "variables": [
     {
@@ -209,7 +209,7 @@
       "sensitive": false,
       "sources": [
         "src/configstream/testers/go_tester/manager.py:306",
-        "src/configstream/testers/go_tester/secure_manager.py:107",
+        "src/configstream/testers/go_tester/secure_manager.py:108",
         "src/configstream/warp_scanner.py:41",
         "src/configstream/warp_scanner.py:64"
       ],
@@ -358,8 +358,9 @@
       "required": false,
       "sensitive": true,
       "sources": [
+        "scripts/refresh_shard_contract.py:55",
         "scripts/release_gate.py:336",
-        "src/configstream/output/metadata.py:517"
+        "src/configstream/output/metadata.py:518"
       ],
       "type": null
     },
@@ -738,8 +739,8 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:589",
-        "scripts/finalize_release_outputs.py:632",
+        "scripts/finalize_release_outputs.py:603",
+        "scripts/finalize_release_outputs.py:646",
         "scripts/generate_evidence_bundle.py:20",
         "scripts/native_client_checks.py:232",
         "scripts/release_gate.py:181",
@@ -747,8 +748,8 @@
         "scripts/resilient_stage.py:469",
         "scripts/validate_pages_artifact.py:1203",
         "scripts/validate_pages_artifact.py:1236",
-        "src/configstream/output/metadata.py:558",
-        "src/configstream/output/metadata.py:591"
+        "src/configstream/output/metadata.py:559",
+        "src/configstream/output/metadata.py:594"
       ],
       "type": null
     },
@@ -759,8 +760,8 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:588",
-        "scripts/finalize_release_outputs.py:631",
+        "scripts/finalize_release_outputs.py:602",
+        "scripts/finalize_release_outputs.py:645",
         "scripts/generate_evidence_bundle.py:19",
         "scripts/native_client_checks.py:231",
         "scripts/release_gate.py:180",
@@ -768,8 +769,8 @@
         "scripts/resilient_stage.py:468",
         "scripts/validate_pages_artifact.py:1202",
         "scripts/validate_pages_artifact.py:1235",
-        "src/configstream/output/metadata.py:557",
-        "src/configstream/output/metadata.py:590"
+        "src/configstream/output/metadata.py:558",
+        "src/configstream/output/metadata.py:593"
       ],
       "type": null
     },
@@ -780,8 +781,8 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:587",
-        "scripts/finalize_release_outputs.py:630",
+        "scripts/finalize_release_outputs.py:601",
+        "scripts/finalize_release_outputs.py:644",
         "scripts/generate_evidence_bundle.py:21",
         "scripts/native_client_checks.py:230",
         "scripts/release_gate.py:179",
@@ -789,8 +790,8 @@
         "scripts/resilient_stage.py:470",
         "scripts/validate_pages_artifact.py:1201",
         "scripts/validate_pages_artifact.py:1234",
-        "src/configstream/output/metadata.py:556",
-        "src/configstream/output/metadata.py:589"
+        "src/configstream/output/metadata.py:557",
+        "src/configstream/output/metadata.py:592"
       ],
       "type": null
     },
@@ -1142,7 +1143,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release_outputs.py:647"
+        "scripts/finalize_release_outputs.py:661"
       ],
       "type": null
     },
@@ -1673,7 +1674,7 @@
         "src/configstream/pipeline/core.py:160",
         "src/configstream/pipeline/core.py:165",
         "src/configstream/testers/go_tester/manager.py:331",
-        "src/configstream/testers/go_tester/secure_manager.py:71"
+        "src/configstream/testers/go_tester/secure_manager.py:72"
       ],
       "type": "bool"
     },

@@ -210,9 +210,91 @@ def test_reconcile_runs_as_direct_workflow_script(tmp_path: Path) -> None:
     assert evidence_path.is_file()
     evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
     assert evidence == {
+        "proxy_search_records": 0,
         "public_candidates": 0,
         "public_verified": 0,
         "sanitized_surfaces": [],
         "schema_version": 1,
         "shard_candidates": 0,
+        "sing_box_release_validator": None,
     }
+
+
+def test_reconcile_writes_compact_search_and_governed_compatibility(
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "output"
+    root.mkdir()
+    _write(
+        root / "proxies.json",
+        [
+            {
+                "id": "working",
+                "protocol": "vless",
+                "country_code": "FI",
+                "city": "Helsinki",
+                "latency": 42.0,
+                "config": "vless://public",
+                "is_working": True,
+                "details": {},
+            },
+            {
+                "id": "chain",
+                "protocol": "chain",
+                "country_code": "FI",
+                "config": "{}",
+                "is_working": True,
+                "details": {},
+            },
+            {
+                "id": "failed",
+                "protocol": "vless",
+                "country_code": "US",
+                "config": "vless://failed",
+                "is_working": False,
+                "details": {},
+            },
+        ],
+    )
+    _write(
+        root / "metadata.json",
+        {
+            "shielded_count": 0,
+            "shielded_candidate_count": 0,
+            "shielded_verified_count": 0,
+        },
+    )
+    _write(
+        root / "format_compatibility.json",
+        {
+            "targets": {
+                "sing-box": {"target": "1.13.14"},
+                "sip008": {"status": "protocol-limited"},
+            }
+        },
+    )
+
+    result = reconcile(root)
+
+    search = json.loads((root / "data/proxy_search.json").read_text(encoding="utf-8"))
+    assert search == [
+        {
+            "protocol": "vless",
+            "country_code": "FI",
+            "city": "Helsinki",
+            "latency": 42.0,
+            "config": "vless://public",
+        }
+    ]
+    governed = json.loads(
+        (Path("config/runtime-versions.json")).read_text(encoding="utf-8")
+    )["sing_box"]["release_validator"]
+    compatibility = json.loads(
+        (root / "format_compatibility.json").read_text(encoding="utf-8")
+    )
+    assert compatibility["targets"]["sing-box"]["target"] == governed
+    assert compatibility["targets"]["sip008"]["dns_hardened_resolver_policy"] == (
+        "unsupported_by_sip008"
+    )
+    assert result["proxy_search_records"] == 1
+    assert result["sing_box_release_validator"] == governed

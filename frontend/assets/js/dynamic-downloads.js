@@ -89,10 +89,10 @@ function initDynamicDownloads() {
         },
         sip008: {
             descKey: "downloads.client.sip008.desc",
-            desc: "Standard SIP008 JSON format for Shadowsocks.",
+            desc: "SIP008 Shadowsocks server list. DNS-Hardened falls back to DNS-Safe endpoints because SIP008 cannot encode resolver policy.",
             file: "sip008.json",
             dnsFile: "sip008-dns-safe.json",
-            dnsHardenedFile: "sip008-dns-hardened.json",
+            dnsHardenedFile: null,
             icon: "code"
         },
         chains: {
@@ -112,8 +112,6 @@ function initDynamicDownloads() {
             icon: "package"
         }
     };
-
-    const evasionModeSelector = document.getElementById('evasion-mode-selector');
     
     const dnsProfile = () => {
         if (window.getDnsProfile) {
@@ -123,13 +121,6 @@ function initDynamicDownloads() {
             return profileSelector.value;
         }
         return dnsToggle && dnsToggle.checked ? 'dns-safe' : 'standard';
-    };
-    
-    const evasionMode = () => {
-        if (evasionModeSelector && evasionModeSelector.value) {
-            return evasionModeSelector.value;
-        }
-        return 'standard';
     };
 
     const updateUI = (clientKey) => {
@@ -179,9 +170,6 @@ function initDynamicDownloads() {
     }
     if (dnsToggle) {
         dnsToggle.addEventListener('change', () => updateUI(dropdown.value || 'singbox'));
-    }
-    if (evasionModeSelector) {
-        evasionModeSelector.addEventListener('change', () => updateUI(dropdown.value || 'singbox'));
     }
     window.addEventListener('languageChanged', () => updateUI(dropdown.value || 'singbox'));
 

@@ -25,7 +25,7 @@ Variables: **161**
 | `CANARY_URL` | yes | `str` | `""` | no | no | `src/configstream/config.py:95` |
 | `CF_TOKEN` | no | `direct-only` | `<redacted>` | no | yes | `scripts/publish_ipfs.py:190` |
 | `CF_ZONE_ID` | no | `direct-only` |  | no | no | `scripts/publish_ipfs.py:195` |
-| `CI` | no | `direct-only` |  | no | no | `src/configstream/testers/go_tester/manager.py:306`<br>`src/configstream/testers/go_tester/secure_manager.py:107`<br>`src/configstream/warp_scanner.py:41`<br>`src/configstream/warp_scanner.py:64` |
+| `CI` | no | `direct-only` |  | no | no | `src/configstream/testers/go_tester/manager.py:306`<br>`src/configstream/testers/go_tester/secure_manager.py:108`<br>`src/configstream/warp_scanner.py:41`<br>`src/configstream/warp_scanner.py:64` |
 | `CIRCUIT_BREAKER_ENABLED` | yes | `bool` | `true` | no | no | `src/configstream/config.py:106` |
 | `CIRCUIT_OPEN_SEC` | yes | `int` | `120` | no | no | `src/configstream/config.py:116` |
 | `CIRCUIT_TRIP_5XX_RATE` | yes | `float` | `0.2` | no | no | `src/configstream/config.py:115` |
@@ -38,7 +38,7 @@ Variables: **161**
 | `CONFIG_STREAM_KEY` | yes | `Optional[str]` |  | no | no | `scripts/audit_pipeline_outputs.py:323`<br>`src/configstream/config.py:138` |
 | `CORS_ALLOW_CREDENTIALS` | yes | `bool` | `false` | no | no | `src/configstream/config.py:164` |
 | `CS_PUBLIC_KEY` | no | `direct-only` |  | no | no | `scripts/snapshot_pages_release.py:416`<br>`scripts/validate_pages_artifact.py:202`<br>`scripts/verify_pages_deployment.py:471` |
-| `CS_SIGNING_PRIVATE_KEY_HEX` | no | `direct-only` | `<redacted>` | no | yes | `scripts/release_gate.py:336`<br>`src/configstream/output/metadata.py:517` |
+| `CS_SIGNING_PRIVATE_KEY_HEX` | no | `direct-only` | `<redacted>` | no | yes | `scripts/refresh_shard_contract.py:55`<br>`scripts/release_gate.py:336`<br>`src/configstream/output/metadata.py:518` |
 | `CS_STRICT_BINARY_TRUST` | no | `direct-only` |  | no | no | `src/configstream/testers/go_tester/binary_security.py:103` |
 | `DEDUP_IGNORE_PROTOCOL` | yes | `bool` | `false` | no | no | `src/configstream/config.py:153` |
 | `DNS_CACHE_ENABLED` | yes | `bool` | `true` | no | no | `src/configstream/config.py:97` |
@@ -72,9 +72,9 @@ Variables: **161**
 | `GITHUB_EVENT_NAME` | no | `direct-only` |  | no | no | `scripts/generate_evidence_bundle.py:22` |
 | `GITHUB_REF` | no | `direct-only` |  | no | no | `scripts/resilient_stage.py:471` |
 | `GITHUB_REPOSITORY` | no | `direct-only` |  | no | no | `scripts/generate_evidence_bundle.py:24`<br>`scripts/resilient_stage.py:466` |
-| `GITHUB_RUN_ATTEMPT` | no | `direct-only` |  | no | no | `scripts/finalize_release_outputs.py:589`<br>`scripts/finalize_release_outputs.py:632`<br>`scripts/generate_evidence_bundle.py:20`<br>`scripts/native_client_checks.py:232`<br>`scripts/release_gate.py:181`<br>`scripts/release_gate.py:390`<br>`scripts/resilient_stage.py:469`<br>`scripts/validate_pages_artifact.py:1203`<br>`scripts/validate_pages_artifact.py:1236`<br>`src/configstream/output/metadata.py:558`<br>`src/configstream/output/metadata.py:591` |
-| `GITHUB_RUN_ID` | no | `direct-only` |  | no | no | `scripts/finalize_release_outputs.py:588`<br>`scripts/finalize_release_outputs.py:631`<br>`scripts/generate_evidence_bundle.py:19`<br>`scripts/native_client_checks.py:231`<br>`scripts/release_gate.py:180`<br>`scripts/release_gate.py:387`<br>`scripts/resilient_stage.py:468`<br>`scripts/validate_pages_artifact.py:1202`<br>`scripts/validate_pages_artifact.py:1235`<br>`src/configstream/output/metadata.py:557`<br>`src/configstream/output/metadata.py:590` |
-| `GITHUB_SHA` | no | `direct-only` |  | no | no | `scripts/finalize_release_outputs.py:587`<br>`scripts/finalize_release_outputs.py:630`<br>`scripts/generate_evidence_bundle.py:21`<br>`scripts/native_client_checks.py:230`<br>`scripts/release_gate.py:179`<br>`scripts/release_gate.py:384`<br>`scripts/resilient_stage.py:470`<br>`scripts/validate_pages_artifact.py:1201`<br>`scripts/validate_pages_artifact.py:1234`<br>`src/configstream/output/metadata.py:556`<br>`src/configstream/output/metadata.py:589` |
+| `GITHUB_RUN_ATTEMPT` | no | `direct-only` |  | no | no | `scripts/finalize_release_outputs.py:603`<br>`scripts/finalize_release_outputs.py:646`<br>`scripts/generate_evidence_bundle.py:20`<br>`scripts/native_client_checks.py:232`<br>`scripts/release_gate.py:181`<br>`scripts/release_gate.py:390`<br>`scripts/resilient_stage.py:469`<br>`scripts/validate_pages_artifact.py:1203`<br>`scripts/validate_pages_artifact.py:1236`<br>`src/configstream/output/metadata.py:559`<br>`src/configstream/output/metadata.py:594` |
+| `GITHUB_RUN_ID` | no | `direct-only` |  | no | no | `scripts/finalize_release_outputs.py:602`<br>`scripts/finalize_release_outputs.py:645`<br>`scripts/generate_evidence_bundle.py:19`<br>`scripts/native_client_checks.py:231`<br>`scripts/release_gate.py:180`<br>`scripts/release_gate.py:387`<br>`scripts/resilient_stage.py:468`<br>`scripts/validate_pages_artifact.py:1202`<br>`scripts/validate_pages_artifact.py:1235`<br>`src/configstream/output/metadata.py:558`<br>`src/configstream/output/metadata.py:593` |
+| `GITHUB_SHA` | no | `direct-only` |  | no | no | `scripts/finalize_release_outputs.py:601`<br>`scripts/finalize_release_outputs.py:644`<br>`scripts/generate_evidence_bundle.py:21`<br>`scripts/native_client_checks.py:230`<br>`scripts/release_gate.py:179`<br>`scripts/release_gate.py:384`<br>`scripts/resilient_stage.py:470`<br>`scripts/validate_pages_artifact.py:1201`<br>`scripts/validate_pages_artifact.py:1234`<br>`src/configstream/output/metadata.py:557`<br>`src/configstream/output/metadata.py:592` |
 | `GITHUB_WORKFLOW` | no | `direct-only` |  | no | no | `scripts/resilient_stage.py:467` |
 | `GO_TESTER_BATCH_SIZE` | yes | `int` | `500` | no | no | `src/configstream/config.py:57` |
 | `HEDGE_AFTER_MS` | yes | `int` | `800` | no | no | `src/configstream/config.py:112` |
@@ -106,7 +106,7 @@ Variables: **161**
 | `MAX_SELECTOR_MEMBERS` | no | `direct-only` |  | no | no | `scripts/finalize_release_outputs.py:52` |
 | `MAX_WORKERS` | yes | `int` | `128` | no | no | `src/configstream/config.py:70` |
 | `MIN_LATENCY` | yes | `int` | `10` | no | no | `src/configstream/config.py:39` |
-| `MIN_SOURCE_COVERAGE` | no | `direct-only` |  | no | no | `scripts/finalize_release_outputs.py:647` |
+| `MIN_SOURCE_COVERAGE` | no | `direct-only` |  | no | no | `scripts/finalize_release_outputs.py:661` |
 | `NOTIFY_UPDATE_URL` | yes | `Optional[str]` |  | no | no | `src/configstream/config.py:172` |
 | `OPTIMAL_RELAY_ORIGIN` | yes | `str` | `"IR"` | no | no | `src/configstream/config.py:62` |
 | `OUTPUT_DIR` | no | `direct-only` |  | no | no | `src/configstream/server/utils.py:55` |
@@ -151,7 +151,7 @@ Variables: **161**
 | `TLS_TESTS_ENABLED` | yes | `bool` | `true` | no | no | `src/configstream/config.py:118` |
 | `TMPDIR` | no | `direct-only` |  | no | no | `src/configstream/testers/go_tester/binary_security.py:152`<br>`src/configstream/testers/go_tester/manager.py:323` |
 | `UPDATE_INTERVAL_HOURS` | yes | `int` | `4` | no | no | `src/configstream/config.py:126` |
-| `USE_VWARP_TUNNEL` | yes | `bool` | `true` | no | no | `src/configstream/config.py:144`<br>`src/configstream/intelligence/washer/core.py:515`<br>`src/configstream/pipeline/core.py:155`<br>`src/configstream/pipeline/core.py:160`<br>`src/configstream/pipeline/core.py:165`<br>`src/configstream/testers/go_tester/manager.py:331`<br>`src/configstream/testers/go_tester/secure_manager.py:71` |
+| `USE_VWARP_TUNNEL` | yes | `bool` | `true` | no | no | `src/configstream/config.py:144`<br>`src/configstream/intelligence/washer/core.py:515`<br>`src/configstream/pipeline/core.py:155`<br>`src/configstream/pipeline/core.py:160`<br>`src/configstream/pipeline/core.py:165`<br>`src/configstream/testers/go_tester/manager.py:331`<br>`src/configstream/testers/go_tester/secure_manager.py:72` |
 | `UTLS_CLIENT_SHA256` | no | `direct-only` |  | no | no | `src/configstream/security/utls_wrapper.py:47` |
 | `VERSION_TAG` | no | `direct-only` |  | no | no | `scripts/upload_telegram.py:46` |
 | `VT_API_KEY` | yes | `Optional[str]` | `<redacted>` | no | yes | `src/configstream/config.py:135` |

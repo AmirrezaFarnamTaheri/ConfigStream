@@ -11,11 +11,7 @@ import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW_DIR = REPO_ROOT / ".github" / "workflows"
-CONCURRENCY_REQUIRED = {
-    "main.yml",
-    "retest.yml",
-    "deploy-pages.yml",
-}
+CONCURRENCY_REQUIRED = {"main.yml", "retest.yml", "deploy-pages.yml"}
 UNRESOLVABLE_ACTION_REFS = {
     "actions/cache@0c907a75c2df011682e883a1779590213020689b",
     "actions/deploy-pages@d6db90164db5ed868d4d441e8835172955749614",
@@ -257,8 +253,7 @@ def _main_public_preparation(data: dict[Any, Any]) -> bool:
     transactional = (
         _has_command(data, "scripts/prepare_public_candidate.py output output")
         and _has_command(
-            data,
-            "validate_frontend_placeholders.py --inject-env --strict output",
+            data, "validate_frontend_placeholders.py --inject-env --strict output"
         )
         and _has_command(data, "validate_pages_artifact.py --refresh-contract output")
     )
@@ -313,10 +308,6 @@ def _main_native_output_contract(data: dict[Any, Any]) -> bool:
     )
     if resilient:
         return modern
-
-    # Legacy/non-resilient workflow fixtures are rejected independently by the
-    # resilience contract. Recognize their older optional native-report shape
-    # here so tests for unrelated retention/dependency rules remain isolated.
     legacy = (
         "validate_pages_artifact.py" in commands
         and "--native-client-check" in commands
@@ -353,6 +344,11 @@ def _main_resilient_contract(data: dict[Any, Any]) -> list[str]:
     if merge is None:
         errors.append("missing merge_validate_publish diagnostic gate")
         return errors
+    permissions = merge.get("permissions", {})
+    if not isinstance(permissions, dict) or permissions.get("contents") != "read":
+        errors.append("merge_validate_publish must use contents: read")
+    if isinstance(permissions, dict) and permissions.get("id-token") == "write":
+        errors.append("merge_validate_publish must not request id-token: write")
     merge_commands = "\n".join(
         _run(step) for step in merge.get("steps", []) if isinstance(step, dict)
     )
@@ -464,7 +460,6 @@ def main() -> int:
     if not workflow_files:
         print(f"ERROR: no workflow files found in {WORKFLOW_DIR}")
         return 1
-
     errors: list[str] = []
     for path in workflow_files:
         try:
@@ -498,9 +493,7 @@ def main() -> int:
         if path.name == "main.yml":
             errors.extend(f"{path}: {error}" for error in _main_safe(data))
         if path.name == "retest.yml" and not _has_durable_named_artifact(
-            data,
-            action="actions/upload-artifact@",
-            artifact_name="pipeline-output",
+            data, action="actions/upload-artifact@", artifact_name="pipeline-output"
         ):
             errors.append(f"{path}: pipeline-output artifact retention must be durable")
         if path.name == "retest.yml" and not _has_command(
@@ -513,7 +506,6 @@ def main() -> int:
             errors.extend(f"{path}: {error}" for error in _deploy_pages_safe(data))
         if _has_command(data, "git push"):
             errors.append(f"{path}: workflows must not push directly to the repository")
-
     if errors:
         print("ERROR: workflow validation failed")
         for error in errors:

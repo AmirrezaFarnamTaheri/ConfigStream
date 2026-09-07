@@ -363,27 +363,27 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
-          go-version: '1.24.3'
+          go-version: '1.26.8'
           cache-dependency-path: |
             src/go/tester/go.sum
             src/go/utls_client/go.sum
       - name: Run Go unit tests
         run: |
           cd src/go/tester
-          go test ./...
+          go test -ldflags="-checklinkname=0" ./...
           cd ../utls_client
           go test ./...
       - name: Run Go race detector
         run: |
           cd src/go/tester
-          go test -race ./...
+          go test -ldflags="-checklinkname=0" -race ./...
       - name: Run bounded Go fuzz targets
         run: |
           cd src/go/tester
-          go test . -run=^$ -fuzz=FuzzParseConfig -fuzztime=5s
+          go test -ldflags="-checklinkname=0" . -run=^$ -fuzz=FuzzParseConfig -fuzztime=5s
           cd ../utls_client
           go test . -run=^$ -fuzz=FuzzParseTarget -fuzztime=5s
       - name: Run Go benchmarks
         run: |
           cd src/go/tester
-          go test . -run=^$ -bench=. -benchtime=1x
+          go test -ldflags="-checklinkname=0" . -run=^$ -bench=. -benchtime=1x

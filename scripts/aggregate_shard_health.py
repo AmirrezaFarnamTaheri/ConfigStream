@@ -14,15 +14,15 @@ from urllib.parse import urlparse
 
 try:
     from shard_sources import (
-        active_source_lines,
         load_quarantined_sources,
         partition,
+        runtime_source_lines,
     )
 except ModuleNotFoundError:
     from scripts.shard_sources import (
-        active_source_lines,
         load_quarantined_sources,
         partition,
+        runtime_source_lines,
     )
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -85,7 +85,7 @@ def expected_from_sources(sources_dir: Path, parts: int) -> int:
     expected = 0
     quarantined = load_quarantined_sources(sources_dir)
     for source_file in sorted(sources_dir.glob("batch_*.txt")):
-        lines = active_source_lines(source_file, quarantined)
+        lines = runtime_source_lines(source_file, quarantined)
         expected += sum(bool(bucket) for bucket in partition(lines, parts))
     return expected
 

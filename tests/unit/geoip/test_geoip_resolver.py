@@ -81,15 +81,17 @@ def test_close_is_idempotent():
 
 @pytest.mark.asyncio
 async def test_lookup_after_close_returns_empty():
-    """A lookup after close() must return an empty GeoData, not raise."""
+    """A lookup after close() must return unresolved GeoData, not raise."""
     resolver = GeoIPResolver()
     resolver.reader_city = MagicMock()
     resolver.reader_asn = MagicMock()
     resolver.close()
 
     result = await resolver.lookup("8.8.8.8")
-    # No reader is present; lookup should return empty GeoData gracefully.
-    assert result.country_code in (None, "XX", "Unknown (DB Missing)")
+    # Empty is the deliberate missing-database sentinel: it must stay falsey so
+    # pipeline telemetry never counts a missing GeoIP database as a resolution.
+    assert result.country_code == ""
+    assert result.country_name == "Unknown (DB Missing)"
 
 
 # ---------------------------------------------------------------------------

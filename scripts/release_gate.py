@@ -14,6 +14,7 @@ from pathlib import Path, PurePosixPath
 from typing import Any, Optional, Union
 
 from configstream.constants import is_tester_infrastructure_drop_reason
+from configstream.constants import ARTIFACT_TRANSIENT_SUFFIXES as TRANSIENT_SUFFIXES
 from configstream.output.client_formats import validate_xray_config
 from configstream.output.singbox_contract import validate_singbox_config
 
@@ -32,7 +33,6 @@ REQUIRED_FILES = (
     "clash.yaml",
     "xray.json",
 )
-TRANSIENT_SUFFIXES = (".lock", ".tmp", ".log", ".pyc", ".pyo", ".swp")
 NATIVE_REPORT_RELATIVE_PATH = "evidence/native_client_check_report.json"
 MAX_FILES = 10000
 MAX_FILE_BYTES = 128 * 1024 * 1024

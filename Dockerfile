@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 # Stage 1: Build Go Tester
-FROM golang:1.24-alpine@sha256:8bee1901f1e530bfb4a7850aa7a479d17ae3a18beb6e09064ed54cfd245b7191 AS builder
+FROM golang:1.26.8-alpine3.24@sha256:34efdd6036c92e155c8b0162a5da7626586b612ea636590035602c970eece564 AS builder
 
 WORKDIR /app
 # Leverage Docker cache for Go modules
@@ -12,13 +12,13 @@ RUN go mod download
 COPY src/go/tester/ .
 # Added tags for uTLS, QUIC, WireGuard, etc.
 # Strip debug symbols (-s -w) and disable CGO for static binary
-RUN CGO_ENABLED=0 go build -ldflags="-s -w" -tags "with_quic,with_dhcp,with_wireguard,with_ech,with_utls,with_reality_server,with_clash_api,with_gvisor" -o tester main.go
+RUN CGO_ENABLED=0 go build -ldflags="-s -w -checklinkname=0" -tags "with_quic,with_dhcp,with_wireguard,with_ech,with_utls,with_reality_server,with_clash_api,with_gvisor" -o tester main.go
 
 # Stage 2: Node.js (only the binary needed for GitHub Actions JS actions)
-FROM node:24-slim@sha256:24dc26ef1e3c3690f27ebc4136c9c186c3133b25563ae4d7f0692e4d1fe5db0e AS node-runtime
+FROM node:24.20.0-bookworm-slim@sha256:ba849c60be29959425b8734d57b8b4b7d56f98edd9504c9af091d5281095a71e AS node-runtime
 
 # Stage 3: Python Runtime
-FROM python:3.12-slim@sha256:a64ac5be6928c6a94f00b16e09cdf3ba3edd44452d10ffa4516a58004873573e AS app-base
+FROM python:3.12.14-slim-bookworm@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254 AS app-base
 
 # OCI image annotations for traceability
 LABEL org.opencontainers.image.title="ConfigStream"

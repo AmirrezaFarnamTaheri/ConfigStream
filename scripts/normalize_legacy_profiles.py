@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 ProfileGenerator = Callable[[list[dict[str, Any]]], tuple[str, dict[str, int]]]
+RecordValues = tuple[str, str, int, dict[str, Any], str, str]
 
 
 def load_records(root: Path) -> list[dict[str, Any]]:
@@ -20,9 +21,7 @@ def load_records(root: Path) -> list[dict[str, Any]]:
     return [item for item in payload if isinstance(item, dict)]
 
 
-def values(
-    record: dict[str, Any],
-) -> tuple[str, str, int, dict[str, Any], str, str]:
+def values(record: dict[str, Any]) -> RecordValues | None:
     protocol = str(record.get("protocol") or "").lower()
     name = (
         str(record.get("remarks") or record.get("id") or "Proxy")
@@ -36,7 +35,18 @@ def values(
         record.get("uuid") or details.get("username") or details.get("user") or ""
     )
     password = str(details.get("password") or "")
-    return protocol, name, int(record.get("port") or 0), details, user, password
+    raw_port = record.get("port")
+    if isinstance(raw_port, bool):
+        return None
+    if isinstance(raw_port, float) and not raw_port.is_integer():
+        return None
+    try:
+        port = int(raw_port or 0)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    if not 1 <= port <= 65535:
+        return None
+    return protocol, name, port, details, user, password
 
 
 def surge(records: list[dict[str, Any]]) -> tuple[str, dict[str, int]]:
@@ -52,7 +62,11 @@ def surge(records: list[dict[str, Any]]) -> tuple[str, dict[str, int]]:
     for record in records:
         if not record.get("is_working") or record.get("protocol") == "chain":
             continue
-        protocol, name, port, details, user, password = values(record)
+        parsed = values(record)
+        if parsed is None:
+            unsupported["invalid_port"] += 1
+            continue
+        protocol, name, port, details, user, password = parsed
         host = record.get("address")
         line = None
         if protocol == "http":
@@ -115,7 +129,11 @@ def loon(records: list[dict[str, Any]]) -> tuple[str, dict[str, int]]:
     for record in records:
         if not record.get("is_working") or record.get("protocol") == "chain":
             continue
-        protocol, name, port, details, user, password = values(record)
+        parsed = values(record)
+        if parsed is None:
+            unsupported["invalid_port"] += 1
+            continue
+        protocol, name, port, details, user, password = parsed
         host = record.get("address")
         line = None
         if protocol == "http":
@@ -164,7 +182,11 @@ def quantumult(records: list[dict[str, Any]]) -> tuple[str, dict[str, int]]:
     for record in records:
         if not record.get("is_working") or record.get("protocol") == "chain":
             continue
-        protocol, name, port, details, user, password = values(record)
+        parsed = values(record)
+        if parsed is None:
+            unsupported["invalid_port"] += 1
+            continue
+        protocol, name, port, details, user, password = parsed
         host = record.get("address")
         line = None
         if protocol == "http":
@@ -205,39 +227,122 @@ def quantumult(records: list[dict[str, Any]]) -> tuple[str, dict[str, int]]:
     return "\n".join(lines) + "\n", dict(unsupported)
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("artifact_dir", type=Path)
-    args = parser.parse_args()
-    records = load_records(args.artifact_dir)
+def _write_profile_family(
+    artifact_dir: Path,
+    records: list[dict[str, Any]],
+    *,
+    suffix: str = "",
+) -> dict[str, dict[str, Any]]:
     generators: dict[str, ProfileGenerator] = {
         "surge": surge,
         "loon": loon,
         "quantumult": quantumult,
     }
-    report: dict[str, Any] = {"schema_version": 1, "profiles": {}}
-    profiles = report["profiles"]
-    if not isinstance(profiles, dict):
-        raise TypeError("profiles report must be a dictionary")
+    result: dict[str, dict[str, Any]] = {}
     for family, generator in generators.items():
         content, unsupported = generator(records)
-        pattern = "quantumult*.conf" if family == "quantumult" else f"{family}*.conf"
-        targets = list(args.artifact_dir.glob(pattern))
-        if not targets:
-            targets = [
-                args.artifact_dir
-                / ("quantumult.conf" if family == "quantumult" else f"{family}.conf")
-            ]
-        for target in targets:
-            target.write_text(content, encoding="utf-8")
-        profiles[family] = {
-            "files": [path.name for path in targets],
-            "unsupported": unsupported,
-        }
-    (args.artifact_dir / "legacy_profile_coverage.json").write_text(
-        json.dumps(report, indent=2, ensure_ascii=False) + "\n",
+        stem = "quantumult" if family == "quantumult" else family
+        filename = f"{stem}{suffix}.conf"
+        target = artifact_dir / filename
+        target.write_text(content, encoding="utf-8")
+        result[family] = {"file": target.name, "unsupported": unsupported}
+    return result
+
+
+def _sip008_payload(records: list[dict[str, Any]]) -> dict[str, Any]:
+    """Return SIP008 server data from the already DNS-safe public records.
+
+    SIP008 carries Shadowsocks server configuration but has no standard field for
+    resolver policy. The DNS-safe variant therefore means the server endpoints
+    themselves come from the DNS-safe record set; encrypted resolver policy is
+    deliberately not claimed here.
+    """
+
+    servers: list[dict[str, Any]] = []
+    for record in records:
+        if not record.get("is_working"):
+            continue
+        if str(record.get("protocol") or "").lower() not in {"ss", "shadowsocks"}:
+            continue
+        parsed = values(record)
+        if parsed is None:
+            continue
+        _protocol, _name, port, details, _user, password = parsed
+        address = str(record.get("address") or "").strip()
+        if not address:
+            continue
+        servers.append(
+            {
+                "server": address,
+                "server_port": port,
+                "password": password,
+                "method": str(
+                    details.get("method")
+                    or details.get("cipher")
+                    or "chacha20-ietf-poly1305"
+                ),
+                "remarks": str(record.get("remarks") or record.get("id") or "Proxy"),
+            }
+        )
+    return {
+        "version": 1,
+        "servers": servers,
+        "bytes_used": 0,
+        "bytes_remaining": 0,
+    }
+
+
+def _write_dns_safe_subscription_aliases(
+    artifact_dir: Path, records: list[dict[str, Any]]
+) -> dict[str, str]:
+    generated: dict[str, str] = {}
+    raw_safe = artifact_dir / "proxies-dns-safe.txt"
+    if raw_safe.is_file():
+        shadowrocket = artifact_dir / "shadowrocket-dns-safe.txt"
+        shadowrocket.write_bytes(raw_safe.read_bytes())
+        generated["shadowrocket"] = shadowrocket.name
+
+    sip008 = artifact_dir / "sip008-dns-safe.json"
+    sip008.write_text(
+        json.dumps(_sip008_payload(records), indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
+    generated["sip008"] = sip008.name
+    return generated
+
+
+def normalize_profiles(artifact_dir: Path) -> dict[str, Any]:
+    records = load_records(artifact_dir)
+    standard = _write_profile_family(artifact_dir, records)
+
+    safe_records_path = artifact_dir / "proxies-dns-safe.json"
+    safe: dict[str, dict[str, Any]] = {}
+    safe_aliases: dict[str, str] = {}
+    if safe_records_path.is_file():
+        safe_records = json.loads(safe_records_path.read_text(encoding="utf-8"))
+        if not isinstance(safe_records, list):
+            raise ValueError("proxies-dns-safe.json must be a list")
+        safe_dicts = [item for item in safe_records if isinstance(item, dict)]
+        safe = _write_profile_family(artifact_dir, safe_dicts, suffix="-dns-safe")
+        safe_aliases = _write_dns_safe_subscription_aliases(artifact_dir, safe_dicts)
+
+    for family, entry in standard.items():
+        entry["dns_safe_file"] = safe.get(family, {}).get("file")
+        hardened = artifact_dir / f"{family}-dns-hardened.conf"
+        entry["preserved_hardened_file"] = hardened.name if hardened.is_file() else None
+
+    return {
+        "profiles": standard,
+        "dns_safe_aliases": safe_aliases,
+    }
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("artifact_dir", type=Path)
+    args = parser.parse_args(argv)
+    report = normalize_profiles(args.artifact_dir)
+    print(json.dumps(report, indent=2, sort_keys=True))
     return 0
 
 

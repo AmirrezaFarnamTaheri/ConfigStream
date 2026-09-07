@@ -7,7 +7,7 @@ Exposes testers via lazy imports to avoid heavy startup costs.
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .manager import SingBoxTester
+    from .configured_manager import SingBoxTester
     from .go import GoBatchTester
     from .utils import SecureConfigContext
 
@@ -20,7 +20,7 @@ __all__ = [
 
 def __getattr__(name: str):
     if name == "SingBoxTester":
-        from .manager import SingBoxTester as _SingBoxTester
+        from .configured_manager import SingBoxTester as _SingBoxTester
 
         return _SingBoxTester
     if name == "GoBatchTester":

@@ -126,7 +126,7 @@ Unknown licenses requiring external resolution: **151**
 | npm | `picomatch` | `4.0.5` | development | `MIT` |
 | npm | `playwright` | `1.62.0` | development | `Apache-2.0` |
 | npm | `playwright-core` | `1.62.0` | development | `Apache-2.0` |
-| npm | `postcss` | `8.5.23` | development | `MIT` |
+| npm | `postcss` | `8.5.28` | development | `MIT` |
 | npm | `rolldown` | `1.1.5` | development | `MIT` |
 | npm | `source-map-js` | `1.2.1` | development | `BSD-3-Clause` |
 | npm | `tinyglobby` | `0.2.17` | development | `MIT` |
@@ -143,8 +143,8 @@ Unknown licenses requiring external resolution: **151**
 | python | `anyio` | `4.12.0` | required | unknown |
 | python | `async-timeout` | `5.0.1` | required | unknown |
 | python | `attrs` | `25.4.0` | required | unknown |
-| python | `beautifulsoup4` | `4.14.3` | required | unknown |
-| python | `cachetools` | `7.1.4` | required | unknown |
+| python | `beautifulsoup4` | `4.15.0` | required | unknown |
+| python | `cachetools` | `7.1.8` | required | unknown |
 | python | `certifi` | `2025.11.12` | required | unknown |
 | python | `charset-normalizer` | `3.4.4` | required | unknown |
 | python | `click` | `8.3.3` | required | unknown |
@@ -166,7 +166,7 @@ Unknown licenses requiring external resolution: **151**
 | python | `hyperframe` | `6.1.0` | required | unknown |
 | python | `idna` | `3.15` | required | unknown |
 | python | `limits` | `5.8.0` | required | unknown |
-| python | `markdown-it-py` | `4.0.0` | required | unknown |
+| python | `markdown-it-py` | `4.2.0` | required | unknown |
 | python | `maxminddb` | `3.1.1` | required | unknown |
 | python | `mdurl` | `0.1.2` | required | unknown |
 | python | `msgpack` | `1.2.1` | required | unknown |
@@ -180,9 +180,9 @@ Unknown licenses requiring external resolution: **151**
 | python | `psutil` | `7.2.1` | required | unknown |
 | python | `pycares` | `4.11.0` | required | unknown |
 | python | `pycparser` | `2.23` | required | unknown |
-| python | `pydantic` | `2.13.4` | required | unknown |
+| python | `pydantic` | `2.13.5` | required | unknown |
 | python | `pydantic-settings` | `2.14.2` | required | unknown |
-| python | `pydantic_core` | `2.46.4` | required | unknown |
+| python | `pydantic_core` | `2.46.5` | required | unknown |
 | python | `Pygments` | `2.20.0` | required | unknown |
 | python | `pyparsing` | `3.3.2` | required | unknown |
 | python | `python-dotenv` | `1.2.2` | required | unknown |

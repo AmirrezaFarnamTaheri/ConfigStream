@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import posixpath
 import re
 from pathlib import Path
 from typing import Any
@@ -13,6 +14,8 @@ try:
     import tomllib
 except ModuleNotFoundError:  # Python 3.10
     import tomli as tomllib
+
+EXACT_PATCH_RE = re.compile(r"^\d+\.\d+\.\d+$")
 
 
 def _load_json(path: Path) -> dict[str, Any]:
@@ -37,6 +40,54 @@ def _workflow_versions(root: Path, key: str) -> list[tuple[Path, str]]:
     return declarations
 
 
+def _legacy_tester_go_test_commands(workflow_text: str) -> list[str]:
+    """Return Go test commands executed from the embedded tester module."""
+
+    commands: list[str] = []
+    cwd = "."
+    for raw_line in workflow_text.splitlines():
+        stripped = raw_line.strip()
+        if stripped.startswith("- name:"):
+            cwd = "."
+            continue
+        if stripped.startswith("cd "):
+            target = stripped[3:].strip().strip("'\"")
+            cwd = posixpath.normpath(posixpath.join(cwd, target))
+            continue
+        if re.match(r"^go\s+test(?:\s|$)", stripped) and cwd == "src/go/tester":
+            commands.append(stripped)
+    return commands
+
+
+def _validate_legacy_go_quality_gates(
+    errors: list[str], workflow_text: str, linker_flag: str
+) -> None:
+    """Require linker compatibility on every embedded-tester quality gate."""
+
+    commands = _legacy_tester_go_test_commands(workflow_text)
+    gate_predicates = {
+        "unit": lambda command: all(
+            token not in command for token in ("-race", "-fuzz=", "-bench=")
+        ),
+        "race": lambda command: "-race" in command,
+        "fuzz": lambda command: "-fuzz=" in command,
+        "benchmark": lambda command: "-bench=" in command,
+    }
+    for gate, predicate in gate_predicates.items():
+        matching = [command for command in commands if predicate(command)]
+        _expect(
+            errors,
+            bool(matching),
+            f"CI legacy tester {gate} gate is missing",
+        )
+        if matching:
+            _expect(
+                errors,
+                all(linker_flag in command for command in matching),
+                f"CI legacy tester {gate} gate must carry the governed linker compatibility flag",
+            )
+
+
 def validate_repository(root: Path) -> list[str]:
     root = Path(root)
     errors: list[str] = []
@@ -51,14 +102,30 @@ def validate_repository(root: Path) -> list[str]:
         go = versions["go"]
         python_min = str(python["minimum"])
         python_container = str(python["container"])
+        python_variant = str(python["container_variant"])
         node_min = int(node["minimum_major"])
         node_container = str(node["container"])
+        node_variant = str(node["container_variant"])
         go_language = str(go["language"])
         go_toolchain = str(go["toolchain"])
         go_ci = str(go.get("ci", go_toolchain))
         go_container = str(go["container"])
+        go_variant = str(go["container_variant"])
+        sing_box = versions["sing_box"]
+        sing_box_release = str(sing_box["release_validator"]).strip()
+        sing_box_embedded = str(sing_box["embedded_tester"])
+        linker_compat = sing_box["embedded_linker_compat"]
+        linker_compat_flag = str(linker_compat["flag"])
+        linker_compat_scope = str(linker_compat["scope"])
+        linker_compat_upstream_fix = str(linker_compat["upstream_fix_commit"])
     except (KeyError, TypeError, ValueError) as exc:
         return [f"runtime manifest schema invalid: {type(exc).__name__}: {exc}"]
+
+    _expect(
+        errors,
+        bool(EXACT_PATCH_RE.fullmatch(sing_box_release)),
+        f"sing_box.release_validator must pin an exact patch release, got {sing_box_release!r}",
+    )
 
     try:
         pyproject = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
@@ -109,6 +176,14 @@ def validate_repository(root: Path) -> list[str]:
             bool(toolchain_match and toolchain_match.group(1) == go_toolchain),
             f"go.mod toolchain must be go{go_toolchain}",
         )
+        sing_box_match = re.search(
+            r"(?m)^\s*github\.com/sagernet/sing-box\s+v(\S+)\s*$", go_mod
+        )
+        _expect(
+            errors,
+            bool(sing_box_match and sing_box_match.group(1) == sing_box_embedded),
+            f"go.mod embedded sing-box must be v{sing_box_embedded}",
+        )
 
     try:
         dockerfile = (root / "Dockerfile").read_text(encoding="utf-8")
@@ -116,15 +191,35 @@ def validate_repository(root: Path) -> list[str]:
         errors.append(f"Dockerfile unreadable: {type(exc).__name__}")
     else:
         for required in (
-            f"FROM golang:{go_container}-alpine@sha256:",
-            f"FROM node:{node_container}-slim@sha256:",
-            f"FROM python:{python_container}-slim@sha256:",
+            f"FROM golang:{go_container}-{go_variant}@sha256:",
+            f"FROM node:{node_container}-{node_variant}@sha256:",
+            f"FROM python:{python_container}-{python_variant}@sha256:",
         ):
             _expect(
                 errors,
                 required in dockerfile,
                 f"Dockerfile missing canonical base: {required}",
             )
+        _expect(
+            errors,
+            linker_compat_flag in dockerfile,
+            "Dockerfile legacy tester build must carry the governed linker compatibility flag",
+        )
+
+    try:
+        wasm_build = (root / "scripts/build_wasm.sh").read_text(encoding="utf-8")
+        ci_workflow = (root / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+    except (OSError, UnicodeError) as exc:
+        errors.append(
+            f"legacy tester build declaration unreadable: {type(exc).__name__}"
+        )
+    else:
+        _expect(
+            errors,
+            linker_compat_flag in wasm_build,
+            "WASM legacy tester build must carry the governed linker compatibility flag",
+        )
+        _validate_legacy_go_quality_gates(errors, ci_workflow, linker_compat_flag)
 
     try:
         go_versions = _workflow_versions(root, "go-version")
@@ -147,6 +242,60 @@ def validate_repository(root: Path) -> list[str]:
             observed == str(node["ci"]),
             f"{path.relative_to(root)} node-version {observed!r} != {node['ci']!r}",
         )
+
+    for name, observed in (
+        ("python.container", python_container),
+        ("node.container", node_container),
+        ("go.toolchain", go_toolchain),
+        ("go.ci", go_ci),
+        ("go.container", go_container),
+    ):
+        _expect(
+            errors,
+            bool(EXACT_PATCH_RE.fullmatch(observed)),
+            f"{name} must pin an exact patch release, got {observed!r}",
+        )
+    _expect(
+        errors,
+        go_toolchain == go_ci == go_container,
+        "Go toolchain, CI, and container versions must be identical",
+    )
+
+    _expect(
+        errors,
+        linker_compat_flag == "-checklinkname=0",
+        "embedded linker compatibility flag must remain '-checklinkname=0'",
+    )
+    _expect(
+        errors,
+        linker_compat_scope == "legacy-tester-only",
+        "embedded linker compatibility scope must remain legacy-tester-only",
+    )
+    _expect(
+        errors,
+        bool(re.fullmatch(r"[0-9a-f]{40}", linker_compat_upstream_fix)),
+        "embedded linker compatibility upstream fix must be a full commit SHA",
+    )
+
+    try:
+        sing_box_versions = _workflow_versions(root, "SING_BOX_VERSION")
+    except (OSError, UnicodeError) as exc:
+        errors.append(f"workflow sing-box declaration unreadable: {type(exc).__name__}")
+    else:
+        _expect(
+            errors,
+            bool(sing_box_versions),
+            "workflows must declare SING_BOX_VERSION",
+        )
+        for path, observed in sing_box_versions:
+            _expect(
+                errors,
+                observed == sing_box_release,
+                (
+                    f"{path.relative_to(root)} SING_BOX_VERSION {observed!r} "
+                    f"!= {sing_box_release!r}"
+                ),
+            )
 
     return errors
 

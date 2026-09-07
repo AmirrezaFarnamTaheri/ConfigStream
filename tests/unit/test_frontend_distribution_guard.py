@@ -67,7 +67,7 @@ def test_public_data_fetches_are_forced_through_verified_bytes() -> None:
     assert "Artifact verifier unavailable in public context" in network
     assert "missingArtifactNetwork" in utils
     assert "window.api.requireVerifiedArtifact" in main
-    assert "return await window.api.fetchProxies()" in main
+    assert "window.api.fetchVerifiedArtifactJson('data/proxy_search.json')" in main
     assert "window.api.fetchMetadata()" in main
     assert "window.api.fetchStatistics()" in main
     assert "import logger from './utils/logger.js';" in main

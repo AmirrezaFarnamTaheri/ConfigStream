@@ -55,6 +55,7 @@ jobs:
             scripts/reconcile_release_metadata.py \
             scripts/preflight_release_inputs.py \
             scripts/normalize_source_timing_logs.py \
+            scripts/refresh_shard_contract.py \
             scripts/native_client_checks.py \
             scripts/release_gate.py \
             scripts/validate_workflows.py
@@ -67,6 +68,7 @@ jobs:
             tests/unit/test_install_native_validators.py \
             tests/unit/test_preflight_release_inputs.py \
             tests/unit/test_normalize_source_timing_logs.py \
+            tests/unit/test_refresh_shard_contract.py \
             tests/unit/test_release_remediation.py \
             tests/unit/test_validate_workflows.py \
             tests/unit/test_validate_workflows_resilient.py \
@@ -90,6 +92,8 @@ jobs:
       packages: write
     outputs:
       image: ${{ steps.image.outputs.value }}
+      digest: ${{ steps.build.outputs.digest }}
+      immutable_image: ${{ steps.image.outputs.repository }}@${{ steps.build.outputs.digest }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -101,8 +105,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - id: image
-        run: echo "value=ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]'):${{ github.sha }}" >> "$GITHUB_OUTPUT"
-      - uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        shell: bash
+        run: |
+          set -euo pipefail
+          repository="ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')"
+          echo "repository=$repository" >> "$GITHUB_OUTPUT"
+          echo "value=$repository:${{ github.sha }}" >> "$GITHUB_OUTPUT"
+      - id: build
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           context: .
           target: ci-runner
@@ -125,7 +135,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
-          go-version: '1.24.3'
+          go-version: '1.26.8'
           cache-dependency-path: src/go/tester/go.sum
       - run: |
           set -euo pipefail
@@ -142,6 +152,53 @@ jobs:
             frontend/assets/js/wasm_exec.js
           if-no-files-found: error
           retention-days: 7
+          overwrite: true
+
+  setup_geoip:
+    name: Prepare GeoIP Databases
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: [build_container]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    container:
+      image: ${{ needs.build_container.outputs.immutable_image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+      env:
+        PYTHONPATH: /app/src
+    steps:
+      - name: Download and validate GeoIP databases once per run
+        env:
+          MAXMIND_LICENSE_KEY: ${{ secrets.MAXMIND_LICENSE_KEY }}
+        run: |
+          set -euo pipefail
+          python -m configstream.cli update-databases
+          python - <<'PY'
+          from pathlib import Path
+          import geoip2.database
+          for raw_path, expected_type in {
+              "data/GeoLite2-City.mmdb": "City",
+              "data/GeoLite2-ASN.mmdb": "ASN",
+          }.items():
+              path = Path(raw_path)
+              if not path.is_file() or path.stat().st_size <= 0:
+                  raise SystemExit(f"missing GeoIP database: {path}")
+              with geoip2.database.Reader(path) as reader:
+                  database_type = reader.metadata().database_type
+              if expected_type not in database_type:
+                  raise SystemExit(f"unexpected GeoIP database type for {path}: {database_type}")
+          PY
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: geoip-databases-${{ github.run_id }}
+          path: |
+            data/GeoLite2-City.mmdb
+            data/GeoLite2-ASN.mmdb
+          if-no-files-found: error
+          retention-days: 1
           overwrite: true
 
   setup_matrix:
@@ -224,12 +281,8 @@ jobs:
   pipeline:
     name: Run Source Shard ${{ matrix.batch }}.${{ matrix.part }}
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && needs.build_container.result == 'success' && needs.setup_matrix.outputs.status == 'ready'
-    needs: [build_container, setup_matrix]
+    needs: [build_container, setup_geoip, setup_matrix]
     runs-on: ubuntu-latest
-    # 270 min covers the 14400s batch window + grace and artifact steps.
-    # The window must stay >= dynamic_reshard.TARGET_BATCH_SECONDS (4h):
-    # the resharder balances batches to that target, so a shorter force-end
-    # would mark healthy runs time_limited every time.
     timeout-minutes: 270
     permissions:
       contents: read
@@ -239,7 +292,7 @@ jobs:
       max-parallel: 12
       matrix: ${{ fromJson(needs.setup_matrix.outputs.matrix || '{"include":[{"enabled":false,"batch":"diagnostic","part":0,"source_file":"","source_count":0,"source_sha256":""}]}') }}
     container:
-      image: ${{ needs.build_container.outputs.image }}
+      image: ${{ needs.build_container.outputs.immutable_image }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
@@ -255,6 +308,11 @@ jobs:
         with:
           name: source-matrix-${{ github.run_id }}
           path: .
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        if: matrix.enabled == true
+        with:
+          name: geoip-databases-${{ github.run_id }}
+          path: data
       - name: Run bounded shard and always write lineage
         if: matrix.enabled == true
         shell: bash
@@ -264,9 +322,6 @@ jobs:
           VT_API_KEY: ${{ secrets.VT_API_KEY }}
           WARP_KEY_POOL: ${{ secrets.WARP_KEY_POOL }}
           CANARY_URL: "https://httpbin.org"
-          # Must stay >= dynamic_reshard.TARGET_BATCH_SECONDS (14400s): the
-          # resharder balances every batch to that target, so a shorter
-          # force-end would mark healthy runs time_limited.
           BATCH_TIME_LIMIT_SECONDS: 14400
           BATCH_TIME_LIMIT_GRACE_SECONDS: 900
           FORCE_SCANNER: "false"
@@ -346,6 +401,9 @@ jobs:
           then
             rc=125
           fi
+          if ! python scripts/refresh_shard_contract.py "$output"; then
+            if [ "$rc" -eq 0 ]; then rc=125; fi
+          fi
           exit "$rc"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always() && matrix.enabled == true
@@ -361,12 +419,11 @@ jobs:
   merge_validate_publish:
     name: Merge, Diagnose, Gate, and Publish
     if: always() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-    needs: [quality, build_container, build_wasm, setup_matrix, pipeline]
+    needs: [quality, build_container, build_wasm, setup_geoip, setup_matrix, pipeline]
     runs-on: ubuntu-latest
     permissions:
       actions: read
-      contents: write
-      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -375,8 +432,7 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
-          cache-dependency-path: |
-            requirements-dev.txt
+          cache-dependency-path: requirements-dev.txt
       - name: Install Python dependencies with evidence
         run: |
           python scripts/resilient_stage.py run \
@@ -396,6 +452,7 @@ jobs:
           python scripts/resilient_stage.py record --name quality-job --status "${{ needs.quality.result }}"
           python scripts/resilient_stage.py record --name container-job --status "${{ needs.build_container.result }}"
           python scripts/resilient_stage.py record --name wasm-job --status "${{ needs.build_wasm.result }}"
+          python scripts/resilient_stage.py record --name geoip-job --status "${{ needs.setup_geoip.result }}"
           python scripts/resilient_stage.py record --name matrix-job --status "${{ needs.setup_matrix.result }}"
           matrix_status="${{ needs.setup_matrix.outputs.status }}"
           if [ -z "$matrix_status" ]; then matrix_status=failure; fi
@@ -416,11 +473,19 @@ jobs:
         with:
           name: frontend-wasm-${{ github.run_id }}
           path: wasm-artifact
+      - name: Download exact runtime source matrix artifact
+        id: matrix_artifact_download
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        continue-on-error: true
+        with:
+          name: source-matrix-${{ github.run_id }}
+          path: matrix-artifact
       - name: Record artifact downloads
         if: always()
         run: |
           python scripts/resilient_stage.py record --name shard-download --status "${{ steps.shard_download.outcome }}"
           python scripts/resilient_stage.py record --name wasm-download --status "${{ steps.wasm_download.outcome }}"
+          python scripts/resilient_stage.py record --name matrix-artifact-download --status "${{ steps.matrix_artifact_download.outcome }}"
       - name: Restore available artifacts
         run: |
           python scripts/resilient_stage.py run --name restore-shards -- bash -lc '
@@ -450,7 +515,7 @@ jobs:
         run: |
           python scripts/resilient_stage.py run --name merge-batches -- python -m scripts.merge_batches
           python scripts/resilient_stage.py run --name aggregate-shard-health -- python scripts/aggregate_shard_health.py --parts "$SOURCE_SHARD_PARTS"
-          python scripts/resilient_stage.py run --name normalize-source-timings -- python scripts/normalize_source_timing_logs.py --evidence pipeline-evidence/source_timing.jsonl
+          python scripts/resilient_stage.py run --name normalize-source-timings -- python scripts/normalize_source_timing_logs.py --sources-pattern "matrix-artifact/sources/runtime/batch_*_part_*.txt" --evidence pipeline-evidence/source_timing.jsonl
           python scripts/resilient_stage.py run --name dynamic-reshard -- python scripts/dynamic_reshard.py
       - name: Upload source reshard recommendation
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
@@ -458,7 +523,9 @@ jobs:
         continue-on-error: true
         with:
           name: source-reshard-recommendation
-          path: sources/batch_*.txt
+          path: |
+            sources/batch_*.txt
+            sources/source_timing_weights.json
           if-no-files-found: warn
           retention-days: 30
       - name: Prepare public output artifact transactionally
@@ -514,11 +581,13 @@ jobs:
             --required-stage quality-job \
             --required-stage container-job \
             --required-stage wasm-job \
+            --required-stage geoip-job \
             --required-stage matrix-job \
             --required-stage matrix-status \
             --required-stage shard-jobs \
             --required-stage shard-download \
             --required-stage wasm-download \
+            --required-stage matrix-artifact-download \
             --required-stage restore-shards \
             --required-stage restore-wasm \
             --required-stage merge-batches \

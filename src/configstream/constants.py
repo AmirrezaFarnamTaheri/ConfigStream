@@ -68,6 +68,9 @@ SUSPICIOUS_DOMAINS = [
 
 MAX_PORT = 65535
 
+# Process-local files that must never be governed or published as release artifacts.
+ARTIFACT_TRANSIENT_SUFFIXES = (".lock", ".tmp", ".log", ".pyc", ".pyo", ".swp")
+
 # Latency buckets for metadata and frontend consistency.
 LATENCY_BUCKET_FAST_MAX_MS = 200
 LATENCY_BUCKET_MEDIUM_MAX_MS = 800

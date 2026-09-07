@@ -2,24 +2,41 @@
   "schema_version": 1,
   "python": {
     "minimum": "3.10",
-    "ci_supported": ["3.10", "3.11", "3.12"],
+    "ci_supported": [
+      "3.10",
+      "3.11",
+      "3.12"
+    ],
     "default": "3.11",
     "deployment": "3.12",
-    "container": "3.12"
+    "container": "3.12.14",
+    "container_variant": "slim-bookworm"
   },
   "node": {
     "minimum_major": 24,
     "ci": "24",
-    "container": "24"
+    "container": "24.20.0",
+    "container_variant": "bookworm-slim"
   },
   "go": {
     "language": "1.24.0",
-    "toolchain": "1.24.3",
-    "ci": "1.24.3",
-    "container": "1.24"
+    "toolchain": "1.26.8",
+    "ci": "1.26.8",
+    "container": "1.26.8",
+    "container_variant": "alpine3.24"
   },
   "rust": {
     "edition": "2021",
     "maturity": "experimental"
+  },
+  "sing_box": {
+    "release_validator": "1.13.18",
+    "embedded_tester": "1.9.7",
+    "embedded_contract": "legacy-runtime-input-modernized-before-release-validation",
+    "embedded_linker_compat": {
+      "flag": "-checklinkname=0",
+      "scope": "legacy-tester-only",
+      "upstream_fix_commit": "a33349366d899068145f2d0e3ea0f5b2632fa3f2"
+    }
   }
 }

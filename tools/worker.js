@@ -1,131 +1,272 @@
-// tools/worker.js - BYOW private bridge
-// ConfigStream BYOW Relay v2.0
-// Deploy this to Cloudflare Workers (Free Tier)
-// Enhanced with masquerading (fake website) and dynamic routing
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// ConfigStream BYOW private bridge for Cloudflare Workers.
+//
+// Required Worker bindings/secrets:
+//   TUNNEL_TOKEN - high-entropy bearer token (at least 32 characters)
+//   PROXY_HOST   - one operator-controlled public TCP upstream hostname/IP
+//   PROXY_PORT   - upstream TCP port (1..65535, excluding SMTP port 25)
+// Optional:
+//   PROXY_PATH   - WebSocket endpoint path (default: /my-secret-tunnel)
+//   FAKE_SITE_URL - HTTPS origin used for non-tunnel masquerade responses
 
 import { connect } from 'cloudflare:sockets';
 
-// 1. CONFIGURATION
-const PROXY_PATH = "/my-secret-tunnel"; // Only tunnel traffic here
-const FAKE_SITE_URL = "https://www.kernel.org"; // The "Mask" - harmless technical site
-
-// Optional: Restrict usage to a specific UUID (leave empty for public)
-const userID = ''; // Set in Worker environment variables if needed
-
-// Default backend (can be overridden via path: /IP/PORT)
-const DEFAULT_PROXY_IP = '127.0.0.1'; // User must configure this
-const DEFAULT_PROXY_PORT = 443;
+const DEFAULT_PROXY_PATH = '/my-secret-tunnel';
+const DEFAULT_FAKE_SITE_URL = 'https://www.kernel.org/';
+const MIN_TOKEN_LENGTH = 32;
+const encoder = new TextEncoder();
 
 export default {
-  async fetch(request, env, ctx) {
+  async fetch(request, env) {
     const url = new URL(request.url);
-    
-    // 1. The "Secret Handshake" - Only accept WebSocket connections on the specific path
-    if (url.pathname === PROXY_PATH && request.headers.get("Upgrade") === "websocket") {
-        return handleProxy(request, url);
+
+    if (url.pathname === '/health') {
+      return new Response('OK', {
+        status: 200,
+        headers: { 'Cache-Control': 'no-store', 'Content-Type': 'text/plain; charset=utf-8' },
+      });
     }
-    
-    // 2. The "Grey Area" Masquerade - For everyone else (Active Probes, Censors), act like a harmless mirror
-    // Fetch content from a legitimate technical site
+
+    let proxyPath;
     try {
-        const fakeResponse = await fetch(FAKE_SITE_URL + url.pathname, {
-            headers: {
-                "User-Agent": "Mozilla/5.0 (Compatible; ConfigStream/1.0)",
-                "Referer": FAKE_SITE_URL
-            }
-        });
-        
-        // Return the fake content seamlessly
-        return new Response(fakeResponse.body, {
-            status: fakeResponse.status,
-            headers: fakeResponse.headers,
-        });
+      proxyPath = parseProxyPath(env.PROXY_PATH);
     } catch (error) {
-        // Fallback to simple response if fetch fails
-        if (url.pathname === '/health') {
-            return new Response('OK', { status: 200 });
-        }
-        return new Response('ConfigStream BYOW Relay Active', { status: 200 });
+      return misconfiguredResponse(error);
     }
-  }
+
+    if (url.pathname === proxyPath) {
+      const upgrade = request.headers.get('Upgrade');
+      if (!upgrade || upgrade.toLowerCase() !== 'websocket') {
+        return new Response('Expected Upgrade: websocket', { status: 426 });
+      }
+
+      let config;
+      try {
+        config = parseProxyConfig(env);
+      } catch (error) {
+        return misconfiguredResponse(error);
+      }
+
+      if (!(await isAuthorized(request, config.token))) {
+        return new Response('Unauthorized', {
+          status: 401,
+          headers: {
+            'Cache-Control': 'no-store',
+            'WWW-Authenticate': 'Bearer realm="ConfigStream BYOW"',
+          },
+        });
+      }
+
+      return handleProxy(config);
+    }
+
+    return masquerade(url, env.FAKE_SITE_URL);
+  },
 };
 
-// Proxy handler function
-async function handleProxy(request, url) {
-    const upgradeHeader = request.headers.get('Upgrade');
-    if (!upgradeHeader || upgradeHeader !== 'websocket') {
-        return new Response('Expected Upgrade: websocket', { status: 426 });
-    }
-
-    // Parse destination from path if you want "Dynamic" routing
-    // e.g., wss://worker.dev/my-secret-tunnel/1.2.3.4/8080
-    let targetHost = DEFAULT_PROXY_IP;
-    let targetPort = DEFAULT_PROXY_PORT;
-    
-    const pathParts = url.pathname.split('/').filter(p => p);
-    // Skip PROXY_PATH part, check for IP:PORT pattern
-    // pathParts[0] might be 'my-secret-tunnel' (without slash)
-    // Adjust index based on whether PROXY_PATH has leading slash
-
-    // Simple heuristic: look for IP pattern in parts
-    for (let i = 0; i < pathParts.length - 1; i++) {
-        if (isValidIP(pathParts[i])) {
-            targetHost = pathParts[i];
-            targetPort = parseInt(pathParts[i+1]) || DEFAULT_PROXY_PORT;
-            break;
-        }
-    }
-
-    // Create WebSocket pair
-    const webSocket = new WebSocketPair();
-    const [client, server] = Object.values(webSocket);
-
-    // Accept the client connection
-    server.accept();
-
-    try {
-        const socket = connect({ hostname: targetHost, port: targetPort });
-        const writer = socket.writable.getWriter();
-
-        // Pipe WebSocket -> TCP
-        server.addEventListener('message', async event => {
-            try {
-                if (typeof event.data === 'string') {
-                    await writer.write(new TextEncoder().encode(event.data));
-                } else {
-                    await writer.write(event.data);
-                }
-            } catch (e) {
-                // Ignore write errors
-            }
-        });
-
-        // Pipe TCP -> WebSocket
-        socket.readable.pipeTo(new WritableStream({
-            write(chunk) {
-                if (server.readyState === WebSocket.READY_STATE_OPEN) {
-                    server.send(chunk);
-                }
-            }
-        })).catch(() => {}); // Ignore pipe errors
-
-        // Handle close
-        server.addEventListener('close', () => {
-            try { socket.close(); } catch (e) {}
-        });
-
-    } catch (e) {
-        server.close(1011, "Upstream connection failed");
-        return new Response("Upstream failed", { status: 502 });
-    }
-
-    return new Response(null, {
-        status: 101,
-        webSocket: client,
-    });
+function parseProxyPath(rawPath) {
+  const path = String(rawPath || DEFAULT_PROXY_PATH).trim();
+  if (!path.startsWith('/') || path.includes('?') || path.includes('#') || path.includes('..')) {
+    throw new Error('PROXY_PATH must be one absolute URL path without query, fragment, or traversal');
+  }
+  return path;
 }
 
-// Helper to check if path is an IP (for dynamic routing)
-function isValidIP(ip) {
-    return /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(ip);
+function parseProxyConfig(env) {
+  const host = String(env.PROXY_HOST || '').trim();
+  const port = Number(String(env.PROXY_PORT || '').trim());
+  const token = String(env.TUNNEL_TOKEN || '');
+
+  if (!host || /[\s/]/.test(host)) {
+    throw new Error('PROXY_HOST must be one bare hostname or IP address');
+  }
+  if (!Number.isInteger(port) || port < 1 || port > 65535 || port === 25) {
+    throw new Error('PROXY_PORT must be an integer from 1 through 65535 except 25');
+  }
+  if (token.length < MIN_TOKEN_LENGTH) {
+    throw new Error(`TUNNEL_TOKEN must contain at least ${MIN_TOKEN_LENGTH} characters`);
+  }
+
+  return { host, port, token };
+}
+
+async function isAuthorized(request, expectedToken) {
+  const authorization = request.headers.get('Authorization') || '';
+  const prefix = 'Bearer ';
+  if (!authorization.startsWith(prefix)) {
+    return false;
+  }
+  const providedToken = authorization.slice(prefix.length);
+  if (!providedToken) {
+    return false;
+  }
+
+  const [expectedDigest, providedDigest] = await Promise.all([
+    crypto.subtle.digest('SHA-256', encoder.encode(expectedToken)),
+    crypto.subtle.digest('SHA-256', encoder.encode(providedToken)),
+  ]);
+  return constantTimeEqual(
+    new Uint8Array(expectedDigest),
+    new Uint8Array(providedDigest),
+  );
+}
+
+function constantTimeEqual(left, right) {
+  if (left.byteLength !== right.byteLength) {
+    return false;
+  }
+  let difference = 0;
+  for (let index = 0; index < left.byteLength; index += 1) {
+    difference |= left[index] ^ right[index];
+  }
+  return difference === 0;
+}
+
+async function handleProxy(config) {
+  let socket;
+  try {
+    socket = connect({ hostname: config.host, port: config.port });
+    await socket.opened;
+  } catch (_error) {
+    if (socket) {
+      try {
+        await socket.close();
+      } catch (_closeError) {
+        // The original connection failure is the useful client-facing signal.
+      }
+    }
+    return new Response('Upstream connection failed', {
+      status: 502,
+      headers: { 'Cache-Control': 'no-store' },
+    });
+  }
+
+  const pair = new WebSocketPair();
+  const [client, server] = Object.values(pair);
+  server.accept({ allowHalfOpen: true });
+  const writer = socket.writable.getWriter();
+  let shuttingDown = false;
+
+  const shutdown = async (code = 1000, reason = 'Tunnel closed') => {
+    if (shuttingDown) {
+      return;
+    }
+    shuttingDown = true;
+    try {
+      await socket.close();
+    } catch (_error) {
+      // Best-effort cleanup; close errors do not make the tunnel recoverable.
+    }
+    try {
+      writer.releaseLock();
+    } catch (_error) {
+      // The stream may already have released its writer during socket close.
+    }
+    if (server.readyState === WebSocket.READY_STATE_OPEN) {
+      try {
+        server.close(code, reason);
+      } catch (_error) {
+        // The peer may have closed between readyState inspection and close().
+      }
+    }
+  };
+
+  server.addEventListener('message', (event) => {
+    void (async () => {
+      let chunk;
+      if (typeof event.data === 'string') {
+        chunk = encoder.encode(event.data);
+      } else if (event.data instanceof ArrayBuffer) {
+        chunk = new Uint8Array(event.data);
+      } else if (ArrayBuffer.isView(event.data)) {
+        chunk = new Uint8Array(
+          event.data.buffer,
+          event.data.byteOffset,
+          event.data.byteLength,
+        );
+      } else {
+        await shutdown(1003, 'Unsupported WebSocket message type');
+        return;
+      }
+      try {
+        await writer.write(chunk);
+      } catch (_error) {
+        await shutdown(1011, 'Upstream write failed');
+      }
+    })();
+  });
+
+  server.addEventListener('close', () => {
+    void shutdown();
+  });
+  server.addEventListener('error', () => {
+    void shutdown(1011, 'WebSocket error');
+  });
+
+  void socket.readable
+    .pipeTo(
+      new WritableStream({
+        write(chunk) {
+          if (server.readyState !== WebSocket.READY_STATE_OPEN) {
+            throw new Error('WebSocket is no longer open');
+          }
+          server.send(chunk);
+        },
+      }),
+    )
+    .then(
+      () => shutdown(1000, 'Upstream closed'),
+      () => shutdown(1011, 'Upstream read failed'),
+    );
+
+  void socket.closed.catch(() => shutdown(1011, 'Upstream socket error'));
+
+  return new Response(null, {
+    status: 101,
+    webSocket: client,
+  });
+}
+
+async function masquerade(requestUrl, rawFakeSiteUrl) {
+  let fakeSite;
+  try {
+    fakeSite = new URL(String(rawFakeSiteUrl || DEFAULT_FAKE_SITE_URL));
+    if (fakeSite.protocol !== 'https:') {
+      throw new Error('FAKE_SITE_URL must use HTTPS');
+    }
+  } catch (_error) {
+    fakeSite = new URL(DEFAULT_FAKE_SITE_URL);
+  }
+
+  const upstream = new URL(requestUrl.pathname + requestUrl.search, fakeSite);
+  try {
+    const fakeResponse = await fetch(upstream, {
+      redirect: 'manual',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Compatible; ConfigStream/1.0)',
+        Referer: fakeSite.origin + '/',
+      },
+    });
+    const headers = new Headers(fakeResponse.headers);
+    headers.delete('set-cookie');
+    headers.delete('set-cookie2');
+    return new Response(fakeResponse.body, {
+      status: fakeResponse.status,
+      statusText: fakeResponse.statusText,
+      headers,
+    });
+  } catch (_error) {
+    return new Response('Not Found', {
+      status: 404,
+      headers: { 'Cache-Control': 'no-store', 'Content-Type': 'text/plain; charset=utf-8' },
+    });
+  }
+}
+
+function misconfiguredResponse(error) {
+  console.error('BYOW relay configuration error', error);
+  return new Response('Relay unavailable', {
+    status: 503,
+    headers: { 'Cache-Control': 'no-store' },
+  });
 }

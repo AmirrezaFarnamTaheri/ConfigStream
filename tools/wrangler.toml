@@ -1,19 +1,28 @@
 # ConfigStream BYOW Worker Configuration
-# Deploy this to Cloudflare Workers (Free Tier)
+# Deploy this to Cloudflare Workers (Free Tier).
 # One-click deploy: https://deploy.workers.cloudflare.com/?url=https://github.com/AmirrezaFarnamTaheri/ConfigStream/tree/main/tools
+#
+# The worker is intentionally fail-closed. After deployment configure ONE
+# compatible raw-TCP upstream and a high-entropy bearer secret:
+#
+#   wrangler secret put TUNNEL_TOKEN
+#   wrangler secret put PROXY_HOST
+#   wrangler secret put PROXY_PORT
+#
+# PROXY_HOST / PROXY_PORT may also be ordinary Worker variables if their values
+# are not sensitive. TUNNEL_TOKEN must remain a secret and should contain at
+# least 32 characters. Optional variables:
+#   PROXY_PATH=/my-secret-tunnel
+#   FAKE_SITE_URL=https://www.kernel.org/
+#
+# This worker is NOT a generic rewrite target for arbitrary VLESS/VMess
+# WebSocket outbounds. Its configured upstream must accept the raw TCP payload
+# relayed by tools/worker.js.
 
 name = "configstream-bridge"
 main = "worker.js"
 compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]
 
-# Worker configuration
 [env.production]
 name = "configstream-bridge"
-
-# Optional: Set environment variables in Cloudflare Dashboard
-# [vars]
-# USER_ID = ""  # Optional: Restrict to specific UUID
-# DEFAULT_PROXY_IP = "127.0.0.1"  # Configure your backend proxy IP
-# DEFAULT_PROXY_PORT = "443"  # Configure your backend proxy port
-

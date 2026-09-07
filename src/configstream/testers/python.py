@@ -145,18 +145,21 @@ class PythonTester:
         if not proxy.config:
             proxy.is_working = False
             proxy.details["tester_error_category"] = "missing_config"
+            proxy.details["failure_category"] = "tester_error"
             proxy.tested_at = self.datetime_now_iso()
             return proxy
         factory = _get_singbox_factory()
         if factory is None:
             proxy.is_working = False
             proxy.details["tester_error_category"] = "python_fallback_unavailable"
+            proxy.details["failure_category"] = "tester_unavailable"
             proxy.tested_at = self.datetime_now_iso()
             return proxy
         outbound = to_singbox_outbound(proxy)
         if not outbound:
             proxy.is_working = False
             proxy.details["tester_error_category"] = "conversion_failed"
+            proxy.details["failure_category"] = "tester_error"
             proxy.tested_at = self.datetime_now_iso()
             return proxy
         outbound = enrich_outbound_with_evasion(
@@ -197,6 +200,7 @@ class PythonTester:
                     )
                 except asyncio.TimeoutError:
                     proxy.details["tester_error_category"] = "singbox_start_timeout"
+                    proxy.details["failure_category"] = "tester_error"
                     if await self._should_log("singbox_start_timeout"):
                         logger.warning(
                             "sing-box fallback start timed out for %s",
@@ -206,6 +210,7 @@ class PythonTester:
                     return proxy
                 except Exception as exc:
                     proxy.details["tester_error_category"] = "singbox_start_failed"
+                    proxy.details["failure_category"] = "tester_error"
                     proxy.details["error"] = SecurityValidator.sanitize_log_message(
                         str(exc)
                     )
@@ -225,6 +230,7 @@ class PythonTester:
                 proxy_url = getattr(instance, "http_proxy_url", None)
                 if not instance or not proxy_url:
                     proxy.details["tester_error_category"] = "singbox_proxy_url_missing"
+                    proxy.details["failure_category"] = "tester_error"
                     proxy.is_working = False
                     return proxy
                 async with aiohttp.ClientSession(
@@ -249,6 +255,7 @@ class PythonTester:
                 )
             proxy.is_working = False
             proxy.details["tester_error_category"] = "singbox_runtime_failed"
+            proxy.details["failure_category"] = "tester_error"
             proxy.details["error"] = SecurityValidator.sanitize_log_message(str(exc))
         finally:
             if instance:
