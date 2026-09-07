@@ -7,7 +7,9 @@ ROOT = Path(__file__).resolve().parents[2]
 WORKER = ROOT / "tools" / "workers" / "subscription_worker.js"
 
 
-def test_subscription_worker_has_no_baked_credentials_or_request_route_override() -> None:
+def test_subscription_worker_has_no_baked_credentials_or_request_route_override() -> (
+    None
+):
     text = WORKER.read_text(encoding="utf-8")
 
     assert "db7dfe45-b10c-457c-81d2-0c934f3b0100" not in text
