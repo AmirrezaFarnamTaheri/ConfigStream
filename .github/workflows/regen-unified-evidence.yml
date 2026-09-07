@@ -1,0 +1,40 @@
+name: Regenerate unified dependency evidence
+
+on:
+  push:
+    branches:
+      - codex/fix-runtime-release-audit
+    paths:
+      - .github/workflows/regen-unified-evidence.yml
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    if: github.ref_name == 'codex/fix-runtime-release-audit'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out consolidation branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: codex/fix-runtime-release-audit
+      - name: Generate deterministic evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/generate_supply_chain_evidence.py
+          python scripts/generate_dependency_inventory.py
+          git diff --check
+      - name: Commit generated evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/generated/sbom.cdx.json docs/generated/dependency-licenses.json docs/generated/dependency-licenses.md docs/generated/dependency-inventory.json docs/generated/dependency-inventory.md
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m 'chore(generated): refresh unified dependency evidence'
+          git push origin HEAD:codex/fix-runtime-release-audit
