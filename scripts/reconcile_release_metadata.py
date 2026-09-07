@@ -241,8 +241,9 @@ def _runtime_release_validator_version() -> str:
     if not isinstance(sing_box, dict):
         raise ValueError("runtime-versions.json must define sing_box")
     version = str(sing_box.get("release_validator") or "").strip()
-    if not version or not all(part.isdigit() for part in version.split(".")):
-        raise ValueError("sing_box.release_validator must be a numeric version")
+    parts = version.split(".")
+    if len(parts) != 3 or not all(part.isdigit() for part in parts):
+        raise ValueError("sing_box.release_validator must be an exact numeric version")
     return version
 
 
@@ -330,9 +331,6 @@ def reconcile(root: Path, evidence_path: Path | None = None) -> dict[str, Any]:
     metadata["shielded_verified_count"] = public_verified
     _reconcile_execution_audit(metadata)
 
-    # Source acquisition diagnostics already live under
-    # shard_summary.source_failures. Keep the public metadata contract closed by
-    # removing the duplicate top-level field emitted by shard aggregation.
     metadata.pop("source_failure_summary", None)
 
     metadata_path.write_text(
