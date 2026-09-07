@@ -10,7 +10,7 @@ SCRIPT = ROOT / "tools" / "lab-runner.sh"
 def test_lab_runner_never_interpolates_user_host_into_bash_code() -> None:
     text = SCRIPT.read_text(encoding="utf-8")
 
-    assert "bash -c 'exec 3<>\"/dev/tcp/$1/$2\"' _ \"$host\" \"$port\"" in text
+    assert 'bash -c \'exec 3<>"/dev/tcp/$1/$2"\' _ "$host" "$port"' in text
     assert 'bash -c "echo >/dev/tcp/$host/$port"' not in text
     assert "parse_hostport" in text
     assert "validate_port" in text
