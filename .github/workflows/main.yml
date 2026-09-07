@@ -92,6 +92,8 @@ jobs:
       packages: write
     outputs:
       image: ${{ steps.image.outputs.value }}
+      digest: ${{ steps.build.outputs.digest }}
+      immutable_image: ${{ steps.image.outputs.repository }}@${{ steps.build.outputs.digest }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -103,8 +105,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - id: image
-        run: echo "value=ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]'):${{ github.sha }}" >> "$GITHUB_OUTPUT"
-      - uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        shell: bash
+        run: |
+          set -euo pipefail
+          repository="ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')"
+          echo "repository=$repository" >> "$GITHUB_OUTPUT"
+          echo "value=$repository:${{ github.sha }}" >> "$GITHUB_OUTPUT"
+      - id: build
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           context: .
           target: ci-runner
@@ -155,7 +163,7 @@ jobs:
       contents: read
       packages: read
     container:
-      image: ${{ needs.build_container.outputs.image }}
+      image: ${{ needs.build_container.outputs.immutable_image }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
@@ -284,7 +292,7 @@ jobs:
       max-parallel: 12
       matrix: ${{ fromJson(needs.setup_matrix.outputs.matrix || '{"include":[{"enabled":false,"batch":"diagnostic","part":0,"source_file":"","source_count":0,"source_sha256":""}]}') }}
     container:
-      image: ${{ needs.build_container.outputs.image }}
+      image: ${{ needs.build_container.outputs.immutable_image }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
@@ -393,8 +401,6 @@ jobs:
           then
             rc=125
           fi
-          # The CLI writes its first manifest before this wrapper finalizes
-          # lineage; refresh only after the process exits and lineage is final.
           if ! python scripts/refresh_shard_contract.py "$output"; then
             if [ "$rc" -eq 0 ]; then rc=125; fi
           fi
