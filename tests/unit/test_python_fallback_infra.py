@@ -5,11 +5,12 @@ import pytest
 
 from configstream.constants import is_tester_infrastructure_drop_reason
 from configstream.models import Proxy
+import configstream.testers.python as python_tester_module
 from configstream.testers.python import PythonTester
 
 
 @pytest.mark.asyncio
-async def test_unavailable_singbox_fallback_remains_release_blocking():
+async def test_unavailable_singbox_fallback_remains_release_blocking() -> None:
     settings = MagicMock()
     tester = PythonTester(settings)
     proxy = Proxy(
@@ -20,7 +21,7 @@ async def test_unavailable_singbox_fallback_remains_release_blocking():
         uuid="00000000-0000-0000-0000-000000000001",
     )
 
-    with patch("configstream.testers.python._get_singbox_factory", return_value=None):
+    with patch.object(python_tester_module, "_get_singbox_factory", return_value=None):
         result = await tester.test_via_singbox(proxy)
 
     assert result.is_working is False
