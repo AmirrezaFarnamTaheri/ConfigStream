@@ -79,7 +79,9 @@ async def test_scan_rejects_invalid_concurrency(
     ("raw", "expected"),
     [(None, 100), ("1", 1), (str(dns_scanner.CHUNK_SIZE), dns_scanner.CHUNK_SIZE)],
 )
-def test_parse_concurrency_accepts_bounded_values(raw: str | None, expected: int) -> None:
+def test_parse_concurrency_accepts_bounded_values(
+    raw: str | None, expected: int
+) -> None:
     assert dns_scanner._parse_concurrency(raw) == expected
 
 
