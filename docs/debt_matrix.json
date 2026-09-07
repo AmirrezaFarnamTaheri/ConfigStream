@@ -32,7 +32,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 285,
+      "line": 287,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -40,7 +40,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 290,
+      "line": 292,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -64,7 +64,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 329,
+      "line": 331,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -72,7 +72,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 334,
+      "line": 338,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -80,7 +80,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 339,
+      "line": 345,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -88,7 +88,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 439,
+      "line": 447,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -96,7 +96,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 462,
+      "line": 470,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -104,7 +104,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 559,
+      "line": 571,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -112,7 +112,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 610,
+      "line": 622,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -120,7 +120,7 @@
     },
     {
       "path": "scripts/dynamic_reshard.py",
-      "line": 681,
+      "line": 693,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -688,7 +688,7 @@
     },
     {
       "path": "src/configstream/geoip.py",
-      "line": 92,
+      "line": 98,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -696,7 +696,7 @@
     },
     {
       "path": "src/configstream/geoip.py",
-      "line": 156,
+      "line": 162,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -704,7 +704,7 @@
     },
     {
       "path": "src/configstream/geoip.py",
-      "line": 221,
+      "line": 229,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -800,7 +800,7 @@
     },
     {
       "path": "src/configstream/history/tracker.py",
-      "line": 151,
+      "line": 153,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -808,7 +808,7 @@
     },
     {
       "path": "src/configstream/history/tracker.py",
-      "line": 182,
+      "line": 186,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -816,7 +816,7 @@
     },
     {
       "path": "src/configstream/history/tracker.py",
-      "line": 227,
+      "line": 231,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -824,7 +824,7 @@
     },
     {
       "path": "src/configstream/history/tracker.py",
-      "line": 277,
+      "line": 283,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -832,7 +832,7 @@
     },
     {
       "path": "src/configstream/history/tracker.py",
-      "line": 279,
+      "line": 285,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -840,7 +840,7 @@
     },
     {
       "path": "src/configstream/history/tracker.py",
-      "line": 299,
+      "line": 305,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",

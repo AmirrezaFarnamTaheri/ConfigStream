@@ -323,7 +323,9 @@ def resolve_timings(
             continue
         canonical_url = matches[0]
         resolved = replace(record, url=canonical_url)
-        by_observation.setdefault((canonical_url, record.source_log), []).append(resolved)
+        by_observation.setdefault((canonical_url, record.source_log), []).append(
+            resolved
+        )
 
     # A source should belong to one runtime shard.  If duplicated logs are present
     # (for example, retry evidence), retain the most expensive complete observation

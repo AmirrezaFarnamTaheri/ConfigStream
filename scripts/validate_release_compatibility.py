@@ -62,7 +62,9 @@ def validate(artifact_dir: Path, repo_root: Path = REPO_ROOT) -> list[str]:
             )
         safe_name = str(sip008.get("dns_safe_endpoint_variant") or "")
         if safe_name != "sip008-dns-safe.json":
-            errors.append("SIP008 DNS-safe endpoint variant must be sip008-dns-safe.json")
+            errors.append(
+                "SIP008 DNS-safe endpoint variant must be sip008-dns-safe.json"
+            )
         elif not (artifact_dir / safe_name).is_file():
             errors.append(f"SIP008 DNS-safe endpoint variant is missing: {safe_name}")
 

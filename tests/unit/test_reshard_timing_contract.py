@@ -62,9 +62,7 @@ def test_runtime_timing_weights_require_exact_source_set(tmp_path: Path) -> None
 
 def test_runtime_timing_weights_reject_unknown_source_ids(tmp_path: Path) -> None:
     urls = {"https://a.example/sub"}
-    (tmp_path / "batch_1.txt").write_text(
-        "https://a.example/sub\n", encoding="utf-8"
-    )
+    (tmp_path / "batch_1.txt").write_text("https://a.example/sub\n", encoding="utf-8")
     _write_sidecar(tmp_path, urls, weights={"0" * 64: 50})
 
     with pytest.raises(SystemExit, match="unknown sources"):

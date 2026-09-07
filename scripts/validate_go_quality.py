@@ -33,11 +33,7 @@ def _has_gate(
     for args in commands:
         if not all(token in args for token in required):
             continue
-        if any(
-            arg.startswith(prefix)
-            for prefix in forbidden_prefixes
-            for arg in args
-        ):
+        if any(arg.startswith(prefix) for prefix in forbidden_prefixes for arg in args):
             continue
         return True
     return False

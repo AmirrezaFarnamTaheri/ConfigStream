@@ -69,7 +69,9 @@ def test_configured_targets_rejects_parent_traversal(tmp_path: Path) -> None:
 
 def test_repository_frontend_has_no_dead_evasion_selector() -> None:
     index = Path("frontend/index.html").read_text(encoding="utf-8")
-    dynamic = Path("frontend/assets/js/dynamic-downloads.js").read_text(encoding="utf-8")
+    dynamic = Path("frontend/assets/js/dynamic-downloads.js").read_text(
+        encoding="utf-8"
+    )
     assert "evasion-mode-selector" not in index
     assert "evasion-mode-selector" not in dynamic
     assert "evasionMode" not in dynamic

@@ -6,7 +6,6 @@ from pathlib import Path
 
 from scripts import validate_runtime_versions
 
-
 LINKER_FLAG = "-checklinkname=0"
 UPSTREAM_FIX = "a33349366d899068145f2d0e3ea0f5b2632fa3f2"
 

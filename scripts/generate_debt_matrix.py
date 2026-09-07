@@ -255,7 +255,9 @@ def _is_false_positive(marker: str, text: str) -> bool:
             return True
         if re.search(r"VALUES\s*\(\s*\{placeholders\}", text_stripped):
             return True
-        if re.search(r"\bIN\s*\(\s*\{placeholders\}\s*\)", text_stripped, re.IGNORECASE):
+        if re.search(
+            r"\bIN\s*\(\s*\{placeholders\}\s*\)", text_stripped, re.IGNORECASE
+        ):
             return True
         # Docstring / comment explaining the intentional placeholder behaviour
         if "minimal placeholder is encoded" in text_lower:

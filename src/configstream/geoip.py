@@ -87,7 +87,13 @@ class GeoIPResolver:
             mtime = path.stat().st_mtime
             logger.info("Loaded %s database.", label)
             return reader, mtime
-        except (OSError, IOError, geoip2.errors.GeoIP2Error, ValueError, TypeError) as exc:
+        except (
+            OSError,
+            IOError,
+            geoip2.errors.GeoIP2Error,
+            ValueError,
+            TypeError,
+        ) as exc:
             logger.error("Failed to load %s database: %s", label, exc)
         except Exception as exc:
             logger.exception("Unexpected error loading %s database: %s", label, exc)
@@ -210,7 +216,9 @@ class GeoIPResolver:
             if self.reader_asn:
                 response_asn = self.reader_asn.asn(ip)
                 result.asn = str(response_asn.autonomous_system_number)
-                result.org = response_asn.autonomous_system_organization or "Unknown Org"
+                result.org = (
+                    response_asn.autonomous_system_organization or "Unknown Org"
+                )
         except geoip2.errors.AddressNotFoundError:
             result.country_code = "XX"
             result.country_name = "Unknown"

@@ -138,7 +138,9 @@ class ProxyHistoryTracker:
         if self.storage and lookback_days > 0:
             try:
                 cutoff = int(
-                    (datetime.now(timezone.utc) - timedelta(days=lookback_days)).timestamp()
+                    (
+                        datetime.now(timezone.utc) - timedelta(days=lookback_days)
+                    ).timestamp()
                 )
                 conn = self.storage.get_connection()
                 cursor = conn.execute(
@@ -165,7 +167,9 @@ class ProxyHistoryTracker:
         if not self.storage:
             return 0
         try:
-            cutoff = int((datetime.now(timezone.utc) - timedelta(days=days)).timestamp())
+            cutoff = int(
+                (datetime.now(timezone.utc) - timedelta(days=days)).timestamp()
+            )
             sql = "DELETE FROM proxy_history WHERE timestamp < ?"
             removed = 0
             if hasattr(self.storage, "execute_write"):
@@ -263,7 +267,9 @@ GROUP BY proxy_id"""
                             }
                         history_data[pid]["entries"].append(
                             {
-                                "timestamp": datetime.fromtimestamp(ts, tz=timezone.utc).isoformat(),
+                                "timestamp": datetime.fromtimestamp(
+                                    ts, tz=timezone.utc
+                                ).isoformat(),
                                 "is_working": bool(working),
                                 "latency": lat,
                                 "country": cc,
@@ -302,7 +308,9 @@ GROUP BY proxy_id"""
         elif isinstance(stats, dict):
             stats_dict = stats
         else:
-            logger.warning(f"Unknown stats type for evasion trend export: {type(stats)}")
+            logger.warning(
+                f"Unknown stats type for evasion trend export: {type(stats)}"
+            )
             stats_dict = {}
         HistoryExporter.export_evasion_trend(stats_dict, output_path)
 

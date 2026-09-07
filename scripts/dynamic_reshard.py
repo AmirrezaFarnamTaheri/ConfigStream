@@ -241,7 +241,9 @@ def parse_logs(
                                     prefix = url.split("[BASE64]", 1)[0].strip()
                                     if prefix:
                                         candidates = [
-                                            u for u in allowed_urls if u.startswith(prefix)
+                                            u
+                                            for u in allowed_urls
+                                            if u.startswith(prefix)
                                         ]
                                         if candidates:
                                             duration = total_duration / max(
@@ -305,12 +307,10 @@ def parse_db_runs(
             )
             if not cursor.fetchone():
                 return {}, {}
-            rows = conn.execute(
-                """
+            rows = conn.execute("""
                 SELECT url, timestamp, duration_ms, fetched_count, working_count, batch_source
                 FROM source_runs
-                """
-            ).fetchall()
+                """).fetchall()
     except Exception as e:
         print(f"[WARN] Failed to read {db_path}: {e}")
         return {}, {}
@@ -322,22 +322,30 @@ def parse_db_runs(
         try:
             ts_i = int(ts or 0)
         except Exception:
-            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+            logging.getLogger(__name__).debug(
+                "Suppressed broad exception", exc_info=True
+            )
             ts_i = 0
         try:
             dur_ms = float(duration_ms or 0.0)
         except Exception:
-            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+            logging.getLogger(__name__).debug(
+                "Suppressed broad exception", exc_info=True
+            )
             dur_ms = 0.0
         try:
             fetched = int(fetched_count or 0)
         except Exception:
-            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+            logging.getLogger(__name__).debug(
+                "Suppressed broad exception", exc_info=True
+            )
             fetched = 0
         try:
             working = int(working_count or 0)
         except Exception:
-            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+            logging.getLogger(__name__).debug(
+                "Suppressed broad exception", exc_info=True
+            )
             working = 0
         batch_tag = str(batch_source or "").strip()
         per_url_runs[url].append((ts_i, dur_ms, fetched, working, batch_tag))
@@ -460,7 +468,9 @@ def analyze_similarity(observed_metrics: Dict[str, Tuple[int, float]]) -> Set[st
                 fingerprints[url] = proxies
                 count += 1
         except Exception:  # nosec B110
-            logging.getLogger(__name__).debug("Suppressed broad exception", exc_info=True)
+            logging.getLogger(__name__).debug(
+                "Suppressed broad exception", exc_info=True
+            )
     print(f"[INFO] Loaded {count} source fingerprints.")
     if count < 2:
         return set()
@@ -533,7 +543,9 @@ def _publish_reshard_layout(
             staged_urls.update(batch)
 
         if staged_urls != all_urls:
-            raise RuntimeError("reshard changed the canonical source set before publish")
+            raise RuntimeError(
+                "reshard changed the canonical source set before publish"
+            )
 
         _write_timing_weights(
             timing_temp,
@@ -697,7 +709,9 @@ def main() -> None:
                 f"  {batch_id}: {int(data['sources'])} sources, "
                 f"{data['total_duration_s']:.1f}s total"
             )
-    print("\n[INFO] Refactor complete. Run the pipeline again to see performance gains.")
+    print(
+        "\n[INFO] Refactor complete. Run the pipeline again to see performance gains."
+    )
 
 
 def _require_timing_prerequisites() -> None:

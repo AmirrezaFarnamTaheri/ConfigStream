@@ -89,7 +89,9 @@ def _latest_recommendation_run(slug: str) -> int | None:
             run_id = int(run["id"])
         except (KeyError, TypeError, ValueError):
             continue
-        artifacts = _gh("api", f"repos/{slug}/actions/runs/{run_id}/artifacts?per_page=100")
+        artifacts = _gh(
+            "api", f"repos/{slug}/actions/runs/{run_id}/artifacts?per_page=100"
+        )
         if artifacts.returncode != 0:
             continue
         try:
@@ -238,7 +240,9 @@ def _apply(recommendation: Path) -> bool:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--run-id", type=int, help="explicit source run id")
-    parser.add_argument("--check", action="store_true", help="report without modifying files")
+    parser.add_argument(
+        "--check", action="store_true", help="report without modifying files"
+    )
     args = parser.parse_args(argv)
 
     _require_gh()

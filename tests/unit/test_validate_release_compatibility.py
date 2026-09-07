@@ -47,7 +47,9 @@ def test_release_compatibility_rejects_stale_sing_box_target(tmp_path: Path) -> 
     payload = json.loads((artifact / "format_compatibility.json").read_text())
     payload["targets"]["sing-box"]["target"] = "1.13.14"
     _write(artifact / "format_compatibility.json", payload)
-    assert any("governed release validator" in error for error in validate(artifact, repo))
+    assert any(
+        "governed release validator" in error for error in validate(artifact, repo)
+    )
 
 
 def test_release_compatibility_rejects_fake_sip008_hardening(tmp_path: Path) -> None:
@@ -55,4 +57,6 @@ def test_release_compatibility_rejects_fake_sip008_hardening(tmp_path: Path) -> 
     payload = json.loads((artifact / "format_compatibility.json").read_text())
     payload["targets"]["sip008"]["dns_hardened_resolver_policy"] = "embedded"
     _write(artifact / "format_compatibility.json", payload)
-    assert any("resolver policy unsupported" in error for error in validate(artifact, repo))
+    assert any(
+        "resolver policy unsupported" in error for error in validate(artifact, repo)
+    )

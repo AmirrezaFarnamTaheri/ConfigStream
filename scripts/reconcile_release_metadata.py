@@ -277,9 +277,7 @@ def _reconcile_format_compatibility(root: Path) -> str | None:
     return release_validator
 
 
-def _write_proxy_search_projection(
-    root: Path, records: list[dict[str, Any]]
-) -> int:
+def _write_proxy_search_projection(root: Path, records: list[dict[str, Any]]) -> int:
     """Write the minimal verified dataset used by the landing-page search."""
 
     fields = ("protocol", "country_code", "city", "latency", "config")

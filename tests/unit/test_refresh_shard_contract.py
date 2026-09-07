@@ -34,4 +34,6 @@ def test_refresh_shard_contract_prunes_transients_and_hashes_final_lineage(
     for rel_path in ("shard_lineage.json", "pipeline_events.jsonl"):
         path = output / rel_path
         assert entries[rel_path]["size_bytes"] == path.stat().st_size
-        assert entries[rel_path]["sha256"] == hashlib.sha256(path.read_bytes()).hexdigest()
+        assert (
+            entries[rel_path]["sha256"] == hashlib.sha256(path.read_bytes()).hexdigest()
+        )

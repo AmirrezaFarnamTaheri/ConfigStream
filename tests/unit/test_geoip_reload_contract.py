@@ -36,9 +36,7 @@ async def test_c_extension_lookup_still_checks_for_database_replacement(
     monkeypatch.setattr(
         resolver, "_check_reload_needed", lambda: reload_calls.append(True)
     )
-    monkeypatch.setattr(
-        resolver, "_do_lookup", lambda _ip: GeoData(country_code="US")
-    )
+    monkeypatch.setattr(resolver, "_do_lookup", lambda _ip: GeoData(country_code="US"))
 
     first = await resolver.lookup("1.1.1.1")
     second = await resolver.lookup("1.1.1.1")

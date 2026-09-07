@@ -11,15 +11,13 @@ def test_native_go_quality_gates_are_present() -> None:
 
 
 def test_go_quality_parser_accepts_governed_linker_flag() -> None:
-    commands = _go_test_commands(
-        '''
+    commands = _go_test_commands("""
         go test -ldflags="-checklinkname=0" ./...
         go test -ldflags="-checklinkname=0" -race ./...
         go test -ldflags="-checklinkname=0" . -run=^$ -fuzz=FuzzParseConfig -fuzztime=5s
         go test . -run=^$ -fuzz=FuzzParseTarget -fuzztime=5s
         go test -ldflags="-checklinkname=0" . -run=^$ -bench=. -benchtime=1x
-        '''
-    )
+        """)
 
     assert _has_gate(commands, required=("./...",))
     assert _has_gate(commands, required=("-race", "./..."))
@@ -29,12 +27,10 @@ def test_go_quality_parser_accepts_governed_linker_flag() -> None:
 
 
 def test_unit_gate_does_not_accept_only_race_or_fuzz() -> None:
-    commands = _go_test_commands(
-        '''
+    commands = _go_test_commands("""
         go test -race ./...
         go test . -run=^$ -fuzz=FuzzParseConfig -fuzztime=5s
-        '''
-    )
+        """)
 
     assert not _has_gate(
         commands,
