@@ -76,8 +76,22 @@ def _write_fixture(
         f"go-version: '{workflow_go}'\n"
         "node-version: '24'\n"
         "SING_BOX_VERSION: '1.13.18'\n"
-        + "\n".join(f'run: go test -ldflags="{linker_flag}" ./...' for _ in range(4))
-        + "\n",
+        "- name: unit\n"
+        "  run: |\n"
+        "    cd src/go/tester\n"
+        f'    go test -ldflags="{linker_flag}" ./...\n'
+        "- name: race\n"
+        "  run: |\n"
+        "    cd src/go/tester\n"
+        f'    go test -ldflags="{linker_flag}" -race ./...\n'
+        "- name: fuzz\n"
+        "  run: |\n"
+        "    cd src/go/tester\n"
+        f'    go test -ldflags="{linker_flag}" . -run=^$ -fuzz=FuzzParseConfig -fuzztime=5s\n'
+        "- name: benchmark\n"
+        "  run: |\n"
+        "    cd src/go/tester\n"
+        f'    go test -ldflags="{linker_flag}" . -run=^$ -bench=. -benchtime=1x\n',
         encoding="utf-8",
     )
     (root / "scripts/build_wasm.sh").write_text(
@@ -173,3 +187,30 @@ def test_validator_rejects_broadened_legacy_linker_scope(tmp_path: Path) -> None
     errors = validate_runtime_versions.validate_repository(tmp_path)
 
     assert any("legacy-tester-only" in error for error in errors)
+
+
+def test_validator_rejects_linker_flag_missing_from_race_gate(tmp_path: Path) -> None:
+    _write_fixture(tmp_path)
+    workflow_path = tmp_path / ".github/workflows/ci.yml"
+    workflow = workflow_path.read_text(encoding="utf-8")
+    workflow = workflow.replace(
+        f'go test -ldflags="{LINKER_FLAG}" -race ./...',
+        "go test -race ./...",
+    )
+    workflow_path.write_text(workflow, encoding="utf-8")
+
+    errors = validate_runtime_versions.validate_repository(tmp_path)
+
+    assert any("race gate must carry" in error for error in errors)
+
+
+def test_validator_rejects_invalid_sing_box_release_version(tmp_path: Path) -> None:
+    _write_fixture(tmp_path)
+    manifest_path = tmp_path / "config/runtime-versions.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["sing_box"]["release_validator"] = "1.13"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    errors = validate_runtime_versions.validate_repository(tmp_path)
+
+    assert any("sing_box.release_validator" in error for error in errors)
