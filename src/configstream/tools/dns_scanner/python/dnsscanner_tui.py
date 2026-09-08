@@ -42,6 +42,19 @@ from textual.widgets import (
     DirectoryTree,
 )
 
+try:
+    from .slipstream_artifacts import (
+        SLIPSTREAM_ARTIFACTS,
+        download_verified_artifact,
+        verify_artifact,
+    )
+except ImportError:  # pragma: no cover - direct script execution compatibility
+    from slipstream_artifacts import (  # type: ignore[no-redef]
+        SLIPSTREAM_ARTIFACTS,
+        download_verified_artifact,
+        verify_artifact,
+    )
+
 # Configure logging (disabled by default)
 logger.remove()  # Remove default handler to disable all logging
 # Uncomment below to enable file logging for debugging
@@ -56,27 +69,21 @@ logger.remove()  # Remove default handler to disable all logging
 class SlipstreamManager:
     """Manages slipstream client download and execution across platforms."""
 
-    DOWNLOAD_URLS = {
-        "Darwin-arm64": "https://github.com/AliRezaBeigy/slipstream-rust-deploy/releases/latest/download/slipstream-client-darwin-arm64",
-        "Darwin-x86_64": "https://github.com/AliRezaBeigy/slipstream-rust-deploy/releases/latest/download/slipstream-client-darwin-amd64",
-        "Windows": "https://github.com/AliRezaBeigy/slipstream-rust-deploy/releases/latest/download/slipstream-client-windows-amd64.exe",
-        "Linux": "https://github.com/AliRezaBeigy/slipstream-rust-deploy/releases/latest/download/slipstream-client-linux-amd64",
-    }
+    ARTIFACTS = SLIPSTREAM_ARTIFACTS
 
-    # Primary filenames (for new downloads)
-    FILENAMES = {
-        "Darwin-arm64": "slipstream-client-darwin-arm64",
-        "Darwin-x86_64": "slipstream-client-darwin-amd64",
-        "Windows": "slipstream-client-windows-amd64.exe",
-        "Linux": "slipstream-client-linux-amd64",
-    }
+    FILENAMES = {key: value["filename"] for key, value in ARTIFACTS.items()}
 
-    # Alternative filenames to check (for existing installations)
+    # Alternative names are accepted only when their contents match the pinned
+    # digest for the active platform. Merely existing is never enough to execute.
     ALT_FILENAMES = {
-        "Windows": ["slipstream-client.exe", "slipstream-client-windows-amd64.exe"],
+        "Windows-x86_64": [
+            "slipstream-client.exe",
+            "slipstream-client-windows-amd64.exe",
+        ],
         "Darwin-arm64": ["slipstream-client", "slipstream-client-darwin-arm64"],
         "Darwin-x86_64": ["slipstream-client", "slipstream-client-darwin-amd64"],
-        "Linux": ["slipstream-client", "slipstream-client-linux-amd64"],
+        "Linux-x86_64": ["slipstream-client", "slipstream-client-linux-amd64"],
+        "Linux-arm64": ["slipstream-client", "slipstream-client-linux-arm64"],
     }
 
     PLATFORM_DIRS = {
@@ -84,6 +91,7 @@ class SlipstreamManager:
         "Windows": "windows",
         "Linux": "linux",
     }
+
 
     def __init__(self):
         self.base_dir = Path(__file__).parent.parent / "slipstream-client"
@@ -98,17 +106,14 @@ class SlipstreamManager:
             self.machine = "arm64"
 
     def get_platform_key(self) -> str:
-        """Get the platform key for download URLs."""
-        # Windows uses a single key (no architecture differentiation)
-        if self.system == "Windows":
-            return "Windows"
-        elif self.system == "Linux":
-            return "Linux"
-        elif self.system == "Darwin":
-            # macOS differentiates between ARM and Intel
-            return f"Darwin-{self.machine}"
-        else:
-            raise RuntimeError(f"Unsupported platform: {self.system}")
+        """Return an architecture-specific key present in the pinned manifest."""
+        key = f"{self.system}-{self.machine}"
+        if key not in self.ARTIFACTS:
+            raise RuntimeError(f"Unsupported platform: {self.system} {self.machine}")
+        return key
+
+    def _artifact(self) -> dict[str, str]:
+        return self.ARTIFACTS[self.get_platform_key()]
 
     def get_platform_dir(self) -> Path:
         """Get the platform-specific directory."""
@@ -116,146 +121,69 @@ class SlipstreamManager:
         return cast(Path, self.base_dir / dir_name)
 
     def get_executable_path(self) -> Path:
-        """Get the path to the slipstream executable.
-
-        First checks for any existing executable (including alternate names),
-        then falls back to the primary filename for new downloads.
-        """
-        # Return cached path if already found
-        if self._cached_executable_path and self._cached_executable_path.exists():
+        """Return a verified installed path or the primary download destination."""
+        artifact = self._artifact()
+        expected_sha256 = artifact["sha256"]
+        if (
+            self._cached_executable_path
+            and verify_artifact(self._cached_executable_path, expected_sha256)
+        ):
             return self._cached_executable_path
 
         platform_key = self.get_platform_key()
         platform_dir = self.get_platform_dir()
-
-        # Check for alternative filenames first (existing installations)
-        alt_filenames = self.ALT_FILENAMES.get(platform_key, [])
-        for filename in alt_filenames:
+        for filename in self.ALT_FILENAMES.get(platform_key, []):
             exe_path = platform_dir / filename
-            if exe_path.exists():
+            if verify_artifact(exe_path, expected_sha256):
                 self._cached_executable_path = exe_path
                 return exe_path
 
-        # Fall back to primary filename (for new downloads)
-        if not filename:
+        primary = self.FILENAMES.get(platform_key)
+        if not primary:
             raise RuntimeError(f"Unsupported platform: {self.system} {self.machine}")
-
-        return platform_dir / filename
+        return platform_dir / primary
 
     def is_installed(self) -> bool:
-        """Check if slipstream is already installed."""
+        """Return True only for a locally present binary matching the pinned digest."""
+        artifact = self._artifact()
+        expected_sha256 = artifact["sha256"]
         platform_key = self.get_platform_key()
         platform_dir = self.get_platform_dir()
-
-        # Check all possible filenames
-        alt_filenames = self.ALT_FILENAMES.get(platform_key, [])
-        for filename in alt_filenames:
-            if (platform_dir / filename).exists():
-                return True
-
-        # Also check primary filename
-        primary_fn: Optional[str] = self.FILENAMES.get(platform_key)
-        if primary_fn and (platform_dir / primary_fn).exists():
-            return True
-
-        return False
+        candidates = list(self.ALT_FILENAMES.get(platform_key, []))
+        primary = self.FILENAMES.get(platform_key)
+        if primary and primary not in candidates:
+            candidates.append(primary)
+        return any(
+            verify_artifact(platform_dir / filename, expected_sha256)
+            for filename in candidates
+        )
 
     def get_download_url(self) -> Optional[str]:
-        """Get the download URL for current platform."""
+        """Get the immutable release URL for the current platform."""
         try:
-            platform_key = self.get_platform_key()
-            return self.DOWNLOAD_URLS.get(platform_key)
+            return self._artifact()["url"]
         except RuntimeError:
             return None
+
 
     async def download(
         self, progress_callback=None, max_retries: int = 5, retry_delay: float = 2.0
     ) -> bool:
-        """Download slipstream for the current platform with resume and retry support.
-
-        Args:
-            progress_callback: Optional callback(downloaded, total, status) for progress updates
-            max_retries: Maximum number of retry attempts
-            retry_delay: Delay between retries in seconds
-
-        Returns:
-            True if download successful, False otherwise
-        """
-        url = self.get_download_url()
-        if not url:
+        """Download a pinned Slipstream binary and verify it before execution."""
+        try:
+            artifact = self._artifact()
+        except RuntimeError:
             return False
-
-        exe_path = self.get_executable_path()
-        temp_path = exe_path.with_suffix(exe_path.suffix + ".partial")
-        platform_dir = self.get_platform_dir()
-
-        # Create directory if it doesn't exist
-        platform_dir.mkdir(parents=True, exist_ok=True)
+        exe_path = self.get_platform_dir() / artifact["filename"]
 
         for attempt in range(1, max_retries + 1):
-            try:
-                # Check if we have a partial download to resume
-                downloaded = 0
-                if temp_path.exists():
-                    downloaded = temp_path.stat().st_size
-
-                headers = {}
-                if downloaded > 0:
-                    headers["Range"] = f"bytes={downloaded}-"
-                    if progress_callback:
-                        progress_callback(
-                            downloaded,
-                            0,
-                            f"Resuming from {downloaded / (1024 * 1024):.1f} MB...",
-                        )
-
-                async with httpx.AsyncClient(
-                    follow_redirects=True,
-                    timeout=httpx.Timeout(30.0, read=60.0, connect=30.0),
-                    verify=True,  # Enable SSL verification
-                    limits=httpx.Limits(
-                        max_keepalive_connections=5, max_connections=10
-                    ),
-                ) as client:
-                    async with client.stream("GET", url, headers=headers) as response:
-                        # Check if server supports resume
-                        if response.status_code == 206:  # Partial content
-                            content_range = response.headers.get("content-range", "")
-                            if "/" in content_range:
-                                total = int(content_range.split("/")[1])
-                            else:
-                                total = downloaded + int(
-                                    response.headers.get("content-length", 0)
-                                )
-                            mode = "ab"  # Append mode
-                        elif response.status_code == 200:
-                            # Server doesn't support resume, start fresh
-                            total = int(response.headers.get("content-length", 0))
-                            downloaded = 0
-                            mode = "wb"  # Write mode (overwrite)
-                        else:
-                            response.raise_for_status()
-                            continue
-
-                        if progress_callback:
-                            progress_callback(downloaded, total, "Downloading...")
-
-                        with open(temp_path, mode) as f:
-                            async for chunk in response.aiter_bytes(chunk_size=32768):
-                                f.write(chunk)
-                                downloaded += len(chunk)
-                                if progress_callback:
-                                    progress_callback(
-                                        downloaded, total, "Downloading..."
-                                    )
-
-                # Download complete - rename temp file to final
-                if temp_path.exists():
-                    if exe_path.exists():
-                        exe_path.unlink()
-                    temp_path.rename(exe_path)
-
-                # Make executable on Unix-like systems
+            ok = await download_verified_artifact(
+                url=artifact["url"],
+                expected_sha256=artifact["sha256"],
+                destination=exe_path,
+                progress_callback=progress_callback,
+            )
+            if ok:
                 if self.system in ("Linux", "Darwin"):
                     exe_path.chmod(
                         exe_path.stat().st_mode
@@ -263,187 +191,46 @@ class SlipstreamManager:
                         | stat.S_IXGRP
                         | stat.S_IXOTH
                     )
-
+                self._cached_executable_path = exe_path
                 return True
-
-            except (
-                httpx.TimeoutException,
-                httpx.NetworkError,
-                httpx.HTTPStatusError,
-                httpx.ConnectError,
-            ) as e:
-                error_msg = f"{type(e).__name__}"
-                if hasattr(e, "__cause__") and e.__cause__:
-                    error_msg += f": {str(e.__cause__)}"
-
-                if progress_callback:
-                    progress_callback(
-                        downloaded, 0, f"Retry {attempt}/{max_retries}: {error_msg}"
-                    )
-
-                if attempt < max_retries:
-                    await asyncio.sleep(retry_delay * attempt)  # Exponential backoff
-                    continue
-                else:
-                    # Max retries reached, keep partial file for next attempt
-                    return False
-            except Exception:
-                # Unexpected error - clean up partial download
-                logging.getLogger(__name__).debug("Suppressed broad exception")
-                if temp_path.exists():
-                    temp_path.unlink()
-                return False
-
+            if progress_callback:
+                progress_callback(0, 0, f"Retry {attempt}/{max_retries}: verification or download failed")
+            if attempt < max_retries:
+                await asyncio.sleep(retry_delay * attempt)
         return False
+
 
     async def download_with_ui(
         self, progress_bar, log_widget, max_retries: int = 5, retry_delay: float = 2.0
     ) -> bool:
-        """Download slipstream with UI updates for progress bar and log.
-
-        This method handles UI updates directly in the async context without using call_from_thread.
-
-        Args:
-            progress_bar: CustomProgressBar widget to update
-            log_widget: RichLog widget to write status messages
-            max_retries: Maximum number of retry attempts
-            retry_delay: Delay between retries in seconds
-
-        Returns:
-            True if download successful, False otherwise
-        """
-        url = self.get_download_url()
-        if not url:
-            log_widget.write("[red]No download URL available for this platform[/red]")
-            return False
-
-        exe_path = self.get_executable_path()
-        temp_path = exe_path.with_suffix(exe_path.suffix + ".partial")
-        platform_dir = self.get_platform_dir()
-
-        # Create directory if it doesn't exist
-        platform_dir.mkdir(parents=True, exist_ok=True)
-
+        """Download with UI progress while retaining the same verification path."""
         last_logged_percent = -1
 
-        for attempt in range(1, max_retries + 1):
-            try:
-                # Check if we have a partial download to resume
-                downloaded = 0
-                if temp_path.exists():
-                    downloaded = temp_path.stat().st_size
-
-                headers = {}
-                if downloaded > 0:
-                    headers["Range"] = f"bytes={downloaded}-"
+        def progress(downloaded: int, total: int, status: str) -> None:
+            nonlocal last_logged_percent
+            if total > 0:
+                progress_bar.update_progress(downloaded, total)
+                current_percent = int((downloaded / total) * 10) * 10
+                if current_percent > last_logged_percent:
+                    last_logged_percent = current_percent
                     log_widget.write(
-                        f"[cyan]Resuming from {downloaded / (1024 * 1024):.1f} MB...[/cyan]"
+                        f"[dim]Progress: {downloaded / (1024 * 1024):.1f}/"
+                        f"{total / (1024 * 1024):.1f} MB ({current_percent}%)[/dim]"
                     )
+            elif status:
+                log_widget.write(f"[cyan]{status}[/cyan]")
 
-                async with httpx.AsyncClient(
-                    follow_redirects=True,
-                    timeout=httpx.Timeout(30.0, read=60.0, connect=30.0),
-                    verify=True,
-                    limits=httpx.Limits(
-                        max_keepalive_connections=5, max_connections=10
-                    ),
-                ) as client:
-                    async with client.stream("GET", url, headers=headers) as response:
-                        # Check if server supports resume
-                        if response.status_code == 206:  # Partial content
-                            content_range = response.headers.get("content-range", "")
-                            if "/" in content_range:
-                                total = int(content_range.split("/")[1])
-                            else:
-                                total = downloaded + int(
-                                    response.headers.get("content-length", 0)
-                                )
-                            mode = "ab"  # Append mode
-                        elif response.status_code == 200:
-                            # Server doesn't support resume, start fresh
-                            total = int(response.headers.get("content-length", 0))
-                            downloaded = 0
-                            mode = "wb"  # Write mode (overwrite)
-                        else:
-                            response.raise_for_status()
-                            continue
+        ok = await self.download(
+            progress_callback=progress,
+            max_retries=max_retries,
+            retry_delay=retry_delay,
+        )
+        if not ok:
+            log_widget.write(
+                "[red]Slipstream download failed or did not match the pinned SHA-256[/red]"
+            )
+        return ok
 
-                        log_widget.write(
-                            f"[cyan]Downloading...[/cyan] Total: {total / (1024 * 1024):.1f} MB"
-                        )
-
-                        with open(temp_path, mode) as f:
-                            async for chunk in response.aiter_bytes(chunk_size=32768):
-                                f.write(chunk)
-                                downloaded += len(chunk)
-
-                                # Update progress bar
-                                if total > 0:
-                                    progress_bar.update_progress(downloaded, total)
-
-                                    # Log progress at 10% intervals
-                                    current_percent = (
-                                        int((downloaded / total) * 10) * 10
-                                    )
-                                    if current_percent > last_logged_percent:
-                                        last_logged_percent = current_percent
-                                        mb_downloaded = downloaded / (1024 * 1024)
-                                        mb_total = total / (1024 * 1024)
-                                        log_widget.write(
-                                            f"[dim]Progress: {mb_downloaded:.1f}/{mb_total:.1f} MB ({current_percent}%)[/dim]"
-                                        )
-
-                # Download complete - rename temp file to final
-                if temp_path.exists():
-                    if exe_path.exists():
-                        exe_path.unlink()
-                    temp_path.rename(exe_path)
-
-                # Make executable on Unix-like systems
-                if self.system in ("Linux", "Darwin"):
-                    exe_path.chmod(
-                        exe_path.stat().st_mode
-                        | stat.S_IXUSR
-                        | stat.S_IXGRP
-                        | stat.S_IXOTH
-                    )
-
-                return True
-
-            except (
-                httpx.TimeoutException,
-                httpx.NetworkError,
-                httpx.HTTPStatusError,
-                httpx.ConnectError,
-            ) as e:
-                error_msg = f"{type(e).__name__}"
-                if hasattr(e, "__cause__") and e.__cause__:
-                    error_msg += f": {str(e.__cause__)}"
-
-                log_widget.write(
-                    f"[yellow]Retry {attempt}/{max_retries}: {error_msg}[/yellow]"
-                )
-
-                if attempt < max_retries:
-                    log_widget.write(
-                        f"[dim]Waiting {retry_delay * attempt:.0f}s before retry...[/dim]"
-                    )
-                    await asyncio.sleep(retry_delay * attempt)  # Exponential backoff
-                    continue
-                else:
-                    # Max retries reached, keep partial file for next attempt
-                    return False
-            except Exception as e:
-                logging.getLogger(__name__).debug("Suppressed broad exception")
-                log_widget.write(
-                    f"[red]Unexpected error: {type(e).__name__}: {e}[/red]"
-                )
-                # Unexpected error - clean up partial download
-                if temp_path.exists():
-                    temp_path.unlink()
-                return False
-
-        return False
 
     def get_run_command(self, dns_ip: str, port: int, domain: str) -> list:
         """Get the command to run slipstream (same args for all platforms).

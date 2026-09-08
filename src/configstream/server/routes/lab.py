@@ -13,6 +13,9 @@ from ..utils import (
     limiter,
     _is_nonproduction_environment,
 )
+from ...lab_validation import (
+    _validate_and_build_lab_config as _shared_validate_and_build_lab_config,
+)
 
 router = APIRouter(prefix="/api/lab", tags=["lab"])
 
@@ -293,7 +296,7 @@ async def lab_test_chain(request: Request, payload: dict):
         )
     try:
         clean_config = await asyncio.wait_for(
-            _validate_and_build_lab_config(config),
+            _shared_validate_and_build_lab_config(config),
             timeout=settings.LAB_TEST_TIMEOUT_SECONDS,
         )
     except asyncio.TimeoutError as exc:

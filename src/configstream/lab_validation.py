@@ -42,6 +42,28 @@ LAB_INTERNAL_HOST_SUFFIXES = (".local", ".localhost", ".lan", ".internal")
 LAB_MAX_OUTBOUND_NODES = 64
 LAB_MAX_NESTING_DEPTH = 8
 
+# User-supplied native-client configuration must not gain filesystem, network
+# namespace, interface-binding, or routing-mark capabilities on the server.
+LAB_FORBIDDEN_CAPABILITY_KEYS = {
+    "bind_interface",
+    "bind_address",
+    "inet4_bind_address",
+    "inet6_bind_address",
+    "netns",
+    "network_namespace",
+    "routing_mark",
+    "system_interface",
+}
+LAB_FORBIDDEN_PATH_KEYS = {
+    "certificate_path",
+    "client_certificate_path",
+    "client_key_path",
+    "config_path",
+    "key_path",
+    "private_key_path",
+    "ca_path",
+}
+
 
 async def _validate_lab_destination(host: object, path: str) -> str:
     """Validate host for SSRF safety.
@@ -117,6 +139,32 @@ async def _validate_lab_destination(host: object, path: str) -> str:
 INHERENT_TLS_TYPES = {"hysteria", "hysteria2", "tuic", "https"}
 
 
+def _reject_capability_fields(value: Any, path: str, depth: int = 0) -> None:
+    """Fail closed on native-client fields that can reach host resources."""
+
+    if depth > LAB_MAX_NESTING_DEPTH + 4:
+        raise HTTPException(status_code=400, detail=f"{path} is nested too deeply")
+    if isinstance(value, dict):
+        for raw_key, child in value.items():
+            key = str(raw_key)
+            lowered = key.lower()
+            if (
+                lowered in LAB_FORBIDDEN_CAPABILITY_KEYS
+                or lowered in LAB_FORBIDDEN_PATH_KEYS
+                or lowered.endswith("_certificate_path")
+                or lowered.endswith("_key_path")
+                or lowered.endswith("_config_path")
+            ):
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"{path}.{key} is not allowed in live lab configs",
+                )
+            _reject_capability_fields(child, f"{path}.{key}", depth + 1)
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            _reject_capability_fields(child, f"{path}[{index}]", depth + 1)
+
+
 def _is_hostname(host: Any) -> bool:
     if not isinstance(host, str):
         return False
@@ -146,6 +194,7 @@ async def _sanitize_and_pin_outbound(
         )
     if not isinstance(outbound, dict):
         raise HTTPException(status_code=400, detail=f"{path} must be an object")
+    _reject_capability_fields(outbound, path)
     budget[0] -= 1
     if budget[0] < 0:
         raise HTTPException(
@@ -208,7 +257,10 @@ async def _sanitize_and_pin_outbound(
                             )
                         )
                     else:
-                        clean_list.append(sub_item)
+                        raise HTTPException(
+                            status_code=400,
+                            detail=f"{path}.{key}[{sub_idx}] must be an outbound object",
+                        )
                 clean_outbound[key] = clean_list
 
     return clean_outbound

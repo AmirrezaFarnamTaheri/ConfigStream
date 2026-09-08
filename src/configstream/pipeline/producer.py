@@ -445,6 +445,7 @@ async def source_producer(
                     quality_tracker=quality_tracker,
                     breaker_manager=breaker_manager,
                 )
+                usable_sources = 0
 
                 for source, res in results.items():
                     if stop_event.is_set():
@@ -547,6 +548,7 @@ async def source_producer(
                                         duration_ms=(res.response_time or 0.0) * 1000,
                                     )
                                     continue
+                                usable_sources += 1
 
                                 # Single consolidated log via event stream (includes fetch metrics)
                                 if event_stream:
@@ -595,6 +597,11 @@ async def source_producer(
                             duration_ms=(res.response_time or 0.0) * 1000,
                             failure_modes={"fetch_error": safe_error},
                         )
+                logger.info(
+                    "Usable Source Summary: %d/%d sources produced accepted records.",
+                    usable_sources,
+                    len(batch),
+                )
     except asyncio.CancelledError:
         # Cancellation is the one signal that consumers are being torn down
         # directly (core.py's `_cancel_all` cancels producer and consumers

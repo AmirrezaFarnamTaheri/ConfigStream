@@ -42,6 +42,7 @@ async def test_update_blocklist(mock_blocklist_file):
 
     with (
         patch("configstream.security.blocklist.CACHE_FILE", mock_blocklist_file),
+        patch("configstream.security.blocklist.MIN_BLOCKLIST_NETWORKS", 1),
         patch("httpx.AsyncClient.get", new_callable=AsyncMock) as mock_get,
     ):
         mock_resp = MagicMock()
