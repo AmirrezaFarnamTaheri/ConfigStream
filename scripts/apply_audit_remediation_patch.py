@@ -141,6 +141,11 @@ def patch_main_workflow() -> None:
 def main() -> int:
     apply_patch()
     patch_main_workflow()
+    # The transport workflow intentionally pushes this one remediation commit.
+    # Remove it from the working tree before validating the repository's
+    # permanent no-self-push workflow policy; the workflow later stages and
+    # commits this deletion together with the remediation itself.
+    Path(".github/workflows/audit-remediation-apply.yml").unlink(missing_ok=True)
     subprocess.run(["python", "scripts/validate_workflows.py"], check=True)
     subprocess.run(["python", "scripts/validate_container_shells.py"], check=True)
     subprocess.run(
