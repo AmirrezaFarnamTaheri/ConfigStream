@@ -12,6 +12,7 @@ permissions:
 
 jobs:
   apply:
+    # Retry 2: remove this temporary workflow from the working tree before permanent workflow validation.
     if: github.repository == 'AmirrezaFarnamTaheri/ConfigStream' && github.ref == 'refs/heads/codex/fix-run-34268254683-audit'
     runs-on: ubuntu-latest
     steps:
