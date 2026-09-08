@@ -12,7 +12,9 @@ permissions:
 
 jobs:
   apply:
-    # Retry 2: remove this temporary workflow from the working tree before permanent workflow validation.
+    # Retry 3: commit ordinary source/test changes only. Workflow edits are applied
+    # separately through the repository connector because GitHub blocks workflow
+    # mutations from the default Actions token without the workflows permission.
     if: github.repository == 'AmirrezaFarnamTaheri/ConfigStream' && github.ref == 'refs/heads/codex/fix-run-34268254683-audit'
     runs-on: ubuntu-latest
     steps:
@@ -22,18 +24,22 @@ jobs:
           fetch-depth: 1
       - name: Apply exact verified remediation
         run: python scripts/apply_audit_remediation_patch.py
-      - name: Remove one-shot transport files
+      - name: Keep workflow mutations out of the Actions-authored commit
         shell: bash
         run: |
           set -euo pipefail
+          git restore --source=HEAD -- \
+            .github/workflows/main.yml \
+            .github/workflows/ci.yml \
+            .github/workflows/deploy-pages.yml \
+            .github/workflows/audit-remediation-apply.yml
           rm -f \
             scripts/.audit_patch_00 \
             scripts/.audit_patch_01 \
             scripts/.audit_patch_02 \
             scripts/.audit_patch_03 \
-            scripts/apply_audit_remediation_patch.py \
-            .github/workflows/audit-remediation-apply.yml
-      - name: Verify and commit remediation
+            scripts/apply_audit_remediation_patch.py
+      - name: Verify and commit non-workflow remediation
         shell: bash
         run: |
           set -euo pipefail
@@ -43,6 +49,10 @@ jobs:
           if git diff --cached --quiet; then
             echo 'No remediation changes to commit.'
             exit 0
+          fi
+          if git diff --cached --name-only | grep -q '^\.github/workflows/'; then
+            echo 'Refusing to push workflow mutation from Actions token.' >&2
+            exit 1
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
