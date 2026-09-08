@@ -169,6 +169,9 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
       env:
         PYTHONPATH: /app/src
+    defaults:
+      run:
+        shell: bash
     steps:
       - name: Download and validate GeoIP databases once per run
         env:
