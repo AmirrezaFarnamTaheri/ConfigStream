@@ -23,6 +23,7 @@ jobs:
         run: |
           set -euo pipefail
           python -m pip install -r requirements-dev.txt
+          python -m pip install -r src/configstream/tools/dns_scanner/python/requirements.txt
           python -m pip install -e . --no-deps
       - name: Apply lifecycle cleanup
         run: |
