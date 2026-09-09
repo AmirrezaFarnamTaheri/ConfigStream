@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import pytest
+import gzip
 import sqlite3
 import shutil
 from datetime import datetime, timedelta
@@ -193,3 +194,18 @@ def test_timestamp_parsing():
     assert dt.month == 1
 
     assert _parse_timestamp_from_name("invalid.db") is None
+
+
+def test_restore_rejects_oversized_gzip_before_publication(data_dir, backup_dir, monkeypatch):
+    target = data_dir / "target.db"
+    create_db(target)
+    original = target.read_bytes()
+    backup = backup_dir / "oversized.db.gz"
+    with gzip.open(backup, "wb") as handle:
+        handle.write(b"x" * 4096)
+
+    monkeypatch.setattr("configstream.backup.MAX_RESTORE_DATABASE_BYTES", 1024)
+
+    assert not restore_database(backup, target)
+    assert target.read_bytes() == original
+    assert not list(target.parent.glob(f".{target.name}.restore-*"))

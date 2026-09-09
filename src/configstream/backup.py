@@ -21,6 +21,9 @@ from .security_validator import safe_log_text
 
 logger = logging.getLogger(__name__)
 
+MAX_RESTORE_DATABASE_BYTES = 2 * 1024 * 1024 * 1024
+RESTORE_COPY_CHUNK_BYTES = 1024 * 1024
+
 
 def backup_databases(
     data_dir: Path | str = Path("data"),
@@ -201,7 +204,14 @@ def restore_database(backup_file: Path, target_file: Path) -> bool:
     try:
         opener = gzip.open if backup_file.name.endswith(".gz") else open
         with opener(backup_file, "rb") as f_in, temp_path.open("wb") as f_out:
-            shutil.copyfileobj(f_in, f_out)
+            restored_bytes = 0
+            while chunk := f_in.read(RESTORE_COPY_CHUNK_BYTES):
+                restored_bytes += len(chunk)
+                if restored_bytes > MAX_RESTORE_DATABASE_BYTES:
+                    raise ValueError("restored database exceeds the safety limit")
+                f_out.write(chunk)
+            if restored_bytes == 0:
+                raise ValueError("restored database is empty")
             f_out.flush()
             os.fsync(f_out.fileno())
 
