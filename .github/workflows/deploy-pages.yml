@@ -11,6 +11,11 @@ on:
         description: Successful main-branch workflow run containing pipeline-output
         required: true
         type: string
+      allow_bootstrap_without_lkg:
+        description: Allow a manual first deployment when no verified rollback baseline exists
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -97,6 +102,7 @@ jobs:
           echo "HAS_OUTPUT=false" >> "$GITHUB_ENV"
           echo "DEPLOY_READY=false" >> "$GITHUB_ENV"
           echo "HAS_LKG=false" >> "$GITHUB_ENV"
+          echo "ROLLBACK_READY=false" >> "$GITHUB_ENV"
           echo "SMOKE_OK=false" >> "$GITHUB_ENV"
       - name: Locate and download exact canonical artifact
         id: locate
@@ -246,6 +252,22 @@ jobs:
           else
             echo "HAS_LKG=false" >> "$GITHUB_ENV"
           fi
+      - name: Require rollback baseline before production mutation
+        if: always()
+        env:
+          ALLOW_BOOTSTRAP_WITHOUT_LKG: ${{ github.event_name == 'workflow_dispatch' && inputs.allow_bootstrap_without_lkg || false }}
+        run: |
+          set -euo pipefail
+          if [ "${HAS_LKG:-false}" = true ]; then
+            echo "ROLLBACK_READY=true" >> "$GITHUB_ENV"
+            python scripts/resilient_stage.py record --name rollback-baseline --status success --report-dir deploy-evidence/stages --description "Verified last-known-good Pages release is available"
+          elif [ "$ALLOW_BOOTSTRAP_WITHOUT_LKG" = true ]; then
+            echo "ROLLBACK_READY=true" >> "$GITHUB_ENV"
+            python scripts/resilient_stage.py record --name rollback-baseline --status success --report-dir deploy-evidence/stages --description "Explicit manual bootstrap approved without a rollback baseline"
+          else
+            echo "DEPLOY_READY=false" >> "$GITHUB_ENV"
+            python scripts/resilient_stage.py record --name rollback-baseline --status failed --exit-code 1 --report-dir deploy-evidence/stages --description "Deployment blocked because no verified rollback baseline is available"
+          fi
       - name: Upload last-known-good rollback artifact
         id: rollback_artifact
         if: env.HAS_LKG == 'true'
@@ -256,7 +278,7 @@ jobs:
           retention-days: 30
       - name: Upload sealed Pages artifact
         id: pages_artifact
-        if: env.DEPLOY_READY == 'true'
+        if: env.DEPLOY_READY == 'true' && env.ROLLBACK_READY == 'true'
         continue-on-error: true
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
         with:
@@ -265,7 +287,7 @@ jobs:
           retention-days: 30
       - name: Deploy to GitHub Pages
         id: deployment
-        if: env.DEPLOY_READY == 'true' && steps.pages_artifact.outcome == 'success'
+        if: env.DEPLOY_READY == 'true' && env.ROLLBACK_READY == 'true' && steps.pages_artifact.outcome == 'success'
         continue-on-error: true
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5
         with:
@@ -398,6 +420,7 @@ jobs:
             --report-dir deploy-evidence/stages \
             --required-stage locate-pipeline-output \
             --required-stage verify-sealed-pages-artifact \
+            --required-stage rollback-baseline \
             --required-stage upload-pages-artifact \
             --required-stage deploy-pages \
             --required-stage smoke-pages \

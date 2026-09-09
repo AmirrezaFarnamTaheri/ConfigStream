@@ -178,7 +178,7 @@ jobs:
           MAXMIND_LICENSE_KEY: ${{ secrets.MAXMIND_LICENSE_KEY }}
         run: |
           set -euo pipefail
-          python -m configstream.cli update-databases
+          python -m configstream.cli update-databases --geoip-only
           python - <<'PY'
           from pathlib import Path
           import geoip2.database
@@ -201,7 +201,7 @@ jobs:
             data/GeoLite2-City.mmdb
             data/GeoLite2-ASN.mmdb
           if-no-files-found: error
-          retention-days: 1
+          retention-days: 30
           overwrite: true
 
   setup_matrix:
@@ -486,7 +486,26 @@ jobs:
       - name: Record artifact downloads
         if: always()
         run: |
-          python scripts/resilient_stage.py record --name shard-download --status "${{ steps.shard_download.outcome }}"
+          set -euo pipefail
+          shard_status="${{ steps.shard_download.outcome }}"
+          if [ "$shard_status" = success ]; then
+            if ! python - <<'PYCODE'
+          import json
+          from pathlib import Path
+
+          matrix = json.loads(Path("matrix-artifact/source-matrix.json").read_text(encoding="utf-8"))
+          expected = sum(1 for row in matrix.get("include", []) if row.get("enabled", True))
+          lineage = list(Path("artifacts").rglob("shard_lineage.json"))
+          if expected <= 0 or len(lineage) != expected:
+              raise SystemExit(
+                  f"shard artifact lineage mismatch: expected {expected}, found {len(lineage)}"
+              )
+          PYCODE
+            then
+              shard_status=failure
+            fi
+          fi
+          python scripts/resilient_stage.py record --name shard-download --status "$shard_status"
           python scripts/resilient_stage.py record --name wasm-download --status "${{ steps.wasm_download.outcome }}"
           python scripts/resilient_stage.py record --name matrix-artifact-download --status "${{ steps.matrix_artifact_download.outcome }}"
       - name: Restore available artifacts
