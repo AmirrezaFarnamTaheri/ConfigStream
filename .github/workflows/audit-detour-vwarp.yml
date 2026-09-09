@@ -1,0 +1,97 @@
+name: Validate Vwarp lifecycle remediation
+
+on:
+  push:
+    branches: [codex/fix-run-34268254683-audit]
+
+permissions:
+  contents: write
+
+jobs:
+  remediate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: codex/fix-run-34268254683-audit
+          fetch-depth: 1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v6
+        with:
+          python-version: '3.11'
+      - name: Install focused test dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install -r requirements-dev.txt
+          python -m pip install -e . --no-deps
+      - name: Apply and verify Vwarp lifecycle fix
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('src/configstream/pipeline/core.py')
+          text = path.read_text(encoding='utf-8')
+
+          old = '''        vwarp_tool = VwarpTool()\n\n        if settings.USE_VWARP_TUNNEL:\n'''
+          new = '''        vwarp_tool = VwarpTool()\n        vwarp_env_had_value = "USE_VWARP_TUNNEL" in os.environ\n        vwarp_env_previous = os.environ.get("USE_VWARP_TUNNEL")\n        vwarp_started = False\n\n        if settings.USE_VWARP_TUNNEL:\n'''
+          assert old in text
+          text = text.replace(old, new, 1)
+
+          old = '''                ):\n                    logger.info("✅ Vwarp Tunnel established.")\n                    os.environ["USE_VWARP_TUNNEL"] = "true"\n'''
+          new = '''                ):\n                    vwarp_started = True\n                    logger.info("✅ Vwarp Tunnel established.")\n                    os.environ["USE_VWARP_TUNNEL"] = "true"\n'''
+          assert old in text
+          text = text.replace(old, new, 1)
+
+          start_marker = '        test_cache = TestResultCache()\n'
+          end_marker = '\n\n    async def run(self) -> PipelineResult:\n'
+          start = text.index(start_marker)
+          end = text.index(end_marker, start)
+          block = text[start:end]
+
+          context_tail = '''            force_retest=force_retest,\n        )\n\n        cpu_count = multiprocessing.cpu_count()\n'''
+          context_tail_new = '''            force_retest=force_retest,\n        )\n        setattr(context, "_vwarp_env_had_value", vwarp_env_had_value)\n        setattr(context, "_vwarp_env_previous", vwarp_env_previous)\n\n        cpu_count = multiprocessing.cpu_count()\n'''
+          assert context_tail in block
+          block = block.replace(context_tail, context_tail_new, 1)
+
+          indented = ''.join(
+              ('    ' + line if line.strip() else line)
+              for line in block.splitlines(keepends=True)
+          )
+          guarded = (
+              '        try:\n'
+              + indented
+              + '        except BaseException:\n'
+              + '            if vwarp_started:\n'
+              + '                with suppress(Exception):\n'
+              + '                    await vwarp_tool.stop_tunnel()\n'
+              + '            if vwarp_env_had_value:\n'
+              + '                assert vwarp_env_previous is not None\n'
+              + '                os.environ["USE_VWARP_TUNNEL"] = vwarp_env_previous\n'
+              + '            else:\n'
+              + '                os.environ.pop("USE_VWARP_TUNNEL", None)\n'
+              + '            raise\n'
+          )
+          text = text[:start] + guarded + text[end:]
+
+          old = '''            # Stop the exact VwarpTool instance that started the tunnel; a fresh\n            # instance has no handle to the spawned child and would leak it.\n            if self.context.vwarp_tool is not None:\n                await self.context.vwarp_tool.stop_tunnel()\n\n            if self.context.anomaly_detector:\n'''
+          new = '''            # Stop the exact VwarpTool instance that started the tunnel; a fresh\n            # instance has no handle to the spawned child and would leak it. Restore\n            # the process environment even if child cleanup itself fails.\n            try:\n                if self.context.vwarp_tool is not None:\n                    await self.context.vwarp_tool.stop_tunnel()\n            finally:\n                if bool(getattr(self.context, "_vwarp_env_had_value", False)):\n                    previous = getattr(self.context, "_vwarp_env_previous", None)\n                    assert previous is not None\n                    os.environ["USE_VWARP_TUNNEL"] = previous\n                else:\n                    os.environ.pop("USE_VWARP_TUNNEL", None)\n\n            if self.context.anomaly_detector:\n'''
+          assert old in text
+          text = text.replace(old, new, 1)
+          path.write_text(text, encoding='utf-8')
+
+          test_path = Path('tests/unit/test_pipeline_orchestration.py')
+          tests = test_path.read_text(encoding='utf-8')
+          if 'import os\n' not in tests:
+              tests = tests.replace('import pytest\n', 'import os\nimport pytest\n', 1)
+          assert 'test_vwarp_tunnel_cleaned_when_initialization_fails' not in tests
+          tests += '''\n\n@pytest.mark.asyncio\nasync def test_vwarp_tunnel_cleaned_when_initialization_fails(tmp_path, monkeypatch):\n    from configstream.pipeline.core import StandardPipeline\n\n    # AppSettings parses this as true; lifecycle cleanup must restore the exact\n    # process-level value rather than leaving the normalized runtime override.\n    monkeypatch.setenv("USE_VWARP_TUNNEL", "1")\n    tool = MagicMock()\n    tool.is_available = AsyncMock(return_value=True)\n    tool.start_tunnel = AsyncMock(return_value=True)\n    tool.stop_tunnel = AsyncMock(return_value=None)\n\n    with (\n        patch("configstream.tools.vwarp.manager.VwarpTool", return_value=tool),\n        patch(\n            "configstream.pipeline.core.DEFAULT_BLOCKLIST.update",\n            new_callable=AsyncMock,\n            side_effect=RuntimeError("blocklist init failed"),\n        ),\n    ):\n        with pytest.raises(RuntimeError, match="blocklist init failed"):\n            await StandardPipeline.create_and_init(\n                sources=["http://test"],\n                output_dir=str(tmp_path / "output"),\n                producer_factory=MagicMock(),\n                consumer_factory=MagicMock(),\n                max_workers=2,\n                dry_run=True,\n            )\n\n    assert tool.start_tunnel.await_count == 1\n    assert tool.stop_tunnel.await_count == 1\n    assert os.environ["USE_VWARP_TUNNEL"] == "1"\n'''
+          test_path.write_text(tests, encoding='utf-8')
+          PY
+          python -m py_compile src/configstream/pipeline/core.py tests/unit/test_pipeline_orchestration.py
+          pytest -q tests/unit/test_pipeline_orchestration.py --disable-warnings --maxfail=1
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add src/configstream/pipeline/core.py tests/unit/test_pipeline_orchestration.py
+          git commit -m 'fix(lifecycle): clean Vwarp on initialization failure'
+          git push origin HEAD:codex/fix-run-34268254683-audit
