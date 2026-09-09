@@ -67,7 +67,7 @@ async def test_retry_after_http_date_is_honored_by_production_fetcher() -> None:
         )
 
     assert result.success is False
-    assert result.error == "Rate limited"
+    assert result.error == "Max retries exceeded: Rate limited"
     assert sleep.await_count == 1
     delay = float(sleep.await_args.args[0])
     assert 8.0 <= delay <= 12.5
