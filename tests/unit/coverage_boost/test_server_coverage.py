@@ -68,11 +68,31 @@ async def test_server_health_check(async_client):
 
 @pytest.mark.asyncio
 async def test_server_static_file_serving(async_client):
-    # Ensure static files are served from /output mount
-    with open("output/test.txt", "w") as f:
-        f.write("static content")
+    # Public runtime artifacts retain the legacy /output URL through a restricted
+    # compatibility route rather than an unrestricted StaticFiles mount.
+    output_path = Path("output/test.txt")
+    output_path.write_text("static content", encoding="utf-8")
 
-    assert any(getattr(route, "path", None) == "/output" for route in app.routes)
-    assert Path("output/test.txt").read_text(encoding="utf-8") == "static content"
+    try:
+        assert any(
+            getattr(route, "path", None) == "/output/{path:path}"
+            for route in app.routes
+        )
+        response = await async_client.get("/output/test.txt")
+        assert response.status_code == 200
+        assert response.text == "static content"
+    finally:
+        output_path.unlink(missing_ok=True)
 
-    os.remove("output/test.txt")
+
+@pytest.mark.asyncio
+async def test_server_output_route_rejects_private_runtime_state(async_client):
+    private_path = Path("output/source_quality.db")
+    private_path.write_bytes(b"private state")
+
+    try:
+        response = await async_client.get("/output/source_quality.db")
+        assert response.status_code == 404
+        assert response.json()["detail"] == "File not generated yet"
+    finally:
+        private_path.unlink(missing_ok=True)
