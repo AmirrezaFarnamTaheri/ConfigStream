@@ -81,8 +81,8 @@ Direct declarations: **67**
 | npm | `vite` | `^8.1.5` | `package.json` |
 | go-tester | `github.com/sagernet/sing` | `v0.4.3` | `src/go/tester/go.mod` |
 | go-tester | `github.com/sagernet/sing-box` | `v1.9.7` | `src/go/tester/go.mod` |
-| go-tester | `golang.org/x/crypto` | `v0.45.0` | `src/go/tester/go.mod` |
-| go-utls | `github.com/refraction-networking/utls` | `v1.8.1` | `src/go/utls_client/go.mod` |
+| go-tester | `golang.org/x/crypto` | `v0.56.0` | `src/go/tester/go.mod` |
+| go-utls | `github.com/refraction-networking/utls` | `v1.8.2` | `src/go/utls_client/go.mod` |
 | cargo | `libc` | `0.2` | `src/rust/ss_checker/Cargo.toml` |
 | container | `go_builder` | `golang:1.26.8-alpine3.24` | `config/container-images.json` |
 | container | `node_ci` | `node:24.20.0-bookworm-slim` | `config/container-images.json` |
