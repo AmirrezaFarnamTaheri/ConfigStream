@@ -11,10 +11,21 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
+def _reject_symlinks(root: Path, *, label: str) -> None:
+    if root.is_symlink():
+        raise ValueError(f"{label} root must not be a symbolic link: {root}")
+    for path in root.rglob("*"):
+        if path.is_symlink():
+            raise ValueError(f"{label} contains a symbolic link: {path}")
+
+
 def _copy_optional(source: Path, destination: Path) -> bool:
     if not source.exists():
         return False
+    if source.is_symlink():
+        raise ValueError(f"optional publication source must not be a symbolic link: {source}")
     if source.is_dir():
+        _reject_symlinks(source, label="optional publication source")
         shutil.copytree(source, destination, dirs_exist_ok=True)
     else:
         destination.parent.mkdir(parents=True, exist_ok=True)
@@ -32,6 +43,9 @@ def prepare(
         raise FileNotFoundError(f"merged output directory not found: {merged_output}")
     if not frontend.is_dir():
         raise FileNotFoundError(f"frontend directory not found: {frontend}")
+
+    _reject_symlinks(merged_output, label="merged output")
+    _reject_symlinks(frontend, label="frontend")
 
     destination.parent.mkdir(parents=True, exist_ok=True)
     staging_parent = destination.parent

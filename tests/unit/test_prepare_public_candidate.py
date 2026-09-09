@@ -38,3 +38,24 @@ def test_prepare_public_candidate_preserves_previous_on_failed_swap(
         raise AssertionError("swap should fail")
 
     assert (destination / "old.txt").read_text(encoding="utf-8") == "old"
+
+
+def test_prepare_rejects_symlinked_merged_input(tmp_path: Path) -> None:
+    merged = tmp_path / "merged"
+    frontend = tmp_path / "frontend"
+    destination = tmp_path / "output"
+    outside = tmp_path / "outside-secret.txt"
+    merged.mkdir()
+    frontend.mkdir()
+    outside.write_text("not-for-publication", encoding="utf-8")
+    (merged / "metadata.json").write_text("{}", encoding="utf-8")
+    (merged / "leak.txt").symlink_to(outside)
+    (frontend / "index.html").write_text("ok", encoding="utf-8")
+
+    try:
+        prepare_public_candidate.prepare(merged, frontend, destination, tmp_path)
+    except ValueError as exc:
+        assert "symbolic link" in str(exc)
+    else:
+        raise AssertionError("symlinked merged input must be rejected")
+    assert not destination.exists()
