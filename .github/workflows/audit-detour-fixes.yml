@@ -1,0 +1,176 @@
+name: Apply detour hardening fixes
+
+on:
+  push:
+    branches: [codex/fix-run-34268254683-audit]
+
+permissions:
+  contents: write
+
+jobs:
+  remediate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: codex/fix-run-34268254683-audit
+          fetch-depth: 1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v6
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version: '1.26.8'
+          cache-dependency-path: |
+            src/go/tester/go.sum
+            src/go/utls_client/go.sum
+      - name: Install Python test dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install -r requirements-dev.txt
+          python -m pip install -e . --no-deps
+      - name: Fix Vwarp initialization ownership
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('src/configstream/pipeline/core.py')
+          text = path.read_text(encoding='utf-8')
+          old = '''        force_retest: bool = False,\n    ):\n'''
+          new = '''        force_retest: bool = False,\n        vwarp_env_previous: Optional[str] = None,\n    ):\n'''
+          assert old in text
+          text = text.replace(old, new, 1)
+          old = '''        self.time_limit_seconds = time_limit_seconds\n'''
+          new = '''        self.time_limit_seconds = time_limit_seconds\n        self._vwarp_env_previous = vwarp_env_previous\n'''
+          assert old in text
+          text = text.replace(old, new, 1)
+          old = '''        vwarp_tool = VwarpTool()\n\n        if settings.USE_VWARP_TUNNEL:\n'''
+          new = '''        vwarp_tool = VwarpTool()\n        vwarp_env_previous = os.environ.get("USE_VWARP_TUNNEL")\n        vwarp_started = False\n\n        if settings.USE_VWARP_TUNNEL:\n'''
+          assert old in text
+          text = text.replace(old, new, 1)
+          old = '''                ):\n                    logger.info("✅ Vwarp Tunnel established.")\n                    os.environ["USE_VWARP_TUNNEL"] = "true"\n'''
+          new = '''                ):\n                    vwarp_started = True\n                    logger.info("✅ Vwarp Tunnel established.")\n                    os.environ["USE_VWARP_TUNNEL"] = "true"\n'''
+          assert old in text
+          text = text.replace(old, new, 1)
+
+          start_marker = '        test_cache = TestResultCache()\n'
+          end_marker = '\n\n    async def run(self) -> PipelineResult:\n'
+          start = text.index(start_marker)
+          end = text.index(end_marker, start)
+          block = text[start:end]
+          assert 'vwarp_env_previous=vwarp_env_previous' not in block
+          call_tail = '''            supplied_proxies=supplied_proxies,\n            force_retest=force_retest,\n        )\n'''
+          call_tail_new = '''            supplied_proxies=supplied_proxies,\n            force_retest=force_retest,\n            vwarp_env_previous=vwarp_env_previous,\n        )\n'''
+          assert call_tail in block
+          block = block.replace(call_tail, call_tail_new, 1)
+          indented = ''.join(('    ' + line if line.strip() else line) for line in block.splitlines(keepends=True))
+          guarded = (
+              '        try:\n'
+              + indented
+              + '        except BaseException:\n'
+              + '            if vwarp_started:\n'
+              + '                with suppress(Exception):\n'
+              + '                    await vwarp_tool.stop_tunnel()\n'
+              + '            if vwarp_env_previous is None:\n'
+              + '                os.environ.pop("USE_VWARP_TUNNEL", None)\n'
+              + '            else:\n'
+              + '                os.environ["USE_VWARP_TUNNEL"] = vwarp_env_previous\n'
+              + '            raise\n'
+          )
+          text = text[:start] + guarded + text[end:]
+
+          old = '''            if self.context.vwarp_tool is not None:\n                await self.context.vwarp_tool.stop_tunnel()\n\n            if self.context.anomaly_detector:\n'''
+          new = '''            if self.context.vwarp_tool is not None:\n                await self.context.vwarp_tool.stop_tunnel()\n\n            if self._vwarp_env_previous is None:\n                os.environ.pop("USE_VWARP_TUNNEL", None)\n            else:\n                os.environ["USE_VWARP_TUNNEL"] = self._vwarp_env_previous\n\n            if self.context.anomaly_detector:\n'''
+          assert old in text
+          text = text.replace(old, new, 1)
+          path.write_text(text, encoding='utf-8')
+
+          test_path = Path('tests/unit/test_pipeline_orchestration.py')
+          tests = test_path.read_text(encoding='utf-8')
+          assert 'test_vwarp_tunnel_cleaned_when_initialization_fails' not in tests
+          tests += '''\n\n@pytest.mark.asyncio\nasync def test_vwarp_tunnel_cleaned_when_initialization_fails(\n    tmp_path, monkeypatch\n):\n    from configstream.pipeline.core import StandardPipeline\n\n    monkeypatch.setenv("USE_VWARP_TUNNEL", "true")\n    tool = MagicMock()\n    tool.is_available = AsyncMock(return_value=True)\n    tool.start_tunnel = AsyncMock(return_value=True)\n    tool.stop_tunnel = AsyncMock(return_value=None)\n\n    with (\n        patch("configstream.tools.vwarp.manager.VwarpTool", return_value=tool),\n        patch(\n            "configstream.pipeline.core.DEFAULT_BLOCKLIST.update",\n            new_callable=AsyncMock,\n            side_effect=RuntimeError("blocklist init failed"),\n        ),\n    ):\n        with pytest.raises(RuntimeError, match="blocklist init failed"):\n            await StandardPipeline.create_and_init(\n                sources=["http://test"],\n                output_dir=str(tmp_path / "output"),\n                producer_factory=MagicMock(),\n                consumer_factory=MagicMock(),\n                max_workers=2,\n                dry_run=True,\n            )\n\n    assert tool.start_tunnel.await_count == 1\n    assert tool.stop_tunnel.await_count == 1\n    assert os.environ["USE_VWARP_TUNNEL"] == "true"\n'''
+          tests = tests.replace('import pytest\n', 'import os\nimport pytest\n', 1)
+          test_path.write_text(tests, encoding='utf-8')
+          PY
+          python -m py_compile src/configstream/pipeline/core.py tests/unit/test_pipeline_orchestration.py
+          pytest -q tests/unit/test_pipeline_orchestration.py --disable-warnings --maxfail=1
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add src/configstream/pipeline/core.py tests/unit/test_pipeline_orchestration.py
+          git commit -m 'fix(lifecycle): clean Vwarp on initialization failure'
+          git push origin HEAD:codex/fix-run-34268254683-audit
+      - name: Make SQLite backup and restore crash-consistent
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('src/configstream/backup.py')
+          text = path.read_text(encoding='utf-8')
+          old = '''            # Prefer immutable read to avoid writer interference (requires SQLite >= 3.22)\n            src_uri = f"file:{db_file}?mode=ro&immutable=1"\n            try:\n                src_conn = sqlite3.connect(src_uri, uri=True, timeout=5.0)\n            except sqlite3.OperationalError:\n                # Fallback to read-only without immutable if unsupported\n                src_conn = sqlite3.connect(\n                    f"file:{db_file}?mode=ro", uri=True, timeout=5.0\n                )\n\n            # Perform backup to temp file\n'''
+          new = '''            # Join SQLite's normal read/locking protocol so WAL-backed committed\n            # pages are included. ``immutable=1`` is unsafe for live WAL databases\n            # because it disables change detection/locking and can ignore WAL state.\n            src_conn = sqlite3.connect(\n                f"file:{db_file}?mode=ro", uri=True, timeout=5.0\n            )\n            src_conn.execute("PRAGMA query_only=ON")\n\n            # Perform backup to temp file\n'''
+          assert old in text
+          text = text.replace(old, new, 1)
+
+          old_start = text.index('def restore_database(backup_file: Path, target_file: Path) -> bool:\n')
+          old_end = text.index('\n\ndef _parse_timestamp_from_name', old_start)
+          replacement = '''def restore_database(backup_file: Path, target_file: Path) -> bool:\n    """Restore a SQLite backup atomically after validating its integrity.\n\n    Restore is intentionally offline: WAL/SHM sidecars mean another SQLite\n    generation may still be active, and replacing only the main DB in that\n    state can mix generations.\n    """\n    import os\n    import tempfile\n\n    backup_file = Path(backup_file)\n    target_file = Path(target_file)\n    if not backup_file.exists():\n        logger.error(f"Backup file does not exist: {backup_file}")\n        return False\n\n    for sidecar_suffix in ("-wal", "-shm"):\n        if Path(f"{target_file}{sidecar_suffix}").exists():\n            logger.error(\n                "Refusing restore while SQLite sidecar exists: %s%s",\n                target_file.name,\n                sidecar_suffix,\n            )\n            return False\n\n    target_file.parent.mkdir(parents=True, exist_ok=True)\n    fd, temp_name = tempfile.mkstemp(\n        prefix=f".{target_file.name}.restore-", dir=target_file.parent\n    )\n    os.close(fd)\n    temp_path = Path(temp_name)\n\n    try:\n        if backup_file.name.endswith(".gz"):\n            with gzip.open(backup_file, "rb") as f_in, temp_path.open("wb") as f_out:\n                shutil.copyfileobj(f_in, f_out)\n                f_out.flush()\n                os.fsync(f_out.fileno())\n        else:\n            with backup_file.open("rb") as f_in, temp_path.open("wb") as f_out:\n                shutil.copyfileobj(f_in, f_out)\n                f_out.flush()\n                os.fsync(f_out.fileno())\n\n        check_conn = sqlite3.connect(\n            f"file:{temp_path}?mode=ro", uri=True, timeout=5.0\n        )\n        try:\n            row = check_conn.execute("PRAGMA quick_check").fetchone()\n        finally:\n            check_conn.close()\n        if row is None or str(row[0]).lower() != "ok":\n            raise sqlite3.DatabaseError("restored backup failed PRAGMA quick_check")\n\n        if target_file.exists():\n            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")\n            pre_restore_backup = target_file.with_suffix(\n                f".pre_restore_{timestamp}.db"\n            )\n            shutil.copy2(target_file, pre_restore_backup)\n            logger.info(f"Created pre-restore backup: {pre_restore_backup.name}")\n\n        os.replace(temp_path, target_file)\n        logger.info(f"Restored {target_file.name} from {backup_file.name}")\n        return True\n    except Exception as e:\n        logger.error(f"Failed to restore database: {safe_log_text(e)}")\n        return False\n    finally:\n        try:\n            temp_path.unlink(missing_ok=True)\n        except OSError as cleanup_exc:\n            logger.debug(\n                "Failed to remove restore temp file %s: %s",\n                temp_path.name,\n                safe_log_text(cleanup_exc),\n            )\n'''
+          text = text[:old_start] + replacement + text[old_end:]
+          path.write_text(text, encoding='utf-8')
+
+          test_path = Path('tests/unit/test_backup.py')
+          tests = test_path.read_text(encoding='utf-8')
+          tests = tests.replace(
+              'from configstream.backup import backup_databases, cleanup_old_backups\n',
+              'from configstream.backup import backup_databases, cleanup_old_backups, restore_database\n',
+              1,
+          )
+          tests = tests.replace('import sqlite3\n', 'import gzip\nimport sqlite3\n', 1)
+          assert 'test_backup_includes_committed_wal_state' not in tests
+          tests += '''\n\ndef test_backup_includes_committed_wal_state(tmp_path):\n    data_dir = tmp_path / "data"\n    backup_dir = tmp_path / "backups"\n    data_dir.mkdir()\n    db_file = data_dir / "wal.db"\n\n    writer = sqlite3.connect(db_file)\n    assert writer.execute("PRAGMA journal_mode=WAL").fetchone()[0].lower() == "wal"\n    writer.execute("PRAGMA wal_autocheckpoint=0")\n    writer.execute("CREATE TABLE records(value TEXT)")\n    writer.commit()\n    writer.execute("INSERT INTO records VALUES ('committed-in-wal')")\n    writer.commit()\n    assert (data_dir / "wal.db-wal").exists()\n\n    backups = backup_databases(data_dir=data_dir, backup_dir=backup_dir)\n    assert len(backups) == 1\n    restored_copy = tmp_path / "backup-copy.db"\n    with gzip.open(backups[0], "rb") as source:\n        restored_copy.write_bytes(source.read())\n    with sqlite3.connect(restored_copy) as check:\n        assert check.execute("SELECT value FROM records").fetchone()[0] == "committed-in-wal"\n    writer.close()\n\n\ndef test_restore_invalid_backup_preserves_existing_database(tmp_path):\n    target = tmp_path / "target.db"\n    with sqlite3.connect(target) as conn:\n        conn.execute("CREATE TABLE records(value TEXT)")\n        conn.execute("INSERT INTO records VALUES ('original')")\n        conn.commit()\n\n    invalid = tmp_path / "invalid.db"\n    invalid.write_bytes(b"not a sqlite database")\n\n    assert restore_database(invalid, target) is False\n    with sqlite3.connect(target) as conn:\n        assert conn.execute("SELECT value FROM records").fetchone()[0] == "original"\n'''
+          test_path.write_text(tests, encoding='utf-8')
+          PY
+          python -m py_compile src/configstream/backup.py tests/unit/test_backup.py
+          pytest -q tests/unit/test_backup.py tests/unit/test_backup_extended.py --disable-warnings --maxfail=1
+          git add src/configstream/backup.py tests/unit/test_backup.py
+          git commit -m 'fix(persistence): preserve WAL state and restore atomically'
+          git push origin HEAD:codex/fix-run-34268254683-audit
+      - name: Upgrade vulnerable uTLS client
+        working-directory: src/go/utls_client
+        run: |
+          set -euo pipefail
+          go get github.com/refraction-networking/utls@v1.8.2
+          go mod tidy
+          go test ./...
+          go run golang.org/x/vuln/cmd/govulncheck@v1.1.4 ./...
+          git add go.mod go.sum
+          git commit -m 'fix(security): upgrade vulnerable uTLS client'
+          git push origin HEAD:codex/fix-run-34268254683-audit
+      - name: Cover every Go module in supply-chain evidence
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('scripts/generate_supply_chain_evidence.py')
+          text = path.read_text(encoding='utf-8')
+          start = text.index('def _go_components(root: Path) -> list[Component]:\n')
+          end = text.index('\n\ndef _cargo_components', start)
+          replacement = '''def _go_components(root: Path) -> list[Component]:\n    components: list[Component] = []\n    go_root = root / "src/go"\n    for path in sorted(go_root.glob("*/go.mod")):\n        source = path.relative_to(root).as_posix()\n        lines = path.read_text(encoding="utf-8").splitlines()\n        in_require = False\n        for raw_line in lines:\n            stripped = raw_line.strip()\n            if stripped == "require (":\n                in_require = True\n                continue\n            if in_require and stripped == ")":\n                in_require = False\n                continue\n            candidate = (\n                stripped.removeprefix("require ")\n                if stripped.startswith("require ")\n                else stripped\n            )\n            if not in_require and not stripped.startswith("require "):\n                continue\n            match = _GO_REQUIREMENT.match(candidate)\n            if not match:\n                continue\n            scope = "development" if "// indirect" in raw_line else "required"\n            components.append(\n                Component(\n                    "go",\n                    match.group(1),\n                    match.group(2),\n                    scope,\n                    source=source,\n                )\n            )\n    return components\n'''
+          text = text[:start] + replacement + text[end:]
+          path.write_text(text, encoding='utf-8')
+
+          test_path = Path('tests/unit/test_supply_chain_evidence.py')
+          tests = test_path.read_text(encoding='utf-8')
+          assert 'test_sbom_covers_every_go_module' not in tests
+          tests += '''\n\ndef test_sbom_covers_every_go_module() -> None:\n    payload = json.loads(\n        Path("docs/generated/sbom.cdx.json").read_text(encoding="utf-8")\n    )\n    go_sources = set()\n    for component in payload["components"]:\n        properties = {\n            prop["name"]: prop["value"] for prop in component.get("properties", [])\n        }\n        if properties.get("configstream:ecosystem") == "go":\n            go_sources.add(properties.get("configstream:source-manifest"))\n    expected = {\n        path.relative_to(Path(".")).as_posix()\n        for path in Path("src/go").glob("*/go.mod")\n    }\n    assert expected.issubset(go_sources)\n'''
+          test_path.write_text(tests, encoding='utf-8')
+          PY
+          python scripts/generate_supply_chain_evidence.py
+          python -m py_compile scripts/generate_supply_chain_evidence.py
+          pytest -q tests/unit/test_supply_chain_evidence.py --disable-warnings --maxfail=1
+          git add scripts/generate_supply_chain_evidence.py tests/unit/test_supply_chain_evidence.py docs/generated/sbom.cdx.json docs/generated/dependency-licenses.json docs/generated/dependency-licenses.md
+          git commit -m 'fix(supply-chain): inventory every Go module'
+          git push origin HEAD:codex/fix-run-34268254683-audit
