@@ -28,8 +28,8 @@ jobs:
           python - <<'PY'
           from pathlib import Path
 
-          path = Path('src/configstream/quality/storage.py')
-          text = path.read_text(encoding='utf-8')
+          storage = Path('src/configstream/quality/storage.py')
+          text = storage.read_text(encoding='utf-8')
           anchor = 'MAX_MERGE_ROWS_PER_TABLE = 500_000\n'
           constant = '''MAX_MERGE_ROWS_PER_TABLE = 500_000\nMERGE_COUNT_QUERIES = (\n    ("source_stats", "SELECT COUNT(*) FROM source_stats"),\n    ("source_runs", "SELECT COUNT(*) FROM source_runs"),\n    ("proxy_history", "SELECT COUNT(*) FROM proxy_history"),\n)\n'''
           if anchor not in text:
@@ -39,7 +39,33 @@ jobs:
           new = '''            for table, count_query in MERGE_COUNT_QUERIES:\n                try:\n                    row_count = int(src.execute(count_query).fetchone()[0])\n                except sqlite3.OperationalError:\n                    if table == "source_stats":\n                        raise\n                    continue\n                if row_count > MAX_MERGE_ROWS_PER_TABLE:\n                    raise QualityStorageError(\n                        f"refusing to merge {table}: row limit exceeded"\n                    )\n'''
           if old not in text:
               raise SystemExit('quality merge preflight block not found')
-          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          storage.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          fetcher = Path('src/configstream/pipeline/fetcher.py')
+          text = fetcher.read_text(encoding='utf-8')
+          marker = '''    return None, sorted(resolved_ips)[0]\n\n\nasync def fetch_from_source(\n'''
+          helper_text = '''    return None, sorted(resolved_ips)[0]\n\n\nasync def _empty_content_result(\n    source: str,\n    safe_source: str,\n    status_code: int,\n    response_time: float,\n    timeout_tracker: Any,\n    breaker: Any,\n) -> FetchResult:\n    logger.info(\n        "Source %s returned HTTP %d but no usable content.", safe_source, status_code\n    )\n    if timeout_tracker:\n        await timeout_tracker.record_attempt(source, response_time, success=False)\n    if breaker:\n        await breaker.record_failure()\n    return FetchResult(\n        success=False,\n        source=source,\n        content="",\n        status_code=status_code,\n        error="Empty content",\n        response_time=response_time,\n    )\n\n\nasync def fetch_from_source(\n'''
+          if marker not in text:
+              raise SystemExit('fetcher helper insertion point not found')
+          text = text.replace(marker, helper_text, 1)
+          old = '''                if 200 <= response.status_code < 300 and (\n                    not text_content or not text_content.strip()\n                ):\n                    logger.info(\n                        "Source %s returned HTTP %d but no usable content.",\n                        safe_source,\n                        response.status_code,\n                    )\n                    response_time = loop.time() - start_ts\n                    if timeout_tracker:\n                        await timeout_tracker.record_attempt(\n                            source, response_time, success=False\n                        )\n                    if breaker:\n                        await breaker.record_failure()\n                    return FetchResult(\n                        success=False,\n                        source=source,\n                        content="",\n                        status_code=response.status_code,\n                        error="Empty content",\n                        response_time=response_time,\n                    )\n'''
+          new = '''                if 200 <= response.status_code < 300 and not text_content.strip():\n                    return await _empty_content_result(\n                        source,\n                        safe_source,\n                        response.status_code,\n                        loop.time() - start_ts,\n                        timeout_tracker,\n                        breaker,\n                    )\n'''
+          if old not in text:
+              raise SystemExit('fetcher empty-content block not found')
+          fetcher.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          producer = Path('src/configstream/pipeline/producer.py')
+          text = producer.read_text(encoding='utf-8')
+          marker = '''    except Exception:  # nosec B110\n        logging.getLogger(__name__).debug("Suppressed broad exception")\n        pass\n\n\nasync def source_producer(\n'''
+          helper_text = '''    except Exception:  # nosec B110\n        logging.getLogger(__name__).debug("Suppressed broad exception")\n        pass\n\n\nasync def _report_unusable_content(\n    loop: asyncio.AbstractEventLoop,\n    quality_tracker: SourceQualityTracker,\n    settings: AppSettings,\n    source: str,\n    safe_source: str,\n    content: str,\n    drop_stats: dict,\n    response_time: float,\n) -> None:\n    log_method = logger.debug if len(content) < 100 else logger.warning\n    log_method(\n        "Source %s returned content (size=%d) but no valid config lines found. "\n        "Drop Stats: %s",\n        safe_source,\n        len(content),\n        drop_stats,\n    )\n    await _report_source_failure(\n        loop,\n        quality_tracker,\n        settings,\n        source,\n        "no_valid_lines",\n        duration_ms=response_time * 1000,\n        failure_modes=drop_stats,\n    )\n\n\nasync def source_producer(\n'''
+          if marker not in text:
+              raise SystemExit('producer helper insertion point not found')
+          text = text.replace(marker, helper_text, 1)
+          old = '''                        if count == 0:\n                            # Log that we got content but no proxies (useful for debugging invalid formats)\n                            # Reduced noise for expected empty sources\n                            log_method = (\n                                logger.debug\n                                if len(res.content) < 100\n                                else logger.warning\n                            )\n                            log_method(\n                                f"Source {safe_source} returned content (size={len(res.content) if res.content else 0}) but no valid config lines found. "\n                                f"Drop Stats: {drop_stats}"\n                            )\n                            await _report_source_failure(\n                                loop,\n                                quality_tracker,\n                                settings,\n                                source,\n                                "no_valid_lines",\n                                duration_ms=(res.response_time or 0.0) * 1000,\n                                failure_modes=drop_stats,\n                            )\n                            continue\n'''
+          new = '''                        if count == 0:\n                            await _report_unusable_content(\n                                loop, quality_tracker, settings, source, safe_source,\n                                res.content or "", drop_stats, res.response_time or 0.0,\n                            )\n                            continue\n'''
+          if old not in text:
+              raise SystemExit('producer unusable-content block not found')
+          producer.write_text(text.replace(old, new, 1), encoding='utf-8')
           PY
           python scripts/validate_function_size_budget.py
           python scripts/generate_environment_catalog.py
@@ -50,6 +76,7 @@ jobs:
           bandit -r src/configstream scripts tools frontend/assets/js -q
           python scripts/validate_bandit_suppressions.py --require-active
           python scripts/verify_repository.py --profile static
+          pytest -q tests/unit/test_audit_fetch_semantics.py tests/unit/test_quality_storage_merge_bounds.py --disable-warnings --maxfail=1
           mv /tmp/audit-fix-current-ci.yml "$helper"
       - name: Commit permanent fixes only
         shell: bash
@@ -57,7 +84,7 @@ jobs:
           set -euo pipefail
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add src/configstream/quality/storage.py TRIAGE_REPORT.md docs/generated/environment-variables.json docs/generated/environment-variables.md docs/DEBT_MATRIX.md docs/debt_matrix.json
+          git add src/configstream/quality/storage.py src/configstream/pipeline/fetcher.py src/configstream/pipeline/producer.py TRIAGE_REPORT.md docs/generated/environment-variables.json docs/generated/environment-variables.md docs/DEBT_MATRIX.md docs/debt_matrix.json
           git diff --cached --quiet && exit 0
           git commit -m 'fix(ci): clear security and generated-evidence gates'
           git push origin HEAD:codex/fix-run-34268254683-audit
