@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from __future__ import annotations
 import logging
-from typing import Any
+from typing import Any, Iterable
 
 
 import asyncio
@@ -64,6 +64,35 @@ logger.remove()  # Remove default handler to disable all logging
 #     compression="zip",
 #     level="DEBUG",
 # )
+
+
+async def _cancel_and_await_tasks(tasks: Iterable[asyncio.Task[Any]]) -> None:
+    """Cancel owned tasks and wait for their finalizers to complete."""
+    owned = list(dict.fromkeys(tasks))
+    for task in owned:
+        if not task.done():
+            task.cancel()
+    if owned:
+        await asyncio.gather(*owned, return_exceptions=True)
+
+
+async def _kill_and_reap_processes(
+    processes: Iterable[Any], timeout: float = 2.0
+) -> None:
+    """Kill owned child processes and reap them with a bounded wait."""
+    for process in list(dict.fromkeys(processes)):
+        try:
+            if process.returncode is None:
+                try:
+                    process.kill()
+                except ProcessLookupError:
+                    pass
+            try:
+                await asyncio.wait_for(process.wait(), timeout=timeout)
+            except asyncio.TimeoutError:
+                logger.error("Timed out reaping Slipstream child process")
+        except Exception as exc:
+            logger.warning("Failed to reap Slipstream child: %s", str(exc)[:200])
 
 
 class SlipstreamManager:
@@ -603,36 +632,20 @@ class DNSScannerTUI(App):
             pass
 
     async def action_quit(self) -> None:
-        """Immediately force quit the application."""
-        # Kill all slipstream processes first
-        for process in self.slipstream_processes:
-            try:
-                process.kill()
-            except Exception:  # nosec B110
-                logging.getLogger(__name__).debug("Suppressed broad exception")
-                pass
+        """Gracefully stop scans and reap every owned Slipstream child."""
+        if self._shutdown_event is not None:
+            self._shutdown_event.set()
 
-        # Cancel all active tasks
-        for task in self.active_scan_tasks:
-            try:
-                task.cancel()
-            except Exception:  # nosec B110
-                logging.getLogger(__name__).debug("Suppressed broad exception")
-                pass
+        active_tasks = list(self.active_scan_tasks)
+        slipstream_tasks = list(self.slipstream_tasks)
+        processes = list(self.slipstream_processes)
 
-        for task in self.slipstream_tasks:
-            try:
-                task.cancel()
-            except Exception:  # nosec B110
-                logging.getLogger(__name__).debug("Suppressed broad exception")
-                pass
+        await _cancel_and_await_tasks(active_tasks + slipstream_tasks)
+        await _kill_and_reap_processes(processes)
 
-        # Clear task lists
         self.active_scan_tasks.clear()
         self.slipstream_tasks.clear()
         self.slipstream_processes.clear()
-
-        # Use Textual's proper exit to restore terminal
         self.exit()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
@@ -959,10 +972,8 @@ class DNSScannerTUI(App):
         # Check if we're shutting down
         if self._shutdown_event and self._shutdown_event.is_set():
             self._log("[yellow]Scan interrupted - cleaning up...[/yellow]")
-            # Cancel remaining tasks
-            for task in active_tasks:
-                if not task.done():
-                    task.cancel()
+            await _cancel_and_await_tasks(active_tasks)
+            self.active_scan_tasks.clear()
             return
 
         # Wait for all remaining tasks
@@ -1020,8 +1031,9 @@ class DNSScannerTUI(App):
                 )
             except asyncio.TimeoutError:
                 self._log(
-                    "[yellow]Timeout waiting for slipstream tests - continuing anyway[/yellow]"
+                    "[yellow]Timeout waiting for slipstream tests - cancelling remaining tests[/yellow]"
                 )
+                await _cancel_and_await_tasks(self.slipstream_tasks)
             self._rebuild_table()  # Rebuild after all tests complete
 
         # Auto-save results
