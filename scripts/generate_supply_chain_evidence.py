@@ -112,37 +112,39 @@ def _npm_components(root: Path) -> list[Component]:
 
 
 def _go_components(root: Path) -> list[Component]:
-    lines = (root / "src/go/tester/go.mod").read_text(encoding="utf-8").splitlines()
     components: list[Component] = []
-    in_require = False
-    for raw_line in lines:
-        stripped = raw_line.strip()
-        if stripped == "require (":
-            in_require = True
-            continue
-        if in_require and stripped == ")":
-            in_require = False
-            continue
-        candidate = (
-            stripped.removeprefix("require ")
-            if stripped.startswith("require ")
-            else stripped
-        )
-        if not in_require and not stripped.startswith("require "):
-            continue
-        match = _GO_REQUIREMENT.match(candidate)
-        if not match:
-            continue
-        scope = "development" if "// indirect" in raw_line else "required"
-        components.append(
-            Component(
-                "go",
-                match.group(1),
-                match.group(2),
-                scope,
-                source="src/go/tester/go.mod",
+    for path in sorted((root / "src/go").glob("*/go.mod")):
+        source = path.relative_to(root).as_posix()
+        lines = path.read_text(encoding="utf-8").splitlines()
+        in_require = False
+        for raw_line in lines:
+            stripped = raw_line.strip()
+            if stripped == "require (":
+                in_require = True
+                continue
+            if in_require and stripped == ")":
+                in_require = False
+                continue
+            candidate = (
+                stripped.removeprefix("require ")
+                if stripped.startswith("require ")
+                else stripped
             )
-        )
+            if not in_require and not stripped.startswith("require "):
+                continue
+            match = _GO_REQUIREMENT.match(candidate)
+            if not match:
+                continue
+            scope = "development" if "// indirect" in raw_line else "required"
+            components.append(
+                Component(
+                    "go",
+                    match.group(1),
+                    match.group(2),
+                    scope,
+                    source=source,
+                )
+            )
     return components
 
 

@@ -34,3 +34,21 @@ def test_license_report_never_claims_unknown_license() -> None:
     for item in payload["components"]:
         if item["license_status"] == "unknown":
             assert item["licenses"] == []
+
+
+def test_sbom_covers_every_go_module() -> None:
+    payload = json.loads(
+        Path("docs/generated/sbom.cdx.json").read_text(encoding="utf-8")
+    )
+    go_sources = set()
+    for component in payload["components"]:
+        properties = {
+            prop["name"]: prop["value"] for prop in component.get("properties", [])
+        }
+        if properties.get("configstream:ecosystem") == "go":
+            go_sources.add(properties.get("configstream:source-manifest"))
+    expected = {
+        path.relative_to(Path(".")).as_posix()
+        for path in Path("src/go").glob("*/go.mod")
+    }
+    assert expected.issubset(go_sources)

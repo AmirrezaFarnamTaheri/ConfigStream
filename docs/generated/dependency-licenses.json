@@ -1,5 +1,5 @@
 {
-  "component_count": 200,
+  "component_count": 196,
   "components": [
     {
       "ecosystem": "cargo",
@@ -18,15 +18,6 @@
       "scope": "development",
       "source": "src/go/tester/go.mod",
       "version": "1.0.385"
-    },
-    {
-      "ecosystem": "go",
-      "license_status": "unknown",
-      "licenses": [],
-      "name": "github.com/ajg/form",
-      "scope": "development",
-      "source": "src/go/tester/go.mod",
-      "version": "1.5.1"
     },
     {
       "ecosystem": "go",
@@ -90,24 +81,6 @@
       "scope": "development",
       "source": "src/go/tester/go.mod",
       "version": "5.0.12"
-    },
-    {
-      "ecosystem": "go",
-      "license_status": "unknown",
-      "licenses": [],
-      "name": "github.com/go-chi/cors",
-      "scope": "development",
-      "source": "src/go/tester/go.mod",
-      "version": "1.2.1"
-    },
-    {
-      "ecosystem": "go",
-      "license_status": "unknown",
-      "licenses": [],
-      "name": "github.com/go-chi/render",
-      "scope": "development",
-      "source": "src/go/tester/go.mod",
-      "version": "1.0.3"
     },
     {
       "ecosystem": "go",
@@ -180,24 +153,6 @@
       "scope": "development",
       "source": "src/go/tester/go.mod",
       "version": "0.1.1"
-    },
-    {
-      "ecosystem": "go",
-      "license_status": "unknown",
-      "licenses": [],
-      "name": "github.com/insomniacslk/dhcp",
-      "scope": "development",
-      "source": "src/go/tester/go.mod",
-      "version": "0.0.0-20231206064809-8c70d406f6d2"
-    },
-    {
-      "ecosystem": "go",
-      "license_status": "unknown",
-      "licenses": [],
-      "name": "github.com/josharian/native",
-      "scope": "development",
-      "source": "src/go/tester/go.mod",
-      "version": "1.1.0"
     },
     {
       "ecosystem": "go",
@@ -311,15 +266,6 @@
       "ecosystem": "go",
       "license_status": "unknown",
       "licenses": [],
-      "name": "github.com/pierrec/lz4/v4",
-      "scope": "development",
-      "source": "src/go/tester/go.mod",
-      "version": "4.1.14"
-    },
-    {
-      "ecosystem": "go",
-      "license_status": "unknown",
-      "licenses": [],
       "name": "github.com/quic-go/qpack",
       "scope": "development",
       "source": "src/go/tester/go.mod",
@@ -333,6 +279,15 @@
       "scope": "development",
       "source": "src/go/tester/go.mod",
       "version": "0.4.1"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "github.com/refraction-networking/utls",
+      "scope": "required",
+      "source": "src/go/utls_client/go.mod",
+      "version": "1.8.2"
     },
     {
       "ecosystem": "go",
@@ -518,15 +473,6 @@
       "ecosystem": "go",
       "license_status": "unknown",
       "licenses": [],
-      "name": "github.com/u-root/uio",
-      "scope": "development",
-      "source": "src/go/tester/go.mod",
-      "version": "0.0.0-20230220225925-ffce2a382923"
-    },
-    {
-      "ecosystem": "go",
-      "license_status": "unknown",
-      "licenses": [],
       "name": "github.com/vishvananda/netns",
       "scope": "development",
       "source": "src/go/tester/go.mod",
@@ -573,9 +519,18 @@
       "license_status": "unknown",
       "licenses": [],
       "name": "golang.org/x/crypto",
+      "scope": "development",
+      "source": "src/go/utls_client/go.mod",
+      "version": "0.36.0"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "golang.org/x/crypto",
       "scope": "required",
       "source": "src/go/tester/go.mod",
-      "version": "0.45.0"
+      "version": "0.56.0"
     },
     {
       "ecosystem": "go",
@@ -593,7 +548,7 @@
       "name": "golang.org/x/mod",
       "scope": "development",
       "source": "src/go/tester/go.mod",
-      "version": "0.29.0"
+      "version": "0.38.0"
     },
     {
       "ecosystem": "go",
@@ -602,7 +557,7 @@
       "name": "golang.org/x/net",
       "scope": "development",
       "source": "src/go/tester/go.mod",
-      "version": "0.47.0"
+      "version": "0.57.0"
     },
     {
       "ecosystem": "go",
@@ -611,7 +566,16 @@
       "name": "golang.org/x/sync",
       "scope": "development",
       "source": "src/go/tester/go.mod",
-      "version": "0.18.0"
+      "version": "0.22.0"
+    },
+    {
+      "ecosystem": "go",
+      "license_status": "unknown",
+      "licenses": [],
+      "name": "golang.org/x/sys",
+      "scope": "development",
+      "source": "src/go/utls_client/go.mod",
+      "version": "0.31.0"
     },
     {
       "ecosystem": "go",
@@ -620,7 +584,7 @@
       "name": "golang.org/x/sys",
       "scope": "development",
       "source": "src/go/tester/go.mod",
-      "version": "0.38.0"
+      "version": "0.47.0"
     },
     {
       "ecosystem": "go",
@@ -629,7 +593,7 @@
       "name": "golang.org/x/text",
       "scope": "development",
       "source": "src/go/tester/go.mod",
-      "version": "0.31.0"
+      "version": "0.41.0"
     },
     {
       "ecosystem": "go",
@@ -647,7 +611,7 @@
       "name": "golang.org/x/tools",
       "scope": "development",
       "source": "src/go/tester/go.mod",
-      "version": "0.38.0"
+      "version": "0.48.0"
     },
     {
       "ecosystem": "go",
@@ -1903,5 +1867,5 @@
   "evidence_basis": "Only licenses declared in checked-in package manifests/locks are reported. Unknown does not imply unlicensed.",
   "known_license_count": 49,
   "schema_version": 1,
-  "unknown_license_count": 151
+  "unknown_license_count": 147
 }

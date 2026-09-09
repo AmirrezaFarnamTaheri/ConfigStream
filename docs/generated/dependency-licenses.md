@@ -2,15 +2,14 @@
 
 Only licenses declared in checked-in package manifests/locks are reported. Unknown does not imply unlicensed.
 
-Components: **200**
+Components: **196**
 Manifest-declared licenses: **49**
-Unknown licenses requiring external resolution: **151**
+Unknown licenses requiring external resolution: **147**
 
 | Ecosystem | Package | Version | Scope | License evidence |
 |---|---|---|---|---|
 | cargo | `libc` | `0.2` | required | unknown |
 | go | `berty.tech/go-libtor` | `1.0.385` | development | unknown |
-| go | `github.com/ajg/form` | `1.5.1` | development | unknown |
 | go | `github.com/andybalholm/brotli` | `1.0.6` | development | unknown |
 | go | `github.com/caddyserver/certmagic` | `0.20.0` | development | unknown |
 | go | `github.com/cloudflare/circl` | `1.3.7` | development | unknown |
@@ -18,8 +17,6 @@ Unknown licenses requiring external resolution: **151**
 | go | `github.com/fsnotify/fsnotify` | `1.7.0` | development | unknown |
 | go | `github.com/gaukas/godicttls` | `0.0.4` | development | unknown |
 | go | `github.com/go-chi/chi/v5` | `5.0.12` | development | unknown |
-| go | `github.com/go-chi/cors` | `1.2.1` | development | unknown |
-| go | `github.com/go-chi/render` | `1.0.3` | development | unknown |
 | go | `github.com/go-ole/go-ole` | `1.3.0` | development | unknown |
 | go | `github.com/go-task/slim-sprig` | `0.0.0-20230315185526-52ccab3ef572` | development | unknown |
 | go | `github.com/gobwas/httphead` | `0.1.0` | development | unknown |
@@ -28,8 +25,6 @@ Unknown licenses requiring external resolution: **151**
 | go | `github.com/google/btree` | `1.1.2` | development | unknown |
 | go | `github.com/google/pprof` | `0.0.0-20231101202521-4ca4178f5c7a` | development | unknown |
 | go | `github.com/hashicorp/yamux` | `0.1.1` | development | unknown |
-| go | `github.com/insomniacslk/dhcp` | `0.0.0-20231206064809-8c70d406f6d2` | development | unknown |
-| go | `github.com/josharian/native` | `1.1.0` | development | unknown |
 | go | `github.com/klauspost/compress` | `1.17.4` | development | unknown |
 | go | `github.com/klauspost/cpuid/v2` | `2.2.5` | development | unknown |
 | go | `github.com/libdns/alidns` | `1.0.3` | development | unknown |
@@ -42,9 +37,9 @@ Unknown licenses requiring external resolution: **151**
 | go | `github.com/onsi/ginkgo/v2` | `2.9.7` | development | unknown |
 | go | `github.com/ooni/go-libtor` | `1.1.8` | development | unknown |
 | go | `github.com/oschwald/maxminddb-golang` | `1.12.0` | development | unknown |
-| go | `github.com/pierrec/lz4/v4` | `4.1.14` | development | unknown |
 | go | `github.com/quic-go/qpack` | `0.4.0` | development | unknown |
 | go | `github.com/quic-go/qtls-go1-20` | `0.4.1` | development | unknown |
+| go | `github.com/refraction-networking/utls` | `1.8.2` | required | unknown |
 | go | `github.com/sagernet/bbolt` | `0.0.0-20231014093535-ea5cb2fe9f0a` | development | unknown |
 | go | `github.com/sagernet/cloudflare-tls` | `0.0.0-20231208171750-a4483c1b7cd1` | development | unknown |
 | go | `github.com/sagernet/gvisor` | `0.0.0-20240428053021-e691de28565f` | development | unknown |
@@ -65,21 +60,22 @@ Unknown licenses requiring external resolution: **151**
 | go | `github.com/sagernet/utls` | `1.5.4` | development | unknown |
 | go | `github.com/sagernet/wireguard-go` | `0.0.0-20231215174105-89dec3b2f3e8` | development | unknown |
 | go | `github.com/sagernet/ws` | `0.0.0-20231204124109-acfe8907c854` | development | unknown |
-| go | `github.com/u-root/uio` | `0.0.0-20230220225925-ffce2a382923` | development | unknown |
 | go | `github.com/vishvananda/netns` | `0.0.0-20211101163701-50045581ed74` | development | unknown |
 | go | `github.com/zeebo/blake3` | `0.2.3` | development | unknown |
 | go | `go.uber.org/multierr` | `1.11.0` | development | unknown |
 | go | `go.uber.org/zap` | `1.27.0` | development | unknown |
 | go | `go4.org/netipx` | `0.0.0-20231129151722-fdeea329fbba` | development | unknown |
-| go | `golang.org/x/crypto` | `0.45.0` | required | unknown |
+| go | `golang.org/x/crypto` | `0.36.0` | development | unknown |
+| go | `golang.org/x/crypto` | `0.56.0` | required | unknown |
 | go | `golang.org/x/exp` | `0.0.0-20240416160154-fe59bbe5cc7f` | development | unknown |
-| go | `golang.org/x/mod` | `0.29.0` | development | unknown |
-| go | `golang.org/x/net` | `0.47.0` | development | unknown |
-| go | `golang.org/x/sync` | `0.18.0` | development | unknown |
-| go | `golang.org/x/sys` | `0.38.0` | development | unknown |
-| go | `golang.org/x/text` | `0.31.0` | development | unknown |
+| go | `golang.org/x/mod` | `0.38.0` | development | unknown |
+| go | `golang.org/x/net` | `0.57.0` | development | unknown |
+| go | `golang.org/x/sync` | `0.22.0` | development | unknown |
+| go | `golang.org/x/sys` | `0.31.0` | development | unknown |
+| go | `golang.org/x/sys` | `0.47.0` | development | unknown |
+| go | `golang.org/x/text` | `0.41.0` | development | unknown |
 | go | `golang.org/x/time` | `0.5.0` | development | unknown |
-| go | `golang.org/x/tools` | `0.38.0` | development | unknown |
+| go | `golang.org/x/tools` | `0.48.0` | development | unknown |
 | go | `google.golang.org/genproto/googleapis/rpc` | `0.0.0-20240227224415-6ceb2ff114de` | development | unknown |
 | go | `google.golang.org/grpc` | `1.63.2` | development | unknown |
 | go | `google.golang.org/protobuf` | `1.33.0` | development | unknown |
