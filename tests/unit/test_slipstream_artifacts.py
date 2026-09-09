@@ -4,7 +4,7 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 
-import httpx
+import pytest
 
 from configstream.tools.dns_scanner.python import slipstream_artifacts
 
@@ -14,16 +14,16 @@ class _Stream:
         self.payload = payload
         self.headers = {"Content-Length": str(len(payload))}
 
-    def __enter__(self):
+    async def __aenter__(self):
         return self
 
-    def __exit__(self, *_args):
+    async def __aexit__(self, *_args):
         return False
 
     def raise_for_status(self) -> None:
         return None
 
-    def iter_bytes(self):
+    async def aiter_bytes(self):
         yield self.payload
 
 
@@ -33,10 +33,10 @@ class _Client:
     def __init__(self, **_kwargs) -> None:
         pass
 
-    def __enter__(self):
+    async def __aenter__(self):
         return self
 
-    def __exit__(self, *_args):
+    async def __aexit__(self, *_args):
         return False
 
     def stream(self, method: str, url: str) -> _Stream:
@@ -67,43 +67,35 @@ def test_manifest_uses_immutable_release_and_arch_specific_linux_assets() -> Non
 def test_verify_artifact_requires_matching_sha256(tmp_path: Path) -> None:
     path = tmp_path / "slipstream"
     path.write_bytes(b"trusted")
-    artifact = {
-        "url": "https://example.invalid/slipstream",
-        "filename": "slipstream",
-        "sha256": hashlib.sha256(b"trusted").hexdigest(),
-    }
+    expected = hashlib.sha256(b"trusted").hexdigest()
 
-    assert slipstream_artifacts.verify_artifact(path, artifact)
-    artifact["sha256"] = "0" * 64
-    assert not slipstream_artifacts.verify_artifact(path, artifact)
+    assert slipstream_artifacts.verify_artifact(path, expected)
+    assert not slipstream_artifacts.verify_artifact(path, "0" * 64)
 
 
-def test_download_promotes_only_verified_payload(tmp_path: Path) -> None:
+@pytest.mark.asyncio
+async def test_download_promotes_only_verified_payload(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     destination = tmp_path / "slipstream"
     destination.write_bytes(b"old")
     _Client.payload = b"new trusted payload"
-    artifact = {
-        "url": "https://example.invalid/releases/download/42e3e75/slipstream",
-        "filename": "slipstream",
-        "sha256": hashlib.sha256(_Client.payload).hexdigest(),
-    }
+    expected = hashlib.sha256(_Client.payload).hexdigest()
+    monkeypatch.setattr(slipstream_artifacts.httpx, "AsyncClient", _Client)
 
-    assert slipstream_artifacts.download_verified_artifact(
-        artifact,
-        destination,
-        client_factory=_Client,
+    assert await slipstream_artifacts.download_verified_artifact(
+        url="https://example.invalid/releases/download/42e3e75/slipstream",
+        expected_sha256=expected,
+        destination=destination,
     )
     assert destination.read_bytes() == _Client.payload
     assert not destination.with_name(f".{destination.name}.partial").exists()
 
     destination.write_bytes(b"known-good")
-    bad_artifact = dict(artifact)
-    bad_artifact["sha256"] = "f" * 64
-    assert not slipstream_artifacts.download_verified_artifact(
-        bad_artifact,
-        destination,
-        retries=1,
-        client_factory=_Client,
+    assert not await slipstream_artifacts.download_verified_artifact(
+        url="https://example.invalid/releases/download/42e3e75/slipstream",
+        expected_sha256="f" * 64,
+        destination=destination,
     )
     assert destination.read_bytes() == b"known-good"
     assert not destination.with_name(f".{destination.name}.partial").exists()
