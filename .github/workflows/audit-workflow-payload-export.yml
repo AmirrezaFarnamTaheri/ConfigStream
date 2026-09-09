@@ -1,0 +1,158 @@
+name: Export audited workflow payloads
+
+on:
+  push:
+    branches: [codex/fix-run-34268254683-audit]
+
+permissions:
+  contents: write
+
+jobs:
+  export:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: codex/fix-run-34268254683-audit
+          fetch-depth: 1
+      - name: Build exact workflow payloads
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          out = Path('.audit-workflow-payload')
+          out.mkdir(exist_ok=True)
+
+          # Main release workflow: preserve all unrelated content and harden only
+          # the audited GeoIP and shard-evidence contracts.
+          path = Path('.github/workflows/main.yml')
+          s = path.read_text(encoding='utf-8')
+          s = s.replace(
+              'python -m configstream.cli update-databases\n',
+              'python -m configstream.cli update-databases --geoip-only\n',
+              1,
+          )
+          start = s.index('  setup_geoip:')
+          end = s.index('  setup_matrix:', start)
+          section = s[start:end]
+          section = section.replace('retention-days: 1', 'retention-days: 30', 1)
+          s = s[:start] + section + s[end:]
+          old = '''      - name: Record artifact downloads
+                if: always()
+                run: |
+                  python scripts/resilient_stage.py record --name shard-download --status "${{ steps.shard_download.outcome }}"
+                  python scripts/resilient_stage.py record --name wasm-download --status "${{ steps.wasm_download.outcome }}"
+                  python scripts/resilient_stage.py record --name matrix-artifact-download --status "${{ steps.matrix_artifact_download.outcome }}"
+          '''
+          new = '''      - name: Record artifact downloads
+                if: always()
+                run: |
+                  set -euo pipefail
+                  shard_status="${{ steps.shard_download.outcome }}"
+                  if [ "$shard_status" = success ]; then
+                    if ! python - <<'PYCODE'
+                  import json
+                  from pathlib import Path
+
+                  matrix = json.loads(Path("matrix-artifact/source-matrix.json").read_text(encoding="utf-8"))
+                  expected = sum(1 for row in matrix.get("include", []) if row.get("enabled", True))
+                  lineage = list(Path("artifacts").rglob("shard_lineage.json"))
+                  if expected <= 0 or len(lineage) != expected:
+                      raise SystemExit(
+                          f"shard artifact lineage mismatch: expected {expected}, found {len(lineage)}"
+                      )
+                  PYCODE
+                    then
+                      shard_status=failure
+                    fi
+                  fi
+                  python scripts/resilient_stage.py record --name shard-download --status "$shard_status"
+                  python scripts/resilient_stage.py record --name wasm-download --status "${{ steps.wasm_download.outcome }}"
+                  python scripts/resilient_stage.py record --name matrix-artifact-download --status "${{ steps.matrix_artifact_download.outcome }}"
+          '''
+          if old not in s:
+              raise SystemExit('main workflow artifact-recording block changed unexpectedly')
+          s = s.replace(old, new, 1)
+          (out / 'main.yml').write_text(s, encoding='utf-8')
+
+          # Pages workflow: deployment is fail-closed unless a verified rollback
+          # baseline exists; a bootstrap exception requires explicit manual input.
+          path = Path('.github/workflows/deploy-pages.yml')
+          s = path.read_text(encoding='utf-8')
+          input_block = '''      run_id:
+                description: Successful main-branch workflow run containing pipeline-output
+                required: true
+                type: string
+          '''
+          s = s.replace(
+              input_block,
+              input_block + '''      allow_bootstrap_without_lkg:
+                description: Allow a manual first deployment when no verified rollback baseline exists
+                required: false
+                default: false
+                type: boolean
+          ''',
+              1,
+          )
+          s = s.replace(
+              '          echo "HAS_LKG=false" >> "$GITHUB_ENV"\n',
+              '          echo "HAS_LKG=false" >> "$GITHUB_ENV"\n          echo "ROLLBACK_READY=false" >> "$GITHUB_ENV"\n',
+              1,
+          )
+          marker = '      - name: Upload last-known-good rollback artifact\n'
+          gate = '''      - name: Require rollback baseline before production mutation
+                if: always()
+                env:
+                  ALLOW_BOOTSTRAP_WITHOUT_LKG: ${{ github.event_name == 'workflow_dispatch' && inputs.allow_bootstrap_without_lkg || false }}
+                run: |
+                  set -euo pipefail
+                  if [ "${HAS_LKG:-false}" = true ]; then
+                    echo "ROLLBACK_READY=true" >> "$GITHUB_ENV"
+                    python scripts/resilient_stage.py record --name rollback-baseline --status success --report-dir deploy-evidence/stages --description "Verified last-known-good Pages release is available"
+                  elif [ "$ALLOW_BOOTSTRAP_WITHOUT_LKG" = true ]; then
+                    echo "ROLLBACK_READY=true" >> "$GITHUB_ENV"
+                    python scripts/resilient_stage.py record --name rollback-baseline --status success --report-dir deploy-evidence/stages --description "Explicit manual bootstrap approved without a rollback baseline"
+                  else
+                    echo "DEPLOY_READY=false" >> "$GITHUB_ENV"
+                    python scripts/resilient_stage.py record --name rollback-baseline --status failed --exit-code 1 --report-dir deploy-evidence/stages --description "Deployment blocked because no verified rollback baseline is available"
+                  fi
+          '''
+          if marker not in s:
+              raise SystemExit('Pages rollback upload marker changed unexpectedly')
+          s = s.replace(marker, gate + marker, 1)
+          s = s.replace(
+              "        if: env.DEPLOY_READY == 'true'\n",
+              "        if: env.DEPLOY_READY == 'true' && env.ROLLBACK_READY == 'true'\n",
+              1,
+          )
+          s = s.replace(
+              "        if: env.DEPLOY_READY == 'true' && steps.pages_artifact.outcome == 'success'\n",
+              "        if: env.DEPLOY_READY == 'true' && env.ROLLBACK_READY == 'true' && steps.pages_artifact.outcome == 'success'\n",
+              1,
+          )
+          s = s.replace(
+              '            --required-stage verify-sealed-pages-artifact \\\n',
+              '            --required-stage verify-sealed-pages-artifact \\\n            --required-stage rollback-baseline \\\n',
+              1,
+          )
+          (out / 'deploy-pages.yml').write_text(s, encoding='utf-8')
+          PY
+          python - <<'PY'
+          import yaml
+          from pathlib import Path
+          for path in Path('.audit-workflow-payload').glob('*.yml'):
+              yaml.safe_load(path.read_text(encoding='utf-8'))
+              print(path)
+          PY
+      - name: Commit ordinary payload blobs
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add .audit-workflow-payload/main.yml .audit-workflow-payload/deploy-pages.yml
+          git commit -m 'chore: export exact audited workflow payloads'
+          git push origin HEAD:codex/fix-run-34268254683-audit
