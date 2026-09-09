@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_digest": "f5a3e60ad42dc47026b0c9dc02db3505d0324fce536240d8ce2332ca27104210",
+  "source_digest": "47d2f8b7fa1a64c252734cd0ef43c31bbb026d51a82ffd74798c9ed61f0ff0de",
   "variable_count": 161,
   "variables": [
     {
@@ -1670,14 +1670,12 @@
       "sources": [
         "src/configstream/config.py:144",
         "src/configstream/intelligence/washer/core.py:515",
-        "src/configstream/pipeline/core.py:138",
-        "src/configstream/pipeline/core.py:159",
-        "src/configstream/pipeline/core.py:164",
-        "src/configstream/pipeline/core.py:169",
-        "src/configstream/pipeline/core.py:275",
-        "src/configstream/pipeline/core.py:277",
-        "src/configstream/pipeline/core.py:532",
-        "src/configstream/pipeline/core.py:534",
+        "src/configstream/pipeline/core.py:150",
+        "src/configstream/pipeline/core.py:171",
+        "src/configstream/pipeline/core.py:176",
+        "src/configstream/pipeline/core.py:181",
+        "src/configstream/pipeline/core.py:41",
+        "src/configstream/pipeline/core.py:47",
         "src/configstream/testers/go_tester/manager.py:331",
         "src/configstream/testers/go_tester/secure_manager.py:72"
       ],
