@@ -29,6 +29,12 @@ from configstream.utils import AtomicFileWriter
 
 logger = logging.getLogger(__name__)
 
+MAX_ARTIFACT_JSON_BYTES = 64 * 1024 * 1024
+MERGED_CACHE_MAX_ENTRIES = 100_000
+MAX_LOG_FILE_BYTES = 64 * 1024 * 1024
+MAX_CONSOLIDATED_LOG_BYTES = 256 * 1024 * 1024
+LOG_COPY_CHUNK_CHARS = 1024 * 1024
+
 
 def _coerce_bool(value: Any) -> bool:
     if isinstance(value, bool):
@@ -60,6 +66,8 @@ def _coerce_int(value: Any) -> Optional[int]:
 
 def _load_json(path: Path) -> Optional[Any]:
     try:
+        if path.stat().st_size > MAX_ARTIFACT_JSON_BYTES:
+            raise ValueError("artifact JSON exceeds the safety limit")
         return json.loads(path.read_text(encoding="utf-8"))
     except Exception as e:
         logger.error(f"Failed to read JSON {path}: {e}")
@@ -211,6 +219,13 @@ def merge_cache_history(batch_glob: str, output_dir: str) -> None:
             merged_cache[str(phash)] = _merge_cache_entry(
                 merged_cache.get(str(phash)), incoming
             )
+        if len(merged_cache) > MERGED_CACHE_MAX_ENTRIES:
+            newest = sorted(
+                merged_cache.items(),
+                key=lambda item: (float(item[1].get("tested_at", 0.0)), item[0]),
+                reverse=True,
+            )[:MERGED_CACHE_MAX_ENTRIES]
+            merged_cache = dict(newest)
 
     out_path = Path(output_dir) / "data" / "test_cache.json"
     AtomicFileWriter.write_text(
@@ -391,11 +406,35 @@ def _merge_logs(output_dir: str) -> None:
     if not log_files:
         return
     consolidated = output_path / "consolidated_pipeline.log"
+    total_written = 0
     with consolidated.open("w", encoding="utf-8") as out_f:
         for log_path in log_files:
-            out_f.write(f"===== {log_path.name} =====\n")
-            out_f.write(log_path.read_text(encoding="utf-8", errors="ignore"))
+            if total_written >= MAX_CONSOLIDATED_LOG_BYTES:
+                logger.warning("Consolidated log byte limit reached; remaining logs skipped.")
+                break
+            header = f"===== {log_path.name} =====\n"
+            out_f.write(header)
+            total_written += len(header.encode("utf-8"))
+            file_written = 0
+            with log_path.open("r", encoding="utf-8", errors="ignore") as source:
+                while file_written < MAX_LOG_FILE_BYTES and total_written < MAX_CONSOLIDATED_LOG_BYTES:
+                    chunk = source.read(LOG_COPY_CHUNK_CHARS)
+                    if not chunk:
+                        break
+                    encoded = chunk.encode("utf-8")
+                    remaining_file = MAX_LOG_FILE_BYTES - file_written
+                    remaining_total = MAX_CONSOLIDATED_LOG_BYTES - total_written
+                    allowed = min(len(encoded), remaining_file, remaining_total)
+                    if allowed < len(encoded):
+                        chunk = encoded[:allowed].decode("utf-8", errors="ignore")
+                        encoded = chunk.encode("utf-8")
+                    out_f.write(chunk)
+                    file_written += len(encoded)
+                    total_written += len(encoded)
+                    if allowed <= 0:
+                        break
             out_f.write("\n\n")
+            total_written += 2
     logger.info(f"Wrote consolidated log to {consolidated}.")
 
 

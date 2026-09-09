@@ -30,3 +30,11 @@ def test_absolute_cache_path_is_preserved(tmp_path):
     cache_path = tmp_path / "cache.json"
     cache = TestResultCache(cache_path, ttl_seconds=60)
     assert cache.db_path == cache_path.resolve()
+
+
+def test_oversized_cache_file_fails_empty(tmp_path, monkeypatch):
+    cache_path = tmp_path / "cache.json"
+    cache_path.write_text('{"entry": {"tested_at": 1}}', encoding="utf-8")
+    monkeypatch.setattr("configstream.test_cache.MAX_CACHE_FILE_BYTES", 1)
+    cache = TestResultCache(cache_path, ttl_seconds=60)
+    assert cache._cache == {}
