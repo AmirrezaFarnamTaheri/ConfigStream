@@ -35,6 +35,18 @@ from configstream.adaptive_workers import calculate_optimal_workers
 logger = logging.getLogger(__name__)
 
 
+def _restore_vwarp_environment(had_value: bool, previous: Optional[str]) -> None:
+    """Restore USE_VWARP_TUNNEL without relying on assert-only invariants."""
+    if had_value and previous is not None:
+        os.environ["USE_VWARP_TUNNEL"] = previous
+        return
+    if had_value:
+        logger.warning(
+            "USE_VWARP_TUNNEL restore state was incomplete; removing the variable."
+        )
+    os.environ.pop("USE_VWARP_TUNNEL", None)
+
+
 class _NoOpGeoIPResolver:
     """Dry-run resolver that avoids loading optional GeoIP database bindings."""
 
@@ -270,13 +282,8 @@ class StandardPipeline(IPipeline):
             if vwarp_started:
                 with suppress(Exception):
                     await vwarp_tool.stop_tunnel()
-            if vwarp_env_had_value:
-                assert vwarp_env_previous is not None
-                os.environ["USE_VWARP_TUNNEL"] = vwarp_env_previous
-            else:
-                os.environ.pop("USE_VWARP_TUNNEL", None)
+            _restore_vwarp_environment(vwarp_env_had_value, vwarp_env_previous)
             raise
-
 
     async def run(self) -> PipelineResult:
         start_time = datetime.now(timezone.utc)
@@ -526,12 +533,10 @@ class StandardPipeline(IPipeline):
                     SecurityValidator.sanitize_log_message(str(exc)),
                 )
             finally:
-                if bool(getattr(self.context, "_vwarp_env_had_value", False)):
-                    previous = getattr(self.context, "_vwarp_env_previous", None)
-                    assert previous is not None
-                    os.environ["USE_VWARP_TUNNEL"] = previous
-                else:
-                    os.environ.pop("USE_VWARP_TUNNEL", None)
+                _restore_vwarp_environment(
+                    bool(getattr(self.context, "_vwarp_env_had_value", False)),
+                    getattr(self.context, "_vwarp_env_previous", None),
+                )
 
             if self.context.anomaly_detector:
                 self.context.anomaly_detector.close()
