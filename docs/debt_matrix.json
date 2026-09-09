@@ -168,7 +168,7 @@
     },
     {
       "path": "scripts/merge_batches.py",
-      "line": 64,
+      "line": 72,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -176,7 +176,7 @@
     },
     {
       "path": "scripts/merge_batches.py",
-      "line": 141,
+      "line": 149,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -184,7 +184,7 @@
     },
     {
       "path": "scripts/merge_batches.py",
-      "line": 431,
+      "line": 470,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -192,7 +192,7 @@
     },
     {
       "path": "scripts/merge_batches.py",
-      "line": 538,
+      "line": 577,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -200,7 +200,7 @@
     },
     {
       "path": "scripts/prepare_public_candidate.py",
-      "line": 97,
+      "line": 111,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -424,7 +424,7 @@
     },
     {
       "path": "src/configstream/anomaly.py",
-      "line": 51,
+      "line": 54,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -432,7 +432,7 @@
     },
     {
       "path": "src/configstream/anomaly.py",
-      "line": 74,
+      "line": 77,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -440,7 +440,7 @@
     },
     {
       "path": "src/configstream/anomaly.py",
-      "line": 95,
+      "line": 98,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -448,7 +448,7 @@
     },
     {
       "path": "src/configstream/anomaly.py",
-      "line": 153,
+      "line": 156,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -456,7 +456,7 @@
     },
     {
       "path": "src/configstream/anomaly.py",
-      "line": 186,
+      "line": 189,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -464,7 +464,7 @@
     },
     {
       "path": "src/configstream/anomaly.py",
-      "line": 281,
+      "line": 284,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -472,7 +472,7 @@
     },
     {
       "path": "src/configstream/anomaly.py",
-      "line": 323,
+      "line": 326,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -480,7 +480,7 @@
     },
     {
       "path": "src/configstream/anomaly.py",
-      "line": 367,
+      "line": 376,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -488,7 +488,7 @@
     },
     {
       "path": "src/configstream/anomaly.py",
-      "line": 378,
+      "line": 387,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -512,7 +512,7 @@
     },
     {
       "path": "src/configstream/backup.py",
-      "line": 100,
+      "line": 103,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -520,7 +520,7 @@
     },
     {
       "path": "src/configstream/backup.py",
-      "line": 152,
+      "line": 155,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -528,7 +528,7 @@
     },
     {
       "path": "src/configstream/backup.py",
-      "line": 163,
+      "line": 166,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -536,7 +536,7 @@
     },
     {
       "path": "src/configstream/backup.py",
-      "line": 229,
+      "line": 239,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -544,7 +544,7 @@
     },
     {
       "path": "src/configstream/backup.py",
-      "line": 279,
+      "line": 289,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1336,7 +1336,7 @@
     },
     {
       "path": "src/configstream/quality/storage.py",
-      "line": 85,
+      "line": 87,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1344,7 +1344,7 @@
     },
     {
       "path": "src/configstream/quality/storage.py",
-      "line": 203,
+      "line": 205,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1352,7 +1352,7 @@
     },
     {
       "path": "src/configstream/quality/storage.py",
-      "line": 228,
+      "line": 230,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1360,7 +1360,7 @@
     },
     {
       "path": "src/configstream/quality/storage.py",
-      "line": 239,
+      "line": 241,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1368,7 +1368,7 @@
     },
     {
       "path": "src/configstream/quality/storage.py",
-      "line": 358,
+      "line": 360,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1376,7 +1376,7 @@
     },
     {
       "path": "src/configstream/quality/storage.py",
-      "line": 420,
+      "line": 422,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1384,7 +1384,7 @@
     },
     {
       "path": "src/configstream/quality/storage.py",
-      "line": 610,
+      "line": 626,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",

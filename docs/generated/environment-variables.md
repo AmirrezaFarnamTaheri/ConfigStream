@@ -72,9 +72,9 @@ Variables: **161**
 | `GITHUB_EVENT_NAME` | no | `direct-only` |  | no | no | `scripts/generate_evidence_bundle.py:22` |
 | `GITHUB_REF` | no | `direct-only` |  | no | no | `scripts/resilient_stage.py:493` |
 | `GITHUB_REPOSITORY` | no | `direct-only` |  | no | no | `scripts/generate_evidence_bundle.py:24`<br>`scripts/resilient_stage.py:488` |
-| `GITHUB_RUN_ATTEMPT` | no | `direct-only` |  | no | no | `scripts/finalize_release_outputs.py:603`<br>`scripts/finalize_release_outputs.py:646`<br>`scripts/generate_evidence_bundle.py:20`<br>`scripts/native_client_checks.py:232`<br>`scripts/release_gate.py:181`<br>`scripts/release_gate.py:390`<br>`scripts/resilient_stage.py:491`<br>`scripts/validate_pages_artifact.py:1203`<br>`scripts/validate_pages_artifact.py:1236`<br>`src/configstream/output/metadata.py:559`<br>`src/configstream/output/metadata.py:594` |
-| `GITHUB_RUN_ID` | no | `direct-only` |  | no | no | `scripts/finalize_release_outputs.py:602`<br>`scripts/finalize_release_outputs.py:645`<br>`scripts/generate_evidence_bundle.py:19`<br>`scripts/native_client_checks.py:231`<br>`scripts/release_gate.py:180`<br>`scripts/release_gate.py:387`<br>`scripts/resilient_stage.py:490`<br>`scripts/validate_pages_artifact.py:1202`<br>`scripts/validate_pages_artifact.py:1235`<br>`src/configstream/output/metadata.py:558`<br>`src/configstream/output/metadata.py:593` |
-| `GITHUB_SHA` | no | `direct-only` |  | no | no | `scripts/finalize_release_outputs.py:601`<br>`scripts/finalize_release_outputs.py:644`<br>`scripts/generate_evidence_bundle.py:21`<br>`scripts/native_client_checks.py:230`<br>`scripts/release_gate.py:179`<br>`scripts/release_gate.py:384`<br>`scripts/resilient_stage.py:492`<br>`scripts/validate_pages_artifact.py:1201`<br>`scripts/validate_pages_artifact.py:1234`<br>`src/configstream/output/metadata.py:557`<br>`src/configstream/output/metadata.py:592` |
+| `GITHUB_RUN_ATTEMPT` | no | `direct-only` |  | no | no | `scripts/finalize_release_outputs.py:610`<br>`scripts/finalize_release_outputs.py:653`<br>`scripts/generate_evidence_bundle.py:20`<br>`scripts/native_client_checks.py:232`<br>`scripts/release_gate.py:181`<br>`scripts/release_gate.py:390`<br>`scripts/resilient_stage.py:491`<br>`scripts/validate_pages_artifact.py:1203`<br>`scripts/validate_pages_artifact.py:1236`<br>`src/configstream/output/metadata.py:559`<br>`src/configstream/output/metadata.py:594` |
+| `GITHUB_RUN_ID` | no | `direct-only` |  | no | no | `scripts/finalize_release_outputs.py:609`<br>`scripts/finalize_release_outputs.py:652`<br>`scripts/generate_evidence_bundle.py:19`<br>`scripts/native_client_checks.py:231`<br>`scripts/release_gate.py:180`<br>`scripts/release_gate.py:387`<br>`scripts/resilient_stage.py:490`<br>`scripts/validate_pages_artifact.py:1202`<br>`scripts/validate_pages_artifact.py:1235`<br>`src/configstream/output/metadata.py:558`<br>`src/configstream/output/metadata.py:593` |
+| `GITHUB_SHA` | no | `direct-only` |  | no | no | `scripts/finalize_release_outputs.py:608`<br>`scripts/finalize_release_outputs.py:651`<br>`scripts/generate_evidence_bundle.py:21`<br>`scripts/native_client_checks.py:230`<br>`scripts/release_gate.py:179`<br>`scripts/release_gate.py:384`<br>`scripts/resilient_stage.py:492`<br>`scripts/validate_pages_artifact.py:1201`<br>`scripts/validate_pages_artifact.py:1234`<br>`src/configstream/output/metadata.py:557`<br>`src/configstream/output/metadata.py:592` |
 | `GITHUB_WORKFLOW` | no | `direct-only` |  | no | no | `scripts/resilient_stage.py:489` |
 | `GO_TESTER_BATCH_SIZE` | yes | `int` | `500` | no | no | `src/configstream/config.py:57` |
 | `HEDGE_AFTER_MS` | yes | `int` | `800` | no | no | `src/configstream/config.py:112` |
@@ -106,11 +106,11 @@ Variables: **161**
 | `MAX_SELECTOR_MEMBERS` | no | `direct-only` |  | no | no | `scripts/finalize_release_outputs.py:52` |
 | `MAX_WORKERS` | yes | `int` | `128` | no | no | `src/configstream/config.py:70` |
 | `MIN_LATENCY` | yes | `int` | `10` | no | no | `src/configstream/config.py:39` |
-| `MIN_SOURCE_COVERAGE` | no | `direct-only` |  | no | no | `scripts/finalize_release_outputs.py:661` |
+| `MIN_SOURCE_COVERAGE` | no | `direct-only` |  | no | no | `scripts/finalize_release_outputs.py:668` |
 | `NOTIFY_UPDATE_URL` | yes | `Optional[str]` |  | no | no | `src/configstream/config.py:172` |
 | `OPTIMAL_RELAY_ORIGIN` | yes | `str` | `"IR"` | no | no | `src/configstream/config.py:62` |
 | `OUTPUT_DIR` | no | `direct-only` |  | no | no | `src/configstream/server/utils.py:55` |
-| `PARENT_RELEASE_DIGEST` | no | `direct-only` |  | no | no | `scripts/finalize_release.py:292` |
+| `PARENT_RELEASE_DIGEST` | no | `direct-only` |  | no | no | `scripts/finalize_release.py:299` |
 | `PATH` | no | `direct-only` |  | no | no | `scripts/native_client_checks.py:92`<br>`src/configstream/testers/go_tester/manager.py:324`<br>`src/configstream/testers/go_tester/manager.py:91` |
 | `PER_HOST_MAX_CONCURRENCY` | yes | `int` | `16` | no | no | `src/configstream/config.py:111` |
 | `PINATA_JWT` | no | `direct-only` |  | no | no | `scripts/publish_ipfs.py:180` |
