@@ -1,0 +1,66 @@
+name: Remediate DNS scanner optional clipboard
+
+on:
+  push:
+    branches: [codex/fix-run-34268254683-audit]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: codex/fix-run-34268254683-audit
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v6
+        with:
+          python-version: '3.11'
+      - name: Make clipboard support lazy and validate
+        shell: bash
+        run: |
+          set -euo pipefail
+          helper=.github/workflows/audit-fix-dnsscanner-optional-clipboard.yml
+          cp "$helper" /tmp/audit-fix-dnsscanner-optional-clipboard.yml
+          rm "$helper"
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('src/configstream/tools/dns_scanner/python/dnsscanner_tui.py')
+          text = path.read_text(encoding='utf-8')
+          if 'import pyperclip\n' not in text:
+              raise SystemExit('top-level pyperclip import not found')
+          text = text.replace('import pyperclip\n', '', 1)
+          old = '''            try:\n                pyperclip.copy(ip)\n                self.notify(f"{ip} copied!", severity="information", timeout=2)\n'''
+          new = '''            try:\n                import pyperclip\n\n                pyperclip.copy(ip)\n                self.notify(f"{ip} copied!", severity="information", timeout=2)\n'''
+          if old not in text:
+              raise SystemExit('clipboard action block not found')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
+          python scripts/validate_function_size_budget.py
+          python scripts/validate_exception_boundaries.py
+          python scripts/generate_environment_catalog.py
+          python scripts/generate_debt_matrix.py
+          python scripts/generate_triage_report.py
+          python -m pip install -r requirements-dev.txt >/dev/null
+          python -m pip install -e . --no-deps >/dev/null
+          python - <<'PY'
+          import importlib.util
+          assert importlib.util.find_spec('pyperclip') is None, 'CI unexpectedly provides pyperclip'
+          import configstream.tools.dns_scanner.python.dnsscanner_tui
+          PY
+          pytest -q tests/unit/test_dnsscanner_tui_lifecycle.py tests/unit/test_slipstream_artifacts.py --disable-warnings --maxfail=1
+          python scripts/verify_repository.py --profile static
+          mv /tmp/audit-fix-dnsscanner-optional-clipboard.yml "$helper"
+      - name: Commit permanent fix only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add src/configstream/tools/dns_scanner/python/dnsscanner_tui.py TRIAGE_REPORT.md docs/generated/environment-variables.json docs/generated/environment-variables.md docs/DEBT_MATRIX.md docs/debt_matrix.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'fix(dns-scanner): make clipboard dependency optional'
+          git push origin HEAD:codex/fix-run-34268254683-audit
