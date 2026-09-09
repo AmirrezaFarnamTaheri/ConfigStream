@@ -19,7 +19,7 @@
     "container_variant": "bookworm-slim"
   },
   "go": {
-    "language": "1.24.0",
+    "language": "1.26.0",
     "toolchain": "1.26.8",
     "ci": "1.26.8",
     "container": "1.26.8",
