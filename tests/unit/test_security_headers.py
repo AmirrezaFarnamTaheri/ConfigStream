@@ -29,3 +29,21 @@ def test_security_headers_present_on_root() -> None:
     assert response.headers.get("X-Frame-Options") == "DENY"
     assert response.headers.get("Referrer-Policy") == _EXPECTED_REFERRER_POLICY
     assert "camera=()" in response.headers.get("Permissions-Policy", "")
+
+
+def test_output_compat_route_denies_private_runtime_state(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("OUTPUT_DIR", str(tmp_path))
+    (tmp_path / "proxies.json").write_text("[]", encoding="utf-8")
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+    (data_dir / "test_cache.json").write_text('{"internal":true}', encoding="utf-8")
+    (data_dir / "source_quality.db").write_bytes(b"private-db")
+    (tmp_path / "pipeline_events.jsonl").write_text(
+        '{"event_type":"info","message":"safe"}\n', encoding="utf-8"
+    )
+
+    client = TestClient(create_app())
+    assert client.get("/output/proxies.json").status_code == 200
+    assert client.get("/output/pipeline_events.jsonl").status_code == 200
+    assert client.get("/output/data/test_cache.json").status_code == 404
+    assert client.get("/output/data/source_quality.db").status_code == 404

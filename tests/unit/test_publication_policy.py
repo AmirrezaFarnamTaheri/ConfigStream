@@ -100,3 +100,12 @@ def test_symlink_is_rejected(tmp_path):
     with pytest.raises(ArtifactPolicyError) as raised:
         validate_public_artifact(tmp_path, allowed_paths={"link.txt"})
     assert "symlink_forbidden" in violation_codes(raised.value)
+
+
+def test_sanitized_event_stream_is_public_when_allowlisted(tmp_path):
+    events = tmp_path / "pipeline_events.jsonl"
+    events.write_text('{"event_type":"info","message":"safe"}\n', encoding="utf-8")
+    digests = validate_public_artifact(
+        tmp_path, allowed_paths={"pipeline_events.jsonl"}
+    )
+    assert "pipeline_events.jsonl" in digests

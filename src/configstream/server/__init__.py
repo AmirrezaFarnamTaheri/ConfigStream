@@ -41,6 +41,7 @@ from .routes.admin import router as admin_router
 from .routes.proxies import router as proxies_router
 from .routes.lab import router as lab_router
 from configstream.runtime_health import evaluate_runtime_health
+from configstream.publication import is_private_publication_path
 
 __all__ = [
     "app",
@@ -166,21 +167,14 @@ def create_app() -> FastAPI:
             methods=["GET"],
         )
 
-    # Static Files
-    try:
-        # check_dir=False keeps the mount resilient: the output directory is
-        # created on startup, but may not exist yet at import time.
-        app.mount(
-            "/output",
-            StaticFiles(directory=str(OUTPUT_DIR), check_dir=False),
-            name="output",
-        )
-    except (OSError, RuntimeError) as exc:
-        logger.warning("Failed to mount /output static files: %s", exc)
-
-        @app.get("/output/{path:path}")
-        async def output_fallback(path: str):
-            raise HTTPException(status_code=503, detail="Output directory unavailable")
+    # Compatibility output route. Do not use an unrestricted StaticFiles mount:
+    # the runtime output tree also contains caches/databases/logs that publication
+    # policy explicitly forbids. Safe public artifacts keep the legacy /output URL.
+    @app.get("/output/{path:path}")
+    async def output_compat(path: str):
+        if not path or is_private_publication_path(path):
+            raise HTTPException(status_code=404, detail="File not generated yet")
+        return _serve_output_file(path)
 
     if FRONTEND_DIR.exists():
         app.mount(
