@@ -25,33 +25,40 @@ jobs:
 
           out = Path('.audit-workflow-payload')
           out.mkdir(exist_ok=True)
+          gh = '$' + '{{'
 
           # Main release workflow: preserve all unrelated content and harden only
           # the audited GeoIP and shard-evidence contracts.
           path = Path('.github/workflows/main.yml')
           s = path.read_text(encoding='utf-8')
-          s = s.replace(
-              'python -m configstream.cli update-databases\n',
-              'python -m configstream.cli update-databases --geoip-only\n',
-              1,
-          )
-          start = s.index('  setup_geoip:')
-          end = s.index('  setup_matrix:', start)
-          section = s[start:end]
-          section = section.replace('retention-days: 1', 'retention-days: 30', 1)
-          s = s[:start] + section + s[end:]
-          old = '''      - name: Record artifact downloads
-                if: always()
-                run: |
-                  python scripts/resilient_stage.py record --name shard-download --status "${{ steps.shard_download.outcome }}"
-                  python scripts/resilient_stage.py record --name wasm-download --status "${{ steps.wasm_download.outcome }}"
-                  python scripts/resilient_stage.py record --name matrix-artifact-download --status "${{ steps.matrix_artifact_download.outcome }}"
-          '''
-          new = '''      - name: Record artifact downloads
+          if 'python -m configstream.cli update-databases --geoip-only' not in s:
+              old_geo = 'python -m configstream.cli update-databases\n'
+              if old_geo not in s:
+                  raise SystemExit('GeoIP update command changed unexpectedly')
+              s = s.replace(
+                  old_geo,
+                  'python -m configstream.cli update-databases --geoip-only\n',
+                  1,
+              )
+          setup_start = s.index('  setup_geoip:')
+          setup_end = s.index('  setup_matrix:', setup_start)
+          section = s[setup_start:setup_end]
+          if 'retention-days: 30' not in section:
+              if 'retention-days: 1' not in section:
+                  raise SystemExit('GeoIP retention policy changed unexpectedly')
+              section = section.replace('retention-days: 1', 'retention-days: 30', 1)
+          s = s[:setup_start] + section + s[setup_end:]
+
+          record_start = s.index('      - name: Record artifact downloads\n')
+          record_end = s.index('\n      - name:', record_start + 1)
+          shard_outcome = gh + ' steps.shard_download.outcome }}'
+          wasm_outcome = gh + ' steps.wasm_download.outcome }}'
+          matrix_outcome = gh + ' steps.matrix_artifact_download.outcome }}'
+          record = f'''      - name: Record artifact downloads
                 if: always()
                 run: |
                   set -euo pipefail
-                  shard_status="${{ steps.shard_download.outcome }}"
+                  shard_status="{shard_outcome}"
                   if [ "$shard_status" = success ]; then
                     if ! python - <<'PYCODE'
                   import json
@@ -62,7 +69,7 @@ jobs:
                   lineage = list(Path("artifacts").rglob("shard_lineage.json"))
                   if expected <= 0 or len(lineage) != expected:
                       raise SystemExit(
-                          f"shard artifact lineage mismatch: expected {expected}, found {len(lineage)}"
+                          f"shard artifact lineage mismatch: expected {{expected}}, found {{len(lineage)}}"
                       )
                   PYCODE
                     then
@@ -70,46 +77,49 @@ jobs:
                     fi
                   fi
                   python scripts/resilient_stage.py record --name shard-download --status "$shard_status"
-                  python scripts/resilient_stage.py record --name wasm-download --status "${{ steps.wasm_download.outcome }}"
-                  python scripts/resilient_stage.py record --name matrix-artifact-download --status "${{ steps.matrix_artifact_download.outcome }}"
+                  python scripts/resilient_stage.py record --name wasm-download --status "{wasm_outcome}"
+                  python scripts/resilient_stage.py record --name matrix-artifact-download --status "{matrix_outcome}"
           '''
-          if old not in s:
-              raise SystemExit('main workflow artifact-recording block changed unexpectedly')
-          s = s.replace(old, new, 1)
+          s = s[:record_start] + record.rstrip('\n') + s[record_end:]
           (out / 'main.yml').write_text(s, encoding='utf-8')
 
           # Pages workflow: deployment is fail-closed unless a verified rollback
           # baseline exists; a bootstrap exception requires explicit manual input.
           path = Path('.github/workflows/deploy-pages.yml')
           s = path.read_text(encoding='utf-8')
-          input_block = '''      run_id:
-                description: Successful main-branch workflow run containing pipeline-output
-                required: true
-                type: string
-          '''
-          s = s.replace(
-              input_block,
-              input_block + '''      allow_bootstrap_without_lkg:
-                description: Allow a manual first deployment when no verified rollback baseline exists
-                required: false
-                default: false
-                type: boolean
-          ''',
-              1,
-          )
-          s = s.replace(
-              '          echo "HAS_LKG=false" >> "$GITHUB_ENV"\n',
-              '          echo "HAS_LKG=false" >> "$GITHUB_ENV"\n          echo "ROLLBACK_READY=false" >> "$GITHUB_ENV"\n',
-              1,
-          )
-          marker = '      - name: Upload last-known-good rollback artifact\n'
-          gate = '''      - name: Require rollback baseline before production mutation
+          if 'allow_bootstrap_without_lkg:' not in s:
+              input_start = s.index('      run_id:\n')
+              input_end = s.index('\n\n', input_start)
+              input_block = s[input_start:input_end]
+              addition = '''
+                allow_bootstrap_without_lkg:
+                  description: Allow a manual first deployment when no verified rollback baseline exists
+                  required: false
+                  default: false
+                  type: boolean'''
+              s = s[:input_end] + addition + s[input_end:]
+          if 'echo "ROLLBACK_READY=false" >> "$GITHUB_ENV"' not in s:
+              init = '          echo "HAS_LKG=false" >> "$GITHUB_ENV"\n'
+              if init not in s:
+                  raise SystemExit('Pages LKG initialization changed unexpectedly')
+              s = s.replace(
+                  init,
+                  init + '          echo "ROLLBACK_READY=false" >> "$GITHUB_ENV"\n',
+                  1,
+              )
+
+          if '      - name: Require rollback baseline before production mutation\n' not in s:
+              marker = '      - name: Upload last-known-good rollback artifact\n'
+              if marker not in s:
+                  raise SystemExit('Pages rollback upload marker changed unexpectedly')
+              allow_expr = gh + " github.event_name == 'workflow_dispatch' && inputs.allow_bootstrap_without_lkg || false }}"
+              gate = f'''      - name: Require rollback baseline before production mutation
                 if: always()
                 env:
-                  ALLOW_BOOTSTRAP_WITHOUT_LKG: ${{ github.event_name == 'workflow_dispatch' && inputs.allow_bootstrap_without_lkg || false }}
+                  ALLOW_BOOTSTRAP_WITHOUT_LKG: {allow_expr}
                 run: |
                   set -euo pipefail
-                  if [ "${HAS_LKG:-false}" = true ]; then
+                  if [ "${{HAS_LKG:-false}}" = true ]; then
                     echo "ROLLBACK_READY=true" >> "$GITHUB_ENV"
                     python scripts/resilient_stage.py record --name rollback-baseline --status success --report-dir deploy-evidence/stages --description "Verified last-known-good Pages release is available"
                   elif [ "$ALLOW_BOOTSTRAP_WITHOUT_LKG" = true ]; then
@@ -120,24 +130,28 @@ jobs:
                     python scripts/resilient_stage.py record --name rollback-baseline --status failed --exit-code 1 --report-dir deploy-evidence/stages --description "Deployment blocked because no verified rollback baseline is available"
                   fi
           '''
-          if marker not in s:
-              raise SystemExit('Pages rollback upload marker changed unexpectedly')
-          s = s.replace(marker, gate + marker, 1)
-          s = s.replace(
-              "        if: env.DEPLOY_READY == 'true'\n",
-              "        if: env.DEPLOY_READY == 'true' && env.ROLLBACK_READY == 'true'\n",
-              1,
-          )
-          s = s.replace(
-              "        if: env.DEPLOY_READY == 'true' && steps.pages_artifact.outcome == 'success'\n",
-              "        if: env.DEPLOY_READY == 'true' && env.ROLLBACK_READY == 'true' && steps.pages_artifact.outcome == 'success'\n",
-              1,
-          )
-          s = s.replace(
-              '            --required-stage verify-sealed-pages-artifact \\\n',
-              '            --required-stage verify-sealed-pages-artifact \\\n            --required-stage rollback-baseline \\\n',
-              1,
-          )
+              s = s.replace(marker, gate + marker, 1)
+
+          upload_if = "        if: env.DEPLOY_READY == 'true'\n"
+          hardened_upload_if = "        if: env.DEPLOY_READY == 'true' && env.ROLLBACK_READY == 'true'\n"
+          if hardened_upload_if not in s:
+              if upload_if not in s:
+                  raise SystemExit('Pages artifact upload condition changed unexpectedly')
+              s = s.replace(upload_if, hardened_upload_if, 1)
+
+          deploy_if = "        if: env.DEPLOY_READY == 'true' && steps.pages_artifact.outcome == 'success'\n"
+          hardened_deploy_if = "        if: env.DEPLOY_READY == 'true' && env.ROLLBACK_READY == 'true' && steps.pages_artifact.outcome == 'success'\n"
+          if hardened_deploy_if not in s:
+              if deploy_if not in s:
+                  raise SystemExit('Pages deploy condition changed unexpectedly')
+              s = s.replace(deploy_if, hardened_deploy_if, 1)
+
+          required = '            --required-stage verify-sealed-pages-artifact \\\n'
+          rollback_required = '            --required-stage rollback-baseline \\\n'
+          if rollback_required not in s:
+              if required not in s:
+                  raise SystemExit('Pages readiness stage list changed unexpectedly')
+              s = s.replace(required, required + rollback_required, 1)
           (out / 'deploy-pages.yml').write_text(s, encoding='utf-8')
           PY
           python - <<'PY'
