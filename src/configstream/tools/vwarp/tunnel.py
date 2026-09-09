@@ -130,7 +130,7 @@ class VwarpTunnel:
                         await safe_wait_for(process.wait(), timeout=2.0)
                     except asyncio.TimeoutError:
                         logger.error("Vwarp process could not be reaped after kill.")
-        except Exception as exc:
+        except (OSError, RuntimeError) as exc:
             logger.warning(
                 "Vwarp process cleanup failed: %s",
                 SecurityValidator.sanitize_log_message(str(exc)),

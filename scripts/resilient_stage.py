@@ -128,7 +128,7 @@ def _project_sanitize(value: str) -> str:
             from configstream.security_validator import SecurityValidator
 
             _PROJECT_SANITIZER = SecurityValidator.sanitize_log_message
-        except Exception as exc:
+        except (ImportError, AttributeError) as exc:
             failure = exc
             _PROJECT_SANITIZER = None
         finally:

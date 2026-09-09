@@ -150,6 +150,31 @@ async def _reject_source_dns(
     return None, sorted(resolved_ips)[0]
 
 
+async def _empty_content_result(
+    source: str,
+    safe_source: str,
+    status_code: int,
+    response_time: float,
+    timeout_tracker: Any,
+    breaker: Any,
+) -> FetchResult:
+    logger.info(
+        "Source %s returned HTTP %d but no usable content.", safe_source, status_code
+    )
+    if timeout_tracker:
+        await timeout_tracker.record_attempt(source, response_time, success=False)
+    if breaker:
+        await breaker.record_failure()
+    return FetchResult(
+        success=False,
+        source=source,
+        content="",
+        status_code=status_code,
+        error="Empty content",
+        response_time=response_time,
+    )
+
+
 async def fetch_from_source(
     client: httpx.AsyncClient,
     source: str,
@@ -473,28 +498,14 @@ async def fetch_from_source(
                 content = b"".join(content_parts)
                 text_content = content.decode("utf-8", errors="ignore")
 
-                if 200 <= response.status_code < 300 and (
-                    not text_content or not text_content.strip()
-                ):
-                    logger.info(
-                        "Source %s returned HTTP %d but no usable content.",
+                if 200 <= response.status_code < 300 and not text_content.strip():
+                    return await _empty_content_result(
+                        source,
                         safe_source,
                         response.status_code,
-                    )
-                    response_time = loop.time() - start_ts
-                    if timeout_tracker:
-                        await timeout_tracker.record_attempt(
-                            source, response_time, success=False
-                        )
-                    if breaker:
-                        await breaker.record_failure()
-                    return FetchResult(
-                        success=False,
-                        source=source,
-                        content="",
-                        status_code=response.status_code,
-                        error="Empty content",
-                        response_time=response_time,
+                        loop.time() - start_ts,
+                        timeout_tracker,
+                        breaker,
                     )
 
                 response_time = loop.time() - start_ts

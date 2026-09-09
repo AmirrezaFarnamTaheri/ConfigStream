@@ -18,6 +18,11 @@ logger = logging.getLogger(__name__)
 SCHEMA_VERSION = 4
 MAX_MERGE_DB_BYTES = 512 * 1024 * 1024
 MAX_MERGE_ROWS_PER_TABLE = 500_000
+MERGE_COUNT_QUERIES = (
+    ("source_stats", "SELECT COUNT(*) FROM source_stats"),
+    ("source_runs", "SELECT COUNT(*) FROM source_runs"),
+    ("proxy_history", "SELECT COUNT(*) FROM proxy_history"),
+)
 
 
 class QualityStorageError(RuntimeError):
@@ -475,9 +480,9 @@ class QualityStorage:
             src = sqlite3.connect(other, timeout=20)
             src.row_factory = sqlite3.Row
             src.execute("PRAGMA query_only=ON")
-            for table in ("source_stats", "source_runs", "proxy_history"):
+            for table, count_query in MERGE_COUNT_QUERIES:
                 try:
-                    row_count = int(src.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0])
+                    row_count = int(src.execute(count_query).fetchone()[0])
                 except sqlite3.OperationalError:
                     if table == "source_stats":
                         raise

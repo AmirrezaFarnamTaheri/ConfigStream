@@ -156,6 +156,35 @@ async def _report_source_backpressure(
         pass
 
 
+async def _report_unusable_content(
+    loop: asyncio.AbstractEventLoop,
+    quality_tracker: SourceQualityTracker,
+    settings: AppSettings,
+    source: str,
+    safe_source: str,
+    content: str,
+    drop_stats: dict,
+    response_time: float,
+) -> None:
+    log_method = logger.debug if len(content) < 100 else logger.warning
+    log_method(
+        "Source %s returned content (size=%d) but no valid config lines found. "
+        "Drop Stats: %s",
+        safe_source,
+        len(content),
+        drop_stats,
+    )
+    await _report_source_failure(
+        loop,
+        quality_tracker,
+        settings,
+        source,
+        "no_valid_lines",
+        duration_ms=response_time * 1000,
+        failure_modes=drop_stats,
+    )
+
+
 async def source_producer(
     sources: List[str],
     work_queue: asyncio.Queue,
@@ -464,25 +493,9 @@ async def source_producer(
                         safe_source = SecurityValidator.sanitize_log_message(source)
 
                         if count == 0:
-                            # Log that we got content but no proxies (useful for debugging invalid formats)
-                            # Reduced noise for expected empty sources
-                            log_method = (
-                                logger.debug
-                                if len(res.content) < 100
-                                else logger.warning
-                            )
-                            log_method(
-                                f"Source {safe_source} returned content (size={len(res.content) if res.content else 0}) but no valid config lines found. "
-                                f"Drop Stats: {drop_stats}"
-                            )
-                            await _report_source_failure(
-                                loop,
-                                quality_tracker,
-                                settings,
-                                source,
-                                "no_valid_lines",
-                                duration_ms=(res.response_time or 0.0) * 1000,
-                                failure_modes=drop_stats,
+                            await _report_unusable_content(
+                                loop, quality_tracker, settings, source, safe_source,
+                                res.content or "", drop_stats, res.response_time or 0.0,
                             )
                             continue
 

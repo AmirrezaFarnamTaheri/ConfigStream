@@ -182,6 +182,7 @@ class StandardPipeline(IPipeline):
         else:
             logger.info("Vwarp tunnel disabled by configuration.")
 
+        initialization_complete = False
         try:
             test_cache = TestResultCache()
             # Propagate force_retest to cache/scheduler so consumer can bypass them
@@ -270,7 +271,7 @@ class StandardPipeline(IPipeline):
             if max_workers > 200:
                 optimal_consumers = max(optimal_consumers, 16)
 
-            return cls(
+            pipeline = cls(
                 sources=sources,
                 producer_factory=producer_factory,
                 consumer_factory=consumer_factory,
@@ -278,12 +279,19 @@ class StandardPipeline(IPipeline):
                 num_consumers=optimal_consumers,
                 time_limit_seconds=time_limit_seconds,
             )
-        except BaseException:
-            if vwarp_started:
-                with suppress(Exception):
-                    await vwarp_tool.stop_tunnel()
-            _restore_vwarp_environment(vwarp_env_had_value, vwarp_env_previous)
-            raise
+            initialization_complete = True
+            return pipeline
+        finally:
+            if not initialization_complete:
+                if vwarp_started:
+                    try:
+                        await vwarp_tool.stop_tunnel()
+                    except (OSError, RuntimeError, asyncio.TimeoutError) as exc:
+                        logger.warning(
+                            "Vwarp initialization cleanup failed: %s",
+                            SecurityValidator.sanitize_log_message(str(exc)),
+                        )
+                _restore_vwarp_environment(vwarp_env_had_value, vwarp_env_previous)
 
     async def run(self) -> PipelineResult:
         start_time = datetime.now(timezone.utc)
@@ -527,7 +535,7 @@ class StandardPipeline(IPipeline):
             try:
                 if self.context.vwarp_tool is not None:
                     await self.context.vwarp_tool.stop_tunnel()
-            except Exception as exc:
+            except (OSError, RuntimeError, asyncio.TimeoutError) as exc:
                 logger.warning(
                     "Vwarp cleanup failed: %s",
                     SecurityValidator.sanitize_log_message(str(exc)),
