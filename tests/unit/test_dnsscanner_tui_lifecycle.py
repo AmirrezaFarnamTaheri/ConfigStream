@@ -3,9 +3,9 @@ import asyncio
 
 import pytest
 
-from configstream.tools.dns_scanner.python.dnsscanner_tui import (
-    _cancel_and_await_tasks,
-    _kill_and_reap_processes,
+from configstream.tools.dns_scanner.python.dnsscanner_lifecycle import (
+    cancel_and_await_tasks as _cancel_and_await_tasks,
+    kill_and_reap_processes as _kill_and_reap_processes,
 )
 
 

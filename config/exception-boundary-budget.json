@@ -63,7 +63,7 @@
     "src/configstream/testers/manager.py": 2,
     "src/configstream/testers/python.py": 5,
     "src/configstream/testers/utils.py": 1,
-    "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py": 26,
+    "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py": 25,
     "src/configstream/tools/vwarp/scanner.py": 1,
     "src/configstream/tools/vwarp/tunnel.py": 1,
     "src/configstream/tools/warp.py": 1,
@@ -80,5 +80,5 @@
     "target_total": 0
   },
   "schema_version": 1,
-  "total_ceiling": 233
+  "total_ceiling": 232
 }

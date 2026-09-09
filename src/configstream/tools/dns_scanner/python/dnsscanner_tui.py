@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from __future__ import annotations
 import logging
-from typing import Any, Iterable
+from typing import Any
 
 
 import asyncio
@@ -23,7 +23,6 @@ from typing import Set, AsyncGenerator, Optional, Deque, cast
 import aiodns
 import httpx
 import orjson
-import pyperclip
 from loguru import logger
 from textual.app import App, ComposeResult
 from textual.containers import Container, Horizontal, Vertical
@@ -41,6 +40,17 @@ from textual.widgets import (
     Select,
     DirectoryTree,
 )
+
+try:
+    from .dnsscanner_lifecycle import (
+        cancel_and_await_tasks as _cancel_and_await_tasks,
+        kill_and_reap_processes as _kill_and_reap_processes,
+    )
+except ImportError:  # pragma: no cover - direct script execution compatibility
+    from dnsscanner_lifecycle import (  # type: ignore[no-redef]
+        cancel_and_await_tasks as _cancel_and_await_tasks,
+        kill_and_reap_processes as _kill_and_reap_processes,
+    )
 
 try:
     from .slipstream_artifacts import (
@@ -64,35 +74,6 @@ logger.remove()  # Remove default handler to disable all logging
 #     compression="zip",
 #     level="DEBUG",
 # )
-
-
-async def _cancel_and_await_tasks(tasks: Iterable[asyncio.Task[Any]]) -> None:
-    """Cancel owned tasks and wait for their finalizers to complete."""
-    owned = list(dict.fromkeys(tasks))
-    for task in owned:
-        if not task.done():
-            task.cancel()
-    if owned:
-        await asyncio.gather(*owned, return_exceptions=True)
-
-
-async def _kill_and_reap_processes(
-    processes: Iterable[Any], timeout: float = 2.0
-) -> None:
-    """Kill owned child processes and reap them with a bounded wait."""
-    for process in list(dict.fromkeys(processes)):
-        try:
-            if process.returncode is None:
-                try:
-                    process.kill()
-                except ProcessLookupError:
-                    pass
-            try:
-                await asyncio.wait_for(process.wait(), timeout=timeout)
-            except asyncio.TimeoutError:
-                logger.error("Timed out reaping Slipstream child process")
-        except Exception as exc:
-            logger.warning("Failed to reap Slipstream child: %s", str(exc)[:200])
 
 
 class SlipstreamManager:
@@ -1671,6 +1652,8 @@ class DNSScannerTUI(App):
         if row and len(row) > 0:
             ip = str(row[0]).strip()
             try:
+                import pyperclip
+
                 pyperclip.copy(ip)
                 self.notify(f"{ip} copied!", severity="information", timeout=2)
             except Exception as e:
