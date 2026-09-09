@@ -123,37 +123,61 @@ def sanitize_config_for_binary(config: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def write_temp_config(config: Dict[str, Any]) -> Tuple[Optional[Path], List[str]]:
-    """Writes config to temp file and returns (path, extra_flags)."""
-    tmp_dir = Path(tempfile.gettempdir())
-    tmp_dir.mkdir(parents=True, exist_ok=True)
-    fd, tmp_name = tempfile.mkstemp(prefix="vwarp-config-", suffix=".json")
-    os.close(fd)
-    tmp_path = Path(tmp_name)
+    """Serialize a Vwarp config and publish it as an owned 0600 temp file.
 
-    # Sanitize config for Vwarp binary compatibility
+    Configuration preparation happens before a file is created, so malformed or
+    unserializable input cannot leave an orphan behind. Once created, the file is
+    written through the descriptor returned by ``mkstemp`` and removed on every
+    write failure because it may contain key/proxy material.
+    """
     write_config = copy.deepcopy(config)
     write_config.pop("version", None)
     write_config.pop("metadata", None)
-    write_config.pop(
-        "test_url", None
-    )  # Explicitly remove test_url to avoid parse errors
-
-    # v2.2.1+ supports full config; v2.1.x rejects JunkInterval, masque.enabled/preferred
-    # For now we use the latest version default from constants
-    version = os.environ.get("VWARP_VERSION", VWARP_VERSION)
-    from .binary import _parse_version
-
-    if _parse_version(version) < _parse_version("v2.2.1"):
-        write_config = sanitize_config_for_binary(write_config)
+    write_config.pop("test_url", None)
 
     try:
-        tmp_path.write_text(json.dumps(write_config), encoding="utf-8")
+        version = os.environ.get("VWARP_VERSION", VWARP_VERSION)
+        from .binary import _parse_version
+
+        if _parse_version(version) < _parse_version("v2.2.1"):
+            write_config = sanitize_config_for_binary(write_config)
+        payload = json.dumps(write_config)
+        extra_flags = get_config_extra_flags(config)
+    except (TypeError, ValueError) as exc:
+        logger.error(
+            "Failed to prepare Vwarp config: %s",
+            SecurityValidator.sanitize_log_message(str(exc)),
+        )
+        return None, []
+
+    tmp_dir = Path(tempfile.gettempdir())
+    fd: Optional[int] = None
+    tmp_path: Optional[Path] = None
+    try:
+        tmp_dir.mkdir(parents=True, exist_ok=True)
+        fd, tmp_name = tempfile.mkstemp(
+            prefix="vwarp-config-", suffix=".json", dir=str(tmp_dir)
+        )
+        tmp_path = Path(tmp_name)
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            fd = None  # ownership transferred to the file object
+            handle.write(payload)
+            handle.flush()
+            os.fsync(handle.fileno())
+        return tmp_path, extra_flags
     except OSError as exc:
+        if fd is not None:
+            try:
+                os.close(fd)
+            except OSError:
+                pass
+        if tmp_path is not None:
+            try:
+                tmp_path.unlink(missing_ok=True)
+            except OSError:
+                pass
         logger.error(
             "Failed to write Vwarp config: %s",
             SecurityValidator.sanitize_log_message(str(exc)),
         )
         return None, []
-
-    extra_flags = get_config_extra_flags(config)
-    return tmp_path, extra_flags
