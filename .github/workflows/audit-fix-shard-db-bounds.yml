@@ -1,0 +1,88 @@
+name: Apply shard database preflight bounds
+
+on:
+  push:
+    branches: [codex/fix-run-34268254683-audit]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: codex/fix-run-34268254683-audit
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v6
+        with:
+          python-version: '3.11'
+      - name: Bound artifact SQLite merges
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          quality = Path('src/configstream/quality/storage.py')
+          q = quality.read_text()
+          q = q.replace(
+              'SCHEMA_VERSION = 4\n',
+              'SCHEMA_VERSION = 4\nMAX_MERGE_DB_BYTES = 512 * 1024 * 1024\nMAX_MERGE_ROWS_PER_TABLE = 500_000\n',
+              1,
+          )
+          q = q.replace(
+              '        if not other.exists():\n            return\n        src: Optional[sqlite3.Connection] = None\n',
+              '        if not other.exists():\n            return\n        if other.stat().st_size > MAX_MERGE_DB_BYTES:\n            raise QualityStorageError("refusing oversized source quality database")\n        src: Optional[sqlite3.Connection] = None\n',
+              1,
+          )
+          needle = '            src = sqlite3.connect(other, timeout=20)\n            src.row_factory = sqlite3.Row\n'
+          insert = '''            src = sqlite3.connect(other, timeout=20)\n            src.row_factory = sqlite3.Row\n            src.execute("PRAGMA query_only=ON")\n            for table in ("source_stats", "source_runs", "proxy_history"):\n                try:\n                    row_count = int(src.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0])\n                except sqlite3.OperationalError:\n                    if table == "source_stats":\n                        raise\n                    continue\n                if row_count > MAX_MERGE_ROWS_PER_TABLE:\n                    raise QualityStorageError(\n                        f"refusing to merge {table}: row limit exceeded"\n                    )\n'''
+          if needle not in q:
+              raise SystemExit('quality merge connection block not found')
+          quality.write_text(q.replace(needle, insert, 1))
+
+          anomaly = Path('src/configstream/anomaly.py')
+          a = anomaly.read_text()
+          a = a.replace(
+              'logger = logging.getLogger(__name__)\n',
+              'logger = logging.getLogger(__name__)\n\nMAX_MERGE_DB_BYTES = 128 * 1024 * 1024\nMAX_MERGE_HISTORY_ROWS = 500_000\n',
+              1,
+          )
+          a = a.replace(
+              '        if not other_db_path.exists():\n            return\n\n        try:\n',
+              '        if not other_db_path.exists():\n            return\n        if other_db_path.stat().st_size > MAX_MERGE_DB_BYTES:\n            logger.error("Refusing oversized anomaly database merge: %s", other_db_path)\n            return\n\n        try:\n',
+              1,
+          )
+          needle = '                    src.execute("PRAGMA journal_mode=WAL")\n                    dst.execute("PRAGMA journal_mode=WAL")\n'
+          insert = '''                    src.execute("PRAGMA journal_mode=WAL")\n                    dst.execute("PRAGMA journal_mode=WAL")\n                    row_count = int(src.execute("SELECT COUNT(*) FROM history").fetchone()[0])\n                    if row_count > MAX_MERGE_HISTORY_ROWS:\n                        raise ValueError("anomaly merge row limit exceeded")\n'''
+          if needle not in a:
+              raise SystemExit('anomaly merge preflight block not found')
+          anomaly.write_text(a.replace(needle, insert, 1))
+
+          qtests = Path('tests/unit/quality/test_quality_components.py')
+          qt = qtests.read_text()
+          if 'test_storage_merge_rejects_row_limit' not in qt:
+              qt += '''\n\ndef test_storage_merge_rejects_row_limit(tmp_path, monkeypatch):\n    destination = QualityStorage(tmp_path / "dest.db")\n    source = QualityStorage(tmp_path / "source.db")\n    for index in range(3):\n        source.upsert_stats(f"https://source-{index}.example", {"last_checked": index + 1})\n    source.close()\n    monkeypatch.setattr("configstream.quality.storage.MAX_MERGE_ROWS_PER_TABLE", 2)\n    with pytest.raises(QualityStorageError, match="row limit exceeded"):\n        destination.merge_from(tmp_path / "source.db")\n    assert destination.get_connection().execute("SELECT COUNT(*) FROM source_stats").fetchone()[0] == 0\n    destination.close()\n'''
+          qtests.write_text(qt)
+
+          atests = Path('tests/unit/test_anomaly_extended.py')
+          at = atests.read_text()
+          if 'test_merge_rejects_row_limit' not in at:
+              at += '''\n\ndef test_merge_rejects_row_limit(detector, tmp_path, monkeypatch):\n    other_db = tmp_path / "oversized-anomaly.db"\n    other = AnomalyDetector(other_db)\n    with patch("time.time", side_effect=[1000, 1001, 1002]):\n        other.record("http://one", 10)\n        other.record("http://two", 20)\n        other.record("http://three", 30)\n    other.close()\n    monkeypatch.setattr("configstream.anomaly.MAX_MERGE_HISTORY_ROWS", 2)\n    detector.merge_from(other_db)\n    with sqlite3.connect(detector.db_path) as conn:\n        assert conn.execute("SELECT COUNT(*) FROM history").fetchone()[0] == 0\n'''
+          atests.write_text(at)
+          PY
+          python -m pip install -r requirements-dev.txt >/dev/null
+          python -m pip install -e . --no-deps >/dev/null
+          pytest -q tests/unit/quality/test_quality_components.py tests/unit/test_anomaly_extended.py --disable-warnings --maxfail=1
+          python -m py_compile src/configstream/quality/storage.py src/configstream/anomaly.py
+      - name: Commit permanent fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add src/configstream/quality/storage.py src/configstream/anomaly.py tests/unit/quality/test_quality_components.py tests/unit/test_anomaly_extended.py
+          git commit -m 'fix(state): bound shard database merge inputs'
+          git push origin HEAD:codex/fix-run-34268254683-audit
