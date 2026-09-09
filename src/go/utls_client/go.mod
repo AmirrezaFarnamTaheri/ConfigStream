@@ -2,7 +2,7 @@ module utls_client
 
 go 1.24.3
 
-require github.com/refraction-networking/utls v1.8.1
+require github.com/refraction-networking/utls v1.8.2
 
 require (
 	github.com/andybalholm/brotli v1.0.6 // indirect
