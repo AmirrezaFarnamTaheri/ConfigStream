@@ -24,7 +24,7 @@ jobs:
         working-directory: src/go/tester
         run: |
           set -euo pipefail
-          go get golang.org/x/crypto@v0.56.0 golang.org/x/net@v0.55.0 golang.org/x/text@v0.39.0
+          go get golang.org/x/crypto@v0.56.0 golang.org/x/net@v0.57.0 golang.org/x/text@v0.39.0
           go mod tidy
           go test -ldflags="-checklinkname=0" ./...
           go run golang.org/x/vuln/cmd/govulncheck@v1.1.4 ./...
