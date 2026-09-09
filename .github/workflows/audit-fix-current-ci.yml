@@ -30,8 +30,13 @@ jobs:
 
           path = Path('src/configstream/quality/storage.py')
           text = path.read_text(encoding='utf-8')
+          anchor = 'MAX_MERGE_ROWS_PER_TABLE = 500_000\n'
+          constant = '''MAX_MERGE_ROWS_PER_TABLE = 500_000\nMERGE_COUNT_QUERIES = (\n    ("source_stats", "SELECT COUNT(*) FROM source_stats"),\n    ("source_runs", "SELECT COUNT(*) FROM source_runs"),\n    ("proxy_history", "SELECT COUNT(*) FROM proxy_history"),\n)\n'''
+          if anchor not in text:
+              raise SystemExit('quality merge constants anchor not found')
+          text = text.replace(anchor, constant, 1)
           old = '''            for table in ("source_stats", "source_runs", "proxy_history"):\n                try:\n                    row_count = int(src.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0])\n                except sqlite3.OperationalError:\n                    if table == "source_stats":\n                        raise\n                    continue\n                if row_count > MAX_MERGE_ROWS_PER_TABLE:\n                    raise QualityStorageError(\n                        f"refusing to merge {table}: row limit exceeded"\n                    )\n'''
-          new = '''            count_queries = {\n                "source_stats": "SELECT COUNT(*) FROM source_stats",\n                "source_runs": "SELECT COUNT(*) FROM source_runs",\n                "proxy_history": "SELECT COUNT(*) FROM proxy_history",\n            }\n            for table, count_query in count_queries.items():\n                try:\n                    row_count = int(src.execute(count_query).fetchone()[0])\n                except sqlite3.OperationalError:\n                    if table == "source_stats":\n                        raise\n                    continue\n                if row_count > MAX_MERGE_ROWS_PER_TABLE:\n                    raise QualityStorageError(\n                        f"refusing to merge {table}: row limit exceeded"\n                    )\n'''
+          new = '''            for table, count_query in MERGE_COUNT_QUERIES:\n                try:\n                    row_count = int(src.execute(count_query).fetchone()[0])\n                except sqlite3.OperationalError:\n                    if table == "source_stats":\n                        raise\n                    continue\n                if row_count > MAX_MERGE_ROWS_PER_TABLE:\n                    raise QualityStorageError(\n                        f"refusing to merge {table}: row limit exceeded"\n                    )\n'''
           if old not in text:
               raise SystemExit('quality merge preflight block not found')
           path.write_text(text.replace(old, new, 1), encoding='utf-8')
