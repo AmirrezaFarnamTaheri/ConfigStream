@@ -189,3 +189,16 @@ def test_record_run_without_explicit_key_is_idempotent(tmp_path):
         assert count == 1
     finally:
         storage.close()
+
+
+def test_storage_merge_rejects_row_limit(tmp_path, monkeypatch):
+    destination = QualityStorage(tmp_path / "dest.db")
+    source = QualityStorage(tmp_path / "source.db")
+    for index in range(3):
+        source.upsert_stats(f"https://source-{index}.example", {"last_checked": index + 1})
+    source.close()
+    monkeypatch.setattr("configstream.quality.storage.MAX_MERGE_ROWS_PER_TABLE", 2)
+    with pytest.raises(QualityStorageError, match="row limit exceeded"):
+        destination.merge_from(tmp_path / "source.db")
+    assert destination.get_connection().execute("SELECT COUNT(*) FROM source_stats").fetchone()[0] == 0
+    destination.close()

@@ -16,6 +16,8 @@ from configstream.security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
 SCHEMA_VERSION = 4
+MAX_MERGE_DB_BYTES = 512 * 1024 * 1024
+MAX_MERGE_ROWS_PER_TABLE = 500_000
 
 
 class QualityStorageError(RuntimeError):
@@ -466,10 +468,24 @@ class QualityStorage:
         other = Path(other_db_path)
         if not other.exists():
             return
+        if other.stat().st_size > MAX_MERGE_DB_BYTES:
+            raise QualityStorageError("refusing oversized source quality database")
         src: Optional[sqlite3.Connection] = None
         try:
             src = sqlite3.connect(other, timeout=20)
             src.row_factory = sqlite3.Row
+            src.execute("PRAGMA query_only=ON")
+            for table in ("source_stats", "source_runs", "proxy_history"):
+                try:
+                    row_count = int(src.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0])
+                except sqlite3.OperationalError:
+                    if table == "source_stats":
+                        raise
+                    continue
+                if row_count > MAX_MERGE_ROWS_PER_TABLE:
+                    raise QualityStorageError(
+                        f"refusing to merge {table}: row limit exceeded"
+                    )
             with src:
                 source_rows: list[sqlite3.Row] = src.execute(
                     "SELECT * FROM source_stats"

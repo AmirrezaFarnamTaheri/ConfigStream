@@ -20,6 +20,9 @@ from .security_validator import safe_log_text
 
 logger = logging.getLogger(__name__)
 
+MAX_MERGE_DB_BYTES = 128 * 1024 * 1024
+MAX_MERGE_HISTORY_ROWS = 500_000
+
 
 class AnomalyDetector:
     def __init__(self, db_path: Path = Path("data/anomaly.db")):
@@ -330,6 +333,9 @@ CREATE TABLE IF NOT EXISTS history (
         """
         if not other_db_path.exists():
             return
+        if other_db_path.stat().st_size > MAX_MERGE_DB_BYTES:
+            logger.error("Refusing oversized anomaly database merge: %s", other_db_path)
+            return
 
         try:
             with self._lock:
@@ -339,6 +345,9 @@ CREATE TABLE IF NOT EXISTS history (
                 ):
                     src.execute("PRAGMA journal_mode=WAL")
                     dst.execute("PRAGMA journal_mode=WAL")
+                    row_count = int(src.execute("SELECT COUNT(*) FROM history").fetchone()[0])
+                    if row_count > MAX_MERGE_HISTORY_ROWS:
+                        raise ValueError("anomaly merge row limit exceeded")
 
                     # Copy all history records. We rely on the fact that (url, timestamp) collisions are unlikely
                     # or acceptable (idempotent in spirit, though SQLite doesn't enforce unique on history).

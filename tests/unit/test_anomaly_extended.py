@@ -160,3 +160,17 @@ def test_fail_open_on_error(detector):
         safe, reason = detector.is_safe("http://test", 100)
         assert safe is True
         assert "Fail Open" in reason
+
+
+def test_merge_rejects_row_limit(detector, tmp_path, monkeypatch):
+    other_db = tmp_path / "oversized-anomaly.db"
+    other = AnomalyDetector(other_db)
+    with patch("time.time", side_effect=[1000, 1001, 1002]):
+        other.record("http://one", 10)
+        other.record("http://two", 20)
+        other.record("http://three", 30)
+    other.close()
+    monkeypatch.setattr("configstream.anomaly.MAX_MERGE_HISTORY_ROWS", 2)
+    detector.merge_from(other_db)
+    with sqlite3.connect(detector.db_path) as conn:
+        assert conn.execute("SELECT COUNT(*) FROM history").fetchone()[0] == 0
