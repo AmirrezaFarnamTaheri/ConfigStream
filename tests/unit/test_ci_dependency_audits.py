@@ -5,10 +5,13 @@ from pathlib import Path
 
 
 def test_ci_audits_python_node_go_and_rust_dependencies() -> None:
-    workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
+    ci_workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
+    security_workflow = Path(".github/workflows/dependency-security.yml").read_text(
+        encoding="utf-8"
+    )
 
-    assert "pip-audit -r requirements-prod.txt" in workflow
-    assert "npm audit --audit-level=high" in workflow
-    assert "golang.org/x/vuln/cmd/govulncheck@v1.1.4" in workflow
-    assert "cargo install cargo-audit --version 0.22.2 --locked" in workflow
-    assert "cargo audit --file src/rust/ss_checker/Cargo.lock" in workflow
+    assert "pip-audit -r requirements-prod.txt" in ci_workflow
+    assert "npm audit --audit-level=high" in security_workflow
+    assert "golang.org/x/vuln/cmd/govulncheck@v1.1.4" in security_workflow
+    assert "cargo install cargo-audit --version 0.22.2 --locked" in security_workflow
+    assert "cargo audit --file src/rust/ss_checker/Cargo.lock" in security_workflow
