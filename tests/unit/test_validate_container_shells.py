@@ -54,3 +54,7 @@ def test_accepts_step_level_bash_shell() -> None:
     }
 
     assert validate_container_shells.validate_workflow(workflow) == []
+
+
+def test_repository_workflows_satisfy_container_shell_contract() -> None:
+    assert validate_container_shells.main() == 0
