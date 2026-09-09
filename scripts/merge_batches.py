@@ -4,6 +4,7 @@ import asyncio
 import glob
 import json
 import logging
+import math
 import os
 import tempfile
 from pathlib import Path
@@ -24,6 +25,7 @@ from configstream.output_logic import write_public_artifact_contract
 from configstream.sorter import sort_proxies_pareto
 from configstream.pipeline_stats import PipelineStats
 from configstream.quality.storage import QualityStorage
+from configstream.utils import AtomicFileWriter
 
 logger = logging.getLogger(__name__)
 
@@ -151,78 +153,70 @@ def _find_batch_dirs(batch_glob: str) -> List[Path]:
     )
 
 
+def _normalize_cache_entry(raw: Any) -> Optional[Dict[str, Any]]:
+    """Normalize the live TestResultCache schema used by shard artifacts."""
+    if not isinstance(raw, dict):
+        return None
+    tested_at = _coerce_float(raw.get("tested_at"))
+    if tested_at is None or not math.isfinite(tested_at) or tested_at < 0:
+        return None
+    test_count = _coerce_int(raw.get("test_count", 0))
+    success_count = _coerce_int(raw.get("success_count", 0))
+    item = {key: value for key, value in raw.items() if key != "config"}
+    item["tested_at"] = tested_at
+    item["test_count"] = max(0, test_count or 0)
+    item["success_count"] = max(0, success_count or 0)
+    return item
+
+
+def _merge_cache_entry(existing: Optional[Dict[str, Any]], incoming: Dict[str, Any]) -> Dict[str, Any]:
+    if existing is None:
+        return dict(incoming)
+    # Every shard can start from the same inherited cache. Summing counters would
+    # multiply that common baseline by the shard count, so merge counters using
+    # their monotonic maxima and take observable state from the newest result.
+    if incoming["tested_at"] >= existing.get("tested_at", -1):
+        merged = dict(incoming)
+    else:
+        merged = dict(existing)
+    merged["test_count"] = max(
+        int(existing.get("test_count", 0) or 0),
+        int(incoming.get("test_count", 0) or 0),
+    )
+    merged["success_count"] = max(
+        int(existing.get("success_count", 0) or 0),
+        int(incoming.get("success_count", 0) or 0),
+    )
+    return merged
+
+
 def merge_cache_history(batch_glob: str, output_dir: str) -> None:
     logger.info("--- Merging Cache History ---")
-    merged_cache = {}
-
-    # Look for cache files in batch directories
+    merged_cache: Dict[str, Dict[str, Any]] = {}
     pattern = os.path.join(batch_glob, "data", "test_cache.json")
     files = glob.glob(pattern)
-
-    # Also look in root of batch just in case
     files.extend(glob.glob(os.path.join(batch_glob, "test_cache.json")))
-
-    # Fall back to any root-level cache artifacts that may have been downloaded
     files.extend(glob.glob(os.path.join("data", "test_cache.json")))
-
-    files = sorted(list(set(files)))
-
-    logger.info(f"Found {len(files)} cache files.")
+    files = sorted(set(files))
+    logger.info("Found %d cache files.", len(files))
 
     for fpath in files:
-        try:
-            with open(fpath, "r") as f:
-                data = json.load(f)
-                # Smart Aggregation instead of .update()
-                for phash, stats in data.items():
-                    if not isinstance(stats, dict):
-                        continue
+        data = _load_json(Path(fpath))
+        if not isinstance(data, dict):
+            continue
+        for phash, raw in data.items():
+            incoming = _normalize_cache_entry(raw)
+            if incoming is None:
+                continue
+            merged_cache[str(phash)] = _merge_cache_entry(
+                merged_cache.get(str(phash)), incoming
+            )
 
-                    if phash not in merged_cache:
-                        item = dict(stats)
-                        hist = item.get("history")
-                        if not isinstance(hist, list):
-                            item.pop("history", None)
-                        merged_cache[phash] = item
-                    else:
-                        # Aggregate stats
-                        existing = merged_cache[phash]
-                        existing["success"] = existing.get("success", 0) + stats.get(
-                            "success", 0
-                        )
-                        existing["fail"] = existing.get("fail", 0) + stats.get(
-                            "fail", 0
-                        )
-
-                        # Max last_seen
-                        existing["last_seen"] = max(
-                            existing.get("last_seen", 0), stats.get("last_seen", 0)
-                        )
-
-                        # History list append (only if well-formed)
-                        incoming_hist = stats.get("history")
-                        if isinstance(incoming_hist, list):
-                            existing_hist = existing.get("history")
-                            if not isinstance(existing_hist, list):
-                                existing_hist = []
-                            existing_hist.extend(incoming_hist)
-                            existing["history"] = sorted(
-                                existing_hist,
-                                key=lambda x: (
-                                    x.get("timestamp", 0) if isinstance(x, dict) else 0
-                                ),
-                            )[-20:]
-
-                # logger.debug(f"Merged {len(data)} entries from {fpath}")
-        except Exception as e:
-            logger.error(f"Failed to merge {fpath}: {e}")
-
-    # Write merged file
-    os.makedirs(os.path.join(output_dir, "data"), exist_ok=True)
-    out_path = os.path.join(output_dir, "data", "test_cache.json")
-    with open(out_path, "w", encoding="utf-8") as f:
-        json.dump(merged_cache, f)
-    logger.info(f"Total merged entries: {len(merged_cache)}")
+    out_path = Path(output_dir) / "data" / "test_cache.json"
+    AtomicFileWriter.write_text(
+        out_path, json.dumps(merged_cache, sort_keys=True, separators=(",", ":"))
+    )
+    logger.info("Total merged entries: %d", len(merged_cache))
 
 
 def _merge_quality_db(batch_dirs: Iterable[Path]) -> None:
@@ -266,19 +260,26 @@ def _merge_history_db(batch_dirs: Iterable[Path]) -> ProxyHistoryTracker:
 
 
 def _merge_timeout_history(batch_dirs: Iterable[Path]) -> None:
-    candidates = []
+    candidates: List[Path] = []
     for batch_dir in batch_dirs:
         candidate = batch_dir / "data" / "timeout_history.json"
-        if candidate.exists():
-            candidates.append(candidate)
+        if not candidate.exists():
+            continue
+        payload = _load_json(candidate)
+        if not isinstance(payload, dict):
+            continue
+        timeout = _coerce_float(payload.get("last_timeout"))
+        if timeout is None or not math.isfinite(timeout) or timeout <= 0:
+            logger.warning("Skipped invalid timeout history: %s", candidate)
+            continue
+        candidates.append(candidate)
     if not candidates:
         return
 
     latest = max(candidates, key=lambda p: p.stat().st_mtime)
     target = Path("data") / "timeout_history.json"
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(latest.read_text(encoding="utf-8"), encoding="utf-8")
-    logger.info(f"Updated timeout_history.json from {latest}.")
+    AtomicFileWriter.write_text(target, latest.read_text(encoding="utf-8"))
+    logger.info("Updated timeout_history.json from %s.", latest)
 
 
 def _merge_metadata(batch_dirs: Iterable[Path]) -> Dict[str, Any]:
