@@ -112,21 +112,38 @@ class VwarpTunnel:
             return False
 
     async def stop(self) -> None:
-        """Stops the background tunnel process."""
-        if self._proc:
-            try:
-                self._proc.terminate()
-                with suppress(asyncio.TimeoutError):
-                    await safe_wait_for(self._proc.wait(), timeout=2.0)
-            except ProcessLookupError:
-                pass
-            finally:
-                self._proc = None
-
-        for task in list(self._stream_tasks):
-            task.cancel()
-        self._stream_tasks.clear()
-        self._cleanup_config_file()
+        """Stop and reap the tunnel process and all owned stream tasks."""
+        process = self._proc
+        try:
+            if process is not None:
+                if process.returncode is None:
+                    with suppress(ProcessLookupError):
+                        process.terminate()
+                try:
+                    await safe_wait_for(process.wait(), timeout=2.0)
+                except asyncio.TimeoutError:
+                    logger.warning("Vwarp did not terminate in time; killing it.")
+                    if process.returncode is None:
+                        with suppress(ProcessLookupError):
+                            process.kill()
+                    try:
+                        await safe_wait_for(process.wait(), timeout=2.0)
+                    except asyncio.TimeoutError:
+                        logger.error("Vwarp process could not be reaped after kill.")
+        except Exception as exc:
+            logger.warning(
+                "Vwarp process cleanup failed: %s",
+                SecurityValidator.sanitize_log_message(str(exc)),
+            )
+        finally:
+            self._proc = None
+            tasks = list(self._stream_tasks)
+            for task in tasks:
+                task.cancel()
+            if tasks:
+                await asyncio.gather(*tasks, return_exceptions=True)
+            self._stream_tasks.clear()
+            self._cleanup_config_file()
 
     async def _wait_for_port(self, host: str, port: int, timeout: int = 45) -> bool:
         """Polls the given host:port until it accepts connections."""
