@@ -19,35 +19,53 @@ class HardStopWatcher:
         self.flush_timeout_seconds = max(0.1, float(flush_timeout_seconds))
 
     async def stop_tester(self, tester: Any) -> None:
-        """Gracefully stop tester; force-kill Go child process if it hangs."""
+        """Gracefully stop tester; force-kill the child on any incomplete close.
+
+        Snapshot the owned process before invoking ``close()``. A buggy close path
+        may clear its public handle before raising, and an unconditional cleanup
+        assignment could otherwise erase a newer replacement process.
+        """
         if tester is None:
             return
 
+        go_tester = getattr(tester, "go_tester", None)
+        proc = getattr(go_tester, "_proc", None)
+        graceful_failed = False
+
         try:
             await asyncio.wait_for(tester.close(), timeout=self.grace_seconds)
-            return
         except asyncio.TimeoutError:
+            graceful_failed = True
             logger.warning(
                 "Tester shutdown exceeded %.1fs grace period; applying hard stop.",
                 self.grace_seconds,
             )
         except Exception as exc:
-            logger.warning("Tester shutdown failed: %s", exc)
+            graceful_failed = True
+            logger.warning("Tester shutdown failed; applying hard stop: %s", exc)
+
+        # If no process existed before close, inspect the current handle in case
+        # the close failure exposed a process only after startup/restart raced.
+        if proc is None:
+            proc = getattr(go_tester, "_proc", None)
+        if proc is None or proc.returncode is not None:
             return
 
-        go_tester = getattr(tester, "go_tester", None)
-        proc = getattr(go_tester, "_proc", None)
-        if proc is None:
-            return
+        if not graceful_failed:
+            logger.warning("Tester close returned while child was still alive; hard-stopping it.")
 
         try:
-            if proc.returncode is None:
-                proc.kill()
+            proc.kill()
+            await asyncio.wait_for(proc.wait(), timeout=1.0)
+        except ProcessLookupError:
+            # The child exited between the returncode check and kill(). Reap it
+            # if the transport still permits waiting.
+            with suppress(Exception):
                 await asyncio.wait_for(proc.wait(), timeout=1.0)
         except Exception as exc:
             logger.warning("Hard stop failed to terminate Go tester process: %s", exc)
         finally:
-            if go_tester is not None:
+            if go_tester is not None and getattr(go_tester, "_proc", None) is proc:
                 go_tester._proc = None
 
     async def flush_event_stream(self, event_stream: Any) -> None:
