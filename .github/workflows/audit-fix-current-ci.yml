@@ -41,6 +41,7 @@ jobs:
               raise SystemExit('quality merge preflight block not found')
           path.write_text(text.replace(old, new, 1), encoding='utf-8')
           PY
+          python scripts/validate_function_size_budget.py
           python scripts/generate_environment_catalog.py
           python scripts/generate_debt_matrix.py
           python scripts/generate_triage_report.py
