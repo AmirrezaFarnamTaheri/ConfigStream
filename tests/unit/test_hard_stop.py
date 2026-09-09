@@ -45,6 +45,75 @@ async def test_hard_stop_kills_hung_tester_process():
 
 
 @pytest.mark.asyncio
+async def test_hard_stop_kills_process_when_close_raises():
+    proc = _FakeProc()
+    go_tester = SimpleNamespace(_proc=proc)
+
+    class _BrokenTester:
+        def __init__(self):
+            self.go_tester = go_tester
+
+        async def close(self) -> None:
+            # Simulate a close implementation that loses its public process handle
+            # before surfacing the failure. HardStopWatcher must retain ownership.
+            self.go_tester._proc = None
+            raise RuntimeError("close failed")
+
+    tester = _BrokenTester()
+    watcher = HardStopWatcher(grace_seconds=0.1, flush_timeout_seconds=0.1)
+
+    await watcher.stop_tester(tester)
+
+    assert proc.killed is True
+    assert proc.wait_called is True
+
+
+@pytest.mark.asyncio
+async def test_hard_stop_kills_process_when_close_returns_early():
+    proc = _FakeProc()
+    go_tester = SimpleNamespace(_proc=proc)
+
+    class _IncompleteTester:
+        def __init__(self):
+            self.go_tester = go_tester
+
+        async def close(self) -> None:
+            return None
+
+    tester = _IncompleteTester()
+    watcher = HardStopWatcher(grace_seconds=0.1, flush_timeout_seconds=0.1)
+
+    await watcher.stop_tester(tester)
+
+    assert proc.killed is True
+    assert proc.wait_called is True
+    assert tester.go_tester._proc is None
+
+
+@pytest.mark.asyncio
+async def test_hard_stop_does_not_clear_newer_process_reference():
+    old_proc = _FakeProc()
+    new_proc = _FakeProc()
+    go_tester = SimpleNamespace(_proc=old_proc)
+
+    class _RacingTester:
+        def __init__(self):
+            self.go_tester = go_tester
+
+        async def close(self) -> None:
+            self.go_tester._proc = new_proc
+            raise RuntimeError("close failed after restart race")
+
+    tester = _RacingTester()
+    watcher = HardStopWatcher(grace_seconds=0.1, flush_timeout_seconds=0.1)
+
+    await watcher.stop_tester(tester)
+
+    assert old_proc.killed is True
+    assert tester.go_tester._proc is new_proc
+
+
+@pytest.mark.asyncio
 async def test_hard_stop_flushes_event_stream():
     state = {"closed": False}
 
