@@ -1,15 +1,15 @@
 {
   "generated_from": "current tracked tree",
   "summary": {
-    "total": 262,
+    "total": 261,
     "markers": {
-      "BROAD_EXCEPTION": 251,
+      "BROAD_EXCEPTION": 250,
       "LARGE_FUNCTION": 9,
       "PLACEHOLDER": 2
     },
     "categories": {
       "other": 12,
-      "production": 208,
+      "production": 207,
       "tooling": 42
     }
   },
@@ -168,7 +168,7 @@
     },
     {
       "path": "scripts/merge_batches.py",
-      "line": 62,
+      "line": 64,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -176,7 +176,7 @@
     },
     {
       "path": "scripts/merge_batches.py",
-      "line": 139,
+      "line": 141,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -184,7 +184,7 @@
     },
     {
       "path": "scripts/merge_batches.py",
-      "line": 217,
+      "line": 431,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -192,15 +192,7 @@
     },
     {
       "path": "scripts/merge_batches.py",
-      "line": 430,
-      "marker": "BROAD_EXCEPTION",
-      "category": "tooling",
-      "priority": "P2 - Routine",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
-      "path": "scripts/merge_batches.py",
-      "line": 537,
+      "line": 538,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -272,7 +264,7 @@
     },
     {
       "path": "scripts/resilient_stage.py",
-      "line": 122,
+      "line": 131,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -280,7 +272,15 @@
     },
     {
       "path": "scripts/resilient_stage.py",
-      "line": 252,
+      "line": 140,
+      "marker": "BROAD_EXCEPTION",
+      "category": "tooling",
+      "priority": "P2 - Routine",
+      "text": "Broad exception boundary requires semantic review and structured outcome."
+    },
+    {
+      "path": "scripts/resilient_stage.py",
+      "line": 274,
       "marker": "BROAD_EXCEPTION",
       "category": "tooling",
       "priority": "P2 - Routine",
@@ -512,7 +512,7 @@
     },
     {
       "path": "src/configstream/backup.py",
-      "line": 126,
+      "line": 100,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -520,7 +520,7 @@
     },
     {
       "path": "src/configstream/backup.py",
-      "line": 133,
+      "line": 152,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -528,7 +528,7 @@
     },
     {
       "path": "src/configstream/backup.py",
-      "line": 211,
+      "line": 163,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -536,7 +536,7 @@
     },
     {
       "path": "src/configstream/backup.py",
-      "line": 226,
+      "line": 229,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -544,15 +544,7 @@
     },
     {
       "path": "src/configstream/backup.py",
-      "line": 278,
-      "marker": "BROAD_EXCEPTION",
-      "category": "production",
-      "priority": "P1 - High",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
-      "path": "src/configstream/backup.py",
-      "line": 335,
+      "line": 279,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -568,7 +560,15 @@
     },
     {
       "path": "src/configstream/cli.py",
-      "line": 249,
+      "line": 67,
+      "marker": "BROAD_EXCEPTION",
+      "category": "production",
+      "priority": "P1 - High",
+      "text": "Broad exception boundary requires semantic review and structured outcome."
+    },
+    {
+      "path": "src/configstream/cli.py",
+      "line": 293,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -712,7 +712,7 @@
     },
     {
       "path": "src/configstream/hard_stop.py",
-      "line": 34,
+      "line": 43,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -720,7 +720,7 @@
     },
     {
       "path": "src/configstream/hard_stop.py",
-      "line": 47,
+      "line": 65,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -728,7 +728,7 @@
     },
     {
       "path": "src/configstream/hard_stop.py",
-      "line": 68,
+      "line": 86,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1168,7 +1168,7 @@
     },
     {
       "path": "src/configstream/pipeline/core.py",
-      "line": 59,
+      "line": 71,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1176,7 +1176,7 @@
     },
     {
       "path": "src/configstream/pipeline/core.py",
-      "line": 273,
+      "line": 281,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1184,7 +1184,7 @@
     },
     {
       "path": "src/configstream/pipeline/core.py",
-      "line": 336,
+      "line": 298,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1192,7 +1192,7 @@
     },
     {
       "path": "src/configstream/pipeline/core.py",
-      "line": 423,
+      "line": 361,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1200,7 +1200,23 @@
     },
     {
       "path": "src/configstream/pipeline/core.py",
-      "line": 450,
+      "line": 448,
+      "marker": "BROAD_EXCEPTION",
+      "category": "production",
+      "priority": "P1 - High",
+      "text": "Broad exception boundary requires semantic review and structured outcome."
+    },
+    {
+      "path": "src/configstream/pipeline/core.py",
+      "line": 475,
+      "marker": "BROAD_EXCEPTION",
+      "category": "production",
+      "priority": "P1 - High",
+      "text": "Broad exception boundary requires semantic review and structured outcome."
+    },
+    {
+      "path": "src/configstream/pipeline/core.py",
+      "line": 530,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1212,11 +1228,11 @@
       "marker": "LARGE_FUNCTION",
       "category": "production",
       "priority": "P1 - High",
-      "text": "Function fetch_from_source spans 403 lines (threshold: 300)."
+      "text": "Function fetch_from_source spans 406 lines (threshold: 300)."
     },
     {
       "path": "src/configstream/pipeline/fetcher.py",
-      "line": 520,
+      "line": 523,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1224,7 +1240,7 @@
     },
     {
       "path": "src/configstream/pipeline/fetcher.py",
-      "line": 524,
+      "line": 527,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1232,7 +1248,7 @@
     },
     {
       "path": "src/configstream/pipeline/fetcher.py",
-      "line": 531,
+      "line": 534,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1240,7 +1256,7 @@
     },
     {
       "path": "src/configstream/pipeline/fetcher.py",
-      "line": 540,
+      "line": 543,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1276,11 +1292,11 @@
       "marker": "LARGE_FUNCTION",
       "category": "production",
       "priority": "P1 - High",
-      "text": "Function source_producer spans 503 lines (threshold: 300)."
+      "text": "Function source_producer spans 510 lines (threshold: 300)."
     },
     {
       "path": "src/configstream/pipeline/producer.py",
-      "line": 494,
+      "line": 495,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1288,7 +1304,7 @@
     },
     {
       "path": "src/configstream/pipeline/producer.py",
-      "line": 519,
+      "line": 520,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1296,7 +1312,7 @@
     },
     {
       "path": "src/configstream/pipeline/producer.py",
-      "line": 568,
+      "line": 570,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1304,7 +1320,7 @@
     },
     {
       "path": "src/configstream/pipeline/producer.py",
-      "line": 607,
+      "line": 614,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1312,7 +1328,7 @@
     },
     {
       "path": "src/configstream/publication.py",
-      "line": 36,
+      "line": 35,
       "marker": "PLACEHOLDER",
       "category": "production",
       "priority": "P1 - High",
@@ -1712,7 +1728,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 290,
+      "line": 94,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1720,7 +1736,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 436,
+      "line": 630,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1728,7 +1744,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 814,
+      "line": 694,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1736,7 +1752,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 824,
+      "line": 712,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1744,7 +1760,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 832,
+      "line": 767,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1752,7 +1768,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 839,
+      "line": 902,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1760,7 +1776,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 894,
+      "line": 965,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1768,7 +1784,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 912,
+      "line": 989,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1776,7 +1792,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 967,
+      "line": 1013,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1784,7 +1800,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1102,
+      "line": 1053,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1792,7 +1808,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1165,
+      "line": 1073,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1800,7 +1816,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1191,
+      "line": 1090,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1808,7 +1824,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1215,
+      "line": 1095,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1816,7 +1832,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1254,
+      "line": 1120,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1824,7 +1840,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1274,
+      "line": 1125,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1832,7 +1848,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1291,
+      "line": 1206,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1840,7 +1856,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1296,
+      "line": 1302,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1848,7 +1864,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1321,
+      "line": 1342,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1856,7 +1872,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1326,
+      "line": 1397,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1864,7 +1880,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1407,
+      "line": 1572,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1872,7 +1888,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1503,
+      "line": 1623,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1880,7 +1896,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1543,
+      "line": 1636,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1888,7 +1904,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1598,
+      "line": 1652,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1896,7 +1912,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1773,
+      "line": 1661,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1904,7 +1920,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1824,
+      "line": 1676,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1912,39 +1928,7 @@
     },
     {
       "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1837,
-      "marker": "BROAD_EXCEPTION",
-      "category": "production",
-      "priority": "P1 - High",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
-      "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1853,
-      "marker": "BROAD_EXCEPTION",
-      "category": "production",
-      "priority": "P1 - High",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
-      "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1862,
-      "marker": "BROAD_EXCEPTION",
-      "category": "production",
-      "priority": "P1 - High",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
-      "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 1877,
-      "marker": "BROAD_EXCEPTION",
-      "category": "production",
-      "priority": "P1 - High",
-      "text": "Broad exception boundary requires semantic review and structured outcome."
-    },
-    {
-      "path": "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py",
-      "line": 2028,
+      "line": 1827,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
@@ -1961,6 +1945,14 @@
     {
       "path": "src/configstream/tools/vwarp/tunnel.py",
       "line": 106,
+      "marker": "BROAD_EXCEPTION",
+      "category": "production",
+      "priority": "P1 - High",
+      "text": "Broad exception boundary requires semantic review and structured outcome."
+    },
+    {
+      "path": "src/configstream/tools/vwarp/tunnel.py",
+      "line": 133,
       "marker": "BROAD_EXCEPTION",
       "category": "production",
       "priority": "P1 - High",
