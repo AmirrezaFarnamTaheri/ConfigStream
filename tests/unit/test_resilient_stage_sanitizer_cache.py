@@ -17,13 +17,17 @@ def test_project_sanitizer_fallback_warns_once_and_masks(monkeypatch) -> None:
     original_import = builtins.__import__
 
     def blocked_import(name, *args, **kwargs):
-        if name == "configstream.security.validator":
+        if name == "configstream.security_validator":
             raise ImportError("unavailable")
         return original_import(name, *args, **kwargs)
 
     warnings: list[str] = []
     monkeypatch.setattr(builtins, "__import__", blocked_import)
-    monkeypatch.setattr(resilient_stage.LOGGER, "warning", lambda message, *args: warnings.append(message % args))
+    monkeypatch.setattr(
+        resilient_stage.logger,
+        "warning",
+        lambda message, *args: warnings.append(message % args),
+    )
 
     first = resilient_stage._project_sanitize("token=secret-value")
     second = resilient_stage._project_sanitize("password=another-secret")
@@ -33,7 +37,7 @@ def test_project_sanitizer_fallback_warns_once_and_masks(monkeypatch) -> None:
     assert len(warnings) == 1
 
 
-def test_project_sanitizer_is_resolved_once(monkeypatch) -> None:
+def test_project_sanitizer_is_resolved_once() -> None:
     _reset_cache()
     calls: list[str] = []
 
