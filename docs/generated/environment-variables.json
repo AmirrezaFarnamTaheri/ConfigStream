@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_digest": "119bf4e47cc1fd8022cc08a9cbee3ed3078ccad7d49fa6b58b6e51e8e0f84ec2",
+  "source_digest": "023757d95c20877531b39310d448332f6ee673dfa530d3ac8d85ca57d72f2775",
   "variable_count": 161,
   "variables": [
     {
@@ -716,7 +716,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/resilient_stage.py:471"
+        "scripts/resilient_stage.py:493"
       ],
       "type": null
     },
@@ -728,7 +728,7 @@
       "sensitive": false,
       "sources": [
         "scripts/generate_evidence_bundle.py:24",
-        "scripts/resilient_stage.py:466"
+        "scripts/resilient_stage.py:488"
       ],
       "type": null
     },
@@ -745,7 +745,7 @@
         "scripts/native_client_checks.py:232",
         "scripts/release_gate.py:181",
         "scripts/release_gate.py:390",
-        "scripts/resilient_stage.py:469",
+        "scripts/resilient_stage.py:491",
         "scripts/validate_pages_artifact.py:1203",
         "scripts/validate_pages_artifact.py:1236",
         "src/configstream/output/metadata.py:559",
@@ -766,7 +766,7 @@
         "scripts/native_client_checks.py:231",
         "scripts/release_gate.py:180",
         "scripts/release_gate.py:387",
-        "scripts/resilient_stage.py:468",
+        "scripts/resilient_stage.py:490",
         "scripts/validate_pages_artifact.py:1202",
         "scripts/validate_pages_artifact.py:1235",
         "src/configstream/output/metadata.py:558",
@@ -787,7 +787,7 @@
         "scripts/native_client_checks.py:230",
         "scripts/release_gate.py:179",
         "scripts/release_gate.py:384",
-        "scripts/resilient_stage.py:470",
+        "scripts/resilient_stage.py:492",
         "scripts/validate_pages_artifact.py:1201",
         "scripts/validate_pages_artifact.py:1234",
         "src/configstream/output/metadata.py:557",
@@ -802,7 +802,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/resilient_stage.py:467"
+        "scripts/resilient_stage.py:489"
       ],
       "type": null
     },
