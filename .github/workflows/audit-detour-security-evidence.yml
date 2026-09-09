@@ -1,0 +1,81 @@
+name: Validate detour security and evidence fixes
+
+on:
+  push:
+    branches: [codex/fix-run-34268254683-audit]
+
+permissions:
+  contents: write
+
+jobs:
+  remediate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: codex/fix-run-34268254683-audit
+          fetch-depth: 1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v6
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version: '1.26.8'
+          cache-dependency-path: |
+            src/go/tester/go.sum
+            src/go/utls_client/go.sum
+      - name: Validate persistence regressions
+        run: |
+          set -euo pipefail
+          python -m pip install -r requirements-dev.txt
+          python -m pip install -e . --no-deps
+          python -m py_compile src/configstream/backup.py tests/unit/test_backup.py
+          pytest -q tests/unit/test_backup.py tests/unit/test_backup_extended.py --disable-warnings --maxfail=1
+      - name: Upgrade vulnerable uTLS client
+        working-directory: src/go/utls_client
+        run: |
+          set -euo pipefail
+          go get github.com/refraction-networking/utls@v1.8.2
+          go mod tidy
+          go test ./...
+          go run golang.org/x/vuln/cmd/govulncheck@v1.1.4 ./...
+      - name: Commit uTLS security upgrade
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add src/go/utls_client/go.mod src/go/utls_client/go.sum
+          git diff --cached --quiet && exit 0
+          git commit -m 'fix(security): upgrade vulnerable uTLS client'
+          git push origin HEAD:codex/fix-run-34268254683-audit
+      - name: Cover every Go module in supply-chain evidence
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('scripts/generate_supply_chain_evidence.py')
+          text = path.read_text(encoding='utf-8')
+          start = text.index('def _go_components(root: Path) -> list[Component]:\n')
+          end = text.index('\n\ndef _cargo_components', start)
+          replacement = '''def _go_components(root: Path) -> list[Component]:\n    components: list[Component] = []\n    for path in sorted((root / "src/go").glob("*/go.mod")):\n        source = path.relative_to(root).as_posix()\n        lines = path.read_text(encoding="utf-8").splitlines()\n        in_require = False\n        for raw_line in lines:\n            stripped = raw_line.strip()\n            if stripped == "require (":\n                in_require = True\n                continue\n            if in_require and stripped == ")":\n                in_require = False\n                continue\n            candidate = (\n                stripped.removeprefix("require ")\n                if stripped.startswith("require ")\n                else stripped\n            )\n            if not in_require and not stripped.startswith("require "):\n                continue\n            match = _GO_REQUIREMENT.match(candidate)\n            if not match:\n                continue\n            scope = "development" if "// indirect" in raw_line else "required"\n            components.append(\n                Component(\n                    "go",\n                    match.group(1),\n                    match.group(2),\n                    scope,\n                    source=source,\n                )\n            )\n    return components\n'''
+          text = text[:start] + replacement + text[end:]
+          path.write_text(text, encoding='utf-8')
+
+          test_path = Path('tests/unit/test_supply_chain_evidence.py')
+          tests = test_path.read_text(encoding='utf-8')
+          assert 'test_sbom_covers_every_go_module' not in tests
+          tests += '''\n\ndef test_sbom_covers_every_go_module() -> None:\n    payload = json.loads(\n        Path("docs/generated/sbom.cdx.json").read_text(encoding="utf-8")\n    )\n    go_sources = set()\n    for component in payload["components"]:\n        properties = {\n            prop["name"]: prop["value"] for prop in component.get("properties", [])\n        }\n        if properties.get("configstream:ecosystem") == "go":\n            go_sources.add(properties.get("configstream:source-manifest"))\n    expected = {\n        path.relative_to(Path(".")).as_posix()\n        for path in Path("src/go").glob("*/go.mod")\n    }\n    assert expected.issubset(go_sources)\n'''
+          test_path.write_text(tests, encoding='utf-8')
+          PY
+          python scripts/generate_supply_chain_evidence.py
+          python -m py_compile scripts/generate_supply_chain_evidence.py
+          pytest -q tests/unit/test_supply_chain_evidence.py --disable-warnings --maxfail=1
+      - name: Commit complete supply-chain evidence
+        run: |
+          set -euo pipefail
+          git add scripts/generate_supply_chain_evidence.py tests/unit/test_supply_chain_evidence.py docs/generated/sbom.cdx.json docs/generated/dependency-licenses.json docs/generated/dependency-licenses.md
+          git diff --cached --quiet && exit 0
+          git commit -m 'fix(supply-chain): inventory every Go module'
+          git push origin HEAD:codex/fix-run-34268254683-audit
