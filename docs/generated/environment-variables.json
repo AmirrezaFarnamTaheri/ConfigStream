@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_digest": "023757d95c20877531b39310d448332f6ee673dfa530d3ac8d85ca57d72f2775",
+  "source_digest": "f5a3e60ad42dc47026b0c9dc02db3505d0324fce536240d8ce2332ca27104210",
   "variable_count": 161,
   "variables": [
     {
@@ -1670,9 +1670,14 @@
       "sources": [
         "src/configstream/config.py:144",
         "src/configstream/intelligence/washer/core.py:515",
-        "src/configstream/pipeline/core.py:155",
-        "src/configstream/pipeline/core.py:160",
-        "src/configstream/pipeline/core.py:165",
+        "src/configstream/pipeline/core.py:138",
+        "src/configstream/pipeline/core.py:159",
+        "src/configstream/pipeline/core.py:164",
+        "src/configstream/pipeline/core.py:169",
+        "src/configstream/pipeline/core.py:275",
+        "src/configstream/pipeline/core.py:277",
+        "src/configstream/pipeline/core.py:532",
+        "src/configstream/pipeline/core.py:534",
         "src/configstream/testers/go_tester/manager.py:331",
         "src/configstream/testers/go_tester/secure_manager.py:72"
       ],
@@ -1773,7 +1778,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "src/configstream/tools/vwarp/tunnel.py:172"
+        "src/configstream/tools/vwarp/tunnel.py:189"
       ],
       "type": null
     },
@@ -1796,7 +1801,7 @@
       "sensitive": false,
       "sources": [
         "src/configstream/tools/vwarp/binary.py:64",
-        "src/configstream/tools/vwarp/config.py:143"
+        "src/configstream/tools/vwarp/config.py:139"
       ],
       "type": null
     },
