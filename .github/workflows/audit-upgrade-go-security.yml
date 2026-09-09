@@ -1,0 +1,40 @@
+name: Upgrade audited Go tester dependencies
+
+on:
+  push:
+    branches: [codex/fix-run-34268254683-audit]
+
+permissions:
+  contents: write
+
+jobs:
+  upgrade:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: codex/fix-run-34268254683-audit
+          fetch-depth: 1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version: '1.26.8'
+          cache-dependency-path: src/go/tester/go.sum
+      - name: Upgrade fixed security floors
+        working-directory: src/go/tester
+        run: |
+          set -euo pipefail
+          go get golang.org/x/crypto@v0.56.0 golang.org/x/net@v0.55.0 golang.org/x/text@v0.39.0
+          go mod tidy
+          go test -ldflags="-checklinkname=0" ./...
+          go run golang.org/x/vuln/cmd/govulncheck@v1.1.4 ./...
+      - name: Commit module metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add src/go/tester/go.mod src/go/tester/go.sum
+          git diff --cached --quiet && exit 0
+          git commit -m 'fix(security): upgrade vulnerable Go tester dependencies'
+          git push origin HEAD:codex/fix-run-34268254683-audit
