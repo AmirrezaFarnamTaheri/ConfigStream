@@ -1,12 +1,12 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Pinned Slipstream client artifacts and verified download helpers."""
+"""Pinned Slipstream client artifacts and verified async download helpers."""
 
 from __future__ import annotations
 
 import hashlib
 import os
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Callable
 
 import httpx
 
@@ -16,6 +16,8 @@ SLIPSTREAM_BASE_URL = (
     f"{SLIPSTREAM_RELEASE}"
 )
 MAX_SLIPSTREAM_BYTES = 16 * 1024 * 1024
+
+ProgressCallback = Callable[[int, int, str], None]
 
 
 def _artifact(filename: str, sha256: str) -> dict[str, str]:
@@ -50,8 +52,8 @@ SLIPSTREAM_ARTIFACTS: dict[str, dict[str, str]] = {
 }
 
 
-def verify_artifact(path: Path, artifact: Mapping[str, str]) -> bool:
-    """Return whether ``path`` matches the pinned size and digest contract."""
+def verify_artifact(path: Path, expected_sha256: str) -> bool:
+    """Return whether ``path`` is bounded and matches the pinned SHA-256 digest."""
 
     try:
         if not path.is_file():
@@ -63,7 +65,7 @@ def verify_artifact(path: Path, artifact: Mapping[str, str]) -> bool:
         with path.open("rb") as handle:
             for chunk in iter(lambda: handle.read(1024 * 1024), b""):
                 digest.update(chunk)
-        return digest.hexdigest() == artifact["sha256"]
+        return digest.hexdigest() == expected_sha256
     except OSError:
         return False
 
@@ -78,51 +80,60 @@ def _content_length(response: httpx.Response) -> int | None:
         return None
 
 
-def download_verified_artifact(
-    artifact: Mapping[str, str],
-    destination: Path,
+async def download_verified_artifact(
     *,
-    retries: int = 3,
+    url: str,
+    expected_sha256: str,
+    destination: Path,
+    progress_callback: ProgressCallback | None = None,
     timeout: float = 60.0,
-    client_factory: Any = httpx.Client,
 ) -> bool:
-    """Download one immutable Slipstream artifact and promote it after SHA-256 verification."""
+    """Download one immutable artifact and promote it only after digest verification."""
 
     destination.parent.mkdir(parents=True, exist_ok=True)
     partial = destination.with_name(f".{destination.name}.partial")
-    for _attempt in range(max(1, retries)):
-        try:
-            partial.unlink(missing_ok=True)
-            with client_factory(
-                timeout=httpx.Timeout(timeout),
-                follow_redirects=True,
-            ) as client:
-                with client.stream("GET", artifact["url"]) as response:
-                    response.raise_for_status()
-                    declared = _content_length(response)
-                    if declared is not None and (
-                        declared <= 0 or declared > MAX_SLIPSTREAM_BYTES
-                    ):
-                        raise ValueError("Slipstream artifact Content-Length is invalid")
-                    digest = hashlib.sha256()
-                    total = 0
-                    with partial.open("wb") as handle:
-                        for chunk in response.iter_bytes():
-                            if not chunk:
-                                continue
-                            total += len(chunk)
-                            if total > MAX_SLIPSTREAM_BYTES:
-                                raise ValueError("Slipstream artifact exceeds size limit")
-                            digest.update(chunk)
-                            handle.write(chunk)
-                        handle.flush()
-                        os.fsync(handle.fileno())
-                    if total <= 0:
-                        raise ValueError("Slipstream artifact is empty")
-                    if digest.hexdigest() != artifact["sha256"]:
-                        raise ValueError("Slipstream artifact SHA-256 mismatch")
-            os.replace(partial, destination)
-            return True
-        except (OSError, httpx.HTTPError, ValueError):
-            partial.unlink(missing_ok=True)
-    return False
+    partial.unlink(missing_ok=True)
+    try:
+        async with httpx.AsyncClient(
+            timeout=httpx.Timeout(timeout),
+            follow_redirects=True,
+            trust_env=False,
+        ) as client:
+            async with client.stream("GET", url) as response:
+                response.raise_for_status()
+                declared = _content_length(response)
+                if declared is not None and (
+                    declared <= 0 or declared > MAX_SLIPSTREAM_BYTES
+                ):
+                    raise ValueError("Slipstream artifact Content-Length is invalid")
+
+                digest = hashlib.sha256()
+                total = 0
+                with partial.open("wb") as handle:
+                    async for chunk in response.aiter_bytes():
+                        if not chunk:
+                            continue
+                        total += len(chunk)
+                        if total > MAX_SLIPSTREAM_BYTES:
+                            raise ValueError("Slipstream artifact exceeds size limit")
+                        digest.update(chunk)
+                        handle.write(chunk)
+                        if progress_callback:
+                            progress_callback(total, declared or 0, "Downloading")
+                    handle.flush()
+                    os.fsync(handle.fileno())
+
+                if total <= 0:
+                    raise ValueError("Slipstream artifact is empty")
+                if digest.hexdigest() != expected_sha256:
+                    raise ValueError("Slipstream artifact SHA-256 mismatch")
+
+        os.replace(partial, destination)
+        if progress_callback:
+            progress_callback(total, declared or total, "Verified")
+        return True
+    except (OSError, httpx.HTTPError, ValueError):
+        partial.unlink(missing_ok=True)
+        if progress_callback:
+            progress_callback(0, 0, "Verification or download failed")
+        return False
