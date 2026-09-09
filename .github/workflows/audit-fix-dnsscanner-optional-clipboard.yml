@@ -1,4 +1,4 @@
-name: Remediate DNS scanner optional clipboard
+name: Remediate DNS scanner optional dependencies
 
 on:
   push:
@@ -18,7 +18,7 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v6
         with:
           python-version: '3.11'
-      - name: Make clipboard support lazy and validate
+      - name: Isolate lifecycle helpers and validate
         shell: bash
         run: |
           set -euo pipefail
@@ -28,18 +28,60 @@ jobs:
           python - <<'PY'
           from pathlib import Path
 
-          path = Path('src/configstream/tools/dns_scanner/python/dnsscanner_tui.py')
-          text = path.read_text(encoding='utf-8')
+          lifecycle = Path('src/configstream/tools/dns_scanner/python/dnsscanner_lifecycle.py')
+          lifecycle.write_text('''# SPDX-License-Identifier: AGPL-3.0-or-later\nfrom __future__ import annotations\n\nimport asyncio\nimport logging\nfrom typing import Any, Iterable\n\nlogger = logging.getLogger(__name__)\n\n\nasync def cancel_and_await_tasks(tasks: Iterable[asyncio.Task[Any]]) -> None:\n    """Cancel owned tasks and wait for their finalizers to complete."""\n    owned = list(dict.fromkeys(tasks))\n    for task in owned:\n        if not task.done():\n            task.cancel()\n    if owned:\n        await asyncio.gather(*owned, return_exceptions=True)\n\n\nasync def kill_and_reap_processes(\n    processes: Iterable[Any], timeout: float = 2.0\n) -> None:\n    """Kill owned child processes and reap them with a bounded wait."""\n    for process in list(dict.fromkeys(processes)):\n        try:\n            if process.returncode is None:\n                try:\n                    process.kill()\n                except ProcessLookupError:\n                    pass\n            try:\n                await asyncio.wait_for(process.wait(), timeout=timeout)\n            except asyncio.TimeoutError:\n                logger.error("Timed out reaping Slipstream child process")\n        except (OSError, RuntimeError) as exc:\n            logger.warning("Failed to reap Slipstream child: %s", str(exc)[:200])\n''', encoding='utf-8')
+
+          tui = Path('src/configstream/tools/dns_scanner/python/dnsscanner_tui.py')
+          text = tui.read_text(encoding='utf-8')
+          text = text.replace('from typing import Any, Iterable\n', 'from typing import Any\n', 1)
           if 'import pyperclip\n' not in text:
               raise SystemExit('top-level pyperclip import not found')
           text = text.replace('import pyperclip\n', '', 1)
-          old = '''            try:\n                pyperclip.copy(ip)\n                self.notify(f"{ip} copied!", severity="information", timeout=2)\n'''
-          new = '''            try:\n                import pyperclip\n\n                pyperclip.copy(ip)\n                self.notify(f"{ip} copied!", severity="information", timeout=2)\n'''
-          if old not in text:
+          import_anchor = '''try:\n    from .slipstream_artifacts import (\n'''
+          lifecycle_import = '''try:\n    from .dnsscanner_lifecycle import (\n        cancel_and_await_tasks as _cancel_and_await_tasks,\n        kill_and_reap_processes as _kill_and_reap_processes,\n    )\nexcept ImportError:  # pragma: no cover - direct script execution compatibility\n    from dnsscanner_lifecycle import (  # type: ignore[no-redef]\n        cancel_and_await_tasks as _cancel_and_await_tasks,\n        kill_and_reap_processes as _kill_and_reap_processes,\n    )\n\ntry:\n    from .slipstream_artifacts import (\n'''
+          if import_anchor not in text:
+              raise SystemExit('TUI import anchor not found')
+          text = text.replace(import_anchor, lifecycle_import, 1)
+          old_helpers = '''async def _cancel_and_await_tasks(tasks: Iterable[asyncio.Task[Any]]) -> None:\n    """Cancel owned tasks and wait for their finalizers to complete."""\n    owned = list(dict.fromkeys(tasks))\n    for task in owned:\n        if not task.done():\n            task.cancel()\n    if owned:\n        await asyncio.gather(*owned, return_exceptions=True)\n\n\nasync def _kill_and_reap_processes(\n    processes: Iterable[Any], timeout: float = 2.0\n) -> None:\n    """Kill owned child processes and reap them with a bounded wait."""\n    for process in list(dict.fromkeys(processes)):\n        try:\n            if process.returncode is None:\n                try:\n                    process.kill()\n                except ProcessLookupError:\n                    pass\n            try:\n                await asyncio.wait_for(process.wait(), timeout=timeout)\n            except asyncio.TimeoutError:\n                logger.error("Timed out reaping Slipstream child process")\n        except Exception as exc:\n            logger.warning("Failed to reap Slipstream child: %s", str(exc)[:200])\n\n\n'''
+          if old_helpers not in text:
+              raise SystemExit('inline lifecycle helpers not found')
+          text = text.replace(old_helpers, '', 1)
+          old_copy = '''            try:\n                pyperclip.copy(ip)\n                self.notify(f"{ip} copied!", severity="information", timeout=2)\n'''
+          new_copy = '''            try:\n                import pyperclip\n\n                pyperclip.copy(ip)\n                self.notify(f"{ip} copied!", severity="information", timeout=2)\n'''
+          if old_copy not in text:
               raise SystemExit('clipboard action block not found')
-          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          tui.write_text(text.replace(old_copy, new_copy, 1), encoding='utf-8')
+
+          test = Path('tests/unit/test_dnsscanner_tui_lifecycle.py')
+          text = test.read_text(encoding='utf-8')
+          old_import = '''from configstream.tools.dns_scanner.python.dnsscanner_tui import (\n    _cancel_and_await_tasks,\n    _kill_and_reap_processes,\n)\n'''
+          new_import = '''from configstream.tools.dns_scanner.python.dnsscanner_lifecycle import (\n    cancel_and_await_tasks as _cancel_and_await_tasks,\n    kill_and_reap_processes as _kill_and_reap_processes,\n)\n'''
+          if old_import not in text:
+              raise SystemExit('lifecycle test import not found')
+          test.write_text(text.replace(old_import, new_import, 1), encoding='utf-8')
           PY
           python scripts/validate_function_size_budget.py
+          python - <<'PY'
+          import json
+          from scripts.validate_exception_boundaries import BUDGET, count_boundaries
+
+          budget = json.loads(BUDGET.read_text(encoding='utf-8'))
+          expected = {str(path): int(count) for path, count in budget['path_ceilings'].items()}
+          actual = count_boundaries()
+          increases = [
+              f"{path}: {actual.get(path, 0)} > {ceiling}"
+              for path, ceiling in expected.items()
+              if actual.get(path, 0) > ceiling
+          ]
+          increases.extend(
+              f"{path}: unreviewed {count}"
+              for path, count in actual.items()
+              if path not in expected and count
+          )
+          if increases:
+              raise SystemExit('exception boundaries increased: ' + '; '.join(increases))
+          PY
+          python scripts/validate_exception_boundaries.py --write
           python scripts/validate_exception_boundaries.py
           python scripts/generate_environment_catalog.py
           python scripts/generate_debt_matrix.py
@@ -48,8 +90,10 @@ jobs:
           python -m pip install -e . --no-deps >/dev/null
           python - <<'PY'
           import importlib.util
-          assert importlib.util.find_spec('pyperclip') is None, 'CI unexpectedly provides pyperclip'
-          import configstream.tools.dns_scanner.python.dnsscanner_tui
+          assert importlib.util.find_spec('pyperclip') is None
+          assert importlib.util.find_spec('loguru') is None
+          from configstream.tools.dns_scanner.python import dnsscanner_lifecycle
+          assert dnsscanner_lifecycle.cancel_and_await_tasks
           PY
           pytest -q tests/unit/test_dnsscanner_tui_lifecycle.py tests/unit/test_slipstream_artifacts.py --disable-warnings --maxfail=1
           python scripts/verify_repository.py --profile static
@@ -60,7 +104,7 @@ jobs:
           set -euo pipefail
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add src/configstream/tools/dns_scanner/python/dnsscanner_tui.py TRIAGE_REPORT.md docs/generated/environment-variables.json docs/generated/environment-variables.md docs/DEBT_MATRIX.md docs/debt_matrix.json
+          git add src/configstream/tools/dns_scanner/python/dnsscanner_tui.py src/configstream/tools/dns_scanner/python/dnsscanner_lifecycle.py tests/unit/test_dnsscanner_tui_lifecycle.py config/exception-boundary-budget.json TRIAGE_REPORT.md docs/generated/environment-variables.json docs/generated/environment-variables.md docs/DEBT_MATRIX.md docs/debt_matrix.json
           git diff --cached --quiet && exit 0
-          git commit -m 'fix(dns-scanner): make clipboard dependency optional'
+          git commit -m 'fix(dns-scanner): isolate optional TUI dependencies'
           git push origin HEAD:codex/fix-run-34268254683-audit
