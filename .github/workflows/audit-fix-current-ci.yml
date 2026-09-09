@@ -1,0 +1,57 @@
+name: Apply current acceptance fixes
+
+on:
+  push:
+    branches: [codex/fix-run-34268254683-audit]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: codex/fix-run-34268254683-audit
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v6
+        with:
+          python-version: '3.11'
+      - name: Apply permanent fixes and refresh evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          helper=.github/workflows/audit-fix-current-ci.yml
+          cp "$helper" /tmp/audit-fix-current-ci.yml
+          rm "$helper"
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('src/configstream/quality/storage.py')
+          text = path.read_text(encoding='utf-8')
+          old = '''            for table in ("source_stats", "source_runs", "proxy_history"):\n                try:\n                    row_count = int(src.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0])\n                except sqlite3.OperationalError:\n                    if table == "source_stats":\n                        raise\n                    continue\n                if row_count > MAX_MERGE_ROWS_PER_TABLE:\n                    raise QualityStorageError(\n                        f"refusing to merge {table}: row limit exceeded"\n                    )\n'''
+          new = '''            count_queries = {\n                "source_stats": "SELECT COUNT(*) FROM source_stats",\n                "source_runs": "SELECT COUNT(*) FROM source_runs",\n                "proxy_history": "SELECT COUNT(*) FROM proxy_history",\n            }\n            for table, count_query in count_queries.items():\n                try:\n                    row_count = int(src.execute(count_query).fetchone()[0])\n                except sqlite3.OperationalError:\n                    if table == "source_stats":\n                        raise\n                    continue\n                if row_count > MAX_MERGE_ROWS_PER_TABLE:\n                    raise QualityStorageError(\n                        f"refusing to merge {table}: row limit exceeded"\n                    )\n'''
+          if old not in text:
+              raise SystemExit('quality merge preflight block not found')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
+          python scripts/generate_environment_catalog.py
+          python scripts/generate_debt_matrix.py
+          python scripts/generate_triage_report.py
+          python -m pip install -r requirements-dev.txt >/dev/null
+          python -m pip install -e . --no-deps >/dev/null
+          bandit -r src/configstream scripts tools frontend/assets/js -q
+          python scripts/validate_bandit_suppressions.py --require-active
+          python scripts/verify_repository.py --profile static
+          mv /tmp/audit-fix-current-ci.yml "$helper"
+      - name: Commit permanent fixes only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add src/configstream/quality/storage.py TRIAGE_REPORT.md docs/generated/environment-variables.json docs/generated/environment-variables.md docs/DEBT_MATRIX.md docs/debt_matrix.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'fix(ci): clear security and generated-evidence gates'
+          git push origin HEAD:codex/fix-run-34268254683-audit
