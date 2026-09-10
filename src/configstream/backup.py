@@ -177,33 +177,48 @@ def cleanup_old_backups(backup_dir: Path, retention_days: int) -> int:
     return deleted
 
 
-def restore_database(backup_file: Path, target_file: Path) -> bool:
-    """Restore a validated SQLite backup atomically.
+def _sqlite_backup(source: Path, destination: Path) -> None:
+    """Copy a database through SQLite's locking protocol."""
+    source_conn = sqlite3.connect(f"file:{source}?mode=ro", uri=True, timeout=5.0)
+    source_conn.execute("PRAGMA query_only=ON")
+    destination_conn: sqlite3.Connection | None = None
+    try:
+        destination_conn = sqlite3.connect(destination, timeout=5.0)
+        try:
+            source_conn.backup(destination_conn, pages=1000, progress=None)
+        except TypeError:
+            source_conn.backup(destination_conn)
+    finally:
+        if destination_conn is not None:
+            destination_conn.close()
+        source_conn.close()
 
-    Restore is deliberately offline. Replacing only a database main file while a
-    WAL/SHM generation is present can mix two SQLite generations and corrupt the
-    restored state, so active sidecars make the operation fail closed.
+
+def restore_database(backup_file: Path, target_file: Path) -> bool:
+    """Restore a validated SQLite backup without replacing a live database inode.
+
+    The candidate is first decompressed into a private temporary database and
+    validated with ``PRAGMA quick_check``. Publication then uses SQLite's online
+    backup API so WAL/SHM state and active connections participate in SQLite's
+    own locking protocol. This avoids swapping the main database file underneath
+    live connections, which can otherwise mix database generations.
     """
     backup_file = Path(backup_file)
     target_file = Path(target_file)
-    if not backup_file.exists():
-        logger.error("Backup file does not exist: %s", backup_file)
-        return False
-
-    for suffix in ("-wal", "-shm"):
-        sidecar = Path(f"{target_file}{suffix}")
-        if sidecar.exists():
-            logger.error("Refusing restore while SQLite sidecar exists: %s", sidecar)
-            return False
-
-    target_file.parent.mkdir(parents=True, exist_ok=True)
-    fd, temp_name = tempfile.mkstemp(
-        prefix=f".{target_file.name}.restore-", dir=target_file.parent
-    )
-    os.close(fd)
-    temp_path = Path(temp_name)
+    temp_path: Path | None = None
 
     try:
+        if not backup_file.exists():
+            logger.error("Backup file does not exist: %s", backup_file)
+            return False
+
+        target_file.parent.mkdir(parents=True, exist_ok=True)
+        fd, temp_name = tempfile.mkstemp(
+            prefix=f".{target_file.name}.restore-", dir=target_file.parent
+        )
+        os.close(fd)
+        temp_path = Path(temp_name)
+
         opener = gzip.open if backup_file.name.endswith(".gz") else open
         with opener(backup_file, "rb") as f_in, temp_path.open("wb") as f_out:
             restored_bytes = 0
@@ -228,24 +243,29 @@ def restore_database(backup_file: Path, target_file: Path) -> bool:
         if target_file.exists():
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             pre_restore_backup = target_file.with_suffix(f".pre_restore_{timestamp}.db")
-            shutil.copy2(target_file, pre_restore_backup)
+            _sqlite_backup(target_file, pre_restore_backup)
             logger.info("Created pre-restore backup: %s", pre_restore_backup.name)
 
-        os.replace(temp_path, target_file)
+        # Never os.replace() the main database while another connection may own
+        # a WAL generation. The SQLite backup API writes through the destination
+        # database's normal pager/locking protocol and keeps existing connections
+        # attached to the same database file generation.
+        _sqlite_backup(temp_path, target_file)
         logger.info("Restored %s from %s", target_file.name, backup_file.name)
         return True
     except Exception as exc:
         logger.error("Failed to restore database: %s", safe_log_text(exc))
         return False
     finally:
-        try:
-            temp_path.unlink(missing_ok=True)
-        except OSError as cleanup_exc:
-            logger.debug(
-                "Failed to remove restore temp file %s: %s",
-                temp_path.name,
-                safe_log_text(cleanup_exc),
-            )
+        if temp_path is not None:
+            try:
+                temp_path.unlink(missing_ok=True)
+            except OSError as cleanup_exc:
+                logger.debug(
+                    "Failed to remove restore temp file %s: %s",
+                    temp_path.name,
+                    safe_log_text(cleanup_exc),
+                )
 
 
 def _parse_timestamp_from_name(name: str) -> datetime | None:
