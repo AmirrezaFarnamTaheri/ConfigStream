@@ -6,11 +6,13 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from scripts import generate_debt_matrix
 
 
 def test_generate_debt_matrix_uses_repo_relative_paths(
-    tmp_path: Path, monkeypatch
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     root = tmp_path
     source = root / "src" / "configstream"
@@ -48,7 +50,9 @@ def test_generate_debt_matrix_classifies_test_mocks() -> None:
     )
 
 
-def test_debt_matrix_check_rejects_absolute_paths(tmp_path: Path, monkeypatch) -> None:
+def test_debt_matrix_check_rejects_absolute_paths(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     docs = tmp_path / "docs"
     docs.mkdir()
     (docs / "debt_matrix.json").write_text(
@@ -79,7 +83,7 @@ def test_debt_matrix_check_rejects_absolute_paths(tmp_path: Path, monkeypatch) -
 
 
 def test_debt_matrix_check_accepts_portable_artifacts(
-    tmp_path: Path, monkeypatch
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     docs = tmp_path / "docs"
     docs.mkdir()
@@ -112,8 +116,8 @@ def test_debt_matrix_check_accepts_portable_artifacts(
 
 
 def test_structural_debt_scan_finds_broad_exception_and_large_function(
-    tmp_path, monkeypatch
-):
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     root = tmp_path
     source = root / "src" / "configstream"
     source.mkdir(parents=True)
@@ -131,7 +135,9 @@ def test_structural_debt_scan_finds_broad_exception_and_large_function(
     assert markers == {"BROAD_EXCEPTION", "LARGE_FUNCTION"}
 
 
-def test_debt_matrix_outputs_are_reproducible(tmp_path: Path, monkeypatch) -> None:
+def test_debt_matrix_outputs_are_reproducible(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     docs = tmp_path / "docs"
     docs.mkdir()
     out_json = docs / "debt_matrix.json"
