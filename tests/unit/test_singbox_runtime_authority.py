@@ -48,9 +48,9 @@ def test_release_artifacts_are_checked_by_governed_native_sing_box() -> None:
             if not isinstance(step, dict):
                 continue
             command = str(step.get("run") or "")
-            if any(
-                line.strip().startswith("python scripts/native_client_checks.py ")
-                for line in command.splitlines()
+            if (
+                "scripts/resilient_stage.py run --name native-validation" in command
+                and "-- python scripts/native_client_checks.py output" in command
             ):
                 executable_steps.append(step)
 
