@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_digest": "4c223a1fbc96a3b76dfbab962b7810cfb0d3a9237e0dfd3b23f4def4b27a915e",
+  "source_digest": "ad3e796cca3ab3078bf701cd6f36117a78c3554b31fbf290c9b0f5038d4876d9",
   "variable_count": 161,
   "variables": [
     {
@@ -1187,7 +1187,7 @@
       "required": false,
       "sensitive": false,
       "sources": [
-        "scripts/finalize_release.py:299"
+        "scripts/finalize_release.py:297"
       ],
       "type": null
     },
