@@ -1,0 +1,228 @@
+name: Temporary merge main into PR 593
+
+on:
+  push:
+    branches:
+      - codex/fix-run-34268254683-audit
+
+permissions:
+  contents: write
+
+concurrency:
+  group: temporary-merge-main-pr593
+  cancel-in-progress: false
+
+jobs:
+  merge:
+    if: github.repository == 'AmirrezaFarnamTaheri/ConfigStream'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: '3.11'
+      - name: Merge current main without discarding PR hardening
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git merge --no-commit -X ours origin/main
+      - name: Reconcile container shell contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('scripts/validate_workflows.py')
+          text = path.read_text(encoding='utf-8')
+          old = '''def _is_bash_shell(value: object) -> bool:\n    if not isinstance(value, str):\n        return False\n    shell = value.strip().lower()\n    return shell == "bash" or shell.startswith("bash ")\n\n\ndef _container_bash_shell_errors(data: dict[Any, Any]) -> list[str]:\n    """Reject Bash-only run syntax that would execute with a container's /bin/sh."""\n    errors: list[str] = []\n    for job_name, job in _jobs(data).items():\n        if not isinstance(job, dict) or "container" not in job:\n            continue\n        defaults = job.get("defaults", {})\n        default_run = defaults.get("run", {}) if isinstance(defaults, dict) else {}\n        default_shell = (\n            default_run.get("shell") if isinstance(default_run, dict) else None\n        )\n        steps = job.get("steps", [])\n        if not isinstance(steps, list):\n            continue\n        for index, step in enumerate(steps, start=1):\n            if not isinstance(step, dict):\n                continue\n            command = _run(step)\n            if not command or not any(\n                marker in command for marker in _BASH_ONLY_RUN_MARKERS\n            ):\n                continue\n            effective_shell = step.get("shell", default_shell)\n            if _is_bash_shell(effective_shell):\n                continue\n            name = str(step.get("name") or f"step {index}")\n            errors.append(\n                f"container job {job_name!s} step {name!r} uses Bash-only syntax "\n                "without shell: bash or defaults.run.shell: bash"\n            )\n    return errors\n'''
+          new = '''def _is_bash_shell(value: object) -> bool:\n    if not isinstance(value, str):\n        return False\n    shell = value.strip().lower()\n    return shell == "bash" or shell.startswith("bash ")\n\n\ndef _default_run_shell(node: dict[Any, Any]) -> object:\n    defaults = node.get("defaults")\n    if not isinstance(defaults, dict):\n        return None\n    run_defaults = defaults.get("run")\n    if not isinstance(run_defaults, dict):\n        return None\n    return run_defaults.get("shell")\n\n\ndef _container_bash_shell_errors(data: dict[Any, Any]) -> list[str]:\n    """Reject Bash-only container commands unless their effective shell is Bash."""\n    errors: list[str] = []\n    workflow_shell = _default_run_shell(data)\n    for job_name, job in _jobs(data).items():\n        if not isinstance(job, dict) or "container" not in job:\n            continue\n        default_shell = _default_run_shell(job) or workflow_shell\n        steps = job.get("steps", [])\n        if not isinstance(steps, list):\n            continue\n        for index, step in enumerate(steps, start=1):\n            if not isinstance(step, dict):\n                continue\n            command = _run(step)\n            if not command or not any(\n                marker in command for marker in _BASH_ONLY_RUN_MARKERS\n            ):\n                continue\n            effective_shell = step.get("shell") or default_shell\n            if _is_bash_shell(effective_shell):\n                continue\n            name = str(step.get("name") or f"step {index}")\n            errors.append(\n                f"container job {job_name!s} step {name!r} uses Bash-only syntax "\n                "without shell: bash or defaults.run.shell: bash"\n            )\n    return errors\n'''
+          if old not in text:
+              raise SystemExit('expected current shell validator block not found')
+          path.write_text(text.replace(old, new), encoding='utf-8')
+
+          main = Path('.github/workflows/main.yml')
+          workflow = main.read_text(encoding='utf-8')
+          marker = '      - name: Download and validate GeoIP databases once per run\n        env:\n'
+          replacement = '      - name: Download and validate GeoIP databases once per run\n        shell: bash\n        env:\n'
+          if replacement not in workflow:
+              if marker not in workflow:
+                  raise SystemExit('GeoIP preparation step marker not found')
+              workflow = workflow.replace(marker, replacement, 1)
+              main.write_text(workflow, encoding='utf-8')
+          PY
+
+          cat > scripts/validate_container_shells.py <<'PY'
+          # SPDX-License-Identifier: AGPL-3.0-or-later
+          """Validate Bash-only commands in GitHub Actions job containers."""
+
+          from __future__ import annotations
+
+          from pathlib import Path
+          import sys
+          from typing import Any
+
+          import yaml
+
+          REPO_ROOT = Path(__file__).resolve().parents[1]
+          WORKFLOW_DIR = REPO_ROOT / ".github" / "workflows"
+          if str(REPO_ROOT) not in sys.path:
+              sys.path.insert(0, str(REPO_ROOT))
+
+          from scripts.validate_workflows import _container_bash_shell_errors
+
+
+          def validate_workflow(data: dict[Any, Any]) -> list[str]:
+              """Return violations using the repository's single shell-contract implementation."""
+              return _container_bash_shell_errors(data)
+
+
+          def main() -> int:
+              errors: list[str] = []
+              for path in sorted(WORKFLOW_DIR.glob("*.y*ml")):
+                  try:
+                      data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+                  except (OSError, yaml.YAMLError) as exc:
+                      errors.append(f"{path}: cannot parse workflow: {exc}")
+                      continue
+                  if not isinstance(data, dict):
+                      errors.append(f"{path}: workflow root must be a mapping")
+                      continue
+                  errors.extend(
+                      f"{path}: {error}" for error in validate_workflow(data)
+                  )
+              if errors:
+                  for error in errors:
+                      print(f"ERROR: {error}")
+                  return 1
+              print("OK: job-container shell contracts validated")
+              return 0
+
+
+          if __name__ == "__main__":
+              raise SystemExit(main())
+          PY
+
+          cat > tests/unit/test_container_run_shell_contract.py <<'PY'
+          # SPDX-License-Identifier: AGPL-3.0-or-later
+          from __future__ import annotations
+
+          from pathlib import Path
+          from typing import Any
+
+          import yaml
+
+          from scripts.validate_workflows import _container_bash_shell_errors
+
+          REPO_ROOT = Path(__file__).resolve().parents[2]
+          WORKFLOW_DIR = REPO_ROOT / ".github" / "workflows"
+
+
+          def test_container_bash_only_steps_resolve_to_bash() -> None:
+              failures: list[str] = []
+              for workflow_path in sorted(WORKFLOW_DIR.glob("*.y*ml")):
+                  payload = yaml.safe_load(workflow_path.read_text(encoding="utf-8")) or {}
+                  if not isinstance(payload, dict):
+                      continue
+                  failures.extend(
+                      f"{workflow_path.name}: {error}"
+                      for error in _container_bash_shell_errors(payload)
+                  )
+              assert not failures, "\n".join(failures)
+
+
+          def test_container_shell_validator_rejects_default_sh_for_bash_syntax() -> None:
+              workflow: dict[str, Any] = {
+                  "jobs": {
+                      "container_job": {
+                          "container": {"image": "example.invalid/image@sha256:deadbeef"},
+                          "steps": [{"name": "strict", "run": "set -euo pipefail\necho ok"}],
+                      }
+                  }
+              }
+              assert len(_container_bash_shell_errors(workflow)) == 1
+
+
+          def test_container_shell_validator_accepts_step_job_and_workflow_bash() -> None:
+              explicit: dict[str, Any] = {
+                  "jobs": {
+                      "container_job": {
+                          "container": {"image": "example.invalid/image@sha256:deadbeef"},
+                          "steps": [{"run": "set -euo pipefail\necho ok", "shell": "bash"}],
+                      }
+                  }
+              }
+              inherited_job: dict[str, Any] = {
+                  "jobs": {
+                      "container_job": {
+                          "container": {"image": "example.invalid/image@sha256:deadbeef"},
+                          "defaults": {"run": {"shell": "bash"}},
+                          "steps": [{"run": "set -euo pipefail\necho ok"}],
+                      }
+                  }
+              }
+              inherited_workflow: dict[str, Any] = {
+                  "defaults": {"run": {"shell": "bash"}},
+                  "jobs": {
+                      "container_job": {
+                          "container": {"image": "example.invalid/image@sha256:deadbeef"},
+                          "steps": [{"run": "set -euo pipefail\necho ok"}],
+                      }
+                  },
+              }
+              assert _container_bash_shell_errors(explicit) == []
+              assert _container_bash_shell_errors(inherited_job) == []
+              assert _container_bash_shell_errors(inherited_workflow) == []
+
+
+          def test_posix_only_container_command_does_not_require_bash() -> None:
+              workflow: dict[str, Any] = {
+                  "jobs": {
+                      "container_job": {
+                          "container": {"image": "example.invalid/image@sha256:deadbeef"},
+                          "steps": [{"run": "echo ok"}],
+                      }
+                  }
+              }
+              assert _container_bash_shell_errors(workflow) == []
+          PY
+
+          python -m black --fast --target-version py310 \
+            scripts/validate_workflows.py \
+            scripts/validate_container_shells.py \
+            tests/unit/test_container_run_shell_contract.py
+          python -m py_compile scripts/validate_workflows.py scripts/validate_container_shells.py
+          git diff --check
+      - name: Install validation dependencies
+        run: |
+          python -m pip install -r requirements-dev.txt
+          python -m pip install -e . --no-deps
+      - name: Validate reconciled merge
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/validate_workflows.py
+          python scripts/validate_container_shells.py
+          python scripts/generate_debt_matrix.py --check
+          python scripts/generate_environment_catalog.py --check
+          python scripts/validate_function_size_budget.py
+          python scripts/validate_exception_boundaries.py
+          pytest -q \
+            tests/unit/test_container_run_shell_contract.py \
+            tests/unit/test_validate_workflow_shells.py \
+            tests/unit/test_validate_container_shells.py \
+            tests/unit/test_validate_workflows_resilient.py \
+            --disable-warnings --maxfail=1
+      - name: Commit and push merge
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -A
+          git commit -m "merge: reconcile main GeoIP shell fix"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
