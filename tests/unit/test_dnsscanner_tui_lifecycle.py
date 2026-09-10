@@ -1,5 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import ast
 import asyncio
+from pathlib import Path
 
 import pytest
 
@@ -77,19 +79,58 @@ async def test_kill_and_reap_processes_reaps_already_exited_child() -> None:
     assert process.waited == 1
 
 
+def test_tui_initialization_defers_unsupported_slipstream() -> None:
+    """Lock the lazy-init contract without importing optional TUI dependencies."""
+    source = Path(
+        "src/configstream/tools/dns_scanner/python/dnsscanner_tui.py"
+    ).read_text(encoding="utf-8")
+    tree = ast.parse(source)
 
-def test_tui_initialization_defers_unsupported_slipstream(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    from configstream.tools.dns_scanner.python import dnsscanner_tui
+    tui_class = next(
+        node
+        for node in tree.body
+        if isinstance(node, ast.ClassDef) and node.name == "DNSScannerTUI"
+    )
+    init = next(
+        node
+        for node in tui_class.body
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        and node.name == "__init__"
+    )
 
-    monkeypatch.setattr(dnsscanner_tui.platform, "system", lambda: "Linux")
-    monkeypatch.setattr(dnsscanner_tui.platform, "machine", lambda: "armv7l")
+    eager_resolution = [
+        node
+        for node in ast.walk(init)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and node.func.attr == "get_executable_path"
+    ]
+    assert eager_resolution == []
 
-    app = dnsscanner_tui.DNSScannerTUI()
+    assert any(
+        isinstance(node, ast.Assign)
+        and any(
+            isinstance(target, ast.Attribute)
+            and isinstance(target.value, ast.Name)
+            and target.value.id == "self"
+            and target.attr == "slipstream_path"
+            for target in node.targets
+        )
+        and isinstance(node.value, ast.Constant)
+        and node.value.value == ""
+        for node in ast.walk(init)
+    )
 
-    assert app.slipstream_path == ""
-    assert app.slipstream_manager.is_supported() is False
-    assert app.slipstream_manager.get_download_url() is None
-    with pytest.raises(RuntimeError, match="Unsupported platform"):
-        app.slipstream_manager.get_executable_path()
+    start_scan = next(
+        node
+        for node in tui_class.body
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        and node.name == "_start_scan_from_form"
+    )
+    called_attributes = {
+        node.func.attr
+        for node in ast.walk(start_scan)
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+    }
+    assert "is_supported" in called_attributes
+    assert "get_executable_path" in called_attributes
